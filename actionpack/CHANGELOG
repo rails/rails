@@ -1,5 +1,7 @@
 *SVN*
 
+* Added fourth argument to render_collection_of_partials that allows you to specify local_assigns -- just like render_partial #432 [zenspider]
+
 * Fixed that host would choke when cgi.host returned nil #432 [Tobias Luetke]
 
 * Added that form helpers now take an index option #448 [Tim Bates]

@@ -39,11 +39,11 @@ module ActionView
       render("#{path}/_#{partial_name}", { partial_name => object }.merge(local_assigns))
     end
 
-    def render_collection_of_partials(partial_name, collection, partial_spacer_template = nil)
+    def render_collection_of_partials(partial_name, collection, partial_spacer_template = nil, local_assigns = {})
       collection_of_partials = Array.new
       counter_name = partial_counter_name(partial_name)
       collection.each_with_index do |element, counter|
-        collection_of_partials.push(render_partial(partial_name, element, counter_name => counter))
+        collection_of_partials.push(render_partial(partial_name, element, { counter_name => counter }.merge(local_assigns)))
       end
 
       return nil if collection_of_partials.empty?
