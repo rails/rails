@@ -157,7 +157,14 @@ module ActionView
 
         # Turns all urls into clickable links.
         def auto_link_urls(text)
-          text.gsub(/([^=><!:'"\/]|^)((http[s]?:\/\/)|(www\.))(\S+\b\/?)([[:punct:]]*)(\s|$)/, '\1<a href="\3\4\5">\3\4\5</a>\6\7')
+          text.gsub(/(<\w+.*?>|[^=!:'"\/]|^)((?:http[s]?:\/\/)|(?:www\.))([^\s<]+\/?)([[:punct:]]|\s|<|$)/) do
+            all, a, b, c, d = $&, $1, $2, $3, $4
+            if a =~ /<a\s/i # don't replace URL's that are already linked
+              all
+            else
+              %(#{a}<a href="#{b=="www."?"http://www.":b}#{c}">#{b}#{c}</a>#{d})
+            end
+          end
         end
 
         # Turns all email addresses into clickable links.
