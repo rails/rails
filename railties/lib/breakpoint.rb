@@ -21,7 +21,7 @@ require 'drb'
 require 'drb/acl'
 
 module Breakpoint
-  id = %q$Id: breakpoint.rb 41 2005-01-22 20:22:10Z flgr $
+  id = %q$Id: breakpoint.rb 92 2005-02-04 22:35:53Z flgr $
   Version = id.split(" ")[2].to_i
 
   extend self
@@ -122,6 +122,7 @@ module Breakpoint
     # in the context of the client.
     class Client
       def initialize(eval_handler) # :nodoc:
+        eval_handler.untaint
         @eval_handler = eval_handler
       end
 
@@ -288,6 +289,8 @@ module Breakpoint
     def collision
       sleep(0.5) until @collision_handler
 
+      @collision_handler.untaint
+
       @collision_handler.call
     end
 
@@ -299,6 +302,7 @@ module Breakpoint
 
       sleep(0.5) until @handler
 
+      @handler.untaint
       @handler.call(workspace, message)
     end
 
@@ -456,6 +460,7 @@ module IRB # :nodoc:
       old_CurrentContext
     end
   end
+  def IRB.parse_opts() end
 
   class Context
     alias :old_evaluate :evaluate

@@ -1,3 +1,13 @@
+* Upgraded to breakpoint 92 which fixes:
+
+    * overload IRB.parse_opts(), fixes #443
+      => breakpoints in tests work even when running them via rake
+    * untaint handlers, might fix an issue discussed on the Rails ML
+    * added verbose mode to breakpoint_client
+    * less noise caused by breakpoint_client by default
+    * ignored TerminateLineInput exception in signal handler
+      => quiet exit on Ctrl-C
+
 * Fixed Inflector for words like "news" and "series" that are the same in plural and singular #603 [echion], #615 [marcenuc]
 
 * Added Hash#stringify_keys and Hash#stringify_keys!

@@ -6,7 +6,7 @@ Options = {
   :ClientURI  => nil,
   :ServerURI  => "druby://localhost:42531",
   :RetryDelay => 3,
-  :Permanent  => true,
+  :Permanent  => false,
   :Verbose    => false
 }
 
@@ -70,7 +70,7 @@ ARGV.options do |opts|
   opts.on("-v", "--version",
     "Display the version information."
   ) do
-    id = %q$Id: breakpoint_client.rb 40 2005-01-22 20:05:00Z flgr $
+    id = %q$Id: breakpoint_client.rb 91 2005-02-04 22:34:08Z flgr $
     puts id.sub("Id: ", "")
     puts "(Breakpoint::Version = #{Breakpoint::Version})"
     exit
@@ -149,9 +149,12 @@ loop do
     service = DRbObject.new(nil, Options[:ServerURI])
 
     begin
-      service.eval_handler = Handlers.method(:eval_handler)
-      service.collision_handler = Handlers.method(:collision_handler)
-      service.handler = Handlers.method(:breakpoint_handler)
+      ehandler = Handlers.method(:eval_handler)
+      chandler = Handlers.method(:collision_handler)
+      handler = Handlers.method(:breakpoint_handler)
+      service.eval_handler = ehandler
+      service.collision_handler = chandler
+      service.handler = handler
 
       reconnecting = false
       if Options[:Verbose] then

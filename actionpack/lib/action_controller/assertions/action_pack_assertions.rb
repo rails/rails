@@ -218,8 +218,7 @@ module Test #:nodoc:
         xml, matches = REXML::Document.new(response.body), []
         xml.elements.each(expression) { |e| matches << e.text }
         if matches.empty? then
-          msg = build_message(message, "<?> not found in document",
-                              expression)
+          msg = build_message(message, "<?> not found in document", expression)
           flunk(msg)
           return
         elsif matches.length < 2 then
