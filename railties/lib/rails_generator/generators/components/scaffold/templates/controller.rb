@@ -1,6 +1,5 @@
 class <%= controller_class_name %>Controller < ApplicationController
 <% unless suffix -%>
-
   def index
     list
     render_action 'list'
