@@ -124,11 +124,11 @@ module ActiveRecord #:nodoc:
   #   user = User.create("preferences" => { "background" => "black", "display" => large })
   #   User.find(user.id).preferences # => { "background" => "black", "display" => large }
   # 
-  # You can also specify an optional :class_name option that'll raise an exception if a serialized object is retrieved as a 
+  # You can also specify an class option as the second parameter that'll raise an exception if a serialized object is retrieved as a 
   # descendent of a class not in the hierarchy. Example:
   # 
   #   class User < ActiveRecord::Base
-  #     serialize :preferences, :class_name => "Hash"
+  #     serialize :preferences, Hash
   #   end
   # 
   #   user = User.create("preferences" => %w( one two three ))
@@ -171,8 +171,7 @@ module ActiveRecord #:nodoc:
   # * +AdapterNotSpecified+ -- the <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified an unexisting adapter
   #   (or a bad spelling of an existing one). 
   # * +AssociationTypeMismatch+ -- the object assigned to the association wasn't of the type specified in the association definition. 
-  # * +SerializationTypeMismatch+ -- the object serialized wasn't of the class specified in the <tt>:class_name</tt> option of 
-  #   the serialize definition. 
+  # * +SerializationTypeMismatch+ -- the object serialized wasn't of the class specified as the second parameter. 
   # * +ConnectionNotEstablished+ -- no connection has been established. Use <tt>establish_connection</tt> before querying.
   # * +RecordNotFound+ -- no record responded to the find* method. 
   #   Either the row with the given ID doesn't exist or the row didn't meet the additional restrictions.
