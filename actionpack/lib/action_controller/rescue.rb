@@ -77,8 +77,8 @@ module ActionController #:nodoc:
       def perform_action_with_rescue #:nodoc:
         begin
           perform_action_without_rescue
-        rescue => exception
-          if defined?(Breakpoint) and @params["BP-RETRY"] then
+        rescue Object => exception
+          if defined?(Breakpoint) && @params["BP-RETRY"]
             msg = exception.backtrace.first
             if md = /^(.+?):(\d+)(?::in `(.+)')?$/.match(msg) then
               origin_file, origin_line = md[1], md[2].to_i
