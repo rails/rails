@@ -3,7 +3,12 @@
 if ARGV[0]
   ENV['RAILS_ENV'] = ARGV[0]
   puts "Loading environment..."
-  exec "irb -r config/environment.rb -r irb/completion --noinspect"
+  if RUBY_PLATFORM =~ /mswin32/
+    irb_name = "irb.bat"
+  else
+    irb_name = 'irb'
+  end
+  exec "#{irb_name} -r config/environment.rb -r irb/completion --noinspect"
 else
   puts <<-HELP
 
