@@ -52,7 +52,7 @@ module ActionController #:nodoc:
     
     # Removes the cookie on the client machine by setting the value to an empty string.
     def delete(name)
-      set_cookie(name, "value" => "")
+      set_cookie(name, "name" => name, "value" => "")
     end
 
     private
