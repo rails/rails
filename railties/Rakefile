@@ -96,7 +96,7 @@ end
 # :link_apache_config
 desc "Make copies of all the default content of ties"
 task :copy_ties_content => [ 
-  :copy_rootfiles, :copy_dispatches, :copy_html_files, :copy_abstract_application,
+  :copy_rootfiles, :copy_dispatches, :copy_html_files, :copy_application,
   :copy_configs, :copy_generators, :copy_binfiles, :copy_test_helpers, :copy_docs_in_public,
   :copy_app_doc_readme ]
 
@@ -121,8 +121,8 @@ task :copy_html_files do
      File.join(PKG_DESTINATION, 'public')
 end
 
-task :copy_abstract_application do
-  cp "helpers/abstract_application.rb", "#{PKG_DESTINATION}/app/controllers/abstract_application.rb"
+task :copy_application do
+  cp "helpers/application.rb", "#{PKG_DESTINATION}/app/controllers/application.rb"
   cp "helpers/application_helper.rb", "#{PKG_DESTINATION}/app/helpers/application_helper.rb"
 end
 

@@ -1,4 +1,4 @@
-class <%= class_name %>Controller < AbstractApplicationController
+class <%= class_name %>Controller < ApplicationController
 <% if options[:scaffold] -%>
   scaffold :<%= singular_name %>
 <% end -%>

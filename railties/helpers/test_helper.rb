@@ -1,6 +1,6 @@
 ENV["RAILS_ENV"] ||= "test"
 require File.dirname(__FILE__) + "/../config/environment"
-require 'abstract_application'
+require 'application'
 
 require 'test/unit'
 require 'active_record/fixtures'

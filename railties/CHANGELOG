@@ -1,5 +1,8 @@
 *CVS*
 
+* Renamed AbstractApplicationController and abstract_application.rb to ApplicationController and application.rb, so that it will be possible
+  for the framework to automatically pick up on app/views/layouts/application.rhtml and app/helpers/application.rb
+
 * Added script/envcon that makes it even easier to start an IRB session for interacting with the domain model. Run with no-args to
   see help.
 
