@@ -417,6 +417,8 @@ module Breakpoint
 end
 
 module IRB # :nodoc:
+  def IRB.parse_opts() end
+
   class << self; remove_method :start; end
   def self.start(ap_path = nil, main_context = nil, workspace = nil)
     $0 = File::basename(ap_path, ".rb") if ap_path
