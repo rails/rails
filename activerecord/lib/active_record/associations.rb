@@ -4,24 +4,24 @@ require 'active_record/associations/has_and_belongs_to_many_association'
 require 'active_record/deprecated_associations'
 
 
-class << Object #:nodoc:
-  # Make require_association available as a bare method.
-  unless respond_to?(:require_association)
-    def require_association(file_name)
-      ActiveRecord::Base.require_association(file_name)
-    end
-  end
+unless Object.respond_to?(:require_association)
+  Object.send(:define_method, :require_association) { |file_name| ActiveRecord::Base.require_association(file_name) }
+end
 
-  # Use const_missing to autoload associations so we don't have to
-  # require_association when using single-table inheritance.
-  unless respond_to?(:pre_association_const_missing)
-    alias_method :pre_association_const_missing, :const_missing
+class Object
+  class << self
+    # Use const_missing to autoload associations so we don't have to
+    # require_association when using single-table inheritance.
+    unless respond_to?(:pre_association_const_missing)
+      alias_method :pre_association_const_missing, :const_missing
 
-    def const_missing(class_id)
-      begin
-        require_association(Inflector.underscore(Inflector.demodulize(class_id.to_s)))
-      rescue LoadError
-        pre_association_const_missing(class_id)
+      def const_missing(class_id)
+        begin
+          require_association(Inflector.underscore(Inflector.demodulize(class_id.to_s)))
+          return Object.const_get(class_id) if Object.const_get(class_id).ancestors.include?(ActiveRecord::Base)
+        rescue LoadError
+          pre_association_const_missing(class_id)
+        end
       end
     end
   end
