@@ -1,0 +1,28 @@
+Description:
+    The web service generator creates the controller and API definition for 
+    a web service.
+
+    The generator takes a web service name and a list of API methods as arguments.
+    The web service name may be given in CamelCase or under_score and should
+    contain no extra suffixes.  To create a web service within a
+    module, specify the web service name as 'module/webservice'.
+
+    The generator creates a controller class in app/controllers, an API definition
+    in app/apis, and a functional test suite in test/functional.
+
+Example:
+    ./script/generate web_service User add edit list remove
+
+    User web service.
+        Controller: app/controllers/user_controller.rb
+        API:        app/apis/user_api.rb
+        Test:       test/functional/user_api_test.rb
+
+Modules Example:
+    ./script/generate web_service 'api/registration' register renew
+
+    Registration web service.
+        Controller: app/controllers/api/registration_controller.rb
+        API:        app/apis/api/registration_api.rb
+        Test:       test/functional/api/registration_api_test.rb
+
