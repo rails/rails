@@ -8,7 +8,7 @@ require File.dirname(__FILE__) + '/config/environment'
 require 'code_statistics'
 
 desc "Run all the tests on a fresh test database"
-task :default => [ :clone_structure_to_test, :test_units, :test_functional ]
+task :default => [ :test_units, :test_functional ]
 
 desc "Generate API documentatio, show coding stats"
 task :doc => [ :appdoc, :stats ]
@@ -20,6 +20,7 @@ Rake::TestTask.new("test_units") { |t|
   t.pattern = 'test/unit/**/*_test.rb'
   t.verbose = true
 }
+task :test_units => [ :clone_structure_to_test ]
 
 desc "Run the functional tests in test/functional"
 Rake::TestTask.new("test_functional") { |t|
@@ -27,6 +28,7 @@ Rake::TestTask.new("test_functional") { |t|
   t.pattern = 'test/functional/**/*_test.rb'
   t.verbose = true
 }
+task :test_functional => [ :clone_structure_to_test ]
 
 desc "Generate documentation for the application"
 Rake::RDocTask.new("appdoc") { |rdoc|
