@@ -1,0 +1,3 @@
+#!/bin/sh
+
+rcov -x '.*_test\.rb,rubygems,abstract_,/run' ./run

@@ -7,8 +7,6 @@ module ActionWebService # :nodoc:
           class << self
             alias_method :inherited_without_action_controller, :inherited
           end
-        end
-        base.class_eval do 
           alias_method :before_direct_invoke_without_action_controller, :before_direct_invoke
           alias_method :after_direct_invoke_without_action_controller, :after_direct_invoke
         end

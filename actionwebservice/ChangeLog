@@ -1,6 +1,6 @@
 UNRELEASED
 
-	* lib/action_service/dispatcher*: replaces "router" fragments with
+	* lib/action_service/dispatcher*: replace "router" fragments with
 	  one file for Action Controllers, moves dispatching work out of
 	  the container
 	* lib/*,test/*,examples/*: rename project to

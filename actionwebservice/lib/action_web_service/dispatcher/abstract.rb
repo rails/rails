@@ -75,10 +75,6 @@ module ActionWebService # :nodoc:
           return_value
         end
 
-        def fallback_invoke(dispatch_request)
-          raise NotImplementedError
-        end
-
         def prepare_dispatch_request(protocol_request)
           api = method_name = web_service_name = web_service = params = nil
           public_method_name = protocol_request.public_method_name
@@ -122,15 +118,11 @@ module ActionWebService # :nodoc:
             when :direct
               if web_service_exception_reporting
                 return protocol_request.protocol.marshal_exception(exception)
-              else
-                raise exception
               end
             when :delegated
               web_service = web_service_object(protocol_request.web_service_name)
               if web_service && web_service.class.web_service_exception_reporting
                 return protocol_request.protocol.marshal_exception(exception)
-              else
-                raise exception
               end
             end
           else
