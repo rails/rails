@@ -32,7 +32,7 @@ link:files/vendor/actionpack/README.html.
 
 == Optionals
 
-* Apache 1.3.x or 2.x (or any FastCGI-capable webserver with a
+* Apache 1.3.x or 2.x or lighttpd 1.3.11+ (or any FastCGI-capable webserver with a
   mod_rewrite-like module)
 * FastCGI (or mod_ruby) for better performance on Apache
 
@@ -166,7 +166,7 @@ app/helpers
   Holds view helpers that should be named like weblog_helper.rb.
 
 config
-  Configuration files for Apache, database, and other dependencies.
+  Configuration files for the Rails environment, the routing map, the database, and other dependencies.
 
 components
   Self-contained mini-applications that can bundle controllers, models, and views together.
@@ -176,10 +176,8 @@ lib
   belong controllers, models, or helpers. This directory is in the load path.
     
 public
-  The directory available for Apache, which includes symbolic links to other
-  parts of the structure that are to be made available. Refrain from placing
-  actual files in here if you're using CVS and don't want to check in this
-  directory.
+  The directory available for the web server. Contains sub-directories for images, stylesheets,
+  and javascripts. Also contains the dispatchers and the default HTML files.
 
 script
   Helper scripts for automation and generation.
