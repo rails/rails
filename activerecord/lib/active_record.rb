@@ -23,16 +23,13 @@
 
 
 $:.unshift(File.dirname(__FILE__))
+$:.unshift(File.dirname(__FILE__) + "/../../activesupport/lib")
 
 begin
-  require 'active_support'
+  require 'active_support'  
 rescue LoadError
-  begin
-    require File.dirname(__FILE__) + '/../../activesupport/lib/active_support'
-  rescue LoadError
-    require 'rubygems'
-    require_gem 'activesupport'
-  end
+  require 'rubygems'
+  require_gem 'activesupport'
 end
 
 require 'active_record/base'

@@ -1,6 +1,3 @@
-require 'active_support/class_attribute_accessors'
-require 'active_support/class_inheritable_attributes'
-require 'active_support/inflector'
 require 'yaml'
 
 module ActiveRecord #:nodoc:
