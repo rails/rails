@@ -35,12 +35,14 @@ files = %w-
  active_record/base.rb
  active_record/callbacks.rb
  active_record/connection_adapters/abstract_adapter.rb
+ active_record/connection_adapters/db2_adapter.rb
  active_record/connection_adapters/mysql_adapter.rb
  active_record/connection_adapters/postgresql_adapter.rb
  active_record/connection_adapters/sqlite_adapter.rb
- active_record/connection_adapters/db2_adapter.rb
+ active_record/connection_adapters/sqlserver_adapter.rb
  active_record/deprecated_associations.rb
  active_record/fixtures.rb
+ active_record/locking.rb
  active_record/observer.rb
  active_record/reflection.rb
  active_record/acts/list.rb
@@ -49,6 +51,8 @@ files = %w-
  active_record/support/class_inheritable_attributes.rb
  active_record/support/clean_logger.rb
  active_record/support/inflector.rb
+ active_record/support/misc.rb
+ active_record/timestamp.rb
  active_record/transactions.rb
  active_record/validations.rb
  active_record/vendor/mysql.rb
