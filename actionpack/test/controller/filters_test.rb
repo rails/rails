@@ -179,6 +179,30 @@ class FilterTest < Test::Unit::TestCase
     append_around_filter AppendedAroundFilter.new
   end
   
+  class MixedSpecializationController < ActionController::Base
+    class OutOfOrder < StandardError; end
+
+    before_filter :first
+    before_filter :second, :only => :foo
+
+    def foo
+      render_text 'foo'
+    end
+
+    def bar
+      render_text 'bar'
+    end
+
+    protected
+      def first
+        @first = true
+      end
+
+      def second
+        raise OutOfOrder unless @first
+      end
+  end
+
 
   def test_added_filter_to_inheritance_graph
     assert_equal [ :fire_flash, :ensure_login ], TestController.before_filters
@@ -283,6 +307,18 @@ class FilterTest < Test::Unit::TestCase
     response = test_process(RenderingController)
     assert_equal "something else", response.body
     assert !response.template.assigns["ran_action"]
+  end
+
+  def test_filters_with_mixed_specialization_run_in_order
+    assert_nothing_raised do
+      response = test_process(MixedSpecializationController, 'bar')
+      assert_equal 'bar', response.body
+    end
+
+    assert_nothing_raised do
+      response = test_process(MixedSpecializationController, 'foo')
+      assert_equal 'foo', response.body
+    end
   end
 
   private
