@@ -18,6 +18,8 @@
         some circumstances, active record appears to delete parent and child records out of
         sequence and out of transaction scope. (Or this may just be a problem of test setup.)
 
+  The OCI8 driver can be retrieved from http://rubyforge.org/projects/ruby-oci8/
+
 * Added TimeZone as the first of a number of value objects that Active Record will start shipping to provide incentatives to use rich value objects using composed_of #688 [Jamis Buck]
 
 * Added option :schema_order to the PostgreSQL adapter to support the use of multiple schemas per database #697 [YuriSchimke]
