@@ -143,8 +143,8 @@ module ActionView
           end
 
           month_options << ((date.kind_of?(Fixnum) ? date : date.month) == month_number ?
-            "<option value='#{month_number}' selected=\"selected\">#{month_name}</option>\n" : 
-            "<option value='#{month_number}'>#{month_name}</option>\n"
+            %(<option value="#{month_number}" selected="selected">#{month_name}</option>\n) : 
+            %(<option value="#{month_number}">#{month_name}</option>\n)
           )
         end
 
@@ -172,9 +172,9 @@ module ActionView
       
       private
         def select_html(type, options, prefix = nil, include_blank = false, discard_type = false)
-          select_html  = "<select name='#{prefix || DEFAULT_PREFIX}"
+          select_html  = %(<select name="#{prefix || DEFAULT_PREFIX})
           select_html << "[#{type}]" unless discard_type
-          select_html << "'>\n"
+          select_html << %(">\n)
           select_html << "<option></option>\n" if include_blank
           select_html << options.to_s
           select_html << "</select>\n"

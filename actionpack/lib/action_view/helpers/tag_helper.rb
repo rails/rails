@@ -10,7 +10,7 @@ module ActionView
       # * tag("br") => <br />
       # * tag("input", { "type" => "text"}) => <input type="text" />
       def tag(name, options = {}, open = false)
-        "<#{name + tag_options(options)}" + (open ? ">" : " />")
+        "<#{name}#{tag_options(options)}" + (open ? ">" : " />")
       end
       
       # Examples: 
@@ -18,7 +18,7 @@ module ActionView
       # * content_tag("div", content_tag("p", "Hello world!"), "class" => "strong") => 
       #   <div class="strong"><p>Hello world!</p></div>
       def content_tag(name, content, options = {})
-        "<#{name + tag_options(options)}>#{content}</#{name}>"
+        "<#{name}#{tag_options(options)}>#{content}</#{name}>"
       end
 
       # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like 
@@ -46,12 +46,10 @@ module ActionView
 
       private
         def tag_options(options)
-          if options.empty?
-            ""
-          else
-            " " + options.collect { |pair| 
-              "#{pair.first}=\"#{html_escape(pair.last)}\"" 
-            }.sort.join(" ") 
+          unless options.empty?
+            " " + options.map { |key, value|
+              %(#{key}="#{html_escape(value)}")
+            }.sort.join(" ")
           end
         end
     end

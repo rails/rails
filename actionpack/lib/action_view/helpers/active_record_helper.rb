@@ -52,12 +52,13 @@ module ActionView
       def form(record_name, options = {})
         record   = instance_eval("@#{record_name}")
         action   = url_for(:action => options[:action] || (record.new_record? ? "create" : "update"))
+        submit_value = options[:submit_value] || action.gsub(/[^\w]/, '').capitalize
+        
         id_field = record.new_record? ? "" : InstanceTag.new(record_name, "id", self).to_input_field_tag("hidden")
-
-        "<form action='#{action}' method='post'>" +
-        id_field + all_input_tags(record, record_name, options) +
-        "<input type='submit' value='#{action.gsub(/[^A-Za-z]/, "").capitalize}' />" +
-        "</form>"
+        
+        %(<form action="#{action}" method="POST">#{id_field}) +
+          all_input_tags(record, record_name, options) +
+          %(<input type="submit" value="#{submit_value}" /></form>)
       end
 
       # Returns a string containing the error message attached to the +method+ on the +object+, if one exists.

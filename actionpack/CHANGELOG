@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed all helpers so that they use XHTML compliant double quotes for values instead of single quotes [htonl/bitsweat]
+
 * Added link_to_image(src, options = {}, html_options = {}, *parameters_for_method_reference). Documentation:
 
     Creates a link tag to the image residing at the +src+ using an URL created by the set of +options+. See the valid options in
