@@ -1,5 +1,15 @@
 *SVN*
 
+* Added validates_each that validates each specified attribute against a block #610 [bitsweat]. Example:
+    
+    class Person < ActiveRecord::Base
+      validates_each :first_name, :last_name do |record, attr|
+        record.errors.add attr, 'starts with z.' if attr[0] == ?z
+      end
+    end
+
+* Added :allow_nil as an explicit option for validates_length_of, so unless that's set to true having the attribute as nil will also return an error if a range is specified as :within #610 [bitsweat]
+
 * Added that validates_* now accept blocks to perform validations #618 [Tim Bates]. Example:
 
     class Person < ActiveRecord::Base

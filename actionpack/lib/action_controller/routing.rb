@@ -257,6 +257,5 @@ module ActionController
     end
     
     Routes = RouteSet.new
-    Routes.reload # Server will die on load if SyntaxError
   end
 end

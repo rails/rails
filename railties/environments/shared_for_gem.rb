@@ -56,6 +56,6 @@ end
 [ActionController::Base, ActionMailer::Base].each do |klass|
   klass.template_root ||= "#{RAILS_ROOT}/app/views/"
 end
-
+ActionController::Routing::Routes.reload
 
 # Include your app's configuration here:
