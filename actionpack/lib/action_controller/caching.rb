@@ -285,7 +285,12 @@ module ActionController #:nodoc:
         fragment_cache_store.delete(name, options)
         logger.info "Expired fragment: #{name}" unless logger.nil?
       end
-    
+
+      def expire_matched_fragments(re=Regexp.new('/*/'), options = {})
+        fragment_cache_store.delete_matched(re, { :root_path => url_for.split('://').last.split('/').first })
+        logger.info "Expired all fragments matching: #{re} " unless logger.nil?
+      end
+
       class MemoryStore #:nodoc:
         def initialize
           @data, @mutex = { }, Mutex.new
@@ -301,6 +306,10 @@ module ActionController #:nodoc:
 
         def delete(name, options = {}) #:nodoc:
           @mutex.synchronize { @data.delete(name) }
+        end
+
+        def delete_matched(re, options) #:nodoc:
+          @mutex.synchronize { @data.delete_if {|k,v| k.index(options[:root_path]) == 0 and k =~ re} }
         end
       end
 
@@ -335,14 +344,36 @@ module ActionController #:nodoc:
         def delete(name, options) #:nodoc:
           File.delete(real_file_path(name)) if File.exist?(real_file_path(name))
         end
+
+        def delete_matched(re, options) #:nodoc:
+          rootPath = real_file_path(options[:root_path])
+          search_dir(@cache_path).each do |f|
+            File.delete(f) if f.index(rootPath) == 0 and f =~ re and File.exist?(f)
+          end
+        end
     
         private
           def real_file_path(name)
-            "#{@cache_path}/#{name}"
+            '%s/%s' % [@cache_path, name.gsub('?', '.').gsub(':', '.')]
           end
         
           def ensure_cache_path(path)
             FileUtils.makedirs(path) unless File.exists?(path)
+          end
+
+          def search_dir(dir)
+            require 'pathname'
+            files = []
+            dir = Dir.new(dir)
+            dir.each do |d|
+              unless d == '.' or d == '..'
+                d = File.join(dir.path, d)
+                p = Pathname.new(d)
+                files << p.to_s if p.file?
+                files += search_dir(d) if p.directory?
+              end
+            end
+            files
           end
       end
     end

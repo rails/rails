@@ -1,5 +1,9 @@
 *SVN*
 
+* Added expire_matched_fragments(regular_expression) to clear out a lot of fragment caches at once #927 [technoweenie@gmail.com]
+
+* Fixed the problems with : and ? in file names for fragment caches on Windows #927 [technoweenie@gmail.com]
+
 * Added TextHelper#human_size for formatting file sizes, like human_size(1234567) => 1.2 MB #943 [thomas@fesch.at]
 
 * Fixed link_to :confirm #936 [Nicholas Seckar]
