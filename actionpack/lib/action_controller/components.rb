@@ -54,7 +54,7 @@ module ActionController #:nodoc:
         request_for_component = @request.dup
         request_for_component.send(
           :instance_variable_set, :@parameters, 
-          (options[:params] || {}).merge({ "controller" => options[:controller], "action" => options[:action], "id" => options[:id] })
+          (options[:params] || {}).merge({ "controller" => options[:controller], "action" => options[:action], "id" => options[:id] }).with_indifferent_access
         )
         return request_for_component
       end
