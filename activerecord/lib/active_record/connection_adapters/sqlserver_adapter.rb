@@ -10,7 +10,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 #
 module ActiveRecord
   class Base
-    def self.sqlserver_connection(config)
+    def self.sqlserver_connection(config) #:nodoc:
       require_library_or_gem 'dbi' unless self.class.const_defined?(:DBI)
       
       symbolize_strings_in_hash(config)
@@ -23,10 +23,6 @@ module ActiveRecord
         database = config[:database]
       else
         raise ArgumentError, "No database specified. Missing argument: database."
-      end
-
-      def adapter_name()
-        'SqlServer'
       end
 
       conn = DBI.connect("DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User Id=#{username};Password=#{password};")
@@ -293,6 +289,10 @@ EOL
             conn.execute(sql)
           end
         end
+      end
+
+      def adapter_name()
+        'SqlServer'
       end
 
       private

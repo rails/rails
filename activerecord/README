@@ -349,7 +349,7 @@ Active Record is released under the same license as Ruby.
 
 == Support
 
-The Active Record homepage is http://activerecord.rubyonrails.org. You can find the Active Record
+The Active Record homepage is http://www.rubyonrails.com. You can find the Active Record
 RubyForge page at http://rubyforge.org/projects/activerecord. And as Jim from Rake says:
 
    Feel free to submit commits or feature requests.  If you send a patch,
@@ -358,4 +358,3 @@ RubyForge page at http://rubyforge.org/projects/activerecord. And as Jim from Ra
 
 For other information, feel free to ask on the ruby-talk mailing list
 (which is mirrored to comp.lang.ruby) or contact mailto:david@loudthinking.com.
-

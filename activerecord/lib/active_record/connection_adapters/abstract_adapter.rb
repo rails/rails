@@ -63,18 +63,6 @@ module ActiveRecord
     #
     # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError
     # may be returned on an error.
-    #
-    # == Connecting to another database for a single model
-    #
-    # To support different connections for different classes, you can
-    # simply call establish_connection with the classes you wish to have
-    # different connections for:
-    #
-    #   class Courses < ActiveRecord::Base
-    #    ...
-    #   end
-    #
-    #   Courses.establish_connection( ... )
     def self.establish_connection(spec = nil)
       case spec
         when nil
@@ -151,7 +139,7 @@ module ActiveRecord
     end
 
     # Converts all strings in a hash to symbols.
-    def self.symbolize_strings_in_hash(hash)
+    def self.symbolize_strings_in_hash(hash) #:nodoc:
       hash.symbolize_keys
     end
   end

@@ -403,7 +403,7 @@ module ActiveRecord
       #
       # Adds the following methods for retrieval and query.
       # +collection+ is replaced with the symbol passed as the first argument, so 
-      # <tt>has_and_belongs_to_many :categories</tt> would add among others +categories.empty?+.
+      # <tt>has_and_belongs_to_many :categories</tt> would add among others <tt>categories.empty?</tt>.
       # * <tt>collection(force_reload = false)</tt> - returns an array of all the associated objects.
       #   An empty array is returned if none is found.
       # * <tt>collection<<(object, ...)</tt> - adds one or more objects to the collection by creating associations in the join table 

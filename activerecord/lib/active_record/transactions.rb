@@ -96,14 +96,14 @@ module ActiveRecord
         end
       end
       
-      def lock_mutex
+      def lock_mutex#:nodoc:
         Thread.current['open_transactions'] ||= 0
         TRANSACTION_MUTEX.lock if Thread.current['open_transactions'] == 0
         Thread.current['start_db_transaction'] = (Thread.current['open_transactions'] == 0)
         Thread.current['open_transactions'] += 1
       end
       
-      def unlock_mutex
+      def unlock_mutex#:nodoc:
         Thread.current['open_transactions'] -= 1
         TRANSACTION_MUTEX.unlock if Thread.current['open_transactions'] == 0
       end

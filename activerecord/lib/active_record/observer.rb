@@ -21,7 +21,8 @@ module ActiveRecord
   # something else than the class you're interested in observing, you can implement the observed_class class method. Like this:
   #
   #   class AuditObserver < ActiveRecord::Observer
-  #     def self.observed_class() Account end
+  #     observe Account
+  #
   #     def after_update(account)
   #       AuditTrail.new(account, "UPDATED")
   #     end
@@ -32,7 +33,8 @@ module ActiveRecord
   # If the audit observer needs to watch more than one kind of object, this can be specified in an array, like this:
   #
   #   class AuditObserver < ActiveRecord::Observer
-  #     def self.observed_class() [ Account, Balance ] end
+  #     observe Account, Balance
+  #
   #     def after_update(record)
   #       AuditTrail.new(record, "UPDATED")
   #     end
@@ -44,6 +46,7 @@ module ActiveRecord
   class Observer
     include Singleton
 
+    # Attaches the observer to the supplied model classes.
     def self.observe(*models)
       define_method(:observed_class) { models }
     end
@@ -55,7 +58,7 @@ module ActiveRecord
       end
     end
   
-    def update(callback_method, object)
+    def update(callback_method, object) #:nodoc:
       send(callback_method, object) if respond_to?(callback_method)
     end
     

@@ -215,7 +215,7 @@ begin
         ConnectionAdapters::OCIAdapter.new conn, logger
       end
 
-      alias :attributes_with_quotes_pre_oci :attributes_with_quotes
+      alias :attributes_with_quotes_pre_oci :attributes_with_quotes #:nodoc:
       # Enable the id column to be bound into the sql later, by the adapter's insert method.
       # This is preferable to inserting the hard-coded value here, because the insert method
       # needs to know the id value explicitly.

@@ -18,7 +18,7 @@ module ActiveRecord
       end
     end    
       
-    def create_with_timestamps
+    def create_with_timestamps #:nodoc:
       t = timestamps_gmt ? Time.now.gmtime : Time.now
       write_attribute("created_at", t) if record_timestamps && respond_to?(:created_at) && created_at.nil?
       write_attribute("created_on", t) if record_timestamps && respond_to?(:created_on) && created_on.nil?
@@ -29,7 +29,7 @@ module ActiveRecord
       create_without_timestamps
     end
 
-    def update_with_timestamps
+    def update_with_timestamps #:nodoc:
       t = timestamps_gmt ? Time.now.gmtime : Time.now
       write_attribute("updated_at", t) if record_timestamps && respond_to?(:updated_at)
       write_attribute("updated_on", t) if record_timestamps && respond_to?(:updated_on)

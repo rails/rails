@@ -97,6 +97,16 @@ module ActiveRecord #:nodoc:
   #     end
   #   end
   # 
+  # == Accessing attributes before they have been type casted
+  #
+  # Some times you want to be able to read the raw attribute data without having the column-determined type cast run its course first.
+  # That can be done by using the <attribute>_before_type_cast accessors that all attributes have. For example, if your Account model
+  # has a balance attribute, you can call account.balance_before_type_cast or account.id_before_type_cast. 
+  #
+  # This is especially useful in validation situations where the user might supply a string for an integer field and you want to display
+  # the original string back in an error message. Accessing the attribute normally would type cast the string to 0, which isn't what you
+  # want.
+  #
   # == Dynamic attribute-based finders
   #
   # Dynamic attribute-based finders are a cleaner way of getting objects by simple queries without turning to SQL. They work by
@@ -479,20 +489,8 @@ module ActiveRecord #:nodoc:
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
       # directly from ActiveRecord. So if the hierarchy looks like: Reply < Message < ActiveRecord, then Message is used
-      # to guess the table name from even when called on Reply. The guessing rules are as follows:
-      #
-      # * Class name ends in "x", "ch" or "ss": "es" is appended, so a Search class becomes a searches table.
-      # * Class name ends in "y" preceded by a consonant or "qu": The "y" is replaced with "ies", so a Category class becomes a categories table. 
-      # * Class name ends in "fe": The "fe" is replaced with "ves", so a Wife class becomes a wives table.
-      # * Class name ends in "lf" or "rf": The "f" is replaced with "ves", so a Half class becomes a halves table.
-      # * Class name ends in "person": The "person" is replaced with "people", so a Salesperson class becomes a salespeople table.
-      # * Class name ends in "man": The "man" is replaced with "men", so a Spokesman class becomes a spokesmen table.
-      # * Class name ends in "sis": The "i" is replaced with an "e", so a Basis class becomes a bases table.
-      # * Class name ends in "tum" or "ium": The "um" is replaced with an "a", so a Datum class becomes a data table.
-      # * Class name ends in "child": The "child" is replaced with "children", so a NodeChild class becomes a node_children table.
-      # * Class name ends in an "s": No additional characters are added or removed.
-      # * Class name doesn't end in "s": An "s" is appended, so a Comment class becomes a comments table.
-      # * Class name with word compositions: Compositions are underscored, so CreditCard class becomes a credit_cards table.
+      # to guess the table name from even when called on Reply. The rules used to do the guess are handled by the Inflector class
+      # in Active Support, which knows almost all common English inflections (report a bug if your inflection isn't covered).
       #
       # Additionally, the class-level table_name_prefix is prepended to the table_name and the table_name_suffix is appended.
       # So if you have "myapp_" as a prefix, the table name guess for an Account class becomes "myapp_accounts".
@@ -501,7 +499,7 @@ module ActiveRecord #:nodoc:
       # "mice" table. Example:
       #
       #   class Mouse < ActiveRecord::Base
-      #      def self.table_name() "mice" end
+      #      table_name "mice"
       #   end
       def table_name
         table_name_prefix + undecorated_table_name(class_name_of_active_record_descendant(self)) + table_name_suffix
@@ -525,34 +523,8 @@ module ActiveRecord #:nodoc:
         "type"
       end
 
-      # Defines an "attribute" method (like #inheritance_column or
-      # #table_name). A new (class) method will be created with the
-      # given name. If a value is specified, the new method will
-      # return that value (as a string). Otherwise, the given block
-      # will be used to compute the value of the method.
-      #
-      # The original method will be aliased, with the new name being
-      # prefixed with "original_". This allows the new method to
-      # access the original value.
-      #
-      # Example:
-      #
-      #   class A < ActiveRecord::Base
-      #     define_attr_method :primary_key, "sysid"
-      #     define_attr_method( :inheritance_column ) do
-      #       original_inheritance_column + "_id"
-      #     end
-      #   end
-      def define_attr_method( name, value=nil, &block )
-        sing = class << self; self; end
-        block = proc { value.to_s } if value
-        sing.send( :alias_method, "original_#{name}", name )
-        sing.send( :define_method, name, &block )
-      end
-
       # Sets the table name to use to the given value, or (if the value
-      # is nil or false) to the value returned by the given block. (See
-      # #define_attr_method).
+      # is nil or false) to the value returned by the given block.
       #
       # Example:
       #
@@ -566,7 +538,7 @@ module ActiveRecord #:nodoc:
 
       # Sets the name of the primary key column to use to the given value,
       # or (if the value is nil or false) to the value returned by the given
-      # block. (See #define_attr_method).
+      # block.
       #
       # Example:
       #
@@ -580,7 +552,7 @@ module ActiveRecord #:nodoc:
 
       # Sets the name of the inheritance column to use to the given value,
       # or (if the value # is nil or false) to the value returned by the
-      # given block. (See # #define_attr_method).
+      # given block.
       #
       # Example:
       #
@@ -636,13 +608,14 @@ module ActiveRecord #:nodoc:
         @columns = @columns_hash = @content_columns = @dynamic_methods_hash = nil
       end
 
-      def reset_column_information_and_inheritable_attributes_for_all_subclasses
+      def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
         subclasses.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
       end
 
       # Transforms attribute key names into a more humane format, such as "First name" instead of "first_name". Example:
       #   Person.human_attribute_name("first_name") # => "First name"
-      def human_attribute_name(attribute_key_name)
+      # Deprecated in favor of just calling "first_name".humanize
+      def human_attribute_name(attribute_key_name) #:nodoc:
         attribute_key_name.humanize
       end
       
@@ -650,12 +623,12 @@ module ActiveRecord #:nodoc:
         superclass == Base || !columns_hash.has_key?(inheritance_column)
       end
 
-      def quote(object)
+      def quote(object) #:nodoc:
         connection.quote(object)
       end
 
       # Used to sanitize objects before they're used in an SELECT SQL-statement. Delegates to <tt>connection.quote</tt>.
-      def sanitize(object) # :nodoc:
+      def sanitize(object) #:nodoc:
         connection.quote(object)
       end
 
@@ -760,6 +733,31 @@ module ActiveRecord #:nodoc:
           else
             super
           end
+        end
+
+        # Defines an "attribute" method (like #inheritance_column or
+        # #table_name). A new (class) method will be created with the
+        # given name. If a value is specified, the new method will
+        # return that value (as a string). Otherwise, the given block
+        # will be used to compute the value of the method.
+        #
+        # The original method will be aliased, with the new name being
+        # prefixed with "original_". This allows the new method to
+        # access the original value.
+        #
+        # Example:
+        #
+        #   class A < ActiveRecord::Base
+        #     define_attr_method :primary_key, "sysid"
+        #     define_attr_method( :inheritance_column ) do
+        #       original_inheritance_column + "_id"
+        #     end
+        #   end
+        def define_attr_method(name, value=nil, &block)
+          sing = class << self; self; end
+          block = proc { value.to_s } if value
+          sing.send( :alias_method, "original_#{name}", name )
+          sing.send( :define_method, name, &block )
         end
 
       protected
@@ -868,11 +866,11 @@ module ActiveRecord #:nodoc:
         read_attribute(self.class.primary_key)
       end
       
-      def id_before_type_cast
+      def id_before_type_cast #:nodoc:
         read_attribute_before_type_cast(self.class.primary_key)
       end
 
-      def quoted_id
+      def quoted_id #:nodoc:
         quote(id, self.class.columns_hash[self.class.primary_key])
       end
       
@@ -1123,7 +1121,7 @@ module ActiveRecord #:nodoc:
 
       # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
-      def read_attribute(attr_name) #:doc:
+      def read_attribute(attr_name)
         if @attributes.keys.include? attr_name
           if column = column_for_attribute(attr_name)
             unserializable_attribute?(attr_name, column) ?
@@ -1162,7 +1160,7 @@ module ActiveRecord #:nodoc:
 
       # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+. Empty strings for fixnum and float
       # columns are turned into nil.
-      def write_attribute(attr_name, value) #:doc:
+      def write_attribute(attr_name, value)
         @attributes[attr_name] = empty_string_for_number_column?(attr_name, value) ? nil : value
       end
 

@@ -17,6 +17,8 @@ module ActiveRecord
       :wrong_length => "is the wrong length (should be %d characters)", 
       :taken => "has already been taken",
       }
+      
+    # Holds a hash with all the default error messages, such that they can be replaced by your own copy or localizations.
     cattr_accessor :default_error_messages
 
     
@@ -29,7 +31,7 @@ module ActiveRecord
     end
 
     # Adds an error message (+msg+) to the +attribute+, which will be returned on a call to <tt>on(attribute)</tt>
-    # for the same attribute and ensure that this error object returns false when asked if +empty?+. More than one
+    # for the same attribute and ensure that this error object returns false when asked if <tt>empty?</tt>. More than one
     # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
     # If no +msg+ is supplied, "invalid" is assumed.
     def add(attribute, msg = @@default_error_messages[:invalid])
