@@ -1,5 +1,7 @@
 *SVN*
 
+* Added options to tailor header tag, div id, and div class on ActiveRecordHelper#error_messages_for [josh]
+
 * Added graceful handling of non-alphanumeric names and misplaced brackets in input parameters [bitsweat]
 
 * Added a new container for cookies that makes them more intuative to use. The old methods of cookie and @cookies have been deprecated.

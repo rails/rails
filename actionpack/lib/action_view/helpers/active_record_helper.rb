@@ -76,14 +76,24 @@ module ActionView
         end
       end
       
-      def error_messages_for(object_name)
-        object = instance_eval("@#{object_name}")
+      # Returns a string with a div containing all the error messages for the object located as an instance variable by the name
+      # of <tt>object_name</tt>. This div can be tailored by the following options:
+      #
+      # ::header_tag: Used for the header of the error div (default: h2)
+      # ::id: The id of the error div (default: errorExplanation)
+      # ::class: The class of the error div (default: errorExplanation)
+      def error_messages_for(object_name, options={})
+        object = instance_eval "@#{object_name}"
         unless object.errors.empty?
-          "<div id=\"errorExplanation\">" +
-          "<h2>#{object.errors.count} error#{"s" unless object.errors.count == 1} prohibited this #{object_name.gsub("_", " ")} from being saved</h2>" +
-          "<p>There were problems with the following fields (marked in red below):</p>" +
-          "<ul>#{object.errors.full_messages.collect { |msg| "<li>#{msg}</li>"}}</ul>" +
-          "</div>"
+          content_tag("div",
+            content_tag(
+              options[:header_tag] || "h2", 
+              "#{pluralize(object.errors.count, "error")} prohibited this #{object_name.gsub("_", " ")} from being saved"
+            ) +
+            content_tag("p", "There were problems with the following fields:") +
+            content_tag("ul", object.errors.full_messages.collect { |msg| content_tag("li", msg) }),
+            "id" => options[:id] || "errorExplanation", "class" => options[:class] || "errorExplanation"
+          )
         end
       end
       
