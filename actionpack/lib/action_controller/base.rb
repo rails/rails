@@ -599,7 +599,7 @@ module ActionController #:nodoc:
       end
     
       def perform_action
-        if action_methods.include?(action_name)
+        if action_methods.include?(action_name) || action_methods.include?('method_missing')
           send(action_name)
           render unless @performed_render || @performed_redirect
         elsif template_exists? && template_public?

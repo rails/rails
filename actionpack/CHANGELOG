@@ -1,4 +1,6 @@
-*CVS*
+*SVN*
+
+* Added the opportunity to defined method_missing on a controller which will handle all requests for actions not otherwise defined #223 [timb]
 
 * Fixed AbstractRequest#remote_ip for users going through proxies - Patch #228 [Eric Hodel]
 
