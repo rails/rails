@@ -120,7 +120,13 @@ module ActionController #:nodoc:
       end
 
       def expire_action(options = {})
-        expire_fragment(url_for(options).split("://").last)
+        if options[:action].is_a?(Array)
+          options[:action].dup.each do |action|
+            expire_fragment(url_for(options.merge({ :action => action })).split("://").last)
+          end
+        else
+          expire_fragment(url_for(options).split("://").last)
+        end
       end
 
       class ActionCacheFilter #:nodoc:
@@ -182,7 +188,6 @@ module ActionController #:nodoc:
       def cache_erb_fragment(binding, name = {}, options = {})
         buffer = eval("_erbout", binding)
 
-        name = url_for(name) if name.is_a?(Hash)
         if cache = read_fragment(name, options)
           buffer.concat(cache)
         else
@@ -193,14 +198,14 @@ module ActionController #:nodoc:
       end
       
       def write_fragment(name, content, options = {})
-        name = url_for(name) if name.is_a?(Hash)
+        name = url_for(name).split("://").last if name.is_a?(Hash)
         fragment_cache_store.write(name, content, options)
         logger.info "Cached fragment: #{name}" unless logger.nil?
         content
       end
       
       def read_fragment(name, options = {})
-        name = url_for(name) if name.is_a?(Hash)
+        name = url_for(name).split("://").last if name.is_a?(Hash)
         if cache = fragment_cache_store.read(name, options)
           logger.info "Fragment hit: #{name}" unless logger.nil?
           cache
@@ -210,7 +215,7 @@ module ActionController #:nodoc:
       end
       
       def expire_fragment(name, options = {})
-        name = url_for(name) if name.is_a?(Hash)
+        name = url_for(name).split("://").last if name.is_a?(Hash)
         fragment_cache_store.delete(name, options)
         logger.info "Expired fragment: #{name}" unless logger.nil?
       end
