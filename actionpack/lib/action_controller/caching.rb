@@ -1,9 +1,14 @@
 require 'fileutils'
 
 module ActionController #:nodoc:
-  # To turn off all caching and sweeping, set Base.perform_caching = false.
+  # Caching is a cheap way of speeding up slow applications by keeping the result of calculations, renderings, and database calls
+  # around for subsequent requests. Action Controller affords you three approaches in varying levels of granularity: Page, Action, Fragment.
+  #
+  # You can read more about each approach and the sweeping assistance by clicking the modules below.
+  #
+  # Note: To turn off all caching and sweeping, set Base.perform_caching = false.
   module Caching
-    def self.append_features(base)
+    def self.append_features(base) #:nodoc:
       super
       base.send(:include, Pages, Actions, Fragments, Sweeping)
       base.class_eval do
@@ -41,6 +46,11 @@ module ActionController #:nodoc:
     #
     # Additionally, you can expire caches using Sweepers that act on changes in the model to determine when a cache is supposed to be
     # expired.
+    #
+    # == Setting the cache directory
+    #
+    # The cache directory should be the document root for the web server and is set using Base.page_cache_directory = "/document/root".
+    # For Rails, this directory has already been set to RAILS_ROOT + "/public".
     module Pages
       def self.append_features(base) #:nodoc:
         super
@@ -52,6 +62,16 @@ module ActionController #:nodoc:
       end
 
       module ClassMethods
+        # Expires the page that was cached with the +path+ as a key. Example:
+        #   expire_page "/lists/show"
+        def expire_page(path)
+          return unless perform_caching
+          File.delete(page_cache_path(path)) if File.exists?(page_cache_path(path))
+          logger.info "Expired page: #{path}" unless logger.nil?
+        end
+        
+        # Manually cache the +content+ in the key determined by +path+. Example:
+        #   cache_page "I'm the cached content", "/lists/show"
         def cache_page(content, path)
           return unless perform_caching
           FileUtils.makedirs(File.dirname(page_cache_path(path)))
@@ -59,12 +79,8 @@ module ActionController #:nodoc:
           logger.info "Cached page: #{path}" unless logger.nil?
         end
 
-        def expire_page(path)
-          return unless perform_caching
-          File.delete(page_cache_path(path)) if File.exists?(page_cache_path(path))
-          logger.info "Expired page: #{path}" unless logger.nil?
-        end
-        
+        # Caches the +actions+ using the page-caching approach that'll store the cache in a path within the page_cache_directory that
+        # matches the triggering url.
         def caches_page(*actions)
           return unless perform_caching
           actions.each do |action| 
@@ -72,15 +88,18 @@ module ActionController #:nodoc:
           end
         end
         
-        def page_cache_path(path)
-          if path[-1,1] == '/'
-            page_cache_directory + path + '/index'
-          else
-            page_cache_directory + path
+        private
+          def page_cache_path(path)
+            if path[-1,1] == '/'
+              page_cache_directory + path + '/index'
+            else
+              page_cache_directory + path
+            end
           end
-        end
       end
 
+      # Expires the page that was cached with the +options+ as a key. Example:
+      #   expire_page :controller => "lists", :action => "show"
       def expire_page(options = {})
         return unless perform_caching
         if options[:action].is_a?(Array)
@@ -92,23 +111,18 @@ module ActionController #:nodoc:
         end
       end
 
-      # Expires more than one page at the time. Example:
-      #   expire_pages(
-      #     { :controller => "lists", :action => "public", :id => list_id },
-      #     { :controller => "lists", :action => "show", :id => list_id }
-      #   )
-      def expire_pages(*options)
-        options.each { |option| expire_page(option) }
-      end
-      
+      # Manually cache the +content+ in the key determined by +options+. If no content is provided, the contents of @response.body is used
+      # If no options are provided, the current +options+ for this action is used. Example:
+      #   cache_page "I'm the cached content", :controller => "lists", :action => "show"
       def cache_page(content = nil, options = {})
         return unless perform_caching && caching_allowed
         self.class.cache_page(content || @response.body, url_for(options.merge({ :only_path => true })))
       end
 
-      def caching_allowed
-        !@request.method.post? and (@request.parameters.reject {|k, v| ['id', 'action', 'controller'].include?(k)}).empty?
-      end
+      private
+        def caching_allowed
+          !@request.method.post? && (@request.parameters.reject {|k, v| ['id', 'action', 'controller'].include?(k)}).empty?
+        end
     end
 
     # Action caching is similar to page caching by the fact that the entire output of the response is cached, but unlike page caching, 
@@ -135,7 +149,7 @@ module ActionController #:nodoc:
         base.send(:attr_accessor, :rendered_action_cache)
       end
 
-      module ClassMethods
+      module ClassMethods #:nodoc:
         def caches_action(*actions)
           return unless perform_caching
           around_filter(ActionCacheFilter.new(*actions))
@@ -198,7 +212,31 @@ module ActionController #:nodoc:
     #
     # == Fragment stores
     #
-    # TO BE WRITTEN...
+    # In order to use the fragment caching, you need to designate where the caches should be stored. This is done by assigning a fragment store
+    # of which there are four different kinds:
+    #
+    # * FileStore: Keeps the fragments on disk in the +cache_path+, which works well for all types of environments and share the fragments for
+    #   all the web server processes running off the same application directory.
+    # * MemoryStore: Keeps the fragments in memory, which is fine for WEBrick and for FCGI (if you don't care that each FCGI process holds its
+    #   own fragment store). It's not suitable for CGI as the process is thrown away at the end of each request. It can potentially also take
+    #   up a lot of memory since each process keeps all the caches in memory.
+    # * DRbStore: Keeps the fragments in the memory of a separate, shared DRb process. This works for all environments and only keeps one cache
+    #   around for all processes, but requires that you run and manage a separate DRb process.
+    # * MemCachedStore: Works like DRbStore, but uses Danga's MemCached instead.
+    #
+    # Configuration examples (MemoryStore is the default):
+    #
+    #   ActionController::Base.fragment_cache_store = 
+    #     ActionController::Caching::Fragments::MemoryStore.new
+    #
+    #   ActionController::Base.fragment_cache_store = 
+    #     ActionController::Caching::Fragments::FileStore.new("/path/to/cache/directory")
+    #
+    #   ActionController::Base.fragment_cache_store = 
+    #     ActionController::Caching::Fragments::DRbStore.new("druby://localhost:9192")
+    #
+    #   ActionController::Base.fragment_cache_store = 
+    #     ActionController::Caching::Fragments::FileStore.new("localhost")
     module Fragments
       def self.append_features(base) #:nodoc:
         super
@@ -246,41 +284,41 @@ module ActionController #:nodoc:
         logger.info "Expired fragment: #{name}" unless logger.nil?
       end
     
-      class MemoryStore
+      class MemoryStore #:nodoc:
         def initialize
-          @data = { }
+          @data, @mutex = { }, Mutex.new
         end
-    
+
         def read(name, options = {}) #:nodoc:
           begin
-            @data[name]
+            @mutex.synchronize { @data[name] }
           rescue
             nil
           end
         end
 
         def write(name, value, options = {}) #:nodoc:
-          @data[name] = value
+          @mutex.synchronize { @data[name] = value }
         end
 
         def delete(name, options = {}) #:nodoc:
-          @data.delete(name)
+          @mutex.synchronize { @data.delete(name) }
         end
       end
 
-      class DRbStore < MemoryStore
+      class DRbStore < MemoryStore #:nodoc:
         def initialize(address = 'druby://localhost:9192')
           @data = DRbObject.new(nil, address)
         end    
       end
 
-      class MemCacheStore < MemoryStore
+      class MemCacheStore < MemoryStore #:nodoc:
         def initialize(address = 'localhost')
           @data = MemCache.new(address)
         end    
       end
 
-      class FileStore
+      class FileStore #:nodoc:
         def initialize(cache_path)
           @cache_path = cache_path
         end
@@ -317,38 +355,38 @@ module ActionController #:nodoc:
       end
     end
 
-    module Sweeping #:nodoc:
+    # Sweepers are the terminators of the caching world and responsible for expiring caches when model objects change.
+    # They do this by being half-observers, half-filters and implementing callbacks for both roles. A Sweeper example:
+    # 
+    #   class ListSweeper < ActiveRecord::Observer
+    #     observe List, Item
+    #   
+    #     def after_save(record)
+    #       @list = record.is_a?(List) ? record : record.list
+    #     end
+    #     
+    #     def filter(controller)
+    #       controller.expire_page(:controller => "lists", :action => %w( show public feed ), :id => @list.id)
+    #       controller.expire_action(:controller => "lists", :action => "all")
+    #       @list.shares.each { |share| controller.expire_page(:controller => "lists", :action => "show", :id => share.url_key) }
+    #     end
+    #   end
+    #
+    # The sweeper is assigned on the controllers that wish to have its job performed using the <tt>cache_sweeper</tt> class method:
+    #
+    #   class ListsController < ApplicationController
+    #     caches_action :index, :show, :public, :feed
+    #     cache_sweeper :list_sweeper, :only => [ :edit, :destroy, :share ]
+    #   end
+    #
+    # In the example above, four actions are cached and three actions are responsible of expiring those caches.
+    module Sweeping
       def self.append_features(base) #:nodoc:
         super
         base.extend(ClassMethods)
       end
 
-      # Sweepers are the terminators of the caching world and responsible for expiring caches when model objects change.
-      # They do this by being half-observers, half-filters and implementing callbacks for both roles. A Sweeper example:
-      # 
-      #   class ListSweeper < ActiveRecord::Observer
-      #     observe List, Item
-      #   
-      #     def after_save(record)
-      #       @list = record.is_a?(List) ? record : record.list
-      #     end
-      #     
-      #     def filter(controller)
-      #       controller.expire_page(:controller => "lists", :action => %w( show public feed ), :id => @list.id)
-      #       controller.expire_action(:controller => "lists", :action => "all")
-      #       @list.shares.each { |share| controller.expire_page(:controller => "lists", :action => "show", :id => share.url_key) }
-      #     end
-      #   end
-      #
-      # The sweeper is assigned on the controllers that wish to have its job performed using the <tt>cache_sweeper</tt> class method:
-      #
-      #   class ListsController < ApplicationController
-      #     caches_action :index, :show, :public, :feed
-      #     cache_sweeper :list_sweeper, :only => [ :edit, :destroy, :share ]
-      #   end
-      #
-      # In the example above, four actions are cached and three actions are responsible of expiring those caches.
-      module ClassMethods
+      module ClassMethods #:nodoc:
         def cache_sweeper(*sweepers)
           return unless perform_caching
           configuration = sweepers.last.is_a?(Hash) ? sweepers.pop : {}

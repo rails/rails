@@ -1,5 +1,8 @@
 *SVN*
 
+* Added an extensive caching module that offers three levels of granularity (page, action, fragment) and a variety of stores. 
+  Read more in ActionController::Caching.
+
 * Added the option of passing a block to ActiveRecordHelper#form in order to add more to the auto-generated form #469 [dom@sisna.com]
 
     form("entry", :action => "sign") do |form|
