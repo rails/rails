@@ -91,14 +91,13 @@ end
 desc "Copy in all the Rails packages to vendor"
 task :copy_vendor_libraries do
   mkdir File.join(PKG_DESTINATION, 'vendor', 'rails')
-  cp_r VENDOR_LIBS.map { |dir| File.join('..', dir) },
-       File.join(PKG_DESTINATION, 'vendor', 'rails')
+  VENDOR_LIBS.each { |dir| cp_r File.join('..', dir), File.join(PKG_DESTINATION, 'vendor', 'rails', dir) }
 end
 
 desc "Link in all the Rails packages to vendor"
 task :link_vendor_libraries do
-  branch_root = File.dirname(File.dirname(File.expand_path(__FILE__)))
-  ln_s branch_root, File.join(PKG_DESTINATION, 'vendor', 'rails')
+  mkdir File.join(PKG_DESTINATION, 'vendor', 'rails')
+  VENDOR_LIBS.each { |dir| ln_s File.join('..', '..', '..', dir), File.join(PKG_DESTINATION, 'vendor', 'rails', dir) }
 end
 
 
