@@ -1,6 +1,6 @@
 *CVS*
 
-* Added acts_as_list that can decorates an existing class with methods like move_higher/lower, move_to_top/bottom. Example:
+* Added acts_as_list that can decorates an existing class with methods like move_higher/lower, move_to_top/bottom. [Tobias Luetke] Example:
 
     class TodoItem < ActiveRecord::Base
       acts_as_list :scope => :todo_list_id
@@ -8,7 +8,7 @@
     end
 
 * Added acts_as_tree that can decorates an existing class with a many to many relationship with itself. Perfect for categories in 
-  categories and the likes.
+  categories and the likes. [Tobias Luetke]
 
 * Added that Active Records will automatically record creation and/or update timestamps of database objects if fields of the names 
   created_at/created_on or updated_at/updated_on are present. [Tobias Luetke]
