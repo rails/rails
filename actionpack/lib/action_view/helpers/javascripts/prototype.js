@@ -204,10 +204,6 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
         this.request.transport.responseText);
     }
 
-    if (this.options.effect) {
-      new this.options.effect(this.container);
-    }
-
     if (this.onComplete) {
       setTimeout((function() {this.onComplete(this.request)}).bind(this), 10);
     }

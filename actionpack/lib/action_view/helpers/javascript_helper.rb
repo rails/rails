@@ -160,7 +160,6 @@ module ActionView
         js_options['asynchronous'] = options[:type] != :synchronous
         js_options['method']       = options[:method] if options[:method]
         js_options['insertion']    = "Insertion.#{options[:position].to_s.camelize}" if options[:position]
-        js_options['effect']       = "Effect.#{options[:effect].to_s.camelize}" if options[:effect]
 	
         if options[:form]
           js_options['parameters'] = 'Form.serialize(this)'
