@@ -1,1 +1,3 @@
+* Added that Inflector now accepts Symbols and Classes by calling .to_s on the word supplied
+
 * Added time unit extensions to Fixnum that'll return the period in seconds, like 2.days + 4.hours.

@@ -37,7 +37,7 @@ module ActionController #:nodoc:
     # Additionally, you can expire caches using Sweepers that act on changes in the model to determine when a cache is supposed to be
     # expired.
     module Pages
-      def self.append_features(base)
+      def self.append_features(base) #:nodoc:
         super
         base.extend(ClassMethods)
         base.class_eval do
@@ -107,7 +107,7 @@ module ActionController #:nodoc:
     # "david.somewhere.com/lists/show/1". This allows the cacher to differentiate between "david.somewhere.com/lists/" and
     # "jamis.somewhere.com/lists/" -- which is a helpful way of assisting the subdomain-as-account-key pattern.
     module Actions
-      def self.append_features(base)
+      def self.append_features(base) #:nodoc:
         super
         base.extend(ClassMethods)
         base.send(:attr_accessor, :rendered_action_cache)
@@ -123,7 +123,7 @@ module ActionController #:nodoc:
         expire_fragment(url_for(options).split("://").last)
       end
 
-      class ActionCacheFilter
+      class ActionCacheFilter #:nodoc:
         def initialize(*actions)
           @actions = actions
         end
@@ -170,7 +170,7 @@ module ActionController #:nodoc:
     #
     # TO BE WRITTEN...
     module Fragments
-      def self.append_features(base)
+      def self.append_features(base) #:nodoc:
         super
         base.class_eval do
           @@cache_store = MemoryStore.new
