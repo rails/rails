@@ -127,7 +127,7 @@ module Rails
 
             # If the last Module exists, check whether the given
             # class exists and raise a collision if so.
-            if last and last.const_defined?(name)
+            if last and last.const_defined?(name.camelize)
               raise_class_collision(class_name)
             end
           end
