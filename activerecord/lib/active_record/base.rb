@@ -1241,7 +1241,7 @@ module ActiveRecord #:nodoc:
       def attributes_with_quotes(include_primary_key = true)
         columns_hash = self.class.columns_hash
 
-        attrs_quoted = @attributes.inject({}) do |attrs_quoted, pair| 
+        attrs_quoted = attributes.inject({}) do |attrs_quoted, pair| 
           attrs_quoted[pair.first] = quote(pair.last, columns_hash[pair.first]) unless !include_primary_key && pair.first == self.class.primary_key
           attrs_quoted
         end

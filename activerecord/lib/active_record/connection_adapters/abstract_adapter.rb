@@ -179,7 +179,7 @@ module ActiveRecord
         case type
           when :string    then value
           when :text      then value
-          when :integer   then value.to_i
+          when :integer   then value.to_i rescue value ? 1 : 0
           when :float     then value.to_f
           when :datetime  then string_to_time(value)
           when :timestamp then string_to_time(value)

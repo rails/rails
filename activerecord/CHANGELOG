@@ -1,5 +1,7 @@
 *SVN*
 
+* Added type conversion before saving a record, so string-based values like "10.0" aren't left for the database to convert #820 [dave@cherryville.org]
+
 * Added with additional settings for working with transactional fixtures and pre-loaded test databases #865 [mindel]
 
 * Fixed acts_as_list to trigger remove_from_list on destroy after the fact, not before, so a unique position can be maintained #871 [Alisdair McDiarmid]
