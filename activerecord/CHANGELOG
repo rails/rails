@@ -1,4 +1,4 @@
-*CVS*
+*1.2.0*
 
 * Added Base.validates_inclusion_of that validates whether the value of the specified attribute is available in a particular enumerable
   object. [what-a-day]

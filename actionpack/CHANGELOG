@@ -1,4 +1,4 @@
-*SVN*
+*1.0*
 
 * Added that controllers will now attempt to require a model dependency with their name and in a singular attempt for their name.
   So both PostController and PostsController will automatically have the post.rb model required. If no model is found, no error is raised,

@@ -1,4 +1,4 @@
-*SVN*
+*0.5*
 
 * Added access to custom headers, like cc, bcc, and reply-to #268 [Andreas Schwarz]. Example:
 
