@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed boolean queries for t/f fields in PostgreSQL #995 [dave@cherryville.org]
+
 * Added that model.items.delete(child) will delete the child, not just set the foreign key to nil, if the child is dependent on the model #978 [bitsweat]
 
 * Fixed auto-stamping of dates (created_on/updated_on) for PostgreSQL #985 [dave@cherryville.org]
