@@ -19,7 +19,7 @@ class << Object #:nodoc:
 
     def const_missing(class_id)
       begin
-        require_association(Inflect.underscore(Inflector.demodulize(class_id.to_s)))
+        require_association(Inflector.underscore(Inflector.demodulize(class_id.to_s)))
       rescue LoadError
         pre_association_const_missing(class_id)
       end
