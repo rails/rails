@@ -45,12 +45,14 @@ begin
 
         def execute(sql, name = nil)
           rows_affected = 0
+
           log(sql, name, @connection) do |connection| 
             stmt = DB2::Statement.new(connection)
             stmt.exec_direct(sql)
             rows_affected = stmt.row_count
             stmt.free
           end
+
           rows_affected
         end
 
@@ -84,6 +86,7 @@ begin
         def columns(table_name, name = nil)
           stmt = DB2::Statement.new(@connection)
           result = []
+
           stmt.columns(table_name.upcase).each do |c| 
             c_name = c[3].downcase
             c_default = c[12] == 'NULL' ? nil : c[12]
@@ -91,33 +94,33 @@ begin
             c_type += "(#{c[6]})" if !c[6].nil? && c[6] != ''
             result << Column.new(c_name, c_default, c_type)
           end 
+
           stmt.free
           result
         end
 
         private
-
-        def last_insert_id
-          row = select_one(<<-GETID.strip)
-          with temp(id) as (values (identity_val_local())) select * from temp
-          GETID
-          row['id'].to_i
-        end
-
-        def select(sql, name = nil)
-          stmt = nil
-          log(sql, name, @connection) do |connection|
-            stmt = DB2::Statement.new(connection)
-            stmt.exec_direct(sql)
+          def last_insert_id
+            row = select_one(<<-GETID.strip)
+            with temp(id) as (values (identity_val_local())) select * from temp
+            GETID
+            row['id'].to_i
           end
 
-          rows = []
-          while row = stmt.fetch_as_hash
-            rows << row
+          def select(sql, name = nil)
+            stmt = nil
+            log(sql, name, @connection) do |connection|
+              stmt = DB2::Statement.new(connection)
+              stmt.exec_direct(sql + " with ur")
+            end
+
+            rows = []
+            while row = stmt.fetch_as_hash
+              rows << row
+            end
+            stmt.free
+            rows
           end
-          stmt.free
-          rows
-        end
       end
     end
   end
