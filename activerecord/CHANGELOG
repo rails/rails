@@ -1,5 +1,7 @@
 *SVN*
 
+* Added better defaults for composed_of, so statements like composed_of :time_zone, :mapping => %w( time_zone time_zone ) can be written without the mapping part (it's now assumed)
+
 * Added MacroReflection#macro which will return a symbol describing the macro used (like :composed_of or :has_many) #718, #248 [james@slashetc.com]
 
 

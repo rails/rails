@@ -65,6 +65,7 @@ CREATE TABLE customers (
     address_street character varying,
     address_city character varying,
     address_country character varying,
+    gps_location character varying,
     PRIMARY KEY (id)
 );
 SELECT setval('customers_id_seq', 100);

@@ -53,7 +53,8 @@ CREATE TABLE 'customers' (
   'balance' INTEGER DEFAULT 0,
   'address_street' TEXT DEFAULT NULL,
   'address_city' TEXT DEFAULT NULL,
-  'address_country' TEXT DEFAULT NULL
+  'address_country' TEXT DEFAULT NULL,
+  'gps_location' TEXT DEFAULT NULL
 );
 
 CREATE TABLE 'movies' (

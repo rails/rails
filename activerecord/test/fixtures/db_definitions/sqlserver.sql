@@ -57,6 +57,7 @@ CREATE TABLE customers (
   address_street varchar(100) default NULL,
   address_city varchar(100) default NULL,
   address_country varchar(100) default NULL,
+  gps_location varchar(100) default NULL,
   PRIMARY KEY  (id)
 );
 

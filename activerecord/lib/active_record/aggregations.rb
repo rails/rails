@@ -118,12 +118,13 @@ module ActiveRecord
       #   composed_of :temperature, :mapping => %w(reading celsius)
       #   composed_of :balance, :class_name => "Money", :mapping => %w(balance amount)
       #   composed_of :address, :mapping => [ %w(address_street street), %w(address_city city) ]
+      #   composed_of :gps_location
       def composed_of(part_id, options = {})
         validate_options([ :class_name, :mapping ], options.keys)
 
         name        = part_id.id2name
         class_name  = options[:class_name] || name_to_class_name(name)
-        mapping     = options[:mapping]
+        mapping     = options[:mapping] || [ name, name ]
 
         reader_method(name, class_name, mapping)
         writer_method(name, class_name, mapping)

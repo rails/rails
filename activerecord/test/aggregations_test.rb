@@ -2,10 +2,7 @@ require 'abstract_unit'
 require 'fixtures/customer'
 
 class AggregationsTest < Test::Unit::TestCase
-  def setup
-    @customers = create_fixtures "customers"
-    @david = Customer.find(1)
-  end
+  fixtures :customers
 
   def test_find_single_value_object
     assert_equal 50, @david.balance.amount
@@ -30,4 +27,21 @@ class AggregationsTest < Test::Unit::TestCase
     @david.balance = Money.new(100)
     assert_raises(TypeError) {  @david.balance.instance_eval { @amount = 20 } }
   end  
+  
+  def test_inferred_mapping
+    assert_equal "35.544623640962634", @david.gps_location.latitude
+    assert_equal "-105.9309951055148", @david.gps_location.longitude
+    
+    @david.gps_location = GpsLocation.new("39x-110")
+
+    assert_equal "39", @david.gps_location.latitude
+    assert_equal "-110", @david.gps_location.longitude
+    
+    @david.save
+    
+    @david.reload
+
+    assert_equal "39", @david.gps_location.latitude
+    assert_equal "-110", @david.gps_location.longitude
+  end
 end

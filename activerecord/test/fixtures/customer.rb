@@ -1,6 +1,7 @@
 class Customer < ActiveRecord::Base
   composed_of :address, :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ]
   composed_of :balance, :class_name => "Money", :mapping => %w(balance amount)
+  composed_of :gps_location
 end
 
 class Address
@@ -26,5 +27,21 @@ class Money
   
   def exchange_to(other_currency)
     Money.new((amount * EXCHANGE_RATES["#{currency}_TO_#{other_currency}"]).floor, other_currency)
+  end
+end
+
+class GpsLocation
+  attr_reader :gps_location
+  
+  def initialize(gps_location)
+    @gps_location = gps_location
+  end
+  
+  def latitude
+    gps_location.split("x").first
+  end
+  
+  def longitude
+    gps_location.split("x").last
   end
 end
