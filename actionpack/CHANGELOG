@@ -1,5 +1,9 @@
 *SVN*
 
+* Added :position option to link_to_remote/form_remote_tag that can be either :before, :top, :bottom, or :after and specifies where the return from the method should be inserted #952 [Matthew McCray/Sam Stephenson]
+
+* Added Effect.Highlight to prototype.js to do Yellow Fade Technique (of 37signals' fame) on any container #952 [Sam Stephenson/?]
+
 * Added include_seconds option as the third parameter to distance_of_time_in_words which will render "less than a minute" in higher resolution ("less than 10 seconds" etc) #944 [thomas@fesch.at]
 
 * Added fourth option to process in test cases to specify the content of the flash #949 [Jamis Buck]
