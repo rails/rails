@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that auto reloading would some times not work or would reload the models twice #475 [Tobias Luetke]
+
 * Added rewrite rules to deal with caching to public/.htaccess
 
 * Added the option to specify a controller name to "generate scaffold" and made the default controller name the plural form of the model.
