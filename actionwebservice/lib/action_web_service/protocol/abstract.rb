@@ -1,9 +1,9 @@
 module ActionWebService # :nodoc:
   module Protocol # :nodoc:
-    class ProtocolError < ActionWebService::ActionWebServiceError
+    class ProtocolError < ActionWebServiceError # :nodoc:
     end
 
-    class Request
+    class Request # :nodoc:
       attr :protocol
       attr :method_name
       attr :method_params
@@ -17,7 +17,7 @@ module ActionWebService # :nodoc:
       end
     end
 
-    class Response
+    class Response # :nodoc:
       attr :body
       attr :content_type
 

@@ -56,7 +56,7 @@ module ActionWebService # :nodoc:
             i = 0
             expects.each do |spec|
               type_binding = @marshaler.register_type(spec)
-              info = WS::ParamInfo.create(spec, i, type_binding)
+              info = WS::ParamInfo.create(spec, type_binding, i)
               params[i] = @marshaler.marshal(WS::Param.new(params[i], info))
               i += 1
             end
@@ -68,7 +68,7 @@ module ActionWebService # :nodoc:
           info = @api.api_methods[method_name.to_sym]
           return true unless returns = info[:returns]
           type_binding = @marshaler.register_type(returns[0])
-          info = WS::ParamInfo.create(returns[0], 0, type_binding)
+          info = WS::ParamInfo.create(returns[0], type_binding, 0)
           info.name = 'return'
           @marshaler.transform_inbound(WS::Param.new(return_value, info))
         end

@@ -9,7 +9,7 @@ module DispatcherTest
 
     class << self
       def name
-        "Node"
+        "DispatcherTest::Node"
       end
 
       def columns(*args)
@@ -26,6 +26,11 @@ module DispatcherTest
     end
   end
 
+  class Person < ActionWebService::Struct
+    member :id, :int
+    member :name, :string
+  end
+
   class API < ActionWebService::API::Base
     api_method :add, :expects => [:int, :int], :returns => [:int]
     api_method :interceptee
@@ -38,8 +43,13 @@ module DispatcherTest
     api_method :before_filtered
     api_method :after_filtered, :returns => [[:int]]
     api_method :struct_return, :returns => [[Node]]
+    api_method :base_struct_return, :returns => [[Person]]
     api_method :thrower
     api_method :void
+  end
+
+  class VirtualAPI < ActionWebService::API::Base
+    default_api_method :fallback
   end
  
   class Service < ActionWebService::Base
@@ -78,6 +88,32 @@ module DispatcherTest
     end
   end
 
+  class MTAPI < ActionWebService::API::Base
+    inflect_names false
+    api_method :getCategories, :returns => [[:string]]
+  end
+
+  class BloggerAPI < ActionWebService::API::Base
+    inflect_names false
+    api_method :getCategories, :returns => [[:string]]
+  end
+
+  class MTService < ActionWebService::Base
+    web_service_api MTAPI
+
+    def getCategories
+      ["mtCat1", "mtCat2"]
+    end
+  end
+
+  class BloggerService < ActionWebService::Base
+    web_service_api BloggerAPI
+
+    def getCategories
+      ["bloggerCat1", "bloggerCat2"]
+    end
+  end
+
   class AbstractController < ActionController::Base
     def generate_wsdl
       to_wsdl
@@ -88,6 +124,13 @@ module DispatcherTest
     web_service_dispatching_mode :delegated
   
     web_service(:test_service) { @service ||= Service.new; @service }
+  end
+
+  class LayeredController < AbstractController
+    web_service_dispatching_mode :layered
+
+    web_service(:mt) { @mt_service ||= MTService.new; @mt_service }
+    web_service(:blogger) { @blogger_service ||= BloggerService.new; @blogger_service }
   end
  
   class DirectController < AbstractController
@@ -134,6 +177,12 @@ module DispatcherTest
       n2 = Node.new('id' => 2, 'name' => 'node2', 'description' => 'Node 2')
       [n1, n2]
     end
+
+    def base_struct_return
+      p1 = Person.new('id' => 1, 'name' => 'person1')
+      p2 = Person.new('id' => 2, 'name' => 'person2')
+      [p1, p2]
+    end
     
     def void
       @void_called = @method_params
@@ -149,6 +198,14 @@ module DispatcherTest
         @after_filter_called = true
       end
   end
+
+  class VirtualController < AbstractController
+    web_service_api VirtualAPI
+
+    def fallback
+      "fallback!"
+    end
+  end
 end
 
 module DispatcherCommonTests
@@ -163,10 +220,24 @@ module DispatcherCommonTests
       assert(do_method_call(@direct_controller, 'Void', 3, 4, 5) == true)
     end
     assert(@direct_controller.void_called == [])
+    result = do_method_call(@direct_controller, 'BaseStructReturn')
+    case @encoder
+    when WS::Encoding::SoapRpcEncoding
+      assert(result[0].is_a?(DispatcherTest::Person))
+      assert(result[1].is_a?(DispatcherTest::Person))
+    when WS::Encoding::XmlRpcEncoding
+      assert(result[0].is_a?(Hash))
+      assert(result[1].is_a?(Hash))
+    end
   end
 
   def test_direct_entrypoint
     assert(@direct_controller.respond_to?(:api))
+  end
+  
+  def test_virtual_dispatching
+    assert_equal("fallback!", do_method_call(@virtual_controller, 'VirtualOne'))
+    assert_equal("fallback!", do_method_call(@virtual_controller, 'VirtualTwo'))
   end
 
   def test_direct_filtering
@@ -269,8 +340,13 @@ module DispatcherCommonTests
         api = container.class.web_service_api
       when :delegated
         api = container.web_service_object(service_name(container)).class.web_service_api
+      when :layered
+        service_name = nil
+        if public_method_name =~ /^([^\.]+)\.(.*)$/
+          service_name = $1
+        end
+        api = container.web_service_object(service_name.to_sym).class.web_service_api
       end
-      method_name = api.api_method_name(public_method_name)
       info = api.api_methods[method_name] || {}
       params = params.dup
       ((info[:expects] || []) + (info[:returns] || [])).each do |spec|
@@ -279,7 +355,7 @@ module DispatcherCommonTests
       expects = info[:expects]
       (0..(params.length-1)).each do |i|
         type_binding = @marshaler.register_type(expects ? expects[i] : params[i].class)
-        info = WS::ParamInfo.create(expects ? expects[i] : params[i].class, i, type_binding)
+        info = WS::ParamInfo.create(expects ? expects[i] : params[i].class, type_binding, i)
         params[i] = @marshaler.marshal(WS::Param.new(params[i], info))
       end
       body = @encoder.encode_rpc_call(public_method_name, params)

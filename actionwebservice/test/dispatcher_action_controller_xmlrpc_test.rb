@@ -9,6 +9,15 @@ class TC_DispatcherActionControllerXmlRpc < Test::Unit::TestCase
     @marshaler = WS::Marshaling::XmlRpcMarshaler.new
     @direct_controller = DirectController.new
     @delegated_controller = DelegatedController.new
+    @layered_controller = LayeredController.new
+    @virtual_controller = VirtualController.new
+  end
+
+  def test_layered_dispatching
+    mt_cats = do_method_call(@layered_controller, 'mt.getCategories')
+    assert_equal(["mtCat1", "mtCat2"], mt_cats)
+    blogger_cats = do_method_call(@layered_controller, 'blogger.getCategories')
+    assert_equal(["bloggerCat1", "bloggerCat2"], blogger_cats)
   end
 
   protected

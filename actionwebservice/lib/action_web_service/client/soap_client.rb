@@ -24,14 +24,16 @@ module ActionWebService # :nodoc:
       # will be sent with HTTP POST.
       #
       # Valid options:
-      # [<tt>:service_name</tt>]    If the remote server has used a custom +wsdl_service_name+
-      #                             option, you must specify it here
+      # [<tt>:type_namespace</tt>]    If the remote server has used a custom namespace to
+      #                               declare its custom types, you can specify it here
+      # [<tt>:method_namespace</tt>]  If the remote server has used a custom namespace to
+      #                               declare its methods, you can specify it here
       def initialize(api, endpoint_uri, options={})
         super(api, endpoint_uri)
-        @service_name = options[:service_name]
-        @namespace = @service_name ? '' : "urn:#{@service_name}"
-        @marshaler = WS::Marshaling::SoapMarshaler.new
-        @encoder = WS::Encoding::SoapRpcEncoding.new
+        @type_namespace = options[:type_namespace] || 'urn:ActionWebService'
+        @method_namespace = options[:method_namespace] || 'urn:ActionWebService'
+        @marshaler = WS::Marshaling::SoapMarshaler.new @type_namespace
+        @encoder = WS::Encoding::SoapRpcEncoding.new @method_namespace
         @soap_action_base = options[:soap_action_base]
         @soap_action_base ||= URI.parse(endpoint_uri).path
         @driver = create_soap_rpc_driver(api, endpoint_uri)
@@ -53,7 +55,7 @@ module ActionWebService # :nodoc:
           driver.mapping_registry = @marshaler.registry
           api.api_methods.each do |name, info|
             public_name = api.public_api_method_name(name)
-            qname = XSD::QName.new(@namespace, public_name)
+            qname = XSD::QName.new(@method_namespace, public_name)
             action = soap_action(public_name)
             expects = info[:expects]
             returns = info[:returns]

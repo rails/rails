@@ -1,11 +1,11 @@
-module ActionWebService
-  module Protocol
-    module XmlRpc
+module ActionWebService # :nodoc:
+  module Protocol # :nodoc:
+    module XmlRpc # :nodoc:
       def self.included(base)
         base.register_protocol(XmlRpcProtocol)
       end
       
-      class XmlRpcProtocol
+      class XmlRpcProtocol # :nodoc:
         attr :marshaler
 
         def initialize
@@ -25,7 +25,7 @@ module ActionWebService
         def marshal_response(method_name, return_value, signature_type)
           if !return_value.nil? && signature_type
             type_binding = @marshaler.register_type(signature_type)
-            info = WS::ParamInfo.create(signature_type, 0, type_binding)
+            info = WS::ParamInfo.create(signature_type, type_binding, 0)
             return_value = @marshaler.marshal(WS::Param.new(return_value, info))
           else
             return_value = nil

@@ -19,7 +19,7 @@ module ActionWebService # :nodoc:
           case web_service_dispatching_mode
           when :direct
             web_service_direct_invoke(invocation)
-          when :delegated
+          when :delegated, :layered
             web_service_delegated_invoke(invocation)
           end
         end
@@ -27,7 +27,11 @@ module ActionWebService # :nodoc:
         def web_service_direct_invoke(invocation)
           @method_params = invocation.method_ordered_params
           return_value = self.__send__(invocation.api_method_name)
-          returns = invocation.returns ? invocation.returns[0] : nil
+          if invocation.api.has_api_method?(invocation.api_method_name)
+            returns = invocation.returns ? invocation.returns[0] : nil
+          else
+            returns = return_value.class
+          end
           invocation.protocol.marshal_response(invocation.public_method_name, return_value, returns)
         end
 
@@ -44,29 +48,43 @@ module ActionWebService # :nodoc:
         end
 
         def web_service_invocation(request)
+          public_method_name = request.method_name
           invocation = Invocation.new
           invocation.protocol = request.protocol
           invocation.service_name = request.service_name
+          if web_service_dispatching_mode == :layered
+            if request.method_name =~ /^([^\.]+)\.(.*)$/
+              public_method_name = $2
+              invocation.service_name = $1
+            end
+          end
+          invocation.public_method_name = public_method_name
           case web_service_dispatching_mode
           when :direct
             invocation.api = self.class.web_service_api
             invocation.service = self
-          when :delegated
-            invocation.service = web_service_object(request.service_name) rescue nil
+          when :delegated, :layered
+            invocation.service = web_service_object(invocation.service_name) rescue nil
             unless invocation.service
-              raise(DispatcherError, "failed to instantiate service #{invocation.service_name}")
+              raise(DispatcherError, "service #{invocation.service_name} not available")
             end
             invocation.api = invocation.service.class.web_service_api
           end
-          public_method_name = request.method_name
-          unless invocation.api.has_public_api_method?(public_method_name)
-            raise(DispatcherError, "no such method '#{public_method_name}' on API #{invocation.api}")
+          if invocation.api.has_public_api_method?(public_method_name)
+            invocation.api_method_name = invocation.api.api_method_name(public_method_name)
+          else
+            if invocation.api.default_api_method.nil?
+              raise(DispatcherError, "no such method '#{public_method_name}' on API #{invocation.api}")
+            else
+              invocation.api_method_name = invocation.api.default_api_method.to_s.to_sym
+            end
           end
-          invocation.public_method_name = public_method_name
-          invocation.api_method_name = invocation.api.api_method_name(public_method_name)
+          unless invocation.service.respond_to?(invocation.api_method_name)
+              raise(DispatcherError, "no such method '#{public_method_name}' on API #{invocation.api} (#{invocation.api_method_name})")
+          end
           info = invocation.api.api_methods[invocation.api_method_name]
-          invocation.expects = info[:expects]
-          invocation.returns = info[:returns]
+          invocation.expects = info ? info[:expects] : nil
+          invocation.returns = info ? info[:returns] : nil
           if invocation.expects
             i = 0
             invocation.method_ordered_params = request.method_params.map do |param|
@@ -83,7 +101,7 @@ module ActionWebService # :nodoc:
             params = []
             invocation.expects.each do |spec|
               type_binding = invocation.protocol.register_signature_type(spec)
-              info = WS::ParamInfo.create(spec, i, type_binding)
+              info = WS::ParamInfo.create(spec, type_binding, i)
               params << WS::Param.new(invocation.method_ordered_params[i], info)
               i += 1
             end
@@ -96,10 +114,15 @@ module ActionWebService # :nodoc:
             invocation.method_ordered_params = []
             invocation.method_named_params = {}
           end
+          if invocation.returns
+            invocation.returns.each do |spec|
+              invocation.protocol.register_signature_type(spec)
+            end
+          end
           invocation
         end
 
-        class Invocation
+        class Invocation # :nodoc:
           attr_accessor :protocol
           attr_accessor :service_name
           attr_accessor :api

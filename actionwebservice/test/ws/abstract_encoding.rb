@@ -45,7 +45,7 @@ module EncodingTest
     params = params.dup
     (0..(signature.length-1)).each do |i|
       type_binding = @marshaler.register_type(signature[i])
-      info = WS::ParamInfo.create(signature[i], i, type_binding)
+      info = WS::ParamInfo.create(signature[i], type_binding, i)
       params[i] = @marshaler.marshal(WS::Param.new(params[i], info))
     end
     @encoder.encode_rpc_call(method_name, params)
@@ -57,7 +57,7 @@ module EncodingTest
 
   def encode_rpc_response(method_name, signature, param)
     type_binding = @marshaler.register_type(signature[0])
-    info = WS::ParamInfo.create(signature[0], 0, type_binding)
+    info = WS::ParamInfo.create(signature[0], type_binding, 0)
     param = @marshaler.marshal(WS::Param.new(param, info))
     @encoder.encode_rpc_response(method_name, param)
   end

@@ -114,7 +114,7 @@ For this example, protocol requests for +Add+ and +Remove+ methods sent to
 === Delegated dispatching
 
 This mode can be turned on by setting the +web_service_dispatching_mode+ option
-in a controller.
+in a controller to <tt>:delegated</tt>.
 
 In this mode, the controller contains one or more web service objects (objects
 that implement an ActionWebService::API::Base definition). These web service
@@ -151,6 +151,50 @@ method is called. <em>This action must not be overridden.</em>
 
 Other controller actions (actions that aren't the target of a +web_service+ call)
 are ignored for ActionWebService purposes, and can do normal action tasks.
+
+
+=== Layered dispatching
+
+This mode can be turned on by setting the +web_service_dispatching_mode+ option
+in a controller to <tt>:layered</tt>.
+
+This mode is similar to _delegated_ mode, in that multiple web service objects
+can be attached to one controller, however, all protocol requests are sent to a
+single endpoint.
+
+This mode is only usable by XML-RPC. In this mode, method names can contain
+_prefixes_, which will indicate which web service object implements the API
+identified by that prefix.
+
+The _prefix_ can be any word, followed by a period.
+
+==== Layered dispatching example
+
+
+  class ApiController < ApplicationController
+    web_service_dispatching_mode :layered
+
+    web_service :mt, MovableTypeService.new
+    web_service :blogger, BloggerService.new
+    web_service :metaWeblog, MetaWeblogService.new
+  end
+
+  class MovableTypeService < ActionWebService::Base
+    ...
+  end
+
+  class BloggerService < ActionWebService::Base
+    ...
+  end
+
+  class MetaWeblogService < ActionWebService::API::Base
+    ...
+  end
+
+
+For this example, a remote call for a method with a name like
+<tt>mt.getCategories</tt> will be dispatched as the <tt>getCategories</tt>
+method on the <tt>:mt</tt> service.
 
 
 == Using the client support

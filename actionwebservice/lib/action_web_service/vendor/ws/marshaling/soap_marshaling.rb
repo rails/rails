@@ -19,13 +19,7 @@ module WS
       end
 
       def marshal(param)
-        if param.info.type.is_a?(Array)
-          (class << param.value; self; end).class_eval do 
-            define_method(:arytype) do
-              param.info.data.qname
-            end
-          end
-        end
+        annotate_arrays(param.info.data, param.value)
         if param.value.is_a?(Exception)
           detail = SOAP::Mapping::SOAPException.new(param.value)
           soap_obj = SOAP::SOAPFault.new(
@@ -48,9 +42,9 @@ module WS
         param.info.type = value.class
         mapping = @registry.find_mapped_soap_class(param.info.type) rescue nil
         if soap_type && soap_type.name == 'Array' && soap_type.namespace == SoapEncodingNS
-          param.info.data = SoapBinding.new(soap_object.arytype, mapping)
+          param.info.data = SoapBinding.new(self, soap_object.arytype, Array, mapping)
         else
-          param.info.data = SoapBinding.new(soap_type, mapping)
+          param.info.data = SoapBinding.new(self, soap_type, value.class, mapping)
         end
         param
       end
@@ -71,7 +65,7 @@ module WS
         if (mapping = @registry.find_mapped_soap_class(type_class) rescue nil)
           qname = mapping[2] ? mapping[2][:type] : nil
           qname ||= soap_base_type_name(mapping[0])
-          type_binding = SoapBinding.new(qname, mapping)
+          type_binding = SoapBinding.new(self, qname, type_class, mapping)
         else
           qname = XSD::QName.new(@type_namespace, soap_type_name(type_class.name))
           @registry.add(type_class,
@@ -79,7 +73,7 @@ module WS
                         typed_struct_factory(type_class),
                         { :type => qname })
           mapping = @registry.find_mapped_soap_class(type_class)
-          type_binding = SoapBinding.new(qname, mapping)
+          type_binding = SoapBinding.new(self, qname, type_class, mapping)
         end
         
         array_binding = nil
@@ -92,13 +86,43 @@ module WS
             array_mapping = @registry.find_mapped_soap_class(Array)
           end
           qname = XSD::QName.new(@type_namespace, soap_type_name(type_class.name) + 'Array')
-          array_binding = SoapBinding.new(qname, array_mapping, type_binding)
+          array_binding = SoapBinding.new(self, qname, Array, array_mapping, type_binding)
         end
 
         @spec2binding[spec] = array_binding ? array_binding : type_binding
+        @spec2binding[spec]
       end
 
       protected
+        def annotate_arrays(binding, value)
+          if binding.is_typed_array?
+            mark_typed_array(value, binding.element_binding.qname)
+            if binding.element_binding.is_custom_type?
+              value.each do |element|
+                annotate_arrays(register_type(element.class), element)
+              end
+            end
+          elsif binding.is_typed_struct?
+            if binding.type_class.respond_to?(:members)
+              binding.type_class.members.each do |name, spec|
+                member_binding = register_type(spec)
+                member_value = value.send(name)
+                if member_binding.is_custom_type?
+                  annotate_arrays(member_binding, member_value)
+                end
+              end
+            end
+          end
+        end
+
+        def mark_typed_array(array, qname)
+          (class << array; self; end).class_eval do 
+            define_method(:arytype) do
+              qname
+            end
+          end
+        end
+
         def typed_struct_factory(type_class)
           if Object.const_defined?('ActiveRecord')
             if WS.derived_from?(ActiveRecord::Base, type_class)
@@ -132,11 +156,14 @@ module WS
 
     class SoapBinding
       attr :qname
+      attr :type_class
       attr :mapping
       attr :element_binding
 
-      def initialize(qname, mapping, element_binding=nil)
+      def initialize(marshaler, qname, type_class, mapping, element_binding=nil)
+        @marshaler = marshaler
         @qname = qname
+        @type_class = type_class
         @mapping = mapping
         @element_binding = element_binding
       end
@@ -155,8 +182,18 @@ module WS
       end
 
       def each_member(&block)
-        unless is_typed_struct?
-          raise(SoapError, "not a structured type")
+        if is_typed_struct?
+          if @mapping[1] == SOAP::Mapping::Registry::TypedStructFactory
+            if @type_class.respond_to?(:members)
+              @type_class.members.each do |name, spec|
+                yield name, spec
+              end
+            end
+          elsif @mapping[1].is_a?(WS::Marshaling::SoapActiveRecordStructFactory)
+            @type_class.columns.each do |column|
+              yield column.name, column.klass
+            end
+          end
         end
       end
 
@@ -219,6 +256,20 @@ module WS
       def soap2obj(obj_class, node, info, map)
         return false
       end
+    end
+
+    module ActiveRecordSoapMarshallable
+      def allocate
+        obj = super
+        attrs = {}
+        self.columns.each{|c| attrs[c.name.to_s] = c.default}
+        obj.instance_variable_set('@attributes', attrs)
+        obj
+      end
+    end
+
+    if Object.const_defined?('ActiveRecord')
+      ActiveRecord::Base.extend(ActiveRecordSoapMarshallable)
     end
   end
 end

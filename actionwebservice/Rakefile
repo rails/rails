@@ -31,12 +31,14 @@ Rake::RDocTask.new { |rdoc|
   rdoc.title    = "Action Web Service -- Web services for Action Pack"
   rdoc.options << '--line-numbers --inline-source --main README --accessor class_inheritable_option=RW'
   rdoc.rdoc_files.include('README')
+  rdoc.rdoc_files.include('CHANGELOG')
   rdoc.rdoc_files.include('lib/action_web_service.rb')
   rdoc.rdoc_files.include('lib/action_web_service/*.rb')
   rdoc.rdoc_files.include('lib/action_web_service/api/*.rb')
   rdoc.rdoc_files.include('lib/action_web_service/client/*.rb')
-  rdoc.rdoc_files.include('lib/action_web_service/protocol/*.rb')
+  rdoc.rdoc_files.include('lib/action_web_service/container/*.rb')
   rdoc.rdoc_files.include('lib/action_web_service/dispatcher/*.rb')
+  rdoc.rdoc_files.include('lib/action_web_service/protocol/*.rb')
   rdoc.rdoc_files.include('lib/action_web_service/support/*.rb')
 }
 
@@ -63,7 +65,7 @@ spec = Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.autorequire = 'action_web_service'
 
-  s.files = [ "Rakefile", "setup.rb", "README", "TODO", "ChangeLog", "MIT-LICENSE" ]
+  s.files = [ "Rakefile", "setup.rb", "README", "TODO", "CHANGELOG", "MIT-LICENSE" ]
   s.files = s.files + Dir.glob( "examples/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   s.files = s.files + Dir.glob( "lib/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   s.files = s.files + Dir.glob( "test/**/*" ).delete_if { |item| item.include?( "\.svn" ) }

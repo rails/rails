@@ -1,6 +1,3 @@
-= 0.6.0 Tasks
-  - finish off tickets #676, #677, #678
-
 = Refactoring
   - Don't have clean way to go from SOAP Class object to the xsd:NAME type
     string -- NaHi possibly looking at remedying this situation

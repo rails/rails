@@ -1,6 +1,5 @@
-$:.unshift(File.dirname(File.dirname(__FILE__)) + '/../lib')
-$:.unshift(File.dirname(File.dirname(__FILE__)) + '/../lib/action_web_service/vendor')
-puts $:.inspect
+require 'pathname'
+$:.unshift(Pathname.new(File.dirname(__FILE__)).realpath.to_s + '/../../lib/action_web_service/vendor')
 require 'test/unit'
 require 'ws'
 begin

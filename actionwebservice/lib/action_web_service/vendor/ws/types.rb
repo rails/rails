@@ -105,7 +105,7 @@ module WS
       @data = data
     end
 
-    def self.create(spec, index=nil, data=nil)
+    def self.create(spec, data, index=nil)
       name = spec.is_a?(Hash) ? spec.keys[0].to_s : (index ? "param#{index}" : nil)
       type = BaseTypes.canonical_param_type_class(spec)
       ParamInfo.new(name, type, data)

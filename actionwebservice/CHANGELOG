@@ -1,11 +1,14 @@
 *0.6.0* (Unreleased)
 
-	* lib/*, test/*: refactored SOAP and XML-RPC protocol specifics into
-	  a small seperate library named 'ws', and drop it in vendor. be
-	  more relaxed about the type of received parameters, perform casting
-	  for XML-RPC if possible, but fallback to the received parameters.
-	  performed extensive cleanup of the way we use SOAP, so that marshaling
-	  of custom and array types should somewhat faster.
+* Improve error message reporting. Bugs in either AWS or the web service itself will send back a protocol-specific error report message if possible, otherwise, provide as much detail as possible.
+
+* Removed type checking of received parameters, and perform casting for XML-RPC if possible, but fallback to the received parameters if casting fails, closes #677
+
+* Refactored SOAP and XML-RPC marshaling and encoding into a small library devoted exclusively to protocol specifics, also cleaned up the SOAP marshaling approach, so that array and custom type marshaling should be a bit faster.
+
+* Add namespaced XML-RPC method name support, closes #678
+
+* Replace '::' with '..' in fully qualified type names for marshaling and WSDL. This improves interoperability with .NET, and closes #676.
 
 *0.5.0* (24th February, 2005)
 

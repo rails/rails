@@ -33,14 +33,14 @@ class SoapMarshalingTest < Test::Unit::TestCase
   end
 
   def test_marshaling
-    info = WS::ParamInfo.create(Nested::MyClass)
+    info = WS::ParamInfo.create(Nested::MyClass, @marshaler.register_type(Nested::MyClass))
     param = WS::Param.new(Nested::MyClass.new(2, "name"), info)
     new_param = @marshaler.unmarshal(@marshaler.marshal(param))
     assert(param == new_param)
   end
   
   def test_exception_marshaling
-    info = WS::ParamInfo.create(RuntimeError)
+    info = WS::ParamInfo.create(RuntimeError, @marshaler.register_type(RuntimeError))
     param = WS::Param.new(RuntimeError.new("hello, world"), info)
     new_param = @marshaler.unmarshal(@marshaler.marshal(param))
     assert_equal("hello, world", new_param.value.detail.cause.message)
@@ -78,7 +78,7 @@ class SoapMarshalingTest < Test::Unit::TestCase
           end
         end
       end
-      info = WS::ParamInfo.create(node_class, 0, @marshaler.register_type(node_class))
+      info = WS::ParamInfo.create(node_class, @marshaler.register_type(node_class), 0)
       ar_obj = node_class.new('name' => 'hello', 'email' => 'test@test.com') 
       param = WS::Param.new(ar_obj, info)
       obj = @marshaler.marshal(param)

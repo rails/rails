@@ -11,10 +11,11 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
   include DispatcherCommonTests
 
   def setup
-    @encoder = WS::Encoding::SoapRpcEncoding.new
-    @marshaler = WS::Marshaling::SoapMarshaler.new
+    @encoder = WS::Encoding::SoapRpcEncoding.new 'urn:ActionWebService'
+    @marshaler = WS::Marshaling::SoapMarshaler.new 'urn:ActionWebService'
     @direct_controller = DirectController.new
     @delegated_controller = DelegatedController.new
+    @virtual_controller = VirtualController.new
   end
 
   def test_wsdl_generation
@@ -23,8 +24,15 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
   end
 
   def test_wsdl_action
-    ensure_valid_wsdl_action DelegatedController.new
-    ensure_valid_wsdl_action DirectController.new
+    delegated_types = ensure_valid_wsdl_action DelegatedController.new
+    delegated_names = delegated_types.map{|x| x.name.name}
+    assert(delegated_names.include?('DispatcherTest..NodeArray'))
+    assert(delegated_names.include?('DispatcherTest..Node'))
+    direct_types = ensure_valid_wsdl_action DirectController.new
+    direct_names = direct_types.map{|x| x.name.name}
+    assert(direct_names.include?('DispatcherTest..NodeArray'))
+    assert(direct_names.include?('DispatcherTest..Node'))
+    assert(direct_names.include?('IntegerArray'))
   end
 
   def test_autoloading
@@ -80,6 +88,11 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
           assert(port.name.name.index(':').nil?)
         end
       end
+      types = definitions.collect_complextypes.map{|x| x.name}
+      types.each do |type|
+        assert(type.namespace == 'urn:ActionWebService')
+      end
+      definitions.collect_complextypes
     end
 
     def ensure_valid_wsdl_action(controller)

@@ -20,20 +20,22 @@ module ActionWebService # :nodoc:
         base.add_web_service_definition_callback do |klass, name, info|
           if klass.web_service_dispatching_mode == :delegated
             klass.class_eval "def #{name}; dispatch_web_service_request; end"
+          elsif klass.web_service_dispatching_mode == :layered
+            klass.class_eval 'def api; dispatch_web_service_request; end'
           end
         end
         base.extend(ClassMethods)
         base.send(:include, ActionWebService::Dispatcher::ActionController::InstanceMethods)
       end
 
-      module ClassMethods
+      module ClassMethods # :nodoc:
         def inherited(child)
           inherited_without_action_controller(child)
           child.send(:include, ActionWebService::Dispatcher::ActionController::WsdlAction)
         end
       end
 
-      module InstanceMethods
+      module InstanceMethods # :nodoc:
         private
           def dispatch_web_service_request
             request = discover_web_service_request(@request)
@@ -105,16 +107,16 @@ module ActionWebService # :nodoc:
           def log_request(request, body)
             unless logger.nil?
               name = request.method_name
-              params = request.method_params.map{|x| x.value.inspect}
+              params = request.method_params.map{|x| "#{x.info.name}=>#{x.value.inspect}"}
               service = request.service_name
-              logger.debug("\nWeb Service Request: #{name}(#{params}) #{service}")
+              logger.debug("\nWeb Service Request: #{name}(#{params.join(", ")}) Entrypoint: #{service}")
               logger.debug(indent(body))
             end
           end
 
           def log_response(response, elapsed=nil)
             unless logger.nil?
-              logger.debug("\nWeb Service Response (%f):" + (elapsed ? " (%f):" % elapsed : ":"))
+              logger.debug("\nWeb Service Response" + (elapsed ? " (%f):" % elapsed : ":"))
               logger.debug(indent(response.body))
             end
           end
@@ -124,7 +126,7 @@ module ActionWebService # :nodoc:
           end
       end
 
-      module WsdlAction
+      module WsdlAction # :nodoc:
         XsdNs             = 'http://www.w3.org/2001/XMLSchema'
         WsdlNs            = 'http://schemas.xmlsoap.org/wsdl/'
         SoapNs            = 'http://schemas.xmlsoap.org/wsdl/soap/'
@@ -155,7 +157,7 @@ module ActionWebService # :nodoc:
             xml = ''
             dispatching_mode = web_service_dispatching_mode
             global_service_name = wsdl_service_name
-            namespace = "urn:#{global_service_name}"
+            namespace = 'urn:ActionWebService'
             soap_action_base = "/#{controller_name}"
 
             marshaler = WS::Marshaling::SoapMarshaler.new(namespace)
@@ -164,18 +166,18 @@ module ActionWebService # :nodoc:
             when :direct
               api = self.class.web_service_api
               web_service_name = controller_class_name.sub(/Controller$/, '').underscore
-              apis[web_service_name] = [api, register_api(marshaler, api)]
+              apis[web_service_name] = [api, register_api(api, marshaler)]
             when :delegated
               self.class.web_services.each do |web_service_name, info|
                 service = web_service_object(web_service_name)
                 api = service.class.web_service_api
-                apis[web_service_name] = [api, register_api(marshaler, api)]
+                apis[web_service_name] = [api, register_api(api, marshaler)]
               end
             end
             custom_types = []
             apis.values.each do |api, bindings|
               bindings.each do |b|
-                custom_types << b if b.is_custom_type?
+                custom_types << b
               end
             end
 
@@ -200,15 +202,16 @@ module ActionWebService # :nodoc:
                           xm.xsd(:complexContent) do
                             xm.xsd(:restriction, 'base' => 'soapenc:Array') do
                               xm.xsd(:attribute, 'ref' => 'soapenc:arrayType',
-                                                 'wsdl:arrayType' => binding.element_binding.qualified_type_name + '[]')
+                                                 'wsdl:arrayType' => binding.element_binding.qualified_type_name('typens') + '[]')
                             end
                           end
                         end
                       when binding.is_typed_struct?
                         xm.xsd(:complexType, 'name' => binding.type_name) do
                           xm.xsd(:all) do
-                            binding.each_member do |name, type_name|
-                              xm.xsd(:element, 'name' => name, 'type' => type_name)
+                            binding.each_member do |name, spec|
+                              b = marshaler.register_type(spec)
+                              xm.xsd(:element, 'name' => name, 'type' => b.qualified_type_name('typens'))
                             end
                           end
                         end
@@ -229,7 +232,7 @@ module ActionWebService # :nodoc:
                         returns = info[:returns]
                         if returns
                           binding = marshaler.register_type(returns[0])
-                          xm.part('name' => 'return', 'type' => binding.qualified_type_name)
+                          xm.part('name' => 'return', 'type' => binding.qualified_type_name('typens'))
                         end
                       else
                         expects = info[:expects]
@@ -242,7 +245,7 @@ module ActionWebService # :nodoc:
                             param_name = "param#{i}"
                           end
                           binding = marshaler.register_type(type)
-                          xm.part('name' => param_name, 'type' => binding.qualified_type_name)
+                          xm.part('name' => param_name, 'type' => binding.qualified_type_name('typens'))
                           i += 1
                         end if expects
                       end
@@ -273,7 +276,7 @@ module ActionWebService # :nodoc:
                     public_name = api.public_api_method_name(name)
                     xm.operation('name' => public_name) do
                       case web_service_dispatching_mode
-                      when :direct
+                      when :direct, :layered
                         soap_action = soap_action_base + "/api/" + public_name
                       when :delegated
                         soap_action = soap_action_base \
@@ -325,20 +328,34 @@ module ActionWebService # :nodoc:
             "#{global_service}#{service.to_s.camelize}Binding"
           end
 
-          def register_api(marshaler, api)
-            type_bindings = []
+          def register_api(api, marshaler)
+            bindings = {}
+            traverse_custom_types(api, marshaler) do |binding|
+              bindings[binding] = nil unless bindings.has_key?(binding.type_class)
+            end
+            bindings.keys
+          end
+
+          def traverse_custom_types(api, marshaler, &block)
             api.api_methods.each do |name, info|
               expects, returns = info[:expects], info[:returns]
-              if expects
-                expects.each{|type| type_bindings << marshaler.register_type(type)}
-              end
-              if returns
-                returns.each{|type| type_bindings << marshaler.register_type(type)}
-              end
+              expects.each{|x| traverse_custom_type_spec(marshaler, x, &block)} if expects
+              returns.each{|x| traverse_custom_type_spec(marshaler, x, &block)} if returns
             end
-            type_bindings
           end
-      end
+
+          def traverse_custom_type_spec(marshaler, spec, &block)
+            binding = marshaler.register_type(spec)
+            if binding.is_typed_struct?
+              binding.each_member do |name, member_spec|
+                traverse_custom_type_spec(marshaler, member_spec, &block)
+              end
+            elsif binding.is_typed_array?
+              traverse_custom_type_spec(marshaler, binding.element_binding.type_class, &block)
+            end
+            yield binding
+          end
+       end
     end
   end
 end
