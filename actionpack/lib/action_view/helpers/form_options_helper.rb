@@ -6,7 +6,9 @@ module ActionView
   module Helpers
     # Provides a number of methods for turning different kinds of containers into a set of option tags.
     # == Options
-    # The <tt>collection_select</tt>, <tt>country_select</tt>, and <tt>select</tt> methods take an <tt>options</tt> parameter, a hash.
+    # The <tt>collection_select</tt>, <tt>country_select</tt>, <tt>select</tt>,
+    # and <tt>time_zone_select</tt> methods take an <tt>options</tt> parameter,
+    # a hash.
     #
     # * <tt>:include_blank</tt> - set to true if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
     #   select("post", "category", Post::CATEGORIES, {:include_blank => true})
@@ -43,6 +45,18 @@ module ActionView
         InstanceTag.new(object, method, self).to_country_select_tag(priority_countries, options, html_options)
       end
       
+      # Return select and option tags for the given object and method, using
+      # #time_zone_options_for_select to generate the list of option tags.
+      #
+      # In addition to the <tt>:include_blank</tt> option documented above,
+      # this method also supports a <tt>:model</tt> option, which defaults
+      # to TimeZone. This may be used by users to specify a different time
+      # zone model object. (See #time_zone_options_for_select for more
+      # information.)
+      def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
+        InstanceTag.new(object, method, self).to_time_zone_select_tag(priority_zones, options, html_options)
+      end
+
       # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container 
       # where the elements respond to first and last (such as a two-element array), the "lasts" serve as option values and
       # the "firsts" as option text. Hashes are turned into this form automatically, so the keys become "firsts" and values
@@ -164,6 +178,35 @@ module ActionView
         return country_options
       end
 
+      # Returns a string of option tags for pretty much any time zone in the
+      # world. Supply a TimeZone object as +selected+ to have it marked as the
+      # selected option tag. You can also supply an array of TimeZone objects
+      # as +priority_zones+, so that they will be listed above the rest of the
+      # (long) list. (You can use TimeZone.us_zones as a convenience for
+      # obtaining a list of the US time zones.)
+      #
+      # By default, +model+ is the TimeZone constant (which can be obtained
+      # in ActiveRecord as a value object). The only requirement is that the
+      # +model+ parameter be an object that responds to #all, and returns
+      # an array of objects that represent time zones.
+      #
+      # NOTE: Only the option tags are returned, you have to wrap this call in
+      # a regular HTML select tag.
+      def time_zone_options_for_select(selected = nil, priority_zones = nil, model = TimeZone)
+        zone_options = ""
+
+        if priority_zones
+          zone_options += options_for_select(priority_zones, selected)
+          zone_options += "<option>-------------</option>\n"
+
+          zones = model.all.reject { |z| priority_zones.include?( z ) }
+          zone_options += options_for_select(zones, selected)
+        else
+          zone_options += options_for_select(model.all, selected)
+        end
+
+        zone_options
+      end
 
       private
         # All the countries included in the country_options output.
@@ -231,6 +274,16 @@ module ActionView
       def to_country_select_tag(priority_countries, options, html_options)
         add_default_name_and_id(html_options)
         content_tag("select", add_blank_option(country_options_for_select(value, priority_countries), options[:include_blank]), html_options)
+      end
+
+      def to_time_zone_select_tag(priority_zones, options, html_options)
+        add_default_name_and_id(html_options)
+        content_tag("select",
+          add_blank_option(
+            time_zone_options_for_select(value, priority_zones, options[:model] || TimeZone),
+            options[:include_blank]
+          ), html_options
+        )
       end
 
       private
