@@ -38,7 +38,7 @@ link:files/vendor/actionpack/README.html.
 
 == Getting started
 
-1. Run the WEBrick servlet: <tt>ruby public/dispatch.servlet</tt>
+1. Run the WEBrick servlet: <tt>ruby script/server</tt>
    (run with --help for options)
 2. Go to http://localhost:3000/ and get "Congratulations, you've put Ruby on Rails!"
 3. Follow the guidelines on the "Congratulations, you're on Rails!" screen

@@ -1,12 +1,14 @@
 *CVS*
 
+* Renamed public/dispatch.servlet to script/server -- it wasn't really dispatching anyway as its delegating calls to public/dispatch.rb
+
 * Renamed AbstractApplicationController and abstract_application.rb to ApplicationController and application.rb, so that it will be possible
   for the framework to automatically pick up on app/views/layouts/application.rhtml and app/helpers/application.rb
 
 * Added script/envcon that makes it even easier to start an IRB session for interacting with the domain model. Run with no-args to
   see help.
 
-* Added breakpoint support by default to the WEBrick dispatcher. This means that you can break out of execution at any point in
+* Added breakpoint support through the script/breakpointer client. This means that you can break out of execution at any point in
   the code, investigate and change the model, AND then resume execution! Example:
   
     class WeblogController < ActionController::Base
@@ -16,8 +18,8 @@
       end
     end
     
-  So the controller will accept the action, run the first line, then present you with a IRB prompt in the WEBrick window (you shouldn't
-  run as daemon when you want to use this). Here you can do things like:
+  So the controller will accept the action, run the first line, then present you with a IRB prompt in the breakpointer window. 
+  Here you can do things like:
   
   Executing breakpoint "Breaking out from the list" at .../webrick_server.rb:16 in 'breakpoint'
 
