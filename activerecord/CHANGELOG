@@ -1,3 +1,8 @@
+*SVN*
+
+* Renamed DateHelper#distance_of_time_in_words_to_now to DateHelper#time_ago_in_words (old method name is still available as a deprecated alias)
+
+
 *1.9.1* (27th March, 2005)
 
 * Fixed that Active Record objects with float attribute could not be cloned #808

@@ -41,9 +41,11 @@ module ActionView
       end
       
       # Like distance_of_time_in_words, but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
-      def distance_of_time_in_words_to_now(from_time, include_seconds = false)
+      def time_ago_in_words(from_time, include_seconds = false)
         distance_of_time_in_words(from_time, Time.now, include_seconds)
       end
+      
+      alias_method :distance_of_time_in_words_to_now, :time_ago_in_words
 
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based attribute (identified by
       # +method+) on an object assigned to the template (identified by +object+). It's possible to tailor the selects through the +options+ hash,
