@@ -832,9 +832,9 @@ module ActiveRecord #:nodoc:
 
       # Returns a clone of the record that hasn't been assigned an id yet and is treated as a new record.
       def clone
-        cloned_record = self.class.new(self.attributes)
-        cloned_record.instance_variable_set "@new_record", true
-        cloned_record.id = nil
+        attrs = self.attributes
+	attrs.delete(self.class.primary_key)
+        cloned_record = self.class.new(attrs)
         cloned_record
       end
             

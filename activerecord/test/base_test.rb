@@ -543,6 +543,10 @@ class BasicsTest < Test::Unit::TestCase
     cloned_topic = topic.clone
     cloned_topic.title["a"] = "c" 
     assert_equal "b", topic.title["a"]
+
+    cloned_topic.save
+    assert !cloned_topic.new_record?
+    assert cloned_topic.id != topic.id
   end
   
   def test_bignum

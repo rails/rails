@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed Base#clone for use with PostgreSQL #565 [hanson@surgery.wisc.edu]
+
+
 *1.6.0* (January 25th, 2005)
 
 * Added that has_many association build and create methods can take arrays of record data like Base#create and Base#build to build/create multiple records at once.
