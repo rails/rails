@@ -1,5 +1,8 @@
 *CVS*
 
+* Added script/envcon that makes it even easier to start an IRB session for interacting with the domain model. Run with no-args to
+  see help.
+
 * Added breakpoint support by default to the WEBrick dispatcher. This means that you can break out of execution at any point in
   the code, investigate and change the model, AND then resume execution! Example:
   
