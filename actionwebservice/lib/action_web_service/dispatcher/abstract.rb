@@ -76,10 +76,7 @@ module ActionWebService # :nodoc:
             invocation.api = self.class.web_service_api
             invocation.service = self
           when :delegated, :layered
-            invocation.service = web_service_object(invocation.service_name) rescue nil
-            unless invocation.service
-              raise(DispatcherError, "service #{invocation.service_name} not available")
-            end
+            invocation.service = web_service_object(invocation.service_name)
             invocation.api = invocation.service.class.web_service_api
           end
           request.api = invocation.api

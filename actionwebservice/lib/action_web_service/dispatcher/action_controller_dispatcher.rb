@@ -89,10 +89,12 @@ module ActionWebService # :nodoc:
             else
               if self.class.web_service_exception_reporting
                 message = exception.message
+                backtrace = "\nBacktrace:\n#{exception.backtrace.join("\n")}"
               else
                 message = "Exception raised"
+                backtrace = ""
               end
-              render_text("Internal protocol error: #{message}", "500 #{message}")
+              render_text("Internal protocol error: #{message}#{backtrace}", "500 #{message}")
             end
           end
 

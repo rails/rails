@@ -11,10 +11,7 @@ module WS
       end
 
       def decode_rpc_call(obj)
-        method_name, params = XMLRPC::Marshal.load_call(obj) rescue nil
-        unless method_name && params
-          raise(XmlRpcError, "Malformed XML-RPC request")
-        end
+        method_name, params = XMLRPC::Marshal.load_call(obj)
         i = 0
         params = params.map do |value|
           param = XmlRpcDecodedParam.new("param#{i}", value)
@@ -33,10 +30,7 @@ module WS
       end
 
       def decode_rpc_response(obj)
-        return_value = XMLRPC::Marshal.load_response(obj) rescue nil
-        if return_value.nil? 
-          raise(XmlRpcError, "Malformed XML-RPC response")
-        end
+        return_value = XMLRPC::Marshal.load_response(obj)
         [nil, XmlRpcDecodedParam.new('return', return_value)]
       end
     end
