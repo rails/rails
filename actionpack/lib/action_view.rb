@@ -22,7 +22,7 @@
 #++
 
 begin
-  require 'rubygems'	
+  require 'rubygems'
   require 'builder'
 rescue LoadError
   # RubyGems is not available, use included Builder

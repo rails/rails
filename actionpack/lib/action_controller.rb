@@ -26,8 +26,12 @@ $:.unshift(File.dirname(__FILE__))
 begin
   require 'active_support'
 rescue LoadError
-  require 'rubygems'
-  require_gem 'activesupport'
+  begin
+    require File.dirname(__FILE__) + '/../../activesupport/lib/active_support'
+  rescue LoadError
+    require 'rubygems'
+    require_gem 'activesupport'
+  end
 end
 
 require 'action_controller/base'

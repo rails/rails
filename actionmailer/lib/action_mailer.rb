@@ -24,9 +24,12 @@
 begin
   require 'action_controller'
 rescue LoadError
-  # Action Pack is not already available, try RubyGems
-  require 'rubygems'	
-  require_gem 'actionpack', '>= 0.9.0'
+  begin
+    require File.dirname(__FILE__) + '/../../actionpack/lib/action_controller'
+  rescue LoadError
+    require 'rubygems'
+    require_gem 'actionpack', '>= 0.9.0'
+  end
 end
 
 $:.unshift(File.dirname(__FILE__) + "/action_mailer/vendor/")
