@@ -35,6 +35,7 @@ module ActiveSupport #:nodoc:
         def since(seconds)
           seconds.since(self)
         end
+        alias :in :since
 
         # Returns a new Time representing the time a number of specified months ago
         def months_ago(months)
@@ -62,7 +63,7 @@ module ActiveSupport #:nodoc:
         def next_month
           months_since(1)
         end
-
+        
         # Returns a new Time representing the "start" of this week (Monday, 0:00)
         def beginning_of_week
           (self - self.wday.days).midnight + 1.day
