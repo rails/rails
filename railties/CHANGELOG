@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed rake stats to ignore editor backup files like model.rb~ #791 [skanthak]
+
 * Added exception shallowing if the DRb server can't be started (not worth making a fuss about to distract new users) #779 [Tobias Luetke]
 
 * Added an empty favicon.ico file to the public directory of new applications (so the logs are not spammed by its absence)
