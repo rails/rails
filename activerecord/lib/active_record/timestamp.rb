@@ -4,6 +4,7 @@ module ActiveRecord
   # automatically included, so you don't need to do that manually.
   #
   # This behavior can be turned off by setting <tt>ActiveRecord::Base.record_timestamps = false</tt>.
+  # This behavior can use GMT by setting <tt>ActiveRecord::Base.timestamps_gmt = true</tt>
   module Timestamp 
     def self.append_features(base) # :nodoc:
       super
@@ -18,18 +19,20 @@ module ActiveRecord
     end    
       
     def create_with_timestamps
-      write_attribute("created_at", Time.now) if record_timestamps && respond_to?(:created_at) && created_at.nil?
-      write_attribute("created_on", Time.now) if record_timestamps && respond_to?(:created_on) && created_on.nil?
+      t = timestamps_gmt ? Time.now.gmtime : Time.now
+      write_attribute("created_at", t) if record_timestamps && respond_to?(:created_at) && created_at.nil?
+      write_attribute("created_on", t) if record_timestamps && respond_to?(:created_on) && created_on.nil?
 
-      write_attribute("updated_at", Time.now) if record_timestamps && respond_to?(:updated_at)
-      write_attribute("updated_on", Time.now) if record_timestamps && respond_to?(:updated_on)
+      write_attribute("updated_at", t) if record_timestamps && respond_to?(:updated_at)
+      write_attribute("updated_on", t) if record_timestamps && respond_to?(:updated_on)
       
       create_without_timestamps
     end
 
     def update_with_timestamps
-      write_attribute("updated_at", Time.now) if record_timestamps && respond_to?(:updated_at)
-      write_attribute("updated_on", Time.now) if record_timestamps && respond_to?(:updated_on)
+      t = timestamps_gmt ? Time.now.gmtime : Time.now
+      write_attribute("updated_at", t) if record_timestamps && respond_to?(:updated_at)
+      write_attribute("updated_on", t) if record_timestamps && respond_to?(:updated_on)
 
       update_without_timestamps
     end
@@ -41,5 +44,7 @@ module ActiveRecord
     # if the table has columns of either of these names. This feature is turned on by default.
     @@record_timestamps = true
     cattr_accessor :record_timestamps
+    @@timestamps_gmt = false
+    cattr_accessor :timestamps_gmt
   end
 end

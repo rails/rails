@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActiveRecord::Base.timestamps_gmt that can be set to true to make the automated timestamping use GMT instead of local time #520 [Scott Baron]
+
 * Added that update_all calls sanitize_sql on its updates argument, so stuff like MyRecord.update_all(['time = ?', Time.now]) works #519 [notahat]
 
 * Fixed that the dynamic finders didn't treat nil as a "IS NULL" but rather "= NULL" case #515 [Demetrius]
