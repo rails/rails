@@ -2,11 +2,16 @@ require File.dirname(__FILE__) + '/tag_helper'
 
 module ActionView
   module Helpers
-    # You must call <%= define_javascript_functions %> in your application,
-    # or copy the included Javascript libraries into your application's 
-    # public/javascripts/ directory, before using these helpers.
-    module JavascriptHelper
-      
+    # Provides a set of helpers for calling Javascript functions and, most importantly, to call remote methods using what has 
+    # been labelled Ajax[http://www.adaptivepath.com/publications/essays/archives/000385.php]. This means that you can call 
+    # actions in your controllers without reloading the page, but still update certain parts of it using injections into the 
+    # DOM. The common use case is having a form that adds a new element to a list without reloading the page.
+    #
+    # To be able to use the Javascript helpers, you must either call <%= define_javascript_functions %> (which returns all
+    # the Javascript support functions in a <script> block) or reference the Javascript library using 
+    # <%= javascript_include_tag "prototype" %> (which looks for the library in /javascripts/prototype.js). The latter is
+    # recommended as the browser can then cache the library instead of fetching all the functions anew on every request.
+    module JavascriptHelper      
       unless const_defined? :CALLBACKS
         CALLBACKS = [:uninitialized, :loading, :loaded, :interactive, :complete]
         JAVASCRIPT_PATH = File.join(File.dirname(__FILE__), 'javascripts')
@@ -63,6 +68,10 @@ module ActionView
         link_to_function(name, remote_function(options), html_options)
       end
 
+      # Returns a form tag that will submit using XMLHttpRequest in the background instead of the regular 
+      # reloading POST arrangement. Even though it's using Javascript to serialize the form elements, the form submission 
+      # will work just like a regular submission as viewed by the receiving side (all elements available in @params).
+      # The options for specifying the target with :url and defining callbacks is the same as link_to_remote.
       def form_remote_tag(options = {})
         options[:form] = true
 

@@ -288,7 +288,7 @@ Form.Element.Serializers = {
 
   select: function(element) {
     var index = element.selectedIndex;
-    return [element.name, element.options[index].value];
+    return [element.name, (index >= 0) ? element.options[index].value : ''];
   }
 }
 

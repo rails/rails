@@ -1,4 +1,4 @@
-*SVN*
+*1.6.0* (22th March, 2005)
 
 * Added a JavascriptHelper and accompanying prototype.js library that opens the world of Ajax to Action Pack with a large array of options for dynamically interacting with an application without reloading the page #884 [Sam Stephenson/David]
 
@@ -13,11 +13,11 @@
         ...
         if @something.save
           # will redirect, use flash
-          flash['message'] = 'Save successful'
+          flash[:message] = 'Save successful'
           redirect_to :action => 'list'
         else
           # no redirect, message is for current action, use flash.now
-          flash.now['message'] = 'Save failed, review'
+          flash.now[:message] = 'Save failed, review'
           render_action 'edit'
         end
       end    

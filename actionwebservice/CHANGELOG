@@ -1,4 +1,4 @@
-*0.6.1* (Unreleased)
+*0.6.1* (22th March, 2005)
 
 * Fix that method response QNames mismatched with that declared in the WSDL, makes SOAP::WSDLDriverFactory work against AWS again
 
@@ -9,6 +9,7 @@
 * Support casting '0' or 0 into false, and '1' or 1 into true, when expecting a boolean value
 
 * Fix that SOAP fault response fault code values were not QName's #804
+
 
 *0.6.0* (7th March, 2005)
 
@@ -29,6 +30,7 @@
 * Add namespaced XML-RPC method name support, closes #678
 
 * Replace '::' with '..' in fully qualified type names for marshaling and WSDL. This improves interoperability with .NET, and closes #676.
+
 
 *0.5.0* (24th February, 2005)
 
