@@ -257,7 +257,7 @@ module ActionController #:nodoc:
 
       # Loads the <tt>file_name</tt> if reload_dependencies is true or requires if it's false.
       def require_or_load(file_name)
-        reload_dependencies ? load("#{file_name}.rb") : require(file_name)
+        reload_dependencies ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
       end
     end
 
