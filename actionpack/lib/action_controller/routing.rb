@@ -280,7 +280,7 @@ module ActionController
       
       def reload
         begin
-          route_file = defined?(RAILS_ROOT) ? File.expand_path(File.join(RAILS_ROOT, 'config', 'routes')) : nil
+          route_file = defined?(RAILS_ROOT) ? File.join(RAILS_ROOT, 'config', 'routes') : nil
           require_dependency(route_file) if route_file
         rescue LoadError, ScriptError => e
           raise RoutingError, "Cannot load config/routes.rb:\n    #{e.message}"
