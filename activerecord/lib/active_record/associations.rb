@@ -655,10 +655,10 @@ module ActiveRecord
             case reflection.macro
               when :has_many, :has_one
                 sql << " LEFT JOIN #{reflection.klass.table_name} ON " +
-                  "#{reflection.klass.table_name}.#{table_name.classify.foreign_key} = #{table_name}.#{primary_key} "
+                  "#{reflection.klass.table_name}.#{reflection.options[:foreign_key] || table_name.classify.foreign_key} = #{table_name}.#{primary_key} "
               when :belongs_to
                 sql << " LEFT JOIN #{reflection.klass.table_name} ON " +
-                  "#{reflection.klass.table_name}.#{reflection.klass.primary_key} = #{table_name}.#{reflection.klass.table_name.classify.foreign_key} "
+                  "#{reflection.klass.table_name}.#{reflection.klass.primary_key} = #{table_name}.#{reflection.options[:foreign_key] || reflection.klass.table_name.classify.foreign_key} "
             end
           end
 
