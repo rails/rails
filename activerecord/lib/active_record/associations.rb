@@ -34,6 +34,13 @@ module ActiveRecord
       base.extend(ClassMethods)
     end
 
+    # Clears out the association cache 
+    def clear_association_cache #:nodoc:
+      self.class.reflect_on_all_associations.to_a.each do |assoc|
+        instance_variable_set "@#{assoc.name}", nil
+      end
+    end
+
     # Associations are a set of macro-like class methods for tying objects together through foreign keys. They express relationships like 
     # "Project has one Project Manager" or "Project belongs to a Portfolio". Each macro adds a number of methods to the class which are 
     # specialized according to the collection or association symbol and the options hash. It works much the same was as Ruby's own attr* 
