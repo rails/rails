@@ -37,6 +37,8 @@ module ActiveRecord
   #
   # An +Errors+ object is automatically created for every Active Record.
   module Validations
+    VALIDATIONS = %w( validate validate_on_create validate_on_create )
+
     def self.append_features(base) # :nodoc:
       super
 
@@ -46,6 +48,8 @@ module ActiveRecord
 
         alias_method :update_attribute_without_validation_skipping, :update_attribute
         alias_method :update_attribute, :update_attribute_with_validation_skipping
+
+        VALIDATIONS.each { |vd| base.class_eval("def self.#{vd}(*methods) write_inheritable_array(\"#{vd}\", methods - (read_inheritable_attribute(\"#{vd}\") || [])) end") }
       end
     end
 
@@ -66,8 +70,18 @@ module ActiveRecord
     # Runs validate and validate_on_create or validate_on_update and returns true if no errors were added otherwise false.
     def valid?
       errors.clear
+
+      run_validations(:validate)
       validate
-      if new_record? then validate_on_create else validate_on_update end
+
+      if new_record?
+        run_validations(:validate_on_create)
+        validate_on_create 
+      else
+        run_validations(:validate_on_update)
+        validate_on_update
+      end
+
       errors.empty?
     end
 
@@ -88,6 +102,37 @@ module ActiveRecord
 
       # Overwrite this method for validation checks used only on updates.
       def validate_on_update # :doc:
+      end
+
+    private
+      def run_validations(validation_method)
+        validations = self.class.read_inheritable_attribute(validation_method.to_s)
+        if validations.nil? then return end
+        validations.each do |validation|
+          if Symbol === validation
+            self.send(validation)
+          elsif String === validation
+            eval(validation, binding)
+          elsif validation_block?(validation)
+            validation.call(self)
+          elsif filter_class?(validation, validation_method)
+            validation.send(validation_method, self)
+          else
+            raise(
+              ActiveRecordError,
+              "Validations need to be either a symbol, string (to be eval'ed), proc/method, or " +
+              "class implementing a static validation method"
+            )
+          end
+        end
+      end
+
+      def validation_block?(validation)
+        validation.respond_to?("call") && (validation.arity == 1 || validation.arity == -1)
+      end
+
+      def validation_class?(validation, validation_method)
+        validation.respond_to?(validation_method)
       end
   end
 

@@ -1,5 +1,18 @@
 *CVS*
 
+* Added validation macros to make the stackable just like the lifecycle callbacks. Examples:
+
+    class Person < ActiveRecord::Base
+      validate { |record| record.errors.add("name", "too short") unless name.size > 10 }
+      validate { |record| record.errors.add("name", "too long")  unless name.size < 20 }
+      validate_on_create :validate_password
+      
+      private
+        def validate_password
+          errors.add("password", "too short") unless password.size > 6
+        end
+    end
+
 * Added ActiveRecord::Mixins::Touch that will record creation and update times of objects [xal]. Example:
 
     class Bill < ActiveRecord::Base
