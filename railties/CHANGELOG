@@ -1,3 +1,10 @@
+*SVN*
+
+* Fixed that generate scaffold would produce bad functional tests
+
+* Fixed that FCGI can also display SyntaxErrors
+
+
 *0.9.4.1* (January 18th, 2005)
 
 * Added 5-second timeout to WordNet alternatives on creating reserved-word models #501 [Marcel Molina]
