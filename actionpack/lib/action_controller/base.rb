@@ -178,11 +178,11 @@ module ActionController #:nodoc:
     DEFAULT_RENDER_STATUS_CODE = "200 OK"
   
     DEFAULT_SEND_FILE_OPTIONS = {
-      :type         => 'application/octet_stream',
-      :disposition  => 'attachment',
+      :type         => 'application/octet_stream'.freeze,
+      :disposition  => 'attachment'.freeze,
       :stream       => true, 
       :buffer_size  => 4096
-    }
+    }.freeze
 
     # Determines whether the view has access to controller internals @request, @response, @session, and @template.
     # By default, it does.
@@ -664,7 +664,7 @@ module ActionController #:nodoc:
           raise ArgumentError, ":#{arg} option required" if options[arg].nil?
         end
 
-        disposition = options[:disposition] || 'attachment'
+        disposition = options[:disposition].dup || 'attachment'
         disposition <<= %(; filename="#{options[:filename]}") if options[:filename]
 
         @headers.update(

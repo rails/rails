@@ -65,4 +65,28 @@ class SendFileTest < Test::Unit::TestCase
     assert_kind_of String, response.body
     assert_equal file_data, response.body
   end
+
+  # Test that send_file_headers! is setting the correct HTTP headers.
+  def test_send_file_headers!
+    options = {
+      :length => 1,
+      :type => 'type',
+      :disposition => 'disposition',
+      :filename => 'filename'
+    }
+
+    # Do it a few times: the resulting headers should be identical
+    # no matter how many times you send with the same options.
+    # Test resolving Ticket #458.
+    @controller.headers = {}
+    @controller.send(:send_file_headers!, options)
+    @controller.send(:send_file_headers!, options)
+    @controller.send(:send_file_headers!, options)
+
+    h = @controller.headers
+    assert_equal 1, h['Content-Length']
+    assert_equal 'type', h['Content-Type']
+    assert_equal 'disposition; filename="filename"', h['Content-Disposition']
+    assert_equal 'binary', h['Content-Transfer-Encoding']
+  end
 end
