@@ -7,13 +7,15 @@ class CodeStatistics
 
   def to_s
     print_header
-    @statistics.each{ |k, v| print_line(k, v) }
+    @pairs.each { |pair| print_line(pair.first, @statistics[pair.first]) }
     print_splitter
   
     if @total
       print_line("Total", @total)
       print_splitter
     end
+
+    print_code_test_stats
   end
 
   private
@@ -25,6 +27,11 @@ class CodeStatistics
       stats = { "lines" => 0, "codelines" => 0, "classes" => 0, "methods" => 0 }
 
       Dir.foreach(directory) do |file_name| 
+        if File.stat(directory + "/" + file_name).directory? and (/^\./ !~ file_name)
+          newstats = calculate_directory_statistics(directory + "/" + file_name, pattern)
+          stats.each { |k, v| stats[k] += newstats[k] }
+        end
+
         next unless file_name =~ pattern
 
         f = File.open(directory + "/" + file_name)
@@ -46,6 +53,18 @@ class CodeStatistics
       total
     end
 
+    def calculate_code
+      code_loc = 0
+      @statistics.each { |k, v| code_loc += v['codelines'] unless ['Units', 'Functionals'].include? k }
+      code_loc
+    end
+
+    def calculate_tests
+      test_loc = 0
+      @statistics.each { |k, v| test_loc += v['codelines'] if ['Units', 'Functionals'].include? k }
+      test_loc
+    end
+
     def print_header
       print_splitter
       puts "| Name                 | Lines |   LOC | Classes | Methods | M/C | LOC/M |"
@@ -60,7 +79,13 @@ class CodeStatistics
       m_over_c   = (statistics["methods"] / statistics["classes"])   rescue m_over_c = 0
       loc_over_m = (statistics["codelines"] / statistics["methods"]) - 2 rescue loc_over_m = 0
 
-      puts "| #{name.ljust(20)} " +
+      start = if ['Units', 'Functionals'].include? name
+        "|   #{name.ljust(18)} "
+      else
+        "| #{name.ljust(20)} " 
+      end
+
+      puts start + 
            "| #{statistics["lines"].to_s.rjust(5)} " +
            "| #{statistics["codelines"].to_s.rjust(5)} " +
            "| #{statistics["classes"].to_s.rjust(7)} " +
@@ -68,4 +93,12 @@ class CodeStatistics
            "| #{m_over_c.to_s.rjust(3)} " +
            "| #{loc_over_m.to_s.rjust(5)} |"
     end
-end
+
+    def print_code_test_stats
+      code  = calculate_code
+      tests = calculate_tests
+
+      puts "  Code LOC: #{code}     Test LOC: #{tests}     Code to Test Ratio: #{sprintf("%.1f", code/tests.to_f)}:1"
+      puts ""
+    end
+  end

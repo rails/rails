@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed "rake stats" to work with sub-directories in models and controllers and to report the code to test ration [Scott Baron]
+
 * Added that Active Record associations are now reloaded instead of cleared to work with the new const_missing hook in Active Record.
 
 * Added graceful handling of an inaccessible log file by redirecting output to STDERR with a warning #330 [rainmkr]

@@ -63,11 +63,11 @@ Rake::RDocTask.new("apidoc") { |rdoc|
 desc "Report code statistics (KLOCs, etc) from the application"
 task :stats do
   CodeStatistics.new(
-    ["Controllers", "app/controllers"], 
     ["Helpers", "app/helpers"], 
+    ["Controllers", "app/controllers"], 
+    ["Functionals", "test/functional"],
     ["Models", "app/models"],
-    ["Units", "test/unit"],
-    ["Functionals", "test/functional"]
+    ["Units", "test/unit"]
   ).to_s
 end
 
