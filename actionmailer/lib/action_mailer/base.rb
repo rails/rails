@@ -86,6 +86,7 @@ module ActionMailer #:nodoc:
     attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers, :bcc, :cc
 
     def initialize
+      @bcc = @cc = @from = @recipients = @sent_on = @subject = @body = nil
       @headers = {}
     end
 
@@ -147,15 +148,16 @@ module ActionMailer #:nodoc:
           mailer.body = {}
           mailer.send(method_name, *parameters)
 
-          if String === mailer.body
-            mail = create(mailer.recipients, mailer.subject, mailer.body, mailer.from, mailer.sent_on, mailer.headers)
-          else
-            mail = create(mailer.recipients, mailer.subject, render_body(mailer, method_name), mailer.from, mailer.sent_on, mailer.headers)
+          unless String === mailer.body then
+            mailer.body = render_body mailer, method_name
           end
 
-          mail.bcc = @bcc if @bcc
-          mail.cc  = @cc  if @cc
-      
+          mail = create(mailer.recipients, mailer.subject, mailer.body,
+                        mailer.from, mailer.sent_on, mailer.headers)
+
+          mail.bcc = mailer.bcc unless mailer.bcc.nil?
+          mail.cc  = mailer.cc  unless mailer.cc.nil?
+
           return mail
         end
   

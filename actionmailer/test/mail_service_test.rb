@@ -4,6 +4,7 @@ require 'test/unit'
 require 'action_mailer'
 
 class TestMailer < ActionMailer::Base
+
   def signed_up(recipient)
     @recipients   = recipient
     @subject      = "[Signed up] Welcome #{recipient}"
@@ -19,11 +20,23 @@ class TestMailer < ActionMailer::Base
     @sent_on    = Time.local(2004, 12, 12)
     @body       = "Goodbye, Mr. #{recipient}"
   end
+
+  def cc_bcc(recipient)
+    @recipients = recipient
+    @subject    = "testing bcc/cc"
+    @from       = "system@loudthinking.com"
+    @sent_on    = Time.local 2004, 12, 12
+    @cc         = "nobody@loudthinking.com"
+    @bcc        = "root@loudthinking.com"
+    @body       = "Nothing to see here."
+  end
+
 end
 
 TestMailer.template_root = File.dirname(__FILE__) + "/fixtures"
 
 class ActionMailerTest < Test::Unit::TestCase
+
   def setup
     ActionMailer::Base.delivery_method = :test
     ActionMailer::Base.perform_deliveries = true
@@ -68,6 +81,31 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
   end
   
+  def test_cc_bcc
+    expected = TMail::Mail.new
+    expected.to      = @recipient
+    expected.subject = "testing bcc/cc"
+    expected.body    = "Nothing to see here."
+    expected.from    = "system@loudthinking.com"
+    expected.cc      = "nobody@loudthinking.com"
+    expected.bcc     = "root@loudthinking.com"
+    expected.date    = Time.local 2004, 12, 12
+
+    created = nil
+    assert_nothing_raised do
+      created = TestMailer.create_cc_bcc @recipient
+    end
+    assert_not_nil created
+    assert_equal expected.encoded, created.encoded
+
+    assert_nothing_raised do
+      TestMailer.deliver_cc_bcc @recipient
+    end
+
+    assert_not_nil ActionMailer::Base.deliveries.first
+    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
+  end
+
   def test_instances_are_nil
     assert_nil ActionMailer::Base.new
     assert_nil TestMailer.new
@@ -89,4 +127,6 @@ class ActionMailerTest < Test::Unit::TestCase
     TestMailer.deliver_signed_up(@recipient)
     assert_equal 1, ActionMailer::Base.deliveries.size
   end
+
 end
+
