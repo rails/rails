@@ -1,5 +1,13 @@
 *SVN*
 
+* Added block-style for callbacks #332 [bitsweat].
+
+    Before:
+      before_destroy(Proc.new{ |record| Person.destroy_all "firm_id = #{record.id}" })
+    
+    After:
+      before_destroy { |record| Person.destroy_all "firm_id = #{record.id}" }
+
 * Added automated optimistic locking if the field <tt>lock_version</tt> is present.  Each update to the
   record increments the lock_version column and the locking facilities ensure that records instantiated twice
   will let the last one saved raise a StaleObjectError if the first was also updated. Example:
@@ -675,7 +683,7 @@
 * Fixed PostgreSQL adapter so default values are displayed properly when used in conjunction with 
   Action Pack scaffolding.
 
-* Fixed booleans support for PostgreSQL (use real true/false on boolean fields instead of 0/1 on tinyints) [radsaq]
+* Fixed booleans support for PostgreSQL (use real true/falseÂ on boolean fields instead of 0/1 on tinyints) [radsaq]
 
 
 *0.9.2*

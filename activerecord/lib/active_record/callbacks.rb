@@ -34,18 +34,19 @@ module ActiveRecord
   #   end
   #
   #   class Subscription < ActiveRecord::Base
-  #     # Automatically assign the signup date
-  #     def before_create
-  #       self.signed_up_on = Date.today
-  #     end
+  #     before_create :record_signup
+  #
+  #     private
+  #       def record_signup
+  #         self.signed_up_on = Date.today
+  #       end
   #   end
   #
   #   class Firm < ActiveRecord::Base
   #     # Destroys the associated clients and people when the firm is destroyed
-  #     def before_destroy
-  #       Client.destroy_all "client_of = #{id}"
-  #       Person.destroy_all "firm_id = #{id}"
-  #     end
+  #     before_destroy { |record| Person.destroy_all "firm_id = #{record.id}"   }
+  #     before_destroy { |record| Client.destroy_all "client_of = #{record.id}" }
+  #   end
   #
   # == Inheritable callback queues
   #
@@ -169,9 +170,7 @@ module ActiveRecord
           alias_method :instantiate_without_callbacks, :instantiate
           alias_method :instantiate, :instantiate_with_callbacks
         end
-      end
 
-      base.class_eval do
         alias_method :initialize_without_callbacks, :initialize
         alias_method :initialize, :initialize_with_callbacks
 
@@ -191,14 +190,21 @@ module ActiveRecord
         alias_method :destroy, :destroy_with_callbacks
       end
 
-      CALLBACKS.each { |cb| base.class_eval("def self.#{cb}(*methods) write_inheritable_array(\"#{cb}\", methods) end") }
+      CALLBACKS.each do |method|
+        base.class_eval <<-"end_eval"
+          def self.#{method}(*callbacks, &block)
+            callbacks << block if block_given?
+            write_inheritable_array(#{method.to_sym.inspect}, callbacks)
+          end
+        end_eval
+      end
     end
 
     module ClassMethods #:nodoc:
       def instantiate_with_callbacks(record)
         object = instantiate_without_callbacks(record)
-        object.callback(:after_find) if object.respond_to_without_attributes?(:after_find)
-        object.callback(:after_initialize) if object.respond_to_without_attributes?(:after_initialize)
+        object.send(:invoke_and_notify, :after_find)
+        object.send(:invoke_and_notify, :after_initialize)
         object
       end
     end
@@ -211,7 +217,7 @@ module ActiveRecord
     def initialize_with_callbacks(attributes = nil) #:nodoc:
       initialize_without_callbacks(attributes)
       result = yield self if block_given?
-      after_initialize if respond_to_without_attributes?(:after_initialize)
+      invoke_and_notify(:after_initialize)
       result
     end
 
@@ -298,45 +304,40 @@ module ActiveRecord
       result
     end
 
-    def callback(callback_method) #:nodoc:
-      run_callbacks(callback_method)
-      send(callback_method)
-      notify(callback_method)
-    end
-
-    def run_callbacks(callback_method)
-      filters = self.class.read_inheritable_attribute(callback_method.to_s)
-      if filters.nil? then return end
-      filters.each do |filter|
-        if Symbol === filter
-          self.send(filter)
-        elsif String === filter
-          eval(filter, binding)
-        elsif filter_block?(filter)
-          filter.call(self)
-        elsif filter_class?(filter, callback_method)
-          filter.send(callback_method, self)
-        else
-          raise(
-            ActiveRecordError,
-            "Filters need to be either a symbol, string (to be eval'ed), proc/method, or " +
-            "class implementing a static filter method"
-          )
+    private
+      def callback(method)
+        callbacks_for(method).each do |callback|
+          case callback
+            when Symbol
+              self.send(callback)
+            when String
+              eval(callback, binding)
+            when Proc, Method
+              callback.call(self)
+            else
+              if callback.respond_to?(method)
+                callback.send(method, self)
+              else
+                raise ActiveRecordError, "Callbacks must be a symbol denoting the method to call, a string to be evaluated, a block to be invoked, or an object responding to the callback method."
+              end
+          end
         end
+
+        invoke_and_notify(method)
       end
-    end
 
-    def filter_block?(filter)
-      filter.respond_to?("call") && (filter.arity == 1 || filter.arity == -1)
-    end
+      def callbacks_for(method)
+        self.class.read_inheritable_attribute(method.to_sym) or []
+      end
 
-    def filter_class?(filter, callback_method)
-      filter.respond_to?(callback_method)
-    end
+      def invoke_and_notify(method)
+        send(method) if respond_to_without_attributes?(method)
+        notify(method)
+      end
 
-    def notify(callback_method) #:nodoc:
-      self.class.changed
-      self.class.notify_observers(callback_method, self)
-    end
+      def notify(method) #:nodoc:
+        self.class.changed
+        self.class.notify_observers(method, self)
+      end
   end
 end
