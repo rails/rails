@@ -19,7 +19,6 @@ module ActionController
 
     private
       def rewrite_url(path, options)
-      
         rewritten_url = ""
         rewritten_url << (options[:protocol] || @request.protocol) unless options[:only_path]
         rewritten_url << (options[:host] || @request.host_with_port) unless options[:only_path]
