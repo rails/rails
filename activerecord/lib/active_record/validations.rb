@@ -75,11 +75,9 @@ module ActiveRecord
       def validate_confirmation(*attr_names)
         for attr_name in attr_names
           attr_accessor "#{attr_name}_confirmation"
-          class_eval <<-EOC
-            validate_on_create(Proc.new { |record|
-              record.errors.add("#{attr_name}", "doesn't match confirmation") unless record.#{attr_name} == record.#{attr_name}_confirmation
-            })
-EOC
+          class_eval <<-EOM
+            validate_on_create %{errors.add('#{attr_name}', "doesn't match confirmation") unless #{attr_name} == #{attr_name}_confirmation}
+EOM
         end
       end
     end
