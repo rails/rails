@@ -305,13 +305,13 @@ module ActionController #:nodoc:
 
       class DRbStore < MemoryStore #:nodoc:
         def initialize(address = 'druby://localhost:9192')
-          @data = DRbObject.new(nil, address)
+          @data, @mutex = DRbObject.new(nil, address), Mutex.new
         end    
       end
 
       class MemCacheStore < MemoryStore #:nodoc:
         def initialize(address = 'localhost')
-          @data = MemCache.new(address)
+          @data, @mutex = MemCache.new(address), Mutex.new
         end    
       end
 
