@@ -43,7 +43,11 @@ module ActiveRecord
   # The observer can implement callback methods for each of the methods described in the Callbacks module.
   class Observer
     include Singleton
-  
+
+    def self.observe(*models)
+      define_method(:observed_class) { models }
+    end
+
     def initialize
       [ observed_class ].flatten.each do |klass| 
         klass.add_observer(self)
