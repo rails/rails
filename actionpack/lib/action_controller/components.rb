@@ -5,21 +5,18 @@ module ActionController #:nodoc:
       super
       base.helper do
         def render_component(options) 
-          @controller.logger.info("Start rendering component (#{options.inspect}): ") unless @controller.logger.nil?
-          result = @controller.send(:component_response, options, false).body
-          @controller.logger.info("\n\nEnd of component rendering") unless @controller.logger.nil?
-          return result
+          @controller.send(:render_component_as_string, options)
         end
       end
     end
 
     protected
       def render_component(options = {}) #:doc:
-        response = component_response(options)
-        logger.info("Start rendering component (#{options.inspect}): ") unless logger.nil?
-        result = render_text(response.body, response.headers["Status"])
-        logger.info("\n\nEnd of component rendering") unless logger.nil?
-        return result
+        component_logging(options) { render_text(component_response(options).body, response.headers["Status"]) }
+      end
+
+      def render_component_as_string(options) #:doc:
+        component_logging(options) { component_response(options, false).body }
       end
   
     private
@@ -42,6 +39,13 @@ module ActionController #:nodoc:
       
       def response_for_component
         @response.dup
+      end
+      
+      def component_logging(options)
+        logger.info("Start rendering component (#{options.inspect}): ") unless logger.nil?
+        result = yield
+        logger.info("\n\nEnd of component rendering") unless logger.nil?
+        return result
       end
   end
 end
