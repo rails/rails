@@ -9,7 +9,7 @@ module ActiveRecord
           @finder_sql = interpolate_sql(options[:finder_sql])
         else
           @finder_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id}"
-          @finder_sql << " AND #{@conditions}" if @conditions
+          @finder_sql << " AND #{interpolate_sql(@conditions)}" if @conditions
         end
 
         if options[:counter_sql]

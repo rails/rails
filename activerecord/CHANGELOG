@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that conditions in has_many and has_and_belongs_to_many should be interpolated just like the finder_sql is
+
 * Fixed Base#update_attribute to be indifferent to whether a string or symbol is used to describe the name
 
 * Added Base#toggle(attribute) and Base#toggle!(attribute) that makes it easier to flip a switch or flag.

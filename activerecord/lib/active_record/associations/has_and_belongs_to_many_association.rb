@@ -14,7 +14,7 @@ module ActiveRecord
               "SELECT t.*, j.* FROM #{association_table_name} t, #{@join_table} j " +
               "WHERE t.#{@association_class.primary_key} = j.#{@association_foreign_key} AND " +
               "j.#{association_class_primary_key_name} = #{@owner.quoted_id} " +
-              (options[:conditions] ? " AND " + options[:conditions] : "") + " " +
+              (options[:conditions] ? " AND " + interpolate_sql(options[:conditions]) : "") + " " +
               "ORDER BY #{@order}"
       end
  
