@@ -1,6 +1,7 @@
 *SVN*
 
-* Added ActionMailer::Base.raise_delivery_errors = false to the test environment as we checks will be performed against deliveries array instead.
+* Added ActionMailer::Base.deliver_method = :test to the test environment so that mail objects are available in ActionMailer::Base.deliveries
+  for functional testing.
 
 * Added protection for creating a model through the generators with a name of an existing class, like Thread or Date.
   It'll even offer you a synonym using wordnet.princeton.edu as a look-up. No, I'm not kidding :) [Florian Gross]
