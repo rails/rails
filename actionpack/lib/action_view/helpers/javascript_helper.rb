@@ -58,7 +58,11 @@ module ActionView
     /* XMLHttpRequest Methods */
 
     function update_with_response() {
-      o(arguments[0]).innerHTML = xml_request(arguments[1], arguments[2]);
+      var container  = o(arguments[0]);
+      var url        = arguments[1];
+      var parameters = arguments[2];
+    
+      container.innerHTML = xml_request(url, parameters);
     }
 
     function xml_request() {
@@ -66,11 +70,11 @@ module ActionView
       var parameters = arguments[1];
       var async      = arguments[2];
       var type       = parameters ? "POST" : "GET";
-
+      
       req = xml_http_request_object();
       req.open(type, url, async);
       req.send(parameters);
-
+      
       return req.responseText;
     }
 
@@ -174,8 +178,8 @@ module ActionView
             "update_with_response('#{options[:update]}', '#{url_for(options[:url])}'#{', Form.serialize(this)' if options[:form]})" :
             "xml_request('#{url_for(options[:url])}'#{', Form.serialize(this)' if options[:form]})"
 
-          function = "#{options[:before]};#{function}" if options[:before]
-          function = "#{function};#{options[:after]}"  if options[:after]
+          function = [ options[:before], function, options[:before] ].join("; ")
+          function = "if (#{options[:condition]}) { #{function}; }" if options[:condition]
       
           return function
         end
