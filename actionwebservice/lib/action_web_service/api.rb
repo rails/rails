@@ -192,6 +192,15 @@ module ActionWebService # :nodoc:
         -1
       end
 
+      # Returns a hash keyed by parameter name for the given
+      # parameter list
+      def expects_to_hash(params)
+        return {} if @expects.nil?
+        h = {}
+        @expects.zip(params){ |type, param| h[type.name] = param }
+        h
+      end
+
       # String representation of this method
       def to_s
         fqn = ""
