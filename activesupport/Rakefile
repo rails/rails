@@ -2,5 +2,5 @@ require 'rake/testtask'
 
 task :default => :test
 Rake::TestTask.new { |t| 
-  t.pattern = 'test/*_test.rb'
+  t.pattern = 'test/**/*_test.rb'
 }
