@@ -36,6 +36,8 @@ module ActiveRecord
   #   person.save # => true (and person is now saved in the database)
   #
   # An +Errors+ object is automatically created for every Active Record.
+  #
+  # Please do have a look at ActiveRecord::Validations::ClassMethods for a higher level of validations.
   module Validations
     VALIDATIONS = %w( validate validate_on_create validate_on_update )
     
@@ -55,8 +57,10 @@ module ActiveRecord
       base.extend(ClassMethods)
     end
 
+    # All of the following validations are defined in the class scope of the model that you're interested in validating.
+    # They offer a more declarative way of specifying when the model is valid and when it is not. It is recommended to use
+    # these over the low-level calls to validate and validate_on_create when possible.
     module ClassMethods
-            
       # Encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
       #
       #   Model:
@@ -73,8 +77,8 @@ module ActiveRecord
       # It exists only as an in-memory variable for validating the password. This check is performed both on create and update.
       #
       # Configuration options:
-      # ::message: A custom error message (default is: "doesn't match confirmation")
-      # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>message</tt> - A custom error message (default is: "doesn't match confirmation")
+      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
       def validates_confirmation_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -95,8 +99,8 @@ module ActiveRecord
       # The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed both on create and update.
       #
       # Configuration options:
-      # ::message: A custom error message (default is: "must be accepted")
-      # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>message</tt> - A custom error message (default is: "must be accepted")
+      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
       #
       # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
       def validates_acceptance_of(*attr_names)
@@ -112,8 +116,8 @@ module ActiveRecord
       # Validates that the specified attributes are neither nil nor empty. Happens by default on both create and update.
       #
       # Configuration options:
-      # ::message: A custom error message (default is: "has already been taken")
-      # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>message</tt> - A custom error message (default is: "has already been taken")
+      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
       def validates_presence_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:empty], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -123,14 +127,7 @@ module ActiveRecord
         end
       end
       
-      # Validates that the specified attribute matches the length restrictions supplied in either:
-      #
-      #   - configuration[:minimum]
-      #   - configuration[:maximum]
-      #   - configuration[:is]
-      #   - configuration[:within] (aka. configuration[:in])
-      #
-      # Only one option can be used at a time.
+      # Validates that the specified attribute matches the length restrictions supplied. Only one option can be used at a time:
       #
       #   class Person < ActiveRecord::Base
       #     validates_length_of :first_name, :maximum=>30
@@ -141,17 +138,17 @@ module ActiveRecord
       #   end
       #
       # Configuration options:
-      # ::minimum: The minimum size of the attribute
-      # ::maximum: The maximum size of the attribute
-      # ::is: The exact size of the attribute
-      # ::within: A range specifying the minimum and maximum size of the attribute
-      # ::in: A synonym(or alias) for :within
+      # * <tt>minimum</tt> - The minimum size of the attribute
+      # * <tt>maximum</tt> - The maximum size of the attribute
+      # * <tt>is</tt> - The exact size of the attribute
+      # * <tt>within</tt> - A range specifying the minimum and maximum size of the attribute
+      # * <tt>in</tt> - A synonym(or alias) for :within
       # 
-      # ::too_long: The error message if the attribute goes over the maximum (default is: "is too long (max is %d characters)")
-      # ::too_short: The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)")
-      # ::wrong_length: The error message if using the :is method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)")
-      # ::message: The error message to use for a :minimum, :maximum, or :is violation.  An alias of the appropriate too_long/too_short/wrong_length message
-      # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (max is %d characters)")
+      # * <tt>too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)")
+      # * <tt>wrong_length</tt> - The error message if using the :is method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)")
+      # * <tt>message</tt> - The error message to use for a :minimum, :maximum, or :is violation.  An alias of the appropriate too_long/too_short/wrong_length message
+      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
       def validates_length_of(*attr_names)
         configuration = { :too_long => ActiveRecord::Errors.default_error_messages[:too_long], :too_short => ActiveRecord::Errors.default_error_messages[:too_short], :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -207,7 +204,7 @@ module ActiveRecord
       # attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
       #
       # Configuration options:
-      # ::message: Specifies a custom error message (default is: "has already been taken")
+      # * <tt>message</tt> - Specifies a custom error message (default is: "has already been taken")
       def validates_uniqueness_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken] }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -227,9 +224,9 @@ module ActiveRecord
       # A regular expression must be provided or else an exception will be raised.
       #
       # Configuration options:
-      # ::message: A custom error message (default is: "is invalid")
-      # ::with: The regular expression used to validate the format with (note: must be supplied!)
-      # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>message</tt> - A custom error message (default is: "is invalid")
+      # * <tt>with</tt> - The regular expression used to validate the format with (note: must be supplied!)
+      # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
       def validates_format_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save, :with => nil }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -249,8 +246,8 @@ module ActiveRecord
       #   end
       #
       # Configuration options:
-      # ::in: An enumerable object of available items
-      # ::message: Specifieds a customer error message (default is: "is not included in the list")
+      # * <tt>in</tt> - An enumerable object of available items
+      # * <tt>message</tt> - Specifieds a customer error message (default is: "is not included in the list")
       def validates_inclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)

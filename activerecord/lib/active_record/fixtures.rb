@@ -245,8 +245,10 @@ end
 
 class Fixture #:nodoc:
   include Enumerable
-  class FixtureError < StandardError; end
-  class FormatError < FixtureError; end
+  class FixtureError < StandardError#:nodoc:
+  end
+  class FormatError < FixtureError#:nodoc:
+  end
 
   def initialize(fixture, class_name)
     @fixture = fixture.is_a?(Hash) ? fixture : read_fixture_file(fixture)
@@ -297,47 +299,51 @@ class Fixture #:nodoc:
     end
 end
 
-class Test::Unit::TestCase #:nodoc:
-  include ClassInheritableAttributes
+module Test#:nodoc:
+  module Unit#:nodoc:
+    class TestCase #:nodoc:
+      include ClassInheritableAttributes
 
-  cattr_accessor :fixture_path
-  cattr_accessor :fixture_table_names
+      cattr_accessor :fixture_path
+      cattr_accessor :fixture_table_names
 
-  def self.fixtures(*table_names)
-    require_fixture_classes(table_names)
-    write_inheritable_attribute("fixture_table_names", table_names)
-  end
-
-  def self.require_fixture_classes(table_names)
-    table_names.each do |table_name| 
-      begin
-        require(Inflector.singularize(table_name.to_s))
-      rescue LoadError
-        # Let's hope the developer is included it himself
+      def self.fixtures(*table_names)
+        require_fixture_classes(table_names)
+        write_inheritable_attribute("fixture_table_names", table_names)
       end
-    end
-  end
 
-  def setup
-    instantiate_fixtures(*fixture_table_names) if fixture_table_names
-  end
+      def self.require_fixture_classes(table_names)
+        table_names.each do |table_name| 
+          begin
+            require(Inflector.singularize(table_name.to_s))
+          rescue LoadError
+            # Let's hope the developer is included it himself
+          end
+        end
+      end
 
-  def self.method_added(method_symbol)
-    if method_symbol == :setup && !method_defined?(:setup_without_fixtures)
-      alias_method :setup_without_fixtures, :setup
-      define_method(:setup) do
+      def setup
         instantiate_fixtures(*fixture_table_names) if fixture_table_names
-        setup_without_fixtures
       end
+
+      def self.method_added(method_symbol)
+        if method_symbol == :setup && !method_defined?(:setup_without_fixtures)
+          alias_method :setup_without_fixtures, :setup
+          define_method(:setup) do
+            instantiate_fixtures(*fixture_table_names) if fixture_table_names
+            setup_without_fixtures
+          end
+        end
+      end
+
+      private
+        def instantiate_fixtures(*table_names)
+          Fixtures.instantiate_fixtures(self, fixture_path, *table_names)
+        end
+
+        def fixture_table_names
+          self.class.read_inheritable_attribute("fixture_table_names")
+        end
     end
   end
-
-  private
-    def instantiate_fixtures(*table_names)
-      Fixtures.instantiate_fixtures(self, fixture_path, *table_names)
-    end
-
-    def fixture_table_names
-      self.class.read_inheritable_attribute("fixture_table_names")
-    end
 end

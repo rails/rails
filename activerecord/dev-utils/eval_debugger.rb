@@ -1,5 +1,5 @@
 # Require this file to see the methods Active Record generates as they are added.
-class Module
+class Module #:nodoc:
   alias :old_module_eval :module_eval
   def module_eval(*args, &block)
     if args[0]

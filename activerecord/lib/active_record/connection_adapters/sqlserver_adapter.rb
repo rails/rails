@@ -53,7 +53,7 @@ module ActiveRecord
       base.extend(ClassMethods)
     end
 
-    module ClassMethods
+    module ClassMethods #:nodoc:
       def find_first(conditions = nil, orderings = nil)
         sql  = "SELECT TOP 1 * FROM #{table_name} "
         add_conditions!(sql, conditions)

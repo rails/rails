@@ -2,6 +2,8 @@ module ActiveRecord
   # Active Records will automatically record creation and/or update timestamps of database objects
   # if fields of the names created_at/created_on or updated_at/updated_on are present. This module is
   # automatically included, so you don't need to do that manually.
+  #
+  # This behavior can be turned off by setting <tt>ActiveRecord::Base.record_timestamps = false</tt>.
   module Timestamp 
     def self.append_features(base) # :nodoc:
       super
