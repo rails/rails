@@ -23,7 +23,7 @@ module ActionView
 
       # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like 
       # ActionController::Base#url_for.
-      def form_tag(url_for_options, options = {}, *parameters_for_url)
+      def form_tag(url_for_options = {}, options = {}, *parameters_for_url)
         html_options = { "method" => "POST" }.merge(options)
         
         if html_options[:multipart]

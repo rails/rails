@@ -1,5 +1,7 @@
 *CVS*
 
+* Added the choice to call form_tag with no arguments (resulting in a form posting to current action) [bitsweat]
+
 * Upgraded to Builder 1.2.1
 
 * Added :module as an alias for :controller_prefix to url_for and friends, so you can do redirect_to(:module => "shop", :controller => "purchases")
