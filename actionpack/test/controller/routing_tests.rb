@@ -278,6 +278,18 @@ class RouteTests < Test::Unit::TestCase
     assert_equal Controllers::Admin::UserController, controller
     assert_equal %w{action id}, leftovers
   end
+  
+  def test_special_characters
+    route ':id', :controller => 'content', :action => 'fish'
+    verify_recognize'id+with+spaces',
+        :controller => 'content', :action => 'fish', :id => 'id with spaces'
+    verify_generate('id+with+spaces', {},
+        {:controller => 'content', :action => 'fish', :id => 'id with spaces'}, {})
+    verify_recognize 'id%2Fwith%2Fslashes',
+        :controller => 'content', :action => 'fish', :id => 'id/with/slashes'
+    verify_generate('id%2Fwith%2Fslashes', {},
+        {:controller => 'content', :action => 'fish', :id => 'id/with/slashes'}, {})
+  end
 end
 
 class RouteSetTests < Test::Unit::TestCase

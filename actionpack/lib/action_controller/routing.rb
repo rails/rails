@@ -41,7 +41,7 @@ module ActionController
             value = options[item] || defaults[item] || @defaults[item]
             return nil, "#{item.inspect} was not given and has no default." if value.nil? && ! (@defaults.key?(item) && @defaults[item].nil?) # Don't leave if nil value.
             defaults = {} unless defaults == {} || value == defaults[item] # Stop using defaults if this component isn't the same as the default.
-            value
+            (value.nil? || item == :controller) ? value : CGI.escape(value.to_s)
           else item
           end
         end
@@ -89,7 +89,7 @@ module ActionController
           elsif item.kind_of? Symbol
             value = components.shift || @defaults[item]
             return nil, "No value or default for parameter #{item.inspect}" if value.nil? && ! (@defaults.key?(item) && @defaults[item].nil?)
-            options[item] = value
+            options[item] = value.nil? ? value : CGI.unescape(value)
           else
             return nil, "No value available for component #{item.inspect}" if components.empty?
             component = components.shift
@@ -208,7 +208,7 @@ module ActionController
           if controller.nil?
             failures << [route, options] if ActionController::Base.debug_routes
           else
-            options.each {|k, v| request.path_parameters[k] = CGI.unescape(v)}
+            request.path_parameters = options
             return controller
           end
         end
