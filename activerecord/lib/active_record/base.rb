@@ -3,6 +3,10 @@ require 'active_record/support/class_inheritable_attributes'
 require 'active_record/support/inflector'
 require 'yaml'
 
+unless Object.respond_to?(:require_association)
+  Object.send(:define_method, :require_association) { |file_name| ActiveRecord::Base.require_association(file_name) }
+end
+
 module ActiveRecord #:nodoc:
   class ActiveRecordError < StandardError #:nodoc:
   end
@@ -553,9 +557,7 @@ module ActiveRecord #:nodoc:
         end
       end
       
-      Object.send(:define_method, :require_association) { |file_name| ActiveRecord::Base.require_association(file_name) }
-      
-      # Resets the list of dependencies loaded (typically to be called by the end of a request), so when require_or_load is
+      # Resets the list of dependencies loaded (typically to be called by the end of a request), so when require_association is
       # called for that dependency it'll be loaded anew.
       def reset_associations_loaded
         associations_loaded = []

@@ -5,6 +5,10 @@ require 'action_controller/support/class_attribute_accessors'
 require 'action_controller/support/class_inheritable_attributes'
 require 'action_controller/support/inflector'
 
+unless Object.respond_to?(:require_dependency)
+  Object.send(:define_method, :require_dependency) { |file_name| ActionController::Base.require_dependency(file_name) }
+end
+
 module ActionController #:nodoc:
   class ActionControllerError < StandardError #:nodoc:
   end
@@ -259,8 +263,6 @@ module ActionController #:nodoc:
       def require_dependency(file_name)
         reload_dependencies ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
       end
-
-      Object.send(:define_method, :require_dependency) { |file_name| ActiveRecord::Base.require_dependency(file_name) }
     end
 
     public
