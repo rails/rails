@@ -28,11 +28,9 @@ module ActiveRecord
     #   todo_list.last.move_higher
     module List
       def self.append_features(base)
-        super
-        base.class_eval do
-          before_destroy :remove_from_list
-          after_create   :add_to_list_bottom
-        end
+        super        
+        base.before_destroy :remove_from_list
+        base.after_create   :add_to_list_bottom
       end
 
       # Moving around on the list
