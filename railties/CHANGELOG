@@ -1,6 +1,8 @@
-*SVN*
+*0.11.1* (27th March, 2005)
 
 * Fixed the dispatch.fcgi use of a logger
+
+* Upgraded to Active Record 1.9.1, Action Pack 1.7.0, Action Mailer 0.8.1, Action Web Service 0.6.2, Active Support 1.0.3
 
 
 *0.11.0* (22th March, 2005)

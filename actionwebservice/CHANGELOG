@@ -1,7 +1,8 @@
-*0.7.0* (Unreleased)
+*0.6.2* (27th March, 2005)
 
 * Allow method declarations for direct dispatching to declare parameters as well. We treat an arity of < 0 or > 0 as an indication that we should send through parameters. Closes #939.
-  
+
+
 *0.6.1* (22th March, 2005)
 
 * Fix that method response QNames mismatched with that declared in the WSDL, makes SOAP::WSDLDriverFactory work against AWS again

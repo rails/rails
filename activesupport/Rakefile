@@ -5,7 +5,7 @@ require 'rake/contrib/rubyforgepublisher'
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'activesupport'
-PKG_VERSION   = '1.0.2' + PKG_BUILD
+PKG_VERSION   = '1.0.3' + PKG_BUILD
 PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
 
 RELEASE_NAME  = "REL #{PKG_VERSION}"
@@ -27,6 +27,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Active Support -- Utility classes and standard library extensions from Rails"
   rdoc.options << '--line-numbers --inline-source --main README'
+  rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/active_support.rb')
   rdoc.rdoc_files.include('lib/active_support/*.rb')

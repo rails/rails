@@ -8,7 +8,7 @@ require 'rake/contrib/rubyforgepublisher'
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'actionmailer'
-PKG_VERSION   = '0.8.0' + PKG_BUILD
+PKG_VERSION   = '0.8.1' + PKG_BUILD
 PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
 
 RELEASE_NAME  = "REL #{PKG_VERSION}"
@@ -32,6 +32,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Action Mailer -- Easy email delivery and testing"
   rdoc.options << '--line-numbers --inline-source --main README'
+  rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/action_mailer.rb')
   rdoc.rdoc_files.include('lib/action_mailer/*.rb')
@@ -51,7 +52,7 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "actionmailer"
   s.homepage = "http://www.rubyonrails.org"
 
-  s.add_dependency('actionpack', '= 1.6.0' + PKG_BUILD)
+  s.add_dependency('actionpack', '= 1.7.0' + PKG_BUILD)
 
   s.has_rdoc = true
   s.requirements << 'none'

@@ -1,4 +1,4 @@
-*SVN*
+*0.8.1* (27th March, 2005)
 
 * Fixed that if charset was found that the end of a mime part declaration TMail would throw an error #919 [lon@speedymac.com]
 

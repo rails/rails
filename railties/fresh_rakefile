@@ -71,7 +71,7 @@ Rake::RDocTask.new("appdoc") { |rdoc|
 desc "Generate documentation for the Rails framework"
 Rake::RDocTask.new("apidoc") { |rdoc|
   rdoc.rdoc_dir = 'doc/api'
-  rdoc.template = 'jamis.rb' if ENV['template'] == 'jamis'
+  rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.title    = "Rails Framework Documentation"
   rdoc.options << '--line-numbers --inline-source'
   rdoc.rdoc_files.include('README')

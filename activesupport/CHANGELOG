@@ -1,4 +1,4 @@
-*SVN*
+*1.0.3* (27th March, 2005)
 
 * Fixed Inflector.pluralize to handle capitalized words #932 [bitsweat]
 
@@ -11,7 +11,7 @@
     1/0 rescue nil # BAD, EVIL, DIRTY.
 
 
-*1.0.2*
+*1.0.2* (22th March, 2005)
 
 * Added Kernel#returning -- a Ruby-ized realization of the K combinator, courtesy of Mikael Brockman.
 

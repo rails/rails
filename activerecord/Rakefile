@@ -8,7 +8,7 @@ require 'rake/contrib/rubyforgepublisher'
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'activerecord'
-PKG_VERSION   = '1.9.0' + PKG_BUILD
+PKG_VERSION   = '1.9.1' + PKG_BUILD
 PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
 
 RELEASE_NAME  = "REL #{PKG_VERSION}"
@@ -38,47 +38,14 @@ Rake::TestTask.new("test_mysql_ruby") { |t|
   t.verbose = true
 }
 
-Rake::TestTask.new("test_postgresql") { |t|
-  t.libs << "test" << "test/connections/native_postgresql"
-  t.pattern = 'test/*_test.rb'
-  t.verbose = true
-}
+for adapter in %( postgresql sqlite sqlite3 sqlserver db2 oci )
+  Rake::TestTask.new("test_#{adapter}") { |t|
+    t.libs << "test" << "test/connections/native_#{adapter}"
+    t.pattern = 'test/*_test.rb'
+    t.verbose = true
+  }
+end
 
-Rake::TestTask.new("test_sqlite") { |t|
-  t.libs << "test" << "test/connections/native_sqlite"
-  t.pattern = 'test/*_test.rb'
-  t.verbose = true
-}
-
-Rake::TestTask.new("test_sqlite3") { |t|
-  t.libs << "test" << "test/connections/native_sqlite3"
-  t.pattern = 'test/*_test.rb'
-  t.verbose = true
-}
-
-Rake::TestTask.new("test_sqlserver") { |t|
-  t.libs << "test" << "test/connections/native_sqlserver"
-  t.pattern = 'test/*_test.rb'
-  t.verbose = true
-}
-
-Rake::TestTask.new("test_db2") { |t|
-  t.libs << "test" << "test/connections/native_db2"
-  t.pattern = 'test/*_test.rb'
-  t.verbose = true
-}
-
-Rake::TestTask.new("test_oracle") { |t|
-  t.libs << "test" << "test/connections/native_oracle"
-  t.pattern = 'test/*_test.rb'
-  t.verbose = true
-}
-
-Rake::TestTask.new("test_oci") { |t|
-  t.libs << "test" << "test/connections/native_oci"
-  t.pattern = 'test/*_test.rb'
-  t.verbose = true
-}
 
 # Generate the RDoc documentation
 
@@ -86,6 +53,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Active Record -- Object-relation mapping put on rails"
   rdoc.options << '--line-numbers --inline-source --accessor cattr_accessor=object'
+  rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
   rdoc.rdoc_files.exclude('lib/active_record/vendor/*')
@@ -108,7 +76,7 @@ spec = Gem::Specification.new do |s|
     s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   end
   
-  s.add_dependency('activesupport', '= 1.0.2' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 1.0.3' + PKG_BUILD)
 
   s.files.delete "test/fixtures/fixture_database.sqlite"
   s.files.delete "test/fixtures/fixture_database_2.sqlite"

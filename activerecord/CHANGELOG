@@ -1,4 +1,6 @@
-*SVN*
+*1.9.1* (27th March, 2005)
+
+* Fixed that Active Record objects with float attribute could not be cloned #808
 
 * Fixed that MissingSourceFile's wasn't properly detected in production mode #925 [Nicholas Seckar]
 
