@@ -318,7 +318,7 @@ module ActiveRecord #:nodoc:
               when 0
                 raise RecordNotFound, "Couldn't find #{name} without an ID#{conditions}"
               when 1
-                if result = find(:first, options.merge({ :conditions => "#{primary_key} = #{sanitize(ids.first)}#{conditions}" }))
+                if result = find(:first, options.merge({ :conditions => "#{table_name}.#{primary_key} = #{sanitize(ids.first)}#{conditions}" }))
                   return expects_array ? [ result ] : result
                 else
                   raise RecordNotFound, "Couldn't find #{name} with ID=#{ids.first}#{conditions}"
@@ -326,7 +326,7 @@ module ActiveRecord #:nodoc:
               else
                 # Find multiple ids
                 ids_list = ids.map { |id| sanitize(id) }.join(',')
-                result   = find(:all, options.merge({ :conditions => "#{primary_key} IN (#{ids_list})#{conditions}", :order => primary_key }))
+                result   = find(:all, options.merge({ :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}", :order => primary_key }))
                 if result.size == ids.size
                   return result
                 else
