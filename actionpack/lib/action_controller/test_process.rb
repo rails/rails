@@ -191,6 +191,23 @@ module ActionController #:nodoc:
       headers['cookie'].inject({}) { |hash, cookie| hash[cookie.name] = cookie; hash }
     end
 
+    # Returns binary content (downloadable file), converted to a String
+    def binary_content
+      raise "Response body is not a Proc: #{body.inspect}" unless body.kind_of?(Proc)
+      require 'stringio'
+
+      sio = StringIO.new
+
+      begin 
+        $stdout = sio
+        body.call
+      ensure
+        $stdout = STDOUT
+      end
+
+      sio.rewind
+      sio.read
+    end
 end
 
   class TestSession #:nodoc:
