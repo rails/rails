@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that on validation errors, scaffold couldn't find template #654 [mindel]
+
 * Added Base#hide_actions(*names) to hide public methods from a controller that would otherwise have been callable through the URL. For the majority of cases, its preferred just to make the methods you don't want to expose protected or private (so they'll automatically be hidden) -- but if you must have a public method, this is a way to make it uncallable. Base#hidden_actions retrieve the list of all hidden actions for the controller #644 [Nicholas Seckar]
 
 * Fixed that a bunch of methods from ActionController::Base was accessible as actions (callable through a URL) when they shouldn't have been #644 [Nicholas Seckar]

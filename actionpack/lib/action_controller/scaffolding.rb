@@ -47,7 +47,7 @@ module ActionController
     #        flash["notice"] = "Entry was successfully created"
     #        redirect_to :action => "list"
     #      else
-    #        render "entry/new"
+    #        render_scaffold('new')
     #      end
     #    end
     #    
@@ -64,7 +64,7 @@ module ActionController
     #        flash["notice"] = "Entry was successfully updated"
     #        redirect_to :action => "show/" + @entry.id.to_s
     #      else
-    #        render "entry/edit"
+    #        render_scaffold('edit')
     #      end
     #    end
     #  end
@@ -126,7 +126,7 @@ module ActionController
               flash["notice"] = "#{class_name} was successfully created"
               redirect_to :action => "list#{suffix}"
             else
-              render "#{singular_name}/new#{suffix}"
+              render#{suffix}_scaffold('new')
             end
           end
           
@@ -143,7 +143,7 @@ module ActionController
               flash["notice"] = "#{class_name} was successfully updated"
               redirect_to :action => "show#{suffix}/" + @#{singular_name}.id.to_s
             else
-              render "#{singular_name}/edit#{suffix}"
+              render#{suffix}_scaffold('edit')
             end
           end
           
