@@ -9,8 +9,6 @@
     Now:
       person.update_attributes(@params["person"])
 
-* Added a return value for Base#update_attribute, so that you get to know whether the save was successful or if it failed validation.
-
 * Added Base.destroy and Base.delete to remove records without holding a reference to them first.
 
 

@@ -787,12 +787,15 @@ module ActiveRecord #:nodoc:
       end
             
       # Updates a single attribute and saves the record. This is especially useful for boolean flags on existing records.
+      # Note: This method is overwritten by the Validation module that'll make sure that updates made with this method
+      # doesn't get subjected to validation checks. Hence, attributes can be updated even if the full object isn't valid.
       def update_attribute(name, value)
         self[name] = value
-        return save
+        return true
       end
 
-      # Updates all the attributes in from the passed hash and saves the record.
+      # Updates all the attributes in from the passed hash and saves the record. If the object is invalid, the saving will
+      # fail and false will be returned.
       def update_attributes(attributes)
         self.attributes = attributes
         return save
