@@ -1,5 +1,10 @@
 *CVS*
 
+* Added the option for sanitizing find_by_sql and the offset parts in regular finds [Sam Stephenson]. Examples:
+
+    Project.find_all ["category = ?", category_name], "created ASC", ["? OFFSET ?", 15, 20]
+    Post.find_by_sql ["SELECT * FROM posts WHERE author = ? AND created > ?", author_id, start_date]
+
 * Fixed value quoting in all generated SQL statements, so that integers are not surrounded in quotes and that all sanitation are happening
   through the database's own quoting routine. This should hopefully make it lots easier for new adapters that doesn't accept '1' for integer
   columns.

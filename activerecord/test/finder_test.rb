@@ -1,11 +1,13 @@
 require 'abstract_unit'
 require 'fixtures/company'
 require 'fixtures/topic'
+require 'fixtures/entrant'
 
 class FinderTest < Test::Unit::TestCase
   def setup
     @company_fixtures = create_fixtures("companies")
     @topic_fixtures   = create_fixtures("topics")
+    @entrant_fixtures = create_fixtures("entrants")
   end
   
   def test_find
@@ -23,8 +25,29 @@ class FinderTest < Test::Unit::TestCase
     }
   end
   
+  def test_find_all_with_limit
+    entrants = Entrant.find_all nil, "id ASC", 2
+    
+    assert_equal(2, entrants.size)
+    assert_equal(@entrant_fixtures["first"]["name"], entrants.first.name)
+  end
+
+  def test_find_all_with_prepared_limit_and_offset
+    entrants = Entrant.find_all nil, "id ASC", ["? OFFSET ?", 2, 1]
+    
+    assert_equal(2, entrants.size)
+    assert_equal(@entrant_fixtures["second"]["name"], entrants.first.name)
+  end
+
   def test_find_with_entire_select_statement
     topics = Topic.find_by_sql "SELECT * FROM topics WHERE author_name = 'Mary'"
+    
+    assert_equal(1, topics.size)
+    assert_equal(@topic_fixtures["second"]["title"], topics.first.title)
+  end
+  
+  def test_find_with_prepared_select_statement
+    topics = Topic.find_by_sql ["SELECT * FROM topics WHERE author_name = ?", "Mary"]
     
     assert_equal(1, topics.size)
     assert_equal(@topic_fixtures["second"]["title"], topics.first.title)
@@ -70,5 +93,17 @@ class FinderTest < Test::Unit::TestCase
   def test_string_sanitation
     assert_not_equal "'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
     assert_equal "'something; select table'", ActiveRecord::Base.sanitize("something; select table")
+  end
+
+  def test_count
+    assert_equal(0, Entrant.count("id > 3"))
+    assert_equal(1, Entrant.count(["id > ?", 2]))
+    assert_equal(2, Entrant.count(["id > ?", 1]))
+  end
+
+  def test_count_by_sql
+    assert_equal(0, Entrant.count_by_sql("SELECT COUNT(*) FROM entrants WHERE id > 3"))
+    assert_equal(1, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 2]))
+    assert_equal(2, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 1]))
   end
 end

@@ -274,21 +274,25 @@ module ActiveRecord #:nodoc:
       # Returns an array of all the objects that could be instantiated from the associated
       # table in the database. The +conditions+ can be used to narrow the selection of objects (WHERE-part),
       # such as by "color = 'red'", and arrangement of the selection can be done through +orderings+ (ORDER BY-part),
-      # such as by "last_name, first_name DESC". A maximum of returned objects can be specified in +limit+. Example:
+      # such as by "last_name, first_name DESC". A maximum of returned objects and their offset can be specified in 
+      # +limit+ (LIMIT...OFFSET-part). Examples:
       #   Project.find_all "category = 'accounts'", "last_accessed DESC", 15
+      #   Project.find_all ["category = ?", category_name], "created ASC", ["? OFFSET ?", 15, 20]
       def find_all(conditions = nil, orderings = nil, limit = nil, joins = nil)
         sql  = "SELECT * FROM #{table_name} " 
         sql << "#{joins} " if joins
         add_conditions!(sql, conditions)
         sql << "ORDER BY #{orderings} " unless orderings.nil?
-        sql << "LIMIT #{limit} " unless limit.nil?
+        sql << "LIMIT #{sanitize_conditions(limit)} " unless limit.nil?
     
         find_by_sql(sql)
       end
   
-      # Works like find_all, but requires a complete SQL string. Example:
+      # Works like find_all, but requires a complete SQL string. Examples:
       #   Post.find_by_sql "SELECT p.*, c.author FROM posts p, comments c WHERE p.id = c.post_id"
+      #   Post.find_by_sql ["SELECT * FROM posts WHERE author = ? AND created > ?", author_id, start_date]
       def find_by_sql(sql)
+        sql = sanitize_conditions(sql)
         connection.select_all(sql, "#{name} Load").inject([]) { |objects, record| objects << instantiate(record) }
       end
       
@@ -360,6 +364,7 @@ module ActiveRecord #:nodoc:
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
       #   Product.count "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
       def count_by_sql(sql)
+        sql = sanitize_conditions(sql)
         count = connection.select_one(sql, "#{name} Count").values.first
         return count ? count.to_i : 0
       end
