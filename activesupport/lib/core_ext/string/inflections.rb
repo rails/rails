@@ -1,3 +1,4 @@
+require File.dirname(__FILE__) + '/../../inflector'
 module ActiveSupport
   module CoreExtensions
     module String
