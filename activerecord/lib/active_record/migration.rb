@@ -31,6 +31,7 @@ module ActiveRecord
     
     def initialize(direction, migrations_path, target_version = nil)
       @direction, @migrations_path, @target_version = direction, migrations_path, target_version
+      Base.connection.initialize_schema_information
     end
 
     def current_version
@@ -44,7 +45,6 @@ module ActiveRecord
 
         Base.logger.info "Migrating to #{migration_class} (#{version})"
         migration_class.send(@direction)
-
         set_schema_version(version)
       end
     end
