@@ -45,7 +45,11 @@ module ActiveRecord
             end
 
             def scope_condition
-              "#{configuration[:scope]} = \#{#{configuration[:scope]}}"
+              if configuration[:scope].is_a?(Symbol)
+                "#{configuration[:scope]} = \#{#{configuration[:scope]}}"
+              else
+                configuration[:scope]
+              end
             end
             
             before_destroy :remove_from_list
