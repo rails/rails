@@ -4,6 +4,12 @@ module ActionView
   module Helpers
     # You must call <%= define_javascript_functions %> in your application before using these helpers.
     module JavascriptHelper
+      # Returns a link that'll toggle the visibility of the DOM objects which ids are mentioned in +tags+. If they're visible, we hide them,
+      # and vice versa. This is particularly useful for hiding and showing input and edit forms on in-page elements. 
+      #
+      # Examples:
+      #   link_to_toggle_display "Toggle controls", "control_box"
+      #   link_to_toggle_display "Add note", %w( add_link add_form )
       def link_to_toggle_display(name, tags, html_options = {})
         html_options.symbolize_keys!
         toggle_functions = [ tags ].flatten.collect { |tag| "toggle_display_by_id('#{tag}'); " }.join
@@ -13,6 +19,11 @@ module ActionView
         )
       end
   
+      # Returns a link that'll trigger a javascript +function+ using the onclick handler and return false after the fact.
+      #
+      # Examples:
+      #   link_to_function "Greeting", "alert('Hello world!')"
+      #   link_to_function(image_tag("delete"), "if confirm('Really?'){ do_delete(); }")
       def link_to_function(name, function, html_options = {})
         content_tag(
           "a", name, 
@@ -20,6 +31,14 @@ module ActionView
         )
       end
 
+      # Returns a link to a remote action defined by <tt>options[:url]</tt> (using the url_for format) that's called in the background 
+      # using XMLHttpRequest. The result of that request can then be inserted into a DOM object who's id can be specified
+      # with <tt>options[:update]</tt>. Usually, the result would be a partial prepared by the controller with either render_partial
+      # or render_partial_collection. 
+      #
+      # Examples:
+      #  link_to_remote "Delete this post", :update => "posts", :url => { :action => "destroy", :id => post.id }
+      #  link_to_remote(image_tag("refresh"), :update => "emails", :url => { :action => "list_emails" })
       def link_to_remote(name, options = {})  
         link_to_function(name, remote_function(options))
       end
