@@ -86,22 +86,33 @@ function $() {
 }
 
 function getElementsByClassName(className, element) {
-  var children = (element || document).getElementsByTagName('*');
+  var all = document.all ? document.all : document.getElementsByTagName(element);
   var elements = new Array();
-  
-  for (var i = 0; i < children.length; i++) {
-    var child = children[i];
-    var classNames = child.className.split(' ');
-    for (var j = 0; j < classNames.length; j++) {
-      if (classNames[j] == className) {
-        elements.push(child);
-        break;
-      }
-    }
-  }
-  
+
+  for (var e = 0; e < all.length; e++)
+    if (all[e].className == className)
+      elements[elements.length] = all[e];
+
   return elements;
 }
+
+// function getElementsByClassName(className, element) {
+//   var children = (element || document).getElementsByTagName('*');
+//   var elements = new Array();
+//   
+//   for (var i = 0; i < children.length; i++) {
+//     var child = children[i];
+//     var classNames = child.className.split(' ');
+//     for (var j = 0; j < classNames.length; j++) {
+//       if (classNames[j] == className) {
+//         elements.push(child);
+//         break;
+//       }
+//     }
+//   }
+//   
+//   return elements;
+// }
 
 /*--------------------------------------------------------------------------*/
 
