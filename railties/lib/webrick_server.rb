@@ -69,6 +69,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
 
   def handle_dispatch(req, res, origin = nil)
     env = req.meta_vars.clone
+    env.delete "SCRIPT_NAME"
     env["QUERY_STRING"] = req.request_uri.query
     env["REQUEST_URI"] = origin if origin
     
