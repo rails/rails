@@ -74,18 +74,16 @@ module ActionView
       end
 
       # Creates a link tag of the given +name+ using an URL created by the set of +options+, unless the current 
-      # controller, action, and id are the same as the link's, in which case only the name is returned (or the
+      # request uri is the same as the link's, in which case only the name is returned (or the
       # given block is yielded, if one exists). This is useful for creating link bars where you don't want to link 
       # to the page currently being viewed.
       def link_to_unless_current(name, options = {}, html_options = {}, *parameters_for_method_reference)
-        assume_current_url_options!(options)
-
-        if destination_equal_to_current(options)
+        if url_for(options) == @request.request_uri
           block_given? ?
             yield(name, options, html_options, *parameters_for_method_reference) :
             html_escape(name)
         else
-          link_to name, options, html_options, *parameters_for_method_reference
+          link_to(name, options, html_options, *parameters_for_method_reference)
         end
       end
 
@@ -123,25 +121,6 @@ module ActionView
       end
 
       private
-        def destination_equal_to_current(options)
-          params_without_location = @params.reject { |key, value| %w( controller action id ).include?(key) }
-
-          options[:action].to_s == @params['action'].to_s &&
-            options[:id].to_s == @params['id'].to_s &&
-            options[:controller].to_s == @params['controller'].to_s &&
-            (options.has_key?(:params) ? params_without_location == options[:params] : true) 
-        end
-
-        def assume_current_url_options!(options)
-          if options[:controller].nil?
-            options[:controller] = @params['controller']
-            if options[:action].nil?
-              options[:action] = @params['action']
-              if options[:id].nil? then options[:id] ||= @params['id'] end
-            end
-          end
-        end
-        
         def convert_confirm_option_to_javascript!(html_options)
           if html_options.include?(:confirm)
             html_options["onclick"] = "return confirm('#{html_options[:confirm]}');"
