@@ -1,5 +1,16 @@
 *SVN*
 
+* Added support for independent components residing in /components. Example:
+
+    Controller: components/list/items_controller.rb
+    (holds a List::ItemsController class with uses_component_template_root called)
+    
+    Model     : components/list/item.rb
+    (namespace is still shared, so an Item model in app/models will take precedence)
+    
+    Views     : components/list/items/show.rhtml
+
+
 * Added --sandbox option to script/console that'll roll back all changes made to the database when you quit #672 [bitsweat]
 
 * Added 'recent' as a rake target that'll run tests for files that changed in the last 10 minutes #612 [bitsweat]

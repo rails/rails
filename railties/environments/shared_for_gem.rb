@@ -7,6 +7,7 @@ ADDITIONAL_LOAD_PATHS = ["#{RAILS_ROOT}/test/mocks/#{RAILS_ENV}"]
 
 # Then model subdirectories.
 ADDITIONAL_LOAD_PATHS.concat(Dir["#{RAILS_ROOT}/app/models/[_a-z]*"])
+ADDITIONAL_LOAD_PATHS.concat(Dir["#{RAILS_ROOT}/components/[_a-z]*"])
 
 # Followed by the standard includes.
 ADDITIONAL_LOAD_PATHS.concat %w(
@@ -16,6 +17,7 @@ ADDITIONAL_LOAD_PATHS.concat %w(
   app/helpers
   app/apis
   config
+  components
   lib
   vendor
 ).map { |dir| "#{RAILS_ROOT}/#{dir}" }
@@ -55,5 +57,10 @@ end
 [ActiveRecord, ActionController, ActionMailer].each { |mod| mod::Base.logger ||= RAILS_DEFAULT_LOGGER }
 [ActionController, ActionMailer].each { |mod| mod::Base.template_root ||= "#{RAILS_ROOT}/app/views/" }
 ActionController::Routing::Routes.reload
+
+Controllers = Dependencies::LoadingModule.root(
+  File.expand_path(File.join(RAILS_ROOT, 'app', 'controllers')),
+  File.expand_path(File.join(RAILS_ROOT, 'components'))
+)
 
 # Include your app's configuration here:
