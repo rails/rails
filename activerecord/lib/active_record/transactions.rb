@@ -1,4 +1,5 @@
 require 'active_record/vendor/simple.rb'
+Transaction::Simple.send(:remove_method, :transaction)
 require 'thread'
 
 module ActiveRecord
