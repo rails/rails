@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that the belongs_to and has_one proxy would fail a test like 'if project.manager' -- this unfortunately also means that you can't call methods like project.manager.build unless there already is a manager on the project #492 [Tim Bates]
+
 * Fixed that the Ruby/MySQL adapter wouldn't connect if the password was empty #503 [Pelle]
 
 

@@ -7,11 +7,6 @@ module ActiveRecord
         @loaded = false
       end
 
-      def reload
-        reset
-        load_target
-      end
-
       def create(attributes = {})
         record = build(attributes)
         record.save
@@ -34,12 +29,8 @@ module ActiveRecord
           @owner[@association_class_primary_key_name] = obj.id unless obj.new_record?
         end
         @loaded = true
-      end
 
-      # Ugly workaround - .nil? is done in C and the method_missing trick doesn't work when we pretend to be nil
-      def nil?
-        load_target
-        @target.nil?
+        return (@target.nil? ? nil : self)
       end
 
       private
@@ -63,12 +54,5 @@ module ActiveRecord
           # no sql to construct
         end
     end
-  end
-end
-
-class NilClass #:nodoc:
-  # Ugly workaround - nil comparison is usually done in C and so a proxy object pretending to be nil doesn't work.
-  def ==(other)
-    other.nil?
   end
 end

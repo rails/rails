@@ -228,7 +228,7 @@ module ActiveRecord
 
         add_multiple_associated_save_callbacks(association_name)
 
-        association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasManyAssociation)
+        collection_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasManyAssociation)
         
         # deprecated api
         deprecated_collection_count_method(association_name)
@@ -289,7 +289,8 @@ module ActiveRecord
         module_eval do
           after_save <<-EOF
             association = instance_variable_get("@#{association_name}")
-            if (true or @new_record_before_save) and association.respond_to?(:loaded?) and not association.nil?
+            loaded = instance_variable_get("@#{association_name}_loaded")
+            if loaded and not association.nil?
               association["#{association_class_primary_key_name}"] = id
               association.save(true)
               association.send(:construct_sql)
@@ -364,7 +365,8 @@ module ActiveRecord
         module_eval do
           before_save <<-EOF
             association = instance_variable_get("@#{association_name}")
-            if association.respond_to?(:loaded?) and not association.nil? and association.new_record?
+            loaded = instance_variable_get("@#{association_name}_loaded")
+            if loaded and not association.nil? and association.new_record?
               association.save(true)
               self["#{association_class_primary_key_name}"] = association.id
               association.send(:construct_sql)
@@ -469,7 +471,7 @@ module ActiveRecord
 
         add_multiple_associated_save_callbacks(association_name)
       
-        association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasAndBelongsToManyAssociation)
+        collection_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasAndBelongsToManyAssociation)
 
         before_destroy_sql = "DELETE FROM #{options[:join_table]} WHERE #{association_class_primary_key_name} = \\\#{self.quoted_id}"
         module_eval(%{before_destroy "self.connection.delete(%{#{before_destroy_sql}})"}) # "
@@ -512,6 +514,49 @@ module ActiveRecord
         end
         
         def association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, association_proxy_class)
+          define_method(association_name) do |*params|
+            force_reload = params.first unless params.empty?
+            loaded = instance_variable_get("@#{association_name}_loaded")
+            if loaded and not force_reload
+              association = instance_variable_get("@#{association_name}")
+            else
+              association = association_proxy_class.new(self,
+                association_name, association_class_name,
+                association_class_primary_key_name, options)
+              retval = association.reload
+              unless retval.nil?
+                instance_variable_set("@#{association_name}", association)
+                instance_variable_set("@#{association_name}_loaded", true)
+              else
+                instance_variable_set("@#{association_name}", nil)
+                instance_variable_set("@#{association_name}_loaded", nil)
+                return nil
+              end
+            end
+            association
+          end
+
+          define_method("#{association_name}=") do |new_value|
+            loaded = instance_variable_get("@#{association_name}_loaded")
+            association = instance_variable_get("@#{association_name}")
+            unless loaded and association
+              association = association_proxy_class.new(self,
+                association_name, association_class_name,
+                association_class_primary_key_name, options)
+            end
+            association.replace(new_value)
+            unless new_value.nil?
+              instance_variable_set("@#{association_name}", association)
+              instance_variable_set("@#{association_name}_loaded", true)
+            else
+              instance_variable_set("@#{association_name}", nil)
+              instance_variable_set("@#{association_name}_loaded", nil)
+            end
+            association
+          end
+        end
+
+        def collection_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, association_proxy_class)
           define_method(association_name) do |*params|
             force_reload = params.first unless params.empty?
             association = instance_variable_get("@#{association_name}")

@@ -25,9 +25,9 @@ module ActiveRecord
 
         @loaded = true
         unless @owner.new_record? or obj.nil? or dont_save
-          return (obj.save ? obj : false)
+          return (obj.save ? self : false)
         else
-          return obj
+          return (obj.nil? ? nil : self)
         end
       end
       

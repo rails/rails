@@ -14,6 +14,11 @@ module ActiveRecord
         reset
       end
       
+      def reload
+        reset
+        load_target
+      end
+
       def method_missing(symbol, *args, &block)
         load_target
         @target.send(symbol, *args, &block)

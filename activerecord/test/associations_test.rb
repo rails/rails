@@ -105,7 +105,7 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
 
-    account = firm.account.build("credit_limit" => 1000)
+    firm.account = account = Account.new("credit_limit" => 1000)
     assert_equal account, firm.account
     assert account.save
     assert_equal account, firm.account
@@ -125,7 +125,7 @@ class HasOneAssociationsTest < Test::Unit::TestCase
   def test_build_before_either_saved
     firm = Firm.new("name" => "GlobalMegaCorp")
 
-    account = firm.account.build("credit_limit" => 1000)
+    firm.account = account = Account.new("credit_limit" => 1000)
     assert_equal account, firm.account
     assert account.new_record?
     assert firm.save
@@ -137,7 +137,7 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
     
-    account = firm.account.build
+    firm.account = account = Account.new
     assert_equal account, firm.account
     assert !account.save
     assert_equal account, firm.account
@@ -147,12 +147,14 @@ class HasOneAssociationsTest < Test::Unit::TestCase
   def test_create
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
-    assert_equal firm.account.create("credit_limit" => 1000), firm.account
+    firm.account = account = Account.create("credit_limit" => 1000)
+    assert_equal account, firm.account
   end
 
   def test_create_before_save
     firm = Firm.new("name" => "GlobalMegaCorp")
-    assert_equal firm.account.create("credit_limit" => 1000), firm.account
+    firm.account = account = Account.create("credit_limit" => 1000)
+    assert_equal account, firm.account
   end
 
   def test_dependence_with_missing_association
@@ -242,6 +244,21 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   def test_counting_using_sql
     assert_equal 1, Firm.find_first.clients_using_counter_sql.size
     assert_equal 0, Firm.find_first.clients_using_zero_counter_sql.size
+  end
+  
+  def test_belongs_to_sanity
+    c = Client.new
+    assert_nil c.firm
+
+    if c.firm
+      assert false, "belongs_to failed if check"
+    end
+
+    unless c.firm
+    else
+      assert false,  "belongs_to failed unless check"
+    end
+        
   end
 
   def test_find_ids
