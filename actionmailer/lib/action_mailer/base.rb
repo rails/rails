@@ -114,7 +114,7 @@ module ActionMailer #:nodoc:
             rescue Object => e
               raise e if raise_delivery_errors
             end
-        end        
+        end
       end
 
       def mail(to, subject, body, from, timestamp = nil, headers = {},
@@ -148,6 +148,11 @@ module ActionMailer #:nodoc:
       def quoted_printable(text, charset)#:nodoc:
         text = text.gsub( /[^a-z ]/i ) { "=%02x" % $&[0] }.gsub( / /, "_" )
         "=?#{charset}?Q?#{text}?="
+      end
+
+      def receive(raw_email)
+        logger.info "Received mail:\n #{raw_email}" unless logger.nil?
+        new.receive(TMail::Mail.parse(raw_email))
       end
 
       private
