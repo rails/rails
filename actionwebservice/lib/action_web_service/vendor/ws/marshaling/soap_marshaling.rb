@@ -13,6 +13,7 @@ module WS
       attr_accessor :type_namespace
 
       def initialize(type_namespace='')
+        super()
         @type_namespace = type_namespace
         @registry = SOAP::Mapping::Registry.new
         @spec2binding = {}
@@ -92,6 +93,25 @@ module WS
         @spec2binding[spec] = array_binding ? array_binding : type_binding
         @spec2binding[spec]
       end
+      alias :lookup_type :register_type
+
+      def cast_inbound_recursive(value, spec)
+        binding = lookup_type(spec)
+        if binding.is_custom_type?
+          value
+        else
+          base_type_caster.cast(value, binding.type_class)
+        end
+      end
+
+      def cast_outbound_recursive(value, spec)
+        binding = lookup_type(spec)
+        if binding.is_custom_type?
+          value
+        else
+          base_type_caster.cast(value, binding.type_class)
+        end
+      end
 
       protected
         def annotate_arrays(binding, value)
@@ -106,7 +126,7 @@ module WS
             if binding.type_class.respond_to?(:members)
               binding.type_class.members.each do |name, spec|
                 member_binding = register_type(spec)
-                member_value = value.send(name)
+                member_value = value.respond_to?('[]') ? value[name] : value.send(name)
                 if member_binding.is_custom_type?
                   annotate_arrays(member_binding, member_value)
                 end

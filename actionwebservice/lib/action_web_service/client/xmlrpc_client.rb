@@ -36,41 +36,15 @@ module ActionWebService # :nodoc:
 
       protected
         def perform_invocation(method_name, args)
-          args = transform_outgoing_method_params(method_name, args)
+          method = @api.api_methods[method_name.to_sym]
+          method.register_types(@marshaler)
+          if method.expects && method.expects.length != args.length
+            raise(ArgumentError, "#{method.public_name}: wrong number of arguments (#{args.length} for #{method.expects.length})")
+          end
+          args = method.cast_expects(@marshaler, args)
           ok, return_value = @client.call2(public_name(method_name), *args)
-          return transform_return_value(method_name, return_value) if ok
+          return method.cast_returns(@marshaler, return_value) if ok
           raise(ClientError, "#{return_value.faultCode}: #{return_value.faultString}")
-        end
-
-        def transform_outgoing_method_params(method_name, params)
-          info = @api.api_methods[method_name.to_sym]
-          expects = info[:expects]
-          expects_length = expects.nil?? 0 : expects.length
-          if expects_length != params.length
-            raise(ClientError, "API declares #{public_name(method_name)} to accept " +
-                               "#{expects_length} parameters, but #{params.length} parameters " + 
-                               "were supplied")
-          end
-          params = params.dup
-          if expects_length > 0
-            i = 0
-            expects.each do |spec|
-              type_binding = @marshaler.register_type(spec)
-              info = WS::ParamInfo.create(spec, type_binding, i)
-              params[i] = @marshaler.marshal(WS::Param.new(params[i], info))
-              i += 1
-            end
-          end
-          params
-        end
-
-        def transform_return_value(method_name, return_value)
-          info = @api.api_methods[method_name.to_sym]
-          return true unless returns = info[:returns]
-          type_binding = @marshaler.register_type(returns[0])
-          info = WS::ParamInfo.create(returns[0], type_binding, 0)
-          info.name = 'return'
-          @marshaler.transform_inbound(WS::Param.new(return_value, info))
         end
 
         def public_name(method_name)

@@ -66,6 +66,11 @@ class TC_ClientSoap < Test::Unit::TestCase
     assert(@container.value_normal.nil?)
     assert_equal(5, @client.normal(5, 6))
     assert_equal([5, 6], @container.value_normal)
+    assert_equal(5, @client.normal("7", "8"))
+    assert_equal([7, 8], @container.value_normal)
+    assert_raises(TypeError) do
+      assert_equal(5, @client.normal(true, false))
+    end
   end
 
   def test_array_return

@@ -6,7 +6,7 @@ module ActionWebService # :nodoc:
         base.class_inheritable_option(:wsdl_service_name)
       end
       
-      class SoapProtocol # :nodoc:
+      class SoapProtocol < AbstractProtocol # :nodoc:
         def initialize
           @encoder = WS::Encoding::SoapRpcEncoding.new 'urn:ActionWebService'
           @marshaler = WS::Marshaling::SoapMarshaler.new 'urn:ActionWebService'
@@ -18,22 +18,6 @@ module ActionWebService # :nodoc:
           params = params.map{|x| @marshaler.unmarshal(x)}
           service_name = ap_request.parameters['action']
           Request.new(self, method_name, params, service_name)
-        end
-
-        def marshal_response(method_name, return_value, signature_type)
-          if !return_value.nil? && signature_type
-            type_binding = @marshaler.register_type(signature_type)
-            info = WS::ParamInfo.create(signature_type, type_binding, 0)
-            return_value = @marshaler.marshal(WS::Param.new(return_value, info))
-          else
-            return_value = nil
-          end
-          body = @encoder.encode_rpc_response(method_name + 'Response', return_value)
-          Response.new(body, 'text/xml')
-        end
-
-        def register_signature_type(spec)
-          @marshaler.register_type(spec)
         end
 
         def protocol_client(api, protocol_name, endpoint_uri, options)

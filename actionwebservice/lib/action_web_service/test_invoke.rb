@@ -52,18 +52,9 @@ module Test # :nodoc:
           when :delegated, :layered
             api = @controller.web_service_object(service_name.to_sym).class.web_service_api
           end
-          info = api.api_methods[api_method_name.to_sym]
-          ((info[:expects] || []) + (info[:returns] || [])).each do |spec|
-            marshaler.register_type spec
-          end
-          expects = info[:expects]
-          args = args.dup
-          (0..(args.length-1)).each do |i|
-            type_binding = marshaler.register_type(expects ? expects[i] : args[i].class)
-            info = WS::ParamInfo.create(expects ? expects[i] : args[i].class, type_binding, i)
-            args[i] = marshaler.marshal(WS::Param.new(args[i], info))
-          end
-          encoder.encode_rpc_call(public_method_name(service_name, api_method_name), args)
+          method = api.api_methods[api_method_name.to_sym]
+					method.register_types(marshaler)
+					method.encode_rpc_call(marshaler, encoder, args.dup, :method_name => public_method_name(service_name, api_method_name))
         end
 
         def decode_rpc_response

@@ -60,6 +60,11 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
     assert(@container.value_normal.nil?)
     assert_equal(5, @client.normal(5, 6))
     assert_equal([5, 6], @container.value_normal)
+    assert_equal(5, @client.normal("7", "8"))
+    assert_equal([7, 8], @container.value_normal)
+    assert_raises(TypeError) do
+      assert_equal(5, @client.normal(true, false))
+    end
   end
 
   def test_array_return
@@ -86,7 +91,7 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
 
   def test_named_parameters
     assert(@container.value_named_parameters.nil?)
-    assert_equal(true, @client.named_parameters("xxx", 7))
+    assert_equal(nil, @client.named_parameters("xxx", 7))
     assert_equal(["xxx", 7], @container.value_named_parameters)
   end
 
@@ -97,7 +102,7 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
   end
 
   def test_invalid_signature
-    assert_raises(ActionWebService::Client::ClientError) do
+    assert_raises(ArgumentError) do
       @client.normal
     end
   end

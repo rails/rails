@@ -76,7 +76,10 @@ module ActionWebService # :nodoc:
               unless self.class.web_service_exception_reporting
                 exception = DispatcherError.new("Internal server error (exception raised)")
               end
-              response = request.protocol.marshal_response(request.method_name, exception, exception.class)
+              api_method = request.api_method ? request.api_method.dup : nil
+              api_method ||= request.api.dummy_api_method_instance(request.method_name)
+              api_method.instance_eval{ @returns = [ exception.class ] }
+              response = request.protocol.marshal_response(api_method, exception)
               send_web_service_response(response)
             else
               if self.class.web_service_exception_reporting
@@ -95,7 +98,7 @@ module ActionWebService # :nodoc:
             end
             @session ||= {}
             @assigns ||= {}
-            @params['action'] = invocation.api_method_name.to_s
+            @params['action'] = invocation.api_method.name.to_s
             if before_action == false
               raise(DispatcherError, "Method filtered")
             end
@@ -224,18 +227,18 @@ module ActionWebService # :nodoc:
               # APIs
               apis.each do |api_name, values|
                 api = values[0]
-                api.api_methods.each do |name, info|
+                api.api_methods.each do |name, method|
                   gen = lambda do |msg_name, direction|
                     xm.message('name' => msg_name) do
                       sym = nil
                       if direction == :out
-                        returns = info[:returns]
+                        returns = method.returns
                         if returns
                           binding = marshaler.register_type(returns[0])
                           xm.part('name' => 'return', 'type' => binding.qualified_type_name('typens'))
                         end
                       else
-                        expects = info[:expects]
+                        expects = method.expects
                         i = 1
                         expects.each do |type|
                           if type.is_a?(Hash)
@@ -251,7 +254,7 @@ module ActionWebService # :nodoc:
                       end
                     end
                   end
-                  public_name = api.public_api_method_name(name)
+                  public_name = method.public_name
                   gen.call(public_name, :in)
                   gen.call("#{public_name}Response", :out)
                 end
@@ -259,11 +262,10 @@ module ActionWebService # :nodoc:
                 # Port
                 port_name = port_name_for(global_service_name, api_name)
                 xm.portType('name' => port_name) do
-                  api.api_methods.each do |name, info|
-                    public_name = api.public_api_method_name(name)
-                    xm.operation('name' => public_name) do
-                      xm.input('message' => "typens:#{public_name}")
-                      xm.output('message' => "typens:#{public_name}Response")
+                  api.api_methods.each do |name, method|
+                    xm.operation('name' => method.public_name) do
+                      xm.input('message' => "typens:#{method.public_name}")
+                      xm.output('message' => "typens:#{method.public_name}Response")
                     end
                   end
                 end
@@ -272,16 +274,15 @@ module ActionWebService # :nodoc:
                 binding_name = binding_name_for(global_service_name, api_name)
                 xm.binding('name' => binding_name, 'type' => "typens:#{port_name}") do
                   xm.soap(:binding, 'style' => 'rpc', 'transport' => SoapHttpTransport)
-                  api.api_methods.each do |name, info|
-                    public_name = api.public_api_method_name(name)
-                    xm.operation('name' => public_name) do
+                  api.api_methods.each do |name, method|
+                    xm.operation('name' => method.public_name) do
                       case web_service_dispatching_mode
                       when :direct, :layered
-                        soap_action = soap_action_base + "/api/" + public_name
+                        soap_action = soap_action_base + "/api/" + method.public_name
                       when :delegated
                         soap_action = soap_action_base \
                                     + "/" + api_name.to_s \
-                                    + "/" + public_name
+                                    + "/" + method.public_name
                       end
                       xm.soap(:operation, 'soapAction' => soap_action)
                       xm.input do
@@ -337,8 +338,8 @@ module ActionWebService # :nodoc:
           end
 
           def traverse_custom_types(api, marshaler, &block)
-            api.api_methods.each do |name, info|
-              expects, returns = info[:expects], info[:returns]
+            api.api_methods.each do |name, method|
+              expects, returns = method.expects, method.returns
               expects.each{|x| traverse_custom_type_spec(marshaler, x, &block)} if expects
               returns.each{|x| traverse_custom_type_spec(marshaler, x, &block)} if returns
             end

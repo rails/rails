@@ -58,7 +58,10 @@ module ActionWebService # :nodoc:
 
       protected
         def perform_invocation(method_name, args)
-          @driver.send(method_name, *args)
+          method = @api.api_methods[method_name.to_sym]
+          args = method.cast_expects(@marshaler, args)
+          return_value = @driver.send(method_name, *args)
+          method.cast_returns(@marshaler, return_value)
         end
 
         def soap_action(method_name)
@@ -67,46 +70,31 @@ module ActionWebService # :nodoc:
 
       private
         def create_soap_rpc_driver(api, endpoint_uri)
-          register_api(@marshaler, api)
+          api.api_methods.each{ |name, method| method.register_types(@marshaler) }
           driver = SoapDriver.new(endpoint_uri, nil)
           driver.mapping_registry = @marshaler.registry
-          api.api_methods.each do |name, info|
-            public_name = api.public_api_method_name(name)
-            qname = XSD::QName.new(@method_namespace, public_name)
-            action = soap_action(public_name)
-            expects = info[:expects]
-            returns = info[:returns]
+          api.api_methods.each do |name, method|
+            qname = XSD::QName.new(@method_namespace, method.public_name)
+            action = soap_action(method.public_name)
+            expects = method.expects
+            returns = method.returns
             param_def = []
             i = 0
             if expects
               expects.each do |spec|
-                param_name = spec.is_a?(Hash) ? spec.keys[0].to_s : "param#{i}"
-                type_binding = @marshaler.register_type(spec)
+                param_name = method.param_name(spec, i)
+                type_binding = @marshaler.lookup_type(spec)
                 param_def << ['in', param_name, type_binding.mapping]
                 i += 1
               end
             end
             if returns
-              type_binding = @marshaler.register_type(returns[0])
+              type_binding = @marshaler.lookup_type(returns[0])
               param_def << ['retval', 'return', type_binding.mapping]
             end
-            driver.add_method(qname, action, name.to_s, param_def)
+            driver.add_method(qname, action, method.name.to_s, param_def)
           end
           driver
-        end
-
-        def register_api(marshaler, api)
-          type_bindings = []
-          api.api_methods.each do |name, info|
-            expects, returns = info[:expects], info[:returns]
-            if expects
-              expects.each{|type| type_bindings << marshaler.register_type(type)}
-            end
-            if returns
-              returns.each{|type| type_bindings << marshaler.register_type(type)}
-            end
-          end
-          type_bindings
         end
 
         class SoapDriver < SOAP::RPC::Driver # :nodoc:

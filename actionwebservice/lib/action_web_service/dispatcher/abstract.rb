@@ -34,30 +34,30 @@ module ActionWebService # :nodoc:
       
         def web_service_direct_invoke(invocation)
           @method_params = invocation.method_ordered_params
-          arity = method(invocation.api_method_name).arity rescue 0
+          arity = method(invocation.api_method.name).arity rescue 0
           if arity < 0 || arity > 0
-            return_value = self.__send__(invocation.api_method_name, *@method_params)
+            return_value = self.__send__(invocation.api_method.name, *@method_params)
           else
-            return_value = self.__send__(invocation.api_method_name)
+            return_value = self.__send__(invocation.api_method.name)
           end
-          if invocation.api.has_api_method?(invocation.api_method_name)
-            returns = invocation.returns ? invocation.returns[0] : nil
+          if invocation.api.has_api_method?(invocation.api_method.name)
+            api_method = invocation.api_method
           else
-            returns = return_value.class
+            api_method = invocation.api_method.dup
+            api_method.instance_eval{ @returns = [ return_value.class ] }
           end
-          invocation.protocol.marshal_response(invocation.public_method_name, return_value, returns)
+          invocation.protocol.marshal_response(api_method, return_value)
         end
 
         def web_service_delegated_invoke(invocation)
           cancellation_reason = nil
-          return_value = invocation.service.perform_invocation(invocation.api_method_name, invocation.method_ordered_params) do |x|
+          return_value = invocation.service.perform_invocation(invocation.api_method.name, invocation.method_ordered_params) do |x|
             cancellation_reason = x
           end
           if cancellation_reason
             raise(DispatcherError, "request canceled: #{cancellation_reason}")
           end
-          returns = invocation.returns ? invocation.returns[0] : nil
-          invocation.protocol.marshal_response(invocation.public_method_name, return_value, returns)
+          invocation.protocol.marshal_response(invocation.api_method, return_value)
         end
 
         def web_service_invocation(request)
@@ -71,7 +71,6 @@ module ActionWebService # :nodoc:
               invocation.service_name = $1
             end
           end
-          invocation.public_method_name = public_method_name
           case web_service_dispatching_mode
           when :direct
             invocation.api = self.class.web_service_api
@@ -83,54 +82,29 @@ module ActionWebService # :nodoc:
             end
             invocation.api = invocation.service.class.web_service_api
           end
+          request.api = invocation.api
           if invocation.api.has_public_api_method?(public_method_name)
-            invocation.api_method_name = invocation.api.api_method_name(public_method_name)
+            invocation.api_method = invocation.api.public_api_method_instance(public_method_name)
           else
             if invocation.api.default_api_method.nil?
               raise(DispatcherError, "no such method '#{public_method_name}' on API #{invocation.api}")
             else
-              invocation.api_method_name = invocation.api.default_api_method.to_s.to_sym
+              invocation.api_method = invocation.api.default_api_method_instance
             end
           end
-          unless invocation.service.respond_to?(invocation.api_method_name)
-              raise(DispatcherError, "no such method '#{public_method_name}' on API #{invocation.api} (#{invocation.api_method_name})")
+          unless invocation.service.respond_to?(invocation.api_method.name)
+              raise(DispatcherError, "no such method '#{public_method_name}' on API #{invocation.api} (#{invocation.api_method.name})")
           end
-          info = invocation.api.api_methods[invocation.api_method_name]
-          invocation.expects = info ? info[:expects] : nil
-          invocation.returns = info ? info[:returns] : nil
-          if invocation.expects
-            i = 0
-            invocation.method_ordered_params = request.method_params.map do |param|
-              if invocation.protocol.is_a?(Protocol::XmlRpc::XmlRpcProtocol)
-                marshaler = invocation.protocol.marshaler
-                decoded_param = WS::Encoding::XmlRpcDecodedParam.new(param.info.name, param.value)
-                marshaled_param = marshaler.typed_unmarshal(decoded_param, invocation.expects[i]) rescue nil
-                param = marshaled_param ? marshaled_param : param
-              end
-              i += 1
-              param.value
-            end
-            i = 0
-            params = []
-            invocation.expects.each do |spec|
-              type_binding = invocation.protocol.register_signature_type(spec)
-              info = WS::ParamInfo.create(spec, type_binding, i)
-              params << WS::Param.new(invocation.method_ordered_params[i], info)
-              i += 1
-            end
-            invocation.method_ws_params = params
-            invocation.method_named_params = {}
-            invocation.method_ws_params.each do |param|
-              invocation.method_named_params[param.info.name] = param.value
-            end
-          else
-            invocation.method_ordered_params = []
-            invocation.method_named_params = {}
+          request.api_method = invocation.api_method
+          begin
+            invocation.method_ordered_params = invocation.api_method.cast_expects_ws2ruby(request.protocol.marshaler, request.method_params)
+          rescue
+            invocation.method_ordered_params = request.method_params.map{ |x| x.value }
           end
-          if invocation.returns
-            invocation.returns.each do |spec|
-              invocation.protocol.register_signature_type(spec)
-            end
+          invocation.method_named_params = {}
+          invocation.api_method.param_names.inject(0) do |m, n|
+            invocation.method_named_params[n] = invocation.method_ordered_params[m]
+            m + 1
           end
           invocation
         end
@@ -139,13 +113,9 @@ module ActionWebService # :nodoc:
           attr_accessor :protocol
           attr_accessor :service_name
           attr_accessor :api
-          attr_accessor :public_method_name
-          attr_accessor :api_method_name
+          attr_accessor :api_method
           attr_accessor :method_ordered_params
           attr_accessor :method_named_params
-          attr_accessor :method_ws_params
-          attr_accessor :expects
-          attr_accessor :returns
           attr_accessor :service
         end
     end

@@ -30,6 +30,12 @@ class SoapMarshalingTest < Test::Unit::TestCase
       marshaler.unmarshal(nil)
     end
     assert_equal(nil, marshaler.register_type(nil))
+    assert_raises(NotImplementedError) do
+      marshaler.cast_inbound_recursive(nil, nil)
+    end
+    assert_raises(NotImplementedError) do
+      marshaler.cast_outbound_recursive(nil, nil)
+    end
   end
 
   def test_marshaling

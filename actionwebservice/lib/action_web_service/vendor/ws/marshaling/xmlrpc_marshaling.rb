@@ -5,24 +5,24 @@ module WS
 
     class XmlRpcMarshaler < AbstractMarshaler
       def initialize
-        @caster = BaseTypeCaster.new
+        super()
         @spec2binding = {}
       end
 
       def marshal(param)
-        transform_outbound(param)
+        value = param.value
+        cast_outbound_recursive(param.value, spec_for(param)) rescue value
       end
 
       def unmarshal(obj)
-        obj.param.value = transform_inbound(obj.param)
         obj.param
       end
 
       def typed_unmarshal(obj, spec)
-        param = obj.param
-        param.info.data = register_type(spec)
-        param.value = transform_inbound(param)
-        param
+        obj.param.info.data = lookup_type(spec)
+        value = obj.param.value
+        obj.param.value = cast_inbound_recursive(value, spec) rescue value
+        obj.param
       end
 
       def register_type(spec)
@@ -40,60 +40,87 @@ module WS
 
         @spec2binding[spec] = type_binding
       end
+      alias :lookup_type :register_type
 
-      def transform_outbound(param)
-        binding = param.info.data
+      def cast_inbound_recursive(value, spec)
+        binding = lookup_type(spec)
         case binding
         when XmlRpcArrayBinding
-          param.value.map{|x| cast_outbound(x, binding.element_klass)}
+          value.map{ |x| cast_inbound(x, binding.element_klass) }
         when XmlRpcBinding
-          cast_outbound(param.value, param.info.type)
+          cast_inbound(value, binding.klass)
         end
       end
 
-      def transform_inbound(param)
-        return param.value if param.info.data.nil?
-        binding = param.info.data
-        param.info.type = binding.klass
+      def cast_outbound_recursive(value, spec)
+        binding = lookup_type(spec)
         case binding
         when XmlRpcArrayBinding
-          param.value.map{|x| cast_inbound(x, binding.element_klass)}
+          value.map{ |x| cast_outbound(x, binding.element_klass) }
         when XmlRpcBinding
-          cast_inbound(param.value, param.info.type)
+          cast_outbound(value, binding.klass)
         end
       end
 
-      def cast_outbound(value, klass)
-        if BaseTypes.base_type?(klass)
-          @caster.cast(value, klass)
-        elsif value.is_a?(Exception)
-          XMLRPC::FaultException.new(2, value.message)
-        elsif Object.const_defined?('ActiveRecord') && value.is_a?(ActiveRecord::Base)
-          value.attributes
-        else
-          struct = {}
-          value.instance_variables.each do |name|
-            key = name.sub(/^@/, '')
-            struct[key] = value.instance_variable_get(name)
-          end
-          struct
+      private
+        def spec_for(param)
+          binding = param.info.data
+          binding.is_a?(XmlRpcArrayBinding) ? [binding.element_klass] : binding.klass
         end
-      end
 
-      def cast_inbound(value, klass)
-        if BaseTypes.base_type?(klass)
-          value = value.to_time if value.is_a?(XMLRPC::DateTime)
-          @caster.cast(value, klass)
-        elsif value.is_a?(XMLRPC::FaultException)
-          value
-        else
-          obj = klass.new
-          value.each do |name, val|
-            obj.send('%s=' % name.to_s, val)
+        def cast_inbound(value, klass)
+          if BaseTypes.base_type?(klass)
+            value = value.to_time if value.is_a?(XMLRPC::DateTime)
+            base_type_caster.cast(value, klass)
+          elsif value.is_a?(XMLRPC::FaultException)
+            value
+          elsif klass.ancestors.include?(ActionWebService::Struct)
+            obj = klass.new
+            klass.members.each do |name, klass|
+              name = name.to_s
+              obj.send('%s=' % name, cast_inbound_recursive(value[name], klass))
+            end
+            obj
+          else
+            obj = klass.new
+            if obj.respond_to?(:update)
+              obj.update(value)
+            else
+              value.each do |name, val|
+                obj.send('%s=' % name.to_s, val)
+              end
+            end
+            obj
           end
-          obj
         end
-      end
+
+        def cast_outbound(value, klass)
+          if BaseTypes.base_type?(klass)
+            base_type_caster.cast(value, klass)
+          elsif value.is_a?(Exception)
+            XMLRPC::FaultException.new(2, value.message)
+          elsif Object.const_defined?('ActiveRecord') && value.is_a?(ActiveRecord::Base)
+            value.attributes
+          elsif value.is_a?(ActionWebService::Struct)
+            struct = {}
+            value.class.members.each do |name, klass|
+              name = name.to_s
+              struct[name] = cast_outbound_recursive(value[name], klass)
+            end
+            struct
+          else
+            struct = {}
+            if value.respond_to?(:each_pair)
+              value.each_pair{ |key, value| struct[key] = value }
+            else
+              value.instance_variables.each do |name|
+                key = name.sub(/^@/, '')
+                struct[key] = value.instance_variable_get(name)
+              end
+            end
+            struct
+          end
+        end
     end
 
     class XmlRpcBinding

@@ -1,5 +1,7 @@
 require File.dirname(__FILE__) + '/abstract_unit'
 
+class ActionController::Base; def rescue_action(e) raise e end; end
+
 module DispatcherTest
   class Node < ActiveRecord::Base
     def initialize(*args)
@@ -29,6 +31,10 @@ module DispatcherTest
   class Person < ActionWebService::Struct
     member :id, :int
     member :name, :string
+
+    def ==(other)
+      self.id == other.id && self.name == other.name
+    end
   end
 
   class API < ActionWebService::API::Base
@@ -44,6 +50,7 @@ module DispatcherTest
     api_method :before_filtered
     api_method :after_filtered, :returns => [[:int]]
     api_method :struct_return, :returns => [[Node]]
+    api_method :struct_pass, :expects => [Person]
     api_method :base_struct_return, :returns => [[Person]]
     api_method :thrower
     api_method :void
@@ -148,6 +155,7 @@ module DispatcherTest
     attr :after_filter_called
     attr :after_filter_target_called
     attr :void_called
+    attr :struct_pass_value
 
     def initialize
       @before_filter_called = false
@@ -155,6 +163,7 @@ module DispatcherTest
       @after_filter_called = false
       @after_filter_target_called = false
       @void_called = false
+      @struct_pass_value = false
     end
   
     def add
@@ -182,6 +191,10 @@ module DispatcherTest
       n1 = Node.new('id' => 1, 'name' => 'node1', 'description' => 'Node 1')
       n2 = Node.new('id' => 2, 'name' => 'node2', 'description' => 'Node 2')
       [n1, n2]
+    end
+
+    def struct_pass(person)
+      @struct_pass_value = person
     end
 
     def base_struct_return
@@ -328,6 +341,26 @@ module DispatcherCommonTests
     end
   end
 
+  def test_casting
+    assert_equal 70, do_method_call(@direct_controller, 'Add', "50", "20")
+    assert_equal false, @direct_controller.struct_pass_value
+    person = DispatcherTest::Person.new(:id => 1, :name => 'test') 
+    result = do_method_call(@direct_controller, 'StructPass', person)
+    assert(nil == result || true == result)
+    assert_equal person, @direct_controller.struct_pass_value
+    assert !person.equal?(@direct_controller.struct_pass_value)
+    result = do_method_call(@direct_controller, 'StructPass', {'id' => '1', 'name' => 'test'})
+    case @encoder
+    when WS::Encoding::SoapRpcEncoding
+      # We don't cast complex types for SOAP. SOAP clients should have used the WSDL to
+      # send the correct types.
+      assert_equal({'id' => '1', 'name' => 'test'}, @direct_controller.struct_pass_value)
+    when WS::Encoding::XmlRpcEncoding
+      assert_equal(person, @direct_controller.struct_pass_value)
+      assert !person.equal?(@direct_controller.struct_pass_value)
+    end
+  end
+
   protected
     def service_name(container)
       raise NotImplementedError
@@ -355,24 +388,20 @@ module DispatcherCommonTests
         end
         api = container.web_service_object(service_name.to_sym).class.web_service_api
       end
-      info = api.api_methods[method_name] || {}
-      params = params.dup
-      ((info[:expects] || []) + (info[:returns] || [])).each do |spec|
-        @marshaler.register_type(spec)
-      end
-      expects = info[:expects]
-      (0..(params.length-1)).each do |i|
-        type_binding = @marshaler.register_type(expects ? expects[i] : params[i].class)
-        info = WS::ParamInfo.create(expects ? expects[i] : params[i].class, type_binding, i)
-        params[i] = @marshaler.marshal(WS::Param.new(params[i], info))
-      end
-      body = @encoder.encode_rpc_call(public_method_name, params)
+      method = api.public_api_method_instance(public_method_name)
+      method ||= api.dummy_public_api_method_instance(public_method_name)
+      # we turn off strict so we can test our own handling of incorrectly typed parameters
+      body = method.encode_rpc_call(@marshaler, @encoder, params.dup, :strict => false)
       # puts body
       ap_request = create_ap_request(container, body, public_method_name, *params)
       ap_response = ActionController::TestResponse.new
       container.process(ap_request, ap_response)
       # puts ap_response.body
       public_method_name, return_value = @encoder.decode_rpc_response(ap_response.body)
+      if @encoder.is_a?(WS::Encoding::SoapRpcEncoding)
+        # http://dev.rubyonrails.com/changeset/920
+        assert_match(/Response$/, public_method_name) unless public_method_name == "fault"
+      end
       @marshaler.unmarshal(return_value).value
     end
 end

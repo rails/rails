@@ -35,13 +35,20 @@ class TC_API < Test::Unit::TestCase
   end
 
   def test_signature_canonicalization
-    assert_equal({:expects=>nil, :returns=>nil}, API.api_methods[:void])
-    assert_equal({:expects=>[String], :returns=>[String]}, API.api_methods[:expects_and_returns])
-    assert_equal({:expects=>[Integer, TrueClass], :returns=>nil}, API.api_methods[:expects])
-    assert_equal({:expects=>nil, :returns=>[Integer, [String]]}, API.api_methods[:returns])
-    assert_equal({:expects=>[{:appkey=>Integer}, {:publish=>TrueClass}], :returns=>nil}, API.api_methods[:named_signature])
-    assert_equal({:expects=>[Integer, String, TrueClass], :returns=>nil}, API.api_methods[:string_types])
-    assert_equal({:expects=>[TrueClass, Integer, String], :returns=>nil}, API.api_methods[:class_types])
+    assert_equal(nil, API.api_methods[:void].expects)
+    assert_equal(nil, API.api_methods[:void].returns)
+    assert_equal([String], API.api_methods[:expects_and_returns].expects)
+    assert_equal([String], API.api_methods[:expects_and_returns].returns)
+    assert_equal([Integer, TrueClass], API.api_methods[:expects].expects)
+    assert_equal(nil, API.api_methods[:expects].returns)
+    assert_equal(nil, API.api_methods[:returns].expects)
+    assert_equal([Integer, [String]], API.api_methods[:returns].returns)
+    assert_equal([{:appkey=>Integer}, {:publish=>TrueClass}], API.api_methods[:named_signature].expects)
+    assert_equal(nil, API.api_methods[:named_signature].returns)
+    assert_equal([Integer, String, TrueClass], API.api_methods[:string_types].expects)
+    assert_equal(nil, API.api_methods[:string_types].returns)
+    assert_equal([TrueClass, Integer, String], API.api_methods[:class_types].expects)
+    assert_equal(nil, API.api_methods[:class_types].returns)
   end
 
   def test_not_instantiable

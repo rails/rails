@@ -1,3 +1,8 @@
+*0.7.0* (Unreleased)
+
+* Generalize casting code to be used by both SOAP and XML-RPC (previously, it was only XML-RPC)
+
+
 *0.6.2* (27th March, 2005)
 
 * Allow method declarations for direct dispatching to declare parameters as well. We treat an arity of < 0 or > 0 as an indication that we should send through parameters. Closes #939.
