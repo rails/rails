@@ -96,6 +96,24 @@ module ActionView
         # We can't really help what's not there
       end
 
+      # Turns all urls and email addresses into clickable links. Example:
+      #   "Go to http://www.rubyonrails.com and say hello to david@loudthinking.com" =>
+      #   Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a> and 
+      #   say hello to <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>
+      def auto_link(text)
+        auto_link_urls(auto_link_email_addresses(text))
+      end
+
+      # Turns all urls into clickable links.
+      def auto_link_urls(text)
+        text.gsub(/([^=><!:'"\/]|^)((http[s]?:\/\/)|(www\.))(\S+\b\/?)([[:punct:]]*)(\s|$)/, '\1<a href="\3\4\5">\3\4\5</a>\6\7')
+      end
+
+      # Turns all email addresses into clickable links.
+      def auto_link_email_addresses(text)
+        text.gsub(/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/, '<a href="mailto:\1">\1</a>')
+      end
+
       # Turns all links into words, like "<a href="something">else</a>" to "else".
       def strip_links(text)
         text.gsub(/<a.*>(.*)<\/a>/m, '\1')

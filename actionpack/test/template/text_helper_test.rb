@@ -59,4 +59,10 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal("1 count", pluralize(1, "count"))
     assert_equal("2 counts", pluralize(2, "count"))
   end
+  
+  def test_auto_linking
+    assert_equal %(hello <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>), auto_link_email_addresses("hello david@loudthinking.com")
+    assert_equal %(Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a>), auto_link_urls("Go to http://www.rubyonrails.com")
+    assert_equal %(Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a> and say hello to <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>), auto_link("Go to http://www.rubyonrails.com and say hello to david@loudthinking.com")
+  end
 end
