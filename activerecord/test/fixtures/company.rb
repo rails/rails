@@ -9,6 +9,12 @@ class Firm < Company
   has_many :clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id"
   has_many :clients_like_ms, :conditions => "name = 'Microsoft'", :class_name => "Client", :order => "id"
   has_many :clients_using_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE client_of = #{id}'
+  has_many :clients_using_counter_sql, :class_name => "Client",
+           :finder_sql => 'SELECT * FROM companies WHERE client_of = #{id}',
+           :counter_sql => 'SELECT COUNT(*) FROM companies WHERE client_of = #{id}'
+  has_many :clients_using_zero_counter_sql, :class_name => "Client",
+           :finder_sql => 'SELECT * FROM companies WHERE client_of = #{id}',
+           :counter_sql => 'SELECT 0 FROM companies WHERE client_of = #{id}'
 
   has_one :account, :dependent => true
 end

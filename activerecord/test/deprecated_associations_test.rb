@@ -25,7 +25,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   def test_has_many_find
     assert_equal 2, Firm.find_first.clients.length
   end
-  
+
   def test_has_many_orders
     assert_equal "Summit", Firm.find_first.clients.first.name
   end
@@ -37,7 +37,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   def test_has_many_foreign_key
     assert_equal "Microsoft", Firm.find_first.clients_of_firm.first.name
   end
-  
+
   def test_has_many_conditions
     assert_equal "Microsoft", Firm.find_first.clients_like_ms.first.name
   end
@@ -48,7 +48,11 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     assert_equal 1, firm.clients_using_sql_count
     assert_equal 1, Firm.find_first.clients_using_sql_count
   end
-  
+
+  def test_has_many_counter_sql
+    assert_equal 1, Firm.find_first.clients_using_counter_sql_count
+  end
+
   def test_has_many_queries
     assert Firm.find_first.has_clients?
     firm = Firm.find_first
@@ -75,7 +79,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
 
     assert_equal 2, Client.find_all.length
   end
-  
+
   def test_has_one_dependence
     firm = Firm.find(1)
     assert firm.has_account?
@@ -95,7 +99,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     assert Client.find(3).has_firm?, "Microsoft should have a firm"
     # assert !Company.find(1).has_firm?, "37signals shouldn't have a firm"
   end
-  
+
   def test_belongs_to_with_different_class_name
     assert_equal Company.find(1).name, Company.find(3).firm_with_other_name.name
     assert Company.find(3).has_firm_with_other_name?, "Microsoft should have a firm"
@@ -106,12 +110,11 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     assert Company.find(3).has_firm_with_condition?, "Microsoft should have a firm"
   end
 
-  
   def test_belongs_to_equality
     assert Company.find(3).firm?(Company.find(1)), "Microsoft should have 37signals as firm"
     assert_raises(RuntimeError) { !Company.find(3).firm?(Company.find(3)) } # "Summit shouldn't have itself as firm"
   end
-  
+
   def test_has_one
     assert @signals37.account?(Account.find(1))
     assert_equal Account.find(1).credit_limit, @signals37.account.credit_limit
@@ -128,12 +131,12 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     @signals37.destroy
     assert_equal 1, Account.find_all.length
   end
-  
+
   def test_find_in
     assert_equal Client.find(2).name, @signals37.find_in_clients(2).name
     assert_raises(ActiveRecord::RecordNotFound) { @signals37.find_in_clients(6) }
   end
-  
+
   def test_force_reload
     firm = Firm.new
     firm.save
@@ -141,7 +144,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     assert firm.clients.empty?, "New firm shouldn't have client objects"
     assert !firm.has_clients?, "New firm shouldn't have clients"
     assert_equal 0, firm.clients_count, "New firm should have 0 clients"
-    
+
     client = Client.new("firm_id" => firm.id)
     client.save
 
@@ -153,7 +156,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     assert firm.has_clients?(true), "New firm should have reloaded with a have-clients response"
     assert_equal 1, firm.clients_count(true), "New firm should have reloaded clients count"
   end
-    
+
   def test_included_in_collection
     assert @signals37.clients.include?(Client.find(2))
   end
@@ -167,35 +170,35 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     assert new_client.firm?(@signals37)
     assert_equal 2, @signals37.clients_of_firm_count(true)
   end
-  
+
   def test_create_in_collection
     assert_equal @signals37.create_in_clients_of_firm("name" => "Another Client"), @signals37.clients_of_firm(true).last
   end
-  
+
   def test_succesful_build_association
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
-    
+
     account = firm.build_account("credit_limit" => 1000)
     assert account.save
     assert_equal account, firm.account
   end
-  
+
   def test_failing_build_association
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
-    
+
     account = firm.build_account
     assert !account.save
     assert_equal "can't be empty", account.errors.on("credit_limit")
   end
-  
+
   def test_create_association
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
     assert_equal firm.create_account("credit_limit" => 1000), firm.account
   end
-  
+
   def test_has_and_belongs_to_many
     david = Developer.find(1)
     assert david.has_projects?
@@ -212,15 +215,15 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     active_record = Project.find(1)
 
     david.remove_projects(active_record)
-    
+
     assert_equal 1, david.projects_count
-    assert_equal 1, active_record.developers_count    
+    assert_equal 1, active_record.developers_count
   end
 
   def test_has_and_belongs_to_many_zero
     david = Developer.find(1)
     david.remove_projects(Project.find_all)
-    
+
     assert_equal 0, david.projects_count
     assert !david.has_projects?
   end
@@ -230,9 +233,9 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     action_controller = Project.find(2)
 
     jamis.add_projects(action_controller)
-    
+
     assert_equal 2, jamis.projects_count
-    assert_equal 2, action_controller.developers_count    
+    assert_equal 2, action_controller.developers_count
   end
 
   def test_has_and_belongs_to_many_adding_from_the_project
@@ -240,19 +243,19 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     action_controller = Project.find(2)
 
     action_controller.add_developers(jamis)
-    
+
     assert_equal 2, jamis.projects_count
     assert_equal 2, action_controller.developers_count
   end
-  
+
   def test_has_and_belongs_to_many_adding_a_collection
     aridridel = Developer.new("name" => "Aridridel")
     aridridel.save
-    
+
     aridridel.add_projects([ Project.find(1), Project.find(2) ])
     assert_equal 2, aridridel.projects_count
   end
-  
+
   def test_belongs_to_counter
     topic = Topic.create("title" => "Apple", "content" => "hello world")
     assert_equal 0, topic.send(:read_attribute, "replies_count"), "No replies yet"
@@ -263,14 +266,14 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     reply.destroy
     assert_equal 0, Topic.find(topic.id).send(:read_attribute, "replies_count"), "First reply deleted"
   end
-  
+
   def test_natural_assignment_of_has_one
     apple = Firm.create("name" => "Apple")
     citibank = Account.create("credit_limit" => 10)
     apple.account = citibank
     assert_equal apple.id, citibank.firm_id
   end
-  
+
   def test_natural_assignment_of_belongs_to
     apple = Firm.create("name" => "Apple")
     citibank = Account.create("credit_limit" => 10)
@@ -280,7 +283,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
 
   def test_natural_assignment_of_has_many
     apple = Firm.create("name" => "Apple")
-    natural = Client.new("name" => "Natural Company")
+    natural = Client.create("name" => "Natural Company")
     apple.clients << natural
     assert_equal apple.id, natural.firm_id
     assert_equal Client.find(natural.id), Firm.find(apple.id).clients.find { |c| c.id == natural.id }
@@ -288,15 +291,14 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     assert_nil Firm.find(apple.id).clients.find { |c| c.id == natural.id }
   end
 
-   
   def test_natural_adding_of_has_and_belongs_to_many
     rails = Project.create("name" => "Rails")
     ap = Project.create("name" => "Action Pack")
     john = Developer.create("name" => "John")
     mike = Developer.create("name" => "Mike")
- 		rails.developers << john
- 		rails.developers << mike
- 		
+    rails.developers << john
+    rails.developers << mike
+
     assert_equal Developer.find(john.id), Project.find(rails.id).developers.find { |d| d.id == john.id }
     assert_equal Developer.find(mike.id), Project.find(rails.id).developers.find { |d| d.id == mike.id }
     assert_equal Project.find(rails.id), Developer.find(mike.id).projects.find { |p| p.id == rails.id }
@@ -304,10 +306,10 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     ap.developers << john
     assert_equal Developer.find(john.id), Project.find(ap.id).developers.find { |d| d.id == john.id }
     assert_equal Project.find(ap.id), Developer.find(john.id).projects.find { |p| p.id == ap.id }
-    
+
     ap.developers.delete john
     assert_nil Project.find(ap.id).developers.find { |d| d.id == john.id }
-		assert_nil Developer.find(john.id).projects.find { |p| p.id == ap.id }
+    assert_nil Developer.find(john.id).projects.find { |p| p.id == ap.id }
   end
 
   def test_storing_in_pstore

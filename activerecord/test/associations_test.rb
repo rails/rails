@@ -178,6 +178,11 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 1, Firm.find_first.clients_using_sql.size
   end
 
+  def test_counting_using_sql
+    assert_equal 1, Firm.find_first.clients_using_counter_sql.size
+    assert_equal 0, Firm.find_first.clients_using_zero_counter_sql.size
+  end
+
   def test_find_all
     assert_equal 2, Firm.find_first.clients.find_all("type = 'Client'").length
     assert_equal 1, Firm.find_first.clients.find_all("name = 'Summit'").length

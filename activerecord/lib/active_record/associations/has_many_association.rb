@@ -7,9 +7,15 @@ module ActiveRecord
 
         if options[:finder_sql]
           @finder_sql = interpolate_sql(options[:finder_sql])
-          @counter_sql = @finder_sql.gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
         else
-          @finder_sql = "#{@association_class_primary_key_name} = '#{@owner.id}' #{@conditions ? " AND " + interpolate_sql(@conditions) : ""}"   
+          @finder_sql = "#{@association_class_primary_key_name} = '#{@owner.id}' #{@conditions ? " AND " + interpolate_sql(@conditions) : ""}"
+        end
+
+        if options[:counter_sql]
+          @counter_sql = interpolate_sql(options[:counter_sql])
+        elsif options[:finder_sql]
+          @counter_sql = options[:counter_sql] = @finder_sql.gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
+        else
           @counter_sql = "#{@association_class_primary_key_name} = '#{@owner.id}'#{@conditions ? " AND " + interpolate_sql(@conditions) : ""}"
         end
       end
@@ -70,21 +76,21 @@ module ActiveRecord
             @association_class.find_all(@finder_sql, @options[:order] ? @options[:order] : nil)
           end
         end
-        
+
         def count_records
           if has_cached_counter?
             @owner.send(:read_attribute, cached_counter_attribute_name)
-          elsif @options[:finder_sql]
+          elsif @options[:counter_sql]
             @association_class.count_by_sql(@counter_sql)
           else
             @association_class.count(@counter_sql)
           end
         end
-        
+
         def has_cached_counter?
           @owner.attribute_present?(cached_counter_attribute_name)
         end
-        
+
         def cached_counter_attribute_name
           "#{@association_name}_count"
         end
