@@ -17,6 +17,14 @@ class CallerController < ActionController::Base
     render_template "Ring, ring: <%= render_component(:controller => 'callee', :action => 'being_called') %>"
   end
 
+  def internal_caller
+    render_template "Are you there? <%= render_component(:action => 'internal_callee') %>"
+  end
+  
+  def internal_callee
+    render_text "Yes, ma'am"
+  end
+
   def rescue_action(e) raise end
 end
 
@@ -57,5 +65,10 @@ class RenderTest < Test::Unit::TestCase
   def test_calling_from_template
     get :calling_from_template
     assert_equal "Ring, ring: Lady of the House, speaking", @response.body
+  end
+  
+  def test_internal_calling
+    get :internal_caller
+    assert_equal "Are you there? Yes, ma'am", @response.body
   end
 end

@@ -17,7 +17,7 @@ module ActionController #:nodoc:
       end
     
       def component_class(options)
-        options[:controller] ? (options[:controller].camelize + "Controller").constantize : self
+        options[:controller] ? (options[:controller].camelize + "Controller").constantize : self.class
       end
       
       def component_request(options)
