@@ -49,6 +49,13 @@ module ActionView
       #       <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" /><br />
       #       <input type='submit' value='Sign' />
       #     </form>
+      #
+      # It's also possible to add additional content to the form by giving it a block, such as:
+      #
+      #   form("entry", :action => "sign") do |form|
+      #     form << content_tag("b", "Department")
+      #     form << collection_select("department", "id", @departments, "id", "name")
+      #   end
       def form(record_name, options = {})
         record   = instance_eval("@#{record_name}")
 
@@ -59,9 +66,9 @@ module ActionView
         
         id_field = record.new_record? ? "" : InstanceTag.new(record_name, "id", self).to_input_field_tag("hidden")
         
-        %(<form action="#{action}" method="post">#{id_field}) +
-          all_input_tags(record, record_name, options) +
-          %(<input type="submit" value="#{submit_value}" /></form>)
+        formtag = %(<form action="#{action}" method="post">#{id_field}) + all_input_tags(record, record_name, options)
+        yield formtag if block_given?
+        formtag +  %(<input type="submit" value="#{submit_value}" /></form>)
       end
 
       # Returns a string containing the error message attached to the +method+ on the +object+, if one exists.

@@ -4,8 +4,7 @@ require File.dirname(__FILE__) + '/form_helper'
 
 module ActionView
   module Helpers
-    # Provides a number of methods for turning different kinds of containers into a set of option tags. Neither of the methods provide
-    # the actual select tag, so you'll need to construct that in HTML manually.
+    # Provides a number of methods for turning different kinds of containers into a set of option tags.
     module FormOptionsHelper
       include ERB::Util
 

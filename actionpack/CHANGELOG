@@ -1,5 +1,12 @@
 *SVN*
 
+* Added the option of passing a block to ActiveRecordHelper#form in order to add more to the auto-generated form #469 [dom@sisna.com]
+
+    form("entry", :action => "sign") do |form|
+      form << content_tag("b", "Department")
+      form << collection_select("department", "id", @departments, "id", "name")
+    end
+
 * Added arrays as a value option for params in url_for and friends #467 [Eric Anderson]. Example:
 
     url_for(:controller => 'user', :action => 'delete', :params => { 'username' =>  %( paul john steve ) } )
