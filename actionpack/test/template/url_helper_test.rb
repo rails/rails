@@ -36,28 +36,6 @@ class UrlHelperTest < Test::Unit::TestCase
     )
   end
 
-  def test_link_image_to
-    assert_equal(
-      "<a href=\"http://www.example.com\"><img alt=\"Rss\" border=\"0\" height=\"45\" src=\"/images/rss.png\" width=\"30\" /></a>",
-      link_image_to("rss", "http://www.example.com", "size" => "30x45", "border" => "0")
-    )
-
-    assert_equal(
-      "<a href=\"http://www.example.com\"><img alt=\"Rss\" border=\"0\" height=\"45\" src=\"/images/rss.png\" width=\"30\" /></a>",
-      link_to(image_tag("rss", :size => "30x45", :border => 0), "http://www.example.com")
-    )
-
-    assert_equal(
-      "<a class=\"admin\" href=\"http://www.example.com\"><img alt=\"Feed\" height=\"45\" src=\"/images/rss.gif\" width=\"30\" /></a>",
-      link_image_to("rss.gif", "http://www.example.com", "size" => "30x45", "alt" => "Feed", "class" => "admin")
-    )
-
-    assert_equal link_image_to("rss", "http://www.example.com", "size" => "30x45"),
-                 link_image_to("rss", "http://www.example.com", :size => "30x45")
-    assert_equal link_image_to("rss.gif", "http://www.example.com", "size" => "30x45", "alt" => "Feed", "class" => "admin"),
-                 link_image_to("rss.gif", "http://www.example.com", :size => "30x45", :alt => "Feed", :class => "admin")
-  end
-
   def test_link_to_unless
     assert_equal "Showing", link_to_unless(true, "Showing", :action => "show", :controller => "weblog")
     assert "<a href=\"http://www.example.com\">Listing</a>", link_to_unless(false, "Listing", :action => "list", :controller => "weblog")

@@ -32,6 +32,23 @@ class RequestTest < Test::Unit::TestCase
     assert_equal ":8080", @request.port_string
   end
   
+    def test_relative_url_root
+    @request.env['SCRIPT_NAME'] = nil
+    assert_equal "", @request.relative_url_root
+
+    @request.env['SCRIPT_NAME'] = "/dispatch.cgi"
+    assert_equal "", @request.relative_url_root
+
+    @request.env['SCRIPT_NAME'] = "/myapp.rb"
+    assert_equal "", @request.relative_url_root
+
+    @request.env['SCRIPT_NAME'] = "/hieraki/dispatch.cgi"
+    assert_equal "/hieraki", @request.relative_url_root
+
+    @request.env['SCRIPT_NAME'] = "/collaboration/hieraki/dispatch.cgi"
+    assert_equal "/collaboration/hieraki", @request.relative_url_root    
+  end
+  
   def test_request_uri
     @request.set_REQUEST_URI "http://www.rubyonrails.org/path/of/some/uri?mapped=1"
     assert_equal "/path/of/some/uri?mapped=1", @request.request_uri
@@ -52,7 +69,24 @@ class RequestTest < Test::Unit::TestCase
     @request.set_REQUEST_URI "/?m=b"
     assert_equal "/?m=b", @request.request_uri
     assert_equal "/", @request.path
+    
+    @request.set_REQUEST_URI "/"
+    @request.env['SCRIPT_NAME'] = "/dispatch.cgi"
+    assert_equal "/", @request.request_uri
+    assert_equal "/", @request.path    
+
+    @request.set_REQUEST_URI "/hieraki/"
+    @request.env['SCRIPT_NAME'] = "/hieraki/dispatch.cgi"
+    assert_equal "/hieraki/", @request.request_uri
+    assert_equal "/", @request.path    
+
+    @request.set_REQUEST_URI "/collaboration/hieraki/books/edit/2"
+    @request.env['SCRIPT_NAME'] = "/collaboration/hieraki/dispatch.cgi"
+    assert_equal "/collaboration/hieraki/books/edit/2", @request.request_uri
+    assert_equal "/books/edit/2", @request.path    
+
   end
+  
 
   def test_host_with_port
     @request.env['HTTP_HOST'] = "rubyonrails.org:8080"

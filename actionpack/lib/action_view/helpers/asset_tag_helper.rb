@@ -33,8 +33,7 @@ module ActionView
       #     <script language="JavaScript" type="text/javascript" src="/elsewhere/cools.js"></script>
       def javascript_include_tag(*sources)
         sources.collect { |source|
-          source = "/javascripts/#{source}" unless source.include?("/")
-          source = "#{source}.js" unless source.include?(".")
+          source = compute_public_path(source, 'javascripts', 'js')        
           content_tag("script", "", "language" => "JavaScript", "type" => "text/javascript", "src" => source)
         }.join("\n")
       end
@@ -49,8 +48,7 @@ module ActionView
       #     <link href="/css/stylish.css" media="screen" rel="Stylesheet" type="text/css" />
       def stylesheet_link_tag(*sources)
         sources.collect { |source|
-          source = "/stylesheets/#{source}" unless source.include?("/")
-          source = "#{source}.css" unless source.include?(".")
+          source = compute_public_path(source, 'stylesheets', 'css')
           tag("link", "rel" => "Stylesheet", "type" => "text/css", "media" => "screen", "href" => source)
         }.join("\n")
       end
@@ -64,13 +62,11 @@ module ActionView
       # * full path, like "/my_images/image.gif"
       # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
       # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
-      def image_tag(src, options = {})
+      def image_tag(source, options = {})
         options.symbolize_keys
-
-        options.update({ :src => src.include?("/") ? src : "/images/#{src}" })
-        options[:src] += ".png" unless options[:src].include?(".")
-
-        options[:alt] ||= src.split("/").last.split(".").first.capitalize
+                
+        options[:src] = compute_public_path(source, 'images', 'png')
+        options[:alt] ||= source.split("/").last.split(".").first.capitalize
         
         if options[:size]
           options[:width], options[:height] = options[:size].split("x")
@@ -79,6 +75,16 @@ module ActionView
 
         tag("img", options)
       end
+      
+      private
+      
+        def compute_public_path(source, dir, ext)
+          source = "/#{dir}/#{source}" unless source.include?("/")
+          source = "#{source}.#{ext}" unless source.include?(".")
+          source = "#{@request.relative_url_root}#{source}" 
+          source
+        end
+        
     end
   end
 end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed .htaccess to allow dispatch.* to be called from a sub-directory as part of the push with Action Pack to make Rails work on non-vhost setups #826 [Nicholas Seckar/Tobias Luetke]
+
 * Added script/runner which can be used to run code inside the environment by eval'ing the first parameter. Examples:
     
     ./script/runner 'ReminderService.deliver'
