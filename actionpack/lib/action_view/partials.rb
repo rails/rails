@@ -60,7 +60,7 @@ module ActionView
         if partial_path.include?('/')
           return File.dirname(partial_path), File.basename(partial_path)
         else
-          return controller.class.controller_path, partial_path
+          return controller.send(:controller_name), partial_path
         end
       end
 

@@ -3,7 +3,7 @@ module ActionController
   class AbstractRequest
     # Returns both GET and POST parameters in a single hash.
     def parameters
-      @parameters ||= request_parameters.merge(query_parameters).merge(path_parameters).with_indifferent_access
+      @parameters ||= request_parameters.update(query_parameters)
     end
 
     def method
@@ -73,7 +73,7 @@ module ActionController
     end
     
     def request_uri
-      (%r{^\w+\://[^/]+(/.*|$)$} =~ env['REQUEST_URI']) ? $1 : env['REQUEST_URI'] # Remove domain, which webrick puts into the request_uri.
+      env['REQUEST_URI']
     end
 
     def protocol
@@ -85,7 +85,7 @@ module ActionController
     end
 
     def path
-      path = request_uri ? request_uri.split('?').first : ''
+      request_uri ? request_uri.split('?').first : ''
     end
 
     def port
@@ -100,16 +100,7 @@ module ActionController
     def host_with_port
       env['HTTP_HOST'] || host + port_string
     end
-  
-    def path_parameters=(parameters)
-      @path_parameters = parameters
-      @parameters = nil
-    end
 
-    def path_parameters
-      @path_parameters ||= {}
-    end
-    
     #--
     # Must be implemented in the concrete request
     #++

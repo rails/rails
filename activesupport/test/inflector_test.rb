@@ -1,13 +1,6 @@
 require 'test/unit'
 require File.dirname(__FILE__) + '/../lib/inflector'
 
-module A
-  module B
-    class C
-    end
-  end
-end
-
 class InflectorTest < Test::Unit::TestCase
   SingularToPlural = {
     "search"      => "searches",
@@ -56,12 +49,6 @@ class InflectorTest < Test::Unit::TestCase
     "Product"                       => "product",
     "SpecialGuest"                  => "special_guest",
     "ApplicationController" => "application_controller"
-  }
-  
-  CamelWithModuleToUnderscoreWithSlash = {
-    "Admin::Product" => "admin/product",
-    "Users::Commission::Department" => "users/commission/department",
-    "UsersSection::CommissionDepartment" => "users_section/commission_department",
   }
 
   ClassNameToForeignKeyWithUnderscore = {
@@ -113,18 +100,6 @@ class InflectorTest < Test::Unit::TestCase
     assert_equal "html_tidy_generator", Inflector.underscore("HTMLTidyGenerator")
   end
 
-  def test_camelize_with_module
-    CamelWithModuleToUnderscoreWithSlash.each do |camel, underscore|
-      assert_equal(camel, Inflector.camelize(underscore))
-    end
-  end
-  
-  def test_underscore_with_slashes
-    CamelWithModuleToUnderscoreWithSlash.each do |camel, underscore|
-      assert_equal(underscore, Inflector.underscore(camel))
-    end
-  end
-
   def test_demodulize
     assert_equal "Account", Inflector.demodulize("MyApplication::Billing::Account")
   end
@@ -155,11 +130,5 @@ class InflectorTest < Test::Unit::TestCase
     UnderscoreToHuman.each do |underscore, human|
       assert_equal(human, Inflector.humanize(underscore))
     end
-  end
-  
-  def test_constantize
-    assert_equal A::B::C, Inflector.constantize("A::B::C")
-    assert_equal InflectorTest, Inflector.constantize("InflectorTest")
-    assert_raises(NameError) { Inflector.constantize("UnknownClass") }
   end
 end

@@ -1,9 +1,10 @@
 module ActionController
   # Rewrites URLs for Base.redirect_to and Base.url_for in the controller.
   class UrlRewriter #:nodoc:
-    RESERVED_OPTIONS = [:anchor, :params, :path_params, :only_path, :host, :protocol]
-    def initialize(request, parameters)
-      @request, @parameters = request, parameters
+    VALID_OPTIONS = [:action, :action_prefix, :action_suffix, :application_prefix, :module, :controller, :controller_prefix, :anchor, :params, :path_params, :id, :only_path, :overwrite_params, :host, :protocol ]
+  
+    def initialize(request, controller, action)
+      @request, @controller, @action = request, controller, action
       @rewritten_path = @request.path ? @request.path.dup : ""
     end
     
@@ -21,7 +22,7 @@ module ActionController
     end
 
     def to_str
-  		"#{@request.protocol}, #{@request.host_with_port}, #{@request.path}, #{@parameters[:controller]}, #{@parameters[:action]}, #{@request.parameters.inspect}"
+      "#{@request.protocol}, #{@request.host_with_port}, #{@request.path}, #{@controller}, #{@action}, #{@request.parameters.inspect}"
     end
 
     private
@@ -47,14 +48,12 @@ module ActionController
         return rewritten_url
       end
 
-      def rewrite_path(options)
-        options = options.symbolize_keys
-        RESERVED_OPTIONS.each {|k| options.delete k}
-        
-        path, extras = Routing::Routes.generate(options, @request)
-        path = "/#{path.join('/')}"
-        path += build_query_string(extras)
-        
+      def rewrite_path(path, options)
+        include_id_in_path_params(options)
+
+        path = rewrite_action(path, options)      if options[:action] || options[:action_prefix]
+        path = rewrite_path_params(path, options) if options[:path_params]
+        path = rewrite_controller(path, options)  if options[:controller] || options[:controller_prefix]
         return path
       end
 

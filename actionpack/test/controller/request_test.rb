@@ -31,28 +31,6 @@ class RequestTest < Test::Unit::TestCase
     @request.port = 8080
     assert_equal ":8080", @request.port_string
   end
-  
-  def test_request_uri
-    @request.set_REQUEST_URI "http://www.rubyonrails.org/path/of/some/uri?mapped=1"
-    assert_equal "/path/of/some/uri?mapped=1", @request.request_uri
-    assert_equal "/path/of/some/uri", @request.path
-    
-    @request.set_REQUEST_URI "http://www.rubyonrails.org/path/of/some/uri"
-    assert_equal "/path/of/some/uri", @request.request_uri
-    assert_equal "/path/of/some/uri", @request.path
-
-    @request.set_REQUEST_URI "/path/of/some/uri"
-    assert_equal "/path/of/some/uri", @request.request_uri
-    assert_equal "/path/of/some/uri", @request.path
-
-    @request.set_REQUEST_URI "/"
-    assert_equal "/", @request.request_uri
-    assert_equal "/", @request.path
-
-    @request.set_REQUEST_URI "/?m=b"
-    assert_equal "/?m=b", @request.request_uri
-    assert_equal "/", @request.path
-  end
 
   def test_host_with_port
     @request.env['HTTP_HOST'] = "rubyonrails.org:8080"

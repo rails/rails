@@ -16,23 +16,21 @@ module Rails
         # or first remaining argument, and invokes the requested command.
         def run(args = [], runtime_options = {})
           begin
-            parse!(args.dup, runtime_options)
-          rescue OptionParser::InvalidOption => e
-            # Don't cry, script. Generators want what you think is invalid.
-          end
+            parse!(args, runtime_options)
 
-          # Generator name is the only required option.
-          unless options[:generator]
-            usage if args.empty?
-            options[:generator] ||= args.shift
-          end
+            # Generator name is the only required option.
+            unless options[:generator]
+              usage if args.empty?
+              options[:generator] ||= args.shift
+            end
 
-          # Look up generator instance and invoke command on it.
-          Rails::Generator::Base.instance(options[:generator], args, options).command(options[:command]).invoke!
-        rescue => e
-          puts e
-          puts "  #{e.backtrace.join("\n  ")}\n" if options[:backtrace]
-          raise SystemExit
+            # Look up generator instance and invoke command on it.
+            Rails::Generator::Base.instance(options[:generator], args, options).command(options[:command]).invoke!
+          rescue => e
+            puts e
+            puts "  #{e.backtrace.join("\n  ")}\n" if options[:backtrace]
+            raise SystemExit
+          end
         end
 
         protected

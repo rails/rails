@@ -4,19 +4,23 @@ class Object
   class << self
     # Lookup missing generators using const_missing.  This allows any
     # generator to reference another without having to know its location:
-    # RubyGems, ~/.rails/generators, and RAILS_ROOT/script/generators.
-    def lookup_missing_generator(class_id)
-      if md = /(.+)Generator$/.match(class_id.to_s)
-        name = md.captures.first.demodulize.underscore
-        Rails::Generator::Base.lookup(name).klass
-      else
-        const_missing_before_generators(class_id)
-      end
-    end
+    # RubyGems, ~/.rails/generators, and RAILS_ROOT/script/generators all
+    # cooperate to get the job done.  The greatest use of const_missing
+    # autoloading is to easily subclass existing generators.  Example:
+    #   class HorsebackGenerator < PostbackGenerator
+    # We don't know whether the postback generator is built in, installed
+    # as a gem, or in the user's home directory, and we shouldn't have to.
+    unless respond_to?(:pre_generator_const_missing)
+      alias_method :pre_generator_const_missing, :const_missing
 
-    unless respond_to?(:const_missing_before_generators)
-      alias_method :const_missing_before_generators, :const_missing
-      alias_method :const_missing, :lookup_missing_generator
+      def const_missing(class_id)
+        if md = /(.+)Generator$/.match(class_id.to_s)
+          name = md.captures.first.demodulize.underscore
+          Rails::Generator::Base.lookup(name).klass
+        else
+          pre_generator_const_missing(class_id)
+        end
+      end
     end
   end
 end
@@ -98,7 +102,7 @@ module Rails
         # 4.  Builtins.  Model, controller, mailer, scaffold.
         def use_component_sources!
           reset_sources
-          sources << PathSource.new(:app, "#{::RAILS_ROOT}/script/generators") if defined? ::RAILS_ROOT
+          sources << PathSource.new(:app, "#{Object.const_get(:RAILS_ROOT)}/script/generators") if Object.const_defined?(:RAILS_ROOT)
           sources << PathSource.new(:user, "#{Dir.user_home}/.rails/generators")
           sources << GemSource.new if Object.const_defined?(:Gem)
           sources << PathSource.new(:builtin, "#{File.dirname(__FILE__)}/generators/components")

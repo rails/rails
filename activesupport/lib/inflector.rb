@@ -20,11 +20,11 @@ module Inflector
   end
 
   def camelize(lower_case_and_underscored_word)
-    lower_case_and_underscored_word.to_s.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }
+    lower_case_and_underscored_word.to_s.gsub(/(^|_)(.)/){$2.upcase}
   end
   
   def underscore(camel_cased_word)
-    camel_cased_word.to_s.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z])/,'\1_\2').gsub(/([a-z])([A-Z])/,'\1_\2').downcase
+    camel_cased_word.to_s.gsub(/([A-Z]+)([A-Z])/,'\1_\2').gsub(/([a-z])([A-Z])/,'\1_\2').downcase
   end
 
   def humanize(lower_case_and_underscored_word)
@@ -47,13 +47,7 @@ module Inflector
     Inflector.underscore(Inflector.demodulize(class_name)) + 
       (separate_class_name_and_id_with_underscore ? "_id" : "id")
   end
-
-  def constantize(camel_cased_word)
-    camel_cased_word.split("::").inject(Object) do |final_type, part| 
-      final_type = final_type.const_get(part)
-    end
-  end
-
+  
   private
     def plural_rules #:doc:
       [

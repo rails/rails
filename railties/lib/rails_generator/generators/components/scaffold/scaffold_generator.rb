@@ -41,12 +41,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
     super
     @controller_name = args.shift || @name.pluralize
     base_name, @controller_class_path, @controller_class_nesting = extract_modules(@controller_name)
-    @controller_class_name_without_nesting, @controller_singular_name, @controller_plural_name = inflect_names(base_name)
-    if @controller_class_nesting.empty?
-      @controller_class_name = @controller_class_name_without_nesting
-    else
-      @controller_class_name = "#{@controller_class_nesting}::#{@controller_class_name_without_nesting}"
-    end
+    @controller_class_name, @controller_singular_name, @controller_plural_name = inflect_names(base_name)
   end
 
   def manifest
@@ -57,12 +52,8 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       # Check for class naming collisions.
       m.class_collisions "#{controller_class_name}Controller", "#{controller_class_name}ControllerTest", "#{controller_class_name}Helper"
 
-      # Controller, helper, views, and test directories.
-      m.directory File.join('app/controllers', controller_class_path)
-      m.directory File.join('app/helpers', controller_class_path)
+      # Views directory.
       m.directory File.join('app/views', controller_class_path, controller_file_name)
-      m.directory File.join('test/functional', controller_class_path)
-
 
       # Controller class, functional test, helper, and views.
       m.template 'controller.rb',
@@ -88,8 +79,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       scaffold_views.each do |action|
         m.template "view_#{action}.rhtml",
                    File.join('app/views',
-                             controller_class_path,
-                             controller_file_name,
+                             controller_class_path, controller_file_name,
                              "#{action}.rhtml"),
                    :assigns => { :action => action }
       end
@@ -113,8 +103,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       unscaffolded_actions.each do |action|
         m.template "controller:view.rhtml",
                    File.join('app/views',
-                             controller_class_path,
-                             controller_file_name,
+                             controller_class_path, controller_file_name,
                              "#{action}.rhtml"),
                    :assigns => { :action => action }
       end
@@ -164,13 +153,9 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
     end
 
     def model_instance
-      base = class_nesting.split('::').inject(Object) do |base, nested|
-        break base.const_get(nested) if base.const_defined?(nested)
-        base.const_set(nested, Module.new)
+      unless Object.const_defined?(class_name)
+        Object.const_set(class_name, Class.new(ActiveRecord::Base))
       end
-      unless base.const_defined?(@class_name_without_nesting)
-        base.const_set(@class_name_without_nesting, Class.new(ActiveRecord::Base))
-      end
-      class_name.constantize.new
+      Object.const_get(class_name).new
     end
 end

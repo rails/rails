@@ -48,11 +48,7 @@ module ActionController #:nodoc:
 
       # Overwrite to implement public exception handling (for requests answering false to <tt>local_request?</tt>).
       def rescue_action_in_public(exception) #:doc:
-        case exception
-          when RoutingError, UnknownAction then
-            render_text(IO.read(File.join(RAILS_ROOT, 'public', '404.html')), "404 Not Found")
-          else render_text "<html><body><h1>Application error (Rails)</h1></body></html>"
-        end
+        render_text "<html><body><h1>Application error (Rails)</h1></body></html>"
       end
 
       # Overwrite to expand the meaning of a local request in order to show local rescues on other occurences than
@@ -114,19 +110,11 @@ module ActionController #:nodoc:
         rescues_path(
           case exception
             when MissingTemplate then "missing_template"
-            when RoutingError then "routing_error"
             when UnknownAction   then "unknown_action"
             when ActionView::TemplateError then "template_error"
-            else raise ;"diagnostics"
+            else "diagnostics"
           end
         )
-      end
-      
-      def response_code_for_rescue(exception)
-        case exception
-          when UnknownAction, RoutingError then "404 Page Not Found"
-          else "500 Internal Error"
-        end
       end
       
       def clean_backtrace(exception)

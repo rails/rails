@@ -31,8 +31,8 @@ module ActionController #:nodoc:
 
   class TestRequest < AbstractRequest #:nodoc:
     attr_accessor :cookies
-    attr_accessor :query_parameters, :request_parameters, :path, :session, :env
-    attr_accessor :host, :remote_addr
+    attr_accessor :query_parameters, :request_parameters, :session, :env
+    attr_accessor :host, :path, :request_uri, :remote_addr
 
     def initialize(query_parameters = nil, request_parameters = nil, session = nil)
       @query_parameters   = query_parameters || {}
@@ -58,27 +58,10 @@ module ActionController #:nodoc:
       @parameters = nil
     end
     
-    # Used to check AbstractRequest's request_uri functionality.
-    # Disables the use of @path and @request_uri so superclass can handle those.
-    def set_REQUEST_URI(value)
-      @env["REQUEST_URI"] = value
-      @request_uri = nil
-      @path = nil
-    end
-
     def request_uri=(uri)
       @request_uri = uri
       @path = uri.split("?").first
     end
-
-    def request_uri
-      @request_uri || super()
-    end
-
-    def path
-      @path || super()
-    end
-    
 
     private
       def initialize_containers
@@ -254,7 +237,6 @@ module Test
         def process(action, parameters = nil, session = nil)
           @request.env['REQUEST_METHOD'] ||= "GET"
           @request.action = action.to_s
-          @request.path_parameters = { :controller => @controller.class.controller_path }
           @request.parameters.update(parameters) unless parameters.nil?
           @request.session = ActionController::TestSession.new(session) unless session.nil?
           @controller.process(@request, @response)

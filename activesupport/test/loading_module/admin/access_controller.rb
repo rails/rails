@@ -1,2 +1,0 @@
-class Admin::AccessController
-end

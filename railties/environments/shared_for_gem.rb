@@ -36,8 +36,6 @@ require_dependency "environments/#{RAILS_ENV}"
 ActiveRecord::Base.configurations = YAML::load(File.open("#{RAILS_ROOT}/config/database.yml"))
 ActiveRecord::Base.establish_connection
 
-Controllers = Dependencies::LoadingModule.new(File.expand_path(File.join(RAILS_ROOT, 'app', 'controllers')))
-
 
 # Configure defaults if the included environment did not.
 begin

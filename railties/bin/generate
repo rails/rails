@@ -1,5 +1,8 @@
 #!/usr/local/bin/ruby
 require File.dirname(__FILE__) + '/../config/environment'
 require 'rails_generator'
+require 'rails_generator/simple_logger'
 require 'rails_generator/scripts/generate'
+
+Rails::Generator::Base.logger = Rails::Generator::SimpleLogger.new(STDOUT)
 Rails::Generator::Scripts::Generate.new.run(ARGV)

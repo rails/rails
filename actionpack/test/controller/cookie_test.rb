@@ -28,6 +28,10 @@ class CookieTest < Test::Unit::TestCase
       render_text "hello world"
     end
 
+    def access_frozen_cookies
+      @cookies["wont"] = "work"
+    end
+
     def rescue_action(e) raise end
   end
 
@@ -61,6 +65,11 @@ class CookieTest < Test::Unit::TestCase
   def test_multiple_cookies
     @request.action = "set_multiple_cookies"
     assert_equal 2, process_request.headers["cookie"].size
+  end
+
+  def test_setting_cookie_on_frozen_instance_variable
+    @request.action = "access_frozen_cookies"
+    assert_raises(TypeError) { process_request }
   end
 
   private

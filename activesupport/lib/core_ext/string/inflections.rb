@@ -39,10 +39,6 @@ module ActiveSupport #:nodoc:
         def foreign_key(separate_class_name_and_id_with_underscore = true)
           Inflector.foreign_key(self, separate_class_name_and_id_with_underscore)
         end
-
-        def constantize
-          Inflector.constantize(self)
-        end
       end
     end
   end

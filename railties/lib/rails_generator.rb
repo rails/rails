@@ -23,7 +23,7 @@
 
 $:.unshift(File.dirname(__FILE__))
 
-require 'rails_generator/support/core_ext'
+require 'support/core_ext'
 
 require 'rails_generator/base'
 require 'rails_generator/lookup'
@@ -31,7 +31,3 @@ require 'rails_generator/commands'
 
 Rails::Generator::Base.send(:include, Rails::Generator::Lookup)
 Rails::Generator::Base.send(:include, Rails::Generator::Commands)
-
-# Set up a default logger for convenience.
-require 'rails_generator/simple_logger'
-Rails::Generator::Base.logger = Rails::Generator::SimpleLogger.new(STDOUT)
