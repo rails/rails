@@ -63,22 +63,23 @@ module ActionWebService
               protocol_name = @params['protocol'] ? @params['protocol'].to_sym : :soap
               case protocol_name
               when :soap
-                protocol = Protocol::Soap::SoapProtocol.new
+                @protocol = Protocol::Soap::SoapProtocol.new
               when :xmlrpc
-                protocol = Protocol::XmlRpc::XmlRpcProtocol.new
+                @protocol = Protocol::XmlRpc::XmlRpcProtocol.new
               end
               @invocation_cgi = @request.respond_to?(:cgi) ? @request.cgi : nil
               bm = Benchmark.measure do
-                protocol.register_api(@scaffold_service.api)
+                @protocol.register_api(@scaffold_service.api)
                 params = @params['method_params'] ? @params['method_params'].dup : nil
                 params = @scaffold_method.cast_expects(params)
-                @method_request_xml = protocol.encode_request(@scaffold_method.public_name, params, @scaffold_method.expects)
-                new_request = protocol.encode_action_pack_request(@scaffold_service.name, @scaffold_method.public_name, @method_request_xml)
-                new_request.parameters.update(@request.parameters)
+                method_name = public_method_name(@scaffold_service.name, @scaffold_method.public_name)
+                @method_request_xml = @protocol.encode_request(method_name, params, @scaffold_method.expects)
+                new_request = @protocol.encode_action_pack_request(@scaffold_service.name, @scaffold_method.public_name, @method_request_xml)
+                prepare_request(new_request, @scaffold_service.name, @scaffold_method.public_name)
                 @request = new_request
                 dispatch_web_service_request
                 @method_response_xml = @response.body
-                method_name, obj = protocol.decode_response(@method_response_xml)
+                method_name, obj = @protocol.decode_response(@method_response_xml)
                 return if handle_invocation_exception(obj)
                 @method_return_value = @scaffold_method.cast_returns(obj)
               end
@@ -121,6 +122,21 @@ module ActionWebService
               end
               @response.template = template
               @performed_render = false
+            end
+
+            def public_method_name(service_name, method_name)
+              if web_service_dispatching_mode == :layered && @protocol.is_a?(ActionWebService::Protocol::XmlRpc::XmlRpcProtocol)
+                service_name + '.' + method_name
+              else
+                method_name
+              end
+            end
+
+            def prepare_request(request, service_name, method_name)
+              request.parameters.update(@request.parameters)
+              if web_service_dispatching_mode == :layered && @protocol.is_a?(ActionWebService::Protocol::Soap::SoapProtocol)
+                request.env['HTTP_SOAPACTION'] = "/\#{controller_name()}/\#{service_name}/\#{method_name}"
+              end
             end
 
             def handle_invocation_exception(obj)
