@@ -333,6 +333,16 @@ module ActiveRecord #:nodoc:
         object
       end
 
+      # Deletes the record with the given +id+ without instantiating an object first.
+      def delete(id)
+        delete_all([ "#{primary_key} = ?", id ])
+      end
+      
+      # Destroys the record with the given +id+ by instantiating the object and calling #destroy (all the callbacks are the triggered).
+      def destroy(id)
+        find(id).destroy
+      end
+
       # Updates all records with the SET-part of an SQL update statement in +updates+. A subset of the records can be selected 
       # by specifying +conditions+. Example:
       #   Billing.update_all "category = 'authorized', approved = 1", "author = 'David'"

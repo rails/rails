@@ -1,3 +1,8 @@
+*SVN*
+
+* Added Base.destroy and Base.delete to remove records without holding a reference to them first.
+
+
 *1.2.0*
 
 * Added Base.validates_inclusion_of that validates whether the value of the specified attribute is available in a particular enumerable

@@ -26,9 +26,7 @@ end
 class Booleantest < ActiveRecord::Base; end
 
 class BasicsTest < Test::Unit::TestCase
-  def setup
-    @topic_fixtures, @companies = create_fixtures "topics", "companies"
-  end
+  fixtures :topics, :companies
 
   def test_set_attributes
     topic = Topic.find(1)
@@ -36,7 +34,7 @@ class BasicsTest < Test::Unit::TestCase
     topic.save
     assert_equal("Budget", topic.title)
     assert_equal("Jason", topic.author_name)
-    assert_equal(@topic_fixtures["first"]["author_email_address"], Topic.find(1).author_email_address)
+    assert_equal(@topics["first"]["author_email_address"], Topic.find(1).author_email_address)
   end
   
   def test_integers_as_nil
@@ -187,14 +185,14 @@ class BasicsTest < Test::Unit::TestCase
   def test_load
     topics = Topic.find_all nil, "id"    
     assert_equal(2, topics.size)
-    assert_equal(@topic_fixtures["first"]["title"], topics.first.title)
+    assert_equal(@topics["first"]["title"], topics.first.title)
   end
   
   def test_load_with_condition
     topics = Topic.find_all "author_name = 'Mary'"
     
     assert_equal(1, topics.size)
-    assert_equal(@topic_fixtures["second"]["title"], topics.first.title)
+    assert_equal(@topics["second"]["title"], topics.first.title)
   end
 
   def test_table_name_guesses
@@ -555,5 +553,23 @@ class BasicsTest < Test::Unit::TestCase
     content = "\\ \001 ' \n \\n \""
     topic = Topic.create('content' => content)
     assert_equal content, Topic.find(topic.id).content
+  end
+  
+  def test_class_level_destroy
+    should_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
+    @first.replies << should_be_destroyed_reply
+
+    Topic.destroy(1)
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1) }
+    assert_raises(ActiveRecord::RecordNotFound) { Reply.find(should_be_destroyed_reply.id) }
+  end
+
+  def test_class_level_delete
+    should_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
+    @first.replies << should_be_destroyed_reply
+
+    Topic.delete(1)
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1) }
+    assert_nothing_raised { Reply.find(should_be_destroyed_reply.id) }
   end
 end
