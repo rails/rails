@@ -9,4 +9,4 @@ require 'irb/completion'
 # tunnel when you want to connect from a different
 # computer over the internet. See the documentation of
 # Breakpoint.activate_drb for how to do that.
-Breakpoint.activate_drb('druby://localhost:42531')
+Breakpoint.activate_drb('druby://localhost:42531', nil)
