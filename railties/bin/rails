@@ -1,3 +1,4 @@
+#!/usr/local/bin/ruby
 require File.dirname(__FILE__) + '/../lib/rails_generator'
 require 'rails_generator/scripts/generate'
 Rails::Generator::Base.use_application_sources!
