@@ -33,4 +33,20 @@ class Fixnum
     self * 365.days
   end
   alias :year :years
+
+  # Reads best without arguments:  10.minutes.ago
+  def ago(time = Time.now)
+    time - self
+  end
+
+  # Reads best with argument:  10.minutes.until(time)
+  alias :until :ago
+
+  # Reads best with argument:  10.minutes.since(time)
+  def since(time = Time.now)
+    time + self
+  end
+
+  # Reads best without arguments:  10.minutes.from_now
+  alias :from_now :since
 end
