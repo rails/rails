@@ -1,5 +1,8 @@
 *SVN*
 
+* Added search through session to clear out association caches at the end of each request. This makes it possible to place Active Record objects
+  in the session without worrying about stale data in the associations (the main object is still subject to caching, naturally) #347 [Tobias Luetke]
+
 * Added more informative exception when using helper :some_helper and the helper requires another file that fails, you'll get an
   error message tells you what file actually failed to load, rather than falling back on assuming it was the helper file itself #346 [dblack]
 

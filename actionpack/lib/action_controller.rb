@@ -32,6 +32,7 @@ require 'action_controller/benchmarking'
 require 'action_controller/filters'
 require 'action_controller/layout'
 require 'action_controller/flash'
+require 'action_controller/session'
 require 'action_controller/dependencies'
 require 'action_controller/scaffolding'
 require 'action_controller/helpers'
@@ -48,6 +49,7 @@ ActionController::Base.class_eval do
   include ActionController::Scaffolding
   include ActionController::Helpers
   include ActionController::Cookies
+  include ActionController::Session
 end
 
 require 'action_view'
