@@ -706,14 +706,17 @@ module ActiveRecord #:nodoc:
           sql << "#{options[:joins]} " if options[:joins]
           add_conditions!(sql, options[:conditions])
           sql << "ORDER BY #{options[:order]} " if options[:order]
+          add_limit!(sql, options)
+          
+          return sql
+        end
 
+        def add_limit!(sql, options)
           if options[:limit] && options[:offset]
             connection.add_limit_with_offset!(sql, options[:limit].to_i, options[:offset].to_i)
           elsif options[:limit]
             connection.add_limit_without_offset!(sql, options[:limit].to_i)
           end
-          
-          return sql
         end
 
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that it's the passed +sql+ string is changed.

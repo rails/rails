@@ -621,7 +621,7 @@ module ActiveRecord
 
         def find_with_associations(options = {})
           reflections = [ options[:include] ].flatten.collect { |association| reflect_on_association(association) }
-          rows = connection.select_all(construct_finder_sql_with_included_associations(reflections), "#{name} Load Including Associations")
+          rows = connection.select_all(construct_finder_sql_with_included_associations(options, reflections), "#{name} Load Including Associations")
           records = rows.collect { |row| instantiate(extract_record(table_name, row)) }.uniq
 
           reflections.each do |reflection| 
@@ -638,14 +638,19 @@ module ActiveRecord
           return records
         end
 
-        def construct_finder_sql_with_included_associations(reflections)
+        def construct_finder_sql_with_included_associations(options, reflections)
           sql = "SELECT #{selected_columns(table_name, columns)}"
           reflections.each { |reflection| sql << ", #{selected_columns(reflection.klass.table_name, reflection.klass.columns)}" }
           sql << " FROM #{table_name} "
+
           reflections.each do |reflection| 
             sql << " LEFT JOIN #{reflection.klass.table_name} ON " +
-              "#{reflection.klass.table_name}.#{table_name.classify.foreign_key} = #{table_name}.#{primary_key}"
+              "#{reflection.klass.table_name}.#{table_name.classify.foreign_key} = #{table_name}.#{primary_key} "
           end
+
+          sql << "#{options[:joins]} " if options[:joins]
+          add_conditions!(sql, options[:conditions])
+          sql << "ORDER BY #{options[:order]} " if options[:order]
           
           return sanitize_sql(sql)
         end

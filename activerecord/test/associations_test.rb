@@ -539,6 +539,10 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     posts = Post.find(:all, :include => :comments)
     assert_equal 2, posts.first.comments.size
     assert_equal @greetings.body, posts.first.comments.first.body
+
+    post = Post.find(:first, :include => :comments, :conditions => "posts.title = 'Welcome to the weblog'")
+    assert_equal 2, post.comments.size
+    assert_equal @greetings.body, post.comments.first.body
   end
 
   def test_eager_association_loading_with_multiple_associations
