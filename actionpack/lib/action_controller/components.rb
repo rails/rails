@@ -1,4 +1,5 @@
 module ActionController #:nodoc:
+  # TODO: Cookies and session variables set in render_component that happens inside a view should be copied over.
   module Components #:nodoc:
     def self.append_features(base)
       super
@@ -14,16 +15,16 @@ module ActionController #:nodoc:
 
     protected
       def render_component(options = {}) #:doc:
-        response = component_response(options)
-        logger.info "Rendering component (#{options.inspect}): "
+        response = component_response(options, true)
+        logger.info "Start rendering component (#{options.inspect}): "
         result = render_text(response.body, response.headers["Status"])
         logger.info("\n\nEnd of component rendering")
         return result
       end
   
     private
-      def component_response(options)
-        component_class(options).process(component_request(options), @response)
+      def component_response(options, reuse_response = false)
+        component_class(options).process(component_request(options), reuse_response ? @response : component_response)
       end
     
       def component_class(options)
@@ -31,12 +32,16 @@ module ActionController #:nodoc:
       end
       
       def component_request(options)
-        component_request = @request.dup
+        component_request = Marshal::load(Marshal::dump(@request))
         component_request.send(
           :instance_variable_set, :@parameters, 
           (options[:params] || {}).merge({ "controller" => options[:controller], "action" => options[:action] })
         )
         return component_request
+      end
+      
+      def component_response
+        Marshal::load(Marshal::dump(@response))
       end
   end
 end
