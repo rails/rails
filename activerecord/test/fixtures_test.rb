@@ -105,5 +105,34 @@ class FixturesTest < Test::Unit::TestCase
   def test_empty_csv_fixtures
     assert_not_nil Fixtures.new( Account.connection, "accounts", File.dirname(__FILE__) + "/fixtures/naked/csv/accounts")
   end
-  
+end
+
+
+class FixturesWithoutInstantiationTest < Test::Unit::TestCase
+  self.use_instantiated_fixtures = false
+  fixtures :topics, :developers, :accounts
+
+  def test_without_complete_instantiation
+    assert_nil @topics
+    assert_nil @first
+  end
+
+  def test_fixtures_from_root_yml_without_instantiation
+    assert_nil @unknown
+  end
+end
+
+
+class TransactionalFixturesTest < Test::Unit::TestCase
+  self.use_transactional_fixtures = true
+  fixtures :topics
+
+  def test_destroy
+    assert_not_nil @first
+    @first.destroy
+  end
+
+  def test_destroy_just_kidding
+    assert_not_nil @first
+  end
 end

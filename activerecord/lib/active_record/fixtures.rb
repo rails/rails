@@ -138,16 +138,46 @@ require 'csv'
 # This is however a feature to be used with some caution. The point of fixtures are that they're stable units of predictable
 # sample data. If you feel that you need to inject dynamic values, then perhaps you should reexamine whether your application
 # is properly testable. Hence, dynamic values in fixtures are to be considered a code smell.
+#
+# = Transactional fixtures
+#
+# TestCases can use begin+rollback to isolate their changes to the database instead of having to delete+insert for every test case. 
+# They can also turn off auto-instantiation of fixture data since the feature is costly and often unused.
+#
+#   class FooTest < Test::Unit::TestCase
+#     self.use_transactional_fixtures = true
+#     self.use_instantiated_fixtures = false
+#   
+#     fixtures :foos
+#   
+#     def test_godzilla
+#       assert !Foo.find_all.emtpy?
+#       Foo.destroy_all
+#       assert Foo.find_all.emtpy?
+#     end
+#   
+#     def test_godzilla_aftermath
+#       assert !Foo.find_all.emtpy?
+#     end
+#   end
+#   
+# If you preload your test database with all fixture data (probably in the Rakefile task) and use transactional fixtures, 
+# then you may omit all fixtures declarations in your test cases since all the data's already there and every case rolls back its changes.
+#
+# When *not* to use transactional fixtures: 
+#   1. You're testing whether a transaction works correctly. Nested transactions don't commit until all parent transactions commit, 
+#      particularly, the fixtures transaction which is begun in setup and rolled back in teardown. Thus, you won't be able to verify 
+#      the results of your transaction until Active Record supports nested transactions or savepoints (in progress.) 
+#   2. Your database does not support transactions. Every Active Record database supports transactions except MySQL MyISAM. 
+#      Use InnoDB, MaxDB, or NDB instead.
 class Fixtures < Hash
   DEFAULT_FILTER_RE = /\.ya?ml$/
 
-  def self.instantiate_fixtures(object, fixtures_directory, *table_names)
-    [ create_fixtures(fixtures_directory, *table_names) ].flatten.each_with_index do |fixtures, idx|
-      object.instance_variable_set "@#{table_names[idx]}", fixtures
-      fixtures.each do |name, fixture|
-        if model = fixture.find
-          object.instance_variable_set "@#{name}", model
-        end
+  def self.instantiate_fixtures(object, table_name, fixtures)
+    object.instance_variable_set "@#{table_name}", fixtures
+    fixtures.each do |name, fixture|
+      if model = fixture.find
+        object.instance_variable_set "@#{name}", model
       end
     end
   end
@@ -322,51 +352,100 @@ class Fixture #:nodoc:
     end
 end
 
-module Test#:nodoc:
-  module Unit#:nodoc:
+module Test #:nodoc:
+  module Unit #:nodoc:
     class TestCase #:nodoc:
       include ClassInheritableAttributes
 
       cattr_accessor :fixture_path
-      cattr_accessor :fixture_table_names
+      class_inheritable_accessor :fixture_table_names
+      class_inheritable_accessor :use_transactional_fixtures
+      class_inheritable_accessor :use_instantiated_fixtures
+
+      self.fixture_table_names = []
+      self.use_transactional_fixtures = false
+      self.use_instantiated_fixtures = true
 
       def self.fixtures(*table_names)
-        require_fixture_classes(table_names)
-        write_inheritable_attribute("fixture_table_names", table_names)
+        self.fixture_table_names = table_names.flatten
+        require_fixture_classes
       end
 
-      def self.require_fixture_classes(table_names)
-        table_names.each do |table_name| 
+      def self.require_fixture_classes
+        fixture_table_names.each do |table_name| 
           begin
-            require(Inflector.singularize(table_name.to_s))
+            require Inflector.singularize(table_name.to_s)
           rescue LoadError
-            # Let's hope the developer is included it himself
+            # Let's hope the developer has included it himself
           end
         end
       end
 
-      def setup
-        instantiate_fixtures(*fixture_table_names) if fixture_table_names
+      def setup_with_fixtures
+        # Load fixtures once and begin transaction.
+        if use_transactional_fixtures
+          load_fixtures unless @already_loaded_fixtures
+          @already_loaded_fixtures = true
+          ActiveRecord::Base.lock_mutex
+          ActiveRecord::Base.connection.begin_db_transaction
+
+        # Load fixtures for every test.
+        else
+          load_fixtures
+        end
+
+        # Instantiate fixtures for every test if requested.
+        instantiate_fixtures if use_instantiated_fixtures
       end
 
-      def self.method_added(method_symbol)
-        if method_symbol == :setup && !method_defined?(:setup_without_fixtures)
-          alias_method :setup_without_fixtures, :setup
-          define_method(:setup) do
-            instantiate_fixtures(*fixture_table_names) if fixture_table_names
-            setup_without_fixtures
+      alias_method :setup, :setup_with_fixtures
+
+      def teardown_with_fixtures
+        # Rollback changes.
+        if use_transactional_fixtures
+          ActiveRecord::Base.connection.rollback_db_transaction
+          ActiveRecord::Base.unlock_mutex
+        end
+      end
+
+      alias_method :teardown, :teardown_with_fixtures
+
+      def self.method_added(method)
+        case method.to_s
+        when 'setup'
+          unless method_defined?(:setup_without_fixtures)
+            alias_method :setup_without_fixtures, :setup
+            define_method(:setup) do
+              setup_with_fixtures
+              setup_without_fixtures
+            end
+          end
+        when 'teardown'
+          unless method_defined?(:teardown_without_fixtures)
+            alias_method :teardown_without_fixtures, :teardown
+            define_method(:teardown) do
+              teardown_without_fixtures
+              teardown_with_fixtures
+            end
           end
         end
       end
 
       private
-        def instantiate_fixtures(*table_names)
-          Fixtures.instantiate_fixtures(self, fixture_path, *table_names)
+        def load_fixtures
+          @loaded_fixtures = {}
+          fixture_table_names.each do |table_name|
+            @loaded_fixtures[table_name] = Fixtures.create_fixtures(fixture_path, table_name)
+          end
         end
 
-        def fixture_table_names
-          self.class.read_inheritable_attribute("fixture_table_names")
+        def instantiate_fixtures
+          raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
+          @loaded_fixtures.each do |table_name, fixtures|
+            Fixtures.instantiate_fixtures(self, table_name, fixtures)
+          end
         end
     end
+
   end
 end

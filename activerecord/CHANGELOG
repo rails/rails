@@ -1,5 +1,7 @@
 *SVN*
 
+* Added transactional fixtures that uses rollback to undo changes to fixtures instead of DELETE/INSERT -- it's much faster. See documentation under Fixtures #760 [bitsweat]
+
 * Added destruction of dependent objects in has_one associations when a new assignment happens #742 [mindel]. Example:
 
     class Account < ActiveRecord::Base
