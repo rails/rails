@@ -21,7 +21,7 @@ TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/testing
 
 LOG_FILES    = %w( apache.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html )
-SCRIPT_FILES = %w( generate breakpoint_client envcon )
+SCRIPT_FILES = %w( generate )
 BIN_FILES    = %w( breakpointing envcon )
 GENERATORS   = %w( controller mailer model scaffold )
 
