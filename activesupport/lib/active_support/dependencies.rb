@@ -109,7 +109,11 @@ module Dependencies
     
     # Load the source file at the given file path
     def load_file!(file_path)
-      root.module_eval(IO.read(file_path), file_path, 1)
+      begin root.module_eval(IO.read(file_path), file_path, 1)
+      rescue Object => exception
+        exception.blame_file! file_path
+        raise
+      end
     end
 
     # Erase all items in this module
@@ -197,10 +201,12 @@ class Exception
     (@blamed_files ||= []).unshift file
   end
 
-  attr_reader :blamed_files
+  def blamed_files
+    @blamed_files ||= []
+  end
 
   def describe_blame
     return nil if blamed_files.empty?
-    "This error occured while loading the following files:\n   #{blamed_files.join '\n   '}"
+    "This error occured while loading the following files:\n   #{blamed_files.join "\n   "}"
   end
 end
