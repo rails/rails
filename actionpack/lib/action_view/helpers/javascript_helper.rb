@@ -148,11 +148,12 @@ module ActionView
         build_observer('Form.Observer', form_id, options)
       end
 
-    private
+      # Escape carrier returns and single and double quotes for Javascript segments.
       def escape_javascript(javascript)
-        (javascript || '').gsub('"', '\"')
+        (javascript || '').gsub(/\r\n|\n|\r/, "\\n").gsub(/["']/) { |m| "\\#{m}" }
       end
-      
+
+    private      
       def options_for_ajax(options)
         js_options = build_callbacks(options)
         
