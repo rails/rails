@@ -56,7 +56,7 @@ class CGI
       # Save session state in the session's ActiveRecord object.
       def update
         return unless @session
-        @session.update_attribute "data", @data
+        ActiveRecord::Base.benchmark("Saving session") { @session.update_attribute "data", @data }
       end
     end #ActiveRecordStore
   end #Session
