@@ -12,7 +12,7 @@ module ActionController
       validate_options(VALID_OPTIONS, options.keys)
 
       rewrite_url(
-        rewrite_path(@rewritten_path, options), 
+        rewrite_path(@rewritten_path, resolve_aliases(options)), 
         options
       )
     end
@@ -30,8 +30,13 @@ module ActionController
         unknown_option_keys = supplied_option_keys - valid_option_keys
         raise(ActionController::ActionControllerError, "Unknown options: #{unknown_option_keys}") unless unknown_option_keys.empty?
       end
+  
+      def resolve_aliases(options)
+        options[:controller_prefix] = options[:module] unless options[:module].nil?
+        options
+      end
 
-      def rewrite_url(path, options)
+      def rewrite_url(path, options)        
         rewritten_url = ""
         rewritten_url << @request.protocol unless options[:only_path]
         rewritten_url << @request.host_with_port unless options[:only_path]
@@ -122,9 +127,14 @@ module ActionController
       end
       
       def controller_name(options, controller_prefix)
-        options[:controller_prefix] = "#{options[:module]}/#{options[:controller_prefix]}" if options[:module]
         ensure_slash_suffix(options, :controller_prefix)
-        controller_name = options[:controller_prefix] || controller_prefix || ""
+
+        controller_name = case options[:controller_prefix]
+          when String:  options[:controller_prefix]
+          when false : ""
+          when nil   : controller_prefix || ""
+        end
+
         controller_name << (options[:controller] + "/") if options[:controller] 
         return controller_name
       end

@@ -22,6 +22,14 @@ class UrlTest < Test::Unit::TestCase
       { "type" => "ISBN", "code" => "0743536703" }
     ), "books", "show")
 
+    @library_url_using_module = ActionController::UrlRewriter.new(MockRequest.new(
+      "http://",
+      "www.singlefile.com", 
+      80,
+      "/library/books/ISBN/0743536703/show",
+      { "type" => "ISBN", "code" => "0743536703", "module" => "library" }
+    ), "books", "show")
+
     @library_url_on_index = ActionController::UrlRewriter.new(MockRequest.new(
       "http://",
       "www.singlefile.com", 
@@ -101,6 +109,10 @@ class UrlTest < Test::Unit::TestCase
 
   def test_clean_controller_with_module
     assert_equal "http://www.singlefile.com/shop/purchases/", @library_url.rewrite(:module => "shop", :controller => "purchases")
+  end
+  
+  def test_getting_out_of_a_module
+    assert_equal "http://www.singlefile.com/purchases/", @library_url_using_module.rewrite(:module => false, :controller => "purchases")
   end
 
   def test_controller_and_action

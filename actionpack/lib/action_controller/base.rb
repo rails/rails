@@ -271,10 +271,11 @@ module ActionController #:nodoc:
       #            .---> controller      .--> action
       #   /library/books/ISBN/0743536703/show
       #   '------>      '--------------> action_prefix
-      #    controller_prefix 
+      #    controller_prefix (or module)
       #
       # * <tt>:controller_prefix</tt> - specifies the string before the controller name, which would be "/library" for the example.
       #   Called with "/shop" gives "/shop/books/ISBN/0743536703/show".
+      # * <tt>:module</tt> - serves as a alias to :controller_prefix (overwrites :controller_prefix unless its nil)
       # * <tt>:controller</tt> - specifies a new controller and clears out everything after the controller name (including the action, 
       #   the pre- and suffix, and all params), so called with "settings" gives "/library/settings/".
       # * <tt>:action_prefix</tt> - specifies the string between the controller name and the action name, which would
@@ -297,6 +298,7 @@ module ActionController #:nodoc:
       # Naturally, you can combine multiple options in a single redirect. Examples:
       #
       #   redirect_to(:controller_prefix => "/shop", :controller => "settings")
+      #   redirect_to(:controller_prefix => false, :controller => "settings") # breaks out of the current controller_prefix
       #   redirect_to(:action => "edit", :id => 3425)
       #   redirect_to(:action => "edit", :path_params => { "type" => "XTC" }, :params => { "temp" => 1})
       #   redirect_to(:action => "publish", :action_prefix => "/published", :anchor => "x14")
