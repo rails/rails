@@ -1012,6 +1012,7 @@ module ActiveRecord #:nodoc:
       # attributes not included in that won't be allowed to be mass-assigned.
       def attributes=(attributes)
         return if attributes.nil?
+        attributes.stringify_keys!
 
         multi_parameter_attributes = []
         remove_attributes_protected_from_mass_assignment(attributes).each do |k, v| 

@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed that symbols can be used on attribute assignment, like page.emails.create(:subject => data.subject, :body => data.body)
+
+
 *1.8.0* (7th March, 2005)
 
 * Added ActiveRecord::Base.colorize_logging to control whether to use colors in logs or not (on by default)
