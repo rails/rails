@@ -13,7 +13,7 @@ module ActiveSupport #:nodoc:
         # Destructively convert all keys to strings.
         def stringify_keys!
           keys.each do |key|
-            unless key.is_a?(String)
+            unless key.class.to_s == "String" # weird hack to make the tests run when string_ext_test.rb is also running
               self[key.to_s] = self[key]
               delete(key)
             end

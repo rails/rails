@@ -1,9 +1,9 @@
 require 'test/unit'
 require File.dirname(__FILE__) + '/../lib/inflector'
 
-module A
-  module B
-    class C
+module Ace
+  module Base
+    class Case
     end
   end
 end
@@ -164,7 +164,7 @@ class InflectorTest < Test::Unit::TestCase
   end
   
   def test_constantize
-    assert_equal A::B::C, Inflector.constantize("A::B::C")
+    assert_equal Ace::Base::Case, Inflector.constantize("Ace::Base::Case")
     assert_equal InflectorTest, Inflector.constantize("InflectorTest")
     assert_raises(NameError) { Inflector.constantize("UnknownClass") }
   end

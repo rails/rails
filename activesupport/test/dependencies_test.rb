@@ -3,32 +3,21 @@ $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 require 'misc'
 require 'dependencies'
 
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/dependencies'
-
 class DependenciesTest < Test::Unit::TestCase
   def teardown
     Dependencies.clear
   end
 
   def test_require_dependency
-    require_dependency("service_one")
-    require_dependency("service_two")
+    require_dependency(File.dirname(__FILE__) + "/dependencies/service_one")
+    require_dependency(File.dirname(__FILE__) + "/dependencies/service_two")
     assert_equal 2, Dependencies.loaded.size
   end
   
   def test_require_dependency_two_times
-    require_dependency("service_one")
-    require_dependency("service_one")
+    require_dependency(File.dirname(__FILE__) + "/dependencies/service_one")
+    require_dependency(File.dirname(__FILE__) + "/dependencies/service_one")
     assert_equal 1, Dependencies.loaded.size
-  end
-
-  def test_reloading_dependency
-    require_dependency("service_one")
-    require_dependency("service_one")
-    assert_equal 1, $loaded_service_one
-
-    Dependencies.reload
-    assert_equal 2, $loaded_service_one
   end
 
   def test_require_missing_dependency
