@@ -441,11 +441,17 @@ module ActionController #:nodoc:
             logger.info "Streaming file #{path}" unless logger.nil?
             len = options[:buffer_size] || 4096
             File.open(path, 'rb') do |file|
-              begin
-                while true
-                  $stdout.syswrite file.sysread(len)
+              if $stdout.respond_to?(:syswrite)
+                begin
+                  while true
+                    $stdout.syswrite file.sysread(len)
+                  end
+                rescue EOFError
                 end
-              rescue EOFError
+              else
+                while buf = file.read(len)
+                  $stdout.write buf
+                end
               end
             end
           end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed CgiRequest#out to fall back to #write if $stdout doesn't have #syswrite [bitsweat]
+
 * Fixed all helpers so that they use XHTML compliant double quotes for values instead of single quotes [htonl/bitsweat]
 
 * Added link_to_image(src, options = {}, html_options = {}, *parameters_for_method_reference). Documentation:
