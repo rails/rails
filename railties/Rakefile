@@ -90,16 +90,15 @@ end
 
 desc "Copy in all the Rails packages to vendor"
 task :copy_vendor_libraries do
+  mkdir File.join(PKG_DESTINATION, 'vendor', 'rails')
   cp_r VENDOR_LIBS.map { |dir| File.join('..', dir) },
-       File.join(PKG_DESTINATION, 'vendor')
+       File.join(PKG_DESTINATION, 'vendor', 'rails')
 end
 
 desc "Link in all the Rails packages to vendor"
 task :link_vendor_libraries do
-  return_dir = File.dirname(File.expand_path(__FILE__))
-  cd File.join(PKG_DESTINATION, 'vendor')
-  VENDOR_LIBS.each { |dir| ln_s File.dirname(__FILE__) + "/../../#{dir}", "." }
-  cd return_dir
+  branch_root = File.dirname(File.dirname(File.expand_path(__FILE__)))
+  ln_s branch_root, File.join(PKG_DESTINATION, 'vendor', 'rails')
 end
 
 
@@ -138,7 +137,7 @@ task :copy_configs do
 
   cp "configs/apache.conf", "#{PKG_DESTINATION}/public/.htaccess"
 
-  cp "environments/shared.rb", "#{PKG_DESTINATION}/config/environment.rb"
+  cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
   cp "environments/production.rb", "#{PKG_DESTINATION}/config/environments/production.rb"
   cp "environments/development.rb", "#{PKG_DESTINATION}/config/environments/development.rb"
   cp "environments/test.rb", "#{PKG_DESTINATION}/config/environments/test.rb"
@@ -207,7 +206,7 @@ end
 # Generate GEM ----------------------------------------------------------------------------
 
 task :copy_gem_environment do
-  cp "environments/shared_for_gem.rb", "#{PKG_DESTINATION}/config/environment.rb"
+  cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
   dest_file = File.join(PKG_DESTINATION, 'script', 'breakpointer')
   copy_with_rewritten_ruby_path(File.join('bin', 'breakpointer_for_gem'), dest_file)
   chmod 0755, dest_file

@@ -37,11 +37,7 @@ class AppGenerator < Rails::Generator::Base
       m.template "configs/apache.conf", "public/.htaccess"
 
       # Environments
-      if options[:gem]
-        m.file "environments/shared_for_gem.rb", "config/environment.rb"
-      else
-        m.file "environments/shared.rb", "config/environment.rb"
-      end
+      m.file "environments/environment.rb", "config/environment.rb"
       m.file "environments/production.rb", "config/environments/production.rb"
       m.file "environments/development.rb", "config/environments/development.rb"
       m.file "environments/test.rb", "config/environments/test.rb"

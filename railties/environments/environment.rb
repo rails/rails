@@ -11,30 +11,28 @@ ADDITIONAL_LOAD_PATHS.concat(Dir["#{RAILS_ROOT}/components/[_a-z]*"])
 
 # Followed by the standard includes.
 ADDITIONAL_LOAD_PATHS.concat %w(
-  app
-  app/models
-  app/controllers
-  app/helpers
-  app/apis
-  config
-  components
-  lib
-  vendor
-).map { |dir| "#{RAILS_ROOT}/#{dir}" }
+  app app/models app/controllers app/helpers app/apis config components lib vendor
+).map { |dir| "#{RAILS_ROOT}/#{dir}" }.select { |dir| File.directory?(dir) }
 
 # Prepend to $LOAD_PATH
 ADDITIONAL_LOAD_PATHS.reverse.each { |dir| $:.unshift(dir) if File.directory?(dir) }
 
+# Require Rails libraries.
+rails_files = %w(
+  actionpack/lib/action_controller
+  actionpack/lib/action_view
+  activesupport/lib/active_support
+  activerecord/lib/active_record
+  actionmailer/lib/action_mailer
+  actionwebservice/lib/action_web_service
+).collect { |p| File.join(RAILS_ROOT, 'vendor', 'rails', "#{p}.rb") }
 
-# Require Rails gems.
-require 'rubygems'
-require_gem 'activesupport'
-require_gem 'activerecord'
-require_gem 'actionpack'
-require_gem 'actionmailer'
-require_gem 'actionwebservice'
-require_gem 'rails'
-
+if rails_files.all? { |f| File.file?(f) }
+  rails_files.each { |f| require f }
+else
+  require 'rubygems'
+  %w( activesupport activerecord actionpack actionmailer actionwebservice rails ).each { |gem| require_gem(gem) }
+end
 
 # Environment-specific configuration.
 require_dependency "environments/#{RAILS_ENV}"
