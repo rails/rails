@@ -1,4 +1,11 @@
-*CVS*
+*0.9.1*
+
+* Upgraded to Action Pack 1.0.1 for important bug fix
+
+* Updated gem dependencies
+
+
+*0.9.0*
 
 * Renamed public/dispatch.servlet to script/server -- it wasn't really dispatching anyway as its delegating calls to public/dispatch.rb
 
