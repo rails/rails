@@ -51,16 +51,16 @@ module ActionController #:nodoc:
         options = { "name" => name, "value" => options }
       end
       
-      set_cookie(name, options)
+      set_cookie(options)
     end
     
     # Removes the cookie on the client machine by setting the value to an empty string.
     def delete(name)
-      set_cookie(name, "name" => name, "value" => "")
+      set_cookie("name" => name.to_s, "value" => "")
     end
 
     private
-      def set_cookie(name, options) #:doc:
+      def set_cookie(options) #:doc:
         options["path"] = "/" unless options["path"]
         cookie = CGI::Cookie.new(options)
         @controller.logger.info "Cookie set: #{cookie}" unless @controller.logger.nil?
