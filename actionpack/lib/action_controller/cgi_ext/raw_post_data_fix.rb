@@ -37,7 +37,7 @@ class CGI #:nodoc:
           when 'POST'
             stdinput.binmode if stdinput.respond_to?(:binmode)
             content = stdinput.read(Integer(env_table['CONTENT_LENGTH'])) || ''
-            env_table['RAW_POST_DATA'] = content.split("&_").first.freeze # &_ is a fix for Safari Ajax postings that always append \000
+            env_table['RAW_POST_DATA'] = content.split("&_").first.to_s.freeze # &_ is a fix for Safari Ajax postings that always append \000
           else
             read_from_cmdline
           end
