@@ -1048,7 +1048,7 @@ module ActiveRecord #:nodoc:
         self.attribute_names.inject({}) do |attributes, name|
           begin
             attributes[name] = read_attribute(name).clone
-          rescue TypeError
+          rescue TypeError, NoMethodError
             attributes[name] = read_attribute(name)
           end
           attributes
