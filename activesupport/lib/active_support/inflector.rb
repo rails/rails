@@ -57,39 +57,39 @@ module Inflector
   private
     def plural_rules #:doc:
       [
-        [/fish$/, 'fish'],               # fish
-        [/(x|ch|ss|sh)$/, '\1es'],               # search, switch, fix, box, process, address
-        [/series$/, '\1series'],
-        [/([^aeiouy]|qu)ies$/, '\1y'],
-        [/([^aeiouy]|qu)y$/, '\1ies'],        # query, ability, agency
-        [/(?:([^f])fe|([lr])f)$/, '\1\2ves'], # half, safe, wife
-        [/sis$/, 'ses'],                      # basis, diagnosis
-        [/([ti])um$/, '\1a'],                 # datum, medium
-        [/person$/, 'people'],                # person, salesperson
-        [/man$/, 'men'],                      # man, woman, spokesman
-        [/child$/, 'children'],               # child
-        [/s$/, 's'],                          # no change (compatibility)
+        [/(fish)$/i, '\1\2'],                 # fish
+        [/(x|ch|ss|sh)$/i, '\1es'],           # search, switch, fix, box, process, address
+        [/(series)$/i, '\1\2'],
+        [/([^aeiouy]|qu)ies$/i, '\1y'],
+        [/([^aeiouy]|qu)y$/i, '\1ies'],       # query, ability, agency
+        [/(?:([^f])fe|([lr])f)$/i, '\1\2ves'], # half, safe, wife
+        [/sis$/i, 'ses'],                     # basis, diagnosis
+        [/([ti])um$/i, '\1a'],                # datum, medium
+        [/(p)erson$/i, '\1\2eople'],          # person, salesperson
+        [/(m)an$/i, '\1\2en'],                # man, woman, spokesman
+        [/(c)hild$/i, '\1\2hildren'],         # child
+        [/s$/i, 's'],                         # no change (compatibility)
         [/$/, 's']
       ]
     end
 
     def singular_rules #:doc:
       [
-        [/fish$/, 'fish'],
-        [/(x|ch|ss|sh)es$/, '\1'],
-        [/movies$/, 'movie'],
-        [/series$/, 'series'],
-        [/([^aeiouy]|qu)ies$/, '\1y'],
-        [/([lr])ves$/, '\1f'],
-        [/([^f])ves$/, '\1fe'],
-        [/(analy|ba|diagno|parenthe|progno|synop|the)ses$/, '\1sis'],
-        [/([ti])a$/, '\1um'],
-        [/people$/, 'person'],
-        [/men$/, 'man'],
-        [/status$/, 'status'],
-        [/children$/, 'child'],
-        [/news$/, 'news'],
-        [/s$/, '']
+        [/(f)ish$/i, '\1\2ish'],
+        [/(x|ch|ss|sh)es$/i, '\1'],
+        [/(m)ovies$/i, '\1\2ovie'],
+        [/(s)eries$/i, '\1\2eries'],
+        [/([^aeiouy]|qu)ies$/i, '\1y'],
+        [/([lr])ves$/i, '\1f'],
+        [/([^f])ves$/i, '\1fe'],
+        [/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$/i, '\1\2sis'],
+        [/([ti])a$/i, '\1um'],
+        [/(p)eople$/i, '\1\2erson'],
+        [/(m)en$/i, '\1\2an'],
+        [/(s)tatus$/i, '\1\2tatus'],
+        [/(c)hildren$/i, '\1\2hild'],
+        [/(n)ews$/i, '\1\2ews'],
+        [/s$/i, '']
       ]
     end
 end

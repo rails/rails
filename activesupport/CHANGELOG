@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Inflector.pluralize to handle capitalized words #932 [bitsweat]
+
 * Added Object#suppress which allows you to make a saner choice around with exceptions to swallow #980. Example:
 
     suppress(ZeroDivisionError) { 1/0 }

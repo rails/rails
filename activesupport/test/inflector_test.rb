@@ -18,8 +18,8 @@ class InflectorTest < Test::Unit::TestCase
     "address"     => "addresses",
     "case"        => "cases",
     "stack"       => "stacks",
-    "wish"		=> "wishes",
-    "fish"		=> "fish",
+    "wish"        => "wishes",
+    "fish"        => "fish",
 
     "category"    => "categories",
     "query"       => "queries",
@@ -92,17 +92,22 @@ class InflectorTest < Test::Unit::TestCase
     "underground"     => "Underground"
   }
 
-  def test_pluralize
-    SingularToPlural.each do |singular, plural|
-      assert_equal(plural, Inflector.pluralize(singular))
-    end
-
-    assert_equal("plurals", Inflector.pluralize("plurals"))
+  def test_pluralize_plurals
+    assert_equal "plurals", Inflector.pluralize("plurals")
+    assert_equal "Plurals", Inflector.pluralize("Plurals")
   end
 
-  def test_singularize
-    SingularToPlural.each do |singular, plural|
+  SingularToPlural.each do |singular, plural|
+    define_method "test_pluralize_#{singular}" do
+      assert_equal(plural, Inflector.pluralize(singular))
+      assert_equal(plural.capitalize, Inflector.pluralize(singular.capitalize))
+    end
+  end
+
+  SingularToPlural.each do |singular, plural|
+    define_method "test_singularize_#{plural}" do
       assert_equal(singular, Inflector.singularize(plural))
+      assert_equal(singular.capitalize, Inflector.singularize(plural.capitalize))
     end
   end
 
