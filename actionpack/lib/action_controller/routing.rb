@@ -238,7 +238,9 @@ module ActionController
       
       def reload
         begin
-          require_dependency(ROUTE_FILE) if Object.method_defined?(:require_dependency)
+          require_dependency(ROUTE_FILE)
+        rescue NoMethodError
+          # ignore for unit tests
         rescue LoadError, ScriptError => e
           raise RoutingError, "Cannot load config/routes.rb:\n    #{e.message}"
         ensure # Ensure that there is at least one route:
