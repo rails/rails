@@ -1,3 +1,25 @@
+*SVN*
+
+* Added support for charsets for both subject and body. The default charset is now UTF-8 #673 [Jamis Buck]. Examples:
+
+    def iso_charset(recipient)
+      @recipients = recipient
+      @subject    = "testing iso charsets"
+      @from       = "system@loudthinking.com"
+      @body       = "Nothing to see here."
+      @charset    = "iso-8859-1"
+    end
+    
+    def unencoded_subject(recipient)
+      @recipients = recipient
+      @subject    = "testing unencoded subject"
+      @from       = "system@loudthinking.com"
+      @body       = "Nothing to see here."
+      @encode_subject = false
+      @charset    = "iso-8859-1"
+    end
+    
+
 *0.6.1* (January 18th, 2005)
 
 * Fixed sending of emails to use Tmail#from not the deprecated Tmail#from_address

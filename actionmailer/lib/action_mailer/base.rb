@@ -83,10 +83,18 @@ module ActionMailer #:nodoc:
     @@deliveries = []
     cattr_accessor :deliveries
 
-    attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers, :bcc, :cc
+    @@default_charset = "utf-8"
+    cattr_accessor :default_charset
+
+    @@encode_subject = true
+    cattr_accessor :encode_subject
+
+    attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers, :bcc, :cc, :charset, :encode_subject
 
     def initialize
       @bcc = @cc = @from = @recipients = @sent_on = @subject = @body = nil
+      @charset = @@default_charset.dup
+      @encode_subject = @@encode_subject
       @headers = {}
     end
 
@@ -104,14 +112,22 @@ module ActionMailer #:nodoc:
         end        
       end
 
-      def mail(to, subject, body, from, timestamp = nil, headers = nil) #:nodoc:
-        deliver(create(to, subject, body, from, timestamp, headers))
+      def mail(to, subject, body, from, timestamp = nil, headers = {},
+               encode = @@encode_subject, charset = @@default_charset
+      ) #:nodoc:
+        deliver(create(to, subject, body, from, timestamp, headers, charset))
       end
 
-      def create(to, subject, body, from, timestamp = nil, headers = nil) #:nodoc:
+      def create(to, subject, body, from, timestamp = nil, headers = {},
+                 encode = @@encode_subject, charset = @@default_charset
+      ) #:nodoc:
         m = TMail::Mail.new
-        m.to, m.subject, m.body, m.from = to, subject, body, from
+        m.to, m.subject, m.body, m.from = to,
+          ( encode ? quoted_printable(subject,charset) : subject ), body, from
         m.date = timestamp.respond_to?("to_time") ? timestamp.to_time : (timestamp || Time.now)    
+
+        m.set_content_type "text", "plain", { "charset" => charset }
+
         headers.each do |k, v|
           m[k] = v
         end
@@ -122,6 +138,12 @@ module ActionMailer #:nodoc:
       def deliver(mail) #:nodoc:
         logger.info "Sent mail:\n #{mail.encoded}" unless logger.nil?
         send("perform_delivery_#{delivery_method}", mail) if perform_deliveries
+      end
+
+      def quoted_printable( text, charset )
+        text = text.gsub( /[^a-z ]/i ) { "=%02x" % $&[0] }.
+                    gsub( / /, "_" )
+        "=?#{charset}?Q?#{text}?="
       end
 
       private      
@@ -153,7 +175,8 @@ module ActionMailer #:nodoc:
           end
 
           mail = create(mailer.recipients, mailer.subject, mailer.body,
-                        mailer.from, mailer.sent_on, mailer.headers)
+                        mailer.from, mailer.sent_on, mailer.headers,
+                        mailer.encode_subject, mailer.charset)
 
           mail.bcc = mailer.bcc unless mailer.bcc.nil?
           mail.cc  = mailer.cc  unless mailer.cc.nil?
