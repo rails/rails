@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that host would choke when cgi.host returned nil #432 [Tobias Luetke]
+
 * Added that form helpers now take an index option #448 [Tim Bates]
 
   Example:

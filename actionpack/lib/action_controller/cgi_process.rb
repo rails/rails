@@ -61,7 +61,7 @@ module ActionController #:nodoc:
     end
 
     def host
-      env["HTTP_X_FORWARDED_HOST"] || @cgi.host.split(":").first
+      env["HTTP_X_FORWARDED_HOST"] || @cgi.host.to_s.split(":").first
     end
     
     def session
