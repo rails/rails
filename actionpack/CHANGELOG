@@ -1,3 +1,8 @@
+*1.0.1*
+
+* Fixed a bug that would cause an ApplicationController to require itself three times and hence cause filters to be run three times [evl]
+
+
 *1.0*
 
 * Added that controllers will now attempt to require a model dependency with their name and in a singular attempt for their name.

@@ -32,8 +32,9 @@ module ActionController #:nodoc:
     #     observer :project_change_observer
     #   end
     #
-    # Please note that a controller like ApplicationController will automatically attempt to require_dependency on a model of its name and a helper
-    # of its name. If nothing is found, no error is raised. This is especially useful for concrete controllers like PostController:
+    # Please note that a controller like ApplicationController will automatically attempt to require_dependency on a model of its 
+    # singuralized name and a helper of its name. If nothing is found, no error is raised. This is especially useful for concrete 
+    # controllers like PostController:
     #
     #   class PostController < ApplicationController
     #     # model  :post (already required)
@@ -94,8 +95,8 @@ module ActionController #:nodoc:
 
         def inherited(child)
           inherited_without_model(child)
+          return if child.controller_name == "application" # otherwise the ApplicationController in Rails will include itself
           begin
-            child.model(child.controller_name)
             child.model(Inflector.singularize(child.controller_name))
           rescue LoadError
             # No neither singular or plural model available for this controller
