@@ -14,7 +14,8 @@ module ActiveRecord
         if options[:counter_sql]
           @counter_sql = interpolate_sql(options[:counter_sql])
         elsif options[:finder_sql]
-          @counter_sql = options[:counter_sql] = @finder_sql.gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
+          options[:counter_sql] = options[:finder_sql].gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
+          @counter_sql = interpolate_sql(options[:counter_sql])
         else
           @counter_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id}#{@conditions ? " AND " + interpolate_sql(@conditions) : ""}"
         end
