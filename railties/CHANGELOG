@@ -1,5 +1,7 @@
 *SVN*
 
+* Added --sandbox option to script/console that'll roll back all changes made to the database when you quit #672 [bitsweat]
+
 * Added 'recent' as a rake target that'll run tests for files that changed in the last 10 minutes #612 [bitsweat]
 
 * Changed script/console to default to development environment and drop --no-inspect #650 [bitsweat]

@@ -1,5 +1,22 @@
 #!/usr/local/bin/ruby
-ENV['RAILS_ENV'] = ARGV[0] || 'development'
-puts "Loading environment: #{ENV['RAILS_ENV']}"
 irb = RUBY_PLATFORM =~ /mswin32/ ? 'irb.bat' : 'irb'
-exec "#{irb} -r config/environment.rb -r irb/completion"
+
+require 'optparse'
+options = {}
+OptionParser.new do |opt|
+  opt.on('-s', '--sandbox', 'Rollback database modifications on exit.') { |options[:sandbox]| }
+  opt.parse!(ARGV)
+end
+
+libs =  " -r #{File.dirname(__FILE__)}/../config/environment"
+libs << " -r #{File.dirname(__FILE__)}/console_sandbox" if options[:sandbox]
+libs << " -r irb/completion"
+
+ENV['RAILS_ENV'] = ARGV.first || 'development'
+if options[:sandbox]
+  puts "Loading #{ENV['RAILS_ENV']} environment in sandbox."
+  puts "Any modifications you make will be rolled back on exit."
+else
+  puts "Loading #{ENV['RAILS_ENV']} environment."
+end
+exec "#{irb} #{libs}"
