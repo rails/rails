@@ -100,11 +100,12 @@ module ActionView
       # link unless +name+ is specified. Additional HTML options, such as class or id, can be passed in the <tt>html_options</tt> hash.
       #
       # You can also make it difficult for spiders to harvest email address by obfuscating them.
-      # Examples:
-      # * mail_to "me@domain.com", "My email", :encode => "javascript"
-      # => <script type="text/javascript" language="javascript">eval(unescape('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%22%3e%4d%79%20%65%6d%61%69%6c%3c%2f%61%3e%27%29%3b'))</script>
-      # * mail_to "me@domain.com", "My email", :encode => "hex"
-      # => <a href="mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>
+       # Examples:
+      #   mail_to "me@domain.com", "My email", :encode => "javascript"  # =>
+      #     <script type="text/javascript" language="javascript">eval(unescape('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%22%3e%4d%79%20%65%6d%61%69%6c%3c%2f%61%3e%27%29%3b'))</script>
+      #
+      #   mail_to "me@domain.com", "My email", :encode => "hex"  # =>
+      #     <a href="mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
         encode = html_options[:encode]
         html_options.delete(:encode)
