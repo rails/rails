@@ -190,7 +190,7 @@ end
 class Test::Unit::TestCase #:nodoc:
   private  
     # execute the request and set/volley the response
-    def get(action, parameters = nil, session = nil)
+    def process(action, parameters = nil, session = nil)
       @request.env['REQUEST_METHOD'] ||= "GET"
       @request.action = action.to_s
       @request.parameters.update(parameters) unless parameters.nil?
@@ -199,14 +199,13 @@ class Test::Unit::TestCase #:nodoc:
     end
     
     # execute the request simulating a specific http method and set/volley the response
-    %w( post put delete head ).each do |method|
+    %w( get post put delete head ).each do |method|
       class_eval <<-EOV
         def #{method}(action, parameters = nil, session = nil)
-          @request.env['REQUEST_METHOD'] ||= "#{method.upcase}"
-          get(action, parameters, session)
+          @request.env['REQUEST_METHOD'] = "#{method.upcase}"
+          process(action, parameters, session)
         end
-EOV
+      EOV
     end
 
-    alias :process :get
 end
