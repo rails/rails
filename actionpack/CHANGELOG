@@ -1,10 +1,14 @@
 *SVN*
 
+* Added Iran and Irak to the countries list used by FormOptions#country_select and FormOptions#country_options_for_select
+
+* Renamed link_to_image to link_image_to (since thats what it actually does) -- kept alias for the old method name
+
 * Fixed textilize for RedCloth3 to keep doing hardbreaks
 
 * Fixed that assert_template_xpath_matches did not indicate when a path was not found #658 [Eric Hodel]
 
-* Added TextHelper#auto_link, TextHelper#auto_link_urls, and TextHelper#auto_link_email_addresses to turn those elements into ahrefs
+* Added TextHelper#auto_link to turn email addresses and urls into ahrefs
 
 * Fixed that on validation errors, scaffold couldn't find template #654 [mindel]
 
