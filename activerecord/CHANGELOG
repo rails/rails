@@ -1,5 +1,7 @@
 *CVS*
 
+* Added relative path search for sqlite dbfiles in database.yml (if RAILS_ROOT is defined) #233 [bitsweat]
+
 * Added option to establish_connection where you'll be able to leave out the parameter to have it use the RAILS_ENV environment variable
 
 * Added ADO-based SQLServerAdapter (only works on Windows) [Joey Gibson]
