@@ -114,10 +114,10 @@ module Breakpoint
     end
   end
 
-  module CommandBundle
+  module CommandBundle #:nodoc:
     # Proxy to a Breakpoint client. Lets you directly execute code
     # in the context of the client.
-    class Client
+    class Client#:nodoc:
       def initialize(eval_handler) # :nodoc:
         @eval_handler = eval_handler
       end
@@ -205,7 +205,7 @@ module Breakpoint
   # These exceptions will be raised on failed asserts
   # if Breakpoint.asserts_cause_exceptions is set to
   # true.
-  class FailedAssertError < RuntimeError
+  class FailedAssertError < RuntimeError#:nodoc:
   end
 
   # This asserts that the block evaluates to true.
@@ -359,8 +359,7 @@ module Breakpoint
   #
   # Detailed information about running DRb through firewalls is
   # available at http://www.rubygarden.org/ruby?DrbTutorial
-  def activate_drb(uri = nil, allowed_hosts = ['localhost', '127.0.0.1', '::1'],
-    ignore_collisions = false)
+  def activate_drb(uri = nil, allowed_hosts = ['localhost', '127.0.0.1', '::1'], ignore_collisions = false) #:nodoc:
 
     return false if @use_drb
 
@@ -403,7 +402,7 @@ module Breakpoint
   end
 
   # Deactivates a running Breakpoint service.
-  def deactivate_drb
+  def deactivate_drb #:nodoc:
     @service.stop_service unless @service.nil?
     @service = nil
     @use_drb = false
@@ -412,7 +411,7 @@ module Breakpoint
 
   # Returns true when Breakpoints are used over DRb.
   # Breakpoint.activate_drb causes this to be true.
-  def use_drb?
+  def use_drb? #:nodoc:
     @use_drb == true
   end
 end
@@ -465,7 +464,7 @@ module IRB # :nodoc:
     end
   end
 
-  class Context
+  class Context#:nodoc:
     alias :old_evaluate :evaluate
     def evaluate(line, line_no)
       if line.chomp == "exit" then
@@ -476,7 +475,7 @@ module IRB # :nodoc:
     end
   end
 
-  class WorkSpace
+  class WorkSpace#:nodoc:
     alias :old_evaluate :evaluate
 
     def evaluate(*args)
@@ -494,7 +493,7 @@ module IRB # :nodoc:
     end
   end
 
-  module InputCompletor
+  module InputCompletor#:nodoc:
     def self.eval(code, context, *more)
       # Big hack, this assumes that InputCompletor
       # will only call eval() when it wants code
@@ -505,7 +504,7 @@ module IRB # :nodoc:
 end
 
 module DRb # :nodoc:
-  class DRbObject
+  class DRbObject#:nodoc:
     undef :inspect
     undef :clone
   end
