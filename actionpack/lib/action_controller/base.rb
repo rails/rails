@@ -328,45 +328,67 @@ module ActionController #:nodoc:
         return @response
       end
 
-      # Returns an URL that has been rewritten according to the hash of +options+ (for doing a complete redirect, use redirect_to). The
-      # valid keys in options are specified below with an example going from "/library/books/ISBN/0743536703/show" (mapped to
-      # books_controller?action=show&type=ISBN&id=0743536703):
+      # Returns a URL that has been rewritten according to the options hash and the defined Routes. 
+      # (For doing a complete redirect, use redirect_to).
+      #  
+      # <tt>url_for</tt> is used to:
+      #  
+      # All keys given to url_for are forwarded to the Route module save for the following:
+      # * <tt>:anchor</tt> -- specifies the anchor name to be appended to the path. For example, 
+      #   <tt>url_for :controller => 'posts', :action => 'show', :id => 10, :anchor => 'comments'</tt> 
+      #   will produce "/posts/show/10#comments".
+      # * <tt>:only-path</tt> --  if true, returns the absolute URL (omitting the protocol, host name, and port)
+      # * <tt>:host</tt> -- overrides the default (current) host if provided
+      # * <tt>:protocol</tt> -- overrides the default (current) protocol if provided
+      #  
+      # All other keys are used to generate an appropriate path for the new URL. This is handled by the Routes mechanism,
+      # and the generated path is wildly configurable. The options that Routes does not use are
+      # are encoded into a typical query string. Once (and if) the link is followed, all provided options are made
+      # available to the controller in <tt>@params</tt>.
+      #  
+      # The default Routes setup supports a typical Rails path of "controller/action/id" where action and id are optional, with
+      # action defaulting to 'index' when not given. Here are some typical url_for statements and their corresponding URLs:
+      #  
+      #   url_for :controller => 'posts', :action => 'recent' # => 'proto://host.com/posts/recent'
+      #   url_for :controller => 'posts', :action => 'index' # => 'proto://host.com/posts'
+      #   url_for :controller => 'posts', :action => 'show', :id => 10 # => 'proto://host.com/posts/show/10'
+      #  
+      # When generating a new URL, missing values may be filled in from the current request's parameters. For example,
+      # <tt>url_for :action => 'some_action'</tt> will retain the current controller, as expected. This behavior extends to
+      # other parameters, including <tt>:controller</tt>, <tt>:id</tt>, and any other parameters that are placed into a Route's
+      # path.
+      #  
+      # The URL helpers such as <tt>url_for</tt> have a limited form of memory: when generating a new URL, they can look for
+      # missing values in the current request's parameters. Routes attempts to guess when a value should and should not be
+      # taken from the defaults. There are a few simple rules on how this is performed:
+      #  
+      # * If the controller name begins with a slash, no defaults are used: <tt>url_for :controller => '/home'</tt>
+      # * If the controller changes, the action will default to index unless provided
+      #  
+      # The final rule is applied while the URL is being generated and is best illustrated by an example. Let us consider the
+      # route given by <tt>map.connect 'people/:last/:first/:action', :action => 'bio', :controller => 'people'</tt>.
+      #  
+      # Suppose that the current URL is "people/hh/david/contacts". Let's consider a few different cases URLs which are generated
+      # from this page.
+      #  
+      # * <tt>url_for :action => 'bio'</tt> -- During the generation of this URL, default values will be used for the first and
+      # last components, and the action shall change. The generated URL will be, "people/david/hh/bio".
+      # * <tt>url_for :first => 'davids-little-brother'</tt> This generates the URL 'people/hh/davids-little-brother' -- note
+      #   that this URL leaves out the assumed action of 'bio'.
+      #  
+      # However, you might ask why the action from the current request, 'contacts', isn't carried over into the new URL. The
+      # answer has to do with the order in which the parameters appear in the generated path. In a nutshell, since the
+      # value that appears in the slot for <tt>:first</tt> is not equal to default value for <tt>:first</tt> we stop using
+      # defaults. On it's own, this rule can account for much of the typical Rails URL behavior.
+      #  
+      # Although a convienence, defaults can occasionaly get in your way. In some cases a default persists longer than desired.
+      # The default may be cleared by adding <tt>:name => nil</tt> to <tt>url_for</tt>'s options.
+      # This is often required when writing form helpers, since the defaults in play may vary greatly depending upon where the
+      # helper is used from. The following line will redirect to PostController's default action, regardless of the page it is
+      # displayed on:
       #
-      #            .---> controller      .--> action
-      #   /library/books/ISBN/0743536703/show
-      #   '------>      '--------------> action_prefix
-      #    controller_prefix (or module)
-      #
-      # * <tt>:controller_prefix</tt> - specifies the string before the controller name, which would be "/library" for the example.
-      #   Called with "/shop" gives "/shop/books/ISBN/0743536703/show".
-      # * <tt>:module</tt> - serves as a alias to :controller_prefix (overwrites :controller_prefix unless its nil)
-      # * <tt>:controller</tt> - specifies a new controller and clears out everything after the controller name (including the action, 
-      #   the pre- and suffix, and all params), so called with "settings" gives "/library/settings/".
-      # * <tt>:action_prefix</tt> - specifies the string between the controller name and the action name, which would
-      #   be "/ISBN/0743536703" for the example. Called with "/XTC/123/" gives "/library/books/XTC/123/show".
-      # * <tt>:action</tt> - specifies a new action, so called with "edit" gives "/library/books/ISBN/0743536703/edit"
-      # * <tt>:action_suffix</tt> - specifies the string after the action name, which would be empty for the example.
-      #   Called with "/detailed" gives "/library/books/ISBN/0743536703/detailed".
-      # * <tt>:path_params</tt> - specifies a hash that contains keys mapping to the request parameter names. In the example, 
-      #   { "type" => "ISBN", "id" => "0743536703" } would be the path_params. It serves as another way of replacing part of
-      #   the action_prefix or action_suffix. So passing { "type" => "XTC" } would give "/library/books/XTC/0743536703/show".
-      # * <tt>:id</tt> - shortcut where ":id => 5" can be used instead of specifying :path_params => { "id" => 5 }.
-      #   Called with "123" gives "/library/books/ISBN/123/show".
-      # * <tt>:params</tt> - specifies a hash that represents the regular request parameters, such as { "cat" => 1, 
-      #   "origin" => "there"} that would give "?cat=1&origin=there". Called with { "temporary" => 1 } in the example would give
-      #   "/library/books/ISBN/0743536703/show?temporary=1"
-      # * <tt>:anchor</tt> - specifies the anchor name to be appended to the path. Called with "x14" would give
-      #   "/library/books/ISBN/0743536703/show#x14"
-      # * <tt>:only_path</tt> - if true, returns the absolute URL (omitting the protocol, host name, and port).
-      #
-      # Naturally, you can combine multiple options in a single redirect. Examples:
-      #
-      #   redirect_to(:controller_prefix => "/shop", :controller => "settings")
-      #   redirect_to(:controller_prefix => false, :controller => "settings") # breaks out of the current controller_prefix
-      #   redirect_to(:action => "edit", :id => 3425)
-      #   redirect_to(:action => "edit", :path_params => { "type" => "XTC" }, :params => { "temp" => 1})
-      #   redirect_to(:action => "publish", :action_prefix => "/published", :anchor => "x14")
-      #
+      #   url_for :controller => 'posts', :action => nil
+      #      
       # Instead of passing an options hash, you can also pass a method reference in the form of a symbol. Consider this example:
       #
       #   class WeblogController < ActionController::Base
@@ -505,6 +527,8 @@ module ActionController #:nodoc:
         options[:filename] ||= File.basename(path)
         send_file_headers! options
 
+        @performed_render = false
+
         if options[:stream]
           render_text do
             logger.info "Streaming file #{path}" unless logger.nil?
@@ -553,6 +577,7 @@ module ActionController #:nodoc:
       def send_data(data, options = {}) #:doc:
         logger.info "Sending data #{options[:filename]}" unless logger.nil?
         send_file_headers! options.merge(:length => data.size)
+        @performed_render = false
         render_text data
       end
 
@@ -568,7 +593,7 @@ module ActionController #:nodoc:
       # the form of a hash, just like the one you would use for url_for directly. Example:
       #
       #   def default_url_options(options)
-      #     { :controller_prefix => @project.active? ? "projects/" : "accounts/" }
+      #     { :project => @project.active? ? @project.url_name : "unknown" }
       #   end
       #
       # As you can infer from the example, this is mostly useful for situations where you want to centralize dynamic decisions about the
