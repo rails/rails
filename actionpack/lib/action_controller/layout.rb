@@ -114,6 +114,15 @@ module ActionController #:nodoc:
     # If you have a layout that by default is applied to all the actions of a controller, you still have the option to rendering
     # a given action without a layout. Just use the method <tt>render_without_layout</tt>, which works just like Base.render --
     # it just doesn't apply any layouts.
+    #
+    # == Automatic layout assignment
+    #
+    # If there is a template in <tt>app/views/layouts/</tt> with the same name as the current controller then it will be automatically
+    # set as that controller's layout unless explicitly told otherwise. Say you have a WeblogController, for example. If a template named 
+    # <tt>app/views/layouts/weblog.rhtml</tt> or <tt>app/views/layouts/weblog.rxml</tt> exists then it will be automatically set as
+    # the layout for your WeblogController. You can create a layout with the name <tt>application.rhtml</tt> or <tt>application.rxml</tt>
+    # and this will be set as the default controller if there is no layout with the same name as the current controller and there is 
+    # no layout explicitly assigned with the +layout+ method. Setting a layout explicity will always override the automatic behaviour. 
     module ClassMethods
       # If a layout is specified, all actions rendered through render and render_action will have their result assigned 
       # to <tt>@content_for_layout</tt>, which can then be used by the layout to insert their contents with
