@@ -525,6 +525,75 @@ module ActiveRecord #:nodoc:
         "type"
       end
 
+      # Defines an "attribute" method (like #inheritance_column or
+      # #table_name). A new (class) method will be created with the
+      # given name. If a value is specified, the new method will
+      # return that value (as a string). Otherwise, the given block
+      # will be used to compute the value of the method.
+      #
+      # The original method will be aliased, with the new name being
+      # prefixed with "original_". This allows the new method to
+      # access the original value.
+      #
+      # Example:
+      #
+      #   class A < ActiveRecord::Base
+      #     define_attr_method :primary_key, "sysid"
+      #     define_attr_method( :inheritance_column ) do
+      #       original_inheritance_column + "_id"
+      #     end
+      #   end
+      def define_attr_method( name, value=nil, &block )
+        sing = class << self; self; end
+        block = proc { value.to_s } if value
+        sing.send( :alias_method, "original_#{name}", name )
+        sing.send( :define_method, name, &block )
+      end
+
+      # Sets the table name to use to the given value, or (if the value
+      # is nil or false) to the value returned by the given block. (See
+      # #define_attr_method).
+      #
+      # Example:
+      #
+      #   class Project < ActiveRecord::Base
+      #     set_table_name "project"
+      #   end
+      def set_table_name( value=nil, &block )
+        define_attr_method :table_name, value, &block
+      end
+      alias :table_name= :set_table_name
+
+      # Sets the name of the primary key column to use to the given value,
+      # or (if the value is nil or false) to the value returned by the given
+      # block. (See #define_attr_method).
+      #
+      # Example:
+      #
+      #   class Project < ActiveRecord::Base
+      #     set_primary_key "sysid"
+      #   end
+      def set_primary_key( value=nil, &block )
+        define_attr_method :primary_key, value, &block
+      end
+      alias :primary_key= :set_primary_key
+
+      # Sets the name of the inheritance column to use to the given value,
+      # or (if the value # is nil or false) to the value returned by the
+      # given block. (See # #define_attr_method).
+      #
+      # Example:
+      #
+      #   class Project < ActiveRecord::Base
+      #     set_inheritance_column do
+      #       original_inheritance_column + "_id"
+      #     end
+      #   end
+      def set_inheritance_column( value=nil, &block )
+        define_attr_method :inheritance_column, value, &block
+      end
+      alias :inheritance_column= :set_inheritance_column
+
       # Turns the +table_name+ back into a class name following the reverse rules of +table_name+.
       def class_name(table_name = table_name) # :nodoc:
         # remove any prefix and/or suffix from the table name

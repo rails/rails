@@ -706,4 +706,58 @@ class BasicsTest < Test::Unit::TestCase
     t2.reload
     assert_equal t1.title, t2.title
   end
+
+  def test_define_attr_method_with_value
+    k = Class.new( ActiveRecord::Base )
+    k.define_attr_method :table_name, "foo"
+    assert_equal "foo", k.table_name
+  end
+
+  def test_define_attr_method_with_block
+    k = Class.new( ActiveRecord::Base )
+    k.define_attr_method( :primary_key ) { "sys_" + original_primary_key }
+    assert_equal "sys_id", k.primary_key
+  end
+
+  def test_set_table_name_with_value
+    k = Class.new( ActiveRecord::Base )
+    k.table_name = "foo"
+    assert_equal "foo", k.table_name
+    k.set_table_name "bar"
+    assert_equal "bar", k.table_name
+  end
+
+  def test_set_table_name_with_block
+    k = Class.new( ActiveRecord::Base )
+    k.set_table_name { "ks" }
+    assert_equal "ks", k.table_name
+  end
+
+  def test_set_primary_key_with_value
+    k = Class.new( ActiveRecord::Base )
+    k.primary_key = "foo"
+    assert_equal "foo", k.primary_key
+    k.set_primary_key "bar"
+    assert_equal "bar", k.primary_key
+  end
+
+  def test_set_primary_key_with_block
+    k = Class.new( ActiveRecord::Base )
+    k.set_primary_key { "sys_" + original_primary_key }
+    assert_equal "sys_id", k.primary_key
+  end
+
+  def test_set_inheritance_column_with_value
+    k = Class.new( ActiveRecord::Base )
+    k.inheritance_column = "foo"
+    assert_equal "foo", k.inheritance_column
+    k.set_inheritance_column "bar"
+    assert_equal "bar", k.inheritance_column
+  end
+
+  def test_set_inheritance_column_with_block
+    k = Class.new( ActiveRecord::Base )
+    k.set_inheritance_column { original_inheritance_column + "_id" }
+    assert_equal "type_id", k.inheritance_column
+  end
 end

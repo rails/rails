@@ -1,5 +1,13 @@
 *SVN*
 
+* Added keyword-style approach to defining the custom relational bindings #545 [Jamis Buck]. Example:
+
+    class Project < ActiveRecord::Base
+      primary_key "sysid"
+      table_name "XYZ_PROJECT"
+      inheritance_column { original_inheritance_column + "_id" }
+    end
+
 * Added an Oracle adapter that works with the Oracle bindings by Yoshida (http://raa.ruby-lang.org/project/oracle/) #564 [Maik Schmidt]
   
   A number of caveats:
