@@ -1,6 +1,4 @@
-class <%= class_name %>Controller < ApplicationController
-  layout 'scaffold'
-
+class <%= @controller_class_name %>Controller < ApplicationController
 <% unless suffix -%>
   def index
     list
@@ -41,8 +39,7 @@ class <%= class_name %>Controller < ApplicationController
 
   def update
     @<%= singular_name %> = <%= class_name %>.find(@params['<%= singular_name %>']['id'])
-    @<%= singular_name %>.attributes = @params['<%= singular_name %>']
-    if @<%= singular_name %>.save
+    if @<%= singular_name %>.update_attributes(@params['<%= singular_name %>'])
       flash['notice'] = '<%= class_name %> was successfully updated.'
       redirect_to :action => 'show<%= suffix %>', :id => @<%= singular_name %>.id
     else

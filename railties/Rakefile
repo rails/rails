@@ -39,6 +39,9 @@ task :fresh_gem_rails => [ :clean, :make_dir_structure, :initialize_file_stubs, 
 desc "Generates a fresh Rails package without documentation (faster)"
 task :fresh_rails_without_docs => [ :clean, :make_dir_structure, :initialize_file_stubs, :copy_vendor_libraries, :copy_ties_content ]
 
+desc "Generates a fresh Rails package without documentation (faster)"
+task :fresh_rails_without_docs_using_links => [ :clean, :make_dir_structure, :initialize_file_stubs, :link_vendor_libraries, :copy_ties_content ]
+
 desc "Packages the fresh Rails package with documentation"
 task :package => [ :clean, :fresh_rails ] do
   system %{cd ..; tar -czvf #{PKG_NAME}-#{PKG_VERSION}.tgz #{PKG_NAME}}
@@ -87,6 +90,14 @@ desc "Copy in all the Rails packages to vendor"
 task :copy_vendor_libraries do
   cp_r VENDOR_LIBS.map { |dir| File.join('..', dir) },
        File.join(PKG_DESTINATION, 'vendor')
+end
+
+desc "Link in all the Rails packages to vendor"
+task :link_vendor_libraries do
+  return_dir = File.dirname(File.expand_path(__FILE__))
+  cd File.join(PKG_DESTINATION, 'vendor')
+  VENDOR_LIBS.each { |dir| ln_s File.dirname(__FILE__) + "/../../#{dir}", "." }
+  cd return_dir
 end
 
 

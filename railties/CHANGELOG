@@ -1,5 +1,7 @@
 *SVN*
 
+* Added the option to specify a controller name to "generate scaffold" and made the default controller name the plural form of the model.
+
 * Added that rake clone_structure_to_test, db_structure_dump, and purge_test_database tasks now pick up the source database to use from
   RAILS_ENV instead of just forcing development #424 [Tobias Luetke]
 

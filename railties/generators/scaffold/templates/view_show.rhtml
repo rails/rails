@@ -1,6 +1,6 @@
 <%% for column in <%= class_name %>.content_columns %>
 <p>
-  <b><%%= column.human_name %>:</b> <%%= @<%= singular_name %>[column.name] %>
+  <b><%%= column.human_name %>:</b> <%%= @<%= singular_name %>.send(column.name) %>
 </p>
 <%% end %>
 
