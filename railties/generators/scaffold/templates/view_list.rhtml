@@ -1,0 +1,24 @@
+<h1>Listing <%= plural_name %></h1>
+
+<table>
+  <tr>
+<%% for column in <%= class_name %>.content_columns %>
+    <th><%%= column.human_name %></th>
+<%% end %>
+  </tr>
+  
+<%% for <%= singular_name %> in @<%= plural_name %> %>
+  <tr>
+  <%% for column in <%= class_name %>.content_columns %>
+    <td><%%=h <%= singular_name %>[column.name] %></td>
+  <%% end %>
+    <td><%%= link_to 'Show', :action => 'show<%= suffix %>', :id => <%= singular_name %>.id %></td>
+    <td><%%= link_to 'Edit', :action => 'edit<%= suffix %>', :id => <%= singular_name %>.id %></td>
+    <td><%%= link_to 'Destroy', :action => 'destroy<%= suffix %>', :id => <%= singular_name %>.id %></td>
+  </tr>
+<%% end %>
+</table>
+
+<br />
+
+<%%= link_to 'New <%= singular_name %>', :action => 'new<%= suffix %>' %>

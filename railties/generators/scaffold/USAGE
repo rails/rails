@@ -1,0 +1,18 @@
+NAME
+     new_scaffold - create a model and a skeleton controller
+
+SYNOPSIS
+     new_scaffold ModelName [action ...]
+
+DESCRIPTION
+     The new_scaffold generator takes the name of the new model as the
+     first argument and an optional list of controller actions as the
+     subsequent arguments.  Any actions with scaffolding code available
+     will be generated in your controller; others will be left as stubs.
+
+EXAMPLE
+     new_scaffold Account
+
+     This will generate an Account model and controller.
+     Now create the accounts table in your database and browse to
+     http://localhost/account/ -- voila, you're on Rails!

@@ -10,7 +10,7 @@ class <%= class_name %>ControllerTest < Test::Unit::TestCase
     @request, @response = ActionController::TestRequest.new, ActionController::TestResponse.new
   end
 
-  # Replace this with your real tests
+  # Replace this with your real tests.
   def test_truth
     assert true
   end

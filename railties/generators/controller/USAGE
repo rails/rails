@@ -1,15 +1,3 @@
-#!/usr/local/bin/ruby
-require File.dirname(__FILE__) + '/../config/environment'
-require 'generator'
-
-unless ARGV.empty?
-  rails_root = File.dirname(__FILE__) + '/..'
-  name       = ARGV.shift
-  actions    = ARGV
-  Generator::Controller.new(rails_root, name, actions).generate
-else
-  puts <<-END_HELP
-
 NAME
      new_controller - create controller and view stub files
 
@@ -39,5 +27,3 @@ EXAMPLE
      
      The BlogController class will have the following methods: list, display, new, edit.
      Each will default to render the associated template file.
-END_HELP
-end

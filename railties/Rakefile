@@ -21,7 +21,8 @@ TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/testing
 
 LOG_FILES    = %w( apache.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html )
-SCRIPT_FILES = %w( new_controller new_model new_mailer new_crud )
+SCRIPT_FILES = %w( generate )
+GENERATORS   = %w( controller mailer model scaffold )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer railties )
 
@@ -136,10 +137,15 @@ task :copy_configs do
 end
 
 task :copy_generators do
+  mkdir_p File.join(PKG_DESTINATION, 'script')
   SCRIPT_FILES.each do |file|
     dest_file = File.join(PKG_DESTINATION, 'script', file)
     cp File.join('generators', "#{file}.rb"), dest_file
     chmod 0755, dest_file
+  end
+
+  GENERATORS.each do |dir|
+    cp_r File.join('generators', dir), File.join(PKG_DESTINATION, 'script', dir)
   end
 end
 

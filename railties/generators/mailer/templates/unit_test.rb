@@ -12,11 +12,11 @@ class <%= class_name %>Test < Test::Unit::TestCase
     @expected = TMail::Mail.new
     @expected.to      = 'test@localhost'
     @expected.from    = 'test@localhost'
-    @expected.subject = '<%= class_name %> test mail'
   end
 
 <% for action in actions -%>
   def test_<%= action %>
+    @expected.subject = '<%= class_name %>#<%= action %> test mail'
     @expected.body    = read_fixture('<%= action %>')
     @expected.date    = Time.now
 

@@ -1,15 +1,3 @@
-#!/usr/local/bin/ruby
-require File.dirname(__FILE__) + '/../config/environment'
-require 'generator'
-
-unless ARGV.empty?
-  rails_root = File.dirname(__FILE__) + '/..'
-  name       = ARGV.shift
-  actions    = ARGV
-  Generator::Mailer.new(rails_root, name, actions).generate
-else
-  puts <<-END_HELP
-
 NAME
      new_mailer - create mailer and view stub files
 
@@ -39,5 +27,3 @@ EXAMPLE
      
      The Notifications class will have the following methods: signup,
      forgot_password, and invoice.
-END_HELP
-end

@@ -1,14 +1,3 @@
-#!/usr/local/bin/ruby
-require File.dirname(__FILE__) + '/../config/environment'
-require 'generator'
-
-if ARGV.size == 1
-  rails_root = File.dirname(__FILE__) + '/..'
-  name = ARGV.shift
-  Generator::Model.new(rails_root, name).generate
-else
-  puts <<-HELP
-
 NAME
      new_model - create model stub files
 
@@ -26,6 +15,3 @@ EXAMPLE
      This will generate an Account class in app/models/account.rb, an
      AccountTest in test/unit/account_test.rb, and the directory
      test/fixtures/account.
-
-HELP
-end

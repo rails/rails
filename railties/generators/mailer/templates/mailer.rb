@@ -1,8 +1,8 @@
 require 'action_mailer'
 
 class <%= class_name %> < ActionMailer::Base
-
 <% for action in actions -%>
+
   def <%= action %>(sent_on = Time.now)
     @recipients = ''
     @from       = ''
@@ -10,6 +10,5 @@ class <%= class_name %> < ActionMailer::Base
     @body       = {}
     @sent_on    = sent_on
   end
-
 <% end -%>
 end
