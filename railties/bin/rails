@@ -18,7 +18,7 @@ SYNOPSIS
 DESCRIPTION
      This generator will create a suggested directory structure, lots of minor helper
      files, and a default configuration for creating a new Rails application. Once the
-     generator is done, you're adviced to look at the README in the root of the folder.
+     generator is done, you're advised to look at the README in the root of the folder.
      
 EXAMPLE
      rails ~/Code/Ruby/weblog

@@ -1,8 +1,4 @@
-$:.unshift(File.dirname(__FILE__) + '/../lib')#.unshift(File.dirname(__FILE__))
-
-# Make rubygems available for testing if possible
-begin require('rubygems');        rescue LoadError; end
-begin require('dev-utils/debug'); rescue LoadError; end
+$:.unshift(File.dirname(__FILE__) + '/../lib')
 
 require 'test/unit'
 require 'active_record'

@@ -232,7 +232,6 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('activerecord', '>= 1.1.0')
   s.add_dependency('actionpack', '>= 0.9.5')
   s.add_dependency('actionmailer', '>= 0.4.0')
-  s.add_dependency('dev-utils', '>= 1.0.1')
 
   s.files = PKG_FILES.to_a
   s.require_path = 'lib'
