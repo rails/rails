@@ -5,8 +5,8 @@ require 'timeout'
 Options = {
   :ClientURI  => nil,
   :ServerURI  => "druby://localhost:42531",
-  :RetryDelay => 3,
-  :Permanent  => false,
+  :RetryDelay => 2,
+  :Permanent  => true,
   :Verbose    => false
 }
 
