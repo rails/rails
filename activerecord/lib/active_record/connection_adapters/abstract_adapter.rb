@@ -85,7 +85,7 @@ module ActiveRecord
         when Symbol, String
           establish_connection(configurations[spec.to_s])
         else
-          symbolize_strings_in_hash(spec)
+          spec = symbolize_strings_in_hash(spec)
           unless spec.key?(:adapter) then raise AdapterNotSpecified end
     
           adapter_method = "#{spec[:adapter]}_connection"
@@ -149,11 +149,9 @@ module ActiveRecord
 
     # Converts all strings in a hash to symbols.
     def self.symbolize_strings_in_hash(hash)
-      hash.each do |key, value|
-        if key.class == String
-          hash.delete key
-          hash[key.intern] = value
-        end
+      hash.inject({}) do |hash_with_symbolized_strings, pair|
+        hash_with_symbolized_strings[pair.first.to_sym] = pair.last
+        hash_with_symbolized_strings
       end
     end
   end
