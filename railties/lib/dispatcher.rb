@@ -41,9 +41,9 @@ class Dispatcher
       ActionController::Base.process_with_exception(request, response, exception).out
     ensure
       if Dependencies.mechanism == :load
-        remove_class_hierarchy(controller_class(controller_name), ActionController::Base)
         ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
         Dependencies.reload rescue nil # Ignore out of order reloading errors for Controllers
+        remove_class_hierarchy(controller_class(controller_name), ActionController::Base)
       end
       
       Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
