@@ -1,3 +1,8 @@
+*SVN*
+
+* Added rescue for missing iconv library and throws warnings if subject/body is called on a TMail object without it instead
+
+
 *0.8.0* (22th March, 2005)
 
 * Added framework support for processing incoming emails with an Action Mailer class. See example in README.
