@@ -129,67 +129,67 @@ class FormOptionsHelperTest < Test::Unit::TestCase
 
   def test_time_zone_options_no_parms
     opts = time_zone_options_for_select
-    assert_equal "<option>A</option>\n" +
-                 "<option>B</option>\n" +
-                 "<option>C</option>\n" +
-                 "<option>D</option>\n" +
-                 "<option>E</option>",
+    assert_equal "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\">D</option>\n" +
+                 "<option value=\"E\">E</option>",
                  opts
   end
 
   def test_time_zone_options_with_selected
-    opts = time_zone_options_for_select( TimeZone.new( "D" ) )
-    assert_equal "<option>A</option>\n" +
-                 "<option>B</option>\n" +
-                 "<option>C</option>\n" +
-                 "<option selected=\"selected\">D</option>\n" +
-                 "<option>E</option>",
+    opts = time_zone_options_for_select( "D" )
+    assert_equal "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
+                 "<option value=\"E\">E</option>",
                  opts
   end
 
   def test_time_zone_options_with_unknown_selected
-    opts = time_zone_options_for_select( TimeZone.new( "K" ) )
-    assert_equal "<option>A</option>\n" +
-                 "<option>B</option>\n" +
-                 "<option>C</option>\n" +
-                 "<option>D</option>\n" +
-                 "<option>E</option>",
+    opts = time_zone_options_for_select( "K" )
+    assert_equal "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\">D</option>\n" +
+                 "<option value=\"E\">E</option>",
                  opts
   end
 
   def test_time_zone_options_with_priority_zones
     zones = [ TimeZone.new( "B" ), TimeZone.new( "E" ) ]
     opts = time_zone_options_for_select( nil, zones )
-    assert_equal "<option>B</option>\n" +
-                 "<option>E</option>" +
+    assert_equal "<option value=\"B\">B</option>\n" +
+                 "<option value=\"E\">E</option>" +
                  "<option>-------------</option>\n" +
-                 "<option>A</option>\n" +
-                 "<option>C</option>\n" +
-                 "<option>D</option>",
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\">D</option>",
                  opts
   end
 
   def test_time_zone_options_with_selected_priority_zones
     zones = [ TimeZone.new( "B" ), TimeZone.new( "E" ) ]
-    opts = time_zone_options_for_select( TimeZone.new("E"), zones )
-    assert_equal "<option>B</option>\n" +
-                 "<option selected=\"selected\">E</option>" +
+    opts = time_zone_options_for_select( "E", zones )
+    assert_equal "<option value=\"B\">B</option>\n" +
+                 "<option value=\"E\" selected=\"selected\">E</option>" +
                  "<option>-------------</option>\n" +
-                 "<option>A</option>\n" +
-                 "<option>C</option>\n" +
-                 "<option>D</option>",
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\">D</option>",
                  opts
   end
 
   def test_time_zone_options_with_unselected_priority_zones
     zones = [ TimeZone.new( "B" ), TimeZone.new( "E" ) ]
-    opts = time_zone_options_for_select( TimeZone.new("C"), zones )
-    assert_equal "<option>B</option>\n" +
-                 "<option>E</option>" +
+    opts = time_zone_options_for_select( "C", zones )
+    assert_equal "<option value=\"B\">B</option>\n" +
+                 "<option value=\"E\">E</option>" +
                  "<option>-------------</option>\n" +
-                 "<option>A</option>\n" +
-                 "<option selected=\"selected\">C</option>\n" +
-                 "<option>D</option>",
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"C\" selected=\"selected\">C</option>\n" +
+                 "<option value=\"D\">D</option>",
                  opts
   end
 
@@ -253,72 +253,72 @@ class FormOptionsHelperTest < Test::Unit::TestCase
   end
 
   def test_time_zone_select
-    @firm = Firm.new( TimeZone.new( "D" ) )
+    @firm = Firm.new("D")
     html = time_zone_select( "firm", "time_zone" )
     assert_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
-                 "<option>A</option>\n" +
-                 "<option>B</option>\n" +
-                 "<option>C</option>\n" +
-                 "<option selected=\"selected\">D</option>\n" +
-                 "<option>E</option>" +
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
+                 "<option value=\"E\">E</option>" +
                  "</select>",
                  html
   end
 
   def test_time_zone_select_with_blank
-    @firm = Firm.new(TimeZone.new("D"))
+    @firm = Firm.new("D")
     html = time_zone_select("firm", "time_zone", nil, :include_blank => true)
     assert_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
                  "<option></option>\n" +
-                 "<option>A</option>\n" +
-                 "<option>B</option>\n" +
-                 "<option>C</option>\n" +
-                 "<option selected=\"selected\">D</option>\n" +
-                 "<option>E</option>" +
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
+                 "<option value=\"E\">E</option>" +
                  "</select>",
                  html
   end
 
   def test_time_zone_select_with_style
-    @firm = Firm.new(TimeZone.new("D"))
+    @firm = Firm.new("D")
     html = time_zone_select("firm", "time_zone", nil, {},
       "style" => "color: red")
     assert_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\" style=\"color: red\">" +
-                 "<option>A</option>\n" +
-                 "<option>B</option>\n" +
-                 "<option>C</option>\n" +
-                 "<option selected=\"selected\">D</option>\n" +
-                 "<option>E</option>" +
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
+                 "<option value=\"E\">E</option>" +
                  "</select>",
                  html
   end
 
   def test_time_zone_select_with_blank_and_style
-    @firm = Firm.new(TimeZone.new("D"))
+    @firm = Firm.new("D")
     html = time_zone_select("firm", "time_zone", nil,
       { :include_blank => true }, "style" => "color: red")
     assert_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\" style=\"color: red\">" +
                  "<option></option>\n" +
-                 "<option>A</option>\n" +
-                 "<option>B</option>\n" +
-                 "<option>C</option>\n" +
-                 "<option selected=\"selected\">D</option>\n" +
-                 "<option>E</option>" +
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" +
+                 "<option value=\"E\">E</option>" +
                  "</select>",
                  html
   end
 
   def test_time_zone_select_with_priority_zones
-    @firm = Firm.new(TimeZone.new("D"))
+    @firm = Firm.new("D")
     zones = [ TimeZone.new("A"), TimeZone.new("D") ]
     html = time_zone_select("firm", "time_zone", zones )
     assert_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" +
-                 "<option>A</option>\n" +
-                 "<option selected=\"selected\">D</option>" +
+                 "<option value=\"A\">A</option>\n" +
+                 "<option value=\"D\" selected=\"selected\">D</option>" +
                  "<option>-------------</option>\n" +
-                 "<option>B</option>\n" +
-                 "<option>C</option>\n" +
-                 "<option>E</option>" +
+                 "<option value=\"B\">B</option>\n" +
+                 "<option value=\"C\">C</option>\n" +
+                 "<option value=\"E\">E</option>" +
                  "</select>",
                  html
   end

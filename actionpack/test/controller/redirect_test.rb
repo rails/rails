@@ -31,6 +31,6 @@ class RedirectTest < Test::Unit::TestCase
 
   def test_redirect_with_method_reference_and_parameters
     get :method_redirect
-    assert_redirect_url "http://test.host/redirect/dashboard?message=hello&id=1"
+    assert_redirect_url "http://test.host/redirect/dashboard/1?message=hello"
   end
 end
