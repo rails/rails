@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that scaffold generator new template should use local variable instead of instance variable #778 [Dan Peterson]
+
 * Allow unit tests to run on a remote server for PostgreSQL #781 [adamm@galacticasoftware.com]
 
 * Added web_service generator (run ./script/generate web_service for help) #776 [Leon Bredt]
