@@ -39,6 +39,7 @@ require 'action_controller/scaffolding'
 require 'action_controller/helpers'
 require 'action_controller/cookies'
 require 'action_controller/cgi_process'
+require 'action_controller/caching'
 
 ActionController::Base.class_eval do
   include ActionController::Filters
@@ -51,6 +52,7 @@ ActionController::Base.class_eval do
   include ActionController::Helpers
   include ActionController::Cookies
   include ActionController::Session
+  include ActionController::Caching
 end
 
 require 'action_view'

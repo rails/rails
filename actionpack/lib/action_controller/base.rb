@@ -4,6 +4,7 @@ require 'action_controller/url_rewriter'
 require 'action_controller/support/class_attribute_accessors'
 require 'action_controller/support/class_inheritable_attributes'
 require 'action_controller/support/inflector'
+require 'drb'
 
 module ActionController #:nodoc:
   class ActionControllerError < StandardError #:nodoc:
@@ -183,7 +184,6 @@ module ActionController #:nodoc:
       :buffer_size  => 4096
     }
 
-
     # Determines whether the view has access to controller internals @request, @response, @session, and @template.
     # By default, it does.
     @@view_controller_internals = true
@@ -359,7 +359,7 @@ module ActionController #:nodoc:
       # <tt>render_action "show_many"</tt> in WeblogController#display will render "#{template_root}/weblog/show_many.rhtml" or 
       # "#{template_root}/weblog/show_many.rxml".
       def render_action(action_name, status = nil) #:doc:
-        render default_template_name(action_name), status
+        render(default_template_name(action_name), status)
       end
       
       # Works like render, but disregards the template_root and requires a full path to the template that needs to be rendered. Can be
@@ -389,6 +389,12 @@ module ActionController #:nodoc:
         @response.headers["Status"] = status || DEFAULT_RENDER_STATUS_CODE
         @response.body = block_given? ? block : text
         @performed_render = true
+      end
+      
+      # Renders an empty response that can be used when the request is only interested in triggering an effect. Do note that good
+      # HTTP manners mandate that you don't use GET requests to trigger data changes.
+      def render_nothing(status = nil)
+        render_text "", status
       end
 
       # Sends the file by streaming it 4096 bytes at a time. This way the
