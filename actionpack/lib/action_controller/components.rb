@@ -24,23 +24,23 @@ module ActionController #:nodoc:
   
     private
       def component_response(options, reuse_response = false)
-        component_class(options).process(component_request(options), reuse_response ? @response : component_response)
+        component_class(options).process(request_for_component(options), reuse_response ? @response : response_for_component)
       end
     
       def component_class(options)
         options[:controller] ? (options[:controller].camelize + "Controller").constantize : self.class
       end
       
-      def component_request(options)
-        component_request = Marshal::load(Marshal::dump(@request))
-        component_request.send(
+      def request_for_component(options)
+        request_for_component = Marshal::load(Marshal::dump(@request))
+        request_for_component.send(
           :instance_variable_set, :@parameters, 
           (options[:params] || {}).merge({ "controller" => options[:controller], "action" => options[:action] })
         )
-        return component_request
+        return request_for_component
       end
       
-      def component_response
+      def response_for_component
         Marshal::load(Marshal::dump(@response))
       end
   end
