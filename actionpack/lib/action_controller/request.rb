@@ -90,7 +90,7 @@ module ActionController
     end
 
     def path
-      path = path_info ? path_info : ( request_uri ? request_uri.split('?').first : '' )
+      (path_info && !path_info.empty?) ? path_info : (request_uri ? request_uri.split('?').first : '')
     end
 
     def port
