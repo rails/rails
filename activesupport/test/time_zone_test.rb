@@ -1,8 +1,7 @@
 require 'test/unit'
-require File.dirname(__FILE__)+'/../lib/active_record/values/time_zone'
+require File.dirname(__FILE__)+'/../lib/active_support/values/time_zone'
 
 class TimeZoneTest < Test::Unit::TestCase
-
   class MockTime
     def self.now
       Time.utc( 2004, 7, 25, 14, 49, 00 )
@@ -74,5 +73,4 @@ class TimeZoneTest < Test::Unit::TestCase
     assert_same a, b
     assert_nil TimeZone.new("bogus")
   end
-
 end
