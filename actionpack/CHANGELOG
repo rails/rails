@@ -1,5 +1,12 @@
 *SVN*
 
+* Fixed CgiRequest so that it'll now accept session options with Symbols as keys (as the documentation points out) [Suggested by Andreas]
+
+* Added that render_partial will always by default include a counter with value 1 unless there is a counter passed in via the 
+  local_assigns hash that overrides it. As a result, render_collection_of_partials can still be written in terms of render_partial
+  and partials that make use of a counter can be called without problems from both render_collection_of_partials as well as
+  render_partial #295 [marcel]
+
 * Fixed CgiRequest#out to fall back to #write if $stdout doesn't have #syswrite [bitsweat]
 
 * Fixed all helpers so that they use XHTML compliant double quotes for values instead of single quotes [htonl/bitsweat]
@@ -119,6 +126,7 @@
   observer as well as requiring it.
 
 * Fixed that link_to would escape & in the url again after url_for already had done so
+
 
 *0.9.5* (28)
 

@@ -41,7 +41,7 @@ module ActionController #:nodoc:
     
     def []=(name, options)
       if options.is_a?(Hash)
-        options.each { |key, value| options[key.to_s] = value }
+        options = options.inject({}) { |options, pair| options[pair.first.to_s] = pair.last; options }
         options["name"] = name.to_s
       else
         options = { "name" => name, "value" => options }

@@ -36,7 +36,7 @@ module ActionController #:nodoc:
     attr_accessor :cgi
 
     DEFAULT_SESSION_OPTIONS =
-      { "database_manager" => CGI::Session::PStore, "prefix" => "ruby_sess.", "session_path" => "/" }
+      { :database_manager => CGI::Session::PStore, :prefix => "ruby_sess.", :session_path => "/" }
 
     def initialize(cgi, session_options = {})
       @cgi = cgi
@@ -67,7 +67,7 @@ module ActionController #:nodoc:
     def session
       return @session unless @session.nil?
       begin
-        @session = (@session_options == false ? {} : CGI::Session.new(@cgi, DEFAULT_SESSION_OPTIONS.merge(@session_options)))
+        @session = (@session_options == false ? {} : CGI::Session.new(@cgi, session_options_with_string_keys))
         @session["__valid_session"]
         return @session
       rescue ArgumentError => e
@@ -93,6 +93,10 @@ module ActionController #:nodoc:
     private
       def new_session
         CGI::Session.new(@cgi, DEFAULT_SESSION_OPTIONS.merge(@session_options).merge("new_session" => true))
+      end
+      
+      def session_options_with_string_keys
+        DEFAULT_SESSION_OPTIONS.merge(@session_options).inject({}) { |options, pair| options[pair.first.to_s] = pair.last; options }
       end
   end
 
