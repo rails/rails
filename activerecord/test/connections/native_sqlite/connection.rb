@@ -13,7 +13,7 @@ sqlite_test_db2 = "#{BASE_DIR}/fixture_database_2.sqlite"
 def make_connection(clazz, db_file, db_definitions_file)
   unless File.exist?(db_file)
     puts "SQLite database not found at #{db_file}. Rebuilding it."
-    sqlite_command = "sqlite #{db_file} 'create table a (a integer); drop table a;'"
+    sqlite_command = %Q{sqlite #{db_file} "create table a (a integer); drop table a;"}
     puts "Executing '#{sqlite_command}'"
     raise SqliteError.new("Seems that there is no sqlite executable available") unless system(sqlite_command)
     clazz.establish_connection(

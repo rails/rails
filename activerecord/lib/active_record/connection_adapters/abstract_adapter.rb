@@ -405,7 +405,7 @@ module ActiveRecord
               log_info(sql, name, 0)
               nil
             end
-          rescue => e
+          rescue Exception => e
             log_info("#{e.message}: #{sql}", name, 0)
             raise ActiveRecord::StatementInvalid, "#{e.message}: #{sql}"
           end

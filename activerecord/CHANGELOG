@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that SQLite3 exceptions are caught and reported properly #823 [yerejm]
+
 * Added that all types of after_find/after_initialized callbacks are triggered if the explicit implementation is present, not only the explicit implementation itself
 
 * Fixed that symbols can be used on attribute assignment, like page.emails.create(:subject => data.subject, :body => data.body)

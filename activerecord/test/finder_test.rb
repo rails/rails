@@ -233,6 +233,10 @@ class FinderTest < Test::Unit::TestCase
     assert_equal "Mary", topics[0].author_name
   end
 
+  def test_find_with_bad_sql
+    assert_raises(ActiveRecord::StatementInvalid) { Topic.find_by_sql "select 1 from badtable" }
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
