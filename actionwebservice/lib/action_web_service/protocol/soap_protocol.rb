@@ -46,6 +46,7 @@ module ActionWebService # :nodoc:
             return nil unless request.method == :post
             soap_action = request.env['HTTP_SOAPACTION']
             return nil unless soap_action
+            soap_action = soap_action.dup
             soap_action.gsub!(/^"/, '')
             soap_action.gsub!(/"$/, '')
             soap_action.strip!
