@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/tag_helper'
 
 # You must call <%= define_javascript_functions %> in your application before using these helpers.
-module JavascriptTagHelper
+module JavascriptHelper
   def link_to_display_toggle(name, tags, html_options = {})
     toggle_functions = [ tags ].flatten.collect { |tag| "toggle_display_by_id('#{tag}'); " }.join
     content_tag(
