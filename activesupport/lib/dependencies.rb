@@ -11,9 +11,9 @@ module Dependencies
   
   def depend_on(file_name, swallow_load_errors = false)
     if !loaded.include?(file_name)
+      loaded << file_name
       begin
         require_or_load(file_name)
-        loaded << file_name
       rescue LoadError
         raise unless swallow_load_errors
       end
