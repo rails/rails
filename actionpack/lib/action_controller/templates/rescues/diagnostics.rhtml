@@ -8,7 +8,7 @@
   <%=h @exception.class.to_s %> in
   <%=h (@request.parameters["controller"] || "<controller not set>").capitalize %>#<%=h @request.parameters["action"] || "<action not set>" %>
 </h1>
-<p><%=h Object.const_defined?(:RAILS_ROOT) ? @exception.message.gsub(RAILS_ROOT, "") : @exception.message %></p>
+<pre><%=h Object.const_defined?(:RAILS_ROOT) ? @exception.message.gsub(RAILS_ROOT, "") : @exception.message %></pre>
 
 <% unless app_trace.empty? %><pre><code><%=h app_trace.join("\n") %></code></pre><% end %>
 
