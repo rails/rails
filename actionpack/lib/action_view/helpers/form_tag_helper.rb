@@ -14,9 +14,9 @@ module ActionView
       def form_tag(url_for_options = {}, options = {}, *parameters_for_url)
         html_options = { "method" => "post" }.merge(options.stringify_keys)
 
-        if html_options[:multipart]
+        if html_options["multipart"]
           html_options["enctype"] = "multipart/form-data"
-          html_options.delete(:multipart)
+          html_options.delete("multipart")
         end
 
         html_options["action"] = url_for(url_for_options, *parameters_for_url)
