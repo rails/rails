@@ -24,15 +24,21 @@ module ActiveRecord
       username = config[:username].to_s
       password = config[:password].to_s
 
+      schema_order = config[:schema_order]
+
       if config.has_key?(:database)
         database = config[:database]
       else
         raise ArgumentError, "No database specified. Missing argument: database."
       end
 
-      ConnectionAdapters::PostgreSQLAdapter.new(
+      pga = ConnectionAdapters::PostgreSQLAdapter.new(
         PGconn.connect(host, port, "", "", database, username, password), logger
       )
+
+      pga.execute("SET search_path TO #{schema_order}") if schema_order
+
+      pga
     end
   end
 
