@@ -1,5 +1,7 @@
 *SVN*
 
+* Added AssetTagHelper that provides methods for linking a HTML page together with other assets, such as javascripts, stylesheets, and feeds.
+
 * Added FormTagHelper that provides a number of methods for creating form tags that doesn't rely on conventions with an object assigned to the template like FormHelper does. With the FormTagHelper, you provide the names and values yourself.
 
 * Added Iran and Irak to the countries list used by FormOptions#country_select and FormOptions#country_options_for_select

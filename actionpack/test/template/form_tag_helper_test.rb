@@ -1,7 +1,7 @@
 require 'test/unit'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/form_tag_helper'
 
-class TagHelperTest < Test::Unit::TestCase
+class FormTagHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TagHelper
   include ActionView::Helpers::FormTagHelper
 
