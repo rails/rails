@@ -122,6 +122,5 @@ begin
     end
   end
 rescue LoadError
-  retry if require('rubygems') rescue LoadError
   # DB2 driver is unavailable.
 end
