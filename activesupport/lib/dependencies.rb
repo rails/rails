@@ -29,6 +29,12 @@ module Dependencies
     self.loaded = [ ]
   end
   
+  def reload
+    old_loaded = loaded.dup
+    clear
+    old_loaded.each { |file_name| depend_on(file_name, true) }
+  end
+  
   private
     def require_or_load(file_name)
       mechanism == :load ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
