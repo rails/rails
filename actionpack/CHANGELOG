@@ -1,5 +1,19 @@
 *SVN*
 
+* Added support for automatic id-based indexing for lists of items #532 [dblack]. Example:
+
+    <% @students.each do |@student| %>
+      <%= text_field "student[]", "first_name", :size => "20" %>
+      <%= text_field "student[]", "last_name" %>
+      <%= text_field "student[]", "grade", :size => "5" %>
+    <% end %>
+  
+  ...would produce, for say David Black with id 123 and a grace of C+:
+  
+    <input id="student_123_first_name" name="student[123][first_name]" size="20"     size="30" type="text" value="David" />
+    <input id="student_123_last_name" name="student[123][last_name]" size="30"  type="text" value="Black" />
+    <input id="student_123_grade" name="student[123][grade]" size="5" type="text"  value="C+" />
+
 * Added :application_prefix to url_for and friends that makes it easier to setup Rails in non-vhost environments #516 [Jamis Buck]
 
 * Added :encode option to mail_to that'll allow you to masquarede the email address behind javascript or hex encoding #494 [Lucas Carlson]
