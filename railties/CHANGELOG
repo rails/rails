@@ -1,8 +1,10 @@
 *SVN*
 
+* Added graceful handling of an inaccessible log file by redirecting output to STDERR with a warning #330 [rainmkr]
+
 * Added support for a -h/--help parameter in the generator #331 [Ulysses]
 
-* File.expand_path in config/environment.rb would fail when dealing with symlinked public directories [mjobin].
+* File.expand_path in config/environment.rb would fail when dealing with symlinked public directories [mjobin]
 
 
 *0.9.1*
