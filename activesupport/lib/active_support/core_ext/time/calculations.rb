@@ -53,6 +53,16 @@ module ActiveSupport #:nodoc:
           end
         end
 
+        # Short-hand for months_ago(1)
+        def last_month
+          months_ago(1)
+        end
+
+        # Short-hand for months_since(1)
+        def next_month
+          months_since(1)
+        end
+
         # Returns a new Time representing the "start" of this week (Monday, 0:00)
         def beginning_of_week
           (self - self.wday.days).midnight + 1.day
