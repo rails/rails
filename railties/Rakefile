@@ -109,8 +109,7 @@ end
 desc "Make copies of all the default content of ties"
 task :copy_ties_content => [ 
   :copy_rootfiles, :copy_dispatches, :copy_html_files, :copy_application,
-  :copy_configs, :copy_binfiles, :copy_test_helpers, :copy_docs_in_public,
-  :copy_app_doc_readme ]
+  :copy_configs, :copy_binfiles, :copy_test_helpers, :copy_app_doc_readme ]
 
 task :copy_dispatches do
   copy_with_rewritten_ruby_path("dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.rb")
