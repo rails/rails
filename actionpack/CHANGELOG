@@ -1,5 +1,7 @@
 *SVN*
 
+* Added class declaration for the MissingFile exception #388 [Kent Sibilev]
+
 * Added "short hypertext note with a hyperlink to the new URI(s)" to redirects to fulfill compliance with RFC 2616 (HTTP/1.1) section 10.3.3 #397 [Tim Bates]
 
 * Added second boolean parameter to Base.redirect_to_url and Response#redirect to control whether the redirect is permanent or not (301 vs 302) #375 [Hodel]

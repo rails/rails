@@ -14,6 +14,8 @@ module ActionController #:nodoc:
   end
   class UnknownAction < ActionControllerError #:nodoc:
   end
+  class MissingFile < ActionControllerError #:nodoc:
+  end
 
   # Action Controllers are made up of one or more actions that performs its purpose and then either renders a template or
   # redirects to another action. An action is defined as a public method on the controller, which will automatically be 
@@ -432,7 +434,7 @@ module ActionController #:nodoc:
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
       # for the Cache-Control header spec.
       def send_file(path, options = {}) #:doc:
-        raise MissingFile unless File.file?(path) and File.readable?(path)
+        raise MissingFile, path unless File.file?(path) and File.readable?(path)
 
         options[:length]   ||= File.size(path)
         options[:filename] ||= File.basename(path)
