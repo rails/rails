@@ -1,29 +1,12 @@
 *SVN*
 
-* Fixed that /Recipe/new and /recipe/new points to the same thing [Lyle Johnson]
+* Fixed dependency reloading by switching to a remove_const approach where all Active Records, Active Record Observers, and Action Controllers are reloading by undefining their classes. This enables you to remove methods in all three types and see the change reflected immediately and it fixes #539. This also means that only those three types of classes will benefit from the const_missing and reloading approach. If you want other classes (like some in lib/) to reload, you must use require_dependency to do it.
 
 * Added Florian Gross' latest version of Breakpointer and friends that fixes a variaty of bugs #441 [Florian Gross]
 
 * Fixed skeleton Rakefile to work with sqlite3 out of the box #521 [rasputnik]
 
 * Fixed that script/breakpointer didn't get the Ruby path rewritten as the other scripts #523 [brandt@kurowski.net]
-
-* Fixed superclass mismatch and other controller related problems by not using dependency reloading for controllers. This means that controller
-  hierarchies need to explicitly require the superclass if its not ApplicationController. Example:
-  
-    # application.rb
-    class ApplicationController < ActionController::Base
-    end
-  
-    # base.rb
-    class BaseController < ApplicationController
-    end
-  
-    # media_controller.rb
-    require_or_load 'base'
-    class MediaController < BaseController
-    end
-  
 
 * Fixed handling of syntax errors in models that had already been succesfully required once in the current interpreter
 
