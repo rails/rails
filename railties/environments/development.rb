@@ -1,2 +1,3 @@
-ActiveRecord::Base.logger = ActionController::Base.logger = ActionMailer::Base.logger = Logger.new("#{RAILS_ROOT}/log/development.log")
-ActiveRecord::Base.establish_connection(:development)
+ActionController::Base.consider_all_requests_local = true
+ActionController::Base.reload_dependencies         = true
+ActiveRecord::Base.reload_associations             = true
