@@ -10,8 +10,13 @@ module ActiveRecord
       def replace(obj, dont_save = false)
         load_target
         unless @target.nil?
-          @target[@association_class_primary_key_name] = nil
-          @target.save unless @owner.new_record?
+          if dependent? && !dont_save     
+            @target.destroy unless @target.new_record?
+            @owner.clear_association_cache
+          else
+            @target[@association_class_primary_key_name] = nil
+            @target.save unless @owner.new_record?
+          end
         end
 
         if obj.nil?

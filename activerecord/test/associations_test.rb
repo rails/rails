@@ -94,7 +94,8 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     @signals37.account = nil
     @signals37.save
     assert_nil @signals37.account
-    assert_nil Account.find(old_account_id).firm_id
+    # account is dependent, therefore is destroyed when reference to owner is lost
+    assert_raises(ActiveRecord::RecordNotFound) { Account.find(old_account_id) } 
   end
 
   def test_dependence

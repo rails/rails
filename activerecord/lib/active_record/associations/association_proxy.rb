@@ -34,6 +34,10 @@ module ActiveRecord
       end
 
       protected
+        def dependent?
+          @options[:dependent] || false
+        end
+        
         def quoted_record_ids(records)
           records.map { |record| record.quoted_id }.join(',')
         end

@@ -270,7 +270,8 @@ module ActiveRecord
       #   sql fragment, such as "rank = 5".
       # * <tt>:order</tt>       - specify the order from which the associated object will be picked at the top. Specified as
       #    an "ORDER BY" sql fragment, such as "last_name, first_name DESC"
-      # * <tt>:dependent</tt>   - if set to true the associated object is destroyed alongside this object
+      # * <tt>:dependent</tt>   - if set to true, the associated object is destroyed when this object is. It's also destroyed if another
+      #   association is assigned.
       # * <tt>:foreign_key</tt> - specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_one association will use "person_id"
       #   as the default foreign_key.

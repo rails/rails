@@ -1,5 +1,19 @@
 *SVN*
 
+* Added destruction of dependent objects in has_one associations when a new assignment happens #742 [mindel]. Example:
+
+    class Account < ActiveRecord::Base
+      has_one :credit_card, :dependent => true
+    end
+    class CreditCard < ActiveRecord::Base
+      belongs_to :account
+    end
+
+    account.credit_card # => returns existing credit card, lets say id = 12
+    account.credit_card = CreditCard.create("number" => "123")
+    account.save # => CC with id = 12 is destroyed
+
+
 * Added validates_numericality_of #716 [skanthak/c.r.mcgrath]. Docuemntation:
 
     Validates whether the value of the specified attribute is numeric by trying to convert it to
