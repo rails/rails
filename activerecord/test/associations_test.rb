@@ -5,6 +5,7 @@ require 'fixtures/project'
 require 'fixtures/company'
 require 'fixtures/topic'
 require 'fixtures/reply'
+require 'fixtures/computer'
 
 # Can't declare new classes in test case methods, so tests before that
 bad_collection_keys = false
@@ -18,7 +19,7 @@ raise "ActiveRecord should have barked on bad collection keys" unless bad_collec
 
 class AssociationsTest < Test::Unit::TestCase
   def setup
-    create_fixtures "accounts", "companies", "developers", "projects", "developers_projects"  
+    create_fixtures "accounts", "companies", "developers", "projects", "developers_projects", "computers"
     @signals37 = Firm.find(1)
   end
   
@@ -416,6 +417,11 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
 
     trash.destroy
     assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply deleted"
+  end
+
+  def test_field_name_same_as_foreign_key
+    computer = Computer.find 1
+    assert_not_nil computer.developer, ":foreign key == attribute didn't lock up"
   end
 
   def xtest_counter_cache

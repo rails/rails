@@ -122,3 +122,8 @@ CREATE TABLE `binaries` (
   `data` mediumblob,
   PRIMARY KEY  (`id`)
 );
+
+CREATE TABLE `computers` (
+  `id` INTEGER NOT NULL PRIMARY KEY,
+  `developer` INTEGER NOT NULL
+);

@@ -336,8 +336,8 @@ module ActiveRecord
             end_eval
           else
             association_finder = options[:conditions] ?
-              "#{association_class_name}.find_on_conditions(#{association_class_primary_key_name}, \"#{options[:conditions]}\")" :
-              "#{association_class_name}.find(#{association_class_primary_key_name})"
+              "#{association_class_name}.find_on_conditions(read_attribute(\"#{association_class_primary_key_name}\"), \"#{options[:conditions]}\")" :
+              "#{association_class_name}.find(read_attribute(\"#{association_class_primary_key_name}\"))"
           end
 
           has_association_method(association_name)

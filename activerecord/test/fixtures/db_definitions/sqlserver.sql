@@ -122,4 +122,8 @@ CREATE TABLE binaries (
   PRIMARY KEY (id)
 );
 
-
+CREATE TABLE computers (
+  id int NOT NULL IDENTITY(1, 1),
+  developer int NOT NULL,
+  PRIMARY KEY (id)
+);

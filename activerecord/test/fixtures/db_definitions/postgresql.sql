@@ -140,3 +140,8 @@ CREATE TABLE binaries (
   data bytea,
   PRIMARY KEY (id)
 );
+
+CREATE TABLE computers (
+  id serial,
+  developer integer NOT NULL
+);

@@ -109,3 +109,8 @@ CREATE TABLE 'binaries' (
   'id' INTEGER NOT NULL PRIMARY KEY,
   'data' BLOB DEFAULT NULL
 );
+
+CREATE TABLE 'computers' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'developer' INTEGER NOT NULL
+);
