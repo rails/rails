@@ -141,7 +141,7 @@ module ActionController
 
             if @#{singular_name}.save
               flash["notice"] = "#{class_name} was successfully updated"
-              redirect_to :action => "show#{suffix}/" + @#{singular_name}.id.to_s
+              redirect_to :action => "show#{suffix}" + @#{singular_name}.id.to_s
             else
               render#{suffix}_scaffold('edit')
             end
