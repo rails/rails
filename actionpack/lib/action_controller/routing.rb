@@ -47,6 +47,7 @@ module ActionController
         
         used_names = @requirements.inject({}) {|hash, (k, v)| hash[k] = true; hash} # Mark requirements as used so they don't get put in the query params
         components = @items.collect do |item|
+
           if item.kind_of? Symbol
             collection = false
 
@@ -64,7 +65,12 @@ module ActionController
       	    if value.nil? || item == :controller
               value
             elsif collection
-	            Routing.extract_parameter_value(value).gsub(/%2F/, "/")
+              if value.kind_of?(Array)
+                value = value.collect {|v| Routing.extract_parameter_value(v)}.join('/')
+              else
+                value = Routing.extract_parameter_value(value).gsub(/%2F/, "/")
+              end
+              value
             else
               Routing.extract_parameter_value(value)
             end
@@ -113,9 +119,11 @@ module ActionController
             options[:controller] = controller_class.controller_path
             return nil, requirements_for(:controller) unless passes_requirements?(:controller, options[:controller])
           elsif /^\*/ =~ item.to_s
-            value = components.join("/") || @defaults[item]
+            value = components.empty? ? @defaults[item].clone : components.clone
+            value.collect! {|c| CGI.unescape c}
             components = []
-            options[item.to_s.sub(/^\*/,"").intern] = value.nil? ? value : CGI.unescape(value)
+            def value.to_s() self.join('/') end
+            options[item.to_s.sub(/^\*/,"").intern] = value
           elsif item.kind_of? Symbol
             value = components.shift || @defaults[item]
             return nil, requirements_for(item) unless passes_requirements?(item, value)

@@ -55,7 +55,9 @@
     map.connect 'categories/*path_info', :controller => 'categories', :action => 'show'
 
   A request for /categories/top-level-cat, would give @params[:path_info] with "top-level-cat".
-  A request for /categories/top-level-cat/level-1-cat, would give @params['path_info'] with "top-level-cat/level-1-cat" and so forth.
+  A request for /categories/top-level-cat/level-1-cat, would give @params[:path_info] with "top-level-cat/level-1-cat" and so forth.
+  
+  The @params[:path_info] return is really an array, but where to_s has been overwritten to do join("/").
 
 * Fixed options_for_select on selected line issue #624 [Florian Weber]
 
