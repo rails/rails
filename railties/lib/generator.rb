@@ -61,6 +61,9 @@ module Generator
       # Function test.
       generate_file "controller_test.erb", "test/functional/#{file_name}_controller_test.rb"
 
+      # Create the views directory even if there are no actions.
+      FileUtils.mkdir_p "app/views/#{file_name}"
+
       # View template for each action.
       @actions.each do |action|
         generate_file "controller_view.rhtml",
