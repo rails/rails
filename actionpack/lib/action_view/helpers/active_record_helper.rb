@@ -24,7 +24,7 @@ module ActionView
       # Returns an entire form with input tags and everything for a specified Active Record object. Example
       # (post is a new record that has a title using VARCHAR and a body using TEXT):
       #   form("post") =>
-      #     <form action='create' method='POST'>
+      #     <form action='/post/create' method='POST'>
       #       <p>
       #         <label for="post_title">Title</label><br />
       #         <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
@@ -44,14 +44,14 @@ module ActionView
       #   form("entry", :action => "sign", :input_block => 
       #        Proc.new { |record, column| "#{column.human_name}: #{input(record, column.name)}<br />" }) =>
       #
-      #     <form action='sign' method='POST'>
+      #     <form action='/post/sign' method='POST'>
       #       Message:
       #       <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" /><br />
       #       <input type='submit' value='Sign' />
       #     </form>
       def form(record_name, options = {})
         record   = instance_eval("@#{record_name}")
-        action   = options[:action] || (record.new_record? ? "create" : "update")
+        action   = url_for(:action => options[:action] || (record.new_record? ? "create" : "update"))
         id_field = record.new_record? ? "" : InstanceTag.new(record_name, "id", self).to_input_field_tag("hidden")
 
         "<form action='#{action}' method='POST'>" +

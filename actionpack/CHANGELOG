@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that ActiveRecordHelper#form now calls url_for on the :action option.
+
 * Added all the HTTP methods as alternatives to the generic "process" for functional testing #276 [Tobias Luetke]. Examples:
 
     # Calls Controller#miletone with a GET request
