@@ -1,4 +1,7 @@
 module ActiveRecord
+  # Mixins are a way of decorating existing Active Record models with additional behavior. If you for example
+  # want to keep a number of Documents in order, you can include Mixins::List, and all of the sudden be able to
+  # call <tt>document.move_to_bottom</tt>.
   module Mixins
     # This mixin provides the capabilities for sorting and reordering a number of objects in list.
     # The class that has this mixin included needs to have a "position" column defined as an integer on
@@ -12,7 +15,7 @@ module ActiveRecord
     #   end
     #
     #   class TodoItem < ActiveRecord::Base
-    #     include ListMixin
+    #     include ActiveRecord::Mixins::List
     #     belongs_to :todo_list
     #  
     #     private

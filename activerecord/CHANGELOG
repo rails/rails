@@ -1,5 +1,17 @@
 *CVS*
 
+* Added ActiveRecord::Mixins::List that can decorates an existing class with methods like move_higher/lower, move_to_top/bottom. Example:
+
+    class TodoItem < ActiveRecord::Base
+      include ActiveRecord::Mixins::List
+      belongs_to :todo_list
+   
+      private
+        def scope_condition
+          "todo_list_id = #{todo_list_id}"
+        end
+    end
+  
 * Added the option for sanitizing find_by_sql and the offset parts in regular finds [Sam Stephenson]. Examples:
 
     Project.find_all ["category = ?", category_name], "created ASC", ["? OFFSET ?", 15, 20]
