@@ -17,7 +17,7 @@ module ActionView
   # a partial by the same name as the elements contained within. So the three-lined example in "Using partials" can be rewritten
   # with a single line:
   #
-  #   <%= render_collection_of_partials "ad", @advertisements %>
+  #   <%= render_partial_collection "ad", @advertisements %>
   #
   # This will render "advertiser/_ad.rhtml" and pass the local variable +ad+ to the template for display. An iteration counter
   # will automatically be made available to the template with a name of the form +partial_name_counter+. In the case of the 
@@ -39,7 +39,7 @@ module ActionView
       render("#{path}/_#{partial_name}", { partial_name => object }.merge(local_assigns))
     end
 
-    def render_collection_of_partials(partial_name, collection, partial_spacer_template = nil, local_assigns = {})
+    def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {})
       collection_of_partials = Array.new
       counter_name = partial_counter_name(partial_name)
       collection.each_with_index do |element, counter|
@@ -54,6 +54,8 @@ module ActionView
         collection_of_partials
       end
     end
+    
+    alias_method :render_collection_of_partials, :render_partial_collection
     
     private
       def partial_pieces(partial_path)
