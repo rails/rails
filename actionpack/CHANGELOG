@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Effect.Fade which smoothly turns opacity from 100 to 0 and then hides the element #960 [thomas@fesch.at]
+
 * Fixed problem with page caching #958 [Rick Olson]
 
 
