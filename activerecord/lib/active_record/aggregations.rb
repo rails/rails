@@ -94,7 +94,7 @@ module ActiveRecord
     # relational unique identifiers (such as primary keys). Normal ActiveRecord::Base classes are entity objects.
     #
     # It's also important to treat the value objects as immutable. Don't allow the Money object to have its amount changed after
-    # creation. Create a new money object with the new value instead. This is examplified by the Money#exchanged_to method that
+    # creation. Create a new money object with the new value instead. This is exemplified by the Money#exchanged_to method that
     # returns a new value object instead of changing its own values. Active Record won't persist value objects that have been
     # changed through other means than the writer method.
     #
@@ -108,7 +108,7 @@ module ActiveRecord
       # <tt>composed_of :address</tt> would add <tt>address</tt> and <tt>address=(new_address)</tt>.
       #
       # Options are:
-      # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be infered
+      # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be inferred
       #   from the part id. So <tt>composed_of :address</tt> will by default be linked to the +Address+ class, but
       #   if the real class name is +CompanyAddress+, you'll have to specify it with this option.
       # * <tt>:mapping</tt> - specifies a number of mapping arrays (attribute, parameter) that bind an attribute name

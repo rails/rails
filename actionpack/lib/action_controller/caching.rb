@@ -23,7 +23,7 @@ module ActionController #:nodoc:
     # are treated the same. Content management systems -- including weblogs and wikis -- have many pages that are a great fit
     # for this approach, but account-based systems where people log in and manipulate their own data are often less likely candidates.
     #
-    # Specifying which actions to cach is done through the <tt>caches</tt> class method:
+    # Specifying which actions to cache is done through the <tt>caches</tt> class method:
     #
     #   class WeblogController < ActionController::Base
     #     caches_page :show, :new

@@ -1,13 +1,13 @@
 module ActionController #:nodoc:
   # The flash provides a way to pass temporary objects between actions. Anything you place in the flash will be exposed
   # to the very next action and then cleared out. This is a great way of doing notices and alerts, such as a create action
-  # that sets <tt>flash["notice"] = "Succesfully created"</tt> before redirecting to a display action that can then expose 
+  # that sets <tt>flash["notice"] = "Successfully created"</tt> before redirecting to a display action that can then expose 
   # the flash to its template. Actually, that exposure is automatically done. Example:
   #
   #   class WeblogController < ActionController::Base
   #     def create
   #       # save post
-  #       flash["notice"] = "Succesfully created post"
+  #       flash["notice"] = "Successfully created post"
   #       redirect_to :action => "display", :params => { "id" => post.id }
   #     end
   #

@@ -9,7 +9,7 @@ module ActionView
       include ERB::Util
 
       # Create a select tag and a series of contained option tags for the provided object and method.
-      # The option currenlty held by the object will be selected, provided that the object is available.
+      # The option currently held by the object will be selected, provided that the object is available.
       # 
       # This can be used to provide a default set of options in the standard way: before rendering the create form, a
       # new model instance is assigned the default options and bound to @model_name. Usually this model is not saved
@@ -40,14 +40,14 @@ module ActionView
       #   options_for_select([["Dollar", "$"], ["Kroner", "DKK"]])
       #     <option value="$">Dollar</option>\n<option value="DKK">Kroner</option>
       #
-      #   options_for_select([ "VISA", "Mastercard" ], "Mastercard")
-      #     <option>VISA</option>\n<option selected="selected">Mastercard</option>
+      #   options_for_select([ "VISA", "MasterCard" ], "MasterCard")
+      #     <option>VISA</option>\n<option selected="selected">MasterCard</option>
       #
       #   options_for_select({ "Basic" => "$20", "Plus" => "$40" }, "$40")
       #     <option value="$20">Basic</option>\n<option value="$40" selected="selected">Plus</option>
       #
-      #   options_for_select([ "VISA", "Mastercard", "Discover" ], ["VISA", "Discover"])
-      #     <option selected="selected">VISA</option>\n<option>Mastercard</option>\n<option selected="selected">Discover</option>
+      #   options_for_select([ "VISA", "MasterCard", "Discover" ], ["VISA", "Discover"])
+      #     <option selected="selected">VISA</option>\n<option>MasterCard</option>\n<option selected="selected">Discover</option>
       def options_for_select(container, selected = nil)
         container = container.to_a if Hash === container
       
@@ -87,7 +87,7 @@ module ActionView
       # An array of group objects are passed. Each group should return an array of options when calling group_method
       # Each group should should return its name when calling group_label_method.
       #
-      # html_option_groups_from_collection(@continents, "countries", "contient_name", "country_id", "country_name", @selected_country.id)
+      # html_option_groups_from_collection(@continents, "countries", "continent_name", "country_id", "country_name", @selected_country.id)
       #
       # Could become:
       #  <optgroup label="Africa">

@@ -33,7 +33,7 @@ begin
         # characters; automatically generated session ids observe
         # this requirement.
         #
-        # +option+ is a hash of options for the initialiser.  The
+        # +option+ is a hash of options for the initializer.  The
         # following options are recognized:
         #
         # cache::  an instance of a MemCache client to use as the

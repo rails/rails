@@ -99,7 +99,7 @@ module Test #:nodoc:
         assert_block(msg) { !response.has_flash? }
       end
       
-      # ensure the flash is empty but existant
+      # ensure the flash is empty but existent
       def assert_flash_empty(message=nil)
         response = acquire_assertion_target
         msg = build_message(message, "the flash is not empty <?>", response.flash)

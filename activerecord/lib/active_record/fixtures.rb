@@ -39,7 +39,7 @@ require 'active_record/support/inflector'
 # Fixtures can also be kept in the Comma Separated Value format. Akin to YAML fixtures, CSV fixtures are stored
 # in a single file, but, instead end with the .csv file extension (Rails example: "<your-rails-app>/test/fixtures/web_sites.csv")
 #
-# The format of this tye of fixture file is much more compact than the others, but also a little harder to read by us
+# The format of this type of fixture file is much more compact than the others, but also a little harder to read by us
 # humans.  The first line of the CSV file is a comma-separated list of field names.  The rest of the file is then comprised
 # of the actual data (1 per line).  Here's an example:
 #

@@ -23,7 +23,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 # with User Id replaced with your proper login, and Password with your
 # password.
 #
-# I have tested this code on a WindowsXP Pro SP1 system,
+# I have tested this code on a Windows XP Pro SP1 system,
 # ruby 1.8.2 (2004-07-29) [i386-mswin32], SQL Server 2000.
 #
 module ActiveRecord
@@ -122,7 +122,7 @@ EOL
                 execute enable_identity_insert(table_name, true)
                 ii_enabled = true
               rescue Exception => e
-                # Coulnd't turn on IDENTITY_INSERT
+                # Couldn't turn on IDENTITY_INSERT
               end
             end
           end

@@ -65,7 +65,7 @@ module ActionController #:nodoc:
     # <tt>app/views/layouts/weblog.rhtml</tt> or <tt>app/views/layouts/weblog.rxml</tt> exists then it will be automatically set as
     # the layout for your WeblogController. You can create a layout with the name <tt>application.rhtml</tt> or <tt>application.rxml</tt>
     # and this will be set as the default controller if there is no layout with the same name as the current controller and there is 
-    # no layout explicitly assigned with the +layout+ method. Setting a layout explicity will always override the automatic behaviour. 
+    # no layout explicitly assigned with the +layout+ method. Setting a layout explicitly will always override the automatic behaviour. 
     #
     # == Inheritance for layouts
     #
@@ -136,7 +136,7 @@ module ActionController #:nodoc:
     # This will assign "weblog_standard" as the WeblogController's layout  except for the +rss+ action, which will not wrap a layout 
     # around the rendered view.
     #
-    # Both the +:only+ and +:except+ condition can accept an aribtrary number of method references, so +:except => [ :rss, :text_only ]+ 
+    # Both the +:only+ and +:except+ condition can accept an arbitrary number of method references, so +:except => [ :rss, :text_only ]+ 
     # is valid, as is # +:except => :rss+.
     #
     # == Using a different layout in the action render call

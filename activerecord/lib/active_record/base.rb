@@ -112,7 +112,7 @@ module ActiveRecord #:nodoc:
   # is actually Payment.find_all_by_amount(amount, orderings = nil, limit = nil, joins = nil). And the full interface to Person.find_by_user_name is
   # actually Person.find_by_user_name(user_name, orderings = nil)
   #
-  # == Saving arrays, hashes, and other non-mappeable objects in text columns
+  # == Saving arrays, hashes, and other non-mappable objects in text columns
   # 
   # Active Record can serialize any object in text columns using YAML. To do so, you must specify this with a call to the class method +serialize+. 
   # This makes it possible to store arrays, hashes, and other non-mappeable objects without doing any additional work. Example:
@@ -168,7 +168,7 @@ module ActiveRecord #:nodoc:
   # * +ActiveRecordError+ -- generic error class and superclass of all other errors raised by Active Record
   # * +AdapterNotSpecified+ -- the configuration hash used in <tt>establish_connection</tt> didn't include a 
   #   <tt>:adapter</tt> key.
-  # * +AdapterNotSpecified+ -- the <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified an unexisting adapter
+  # * +AdapterNotSpecified+ -- the <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified an non-existent adapter
   #   (or a bad spelling of an existing one). 
   # * +AssociationTypeMismatch+ -- the object assigned to the association wasn't of the type specified in the association definition. 
   # * +SerializationTypeMismatch+ -- the object serialized wasn't of the class specified as the second parameter. 
@@ -221,7 +221,7 @@ module ActiveRecord #:nodoc:
     @@primary_key_prefix_type = nil
 
     # Accessor for the name of the prefix string to prepend to every table name. So if set to "basecamp_", all 
-    # table names will be named like "basecamp_projects", "basecamp_people", etc. This is a convinient way of creating a namespace
+    # table names will be named like "basecamp_projects", "basecamp_people", etc. This is a convenient way of creating a namespace
     # for tables in a shared database. By default, the prefix is the empty string.
     cattr_accessor :table_name_prefix
     @@table_name_prefix = ""
@@ -447,7 +447,7 @@ module ActiveRecord #:nodoc:
         write_inheritable_array("attr_protected", attributes)
       end
       
-      # Returns an array of all the attributes that have been protected from mass-assigment.
+      # Returns an array of all the attributes that have been protected from mass-assignment.
       def protected_attributes # :nodoc:
         read_inheritable_attribute("attr_protected")
       end
@@ -460,14 +460,14 @@ module ActiveRecord #:nodoc:
         write_inheritable_array("attr_accessible", attributes)
       end
       
-      # Returns an array of all the attributes that have been made accessible to mass-assigment.
+      # Returns an array of all the attributes that have been made accessible to mass-assignment.
       def accessible_attributes # :nodoc:
         read_inheritable_attribute("attr_accessible")
       end
 
       # Specifies that the attribute by the name of +attr_name+ should be serialized before saving to the database and unserialized
       # after loading from the database. The serialization is done through YAML. If +class_name+ is specified, the serialized
-      # object must be of that class on retrival or +SerializationTypeMismatch+ will be raised.
+      # object must be of that class on retrieval or +SerializationTypeMismatch+ will be raised.
       def serialize(attr_name, class_name = Object)
         write_inheritable_attribute("attr_serialized", serialized_attributes.update(attr_name.to_s => class_name))
       end
@@ -507,7 +507,7 @@ module ActiveRecord #:nodoc:
         table_name_prefix + undecorated_table_name(class_name_of_active_record_descendant(self)) + table_name_suffix
       end
 
-      # Defines the primary key field -- can be overridden in subclasses. Overwritting will negate any effect of the
+      # Defines the primary key field -- can be overridden in subclasses. Overwriting will negate any effect of the
       # primary_key_prefix_type setting, though.
       def primary_key
         case primary_key_prefix_type
@@ -1170,7 +1170,7 @@ module ActiveRecord #:nodoc:
       # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
       # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
       # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
-      # parenteses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum, f for Float,
+      # parentheses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum, f for Float,
       # s for String, and a for Array. If all the values for a given attribute is empty, the attribute will be set to nil.
       def assign_multiparameter_attributes(pairs)
         execute_callstack_for_multiparameter_attributes(

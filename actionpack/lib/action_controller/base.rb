@@ -558,7 +558,7 @@ module ActionController #:nodoc:
         @performed_redirect = true
       end
 
-      # Resets the session by clearsing out all the objects stored within and initializing a new session object.
+      # Resets the session by clearing out all the objects stored within and initializing a new session object.
       def reset_session #:doc:
         @request.reset_session
         @session = @request.session

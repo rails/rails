@@ -160,7 +160,7 @@ module ActiveRecord
       # * <tt>collection.find(id)</tt> - finds an associated object responding to the +id+ and that
       #   meets the condition that it has to be associated with this object.
       # * <tt>collection.find_all(conditions = nil, orderings = nil, limit = nil, joins = nil)</tt> - finds all associated objects responding 
-      #   criterias mentioned (like in the standard find_all) and that meets the condition that it has to be associated with this object.
+      #   criteria mentioned (like in the standard find_all) and that meets the condition that it has to be associated with this object.
       # * <tt>collection.build(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key but has not yet been saved.
       # * <tt>collection.create(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
@@ -180,7 +180,7 @@ module ActiveRecord
       # The declaration can also include an options hash to specialize the behavior of the association.
       # 
       # Options are:
-      # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be infered
+      # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be inferred
       #   from the association name. So <tt>has_many :products</tt> will by default be linked to the +Product+ class, but
       #   if the real class name is +SpecialProduct+, you'll have to specify it with this option.
       # * <tt>:conditions</tt>  - specify the conditions that the associated objects must meet in order to be included as a "WHERE"
@@ -263,7 +263,7 @@ module ActiveRecord
       # The declaration can also include an options hash to specialize the behavior of the association.
       # 
       # Options are:
-      # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be infered
+      # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be inferred
       #   from the association name. So <tt>has_one :manager</tt> will by default be linked to the +Manager+ class, but
       #   if the real class name is +Person+, you'll have to specify it with this option.
       # * <tt>:conditions</tt>  - specify the conditions that the associated object must meet in order to be included as a "WHERE"
@@ -330,7 +330,7 @@ module ActiveRecord
       # The declaration can also include an options hash to specialize the behavior of the association.
       # 
       # Options are:
-      # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be infered
+      # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be inferred
       #   from the association name. So <tt>has_one :author</tt> will by default be linked to the +Author+ class, but
       #   if the real class name is +Person+, you'll have to specify it with this option.
       # * <tt>:conditions</tt>  - specify the conditions that the associated object must meet in order to be included as a "WHERE"
@@ -432,7 +432,7 @@ module ActiveRecord
       # The declaration may include an options hash to specialize the behavior of the association.
       # 
       # Options are:
-      # * <tt>:class_name</tt> - specify the class name of the association. Use it only if that name can't be infered
+      # * <tt>:class_name</tt> - specify the class name of the association. Use it only if that name can't be inferred
       #   from the association name. So <tt>has_and_belongs_to_many :projects</tt> will by default be linked to the 
       #   +Project+ class, but if the real class name is +SuperProject+, you'll have to specify it with this option.
       # * <tt>:join_table</tt> - specify the name of the join table if the default based on lexical order isn't what you want.

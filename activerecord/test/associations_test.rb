@@ -705,36 +705,36 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_adding_multiple
-    aridridel = Developer.new("name" => "Aridridel")
-    aridridel.save
-    aridridel.projects.reload
-    aridridel.projects.push(Project.find(1), Project.find(2))
-    assert_equal 2, aridridel.projects.size
-    assert_equal 2, aridridel.projects(true).size
+    aredridel = Developer.new("name" => "Aridridel")
+    aredridel.save
+    aredridel.projects.reload
+    aredridel.projects.push(Project.find(1), Project.find(2))
+    assert_equal 2, aredridel.projects.size
+    assert_equal 2, aredridel.projects(true).size
   end
 
   def test_adding_a_collection
-    aridridel = Developer.new("name" => "Aridridel")
-    aridridel.save
-    aridridel.projects.reload
-    aridridel.projects.concat([Project.find(1), Project.find(2)])
-    assert_equal 2, aridridel.projects.size
-    assert_equal 2, aridridel.projects(true).size
+    aredridel = Developer.new("name" => "Aridridel")
+    aredridel.save
+    aredridel.projects.reload
+    aredridel.projects.concat([Project.find(1), Project.find(2)])
+    assert_equal 2, aredridel.projects.size
+    assert_equal 2, aredridel.projects(true).size
   end
 
   def test_habtm_adding_before_save
     no_of_devels = Developer.count
     no_of_projects = Project.count
-    aridridel = Developer.new("name" => "Aridridel")
-    aridridel.projects.concat([Project.find(1), p = Project.new("name" => "Projekt")])
-    assert aridridel.new_record?
+    aredridel = Developer.new("name" => "Aridridel")
+    aredridel.projects.concat([Project.find(1), p = Project.new("name" => "Projekt")])
+    assert aredridel.new_record?
     assert p.new_record?
-    assert aridridel.save
-    assert !aridridel.new_record?
+    assert aredridel.save
+    assert !aredridel.new_record?
     assert_equal no_of_devels+1, Developer.count
     assert_equal no_of_projects+1, Project.count
-    assert_equal 2, aridridel.projects.size
-    assert_equal 2, aridridel.projects(true).size
+    assert_equal 2, aredridel.projects.size
+    assert_equal 2, aredridel.projects(true).size
   end
 
   def test_habtm_adding_before_save_with_join_attributes

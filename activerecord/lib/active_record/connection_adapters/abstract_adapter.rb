@@ -326,7 +326,7 @@ module ActiveRecord
       # Commits the transaction (and turns on auto-committing). 
       def commit_db_transaction()   end
 
-      # Rollsback the transaction (and turns on auto-committing). Must be done if the transaction block
+      # Rolls back the transaction (and turns on auto-committing). Must be done if the transaction block
       # raises an exception or returns false.
       def rollback_db_transaction() end
 

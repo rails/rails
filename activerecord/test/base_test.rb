@@ -575,7 +575,7 @@ class BasicsTest < Test::Unit::TestCase
     if Default.connection.class.name == 'ActiveRecord::ConnectionAdapters::PostgreSQLAdapter'
       default = Default.new
   
-      # dates / timestampts
+      # dates / timestamps
       time_format = "%m/%d/%Y %H:%M"
       assert_equal Time.now.strftime(time_format), default.modified_time.strftime(time_format)
       assert_equal Date.today, default.modified_date

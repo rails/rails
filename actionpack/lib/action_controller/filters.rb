@@ -100,7 +100,7 @@ module ActionController #:nodoc:
     # == Around filters
     #
     # In addition to the individual before and after filters, it's also possible to specify that a single object should handle
-    # both the before and after call. That's especially usefuly when you need to keep state active between the before and after,
+    # both the before and after call. That's especially useful when you need to keep state active between the before and after,
     # such as the example of a benchmark filter below:
     # 
     #   class WeblogController < ActionController::Base

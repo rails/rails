@@ -51,7 +51,7 @@ module ActionController #:nodoc:
         render_text "<html><body><h1>Application error (Rails)</h1></body></html>"
       end
 
-      # Overwrite to expand the meaning of a local request in order to show local rescues on other occurances than
+      # Overwrite to expand the meaning of a local request in order to show local rescues on other occurences than
       # the remote IP being 127.0.0.1. For example, this could include the IP of the developer machine when debugging
       # remotely.
       def local_request? #:doc:

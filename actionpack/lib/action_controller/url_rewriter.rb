@@ -1,5 +1,5 @@
 module ActionController
-  # Rewrites urls for Base.redirect_to and Base.url_for in the controller.
+  # Rewrites URLs for Base.redirect_to and Base.url_for in the controller.
   class UrlRewriter #:nodoc:
     VALID_OPTIONS = [:action, :action_prefix, :action_suffix, :application_prefix, :module, :controller, :controller_prefix, :anchor, :params, :path_params, :id, :only_path, :overwrite_params, :host, :protocol ]
   

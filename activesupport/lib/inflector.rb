@@ -1,4 +1,4 @@
-# The Inflector transforms words from singular to plural, class names to table names, modulized class names to ones without,
+# The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
 # and class names to foreign keys.
 module Inflector 
   extend self

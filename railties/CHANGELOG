@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that the 'fixture :posts' syntax can be used for has_and_belongs_to_many fixtures where a model doesn't exist #572 [bitsweat]
+
 * Added that running test_units and test_functional now performs the clone_structure_to_test as well #566 [rasputnik]
 
 * Added new generator framework that informs about its doings on generation and enables updating and destruction of generated artifacts. See the new script/destroy and script/update for more details #487 [bitsweat]

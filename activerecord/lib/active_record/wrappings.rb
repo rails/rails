@@ -1,7 +1,7 @@
 module ActiveRecord
   # A plugin framework for wrapping attribute values before they go in and unwrapping them after they go out of the database.
   # This was intended primarily for YAML wrapping of arrays and hashes, but this behavior is now native in the Base class.
-  # So for now this framework is laying dorment until a need pops up.
+  # So for now this framework is laying dormant until a need pops up.
   module Wrappings #:nodoc:
     module ClassMethods #:nodoc:
       def wrap_with(wrapper, *attributes)

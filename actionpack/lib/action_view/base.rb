@@ -61,12 +61,12 @@ module ActionView #:nodoc:
   #
   # The parsing of ERb templates are cached by default, but the reading of them are not. This means that the application by default
   # will reflect changes to the templates immediatly. If you'd like to sacrifice that immediacy for the speed gain given by also
-  # caching the loading of templates (reading from the file systen), you can turn that on with 
+  # caching the loading of templates (reading from the file system), you can turn that on with 
   # <tt>ActionView::Base.cache_template_loading = true</tt>.
   #
   # == Builder
   #
-  # Builder templates are a more programatic alternative to ERb. They are especially useful for generating XML content. An +XmlMarkup+ object 
+  # Builder templates are a more programmatic alternative to ERb. They are especially useful for generating XML content. An +XmlMarkup+ object 
   # named +xml+ is automatically made available to templates with a +.rxml+ extension. 
   #
   # Here are some basic examples:

@@ -4,7 +4,7 @@ require 'cgi/session/pstore'
 require 'action_controller/cgi_ext/cgi_methods'
 
 # Wrapper around the CGIMethods that have been secluded to allow testing without 
-# an instatiated CGI object
+# an instantiated CGI object
 class CGI #:nodoc:
   class << self
     alias :escapeHTML_fail_on_nil :escapeHTML

@@ -19,7 +19,7 @@ module ActiveRecord
   #       end
   #
   #       def validate_on_update
-  #         errors.add_to_base("No changes have occured") if unchanged_attributes?
+  #         errors.add_to_base("No changes have occurred") if unchanged_attributes?
   #       end
   #   end
   #
@@ -253,7 +253,7 @@ module ActiveRecord
       #
       # Configuration options:
       # * <tt>in</tt> - An enumerable object of available items
-      # * <tt>message</tt> - Specifieds a customer error message (default is: "is not included in the list")
+      # * <tt>message</tt> - Specifies a customer error message (default is: "is not included in the list")
       # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
       def validates_inclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
@@ -272,7 +272,7 @@ module ActiveRecord
         end
       end
 
-      # Validates whether the associated object or objects are all themselves valid. Works with any kind of assocation.
+      # Validates whether the associated object or objects are all themselves valid. Works with any kind of association.
       #
       #   class Book < ActiveRecord::Base
       #     has_many :pages

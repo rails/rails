@@ -65,7 +65,7 @@ module ActionController
       parts - parts.last(1 + tld_length)
     end
 
-    # Recieve the raw post data. 
+    # Receive the raw post data. 
     # This is useful for services such as REST, XMLRPC and SOAP 
     # which communicate over HTTP POST but don't use the traditional parameter format. 
     def raw_post

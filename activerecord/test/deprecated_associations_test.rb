@@ -249,11 +249,11 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   end
 
   def test_has_and_belongs_to_many_adding_a_collection
-    aridridel = Developer.new("name" => "Aridridel")
-    aridridel.save
+    aredridel = Developer.new("name" => "Aredridel")
+    aredridel.save
 
-    aridridel.add_projects([ Project.find(1), Project.find(2) ])
-    assert_equal 2, aridridel.projects_count
+    aredridel.add_projects([ Project.find(1), Project.find(2) ])
+    assert_equal 2, aredridel.projects_count
   end
 
   def test_belongs_to_counter

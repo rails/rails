@@ -22,7 +22,7 @@ module ActiveRecord
   # * (9) after_save
   #
   # That's a total of nine callbacks, which gives you immense power to react and prepare for each state in the
-  # Active Record lifecyle.
+  # Active Record lifecycle.
   #
   # Examples:
   #   class CreditCard < ActiveRecord::Base
@@ -125,7 +125,7 @@ module ActiveRecord
   #       end
   #
   #       def decrypt(value)
-  #         # Secrecy is unvieled
+  #         # Secrecy is unveiled
   #       end
   #   end
   #

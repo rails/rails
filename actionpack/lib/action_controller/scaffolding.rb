@@ -44,7 +44,7 @@ module ActionController
     #    def create
     #      @entry = Entry.new(@params["entry"])
     #      if @entry.save
-    #        flash["notice"] = "Entry was succesfully created"
+    #        flash["notice"] = "Entry was successfully created"
     #        redirect_to :action => "list"
     #      else
     #        render "entry/new"
@@ -61,7 +61,7 @@ module ActionController
     #      @entry.attributes = @params["entry"]
     #  
     #      if @entry.save
-    #        flash["notice"] = "Entry was succesfully updated"
+    #        flash["notice"] = "Entry was successfully updated"
     #        redirect_to :action => "show/" + @entry.id.to_s
     #      else
     #        render "entry/edit"
@@ -123,7 +123,7 @@ module ActionController
           def create#{suffix}
             @#{singular_name} = #{class_name}.new(@params["#{singular_name}"])
             if @#{singular_name}.save
-              flash["notice"] = "#{class_name} was succesfully created"
+              flash["notice"] = "#{class_name} was successfully created"
               redirect_to :action => "list#{suffix}"
             else
               render "#{singular_name}/new#{suffix}"
@@ -140,7 +140,7 @@ module ActionController
             @#{singular_name}.attributes = @params["#{singular_name}"]
 
             if @#{singular_name}.save
-              flash["notice"] = "#{class_name} was succesfully updated"
+              flash["notice"] = "#{class_name} was successfully updated"
               redirect_to :action => "show#{suffix}/" + @#{singular_name}.id.to_s
             else
               render "#{singular_name}/edit#{suffix}"

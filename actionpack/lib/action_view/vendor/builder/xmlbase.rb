@@ -76,7 +76,7 @@ module Builder #:nodoc:
     end
 
     # Append text to the output target.  Escape any markup.  May be
-    # used within the markup brakets as:
+    # used within the markup brackets as:
     #
     #   builder.p { br; text! "HI" }   #=>  <p><br/>HI</p>
     def text!(text)
@@ -84,7 +84,7 @@ module Builder #:nodoc:
     end
     
     # Append text to the output target without escaping any markup.
-    # May be used within the markup brakets as:
+    # May be used within the markup brackets as:
     #
     #   builder.p { |x| x << "<br/>HI" }   #=>  <p><br/>HI</p>
     #
@@ -94,7 +94,7 @@ module Builder #:nodoc:
     #
     # It is also useful for stacking builder objects.  Builders only
     # use <tt><<</tt> to append to the target, so by supporting this
-    # method/operation builders can use oother builders as their
+    # method/operation builders can use other builders as their
     # targets.
     def <<(text)
       _text(text)

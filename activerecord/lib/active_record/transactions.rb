@@ -20,7 +20,7 @@ module ActiveRecord
     end
 
     # Transactions are protective blocks where SQL statements are only permanent if they can all succeed as one atomic action. 
-    # The classic example is a transfer between two accounts where you can only have a deposit if the withdrawal succedded and
+    # The classic example is a transfer between two accounts where you can only have a deposit if the withdrawal succeeded and
     # vice versa. Transaction enforce the integrity of the database and guards the data against program errors or database break-downs.
     # So basically you should use transaction blocks whenever you have a number of statements that must be executed together or
     # not at all. Example:

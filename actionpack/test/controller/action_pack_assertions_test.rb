@@ -195,7 +195,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     assert_success
   end
   
-  # -- standard request/reponse object testing --------------------------------
+  # -- standard request/response object testing --------------------------------
  
   # ensure our session is working properly
   def test_session_objects
