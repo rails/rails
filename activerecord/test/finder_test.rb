@@ -10,6 +10,13 @@ class FinderTest < Test::Unit::TestCase
     assert_equal(@topics["first"]["title"], Topic.find(1).title)
   end
   
+  def test_exists
+    assert (Topic.exists?(1))
+    assert !(Topic.exists?(45))
+    assert !(Topic.exists?("foo"))
+    assert !(Topic.exists?([1,2]))
+  end
+  
   def test_find_by_array_of_one_id
     assert_kind_of(Array, Topic.find([ 1 ]))
        assert_equal(1, Topic.find([ 1 ]).length)

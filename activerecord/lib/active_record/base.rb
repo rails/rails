@@ -326,6 +326,13 @@ module ActiveRecord #:nodoc:
         end
       end
 
+      # Returns true if the given +id+ represents the primary key of a record in the database, false otherwise.
+      # Example:
+      #   Person.exists?(5)
+      def exists?(id)
+        !find_first("#{primary_key} = #{sanitize(id)}").nil?
+      end
+
       # This method is deprecated in favor of find with the :conditions option.
       # Works like find, but the record matching +id+ must also meet the +conditions+.
       # +RecordNotFound+ is raised if no record can be found matching the +id+ or meeting the condition.
