@@ -386,6 +386,14 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 2, @signals37.clients_of_firm(true).size
   end
 
+  def test_build_many
+    new_clients = @signals37.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}])
+    assert_equal 2, new_clients.size
+
+    assert @signals37.save
+    assert_equal 3, @signals37.clients_of_firm(true).size
+  end
+
   def test_invalid_build
     new_client = @signals37.clients_of_firm.build
     assert new_client.new_record?
@@ -402,6 +410,11 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert !new_client.new_record?
     assert_equal new_client, @signals37.clients_of_firm.last
     assert_equal new_client, @signals37.clients_of_firm(true).last
+  end
+  
+  def test_create_many
+    @signals37.clients_of_firm.create([{"name" => "Another Client"}, {"name" => "Another Client II"}])
+    assert_equal 3, @signals37.clients_of_firm(true).size
   end
 
   def test_deleting

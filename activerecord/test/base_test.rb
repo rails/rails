@@ -114,6 +114,12 @@ class BasicsTest < Test::Unit::TestCase
     topicReloaded = Topic.find(id)
     assert_equal("New Topic", topicReloaded.title)
   end
+  
+  def test_create_many
+    topics = Topic.create([ { "title" => "first" }, { "title" => "second" }])
+    assert_equal 2, topics.size
+    assert_equal "first", topics.first.title
+  end
 
   def test_create_columns_not_equal_attributes
     topic = Topic.new
@@ -256,12 +262,22 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_destroy_all
-    assert_equal(2, Topic.find_all.size)
+    assert_equal 2, Topic.find_all.size
 
     Topic.destroy_all "author_name = 'Mary'"
-    assert_equal(1, Topic.find_all.size)
+    assert_equal 1, Topic.find_all.size
   end
-  
+
+  def test_destroy_many
+    Client.destroy([2, 3])
+    assert_equal 0, Client.count
+  end
+
+  def test_delete_many
+    Topic.delete([1, 2])
+    assert_equal 0, Topic.count
+  end
+
   def test_boolean_attributes
     assert ! Topic.find(1).approved?
     assert Topic.find(2).approved?
@@ -292,20 +308,12 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal "bulk updated again!", Topic.find(2).content
   end
 
-  def test_update_collection
-    ids_and_attributes = { "1" => { "content" => "1 updated" }, "2" => { "content" => "2 updated" } }
-    updated = Topic.update_collection(ids_and_attributes)
+  def test_update_many
+    topic_data = { "1" => { "content" => "1 updated" }, "2" => { "content" => "2 updated" } }
+    updated = Topic.update(topic_data.keys, topic_data.values)
 
     assert_equal 2, updated.size
     assert_equal "1 updated", Topic.find(1).content
-    assert_equal "2 updated", Topic.find(2).content
-
-    ids_and_attributes["1"]["content"] = "one updated"
-    ids_and_attributes["2"]["content"] = "two updated"
-    updated = Topic.update_collection(ids_and_attributes) { |ar, attrs| ar.id == 1 }
-
-    assert_equal 1, updated.size
-    assert_equal "one updated", Topic.find(1).content
     assert_equal "2 updated", Topic.find(2).content
   end
 

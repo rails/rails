@@ -53,9 +53,13 @@ module ActiveRecord
       
       def create(attributes = {})
         # Can't use Base.create since the foreign key may be a protected attribute.
-        record = build(attributes)
-        record.save unless @owner.new_record?
-        record
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| create(attr) }
+        else
+          record = build(attributes)
+          record.save unless @owner.new_record?
+          record
+        end
       end
 
       # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been loaded and

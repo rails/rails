@@ -340,28 +340,38 @@ module ActiveRecord #:nodoc:
       # Creates an object, instantly saves it as a record (if the validation permits it), and returns it. If the save
       # fail under validations, the unsaved object is still returned.
       def create(attributes = nil)
-        object = new(attributes)
-        object.save
-        object
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| create(attr) }
+        else
+          object = new(attributes)
+          object.save
+          object
+        end
       end
 
       # Finds the record from the passed +id+, instantly saves it with the passed +attributes+ (if the validation permits it), 
       # and returns it. If the save fail under validations, the unsaved object is still returned.
       def update(id, attributes)
-        object = find(id)
-        object.attributes = attributes
-        object.save
-        object
+        if id.is_a?(Array)
+          idx = -1
+          id.collect { |id| idx += 1; update(id, attributes[idx]) }
+        else
+          object = find(id)
+          object.update_attributes(attributes)
+          object
+        end
       end
 
-      # Deletes the record with the given +id+ without instantiating an object first.
+      # Deletes the record with the given +id+ without instantiating an object first. If an array of ids is provided, all of them
+      # are deleted.
       def delete(id)
-        delete_all([ "#{primary_key} = ?", id ])
+        delete_all([ "#{primary_key} IN (?)", id ])
       end
       
       # Destroys the record with the given +id+ by instantiating the object and calling #destroy (all the callbacks are the triggered).
+      # If an array of ids is provided, all of them are destroyed.
       def destroy(id)
-        find(id).destroy
+        id.is_a?(Array) ? id.each { |id| destroy(id) } : find(id).destroy
       end
 
       # Updates all records with the SET-part of an SQL update statement in +updates+ and returns an integer with the number of rows updates.
@@ -373,47 +383,6 @@ module ActiveRecord #:nodoc:
         return connection.update(sql, "#{name} Update")
       end
 
-      # Updates several records at a time using the pattern of a hash that contains id => {attributes} pairs as contained in +id_and_attributes_pairs+.
-      # If there are certain conditions that must be met in order for the update to occur, an optional block
-      # containing a conditional statement may be used.  Example:
-      #   Person.update_collection { 23 => { "first_name" => "John", "last_name" => "Peterson" },
-      #                        25 => { "first_name" => "Duane", "last_name" => "Johnson" } }
-      #
-      #   # Updates only those records whose first name begins with 'duane' or 'Duane'
-      #   Person.update_collection @params['people'] do |activerecord_object, new_attributes|
-      #     activerecord_object.first_name =~ /^[dD]uane.*/
-      #   end
-      #
-      # The conditional block may also be of use when you have more than one kind of key in the +id_and_attributes_pairs+ hash.
-      # For example, if you have a view that contains form elements of both existing and new records, you might end up with
-      # a hash that looks like this:
-      #   @params['people'] = { "1" => { "first_name" => "Bob", "last_name" => "Schilling" },
-      #                         "2" => { "first_name" => "Joe", "last_name" => "Tycoon" },
-      #                         "new_person" => { "first_name" => "Mary", "last_name" => "Smith" } }
-      # In such a case, you could discriminate against 'updating' the new_person record with the following code:
-      #   Person.update_collection(@params['people']) { |ar, attrs| ar.id.to_i > 0 }
-      #
-      # This works because the to_i method converts all non-integer strings to 0.
-      def update_collection(id_and_attributes_pairs)
-        updated_records = Array.new
-
-        transaction do
-          records = find(id_and_attributes_pairs.keys)          
-          id_and_attributes_pairs.each do |id, attrs|
-            record = records.select { |r| r.id.to_s == id }.first
-
-            # Update each record unless the closure is false
-            if (!block_given? || (block_given? && yield(record, attrs)))
-              record.update_attributes(attrs)
-              updated_records << record
-            end
-          end
-        end
-
-        return updated_records
-      end
-      
-          
       # Destroys the objects for all the records that matches the +condition+ by instantiating each object and calling
       # the destroy method. Example:
       #   Person.destroy_all "last_login < '2004-04-04'"

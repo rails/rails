@@ -9,11 +9,15 @@ module ActiveRecord
       end
 
       def build(attributes = {})
-        load_target
-        record = @association_class.new(attributes)
-        record[@association_class_primary_key_name] = @owner.id unless @owner.new_record?
-        @target << record
-        record
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| create(attr) }
+        else
+          load_target
+          record = @association_class.new(attributes)
+          record[@association_class_primary_key_name] = @owner.id unless @owner.new_record?
+          @target << record
+          record
+        end
       end
 
       def find_all(runtime_conditions = nil, orderings = nil, limit = nil, joins = nil)
