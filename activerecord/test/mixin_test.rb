@@ -28,7 +28,7 @@ class ListTest < Test::Unit::TestCase
     
   end
 
-  def test_insert          
+  def test_insert
     new = ListMixin.create("parent_id"=>5)
     assert_equal 1, new.pos
     assert new.first?
@@ -48,8 +48,7 @@ class ListTest < Test::Unit::TestCase
     assert_equal 1, new.pos
     assert new.first?
     assert new.last?
-  end  
-  
+  end    
   
   def test_delete_middle
     first = ListMixin.create("parent_id"=>5)
@@ -68,6 +67,12 @@ class ListTest < Test::Unit::TestCase
     
   end  
 
+  def test_with_string_based_scope
+    new = ListWithStringScopeMixin.create("parent_id"=>5)
+    assert_equal 1, new.pos
+    assert new.first?
+    assert new.last?
+  end 
 end
 
 class TreeTest < Test::Unit::TestCase

@@ -36,6 +36,8 @@ module ActiveRecord
         def acts_as_list(options = {})
           configuration = { :column => "position", :scope => "1" }
           configuration.update(options) if options.is_a?(Hash)
+
+          configuration[:scope] = "#{configuration[:scope]}_id".intern if configuration[:scope].is_a?(Symbol) && configuration[:scope].to_s !~ /_id$/
           
           class_eval <<-EOV
             include InstanceMethods
@@ -45,11 +47,7 @@ module ActiveRecord
             end
 
             def scope_condition
-              if configuration[:scope].is_a?(Symbol)
-                "#{configuration[:scope]} = \#{#{configuration[:scope]}}"
-              else
-                configuration[:scope]
-              end
+              "#{configuration[:scope].is_a?(Symbol) ? configuration[:scope].to_s + " = \#{" + configuration[:scope].to_s + "}" : configuration[:scope]}"
             end
             
             before_destroy :remove_from_list
