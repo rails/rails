@@ -9,7 +9,7 @@ require 'rbconfig'
 
 PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME        = 'rails'
-PKG_VERSION     = '0.10.0' + PKG_BUILD
+PKG_VERSION     = '0.10.1' + PKG_BUILD
 PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 
@@ -237,11 +237,11 @@ spec = Gem::Specification.new do |s|
   EOF
 
   s.add_dependency('rake', '>= 0.4.15')
-  s.add_dependency('activesupport',    '= 1.0.0' + PKG_BUILD)
-  s.add_dependency('activerecord',     '= 1.7.0' + PKG_BUILD)
-  s.add_dependency('actionpack',       '= 1.5.0' + PKG_BUILD)
-  s.add_dependency('actionmailer',     '= 0.7.0' + PKG_BUILD)
-  s.add_dependency('actionwebservice', '= 0.5.0' + PKG_BUILD)
+  s.add_dependency('activesupport',    '= 1.0.1' + PKG_BUILD)
+  s.add_dependency('activerecord',     '= 1.8.0' + PKG_BUILD)
+  s.add_dependency('actionpack',       '= 1.5.1' + PKG_BUILD)
+  s.add_dependency('actionmailer',     '= 0.7.1' + PKG_BUILD)
+  s.add_dependency('actionwebservice', '= 0.6.0' + PKG_BUILD)
 
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false

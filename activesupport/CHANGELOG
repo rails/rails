@@ -1,4 +1,4 @@
-*SVN*
+*1.0.1* (7th March, 2005)
 
 * Fixed Hash#indifferent_access to also deal with include? and fetch and nested hashes #726 [Nicholas Seckar]
 

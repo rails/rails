@@ -1,4 +1,4 @@
-*SVN*
+*1.5.1* (7th March, 2005)
 
 * Fixed that the routes.rb file wouldn't be found on symlinked setups due to File.expand_path #793 [piotr@t-p-l.com]
 

@@ -1,4 +1,4 @@
-*0.6.0* (Unreleased)
+*0.6.0* (7th March, 2005)
 
 * Add action_controller/test_invoke, used for integrating AWS with the Rails testing infrastructure
 

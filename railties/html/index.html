@@ -61,6 +61,11 @@
 </ol>
 
 <p>
+  Trying to setup a default page for Rails using Routes? You'll have to delete this file (public/index.html) to get under way. Then define a new route in <tt>config/routes.rb</tt> of the form:
+  <pre>  map.connect '', :controller => 'wiki/page', :action => 'show', :title => 'Welcome'</pre>
+</p>
+
+<p>
   Having problems getting up and running? First try debugging it yourself by looking at the log files. <br/>
   Then try the friendly Rails community <a href="http://www.rubyonrails.org">on the web</a> or <a href="http://www.rubyonrails.org/show/IRC">on IRC</a>
   (<a href="irc://irc.freenode.net/#rubyonrails">FreeNode#rubyonrails</a>).

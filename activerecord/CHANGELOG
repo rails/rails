@@ -1,4 +1,4 @@
-*SVN*
+*1.8.0* (7th March, 2005)
 
 * Added ActiveRecord::Base.colorize_logging to control whether to use colors in logs or not (on by default)
 

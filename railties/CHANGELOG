@@ -1,4 +1,4 @@
-*SVN*
+*0.10.1* (7th March, 2005)
 
 * Fixed rake stats to ignore editor backup files like model.rb~ #791 [skanthak]
 
@@ -29,6 +29,8 @@
 * Added early failure if the Ruby version isn't 1.8.2 or above #735
 
 * Removed the obsolete -i/--index option from the WEBrick servlet #743
+
+* Upgraded to Active Record 1.8.0, Action Pack 1.5.1, Action Mailer 0.7.1, Action Web Service 0.6.0, Active Support 1.0.1
 
 
 *0.10.0* (24th February, 2005)
