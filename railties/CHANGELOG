@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed -h/--help for generate and destroy generators #331
+
 * Added begin/rescue around the FCGI dispatcher so no uncaught exceptions can bubble up to kill the process (logs to log/fastcgi.crash.log)
 
 * Fixed that association#count would produce invalid sql when called sequentialy #659 [kanis@comcard.de]
