@@ -1,3 +1,8 @@
+*SVN*
+
+* Added String#to_time and String#to_date for wrapping ParseDate
+
+
 *1.0.0* (24th February, 2005)
 
 * Added TimeZone as the first of a number of value objects that among others Active Record can use rich value objects using composed_of #688 [Jamis Buck]

@@ -61,4 +61,10 @@ class StringInflectionsTest < Test::Unit::TestCase
       assert_equal(class_name, table_name.classify)
     end
   end
+  
+  def test_string_to_time
+    assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
+    assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:local)
+    assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
+  end
 end
