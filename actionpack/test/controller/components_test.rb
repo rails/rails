@@ -9,6 +9,10 @@ class CallerController < ActionController::Base
     render_component(:controller => "callee", :action => "being_called", :params => { "name" => "David" })
   end
 
+  def calling_from_controller_with_different_status_code
+    render_component(:controller => "callee", :action => "blowing_up")
+  end
+
   def calling_from_template
     render_template "Ring, ring: <%= render_component(:controller => 'callee', :action => 'being_called') %>"
   end
@@ -19,6 +23,10 @@ end
 class CalleeController < ActionController::Base
   def being_called
     render_text "#{@params["name"] || "Lady"} of the House, speaking"
+  end
+  
+  def blowing_up
+    render_text "It's game over, man, just game over, man!", "500 Internal Server Error"
   end
 
   def rescue_action(e) raise end
@@ -39,6 +47,11 @@ class RenderTest < Test::Unit::TestCase
   def test_calling_from_controller_with_params
     get :calling_from_controller_with_params
     assert_equal "David of the House, speaking", @response.body
+  end
+  
+  def test_calling_from_controller_with_different_status_code
+    get :calling_from_controller_with_different_status_code
+    assert_equal 500, @response.response_code
   end
 
   def test_calling_from_template

@@ -22,7 +22,7 @@ module ActionController #:nodoc:
       
       def component_request(options)
         component_request = @request.dup
-        component_request.send(:instance_variable_set, :@parameters, options[:params].merge({ "controller" => options[:controller], "action" => options[:action] }))
+        component_request.send(:instance_variable_set, :@parameters, (options[:params] || {}).merge({ "controller" => options[:controller], "action" => options[:action] }))
         component_request
       end
   end
