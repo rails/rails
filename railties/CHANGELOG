@@ -1,5 +1,7 @@
 *SVN*
 
+* Improved the generated scaffold code a lot to take advantage of recent Rails developments #882 [Tobias Luetke]
+
 * Combined the script/environment.rb used for gems and regular files version. If vendor/rails/* has all the frameworks, then files version is used, otherwise gems #878 [Nicholas Seckar]
 
 * Changed .htaccess to allow dispatch.* to be called from a sub-directory as part of the push with Action Pack to make Rails work on non-vhost setups #826 [Nicholas Seckar/Tobias Luetke]

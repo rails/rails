@@ -6,6 +6,11 @@ class ScaffoldingSandbox
   def sandbox_binding
     binding
   end
+  
+  def default_input_block
+    Proc.new { |record, column| "<p><label for=\"#{record}_#{column.name}\">#{column.human_name}</label><br/>\n#{input(record, column.name)}</p>\n" }
+  end
+  
 end
 
 class ActionView::Helpers::InstanceTag
@@ -54,7 +59,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
   def manifest
     record do |m|
       # Depend on model generator but skip if the model exists.
-      m.dependency 'model', [@name], :collision => :skip
+      m.dependency 'model', [singular_name], :collision => :skip
 
       # Check for class naming collisions.
       m.class_collisions controller_class_path, "#{controller_class_name}Controller", "#{controller_class_name}ControllerTest", "#{controller_class_name}Helper"
@@ -97,19 +102,16 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       end
 
       # Scaffolded forms.
-      scaffold_forms.each do |action|
-        m.complex_template "view_#{action}.rhtml",
-          File.join('app/views',
-                    controller_class_path,
-                    controller_file_name,
-                    "#{action}.rhtml"),
-          :assigns => { :action => action },
-          :insert => 'form.rhtml',
-          :sandbox => lambda { create_sandbox(action) },
-          :begin_mark => 'form',
-          :end_mark => 'eoform',
-          :mark_id => singular_name
-      end
+      m.complex_template "form.rhtml",
+        File.join('app/views',
+                  controller_class_path,
+                  controller_file_name,
+                  "_form.rhtml"),
+        :insert => 'form_scaffolding.rhtml',
+        :sandbox => lambda { create_sandbox },
+        :begin_mark => 'form',
+        :end_mark => 'eoform',
+        :mark_id => singular_name
 
       # Unscaffolded views.
       unscaffolded_actions.each do |action|
@@ -130,15 +132,15 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
     end
 
     def scaffold_views
-      %w(list show)
-    end
-
-    def scaffold_forms
-      %w(new edit)
+      %w(list show new edit)
     end
 
     def scaffold_actions
       scaffold_views + %w(index create update destroy)
+    end
+    
+    def model_name 
+      class_name.demodulize
     end
 
     def unscaffolded_actions
@@ -149,10 +151,8 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       "_#{singular_name}" if options[:suffix]
     end
 
-    def create_sandbox(action)
+    def create_sandbox
       sandbox = ScaffoldingSandbox.new
-      action = if action == 'edit' then 'update' else 'create' end
-      sandbox.form_action = action
       sandbox.singular_name = singular_name
       begin
         sandbox.model_instance = model_instance
@@ -164,7 +164,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       sandbox.suffix = suffix
       sandbox
     end
-
+    
     def model_instance
       base = class_nesting.split('::').inject(Object) do |base, nested|
         break base.const_get(nested) if base.const_defined?(nested)

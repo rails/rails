@@ -1,6 +1,11 @@
 <h1>New <%= singular_name %></h1>
 
 <%%= error_messages_for '<%= singular_name %>' %>
-<%= template_for_inclusion %>
+
+<%%= start_form_tag :action => 'create<%= @suffix %>' %>
+  <%%= render_partial "form" %>
+  
+  <input type="submit" value="Create" />
+<%%= end_form_tag %>
 
 <%%= link_to 'Back', :action => 'list<%= suffix %>' %>
