@@ -453,4 +453,25 @@ class UrlTest < Test::Unit::TestCase
       url.rewrite({ :controller => "msg", :action_prefix => "allous", :action => "new" })
     )
   end
+
+  def test_clean_application_prefix
+    assert_equal "http://www.singlefile.com/namespace/library/books/ISBN/0743536703/show",
+      @library_url.rewrite(:application_prefix => "/namespace")
+  end
+
+  def test_clean_application_prefix_with_controller_prefix
+    assert_equal "http://www.singlefile.com/namespace/shop/",
+      @library_url.rewrite(:application_prefix => "/namespace",
+                           :controller_prefix => "shop" )
+  end
+
+  def test_blank_application_prefix
+    assert_equal "http://www.singlefile.com/library/books/ISBN/0743536703/show",
+      @library_url.rewrite(:application_prefix => "")
+  end
+
+  def test_nil_application_prefix
+    assert_equal "http://www.singlefile.com/library/books/ISBN/0743536703/show",
+      @library_url.rewrite(:application_prefix => nil)
+  end
 end
