@@ -289,7 +289,7 @@ module ActiveRecord #:nodoc:
             if result.size == ids.size
               result
             else
-              raise RecordNotFound, "Couldn't find #{name} with ID in (#{ids_list})#{conditions}"
+              raise RecordNotFound, "Couldn't find all #{name.pluralize} with IDs (#{ids_list})#{conditions}"
             end
         end
       end
@@ -721,7 +721,7 @@ module ActiveRecord #:nodoc:
         def replace_bind_variables(statement, values)
           raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
           bound = values.dup
-          statement.gsub('?') { connection.quote(bound.shift) }
+          statement.gsub('?') { quote_bound_value(bound.shift) }
         end
 
         def replace_named_bind_variables(statement, bind_vars)
@@ -729,10 +729,19 @@ module ActiveRecord #:nodoc:
           statement.gsub(/:(\w+)/) do
             match = $1.to_sym
             if bind_vars.has_key?(match)
-              connection.quote(bind_vars[match])
+              quote_bound_value(bind_vars[match])
             else
               raise PreparedStatementInvalid, "missing value for :#{match} in #{statement}"
             end
+          end
+        end
+
+        def quote_bound_value(value)
+          case value
+            when Array
+              value.map { |v| connection.quote(v) }.join(',')
+            else
+              connection.quote(value)
           end
         end
 

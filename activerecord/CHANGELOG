@@ -1,5 +1,7 @@
 *SVN*
 
+* Added bind-named arrays for interpolating a group of ids or strings in conditions #528 [bitsweat]
+
 * Added that has_and_belongs_to_many associations with additional attributes also can be created between unsaved objects and only committed to the database when Base#save is called on the associator #524 [Eric Anderson]
 
 * Fixed that records fetched with piggy-back attributes or through rich has_and_belongs_to_many associations couldn't be saved due to the extra attributes not part of the table #522 [Eric Anderson]

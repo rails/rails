@@ -146,7 +146,15 @@ class FinderTest < Test::Unit::TestCase
     assert_nothing_raised { bind ':a :a', :a => 1 } # ' ruby-mode
     assert_raises(ActiveRecord::PreparedStatementInvalid) { bind ':a :a', :a => 1, :b => 2 } # ' ruby-mode
   end
-	
+
+  def test_bind_array
+    assert_equal '1,2,3', bind('?', [1, 2, 3])
+    assert_equal %('a','b','c'), bind('?', %w(a b c))
+
+    assert_equal '1,2,3', bind(':a', :a => [1, 2, 3])
+    assert_equal %('a','b','c'), bind(':a', :a => %w(a b c))
+  end
+
   def test_string_sanitation
     assert_not_equal "'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
     assert_equal "'something; select table'", ActiveRecord::Base.sanitize("something; select table")
