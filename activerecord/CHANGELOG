@@ -1,5 +1,7 @@
 *CVS*
 
+* Added Base.default_error_messages as a hash of all the error messages used in the validates_*_of so they can be changed in one place [Tobias Luetke]
+
 * Added automatic transaction block around AssociationCollection.<<, AssociationCollection.delete, and AssociationCollection.destroy_all
 
 * Fixed that Base#find will return an array if given an array -- regardless of the number of elements #270 [Marten]

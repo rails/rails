@@ -38,7 +38,7 @@ module ActiveRecord
   # An +Errors+ object is automatically created for every Active Record.
   module Validations
     VALIDATIONS = %w( validate validate_on_create validate_on_update )
-
+    
     def self.append_features(base) # :nodoc:
       super
 
@@ -56,6 +56,7 @@ module ActiveRecord
     end
 
     module ClassMethods
+            
       # Encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
       #
       #   Model:
@@ -75,7 +76,7 @@ module ActiveRecord
       # ::message: A custom error message (default is: "doesn't match confirmation")
       # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
       def validates_confirmation_of(*attr_names)
-        configuration = { :message => "doesn't match confirmation", :on => :save }
+        configuration = { :message => ActiveRecord::Errors.default_error_messagess[:confirmation], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         for attr_name in attr_names
@@ -99,7 +100,7 @@ module ActiveRecord
       #
       # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
       def validates_acceptance_of(*attr_names)
-        configuration = { :message => "must be accepted", :on => :save }
+        configuration = { :message => ActiveRecord::Errors.default_error_messagess[:accepted], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         for attr_name in attr_names
@@ -114,7 +115,7 @@ module ActiveRecord
       # ::message: A custom error message (default is: "has already been taken")
       # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
       def validates_presence_of(*attr_names)
-        configuration = { :message => "can't be empty", :on => :save }
+        configuration = { :message => ActiveRecord::Errors.default_error_messagess[:empty], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         for attr_name in attr_names
@@ -135,7 +136,7 @@ module ActiveRecord
       # ::too_short: The error message if the attributes go under the boundary  (default is: "is too short (min is %d characters)")
       # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
       def validates_boundries_of(*attr_names)
-        configuration = { :within => 5..20, :too_long => "is too long (max is %d characters)", :too_short => "is too short (min is %d characters)", :on => :save }
+        configuration = { :within => 5..20, :too_long => ActiveRecord::Errors.default_error_messagess[:too_long], :too_short => ActiveRecord::Errors.default_error_messagess[:too_short], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         for attr_name in attr_names
@@ -156,7 +157,7 @@ module ActiveRecord
       # Configuration options:
       # ::message: Specifies a custom error message (default is: "has already been taken")
       def validates_uniqueness_of(*attr_names)
-        configuration = { :message => "has already been taken" }
+        configuration = { :message => ActiveRecord::Errors.default_error_messagess[:taken] }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         for attr_name in attr_names
@@ -266,6 +267,18 @@ module ActiveRecord
       @base, @errors = base, {}
     end
     
+    @@default_error_messagess = {
+      :invalid => "is invalid",
+      :confirmation => "doesn't match confirmation",
+      :accepted  => "must be accepted",
+      :empty => "can't be empty",
+      :too_long => "is too long (max is %d characters)", 
+      :too_short => "is too short (min is %d characters)", 
+      :taken => "has already been taken",
+      }
+    cattr_accessor :default_error_messagess
+
+    
     # Adds an error to the base object instead of any particular attribute. This is used
     # to report errors that doesn't tie to any specific attribute, but rather to the object
     # as a whole. These error messages doesn't get prepended with any field name when iterating
@@ -278,19 +291,19 @@ module ActiveRecord
     # for the same attribute and ensure that this error object returns false when asked if +empty?+. More than one
     # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
     # If no +msg+ is supplied, "invalid" is assumed.
-    def add(attribute, msg = "invalid")
+    def add(attribute, msg = @@default_error_messagess[:invalid])
       @errors[attribute.to_s] = [] if @errors[attribute.to_s].nil?
       @errors[attribute.to_s] << msg
     end
 
     # Will add an error message to each of the attributes in +attributes+ that is empty (defined by <tt>attribute_present?</tt>).
-    def add_on_empty(attributes, msg = "can't be empty")
+    def add_on_empty(attributes, msg = @@default_error_messagess[:empty])
       [attributes].flatten.each { |attr| add(attr, msg) unless @base.attribute_present?(attr.to_s) }
     end
 
     # Will add an error message to each of the attributes in +attributes+ that has a length outside of the passed boundary +range+. 
     # If the length is above the boundary, the too_long_msg message will be used. If below, the too_short_msg.
-    def add_on_boundary_breaking(attributes, range, too_long_msg = "is too long (max is %d characters)", too_short_msg = "is too short (min is %d characters)")
+    def add_on_boundary_breaking(attributes, range, too_long_msg = @@default_error_messagess[:too_long], too_short_msg = @@default_error_messagess[:too_short])
       for attr in [attributes].flatten
         add(attr, too_short_msg % range.begin) if @base.attribute_present?(attr.to_s) && @base.send(attr.to_s).length < range.begin
         add(attr, too_long_msg % range.end) if @base.attribute_present?(attr.to_s) && @base.send(attr.to_s).length > range.end
