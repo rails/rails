@@ -1,9 +1,7 @@
-require 'date'
-
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
-    module Time #:nodoc:
-      # Getting times in different convenient string representations and other objects
+    module Date #:nodoc:
+      # Getting dates in different convenient string representations and other objects
       module Conversions
         def self.append_features(klass)
           super
@@ -14,19 +12,18 @@ module ActiveSupport #:nodoc:
         def to_formatted_s(format = :default)
           case format
             when :default then to_default_s
-            when :db      then strftime("%Y-%m-%d %H:%M:%S")
-            when :short   then strftime("%e %b %H:%M").strip
-            when :long    then strftime("%B %e, %Y %H:%M").strip
+            when :short   then strftime("%e %b").strip
+            when :long    then strftime("%B %e, %Y").strip
           end
         end
 
+        # To be able to keep Dates and Times interchangeable on conversions
         def to_date
-          ::Date.new(year, month, day)
+          self
         end
 
-        # To be able to keep Dates and Times interchangeable on conversions
-        def to_time
-          self
+        def to_time(form = :local)
+          ::Time.send(form, year, month, day)
         end
       end
     end
