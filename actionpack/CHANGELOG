@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed problem with page caching #958 [Rick Olson]
+
+
 *1.7.0* (27th March, 2005)
 
 * Added ActionController::Base.page_cache_extension for setting the page cache file extension (the default is .html) #903 [Andreas]
