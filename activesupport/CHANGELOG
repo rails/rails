@@ -1,3 +1,5 @@
+* Added Byte operations to Numeric, so 5.5.megabytes + 200.kilobytes #461 [Marcel Molina]
+
 * Fixed that Dependencies.reload can't load the same file twice #420 [Kent Sibilev]
 
 * Added Fixnum#ago/until, Fixnum#since/from_now #450 [bitsweat]
