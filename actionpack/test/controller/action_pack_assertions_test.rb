@@ -15,7 +15,7 @@ class ActionPackAssertionsController < ActionController::Base
   # a redirect to an internal location
   def redirect_internal() redirect_to "nothing"; end
 
-  def redirect_to_action() redirect_to :action => "flash_me"; end
+  def redirect_to_action() redirect_to :action => "flash_me", :id => 1, :params => { "panda" => "fun" }; end
 
   def redirect_to_controller() redirect_to :controller => "elsewhere", :action => "flash_me"; end
 
@@ -352,6 +352,8 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     assert_redirected_to :action => "flash_me"
     
     follow_redirect
+    assert_equal 1, @request.parameters["id"]
+
     assert "Inconceivable!", @response.body
   end
   

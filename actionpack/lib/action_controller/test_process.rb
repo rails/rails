@@ -257,7 +257,7 @@ module Test
             raise "Can't follow redirects outside of current controller (#{@response.redirected_to[:controller]})"
           end
           
-          get(@response.redirected_to.delete(:action), @response.redirected_to)
+          get(@response.redirected_to.delete(:action), @response.redirected_to.stringify_keys)
         end
     end
   end
