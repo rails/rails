@@ -114,6 +114,33 @@ module Rails
         @args = args
       end
 
+      # Checks whether the class name that was assigned to this generator
+      # would cause a collision with a Class, Module or other constant
+      # that is already used up by Ruby or RubyOnRails.
+      def collision_with_builtin?
+        builtin = Object.const_get(full_class_name) rescue nil
+        type = case builtin
+          when Class: "Class"
+          when Module: "Module"
+          else "Constant"
+        end
+
+        if builtin then
+          "Sorry, you can't have a #{self.class.generator_name} named\n" +
+          "'#{full_class_name}' because Ruby or RubyOnRails already has\n" +
+          "a #{type} with that name. Please rerun the generator with a\n" +
+          "different name."
+        end
+      end
+
+      # Returns the complete name that the resulting Class would have.
+      # Used in collision_with_builtin(). The default guess is that it is
+      # the same as class_name. Override this in your generator in case
+      # it is wrong.
+      def full_class_name
+        class_name
+      end
+
       protected
         # Look up another generator with the same arguments.
         def generator(name)

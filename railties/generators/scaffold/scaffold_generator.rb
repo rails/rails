@@ -34,6 +34,10 @@ class ScaffoldGenerator < Rails::Generator::Base
     end
   end
 
+  def full_class_name
+    class_name + "Controller"
+  end
+
   protected
     def scaffold_views
       %w(list show new edit)

@@ -4,10 +4,35 @@ require 'rails_generator'
 
 ARGV.shift unless ARGV.empty? or not ['--help', '-h'].include?(ARGV[0])
 
+def find_synonyms(word)
+  require 'open-uri'
+  uri = "http://wordnet.princeton.edu/cgi-bin/webwn2.0?stage=2" +
+    "&word=%s&posnumber=1&searchtypenumber=2&senses=&showglosses=1"
+
+  open(uri % word) do |stream|
+    data = stream.read.gsub("&nbsp;", " ").gsub("<BR>", "")
+    data.scan(/^Sense \d+\n.+?\n\n/m)
+  end
+rescue Exception
+  return nil
+end
+
 unless ARGV.empty?
   begin
     name = ARGV.shift
-    Rails::Generator.instance(name, ARGV).generate
+    generator = Rails::Generator.instance(name, ARGV)
+
+    if msg = generator.collision_with_builtin? then
+      $stderr.puts msg
+
+      if synonyms = find_synonyms(generator.class_name) then
+        $stderr.puts "", "Here's a few synonyms from WordNets.",
+          "Maybe they will help you find an alternative name."
+          "", synonyms
+      end
+    else
+      generator.generate
+    end
   rescue Rails::Generator::UsageError => e
     puts e.message
   end

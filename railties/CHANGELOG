@@ -1,3 +1,9 @@
+*SVN*
+
+* Added protection for creating a model through the generators with a name of an existing class, like Thread or Date.
+  It'll even offer you a synonym using wordnet.princeton.edu as a look-up. No, I'm not kidding :) [Florian Gross]
+
+
 *0.9.2*
 
 * Fixed CTRL-C exists from the Breakpointer to be a clean affair without error dumping [Kent Sibilev]

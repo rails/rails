@@ -19,4 +19,8 @@ class ControllerGenerator < Rails::Generator::Base
       template "view.rhtml", "app/views/#{file_name}/#{action}.rhtml", binding
     end
   end
+
+  def full_class_name
+    class_name + "Controller"
+  end
 end
