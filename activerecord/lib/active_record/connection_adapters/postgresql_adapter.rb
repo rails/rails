@@ -43,8 +43,18 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
-
-    class PostgreSQLAdapter < AbstractAdapter # :nodoc:
+    # The PostgreSQL adapter works both with the C-based (http://www.postgresql.jp/interfaces/ruby/) and the Ruby-base
+    # (available both as gem and from http://rubyforge.org/frs/?group_id=234&release_id=1145) drivers.
+    #
+    # Options:
+    #
+    # * <tt>:host</tt> -- Defaults to localhost
+    # * <tt>:port</tt> -- Defaults to 5432
+    # * <tt>:username</tt> -- Defaults to nothing
+    # * <tt>:password</tt> -- Defaults to nothing
+    # * <tt>:database</tt> -- The name of the database. No default, must be provided.
+    # * <tt>:schema_order</tt> -- An optional schema order string that is using in a SET search_path TO <schema_order> call on connection.
+    class PostgreSQLAdapter < AbstractAdapter
       def select_all(sql, name = nil)
         select(sql, name)
       end

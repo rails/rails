@@ -5,24 +5,6 @@ require 'active_record/connection_adapters/abstract_adapter'
 # Author: Joey Gibson <joey@joeygibson.com>
 # Date:   10/14/2004
 #
-# REQUIREMENTS:
-#
-# This adapter will ONLY work on Windows systems, since it relies on Win32OLE, which,
-# to my knowledge, is only available on Window.
-#
-# It relies on the ADO support in the DBI module. If you are using the
-# one-click installer of Ruby, then you already have DBI installed, but
-# the ADO module is *NOT* installed. You will need to get the latest
-# source distribution of Ruby-DBI from http://ruby-dbi.sourceforge.net/
-# unzip it, and copy the file src/lib/dbd_ado/ADO.rb to
-# X:/Ruby/lib/ruby/site_ruby/1.8/DBD/ADO/ADO.rb (you will need to create
-# the ADO directory). Once you've installed that file, you are ready to go.
-#
-# This module uses the ADO-style DSNs for connection. For example:
-# "DBI:ADO:Provider=SQLOLEDB;Data Source=(local);Initial Catalog=test;User Id=sa;Password=password;"
-# with User Id replaced with your proper login, and Password with your
-# password.
-#
 # I have tested this code on a WindowsXP Pro SP1 system,
 # ruby 1.8.2 (2004-07-29) [i386-mswin32], SQL Server 2000.
 #
@@ -128,8 +110,24 @@ module ActiveRecord
 
     end
 
-    class SQLServerAdapter < AbstractAdapter # :nodoc:
-
+    # This adapter will ONLY work on Windows systems, since it relies on Win32OLE, which,
+    # to my knowledge, is only available on Window.
+    #
+    # It relies on the ADO support in the DBI module. If you are using the
+    # one-click installer of Ruby, then you already have DBI installed, but
+    # the ADO module is *NOT* installed. You will need to get the latest
+    # source distribution of Ruby-DBI from http://ruby-dbi.sourceforge.net/
+    # unzip it, and copy the file <tt>src/lib/dbd_ado/ADO.rb</tt> to
+    # <tt>X:/Ruby/lib/ruby/site_ruby/1.8/DBD/ADO/ADO.rb</tt> (you will need to create
+    # the ADO directory). Once you've installed that file, you are ready to go.
+    #
+    # Options:
+    #
+    # * <tt>:host</tt> -- Defaults to localhost
+    # * <tt>:username</tt> -- Defaults to sa
+    # * <tt>:password</tt> -- Defaults to nothing
+    # * <tt>:database</tt> -- The name of the database. No default, must be provided.
+    class SQLServerAdapter < AbstractAdapter
       def select_all(sql, name = nil)
         add_limit!(sql, nil)
         select(sql, name)

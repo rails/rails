@@ -1,8 +1,3 @@
-# This is an Oracle adapter for the ActiveRecord persistence framework. It relies upon the OCI8
-# driver, which works with Oracle 8i and above. It was developed on Windows 2000
-# against an 8i database, using ActiveRecord 1.6.0 and OCI8 0.1.9. It has also been tested against
-# a 9i database.
-#
 # Implementation notes:
 # 1.  I had to redefine a method in ActiveRecord to make it possible to implement an autonumbering
 #     solution for oracle. It's implemented in a way that is intended to not break other adapters.
@@ -17,23 +12,6 @@
 #     consistency with other adapters I've allowed the LIMIT and OFFSET clauses to be included in
 #     the sql string and later extracted them by parsing the string.
 #
-# Usage notes:
-# 1.  Key generation uses a sequence "rails_sequence" for all tables. (I couldn't find a simple
-#     and safe way of passing table-specific sequence information to the adapter.)
-# 2.  Oracle uses DATE or TIMESTAMP datatypes for both dates and times. Consequently I have had to
-#     resort to some hacks to get data converted to Date or Time in Ruby.
-#     If the column_name ends in _time it's created as a Ruby Time. Else if the
-#     hours/minutes/seconds are 0, I make it a Ruby Date. Else it's a Ruby Time.
-#     This is nasty - but if you use Duck Typing you'll probably not care very much.
-#     In 9i it's tempting to map DATE to Date and TIMESTAMP to Time but I don't think that is
-#     valid - too many databases use DATE for both.
-#     Timezones and sub-second precision on timestamps are not supported.
-# 3.  Default values that are functions (such as "SYSDATE") are not supported. This is a
-#     restriction of the way active record supports default values.
-# 4.  Referential integrity constraints are not fully supported. Under at least
-#     some circumstances, active record appears to delete parent and child records out of
-#     sequence and out of transaction scope. (Or this may just be a problem of test setup.)
-#
 # Do what you want with this code, at your own peril, but if any significant portion of my code
 # remains then please acknowledge my contribution.
 # Copyright 2005 Graham Jenkins
@@ -44,8 +22,8 @@ begin
   require_library_or_gem 'oci8' unless self.class.const_defined? :OCI8
 
   module ActiveRecord
-    module ConnectionAdapters
-      class OCIColumn < Column
+    module ConnectionAdapters #:nodoc:
+      class OCIColumn < Column #:nodoc:
         attr_reader :sql_type
 
         def initialize(name, default, limit, sql_type, scale)
@@ -92,6 +70,33 @@ begin
         end
       end
 
+      # This is an Oracle adapter for the ActiveRecord persistence framework. It relies upon the OCI8
+      # driver (http://rubyforge.org/projects/ruby-oci8/), which works with Oracle 8i and above. 
+      # It was developed on Windows 2000 against an 8i database, using ActiveRecord 1.6.0 and OCI8 0.1.9. 
+      # It has also been tested against a 9i database.
+      #
+      # Usage notes:
+      # * Key generation uses a sequence "rails_sequence" for all tables. (I couldn't find a simple
+      #   and safe way of passing table-specific sequence information to the adapter.)
+      # * Oracle uses DATE or TIMESTAMP datatypes for both dates and times. Consequently I have had to
+      #   resort to some hacks to get data converted to Date or Time in Ruby.
+      #   If the column_name ends in _time it's created as a Ruby Time. Else if the
+      #   hours/minutes/seconds are 0, I make it a Ruby Date. Else it's a Ruby Time.
+      #   This is nasty - but if you use Duck Typing you'll probably not care very much.
+      #   In 9i it's tempting to map DATE to Date and TIMESTAMP to Time but I don't think that is
+      #   valid - too many databases use DATE for both.
+      #   Timezones and sub-second precision on timestamps are not supported.
+      # * Default values that are functions (such as "SYSDATE") are not supported. This is a
+      #   restriction of the way active record supports default values.
+      # * Referential integrity constraints are not fully supported. Under at least
+      #   some circumstances, active record appears to delete parent and child records out of
+      #   sequence and out of transaction scope. (Or this may just be a problem of test setup.)
+      #
+      # Options:
+      #
+      # * <tt>:username</tt> -- Defaults to root
+      # * <tt>:password</tt> -- Defaults to nothing
+      # * <tt>:host</tt> -- Defaults to localhost
       class OCIAdapter < AbstractAdapter
         def quote_string(s)
           s.gsub /'/, "''"
@@ -202,7 +207,7 @@ begin
 
   module ActiveRecord
     class Base
-      def self.oci_connection(config)
+      def self.oci_connection(config) #:nodoc:
         conn = OCI8.new config[:username], config[:password], config[:host]
         conn.exec %q{alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'}
         conn.exec %q{alter session set nls_timestamp_format = 'YYYY-MM-DD HH24:MI:SS'}
@@ -214,7 +219,7 @@ begin
       # Enable the id column to be bound into the sql later, by the adapter's insert method.
       # This is preferable to inserting the hard-coded value here, because the insert method
       # needs to know the id value explicitly.
-      def attributes_with_quotes(creating = true)
+      def attributes_with_quotes(creating = true) #:nodoc:
         aq = attributes_with_quotes_pre_oci creating
         if connection.class == ConnectionAdapters::OCIAdapter
           aq[self.class.primary_key] = ":id" if creating && aq[self.class.primary_key].nil?
@@ -225,7 +230,7 @@ begin
       after_save :write_lobs
 
       # After setting large objects to empty, select the OCI8::LOB and write back the data
-      def write_lobs()
+      def write_lobs() #:nodoc:
         if connection.class == ConnectionAdapters::OCIAdapter
           self.class.columns.select { |c| c.type == :binary }.each { |c|
             break unless value = self[c.name]
@@ -242,8 +247,8 @@ begin
     end
   end
 
-  class OCI8
-    class Cursor
+  class OCI8 #:nodoc:
+    class Cursor #:nodoc:
       alias :define_a_column_pre_ar :define_a_column
       def define_a_column(i)
         case do_ocicall(@ctx) { @parms[i - 1].attrGet(OCI_ATTR_DATA_TYPE) }

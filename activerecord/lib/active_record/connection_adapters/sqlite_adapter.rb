@@ -59,9 +59,8 @@ module ActiveRecord
     end
   end
 
-  module ConnectionAdapters
-    
-    class SQLiteColumn < Column
+  module ConnectionAdapters #:nodoc:
+    class SQLiteColumn < Column #:nodoc:
       def string_to_binary(value)
         value.gsub(/(\0|\%)/) do
           case $1
@@ -81,7 +80,13 @@ module ActiveRecord
       end
     end
 
-    class SQLiteAdapter < AbstractAdapter # :nodoc:
+    # The SQLite adapter works with both the 2.x and 3.x series of SQLite with the sqlite-ruby drivers (available both as gems and
+    # from http://rubyforge.org/projects/sqlite-ruby/).
+    #
+    # Options:
+    #
+    # * <tt>:dbfile</tt> -- Path to the database file.
+    class SQLiteAdapter < AbstractAdapter
       def execute(sql, name = nil)
         log(sql, name) { @connection.execute(sql) }
       end

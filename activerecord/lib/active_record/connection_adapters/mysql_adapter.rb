@@ -41,7 +41,22 @@ module ActiveRecord
   end
  
   module ConnectionAdapters
-    class MysqlAdapter < AbstractAdapter # :nodoc:
+    # The MySQL adapter will work with both Ruby/MySQL, which is a Ruby-based MySQL adapter that comes bundled with Active Record, and with
+    # the faster C-based MySQL/Ruby adapter (available both as a gem and from http://www.tmtm.org/en/mysql/ruby/).
+    #
+    # Options:
+    #
+    # * <tt>:host</tt> -- Defaults to localhost
+    # * <tt>:port</tt> -- Defaults to 3306
+    # * <tt>:socket</tt> -- Defaults to /tmp/mysql.sock
+    # * <tt>:username</tt> -- Defaults to root
+    # * <tt>:password</tt> -- Defaults to nothing
+    # * <tt>:database</tt> -- The name of the database. No default, must be provided.
+    # * <tt>:sslkey</tt> -- Necessary to use MySQL with an SSL connection
+    # * <tt>:sslcert</tt> -- Necessary to use MySQL with an SSL connection
+    # * <tt>:sslcapath</tt> -- Necessary to use MySQL with an SSL connection
+    # * <tt>:sslcipher</tt> -- Necessary to use MySQL with an SSL connection
+    class MysqlAdapter < AbstractAdapter
       LOST_CONNECTION_ERROR_MESSAGES = [ 
         "Server shutdown in progress",
         "Broken pipe", 
