@@ -3,6 +3,12 @@ require File.dirname(__FILE__) + '/../../lib/action_view/helpers/text_helper'
 
 class TextHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TextHelper
+  
+  def test_simple_format
+    assert_equal "<p>crazy\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("crazy\r\n cross\r platform linebreaks")
+    assert_equal "<p>A paragraph</p>\n\n<p>and another one!</p>", simple_format("A paragraph\n\nand another one!")
+    assert_equal "<p>A paragraph\n<br /> With a newline</p>", simple_format("A paragraph\n With a newline")
+  end
 
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", 12)

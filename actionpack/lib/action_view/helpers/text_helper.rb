@@ -90,10 +90,23 @@ module ActionView
         # Returns the text with all the Markdown codes turned into HTML-tags.
         # <i>This method is only available if BlueCloth can be required</i>.
         def markdown(text)
-          text.empty? ? "" : BlueCloth.new(text).to_html
+          text.blank? ? "" : BlueCloth.new(text).to_html
         end
       rescue LoadError
         # We can't really help what's not there
+      end
+      
+      # Returns +text+ transformed into html using very simple formatting rules
+      # Surrounds paragraphs with <tt>&lt;p&gt;</tt> tags, and converts line breaks into <tt>&lt;br /&gt;</tt>
+      # Two consecutive newlines(<tt>\n\n</tt>) are considered as a paragraph, one newline (<tt>\n</tt>) is
+      # considered a linebreak, three or more consecutive newlines are turned into two newlines 
+      def simple_format(text)
+        text.gsub!(/(\r\n|\n|\r)/, "\n") # lets make them newlines crossplatform
+        text.gsub!(/\n\n+/, "\n\n") # zap dupes
+        text.gsub!(/\n\n/, '</p>\0<p>') # turn two newlines into paragraph
+        text.gsub!(/([^\n])(\n)([^\n])/, '\1\2<br />\3') # turn single newline into <br />
+        
+        return '<p>' + text + '</p>' # wrap the first and last line in paragraphs before we're done
       end
 
       # Turns all urls and email addresses into clickable links. The +link+ parameter can limit what should be linked.

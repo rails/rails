@@ -1,5 +1,9 @@
 *SVN*
 
+* Fixed TextHelper#markdown to use blank? instead of empty? so it can deal with nil strings passed #814 [Johan Sörensen]
+
+* Added TextHelper#simple_format as a non-dependency text presentation helper #814 [Johan Sörensen]
+
 * Added that the html options disabled, readonly, and multiple can all be treated as booleans. So specifying <tt>disabled => :true</tt> will give <tt>disabled="disabled"</tt>. #809 [mindel]
 
 * Added path collection syntax for Routes that will gobble up the rest of the url and pass it on to the controller #830 [rayners]. Example:
