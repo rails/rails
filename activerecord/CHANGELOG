@@ -12,6 +12,8 @@
       errors.on(:name)  # => "must be shorter"
       errors.on("name") # => "must be shorter"
 
+* Added Base.validate_presence as an alternative to implementing validate and doing errors.add_on_empty yourself.
+
 * Added Base.validate_confirmation that encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
  
      Model:
@@ -24,10 +26,9 @@
        <%= password_field "person", "password_confirmation" %>
   
    The person has to already have a password attribute (a column in the people table), but the password_confirmation is virtual.
-   It exists only as an in-memory variable for validating the password.
-  
-   NOTE: This validation is only happening on create. When you want to update the record, you'll have to decide and pursue your
-   own course of action.
+   It exists only as an in-memory variable for validating the password. This check is performed both on create and update.
+   See validate_confirmation_on_create and validate_confirmation_on_update if you want to restrict the validation to just one of the two
+   situations.
 
 
 * Added Base.validate_confirmation that encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
@@ -40,7 +41,9 @@
     View:
       <%= check_box "person", "terms_of_service" %>
   
-  The terms_of_service attribute is entirely virtual. It's only used for validation at the time of creation. No database column is needed.
+  The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed both on create and update.
+  See validate_acceptance_on_create and validate_acceptance_on_update if you want to restrict the validation to just one of the two
+  situations.
 
   NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
 

@@ -69,21 +69,30 @@ module ActiveRecord
       #     <%= password_field "person", "password_confirmation" %>
       #
       # The person has to already have a password attribute (a column in the people table), but the password_confirmation is virtual.
-      # It exists only as an in-memory variable for validating the password.
-      #
-      # NOTE: This validation is only happening on create. When you want to update the record, you'll have to decide and pursue your
-      # own course of action.
+      # It exists only as an in-memory variable for validating the password. This check is performed both on create and update.
+      # See validate_confirmation_on_create and validate_confirmation_on_update if you want to restrict the validation to just one of the two
+      # situations.
       def validate_confirmation(*attr_names)
         error_message = attr_names.last.is_a?(String) ? attr_names.pop : "doesn't match confirmation"
 
+        validation_method = block_given? ? yield : "validate"
+
         for attr_name in attr_names
           attr_accessor "#{attr_name}_confirmation"
-          class_eval <<-EOM
-            validate_on_create %{errors.add('#{attr_name}', "#{error_message}") unless #{attr_name} == #{attr_name}_confirmation}
-EOM
+          class_eval(%(#{validation_method} %{errors.add('#{attr_name}', "#{error_message}") unless #{attr_name} == #{attr_name}_confirmation}))
         end
       end
-      
+
+      # Works like validate_confirmation, but only performs the validation on creation (for new records).
+      def validate_confirmation_on_create(*attr_names)
+        validate_confirmation(*attr_names) { "validate_on_create" }
+      end
+
+      # Works like validate_confirmation, but only performs the validation on creation (for new records).
+      def validate_confirmation_on_update(*attr_names)
+        validate_confirmation(*attr_names) { "validate_on_update" }
+      end
+
       # Encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
       #
       #   Model:
@@ -95,18 +104,50 @@ EOM
       #   View:
       #     <%= check_box "person", "terms_of_service" %>
       #
-      # The terms_of_service attribute is entirely virtual. It's only used for validation at the time of creation. No database column is needed.
+      # The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed both on create and update.
+      # See validate_acceptance_on_create and validate_acceptance_on_update if you want to restrict the validation to just one of the two
+      # situations.
       #
       # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
       def validate_acceptance(*attr_names)
         error_message = attr_names.last.is_a?(String) ? attr_names.pop : "must be accepted"
         
+        validation_method = block_given? ? yield : "validate"
+        
         for attr_name in attr_names
           attr_accessor(attr_name)
-          class_eval <<-EOM
-            validate_on_create %{errors.add('#{attr_name}', '#{error_message}') unless #{attr_name} == "1"}
-EOM
+          class_eval(%(#{validation_method} %{errors.add('#{attr_name}', '#{error_message}') unless #{attr_name} == "1"}))
         end
+      end
+      
+      # Works like validate_acceptance, but only performs the validation on creation (for new records).
+      def validate_acceptance_on_create(*attr_names)
+        validate_acceptance(*attr_names) { "validate_on_create" }
+      end
+
+      # Works like validate_acceptance, but only performs the validation on update (for existing records).
+      def validate_acceptance_on_update(*attr_names)
+        validate_acceptance(*attr_names) { "validate_on_update" }
+      end
+
+      def validate_presence(*attr_names)
+        error_message = attr_names.last.is_a?(String) ? attr_names.pop : "can't be empty"
+
+        validation_method = block_given? ? yield : "validate"
+
+        for attr_name in attr_names
+          class_eval(%(#{validation_method} %{errors.add_on_empty('#{attr_name}', "#{error_message}")}))
+        end
+      end
+
+      # Works like validate_presence, but only performs the validation on creation (for new records).
+      def validate_presence_on_create(*attr_names)
+        validate_presence(*attr_names) { "validate_on_create" }
+      end
+
+      # Works like validate_presence, but only performs the validation on update (for existing records).
+      def validate_presence_on_update(*attr_names)
+        validate_presence(*attr_names) { "validate_on_update" }
       end
     end
 

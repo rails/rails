@@ -7,6 +7,11 @@ require 'fixtures/developer'
 class ValidationsTest < Test::Unit::TestCase
   fixtures :topics, :developers
 
+  def teardown
+    Topic.write_inheritable_attribute("validate", [])
+    Topic.write_inheritable_attribute("validate_on_create", [])
+  end
+
   def test_single_field_validation
     r = Reply.new
     r.title = "There's no content!"
@@ -129,12 +134,10 @@ class ValidationsTest < Test::Unit::TestCase
 
     t.title_confirmation = "We should be confirmed"
     assert t.save
-
-    Topic.write_inheritable_attribute("validate_on_create", [])
   end
 
   def test_terms_of_service_agreement
-    Topic.validate_acceptance(:terms_of_service)
+    Topic.validate_acceptance_on_create(:terms_of_service)
 
     t = Topic.create("title" => "We should be confirmed")
     assert !t.save
@@ -142,13 +145,11 @@ class ValidationsTest < Test::Unit::TestCase
 
     t.terms_of_service = "1"
     assert t.save
-
-    Topic.write_inheritable_attribute("validate_on_create", [])
   end
 
 
   def test_eula
-    Topic.validate_acceptance(:eula, "must be abided")
+    Topic.validate_acceptance_on_create(:eula, "must be abided")
 
     t = Topic.create("title" => "We should be confirmed")
     assert !t.save
@@ -156,7 +157,19 @@ class ValidationsTest < Test::Unit::TestCase
 
     t.eula = "1"
     assert t.save
+  end
+  
+  def test_validate_presences
+    Topic.validate_presence(:title, :content)
 
-    Topic.write_inheritable_attribute("validate_on_create", [])
+    t = Topic.create
+    assert !t.save
+    assert_equal "can't be empty", t.errors.on(:title)
+    assert_equal "can't be empty", t.errors.on(:content)
+    
+    t.title = "something"
+    t.content  = "another"
+    
+    assert t.save
   end
 end
