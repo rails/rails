@@ -3,30 +3,6 @@ require 'active_record/associations/has_many_association'
 require 'active_record/associations/has_and_belongs_to_many_association'
 require 'active_record/deprecated_associations'
 
-
-unless Object.respond_to?(:require_association)
-  Object.send(:define_method, :require_association) { |file_name| ActiveRecord::Base.require_association(file_name) }
-end
-
-class Object
-  class << self
-    # Use const_missing to autoload associations so we don't have to
-    # require_association when using single-table inheritance.
-    unless respond_to?(:pre_association_const_missing)
-      alias_method :pre_association_const_missing, :const_missing
-
-      def const_missing(class_id)
-        begin
-          require_association(Inflector.underscore(Inflector.demodulize(class_id.to_s)))
-          return Object.const_get(class_id) if Object.const_defined?(class_id) && Object.const_get(class_id).ancestors.include?(ActiveRecord::Base)
-        rescue LoadError
-          pre_association_const_missing(class_id)
-        end
-      end
-    end
-  end
-end
-
 module ActiveRecord
   module Associations # :nodoc:
     def self.append_features(base)
@@ -478,31 +454,6 @@ module ActiveRecord
         deprecated_has_collection_method(association_name)
       end
 
-      # Loads the <tt>file_name</tt> if reload_associations is true or requires if it's false.
-      def require_association(file_name)
-        if !associations_loaded.include?(file_name)
-          associations_loaded << file_name
-          reload_associations ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
-        end
-      end
-
-      # Resets the list of dependencies loaded (typically to be called by the end of a request), so when require_association is
-      # called for that dependency it'll be loaded anew.
-      def reset_associations_loaded
-        self.associations_loaded = []
-      end
-      
-      # Reload all the associations that have already been loaded once.
-      def reload_associations_loaded
-        associations_loaded.each do |file_name| 
-          begin
-            silence_warnings { load("#{file_name}.rb") }
-          rescue LoadError
-            # The association didn't reside in its own file, so we assume it was required by other means
-          end
-        end
-      end
-
       private
         # Raises an exception if an invalid option has been specified to prevent misspellings from slipping through 
         def validate_options(valid_option_keys, supplied_option_keys)
@@ -619,13 +570,7 @@ module ActiveRecord
         end
 
         def require_association_class(class_name)
-          return unless class_name
-          
-          begin
-            require_association(Inflector.underscore(class_name))
-          rescue LoadError
-            # Failed to load the associated class -- let's hope the developer is doing the requiring himself.
-          end
+          require_association(Inflector.underscore(class_name)) if class_name
         end
     end
   end
