@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActionMailer::Base.raise_delivery_errors = false to the test environment as we checks will be performed against deliveries array instead.
+
 * Added protection for creating a model through the generators with a name of an existing class, like Thread or Date.
   It'll even offer you a synonym using wordnet.princeton.edu as a look-up. No, I'm not kidding :) [Florian Gross]
 
