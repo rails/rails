@@ -324,7 +324,7 @@ module ActionController
       end
     end
     
-    def self.extract_parameter_value(parameter)
+    def self.extract_parameter_value(parameter) #:nodoc:
       value = (parameter.respond_to?(:to_param) ? parameter.to_param : parameter).to_s
       CGI.escape(value)
     end

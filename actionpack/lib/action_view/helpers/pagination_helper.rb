@@ -7,8 +7,6 @@ module ActionView
     # <%= link_to "Previous page", { :page => paginator.current.previous } if paginator.current.previous %>
     #
     # <%= link_to "Next page", { :page => paginator.current.next } of paginator.current.next =%>
-    # 
-    #
     module PaginationHelper
       unless const_defined?(:DEFAULT_OPTIONS)
         DEFAULT_OPTIONS = {

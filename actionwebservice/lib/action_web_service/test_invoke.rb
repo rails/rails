@@ -1,7 +1,7 @@
 require 'test/unit'
 
-module Test
-  module Unit
+module Test # :nodoc:
+  module Unit # :nodoc:
     class TestCase # :nodoc:
       private
         # invoke the specified API method

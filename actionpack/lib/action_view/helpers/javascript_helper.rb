@@ -7,9 +7,9 @@ module ActionView
     # actions in your controllers without reloading the page, but still update certain parts of it using injections into the 
     # DOM. The common use case is having a form that adds a new element to a list without reloading the page.
     #
-    # To be able to use the Javascript helpers, you must either call <%= define_javascript_functions %> (which returns all
+    # To be able to use the Javascript helpers, you must either call <tt><%= define_javascript_functions %></tt> (which returns all
     # the Javascript support functions in a <script> block) or reference the Javascript library using 
-    # <%= javascript_include_tag "prototype" %> (which looks for the library in /javascripts/prototype.js). The latter is
+    # <tt><%= javascript_include_tag "prototype" %></tt> (which looks for the library in /javascripts/prototype.js). The latter is
     # recommended as the browser can then cache the library instead of fetching all the functions anew on every request.
     #
     # If you're the visual type, there's an Ajax movie[http://www.rubyonrails.com/media/video/rails-ajax.mov] demonstrating

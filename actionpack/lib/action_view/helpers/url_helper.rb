@@ -33,27 +33,7 @@ module ActionView
         end
       end
 
-      # Creates a link tag on the image residing at the +src+ using an URL created by the set of +options+. This takes the same options 
-      # as url_for. For a list, see the url_for documentation in link:classes/ActionController/Base.html#M000079. 
-      # It's also possible to pass a string instead of an options hash to get a link tag that just points without consideration. 
-      # The <tt>html_options</tt> works jointly for the image and ahref tag by letting the following special values enter the options on
-      # the image and the rest goes to the ahref:
-      #
-      # * <tt>:alt</tt> - If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
-      # * <tt>:size</tt> - Supplied as "XxY", so "30x45" becomes width="30" and height="45"
-      # * <tt>:border</tt> - Draws a border around the link
-      # * <tt>:align</tt> - Sets the alignment, no special features
-      #
-      # The +src+ can be supplied as a...
-      # * full path, like "/my_images/image.gif"
-      # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
-      # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
-      #
-      # Examples:
-      #   link_image_to "logo", { :controller => "home" }, :alt => "Homepage", :size => "45x80"
-      #   link_image_to "delete", { :action => "destroy" }, :size => "10x10", :confirm => "Are you sure?", "class" => "admin"
-      #
-      # NOTE: This tag is deprecated. Combine the link_to and image_tag yourself instead, like:
+      # This tag is deprecated. Combine the link_to and AssetTagHelper::image_tag yourself instead, like:
       #   link_to(image_tag("rss", :size => "30x45", :border => 0), "http://www.example.com")
       def link_image_to(src, options = {}, html_options = {}, *parameters_for_method_reference)
         image_options = { "src" => src.include?("/") ? src : "/images/#{src}" }

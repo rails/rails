@@ -1,8 +1,8 @@
 module ActiveRecord
-  class IrreversibleMigration < ActiveRecordError
+  class IrreversibleMigration < ActiveRecordError#:nodoc:
   end
   
-  class Migration
+  class Migration #:nodoc:
     class << self
       def up() end
       def down() end
@@ -14,7 +14,7 @@ module ActiveRecord
     end
   end
 
-  class Migrator
+  class Migrator#:nodoc:
     class << self
       def up(migrations_path, target_version = nil)
         new(:up, migrations_path, target_version).migrate

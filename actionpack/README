@@ -177,6 +177,21 @@ A short rundown of the major features:
   {Learn more}[link:classes/ActionView/Helpers/JavascriptHelper.html]
 
 
+* Pagination for navigating lists of results.
+
+    # controller
+    def list
+      @pages, @people =
+        paginate :people, :order_by => 'last_name, first_name'
+    end
+
+    # view
+    <%= link_to "Previous page", { :page => @pages.current.previous } if @pages.current.previous %>
+    <%= link_to "Next page", { :page => @pages.current.next } of @pages.current.next =%>
+
+  {Learn more}[link:classes/ActionController/Pagination.html]
+
+
 * Easy testing of both controller and template result through TestRequest/Response
 
     class LoginControllerTest < Test::Unit::TestCase
