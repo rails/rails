@@ -220,7 +220,9 @@ module WS
           return nil
         end
         soap_obj = soap_class.new(obj.class.instance_variable_get('@qname'))
-        obj.attributes.each do |key, value|
+        obj.class.columns.each do |column|
+          key = column.name.to_s
+          value = obj.send(key)
           soap_obj[key] = SOAP::Mapping._obj2soap(value, map)
         end
         soap_obj
