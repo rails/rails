@@ -21,10 +21,9 @@ TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/testing
 
 LOG_FILES    = %w( apache.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html )
-BIN_FILES    = %w( generate breakpointer console server )
-GENERATORS   = %w( controller mailer model scaffold )
+BIN_FILES    = %w( generate destroy breakpointer console server update )
 
-VENDOR_LIBS = %w( actionpack activerecord actionmailer railties )
+VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport railties )
 
 
 desc "Default Task"
@@ -140,14 +139,6 @@ task :copy_configs do
   cp "environments/production.rb", "#{PKG_DESTINATION}/config/environments/production.rb"
   cp "environments/development.rb", "#{PKG_DESTINATION}/config/environments/development.rb"
   cp "environments/test.rb", "#{PKG_DESTINATION}/config/environments/test.rb"
-end
-
-task :copy_generators do
-  mkdir_p File.join(PKG_DESTINATION, 'script/generators')
-
-  GENERATORS.each do |dir|
-    cp_r File.join('generators', dir), File.join(PKG_DESTINATION, 'script', 'generators', dir)
-  end
 end
 
 task :copy_binfiles do

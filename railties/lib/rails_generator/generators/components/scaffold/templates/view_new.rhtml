@@ -1,0 +1,6 @@
+<h1>New <%= @singular_name %></h1>
+
+<%%= error_messages_for '<%= singular_name %>' %>
+<%= template_for_inclusion %>
+
+<%%= link_to 'Back', :action => 'list<%= suffix %>' %>

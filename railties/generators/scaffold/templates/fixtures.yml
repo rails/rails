@@ -1,7 +1,0 @@
-# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
-
-first_<%= singular_name %>:
-  id: 1
-
-another_<%= singular_name %>:
-  id: 2

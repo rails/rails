@@ -1,0 +1,16 @@
+Description:
+    The 'rails' command creates a new Rails application with a default
+    directory structure and configuration at the path you specify.
+
+Example:
+    rails ~/Code/Ruby/weblog
+
+    This generates a skeletal Rails installation in ~/Code/Ruby/weblog.
+    See the README in the newly created application to get going.
+
+WARNING:
+    Only specify --without-gems if you did not use gems to install Rails.
+    Your application will expect to find activerecord, actionpack, and
+    actionmailer directories in the vendor directory.  A popular way to track
+    the bleeding edge of Rails development is to checkout from source control
+    directly to the vendor directory.  See http://dev.rubyonrails.com

@@ -1,0 +1,10 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+# Set the $base_id variable in the setup method of your tests.
+# It's used to ensure that ids don't clash in some databases.
+<%% $base_id ||= 100000 %>
+
+first_<%= singular_name %>:
+  id: <%%= $base_id %>
+
+another_<%= singular_name %>:
+  id: <%%= $base_id + 1 %>

@@ -2,7 +2,7 @@
 require File.dirname(__FILE__) + '/../config/environment'
 require 'rails_generator'
 require 'rails_generator/simple_logger'
-require 'rails_generator/scripts/generate'
+require 'rails_generator/scripts/destroy'
 
 Rails::Generator::Base.logger = Rails::Generator::SimpleLogger.new(STDOUT)
-Rails::Generator::Scripts::Generate.new.run(ARGV)
+Rails::Generator::Scripts::Destroy.new.run(ARGV)

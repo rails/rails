@@ -1,0 +1,17 @@
+Description:
+    The model generator creates stubs for a new model.
+
+    The generator takes a model name as its argument.  The model name may be
+    given in CamelCase or under_score and should not be suffixed with 'Model'.
+
+    The generator creates a model class in app/models, a test suite in
+    test/unit, and test fixtures in test/fixtures/model_name.yml.
+
+Example:
+    ./script/generate model Account
+
+    This will create an Account model:
+        Model:      app/models/account.rb
+        Test:       test/unit/account_test.rb
+        Fixtures:   test/fixtures/accounts.yml
+

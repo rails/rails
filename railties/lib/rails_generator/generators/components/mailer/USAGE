@@ -1,0 +1,19 @@
+Description:
+    The mailer generator creates stubs for a new mailer and its views.
+
+    The generator takes a mailer name and a list of views as arguments.
+    The mailer name may be given in CamelCase or under_score and should
+    not be suffixed with 'Mailer'.
+
+    The generator creates a mailer class in app/models with view templates
+    in app/views/mailer_name, and a test suite with fixtures in test/unit.
+
+Example:
+    ./script/generate mailer Notifications signup forgot_password invoice
+
+    This will create a NotificationsMailer:
+        Mailer:     app/models/notifications.rb
+        Views:      app/views/notifications/signup.rhtml [...]
+        Test:       test/unit/credit_card_controller_test.rb
+        Fixtures:   test/fixtures/notifications/signup [...]
+

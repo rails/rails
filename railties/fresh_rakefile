@@ -17,14 +17,14 @@ task :doc => [ :appdoc, :stats ]
 desc "Run the unit tests in test/unit"
 Rake::TestTask.new("test_units") { |t|
   t.libs << "test"
-  t.pattern = 'test/unit/*_test.rb'
+  t.pattern = 'test/unit/**/*_test.rb'
   t.verbose = true
 }
 
 desc "Run the functional tests in test/functional"
 Rake::TestTask.new("test_functional") { |t|
   t.libs << "test"
-  t.pattern = 'test/functional/*_test.rb'
+  t.pattern = 'test/functional/**/*_test.rb'
   t.verbose = true
 }
 

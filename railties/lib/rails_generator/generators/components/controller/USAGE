@@ -1,0 +1,30 @@
+Description:
+    The controller generator creates stubs for a new controller and its views.
+
+    The generator takes a controller name and a list of views as arguments.
+    The controller name may be given in CamelCase or under_score and should
+    not be suffixed with 'Controller'.  To create a controller within a
+    module, specify the controller name as 'module/controller'.
+
+    The generator creates a controller class in app/controllers with view
+    templates in app/views/controller_name, a helper class in app/helpers,
+    and a functional test suite in test/functional.
+
+Example:
+    ./script/generate controller CreditCard open debit credit close
+
+    Credit card controller with URLs like /credit_card/debit.
+        Controller: app/controllers/credit_card_controller.rb
+        Views:      app/views/credit_card/debit.rhtml [...]
+        Helper:     app/helpers/credit_card_helper.rb
+        Test:       test/functional/credit_card_controller_test.rb
+
+Modules Example:
+    ./script/generate controller 'admin/credit_card' suspend late_fee
+
+    Credit card admin controller with URLs /admin/credit_card/suspend.
+        Controller: app/controllers/admin/credit_card_controller.rb
+        Views:      app/views/admin/credit_card/debit.rhtml [...]
+        Helper:     app/helpers/admin/credit_card_helper.rb
+        Test:       test/functional/admin/credit_card_controller_test.rb
+

@@ -1,3 +1,8 @@
+*SVN*
+
+* Added new generator framework that informs about its doings on generation and enables updating and destruction of generated artifacts. See the new script/destroy and script/update for more details #487 [bitsweat]
+
+
 *0.9.5* (January 25th, 2005)
 
 * Fixed dependency reloading by switching to a remove_const approach where all Active Records, Active Record Observers, and Action Controllers are reloading by undefining their classes. This enables you to remove methods in all three types and see the change reflected immediately and it fixes #539. This also means that only those three types of classes will benefit from the const_missing and reloading approach. If you want other classes (like some in lib/) to reload, you must use require_dependency to do it.

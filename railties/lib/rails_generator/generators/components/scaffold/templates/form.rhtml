@@ -1,0 +1,5 @@
+<%%= start_form_tag :action => '<%= @form_action %><%= @suffix %>' %>
+<%%= hidden_field '<%= @singular_name %>', 'id' %>
+<%= all_input_tags(@model_instance, @singular_name, {}) %>
+<input type="submit" value="<%= @form_action.to_s.capitalize %>" />
+<%%= end_form_tag %>
