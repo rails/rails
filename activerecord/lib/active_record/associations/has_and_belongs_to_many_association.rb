@@ -81,8 +81,8 @@ module ActiveRecord
 
       def push_with_attributes(record, join_attributes = {})
         raise_on_type_mismatch(record)
-        insert_record_with_join_attributes(record, join_attributes)
-        join_attributes.each { |key, value| record.send(:write_attribute, key, value) }
+        join_attributes.each { |key, value| record[key.to_s] = value }
+        insert_record(record) unless @owner.new_record?
         @target << record
         self
       end
@@ -105,22 +105,33 @@ module ActiveRecord
 
         def insert_record(record)
           return false unless record.save
+
           if @options[:insert_sql]
             @owner.connection.execute(interpolate_sql(@options[:insert_sql], record))
           else
-            sql = "INSERT INTO #{@join_table} (#{@association_class_primary_key_name}, #{@association_foreign_key}) " + 
-                  "VALUES (#{@owner.quoted_id},#{record.quoted_id})"
+            columns = @owner.connection.columns(@join_table, "#{@join_table} Columns")
+
+            attributes = columns.inject({}) do |attributes, column|
+              case column.name
+                when @association_class_primary_key_name
+                  attributes[column.name] = @owner.quoted_id
+                when @association_foreign_key
+                  attributes[column.name] = record.quoted_id
+                else
+                  value = record[column.name]
+                  attributes[column.name] = value unless value.nil?
+              end
+              attributes
+            end
+
+            sql =
+              "INSERT INTO #{@join_table} (#{@owner.send(:quoted_column_names, attributes).join(', ')}) " +
+              "VALUES (#{attributes.values.collect { |value| @owner.send(:quote, value) }.join(', ')})"
+
             @owner.connection.execute(sql)
           end
-          true
-        end
-        
-        def insert_record_with_join_attributes(record, join_attributes)
-          attributes = { @association_class_primary_key_name => @owner.id, @association_foreign_key => record.id }.update(join_attributes)
-          sql = 
-            "INSERT INTO #{@join_table} (#{@owner.send(:quoted_column_names, attributes).join(', ')}) " +
-            "VALUES (#{attributes.values.collect { |value| @owner.send(:quote, value) }.join(', ')})"
-          @owner.connection.execute(sql)
+          
+          return true
         end
         
         def delete_records(records)

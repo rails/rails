@@ -724,6 +724,27 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal 2, aridridel.projects(true).size
   end
 
+  def test_habtm_adding_before_save_with_join_attributes
+    no_of_devels = Developer.count
+    no_of_projects = Project.count
+    now = Date.today
+    ken = Developer.new("name" => "Ken")
+    ken.projects.push_with_attributes( Project.find(1), :joined_on => now )
+    p = Project.new("name" => "Foomatic")
+    ken.projects.push_with_attributes( p, :joined_on => now )
+    assert ken.new_record?
+    assert p.new_record?
+    assert ken.save
+    assert !ken.new_record?
+    assert_equal no_of_devels+1, Developer.count
+    assert_equal no_of_projects+1, Project.count
+    assert_equal 2, ken.projects.size
+    assert_equal 2, ken.projects(true).size
+
+    kenReloaded = Developer.find_by_name 'Ken'
+    kenReloaded.projects.each { |prj| assert_equal(now.to_s, prj.joined_on.to_s) }
+  end
+
   def test_build
     devel = Developer.find(1)
     proj = devel.projects.build("name" => "Projekt")

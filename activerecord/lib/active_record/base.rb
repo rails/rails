@@ -1115,11 +1115,13 @@ module ActiveRecord #:nodoc:
       # an SQL statement. 
       def attributes_with_quotes(include_primary_key = true)
         columns_hash = self.class.columns_hash
+
         attrs_quoted = @attributes.inject({}) do |attrs_quoted, pair| 
           attrs_quoted[pair.first] = quote(pair.last, columns_hash[pair.first]) unless !include_primary_key && pair.first == self.class.primary_key
           attrs_quoted
         end
-        attrs_quoted.delete_if { | key, value | !self.class.columns_hash.keys.include?(key) }
+
+        attrs_quoted.delete_if { |key, value| !self.class.columns_hash.keys.include?(key) }
       end
       
       # Quote strings appropriately for SQL statements.
@@ -1178,7 +1180,7 @@ module ActiveRecord #:nodoc:
 
           unless value.empty?
             attributes[attribute_name] << 
-              [find_parameter_position(multiparameter_name), type_cast_attribute_value(multiparameter_name, value)]
+              [ find_parameter_position(multiparameter_name), type_cast_attribute_value(multiparameter_name, value) ]
           end
         end
 
@@ -1203,10 +1205,10 @@ module ActiveRecord #:nodoc:
       end
 
       def quote_columns(column_quoter, hash)
-        hash.inject({}) {|list, pair|
+        hash.inject({}) do |list, pair|
           list[column_quoter.quote_column_name(pair.first)] = pair.last
           list
-        }
+        end
       end
 
       def quoted_comma_pair_list(column_quoter, hash)
