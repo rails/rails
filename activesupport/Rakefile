@@ -4,7 +4,7 @@ require 'rake/contrib/rubyforgepublisher'
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'activesupport'
-PKG_VERSION   = '1.0.0' + PKG_BUILD
+PKG_VERSION   = '0.9.0' + PKG_BUILD
 PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
 
 task :default => :test
@@ -18,8 +18,8 @@ dist_dirs = [ "lib", "test"]
 spec = Gem::Specification.new do |s|
   s.name = PKG_NAME
   s.version = PKG_VERSION
-  s.summary = "Support and utility classes."
-  s.description = %q{Utility library which carries commonly used classes and goodies from the rails project}
+  s.summary = "Support and utility classes used by the Rails framework."
+  s.description = %q{Utility library which carries commonly used classes and goodies from the Rails framework}
 
   s.files = [ "CHANGELOG" ] + Dir.glob( "lib/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   s.require_path = 'lib'
