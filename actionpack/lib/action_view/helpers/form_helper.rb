@@ -78,6 +78,11 @@ module ActionView
         InstanceTag.new(object, method, self).to_input_field_tag("hidden", options)
       end
 
+      # Works just like text_field, but returns a input tag of the "file" type instead, which won't have any default value.
+      def file_field(object, method, options = {})
+        InstanceTag.new(object, method, self).to_input_field_tag("file", options)
+      end
+
       # Returns a textarea opening and closing tag set tailored for accessing a specified attribute (identified by +method+)
       # on an object assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
       # hash with +options+.
@@ -147,7 +152,7 @@ module ActionView
         html_options.merge!({ "size" => options["maxlength"]}) if options["maxlength"] && !options["size"]
         html_options.delete("size") if field_type == "hidden"
         html_options.merge!({ "type" =>  field_type})
-        html_options.merge!({ "value" => value_before_type_cast }) unless options["value"]
+        html_options.merge!({ "value" => value_before_type_cast }) if options["value"].nil? || field_type == "file"
         add_default_name_and_id(html_options)
         tag("input", html_options)
       end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added FormHelper#file_field and FormTagHelper#file_field_tag for creating file upload fields
+
 * Added :order option for date_select that allows control over the order in which the date dropdowns is used and which of them should be used #619 [Tim Bates]. Examples:
 
     date_select("post", "written_on", :order => [:day, :month, :year])

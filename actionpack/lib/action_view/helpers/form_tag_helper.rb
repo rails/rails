@@ -43,6 +43,10 @@ module ActionView
         text_field_tag(name, value, options.update("type" => "hidden"))
       end
 
+      def file_field_tag(name, options = {})
+        text_field_tag(name, nil, options.update("type" => "file"))
+      end
+
       def password_field_tag(name = "password", value = nil, options = {})
         text_field_tag(name, value, options.update("type" => "password"))
       end
