@@ -40,13 +40,10 @@ module ActionWebService # :nodoc:
           param_types.each{ |type| marshaler.register_type(type) } if param_types
           qname = XSD::QName.new(marshaler.type_namespace, method_name)
           param_def = []
-          i = 0
           if param_types
-            params = params.map do |param|
-              param_type = param_types[i]
-              param_def << ['in', param_type.name, marshaler.lookup_type(param_type).mapping]
-              i += 1
-              [param_type.name, marshaler.ruby_to_soap(param)]
+            params = param_types.zip(params).map do |type, param|
+              param_def << ['in', type.name, marshaler.lookup_type(type).mapping]
+              [type.name, marshaler.ruby_to_soap(param)]
             end
           else
             params = []

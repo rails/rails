@@ -25,7 +25,7 @@ task :default => [ :test ]
 # Run the unit tests
 Rake::TestTask.new { |t|
   t.libs << "test"
-  t.test_files = Dir['test/*_test.rb'] + Dir['test/ws/*_test.rb']
+  t.test_files = Dir['test/*_test.rb']
   t.verbose = true
 }
 

@@ -29,8 +29,7 @@ module ActionWebService # :nodoc:
 
         def cast_expects(api_method, params) # :nodoc:
           return [] if api_method.expects.nil?
-          i = -1
-          api_method.expects.map{ |type| cast(params[i+=1], type) }
+          api_method.expects.zip(params).map{ |type, param| cast(param, type) }
         end
 
         def cast_returns(api_method, return_value) # :nodoc:

@@ -9,12 +9,9 @@ module ActionWebService # :nodoc:
     def canonical_signature_entry(spec, i)
       name = "param#{i}"
       if spec.is_a?(Hash)
-        name = spec.keys.first
-        spec = spec.values.first
-        type = spec
-      else
-        type = spec
+        name, spec = spec.keys.first, spec.values.first
       end
+      type = spec
       if spec.is_a?(Array)
         ArrayType.new(canonical_signature_entry(spec[0], 0), name)
       else
@@ -173,7 +170,7 @@ module ActionWebService # :nodoc:
           yield name, type
         end
       elsif @type_class.respond_to?(:columns)
-        i = 0
+        i = -1
         @type_class.columns.each do |column|
           yield column.name, canonical_signature_entry(column.klass, i += 1)
         end

@@ -78,12 +78,10 @@ module ActionWebService # :nodoc:
             expects = method.expects
             returns = method.returns
             param_def = []
-            i = 0
             if expects
               expects.each do |type|
                 type_binding = @protocol.marshaler.lookup_type(type)
                 param_def << ['in', type.name, type_binding.mapping]
-                i += 1
               end
             end
             if returns

@@ -121,8 +121,7 @@ module ActionWebService # :nodoc:
               api_method = request.api_method
               params = request.method_params
               if api_method && api_method.expects
-                i = 0
-                params = api_method.expects.map{ |type| param = "#{type.name}=>#{params[i].inspect}"; i+= 1; param }
+                params = api_method.expects.zip(params).map{ |type, param| "#{type.name}=>#{param.inspect}" }
               else
                 params = params.map{ |param| param.inspect }
               end
@@ -255,11 +254,9 @@ module ActionWebService # :nodoc:
                         end
                       else
                         expects = method.expects
-                        i = 1
                         expects.each do |type|
                           binding = marshaler.register_type(type)
                           xm.part('name' => type.name, 'type' => binding.qualified_type_name('typens'))
-                          i += 1
                         end if expects
                       end
                     end

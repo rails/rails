@@ -10,13 +10,11 @@
 </p>
 
 <strong>Method Parameters:</strong><br />
-<% i = 0 %>
 <% @scaffold_method.expects.each do |type| %>
   <p>
   <label for="method_params[]"><%= type.name.to_s.camelize %></label><br />
   <%= method_parameter_input_fields(@scaffold_method, type) %>
   </p>
-  <% i += 1 %>
 <% end %>
 
 <%= submit_tag "Invoke" %>

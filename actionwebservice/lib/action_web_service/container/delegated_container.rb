@@ -79,7 +79,7 @@ module ActionWebService # :nodoc:
             raise(ContainerError, "no such web service '#{web_service_name}'")
           end
           service = info[:block]
-          service ? instance_eval(&service) : info[:object]
+          service ? self.instance_eval(&service) : info[:object]
         end
       end
     end

@@ -83,7 +83,18 @@ module Test # :nodoc:
         end
 
         def protocol
-          @protocol ||= ActionWebService::Protocol::Soap::SoapProtocol.new
+          if @protocol.nil?
+            @protocol ||= ActionWebService::Protocol::Soap::SoapProtocol.new
+          else
+            case @protocol
+            when :xmlrpc
+              @protocol = ActionWebService::Protocol::XmlRpc::XmlRpcProtocol.new
+            when :soap
+              @protocol = ActionWebService::Protocol::Soap::SoapProtocol.new
+            else
+              @protocol
+            end
+          end
         end
 
         def is_exception?(obj)
