@@ -60,6 +60,14 @@ module Test #:nodoc:
         msg = build_message(message, "<?> expected in session['?'] but was <?>", expected, key, response.session[key])
         assert_block(msg) { expected == response.session[key] }
       end
+
+      # -- cookie assertions ---------------------------------------------------
+
+      def assert_cookie_equal(expected = nil, key = nil, message = nil)
+        response = acquire_assertion_target
+        msg = build_message(message, "<?> expected in cookies['?'] but was <?>", expected, key, response.cookies[key.to_s].first)
+        assert_block(msg) { expected == response.cookies[key.to_s].first }
+      end
       
       # -- flash assertions ---------------------------------------------------
 

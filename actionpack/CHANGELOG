@@ -1,5 +1,7 @@
 *SVN*
 
+* Added assert_cookie_equal to assert the contents of a named cookie
+
 * Fixed bug in page caching that prevented it from working at all 
 
 
