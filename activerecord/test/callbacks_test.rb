@@ -41,14 +41,11 @@ class CallbackDeveloper < ActiveRecord::Base
     @history ||= []
   end
 
-  # after_initialize and after_find may not be declared using class methods.
-  # They are invoked only if instance methods have been defined.
+  # after_initialize and after_find are invoked only if instance methods have been defined.
   def after_initialize
-    history << [:after_initialize, :method]
   end
 
   def after_find
-    history << [:after_find, :method]
   end
 end
 
@@ -61,15 +58,24 @@ class CallbacksTest < Test::Unit::TestCase
   def test_initialize
     david = CallbackDeveloper.new
     assert_equal [
-      [ :after_initialize,            :method ]
+      [ :after_initialize,            :string ],
+      [ :after_initialize,            :proc   ],
+      [ :after_initialize,            :object ],
+      [ :after_initialize,            :block  ],
     ], david.history
   end
 
   def test_find
     david = CallbackDeveloper.find(1)
     assert_equal [
-      [ :after_find,                  :method ],
-      [ :after_initialize,            :method ]
+      [ :after_find,            :string ],
+      [ :after_find,            :proc   ],
+      [ :after_find,            :object ],
+      [ :after_find,            :block  ],
+      [ :after_initialize,            :string ],
+      [ :after_initialize,            :proc   ],
+      [ :after_initialize,            :object ],
+      [ :after_initialize,            :block  ],
     ], david.history
   end
 
@@ -77,7 +83,10 @@ class CallbacksTest < Test::Unit::TestCase
     david = CallbackDeveloper.new
     david.valid?
     assert_equal [
-      [ :after_initialize,            :method ],
+      [ :after_initialize,            :string ],
+      [ :after_initialize,            :proc   ],
+      [ :after_initialize,            :object ],
+      [ :after_initialize,            :block  ],
       [ :before_validation,           :string ],
       [ :before_validation,           :proc   ],
       [ :before_validation,           :object ],
@@ -101,8 +110,14 @@ class CallbacksTest < Test::Unit::TestCase
     david = CallbackDeveloper.find(1)
     david.valid?
     assert_equal [
-      [ :after_find,                  :method ],
-      [ :after_initialize,            :method ],
+      [ :after_find,            :string ],
+      [ :after_find,            :proc   ],
+      [ :after_find,            :object ],
+      [ :after_find,            :block  ],
+      [ :after_initialize,            :string ],
+      [ :after_initialize,            :proc   ],
+      [ :after_initialize,            :object ],
+      [ :after_initialize,            :block  ],
       [ :before_validation,           :string ],
       [ :before_validation,           :proc   ],
       [ :before_validation,           :object ],
@@ -125,7 +140,10 @@ class CallbacksTest < Test::Unit::TestCase
   def test_create
     david = CallbackDeveloper.create('name' => 'David', 'salary' => 1000000)
     assert_equal [
-      [ :after_initialize,            :method ],
+      [ :after_initialize,            :string ],
+      [ :after_initialize,            :proc   ],
+      [ :after_initialize,            :object ],
+      [ :after_initialize,            :block  ],
       [ :before_validation,           :string ],
       [ :before_validation,           :proc   ],
       [ :before_validation,           :object ],
@@ -165,8 +183,14 @@ class CallbacksTest < Test::Unit::TestCase
     david = CallbackDeveloper.find(1)
     david.save
     assert_equal [
-      [ :after_find,                  :method ],
-      [ :after_initialize,            :method ],
+      [ :after_find,            :string ],
+      [ :after_find,            :proc   ],
+      [ :after_find,            :object ],
+      [ :after_find,            :block  ],
+      [ :after_initialize,            :string ],
+      [ :after_initialize,            :proc   ],
+      [ :after_initialize,            :object ],
+      [ :after_initialize,            :block  ],
       [ :before_validation,           :string ],
       [ :before_validation,           :proc   ],
       [ :before_validation,           :object ],
@@ -206,8 +230,14 @@ class CallbacksTest < Test::Unit::TestCase
     david = CallbackDeveloper.find(1)
     david.destroy
     assert_equal [
-      [ :after_find,                  :method ],
-      [ :after_initialize,            :method ],
+      [ :after_find,            :string ],
+      [ :after_find,            :proc   ],
+      [ :after_find,            :object ],
+      [ :after_find,            :block  ],
+      [ :after_initialize,            :string ],
+      [ :after_initialize,            :proc   ],
+      [ :after_initialize,            :object ],
+      [ :after_initialize,            :block  ],
       [ :before_destroy,              :string ],
       [ :before_destroy,              :proc   ],
       [ :before_destroy,              :object ],
@@ -223,8 +253,14 @@ class CallbacksTest < Test::Unit::TestCase
     david = CallbackDeveloper.find(1)
     CallbackDeveloper.delete(david.id)
     assert_equal [
-      [ :after_find,                  :method ],
-      [ :after_initialize,            :method ]
+      [ :after_find,            :string ],
+      [ :after_find,            :proc   ],
+      [ :after_find,            :object ],
+      [ :after_find,            :block  ],
+      [ :after_initialize,            :string ],
+      [ :after_initialize,            :proc   ],
+      [ :after_initialize,            :object ],
+      [ :after_initialize,            :block  ],
     ], david.history
   end
 
@@ -234,8 +270,14 @@ class CallbacksTest < Test::Unit::TestCase
     CallbackDeveloper.before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
     david.save
     assert_equal [
-      [ :after_find,                  :method ],
-      [ :after_initialize,            :method ],
+      [ :after_find,            :string ],
+      [ :after_find,            :proc   ],
+      [ :after_find,            :object ],
+      [ :after_find,            :block  ],
+      [ :after_initialize,            :string ],
+      [ :after_initialize,            :proc   ],
+      [ :after_initialize,            :object ],
+      [ :after_initialize,            :block  ],
       [ :before_validation,           :string ],
       [ :before_validation,           :proc   ],
       [ :before_validation,           :object ],

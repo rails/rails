@@ -151,8 +151,8 @@ module ActiveRecord
   #
   # Because after_find and after_initialize is called for each object instantiated found by a finder, such as Base.find_all, we've had
   # to implement a simple performance constraint (50% more speed on a simple test case). Unlike all the other callbacks, after_find and
-  # after_initialize can only be declared using an explicit implementation. So using the inheritable callback queue for after_find and
-  # after_initialize won't work.
+  # after_initialize will only be run if an explicit implementation is defined (<tt>def after_find</tt>). In that case, all of the
+  # callback types will be called.
   #
   # == Cancelling callbacks
   #
@@ -209,8 +209,19 @@ module ActiveRecord
     module ClassMethods #:nodoc:
       def instantiate_with_callbacks(record)
         object = instantiate_without_callbacks(record)
-        object.send(:invoke_and_notify, :after_find)
-        object.send(:invoke_and_notify, :after_initialize)
+        
+        if object.send(:respond_to_without_attributes?, :after_find)
+          object.send(:callback, :after_find)
+        else
+          object.send(:invoke_and_notify, :after_find)
+        end
+
+        if object.send(:respond_to_without_attributes?, :after_initialize)
+          object.send(:callback, :after_initialize)
+        else
+          object.send(:invoke_and_notify, :after_initialize)
+        end
+
         object
       end
     end
@@ -223,7 +234,7 @@ module ActiveRecord
     def initialize_with_callbacks(attributes = nil) #:nodoc:
       initialize_without_callbacks(attributes)
       result = yield self if block_given?
-      invoke_and_notify(:after_initialize)
+      respond_to_without_attributes?(:after_initialize) ? callback(:after_initialize) : invoke_and_notify(:after_initialize)
       result
     end
 
