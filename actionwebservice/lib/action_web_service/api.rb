@@ -182,6 +182,16 @@ module ActionWebService # :nodoc:
         @caster.cast_returns(return_value)
       end
 
+      # Returns the index of the first expected parameter
+      # with the given name
+      def expects_index_of(param_name)
+        return -1 if @expects.nil?
+        (0..(@expects.length-1)).each do |i|
+          return i if @expects[i].name.to_s == param_name.to_s
+        end
+        -1
+      end
+
       # String representation of this method
       def to_s
         fqn = ""

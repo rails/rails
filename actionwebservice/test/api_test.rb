@@ -74,6 +74,17 @@ class TC_API < Test::Unit::TestCase
     end
   end
 
+  def test_parameter_names
+    method = API.api_methods[:named_signature]
+    assert_equal 0, method.expects_index_of(:appkey)
+    assert_equal 1, method.expects_index_of(:publish)
+    assert_equal 1, method.expects_index_of('publish')
+    assert_equal 0, method.expects_index_of('appkey')
+    assert_equal -1, method.expects_index_of('blah')
+    assert_equal -1, method.expects_index_of(:missing)
+    assert_equal -1, API.api_methods[:void].expects_index_of('test')
+  end
+
   def test_to_s
     assert_equal 'void Expects(int param0, bool param1)', APITest::API.api_methods[:expects].to_s
   end
