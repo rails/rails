@@ -2,17 +2,18 @@ require 'breakpoint'
 require 'optparse'
 require 'timeout'
 
-options = {
+Options = {
   :ClientURI  => nil,
   :ServerURI  => "druby://localhost:42531",
-  :RetryDelay => 1,
+  :RetryDelay => 3,
+  :Permanent  => true,
   :Verbose    => false
 }
 
 ARGV.options do |opts|
   script_name = File.basename($0)
   opts.banner = [
-    "Usage: ruby #{script_name} [options] [server uri]",
+    "Usage: ruby #{script_name} [Options] [server uri]",
     "",
     "This tool lets you connect to a breakpoint service ",
     "which was started via Breakpoint.activate_drb.",
@@ -29,18 +30,13 @@ ARGV.options do |opts|
     "connections from the server.",
     "Default: Find a good URI automatically.",
     "Example: -c druby://localhost:12345"
-  ) { |options[:ClientURI]| }
+  ) { |Options[:ClientURI]| }
 
   opts.on("-s", "--server-uri=uri",
     "Connect to the server specified at the",
     "specified uri.",
     "Default: druby://localhost:42531"
-  ) { |options[:ServerURI]| }
-
-  opts.on("-v", "--verbose",
-    "Report all connections and disconnections",
-    "Default: false"
-  ) { |options[:Verbose]| }
+  ) { |Options[:ServerURI]| }
 
   opts.on("-R", "--retry-delay=delay", Integer,
     "Automatically try to reconnect to the",
@@ -49,121 +45,146 @@ ARGV.options do |opts|
     "A value of 0 disables automatical",
     "reconnecting completely.",
     "Default: 10"
-  ) { |options[:RetryDelay]| }
+  ) { |Options[:RetryDelay]| }
+
+  opts.on("-P", "--[no-]permanent",
+    "Run the breakpoint client in permanent mode.",
+    "This means that the client will keep continue",
+    "running even after the server has closed the",
+    "connection. Useful for example in Rails."
+  ) { |Options[:Permanent]| }
+
+  opts.on("-V", "--[no-]verbose",
+    "Run the breakpoint client in verbose mode.",
+    "Will produce more messages, for example between",
+    "individual breakpoints. This might help in seeing",
+    "that the breakpoint client is still alive, but adds",
+    "quite a bit of clutter."
+  ) { |Options[:Verbose]| }
 
   opts.separator ""
 
   opts.on("-h", "--help",
     "Show this help message."
   ) { puts opts; exit }
+  opts.on("-v", "--version",
+    "Display the version information."
+  ) do
+    id = %q$Id: breakpoint_client.rb 40 2005-01-22 20:05:00Z flgr $
+    puts id.sub("Id: ", "")
+    puts "(Breakpoint::Version = #{Breakpoint::Version})"
+    exit
+  end
 
   opts.parse!
 end
 
-options[:ServerURI] = ARGV[0] if ARGV[0]
+Options[:ServerURI] = ARGV[0] if ARGV[0]
 
-$running = true
+module Handlers
+  extend self
 
-trap("INT"){$running = false}
+  def breakpoint_handler(workspace, message)
+    puts message
+    IRB.start(nil, nil, workspace)
 
-puts "Waiting for initial breakpoint..."
+    puts ""
+    if Options[:Verbose] then
+      puts "Resumed execution. Waiting for next breakpoint...", ""
+    end
+  end
+
+  def eval_handler(code)
+    result = eval(code, TOPLEVEL_BINDING)
+    if result then
+      DRbObject.new(result)
+    else
+      result
+    end
+  end
+
+  def collision_handler()
+    msg = [
+      "  *** Breakpoint service collision ***",
+      "  Another Breakpoint service tried to use the",
+      "  port already occupied by this one. It will",
+      "  keep waiting until this Breakpoint service",
+      "  is shut down.",
+      "  ",
+      "  If you are using the Breakpoint library for",
+      "  debugging a Rails or other CGI application",
+      "  this likely means that this Breakpoint",
+      "  session belongs to an earlier, outdated",
+      "  request and should be shut down via 'exit'."
+    ].join("\n")
+
+    if RUBY_PLATFORM["win"] then
+      # This sucks. Sorry, I'm not doing this because
+      # I like funky message boxes -- I need to do this
+      # because on Windows I have no way of displaying
+      # my notification via puts() when gets() is still
+      # being performed on STDIN. I have not found a
+      # better solution.
+      begin
+        require 'tk'
+        root = TkRoot.new { withdraw }
+        Tk.messageBox('message' => msg, 'type' => 'ok')
+        root.destroy
+      rescue Exception
+        puts "", msg, ""
+      end
+    else
+      puts "", msg, ""
+    end
+  end
+end
+
+# Used for checking whether we are currently in the reconnecting loop.
+reconnecting = false
 
 loop do
-  DRb.start_service(options[:ClientURI])
+  DRb.start_service(Options[:ClientURI])
 
   begin
-    service = DRbObject.new(nil, options[:ServerURI])
+    service = DRbObject.new(nil, Options[:ServerURI])
 
     begin
-      timeout(10) { service.ping }
-    rescue Timeout::Error, DRb::DRbConnError
-      if options[:Verbose]
-        puts "",
-          "  *** Breakpoint service didn't respond to ping request ***",
-          "  This likely happened because of a misconfigured ACL (see the",
-          "  documentation of Breakpoint.activate_drb, note that by default",
-          "  you can only connect to a remote Breakpoint service via a SSH",
-          "  tunnel), but might also be caused by an extremely slow connection.",
-          ""
-        end
-      raise
-    end
+      service.eval_handler = Handlers.method(:eval_handler)
+      service.collision_handler = Handlers.method(:collision_handler)
+      service.handler = Handlers.method(:breakpoint_handler)
 
-    begin
-      service.register_eval_handler do |code|
-        result = eval(code, TOPLEVEL_BINDING)
-        if result
-          DRbObject.new(result)
-        else
-          result
-        end
-      end 
-
-      service.register_collision_handler do
-        msg = [
-          "  *** Breakpoint service collision ***",
-          "  Another Breakpoint service tried to use the",
-          "  port already occupied by this one. It will",
-          "  keep waiting until this Breakpoint service",
-          "  is shut down.",
-          "  ",
-          "  If you are using the Breakpoint library for",
-          "  debugging a Rails or other CGI application",
-          "  this likely means that this Breakpoint",
-          "  session belongs to an earlier, outdated",
-          "  request and should be shut down via 'exit'."
-        ].join("\n")
-
-        if RUBY_PLATFORM["win"] then
-          # This sucks. Sorry, I'm not doing this because
-          # I like funky message boxes -- I need to do this
-          # because on Windows I have no way of displaying
-          # my notification via puts() when gets() is still
-          # being performed on STDIN. I have not found a
-          # better solution.
-          begin
-            require 'tk'
-            root = TkRoot.new { withdraw }
-            Tk.messageBox('message' => msg, 'type' => 'ok')
-            root.destroy
-          rescue Exception
-            puts "", msg, ""
-          end
-        else
-          puts "", msg, ""
-        end
+      reconnecting = false
+      if Options[:Verbose] then
+        puts "Connection established. Waiting for breakpoint...", ""
       end
 
-      service.register_handler do |workspace, message|
-        puts message
-        IRB.start(nil, nil, workspace)
-        puts "", "Resumed execution. Waiting for next breakpoint...", ""
-      end
-
-      puts "Connection established. Waiting for breakpoint...", "" if options[:Verbose]
-
-      while $running
+      loop do
         begin
           service.ping
         rescue DRb::DRbConnError => error
-          puts "Server exited. Closing connection..." if options[:Verbose]
+          puts "Server exited. Closing connection...", ""
+          exit! unless Options[:Permanent]
           break
         end
 
         sleep(0.5)
       end
     ensure
-      service.unregister_handler
+      service.eval_handler = nil
+      service.collision_handler = nil
+      service.handler = nil
     end
   rescue Exception => error
-    break unless $running
-    if options[:RetryDelay] > 0 then
-      puts "No connection to breakpoint service at #{options[:ServerURI]}:", "  (#{error.inspect})" if options[:Verbose]
-      error.backtrace if $DEBUG
+    if Options[:RetryDelay] > 0 then
+      if not reconnecting then
+        reconnecting = true
+        puts "No connection to breakpoint service at #{Options[:ServerURI]} " +
+           "(#{error.class})"
+        puts error.backtrace if $DEBUG
+        puts "Tries to connect will be made every #{Options[:RetryDelay]} seconds..."
+      end
 
-      puts "  Reconnecting in #{options[:RetryDelay]} seconds..." if options[:Verbose]
- 
-      sleep options[:RetryDelay]
+      sleep Options[:RetryDelay]
       retry
     else
       raise

@@ -21,6 +21,9 @@ require 'drb'
 require 'drb/acl'
 
 module Breakpoint
+  id = %q$Id: breakpoint.rb 41 2005-01-22 20:22:10Z flgr $
+  Version = id.split(" ")[2].to_i
+
   extend self
 
   # This will pop up an interactive ruby session at a
@@ -114,10 +117,10 @@ module Breakpoint
     end
   end
 
-  module CommandBundle #:nodoc:
+  module CommandBundle
     # Proxy to a Breakpoint client. Lets you directly execute code
     # in the context of the client.
-    class Client#:nodoc:
+    class Client
       def initialize(eval_handler) # :nodoc:
         @eval_handler = eval_handler
       end
@@ -133,15 +136,23 @@ module Breakpoint
       end
 
       # Will execute the specified statement at the client.
-      def method_missing(method, *args)
-        if args.empty?
-          result = eval("#{method}")
+      def method_missing(method, *args, &block)
+        if args.empty? and not block
+          result = eval "#{method}"
         else
-          result = eval("#{method}(*Marshal.load(#{Marshal.dump(args).inspect}))")
-        end
-
-        unless [true, false, nil].include?(result)
-          result.extend(DRbUndumped) if result
+          # This is a bit ugly. The alternative would be using an
+          # eval context instead of an eval handler for executing
+          # the code at the client. The problem with that approach
+          # is that we would have to handle special expressions
+          # like "self", "nil" or constants ourself which is hard.
+          remote = eval %{
+            result = lambda { |block, *args| #{method}(*args, &block) }
+            def result.call_with_block(*args, &block)
+              call(block, *args)
+            end
+            result
+          }
+          remote.call_with_block(*args, &block)
         end
 
         return result
@@ -175,6 +186,7 @@ module Breakpoint
     #   client.File.open("temp.txt", "w") { |f| f.puts "Hello" } 
     def client()
       if Breakpoint.use_drb? then
+        sleep(0.5) until Breakpoint.drb_service.eval_handler
         Client.new(Breakpoint.drb_service.eval_handler)
       else
         Client.new(lambda { |code| eval(code, TOPLEVEL_BINDING) })
@@ -205,7 +217,7 @@ module Breakpoint
   # These exceptions will be raised on failed asserts
   # if Breakpoint.asserts_cause_exceptions is set to
   # true.
-  class FailedAssertError < RuntimeError#:nodoc:
+  class FailedAssertError < RuntimeError
   end
 
   # This asserts that the block evaluates to true.
@@ -279,7 +291,7 @@ module Breakpoint
       @collision_handler.call
     end
 
-    def ping; end
+    def ping() end
 
     def add_breakpoint(context, message)
       workspace = IRB::WorkSpace.new(context)
@@ -290,31 +302,7 @@ module Breakpoint
       @handler.call(workspace, message)
     end
 
-    def register_handler(&block)
-      @handler = block
-    end
-
-    def unregister_handler
-      @handler = nil
-    end
-
-    attr_reader :eval_handler
-
-    def register_eval_handler(&block)
-      @eval_handler = block
-    end
-
-    def unregister_eval_handler
-      @eval_handler = lambda { }
-    end
-
-    def register_collision_handler(&block)
-      @collision_handler = block
-    end
-
-    def unregister_collision_handler
-      @collision_handler = lambda { }
-    end
+    attr_accessor :handler, :eval_handler, :collision_handler
   end
 
   # Will run Breakpoint in DRb mode. This will spawn a server
@@ -359,7 +347,8 @@ module Breakpoint
   #
   # Detailed information about running DRb through firewalls is
   # available at http://www.rubygarden.org/ruby?DrbTutorial
-  def activate_drb(uri = nil, allowed_hosts = ['localhost', '127.0.0.1', '::1'], ignore_collisions = false) #:nodoc:
+  def activate_drb(uri = nil, allowed_hosts = ['localhost', '127.0.0.1', '::1'],
+    ignore_collisions = false)
 
     return false if @use_drb
 
@@ -402,7 +391,7 @@ module Breakpoint
   end
 
   # Deactivates a running Breakpoint service.
-  def deactivate_drb #:nodoc:
+  def deactivate_drb
     @service.stop_service unless @service.nil?
     @service = nil
     @use_drb = false
@@ -411,7 +400,7 @@ module Breakpoint
 
   # Returns true when Breakpoints are used over DRb.
   # Breakpoint.activate_drb causes this to be true.
-  def use_drb? #:nodoc:
+  def use_drb?
     @use_drb == true
   end
 end
@@ -440,7 +429,11 @@ module IRB # :nodoc:
     @CONF[:MAIN_CONTEXT] = irb.context
 
     old_sigint = trap("SIGINT") do
-      irb.signal_handle
+      begin
+        irb.signal_handle
+      rescue RubyLex::TerminateLineInput
+        # ignored
+      end
     end
     
     catch(:IRB_EXIT) do
@@ -464,7 +457,7 @@ module IRB # :nodoc:
     end
   end
 
-  class Context#:nodoc:
+  class Context
     alias :old_evaluate :evaluate
     def evaluate(line, line_no)
       if line.chomp == "exit" then
@@ -475,7 +468,7 @@ module IRB # :nodoc:
     end
   end
 
-  class WorkSpace#:nodoc:
+  class WorkSpace
     alias :old_evaluate :evaluate
 
     def evaluate(*args)
@@ -493,7 +486,7 @@ module IRB # :nodoc:
     end
   end
 
-  module InputCompletor#:nodoc:
+  module InputCompletor
     def self.eval(code, context, *more)
       # Big hack, this assumes that InputCompletor
       # will only call eval() when it wants code
@@ -504,9 +497,9 @@ module IRB # :nodoc:
 end
 
 module DRb # :nodoc:
-  class DRbObject#:nodoc:
-    undef :inspect
-    undef :clone
+  class DRbObject
+    undef :inspect if method_defined?(:inspect)
+    undef :clone if method_defined?(:clone)
   end
 end
 
