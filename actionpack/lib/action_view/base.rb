@@ -238,7 +238,8 @@ module ActionView #:nodoc:
       end
 
       def template_exists?(template_path, extension)
-        FileTest.exists?(full_template_path(template_path, extension))
+        (cache_template_loading && @@loaded_templates.has_key?(template_path)) ||
+          FileTest.exists?(full_template_path(template_path, extension))
       end
 
       def read_template_file(template_path)

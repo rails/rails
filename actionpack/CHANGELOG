@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that cached template loading would still check the file system to see if the file existed #258 [Andreas Schwarz]
+
 * Added options to tailor header tag, div id, and div class on ActiveRecordHelper#error_messages_for [josh]
 
 * Added graceful handling of non-alphanumeric names and misplaced brackets in input parameters [bitsweat]
