@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed :overwrite_param so it doesn't delete but reject elements from @request.parameters #982 [raphinou@yahoo.com]
+
 * Added :method option to verify for ensuring that either GET, POST, etc is allowed #984 [Jamis Buck]
 
 * Added options to set cc, bcc, subject, and body for UrlHelper#mail_to #966 [DeLynn]

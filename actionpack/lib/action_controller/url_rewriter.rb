@@ -38,7 +38,7 @@ module ActionController
         path, extras = Routing::Routes.generate(options, @request)
 
         if extras[:overwrite_params]
-          params_copy = @request.parameters.delete_if { |k,v| ["controller","action"].include? k }
+          params_copy = @request.parameters.reject { |k,v| ["controller","action"].include? k }
           params_copy.update extras[:overwrite_params]
           extras.delete(:overwrite_params)
           extras.update(params_copy)
