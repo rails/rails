@@ -1,8 +1,8 @@
 class HashWithIndifferentAccess < Hash
-  def initialize(constructor)
+  def initialize(constructor = {})
     if constructor.is_a?(Hash)
       super()
-      update(constructor.symbolize_keys)
+      update(constructor.stringify_keys)
     else
       super(constructor)
     end
@@ -12,7 +12,7 @@ class HashWithIndifferentAccess < Hash
   
   def [](key)
     case key
-      when Symbol: regular_reader(key) || regular_reader(key.to_s)
+      when Symbol: regular_reader(key.to_s) || regular_reader(key)
       when String: regular_reader(key) || regular_reader(key.to_sym)
       else regular_reader(key)
     end
@@ -21,7 +21,7 @@ class HashWithIndifferentAccess < Hash
   alias_method :regular_writer, :[]= unless method_defined?(:regular_writer)
   
   def []=(key, value)
-    regular_writer(key.is_a?(String) ? key.to_sym : key, value)
+    regular_writer(key.is_a?(Symbol) ? key.to_s : key, value)
   end
 end
 
