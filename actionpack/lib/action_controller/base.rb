@@ -431,7 +431,7 @@ module ActionController #:nodoc:
       # http://www.mnot.net/cache_docs/ for an overview of web caching and
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
       # for the Cache-Control header spec.
-      def send_file(path, options = {})
+      def send_file(path, options = {}) #:doc:
         raise MissingFile unless File.file?(path) and File.readable?(path)
 
         options[:length]   ||= File.size(path)
@@ -483,7 +483,7 @@ module ActionController #:nodoc:
       #   send_data image.data, :type => image.content_type, :disposition => 'inline'
       #
       # See +send_file+ for more information on HTTP Content-* headers and caching.
-      def send_data(data, options = {})
+      def send_data(data, options = {}) #:doc:
         logger.info "Sending data #{options[:filename]}" unless logger.nil?
         send_file_headers! options.merge(:length => data.size)
         render_text data
