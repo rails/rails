@@ -94,6 +94,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
       res.status = $1.to_i
       header.delete('status')
     end
+    res.cookies.concat header.delete('set-cookie')
     header.each { |key, val| res[key] = val.join(", ") }
     
     res.body = body
