@@ -49,7 +49,7 @@ module ActiveRecord
         alias_method :update_attribute_without_validation_skipping, :update_attribute
         alias_method :update_attribute, :update_attribute_with_validation_skipping
 
-        VALIDATIONS.each { |vd| base.class_eval("def self.#{vd}(*methods) write_inheritable_array(\"#{vd}\", methods) end") }
+        VALIDATIONS.each { |vd| base.class_eval("def self.#{vd}(*methods) write_inheritable_array(\"#{vd}\", methods - (read_inheritable_attribute(\"#{vd}\") || [])) end") }
       end
       
       base.extend(ClassMethods)
@@ -353,7 +353,7 @@ module ActiveRecord
           if attr == "base"
             full_messages << msg
           else
-            full_messages << @base.class.human_attribute_name(attr) + " " + msg
+            full_messages << @base.class.human_attribute_name(attr) + " " + msg unless msg.nil?
           end
         end
       end
