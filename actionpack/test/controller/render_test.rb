@@ -126,6 +126,11 @@ class RenderTest < Test::Unit::TestCase
     assert_raises(ActionController::UnknownAction, "No action responded to [clone]") { process_request }
   end
 
+  def test_private_methods
+    @request.action = "determine_layout"
+    assert_raises(ActionController::UnknownAction, "No action responded to [determine_layout]") { process_request }
+  end
+
   def test_access_to_request_in_view
     ActionController::Base.view_controller_internals = false
 

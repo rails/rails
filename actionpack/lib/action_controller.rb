@@ -23,6 +23,7 @@
 
 $:.unshift(File.dirname(__FILE__))
 
+require 'action_controller/support/core_ext'
 require 'action_controller/support/clean_logger'
 require 'action_controller/support/misc'
 require 'action_controller/support/dependencies'
@@ -40,6 +41,7 @@ require 'action_controller/helpers'
 require 'action_controller/cookies'
 require 'action_controller/cgi_process'
 require 'action_controller/caching'
+require 'action_controller/authentication'
 
 ActionController::Base.class_eval do
   include ActionController::Filters
@@ -53,6 +55,7 @@ ActionController::Base.class_eval do
   include ActionController::Cookies
   include ActionController::Session
   include ActionController::Caching
+  include ActionController::Authentication
 end
 
 require 'action_view'

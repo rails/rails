@@ -1,5 +1,7 @@
 *SVN*
 
+* Added authentication framework to protect actions behind a condition and redirect on failure. See ActionController::Authentication for more.
+
 * Added the possibility of passing nil to UrlHelper#link_to to use the link itself as the name
 
 

@@ -3,7 +3,7 @@ module ActionController #:nodoc:
     def self.append_features(base)
       super
       base.extend(ClassMethods)
-      base.class_eval { include ActionController::Filters::InstanceMethods }
+      base.send(:include, ActionController::Filters::InstanceMethods)
     end
 
     # Filters enable controllers to run shared pre and post processing code for its actions. These filters can be used to do 

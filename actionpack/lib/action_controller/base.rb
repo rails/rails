@@ -602,7 +602,7 @@ module ActionController #:nodoc:
 
       def action_methods
         action_controller_classes = self.class.ancestors.reject{ |a| [Object, Kernel].include?(a) }
-        action_controller_classes.inject([]) { |action_methods, klass| action_methods + klass.instance_methods(false) }
+        action_controller_classes.inject([]) { |action_methods, klass| action_methods + klass.public_instance_methods(false) }
       end
 
       def add_variables_to_assigns
