@@ -197,9 +197,7 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
   },
   
   updateContent: function() {
-    this.container.innerHTML = this.request.transport.responseText;
-
-    if (this.options.insertion) {
+    if (!this.options.insertion) {
       this.container.innerHTML = this.request.transport.responseText;
     } else {
       new this.options.insertion(this.container,
