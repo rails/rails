@@ -25,6 +25,28 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
+    
+    class SQLiteColumn < Column
+      
+      def string_to_binary(value)
+        value.gsub(/(\0|\%)/) do
+          case $1
+            when "\0" then "%00"
+            when "%" then "%25"
+          end
+        end                
+      end
+      
+      def binary_to_string(value)
+        value.gsub(/(%00|%25)/) do
+          case $1
+            when "%00" then "\0"
+            when "%25" then "%"
+          end
+        end                
+      end
+      
+    end
     class SQLiteAdapter < AbstractAdapter # :nodoc:
       def select_all(sql, name = nil)
         select(sql, name)
@@ -37,7 +59,7 @@ module ActiveRecord
 
       def columns(table_name, name = nil)
         table_structure(table_name).inject([]) do |columns, field| 
-          columns << Column.new(field['name'], field['dflt_value'], field['type'])
+          columns << SQLiteColumn.new(field['name'], field['dflt_value'], field['type'])
           columns
         end
       end

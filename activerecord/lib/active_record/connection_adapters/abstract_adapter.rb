@@ -184,6 +184,7 @@ module ActiveRecord
           when :timestamp     then Time
           when :time          then Time
           when :text, :string then String
+          when :binary        then String
           when :boolean       then Object
         end
       end
@@ -199,6 +200,7 @@ module ActiveRecord
           when :timestamp then string_to_time(value)
           when :time      then string_to_dummy_time(value)
           when :date      then string_to_date(value)
+          when :binary    then binary_to_string(value)
           when :boolean   then (value == "t" or value == true ? true : false)
           else value
         end
@@ -207,6 +209,14 @@ module ActiveRecord
       def human_name
         Base.human_attribute_name(@name)
       end
+      
+      def string_to_binary(value)
+        value
+      end     
+
+      def binary_to_string(value)
+        value
+      end     
 
       private
         def string_to_date(string)
@@ -229,7 +239,7 @@ module ActiveRecord
           # pad the resulting array with dummy date information
           time_array[0] = 2000; time_array[1] = 1; time_array[2] = 1;
           Time.send(Base.default_timezone, *time_array) rescue nil
-        end
+        end 
         
         def extract_limit(sql_type)
           $1.to_i if sql_type =~ /\((.*)\)/
@@ -249,8 +259,10 @@ module ActiveRecord
               :time
             when /date/i
               :date
-            when /(c|b)lob/i, /text/i
+            when /clob/i, /text/i
               :text
+            when /blob/i, /binary/i
+              :binary
             when /char/i, /string/i
               :string
             when /boolean/i
@@ -323,7 +335,12 @@ module ActiveRecord
 
       def quote(value, column = nil)
         case value
-          when String                then "'#{quote_string(value)}'" # ' (for ruby-mode)
+          when String                
+            if column && column.type == :binary
+              "'#{quote_string(column.string_to_binary(value))}'" # ' (for ruby-mode)
+            else
+              "'#{quote_string(value)}'" # ' (for ruby-mode)
+            end
           when NilClass              then "NULL"
           when TrueClass             then (column && column.type == :boolean ? "'t'" : "1")
           when FalseClass            then (column && column.type == :boolean ? "'f'" : "0")
