@@ -189,4 +189,18 @@ class ValidationsTest < Test::Unit::TestCase
     t2.title = "Now Im really also unique"
     assert t2.save, "Should now save t2 as unique"
   end
+  
+  def test_validate_boundaries
+    Topic.validates_boundries_of(:title, :content, :within => 3..5)
+
+    t = Topic.create("title" => "a!", "content" => "I'm ooooooooh so very long")
+    assert !t.save
+    assert_equal "is too short (min is 3 characters)", t.errors.on(:title)
+    assert_equal "is too long (max is 5 characters)", t.errors.on(:content)
+
+    t.title = "abe"
+    t.content  = "mad"
+
+    assert t.save
+  end
 end

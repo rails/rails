@@ -28,18 +28,21 @@
       errors.on(:name)  # => "must be shorter"
       errors.on("name") # => "must be shorter"
 
+* Added Base.validates_boundries_of that delegates to add_on_boundary_breaking #312 [Tobias Luetke]. Example:
+
+    class Person < ActiveRecord::Base
+      validates_boundries_of :password, :password_confirmation
+      validates_boundries_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
+    end
+
 * Added Base.validate_presence as an alternative to implementing validate and doing errors.add_on_empty yourself.
 
 * Added Base.validates_uniqueness_of that alidates whether the value of the specified attributes are unique across the system. 
   Useful for making sure that only one user can be named "davidhh".
   
-    Model:
-      class Person < ActiveRecord::Base
-        validates_uniqueness_of :user_name
-      end
-  
-    View:
-      <%= text_field "person", "user_name" %>
+    class Person < ActiveRecord::Base
+      validates_uniqueness_of :user_name
+    end
   
   When the record is created, a check is performed to make sure that no record exist in the database with the given value for the specified
   attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
@@ -62,13 +65,9 @@
 
 * Added Base.validates_acceptance_of that encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
   
-    Model:
-      class Person < ActiveRecord::Base
-        validates_acceptance_of :terms_of_service
-      end
-  
-    View:
-      <%= check_box "person", "terms_of_service" %>
+   class Person < ActiveRecord::Base
+     validates_acceptance_of :terms_of_service
+   end
   
   The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed both on create and update.
 

@@ -72,7 +72,7 @@ module ActiveRecord
       # It exists only as an in-memory variable for validating the password. This check is performed both on create and update.
       #
       # Configuration options:
-      # ::message: Specifies a custom error message (default is: "doesn't match confirmation")
+      # ::message: A custom error message (default is: "doesn't match confirmation")
       # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
       def validates_confirmation_of(*attr_names)
         configuration = { :message => "doesn't match confirmation", :on => :save }
@@ -86,19 +86,15 @@ module ActiveRecord
 
       # Encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
       #
-      #   Model:
-      #     class Person < ActiveRecord::Base
-      #       validates_acceptance_of :terms_of_service
-      #       validates_acceptance_of :eula, :message => "must be abided"
-      #     end
-      #
-      #   View:
-      #     <%= check_box "person", "terms_of_service" %>
+      #   class Person < ActiveRecord::Base
+      #     validates_acceptance_of :terms_of_service
+      #     validates_acceptance_of :eula, :message => "must be abided"
+      #   end
       #
       # The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed both on create and update.
       #
       # Configuration options:
-      # ::message: Specifies a custom error message (default is: "must be accepted")
+      # ::message: A custom error message (default is: "must be accepted")
       # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
       #
       # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
@@ -112,7 +108,11 @@ module ActiveRecord
         end
       end
 
-      # TODO: Write docs for me!
+      # Validates that the specified attributes are neither nil nor empty. Happens by default on both create and update.
+      #
+      # Configuration options:
+      # ::message: A custom error message (default is: "has already been taken")
+      # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
       def validates_presence_of(*attr_names)
         configuration = { :message => "can't be empty", :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -121,17 +121,34 @@ module ActiveRecord
           class_eval(%(#{validation_method(configuration[:on])} %{errors.add_on_empty('#{attr_name}', "#{configuration[:message]}")}))
         end
       end
+      
+      # Validates that the specified attributes are within the boundry defined in configuration[:within]. Happens by default on both create and update.
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_boundries_of :password, :password_confirmation
+      #     validates_boundries_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
+      #   end
+      #
+      # Configuration options:
+      # ::within: The range that constitutes the boundary (default is: 6..20)
+      # ::too_long: The error message if the attributes go over the boundary  (default is: "is too long (max is %d characters)")
+      # ::too_short: The error message if the attributes go under the boundary  (default is: "is too short (min is %d characters)")
+      # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
+      def validates_boundries_of(*attr_names)
+        configuration = { :within => 5..20, :too_long => "is too long (max is %d characters)", :too_short => "is too short (min is %d characters)", :on => :save }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
+        for attr_name in attr_names
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add_on_boundary_breaking('#{attr_name}', #{configuration[:within]}, "#{configuration[:too_long]}", "#{configuration[:too_short]}")}))
+        end        
+      end
 
       # Validates whether the value of the specified attributes are unique across the system. Useful for making sure that only one user
       # can be named "davidhh".
       #
-      #   Model:
-      #     class Person < ActiveRecord::Base
-      #       validates_uniqueness_of :user_name
-      #     end
-      #
-      #   View:
-      #     <%= text_field "person", "user_name" %>
+      #   class Person < ActiveRecord::Base
+      #     validates_uniqueness_of :user_name
+      #   end
       #
       # When the record is created, a check is performed to make sure that no record exist in the database with the given value for the specified
       # attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
@@ -146,6 +163,8 @@ module ActiveRecord
           class_eval(%(validate %{errors.add("#{attr_name}", "#{configuration[:message]}") if self.class.find_first(new_record? ? ["#{attr_name} = ?", #{attr_name}] : ["#{attr_name} = ? AND id <> ?", #{attr_name}, id])}))
         end
       end
+      
+      
       
       private
         def validation_method(on)
