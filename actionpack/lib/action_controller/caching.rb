@@ -51,6 +51,11 @@ module ActionController #:nodoc:
     #
     # The cache directory should be the document root for the web server and is set using Base.page_cache_directory = "/document/root".
     # For Rails, this directory has already been set to RAILS_ROOT + "/public".
+    #
+    # == Setting the cache extension
+    #
+    # By default, the cache extension is .html, which makes it easy for the cached files to be picked up by the web server. If you want
+    # something else, like .php or .shtml, just set Base.page_cache_extension.
     module Pages
       def self.append_features(base) #:nodoc:
         super
@@ -58,6 +63,9 @@ module ActionController #:nodoc:
         base.class_eval do
           @@page_cache_directory = defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/public" : ""
           cattr_accessor :page_cache_directory
+
+          @@page_cache_extension = '.html'
+          cattr_accessor :page_cache_extension
         end
       end
 
@@ -91,7 +99,7 @@ module ActionController #:nodoc:
         private
           def page_cache_file(path)
             name = ((path.empty? || path == "/") ? "/index" : path)
-            name << '.html' unless (name.split('/').last || name).include? '.'
+            name << @@page_cache_extension unless (name.split('/').last || name).include? '.'
             return name
           end
         
