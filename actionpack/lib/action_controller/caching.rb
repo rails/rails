@@ -67,7 +67,7 @@ module ActionController #:nodoc:
         def expire_page(path)
           return unless perform_caching
           File.delete(page_cache_path(path)) if File.exists?(page_cache_path(path))
-          logger.info "Expired page: #{path}" unless logger.nil?
+          logger.info "Expired page: #{page_cache_file(path)}" unless logger.nil?
         end
         
         # Manually cache the +content+ in the key determined by +path+. Example:
@@ -76,7 +76,7 @@ module ActionController #:nodoc:
           return unless perform_caching
           FileUtils.makedirs(File.dirname(page_cache_path(path)))
           File.open(page_cache_path(path), "w+") { |f| f.write(content) }
-          logger.info "Cached page: #{path}" unless logger.nil?
+          logger.info "Cached page: #{page_cache_file(path)}" unless logger.nil?
         end
 
         # Caches the +actions+ using the page-caching approach that'll store the cache in a path within the page_cache_directory that
@@ -89,8 +89,12 @@ module ActionController #:nodoc:
         end
         
         private
+          def page_cache_file(path)
+            (path.empty? ? "/index" : path) + ".html"
+          end
+        
           def page_cache_path(path)
-            page_cache_directory + (path.empty? ? "/index" : path) + ".html"
+            page_cache_directory + page_cache_file(path)
           end
       end
 
