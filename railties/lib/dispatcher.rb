@@ -49,9 +49,7 @@ class Dispatcher
     private
       def reset_application
         Dependencies.clear
-        ActiveRecord::Base.remove_subclasses
-        ActiveRecord::Observer.remove_subclasses
-        ActionController::Base.remove_subclasses
+        Dependencies.remove_subclasses_for(ActiveRecord::Base, ActiveRecord::Observer, ActionController::Base)
       end
     
       def controller_path(controller_name, module_name = nil)

@@ -35,6 +35,10 @@ module Dependencies
   def require_or_load(file_name)
     load? ? load("#{file_name}.rb") : require(file_name)
   end
+  
+  def remove_subclasses_for(*classes)
+    classes.each { |klass| klass.remove_subclasses }
+  end
 end
 
 Object.send(:define_method, :require_or_load)     { |file_name| Dependencies.require_or_load(file_name) } unless Object.respond_to?(:require_or_load)
