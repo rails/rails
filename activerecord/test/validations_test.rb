@@ -189,20 +189,6 @@ class ValidationsTest < Test::Unit::TestCase
     t2.title = "Now Im really also unique"
     assert t2.save, "Should now save t2 as unique"
   end
-  
-  def test_validate_boundaries
-    Topic.validates_boundaries_of(:title, :content, :within => 3..5)
-
-    t = Topic.create("title" => "a!", "content" => "I'm ooooooooh so very long")
-    assert !t.save
-    assert_equal "is too short (min is 3 characters)", t.errors.on(:title)
-    assert_equal "is too long (max is 5 characters)", t.errors.on(:content)
-
-    t.title = "abe"
-    t.content  = "mad"
-
-    assert t.save
-  end
 
   def test_validate_format
     Topic.validates_format_of(:title, :content, :with => /^Validation macros rule!$/, :message => "is bad data")
@@ -243,4 +229,123 @@ class ValidationsTest < Test::Unit::TestCase
     assert_nothing_raised(ArgumentError) { Topic.validates_inclusion_of( :title, :in => {} ) }
     assert_nothing_raised(ArgumentError) { Topic.validates_inclusion_of( :title, :in => [] ) }
   end
+
+  def test_validates_length_of_using_minimum
+    Topic.validates_length_of( :title, :minimum=>5 )
+    t = Topic.create("title" => "valid", "content" => "whatever")
+    assert t.valid?
+    t.title = "not"
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "is too short (min is 5 characters)", t.errors["title"]
+    t.title = ""
+    assert !t.valid?
+    assert t.errors.on(:title)
+    t.title = nil
+    assert !t.valid?
+    assert_equal "is too short (min is 5 characters)", t.errors["title"]
+    assert t.errors.on(:title)
+  end
+  
+  def test_validates_length_of_using_maximum
+    Topic.validates_length_of( :title, :maximum=>5 )
+    t = Topic.create("title" => "valid", "content" => "whatever")
+    assert t.valid?
+    t.title = "notvalid"
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "is too long (max is 5 characters)", t.errors["title"]
+    t.title = ""
+    assert t.valid?
+    t.title = nil
+    assert t.valid?
+  end
+
+  def test_validates_length_of_using_within
+    Topic.validates_length_of(:title, :content, :within => 3..5)
+
+    t = Topic.create("title" => "a!", "content" => "I'm ooooooooh so very long")
+    assert !t.save
+    assert_equal "is too short (min is 3 characters)", t.errors.on(:title)
+    assert_equal "is too long (max is 5 characters)", t.errors.on(:content)
+
+    t.title = "abe"
+    t.content  = "mad"
+
+    assert t.save
+  end
+
+  def test_validates_length_of_using_is
+    Topic.validates_length_of( :title, :is=>5 )
+    t = Topic.create("title" => "valid", "content" => "whatever")
+    assert t.valid?
+    t.title = "notvalid"
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "is the wrong length (should be 5 characters)", t.errors["title"]
+    t.title = ""
+    assert !t.valid?
+    t.title = nil
+    assert !t.valid?
+  end
+
+  def test_validates_length_of_nasty_params
+    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :minimum=>6, :maximum=>9) }
+    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :within=>6, :maximum=>9) }
+    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :within=>6, :minimum=>9) }
+    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :within=>6, :is=>9) }
+    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :minimum=>"a") }
+    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :maximum=>"a") }
+    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :within=>"a") }
+    assert_raise(ArgumentError) { Topic.validates_length_of(:title, :is=>"a") }
+  end
+
+  def test_validates_length_of_custom_errors_for_minimum_with_message
+    Topic.validates_length_of( :title, :minimum=>5, :message=>"boo %d" )
+    t = Topic.create("title" => "uhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "boo 5", t.errors["title"]
+  end
+
+  def test_validates_length_of_custom_errors_for_minimum_with_too_short
+    Topic.validates_length_of( :title, :minimum=>5, :too_short=>"hoo %d" )
+    t = Topic.create("title" => "uhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "hoo 5", t.errors["title"]
+  end
+
+  def test_validates_length_of_custom_errors_for_maximum_with_message
+    Topic.validates_length_of( :title, :maximum=>5, :message=>"boo %d" )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "boo 5", t.errors["title"]
+  end
+
+  def test_validates_length_of_custom_errors_for_maximum_with_too_long
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d" )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "hoo 5", t.errors["title"]
+  end
+  
+  def test_validates_length_of_custom_errors_for_is_with_message
+    Topic.validates_length_of( :title, :is=>5, :message=>"boo %d" )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "boo 5", t.errors["title"]
+  end
+
+  def test_validates_length_of_custom_errors_for_is_with_wrong_length
+    Topic.validates_length_of( :title, :is=>5, :wrong_length=>"hoo %d" )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "hoo 5", t.errors["title"]
+  end
+
 end

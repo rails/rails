@@ -123,25 +123,77 @@ module ActiveRecord
         end
       end
       
-      # Validates that the specified attributes are within the boundary defined in configuration[:within]. Happens by default on both create and update.
+      # Validates that the specified attribute matches the length restrictions supplied in either:
+      #
+      #   - configuration[:minimum]
+      #   - configuration[:maximum]
+      #   - configuration[:is]
+      #   - configuration[:within] (aka. configuration[:in])
+      #
+      # Only one option can be used at a time.
       #
       #   class Person < ActiveRecord::Base
-      #     validates_boundaries_of :password, :password_confirmation
-      #     validates_boundaries_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
+      #     validates_length_of :first_name, :maximum=>30
+      #     validates_length_of :last_name, :maximum=>30, :message=>"less than %d if you don't mind"
+      #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
+      #     validates_length_of :fav_bra_size, :minimum=>1, :too_short=>"please enter at least %d character"
+      #     validates_length_of :smurf_leader, :is=>4, :message=>"papa is spelled with %d characters... don't play me."
       #   end
       #
       # Configuration options:
-      # ::within: The range that constitutes the boundary (default is: 6..20)
-      # ::too_long: The error message if the attributes go over the boundary  (default is: "is too long (max is %d characters)")
-      # ::too_short: The error message if the attributes go under the boundary  (default is: "is too short (min is %d characters)")
+      # ::minimum: The minimum size of the attribute
+      # ::maximum: The maximum size of the attribute
+      # ::is: The exact size of the attribute
+      # ::within: A range specifying the minimum and maximum size of the attribute
+      # ::in: A synonym(or alias) for :within
+      # 
+      # ::too_long: The error message if the attribute goes over the maximum (default is: "is too long (max is %d characters)")
+      # ::too_short: The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)")
+      # ::wrong_length: The error message if using the :is method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)")
+      # ::message: The error message to use for a :minimum, :maximum, or :is violation.  An alias of the appropriate too_long/too_short/wrong_length message
       # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
-      def validates_boundaries_of(*attr_names)
-        configuration = { :within => 5..20, :too_long => ActiveRecord::Errors.default_error_messages[:too_long], :too_short => ActiveRecord::Errors.default_error_messages[:too_short], :on => :save }
+      def validates_length_of(*attr_names)
+        configuration = { :too_long => ActiveRecord::Errors.default_error_messages[:too_long], :too_short => ActiveRecord::Errors.default_error_messages[:too_short], :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
+        # you must use one of 4 options, :within, :maximum, :minimum, or :is
+        within = configuration[:within] || configuration[:in]
+        maximum = configuration[:maximum]
+        minimum = configuration[:minimum]
+        is = configuration[:is]
+        
+        raise(ArgumentError, "The :within, :maximum, :minimum, or :is options must be passed in the configuration hash") unless within or maximum or minimum or is
+        # but not more than 1 of them at a time
+        options_used = 0
+        options_used += 1 if within
+        options_used += 1 if maximum
+        options_used += 1 if minimum
+        options_used += 1 if is
+        raise(ArgumentError, "The :within, :maximum, :minimum, and :is options are mutually exclusive") if options_used > 1
+
+        option_to_use = within || maximum || minimum || is
         for attr_name in attr_names
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add_on_boundary_breaking('#{attr_name}', #{configuration[:within]}, "#{configuration[:too_long]}", "#{configuration[:too_short]}")}))
+          if within
+            raise(ArgumentError, "The :within option must be a Range") unless within.kind_of?(Range)
+            class_eval(%(#{validation_method(configuration[:on])} %{errors.add_on_boundary_breaking('#{attr_name}', #{within}, "#{configuration[:too_long]}", "#{configuration[:too_short]}")}))
+          elsif maximum
+            raise(ArgumentError, "The :maximum option must be a Fixnum") unless maximum.kind_of?(Fixnum)
+            msg = configuration[:message] || configuration[:too_long]
+            msg = (msg % maximum) rescue msg
+            class_eval(%(#{validation_method(configuration[:on])} %{errors.add( '#{attr_name}', '#{msg}') if #{attr_name}.to_s.length > #{maximum}  }))
+          elsif minimum
+            raise(ArgumentError, "The :minimum option must be a Fixnum") unless minimum.kind_of?(Fixnum)
+            msg = configuration[:message] || configuration[:too_short]
+            msg = (msg % minimum) rescue msg
+            class_eval(%(#{validation_method(configuration[:on])} %{errors.add( '#{attr_name}', '#{msg}') if #{attr_name}.to_s.length < #{minimum}  }))
+          else
+            raise(ArgumentError, "The :is option must be a Fixnum") unless is.kind_of?(Fixnum)
+            msg = configuration[:message] || configuration[:wrong_length]
+            msg = (msg % is) rescue msg
+            class_eval(%(#{validation_method(configuration[:on])} %{errors.add( '#{attr_name}', '#{msg}') if #{attr_name}.to_s.length != #{is}  }))
+          end
         end        
+        
       end
 
       # Validates whether the value of the specified attributes are unique across the system. Useful for making sure that only one user
@@ -202,7 +254,7 @@ module ActiveRecord
       def validates_inclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-        enum = configuration[:in]
+        enum = configuration[:in] || configuration[:within]
 
         raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
 
@@ -211,6 +263,7 @@ module ActiveRecord
         end
       end
       
+
       private
         def validation_method(on)
           case on
@@ -319,6 +372,7 @@ module ActiveRecord
       :empty => "can't be empty",
       :too_long => "is too long (max is %d characters)", 
       :too_short => "is too short (min is %d characters)", 
+      :wrong_length => "is the wrong length (should be %d characters)", 
       :taken => "has already been taken",
       }
     cattr_accessor :default_error_messages
