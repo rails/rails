@@ -1,42 +1,4 @@
-*SVN*
-
-* Fixed that validates_uniqueness_of used 'id' instead of defined primary key #406
-
-* Fixed that the overwritten respond_to? method didn't take two parameters like the original #391
-
-* Added HasManyAssociation#count that works like Base#count #413 [intinig]
-
-* Fixed handling of binary content in blobs and similar fields for Ruby/MySQL and SQLite #409 [xal]
-
-* Added dynamic attribute-based finders as a cleaner way of getting objects by simple queries without turning to SQL. 
-  They work by appending the name of an attribute to <tt>find_by_</tt>, so you get finders like <tt>Person.find_by_user_name,
-  Payment.find_by_transaction_id</tt>. So instead of writing <tt>Person.find_first(["user_name = ?", user_name])</tt>, you just do
-  <tt>Person.find_by_user_name(user_name)</tt>.
-  
-  It's also possible to use multiple attributes in the same find by separating them with "_and_", so you get finders like
-  <tt>Person.find_by_user_name_and_password</tt> or even <tt>Payment.find_by_purchaser_and_state_and_country</tt>. So instead of writing
-  <tt>Person.find_first(["user_name = ? AND password = ?", user_name, password])</tt>, you just do 
-  <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
-
-  While primarily a construct for easier find_firsts, it can also be used as a construct for find_all by using calls like 
-  <tt>Payment.find_all_by_amount(50)</tt> that is turned into <tt>Payment.find_all(["amount = ?", 50])</tt>. This is something not as equally useful,
-  though, as it's not possible to specify the order in which the objects are returned.
-
-* Added that Base#find takes an optional options hash, including :conditions. Base#find_on_conditions deprecated in favor of #find with :conditions #407 [bitsweat]
-
-* Added a db2 adapter that only depends on the Ruby/DB2 bindings (http://raa.ruby-lang.org/project/ruby-db2/) #386 [Maik Schmidt]
-
-* Added the final touches to the Microsoft SQL Server adapter by DeLynn Berry that makes it suitable for actual use #394 [DeLynn Barry]
-
-* Fixed a bug in the Ruby/MySQL that caused binary content to be escaped badly and come back mangled #405 [Tobias Luetke]
-
-* Added block-style for callbacks #332 [bitsweat].
-
-    Before:
-      before_destroy(Proc.new{ |record| Person.destroy_all "firm_id = #{record.id}" })
-    
-    After:
-      before_destroy { |record| Person.destroy_all "firm_id = #{record.id}" }
+*1.4.0* (January 4th, 2005)
 
 * Added automated optimistic locking if the field <tt>lock_version</tt> is present.  Each update to the
   record increments the lock_version column and the locking facilities ensure that records instantiated twice
@@ -56,21 +18,59 @@
 
   #384 [Michael Koziarski]
 
+* Added dynamic attribute-based finders as a cleaner way of getting objects by simple queries without turning to SQL. 
+  They work by appending the name of an attribute to <tt>find_by_</tt>, so you get finders like <tt>Person.find_by_user_name,
+  Payment.find_by_transaction_id</tt>. So instead of writing <tt>Person.find_first(["user_name = ?", user_name])</tt>, you just do
+  <tt>Person.find_by_user_name(user_name)</tt>.
+  
+  It's also possible to use multiple attributes in the same find by separating them with "_and_", so you get finders like
+  <tt>Person.find_by_user_name_and_password</tt> or even <tt>Payment.find_by_purchaser_and_state_and_country</tt>. So instead of writing
+  <tt>Person.find_first(["user_name = ? AND password = ?", user_name, password])</tt>, you just do 
+  <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
+
+  While primarily a construct for easier find_firsts, it can also be used as a construct for find_all by using calls like 
+  <tt>Payment.find_all_by_amount(50)</tt> that is turned into <tt>Payment.find_all(["amount = ?", 50])</tt>. This is something not as equally useful,
+  though, as it's not possible to specify the order in which the objects are returned.
+
+* Added block-style for callbacks #332 [bitsweat].
+
+    Before:
+      before_destroy(Proc.new{ |record| Person.destroy_all "firm_id = #{record.id}" })
+    
+    After:
+      before_destroy { |record| Person.destroy_all "firm_id = #{record.id}" }
+
 * Added :counter_cache option to acts_as_tree that works just like the one you can define on belongs_to #371 [Josh]
-
-* Fixed quoting in validates_format_of that would allow some rules to pass regardless of input #390 [Dmitry V. Sabanin]
-
-* Fixed broken transactions that were actually only running object-level and not db level transactions [andreas]
 
 * Added Base.default_timezone accessor that determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling dates 
   and times from the database. This is set to :local by default.
 
 * Added the possibility for adapters to overwrite add_limit! to implement a different limiting scheme than "LIMIT X" used by MySQL, PostgreSQL, and SQLite.
 
+* Added the possibility of having objects with acts_as_list created before their scope is available or...
+
+* Added a db2 adapter that only depends on the Ruby/DB2 bindings (http://raa.ruby-lang.org/project/ruby-db2/) #386 [Maik Schmidt]
+
+* Added the final touches to the Microsoft SQL Server adapter by Joey Gibson that makes it suitable for actual use #394 [DeLynn Barry]
+
+* Added that Base#find takes an optional options hash, including :conditions. Base#find_on_conditions deprecated in favor of #find with :conditions #407 [bitsweat]
+
+* Added HasManyAssociation#count that works like Base#count #413 [intinig]
+
+* Fixed handling of binary content in blobs and similar fields for Ruby/MySQL and SQLite #409 [xal]
+
+* Fixed a bug in the Ruby/MySQL that caused binary content to be escaped badly and come back mangled #405 [Tobias Luetke]
+
 * Fixed that the const_missing autoload assumes the requested constant is set by require_association and calls const_get to retrieve it. 
   If require_association did not set the constant then const_get will call const_missing, resulting in an infinite loop #380 [bitsweat]
 
-* Added the possibility of having objects with acts_as_list created before their scope is available or...
+* Fixed broken transactions that were actually only running object-level and not db level transactions [andreas]
+
+* Fixed that validates_uniqueness_of used 'id' instead of defined primary key #406
+
+* Fixed that the overwritten respond_to? method didn't take two parameters like the original #391
+
+* Fixed quoting in validates_format_of that would allow some rules to pass regardless of input #390 [Dmitry V. Sabanin]
 
 
 *1.3.0* (December 23, 2004)

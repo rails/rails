@@ -1,15 +1,13 @@
-*SVN*
+*1.2.0* (January 4th, 2005)
 
 * Added MemCacheStore for storing session data in Danga's MemCache system [Bob Cottrell]
   Depends on: MemCached server (http://www.danga.com/memcached/), MemCache client (http://raa.ruby-lang.org/project/memcache/)
 
-* Fixed redirects when the controller and action is named the same. Still haven't fixed same controller, module, and action, though #201 [Josh]
-
-* Fixed problems with running multiple functional tests in Rails under 1.8.2 by including hack for test/unit weirdness
-
 * Added thread-safety to the DRbStore #66, #389 [Ben Stiglitz]
 
 * Added DateHelper#select_time and DateHelper#select_second #373 [Scott Baron]
+
+* Added :host and :protocol options to url_for and friends to redirect to another host and protocol than the current.
 
 * Added class declaration for the MissingFile exception #388 [Kent Sibilev]
 
@@ -17,9 +15,11 @@
 
 * Added second boolean parameter to Base.redirect_to_url and Response#redirect to control whether the redirect is permanent or not (301 vs 302) #375 [Hodel]
 
-* Fixed that @request.remote_ip didn't work in the test environment #369 [Bruno Mattarollo]
+* Fixed redirects when the controller and action is named the same. Still haven't fixed same controller, module, and action, though #201 [Josh]
 
-* Added :host and :protocol options to url_for and friends to redirect to another host and protocol than the current.
+* Fixed problems with running multiple functional tests in Rails under 1.8.2 by including hack for test/unit weirdness
+
+* Fixed that @request.remote_ip didn't work in the test environment #369 [Bruno Mattarollo]
 
 
 *1.1.0*

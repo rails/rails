@@ -8,7 +8,7 @@ require 'rake/contrib/rubyforgepublisher'
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'actionpack'
-PKG_VERSION   = '1.1.0' + PKG_BUILD
+PKG_VERSION   = '1.2.0' + PKG_BUILD
 PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
 
 desc "Default Task"
@@ -49,7 +49,7 @@ spec = Gem::Specification.new do |s|
   s.author = "David Heinemeier Hansson"
   s.email = "david@loudthinking.com"
   s.rubyforge_project = "actionpack"
-  s.homepage = "http://actionpack.rubyonrails.org"
+  s.homepage = "http://www.rubyonrails.org"
 
   s.has_rdoc = true
   s.requirements << 'none'

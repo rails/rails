@@ -1,12 +1,14 @@
-*SVN*
+*0.9.3* (January 4th, 2005)
 
 * Added support for SQLite in the auto-dumping/importing of schemas for development -> test #416
 
-* Fixed problems with dependency caching and controller hierarchies on Ruby 1.8.2 in development mode #351
-
 * Added automated rewriting of the shebang lines on installs through the gem rails command #379 [Manfred Stienstra]
 
-* Fixed that generated action_mailers doesnt need to require the action_mailer since thats already done in the environment #382 [Lucas Carlson]
+* Added ActionMailer::Base.deliver_method = :test to the test environment so that mail objects are available in ActionMailer::Base.deliveries
+  for functional testing.
+
+* Added protection for creating a model through the generators with a name of an existing class, like Thread or Date.
+  It'll even offer you a synonym using wordnet.princeton.edu as a look-up. No, I'm not kidding :) [Florian Gross]
 
 * Fixed dependency management to happen in a unified fashion for Active Record and Action Pack using the new Dependencies module. This means that
   the environment options needs to change from:
@@ -25,11 +27,9 @@
     Now in production.rb and test.rb:
       Dependencies.mechanism = :require
 
-* Added ActionMailer::Base.deliver_method = :test to the test environment so that mail objects are available in ActionMailer::Base.deliveries
-  for functional testing.
+* Fixed problems with dependency caching and controller hierarchies on Ruby 1.8.2 in development mode #351
 
-* Added protection for creating a model through the generators with a name of an existing class, like Thread or Date.
-  It'll even offer you a synonym using wordnet.princeton.edu as a look-up. No, I'm not kidding :) [Florian Gross]
+* Fixed that generated action_mailers doesnt need to require the action_mailer since thats already done in the environment #382 [Lucas Carlson]
 
 
 *0.9.2*

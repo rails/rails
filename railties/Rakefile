@@ -9,7 +9,7 @@ require 'rbconfig'
 
 PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME        = 'rails'
-PKG_VERSION     = '0.9.2' + PKG_BUILD
+PKG_VERSION     = '0.9.3' + PKG_BUILD
 PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 

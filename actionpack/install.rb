@@ -40,8 +40,10 @@ files = %w-
  action_controller/benchmarking.rb
  action_controller/cgi_ext/cgi_ext.rb
  action_controller/cgi_ext/cgi_methods.rb
+ action_controller/cgi_ext/cookie_performance_fix.rb
  action_controller/cgi_process.rb
  action_controller/cookies.rb
+ action_controller/dependencies.rb
  action_controller/filters.rb
  action_controller/flash.rb
  action_controller/helpers.rb
@@ -53,11 +55,18 @@ files = %w-
  action_controller/session/active_record_store.rb
  action_controller/session/drb_server.rb
  action_controller/session/drb_store.rb
+ action_controller/session/mem_cache_store.rb
+ action_controller/session.rb
  action_controller/support/class_inheritable_attributes.rb
  action_controller/support/class_attribute_accessors.rb
  action_controller/support/clean_logger.rb
  action_controller/support/cookie_performance_fix.rb
  action_controller/support/inflector.rb
+ action_controller/support/binding_of_caller.rb
+ action_controller/support/breakpoint.rb
+ action_controller/support/dependencies.rb
+ action_controller/support/misc.rb
+ action_controller/support/module_attribute_accessors.rb
  action_controller/templates/rescues/_request_and_response.rhtml
  action_controller/templates/rescues/diagnostics.rhtml
  action_controller/templates/rescues/layout.rhtml
