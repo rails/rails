@@ -15,7 +15,7 @@ module ActionController
             raise ArgumentError, "Regexp requirement on #{k}, but #{k} is not in this route's path!" unless @items.include? k
             @requirements[k] = v
           else
-            (@items.include?(k) ? @defaults : @requirements)[k] = v
+            (@items.include?(k) ? @defaults : @requirements)[k] = (v.nil? ? nil : v.to_s)
           end
         end
         

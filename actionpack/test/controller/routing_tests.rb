@@ -490,6 +490,19 @@ class RouteSetTests < Test::Unit::TestCase
     @set.add_route(@rails_route) if @set.empty?
     assert_raises(ActionController::RoutingError) {@set.recognize!(@request)}
   end
+
+  def test_generate_of_empty_url
+    @set.connect '', :controller => 'content', :action => 'view', :id => "1"
+    @set.add_route(@rails_route)
+    verify_generate('content/view/2', {:controller => 'content', :action => 'view', :id => 2})
+    verify_generate('', {:controller => 'content', :action => 'view', :id => 1})
+  end
+  def test_generate_of_empty_url_with_numeric_requirement
+    @set.connect '', :controller => 'content', :action => 'view', :id => 1
+    @set.add_route(@rails_route)
+    verify_generate('content/view/2', {:controller => 'content', :action => 'view', :id => 2})
+    verify_generate('', {:controller => 'content', :action => 'view', :id => 1})
+  end
 end
 
 #require '../assertions/action_pack_assertions.rb'

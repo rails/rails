@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that map.connect should convert arguments to strings #780 [Nicholas Seckar]
+
 * Added UrlHelper#link_to_if/link_to_unless to enable other conditions that just link_to_unless_current #757 [mindel]
 
 * Fixed that single quote was not escaped in a UrlHelper#link_to javascript confirm #549 [Scott Barron]
