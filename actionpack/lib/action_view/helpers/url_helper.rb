@@ -21,7 +21,7 @@ module ActionView
       # Example:
       #   link_to "Delete this page", { :action => "destroy", :id => @page.id }, :confirm => "Are you sure?"
       def link_to(name, options = {}, html_options = nil, *parameters_for_method_reference)
-        html_options = (html_options || {}).symbolize_keys
+        html_options = (html_options || {}).stringify_keys
         convert_confirm_option_to_javascript!(html_options)
         if options.is_a?(String)
           content_tag "a", name || options, (html_options || {}).merge("href" => options)
