@@ -1,0 +1,35 @@
+= Post-0.4.0 Tasks
+  - relax type-checking for XML-RPC, and perform casts between base types if there
+    are mismatches (i.e. String received when Integer expected, or vice-versa)
+
+  - support XML-RPC's "handler." method namespacing. perhaps something like:
+    
+      class BloggingServices < ActionService::LayeredService
+        def initialize(request)
+          @request = controller.request
+        end
+
+        service :mt         {MTService.new(@request)}
+        service :blogger    {BloggerService.new(@request)}
+        service :metaWeblog {MetaWeblogService.new(@request)}
+      end
+
+      class ApiController < ApplicationController
+        service_dispatching_mode :delegated
+        service :xmlrpc { BloggingServices.new(@request) }
+      end
+    
+
+= Low priority tasks
+  - add better type mapping tests for XML-RPC
+  - add tests for ActiveRecord support (with mock objects?)
+
+= Refactoring
+  - Find an alternative way to map interesting types for SOAP (like ActiveRecord
+    model classes) that doesn't require creation of a sanitized copy object with data
+    copied from the real one. Ideally this would let us get rid of
+    ActionService::Struct altogether and provide a block that would yield the
+    attributes and values. "Filters" ?  Not sure how to integrate with SOAP though.
+  
+  - Don't have clean way to go from SOAP Class object to the xsd:NAME type
+    string -- NaHi possibly looking at remedying this situation

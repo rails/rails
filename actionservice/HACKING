@@ -1,0 +1,44 @@
+== Coding Style
+
+Please try to follow Rails conventions and idioms.
+
+
+== Concepts
+
+  * Service
+    A service has an associated API definition, and
+    implements the methods defined in the API definition
+
+  * Container
+    A container contains zero or more services
+
+  * API
+    An API definition defines a list of methods implemented by
+    a service
+
+  * Router
+    A router takes raw wire requests, decodes them, performs the invocation on
+    the service, and generates raw wire responses from the invocation result.
+    A router is mixed into a container class.
+
+  * Protocol
+    A protocol implementation implements the unmarshaling and marshaling of 
+    raw wire requests and responses. Registers with router.
+
+
+== Action Pack Integration
+
+For Action Pack, the ActionController is both container and router, and also contains
+the protocol implementations.
+
+
+== Adding support for a new protocol
+
+  1. Add an ActionService::Protocol::YourProtocol module and any classes you need to
+     perform unmarshaling/marshaling of protocol requests. See the SOAP implementation
+     for an example of a complex mapping, and also see
+     ActionService::Protocol::AbstractProtocol for the methods you need to implement.
+
+  2. Add unit tests for your new protocol. Be sure to test using a Action Pack test request
+     duplicating how the real requests will arrive and verify that mapping to and from Ruby
+     types works correctly.

@@ -1,0 +1,241 @@
+= Action Service -- Serving APIs on rails
+
+Action Service provides a way to publish interoperable web service APIs with
+Rails without spending a lot of time delving into protocol details.
+
+
+== Features
+
+* SOAP RPC protocol support
+* Dynamic WSDL generation for APIs
+* XML-RPC protocol support
+* Clients that use the same API definitions as the server for
+  easy interoperability with other Action Service based applications
+* Type signature hints to improve interoperability with static languages
+* Active Record model class support in signatures
+
+
+== Defining your APIs
+
+You specify the methods you want to make available as API methods in an
+ActionService::API::Base derivative, and then specify this API
+definition class wherever you want to use that API. 
+
+The implementation of the methods is done seperately to the API
+specification.
+
+
+==== Method name inflection
+
+Action Service will camelcase the method names according to Rails Inflector
+rules for the API visible to public callers. What this means, for example
+is that the method names in generated WSDL will be camelcased, and callers will
+have to supply the camelcased name in their requests for the request to
+succeed.
+
+If you do not desire this behaviour, you can turn it off with the
+ActionService::API::Base +inflect_names+ option.
+
+
+==== Inflection examples
+
+  :add       => Add
+  :find_all  => FindAll
+
+  
+==== Disabling inflection
+
+  class PersonAPI < ActionService::API::Base
+    inflect_names false
+  end
+
+
+==== API definition example
+
+  class PersonAPI < ActionService::API::Base
+    api_method :add, :expects => [:string, :string, :bool], :returns => [:int]
+    api_method :remove, :expects => [:int], :returns => [:bool]
+  end
+
+==== API usage example
+
+  class PersonController < ActionController::Base
+    service_api PersonAPI
+
+    def add
+    end
+
+    def remove
+    end
+  end
+
+
+== Publishing your APIs
+
+Action Service uses Action Pack to process protocol requests.  There are two
+modes of dispatching protocol requests, _Direct_, and _Delegated_.
+
+
+=== Direct dispatching
+
+This is the default mode. In this mode, controller actions implement the API
+methods, and parameters for incoming method calls will be placed in
+<tt>@params</tt> (keyed by name), and <tt>@method_params</tt> (ordered list).
+
+The return value of the action is sent back as the return value to the
+caller.
+
+In this mode, a special <tt>api</tt> action is generated in the target
+controller to unwrap the protocol request, forward it on to the relevant action
+and send back the wrapped return value. <em>This action must not be
+overridden.</em>
+
+==== Direct dispatching example
+
+  class PersonController < ApplicationController
+    service_api PersonAPI
+
+    def add
+    end
+
+    def remove
+    end
+  end
+
+  class PersonAPI < ActionService::API::Base
+    ...
+  end
+
+
+For this example, protocol requests for +Add+ and +Remove+ methods sent to
+<tt>/person/api</tt> will be routed to the actions +add+ and +remove+.
+
+
+=== Delegated dispatching
+
+This mode can be turned on by setting the +service_dispatching_mode+ option
+in a controller.
+
+In this mode, the controller contains one or more service API objects (objects
+that implement an ActionService::API::Base definition). These API
+objects are each mapped onto one controller action only.
+
+==== Delegated dispatching example
+
+  class ApiController < ApplicationController
+    service_dispatching_mode :delegated
+
+    service :person, PersonService.new
+  end
+
+  class PersonService < ActionService::Base
+    service_api PersonAPI
+
+    def add
+    end
+
+    def remove
+    end
+  end
+
+  class PersonAPI < ActionService::API::Base
+    ...
+  end
+
+
+For this example, all protocol requests for +PersonService+ are
+sent to the <tt>/api/person</tt> action.
+
+The <tt>/api/person</tt> action is generated when the +service+
+method is called. <em>This action must not be overridden.</em>
+
+Other controller actions (actions that aren't the target of a +service+ call)
+are ignored for ActionService purposes, and can do normal action tasks.
+
+
+== Using the client support
+
+Action Service includes client classes that can use the same API
+definition as the server. The advantage of this approach is that your client
+will have the same support for Active Record and structured types as the
+server, and can just use them directly, and rely on the marshaling to Do The
+Right Thing.
+
+*Note*: The client support is intended for communication between Ruby on Rails
+applications that both use Action Service. It may work with other servers, but
+that is not its intended use, and interoperability can't be guaranteed, especially
+not for .NET web services. 
+
+Web services protocol specifications are complex, and Action Service can only
+be guaranteed to work with a subset.
+
+If you have the need for clients for a complex service not running on Action
+Service, it is recommended that you use +wsdl2ruby+ and generate the client
+stub classes.
+
+==== Factory created client example
+
+  class BlogManagerController < ApplicationController
+    client_api :blogger, :xmlrpc, 'http://url/to/blog/api/RPC2', :handler_name => 'blogger'
+  end
+
+  class SearchingController < ApplicationController
+    client_api :google, :soap, 'http://url/to/blog/api/beta', :service_name => 'GoogleSearch'
+  end
+
+See ActionService::API::ActionController::ClassMethods for more details.
+
+==== Manually created client example
+
+  class PersonAPI < ActionService::API::Base
+    api_method :find_all, :returns => [[Person]]
+  end
+
+  soap_client = ActionService::Client::Soap.new(PersonAPI, "http://...")
+  persons = soap_client.find_all
+
+  class BloggerAPI < ActionService::API::Base
+    inflect_names false
+    api_method :getRecentPosts, :returns => [[Blog::Post]]
+  end
+
+  blog = ActionService::Client::XmlRpc.new(BloggerAPI, "http://.../xmlrpc", :handler_name => "blogger")
+  posts = blog.getRecentPosts
+
+
+See ActionService::Client::Soap and ActionService::Client::XmlRpc for more details.
+
+== Dependencies
+
+Action Service requires that the Action Pack and Active Record are either
+available to be required immediately or are accessible as GEMs.
+
+It also requires a version of Ruby that includes SOAP support in the standard
+library. At least version 1.8.2 final (2004-12-25) of Ruby is recommended, this
+is the version tested against.
+
+
+== Download
+
+The latest Action Service version can be downloaded from
+http://rubyforge.org/projects/actionservice
+
+
+== Installation
+
+You can install Action Service with the following command.
+
+  % [sudo] ruby setup.rb
+
+
+== License
+
+Action Service is released under the MIT license.
+
+
+== Support
+
+The Ruby on Rails mailing list
+
+Or, to contact the author, send mail to bitserf@gmail.com
+

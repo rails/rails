@@ -1,0 +1,41 @@
+UNRELEASED
+
+	* lib/action_service/router/wsdl.rb: ensure that #wsdl is
+	  defined in the final container class, or the new ActionPack
+	  filtering will exclude it
+	* lib/action_service/struct.rb,test/struct_test.rb: create a
+	  default #initialize on inherit that accepts a Hash containing
+	  the default member values
+	* lib/action_service/api/action_controller.rb: add support and
+	  tests for #client_api in controller
+	* test/router_wsdl_test.rb: add tests to ensure declared
+	  service names don't contain ':', as ':' causes interoperability
+	  issues
+	* lib/*, test/*: rename "interface" concept to "api", and change all
+	  related uses to reflect this change. update all uses of Inflector
+	  to call the method on String instead.
+	* test/api_test.rb: add test to ensure API definition not
+	  instantiatable
+	* lib/action_service/invocation.rb: change @invocation_params to
+	  @method_params
+	* lib/*: update RDoc
+	* lib/action_service/struct.rb: update to support base types
+	* lib/action_service/support/signature.rb: support the notion of
+	  "base types" in signatures, with well-known unambiguous names such as :int,
+	  :bool, etc, which map to the correct Ruby class. accept the same names
+	  used by ActiveRecord as well as longer versions of each, as aliases.
+	* examples/*: update for seperate API definition updates
+	* lib/action_service/*, test/*: extensive refactoring: define API methods in
+	  a seperate class, and specify it wherever used with 'service_api'.
+	  this makes writing a client API for accessing defined API methods
+	  with ActionService really easy.
+	* lib/action_service/container.rb: fix a bug in default call
+	  handling for direct dispatching, and add ActionController filter
+	  support for direct dispatching.
+	* test/router_action_controller_test.rb: add tests to ensure
+	  ActionController filters are actually called.
+	* test/protocol_soap_test.rb: add more tests for direct dispatching.
+
+0.3.0
+
+	* First public release
