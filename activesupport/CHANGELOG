@@ -1,3 +1,5 @@
+* Fixed that Dependencies.reload can't load the same file twice #420 [Kent Sibilev]
+
 * Added Fixnum#ago/until, Fixnum#since/from_now #450 [bitsweat]
 
 * Added that Inflector now accepts Symbols and Classes by calling .to_s on the word supplied
