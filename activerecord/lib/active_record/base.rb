@@ -532,6 +532,7 @@ module ActiveRecord #:nodoc:
           methods[attr.to_sym]       = true
           methods["#{attr}=".to_sym] = true
           methods["#{attr}?".to_sym] = true
+          methods["#{attr}_before_type_cast".to_sym] = true
           methods
         end
       end
