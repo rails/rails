@@ -26,7 +26,10 @@ module Dependencies
   end
 
   def reload
-    loaded.each do |file_name| 
+    old_loaded = loaded
+    clear
+    
+    old_loaded.each do |file_name| 
       begin
         silence_warnings { load("#{file_name}.rb") }
       rescue LoadError
