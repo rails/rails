@@ -709,13 +709,13 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_define_attr_method_with_value
     k = Class.new( ActiveRecord::Base )
-    k.define_attr_method :table_name, "foo"
+    k.send(:define_attr_method, :table_name, "foo")
     assert_equal "foo", k.table_name
   end
 
   def test_define_attr_method_with_block
     k = Class.new( ActiveRecord::Base )
-    k.define_attr_method( :primary_key ) { "sys_" + original_primary_key }
+    k.send(:define_attr_method, :primary_key) { "sys_" + original_primary_key }
     assert_equal "sys_id", k.primary_key
   end
 

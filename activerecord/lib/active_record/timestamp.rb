@@ -19,7 +19,7 @@ module ActiveRecord
     end    
       
     def create_with_timestamps #:nodoc:
-      t = timestamps_gmt ? Time.now.gmtime : Time.now
+      t = ( self.class.default_timezone == :utc ? Time.now.utc : Time.now )
       write_attribute("created_at", t) if record_timestamps && respond_to?(:created_at) && created_at.nil?
       write_attribute("created_on", t) if record_timestamps && respond_to?(:created_on) && created_on.nil?
 
@@ -30,7 +30,7 @@ module ActiveRecord
     end
 
     def update_with_timestamps #:nodoc:
-      t = timestamps_gmt ? Time.now.gmtime : Time.now
+      t = ( self.class.default_timezone == :utc ? Time.now.utc : Time.now )
       write_attribute("updated_at", t) if record_timestamps && respond_to?(:updated_at)
       write_attribute("updated_on", t) if record_timestamps && respond_to?(:updated_on)
 
@@ -44,7 +44,17 @@ module ActiveRecord
     # if the table has columns of either of these names. This feature is turned on by default.
     @@record_timestamps = true
     cattr_accessor :record_timestamps
+
+    # deprecated: use ActiveRecord::Base.default_timezone instead.
     @@timestamps_gmt = false
-    cattr_accessor :timestamps_gmt
+    def self.timestamps_gmt=( gmt ) #:nodoc:
+      warn "timestamps_gmt= is deprecated. use default_timezone= instead"
+      self.default_timezone = ( gmt ? :utc : :local )
+    end
+
+    def self.timestamps_gmt #:nodoc:
+      warn "timestamps_gmt is deprecated. use default_timezone instead"
+      self.default_timezone == :utc
+    end
   end
 end

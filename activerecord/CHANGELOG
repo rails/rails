@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed the auto-timestamping feature to use ActiveRecord::Base.default_timezone instead of entertaining the parallel ActiveRecord::Base.timestamps_gmt method. The latter is now deprecated and will throw a warning on use (but still work) #710 [Jamis Buck]
+
 * Added a OCI8-based Oracle adapter that has been verified to work with Oracle 8 and 9 #629 [Graham Jenkins]. Usage notes:
 
     1.  Key generation uses a sequence "rails_sequence" for all tables. (I couldn't find a simple
