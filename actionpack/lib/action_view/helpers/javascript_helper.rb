@@ -96,12 +96,16 @@ module ActionView
       var url        = arguments[1];
       var parameters = arguments[2];
       var async      = arguments[3];
+      var callbacks  = arguments[4];
 
       if (async) {
-        xml_request(url, parameters, true,
-          { complete: function(request) {
-              container.innerHTML = request.responseText }
-          })
+        if(!callbacks) callbacks = {}
+        complete = callbacks['complete']
+        callbacks['complete'] = function(request) {
+          container.innerHTML = request.responseText
+          if(complete) complete(request)
+        }
+        xml_request(url, parameters, true, callbacks)
       } else {
         container.innerHTML = xml_request(url, parameters);
       }
