@@ -55,8 +55,13 @@ module ActionController #:nodoc:
             class_name = Inflector.camelize(file_name)
             begin
               require_dependency(file_name)
-            rescue LoadError
-              raise LoadError, "Missing helper file helpers/#{file_name}.rb"
+            rescue LoadError => load_error
+              requiree = / -- (.*?)(\.rb)?$/.match(load_error).to_a[1]
+              if requiree == file_name
+                raise LoadError, "Missing helper file helpers/#{file_name}.rb"
+              else
+                raise LoadError, "Can't load file: #{requiree}"
+              end
             end
             raise ArgumentError, "Missing #{class_name} module in helpers/#{file_name}.rb" unless Object.const_defined?(class_name)
             add_template_helper(Object.const_get(class_name))

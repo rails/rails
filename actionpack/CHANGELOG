@@ -1,5 +1,8 @@
 *SVN*
 
+* Added more informative exception when using helper :some_helper and the helper requires another file that fails, you'll get an
+  error message tells you what file actually failed to load, rather than falling back on assuming it was the helper file itself #346 [dblack]
+
 * Fixed regression with Base#reset_session that wouldn't use the the DEFAULT_SESSION_OPTIONS [adam@the-kramers.net]
 
 * Fixed error rendering of rxml documents to not just swallow the exception and return 0 (still not guessing the right line, but hey)
