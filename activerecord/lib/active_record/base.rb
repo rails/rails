@@ -909,6 +909,18 @@ module ActiveRecord #:nodoc:
         assign_multiparameter_attributes(multi_parameter_attributes)
       end
 
+      # Returns a hash of all the attributes with their names as keys and clones of their objects as values.
+      def attributes
+        self.attribute_names.inject({}) do |attributes, name|
+          begin
+            attributes[name] = read_attribute(name).clone
+          rescue TypeError
+            attributes[name] = read_attribute(name)
+          end
+          attributes
+        end
+      end
+
       # Returns true if the specified +attribute+ has been set by the user or by a database load and is neither
       # nil nor empty? (the latter only applies to objects that responds to empty?, most notably Strings).
       def attribute_present?(attribute)

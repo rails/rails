@@ -2,6 +2,7 @@ require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/company'
+require 'fixtures/project'
 require 'fixtures/default'
 require 'fixtures/auto_id'
 require 'fixtures/column_name'
@@ -26,7 +27,7 @@ end
 class Booleantest < ActiveRecord::Base; end
 
 class BasicsTest < Test::Unit::TestCase
-  fixtures :topics, :companies
+  fixtures :topics, :companies, :projects
 
   def test_set_attributes
     topic = Topic.find(1)
@@ -99,6 +100,10 @@ class BasicsTest < Test::Unit::TestCase
     topic = Topic.find(topic.id)
     topic.content << "five"
     assert_equal(%w( one two three four five ), topic.content)
+  end
+ 
+  def test_attributes_hash
+    assert_equal @projects["action_controller"].to_hash, @action_controller.attributes
   end
   
   def test_create

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Base#attributes that returns a hash of all the attributes with their names as keys and clones of their objects as values #433 [atyp.de]
+
 * Fixed that foreign keys named the same as the association would cause stack overflow #437 [Eric Anderson]
 
 * Fixed default scope of acts_as_list from "1" to "1 = 1", so it'll work in PostgreSQL (among other places) #427 [Alexey]
