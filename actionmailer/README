@@ -5,6 +5,12 @@ are used to consolidate code for sending out forgotten passwords, welcoming
 wishes on signup, invoices for billing, and any other use case that requires
 a written notification to either a person or another system.
 
+Additionally, an Action Mailer class can be used to process incoming email,
+such as allowing a weblog to accept new posts from an email (which could even
+have been sent from a phone).
+
+== Sending emails
+
 The framework works by setting up all the email details, except the body,
 in methods on the service layer. Subject, recipients, sender, and timestamp
 are all set up this way. An example of such a method:
@@ -46,6 +52,36 @@ ApplicationMailer, it would look like this:
   ApplicationMailer.create_signed_up("david@loudthinking.com")  # => tmail object for testing
   ApplicationMailer.deliver_signed_up("david@loudthinking.com") # sends the email
   ApplicationMailer.new.signed_up("david@loudthinking.com")     # won't work!
+
+== Receiving emails
+
+To receive emails, you need to implement a public instance method called receive that takes a
+tmail object as its single parameter. The Action Mailer framework has a corresponding class method, 
+which is also called receive, that accepts a raw, unprocessed email as a string, which it then turns
+into the tmail object and calls the receive instance method.
+
+Example:
+
+  class Mailman < ActionMailer::Base
+    def receive(email)
+      page = Page.find_by_address(email.to.first)
+      page.emails.create(
+        :subject => email.unquoted_subject, :body => email.unquoted_body_with_all_parts
+      )
+
+      if email.has_attachments?
+        for attachment in email.attachments
+          page.attachments.create({ 
+            :file => attachment, :description => email.unquoted_subject
+          })
+        end
+      end
+    end
+  end
+
+This Mailman can be the target for Postfix. In Rails, you would use the runner like this:
+
+  ./script/runner 'Mailman.receive(STDIN.read)'
 
 
 == Dependencies

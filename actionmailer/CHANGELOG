@@ -1,3 +1,8 @@
+*SVN*
+
+* Added framework support for processing incoming emails with an Action Mailer class.
+
+
 *0.7.1* (7th March, 2005)
 
 * Bind to newest Action Pack (1.5.1)
