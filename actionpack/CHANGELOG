@@ -1,5 +1,7 @@
 *SVN*
 
+* Added TemplateError#backtrace that makes it much easier to debug template errors from unit and functional tests
+
 * Added display of error messages with scaffolded form pages
 
 * Added option to ERB templates to swallow newlines by using <% if something -%> instead of just <% if something %>. Example:
