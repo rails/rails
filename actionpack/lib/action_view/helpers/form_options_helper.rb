@@ -8,15 +8,25 @@ module ActionView
     # the actual select tag, so you'll need to construct that in HTML manually.
     module FormOptionsHelper
       include ERB::Util
-      
+
+      # Create a select tag and a series of contained option tags for the provided object and method.
+      # The option currenlty held by the object will be selected, provided that the object is available.
+      # 
+      # This can be used to provide a default set of options in the standard way: before rendering the create form, a
+      # new model instance is assigned the default options and bound to @model_name. Usually this model is not saved
+      # to the database. Instead, a second model object is created when the create request is received.
+      # This allows the user to submit a form page more than once with the expected results of creating multiple records.
+      # In addition, this allows a single partial to be used to generate form inputs for both edit and create forms.
       def select(object, method, choices, options = {}, html_options = {})
         InstanceTag.new(object, method, self).to_select_tag(choices, options, html_options)
       end
-
+        
+      # Return select and option tags for the given object and method using options_from_collection_for_select to generate the list of option tags.
       def collection_select(object, method, collection, value_method, text_method, options = {}, html_options = {})
         InstanceTag.new(object, method, self).to_collection_select_tag(collection, value_method, text_method, options, html_options)
       end
-
+      
+      # Return select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
       def country_select(object, method, priority_countries = nil, options = {}, html_options = {})
         InstanceTag.new(object, method, self).to_country_select_tag(priority_countries, options, html_options)
       end
