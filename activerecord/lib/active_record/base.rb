@@ -384,8 +384,8 @@ module ActiveRecord #:nodoc:
       # be used to create the object. In such cases, it might be beneficial to also specify 
       # +orderings+, like "income DESC, name", to control exactly which record is to be used. Example: 
       #   Employee.find_first "income > 50000", "income DESC, name"
-      def find_first(conditions = nil, orderings = nil)
-        find_all(conditions, orderings, 1).first
+      def find_first(conditions = nil, orderings = nil, joins = nil)
+        find_all(conditions, orderings, 1, joins).first
       end
     
       # Creates an object, instantly saves it as a record (if the validation permits it), and returns it. If the save

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added a join parameter as the third argument to Base.find_first #426 [skaes@web.de]
+
 * Fixed bug in Base#hash method that would treat records with the same string-based id as different [Dave Thomas]
 
 * Renamed DateHelper#distance_of_time_in_words_to_now to DateHelper#time_ago_in_words (old method name is still available as a deprecated alias)
