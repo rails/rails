@@ -493,16 +493,16 @@ Effect.Scale.prototype = {
     this.currentHeight = this.startHeight;
     this.currentWidth  = this.startWidth;
     this.finishScale   = (percent/100);
-    if (element.style.fontSize=="") this.sizeEm = 1.0;
-    if (element.style.fontSize && element.style.fontSize.indexOf("em")>0)
-       this.sizeEm      = parseFloat(element.style.fontSize);
+    if (this.element.style.fontSize=="") this.sizeEm = 1.0;
+    if (this.element.style.fontSize && this.element.style.fontSize.indexOf("em")>0)
+       this.sizeEm      = parseFloat(this.element.style.fontSize);
     if(this.element.effect_scale) {
       clearTimeout(this.element.effect_scale.timer);
-      this.startScale  = element.effect_scale.currentScale;
-      this.startHeight = element.effect_scale.startHeight;
-      this.startWidth  = element.effect_scale.startWidth;
-      if(element.effect_scale.sizeEm) 
-        this.sizeEm    = element.effect_scale.sizeEm;      
+      this.startScale  = this.element.effect_scale.currentScale;
+      this.startHeight = this.element.effect_scale.startHeight;
+      this.startWidth  = this.element.effect_scale.startWidth;
+      if(this.element.effect_scale.sizeEm) 
+        this.sizeEm    = this.element.effect_scale.sizeEm;      
     }
     this.element.effect_scale = this;
     this.currentScale  = this.startScale;
@@ -542,7 +542,7 @@ Effect.Squish = Class.create();
 Effect.Squish.prototype = {
   initialize: function(element) {
     this.element = $(element);
-    new Effect.Scale(element, 1, { complete: this.hide.bind(this) } );
+    new Effect.Scale(this.element, 1, { complete: this.hide.bind(this) } );
   },
   hide: function() {
     this.element.style.display = 'none';
