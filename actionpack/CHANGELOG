@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that broken pipe errors (clients disconnecting in mid-request) could bring down a fcgi process
+
 * Added the original exception message to session recall errors (so you can see which class wasnt required)
 
 * Fixed that RAILS_ROOT might not be defined when AP was loaded, so do a late initialization of the ROUTE_FILE #761 [Scott Barron]

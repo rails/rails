@@ -120,14 +120,19 @@ module ActionController #:nodoc:
       convert_content_type!(@headers)
       $stdout.binmode if $stdout.respond_to?(:binmode)
       $stdout.sync = false
-      print @cgi.header(@headers)
+      
+      begin
+        print @cgi.header(@headers)
 
-      if @cgi.send(:env_table)['REQUEST_METHOD'] == 'HEAD'
-        return
-      elsif @body.respond_to?(:call)
-        @body.call(self)
-      else
-        print @body
+        if @cgi.send(:env_table)['REQUEST_METHOD'] == 'HEAD'
+          return
+        elsif @body.respond_to?(:call)
+          @body.call(self)
+        else
+          print @body
+        end
+      rescue Errno::EPIPE => e
+        # lost connection to the FCGI process -- ignore the output, then
       end
     end
 
