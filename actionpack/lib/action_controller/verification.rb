@@ -44,14 +44,18 @@ module ActionController #:nodoc:
       #   be in the @session in order for the action(s) to be safely called.
       # * <tt>:flash</tt>: a single key or an array of keys that must
       #   be in the flash in order for the action(s) to be safely called.
+      # * <tt>:method</tt>: a single key or an array of keys--any one of which
+      #   must match the current request method in order for the action(s) to
+      #   be safely called. (The key should be a symbol: <tt>:get</tt> or
+      #   <tt>:post</tt>, for example.)
       # * <tt>:add_flash</tt>: a hash of name/value pairs that should be merged
       #   into the session's flash if the prerequisites cannot be satisfied.
       # * <tt>:redirect_to</tt>: the redirection parameters to be used when
       #   redirecting if the prerequisites cannot be satisfied.
-      # * <tt>:only</tt>: only apply this verification to the actions specified in
-      #   the associated array (may also be a single value).
-      # * <tt>:except</tt>: do not apply this verification to the actions specified in
-      #   the associated array (may also be a single value).
+      # * <tt>:only</tt>: only apply this verification to the actions specified
+      #   in the associated array (may also be a single value).
+      # * <tt>:except</tt>: do not apply this verification to the actions
+      #   specified in the associated array (may also be a single value).
       def verify(options={})
         filter_opts = { :only => options[:only], :except => options[:except] }
         before_filter(filter_opts) do |c|
@@ -65,6 +69,11 @@ module ActionController #:nodoc:
         [*options[:params] ].find { |v| @params[v].nil?  } ||
         [*options[:session]].find { |v| @session[v].nil? } ||
         [*options[:flash]  ].find { |v| flash[v].nil?    }
+      
+      if !prereqs_invalid && options[:method]
+        prereqs_invalid ||= 
+          [*options[:method]].all? { |v| @request.method != v.to_sym }
+      end
 
       if prereqs_invalid
         flash.update(options[:add_flash]) if options[:add_flash]

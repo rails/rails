@@ -18,6 +18,9 @@ class VerificationTest < Test::Unit::TestCase
     verify :only => [:multi_one, :multi_two], :session => %w( one two ),
            :redirect_to => { :action => "unguarded" }
 
+    verify :only => :guarded_by_method, :method => :post,
+           :redirect_to => { :action => "unguarded" }
+
     def guarded_one
       render_text "#{@params["one"]}"
     end
@@ -42,9 +45,15 @@ class VerificationTest < Test::Unit::TestCase
       render_text "#{@session["two"]}:#{@session["one"]}"
     end
 
+    def guarded_by_method
+      render_text "#{@request.method}"
+    end
+
     def unguarded
       render_text "#{@params["one"]}"
     end
+
+    def rescue_action(e) raise end
   end
 
   def setup
@@ -132,6 +141,18 @@ class VerificationTest < Test::Unit::TestCase
 
   def test_multi_two_without_prereqs
     process "multi_two"
+    assert_redirected_to :action => "unguarded"
+  end
+
+  def test_guarded_by_method_with_prereqs
+    @request.env["REQUEST_METHOD"] = "POST"
+    process "guarded_by_method"
+    assert_equal "post", @response.body
+  end
+
+  def test_guarded_by_method_without_prereqs
+    @request.env["REQUEST_METHOD"] = "GET"
+    process "guarded_by_method"
     assert_redirected_to :action => "unguarded"
   end
 end
