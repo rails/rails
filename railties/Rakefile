@@ -224,6 +224,8 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('actionpack', '>= 0.9.5')
   s.add_dependency('actionmailer', '>= 0.4.0')
 
+  s.has_rdoc = false
+
   s.files = PKG_FILES.to_a.delete_if {|f| f.include?('.svn')}
   s.require_path = 'lib'
 
