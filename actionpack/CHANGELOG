@@ -1,5 +1,9 @@
 *SVN*
 
+* Added Routing as a replacement for mod_rewrite pretty urls [Nicholas Seckar]. Read more in ActionController::Base.url_for and on http://manuals.rubyonrails.com/read/book/9
+
+* Added components that allows you to call other actions for their rendered response while execution another action. You can either delegate the entire response rendering or you can mix a partial response in with your other content. Read more on http://manuals.rubyonrails.com/read/book/14
+
 * Fixed that proxy IPs do not follow all RFC1918 nets #251 [caleb@aei-tech.com]
 
 * Added Base#render_to_string to parse a template and get the result back as a string #479
