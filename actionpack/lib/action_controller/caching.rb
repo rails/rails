@@ -241,7 +241,7 @@ module ActionController #:nodoc:
       def self.append_features(base) #:nodoc:
         super
         base.class_eval do
-          @@cache_store = MemoryStore.new
+          @@fragment_cache_store = MemoryStore.new
           cattr_accessor :fragment_cache_store
         end
       end
