@@ -874,6 +874,13 @@ module ActiveRecord #:nodoc:
         toggle(attribute).update_attribute(attribute, self[attribute])
       end
 
+      # Reloads the attributes of this object from the database.
+      def reload
+        clear_association_cache
+        @attributes.update(self.class.find(self.id).instance_variable_get('@attributes'))
+        return self
+      end
+
       # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example, 
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       # (Alias for the protected read_attribute method).

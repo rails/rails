@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Base#reload that reloads the attributes of an object from the database #422 [Andreas Schwarz]
+
 * Added SQLite3 compatibility through the sqlite3-ruby adapter by Jamis Buck #381 [bitsweat]
 
 * Added support for the new protocol spoken by MySQL 4.1.1+ servers for the Ruby/MySQL adapter that ships with Rails #440 [Matt Mower] 

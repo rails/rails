@@ -620,4 +620,13 @@ class BasicsTest < Test::Unit::TestCase
     @topics["first"].find.toggle!(:approved)
     assert @topics["first"].find.approved?
   end
+
+  def test_reload
+    t1 = Topic.find(1)
+    t2 = Topic.find(1)
+    t1.title = "something else"
+    t1.save
+    t2.reload
+    assert_equal t1.title, t2.title
+  end
 end
