@@ -1,11 +1,12 @@
 = 0.7.0
+  - WS Test Integration
   - WS Scaffolding
   - WS Generators
-  - WS Test Integration
 
 = 0.8.0
   - Consumption of WSDL services
   
 = Refactoring
+  - Port dispatcher tests to use test_invoke
   - Don't have clean way to go from SOAP Class object to the xsd:NAME type
     string -- NaHi possibly looking at remedying this situation

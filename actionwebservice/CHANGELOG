@@ -1,5 +1,9 @@
 *0.6.0* (Unreleased)
 
+* Add action_controller/test_invoke, used for integrating AWS with the Rails testing infrastructure
+
+* Allow passing through options to the SOAP RPC driver for the SOAP client
+
 * Make the SOAP WS marshaler use #columns to decide which fields to marshal as well, avoids providing attributes brought in by associations
   
 * Add <tt>ActionWebService::API::Base.allow_active_record_expects</tt> option, with a default of false. Setting this to true will allow specifying ActiveRecord::Base model classes in <tt>:expects</tt>. API writers should take care to validate the received ActiveRecord model objects when turning it on, and/or have an authentication mechanism in place to reduce the security risk.

@@ -33,7 +33,7 @@ class TC_DispatcherActionControllerXmlRpc < Test::Unit::TestCase
       test_request = ActionController::TestRequest.new
       test_request.request_parameters['action'] = service_name(container)
       test_request.env['REQUEST_METHOD'] = "POST"
-      test_request.env['HTTP_CONTENTTYPE'] = 'text/xml'
+      test_request.env['HTTP_CONTENT_TYPE'] = 'text/xml'
       test_request.env['RAW_POST_DATA'] = body
       test_request
     end

@@ -12,6 +12,14 @@ module ActionWebService # :nodoc:
       base.send(:include, ActionWebService::Dispatcher::InstanceMethods)
     end
 
+    def self.layered_service_name(public_method_name) # :nodoc:
+      if public_method_name =~ /^([^\.]+)\.(.*)$/
+        $1
+      else
+        nil
+      end
+    end
+
     module InstanceMethods # :nodoc:
       private
         def invoke_web_service_request(protocol_request)
