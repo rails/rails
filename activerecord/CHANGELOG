@@ -1,5 +1,22 @@
 *CVS*
 
+* Added Base.validate_confirmation that encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
+ 
+     Model:
+       class Person < ActiveRecord::Base
+         validate_confirmation :password
+       end
+  
+     View:
+       <%= password_field "person", "password" %>
+       <%= password_field "person", "password_confirmation" %>
+  
+   The person has to already have a password attribute (a column in the people table), but the password_confirmation is virtual.
+   It exists only as an in-memory variable for validating the password.
+  
+   NOTE: This validation is only happening on create. When you want to update the record, you'll have to decide and pursue your
+   own course of action.
+
 * Added validation macros to make the stackable just like the lifecycle callbacks. Examples:
 
     class Person < ActiveRecord::Base

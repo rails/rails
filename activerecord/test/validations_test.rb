@@ -5,10 +5,7 @@ require 'fixtures/developer'
 
 
 class ValidationsTest < Test::Unit::TestCase
-  def setup
-    @topic_fixtures = create_fixtures("topics")
-    @developers = create_fixtures("developers")
-  end
+  fixtures :topics, :developers
 
   def test_single_field_validation
     r = Reply.new
@@ -122,5 +119,26 @@ class ValidationsTest < Test::Unit::TestCase
 
     developer.name = "Just right"
     assert developer.save
+  end
+end
+
+
+class MacroValidationsTest < Test::Unit::TestCase
+  fixtures :topics, :developers
+
+  def setup
+    Topic.validate_confirmation(:title)
+  end
+
+  def teardown
+    Topic.write_inheritable_attribute("validate_on_create", [])
+  end
+
+  def test_title_confirmation
+    t = Topic.create("title" => "We should be confirmed")
+    assert !t.save
+
+    t.title_confirmation = "We should be confirmed"
+    assert t.save
   end
 end

@@ -51,6 +51,37 @@ module ActiveRecord
 
         VALIDATIONS.each { |vd| base.class_eval("def self.#{vd}(*methods) write_inheritable_array(\"#{vd}\", methods - (read_inheritable_attribute(\"#{vd}\") || [])) end") }
       end
+      
+      base.extend(ClassMethods)
+    end
+
+    module ClassMethods
+      # Encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
+      #
+      #   Model:
+      #     class Person < ActiveRecord::Base
+      #       validate_confirmation :password
+      #     end
+      #
+      #   View:
+      #     <%= password_field "person", "password" %>
+      #     <%= password_field "person", "password_confirmation" %>
+      #
+      # The person has to already have a password attribute (a column in the people table), but the password_confirmation is virtual.
+      # It exists only as an in-memory variable for validating the password.
+      #
+      # NOTE: This validation is only happening on create. When you want to update the record, you'll have to decide and pursue your
+      # own course of action.
+      def validate_confirmation(*attr_names)
+        for attr_name in attr_names
+          attr_accessor "#{attr_name}_confirmation"
+          class_eval <<-EOC
+            validate_on_create(Proc.new { |record|
+              record.errors.add("#{attr_name}", "doesn't match confirmation") unless record.#{attr_name} == record.#{attr_name}_confirmation
+            })
+EOC
+        end
+      end
     end
 
     # The validation process on save can be skipped by passing false. The regular Base#save method is
