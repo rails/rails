@@ -65,6 +65,7 @@ module ActionView
 
       begin
         require "redcloth"
+        class RedCloth; def hard_breaks() true end; end
 
         # Returns the text with all the Textile codes turned into HTML-tags. 
         # <i>This method is only available if RedCloth can be required</i>.
