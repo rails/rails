@@ -1,28 +1,4 @@
-*SVN*
-
-* Added scope option to validation_uniqueness #349 [Kent Sibilev]
-
-* Added allow_nil options to validates_inclusion_of so that validation is only triggered if the attribute is not nil [what-a-day]
-
-* Added work-around for PostgreSQL and the problem of getting fixtures to be created from id 1 on each test case.
-  This only works for auto-incrementing primary keys called "id" for now #359 [Scott Baron]
-
-* Added Base#clear_association_cache to empty all the cached associations #347 [Tobias Luetke]
-
-* Added more informative exceptions in establish_connection #356 [bitsweat]
-
-* Fixed that options[:counter_sql] was overwritten with interpolated sql rather than original sql #355 [bitsweat]
-
-* Fixed that overriding an attribute's accessor would be disregarded by add_on_empty and add_on_boundary_breaking because they simply used 
-  the attributes[] hash instead of checking for @base.respond_to?(attr.to_s). [Marten]
-
-* Fixed that Base.table_name would expect a parameter when used in has_and_belongs_to_many joins [Anna Lissa Cruz]
-
-* Fixed that nested transactions now work by letting the outer most transaction have the responsibilty of starting and rolling back the transaction.
-  If any of the inner transactions swallow the exception raised, though, the transaction will not be rolled back. So always let the transaction
-  bubble up even when you've dealt with local issues. Closes #231 and #340.
-
-* Fixed validates_{confirmation,acceptance}_of to only happen when the virtual attributes are not nil #348 [dpiddy@gmail.com]
+*1.3.0*
 
 * Added a require_association hook on const_missing that makes it possible to use any model class without requiring it first. This makes STI look like:
 
@@ -39,16 +15,19 @@
 
 * Added that Base.update_all and Base.delete_all return an integer of the number of affected rows #341
 
-* Changed the interface on AbstractAdapter to require that adapters return the number of affected rows on delete and update operations.
-
-* Added that query benchmarking will only happen if its going to be logged anyway #344
-
-* Added higher_item and lower_item as public methods for acts_as_list #342 [Tobias Luetke]
+* Added scope option to validation_uniqueness #349 [Kent Sibilev]
 
 * Added respondence to *_before_type_cast for all attributes to return their string-state before they were type casted by the column type.
   This is helpful for getting "100,000" back on a integer-based validation where the value would normally be "100".
 
-* Fixed the automated timestamping feature when running under Rails' development environment that resets the inheritable attributes on each request.
+* Added allow_nil options to validates_inclusion_of so that validation is only triggered if the attribute is not nil [what-a-day]
+
+* Added work-around for PostgreSQL and the problem of getting fixtures to be created from id 1 on each test case.
+  This only works for auto-incrementing primary keys called "id" for now #359 [Scott Baron]
+
+* Added Base#clear_association_cache to empty all the cached associations #347 [Tobias Luetke]
+
+* Added more informative exceptions in establish_connection #356 [bitsweat]
 
 * Added Base#update_attributes that'll accept a hash of attributes and save the record (returning true if it passed validation, false otherwise). 
 
@@ -60,6 +39,28 @@
       person.update_attributes(@params["person"])
 
 * Added Base.destroy and Base.delete to remove records without holding a reference to them first.
+
+* Added that query benchmarking will only happen if its going to be logged anyway #344
+
+* Added higher_item and lower_item as public methods for acts_as_list #342 [Tobias Luetke]
+
+* Fixed that options[:counter_sql] was overwritten with interpolated sql rather than original sql #355 [bitsweat]
+
+* Fixed that overriding an attribute's accessor would be disregarded by add_on_empty and add_on_boundary_breaking because they simply used 
+  the attributes[] hash instead of checking for @base.respond_to?(attr.to_s). [Marten]
+
+* Fixed that Base.table_name would expect a parameter when used in has_and_belongs_to_many joins [Anna Lissa Cruz]
+
+* Fixed that nested transactions now work by letting the outer most transaction have the responsibilty of starting and rolling back the transaction.
+  If any of the inner transactions swallow the exception raised, though, the transaction will not be rolled back. So always let the transaction
+  bubble up even when you've dealt with local issues. Closes #231 and #340.
+
+* Fixed validates_{confirmation,acceptance}_of to only happen when the virtual attributes are not nil #348 [dpiddy@gmail.com]
+
+* Changed the interface on AbstractAdapter to require that adapters return the number of affected rows on delete and update operations.
+
+* Fixed the automated timestamping feature when running under Rails' development environment that resets the inheritable attributes on each request.
+
 
 
 *1.2.0*

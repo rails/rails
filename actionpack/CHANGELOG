@@ -1,18 +1,10 @@
-*SVN*
-
-* Fixed UrlHelper#link_to_unless so it doesn't care if the id is a string or fixnum [zenspider]
+*1.1.0*
 
 * Added search through session to clear out association caches at the end of each request. This makes it possible to place Active Record objects
   in the session without worrying about stale data in the associations (the main object is still subject to caching, naturally) #347 [Tobias Luetke]
 
 * Added more informative exception when using helper :some_helper and the helper requires another file that fails, you'll get an
   error message tells you what file actually failed to load, rather than falling back on assuming it was the helper file itself #346 [dblack]
-
-* Fixed regression with Base#reset_session that wouldn't use the the DEFAULT_SESSION_OPTIONS [adam@the-kramers.net]
-
-* Fixed error rendering of rxml documents to not just swallow the exception and return 0 (still not guessing the right line, but hey)
-
-* Fixed that textilize and markdown would instantiate their engines even on empty strings. This also fixes #333 [Ulysses]
 
 * Added use of *_before_type_cast for all input and text fields. This is helpful for getting "100,000" back on a integer-based 
   validation where the value would normally be "100".
@@ -22,6 +14,14 @@
 * Added Request#domain (returns string) and Request#subdomains (returns array).
 
 * Added POST support for the breakpoint retries, so form processing that raises an exception can be retried with the original request [Florian Gross]
+
+* Fixed regression with Base#reset_session that wouldn't use the the DEFAULT_SESSION_OPTIONS [adam@the-kramers.net]
+
+* Fixed error rendering of rxml documents to not just swallow the exception and return 0 (still not guessing the right line, but hey)
+
+* Fixed that textilize and markdown would instantiate their engines even on empty strings. This also fixes #333 [Ulysses]
+
+* Fixed UrlHelper#link_to_unless so it doesn't care if the id is a string or fixnum [zenspider]
 
 
 *1.0.1*
