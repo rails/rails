@@ -30,7 +30,7 @@ module ActionController #:nodoc:
   end
 
   class TestRequest < AbstractRequest #:nodoc:
-    attr_writer   :cookies
+    attr_accessor :cookies
     attr_accessor :query_parameters, :request_parameters, :session, :env
     attr_accessor :host, :path, :request_uri, :remote_addr
 
@@ -48,10 +48,6 @@ module ActionController #:nodoc:
     def reset_session
       @session = {}
     end    
-
-    def cookies
-      @cookies.freeze
-    end
 
     def port=(number)
       @env["SERVER_PORT"] = number.to_i
