@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/abstract_unit'
 
 module APITest
-  class API < ActionService::API::Base
+  class API < ActionWebService::API::Base
     api_method :void
     api_method :expects_and_returns, :expects_and_returns => [:string]
     api_method :expects,             :expects => [:int, :bool]

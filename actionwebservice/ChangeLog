@@ -31,7 +31,7 @@ UNRELEASED
 	* lib/action_service/*, test/*: extensive refactoring: define API methods in
 	  a seperate class, and specify it wherever used with 'service_api'.
 	  this makes writing a client API for accessing defined API methods
-	  with ActionService really easy.
+	  with ActionWebService really easy.
 	* lib/action_service/container.rb: fix a bug in default call
 	  handling for direct dispatching, and add ActionController filter
 	  support for direct dispatching.

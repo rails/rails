@@ -1,4 +1,4 @@
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module Router # :nodoc:
     module ActionController # :nodoc:
       def self.append_features(base) # :nodoc:
@@ -20,7 +20,7 @@ module ActionService # :nodoc:
             EOS
           end
         end
-        base.send(:include, ActionService::Router::ActionController::InstanceMethods)
+        base.send(:include, ActionWebService::Router::ActionController::InstanceMethods)
       end
 
       module InstanceMethods # :nodoc:
@@ -47,7 +47,7 @@ module ActionService # :nodoc:
                 }
                 send_data(protocol_response.raw_body, response_options)
               else
-                logger.fatal "Invalid Action Service service or method requested" unless logger.nil?
+                logger.fatal "Invalid Action Web Service service or method requested" unless logger.nil?
                 render_text 'Internal protocol error', "500 Invalid service/method"
               end
             rescue Exception => e
@@ -81,7 +81,7 @@ module ActionService # :nodoc:
             unless logger.nil?
               web_service_name = protocol_request.web_service_name
               method_name = protocol_request.public_method_name
-              logger.info "\nProcessing Action Service Request: #{web_service_name}##{method_name}"
+              logger.info "\nProcessing Action Web Service Request: #{web_service_name}##{method_name}"
               logger.info "Raw Request Body:"
               logger.info protocol_request.raw_body
             end

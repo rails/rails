@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/abstract_unit'
 
 module StructTest
-  class Struct < ActionService::Struct
+  class Struct < ActionWebService::Struct
     member :id, Integer
     member :name, String
     member :items, [String]

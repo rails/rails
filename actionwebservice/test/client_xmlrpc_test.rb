@@ -47,7 +47,7 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
   def setup
     @server = XmlRpcServer.instance
     @container = @server.container
-    @client = ActionService::Client::XmlRpc.new(API, "http://localhost:#{@server.server_port}/client/api")
+    @client = ActionWebService::Client::XmlRpc.new(API, "http://localhost:#{@server.server_port}/client/api")
   end
 
   def test_void

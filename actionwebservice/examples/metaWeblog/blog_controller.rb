@@ -4,18 +4,18 @@
 # structures as defined by the metaWeblog/blogger
 # specifications.
 module Blog
-  class Enclosure < ActionService::Struct
+  class Enclosure < ActionWebService::Struct
     member :url,    :string
     member :length, :int
     member :type,   :string
   end
 
-  class Source < ActionService::Struct
+  class Source < ActionWebService::Struct
     member :url,  :string
     member :name, :string
   end
 
-  class Post < ActionService::Struct
+  class Post < ActionWebService::Struct
     member :title,       :string
     member :link,        :string
     member :description, :string
@@ -28,7 +28,7 @@ module Blog
     member :source,      Source
   end
 
-  class Blog < ActionService::Struct
+  class Blog < ActionWebService::Struct
     member :url,      :string
     member :blogid,   :string
     member :blogName, :string
@@ -36,7 +36,7 @@ module Blog
 end
 
 # skeleton metaWeblog API
-class MetaWeblogAPI < ActionService::API::Base
+class MetaWeblogAPI < ActionWebService::API::Base
   inflect_names false
 
   api_method :newPost, :returns => [:string], :expects => [

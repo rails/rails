@@ -1,6 +1,6 @@
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module API # :nodoc:
-    class APIError < ActionService::ActionServiceError # :nodoc:
+    class APIError < ActionWebService::ActionWebServiceError # :nodoc:
     end
 
     def self.append_features(base) # :nodoc:
@@ -9,10 +9,10 @@ module ActionService # :nodoc:
     end
 
     module ClassMethods
-      # Attaches ActionService API +definition+ to the calling class.
+      # Attaches ActionWebService API +definition+ to the calling class.
       #
       # Action Controllers can have a default associated API, removing the need
-      # to call this method if you follow the Action Service naming conventions.
+      # to call this method if you follow the Action Web Service naming conventions.
       #
       # A controller with a class name of GoogleSearchController will
       # implicitly load <tt>app/apis/google_search_api.rb</tt>, and expect the
@@ -21,11 +21,11 @@ module ActionService # :nodoc:
       #
       # ==== Service class example
       #
-      #   class MyService < ActionService::Base
+      #   class MyService < ActionWebService::Base
       #     web_service_api MyAPI
       #   end
       #
-      #   class MyAPI < ActionService::API::Base
+      #   class MyAPI < ActionWebService::API::Base
       #     ...
       #   end
       #
@@ -35,7 +35,7 @@ module ActionService # :nodoc:
       #     web_service_api MyAPI
       #   end
       #
-      #   class MyAPI < ActionService::API::Base
+      #   class MyAPI < ActionWebService::API::Base
       #     ...
       #   end
       def web_service_api(definition=nil)
@@ -72,7 +72,7 @@ module ActionService # :nodoc:
     # It is not intended to be instantiated.
     #
     # It is attached to web service implementation classes like
-    # ActionService::Base and ActionController::Base derivatives by using
+    # ActionWebService::Base and ActionController::Base derivatives by using
     # ClassMethods#web_service_api.
     class Base
       # Whether to transform the public API method names into camel-cased names 
@@ -87,7 +87,7 @@ module ActionService # :nodoc:
       private_class_method :new, :allocate
       
       class << self
-        include ActionService::Signature
+        include ActionWebService::Signature
 
         # API methods have a +name+, which must be the Ruby method name to use when
         # performing the invocation on the web service object.
@@ -98,11 +98,11 @@ module ActionService # :nodoc:
         # A signature is an array of one or more parameter specifiers. 
         # A parameter specifier can be one of the following:
         #
-        # * A symbol or string of representing one of the Action Service base types.
-        #   See ActionService::Signature for a canonical list of the base types.
+        # * A symbol or string of representing one of the Action Web Service base types.
+        #   See ActionWebService::Signature for a canonical list of the base types.
         # * The Class object of the parameter type
         # * A single-element Array containing one of the two preceding items. This
-        #   will cause Action Service to treat the parameter at that position
+        #   will cause Action Web Service to treat the parameter at that position
         #   as an array containing only values of the given type.
         # * A Hash containing as key the name of the parameter, and as value
         #   one of the three preceding items
@@ -132,7 +132,7 @@ module ActionService # :nodoc:
               klass = signature_parameter_class(param)
               klass = klass[0] if klass.is_a?(Array)
               if klass.ancestors.include?(ActiveRecord::Base)
-                raise(ActionServiceError, "ActiveRecord model classes not allowed in :expects")
+                raise(ActionWebServiceError, "ActiveRecord model classes not allowed in :expects")
               end
             end
           end
@@ -182,7 +182,7 @@ module ActionService # :nodoc:
           def validate_options(valid_option_keys, supplied_option_keys)
             unknown_option_keys = supplied_option_keys - valid_option_keys
             unless unknown_option_keys.empty?
-              raise(ActionServiceError, "Unknown options: #{unknown_option_keys}")
+              raise(ActionWebServiceError, "Unknown options: #{unknown_option_keys}")
             end
           end
 

@@ -2,7 +2,7 @@ require File.dirname(__FILE__) + '/abstract_unit'
 
 
 module Foo
-  include ActionService::Protocol
+  include ActionWebService::Protocol
 
   def self.append_features(base)
     super
@@ -15,14 +15,14 @@ module Foo
   class FooFullProtocol < AbstractProtocol
     def self.create_protocol_request(klass, request)
       protocol = FooFullProtocol.new klass
-      ActionService::Protocol::ProtocolRequest.new(protocol, '', '', '', '')
+      ActionWebService::Protocol::ProtocolRequest.new(protocol, '', '', '', '')
     end
   end
 
   class FooMinimalProtocol < AbstractProtocol
     def self.create_protocol_request(klass, request)
       protocol = FooMinimalProtocol.new klass
-      ActionService::Protocol::ProtocolRequest.new(protocol, '', '', '', '')
+      ActionWebService::Protocol::ProtocolRequest.new(protocol, '', '', '', '')
     end
   end
 
@@ -31,7 +31,7 @@ module Foo
 end
 
 class ProtocolRegistry
-  include ActionService::Protocol::Registry
+  include ActionWebService::Protocol::Registry
   include Foo
 
   def all_protocols

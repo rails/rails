@@ -2,20 +2,20 @@ require File.dirname(__FILE__) + '/abstract_unit'
 require 'wsdl/parser'
 
 module RouterWsdlTest
-  class Person < ActionService::Struct
+  class Person < ActionWebService::Struct
     member :id, Integer
     member :names, [String]
     member :lastname, String
     member :deleted, TrueClass
   end
 
-  class API < ActionService::API::Base
+  class API < ActionWebService::API::Base
     api_method :add, :expects => [{:a=>:int}, {:b=>:int}], :returns => [:int]
     api_method :find_people, :returns => [[Person]]
     api_method :nil_returner
   end
   
-  class Service < ActionService::Base
+  class Service < ActionWebService::Base
     web_service_api API
 
     def add(a, b)

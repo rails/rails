@@ -1,4 +1,4 @@
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module Router # :nodoc:
     module Wsdl # :nodoc:
       def self.append_features(base) # :nodoc:
@@ -13,7 +13,7 @@ module ActionService # :nodoc:
       module ClassMethods
         def inherited(child)
           inherited_without_wsdl(child)
-          child.send(:include, ActionService::Router::Wsdl::InstanceMethods)
+          child.send(:include, ActionWebService::Router::Wsdl::InstanceMethods)
         end
       end
 
@@ -76,7 +76,7 @@ module ActionService # :nodoc:
                   xm.xsd(:schema, 'xmlns' => XsdNs, 'targetNamespace' => namespace) do
                     custom_types.each do |klass, mapping|
                       case
-                      when mapping.is_a?(ActionService::Protocol::Soap::SoapArrayMapping)
+                      when mapping.is_a?(ActionWebService::Protocol::Soap::SoapArrayMapping)
                         xm.xsd(:complexType, 'name' => mapping.type_name) do
                           xm.xsd(:complexContent) do
                             xm.xsd(:restriction, 'base' => 'soapenc:Array') do
@@ -85,7 +85,7 @@ module ActionService # :nodoc:
                             end
                           end
                         end
-                      when mapping.is_a?(ActionService::Protocol::Soap::SoapMapping)
+                      when mapping.is_a?(ActionWebService::Protocol::Soap::SoapMapping)
                         xm.xsd(:complexType, 'name' => mapping.type_name) do
                           xm.xsd(:all) do
                             mapping.each_attribute do |name, type_name|

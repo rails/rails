@@ -1,9 +1,9 @@
-class DirectoryCategory < ActionService::Struct
+class DirectoryCategory < ActionWebService::Struct
   member :fullViewableName, :string
   member :specialEncoding,  :string
 end
 
-class ResultElement < ActionService::Struct
+class ResultElement < ActionWebService::Struct
   member :summary,                   :string
   member :URL,                       :string
   member :snippet,                   :string
@@ -15,7 +15,7 @@ class ResultElement < ActionService::Struct
   member :directoryTitle,            :string
 end
 
-class GoogleSearchResult < ActionService::Struct
+class GoogleSearchResult < ActionWebService::Struct
   member :documentFiltering,          :bool
   member :searchComments,             :string
   member :estimatedTotalResultsCount, :int
@@ -29,7 +29,7 @@ class GoogleSearchResult < ActionService::Struct
   member :searchTime,                 :float
 end
 
-class GoogleSearchAPI < ActionService::API::Base
+class GoogleSearchAPI < ActionWebService::API::Base
   inflect_names false
 
   api_method :doGetCachedPage,         :returns => [:string], :expects => [{:key=>:string}, {:url=>:string}]
@@ -49,7 +49,7 @@ class GoogleSearchAPI < ActionService::API::Base
   ]
 end
 
-class GoogleSearchService < ActionService::Base
+class GoogleSearchService < ActionWebService::Base
   web_service_api GoogleSearchAPI
 
   def doGetCachedPage(key, url)

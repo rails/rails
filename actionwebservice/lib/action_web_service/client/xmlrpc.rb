@@ -1,25 +1,25 @@
 require 'uri'
 require 'xmlrpc/client'
 
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module Client # :nodoc:
 
     # Implements XML-RPC client support
     #
     # ==== Example Usage
     #
-    #   class BloggerAPI < ActionService::API::Base
+    #   class BloggerAPI < ActionWebService::API::Base
     #     inflect_names false
     #     api_method :getRecentPosts, :returns => [[Blog::Post]]
     #   end
     #
-    #   blog = ActionService::Client::XmlRpc.new(BloggerAPI, "http://.../RPC", :handler_name => "blogger")
+    #   blog = ActionWebService::Client::XmlRpc.new(BloggerAPI, "http://.../RPC", :handler_name => "blogger")
     #   posts = blog.getRecentPosts
     class XmlRpc < Base
 
       # Creates a new web service client using the XML-RPC protocol.
       #
-      # +api+ must be an ActionService::API::Base derivative, and
+      # +api+ must be an ActionWebService::API::Base derivative, and
       # +endpoint_uri+ must point at the relevant URL to which protocol requests
       # will be sent with HTTP POST.
       #

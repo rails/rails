@@ -1,4 +1,4 @@
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module API # :nodoc:
     module ActionController # :nodoc:
       def self.append_features(base) # :nodoc:

@@ -1,5 +1,5 @@
-module ActionService # :nodoc:
-  # Action Service parameter specifiers may contain symbols or strings
+module ActionWebService # :nodoc:
+  # Action Web Service parameter specifiers may contain symbols or strings
   # instead of Class objects, for a limited set of base types.
   #
   # This provides an unambiguous way to specify that a given parameter
@@ -57,7 +57,7 @@ module ActionService # :nodoc:
           when :date
             :date
           else
-            raise(SignatureError, ":#{base_type} is not an ActionService base type")
+            raise(SignatureError, ":#{base_type} is not an ActionWebService base type")
         end
       end
   
@@ -93,7 +93,7 @@ module ActionService # :nodoc:
         when Date
           :date
         else
-          raise(SignatureError, "#{ruby_class.name} is not an ActionService base type")
+          raise(SignatureError, "#{ruby_class.name} is not an ActionWebService base type")
         end
       end
   end

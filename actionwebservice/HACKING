@@ -34,10 +34,10 @@ the protocol implementations.
 
 == Adding support for a new protocol
 
-  1. Add an ActionService::Protocol::YourProtocol module and any classes you need to
+  1. Add an ActionWebService::Protocol::YourProtocol module and any classes you need to
      perform unmarshaling/marshaling of protocol requests. See the SOAP implementation
      for an example of a complex mapping, and also see
-     ActionService::Protocol::AbstractProtocol for the methods you need to implement.
+     ActionWebService::Protocol::AbstractProtocol for the methods you need to implement.
 
   2. Add unit tests for your new protocol. Be sure to test using a Action Pack test request
      duplicating how the real requests will arrive and verify that mapping to and from Ruby

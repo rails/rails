@@ -34,27 +34,27 @@ end
 
 $:.unshift(File.dirname(__FILE__))
 
-require 'action_service/base'
-require 'action_service/client'
-require 'action_service/invocation'
-require 'action_service/api'
-require 'action_service/struct'
-require 'action_service/container'
-require 'action_service/protocol'
-require 'action_service/router'
+require 'action_web_service/base'
+require 'action_web_service/client'
+require 'action_web_service/invocation'
+require 'action_web_service/api'
+require 'action_web_service/struct'
+require 'action_web_service/container'
+require 'action_web_service/protocol'
+require 'action_web_service/router'
 
-ActionService::Base.class_eval do
-  include ActionService::API
-  include ActionService::Invocation
+ActionWebService::Base.class_eval do
+  include ActionWebService::API
+  include ActionWebService::Invocation
 end
 
 ActionController::Base.class_eval do
-  include ActionService::Container
-  include ActionService::Protocol::Registry
-  include ActionService::Protocol::Soap
-  include ActionService::Protocol::XmlRpc
-  include ActionService::API
-  include ActionService::API::ActionController
-  include ActionService::Router::ActionController
-  include ActionService::Router::Wsdl
+  include ActionWebService::Container
+  include ActionWebService::Protocol::Registry
+  include ActionWebService::Protocol::Soap
+  include ActionWebService::Protocol::XmlRpc
+  include ActionWebService::API
+  include ActionWebService::API::ActionController
+  include ActionWebService::Router::ActionController
+  include ActionWebService::Router::Wsdl
 end

@@ -1,6 +1,6 @@
-= Action Service -- Serving APIs on rails
+= Action Web Service -- Serving APIs on rails
 
-Action Service provides a way to publish interoperable web service APIs with
+Action Web Service provides a way to publish interoperable web service APIs with
 Rails without spending a lot of time delving into protocol details.
 
 
@@ -10,7 +10,7 @@ Rails without spending a lot of time delving into protocol details.
 * Dynamic WSDL generation for APIs
 * XML-RPC protocol support
 * Clients that use the same API definitions as the server for
-  easy interoperability with other Action Service based applications
+  easy interoperability with other Action Web Service based applications
 * Type signature hints to improve interoperability with static languages
 * Active Record model class support in signatures
 
@@ -18,7 +18,7 @@ Rails without spending a lot of time delving into protocol details.
 == Defining your APIs
 
 You specify the methods you want to make available as API methods in an
-ActionService::API::Base derivative, and then specify this API
+ActionWebService::API::Base derivative, and then specify this API
 definition class wherever you want to use that API. 
 
 The implementation of the methods is done seperately to the API
@@ -27,14 +27,14 @@ specification.
 
 ==== Method name inflection
 
-Action Service will camelcase the method names according to Rails Inflector
+Action Web Service will camelcase the method names according to Rails Inflector
 rules for the API visible to public callers. What this means, for example
 is that the method names in generated WSDL will be camelcased, and callers will
 have to supply the camelcased name in their requests for the request to
 succeed.
 
 If you do not desire this behaviour, you can turn it off with the
-ActionService::API::Base +inflect_names+ option.
+ActionWebService::API::Base +inflect_names+ option.
 
 
 ==== Inflection examples
@@ -45,14 +45,14 @@ ActionService::API::Base +inflect_names+ option.
   
 ==== Disabling inflection
 
-  class PersonAPI < ActionService::API::Base
+  class PersonAPI < ActionWebService::API::Base
     inflect_names false
   end
 
 
 ==== API definition example
 
-  class PersonAPI < ActionService::API::Base
+  class PersonAPI < ActionWebService::API::Base
     api_method :add, :expects => [:string, :string, :bool], :returns => [:int]
     api_method :remove, :expects => [:int], :returns => [:bool]
   end
@@ -72,7 +72,7 @@ ActionService::API::Base +inflect_names+ option.
 
 == Publishing your APIs
 
-Action Service uses Action Pack to process protocol requests.  There are two
+Action Web Service uses Action Pack to process protocol requests.  There are two
 modes of dispatching protocol requests, _Direct_, and _Delegated_.
 
 
@@ -102,7 +102,7 @@ overridden.</em>
     end
   end
 
-  class PersonAPI < ActionService::API::Base
+  class PersonAPI < ActionWebService::API::Base
     ...
   end
 
@@ -117,7 +117,7 @@ This mode can be turned on by setting the +web_service_dispatching_mode+ option
 in a controller.
 
 In this mode, the controller contains one or more web service objects (objects
-that implement an ActionService::API::Base definition). These web service
+that implement an ActionWebService::API::Base definition). These web service
 objects are each mapped onto one controller action only.
 
 ==== Delegated dispatching example
@@ -128,7 +128,7 @@ objects are each mapped onto one controller action only.
     web_service :person, PersonService.new
   end
 
-  class PersonService < ActionService::Base
+  class PersonService < ActionWebService::Base
     web_service_api PersonAPI
 
     def add
@@ -138,7 +138,7 @@ objects are each mapped onto one controller action only.
     end
   end
 
-  class PersonAPI < ActionService::API::Base
+  class PersonAPI < ActionWebService::API::Base
     ...
   end
 
@@ -150,23 +150,23 @@ The <tt>/api/person</tt> action is generated when the +web_service+
 method is called. <em>This action must not be overridden.</em>
 
 Other controller actions (actions that aren't the target of a +web_service+ call)
-are ignored for ActionService purposes, and can do normal action tasks.
+are ignored for ActionWebService purposes, and can do normal action tasks.
 
 
 == Using the client support
 
-Action Service includes client classes that can use the same API
+Action Web Service includes client classes that can use the same API
 definition as the server. The advantage of this approach is that your client
 will have the same support for Active Record and structured types as the
 server, and can just use them directly, and rely on the marshaling to Do The
 Right Thing.
 
 *Note*: The client support is intended for communication between Ruby on Rails
-applications that both use Action Service. It may work with other servers, but
+applications that both use Action Web Service. It may work with other servers, but
 that is not its intended use, and interoperability can't be guaranteed, especially
 not for .NET web services. 
 
-Web services protocol specifications are complex, and Action Service client
+Web services protocol specifications are complex, and Action Web Service client
 support can only be guaranteed to work with a subset.
 
 
@@ -180,31 +180,31 @@ support can only be guaranteed to work with a subset.
     web_client_api :google, :soap, 'http://url/to/blog/api/beta', :service_name => 'GoogleSearch'
   end
 
-See ActionService::API::ActionController::ClassMethods for more details.
+See ActionWebService::API::ActionController::ClassMethods for more details.
 
 ==== Manually created client example
 
-  class PersonAPI < ActionService::API::Base
+  class PersonAPI < ActionWebService::API::Base
     api_method :find_all, :returns => [[Person]]
   end
 
-  soap_client = ActionService::Client::Soap.new(PersonAPI, "http://...")
+  soap_client = ActionWebService::Client::Soap.new(PersonAPI, "http://...")
   persons = soap_client.find_all
 
-  class BloggerAPI < ActionService::API::Base
+  class BloggerAPI < ActionWebService::API::Base
     inflect_names false
     api_method :getRecentPosts, :returns => [[Blog::Post]]
   end
 
-  blog = ActionService::Client::XmlRpc.new(BloggerAPI, "http://.../xmlrpc", :handler_name => "blogger")
+  blog = ActionWebService::Client::XmlRpc.new(BloggerAPI, "http://.../xmlrpc", :handler_name => "blogger")
   posts = blog.getRecentPosts
 
 
-See ActionService::Client::Soap and ActionService::Client::XmlRpc for more details.
+See ActionWebService::Client::Soap and ActionWebService::Client::XmlRpc for more details.
 
 == Dependencies
 
-Action Service requires that the Action Pack and Active Record are either
+Action Web Service requires that the Action Pack and Active Record are either
 available to be required immediately or are accessible as GEMs.
 
 It also requires a version of Ruby that includes SOAP support in the standard
@@ -214,20 +214,20 @@ is the version tested against.
 
 == Download
 
-The latest Action Service version can be downloaded from
+The latest Action Web Service version can be downloaded from
 http://rubyforge.org/projects/actionservice
 
 
 == Installation
 
-You can install Action Service with the following command.
+You can install Action Web Service with the following command.
 
   % [sudo] ruby setup.rb
 
 
 == License
 
-Action Service is released under the MIT license.
+Action Web Service is released under the MIT license.
 
 
 == Support

@@ -1,19 +1,19 @@
 require File.dirname(__FILE__) + '/abstract_unit'
 
 module BaseTest
-  class API < ActionService::API::Base
+  class API < ActionWebService::API::Base
     api_method :add, :expects => [:int, :int], :returns => [:int]
     api_method :void
   end
 
-  class PristineAPI < ActionService::API::Base
+  class PristineAPI < ActionWebService::API::Base
     inflect_names false
 
     api_method :add
     api_method :under_score
   end
 
-  class Service < ActionService::Base
+  class Service < ActionWebService::Base
     web_service_api API
 
     def add(a, b)
@@ -23,7 +23,7 @@ module BaseTest
     end
   end
   
-  class PristineService < ActionService::Base
+  class PristineService < ActionWebService::Base
     web_service_api PristineAPI
 
     def add

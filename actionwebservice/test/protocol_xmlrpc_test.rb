@@ -18,13 +18,13 @@ module XMLRPC
 end
 
 module ProtocolXmlRpcTest
-  class Person < ActionService::Struct
+  class Person < ActionWebService::Struct
     member :firstname, String
     member :lastname, String
     member :active, TrueClass
   end
 
-  class API < ActionService::API::Base
+  class API < ActionWebService::API::Base
     api_method :add,            :expects => [Integer, Integer], :returns => [Integer]
     api_method :hash_returner,  :returns => [Hash]
     api_method :array_returner, :returns => [[Integer]]
@@ -34,7 +34,7 @@ module ProtocolXmlRpcTest
     default_api_method :default
   end
 
-  class Service < ActionService::Base
+  class Service < ActionWebService::Base
     web_service_api API
 
     attr :result
@@ -80,10 +80,10 @@ module ProtocolXmlRpcTest
   $service = Service.new
   
   class Container
-    include ActionService::Container
-    include ActionService::Protocol::Registry
-    include ActionService::Protocol::Soap
-    include ActionService::Protocol::XmlRpc
+    include ActionWebService::Container
+    include ActionWebService::Protocol::Registry
+    include ActionWebService::Protocol::Soap
+    include ActionWebService::Protocol::XmlRpc
   
     def protocol_request(request)
       probe_request_protocol(request)

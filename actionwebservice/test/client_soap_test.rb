@@ -48,7 +48,7 @@ class TC_ClientSoap < Test::Unit::TestCase
   def setup
     @server = SoapServer.instance
     @container = @server.container
-    @client = ActionService::Client::Soap.new(API, "http://localhost:#{@server.server_port}/client/api")
+    @client = ActionWebService::Client::Soap.new(API, "http://localhost:#{@server.server_port}/client/api")
   end
 
   def test_void

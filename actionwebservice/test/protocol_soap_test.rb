@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/abstract_soap'
 
 module ProtocolSoapTest
-  class Person < ActionService::Struct
+  class Person < ActionWebService::Struct
     member :id, Integer
     member :names, [String]
     member :lastname, String
@@ -12,7 +12,7 @@ module ProtocolSoapTest
     end
   end
 
-  class API < ActionService::API::Base
+  class API < ActionWebService::API::Base
     api_method :argument_passing, :expects => [{:int=>:int}, {:string=>:string}, {:array=>[:int]}], :returns => [:bool]
     api_method :array_returner, :returns => [[:int]]
     api_method :nil_returner
@@ -22,7 +22,7 @@ module ProtocolSoapTest
     default_api_method :default
   end
 
-  class Service < ActionService::Base
+  class Service < ActionWebService::Base
     web_service_api API
 
     attr :int
@@ -73,10 +73,10 @@ module ProtocolSoapTest
   end
 
   class AbstractContainer
-    include ActionService::API
-    include ActionService::Container
-    include ActionService::Protocol::Registry
-    include ActionService::Protocol::Soap
+    include ActionWebService::API
+    include ActionWebService::Container
+    include ActionWebService::Protocol::Registry
+    include ActionWebService::Protocol::Soap
 
     wsdl_service_name 'Test'
 

@@ -4,7 +4,7 @@ require 'webrick/log'
 require 'singleton'
 
 module ClientTest
-  class Person < ActionService::Struct
+  class Person < ActionWebService::Struct
     member :firstnames, [:string]
     member :lastname,   :string
 
@@ -13,7 +13,7 @@ module ClientTest
     end
   end
 
-  class API < ActionService::API::Base
+  class API < ActionWebService::API::Base
     api_method :void
     api_method :normal,         :expects => [:int, :int], :returns => [:int]
     api_method :array_return,   :returns => [[Person]]

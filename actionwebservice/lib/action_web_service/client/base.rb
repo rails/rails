@@ -1,4 +1,4 @@
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module Client # :nodoc:
     class ClientError < StandardError # :nodoc:
     end

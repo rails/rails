@@ -8,7 +8,7 @@
 
   - support XML-RPC's "handler." method namespacing. perhaps something like:
     
-      class BloggingServices < ActionService::LayeredService
+      class BloggingServices < ActionWebService::LayeredService
         def initialize(request)
           @request = controller.request
         end
@@ -23,6 +23,13 @@
         web_service :xmlrpc { BloggingServices.new(@request) }
       end
 
+  - supported namespaced custom types in WSDL in a way that interoperates
+    with .NET (.NET croaks on '::' currently)
+
+  - simplification: collapse Router::ActionController, Router::Wsdl
+    and API::ActionController into Container::ActionController.
+    the seperation has gained us nothing.
+
 = Low priority tasks
   - add better type mapping tests for XML-RPC
   - add tests for ActiveRecord support (with mock objects?)
@@ -31,7 +38,7 @@
   - Find an alternative way to map interesting types for SOAP (like ActiveRecord
     model classes) that doesn't require creation of a sanitized copy object with data
     copied from the real one. Ideally this would let us get rid of
-    ActionService::Struct altogether and provide a block that would yield the
+    ActionWebService::Struct altogether and provide a block that would yield the
     attributes and values. "Filters" ?  Not sure how to integrate with SOAP though.
   
   - Don't have clean way to go from SOAP Class object to the xsd:NAME type

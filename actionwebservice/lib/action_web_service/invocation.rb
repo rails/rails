@@ -1,20 +1,20 @@
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module Invocation # :nodoc:
     ConcreteInvocation = :concrete
     VirtualInvocation = :virtual
     UnpublishedConcreteInvocation = :unpublished_concrete
 
-    class InvocationError < ActionService::ActionServiceError # :nodoc:
+    class InvocationError < ActionWebService::ActionWebServiceError # :nodoc:
     end
 
     def self.append_features(base) # :nodoc:
       super
       base.extend(ClassMethods)
-      base.send(:include, ActionService::Invocation::InstanceMethods)
+      base.send(:include, ActionWebService::Invocation::InstanceMethods)
     end
 
     # Invocation interceptors provide a means to execute custom code before
-    # and after method invocations on ActionService::Base objects.
+    # and after method invocations on ActionWebService::Base objects.
     #
     # When running in _Direct_ dispatching mode, ActionController filters
     # should be used for this functionality instead.
@@ -28,7 +28,7 @@ module ActionService # :nodoc:
     #
     # === Example
     #
-    #   class CustomService < ActionService::Base
+    #   class CustomService < ActionWebService::Base
     #     before_invocation :intercept_add, :only => [:add]
     #
     #     def add(a, b)

@@ -8,7 +8,7 @@ require 'rake/contrib/rubyforgepublisher'
 require 'fileutils'
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
-PKG_NAME      = 'actionservice'
+PKG_NAME      = 'actionwebservice'
 PKG_VERSION   = '0.4.0' + PKG_BUILD
 PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
@@ -28,16 +28,16 @@ Rake::TestTask.new { |t|
 # Generate the RDoc documentation
 Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
-  rdoc.title    = "Action Service -- Web services for Action Pack"
+  rdoc.title    = "Action Web Service -- Web services for Action Pack"
   rdoc.options << '--line-numbers --inline-source --main README --accessor class_inheritable_option=RW'
   rdoc.rdoc_files.include('README')
-  rdoc.rdoc_files.include('lib/action_service.rb')
-  rdoc.rdoc_files.include('lib/action_service/*.rb')
-  rdoc.rdoc_files.include('lib/action_service/api/*.rb')
-  rdoc.rdoc_files.include('lib/action_service/client/*.rb')
-  rdoc.rdoc_files.include('lib/action_service/protocol/*.rb')
-  rdoc.rdoc_files.include('lib/action_service/router/*.rb')
-  rdoc.rdoc_files.include('lib/action_service/support/*.rb')
+  rdoc.rdoc_files.include('lib/action_web_service.rb')
+  rdoc.rdoc_files.include('lib/action_web_service/*.rb')
+  rdoc.rdoc_files.include('lib/action_web_service/api/*.rb')
+  rdoc.rdoc_files.include('lib/action_web_service/client/*.rb')
+  rdoc.rdoc_files.include('lib/action_web_service/protocol/*.rb')
+  rdoc.rdoc_files.include('lib/action_web_service/router/*.rb')
+  rdoc.rdoc_files.include('lib/action_web_service/support/*.rb')
 }
 
 
@@ -61,7 +61,7 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc = true
   s.requirements << 'none'
   s.require_path = 'lib'
-  s.autorequire = 'action_service'
+  s.autorequire = 'action_web_service'
 
   s.files = [ "Rakefile", "setup.rb", "README", "TODO", "HACKING", "ChangeLog", "MIT-LICENSE" ]
   s.files = s.files + Dir.glob( "examples/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
@@ -93,7 +93,7 @@ def each_source_file(*args)
 	prefix, includes, excludes, open_file = args
 	prefix ||= File.dirname(__FILE__)
 	open_file = true if open_file.nil?
-	includes ||= %w[lib\/action_service\.rb$ lib\/action_service\/.*\.rb$]
+	includes ||= %w[lib\/action_web_service\.rb$ lib\/action_web_service\/.*\.rb$]
 	excludes ||= %w[]
 	Find.find(prefix) do |file_name|
 		next if file_name =~ /\.svn/

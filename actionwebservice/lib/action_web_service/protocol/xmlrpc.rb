@@ -19,7 +19,7 @@ module XMLRPC # :nodoc:
   end
 end
 
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module Protocol # :nodoc:
     module XmlRpc # :nodoc:
       def self.append_features(base) # :nodoc:
@@ -49,7 +49,7 @@ module ActionService # :nodoc:
 
         def self.create_protocol_client(api, protocol_name, endpoint_uri, options)
           return nil unless protocol_name.to_s.downcase.to_sym == :xmlrpc
-          ActionService::Client::XmlRpc.new(api, endpoint_uri, options)
+          ActionWebService::Client::XmlRpc.new(api, endpoint_uri, options)
         end
 
         def initialize(container_class)
@@ -115,7 +115,7 @@ module ActionService # :nodoc:
               param.map{|p| ruby_to_xmlrpc(p, param_class.klass)}
             elsif param_class.ancestors.include?(ActiveRecord::Base)
               param.instance_variable_get('@attributes')
-            elsif param_class.ancestors.include?(ActionService::Struct)
+            elsif param_class.ancestors.include?(ActionWebService::Struct)
               struct = {}
               param_class.members.each do |name, klass|
                 value = param.send(name)
@@ -133,7 +133,7 @@ module ActionService # :nodoc:
               param.map{|p| xmlrpc_to_ruby(p, param_class.klass)}
             elsif param_class.ancestors.include?(ActiveRecord::Base)
               raise(ProtocolError, "incoming ActiveRecord::Base types are not allowed")
-            elsif param_class.ancestors.include?(ActionService::Struct)
+            elsif param_class.ancestors.include?(ActionWebService::Struct)
               unless param.is_a?(Hash)
                 raise(ProtocolError, "expected parameter to be a Hash")
               end

@@ -5,17 +5,17 @@ require 'xsd/datatypes'
 require 'xsd/ns'
 require 'singleton'
 
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module Protocol # :nodoc:
     module Soap # :nodoc:
-      class ProtocolError < ActionService::ActionServiceError # :nodoc:
+      class ProtocolError < ActionWebService::ActionWebServiceError # :nodoc:
       end
 
       def self.append_features(base) # :nodoc:
         super
         base.register_protocol(HeaderAndBody, SoapProtocol)
         base.extend(ClassMethods)
-        base.wsdl_service_name('ActionService')
+        base.wsdl_service_name('ActionWebService')
       end
 
       module ClassMethods
@@ -60,7 +60,7 @@ module ActionService # :nodoc:
 
         def self.create_protocol_client(api, protocol_name, endpoint_uri, options)
           return nil unless protocol_name.to_s.downcase.to_sym == :soap
-          ActionService::Client::Soap.new(api, endpoint_uri, options)
+          ActionWebService::Client::Soap.new(api, endpoint_uri, options)
         end
 
         def unmarshal_request(protocol_request)
@@ -380,7 +380,7 @@ module ActionService # :nodoc:
           def select_class(klass)
             return Integer if klass == Fixnum
             if klass.ancestors.include?(ActiveRecord::Base)
-              new_klass = Class.new(ActionService::Struct)
+              new_klass = Class.new(ActionWebService::Struct)
               new_klass.class_eval <<-EOS
                 def self.name
                   "#{klass.name}"

@@ -1,25 +1,25 @@
 require 'soap/rpc/driver'
 require 'uri'
 
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module Client # :nodoc:
 
     # Implements SOAP client support (using RPC encoding for the messages).
     #
     # ==== Example Usage
     #
-    #   class PersonAPI < ActionService::API::Base
+    #   class PersonAPI < ActionWebService::API::Base
     #     api_method :find_all, :returns => [[Person]]
     #   end
     #
-    #   soap_client = ActionService::Client::Soap.new(PersonAPI, "http://...")
+    #   soap_client = ActionWebService::Client::Soap.new(PersonAPI, "http://...")
     #   persons = soap_client.find_all
     #
     class Soap < Base
 
       # Creates a new web service client using the SOAP RPC protocol.
       #
-      # +api+ must be an ActionService::API::Base derivative, and
+      # +api+ must be an ActionWebService::API::Base derivative, and
       # +endpoint_uri+ must point at the relevant URL to which protocol requests
       # will be sent with HTTP POST.
       #
@@ -28,10 +28,10 @@ module ActionService # :nodoc:
       #                             option, you must specify it here
       def initialize(api, endpoint_uri, options={})
         super(api, endpoint_uri)
-        @service_name = options[:service_name] || 'ActionService'
+        @service_name = options[:service_name] || 'ActionWebService'
         @namespace = "urn:#{@service_name}" 
-        @mapper = ActionService::Protocol::Soap::SoapMapper.new(@namespace)
-        @protocol = ActionService::Protocol::Soap::SoapProtocol.new(@mapper)
+        @mapper = ActionWebService::Protocol::Soap::SoapMapper.new(@namespace)
+        @protocol = ActionWebService::Protocol::Soap::SoapProtocol.new(@mapper)
         @soap_action_base = options[:soap_action_base]
         @soap_action_base ||= URI.parse(endpoint_uri).path
         @driver = create_soap_rpc_driver(api, endpoint_uri)

@@ -1,14 +1,14 @@
-module ActionService
-  # To send structured types across the wire, derive from ActionService::Struct,
+module ActionWebService
+  # To send structured types across the wire, derive from ActionWebService::Struct,
   # and use +member+ to declare structure members.
   #
-  # ActionService::Struct should be used in method signatures when you want to accept or return
+  # ActionWebService::Struct should be used in method signatures when you want to accept or return
   # structured types that have no Active Record model class representations, or you don't
   # want to expose your entire Active Record model to remote callers.
   #
   # === Example
   #
-  #   class Person < ActionService::Struct
+  #   class Person < ActionWebService::Struct
   #     member :id,         :int
   #     member :firstnames, [:string]
   #     member :lastname,   :string
@@ -21,7 +21,7 @@ module ActionService
   # automatically generated if its present in a signature.
   class Struct
     
-    # If a Hash is given as argument to an ActionService::Struct constructor,
+    # If a Hash is given as argument to an ActionWebService::Struct constructor,
     # it can contain initial values for the structure member.
     def initialize(values={})
       if values.is_a?(Hash)
@@ -35,7 +35,7 @@ module ActionService
     end
 
     class << self
-      include ActionService::Signature
+      include ActionWebService::Signature
 
       # Creates a structure member with the specified +name+ and +type+. Generates
       # accessor methods for reading and writing the member value.

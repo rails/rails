@@ -2,11 +2,11 @@ require File.dirname(__FILE__) + '/abstract_soap'
 require 'wsdl/parser'
 
 module RouterActionControllerTest
-  class API < ActionService::API::Base
+  class API < ActionWebService::API::Base
     api_method :add, :expects => [:int, :int], :returns => [:int]
   end
 
-  class Service < ActionService::Base
+  class Service < ActionWebService::Base
     web_service_api API
 
     attr :added
@@ -22,7 +22,7 @@ module RouterActionControllerTest
     web_service(:test_service) { @service ||= Service.new; @service }
   end
 
-  class DirectAPI < ActionService::API::Base
+  class DirectAPI < ActionWebService::API::Base
     api_method :add, :expects => [{:a=>:int}, {:b=>:int}], :returns => [:int]
     api_method :before_filtered
     api_method :after_filtered, :returns => [:int]

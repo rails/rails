@@ -22,7 +22,7 @@ class AbstractSoapTest < Test::Unit::TestCase
         param_def << ["in", "param#{i}", mapping.registry_mapping]
         i += 1
       end
-      qname = XSD::QName.new('urn:ActionService', public_method_name)
+      qname = XSD::QName.new('urn:ActionWebService', public_method_name)
       request = SOAP::RPC::SOAPMethodRequest.new(qname, param_def)
       soap_args = []
       i = 1

@@ -1,4 +1,4 @@
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module Protocol # :nodoc:
     HeaderAndBody = :header_and_body
     BodyOnly      = :body_only
@@ -7,7 +7,7 @@ module ActionService # :nodoc:
       def self.append_features(base) # :nodoc:
         super
         base.extend(ClassMethods)
-        base.send(:include, ActionService::Protocol::Registry::InstanceMethods)
+        base.send(:include, ActionWebService::Protocol::Registry::InstanceMethods)
       end
 
       module ClassMethods # :nodoc:

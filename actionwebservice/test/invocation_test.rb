@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/abstract_unit'
 
 module InvocationTest
-  class API < ActionService::API::Base
+  class API < ActionWebService::API::Base
     api_method :add,             :expects => [:int, :int], :returns => [:int]
     api_method :transmogrify,    :expects_and_returns => [:string]
     api_method :fail_with_reason
@@ -12,7 +12,7 @@ module InvocationTest
     api_method :only_two
   end
 
-  class Service < ActionService::Base
+  class Service < ActionWebService::Base
     web_service_api API
 
     before_invocation :intercept_before, :except => [:no_before]
@@ -81,7 +81,7 @@ module InvocationTest
 end
 
 class TC_Invocation < Test::Unit::TestCase
-  include ActionService::Invocation
+  include ActionWebService::Invocation
 
   def setup
     @service = InvocationTest::Service.new

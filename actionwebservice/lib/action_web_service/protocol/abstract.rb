@@ -1,9 +1,9 @@
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module Protocol # :nodoc:
     CheckedMessage = :checked
     UncheckedMessage = :unchecked
 
-    class ProtocolError < ActionService::ActionServiceError # :nodoc:
+    class ProtocolError < ActionWebService::ActionWebServiceError # :nodoc:
     end
 
     class AbstractProtocol # :nodoc:

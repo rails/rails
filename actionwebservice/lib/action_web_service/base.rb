@@ -1,17 +1,17 @@
-require 'action_service/support/class_inheritable_options'
-require 'action_service/support/signature'
+require 'action_web_service/support/class_inheritable_options'
+require 'action_web_service/support/signature'
 
-module ActionService # :nodoc:
-  class ActionServiceError < StandardError # :nodoc:
+module ActionWebService # :nodoc:
+  class ActionWebServiceError < StandardError # :nodoc:
   end
 
-  # An Action Service object implements a specified API.
+  # An Action Web Service object implements a specified API.
   #
   # Used by controllers operating in _Delegated_ dispatching mode.
   #
   # ==== Example
   # 
-  #   class PersonService < ActionService::Base
+  #   class PersonService < ActionWebService::Base
   #     web_service_api PersonAPI
   #
   #     def find_person(criteria)
@@ -23,7 +23,7 @@ module ActionService # :nodoc:
   #     end
   #   end
   #
-  #   class PersonAPI < ActionService::API::Base
+  #   class PersonAPI < ActionWebService::API::Base
   #     api_method :find_person,   :expects => [SearchCriteria], :returns => [[Person]]
   #     api_method :delete_person, :expects => [:int]
   #   end

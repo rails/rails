@@ -1,6 +1,6 @@
-module ActionService # :nodoc:
+module ActionWebService # :nodoc:
   module Container # :nodoc:
-    class ContainerError < ActionService::ActionServiceError # :nodoc:
+    class ContainerError < ActionWebService::ActionWebServiceError # :nodoc:
     end
 
     def self.append_features(base) # :nodoc:
@@ -8,12 +8,12 @@ module ActionService # :nodoc:
       base.class_inheritable_option(:web_service_dispatching_mode, :direct)
       base.class_inheritable_option(:web_service_exception_reporting, true)
       base.extend(ClassMethods)
-      base.send(:include, ActionService::Container::InstanceMethods)
+      base.send(:include, ActionWebService::Container::InstanceMethods)
     end
 
     module ClassMethods
       # Declares a web service that will provides access to the API of the given
-      # +object+. +object+ must be an ActionService::Base derivative.
+      # +object+. +object+ must be an ActionWebService::Base derivative.
       #
       # Web service object creation can either be _immediate_, where the object
       # instance is given at class definition time, or _deferred_, where
@@ -171,8 +171,8 @@ module ActionService # :nodoc:
           public_method_name = protocol_request.public_method_name
           method_name = api.api_method_name(public_method_name)
 
-          invocation = ActionService::Invocation::InvocationRequest.new(
-            ActionService::Invocation::ConcreteInvocation,
+          invocation = ActionWebService::Invocation::InvocationRequest.new(
+            ActionWebService::Invocation::ConcreteInvocation,
             public_method_name,
             method_name)
 
@@ -184,7 +184,7 @@ module ActionService # :nodoc:
             invocation.params = protocol_request.unmarshal
           else
             protocol_request.type = Protocol::UncheckedMessage
-            invocation.type = ActionService::Invocation::VirtualInvocation
+            invocation.type = ActionWebService::Invocation::VirtualInvocation
             system_methods = self.class.read_inheritable_attribute('default_system_methods') || {}
             protocol = protocol_request.protocol
             block = system_methods[protocol.class]
@@ -219,7 +219,7 @@ module ActionService # :nodoc:
               protocol_request.type = Protocol::UncheckedMessage
               invocation.params = protocol_request.unmarshal
               invocation.method_name = method_name.to_sym
-              invocation.type = ActionService::Invocation::UnpublishedConcreteInvocation
+              invocation.type = ActionWebService::Invocation::UnpublishedConcreteInvocation
             else
               raise(ContainerError, "no such method /#{web_service_name}##{public_method_name}")
             end
