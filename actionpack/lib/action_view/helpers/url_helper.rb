@@ -16,6 +16,9 @@ module ActionView
       # get a link tag that just points without consideration. If nil is passed as a name, the link itself will become the name. 
       # The html_options have a special feature for creating javascript confirm alerts where if you pass :confirm => 'Are you sure?', 
       # the link will be guarded with a JS popup asking that question. If the user accepts, the link is processed, otherwise not.
+      #
+      # Example:
+      #   link_to "Delete this page", { :action => "destroy", :id => @page.id }, :confirm => "Are you sure?"
       def link_to(name, options = {}, html_options = {}, *parameters_for_method_reference)
         convert_confirm_option_to_javascript!(html_options) unless html_options.nil?
         if options.is_a?(String)
@@ -28,21 +31,25 @@ module ActionView
         end
       end
 
-      # Creates a link tag to the image residing at the +src+ using an URL created by the set of +options+. See the valid options in
+      # Creates a link tag on the image residing at the +src+ using an URL created by the set of +options+. See the valid options in
       # link:classes/ActionController/Base.html#M000021. It's also possible to pass a string instead of an options hash to
       # get a link tag that just points without consideration. The <tt>html_options</tt> works jointly for the image and ahref tag by
       # letting the following special values enter the options on the image and the rest goes to the ahref:
       #
-      # * <tt>alt</tt> - If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
-      # * <tt>size</tt> - Supplied as "XxY", so "30x45" becomes width="30" and height="45"
-      # * <tt>border</tt> - Is set to 0 by default
-      # * <tt>align</tt> - Sets the alignment, no special features
+      # * <tt>:alt</tt> - If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
+      # * <tt>:size</tt> - Supplied as "XxY", so "30x45" becomes width="30" and height="45"
+      # * <tt>:border</tt> - Is set to 0 by default
+      # * <tt>:align</tt> - Sets the alignment, no special features
       #
       # The +src+ can be supplied as a... 
       # * full path, like "/my_images/image.gif"
       # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
       # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
-      def link_to_image(src, options = {}, html_options = {}, *parameters_for_method_reference)
+      #
+      # Examples:
+      #   link_image_to "logo", { :controller => "home" }, :alt => "Homepage", :size => "45x80"
+      #   link_image_to "delete", { :action => "destroy" }, :size => "10x10", :confirm => "Are you sure?", "class" => "admin"
+      def link_image_to(src, options = {}, html_options = {}, *parameters_for_method_reference)
         image_options = { "src" => src.include?("/") ? src : "/images/#{src}" }
         image_options["src"] = image_options["src"] + ".png" unless image_options["src"].include?(".")
         
@@ -72,6 +79,8 @@ module ActionView
 
         link_to(tag("img", image_options), options, html_options, *parameters_for_method_reference)
       end
+
+      alias_method :link_to_image, :link_image_to # deprecated name
 
       # Creates a link tag of the given +name+ using an URL created by the set of +options+, unless the current 
       # request uri is the same as the link's, in which case only the name is returned (or the
