@@ -789,7 +789,13 @@ module ActiveRecord #:nodoc:
       # Updates a single attribute and saves the record. This is especially useful for boolean flags on existing records.
       def update_attribute(name, value)
         self[name] = value
-        save
+        return save
+      end
+
+      # Updates all the attributes in from the passed hash and saves the record.
+      def update_attributes(attributes)
+        attributes = attributes
+        return save
       end
 
       # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example, 

@@ -1,5 +1,16 @@
 *SVN*
 
+* Added Base#update_attributes that'll accept a hash of attributes and save the record (returning true if it passed validation, false otherwise). 
+
+    Before:
+      person.attributes = @params["person"]
+      person.save
+    
+    Now:
+      person.update_attributes(@params["person"])
+
+* Added a return value for Base#update_attribute, so that you get to know whether the save was successful or if it failed validation.
+
 * Added Base.destroy and Base.delete to remove records without holding a reference to them first.
 
 
