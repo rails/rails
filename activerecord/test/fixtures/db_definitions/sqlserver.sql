@@ -119,7 +119,7 @@ CREATE TABLE people (
 
 CREATE TABLE binaries (
   id int NOT NULL IDENTITY(1, 1),
-  data blob NULL,
+  data image NULL,
   PRIMARY KEY (id)
 );
 
