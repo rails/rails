@@ -22,13 +22,14 @@ class TimeZone
 
   # Returns the offset of this time zone as a formatted string, of the
   # format "+HH:MM". If the offset is zero, this returns the empty
-  # string.
-  def formatted_offset
+  # string. If +colon+ is false, a colon will not be inserted into the
+  # result.
+  def formatted_offset( colon=true )
     return "" if utc_offset == 0
     sign = (utc_offset < 0 ? -1 : 1)
     hours = utc_offset.abs / 3600
     minutes = (utc_offset.abs % 3600) / 60
-    "%+03d:%02d" % [ hours * sign, minutes ]
+    "%+03d%s%02d" % [ hours * sign, colon ? ":" : "", minutes ]
   end
 
   # Compute and return the current time, in the time zone represented by
@@ -45,8 +46,15 @@ class TimeZone
   # Adjust the given time to the time zone represented by +self+.
   def adjust(time)
     time = time.to_time
-    offset = time.utc_offset
-    time + utc_offset - offset
+    time + utc_offset - time.utc_offset
+  end
+
+  # Reinterprets the given time value as a time in the current time
+  # zone, and then adjusts it to return the corresponding time in the
+  # local time zone.
+  def unadjust(time)
+    time = Time.local(*time.to_time.to_a)
+    time - utc_offset + time.utc_offset
   end
 
   # Compare this time zone to the parameter. The two are comapred first on
@@ -142,10 +150,21 @@ class TimeZone
       @@zones
     end
 
-    # Locate a specific time zone object by the name it was given. Returns
-    # +nil+ if no such time zone is known to the system.
-    def [](name)
-      all.find { |z| z.name == name }
+    # Locate a specific time zone object. If the argument is a string, it
+    # is interpreted to mean the name of the timezone to locate. If it is a
+    # numeric value it is either the hour offset, or the second offset, of the
+    # timezone to find. (The first one with that offset will be returned.)
+    # Returns +nil+ if no such time zone is known to the system.
+    def [](arg)
+      case arg
+        when String
+          all.find { |z| z.name == arg }
+        when Numeric
+          arg *= 3600 if arg.abs <= 13
+          all.find { |z| z.utc_offset == arg.to_i }
+        else
+          raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}"
+      end
     end
 
     # A regular expression that matches the names of all time zones in

@@ -6,6 +6,10 @@ class TimeZoneTest < Test::Unit::TestCase
     def self.now
       Time.utc( 2004, 7, 25, 14, 49, 00 )
     end
+
+    def self.local(*args)
+      Time.utc(*args)
+    end
   end
 
   TimeZone::Time = MockTime
@@ -25,6 +29,11 @@ class TimeZoneTest < Test::Unit::TestCase
     assert_equal Time.local(2004,7,25,15,59,00).to_a[0,6], zone.now.to_a[0,6]
   end
 
+  def test_today
+    zone = TimeZone.create( "Test", 43200 )
+    assert_equal Date.new(2004,7,26), zone.today
+  end
+
   def test_adjust_negative
     zone = TimeZone.create( "Test", -4200 )
     assert_equal Time.utc(2004,7,24,23,55,0), zone.adjust(Time.utc(2004,7,25,1,5,0))
@@ -33,6 +42,13 @@ class TimeZoneTest < Test::Unit::TestCase
   def test_adjust_positive
     zone = TimeZone.create( "Test", 4200 )
     assert_equal Time.utc(2004,7,26,1,5,0), zone.adjust(Time.utc(2004,7,25,23,55,0))
+  end
+
+  def test_unadjust
+    zone = TimeZone.create( "Test", 4200 )
+    expect = Time.utc(2004,7,24,23,55,0).to_a[0,6]
+    actual = zone.unadjust(Time.utc(2004,7,25,1,5,0)).to_a[0,6]
+    assert_equal expect, actual
   end
 
   def test_zone_compare
