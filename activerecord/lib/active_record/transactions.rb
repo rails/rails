@@ -76,14 +76,10 @@ module ActiveRecord
     # should be ready to catch those in your application code.
     #
     # Tribute: Object-level transactions are implemented by Transaction::Simple by Austin Ziegler.
-    module ClassMethods      
+    module ClassMethods
       def transaction(*objects, &block)
-        TRANSACTION_MUTEX.synchronize do
-          Thread.current['open_transactions'] ||= 0
-          Thread.current['start_db_transaction'] = (Thread.current['open_transactions'] == 0)
-          Thread.current['open_transactions'] += 1
-        end
-
+        lock_mutex
+        
         begin
           objects.each { |o| o.extend(Transaction::Simple) }
           objects.each { |o| o.start_transaction }
@@ -96,10 +92,20 @@ module ActiveRecord
           objects.each { |o| o.abort_transaction }
           raise
         ensure
-          TRANSACTION_MUTEX.synchronize do
-            Thread.current['open_transactions'] -= 1
-          end
+          unlock_mutex
         end
+      end
+      
+      def lock_mutex
+        Thread.current['open_transactions'] ||= 0
+        TRANSACTION_MUTEX.lock if Thread.current['open_transactions'] == 0
+        Thread.current['start_db_transaction'] = (Thread.current['open_transactions'] == 0)
+        Thread.current['open_transactions'] += 1
+      end
+      
+      def unlock_mutex
+        Thread.current['open_transactions'] -= 1
+        TRANSACTION_MUTEX.unlock if Thread.current['open_transactions'] == 0
       end
     end
 
