@@ -113,11 +113,15 @@ module ActiveRecord
         end
 
         def delete_records(records)
-          ids = quoted_record_ids(records)
-          @association_class.update_all(
-            "#{@association_class_primary_key_name} = NULL", 
-            "#{@association_class_primary_key_name} = #{@owner.quoted_id} AND #{@association_class.primary_key} IN (#{ids})"
-          )
+          if @options[:dependent]
+            records.each { |r| r.destroy }
+          else
+            ids = quoted_record_ids(records)
+            @association_class.update_all(
+              "#{@association_class_primary_key_name} = NULL", 
+              "#{@association_class_primary_key_name} = #{@owner.quoted_id} AND #{@association_class.primary_key} IN (#{ids})"
+            )
+          end
         end
 
         def target_obsolete?

@@ -153,7 +153,8 @@ module ActiveRecord
       # * <tt>collection(force_reload = false)</tt> - returns an array of all the associated objects.
       #   An empty array is returned if none are found.
       # * <tt>collection<<(object, ...)</tt> - adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
-      # * <tt>collection.delete(object, ...)</tt> - removes one or more objects from the collection by setting their foreign keys to NULL.  This does not destroy the objects.
+      # * <tt>collection.delete(object, ...)</tt> - removes one or more objects from the collection by setting their foreign keys to NULL.  
+      #   This will also destroy the objects if they're declared as belongs_to and dependent on this model.
       # * <tt>collection.clear</tt> - removes every object from the collection. This does not destroy the objects.
       # * <tt>collection.empty?</tt> - returns true if there are no associated objects.
       # * <tt>collection.size</tt> - returns the number of associated objects.
@@ -219,6 +220,8 @@ module ActiveRecord
 
         if options[:dependent] and options[:exclusively_dependent]
           raise ArgumentError, ':dependent and :exclusively_dependent are mutually exclusive options.  You may specify one or the other.' # ' ruby-mode
+        # See HasManyAssociation#delete_records.  Dependent associations
+        # delete children, otherwise foreign key is set to NULL.
         elsif options[:dependent]
           module_eval "before_destroy '#{association_name}.each { |o| o.destroy }'"
         elsif options[:exclusively_dependent]

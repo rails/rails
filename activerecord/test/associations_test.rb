@@ -481,9 +481,21 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_dependence
-    assert_equal 2, Client.find_all.length
+    assert_equal 2, Client.find_all.size
     Firm.find_first.destroy
-    assert_equal 0, Client.find_all.length
+    assert Client.find_all.empty?
+  end
+
+  def test_destroy_dependent_when_deleted_from_association
+    firm = Firm.find_first
+    assert_equal 2, firm.clients.size
+
+    client = firm.clients.first
+    firm.clients.delete(client)
+
+    assert_raise(ActiveRecord::RecordNotFound) { Client.find(client.id) }
+    assert_raise(ActiveRecord::RecordNotFound) { firm.clients.find(client.id) }
+    assert_equal 1, firm.clients.size
   end
 
   def test_three_levels_of_dependence
@@ -615,7 +627,7 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
 
   def test_new_record_with_foreign_key_but_no_object
     c = Client.new("firm_id" => 1)
-    assert_equal @first_firm, c.firm_with_basic_id
+    assert_equal Firm.find_first, c.firm_with_basic_id
   end
 
   def test_forgetting_the_load_when_foreign_key_enters_late
@@ -623,7 +635,7 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert_nil c.firm_with_basic_id
 
     c.firm_id = 1
-    assert_equal @first_firm, c.firm_with_basic_id
+    assert_equal Firm.find_first, c.firm_with_basic_id
   end
 
   def test_field_name_same_as_foreign_key

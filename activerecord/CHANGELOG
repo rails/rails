@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that model.items.delete(child) will delete the child, not just set the foreign key to nil, if the child is dependent on the model #978 [bitsweat]
+
 * Fixed auto-stamping of dates (created_on/updated_on) for PostgreSQL #985 [dave@cherryville.org]
 
 * Fixed Base.silence/benchmark to only log if a logger has been configured #986 [skaes@web.de]
