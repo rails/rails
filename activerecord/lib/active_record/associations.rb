@@ -487,7 +487,13 @@ module ActiveRecord
       
       # Reload all the associations that have already been loaded once.
       def reload_associations_loaded
-        associations_loaded.each { |file_name| silence_warnings { load("#{file_name}.rb") } }
+        associations_loaded.each do |file_name| 
+          begin
+            silence_warnings { load("#{file_name}.rb") }
+          rescue LoadError
+            # The association didn't reside in its own file, so we assume it was required by other means
+          end
+        end
       end
 
       private
