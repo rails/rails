@@ -43,7 +43,7 @@ module ActiveRecord
     #
     # == Example
     #
-    # link:../examples/associations.png
+    # link:../../examples/associations.png
     #
     # == Is it belongs_to or has_one?
     #
@@ -320,7 +320,7 @@ module ActiveRecord
       # * <tt>association.create(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key and that has already been saved (if it passed the validation).
       #
-      # Example: A Post class declares <tt>has_one :author</tt>, which will add:
+      # Example: A Post class declares <tt>belongs_to :author</tt>, which will add:
       # * <tt>Post#author</tt> (similar to <tt>Author.find(author_id)</tt>)
       # * <tt>Post#author=(author)</tt> (similar to <tt>post.author_id = author.id</tt>)
       # * <tt>Post#author?</tt> (similar to <tt>post.author == some_author</tt>)
