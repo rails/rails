@@ -1098,12 +1098,17 @@ module ActiveRecord #:nodoc:
 
       def remove_attributes_protected_from_mass_assignment(attributes)
         if self.class.accessible_attributes.nil? && self.class.protected_attributes.nil?
-          attributes.reject { |key, value| key == self.class.primary_key }
+          attributes.reject { |key, value| attributes_protected_by_default.include?(key) }
         elsif self.class.protected_attributes.nil?
-          attributes.reject { |key, value| !self.class.accessible_attributes.include?(key.intern) || key == self.class.primary_key }
+          attributes.reject { |key, value| !self.class.accessible_attributes.include?(key.intern) || attributes_protected_by_default.include?(key) }
         elsif self.class.accessible_attributes.nil?
-          attributes.reject { |key, value| self.class.protected_attributes.include?(key.intern) || key == self.class.primary_key }
+          attributes.reject { |key, value| self.class.protected_attributes.include?(key.intern) || attributes_protected_by_default.include?(key) }
         end
+      end
+
+      # The primary key and inheritance column can never be set by mass-assignment for security reasons.
+      def attributes_protected_by_default
+        [ self.class.primary_key, self.class.inheritance_column ]
       end
 
       # Returns copy of the attributes hash where all the values have been safely quoted for use in

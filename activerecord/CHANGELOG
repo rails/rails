@@ -1,5 +1,7 @@
 *SVN*
 
+* Added mass-assignment protection for the inheritance column -- regardless of a custom column is used or not
+
 * Fixed that association proxies would fail === tests like PremiumSubscription === @account.subscription
 
 * Fixed that column aliases didn't work as expected with the new MySql411 driver #507 [Demetrius]

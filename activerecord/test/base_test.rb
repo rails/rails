@@ -383,6 +383,13 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal 1, firm.rating
   end
   
+  def test_mass_assignment_protection_on_defaults
+    firm = Firm.new
+    firm.attributes = { "id" => 5, "type" => "Client" }
+    assert_nil firm.id
+    assert_equal "Firm", firm[:type]
+  end
+  
   def test_mass_assignment_accessible
     reply = Reply.new("title" => "hello", "content" => "world", "approved" => 0)
     reply.save
