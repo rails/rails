@@ -60,7 +60,7 @@ files = %w-
  action_controller/support/class_inheritable_attributes.rb
  action_controller/support/class_attribute_accessors.rb
  action_controller/support/clean_logger.rb
- action_controller/support/cookie_performance_fix.rb
+ action_controller/support/core_ext/hash_ext.rb
  action_controller/support/inflector.rb
  action_controller/support/binding_of_caller.rb
  action_controller/support/breakpoint.rb
