@@ -1,5 +1,19 @@
 *CVS*
 
+* Added ActiveRecord::Mixins::Touch that will record creation and update times of objects [xal]. Example:
+
+    class Bill < ActiveRecord::Base
+      include ActiveRecord::Mixins::Touch
+    end
+  
+    bill = Bill.create("amount" => 100)
+    bill.created_at # => Time.now at the moment of Bill.create
+    bill.updated_at # => Time.now at the moment of Bill.create
+  
+    bill.update_attribute("amount", 150)
+    bill.created_at # => Time.now at the moment of Bill.create
+    bill.updated_at # => Time.now at the moment of bill.update_attribute
+  
 * Added ActiveRecord::Mixins::List that can decorates an existing class with methods like move_higher/lower, move_to_top/bottom. Example:
 
     class TodoItem < ActiveRecord::Base
@@ -11,7 +25,7 @@
           "todo_list_id = #{todo_list_id}"
         end
     end
-  
+
 * Added the option for sanitizing find_by_sql and the offset parts in regular finds [Sam Stephenson]. Examples:
 
     Project.find_all ["category = ?", category_name], "created ASC", ["? OFFSET ?", 15, 20]
