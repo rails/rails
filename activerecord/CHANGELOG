@@ -17,6 +17,22 @@
    NOTE: This validation is only happening on create. When you want to update the record, you'll have to decide and pursue your
    own course of action.
 
+
+* Added Base.validate_confirmation that encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
+  
+    Model:
+      class Person < ActiveRecord::Base
+        validate_acceptance :terms_of_service
+      end
+  
+    View:
+      <%= check_box "person", "terms_of_service" %>
+  
+  The terms_of_service attribute is entirely virtual. It's only used for validation at the time of creation. No database column is needed.
+
+  NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
+
+  
 * Added validation macros to make the stackable just like the lifecycle callbacks. Examples:
 
     class Person < ActiveRecord::Base

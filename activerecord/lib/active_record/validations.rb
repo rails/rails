@@ -80,6 +80,29 @@ module ActiveRecord
 EOM
         end
       end
+
+      
+      # Encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
+      #
+      #   Model:
+      #     class Person < ActiveRecord::Base
+      #       validate_acceptance :terms_of_service
+      #     end
+      #
+      #   View:
+      #     <%= check_box "person", "terms_of_service" %>
+      #
+      # The terms_of_service attribute is entirely virtual. It's only used for validation at the time of creation. No database column is needed.
+      #
+      # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
+      def validate_acceptance(*attr_names)
+        for attr_name in attr_names
+          attr_accessor(attr_name)
+          class_eval <<-EOM
+            validate_on_create %{errors.add('#{attr_name}', "must be accepted") unless #{attr_name} == "1"}
+EOM
+        end
+      end
     end
 
     # The validation process on save can be skipped by passing false. The regular Base#save method is

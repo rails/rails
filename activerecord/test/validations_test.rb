@@ -120,25 +120,28 @@ class ValidationsTest < Test::Unit::TestCase
     developer.name = "Just right"
     assert developer.save
   end
-end
-
-
-class MacroValidationsTest < Test::Unit::TestCase
-  fixtures :topics, :developers
-
-  def setup
-    Topic.validate_confirmation(:title)
-  end
-
-  def teardown
-    Topic.write_inheritable_attribute("validate_on_create", [])
-  end
 
   def test_title_confirmation
+    Topic.validate_confirmation(:title)
+
     t = Topic.create("title" => "We should be confirmed")
     assert !t.save
 
     t.title_confirmation = "We should be confirmed"
     assert t.save
+
+    Topic.write_inheritable_attribute("validate_on_create", [])
+  end
+
+  def test_terms_of_service_agreement
+    Topic.validate_acceptance(:terms_of_service)
+
+    t = Topic.create("title" => "We should be confirmed")
+    assert !t.save
+
+    t.terms_of_service = "1"
+    assert t.save
+
+    Topic.write_inheritable_attribute("validate_on_create", [])
   end
 end
