@@ -221,6 +221,11 @@ module ActiveRecord #:nodoc:
     cattr_accessor :pluralize_table_names
     @@pluralize_table_names = true
 
+    # Determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling dates and times from the database.
+    # This is set to :local by default.
+    cattr_accessor :default_timezone
+    @@default_timezone = :local
+
     # When turned on (which is default), all associations are included using "load". This mean that any change is instant in cached
     # environments like mod_ruby or FastCGI. When set to false, "require" is used, which is faster but requires server restart to
     # reflect changes.

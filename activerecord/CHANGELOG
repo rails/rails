@@ -1,5 +1,8 @@
 *SVN*
 
+* Added Base.default_timezone accessor that determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling dates 
+  and times from the database. This is set to :local by default.
+
 * Added the possibility for adapters to overwrite add_limit! to implement a different limiting scheme than "LIMIT X" used by MySQL, PostgreSQL, and SQLite.
 
 * Fixed that the const_missing autoload assumes the requested constant is set by require_association and calls const_get to retrieve it. 

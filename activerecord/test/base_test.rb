@@ -327,7 +327,16 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal 1, topic.approved
     assert_nil topic.last_read
   end
-  
+
+  def test_utc_as_time_zone
+    Topic.default_timezone = :utc
+    attributes = { "bonus_time" => "5:42:00AM" }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
+    Topic.default_timezone = :local
+  end
+
   def test_default_values_on_empty_strings
     topic = Topic.new
     topic.approved  = nil

@@ -220,21 +220,21 @@ module ActiveRecord
           return string if Time === string
           time_array = ParseDate.parsedate(string).compact
           # treat 0000-00-00 00:00:00 as nil
-          Time.local(*time_array) rescue nil
+          Time.send(Base.default_timezone, *time_array) rescue nil
         end
 
-       def string_to_dummy_time(string)
-         return string if Time === string
-         time_array = ParseDate.parsedate(string)
-         # pad the resulting array with dummy date information
-         time_array[0] = 2000; time_array[1] = 1; time_array[2] = 1;
-         Time.local(*time_array) rescue nil
-       end
-
+        def string_to_dummy_time(string)
+          return string if Time === string
+          time_array = ParseDate.parsedate(string)
+          # pad the resulting array with dummy date information
+          time_array[0] = 2000; time_array[1] = 1; time_array[2] = 1;
+          Time.send(Base.default_timezone, *time_array) rescue nil
+        end
+        
         def extract_limit(sql_type)
           $1.to_i if sql_type =~ /\((.*)\)/
         end
-
+        
         def simplified_type(field_type)
           case field_type
             when /int/i
