@@ -92,7 +92,7 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
-    class ColumnWithIdentity < Column
+    class ColumnWithIdentity < Column# :nodoc:
       attr_reader :identity
 
       def initialize(name, default, sql_type = nil, is_identity = false)

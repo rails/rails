@@ -130,6 +130,9 @@ module ActiveRecord #:nodoc:
   # When you do Firm.create("name" => "37signals"), this record with be saved in the companies table with type = "Firm". You can then
   # fetch this row again using Company.find_first "name = '37signals'" and it will return a Firm object.
   #
+  # If you don't have a type column defined in your table, single-table inheritance won't be triggered. In that case, it'll work just
+  # like normal subclasses with no special magic for differentiating between them or reloading the right type with find.
+  #
   # Note, all the attributes for all the cases are kept in the same table. Read more:
   # http://www.martinfowler.com/eaaCatalog/singleTableInheritance.html
   # 

@@ -166,11 +166,7 @@
 
 * Added option to establish_connection where you'll be able to leave out the parameter to have it use the RAILS_ENV environment variable
 
-* Added ADO-based SQLServerAdapter (only works on Windows) [Joey Gibson]
-
 * Fixed problems with primary keys and postgresql sequences (#230) [Tim Bates]
-
-* Fixed problems with nested transactions (#231) [Tim Bates]
 
 * Added reloading for associations under cached environments like FastCGI and mod_ruby. This makes it possible to use those environments for development.
   This is turned on by default, but can be turned off with ActiveRecord::Base.reload_dependencies = false in production environments.
