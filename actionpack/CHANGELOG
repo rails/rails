@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Verifications that allows you to specify preconditions to actions in form of statements like <tt>verify :only => :update_post, :params => "admin_privileges", :redirect_to => { :action => "settings" }</tt>, which ensure that the update_post action is only called if admin_privileges is available as a parameter -- otherwise the user is redirected to settings. #897 [Jamis Buck]
+
 * Fixed Form.Serialize for the JavascriptHelper to also seriliaze password fields #934 [dweitzman@gmail.com]
 
 * Added JavascriptHelper#escape_javascript as a public method (was private) and made it escape both single and double quotes and new lines #940 [mortonda@dgrmm.net]

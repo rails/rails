@@ -46,6 +46,7 @@ require 'action_controller/cookies'
 require 'action_controller/cgi_process'
 require 'action_controller/caching'
 require 'action_controller/components'
+require 'action_controller/verification'
 
 require 'action_view'
 ActionController::Base.template_class = ActionView::Base
@@ -64,4 +65,5 @@ ActionController::Base.class_eval do
   include ActionController::Session
   include ActionController::Caching
   include ActionController::Components
+  include ActionController::Verification
 end

@@ -1,0 +1,79 @@
+module ActionController #:nodoc:
+
+  # This module provides a class-level method for specifying that certain
+  # actions are guarded against being called without certain prerequisites
+  # being met. This is essentially a special kind of before_filter.
+  #
+  # An action may be guarded against being invoked without certain request
+  # parameters being set, or without certain session values existing.
+  #
+  # When a verification is violated, values may be inserted into the flash, and
+  # a specified redirection is triggered.
+  #
+  # Usage:
+  #
+  #   class GlobalController < ActionController::Base
+  #     # prevent the #update_settings action from being invoked unless
+  #     # the 'admin_privileges' request parameter exists.
+  #     verify :params => "admin_privileges", :only => :update_post
+  #            :redirect_to => { :action => "settings" }
+  #
+  #     # disallow a post from being updated if there was no information
+  #     # submitted with the post, and if there is no active post in the
+  #     # session, and if there is no "note" key in the flash.
+  #     verify :params => "post", :session => "post", "flash" => "note",
+  #            :only => :update_post,
+  #            :add_flash => { "alert" => "Failed to create your message" },
+  #            :redirect_to => :category_url
+  #
+  module Verification
+    def self.append_features(base) #:nodoc:
+      super
+      base.extend(ClassMethods)
+    end
+
+    module ClassMethods
+      # Verify the given actions so that if certain prerequisites are not met,
+      # the user is redirected to a different action. The +options+ parameter
+      # is a hash consisting of the following key/value pairs:
+      #
+      # * <tt>:params</tt>: a single key or an array of keys that must
+      #   be in the @params hash in order for the action(s) to be safely
+      #   called.
+      # * <tt>:session</tt>: a single key or an array of keys that must
+      #   be in the @session in order for the action(s) to be safely called.
+      # * <tt>:flash</tt>: a single key or an array of keys that must
+      #   be in the flash in order for the action(s) to be safely called.
+      # * <tt>:add_flash</tt>: a hash of name/value pairs that should be merged
+      #   into the session's flash if the prerequisites cannot be satisfied.
+      # * <tt>:redirect_to</tt>: the redirection parameters to be used when
+      #   redirecting if the prerequisites cannot be satisfied.
+      # * <tt>:only</tt>: only apply this verification to the actions specified in
+      #   the associated array (may also be a single value).
+      # * <tt>:except</tt>: do not apply this verification to the actions specified in
+      #   the associated array (may also be a single value).
+      def verify(options={})
+        filter_opts = { :only => options[:only], :except => options[:except] }
+        before_filter(filter_opts) do |c|
+          c.send :verify_action, options
+        end
+      end
+    end
+
+    def verify_action(options) #:nodoc:
+      prereqs_invalid =
+        [*options[:params] ].find { |v| @params[v].nil?  } ||
+        [*options[:session]].find { |v| @session[v].nil? } ||
+        [*options[:flash]  ].find { |v| flash[v].nil?    }
+
+      if prereqs_invalid
+        flash.update(options[:add_flash]) if options[:add_flash]
+        redirect_to(options[:redirect_to])
+        return false
+      end
+
+      true
+    end
+    private :verify_action
+  end
+end
