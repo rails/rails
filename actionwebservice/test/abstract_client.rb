@@ -19,6 +19,7 @@ module ClientTest
     api_method :array_return,   :returns => [[Person]]
     api_method :struct_pass,    :expects => [[Person]], :returns => [:bool]
     api_method :client_container, :returns => [:int]
+    api_method :named_parameters, :expects => [{:key=>:string}, {:id=>:int}]
   end
 
   class NullLogOut
@@ -32,6 +33,7 @@ module ClientTest
     attr :value_normal
     attr :value_array_return
     attr :value_struct_pass
+    attr :value_named_parameters
 
     def initialize
       @session = @assigns = {}
@@ -39,6 +41,7 @@ module ClientTest
       @value_normal = nil
       @value_array_return = nil
       @value_struct_pass = nil
+      @value_named_parameters = nil
     end
 
     def void
@@ -64,6 +67,10 @@ module ClientTest
 
     def client_container
       50
+    end
+
+    def named_parameters
+      @value_named_parameters = @method_params
     end
 
     def protocol_request(request)

@@ -62,13 +62,14 @@ module ActionWebService # :nodoc:
             if expects
               expects.each do |klass|
                 param_name = klass.is_a?(Hash) ? klass.keys[0] : "param#{i}"
-                mapping = @mapper.lookup(klass)
+                param_klass = lookup_class(klass)
+                mapping = @mapper.lookup(param_klass)
                 param_def << ['in', param_name, mapping.registry_mapping]
                 i += 1
               end
             end
             if returns
-              mapping = @mapper.lookup(returns[0])
+              mapping = @mapper.lookup(lookup_class(returns[0]))
               param_def << ['retval', 'return', mapping.registry_mapping]
             end
             driver.add_method(qname, action, name.to_s, param_def)

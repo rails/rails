@@ -54,7 +54,7 @@ module ActionWebService # :nodoc:
             signature = Protocol::XmlRpc::XmlRpcProtocol.transform_array_types(signature)
             (1..signature.size).each do |i|
               i -= 1
-              params[i] = Protocol::XmlRpc::XmlRpcProtocol.ruby_to_xmlrpc(params[i], signature[i])
+              params[i] = Protocol::XmlRpc::XmlRpcProtocol.ruby_to_xmlrpc(params[i], lookup_class(signature[i]))
             end
           end
           params
@@ -63,7 +63,8 @@ module ActionWebService # :nodoc:
         def transform_return_value(method_name, return_value)
           info = @api.api_methods[method_name.to_sym]
           return true unless signature = info[:returns]
-          signature = Protocol::XmlRpc::XmlRpcProtocol.transform_array_types(signature)
+          param_klass = lookup_class(signature[0])
+          signature = Protocol::XmlRpc::XmlRpcProtocol.transform_array_types([param_klass])
           Protocol::XmlRpc::XmlRpcProtocol.xmlrpc_to_ruby(return_value, signature[0])
         end
 

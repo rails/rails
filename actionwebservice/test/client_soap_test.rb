@@ -84,4 +84,10 @@ class TC_ClientSoap < Test::Unit::TestCase
   def test_client_container
     assert_equal(50, ClientContainer.new.get_client.client_container)
   end
+
+  def test_named_parameters
+    assert(@container.value_named_parameters.nil?)
+    assert(@client.named_parameters("key", 5).nil?)
+    assert_equal(["key", 5], @container.value_named_parameters)
+  end
 end

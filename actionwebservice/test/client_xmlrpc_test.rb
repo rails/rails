@@ -83,4 +83,10 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
   def test_client_container
     assert_equal(50, ClientContainer.new.get_client.client_container)
   end
+
+  def test_named_parameters
+    assert(@container.value_named_parameters.nil?)
+    assert_equal(true, @client.named_parameters("xxx", 7))
+    assert_equal(["xxx", 7], @container.value_named_parameters)
+  end
 end

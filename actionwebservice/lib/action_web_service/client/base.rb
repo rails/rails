@@ -30,6 +30,10 @@ module ActionWebService # :nodoc:
             nil
           end
         end
+
+        def lookup_class(klass)
+          klass.is_a?(Hash) ?  klass.values[0] : klass
+        end
     end
   end
 end
