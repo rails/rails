@@ -1,6 +1,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
 require 'parsedate'
-
+ 
 module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects.
@@ -19,64 +19,86 @@ module ActiveRecord
           end
         end
       end
-
+ 
       symbolize_strings_in_hash(config)
-
+ 
       host     = config[:host]
       port     = config[:port]
       socket   = config[:socket]
       username = config[:username] ? config[:username].to_s : 'root'
       password = config[:password].to_s
-
+ 
       if config.has_key?(:database)
         database = config[:database]
       else
         raise ArgumentError, "No database specified. Missing argument: database."
       end
-
+ 
       mysql = Mysql.init
       mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslkey]
-      ConnectionAdapters::MysqlAdapter.new(mysql.real_connect(host, username, password, database, port, socket), logger)
+      ConnectionAdapters::MysqlAdapter.new(mysql.real_connect(host, username, password, database, port, socket), logger, [host, username, password, database, port, socket])
     end
   end
-
+ 
   module ConnectionAdapters
     class MysqlAdapter < AbstractAdapter # :nodoc:
+      LOST_CONNECTION_ERROR_MESSAGES = [ 
+        "Server shutdown in progress",
+        "Broken pipe", 
+        "Lost connection to MySQL server during query", 
+        "MySQL server has gone away"
+      ]
+      
+      def initialize(connection, logger, connection_options=nil)
+        super(connection, logger)
+        @connection_options = connection_options
+      end
+ 
       def select_all(sql, name = nil)
         select(sql, name)
       end
-
+ 
       def select_one(sql, name = nil)
         result = select(sql, name)
         result.nil? ? nil : result.first
       end
-
+ 
       def columns(table_name, name = nil)
         sql = "SHOW FIELDS FROM #{table_name}"
         result = nil
         log(sql, name, @connection) { |connection| result = connection.query(sql) }
-
+ 
         columns = []
         result.each { |field| columns << Column.new(field[0], field[4], field[1]) }
         columns
       end
-
+ 
       def insert(sql, name = nil, pk = nil, id_value = nil)
         execute(sql, name = nil)
         return id_value || @connection.insert_id
       end
-
+ 
       def execute(sql, name = nil)
-        log(sql, name, @connection) { |connection| connection.query(sql) }
+        begin
+          return log(sql, name, @connection) { |connection| connection.query(sql) }
+        rescue ActiveRecord::StatementInvalid => exception
+          if LOST_CONNECTION_ERROR_MESSAGES.any? { |msg| exception.message.split(":").first =~ /^#{msg}/ }
+            @connection.real_connect(*@connection_options)
+            @logger.info("Retrying invalid statement with reopened connection") if @logger
+            return log(sql, name, @connection) { |connection| connection.query(sql) }
+          else
+            raise
+          end
+        end
       end
-
+ 
       def update(sql, name = nil)
         execute(sql, name)
         @connection.affected_rows
       end
-
+ 
       alias_method :delete, :update
-      
+ 
       def begin_db_transaction
         begin
           execute "BEGIN"
@@ -84,7 +106,7 @@ module ActiveRecord
           # Transactions aren't supported
         end
       end
-      
+ 
       def commit_db_transaction
         begin
           execute "COMMIT"
@@ -92,7 +114,7 @@ module ActiveRecord
           # Transactions aren't supported
         end
       end
-      
+ 
       def rollback_db_transaction
         begin
           execute "ROLLBACK"
@@ -100,42 +122,43 @@ module ActiveRecord
           # Transactions aren't supported
         end
       end
-
+ 
       def quote_column_name(name)
         return "`#{name}`"
       end
-
+ 
       def adapter_name()
         'MySQL'
       end
-
+ 
       def structure_dump
         select_all("SHOW TABLES").inject("") do |structure, table|
           structure += select_one("SHOW CREATE TABLE #{table.to_a.first.last}")["Create Table"] + ";\n\n"
         end
       end
-      
+ 
       def recreate_database(name)
         drop_database(name)
         create_database(name)
       end
-      
+ 
       def drop_database(name)
         execute "DROP DATABASE IF EXISTS #{name}"
       end
-      
+ 
       def create_database(name)
         execute "CREATE DATABASE #{name}"
       end
-      
+ 
       def quote_string(s)
         Mysql::quote(s)
       end
-
+ 
       private
         def select(sql, name = nil)
           result = nil
-          log(sql, name, @connection) { |connection| connection.query_with_result = true; result = connection.query(sql) }
+          @connection.query_with_result = true
+          result = execute(sql, name)
           rows = []
           all_fields_initialized = result.fetch_fields.inject({}) { |all_fields, f| all_fields[f.name] = nil; all_fields }
           result.each_hash { |row| rows << all_fields_initialized.dup.update(row) }
