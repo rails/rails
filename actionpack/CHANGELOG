@@ -1,5 +1,8 @@
 *SVN*
 
+* Added that controllers will now search for a layout in $template_root/layouts/$controller_name.r(html|xml), so PostsController will look
+  for layouts/posts.rhtml or layouts/posts.rxml and automatically configure this layout if found #307 [Marcel]
+
 * Added FormHelper#radio_button to work with radio buttons like its already possible with check boxes [Michael Koziarski]
 
 * Added TemplateError#backtrace that makes it much easier to debug template errors from unit and functional tests
@@ -8,7 +11,7 @@
 
 * Added option to ERB templates to swallow newlines by using <% if something -%> instead of just <% if something %>. Example:
 
-    class SomeController < AbstractApplicationController
+    class SomeController < ApplicationController
     <% if options[:scaffold] %>
       scaffold :<%= singular_name %>
     <% end %>
@@ -16,7 +19,7 @@
   
   ...produces this on post as singular_name:
 
-    class SomeController < AbstractApplicationController
+    class SomeController < ApplicationController
     
       scaffold :post
     
@@ -24,7 +27,7 @@
   
   ...where as:
 
-    class SomeController < AbstractApplicationController
+    class SomeController < ApplicationController
     <% if options[:scaffold] -%>
       scaffold :<%= singular_name %>
     <% end -%>
@@ -32,7 +35,7 @@
   
   ...produces:
 
-    class SomeController < AbstractApplicationController
+    class SomeController < ApplicationController
       scaffold :post
       helper :post
   
@@ -137,13 +140,13 @@
 
 * Added that controllers will automatically require their own helper if possible. So instead of doing:
 
-    class MsgController < AbstractApplicationController
+    class MsgController < ApplicationController
       helper :msg
     end
     
   ...you can just do:
   
-    class MsgController < AbstractApplicationController
+    class MsgController < ApplicationController
     end
 
 * Added dependencies_on(layer) to query the dependencies of a controller. Examples:
@@ -154,7 +157,7 @@
 
 * Added a new dependency model with the class methods model, service, and observer. Example:
 
-    class MsgController < AbstractApplicationController
+    class MsgController < ApplicationController
       model    :post, :comment, :attachment
       service  :notification_service
       observer :comment_observer
