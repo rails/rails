@@ -29,7 +29,7 @@ A short rundown of the major features:
 
    ...which again gives Product#name and Product#name=(new_name) 
    
-  Learn more in link:classes/ActiveRecord/Base.html
+  {Learn more}[link:classes/ActiveRecord/Base.html]
 
 
 * Associations between objects controlled by simple meta-programming macros. 
@@ -40,7 +40,7 @@ A short rundown of the major features:
      belongs_to :conglomorate
    end
 
-  Learn more in link:classes/ActiveRecord/Associations/ClassMethods.html
+  {Learn more}[link:classes/ActiveRecord/Associations/ClassMethods.html]
 
 
 * Aggregations of value objects controlled by simple meta-programming macros. 
@@ -52,7 +52,7 @@ A short rundown of the major features:
                  :mapping => [%w(address_street street), %w(address_city city)]
    end
 
-  Learn more in link:classes/ActiveRecord/Aggregations/ClassMethods.html
+  {Learn more}[link:classes/ActiveRecord/Aggregations/ClassMethods.html]
 
 
 * Validation rules that can differ for new or existing objects.
@@ -64,7 +64,7 @@ A short rundown of the major features:
       validates_confirmation_of :password, :email_address, :on => :create
     end
 
-  Learn more in link:classes/ActiveRecord/Validations.html
+  {Learn more}[link:classes/ActiveRecord/Validations.html]
 
 
 * Acts that can make records work as lists or trees:
@@ -77,6 +77,8 @@ A short rundown of the major features:
     item.move_higher
     item.move_to_bottom
 
+  Learn about {acts_as_list}[link:classes/ActiveRecord/Acts/List/ClassMethods.html], {the instance methods acts_as_list provides}[link:classes/ActiveRecord/Acts/List/InstanceMethods.html], and
+  {acts_as_tree}[link:classes/ActiveRecord/Acts/Tree/ClassMethods.html]
  
 * Callbacks as methods or queues on the entire lifecycle (instantiation, saving, destroying, validating, etc).
 
@@ -90,18 +92,18 @@ A short rundown of the major features:
      after_find :eager_load, 'self.class.announce(#{id})'
    end
 
-  Learn more in link:classes/ActiveRecord/Callbacks.html
+  {Learn more}[link:classes/ActiveRecord/Callbacks.html]
 
 
 * Observers for the entire lifecycle
 
    class CommentObserver < ActiveRecord::Observer
      def after_create(comment) # is called just after Comment#save
-       NotificationService.send_email("david@loudthinking.com", comment)
+       Notifications.deliver_new_comment("david@loudthinking.com", comment)
      end
    end
 
-  Learn more in link:classes/ActiveRecord/Observer.html
+  {Learn more}[link:classes/ActiveRecord/Observer.html]
 
 
 * Inheritance hierarchies 
@@ -111,7 +113,7 @@ A short rundown of the major features:
    class Client < Company; end
    class PriorityClient < Client; end
 
-  Learn more in link:classes/ActiveRecord/Base.html
+  {Learn more}[link:classes/ActiveRecord/Base.html]
 
 
 * Transaction support on both a database and object level. The latter is implemented 
@@ -129,7 +131,7 @@ A short rundown of the major features:
       mary.deposit(100)
     end
 
-  Learn more in link:classes/ActiveRecord/Transactions/ClassMethods.html
+  {Learn more}[link:classes/ActiveRecord/Transactions/ClassMethods.html]
 
 
 * Reflections on columns, associations, and aggregations
@@ -138,7 +140,7 @@ A short rundown of the major features:
     reflection.klass # => Client (class)
     Firm.columns # Returns an array of column descriptors for the firms table
 
-  Learn more in link:classes/ActiveRecord/Reflection/ClassMethods.html
+  {Learn more}[link:classes/ActiveRecord/Reflection/ClassMethods.html]
 
 
 * Direct manipulation (instead of service invocation)
@@ -158,7 +160,7 @@ A short rundown of the major features:
      # something even more interesting involving a the same cat...
      cat.save
 
-  Learn more in link:classes/ActiveRecord/Base.html
+  {Learn more}[link:classes/ActiveRecord/Base.html]
 
 
 * Database abstraction through simple adapters (~100 lines) with a shared connector
@@ -173,7 +175,8 @@ A short rundown of the major features:
      :database => "activerecord"
    )
 
-  Learn more in link:classes/ActiveRecord/Base.html#M000081
+  {Learn more}[link:classes/ActiveRecord/Base.html#M000081] and read about the built-in support for
+  MySQL[link:classes/ActiveRecord/ConnectionAdapters/MysqlAdapter.html], PostgreSQL[link:classes/ActiveRecord/ConnectionAdapters/PostgreSQLAdapter.html], SQLite[link:classes/ActiveRecord/ConnectionAdapters/SQLiteAdapter.html], Oracle[link:classes/ActiveRecord/ConnectionAdapters/OCIAdapter.html], SQLServer[link:classes/ActiveRecord/ConnectionAdapters/SQLServerAdapter.html], and DB2[link:classes/ActiveRecord/ConnectionAdapters/DB2Adapter.html].
 
 
 * Logging support for Log4r[http://log4r.sourceforge.net] and Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc]
@@ -295,17 +298,6 @@ the examples themselves.
 It's also highly recommended to have a look at the unit tests. Read more in link:files/RUNNING_UNIT_TESTS.html
 
 
-== Database support
-
-Active Record ships with adapters for MySQL/Ruby[http://www.tmtm.org/en/mysql/ruby/] 
-(compatible with Ruby/MySQL[http://www.tmtm.org/ruby/mysql/README_en.html]), 
-PostgreSQL[http://www.postgresql.jp/interfaces/ruby/], and 
-SQLite[http://rubyforge.org/projects/sqlite-ruby/] (needs SQLite 2.8.13+ and SQLite-Ruby 1.1.2+).
-The adapters are around 100 lines of code fulfilling the interface specified by 
-ActiveRecord::ConnectionAdapters::AbstractAdapter. Writing a new adapter should be a small task --
-especially considering the extensive test suite that'll make sure you're fulfilling the contract.
-
-
 == Philosophy 
 
 Active Record attempts to provide a coherent wrapping for the inconvenience that is 
@@ -332,7 +324,7 @@ The latest version of Active Record can be found at
 
 Documentation can be found at 
 
-* http://ar.rubyonrails.org
+* http://ar.rubyonrails.com
 
 
 == Installation
@@ -341,7 +333,7 @@ The prefered method of installing Active Record is through its GEM file. You'll 
 RubyGems[http://rubygems.rubyforge.org/wiki/wiki.pl] installed for that, though. If you have,
 then use:
 
-  % [sudo] gem install activerecord-0.9.0.gem
+  % [sudo] gem install activerecord-1.7.0.gem
 
 You can also install Active Record the old-fashion way with the following command:
 

@@ -28,7 +28,14 @@ begin
     end
 
     module ConnectionAdapters
-      class DB2Adapter < AbstractAdapter # :nodoc:
+      # The DB2 adapter works with the C-based CLI driver (http://raa.ruby-lang.org/project/ruby-db2/).
+      #
+      # Options:
+      #
+      # * <tt>:username</tt> -- Defaults to nothing
+      # * <tt>:password</tt> -- Defaults to nothing
+      # * <tt>:database</tt> -- The name of the database. No default, must be provided.
+      class DB2Adapter < AbstractAdapter
         def select_all(sql, name = nil)
           select(sql, name)
         end
