@@ -4,11 +4,6 @@ module ActionWebService # :nodoc:
       class ContainerError < ActionWebServiceError # :nodoc:
       end
 
-      def self.append_features(base) # :nodoc:
-        super
-        base.extend(ClassMethods)
-      end
-  
       module ClassMethods
         # Attaches ActionWebService API +definition+ to the calling class.
         #

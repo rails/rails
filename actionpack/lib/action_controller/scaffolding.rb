@@ -1,10 +1,5 @@
 module ActionController
   module Scaffolding # :nodoc:
-    def self.append_features(base)
-      super
-      base.extend(ClassMethods)
-    end
-
     # Scaffolding is a way to quickly put an Active Record class online by providing a series of standardized actions
     # for listing, showing, creating, updating, and destroying objects of the class. These standardized actions come
     # with both controller logic and default templates that through introspection already know which fields to display

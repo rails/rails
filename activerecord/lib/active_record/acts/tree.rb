@@ -1,11 +1,6 @@
 module ActiveRecord
   module Acts #:nodoc:
     module Tree #:nodoc:
-      def self.append_features(base)
-        super        
-        base.extend(ClassMethods)              
-      end  
-
       # Specify this act if you want to model a tree structure by providing a parent association and an children 
       # association. This act assumes that requires that you have a foreign key column, which by default is called parent_id.
       # 

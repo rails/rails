@@ -1,10 +1,5 @@
 module ActiveRecord
   module Aggregations # :nodoc:
-    def self.append_features(base)
-      super
-      base.extend(ClassMethods)
-    end
-
     # Active Record implements aggregation through a macro-like class method called +composed_of+ for representing attributes 
     # as value objects. It expresses relationships like "Account [is] composed of Money [among other things]" or "Person [is]
     # composed of [an] address". Each call to the macro adds a description on how the value objects are created from the 
