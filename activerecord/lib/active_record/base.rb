@@ -805,7 +805,7 @@ module ActiveRecord #:nodoc:
       def update
         connection.update(
           "UPDATE #{self.class.table_name} " +
-          "SET #{quoted_comma_pair_list(connection, attributes_with_quotes)} " +
+          "SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))} " +
           "WHERE #{self.class.primary_key} = '#{id}'",
           "#{self.class.name} Update"
         )
@@ -941,10 +941,10 @@ module ActiveRecord #:nodoc:
 
       # Returns copy of the attributes hash where all the values have been safely quoted for use in
       # an SQL statement. 
-      def attributes_with_quotes
+      def attributes_with_quotes(include_primary_key = true)
         columns_hash = self.class.columns_hash
         @attributes.inject({}) do |attrs_quoted, pair| 
-          attrs_quoted[pair.first] = quote(pair.last, columns_hash[pair.first])
+          attrs_quoted[pair.first] = quote(pair.last, columns_hash[pair.first]) unless !include_primary_key && pair.first == self.class.primary_key
           attrs_quoted
         end
       end
