@@ -1,4 +1,5 @@
-require 'abstract_unit'
+require 'test/unit'
+require File.dirname(__FILE__) + '/../lib/inflector'
 
 class InflectorTest < Test::Unit::TestCase
   SingularToPlural = {

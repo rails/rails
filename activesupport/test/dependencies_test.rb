@@ -1,7 +1,9 @@
-require File.dirname(__FILE__) + '/../abstract_unit'
-require 'action_controller/support/dependencies'
+require 'test/unit'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
+require 'misc'
+require 'dependencies'
 
-$LOAD_PATH << File.dirname(__FILE__) + '/../fixtures/dependencies'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/dependencies'
 
 class DependenciesTest < Test::Unit::TestCase
   def teardown
