@@ -189,7 +189,7 @@ module ActionController #:nodoc:
     DEFAULT_RENDER_STATUS_CODE = "200 OK"
   
     DEFAULT_SEND_FILE_OPTIONS = {
-      :type         => 'application/octet_stream'.freeze,
+      :type         => 'application/octet-stream'.freeze,
       :disposition  => 'attachment'.freeze,
       :stream       => true, 
       :buffer_size  => 4096

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that the content-header was being set to application/octet_stream instead of application/octet-stream on send_date/file [Alexey]
+
 * Removed the need for passing the binding when using CacheHelper#cache
 
 * Added TestResponse#binary_content that'll return as a string the data sent through send_data/send_file for testing #500 [Alexey]
