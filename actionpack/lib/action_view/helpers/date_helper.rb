@@ -158,7 +158,8 @@ module ActionView
       #   select_year(Date.today, :start_year => 1992, :end_year => 2007)
       def select_year(date, options = {})
         year_options = []
-        unless date.kind_of?(Fixnum) then default_start_year, default_end_year = date.year - 5, date.year + 5 end
+        y = date.kind_of?(Fixnum) ? (y = (date == 0) ? Date.today.year : date) : date.year
+        default_start_year, default_end_year = y-5, y+5
 
         (options[:start_year] || default_start_year).upto(options[:end_year] || default_end_year) do |year|
           year_options << ((date.kind_of?(Fixnum) ? date : date.year) == year ?

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed DateHelper#date_select so that you can pass include_blank as an option even if you don't use start_year and end_year #59 [what-a-day]
+
 * Added that controllers will now search for a layout in $template_root/layouts/$controller_name.r(html|xml), so PostsController will look
   for layouts/posts.rhtml or layouts/posts.rxml and automatically configure this layout if found #307 [Marcel]
 
