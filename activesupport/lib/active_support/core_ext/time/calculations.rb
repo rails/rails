@@ -11,9 +11,9 @@ module ActiveSupport #:nodoc:
         # Returns a new Time where one or more of the elements have been changed according to the +options+ parameter. The time options
         # (hour, minute, sec, usec) reset cascadingly, so if only the hour is passed, then minute, sec, and usec is set to 0. If the hour and 
         # minute is passed, then sec and usec is set to 0.
-        def change(options, time_factory_method = :local)
+        def change(options)
           ::Time.send(
-            time_factory_method, 
+            self.utc? ? :utc : :local, 
             options[:year]  || self.year, 
             options[:month] || self.month, 
             options[:mday]  || self.mday, 
@@ -37,21 +37,19 @@ module ActiveSupport #:nodoc:
         end
 
         # Returns a new Time representing the time a number of specified months ago
-        def months_ago(months, time_factory_method = :local)
+        def months_ago(months)
           if months >= self.month 
-            change({ :year => self.year - 1, :month => 12 }, time_factory_method).months_ago(months - self.month)
+            change(:year => self.year - 1, :month => 12).months_ago(months - self.month)
           else
-            change({ :year => self.year, :month => self.month - months }, time_factory_method)
+            change(:year => self.year, :month => self.month - months)
           end
         end
 
-        def months_since(months, time_factory_method = :local)
+        def months_since(months)
           if months + self.month > 12
-            change({ :year => self.year + 1, :month => 1 }, time_factory_method).months_since(
-              months - (self.month == 1 ? 12 : (self.month + 1))
-            )
+            change(:year => self.year + 1, :month => 1).months_since(months - (self.month == 1 ? 12 : (self.month + 1)))
           else
-            change({ :year => self.year, :month => self.month + months }, time_factory_method)
+            change(:year => self.year, :month => self.month + months)
           end
         end
 
@@ -85,16 +83,6 @@ module ActiveSupport #:nodoc:
         def tomorrow
           self.since(1.day)
         end
-           
-        # Returns a new Time of the current day at 9:00 (am) in the morning
-        def in_the_morning(time_factory_method = :local)
-          change({:hour => 9}, time_factory_method)
-        end
-
-        # Returns a new Time of the current day at 14:00 in the afternoon
-        def in_the_afternoon(time_factory_method = :local)
-          change({:hour => 14}, time_factory_method)
-        end        
       end
     end
   end

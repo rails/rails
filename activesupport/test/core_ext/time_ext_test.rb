@@ -62,23 +62,22 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2005,2,23,10,10,10), Time.local(2005,2,22,10,10,10).tomorrow
     assert_equal Time.local(2005,3,2,10,10,10),  Time.local(2005,2,28,10,10,10).tomorrow.tomorrow
   end
-
-  def test_in_the_morning
-    assert_equal Time.local(2005,2,22,9), Time.local(2005,2,22,15,15,10).in_the_morning
-    assert_equal Time.local(2005,2,22,9), Time.local(2005,2,22,3,15,10).in_the_morning
-  end
-
-  def test_in_the_morning
-    assert_equal Time.local(2005,2,22,14), Time.local(2005,2,22,15,15,10).in_the_afternoon
-    assert_equal Time.local(2005,2,22,14), Time.local(2005,2,22,3,15,10).in_the_afternoon
-  end
   
   def test_change
     assert_equal Time.local(2006,2,22,15,15,10), Time.local(2005,2,22,15,15,10).change(:year => 2006)
     assert_equal Time.local(2005,6,22,15,15,10), Time.local(2005,2,22,15,15,10).change(:month => 6)
     assert_equal Time.local(2012,9,22,15,15,10), Time.local(2005,2,22,15,15,10).change(:year => 2012, :month => 9)
-    assert_equal Time.local(2005,2,22,16), Time.local(2005,2,22,15,15,10).change(:hour => 16)
-    assert_equal Time.local(2005,2,22,16,45), Time.local(2005,2,22,15,15,10).change(:hour => 16, :min => 45)
-    assert_equal Time.local(2005,2,22,15,45), Time.local(2005,2,22,15,15,10).change(:min => 45)
+    assert_equal Time.local(2005,2,22,16),       Time.local(2005,2,22,15,15,10).change(:hour => 16)
+    assert_equal Time.local(2005,2,22,16,45),    Time.local(2005,2,22,15,15,10).change(:hour => 16, :min => 45)
+    assert_equal Time.local(2005,2,22,15,45),    Time.local(2005,2,22,15,15,10).change(:min => 45)
+  end
+  
+  def test_utc_change
+    assert_equal Time.utc(2006,2,22,15,15,10), Time.utc(2005,2,22,15,15,10).change(:year => 2006)
+    assert_equal Time.utc(2005,6,22,15,15,10), Time.utc(2005,2,22,15,15,10).change(:month => 6)
+    assert_equal Time.utc(2012,9,22,15,15,10), Time.utc(2005,2,22,15,15,10).change(:year => 2012, :month => 9)
+    assert_equal Time.utc(2005,2,22,16),       Time.utc(2005,2,22,15,15,10).change(:hour => 16)
+    assert_equal Time.utc(2005,2,22,16,45),    Time.utc(2005,2,22,15,15,10).change(:hour => 16, :min => 45)
+    assert_equal Time.utc(2005,2,22,15,45),    Time.utc(2005,2,22,15,15,10).change(:min => 45)
   end
 end
