@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed auto-stamping of dates (created_on/updated_on) for PostgreSQL #985 [dave@cherryville.org]
+
 * Fixed Base.silence/benchmark to only log if a logger has been configured #986 [skaes@web.de]
 
 * Added a join parameter as the third argument to Base.find_first and as the second to Base.count #426, #988 [skaes@web.de]
