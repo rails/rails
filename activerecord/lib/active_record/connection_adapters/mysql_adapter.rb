@@ -117,6 +117,10 @@ module ActiveRecord
         execute "CREATE DATABASE #{name}"
       end
       
+      def quote_string(s)
+        Mysql::quote(s)
+      end
+
       private
         def select(sql, name = nil)
           result = nil

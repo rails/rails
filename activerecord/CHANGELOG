@@ -1,5 +1,9 @@
 *CVS*
 
+* Fixed value quoting in all generated SQL statements, so that integers are not surrounded in quotes and that all sanitation are happening
+  through the database's own quoting routine. This should hopefully make it lots easier for new adapters that doesn't accept '1' for integer
+  columns.
+
 * Fixed has_and_belongs_to_many guessing of foreign key so that keys are generated correctly for models like SomeVerySpecialClient 
   [Florian Weber]
 

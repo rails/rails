@@ -320,13 +320,14 @@ module ActiveRecord
 
       def quote(value, column = nil)
         case value
-          when String                      then "'#{quote_string(value)}'" # ' (for ruby-mode)
-          when NilClass                    then "NULL"
-          when TrueClass                   then (column && column.type == :boolean ? "'t'" : "1")
-          when FalseClass                  then (column && column.type == :boolean ? "'f'" : "0")
-          when Float, Fixnum, Bignum, Date then "'#{value.to_s}'" 
-          when Time, DateTime              then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
-          else                                  "'#{quote_string(value.to_yaml)}'"
+          when String                then "'#{quote_string(value)}'" # ' (for ruby-mode)
+          when NilClass              then "NULL"
+          when TrueClass             then (column && column.type == :boolean ? "'t'" : "1")
+          when FalseClass            then (column && column.type == :boolean ? "'f'" : "0")
+          when Float, Fixnum, Bignum then value.to_s
+          when Date                  then "'#{value.to_s}'" 
+          when Time, DateTime        then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
+          else                            "'#{quote_string(value.to_yaml)}'"
         end
       end
 

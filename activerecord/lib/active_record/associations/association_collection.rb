@@ -81,7 +81,7 @@ module ActiveRecord
         end
 
         def quoted_record_ids(records)
-          records.map { |record| "'#{@association_class.send(:sanitize, record.id)}'" }.join(',')
+          records.map { |record| record.quoted_id }.join(',')
         end
 
         def interpolate_sql_options!(options, *keys)

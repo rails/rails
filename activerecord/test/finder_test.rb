@@ -68,7 +68,7 @@ class FinderTest < Test::Unit::TestCase
   end
 	
   def test_string_sanitation
-    assert_equal "something '' 1=1", ActiveRecord::Base.sanitize("something ' 1=1")
-    assert_equal "something select table", ActiveRecord::Base.sanitize("something; select table")
+    assert_not_equal "'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
+    assert_equal "'something; select table'", ActiveRecord::Base.sanitize("something; select table")
   end
 end

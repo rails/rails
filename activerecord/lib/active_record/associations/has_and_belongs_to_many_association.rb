@@ -13,7 +13,7 @@ module ActiveRecord
         @finder_sql = options[:finder_sql] ||
               "SELECT t.*, j.* FROM #{association_table_name} t, #{@join_table} j " +
               "WHERE t.#{@owner.class.primary_key} = j.#{@association_foreign_key} AND " +
-              "j.#{association_class_primary_key_name} = '#{@owner.id}' " +
+              "j.#{association_class_primary_key_name} = #{@owner.quoted_id} " +
               (options[:conditions] ? " AND " + options[:conditions] : "") + " " +
               "ORDER BY #{@order}"
       end
@@ -26,11 +26,11 @@ module ActiveRecord
           each { |record| @owner.connection.execute(sql) }
         elsif @options[:conditions] 
           sql = 
-            "DELETE FROM #{@join_table} WHERE #{@association_class_primary_key_name} = '#{@owner.id}' " +
+            "DELETE FROM #{@join_table} WHERE #{@association_class_primary_key_name} = #{@owner.quoted_id} " +
             "AND #{@association_foreign_key} IN (#{collect { |record| record.id }.join(", ")})"
           @owner.connection.execute(sql)
         else
-          sql = "DELETE FROM #{@join_table} WHERE #{@association_class_primary_key_name} = '#{@owner.id}'"
+          sql = "DELETE FROM #{@join_table} WHERE #{@association_class_primary_key_name} = #{@owner.quoted_id}"
           @owner.connection.execute(sql)
         end
 
@@ -46,7 +46,7 @@ module ActiveRecord
           if loaded?
             find_all { |record| record.id == association_id.to_i }.first
           else
-            find_all_records(@finder_sql.sub(/ORDER BY/, "AND j.#{@association_foreign_key} = '#{association_id}' ORDER BY")).first
+            find_all_records(@finder_sql.sub(/ORDER BY/, "AND j.#{@association_foreign_key} = #{@owner.send(:quote, association_id)} ORDER BY")).first
           end
         end
       end
@@ -80,7 +80,8 @@ module ActiveRecord
           if @options[:insert_sql]
             @owner.connection.execute(interpolate_sql(@options[:insert_sql], record))
           else
-            sql = "INSERT INTO #{@join_table} (#{@association_class_primary_key_name}, #{@association_foreign_key}) VALUES ('#{@owner.id}','#{record.id}')"
+            sql = "INSERT INTO #{@join_table} (#{@association_class_primary_key_name}, #{@association_foreign_key}) " + 
+                  "VALUES (#{@owner.quoted_id},#{record.quoted_id})"
             @owner.connection.execute(sql)
           end
         end
@@ -98,7 +99,7 @@ module ActiveRecord
             records.each { |record| @owner.connection.execute(sql) }
           else
             ids = quoted_record_ids(records)
-            sql = "DELETE FROM #{@join_table} WHERE #{@association_class_primary_key_name} = '#{@owner.id}' AND #{@association_foreign_key} IN (#{ids})"
+            sql = "DELETE FROM #{@join_table} WHERE #{@association_class_primary_key_name} = #{@owner.quoted_id} AND #{@association_foreign_key} IN (#{ids})"
             @owner.connection.execute(sql)
           end
         end

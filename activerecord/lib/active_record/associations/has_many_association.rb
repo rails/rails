@@ -8,7 +8,7 @@ module ActiveRecord
         if options[:finder_sql]
           @finder_sql = interpolate_sql(options[:finder_sql])
         else
-          @finder_sql = "#{@association_class_primary_key_name} = '#{@owner.id}' #{@conditions ? " AND " + interpolate_sql(@conditions) : ""}"
+          @finder_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id} #{@conditions ? " AND " + interpolate_sql(@conditions) : ""}"
         end
 
         if options[:counter_sql]
@@ -16,7 +16,7 @@ module ActiveRecord
         elsif options[:finder_sql]
           @counter_sql = options[:counter_sql] = @finder_sql.gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
         else
-          @counter_sql = "#{@association_class_primary_key_name} = '#{@owner.id}'#{@conditions ? " AND " + interpolate_sql(@conditions) : ""}"
+          @counter_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id}#{@conditions ? " AND " + interpolate_sql(@conditions) : ""}"
         end
       end
 
@@ -40,8 +40,8 @@ module ActiveRecord
           @collection.find_all(&block)
         else
           @association_class.find_all(
-            "#{@association_class_primary_key_name} = '#{@owner.id}' " +
-            "#{@conditions ? " AND " + @conditions : ""} #{runtime_conditions ? " AND " + @association_class.send(:sanitize_conditions, runtime_conditions) : ""}",
+            "#{@association_class_primary_key_name} = #{@owner.quoted_id}" +
+            "#{@conditions ? " AND " + @conditions : ""}#{runtime_conditions ? " AND " + @association_class.send(:sanitize_conditions, runtime_conditions) : ""}",
             orderings, 
             limit, 
             joins
@@ -55,7 +55,7 @@ module ActiveRecord
           @collection.find(&block)
         else
           @association_class.find_on_conditions(association_id,
-            "#{@association_class_primary_key_name} = '#{@owner.id}' #{@conditions ? " AND " + @conditions : ""}"
+            "#{@association_class_primary_key_name} = #{@owner.quoted_id}#{@conditions ? " AND " + @conditions : ""}"
           )
         end
       end
@@ -63,7 +63,7 @@ module ActiveRecord
       # Removes all records from this association.  Returns +self+ so
       # method calls may be chained.
       def clear
-        @association_class.update_all("#{@association_class_primary_key_name} = NULL", "#{@association_class_primary_key_name} = '#{@owner.id}'")
+        @association_class.update_all("#{@association_class_primary_key_name} = NULL", "#{@association_class_primary_key_name} = #{@owner.quoted_id}")
         @collection = []
         self
       end
@@ -101,7 +101,10 @@ module ActiveRecord
 
         def delete_records(records)
           ids = quoted_record_ids(records)
-          @association_class.update_all("#{@association_class_primary_key_name} = NULL", "#{@association_class_primary_key_name} = '#{@owner.id}' AND #{@association_class.primary_key} IN (#{ids})")
+          @association_class.update_all(
+            "#{@association_class_primary_key_name} = NULL", 
+            "#{@association_class_primary_key_name} = #{@owner.quoted_id} AND #{@association_class.primary_key} IN (#{ids})"
+          )
         end
     end
   end

@@ -239,7 +239,7 @@ module ActiveRecord #:nodoc:
         ids = ids.flatten.compact.uniq
 
         if ids.length > 1
-          ids_list = ids.map{ |id| "'#{sanitize(id)}'" }.join(", ")
+          ids_list = ids.map{ |id| "#{sanitize(id)}" }.join(", ")
           objects  = find_all("#{primary_key} IN (#{ids_list})", primary_key)
 
           if objects.length == ids.length
@@ -249,7 +249,7 @@ module ActiveRecord #:nodoc:
           end
         elsif ids.length == 1
           id = ids.first
-          sql = "SELECT * FROM #{table_name} WHERE #{primary_key} = '#{sanitize(id)}'"
+          sql = "SELECT * FROM #{table_name} WHERE #{primary_key} = #{sanitize(id)}"
           sql << " AND #{type_condition}" unless descends_from_active_record?
 
           if record = connection.select_one(sql, "#{name} Find")
@@ -267,7 +267,7 @@ module ActiveRecord #:nodoc:
       # Example:
       #   Person.find_on_conditions 5, "first_name LIKE '%dav%' AND last_name = 'heinemeier'"
       def find_on_conditions(id, conditions)
-        find_first("#{primary_key} = '#{sanitize(id)}' AND #{sanitize_conditions(conditions)}") || 
+        find_first("#{primary_key} = #{sanitize(id)} AND #{sanitize_conditions(conditions)}") || 
             raise(RecordNotFound, "Couldn't find #{name} with #{primary_key} = #{id} on the condition of #{conditions}")
       end
     
@@ -370,12 +370,12 @@ module ActiveRecord #:nodoc:
       # for looping over a collection where each element require a number of aggregate values. Like the DiscussionBoard
       # that needs to list both the number of posts and comments.
       def increment_counter(counter_name, id)
-        update_all "#{counter_name} = #{counter_name} + 1", "#{primary_key} = #{id}"
+        update_all "#{counter_name} = #{counter_name} + 1", "#{primary_key} = #{quote(id)}"
       end
 
       # Works like increment_counter, but decrements instead.
       def decrement_counter(counter_name, id)
-        update_all "#{counter_name} = #{counter_name} - 1", "#{primary_key} = #{id}"
+        update_all "#{counter_name} = #{counter_name} - 1", "#{primary_key} = #{quote(id)}"
       end
 
       # Attributes named in this macro are protected from mass-assignment, such as <tt>new(attributes)</tt> and 
@@ -526,10 +526,13 @@ module ActiveRecord #:nodoc:
         superclass == Base
       end
 
-      # Used to sanitize objects before they're used in an SELECT SQL-statement.
+      def quote(object)
+        connection.quote(object)
+      end
+
+      # Used to sanitize objects before they're used in an SELECT SQL-statement. Delegates to <tt>connection.quote</tt>.
       def sanitize(object) # :nodoc:
-        return object if Fixnum === object
-        object.to_s.gsub(/([;:])/, "").gsub('##', '\#\#').gsub(/'/, "''") # ' (for ruby-mode)
+        connection.quote(object)
       end
 
       # Used to aggregate logging and benchmark, so you can measure and represent multiple statements in a single block.
@@ -592,7 +595,7 @@ module ActiveRecord #:nodoc:
         
         def type_condition
           " (" + subclasses.inject("#{inheritance_column} = '#{Inflector.demodulize(name)}' ") do |condition, subclass| 
-            condition << "OR #{inheritance_column} = '#{Inflector.demodulize(subclass.name)}'"
+            condition << "OR #{inheritance_column} = '#{Inflector.demodulize(subclass.name)}' "
           end + ") "
         end
 
@@ -638,7 +641,7 @@ module ActiveRecord #:nodoc:
 
           statement =~ /\?/ ?
             replace_bind_variables(statement, values) :
-            statement % values.collect { |value| sanitize(value) }
+            statement % values.collect { |value| connection.quote_string(value.to_s) }
         end
 
         def replace_bind_variables(statement, values)
@@ -669,6 +672,10 @@ module ActiveRecord #:nodoc:
         read_attribute(self.class.primary_key)
       end
       
+      def quoted_id
+        quote(id, self.class.columns_hash[self.class.primary_key])
+      end
+      
       # Sets the primary ID.
       def id=(value)
         write_attribute(self.class.primary_key, value)
@@ -692,7 +699,7 @@ module ActiveRecord #:nodoc:
         unless new_record?
           connection.delete(
             "DELETE FROM #{self.class.table_name} " + 
-            "WHERE #{self.class.primary_key} = '#{id}'", 
+            "WHERE #{self.class.primary_key} = #{quote(id)}", 
             "#{self.class.name} Destroy"
           )
         end
@@ -814,7 +821,7 @@ module ActiveRecord #:nodoc:
         connection.update(
           "UPDATE #{self.class.table_name} " +
           "SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))} " +
-          "WHERE #{self.class.primary_key} = '#{id}'",
+          "WHERE #{self.class.primary_key} = #{quote(id)}",
           "#{self.class.name} Update"
         )
       end

@@ -190,7 +190,7 @@ module ActiveRecord
         elsif options[:dependent]
           module_eval "before_destroy '#{association_name}.each { |o| o.destroy }'"
         elsif options[:exclusively_dependent]
-          module_eval "before_destroy { |record| #{association_class_name}.delete_all(%(#{association_class_primary_key_name} = '\#{record.id}')) }"
+          module_eval "before_destroy { |record| #{association_class_name}.delete_all(%(#{association_class_primary_key_name} = \#{record.quoted_id})) }"
         end
 
         define_method(association_name) do |*params|
@@ -323,7 +323,7 @@ module ActiveRecord
           if options[:remote]
             association_finder = <<-"end_eval"
               #{association_class_name}.find_first(
-                "#{class_primary_key_name} = '\#{id}'#{options[:conditions] ? " AND " + options[:conditions] : ""}",
+                "#{class_primary_key_name} = \#{quoted_id}#{options[:conditions] ? " AND " + options[:conditions] : ""}",
                 #{options[:order] ? "\"" + options[:order] + "\"" : "nil" }
               )
             end_eval
@@ -437,7 +437,7 @@ module ActiveRecord
           association
         end
 
-        before_destroy_sql = "DELETE FROM #{join_table} WHERE #{association_class_primary_key_name} = '\\\#{self.id}'"
+        before_destroy_sql = "DELETE FROM #{join_table} WHERE #{association_class_primary_key_name} = \\\#{self.quoted_id}"
         module_eval(%{before_destroy "self.connection.delete(%{#{before_destroy_sql}})"}) # "
         
         # deprecated api
