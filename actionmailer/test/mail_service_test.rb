@@ -212,5 +212,21 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_equal 1, ActionMailer::Base.deliveries.size
   end
 
+  def test_unquote_subject
+    msg = <<EOF
+From: me@example.com
+Subject: =?utf-8?Q?testing_testing_=D6=A4?=
+Content-Type: text/plain; charset=iso-8859-1
+
+This_is_a_test
+2 + 2 =3D 4
+EOF
+    mail = TMail::Mail.parse(msg)
+    assert_equal "testing testing \326\244", mail.subject
+    assert_equal "=?utf-8?Q?testing_testing_=D6=A4?=", mail.quoted_subject
+    assert_equal "This is a test\n2 + 2 = 4\n", mail.body
+    assert_equal "This_is_a_test\n2 + 2 =3D 4\n", mail.quoted_body
+  end
+
 end
 

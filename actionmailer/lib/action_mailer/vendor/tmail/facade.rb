@@ -261,6 +261,7 @@ module TMail
         default
       end
     end
+    alias quoted_subject subject
 
     def subject=( str )
       set_string_attr 'Subject', str

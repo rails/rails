@@ -3,24 +3,25 @@ require 'base64'
 
 module TMail
   class Mail
-    def unquoted_subject(to_charset = 'utf-8')
-      Unquoter.unquote_and_convert_to(subject || "", to_charset)
+    def subject(to_charset = 'utf-8')
+      Unquoter.unquote_and_convert_to(quoted_subject || "", to_charset)
     end
 
     def unquoted_body(to_charset = 'utf-8')
-      Unquoter.unquote_and_convert_to(body || "", to_charset, header["content-type"]["charset"])
+      Unquoter.unquote_and_convert_to(quoted_body || "", to_charset, header["content-type"]["charset"])
     end
 
-    def unquoted_body_with_all_parts(to_charset = 'utf-9', &block)
+    def body(to_charset = 'utf-8', &block)
       attachment_presenter = block || Proc.new { |file_name| "Attachment: #{file_name}\n" }
       
       if multipart?
         parts.collect { |part| 
           part.header["content-type"].main_type == "text" ? 
-            part.unquoted_body : attachment_presenter.call(part.header["content-type"].params["name"])
+            part.unquoted_body(to_charset) :
+            attachment_presenter.call(part.header["content-type"].params["name"])
         }.join
       else
-        unquoted_body
+        unquoted_body(to_charset)
       end
     end
   end

@@ -322,7 +322,7 @@ module TMail
       body_port().ropen {|f| f.each(&block) }
     end
 
-    def body
+    def quoted_body
       parse_body
       @body_port.ropen {|f|
           return f.read

@@ -66,13 +66,13 @@ Example:
     def receive(email)
       page = Page.find_by_address(email.to.first)
       page.emails.create(
-        :subject => email.unquoted_subject, :body => email.unquoted_body_with_all_parts
+        :subject => email.subject, :body => email.body
       )
 
       if email.has_attachments?
         for attachment in email.attachments
           page.attachments.create({ 
-            :file => attachment, :description => email.unquoted_subject
+            :file => attachment, :description => email.subject
           })
         end
       end
