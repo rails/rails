@@ -7,13 +7,24 @@ module ActionController
       
       def initialize(path, hash={})
         raise ArgumentError, "Second argument must be a hash!" unless hash.kind_of?(Hash)
-        @defaults = {}
-        @requirements = {}
+        @defaults = hash[:defaults].kind_of?(Hash) ? hash.delete(:defaults) : {}
+        @requirements = hash[:requirements].kind_of?(Hash) ? hash.delete(:requirements) : {}
         self.items = path
         hash.each do |k, v|
-          raise TypeError, "Hash may only contain symbols!" unless k.kind_of? Symbol
-          (@items.include?(k) ? @defaults : @requirements)[k] = v
+          raise TypeError, "Hash keys must be symbols!" unless k.kind_of? Symbol
+          if v.kind_of? Regexp
+            raise ArgumentError, "Regexp requirement on #{k}, but #{k} is not in this route's path!" unless @items.include? k
+            @requirements[k] = v
+          else
+            (@items.include?(k) ? @defaults : @requirements)[k] = v
+          end
         end
+        
+        @defaults.each do |k, v|
+          raise ArgumentError, "A default has been specified for #{k}, but #{k} is not in the path!" unless @items.include? k
+          @defaults[k] = v.to_s unless v.kind_of?(String) || v.nil?
+        end
+        @requirements.each {|k, v| raise ArgumentError, "A Regexp requirement has been specified for #{k}, but #{k} is not in the path!" if v.kind_of?(Regexp) && ! @items.include?(k)}
         
         # Add in defaults for :action and :id.
         [[:action, 'index'], [:id, nil]].each do |name, default|
@@ -31,15 +42,16 @@ module ActionController
       # then that component is removed. This is applied as many times as possible. So, your index controller's
       # index action will generate []
       def generate(options, defaults={})
-        non_matching = @requirements.inject([]) {|a, (k, v)| ((options[k] || defaults[k]) == v) ? a : a << k}
-        return nil, "Options mismatch requirements: #{non_matching.join ', '}" unless non_matching.empty?
+        non_matching = @requirements.keys.select {|name| ! passes_requirements?(name, options[name] || defaults[name])}
+        non_matching.collect! {|name| requirements_for(name)}
+        return nil, "Mismatching option#{'s' if non_matching.length > 1}:\n   #{non_matching.join '\n   '}" unless non_matching.empty?
         
-        used_names = @requirements.inject({}) {|hash, (k, v)| hash[k] = true; hash}
+        used_names = @requirements.inject({}) {|hash, (k, v)| hash[k] = true; hash} # Mark requirements as used so they don't get put in the query params
         components = @items.collect do |item|
           if item.kind_of? Symbol
             used_names[item] = true
             value = options[item] || defaults[item] || @defaults[item]
-            return nil, "#{item.inspect} was not given and has no default." if value.nil? && ! (@defaults.key?(item) && @defaults[item].nil?) # Don't leave if nil value.
+            return nil, requirements_for(item) unless passes_requirements?(item, value)
             defaults = {} unless defaults == {} || value == defaults[item] # Stop using defaults if this component isn't the same as the default.
             (value.nil? || item == :controller) ? value : CGI.escape(value.to_s)
           else item
@@ -86,9 +98,10 @@ module ActionController
               components = remaining_components
             end
             options[:controller] = controller_class.controller_path
+            return nil, requirements_for(:controller) unless passes_requirements?(:controller, options[:controller])
           elsif item.kind_of? Symbol
             value = components.shift || @defaults[item]
-            return nil, "No value or default for parameter #{item.inspect}" if value.nil? && ! (@defaults.key?(item) && @defaults[item].nil?)
+            return nil, requirements_for(item) unless passes_requirements?(item, value)
             options[item] = value.nil? ? value : CGI.unescape(value)
           else
             return nil, "No value available for component #{item.inspect}" if components.empty?
@@ -102,7 +115,7 @@ module ActionController
           raise RoutingError, "Illegal controller path for route default: #{@requirements[:controller]}" unless controller_class && extras.empty?
           options[:controller] = controller_class.controller_path
         end
-        options = @requirements.merge(options)
+        @requirements.each {|k,v| options[k] ||= v unless v.kind_of?(Regexp)}
 
         return nil, "Route recognition didn't find a controller class!" unless controller_class
         return nil, "Unused components were left: #{components.join '/'}" unless components.empty?
@@ -143,6 +156,33 @@ module ActionController
               seen[item] = true
             end
             seen
+          end
+        end
+        
+        # Verify that the given value passes this route's requirements
+        def passes_requirements?(name, value)
+          return @defaults.key?(name) && @defaults[name].nil? if value.nil? # Make sure it's there if it should be
+          
+          case @requirements[name]
+            when nil then true
+            when Regexp then
+              value = value.to_s
+              match = @requirements[name].match(value)
+              match && match[0].length == value.length
+            else
+              @requirements[name] == value.to_s
+          end
+        end
+        def requirements_for(name)
+          presence = (@defaults.key?(name) && @defaults[name].nil?)
+          requirement = case @requirements[name]
+            when nil then nil
+            when Regexp then "match #{@requirements[name].inspect}"
+            else "be equal to #{@requirements[name].inspect}"
+          end
+          if presence && requirement then "#{name} must be present and #{requirement}"
+          elsif presence || requirement then "#{name} must #{requirement || 'be present'}"
+          else "#{name} has no requirements"
           end
         end
     end
