@@ -2,7 +2,9 @@ print "Using native SQLite3\n"
 require 'fixtures/course'
 require 'logger'
 ActiveRecord::Base.logger = Logger.new("debug.log")
-ActiveRecord::Base.logger.level = Logger::DEBUG
+
+class SqliteError < StandardError
+end
 
 BASE_DIR = File.expand_path(File.dirname(__FILE__) + '/../../fixtures')
 sqlite_test_db  = "#{BASE_DIR}/fixture_database.sqlite3"
@@ -13,7 +15,7 @@ def make_connection(clazz, db_file, db_definitions_file)
     puts "SQLite3 database not found at #{db_file}. Rebuilding it."
     sqlite_command = "sqlite3 #{db_file} 'create table a (a integer); drop table a;'"
     puts "Executing '#{sqlite_command}'"
-    `#{sqlite_command}`
+    raise SqliteError.new("Seems that there is no sqlite3 executable available") unless system(sqlite_command)
     clazz.establish_connection(
         :adapter => "sqlite3",
         :dbfile  => db_file)
