@@ -224,7 +224,7 @@ module ActionController #:nodoc:
 
     # Template root determines the base from which template references will be made. So a call to render("test/template")
     # will be converted to "#{template_root}/test/template.rhtml".
-    cattr_accessor :template_root
+    class_inheritable_accessor :template_root
 
     # The logger is used for generating information on the action run-time (including benchmarking) if available.
     # Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
@@ -297,6 +297,20 @@ module ActionController #:nodoc:
       # Hide each of the given methods from being callable as actions.
       def hide_actions(*names)
         write_inheritable_attribute(:hidden_actions, hidden_actions | names.collect {|n| n.to_s})
+      end
+
+      # Set the template root to be one directory behind the root dir of the controller. Examples:
+      #   /code/weblog/components/admin/users_controller.rb with Admin::UsersController 
+      #     will use /code/weblog/components as template root 
+      #     and find templates in /code/weblog/components/admin/users/
+      #
+      #   /code/weblog/components/admin/parties/users_controller.rb with Admin::Parties::UsersController 
+      #     will also use /code/weblog/components as template root 
+      #     and find templates in /code/weblog/components/admin/parties/users/
+      def uses_component_template_root
+        path_of_calling_controller = File.dirname(caller[0].split(/:\d+:/).first)
+        path_of_controller_root    = path_of_calling_controller.sub(/#{controller_path.split("/")[0..-2]}$/, "")
+        self.template_root = path_of_controller_root
       end
     end
 

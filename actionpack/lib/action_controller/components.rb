@@ -2,13 +2,21 @@ module ActionController #:nodoc:
   module Components #:nodoc:
     def self.append_features(base)
       super
-      base.helper { def render_component(options) @controller.send(:component_response, options).body end }
+      base.helper do
+        def render_component(options) 
+          @controller.logger.info("Start rendering component (#{options.inspect}): ")
+          @controller.send(:component_response, options).body
+          @controller.logger.info("\n\nEnd of component rendering")
+        end
+      end
     end
 
     protected
       def render_component(options = {}) #:doc:
         response = component_response(options)
+        logger.info "Rendering component (#{options.inspect}): "
         render_text(response.body, response.headers["Status"])
+        logger.info("\n\nEnd of component rendering")
       end
   
     private
@@ -22,8 +30,11 @@ module ActionController #:nodoc:
       
       def component_request(options)
         component_request = @request.dup
-        component_request.send(:instance_variable_set, :@parameters, (options[:params] || {}).merge({ "controller" => options[:controller], "action" => options[:action] }))
-        component_request
+        component_request.send(
+          :instance_variable_set, :@parameters, 
+          (options[:params] || {}).merge({ "controller" => options[:controller], "action" => options[:action] })
+        )
+        return component_request
       end
   end
 end

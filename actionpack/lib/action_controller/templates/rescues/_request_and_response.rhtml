@@ -1,4 +1,4 @@
-<% unless @exception.blamed_files.empty? %>
+<% if @exception.blamed_files && !@exception.blamed_files.empty? %>
   <a href="#" onclick="document.getElementById('blame_trace').style.display='block'; return false;">Show blamed files</a>
   <pre id="blame_trace" style="display:none"><code><%=h @exception.describe_blame %></code></pre>
 <% end %>
