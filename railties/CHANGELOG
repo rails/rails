@@ -1,5 +1,7 @@
 *SVN*
 
+* Added an empty favicon.ico file to the public directory of new applications (so the logs are not spammed by its absence)
+
 * Fixed that scaffold generator new template should use local variable instead of instance variable #778 [Dan Peterson]
 
 * Allow unit tests to run on a remote server for PostgreSQL #781 [adamm@galacticasoftware.com]

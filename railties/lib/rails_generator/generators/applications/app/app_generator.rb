@@ -65,6 +65,8 @@ class AppGenerator < Rails::Generator::Base
       %w(404 500 index).each do |file|
         m.template "html/#{file}.html", "public/#{file}.html"
       end
+      
+      m.template "html/favicon.ico", "public/favicon.ico"
 
       # Docs
       m.file "doc/README_FOR_APP", "doc/README_FOR_APP"
