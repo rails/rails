@@ -54,6 +54,18 @@ class ActionPackAssertionsController < ActionController::Base
     session['xmas'] = 'turkey'
     render_text "ho ho ho"
   end
+  
+  # raises exception on get requests
+  def raise_on_get
+    raise "get" if @request.get?
+    render_text "request method: #{@request.env['REQUEST_METHOD']}"
+  end
+
+  # raises exception on post requests
+  def raise_on_post
+    raise "post" if @request.post?
+    render_text "request method: #{@request.env['REQUEST_METHOD']}"
+  end
 
   # 911
   def rescue_action(e) raise; end
@@ -70,7 +82,7 @@ ActionPackAssertionsController.template_root = File.dirname(__FILE__) + "/../fix
 
 
 # a test case to exercise the new capabilities TestRequest & TestResponse
-class ActionPackAssertionsControllerTest < Test::Unit::TestCase  
+class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # let's get this party started  
   def setup
     @controller = ActionPackAssertionsController.new
@@ -84,6 +96,20 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     process :session_stuffing
     assert_session_has 'xmas'
     assert_session_has_no 'halloween'
+  end
+  
+  # test the get method, make sure the request really was a get
+  def test_get
+    assert_raise(RuntimeError) { get :raise_on_get }
+    get :raise_on_post
+    assert_equal @response.body, 'request method: GET'
+  end
+
+  # test the get method, make sure the request really was a get
+  def test_post
+    assert_raise(RuntimeError) { post :raise_on_post }
+    post :raise_on_get
+    assert_equal @response.body, 'request method: POST'
   end
 
   # test the assertion of goodies in the template

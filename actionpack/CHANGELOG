@@ -1,5 +1,18 @@
 *SVN*
 
+* Added all the HTTP methods as alternatives to the generic "process" for functional testing #276 [Tobias Luetke]. Examples:
+
+    # Calls Controller#miletone with a GET request
+    process :milestone
+    
+    # Calls Controller#miletone with a POST request that has parameters
+    post :milestone, { "name" => "David" }
+    
+    # Calls Controller#milestone with a HEAD request that has both parameters and session data
+    head :milestone, { "id" => 1 }, { "user_id" => 23 }
+
+  This is especially useful for testing idiomatic REST web services.
+
 * Added proper handling of HEAD requests, so that content isn't returned (Request#head? added as well) #277 [Eric Hodel]
 
 * Added indifference to whether @headers["Content-Type"], @headers["Content-type"], or @headers["content-type"] is used.
