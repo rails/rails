@@ -17,6 +17,11 @@ class CookieTest < Test::Unit::TestCase
       render_text "hello world"
     end
 
+    def authenticate_for_fourten_days_with_symbols
+      cookies["user_name"] = { :value => "david", :expires => Time.local(2005, 10, 10) }
+      render_text "hello world"
+    end
+
     def set_multiple_cookies
       cookies["user_name"] = { "value" => "david", "expires" => Time.local(2005, 10, 10) }
       cookies["login"]     = "XJ-122"
@@ -48,6 +53,11 @@ class CookieTest < Test::Unit::TestCase
   end
 
   def test_setting_cookie_for_fourteen_days
+    @request.action = "authenticate_for_fourten_days"
+    assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david", "expires" => Time.local(2005, 10, 10)) ], process_request.headers["cookie"]
+  end
+
+  def test_setting_cookie_for_fourteen_days_with_symbols
     @request.action = "authenticate_for_fourten_days"
     assert_equal [ CGI::Cookie::new("name" => "user_name", "value" => "david", "expires" => Time.local(2005, 10, 10)) ], process_request.headers["cookie"]
   end

@@ -4,14 +4,14 @@ module ActionController #:nodoc:
   # itself back -- just the value it holds). Examples for writting:
   #
   #   cookies["user_name"] = "david" # => Will set a simple session cookie
-  #   cookies["login"] = { "value" => "XJ-122", "expires" => Time.now + 360} # => Will set a cookie that expires in 1 hour
+  #   cookies["login"] = { :value => "XJ-122", :expires => Time.now + 360} # => Will set a cookie that expires in 1 hour
   #   
   # Examples for reading:
   #
   #   cookies["user_name"] # => "david"
   #   cookies.size         # => 2
   #
-  # All the options for setting cookies are:
+  # All the option symbols for setting cookies are:
   #
   # value:: the cookie's value or list of values (as an array).
   # path:: the path for which this cookie applies.  Defaults to the root of the application.
@@ -41,6 +41,7 @@ module ActionController #:nodoc:
     
     def []=(name, options)
       if options.is_a?(Hash)
+        options.each { |key, value| options[key.to_s] = value }
         options["name"] = name
       else
         options = [ name, options ]
