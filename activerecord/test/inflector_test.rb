@@ -47,7 +47,7 @@ class InflectorTest < Test::Unit::TestCase
   CamelToUnderscore = {
     "Product"                       => "product",
     "SpecialGuest"                  => "special_guest",
-    "AbstractApplicationController" => "abstract_application_controller"
+    "ApplicationController" => "application_controller"
   }
 
   ClassNameToForeignKeyWithUnderscore = {

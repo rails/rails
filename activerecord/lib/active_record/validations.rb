@@ -112,6 +112,7 @@ module ActiveRecord
         end
       end
 
+      # TODO: Write docs for me!
       def validates_presence_of(*attr_names)
         configuration = { :message => "can't be empty", :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
