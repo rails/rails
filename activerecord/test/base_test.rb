@@ -367,6 +367,9 @@ class BasicsTest < Test::Unit::TestCase
     assert !Topic.find(1).approved?
     Topic.find(1).update_attribute("approved", true)
     assert Topic.find(1).approved?
+
+    Topic.find(1).update_attribute(:approved, false)
+    assert !Topic.find(1).approved?
   end
   
   def test_mass_assignment_protection

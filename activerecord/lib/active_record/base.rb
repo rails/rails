@@ -828,7 +828,7 @@ module ActiveRecord #:nodoc:
       # Note: This method is overwritten by the Validation module that'll make sure that updates made with this method
       # doesn't get subjected to validation checks. Hence, attributes can be updated even if the full object isn't valid.
       def update_attribute(name, value)
-        self[name.to_s] = value
+        self[name] = value
         save
       end
 
