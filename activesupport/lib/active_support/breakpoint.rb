@@ -117,10 +117,10 @@ module Breakpoint
     end
   end
 
-  module CommandBundle
+  module CommandBundle #:nodoc:
     # Proxy to a Breakpoint client. Lets you directly execute code
     # in the context of the client.
-    class Client
+    class Client #:nodoc:
       def initialize(eval_handler) # :nodoc:
         eval_handler.untaint
         @eval_handler = eval_handler
@@ -218,7 +218,7 @@ module Breakpoint
   # These exceptions will be raised on failed asserts
   # if Breakpoint.asserts_cause_exceptions is set to
   # true.
-  class FailedAssertError < RuntimeError
+  class FailedAssertError < RuntimeError #:nodoc:
   end
 
   # This asserts that the block evaluates to true.
@@ -409,7 +409,7 @@ module Breakpoint
   end
 end
 
-module IRB # :nodoc:
+module IRB #:nodoc:
   class << self; remove_method :start; end
   def self.start(ap_path = nil, main_context = nil, workspace = nil)
     $0 = File::basename(ap_path, ".rb") if ap_path
@@ -462,7 +462,7 @@ module IRB # :nodoc:
   end
   def IRB.parse_opts() end
 
-  class Context
+  class Context #:nodoc:
     alias :old_evaluate :evaluate
     def evaluate(line, line_no)
       if line.chomp == "exit" then
@@ -473,7 +473,7 @@ module IRB # :nodoc:
     end
   end
 
-  class WorkSpace
+  class WorkSpace #:nodoc:
     alias :old_evaluate :evaluate
 
     def evaluate(*args)
@@ -491,7 +491,7 @@ module IRB # :nodoc:
     end
   end
 
-  module InputCompletor
+  module InputCompletor #:nodoc:
     def self.eval(code, context, *more)
       # Big hack, this assumes that InputCompletor
       # will only call eval() when it wants code
@@ -502,7 +502,7 @@ module IRB # :nodoc:
 end
 
 module DRb # :nodoc:
-  class DRbObject
+  class DRbObject #:nodoc:
     undef :inspect if method_defined?(:inspect)
     undef :clone if method_defined?(:clone)
   end

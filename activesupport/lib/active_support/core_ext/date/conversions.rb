@@ -3,7 +3,7 @@ module ActiveSupport #:nodoc:
     module Date #:nodoc:
       # Getting dates in different convenient string representations and other objects
       module Conversions
-        def self.append_features(klass)
+        def self.append_features(klass) #:nodoc:
           super
           klass.send(:alias_method, :to_default_s, :to_s)
           klass.send(:alias_method, :to_s, :to_formatted_s)

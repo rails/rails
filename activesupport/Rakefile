@@ -1,4 +1,5 @@
 require 'rake/testtask'
+require 'rake/rdoctask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
@@ -14,6 +15,18 @@ Rake::TestTask.new { |t|
 
 # Create compressed packages
 dist_dirs = [ "lib", "test"]
+
+# Genereate the RDoc documentation
+
+Rake::RDocTask.new { |rdoc|
+  rdoc.rdoc_dir = 'doc'
+  rdoc.title    = "Active Support -- Utility classes and standard library extensions from Rails"
+  rdoc.options << '--line-numbers --inline-source --main README'
+  rdoc.rdoc_files.include('README', 'CHANGELOG')
+  rdoc.rdoc_files.include('lib/active_support.rb')
+  rdoc.rdoc_files.include('lib/active_support/*.rb')
+  rdoc.rdoc_files.include('lib/active_support/**/*.rb')
+}
 
 spec = Gem::Specification.new do |s|
   s.name = PKG_NAME
