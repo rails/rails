@@ -25,6 +25,7 @@
 $:.unshift(File.dirname(__FILE__))
 
 require 'active_record/support/clean_logger'
+require 'active_record/support/misc'
 
 require 'active_record/base'
 require 'active_record/observer'

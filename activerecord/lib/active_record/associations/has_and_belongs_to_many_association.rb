@@ -86,13 +86,13 @@ module ActiveRecord
         end
         
         def insert_record_with_join_attributes(record, join_attributes)
-          attributes = { @association_class_primary_key_name => @owner.id, @association_foreign_key => record.id }.update(join_attributes)          
+          attributes = { @association_class_primary_key_name => @owner.id, @association_foreign_key => record.id }.update(join_attributes)
           sql = 
             "INSERT INTO #{@join_table} (#{@owner.send(:quoted_column_names, attributes).join(', ')}) " +
             "VALUES (#{attributes.values.collect { |value| @owner.send(:quote, value) }.join(', ')})"
           @owner.connection.execute(sql)
         end
-
+        
         def delete_records(records)
           if sql = @options[:delete_sql]
             records.each { |record| @owner.connection.execute(sql) }

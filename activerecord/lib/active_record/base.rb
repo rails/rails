@@ -549,7 +549,7 @@ module ActiveRecord #:nodoc:
       def require_or_load(file_name)
         if !associations_loaded.include?(file_name)
           associations_loaded << file_name
-          reload_associations ? load("#{file_name}.rb") : require(file_name)
+          reload_associations ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
         end
       end
       
