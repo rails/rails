@@ -3,7 +3,7 @@ require 'parsedate'
 
 module ActiveRecord
   class Base
-    # Establishes a connection to the database that's used by all Active Record objects
+    # Establishes a connection to the database that's used by all Active Record objects.
     def self.mysql_connection(config) # :nodoc:
       unless self.class.const_defined?(:Mysql)
         begin
@@ -19,7 +19,9 @@ module ActiveRecord
           end
         end
       end
+
       symbolize_strings_in_hash(config)
+
       host     = config[:host]
       port     = config[:port]
       socket   = config[:socket]
@@ -32,9 +34,9 @@ module ActiveRecord
         raise ArgumentError, "No database specified. Missing argument: database."
       end
 
-      ConnectionAdapters::MysqlAdapter.new(
-        Mysql::real_connect(host, username, password, database, port, socket), logger
-      )
+      mysql = Mysql.init
+      mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslkey]
+      ConnectionAdapters::MysqlAdapter.new(mysql.real_connect(host, username, password, database, port, socket), logger)
     end
   end
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added options to specify an SSL connection for MySQL. Define the following attributes in the connection config (config/database.yml in Rails) to use it: sslkey, sslcert, sslca, sslcapath, sslcipher. To use SSL with no client certs, just set :sslca = '/dev/null'. http://dev.mysql.com/doc/mysql/en/secure-connections.html #604 [daniel@nightrunner.com]
+
 * Added automatic dropping/creating of test tables for running the unit tests on all databases #587 [adelle@bullet.net.au]
 
 * Fixed that find_by_* would fail when column names had numbers #670 [demetrius]
