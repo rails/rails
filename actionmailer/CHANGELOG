@@ -1,5 +1,11 @@
 *SVN*
 
+* Fixed that if charset was found that the end of a mime part declaration TMail would throw an error #919 [lon@speedymac.com]
+
+* Fixed that TMail::Unquoter would fail to recognize quoting method if it was in lowercase #919 [lon@speedymac.com]
+
+* Fixed that TMail::Encoder would fail when it attempts to parse e-mail addresses which are encoded using something other than the messages encoding method #919 [lon@speedymac.com]
+
 * Added rescue for missing iconv library and throws warnings if subject/body is called on a TMail object without it instead
 
 

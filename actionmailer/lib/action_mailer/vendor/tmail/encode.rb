@@ -295,7 +295,7 @@ module TMail
         else
           raise 'TMail FATAL: encoder scan fail'
         end
-        str = m.post_match
+        (str = m.post_match) unless m.nil?
       end
 
       do_encode types, strs

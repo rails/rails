@@ -35,7 +35,7 @@ begin
             from_charset = $1
             quoting_method = $2
             text = $3
-            case quoting_method
+            case quoting_method.upcase
               when "Q" then
                 unquote_quoted_printable_and_convert_to(text, from_charset, to_charset)
               when "B" then

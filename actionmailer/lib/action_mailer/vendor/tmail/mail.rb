@@ -281,6 +281,8 @@ module TMail
         when /\AFrom (\S+)/
           unixfrom = $1
 
+  		  when /^charset=.*/
+				
         else
           raise SyntaxError, "wrong mail header: '#{line.inspect}'"
         end
