@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that form helpers would treat string and symbol keys differently in html_options (and possibly create duplicate entries) #112 [bitsweat]
+
 * Fixed that broken pipe errors (clients disconnecting in mid-request) could bring down a fcgi process
 
 * Added the original exception message to session recall errors (so you can see which class wasnt required)

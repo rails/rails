@@ -7,14 +7,14 @@ module ActionView
     module TagHelper
       include ERB::Util
 
-      # Examples: 
+      # Examples:
       # * <tt>tag("br") => <br /></tt>
       # * <tt>tag("input", { "type" => "text"}) => <input type="text" /></tt>
       def tag(name, options = {}, open = false)
         "<#{name}#{tag_options(options)}" + (open ? ">" : " />")
       end
-      
-      # Examples: 
+
+      # Examples:
       # * <tt>content_tag("p", "Hello world!") => <p>Hello world!</p></tt>
       # * <tt>content_tag("div", content_tag("p", "Hello world!"), "class" => "strong") => </tt>
       #   <tt><div class="strong"><p>Hello world!</p></div></tt>
@@ -26,7 +26,7 @@ module ActionView
         def tag_options(options)
           unless options.empty?
             " " + options.map { |key, value|
-              %(#{key}="#{html_escape(value)}")
+              %(#{key}="#{html_escape(value.to_s)}")
             }.sort.join(" ")
           end
         end

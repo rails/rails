@@ -25,7 +25,7 @@ module ActionView
 
       # Create a select tag and a series of contained option tags for the provided object and method.
       # The option currently held by the object will be selected, provided that the object is available.
-      # 
+      #
       # This can be used to provide a default set of options in the standard way: before rendering the create form, a
       # new model instance is assigned the default options and bound to @model_name. Usually this model is not saved
       # to the database. Instead, a second model object is created when the create request is received.
@@ -34,17 +34,17 @@ module ActionView
       def select(object, method, choices, options = {}, html_options = {})
         InstanceTag.new(object, method, self).to_select_tag(choices, options, html_options)
       end
-        
+
       # Return select and option tags for the given object and method using options_from_collection_for_select to generate the list of option tags.
       def collection_select(object, method, collection, value_method, text_method, options = {}, html_options = {})
         InstanceTag.new(object, method, self).to_collection_select_tag(collection, value_method, text_method, options, html_options)
       end
-      
+
       # Return select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
       def country_select(object, method, priority_countries = nil, options = {}, html_options = {})
         InstanceTag.new(object, method, self).to_country_select_tag(priority_countries, options, html_options)
       end
-      
+
       # Return select and option tags for the given object and method, using
       # #time_zone_options_for_select to generate the list of option tags.
       #
@@ -57,11 +57,11 @@ module ActionView
         InstanceTag.new(object, method, self).to_time_zone_select_tag(priority_zones, options, html_options)
       end
 
-      # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container 
+      # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container
       # where the elements respond to first and last (such as a two-element array), the "lasts" serve as option values and
       # the "firsts" as option text. Hashes are turned into this form automatically, so the keys become "firsts" and values
       # become lasts. If +selected+ is specified, the matching "last" or element will get the selected option-tag.  +Selected+
-      # may also be an array of values to be selected when using a multiple select. 
+      # may also be an array of values to be selected when using a multiple select.
       #
       # Examples (call, result):
       #   options_for_select([["Dollar", "$"], ["Kroner", "DKK"]])
@@ -79,8 +79,8 @@ module ActionView
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def options_for_select(container, selected = nil)
         container = container.to_a if Hash === container
-      
-        options_for_select = container.inject([]) do |options, element| 
+
+        options_for_select = container.inject([]) do |options, element|
           if element.respond_to?(:first) && element.respond_to?(:last)
             is_selected = ( (selected.respond_to?(:include?) ? selected.include?(element.last) : element.last == selected) )
             if is_selected
@@ -93,11 +93,11 @@ module ActionView
             options << ((is_selected) ? "<option selected=\"selected\">#{html_escape(element.to_s)}</option>" : "<option>#{html_escape(element.to_s)}</option>")
           end
         end
-        
+
         options_for_select.join("\n")
       end
 
-      # Returns a string of option tags that has been compiled by iterating over the +collection+ and assigning the 
+      # Returns a string of option tags that has been compiled by iterating over the +collection+ and assigning the
       # the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
       # If +selected_value+ is specified, the element returning a match on +value_method+ will get the selected option tag.
       #
@@ -108,7 +108,7 @@ module ActionView
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def options_from_collection_for_select(collection, value_method, text_method, selected_value = nil)
         options_for_select(
-          collection.inject([]) { |options, object| options << [ object.send(text_method), object.send(value_method) ] }, 
+          collection.inject([]) { |options, object| options << [ object.send(text_method), object.send(value_method) ] },
           selected_value
         )
       end
@@ -135,18 +135,18 @@ module ActionView
       #
       # with objects of the following classes:
       # class Continent
-      #	  def initialize(p_name, p_countries)	@continent_name = p_name; @countries = p_countries;	end
-      #	  def continent_name() @continent_name; end
-      #	  def countries() @countries; end
+      #   def initialize(p_name, p_countries) @continent_name = p_name; @countries = p_countries; end
+      #   def continent_name() @continent_name; end
+      #   def countries() @countries; end
       # end
       # class Country
-      #	  def initialize(id, name) @id = id; @name = name end
-      #	  def country_id() @id; end
-      #	  def country_name() @name; end
+      #   def initialize(id, name) @id = id; @name = name end
+      #   def country_id() @id; end
+      #   def country_name() @name; end
       # end
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
-      def option_groups_from_collection_for_select(collection, group_method, group_label_method, 
+      def option_groups_from_collection_for_select(collection, group_method, group_label_method,
             option_key_method, option_value_method, selected_key = nil)
         collection.inject("") do |options_for_select, group|
           group_label_string = eval("group.#{group_label_method}")
@@ -154,16 +154,16 @@ module ActionView
           options_for_select += options_from_collection_for_select(eval("group.#{group_method}"), option_key_method, option_value_method, selected_key)
           options_for_select += '</optgroup>'
         end
-      end	
-      
-      # Returns a string of option tags for pretty much any country in the world. Supply a country name as +selected+ to 
+      end
+
+      # Returns a string of option tags for pretty much any country in the world. Supply a country name as +selected+ to
       # have it marked as the selected option tag. You can also supply an array of countries as +priority_countries+, so
       # that they will be listed above the rest of the (long) list.
       #
       # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def country_options_for_select(selected = nil, priority_countries = nil)
         country_options = ""
-        
+
         if priority_countries
           country_options += options_for_select(priority_countries, selected)
           country_options += "<option>-------------</option>\n"
@@ -264,23 +264,27 @@ module ActionView
       include FormOptionsHelper
 
       def to_select_tag(choices, options, html_options)
+        html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
         content_tag("select", add_blank_option(options_for_select(choices, value), options[:include_blank]), html_options)
       end
 
       def to_collection_select_tag(collection, value_method, text_method, options, html_options)
+        html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
         content_tag(
           "select", add_blank_option(options_from_collection_for_select(collection, value_method, text_method, value), options[:include_blank]), html_options
         )
       end
-      
+
       def to_country_select_tag(priority_countries, options, html_options)
+        html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
         content_tag("select", add_blank_option(country_options_for_select(value, priority_countries), options[:include_blank]), html_options)
       end
 
       def to_time_zone_select_tag(priority_zones, options, html_options)
+        html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
         content_tag("select",
           add_blank_option(

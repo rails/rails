@@ -48,7 +48,7 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
 
     @controller = Class.new do
       def url_for(options, *parameters_for_method_reference)
-        options[:action]
+        options[:action] || options["action"]
       end
     end
     @controller = @controller.new

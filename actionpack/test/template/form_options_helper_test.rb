@@ -46,7 +46,7 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     )
   end
 
-  
+
   def test_collection_options_with_preselected_value
     @posts = [
       Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
@@ -75,14 +75,14 @@ class FormOptionsHelperTest < Test::Unit::TestCase
 
   def test_array_options_for_select
     assert_equal(
-      "<option>&lt;Denmark&gt;</option>\n<option>USA</option>\n<option>Sweden</option>", 
+      "<option>&lt;Denmark&gt;</option>\n<option>USA</option>\n<option>Sweden</option>",
       options_for_select([ "<Denmark>", "USA", "Sweden" ])
     )
   end
 
   def test_array_options_for_select_with_selection
     assert_equal(
-      "<option>Denmark</option>\n<option selected=\"selected\">&lt;USA&gt;</option>\n<option>Sweden</option>", 
+      "<option>Denmark</option>\n<option selected=\"selected\">&lt;USA&gt;</option>\n<option>Sweden</option>",
       options_for_select([ "Denmark", "<USA>", "Sweden" ], "<USA>")
     )
   end
@@ -96,21 +96,21 @@ class FormOptionsHelperTest < Test::Unit::TestCase
 
   def test_hash_options_for_select
     assert_equal(
-      "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\">$</option>", 
+      "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\">$</option>",
       options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" })
     )
   end
 
   def test_hash_options_for_select_with_selection
     assert_equal(
-      "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\" selected=\"selected\">$</option>", 
+      "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\" selected=\"selected\">$</option>",
       options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, "Dollar")
     )
   end
 
   def test_hash_options_for_select_with_selection
     assert_equal(
-      "<option value=\"&lt;Kroner&gt;\" selected=\"selected\">&lt;DKR&gt;</option>\n<option value=\"Dollar\" selected=\"selected\">$</option>", 
+      "<option value=\"&lt;Kroner&gt;\" selected=\"selected\">&lt;DKR&gt;</option>\n<option value=\"Dollar\" selected=\"selected\">$</option>",
       options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, [ "Dollar", "<Kroner>" ])
     )
   end
@@ -197,7 +197,7 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     @post = Post.new
     @post.category = "<mus>"
     assert_equal(
-      "<select id=\"post_category\" name=\"post[category]\"><option>abe</option>\n<option selected=\"selected\">&lt;mus&gt;</option>\n<option>hest</option></select>", 
+      "<select id=\"post_category\" name=\"post[category]\"><option>abe</option>\n<option selected=\"selected\">&lt;mus&gt;</option>\n<option>hest</option></select>",
       select("post", "category", %w( abe <mus> hest))
     )
   end
@@ -206,7 +206,7 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     @post = Post.new
     @post.category = "<mus>"
     assert_equal(
-      "<select id=\"post_category\" name=\"post[category]\"><option></option>\n<option>abe</option>\n<option selected=\"selected\">&lt;mus&gt;</option>\n<option>hest</option></select>", 
+      "<select id=\"post_category\" name=\"post[category]\"><option></option>\n<option>abe</option>\n<option selected=\"selected\">&lt;mus&gt;</option>\n<option>hest</option></select>",
       select("post", "category", %w( abe <mus> hest), :include_blank => true)
     )
   end
@@ -222,7 +222,7 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     @post.author_name = "Babe"
 
     assert_equal(
-      "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>", 
+      "<select id=\"post_author_name\" name=\"post[author_name]\"><option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
       collection_select("post", "author_name", @posts, "author_name", "author_name")
     )
   end
@@ -238,7 +238,7 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     @post.author_name = "Babe"
 
     assert_equal(
-      "<select id=\"post_author_name\" name=\"post[author_name]\" style=\"width: 200px\"><option></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>", 
+      "<select id=\"post_author_name\" name=\"post[author_name]\" style=\"width: 200px\"><option></option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt;</option>\n<option value=\"Babe\" selected=\"selected\">Babe</option>\n<option value=\"Cabe\">Cabe</option></select>",
       collection_select("post", "author_name", @posts, "author_name", "author_name", { :include_blank => true }, "style" => "width: 200px")
     )
   end
@@ -291,6 +291,8 @@ class FormOptionsHelperTest < Test::Unit::TestCase
                  "<option value=\"E\">E</option>" +
                  "</select>",
                  html
+    assert_equal html, time_zone_select("firm", "time_zone", nil, {},
+      :style => "color: red")
   end
 
   def test_time_zone_select_with_blank_and_style
@@ -306,6 +308,8 @@ class FormOptionsHelperTest < Test::Unit::TestCase
                  "<option value=\"E\">E</option>" +
                  "</select>",
                  html
+    assert_equal html, time_zone_select("firm", "time_zone", nil,
+      { :include_blank => true }, :style => "color: red")
   end
 
   def test_time_zone_select_with_priority_zones

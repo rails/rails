@@ -8,10 +8,10 @@ module ActionView
     # The following is an example of a complete form for a person object that works for both creates and updates built
     # with all the form helpers. The <tt>@person</tt> object was assigned by an action on the controller:
     #   <form action="save_person" method="post">
-    #     Name:           
+    #     Name:
     #     <%= text_field "person", "name", "size" => 20 %>
     #
-    #     Password:       
+    #     Password:
     #     <%= password_field "person", "password", "maxsize" => 20 %>
     #
     #     Single?:
@@ -26,12 +26,12 @@ module ActionView
     # ...is compiled to:
     #
     #   <form action="save_person" method="post">
-    #     Name:           
-    #     <input type="text" id="person_name" name="person[name]" 
+    #     Name:
+    #     <input type="text" id="person_name" name="person[name]"
     #       size="20" value="<%= @person.name %>" />
     #
-    #     Password:       
-    #     <input type="password" id="person_password" name="person[password]" 
+    #     Password:
+    #     <input type="password" id="person_password" name="person[password]"
     #       size="20" maxsize="20" value="<%= @person.password %>" />
     #
     #     Single?:
@@ -43,7 +43,7 @@ module ActionView
     #     </textarea>
     #
     #     <input type="submit" value="Save">
-    #   </form>    
+    #   </form>
     #
     # If the helper is being used to generate a repetitive sequence of similar form elements, for example in a partial
     # used by render_collection_of_partials, the "index" option may come in handy. Example:
@@ -51,10 +51,10 @@ module ActionView
     #   <%= text_field "person", "name", "index" => 1 %>
     #
     # becomes
-    # 
+    #
     #   <input type="text" id="person_1_name" name="person[1][name]" value="<%= @person.name %>" />
     #
-    # There's also methods for helping to build form tags in link:classes/ActionView/Helpers/FormOptionsHelper.html, 
+    # There's also methods for helping to build form tags in link:classes/ActionView/Helpers/FormOptionsHelper.html,
     # link:classes/ActionView/Helpers/DateHelper.html, and link:classes/ActionView/Helpers/ActiveRecordHelper.html
     module FormHelper
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -64,7 +64,7 @@ module ActionView
       # Examples (call, result):
       #   text_field("post", "title", "size" => 20)
       #     <input type="text" id="post_title" name="post[title]" size="20" value="#{@post.title}" />
-      def text_field(object, method, options = {}) 
+      def text_field(object, method, options = {})
         InstanceTag.new(object, method, self).to_input_field_tag("text", options)
       end
 
@@ -95,12 +95,12 @@ module ActionView
       def text_area(object, method, options = {})
         InstanceTag.new(object, method, self).to_text_area_tag(options)
       end
-      
+
       # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). It's intended that +method+ returns an integer and if that
       # integer is above zero, then the checkbox is checked. Additional options on the input tag can be passed as a
       # hash with +options+. The +checked_value+ defaults to 1 while the default +unchecked_value+
-      # is set to 0 which is convenient for boolean values. Usually unchecked checkboxes don't post anything. 
+      # is set to 0 which is convenient for boolean values. Usually unchecked checkboxes don't post anything.
       # We work around this problem by adding a hidden value with the same name as the checkbox.
       #
       # Example (call, result). Imagine that @post.validated? returns 1:
@@ -119,13 +119,13 @@ module ActionView
       # Returns a radio button tag for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). If the current value of +method+ is +tag_value+ the
       # radio button will be checked. Additional options on the input tag can be passed as a
-      # hash with +options+. 
+      # hash with +options+.
       # Example (call, result). Imagine that @post.category returns "rails":
       #   radio_button("post", "category", "rails")
       #   radio_button("post", "category", "java")
       #     <input type="radio" id="post_category" name="post[category] value="rails" checked="checked" />
       #     <input type="radio" id="post_category" name="post[category] value="java" />
-      #     
+      #
       def radio_button(object, method, tag_value, options = {})
         InstanceTag.new(object, method, self).to_radio_button_tag(tag_value, options)
       end
@@ -135,9 +135,10 @@ module ActionView
       include Helpers::TagHelper
 
       attr_reader :method_name, :object_name
-      
-      DEFAULT_FIELD_OPTIONS     = { "size" => 30 } unless const_defined?("DEFAULT_FIELD_OPTIONS")
-      DEFAULT_TEXT_AREA_OPTIONS = { "wrap" => "virtual", "cols" => 40, "rows" => 20 } unless const_defined?("DEFAULT_TEXT_AREA_OPTIONS")
+
+      DEFAULT_FIELD_OPTIONS     = { "size" => 30 }.freeze unless const_defined?(:DEFAULT_FIELD_OPTIONS)
+      DEFAULT_TEXT_AREA_OPTIONS = { "wrap" => "virtual", "cols" => 40, "rows" => 20 }.freeze unless const_defined?(:DEFAULT_TEXT_AREA_OPTIONS)
+      DEFAULT_DATE_OPTIONS = { :discard_type => true }.freeze unless const_defined?(:DEFAULT_DATE_OPTIONS)
 
       def initialize(object_name, method_name, template_object, local_binding = nil)
         @object_name, @method_name = object_name, method_name
@@ -146,50 +147,69 @@ module ActionView
           @auto_index = @template_object.instance_variable_get("@#{Regexp.last_match.pre_match}").id
         end
       end
-      
+
       def to_input_field_tag(field_type, options = {})
-        html_options = DEFAULT_FIELD_OPTIONS.merge(options)
-        html_options.merge!({ "size" => options["maxlength"]}) if options["maxlength"] && !options["size"]
-        html_options.delete("size") if field_type == "hidden"
-        html_options.merge!({ "type" =>  field_type})
-        html_options.merge!({ "value" => value_before_type_cast }) if options["value"].nil? && field_type != "file"
-        add_default_name_and_id(html_options)
-        tag("input", html_options)
+        options = options.stringify_keys
+        if field_type == "hidden"
+          options.delete("size")
+        else
+          options["size"] ||= options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"]
+        end
+        options["type"] = field_type
+        options["value"] ||= value_before_type_cast unless field_type == "file"
+        add_default_name_and_id(options)
+        tag("input", options)
       end
 
-      def to_radio_button_tag(tag_value, options={})
-        html_options = DEFAULT_FIELD_OPTIONS.merge(options)
-        html_options.merge!({ "checked" => "checked" }) if value == tag_value
-        html_options.merge!({ "type" => "radio", "value"=> tag_value.to_s })
-                       
-        add_default_name_and_id(html_options)
-        tag("input", html_options)
+      def to_radio_button_tag(tag_value, options = {})
+        options = DEFAULT_FIELD_OPTIONS.merge(options.stringify_keys)
+        options["type"]     = "radio"
+        options["value"]    = tag_value
+        options["checked"]  = "checked" if value == tag_value
+        add_default_name_and_id(options)
+        tag("input", options)
       end
-      
+
       def to_text_area_tag(options = {})
-        options = DEFAULT_TEXT_AREA_OPTIONS.merge(options)
+        options = DEFAULT_TEXT_AREA_OPTIONS.merge(options.stringify_keys)
         add_default_name_and_id(options)
         content_tag("textarea", html_escape(value_before_type_cast), options)
       end
 
       def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
-        options.merge!({ "checked" => "checked" }) if !value.nil? && ((value.is_a?(TrueClass) || value.is_a?(FalseClass)) ? value : value.to_i > 0)
-        options.merge!({ "type" => "checkbox", "value" => checked_value })
+        options = options.stringify_keys
+        options["type"]     = "checkbox"
+        options["value"]    = checked_value
+        checked = case value
+          when TrueClass, FalseClass
+            value
+          when NilClass
+            false
+          when Integer
+            value != 0
+          else
+            value.to_i != 0
+          end
+        if checked
+          options["checked"] = "checked"
+        else
+          options.delete("checked")
+        end
         add_default_name_and_id(options)
-        tag("input", options) << tag("input", ({ "name" => options['name'], "type" => "hidden", "value" => unchecked_value }))
+        tag("input", options) << tag("input", "name" => options["name"], "type" => "hidden", "value" => unchecked_value)
       end
 
       def to_date_tag()
-        defaults = { "discard_type" => true }
+        defaults = DEFAULT_DATE_OPTIONS.dup
         date     = value || Date.today
-        options  = Proc.new { |position| defaults.update({ :prefix => "#{@object_name}[#{@method_name}(#{position}i)]" }) }
-
+        options  = Proc.new { |position| defaults.merge(:prefix => "#{@object_name}[#{@method_name}(#{position}i)]") }
         html_day_select(date, options.call(3)) +
-        html_month_select(date, options.call(2)) + 
+        html_month_select(date, options.call(2)) +
         html_year_select(date, options.call(1))
       end
 
       def to_boolean_select_tag(options = {})
+        options = options.stringify_keys
         add_default_name_and_id(options)
         tag_text = "<select"
         tag_text << tag_options(options)
@@ -210,7 +230,7 @@ module ActionView
 
       def value_before_type_cast
         unless object.nil?
-          object.respond_to?(@method_name + "_before_type_cast") ? 
+          object.respond_to?(@method_name + "_before_type_cast") ?
             object.send(@method_name + "_before_type_cast") :
             object.send(@method_name)
         end
@@ -218,23 +238,23 @@ module ActionView
 
       private
         def add_default_name_and_id(options)
-          if options.has_key? "index"
-            options['name'] = tag_name_with_index(options["index"]) unless options.has_key? "name"
-            options['id'] = tag_id_with_index(options["index"]) unless options.has_key? "id"
+          if options.has_key?("index")
+            options["name"] ||= tag_name_with_index(options["index"])
+            options["id"]   ||= tag_id_with_index(options["index"])
             options.delete("index")
           elsif @auto_index
-            options['name'] = tag_name_with_index(@auto_index) unless options.has_key? "name"
-            options['id'] = tag_id_with_index(@auto_index) unless options.has_key? "id"
+            options["name"] ||= tag_name_with_index(@auto_index)
+            options["id"]   ||= tag_id_with_index(@auto_index)
           else
-            options['name'] = tag_name unless options.has_key? "name"
-            options['id'] = tag_id unless options.has_key? "id"
+            options["name"] ||= tag_name
+            options["id"]   ||= tag_id
           end
         end
-				
+
         def tag_name
           "#{@object_name}[#{@method_name}]"
         end
-				
+
         def tag_name_with_index(index)
           "#{@object_name}[#{index}][#{@method_name}]"
         end

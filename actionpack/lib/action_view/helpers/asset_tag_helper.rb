@@ -10,15 +10,15 @@ module ActionView
       # either be <tt>:rss</tt> (default) or <tt>:atom</tt> and the +options+ follow the url_for style of declaring a link target.
       #
       # Examples:
-      #   auto_discovery_link_tag # => 
+      #   auto_discovery_link_tag # =>
       #     <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.curenthost.com/controller/action" />
-      #   auto_discovery_link_tag(:atom) # => 
+      #   auto_discovery_link_tag(:atom) # =>
       #     <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.curenthost.com/controller/action" />
-      #   auto_discovery_link_tag(:rss, :action => "feed") # => 
+      #   auto_discovery_link_tag(:rss, :action => "feed") # =>
       #     <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.curenthost.com/controller/feed" />
       def auto_discovery_link_tag(type = :rss, options = {})
         tag(
-          "link", "rel" => "alternate", "type" => "application/#{type}+xml", "title" => type.to_s.upcase, 
+          "link", "rel" => "alternate", "type" => "application/#{type}+xml", "title" => type.to_s.upcase,
           "href" => url_for(options.merge(:only_path => false))
         )
       end
@@ -38,7 +38,7 @@ module ActionView
           content_tag("script", "", "language" => "JavaScript", "type" => "text/javascript", "src" => source)
         }.join("\n")
       end
-    
+
       # Returns a css link tag per source given as argument. Examples:
       #
       #   stylesheet_link_tag "style" # =>
@@ -48,7 +48,7 @@ module ActionView
       #     <link href="/stylesheets/random.styles" media="screen" rel="Stylesheet" type="text/css" />
       #     <link href="/css/stylish.css" media="screen" rel="Stylesheet" type="text/css" />
       def stylesheet_link_tag(*sources)
-        sources.collect { |source| 
+        sources.collect { |source|
           source = "/stylesheets/#{source}" unless source.include?("/")
           source = "#{source}.css" unless source.include?(".")
           tag("link", "rel" => "Stylesheet", "type" => "text/css", "media" => "screen", "href" => source)

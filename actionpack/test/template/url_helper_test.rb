@@ -21,26 +21,31 @@ class UrlHelperTest < Test::Unit::TestCase
   def test_link_tag_with_straight_url
     assert_equal "<a href=\"http://www.world.com\">Hello</a>", link_to("Hello", "http://www.world.com")
   end
-  
+
   def test_link_tag_with_javascript_confirm
     assert_equal(
-      "<a href=\"http://www.world.com\" onclick=\"return confirm('Are you sure?');\">Hello</a>", 
+      "<a href=\"http://www.world.com\" onclick=\"return confirm('Are you sure?');\">Hello</a>",
       link_to("Hello", "http://www.world.com", :confirm => "Are you sure?")
     )
   end
-  
+
   def test_link_to_image
     assert_equal(
-      "<a href=\"http://www.world.com\"><img alt=\"Rss\" border=\"0\" height=\"45\" src=\"/images/rss.png\" width=\"30\" /></a>", 
+      "<a href=\"http://www.world.com\"><img alt=\"Rss\" border=\"0\" height=\"45\" src=\"/images/rss.png\" width=\"30\" /></a>",
       link_to_image("rss", "http://www.world.com", "size" => "30x45")
     )
 
     assert_equal(
-      "<a class=\"admin\" href=\"http://www.world.com\"><img alt=\"Feed\" border=\"0\" height=\"45\" src=\"/images/rss.gif\" width=\"30\" /></a>", 
+      "<a class=\"admin\" href=\"http://www.world.com\"><img alt=\"Feed\" border=\"0\" height=\"45\" src=\"/images/rss.gif\" width=\"30\" /></a>",
       link_to_image("rss.gif", "http://www.world.com", "size" => "30x45", "alt" => "Feed", "class" => "admin")
     )
+
+    assert_equal link_to_image("rss", "http://www.world.com", "size" => "30x45"),
+                 link_to_image("rss", "http://www.world.com", :size => "30x45")
+    assert_equal link_to_image("rss.gif", "http://www.world.com", "size" => "30x45", "alt" => "Feed", "class" => "admin"),
+                 link_to_image("rss.gif", "http://www.world.com", :size => "30x45", :alt => "Feed", :class => "admin")
   end
-  
+
   def test_link_unless_current
     @request = RequestMock.new("http://www.world.com")
     assert_equal "Showing", link_to_unless_current("Showing", :action => "show", :controller => "weblog")
@@ -55,11 +60,13 @@ class UrlHelperTest < Test::Unit::TestCase
     assert_equal "<a href=\"mailto:david@loudthinking.com\">david@loudthinking.com</a>", mail_to("david@loudthinking.com")
     assert_equal "<a href=\"mailto:david@loudthinking.com\">David Heinemeier Hansson</a>", mail_to("david@loudthinking.com", "David Heinemeier Hansson")
     assert_equal(
-      "<a class=\"admin\" href=\"mailto:david@loudthinking.com\">David Heinemeier Hansson</a>", 
+      "<a class=\"admin\" href=\"mailto:david@loudthinking.com\">David Heinemeier Hansson</a>",
       mail_to("david@loudthinking.com", "David Heinemeier Hansson", "class" => "admin")
     )
+    assert_equal mail_to("david@loudthinking.com", "David Heinemeier Hansson", "class" => "admin"),
+                 mail_to("david@loudthinking.com", "David Heinemeier Hansson", :class => "admin")
   end
-  
+
   def test_link_with_nil_html_options
     assert_equal "<a href=\"http://www.world.com\">Hello</a>", link_to("Hello", {:action => 'myaction'}, nil)
   end

@@ -15,7 +15,7 @@ module ActionView
     module ActiveRecordHelper
       # Returns a default input tag for the type of object returned by the method. Example
       # (title is a VARCHAR column and holds "Hello World"):
-      #   input("post", "title") => 
+      #   input("post", "title") =>
       #     <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
       def input(record_name, method)
         InstanceTag.new(record_name, method, self).to_tag
@@ -41,7 +41,7 @@ module ActionView
       # It's possible to specialize the form builder by using a different action name and by supplying another
       # block renderer. Example (entry is a new record that has a message attribute using VARCHAR):
       #
-      #   form("entry", :action => "sign", :input_block => 
+      #   form("entry", :action => "sign", :input_block =>
       #        Proc.new { |record, column| "#{column.human_name}: #{input(record, column.name)}<br />" }) =>
       #
       #     <form action='/post/sign' method='post'>
@@ -56,16 +56,17 @@ module ActionView
       #     form << content_tag("b", "Department")
       #     form << collection_select("department", "id", @departments, "id", "name")
       #   end
-      def form(record_name, options = {})
-        record   = instance_eval("@#{record_name}")
+      def form(record_name, options = nil)
+        options = (options || {}).symbolize_keys
+        record = instance_eval("@#{record_name}")
 
         options[:action] ||= record.new_record? ? "create" : "update"
-        action   = url_for(:action => options[:action])
+        action = url_for(:action => options[:action])
 
         submit_value = options[:submit_value] || options[:action].gsub(/[^\w]/, '').capitalize
-        
+
         id_field = record.new_record? ? "" : InstanceTag.new(record_name, "id", self).to_input_field_tag("hidden")
-        
+
         formtag = %(<form action="#{action}" method="post">#{id_field}) + all_input_tags(record, record_name, options)
         yield formtag if block_given?
         formtag +  %(<input type="submit" value="#{submit_value}" /></form>)
@@ -73,7 +74,7 @@ module ActionView
 
       # Returns a string containing the error message attached to the +method+ on the +object+, if one exists.
       # This error message is wrapped in a DIV tag, which can be specialized to include both a +prepend_text+ and +append_text+
-      # to properly introduce the error and a +css_class+ to style it accordingly. Examples (post has an error message 
+      # to properly introduce the error and a +css_class+ to style it accordingly. Examples (post has an error message
       # "can't be empty" on the title attribute):
       #
       #   <%= error_message_on "post", "title" %> =>
@@ -86,19 +87,20 @@ module ActionView
           "<div class=\"#{css_class}\">#{prepend_text + (errors.is_a?(Array) ? errors.first : errors) + append_text}</div>"
         end
       end
-      
+
       # Returns a string with a div containing all the error messages for the object located as an instance variable by the name
       # of <tt>object_name</tt>. This div can be tailored by the following options:
       #
       # * <tt>header_tag</tt> - Used for the header of the error div (default: h2)
       # * <tt>id</tt> - The id of the error div (default: errorExplanation)
       # * <tt>class</tt> - The class of the error div (default: errorExplanation)
-      def error_messages_for(object_name, options={})
+      def error_messages_for(object_name, options = {})
+        options = options.symbolize_keys
         object = instance_eval "@#{object_name}"
         unless object.errors.empty?
           content_tag("div",
             content_tag(
-              options[:header_tag] || "h2", 
+              options[:header_tag] || "h2",
               "#{pluralize(object.errors.count, "error")} prohibited this #{object_name.gsub("_", " ")} from being saved"
             ) +
             content_tag("p", "There were problems with the following fields:") +
@@ -107,7 +109,7 @@ module ActionView
           )
         end
       end
-      
+
       private
         def all_input_tags(record, record_name, options)
           input_block = options[:input_block] || default_input_block
@@ -116,7 +118,7 @@ module ActionView
 
         def default_input_block
           Proc.new { |record, column| "<p><label for=\"#{record}_#{column.name}\">#{column.human_name}</label><br />#{input(record, column.name)}</p>" }
-        end        
+        end
     end
 
     class InstanceTag #:nodoc:

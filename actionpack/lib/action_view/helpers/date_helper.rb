@@ -5,7 +5,7 @@ module ActionView
     # The Date Helper primarily creates select/option tags for different kinds of dates and date elements. All of the select-type methods
     # share a number of common options that are as follows:
     #
-    # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday" would give 
+    # * <tt>:prefix</tt> - overwrites the default prefix of "date" used for the select names. So specifying "birthday" would give
     #   birthday[month] instead of date[month] if passed to the select_month method.
     # * <tt>:include_blank</tt> - set to true if it should be possible to set an empty date.
     # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true, the select_month
@@ -13,11 +13,11 @@ module ActionView
     module DateHelper
       DEFAULT_PREFIX = "date" unless const_defined?("DEFAULT_PREFIX")
 
-      # Reports the approximate distance in time between to Time objects. For example, if the distance is 47 minutes, it'll return 
+      # Reports the approximate distance in time between to Time objects. For example, if the distance is 47 minutes, it'll return
       # "about 1 hour". See the source for the complete wording list.
       def distance_of_time_in_words(from_time, to_time)
         distance_in_minutes = ((to_time - from_time) / 60).round
-        
+
         case distance_in_minutes
           when 0          then "less than a minute"
           when 1          then "1 minute"
@@ -28,7 +28,7 @@ module ActionView
           else                 "#{(distance_in_minutes / 1440).round} days"
         end
       end
-      
+
       # Like distance_of_time_in_words, but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
       def distance_of_time_in_words_to_now(from_time)
         distance_of_time_in_words(from_time, Time.now)
@@ -48,7 +48,7 @@ module ActionView
       #
       #   date_select("post", "written_on")
       #   date_select("post", "written_on", :start_year => 1995)
-      #   date_select("post", "written_on", :start_year => 1995, :use_month_numbers => true, 
+      #   date_select("post", "written_on", :start_year => 1995, :use_month_numbers => true,
       #                                     :discard_day => true, :include_blank => true)
       #   date_select("post", "written_on", :order => [:day, :month, :year])
       #   date_select("user", "birthday",   :order => [:month, :day])
@@ -107,7 +107,7 @@ module ActionView
 
         0.upto(59) do |minute|
           minute_options << ((datetime.kind_of?(Fixnum) ? datetime : datetime.min) == minute ?
-            "<option selected=\"selected\">#{leading_zero_on_single_digits(minute)}</option>\n" : 
+            "<option selected=\"selected\">#{leading_zero_on_single_digits(minute)}</option>\n" :
             "<option>#{leading_zero_on_single_digits(minute)}</option>\n"
           )
         end
@@ -122,7 +122,7 @@ module ActionView
 
         0.upto(23) do |hour|
           hour_options << ((datetime.kind_of?(Fixnum) ? datetime : datetime.hour) == hour ?
-            "<option selected=\"selected\">#{leading_zero_on_single_digits(hour)}</option>\n" : 
+            "<option selected=\"selected\">#{leading_zero_on_single_digits(hour)}</option>\n" :
             "<option>#{leading_zero_on_single_digits(hour)}</option>\n"
           )
         end
@@ -137,18 +137,18 @@ module ActionView
 
         1.upto(31) do |day|
           day_options << ((date.kind_of?(Fixnum) ? date : date.day) == day ?
-            "<option selected=\"selected\">#{day}</option>\n" : 
+            "<option selected=\"selected\">#{day}</option>\n" :
             "<option>#{day}</option>\n"
           )
         end
 
         select_html("day", day_options, options[:prefix], options[:include_blank], options[:discard_type])
       end
-      
+
       # Returns a select tag with options for each of the months January through December with the current month selected.
       # The month names are presented as keys (what's shown to the user) and the month numbers (1-12) are used as values
       # (what's submitted to the server). It's also possible to use month numbers for the presentation instead of names --
-      # set the <tt>:use_month_numbers</tt> key in +options+ to true for this to happen. If you want both numbers and names, 
+      # set the <tt>:use_month_numbers</tt> key in +options+ to true for this to happen. If you want both numbers and names,
       # set the <tt>:add_month_numbers</tt> key in +options+ to true. Examples:
       #
       #   select_month(Date.today)                             # Will use keys like "January", "March"
@@ -158,7 +158,7 @@ module ActionView
         month_options = []
 
         1.upto(12) do |month_number|
-          month_name = if options[:use_month_numbers] 
+          month_name = if options[:use_month_numbers]
             month_number
           elsif options[:add_month_numbers]
             month_number.to_s + " - " + Date::MONTHNAMES[month_number]
@@ -167,16 +167,16 @@ module ActionView
           end
 
           month_options << ((date.kind_of?(Fixnum) ? date : date.month) == month_number ?
-            %(<option value="#{month_number}" selected="selected">#{month_name}</option>\n) : 
+            %(<option value="#{month_number}" selected="selected">#{month_name}</option>\n) :
             %(<option value="#{month_number}">#{month_name}</option>\n)
           )
         end
 
         select_html("month", month_options, options[:prefix], options[:include_blank], options[:discard_type])
       end
-      
+
       # Returns a select tag with options for each of the five years on each side of the current, which is selected. The five year radius
-      # can be changed using the <tt>:start_year</tt> and <tt>:end_year</tt> keys in the +options+. The <tt>date</tt> can also be substituted 
+      # can be changed using the <tt>:start_year</tt> and <tt>:end_year</tt> keys in the +options+. The <tt>date</tt> can also be substituted
       # for a year given as a number. Example:
       #
       #   select_year(Date.today, :start_year => 1992, :end_year => 2007)
@@ -187,14 +187,14 @@ module ActionView
 
         (options[:start_year] || default_start_year).upto(options[:end_year] || default_end_year) do |year|
           year_options << ((date.kind_of?(Fixnum) ? date : date.year) == year ?
-            "<option selected=\"selected\">#{year}</option>\n" : 
+            "<option selected=\"selected\">#{year}</option>\n" :
             "<option>#{year}</option>\n"
           )
         end
 
         select_html("year", year_options, options[:prefix], options[:include_blank], options[:discard_type])
       end
-      
+
       private
         def select_html(type, options, prefix = nil, include_blank = false, discard_type = false)
           select_html  = %(<select name="#{prefix || DEFAULT_PREFIX})
@@ -206,7 +206,7 @@ module ActionView
 
           return select_html
         end
-        
+
         def leading_zero_on_single_digits(number)
           number > 9 ? number : "0#{number}"
         end
@@ -217,32 +217,32 @@ module ActionView
 
       def to_date_select_tag(options = {})
         defaults = { :discard_type => true }
-        options  = defaults.merge(options) 
-        options_with_prefix = Proc.new { |position| options.update({ :prefix => "#{@object_name}[#{@method_name}(#{position}i)]" }) }
+        options  = defaults.merge(options)
+        options_with_prefix = Proc.new { |position| options.merge(:prefix => "#{@object_name}[#{@method_name}(#{position}i)]") }
         date     = options[:include_blank] ? (value || 0) : (value || Date.today)
 
-        date_select = ""        
+        date_select = ""
         options[:order]   = [:month, :year, :day] if options[:month_before_year] # For backwards compatibility
         options[:order] ||= [:year, :month, :day]
 
         position = {:year => 1, :month => 2, :day => 3}
-        
+
         discard = {}
         discard[:year]  = true if options[:discard_year]
         discard[:month] = true if options[:discard_month]
         discard[:day]   = true if options[:discard_day] or options[:discard_month]
-        
+
         options[:order].each do |param|
           date_select << self.send("select_#{param}", date, options_with_prefix.call(position[param])) unless discard[param]
         end
 
         return date_select
       end
-      
+
       def to_datetime_select_tag(options = {})
         defaults = { :discard_type => true }
-        options  = defaults.merge(options) 
-        options_with_prefix = Proc.new { |position| options.update({ :prefix => "#{@object_name}[#{@method_name}(#{position}i)]" }) }
+        options  = defaults.merge(options)
+        options_with_prefix = Proc.new { |position| options.merge(:prefix => "#{@object_name}[#{@method_name}(#{position}i)]") }
         datetime = options[:include_blank] ? (value || 0) : (value || Time.now)
 
         datetime_select  = select_year(datetime, options_with_prefix.call(1))
@@ -250,7 +250,7 @@ module ActionView
         datetime_select << select_day(datetime, options_with_prefix.call(3)) unless options[:discard_day] || options[:discard_month]
         datetime_select << " &mdash; " + select_hour(datetime, options_with_prefix.call(4)) unless options[:discard_hour]
         datetime_select << " : " + select_minute(datetime, options_with_prefix.call(5)) unless options[:discard_minute] || options[:discard_hour]
-        
+
         return datetime_select
       end
     end

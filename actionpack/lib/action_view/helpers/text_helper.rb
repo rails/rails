@@ -1,7 +1,7 @@
 module ActionView
   module Helpers #:nodoc:
     # Provides a set of methods for working with text strings that can help unburden the level of inline Ruby code in the
-    # templates. In the example below we iterate over a collection of posts provided to the template and prints each title 
+    # templates. In the example below we iterate over a collection of posts provided to the template and prints each title
     # after making sure it doesn't run longer than 20 characters:
     #   <% for post in @posts %>
     #     Title: <%= truncate(post.title, 20) %>
@@ -29,14 +29,14 @@ module ActionView
         if text.nil? || phrase.nil? then return end
         text.gsub(/(#{escape_regexp(phrase)})/i, highlighter) unless text.nil?
       end
-      
+
       # Extracts an excerpt from the +text+ surrounding the +phrase+ with a number of characters on each side determined
-      # by +radius+. If the phrase isn't found, nil is returned. Ex: 
+      # by +radius+. If the phrase isn't found, nil is returned. Ex:
       #   excerpt("hello my world", "my", 3) => "...lo my wo..."
       def excerpt(text, phrase, radius = 100, excerpt_string = "...")
         if text.nil? || phrase.nil? then return end
         phrase = escape_regexp(phrase)
-        
+
         if found_pos = text =~ /(#{phrase})/i
           start_pos = [ found_pos - radius, 0 ].max
           end_pos   = [ found_pos + phrase.length + radius, text.length ].min
@@ -58,7 +58,7 @@ module ActionView
           plural
         elsif Object.const_defined?("Inflector")
           Inflector.pluralize(singular)
-        else 
+        else
           singular + "s"
         end
       end
@@ -66,13 +66,13 @@ module ActionView
       begin
         require "redcloth"
 
-        # Returns the text with all the Textile codes turned into HTML-tags. 
+        # Returns the text with all the Textile codes turned into HTML-tags.
         # <i>This method is only available if RedCloth can be required</i>.
         def textilize(text)
           text.empty? ? "" : RedCloth.new(text, [ :hard_breaks ]).to_html
         end
 
-        # Returns the text with all the Textile codes turned into HTML-tags, but without the regular bounding <p> tag. 
+        # Returns the text with all the Textile codes turned into HTML-tags, but without the regular bounding <p> tag.
         # <i>This method is only available if RedCloth can be required</i>.
         def textilize_without_paragraph(text)
           textiled = textilize(text)
@@ -87,7 +87,7 @@ module ActionView
       begin
         require "bluecloth"
 
-        # Returns the text with all the Markdown codes turned into HTML-tags. 
+        # Returns the text with all the Markdown codes turned into HTML-tags.
         # <i>This method is only available if BlueCloth can be required</i>.
         def markdown(text)
           text.empty? ? "" : BlueCloth.new(text).to_html
@@ -101,7 +101,7 @@ module ActionView
       #
       # Example:
       #   auto_link("Go to http://www.rubyonrails.com and say hello to david@loudthinking.com") =>
-      #     Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a> and 
+      #     Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a> and
       #     say hello to <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>
       def auto_link(text, link = :all)
         case link
@@ -115,7 +115,7 @@ module ActionView
       def strip_links(text)
         text.gsub(/<a.*>(.*)<\/a>/m, '\1')
       end
-      
+
       private
         # Returns a version of the text that's safe to use in a regular expression without triggering engine features.
         def escape_regexp(text)

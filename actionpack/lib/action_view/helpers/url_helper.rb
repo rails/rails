@@ -7,26 +7,27 @@ module ActionView
     module UrlHelper
       # Returns the URL for the set of +options+ provided. See the valid options in link:classes/ActionController/Base.html#M000021
       def url_for(options = {}, *parameters_for_method_reference)
-        if Hash === options then options = { :only_path => true }.merge(options) end
+        if Hash === options then options = { :only_path => true }.update(options.stringify_keys) end
         @controller.send(:url_for, options, *parameters_for_method_reference)
       end
 
       # Creates a link tag of the given +name+ using an URL created by the set of +options+. See the valid options in
       # link:classes/ActionController/Base.html#M000021. It's also possible to pass a string instead of an options hash to
-      # get a link tag that just points without consideration. If nil is passed as a name, the link itself will become the name. 
-      # The html_options have a special feature for creating javascript confirm alerts where if you pass :confirm => 'Are you sure?', 
+      # get a link tag that just points without consideration. If nil is passed as a name, the link itself will become the name.
+      # The html_options have a special feature for creating javascript confirm alerts where if you pass :confirm => 'Are you sure?',
       # the link will be guarded with a JS popup asking that question. If the user accepts, the link is processed, otherwise not.
       #
       # Example:
       #   link_to "Delete this page", { :action => "destroy", :id => @page.id }, :confirm => "Are you sure?"
-      def link_to(name, options = {}, html_options = {}, *parameters_for_method_reference)
-        convert_confirm_option_to_javascript!(html_options) unless html_options.nil?
+      def link_to(name, options = {}, html_options = nil, *parameters_for_method_reference)
+        html_options = (html_options || {}).stringify_keys
+        convert_confirm_option_to_javascript!(html_options)
         if options.is_a?(String)
-          content_tag "a", name || options, (html_options || {}).merge({ "href" => options })
+          content_tag "a", name || options, (html_options || {}).merge("href" => options)
         else
           content_tag(
-            "a", name || url_for(options, *parameters_for_method_reference), 
-            (html_options || {}).merge({ "href" => url_for(options, *parameters_for_method_reference) })
+            "a", name || url_for(options, *parameters_for_method_reference),
+            (html_options || {}).merge("href" => url_for(options, *parameters_for_method_reference))
           )
         end
       end
@@ -41,7 +42,7 @@ module ActionView
       # * <tt>:border</tt> - Is set to 0 by default
       # * <tt>:align</tt> - Sets the alignment, no special features
       #
-      # The +src+ can be supplied as a... 
+      # The +src+ can be supplied as a...
       # * full path, like "/my_images/image.gif"
       # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
       # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
@@ -51,8 +52,9 @@ module ActionView
       #   link_image_to "delete", { :action => "destroy" }, :size => "10x10", :confirm => "Are you sure?", "class" => "admin"
       def link_image_to(src, options = {}, html_options = {}, *parameters_for_method_reference)
         image_options = { "src" => src.include?("/") ? src : "/images/#{src}" }
-        image_options["src"] = image_options["src"] + ".png" unless image_options["src"].include?(".")
-        
+        image_options["src"] += ".png" unless image_options["src"].include?(".")
+
+        html_options = html_options.stringify_keys
         if html_options["alt"]
           image_options["alt"] = html_options["alt"]
           html_options.delete "alt"
@@ -71,7 +73,7 @@ module ActionView
         else
           image_options["border"] = "0"
         end
-        
+
         if html_options["align"]
           image_options["align"] = html_options["align"]
           html_options.delete "align"
@@ -82,9 +84,9 @@ module ActionView
 
       alias_method :link_to_image, :link_image_to # deprecated name
 
-      # Creates a link tag of the given +name+ using an URL created by the set of +options+, unless the current 
+      # Creates a link tag of the given +name+ using an URL created by the set of +options+, unless the current
       # request uri is the same as the link's, in which case only the name is returned (or the
-      # given block is yielded, if one exists). This is useful for creating link bars where you don't want to link 
+      # given block is yielded, if one exists). This is useful for creating link bars where you don't want to link
       # to the page currently being viewed.
       def link_to_unless_current(name, options = {}, html_options = {}, *parameters_for_method_reference)
         if current_page?(options)
@@ -107,8 +109,8 @@ module ActionView
       #   mail_to "me@domain.com", "My email", :encode => "hex"  # =>
       #     <a href="mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
-        encode = html_options[:encode]
-        html_options.delete(:encode)
+        html_options = html_options.stringify_keys
+        encode = html_options.delete("encode")
         string = ''
         if encode == 'javascript'
           tmp = "document.write('#{content_tag("a", name || email_address, html_options.merge({ "href" => "mailto:"+email_address.to_s }))}');"
@@ -137,9 +139,8 @@ module ActionView
 
       private
         def convert_confirm_option_to_javascript!(html_options)
-          if html_options.include?(:confirm)
-            html_options["onclick"] = "return confirm('#{html_options[:confirm]}');"
-            html_options.delete(:confirm)
+          if confirm = html_options.delete("confirm")
+            html_options["onclick"] = "return confirm('#{confirm}');"
           end
         end
     end
