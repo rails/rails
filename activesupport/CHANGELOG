@@ -1,3 +1,5 @@
+* Added IndifferentAccess as a way to wrap a hash by a symbol-based store that also can be accessed by string keys
+
 * Added Inflector.humanize to turn attribute names like employee_salary into "Employee salary". Used by automated error reporting in AR.
 
 * Added availability of class inheritable attributes to the masses #477 [bitsweat]

@@ -2,7 +2,6 @@ module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Hash #:nodoc:
       module Keys
-
         # Return a new hash with all keys converted to symbols.
         def symbolize_keys
           inject({}) do |options, (key, value)|

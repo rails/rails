@@ -2,7 +2,6 @@ require 'test/unit'
 require File.dirname(__FILE__) + '/../../lib/core_ext/hash'
 
 class HashExtTest < Test::Unit::TestCase
-
   def setup
     @strings = { 'a' => 1, 'b' => 2 }
     @symbols = { :a  => 1, :b  => 2 }
@@ -31,6 +30,17 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal @symbols, @mixed.dup.symbolize_keys!
 
     assert_raises(NoMethodError) { { [] => 1 }.symbolize_keys! }
+  end
+
+  def test_indifferent_access
+    @strings = @strings.with_indifferent_access
+    @symbols = @symbols.with_indifferent_access
+    @mixed   = @mixed.with_indifferent_access
+
+    assert_equal @strings[:a], @strings["a"]
+    assert_equal @symbols[:a], @symbols["a"]
+    assert_equal @strings["b"], @mixed["b"]
+    assert_equal @strings[:b], @mixed["b"]
   end
 
   def test_assert_valid_keys

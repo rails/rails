@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed double requiring of models with the same name as the controller
+
 * Fixed that query params could be forced to nil on a POST due to the raw post fix #562 [moriq@moriq.com]
 
 * Fixed that cookies shouldn't be frozen in TestRequest #571 [Eric Hodel]
