@@ -1,3 +1,9 @@
 #!/usr/local/bin/ruby
-require File.dirname(__FILE__) + '/../config/environment'
+begin
+  require 'rubygems'
+  require_gem 'rails'
+rescue LoadError
+  require File.dirname(__FILE__) + '/../vendor/railties/lib/breakpoint'
+end
+
 require 'breakpoint_client'
