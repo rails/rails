@@ -50,7 +50,7 @@ A short rundown of the major features:
         def find_customer() Customer.find(@params["id"]) end
     end
 
-  Learn more in link:classes/ActionController/Base.html
+  {Learn more}[link:classes/ActionController/Base.html]
 
 
 * Embedded Ruby for templates (no new "easy" template language)
@@ -65,30 +65,32 @@ A short rundown of the major features:
       Not for clients to see...
     <% end %>
   
-  Learn more in link:classes/ActionView.html
+  {Learn more}[link:classes/ActionView.html]
 
 
 * Builder-based templates (great for XML content, like RSS)
 
-  xml.rss("version" => "2.0") do
-    xml.channel do
-      xml.title(@feed_title)
-      xml.link(@url)
-      xml.description "Basecamp: Recent items"
-      xml.language "en-us"
-      xml.ttl "40"
+    xml.rss("version" => "2.0") do
+      xml.channel do
+        xml.title(@feed_title)
+        xml.link(@url)
+        xml.description "Basecamp: Recent items"
+        xml.language "en-us"
+        xml.ttl "40"
 
-      for item in @recent_items
-        xml.item do
-          xml.title(item_title(item))
-          xml.description(item_description(item))
-          xml.pubDate(item_pubDate(item))
-          xml.guid(@recent_items.url(item))
-          xml.link(@recent_items.url(item))
+        for item in @recent_items
+          xml.item do
+            xml.title(item_title(item))
+            xml.description(item_description(item))
+            xml.pubDate(item_pubDate(item))
+            xml.guid(@recent_items.url(item))
+            xml.link(@recent_items.url(item))
+          end
         end
       end
     end
-  end
+
+  {Learn more}[link:classes/ActionView/Base.html]
 
 
 * Filters for pre and post processing of the response (as methods, procs, and classes)
@@ -113,7 +115,7 @@ A short rundown of the major features:
         end
     end
   
-  Learn more in link:classes/ActionController/Filters/ClassMethods.html
+  {Learn more}[link:classes/ActionController/Filters/ClassMethods.html]
   
 
 * Helpers for forms, dates, action links, and text
@@ -123,7 +125,7 @@ A short rundown of the major features:
     <%= link_to "New post", :controller => "post", :action => "new" %>
     <%= truncate(post.title, 25) %>
  
-  Learn more in link:classes/ActionView/Helpers.html
+  {Learn more}[link:classes/ActionView/Helpers.html]
 
 
 * Layout sharing for template reuse (think simple version of Struts 
@@ -145,28 +147,25 @@ A short rundown of the major features:
     Result of running hello_world action:
       <html><body><h1>Hello world</h1></body></html>
 
-  Learn more in link:classes/ActionController/Layout/ClassMethods.html
+  {Learn more}[link:classes/ActionController/Layout/ClassMethods.html]
 
 
-* Advanced redirection that makes pretty urls easy
+* Routing makes pretty urls incredibly easy
 
-    RewriteRule ^/library/books/([A-Z]+)([0-9]+)/([-_a-zA-Z0-9]+)$ \
-      /books_controller.cgi?action=$3&type=$1&code=$2 [QSA] [L]
+    map.connect 'clients/:client_name/:project_name/:controller/:action'
 
-    Accessing /library/books/ISBN/0743536703/show calls BooksController#show
+    Accessing /clients/37signals/basecamp/project/dash calls ProjectController#dash with
+    { "client_name" => "37signals", "project_name" => "basecamp" } in @params["params"]
     
     From that URL, you can rewrite the redirect in a number of ways:
     
     redirect_to(:action => "edit") =>
-      /library/books/ISBN/0743536703/edit
+      /clients/37signals/basecamp/project/dash
 
-    redirect_to(:path_params => { "type" => "XTC", "code" => "12354345" }) =>
-      /library/books/XTC/12354345/show
+    redirect_to(:client_name => "nextangle", :project_name => "rails") =>
+      /clients/nextangle/rails/project/dash
 
-    redirect_to(:controller_prefix => "admin", :controller => "accounts") =>
-      /admin/accounts/
-
-  Learn more in link:classes/ActionController/Base.html
+  {Learn more}[link:classes/ActionController/Base.html]
 
 
 * Easy testing of both controller and template result through TestRequest/Response
@@ -185,7 +184,7 @@ A short rundown of the major features:
       end
     end
 
-  Learn more in link:classes/ActionController/TestRequest.html
+  {Learn more}[link:classes/ActionController/TestRequest.html]
 
 
 * Automated benchmarking and integrated logging
@@ -211,6 +210,58 @@ A short rundown of the major features:
     ActionController::Base.logger = Log4r::Logger.new("Application Log")
 
 
+* Caching at three levels of granularity (page, action, fragment)
+
+    class WeblogController < ActionController::Base
+      caches_page :show
+      caches_action :account
+      
+      def show
+        # the output of the method will be cached as 
+        # ActionController::Base.page_cache_directory + "/weblog/show/n.html"
+        # and the web server will pick it up without even hitting Rails
+      end
+      
+      def account
+        # the output of the method will be cached in the fragment store
+        # but Rails is hit to retrieve it, so filters are run
+      end
+      
+      def update
+        List.update(@params["list"]["id"], @params["list"])
+        expire_page   :action => "show", :id => @params["list"]["id"]
+        expire_action :action => "account"
+        redirect_to   :action => "show", :id => @params["list"]["id"]
+      end
+    end
+
+  {Learn more}[link:classes/ActionController/Caching.html]
+
+
+* Component requests from one controller to another
+
+    class WeblogController < ActionController::Base
+      # Performs a method and then lets hello_world output its render
+      def delegate_action
+        do_other_stuff_before_hello_world
+        render_component :controller => "greeter",  :action => "hello_world"
+      end
+    end
+  
+    class GreeterController < ActionController::Base
+      def hello_world
+        render_text "Hello World!"
+      end
+    end
+  
+    The same can be done in a view to do a partial rendering:
+  
+      Let's see a greeting:
+      <%= render_component :controller => "greeter", :action => "hello_world" %>
+
+  {Learn more}[link:classes/ActionController/Components.html]
+  
+
 * Powerful debugging mechanism for local requests
 
     All exceptions raised on actions performed on the request of a local user
@@ -218,7 +269,7 @@ A short rundown of the major features:
     message, stack trace, request parameters, session contents, and the
     half-finished response.
 
-  Learn more in link:classes/ActionController/Rescue.html
+  {Learn more}[link:classes/ActionController/Rescue.html]
 
 
 * Scaffolding for Action Record model objects
@@ -231,7 +282,7 @@ A short rundown of the major features:
     The AccountController now has the full CRUD range of actions and default
     templates: list, show, destroy, new, create, edit, update
     
-  Learn more in link:classes/ActionController/Scaffolding/ClassMethods.html
+  {Learn more}link:classes/ActionController/Scaffolding/ClassMethods.html
 
 
 * Form building for Active Record model objects
@@ -272,42 +323,21 @@ A short rundown of the major features:
       end
     end
 
-  Learn more in link:classes/ActionView/Helpers/ActiveRecordHelper.html
+  {Learn more}[link:classes/ActionView/Helpers/ActiveRecordHelper.html]
 
 
-* Automated mapping of URLs to controller/action pairs through Apache's
-  mod_rewrite
-
-    Requesting /blog/display/5 will call BlogController#display and 
-    make 5 available as an instance variable through @params["id"]
-
-
-* Runs on top of CGI, FCGI, and mod_ruby
-
-    See the address_book_controller example for all three forms
+* Runs on top of WEBrick, CGI, FCGI, and mod_ruby
 
 
 == Simple example
 
 This example will implement a simple weblog system using inline templates and
-an Active Record model. The first thing we need to do is setup an .htaccess to
-interpret pretty URLs into something the controller can use. Let's use the
-simplest form for starters:
-
-  RewriteRule ^weblog/([-_a-zA-Z0-9]+)/([0-9]+)$ \
-    /weblog_controller.cgi?action=$2&id=$3 [QSA]
-  RewriteRule ^weblog/([-_a-zA-Z0-9]+)$ \
-    /weblog_controller.cgi?action=$2 [QSA]
-  RewriteRule ^weblog/$ \
-    /weblog_controller.cgi?action=index [QSA]
-
-Now we'll be able to access URLs like weblog/display/5 and have
-WeblogController#display called with { "id" => 5 } in the @params array
-available for the action. So let's build that WeblogController with just a few
+an Active Record model. So let's build that WeblogController with just a few
 methods:
 
   require 'action_controller'
   require 'post'
+
   class WeblogController < ActionController::Base
     layout "weblog/layout"
   
@@ -362,7 +392,7 @@ which is called by accessing /weblog/. It uses the form builder for the Active
 Record model to make the new screen, which in turns hand everything over to
 the create action (that's the default target for the form builder when given a
 new model). After creating the post, it'll redirect to the display page using
-an URL such as /weblog/display/5 (where 5 is the id of the post.
+an URL such as /weblog/display/5 (where 5 is the id of the post).
 
 
 == Examples
@@ -386,7 +416,7 @@ The latest version of Action Pack can be found at
 
 Documentation can be found at 
 
-* http://actionpack.rubyonrails.org
+* http://ap.rubyonrails.com
 
 
 == Installation
@@ -405,7 +435,7 @@ Action Pack is released under the same license as Ruby.
 
 == Support
 
-The Action Pack homepage is http://actionpack.rubyonrails.org. You can find
+The Action Pack homepage is http://www.rubyonrails.com. You can find
 the Action Pack RubyForge page at http://rubyforge.org/projects/actionpack.
 And as Jim from Rake says:
 

@@ -1,7 +1,27 @@
 module ActionController #:nodoc:
-  # TODO: Cookies and session variables set in render_component that happens inside a view should be copied over.
-  module Components #:nodoc:
-    def self.append_features(base)
+  # Components allows you to call other actions for their rendered response while execution another action. You can either delegate
+  # the entire response rendering or you can mix a partial response in with your other content.
+  #
+  #   class WeblogController < ActionController::Base
+  #     # Performs a method and then lets hello_world output its render
+  #     def delegate_action
+  #       do_other_stuff_before_hello_world
+  #       render_component :controller => "greeter",  :action => "hello_world"
+  #     end
+  #   end
+  #
+  #   class GreeterController < ActionController::Base
+  #     def hello_world
+  #       render_text "Hello World!"
+  #     end
+  #   end
+  #
+  # The same can be done in a view to do a partial rendering:
+  # 
+  #   Let's see a greeting: 
+  #   <%= render_component :controller => "greeter", :action => "hello_world" %>
+  module Components
+    def self.append_features(base) #:nodoc:
       super
       base.helper do
         def render_component(options) 
@@ -11,10 +31,12 @@ module ActionController #:nodoc:
     end
 
     protected
+      # Renders the component specified as the response for the current method
       def render_component(options = {}) #:doc:
         component_logging(options) { render_text(component_response(options).body, response.headers["Status"]) }
       end
 
+      # Returns the component response as a string
       def render_component_as_string(options) #:doc:
         component_logging(options) { component_response(options, false).body }
       end

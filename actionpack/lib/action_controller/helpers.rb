@@ -35,8 +35,7 @@ module ActionController #:nodoc:
         template_class.class_eval "include #{helper_module}"
       end
 
-      # Declare a helper.  If you use this method in your controller, you don't
-      # have to do the +self.append_features+ incantation in your helper class.
+      # Declare a helper:
       #   helper :foo
       # requires 'foo_helper' and includes FooHelper in the template class.
       #   helper FooHelper

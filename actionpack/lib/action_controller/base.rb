@@ -14,7 +14,7 @@ module ActionController #:nodoc:
   end
   class MissingTemplate < ActionControllerError #:nodoc:
   end
-  class RoutingError < ActionControllerError
+  class RoutingError < ActionControllerError#:nodoc:
     attr_reader :failures
     def initialize(message, failures=[])
       super(message)
@@ -86,9 +86,9 @@ module ActionController #:nodoc:
   #   <input type="text" name="post[name]" value="david">
   #   <input type="text" name="post[address]" value="hyacintvej">
   #
-  # A request stemming from a form holding these inputs will include { "post" # => { "name" => "david", "address" => "hyacintvej" } }.
+  # A request stemming from a form holding these inputs will include <tt>{ "post" => { "name" => "david", "address" => "hyacintvej" } }</tt>.
   # If the address input had been named "post[address][street]", the @params would have included 
-  # { "post" => { "address" => { "street" => "hyacintvej" } } }. There's no limit to the depth of the nesting.
+  # <tt>{ "post" => { "address" => { "street" => "hyacintvej" } } }</tt>. There's no limit to the depth of the nesting.
   #
   # == Sessions
   #
@@ -156,22 +156,20 @@ module ActionController #:nodoc:
   # 
   # Redirects work by rewriting the URL of the current action. So if the show action was called by "/library/books/ISBN/0743536703/show", 
   # we can redirect to an edit action simply by doing <tt>redirect_to(:action => "edit")</tt>, which could throw the user to 
-  # "/library/books/ISBN/0743536703/edit". Naturally, you'll need to setup the .htaccess (or other means of URL rewriting for the web server)
-  # to point to the proper controller and action in the first place, but once you have, it can be rewritten with ease.
+  # "/library/books/ISBN/0743536703/edit". Naturally, you'll need to setup the routes configuration file to point to the proper controller
+  # and action in the first place, but once you have, it can be rewritten with ease.
   # 
-  # Let's consider a bunch of examples on how to go from "/library/books/ISBN/0743536703/edit" to somewhere else:
+  # Let's consider a bunch of examples on how to go from "/clients/37signals/basecamp/project/dash" to somewhere else:
   #
-  #   redirect_to(:action => "show", :action_prefix => "XTC/123") =>
-  #     "http://www.singlefile.com/library/books/XTC/123/show"
+  #   redirect_to(:action => "edit") =>
+  #     /clients/37signals/basecamp/project/dash
+  #   
+  #   redirect_to(:client_name => "nextangle", :project_name => "rails") =>
+  #     /clients/nextangle/rails/project/dash
   #
-  #   redirect_to(:path_params => {"type" => "EXBC"}) =>
-  #     "http://www.singlefile.com/library/books/EXBC/0743536703/show"
+  # Those redirects happen under the configuration of:
   #
-  #   redirect_to(:controller => "settings") => 
-  #     "http://www.singlefile.com/library/settings/"
-  #
-  # For more examples of redirecting options, have a look at the unit test in test/controller/url_test.rb. It's very readable and will give
-  # you an excellent understanding of the different options and what they do.
+  #   map.connect 'clients/:client_name/:project_name/:controller/:action'
   #
   # == Calling multiple redirects or renders
   #
@@ -337,20 +335,20 @@ module ActionController #:nodoc:
       # * <tt>:anchor</tt> -- specifies the anchor name to be appended to the path. For example, 
       #   <tt>url_for :controller => 'posts', :action => 'show', :id => 10, :anchor => 'comments'</tt> 
       #   will produce "/posts/show/10#comments".
-      # * <tt>:only-path</tt> --  if true, returns the absolute URL (omitting the protocol, host name, and port)
+      # * <tt>:only_path</tt> --  if true, returns the absolute URL (omitting the protocol, host name, and port)
       # * <tt>:host</tt> -- overrides the default (current) host if provided
       # * <tt>:protocol</tt> -- overrides the default (current) protocol if provided
-      #  
+      #
       # The URL is generated from the remaining keys in the hash. A URL contains two key parts: the <base> and a query string.
       # Routes composes a query string as the key/value pairs not included in the <base>.
-      #  
+      #
       # The default Routes setup supports a typical Rails path of "controller/action/id" where action and id are optional, with
       # action defaulting to 'index' when not given. Here are some typical url_for statements and their corresponding URLs:
       #  
       #   url_for :controller => 'posts', :action => 'recent' # => 'proto://host.com/posts/recent'
       #   url_for :controller => 'posts', :action => 'index' # => 'proto://host.com/posts'
       #   url_for :controller => 'posts', :action => 'show', :id => 10 # => 'proto://host.com/posts/show/10'
-      #  
+      #
       # When generating a new URL, missing values may be filled in from the current request's parameters. For example,
       # <tt>url_for :action => 'some_action'</tt> will retain the current controller, as expected. This behavior extends to
       # other parameters, including <tt>:controller</tt>, <tt>:id</tt>, and any other parameters that are placed into a Route's
@@ -359,21 +357,21 @@ module ActionController #:nodoc:
       # The URL helpers such as <tt>url_for</tt> have a limited form of memory: when generating a new URL, they can look for
       # missing values in the current request's parameters. Routes attempts to guess when a value should and should not be
       # taken from the defaults. There are a few simple rules on how this is performed:
-      #  
+      #
       # * If the controller name begins with a slash, no defaults are used: <tt>url_for :controller => '/home'</tt>
       # * If the controller changes, the action will default to index unless provided
-      #  
+      #
       # The final rule is applied while the URL is being generated and is best illustrated by an example. Let us consider the
       # route given by <tt>map.connect 'people/:last/:first/:action', :action => 'bio', :controller => 'people'</tt>.
-      #  
+      #
       # Suppose that the current URL is "people/hh/david/contacts". Let's consider a few different cases URLs which are generated
       # from this page.
-      #  
+      #
       # * <tt>url_for :action => 'bio'</tt> -- During the generation of this URL, default values will be used for the first and
       # last components, and the action shall change. The generated URL will be, "people/david/hh/bio".
       # * <tt>url_for :first => 'davids-little-brother'</tt> This generates the URL 'people/hh/davids-little-brother' -- note
       #   that this URL leaves out the assumed action of 'bio'.
-      #  
+      #
       # However, you might ask why the action from the current request, 'contacts', isn't carried over into the new URL. The
       # answer has to do with the order in which the parameters appear in the generated path. In a nutshell, since the
       # value that appears in the slot for <tt>:first</tt> is not equal to default value for <tt>:first</tt> we stop using
@@ -472,12 +470,12 @@ module ActionController #:nodoc:
       
       # Renders an empty response that can be used when the request is only interested in triggering an effect. Do note that good
       # HTTP manners mandate that you don't use GET requests to trigger data changes.
-      def render_nothing(status = nil)
+      def render_nothing(status = nil) #:doc:
         render_text "", status
       end
 
       # Returns the result of the render as a string.
-      def render_to_string(template_name = default_template_name)
+      def render_to_string(template_name = default_template_name) #:doc:
         add_variables_to_assigns
         @template.render_file(template_name)
       end

@@ -2,7 +2,7 @@ module ActionController
   module Routing
     ROUTE_FILE = defined?(RAILS_ROOT) ? File.expand_path(File.join(RAILS_ROOT, 'config', 'routes')) : nil
   
-    class Route
+    class Route #:nodoc:
       attr_reader :defaults # The defaults hash
       
       def initialize(path, hash={})
@@ -185,7 +185,7 @@ module ActionController
         end
     end
     
-    class RouteSet
+    class RouteSet#:nodoc:
       def initialize
         @routes = []
       end
