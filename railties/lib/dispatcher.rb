@@ -27,8 +27,8 @@ class Dispatcher
   class << self
     def dispatch(cgi = CGI.new, session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS)
       begin
+        request, response = ActionController::CgiRequest.new(cgi, session_options), ActionController::CgiResponse.new(cgi)
         prepare_application
-        request, response = ActionController::CgiRequest.new(cgi, session_options), ActionController::CgiResponse.new(cgi)        
         ActionController::Routing::Routes.recognize!(request).process(request, response).out
       rescue Object => exception
         ActionController::Base.process_with_exception(request, response, exception).out
