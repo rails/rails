@@ -2,11 +2,14 @@ module ActionController #:nodoc:
   module Layout #:nodoc:
     def self.append_features(base)
       super
-      base.extend(ClassMethods)
       base.class_eval do
         alias_method :render_without_layout, :render
         alias_method :render, :render_with_layout
+        class << self
+          alias_method :inherited_without_layout, :inherited
+        end
       end
+      base.extend(ClassMethods)
     end
 
     # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
@@ -119,6 +122,16 @@ module ActionController #:nodoc:
       def layout(template_name)
         write_inheritable_attribute "layout", template_name
       end
+
+      private
+        def inherited(child)
+          inherited_without_layout(child)
+          child.layout(child.controller_name) unless layout_list.grep(/^#{child.controller_name}\.r(?:xml|html)$/).empty?
+        end
+
+        def layout_list
+          Dir.glob("#{template_root}/layouts/*.r{xml,html}").map { |layout| File.basename(layout) }
+        end
     end
 
     # Returns the name of the active layout. If the layout was specified as a method reference (through a symbol), this method
@@ -145,5 +158,6 @@ module ActionController #:nodoc:
         render_without_layout(template_name, status)
       end
     end
+
   end
 end
