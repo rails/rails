@@ -330,7 +330,7 @@ module ActiveRecord #:nodoc:
       # Example:
       #   Person.exists?(5)
       def exists?(id)
-        !find_first("#{primary_key} = #{sanitize(id)}").nil?
+        !find_first("#{primary_key} = #{sanitize(id)}").nil? rescue false
       end
 
       # This method is deprecated in favor of find with the :conditions option.
