@@ -1,5 +1,8 @@
 *SVN*
 
+* Added MemCacheStore for storing session data in Danga's MemCache system [Bob Cottrell]
+  Depends on: MemCached server (http://www.danga.com/memcached/), MemCache client (http://raa.ruby-lang.org/project/memcache/)
+
 * Fixed redirects when the controller and action is named the same. Still haven't fixed same controller, module, and action, though #201 [Josh]
 
 * Fixed problems with running multiple functional tests in Rails under 1.8.2 by including hack for test/unit weirdness
