@@ -188,6 +188,7 @@ module ActiveRecord
             when 'numeric', 'real', 'money'      then 'float'
             when 'character varying', 'interval' then 'string'
             when 'timestamp without time zone'   then 'datetime'
+            when 'timestamp with time zone'      then 'datetime'
             when 'bytea'                         then 'binary'
             else field_type
           end

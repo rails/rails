@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for timestamp with time zone in PostgreSQL #560 [Scott Barron]
+
 * Added MultiparameterAssignmentErrors and AttributeAssignmentError exceptions #777 [demetrius]. Documentation:
 
    * +MultiparameterAssignmentErrors+ -- collection of errors that occurred during a mass assignment using the 
