@@ -65,12 +65,11 @@ module ActionView
 
       begin
         require "redcloth"
-        class RedCloth; def hard_breaks() true end; end
 
         # Returns the text with all the Textile codes turned into HTML-tags. 
         # <i>This method is only available if RedCloth can be required</i>.
         def textilize(text)
-          text.empty? ? "" : RedCloth.new(text).to_html
+          text.empty? ? "" : RedCloth.new(text, [ :hard_breaks ]).to_html
         end
 
         # Returns the text with all the Textile codes turned into HTML-tags, but without the regular bounding <p> tag. 
