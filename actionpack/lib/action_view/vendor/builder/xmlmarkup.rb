@@ -221,7 +221,7 @@ module Builder
     # For example:
     #
     #    xml.instruct!
-    #        #=> <?xml encoding="UTF-8" version="1.0"?>
+    #        #=> <?xml version="1.0" encoding="UTF-8"?>
     #    xml.instruct! :aaa, :bbb=>"ccc"
     #        #=> <?aaa bbb="ccc"?>
     #
@@ -231,7 +231,12 @@ module Builder
 	a = { :version=>"1.0", :encoding=>"UTF-8" }
 	attrs = a.merge attrs
       end
-      _special("<?#{directive_tag}", "?>", nil, attrs)
+      _special(
+	"<?#{directive_tag}",
+	"?>",
+	nil,
+	attrs,
+	[:version, :encoding, :standalone])
     end
 
     private
@@ -245,11 +250,11 @@ module Builder
     end
     
     # Insert special instruction. 
-    def _special(open, close, data=nil, attrs=nil)
+    def _special(open, close, data=nil, attrs=nil, order=[])
       _indent
       @target << open
       @target << data if data
-      _insert_attributes(attrs) if attrs
+      _insert_attributes(attrs, order) if attrs
       @target << close
       _newline
     end
@@ -269,10 +274,14 @@ module Builder
     end
 
     # Insert the attributes (given in the hash).
-    def _insert_attributes(attrs)
+    def _insert_attributes(attrs, order=[])
       return if attrs.nil?
+      order.each do |k|
+	v = attrs[k]
+	@target << %{ #{k}="#{v}"} if v
+      end
       attrs.each do |k, v|
-	@target << %{ #{k}="#{v}"}
+	@target << %{ #{k}="#{v}"} unless order.member?(k)
       end
     end
 
