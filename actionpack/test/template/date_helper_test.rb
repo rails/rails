@@ -213,7 +213,7 @@ class DateHelperTest < Test::Unit::TestCase
 
   def test_date_select_with_zero_value_and_no_end_year
     expected =  %(<select name="date[first][year]">\n)
-    2003.upto(2009) { |y| expected << %(<option>#{y}</option>\n) }
+    2003.upto(2010) { |y| expected << %(<option>#{y}</option>\n) }
     expected << "</select>\n"
 
     expected << %(<select name="date[first][month]">\n)

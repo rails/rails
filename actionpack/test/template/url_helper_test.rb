@@ -58,7 +58,6 @@ class UrlHelperTest < Test::Unit::TestCase
   end
   
   def test_link_with_nil_html_options
-      assert "<a href=\"http://www.world.com\">Hello</a>", 
-        link_to("Hello", {:action => 'myaction'}, nil)
+    assert_equal "<a href=\"http://www.world.com\">Hello</a>", link_to("Hello", {:action => 'myaction'}, nil)
   end
 end
