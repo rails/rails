@@ -113,12 +113,27 @@ class FixturesWithoutInstantiationTest < Test::Unit::TestCase
   fixtures :topics, :developers, :accounts
 
   def test_without_complete_instantiation
-    assert_nil @topics
     assert_nil @first
+    assert_nil @topics
+    assert_nil @developers
+    assert_nil @accounts
   end
 
   def test_fixtures_from_root_yml_without_instantiation
     assert_nil @unknown
+  end
+end
+
+
+class FixturesWithoutInstanceInstantiationTest < Test::Unit::TestCase
+  self.use_instantiated_fixtures = :no_instances
+  fixtures :topics, :developers, :accounts
+
+  def test_without_instance_instantiation
+    assert_nil @first
+    assert_not_nil @topics
+    assert_not_nil @developers
+    assert_not_nil @accounts
   end
 end
 

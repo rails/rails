@@ -1,5 +1,7 @@
 *SVN*
 
+* Added with additional settings for working with transactional fixtures and pre-loaded test databases #865 [mindel]
+
 * Fixed acts_as_list to trigger remove_from_list on destroy after the fact, not before, so a unique position can be maintained #871 [Alisdair McDiarmid]
 
 * Added the possibility of specifying fixtures in multiple calls #816 [kim@tinker.com]

@@ -121,6 +121,14 @@ require 'csv'
 # from a CSV fixture file would be accessible via @web_sites["web_site_1"]["name"] == "Ruby on Rails" and have the individual
 # fixtures available as instance variables @web_site_1 and @web_site_2.
 #
+# If you do not wish to use instantiated fixtures (usually for performance reasons) there are two options.
+#
+#   - to completely disable instantiated fixtures:
+#       self.use_instantiated_fixtures = false
+#
+#   - to keep the fixture instance (@web_sites) available, but do not automatically 'find' each instance:
+#       self.use_instantiated_fixtures = :no_instances 
+#
 # = Dynamic fixtures with ERb
 #
 # Some times you don't care about the content of the fixtures as much as you care about the volume. In these cases, you can
@@ -164,6 +172,9 @@ require 'csv'
 # If you preload your test database with all fixture data (probably in the Rakefile task) and use transactional fixtures, 
 # then you may omit all fixtures declarations in your test cases since all the data's already there and every case rolls back its changes.
 #
+# In order to use instantiated fixtures with preloaded data, set +self.pre_loaded_fixtures+ to true. This will provide 
+# access to fixture data for every table that has been loaded through fixtures (depending on the value of +use_instantiated_fixtures+)
+#
 # When *not* to use transactional fixtures: 
 #   1. You're testing whether a transaction works correctly. Nested transactions don't commit until all parent transactions commit, 
 #      particularly, the fixtures transaction which is begun in setup and rolled back in teardown. Thus, you won't be able to verify 
@@ -173,14 +184,25 @@ require 'csv'
 class Fixtures < Hash
   DEFAULT_FILTER_RE = /\.ya?ml$/
 
-  def self.instantiate_fixtures(object, table_name, fixtures)
+  def self.instantiate_fixtures(object, table_name, fixtures, load_instances=true)
     object.instance_variable_set "@#{table_name}", fixtures
-    fixtures.each do |name, fixture|
-      if model = fixture.find
-        object.instance_variable_set "@#{name}", model
+    if load_instances
+      fixtures.each do |name, fixture|
+        if model = fixture.find
+          object.instance_variable_set "@#{name}", model
+        end
       end
     end
   end
+  
+  def self.instantiate_all_loaded_fixtures(object, load_instances=true)
+    all_loaded_fixtures.each do |table_name, fixtures|
+      Fixtures.instantiate_fixtures(object, table_name, fixtures, load_instances)
+    end  
+  end
+  
+  cattr_accessor :all_loaded_fixtures
+  self.all_loaded_fixtures = {}
 
   def self.create_fixtures(fixtures_directory, *table_names)
     connection = block_given? ? yield : ActiveRecord::Base.connection
@@ -189,15 +211,17 @@ class Fixtures < Hash
     begin
       ActiveRecord::Base.logger.level = Logger::ERROR
 
+      fixtures_map = {}
       fixtures = table_names.flatten.map do |table_name|
-        Fixtures.new(connection, File.split(table_name.to_s).last, File.join(fixtures_directory, table_name.to_s))
-      end
-
+        fixtures_map[table_name] = Fixtures.new(connection, File.split(table_name.to_s).last, File.join(fixtures_directory, table_name.to_s))
+      end               
+      all_loaded_fixtures.merge! fixtures_map  
+      
       connection.transaction do
         fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
         fixtures.each { |fixture| fixture.insert_fixtures }
       end
-
+      
       reset_sequences(connection, table_names) if connection.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
 
       return fixtures.size > 1 ? fixtures : fixtures.first
@@ -360,19 +384,21 @@ module Test #:nodoc:
       cattr_accessor :fixture_path
       class_inheritable_accessor :fixture_table_names
       class_inheritable_accessor :use_transactional_fixtures
-      class_inheritable_accessor :use_instantiated_fixtures
+      class_inheritable_accessor :use_instantiated_fixtures   # true, false, or :no_instances
+      class_inheritable_accessor :pre_loaded_fixtures
 
       self.fixture_table_names = []
       self.use_transactional_fixtures = false
       self.use_instantiated_fixtures = true
+      self.pre_loaded_fixtures = false
 
       def self.fixtures(*table_names)
         self.fixture_table_names |= table_names.flatten
         require_fixture_classes
       end
 
-      def self.require_fixture_classes
-        fixture_table_names.each do |table_name| 
+      def self.require_fixture_classes(table_names=nil)
+        (table_names || fixture_table_names).each do |table_name| 
           begin
             require Inflector.singularize(table_name.to_s)
           rescue LoadError
@@ -382,6 +408,10 @@ module Test #:nodoc:
       end
 
       def setup_with_fixtures
+        if pre_loaded_fixtures && !use_transactional_fixtures
+          raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures' 
+        end
+
         # Load fixtures once and begin transaction.
         if use_transactional_fixtures
           load_fixtures unless @already_loaded_fixtures
@@ -438,12 +468,28 @@ module Test #:nodoc:
             @loaded_fixtures[table_name] = Fixtures.create_fixtures(fixture_path, table_name)
           end
         end
-
+        
+        # for pre_loaded_fixtures, only require the classes once. huge speed improvement
+        @@required_fixture_classes = false
+        
         def instantiate_fixtures
-          raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
-          @loaded_fixtures.each do |table_name, fixtures|
-            Fixtures.instantiate_fixtures(self, table_name, fixtures)
+          if pre_loaded_fixtures
+            raise RuntimeError, 'Load fixtures before instantiating them.' if Fixtures.all_loaded_fixtures.empty?
+            unless @@required_fixture_classes
+              self.class.require_fixture_classes Fixtures.all_loaded_fixtures.keys 
+              @@required_fixture_classes = true
+            end
+            Fixtures.instantiate_all_loaded_fixtures(self, load_instances?)
+          else 
+            raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
+            @loaded_fixtures.each do |table_name, fixtures|
+              Fixtures.instantiate_fixtures(self, table_name, fixtures, load_instances?)
+            end
           end
+        end
+        
+        def load_instances?
+          use_instantiated_fixtures != :no_instances
         end
     end
 
