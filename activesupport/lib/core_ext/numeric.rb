@@ -1,6 +1,5 @@
-$:.unshift(File.dirname(__FILE__))
-require 'numeric/time'
-require 'numeric/bytes'
+require File.dirname(__FILE__) + '/numeric/time'
+require File.dirname(__FILE__) + '/numeric/bytes'
 
 class Numeric
   include ActiveSupport::CoreExtensions::Numeric::Time 

@@ -1,5 +1,4 @@
-$:.unshift(File.dirname(__FILE__))
-require 'hash/keys'
+require File.dirname(__FILE__) + '/hash/keys'
 
 class Hash
   include ActiveSupport::CoreExtensions::Hash::Keys
