@@ -21,7 +21,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
 
   def initialize(server, options)
     @server_options = options
-    @file_handler = WEBrick::HTTPServlet::FileHandler.new(server, options[:server_root], {:FancyIndexing => true })
+    @file_handler = WEBrick::HTTPServlet::FileHandler.new(server, options[:server_root])
     super
   end
 

@@ -1,3 +1,8 @@
+*SVN*
+
+* Removed Fancy Indexing as a default option on the WEBrick servlet as it made it harder to use various caching schemes
+
+
 *0.9.3* (January 4th, 2005)
 
 * Added support for SQLite in the auto-dumping/importing of schemas for development -> test #416
