@@ -141,7 +141,7 @@ module Breakpoint
         end
 
         unless [true, false, nil].include?(result)
-          result.extend(DRbUndumped) rescue nil
+          result.extend(DRbUndumped) if result
         end
 
         return result
@@ -188,7 +188,7 @@ module Breakpoint
         @__bp_file = #{file.inspect}
         @__bp_line = #{line}
         extend Breakpoint::CommandBundle
-        extend DRbUndumped
+        extend DRbUndumped if self
       }, context) rescue nil
 
       if not use_drb? then

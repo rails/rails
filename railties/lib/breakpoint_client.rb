@@ -88,9 +88,12 @@ loop do
     begin
       service.register_eval_handler do |code|
         result = eval(code, TOPLEVEL_BINDING)
-        result.extend(DRb::DRbUndumped) rescue nil
-        result
-      end
+        if result
+          DRbObject.new(result)
+        else
+          result
+        end
+      end 
 
       service.register_collision_handler do
         msg = [
