@@ -18,7 +18,6 @@
         service_dispatching_mode :delegated
         service :xmlrpc { BloggingServices.new(@request) }
       end
-    
 
 = Low priority tasks
   - add better type mapping tests for XML-RPC
