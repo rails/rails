@@ -41,7 +41,7 @@ module ActionController
         rewritten_url << (options[:protocol] || @request.protocol) unless options[:only_path]
         rewritten_url << (options[:host] || @request.host_with_port) unless options[:only_path]
 
-	rewritten_url << options[:application_prefix] if options[:application_prefix]
+        rewritten_url << options[:application_prefix] if options[:application_prefix]
         rewritten_url << path
         rewritten_url << build_query_string(new_parameters(options)) if options[:params] || options[:overwrite_params]
         rewritten_url << "##{options[:anchor]}" if options[:anchor]
@@ -176,11 +176,12 @@ module ActionController
         query_string = ""
 
         hash.each do |key, value|
-	  key = CGI.escape key
-	  key += '[]' if value.class == Array
-	  value = [ value ] unless value.class == Array
-	  value.each { |val| elements << "#{key}=#{CGI.escape(val.to_s)}" }
-	end
+          key = CGI.escape key
+          key += '[]' if value.class == Array
+          value = [ value ] unless value.class == Array
+          value.each { |val| elements << "#{key}=#{CGI.escape(val.to_s)}" }
+      	end
+
         unless elements.empty? then query_string << ("?" + elements.join("&")) end
         
         return query_string
