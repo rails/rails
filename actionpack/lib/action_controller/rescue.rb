@@ -74,6 +74,30 @@ module ActionController #:nodoc:
         begin
           perform_action_without_rescue
         rescue => exception
+          if defined?(Breakpoint) and @params["BP-RETRY"] then
+            msg = exception.backtrace.first
+            if md = /^(.+?):(\d+)(?::in `(.+)')?$/.match(msg) then
+              origin_file, origin_line = md[1], md[2].to_i
+
+              set_trace_func(lambda do |type, file, line, method, context, klass|
+                if file == origin_file and line == origin_line then
+                  set_trace_func(nil)
+                  @params["BP-RETRY"] = false
+
+                  callstack = caller
+                  callstack.slice!(0) if callstack.first["rescue.rb"]
+                  file, line, method = *callstack.first.match(/^(.+?):(\d+)(?::in `(.*?)')?/).captures
+
+                  message = "Exception at #{file}:#{line}#{" in `#{method}'" if method}."
+
+                  Breakpoint.handle_breakpoint(context, message, file, line)
+                end
+              end)
+
+              retry
+            end
+          end
+
           rescue_action(exception)
         end
       end
