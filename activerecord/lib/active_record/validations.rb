@@ -190,7 +190,6 @@ module ActiveRecord
             class_eval(%(#{validation_method(configuration[:on])} %{errors.add( '#{attr_name}', '#{msg}') if #{attr_name}.to_s.length != #{is}  }))
           end
         end        
-        
       end
 
       # Validates whether the value of the specified attributes are unique across the system. Useful for making sure that only one user
@@ -401,8 +400,8 @@ module ActiveRecord
     # If the length is above the boundary, the too_long_msg message will be used. If below, the too_short_msg.
     def add_on_boundary_breaking(attributes, range, too_long_msg = @@default_error_messages[:too_long], too_short_msg = @@default_error_messages[:too_short])
       for attr in [attributes].flatten
-        add(attr, too_short_msg % range.begin) if @base.attribute_present?(attr.to_s) && @base.send(attr.to_s).length < range.begin
-        add(attr, too_long_msg % range.end) if @base.attribute_present?(attr.to_s) && @base.send(attr.to_s).length > range.end
+        add(attr, too_short_msg % range.begin) if @base[attr.to_s] && @base.send(attr.to_s).length < range.begin
+        add(attr, too_long_msg % range.end) if @base[attr.to_s] && @base.send(attr.to_s).length > range.end
       end
     end
 

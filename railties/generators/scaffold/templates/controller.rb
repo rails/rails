@@ -1,6 +1,5 @@
 class <%= class_name %>Controller < ApplicationController
-  model   :<%= singular_name %>
-  layout  'scaffold'
+  layout 'scaffold'
 
 <% unless suffix -%>
   def index

@@ -24,9 +24,7 @@
 require 'breakpoint'
 
 class Dispatcher
-  DEFAULT_SESSION_OPTIONS = { :database_manager => CGI::Session::PStore, :prefix => "ruby_sess.", :session_path => "/" }
-
-  def self.dispatch(cgi = CGI.new, session_options = DEFAULT_SESSION_OPTIONS)
+  def self.dispatch(cgi = CGI.new, session_options = ActionController::CgiRequest.DEFAULT_SESSION_OPTIONS)
     Breakpoint.activate_drb("druby://localhost:#{BREAKPOINT_SERVER_PORT}", nil, !defined?(FastCGI)) if defined?(BREAKPOINT_SERVER_PORT)
 
     begin

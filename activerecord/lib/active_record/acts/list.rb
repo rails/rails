@@ -48,7 +48,7 @@ module ActiveRecord
             end
             
             before_destroy :remove_from_list
-            after_create   :add_to_list_bottom
+            before_create   :add_to_list_bottom
           EOV
         end
       end
@@ -88,14 +88,6 @@ module ActiveRecord
         end
   
 
-        def add_to_list_top
-          increment_positions_on_all_items
-        end
-
-        def add_to_list_bottom
-          assume_bottom_position
-        end
-
         def remove_from_list
           decrement_positions_on_lower_items
         end
@@ -119,58 +111,67 @@ module ActiveRecord
         end
 
         private
-          # Overwrite this method to define the scope of the list changes
-          def scope_condition() "1" end
-  
-          def higher_item
-            self.class.find_first(
-              "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i - 1).to_s}"
-            )
-          end
-  
-          def lower_item
-            self.class.find_first(
-              "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i + 1).to_s}"
-            )
-          end
-  
-          def bottom_position_in_list
-            item = bottom_item
-            item ? item.send(position_column) : 0
-          end
-  
-          def bottom_item
-            self.class.find_first(
-              "#{scope_condition} ",
-              "#{position_column} DESC"
-            )
-          end
+        
+        def add_to_list_top
+          increment_positions_on_all_items
+        end
 
-          def assume_bottom_position
-            update_attribute position_column, bottom_position_in_list.to_i + 1
-          end
-    
-          def assume_top_position
-            update_attribute position_column, 1
-          end
-    
-          def decrement_positions_on_lower_items
-            self.class.update_all(
-              "#{position_column} = (#{position_column} - 1)",  "#{scope_condition} AND #{position_column} > #{send(position_column).to_i}"
-            )
-          end
-    
-          def increment_positions_on_higher_items
-            self.class.update_all(
-              "#{position_column} = (#{position_column} + 1)",  "#{scope_condition} AND #{position_column} < #{send(position_column)}"
-            )
-          end
+        def add_to_list_bottom
+          write_attribute(position_column, bottom_position_in_list.to_i + 1)
+        end
+      
+        # Overwrite this method to define the scope of the list changes
+        def scope_condition() "1" end
 
-          def increment_positions_on_all_items
-            self.class.update_all(
-              "#{position_column} = (#{position_column} + 1)",  "#{scope_condition}"
-            )
-          end
+        def higher_item
+          self.class.find_first(
+            "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i - 1).to_s}"
+          )
+        end
+
+        def lower_item
+          self.class.find_first(
+            "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i + 1).to_s}"
+          )
+        end
+
+        def bottom_position_in_list
+          item = bottom_item
+          item ? item.send(position_column) : 0
+        end
+
+        def bottom_item
+          self.class.find_first(
+            "#{scope_condition} ",
+            "#{position_column} DESC"
+          )
+        end
+
+        def assume_bottom_position
+          update_attribute position_column, bottom_position_in_list.to_i + 1
+        end
+  
+        def assume_top_position
+          update_attribute position_column, 1
+        end
+  
+        def decrement_positions_on_lower_items
+          self.class.update_all(
+            "#{position_column} = (#{position_column} - 1)",  "#{scope_condition} AND #{position_column} > #{send(position_column).to_i}"
+          )
+        end
+  
+        def increment_positions_on_higher_items
+          self.class.update_all(
+            "#{position_column} = (#{position_column} + 1)",  "#{scope_condition} AND #{position_column} < #{send(position_column)}"
+          )
+        end
+
+        def increment_positions_on_all_items
+          self.class.update_all(
+            "#{position_column} = (#{position_column} + 1)",  "#{scope_condition}"
+          )
+        end
       end     
     end
   end

@@ -62,7 +62,7 @@ class <%= class_name %>ControllerTest < Test::Unit::TestCase
   end
 
   def test_update<%= suffix %>
-    process :update<%= suffix %>, 'id' => 1
+    process :update<%= suffix %>, '<%= singular_name %>' => { 'id' => 1 }
     assert_redirected_to :action => 'show<%= suffix %>', :id => 1
   end
 
