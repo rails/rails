@@ -1,17 +1,17 @@
-NAME
-     new_model - create model stub files
+GENERATOR
+     model - create model stub files
 
 SYNOPSIS
-     new_model ModelName
+     generate model ModelName
 
 DESCRIPTION
-     The new_model generator takes a model name (in CamelCase) and generates
-     a new, empty model in app/models, a test suite in test/unit with one
-     failing test case, and a fixtures directory in test/fixtures.
+     The model generator takes a model name and generates an empty model in
+     app/models, a test suite in test/unit with one passing test case, and a
+     fixtures YAML file in the test/fixtures directory.
 
 EXAMPLE
-     new_model Account
+     ./script/generate model Account
 
      This will generate an Account class in app/models/account.rb, an
-     AccountTest in test/unit/account_test.rb, and the directory
-     test/fixtures/account.
+     AccountTest in test/unit/account_test.rb, and the fixtures file
+     test/fixtures/account.yml.

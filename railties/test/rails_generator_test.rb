@@ -5,6 +5,12 @@ require File.dirname(__FILE__) + '/../../activerecord/lib/active_record/support/
 require 'rails_generator'
 require 'test/unit'
 
+# Railties test directory has RAILS_ROOT/generators instead of the expected
+# RAILS_ROOT/script/generators, so override it manually.
+old_verbose, $VERBOSE = $VERBOSE, nil
+Rails::Generator.const_set(:CONTRIB_ROOT, "#{RAILS_ROOT}/generators")
+$VERBOSE = old_verbose
+
 
 class RailsGeneratorTest < Test::Unit::TestCase
   BUILTINS = %w(controller mailer model scaffold)

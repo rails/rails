@@ -137,17 +137,15 @@ task :copy_configs do
 end
 
 task :copy_generators do
-  mkdir_p File.join(PKG_DESTINATION, 'script')
+  mkdir_p File.join(PKG_DESTINATION, 'script/generators')
+
   SCRIPT_FILES.each do |file|
     dest_file = File.join(PKG_DESTINATION, 'script', file)
     cp File.join('generators', "#{file}.rb"), dest_file
     chmod 0755, dest_file
   end
 
-  mkdir_p File.join(PKG_DESTINATION, 'script/generators')
-
   GENERATORS.each do |dir|
-    cp_r File.join('generators', dir), File.join(PKG_DESTINATION, 'script', dir)
     cp_r File.join('generators', dir), File.join(PKG_DESTINATION, 'script', 'generators', dir)
   end
 end

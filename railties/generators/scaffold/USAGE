@@ -1,18 +1,25 @@
-NAME
-     new_scaffold - create a model and a skeleton controller
+GENERATOR
+     scaffold - create a model and basic controller
 
 SYNOPSIS
-     new_scaffold ModelName [action ...]
+     generate scaffold ModelName [action ...]
 
 DESCRIPTION
-     The new_scaffold generator takes the name of the new model as the
+     The scaffold generator takes the name of the new model as the
      first argument and an optional list of controller actions as the
      subsequent arguments.  Any actions with scaffolding code available
      will be generated in your controller; others will be left as stubs.
 
-EXAMPLE
-     new_scaffold Account
+     The generated controller has the same code that "scaffold :model"
+     uses, so it's easy to migrate when you want to start customizing
+     your controller.
 
-     This will generate an Account model and controller.
+EXAMPLE
+     ./script/generate scaffold Account debit credit
+
+     This will generate the Account model with unit tests and fixtures,
+     the AccountController controller with actions, views, and tests for
+     index, list, show, new, create, edit, update, and destroy.
+
      Now create the accounts table in your database and browse to
      http://localhost/account/ -- voila, you're on Rails!

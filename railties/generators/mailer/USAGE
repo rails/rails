@@ -1,23 +1,21 @@
-NAME
-     new_mailer - create mailer and view stub files
+GENERATOR
+     mailer - create mailer and view stub files
 
 SYNOPSIS
-     new_mailer MailerName action [action ...]
+     generate mailer MailerName action [action ...]
 
 DESCRIPTION
-     The new_mailer generator takes the name of the new mailer class as the
+     The mailer generator takes the name of the new mailer class as the
      first argument and a variable number of mail action names as subsequent
      arguments.
 
-     From the passed arguments, new_mailer generates a class file in
-     app/models with a mail action for each of the mail action names passed.
-     It then creates a mail test suite in test/unit with one stub test case
-     and one stub fixture per mail action. Finally, it creates a template stub
-     for each of the mail action names in app/views under a directory with the
-     same name as the class.
+     Mailer generates a class file in app/models with action methods for each
+     of the mail action names passed, a test suite in test/unit with a stub
+     test case and fixture per action, and template stubs for each action in
+     app/views under a directory with the same name as the class.
 
 EXAMPLE
-     new_mailer Notifications signup forgot_password invoice
+     ./script/generate mailer Notifications signup forgot_password invoice
 
      This will generate a Notifications class in
      app/models/notifications.rb, a NotificationsTest in
