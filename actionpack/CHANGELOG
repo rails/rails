@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed Toggle.display in prototype.js #902 [Lucas Carlson]
+
+
 *1.6.0* (22th March, 2005)
 
 * Added a JavascriptHelper and accompanying prototype.js library that opens the world of Ajax to Action Pack with a large array of options for dynamically interacting with an application without reloading the page #884 [Sam Stephenson/David]

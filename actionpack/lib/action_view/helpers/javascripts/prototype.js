@@ -58,8 +58,8 @@ Try = {
 
 Toggle = {
   display: function() {
-    for (var i = 0; i < elements.length; i++) {
-      var element = $(elements[i]);
+    for (var i = 0; i < arguments.length; i++) {
+      var element = $(arguments[i]);
       element.style.display = 
         (element.style.display == 'none' ? '' : 'none');
     }
