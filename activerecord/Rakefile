@@ -51,6 +51,12 @@ Rake::TestTask.new("test_sqlserver") { |t|
   t.verbose = true
 }
 
+Rake::TestTask.new("test_db2") { |t|
+  t.libs << "test" << "test/connections/native_db2"
+  t.pattern = 'test/*_test.rb'
+  t.verbose = true
+}
+
 # Generate the RDoc documentation
 
 Rake::RDocTask.new { |rdoc|

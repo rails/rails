@@ -1,0 +1,21 @@
+first_client:
+  id: 2
+  type: Client
+  firm_id: 1
+  client_of: 2
+  name: Summit
+  ruby_type: Client
+
+first_firm:
+  id: 1
+  type: Firm
+  name: 37signals
+  ruby_type: Firm
+
+second_client:
+  id: 3
+  type: Client
+  firm_id: 1
+  client_of: 1
+  name: Microsoft
+  ruby_type: Client

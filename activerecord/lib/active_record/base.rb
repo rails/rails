@@ -311,7 +311,7 @@ module ActiveRecord #:nodoc:
         sql << "ORDER BY #{orderings} " unless orderings.nil?
 
         connection.add_limit!(sql, 1)
-    
+
         record = connection.select_one(sql, "#{name} Load First")
         instantiate(record) unless record.nil?
       end
@@ -919,7 +919,7 @@ module ActiveRecord #:nodoc:
       # table with a master_id foreign key can instantiate master through Client#master.
       def method_missing(method_id, *arguments)
         method_name = method_id.id2name
-      
+
         if method_name =~ read_method? && @attributes.include?($1)
           return read_attribute($1)
         elsif method_name =~ read_untyped_method? && @attributes.include?($1)
@@ -959,7 +959,7 @@ module ActiveRecord #:nodoc:
 
       # Returns true if the attribute is of a text column and marked for serialization.
       def unserializable_attribute?(attr_name, column)
-        @attributes[attr_name] && column.send(:type) == :text && @attributes[attr_name].is_a?(String) && self.class.serialized_attributes[attr_name]
+        @attributes[attr_name] && [:text, :string].include?(column.send(:type)) && @attributes[attr_name].is_a?(String) && self.class.serialized_attributes[attr_name]
       end
 
       # Returns the unserialized object of the attribute.

@@ -519,7 +519,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
 
   def test_removing_associations_on_destroy
     Developer.find(1).destroy
-    assert Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = '1'").empty?
+    assert Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1").empty?
   end
   
   def test_additional_columns_from_join_table

@@ -119,7 +119,7 @@ class BasicsTest < Test::Unit::TestCase
   def test_update
     topic = Topic.new
     topic.title = "Another New Topic"
-    topic.written_on = "2003-12-12 23:23"
+    topic.written_on = "2003-12-12 23:23:00"
     topic.save
     id = topic.id
     assert_equal(id, topic.id)
@@ -162,7 +162,7 @@ class BasicsTest < Test::Unit::TestCase
   def test_destroy
     topic = Topic.new
     topic.title = "Yet Another New Topic"
-    topic.written_on = "2003-12-12 23:23"
+    topic.written_on = "2003-12-12 23:23:00"
     topic.save
     id = topic.id
     topic.destroy

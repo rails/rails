@@ -38,6 +38,7 @@ files = %w-
  active_record/connection_adapters/mysql_adapter.rb
  active_record/connection_adapters/postgresql_adapter.rb
  active_record/connection_adapters/sqlite_adapter.rb
+ active_record/connection_adapters/db2_adapter.rb
  active_record/deprecated_associations.rb
  active_record/fixtures.rb
  active_record/observer.rb
