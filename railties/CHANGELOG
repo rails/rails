@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that script/server -d was broken so daemon mode couldn't be used #687 [Nicholas Seckar]
+
 * Upgraded to breakpoint 92 which fixes:
 
     * overload IRB.parse_opts(), fixes #443

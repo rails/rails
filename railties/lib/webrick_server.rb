@@ -18,6 +18,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
 
     trap("INT") { server.shutdown }
     server.start
+    Dir::chdir(OPTIONS['working_directory']) if OPTIONS['working_directory']
   end
 
   def initialize(server, options)

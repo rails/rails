@@ -45,5 +45,7 @@ ENV["RAILS_ENV"] = OPTIONS[:environment]
 require File.dirname(__FILE__) + "/../config/environment"
 require 'webrick_server'
 
+OPTIONS['working_directory'] = File.expand_path(RAILS_ROOT)
+
 puts "=> Rails application started on http://#{OPTIONS[:ip]}:#{OPTIONS[:port]}"
 DispatchServlet.dispatch(OPTIONS)
