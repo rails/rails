@@ -1,10 +1,12 @@
 *0.7.0* (Unreleased)
 
-* Remove ActiveRecordSoapMarshallable workaround, see #912 for details
-
 * Add scaffolding via ActionController::Base.web_service_scaffold for quick testing using a web browser
 
+* Remove ActiveRecordSoapMarshallable workaround, see #912 for details
+
 * Generalize casting code to be used by both SOAP and XML-RPC (previously, it was only XML-RPC)
+
+* Ensure return value is properly cast as well, fixes XML-RPC interoperability with Ecto and possibly other clients
 
 * Include backtraces in 500 error responses for failed request parsing, and remove "rescue nil" statements obscuring real errors for XML-RPC
 

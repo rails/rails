@@ -37,17 +37,17 @@ class TC_API < Test::Unit::TestCase
   def test_signature_canonicalization
     assert_equal(nil, API.api_methods[:void].expects)
     assert_equal(nil, API.api_methods[:void].returns)
-    assert_equal([String], API.api_methods[:expects_and_returns].expects)
-    assert_equal([String], API.api_methods[:expects_and_returns].returns)
-    assert_equal([Integer, TrueClass], API.api_methods[:expects].expects)
+    assert_equal([String], API.api_methods[:expects_and_returns].expects.map{|x| x.type_class})
+    assert_equal([String], API.api_methods[:expects_and_returns].returns.map{|x| x.type_class})
+    assert_equal([Integer, TrueClass], API.api_methods[:expects].expects.map{|x| x.type_class})
     assert_equal(nil, API.api_methods[:expects].returns)
     assert_equal(nil, API.api_methods[:returns].expects)
-    assert_equal([Integer, [String]], API.api_methods[:returns].returns)
-    assert_equal([{:appkey=>Integer}, {:publish=>TrueClass}], API.api_methods[:named_signature].expects)
+    assert_equal([Integer, [String]], API.api_methods[:returns].returns.map{|x| x.array?? [x.element_type.type_class] : x.type_class})
+    assert_equal([[:appkey, Integer], [:publish, TrueClass]], API.api_methods[:named_signature].expects.map{|x| [x.name, x.type_class]})
     assert_equal(nil, API.api_methods[:named_signature].returns)
-    assert_equal([Integer, String, TrueClass], API.api_methods[:string_types].expects)
+    assert_equal([Integer, String, TrueClass], API.api_methods[:string_types].expects.map{|x| x.type_class})
     assert_equal(nil, API.api_methods[:string_types].returns)
-    assert_equal([TrueClass, Integer, String], API.api_methods[:class_types].expects)
+    assert_equal([TrueClass, Integer, String], API.api_methods[:class_types].expects.map{|x| x.type_class})
     assert_equal(nil, API.api_methods[:class_types].returns)
   end
 
@@ -75,6 +75,6 @@ class TC_API < Test::Unit::TestCase
   end
 
   def test_to_s
-    assert_equal 'void Expects(int p1, bool p2)', APITest::API.api_methods[:expects].to_s
+    assert_equal 'void Expects(int param0, bool param1)', APITest::API.api_methods[:expects].to_s
   end
 end

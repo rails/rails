@@ -1,5 +1,0 @@
-#!/usr/bin/env ruby
-
-Dir[File.join(File.dirname(__FILE__), '*_test.rb')].each do |f|
-  require f
-end

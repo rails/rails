@@ -1,0 +1,197 @@
+require 'soap/mapping'
+
+module ActionWebService
+  module Protocol
+    module Soap
+      class SoapMarshaler
+        attr :type_namespace
+        attr :registry
+
+        def initialize(type_namespace=nil)
+          @type_namespace = type_namespace || 'urn:ActionWebService'
+          @registry = SOAP::Mapping::Registry.new
+          @type2binding = {}
+        end
+
+        def soap_to_ruby(obj)
+          SOAP::Mapping.soap2obj(obj, @registry)
+        end
+
+        def ruby_to_soap(obj)
+          SOAP::Mapping.obj2soap(obj, @registry)
+        end
+
+        def register_type(type)
+          return @type2binding[type] if @type2binding.has_key?(type)
+
+          type_class = type.array?? type.element_type.type_class : type.type_class
+          type_type = type.array?? type.element_type : type
+          type_binding = nil
+          if (mapping = @registry.find_mapped_soap_class(type_class) rescue nil)
+            qname = mapping[2] ? mapping[2][:type] : nil
+            qname ||= soap_base_type_name(mapping[0])
+            type_binding = SoapBinding.new(self, qname, type_type, mapping)
+          else
+            qname = XSD::QName.new(@type_namespace, soap_type_name(type_class.name))
+            @registry.add(type_class,
+                          SOAP::SOAPStruct,
+                          typed_struct_factory(type_class),
+                          { :type => qname })
+            mapping = @registry.find_mapped_soap_class(type_class)
+            type_binding = SoapBinding.new(self, qname, type_type, mapping)
+          end
+
+          array_binding = nil
+          if type.array?
+            array_mapping = @registry.find_mapped_soap_class(Array) rescue nil
+            if (array_mapping && !array_mapping[1].is_a?(SoapTypedArrayFactory)) || array_mapping.nil?
+              @registry.set(Array,
+                            SOAP::SOAPArray,
+                            SoapTypedArrayFactory.new)
+              array_mapping = @registry.find_mapped_soap_class(Array)
+            end
+            qname = XSD::QName.new(@type_namespace, soap_type_name(type.element_type.type_class.name) + 'Array')
+            array_binding = SoapBinding.new(self, qname, type, array_mapping, type_binding)
+          end
+
+          @type2binding[type] = array_binding ? array_binding : type_binding
+          @type2binding[type]
+        end
+        alias :lookup_type :register_type
+
+        def annotate_arrays(binding, value)
+          if binding.type.array?
+            mark_typed_array(value, binding.element_binding.qname)
+            if binding.element_binding.type.custom?
+              value.each do |element|
+                annotate_arrays(binding.element_binding, element)
+              end
+            end
+          elsif binding.type.structured?
+            binding.type.each_member do |name, type|
+              member_binding = register_type(type)
+              member_value = value.respond_to?('[]') ? value[name] : value.send(name)
+              annotate_arrays(member_binding, member_value) if type.custom?
+            end
+          end
+        end
+
+        private
+          def typed_struct_factory(type_class)
+            if Object.const_defined?('ActiveRecord')
+              if type_class.ancestors.include?(ActiveRecord::Base)
+                qname =  XSD::QName.new(@type_namespace, soap_type_name(type_class.name))
+                type_class.instance_variable_set('@qname', qname)
+                return SoapActiveRecordStructFactory.new
+              end
+            end
+            SOAP::Mapping::Registry::TypedStructFactory
+          end
+
+          def mark_typed_array(array, qname)
+            (class << array; self; end).class_eval do 
+              define_method(:arytype) do
+                qname
+              end
+            end
+          end
+
+          def soap_base_type_name(type)
+            xsd_type = type.ancestors.find{ |c| c.const_defined? 'Type' }
+            xsd_type ? xsd_type.const_get('Type') : XSD::XSDAnySimpleType::Type
+          end
+
+          def soap_type_name(type_name)
+            type_name.gsub(/::/, '..')
+          end
+      end
+
+      class SoapBinding
+        attr :qname
+        attr :type
+        attr :mapping
+        attr :element_binding
+
+        def initialize(marshaler, qname, type, mapping, element_binding=nil)
+          @marshaler = marshaler
+          @qname = qname
+          @type = type
+          @mapping = mapping
+          @element_binding = element_binding
+        end
+
+        def type_name
+          @type.custom? ? @qname.name : nil
+        end
+
+        def qualified_type_name(ns=nil)
+          if @type.custom?
+            "#{ns ? ns : @qname.namespace}:#{@qname.name}"
+          else
+            ns = XSD::NS.new
+            ns.assign(XSD::Namespace, SOAP::XSDNamespaceTag)
+            xsd_klass = mapping[0].ancestors.find{|c| c.const_defined?('Type')}
+            return ns.name(XSD::AnyTypeName) unless xsd_klass
+            ns.name(xsd_klass.const_get('Type'))
+          end
+        end
+
+        def eql?(other)
+          @qname == other.qname
+        end
+        alias :== :eql?
+
+        def hash
+          @qname.hash
+        end
+      end
+
+      class SoapActiveRecordStructFactory < SOAP::Mapping::Factory
+        def obj2soap(soap_class, obj, info, map)
+          unless obj.is_a?(ActiveRecord::Base)
+            return nil
+          end
+          soap_obj = soap_class.new(obj.class.instance_variable_get('@qname'))
+          obj.class.columns.each do |column|
+            key = column.name.to_s
+            value = obj.send(key)
+            soap_obj[key] = SOAP::Mapping._obj2soap(value, map)
+          end
+          soap_obj
+        end
+
+        def soap2obj(obj_class, node, info, map)
+          unless node.type == obj_class.instance_variable_get('@qname')
+            return false
+          end
+          obj = obj_class.new
+          node.each do |key, value|
+            obj[key] = value.data
+          end
+          obj.instance_variable_set('@new_record', false)
+          return true, obj
+        end
+      end
+
+      class SoapTypedArrayFactory < SOAP::Mapping::Factory
+        def obj2soap(soap_class, obj, info, map)
+          unless obj.respond_to?(:arytype)
+            return nil
+          end
+          soap_obj = soap_class.new(SOAP::ValueArrayName, 1, obj.arytype)
+          mark_marshalled_obj(obj, soap_obj)
+          obj.each do |item|
+            child = SOAP::Mapping._obj2soap(item, map)
+            soap_obj.add(child)
+          end
+          soap_obj
+        end
+      
+        def soap2obj(obj_class, node, info, map)
+          return false
+        end
+      end
+
+    end
+  end
+end

@@ -45,7 +45,6 @@ module ActionWebService # :nodoc:
               exception = e
             end
             if request
-              log_request(request, @request.raw_post)
               response = nil
               exception = nil
               bm = Benchmark.measure do
@@ -55,6 +54,7 @@ module ActionWebService # :nodoc:
                   exception = e
                 end
               end
+              log_request(request, @request.raw_post)
               if exception
                 log_error(exception) unless logger.nil?
                 send_web_service_error_response(request, exception)
@@ -82,10 +82,10 @@ module ActionWebService # :nodoc:
               unless self.class.web_service_exception_reporting
                 exception = DispatcherError.new("Internal server error (exception raised)")
               end
-              api_method = request.api_method ? request.api_method.dup : nil
-              api_method ||= request.api.dummy_api_method_instance(request.method_name)
-              api_method.instance_eval{ @returns = [ exception.class ] }
-              response = request.protocol.marshal_response(api_method, exception)
+              api_method = request.api_method
+              public_method_name = api_method ? api_method.public_name : request.method_name
+              return_type = ActionWebService::SignatureTypes.canonical_signature_entry(Exception, 0)
+              response = request.protocol.encode_response(public_method_name + 'Response', exception, return_type)
               send_web_service_response(response)
             else
               if self.class.web_service_exception_reporting
@@ -118,7 +118,14 @@ module ActionWebService # :nodoc:
           def log_request(request, body)
             unless logger.nil?
               name = request.method_name
-              params = request.method_params.map{|x| "#{x.info.name}=>#{x.value.inspect}"}
+              api_method = request.api_method
+              params = request.method_params
+              if api_method && api_method.expects
+                i = 0
+                params = api_method.expects.map{ |type| param = "#{type.name}=>#{params[i].inspect}"; i+= 1; param }
+              else
+                params = params.map{ |param| param.inspect }
+              end
               service = request.service_name
               logger.debug("\nWeb Service Request: #{name}(#{params.join(", ")}) Entrypoint: #{service}")
               logger.debug(indent(body))
@@ -127,7 +134,8 @@ module ActionWebService # :nodoc:
 
           def log_response(response, elapsed=nil)
             unless logger.nil?
-              logger.debug("\nWeb Service Response" + (elapsed ? " (%f):" % elapsed : ":"))
+              elapsed = (elapsed ? " (%f):" % elapsed : ":")
+              logger.debug("\nWeb Service Response" + elapsed + " => #{response.return_value.inspect}")
               logger.debug(indent(response.body))
             end
           end
@@ -171,7 +179,7 @@ module ActionWebService # :nodoc:
             namespace = 'urn:ActionWebService'
             soap_action_base = "/#{controller_name}"
 
-            marshaler = WS::Marshaling::SoapMarshaler.new(namespace)
+            marshaler = ActionWebService::Protocol::Soap::SoapMarshaler.new(namespace)
             apis = {}
             case dispatching_mode
             when :direct
@@ -208,7 +216,7 @@ module ActionWebService # :nodoc:
                   xm.xsd(:schema, 'xmlns' => XsdNs, 'targetNamespace' => namespace) do
                     custom_types.each do |binding|
                       case
-                      when binding.is_typed_array?
+                      when binding.type.array?
                         xm.xsd(:complexType, 'name' => binding.type_name) do
                           xm.xsd(:complexContent) do
                             xm.xsd(:restriction, 'base' => 'soapenc:Array') do
@@ -217,11 +225,11 @@ module ActionWebService # :nodoc:
                             end
                           end
                         end
-                      when binding.is_typed_struct?
+                      when binding.type.structured?
                         xm.xsd(:complexType, 'name' => binding.type_name) do
                           xm.xsd(:all) do
-                            binding.each_member do |name, spec|
-                              b = marshaler.register_type(spec)
+                            binding.type.each_member do |name, type|
+                              b = marshaler.register_type(type)
                               xm.xsd(:element, 'name' => name, 'type' => b.qualified_type_name('typens'))
                             end
                           end
@@ -249,14 +257,8 @@ module ActionWebService # :nodoc:
                         expects = method.expects
                         i = 1
                         expects.each do |type|
-                          if type.is_a?(Hash)
-                            param_name = type.keys.shift
-                            type = type.values.shift
-                          else
-                            param_name = "param#{i}"
-                          end
                           binding = marshaler.register_type(type)
-                          xm.part('name' => param_name, 'type' => binding.qualified_type_name('typens'))
+                          xm.part('name' => type.name, 'type' => binding.qualified_type_name('typens'))
                           i += 1
                         end if expects
                       end
@@ -340,7 +342,9 @@ module ActionWebService # :nodoc:
           def register_api(api, marshaler)
             bindings = {}
             traverse_custom_types(api, marshaler) do |binding|
-              bindings[binding] = nil unless bindings.has_key?(binding.type_class)
+              bindings[binding] = nil unless bindings.has_key?(binding)
+              element_binding = binding.element_binding
+              bindings[binding.element_binding] = nil if element_binding && !bindings.has_key?(element_binding)
             end
             bindings.keys
           end
@@ -348,21 +352,18 @@ module ActionWebService # :nodoc:
           def traverse_custom_types(api, marshaler, &block)
             api.api_methods.each do |name, method|
               expects, returns = method.expects, method.returns
-              expects.each{|x| traverse_custom_type_spec(marshaler, x, &block)} if expects
-              returns.each{|x| traverse_custom_type_spec(marshaler, x, &block)} if returns
+              expects.each{ |type| traverse_type(marshaler, type, &block) if type.custom? } if expects
+              returns.each{ |type| traverse_type(marshaler, type, &block) if type.custom? } if returns
             end
           end
 
-          def traverse_custom_type_spec(marshaler, spec, &block)
-            binding = marshaler.register_type(spec)
-            if binding.is_typed_struct?
-              binding.each_member do |name, member_spec|
-                traverse_custom_type_spec(marshaler, member_spec, &block)
-              end
-            elsif binding.is_typed_array?
-              traverse_custom_type_spec(marshaler, binding.element_binding.type_class, &block)
+          def traverse_type(marshaler, type, &block)
+            yield marshaler.register_type(type)
+            if type.array?
+              yield marshaler.register_type(type.element_type)
+              type = type.element_type
             end
-            yield binding
+            type.each_member{ |name, type| traverse_type(marshaler, type, &block) } if type.structured?
           end
        end
     end

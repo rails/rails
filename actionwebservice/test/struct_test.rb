@@ -11,30 +11,44 @@ module StructTest
 end
 
 class TC_Struct < Test::Unit::TestCase
+  include StructTest
+
+  def setup
+    @struct = Struct.new(:id      => 5,
+                         :name    => 'hello',
+                         :items   => ['one', 'two'],
+                         :deleted => true,
+                         :emails  => ['test@test.com'])
+  end
+
   def test_members
-    assert_equal(5, StructTest::Struct.members.size)
-    assert_equal(Integer, StructTest::Struct.members[:id])
-    assert_equal(String, StructTest::Struct.members[:name])
-    assert_equal([String], StructTest::Struct.members[:items])
-    assert_equal(TrueClass, StructTest::Struct.members[:deleted])
-    assert_equal([String], StructTest::Struct.members[:emails])
+    assert_equal(5, Struct.members.size)
+    assert_equal(Integer, Struct.members[:id].type_class)
+    assert_equal(String, Struct.members[:name].type_class)
+    assert_equal(String, Struct.members[:items].element_type.type_class)
+    assert_equal(TrueClass, Struct.members[:deleted].type_class)
+    assert_equal(String, Struct.members[:emails].element_type.type_class)
   end
 
   def test_initializer_and_lookup
-    s = StructTest::Struct.new(:id      => 5,
-                               :name    => 'hello',
-                               :items   => ['one', 'two'],
-                               :deleted => true,
-                               :emails  => ['test@test.com'])
-    assert_equal(5, s.id)
-    assert_equal('hello', s.name)
-    assert_equal(['one', 'two'], s.items)
-    assert_equal(true, s.deleted)
-    assert_equal(['test@test.com'], s.emails)
-    assert_equal(5, s['id'])
-    assert_equal('hello', s['name'])
-    assert_equal(['one', 'two'], s['items'])
-    assert_equal(true, s['deleted'])
-    assert_equal(['test@test.com'], s['emails'])
+    assert_equal(5, @struct.id)
+    assert_equal('hello', @struct.name)
+    assert_equal(['one', 'two'], @struct.items)
+    assert_equal(true, @struct.deleted)
+    assert_equal(['test@test.com'], @struct.emails)
+    assert_equal(5, @struct['id'])
+    assert_equal('hello', @struct['name'])
+    assert_equal(['one', 'two'], @struct['items'])
+    assert_equal(true, @struct['deleted'])
+    assert_equal(['test@test.com'], @struct['emails'])
+  end
+
+  def test_each_pair
+    members = {}
+    @struct.each_pair do |name, type|
+      members[name] = type
+      assert ActionWebService::BaseType === type
+    end
+    assert_equal members, Struct.members
   end
 end

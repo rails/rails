@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/abstract_unit'
+require 'stringio'
 
 class ActionController::Base; def rescue_action(e) raise e end; end
 
@@ -50,8 +51,9 @@ module DispatcherTest
     api_method :before_filtered
     api_method :after_filtered, :returns => [[:int]]
     api_method :struct_return, :returns => [[Node]]
-    api_method :struct_pass, :expects => [Person]
+    api_method :struct_pass, :expects => [{:person => Person}]
     api_method :base_struct_return, :returns => [[Person]]
+    api_method :hash_struct_return, :returns => [[Person]]
     api_method :thrower
     api_method :void
   end
@@ -202,6 +204,12 @@ module DispatcherTest
       p2 = Person.new('id' => 2, 'name' => 'person2')
       [p1, p2]
     end
+
+    def hash_struct_return
+      p1 = { :id => '1', 'name' => 'test' }
+      p2 = { 'id' => '2', :name => 'person2' }
+      [p1, p2]
+    end
     
     def void
       @void_called = @method_params
@@ -234,22 +242,11 @@ module DispatcherCommonTests
     assert_equal(50, do_method_call(@direct_controller, 'Add2', 25, 25))
     assert_equal(50, @direct_controller.added2)
     assert(@direct_controller.void_called == false)
-    case @encoder
-    when WS::Encoding::SoapRpcEncoding
-      assert(do_method_call(@direct_controller, 'Void', 3, 4, 5).nil?)
-    when WS::Encoding::XmlRpcEncoding
-      assert(do_method_call(@direct_controller, 'Void', 3, 4, 5) == true)
-    end
+    assert(do_method_call(@direct_controller, 'Void', 3, 4, 5).nil?)
     assert(@direct_controller.void_called == [])
     result = do_method_call(@direct_controller, 'BaseStructReturn')
-    case @encoder
-    when WS::Encoding::SoapRpcEncoding
-      assert(result[0].is_a?(DispatcherTest::Person))
-      assert(result[1].is_a?(DispatcherTest::Person))
-    when WS::Encoding::XmlRpcEncoding
-      assert(result[0].is_a?(Hash))
-      assert(result[1].is_a?(Hash))
-    end
+    assert(result[0].is_a?(DispatcherTest::Person))
+    assert(result[1].is_a?(DispatcherTest::Person))
   end
 
   def test_direct_entrypoint
@@ -288,12 +285,7 @@ module DispatcherCommonTests
     assert(is_exception?(result))
     assert_match(/NonExistentMethod/, exception_message(result))
     assert(service.void_called == false)
-    case @encoder
-    when WS::Encoding::SoapRpcEncoding
-      assert(do_method_call(@delegated_controller, 'Void', 3, 4, 5).nil?)
-    when WS::Encoding::XmlRpcEncoding
-      assert(do_method_call(@delegated_controller, 'Void', 3, 4, 5) == true)
-    end
+    assert(do_method_call(@delegated_controller, 'Void', 3, 4, 5).nil?)
     assert(service.void_called == [])
   end
 
@@ -302,7 +294,7 @@ module DispatcherCommonTests
       controller.class.web_service_exception_reporting = true
       send_garbage_request = lambda do
         service_name = service_name(controller)
-        request = @protocol.create_action_pack_request(service_name, 'broken, method, name!', 'broken request body', :request_class => ActionController::TestRequest)
+        request = @protocol.encode_action_pack_request(service_name, 'broken, method, name!', 'broken request body', :request_class => ActionController::TestRequest)
         response = ActionController::TestResponse.new
         controller.process(request, response)
         # puts response.body
@@ -327,18 +319,10 @@ module DispatcherCommonTests
   def test_ar_struct_return
     [@direct_controller, @delegated_controller].each do |controller|
       result = do_method_call(controller, 'StructReturn')
-      case @encoder
-      when WS::Encoding::SoapRpcEncoding
-        assert(result[0].is_a?(DispatcherTest::Node))
-        assert(result[1].is_a?(DispatcherTest::Node))
-        assert_equal('node1', result[0].name)
-        assert_equal('node2', result[1].name)
-      when WS::Encoding::XmlRpcEncoding
-        assert(result[0].is_a?(Hash))
-        assert(result[1].is_a?(Hash))
-        assert_equal('node1', result[0]['name'])
-        assert_equal('node2', result[1]['name'])
-      end
+      assert(result[0].is_a?(DispatcherTest::Node))
+      assert(result[1].is_a?(DispatcherTest::Node))
+      assert_equal('node1', result[0].name)
+      assert_equal('node2', result[1].name)
     end
   end
 
@@ -351,15 +335,26 @@ module DispatcherCommonTests
     assert_equal person, @direct_controller.struct_pass_value
     assert !person.equal?(@direct_controller.struct_pass_value)
     result = do_method_call(@direct_controller, 'StructPass', {'id' => '1', 'name' => 'test'})
-    case @encoder
-    when WS::Encoding::SoapRpcEncoding
-      # We don't cast complex types for SOAP. SOAP clients should have used the WSDL to
-      # send the correct types.
-      assert_equal({'id' => '1', 'name' => 'test'}, @direct_controller.struct_pass_value)
-    when WS::Encoding::XmlRpcEncoding
+    case @protocol
+    when ActionWebService::Protocol::Soap::SoapProtocol
+      assert_equal(person, @direct_controller.struct_pass_value)
+      assert !person.equal?(@direct_controller.struct_pass_value)
+    when ActionWebService::Protocol::XmlRpc::XmlRpcProtocol
       assert_equal(person, @direct_controller.struct_pass_value)
       assert !person.equal?(@direct_controller.struct_pass_value)
     end
+    assert_equal person, do_method_call(@direct_controller, 'HashStructReturn')[0]
+  end
+
+  def test_logging
+    buf = ""
+    ActionController::Base.logger = Logger.new(StringIO.new(buf))
+    test_casting
+    test_garbage_request
+    test_exception_marshaling
+    ActionController::Base.logger = nil
+    assert_match /Web Service Response/, buf
+    assert_match /Web Service Request/, buf
   end
 
   protected
@@ -392,20 +387,27 @@ module DispatcherCommonTests
         api = container.web_service_object(service_name.to_sym).class.web_service_api
         service_name = self.service_name(container)
       end
+      @protocol.register_api(api)
       method = api.public_api_method_instance(public_method_name)
-      method ||= api.dummy_public_api_method_instance(public_method_name)
-      # we turn off strict so we can test our own handling of incorrectly typed parameters
-      body = method.encode_rpc_call(@marshaler, @encoder, params.dup, :strict => false)
+      virtual = false
+      unless method
+        virtual = true
+        method ||= ActionWebService::API::Method.new(public_method_name.underscore.to_sym, public_method_name, nil, nil)
+      end
+      body = @protocol.encode_request(public_method_name, params.dup, method.expects)
       # puts body
-      ap_request = protocol.create_action_pack_request(service_name, public_method_name, body, :request_class => ActionController::TestRequest)
+      ap_request = @protocol.encode_action_pack_request(service_name, public_method_name, body, :request_class => ActionController::TestRequest)
       ap_response = ActionController::TestResponse.new
       container.process(ap_request, ap_response)
       # puts ap_response.body
-      public_method_name, return_value = @encoder.decode_rpc_response(ap_response.body)
-      if @encoder.is_a?(WS::Encoding::SoapRpcEncoding)
+      public_method_name, return_value = @protocol.decode_response(ap_response.body)
+      unless is_exception?(return_value) || virtual
+        return_value = method.cast_returns(return_value)
+      end
+      if @protocol.is_a?(ActionWebService::Protocol::Soap::SoapProtocol)
         # http://dev.rubyonrails.com/changeset/920
         assert_match(/Response$/, public_method_name) unless public_method_name == "fault"
       end
-      @marshaler.unmarshal(return_value).value
+      return_value
     end
 end

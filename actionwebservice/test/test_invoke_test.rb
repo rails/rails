@@ -65,7 +65,7 @@ class TestInvokeTest < Test::Unit::TestCase
   end
 
   def test_layered_add
-    @protocol = :xmlrpc
+    @protocol = ActionWebService::Protocol::XmlRpc::XmlRpcProtocol.new
     @controller = TestInvokeLayeredController.new
     [:one, :two].each do |service|
       assert_equal nil, @controller.web_service_object(service).invoked

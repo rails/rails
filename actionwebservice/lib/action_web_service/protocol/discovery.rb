@@ -14,10 +14,10 @@ module ActionWebService # :nodoc:
 
       module InstanceMethods # :nodoc:
         private
-          def discover_web_service_request(ap_request)
+          def discover_web_service_request(action_pack_request)
             (self.class.read_inheritable_attribute("web_service_protocols") || []).each do |protocol|
               protocol = protocol.new
-              request = protocol.unmarshal_request(ap_request)
+              request = protocol.decode_action_pack_request(action_pack_request)
               return request unless request.nil?
             end
             nil

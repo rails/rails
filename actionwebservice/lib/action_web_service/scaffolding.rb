@@ -1,9 +1,13 @@
 require 'ostruct'
 require 'uri'
 require 'benchmark'
+require 'pathname'
 
 module ActionWebService
   module Scaffolding # :nodoc:
+    class ScaffoldingError < ActionWebServiceError # :nodoc:
+    end
+
     def self.append_features(base)
       super
       base.extend(ClassMethods)
@@ -63,17 +67,32 @@ module ActionWebService
               when :xmlrpc
                 protocol = Protocol::XmlRpc::XmlRpcProtocol.new
               end
-              cgi = @request.cgi
+              cgi = @request.respond_to?(:cgi) ? @request.cgi : nil
               bm = Benchmark.measure do
-                @method_request_xml = @scaffold_method.encode_rpc_call(protocol.marshaler, protocol.encoder, @params['method_params'].dup)
-                @request = protocol.create_action_pack_request(@scaffold_service.name, @scaffold_method.public_name, @method_request_xml)
+                protocol.register_api(@scaffold_service.api)
+                params = @params['method_params'] ? @params['method_params'].dup : nil
+                params = @scaffold_method.cast_expects(params)
+                @method_request_xml = protocol.encode_request(@scaffold_method.public_name, params, @scaffold_method.expects)
+                @request = protocol.encode_action_pack_request(@scaffold_service.name, @scaffold_method.public_name, @method_request_xml)
                 dispatch_web_service_request
                 @method_response_xml = @response.body
-                @method_return_value = protocol.marshaler.unmarshal(protocol.encoder.decode_rpc_response(@method_response_xml)[1]).value
+                method_name, obj = protocol.decode_response(@method_response_xml)
+                if obj.respond_to?(:detail) && obj.detail.respond_to?(:cause) && obj.detail.cause.is_a?(Exception)
+                  raise obj.detail.cause
+                elsif obj.is_a?(XMLRPC::FaultException)
+                  raise obj
+                end
+                @method_return_value = @scaffold_method.cast_returns(obj)
               end
               @method_elapsed = bm.real
               add_instance_variables_to_assigns
-              @response = ::ActionController::CgiResponse.new(cgi)
+              template = @response.template
+              if cgi
+                @response = ::ActionController::CgiResponse.new(cgi)
+              else
+                @response = ::ActionController::TestResponse.new
+              end
+              @response.template = template
               @performed_render = false
               render_#{action_name}_scaffold 'result'
             end
@@ -99,20 +118,19 @@ module ActionWebService
             end
 
             def scaffold_path(template_name)
-              File.dirname(__FILE__) + "/templates/scaffolds/" + template_name + ".rhtml"
+              Pathname.new(File.dirname(__FILE__) + "/templates/scaffolds/" + template_name + ".rhtml").realpath.to_s
             end
         END
       end
     end
 
     module Helpers # :nodoc:
-      def method_parameter_input_fields(method, param_spec, i)
-        klass = method.param_class(param_spec)
-        unless WS::BaseTypes.base_type?(klass)
-          name = method.param_name(param_spec, i)
+      def method_parameter_input_fields(method, type)
+        name = type.name.to_s
+        type_name = type.type
+        unless type_name.is_a?(Symbol)
           raise "Parameter #{name}: Structured/array types not supported in scaffolding input fields yet"
         end
-        type_name = method.param_type(param_spec)
         field_name = "method_params[]"
         case type_name
         when :int
@@ -168,6 +186,9 @@ module ActionWebService
           @name = name.to_s
           @object = real_service
           @api = @object.class.web_service_api
+          if @api.nil?
+            raise ScaffoldingError, "No web service API attached to #{object.class}"
+          end
           @api_methods = {}
           @api_methods_full = []
           @api.api_methods.each do |name, method|

@@ -21,7 +21,7 @@ module Test # :nodoc:
 
         # invoke the specified layered API method on the correct service
         def invoke_layered(service_name, method_name, *args)
-          if protocol == :soap
+          if protocol.is_a?(ActionWebService::Protocol::Soap::SoapProtocol)
             raise "SOAP protocol support for :layered dispatching mode is not available"
           end
           prepare_request('api', service_name, method_name, *args)
@@ -37,10 +37,10 @@ module Test # :nodoc:
           @request.env['HTTP_CONTENT_TYPE'] = 'text/xml'
           @request.env['RAW_POST_DATA'] = encode_rpc_call(service_name, api_method_name, *args)
           case protocol
-          when :soap
+          when ActionWebService::Protocol::Soap::SoapProtocol
             soap_action = "/#{@controller.controller_name}/#{service_name}/#{public_method_name(service_name, api_method_name)}" 
             @request.env['HTTP_SOAPACTION'] = soap_action
-          when :xmlrpc
+          when ActionWebService::Protocol::XmlRpc::XmlRpcProtocol
             @request.env.delete('HTTP_SOAPACTION')
           end
         end
@@ -52,19 +52,18 @@ module Test # :nodoc:
           when :delegated, :layered
             api = @controller.web_service_object(service_name.to_sym).class.web_service_api
           end
+          protocol.register_api(api)
           method = api.api_methods[api_method_name.to_sym]
-					method.register_types(marshaler)
-					method.encode_rpc_call(marshaler, encoder, args.dup, :method_name => public_method_name(service_name, api_method_name))
+          protocol.encode_request(public_method_name(service_name, api_method_name), args.dup, method.expects)
         end
 
         def decode_rpc_response
-          public_method_name, return_value = encoder.decode_rpc_response(@response.body)
-          result = marshaler.unmarshal(return_value).value
+          public_method_name, return_value = protocol.decode_response(@response.body)
           unless @return_exceptions
-            exception = is_exception?(result)
+            exception = is_exception?(return_value)
             raise exception if exception
           end
-          result
+          return_value
         end
 
         def public_method_name(service_name, api_method_name)
@@ -86,25 +85,7 @@ module Test # :nodoc:
         end
 
         def protocol
-          @protocol ||= :soap
-        end
-
-        def marshaler
-          case protocol
-          when :soap
-            @soap_marshaler ||= WS::Marshaling::SoapMarshaler.new 'urn:ActionWebService'
-          when :xmlrpc
-            @xmlrpc_marshaler ||= WS::Marshaling::XmlRpcMarshaler.new
-          end
-        end
-
-        def encoder
-          case protocol
-          when :soap
-            @soap_encoder ||= WS::Encoding::SoapRpcEncoding.new 'urn:ActionWebService'
-          when :xmlrpc
-            @xmlrpc_encoder ||= WS::Encoding::XmlRpcEncoding.new
-          end
+          @protocol ||= ActionWebService::Protocol::Soap::SoapProtocol.new
         end
 
         def is_exception?(obj)

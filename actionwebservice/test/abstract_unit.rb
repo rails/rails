@@ -1,5 +1,5 @@
+ENV["RAILS_ENV"] = "test"
 $:.unshift(File.dirname(__FILE__) + '/../lib')
-$:.unshift(File.dirname(__FILE__) + '/../lib/action_web_service/vendor')
 
 require 'test/unit'
 require 'action_web_service'

@@ -12,14 +12,6 @@ module ActionWebService # :nodoc:
       base.send(:include, ActionWebService::Dispatcher::InstanceMethods)
     end
 
-    def self.layered_service_name(public_method_name) # :nodoc:
-      if public_method_name =~ /^([^\.]+)\.(.*)$/
-        $1
-      else
-        nil
-      end
-    end
-
     module InstanceMethods # :nodoc:
       private
         def invoke_web_service_request(protocol_request)
@@ -40,13 +32,7 @@ module ActionWebService # :nodoc:
           else
             return_value = self.__send__(invocation.api_method.name)
           end
-          if invocation.api.has_api_method?(invocation.api_method.name)
-            api_method = invocation.api_method
-          else
-            api_method = invocation.api_method.dup
-            api_method.instance_eval{ @returns = [ return_value.class ] }
-          end
-          invocation.protocol.marshal_response(api_method, return_value)
+          web_service_create_response(invocation.protocol, invocation.api, invocation.api_method, return_value)
         end
 
         def web_service_delegated_invoke(invocation)
@@ -57,7 +43,7 @@ module ActionWebService # :nodoc:
           if cancellation_reason
             raise(DispatcherError, "request canceled: #{cancellation_reason}")
           end
-          invocation.protocol.marshal_response(invocation.api_method, return_value)
+          web_service_create_response(invocation.protocol, invocation.api, invocation.api_method, return_value)
         end
 
         def web_service_invocation(request)
@@ -79,6 +65,7 @@ module ActionWebService # :nodoc:
             invocation.service = web_service_object(invocation.service_name)
             invocation.api = invocation.service.class.web_service_api
           end
+          invocation.protocol.register_api(invocation.api)
           request.api = invocation.api
           if invocation.api.has_public_api_method?(public_method_name)
             invocation.api_method = invocation.api.public_api_method_instance(public_method_name)
@@ -89,21 +76,36 @@ module ActionWebService # :nodoc:
               invocation.api_method = invocation.api.default_api_method_instance
             end
           end
+          if invocation.service.nil?
+            raise(DispatcherError, "no service available for service name #{invocation.service_name}")
+          end
           unless invocation.service.respond_to?(invocation.api_method.name)
-              raise(DispatcherError, "no such method '#{public_method_name}' on API #{invocation.api} (#{invocation.api_method.name})")
+            raise(DispatcherError, "no such method '#{public_method_name}' on API #{invocation.api} (#{invocation.api_method.name})")
           end
           request.api_method = invocation.api_method
           begin
-            invocation.method_ordered_params = invocation.api_method.cast_expects_ws2ruby(request.protocol.marshaler, request.method_params)
+            invocation.method_ordered_params = invocation.api_method.cast_expects(request.method_params.dup)
           rescue
-            invocation.method_ordered_params = request.method_params.map{ |x| x.value }
+            logger.warn "Casting of method parameters failed" unless logger.nil?
+            invocation.method_ordered_params = request.method_params
           end
+          request.method_params = invocation.method_ordered_params
           invocation.method_named_params = {}
           invocation.api_method.param_names.inject(0) do |m, n|
             invocation.method_named_params[n] = invocation.method_ordered_params[m]
             m + 1
           end
           invocation
+        end
+
+        def web_service_create_response(protocol, api, api_method, return_value)
+          if api.has_api_method?(api_method.name)
+            return_type = api_method.returns ? api_method.returns[0] : nil
+            return_value = api_method.cast_returns(return_value)
+          else
+            return_type = ActionWebService::SignatureTypes.canonical_signature_entry(return_value.class, 0)
+          end
+          protocol.encode_response(api_method.public_name + 'Response', return_value, return_type)
         end
 
         class Invocation # :nodoc:

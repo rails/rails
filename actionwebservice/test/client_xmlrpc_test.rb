@@ -15,6 +15,7 @@ module ClientXmlRpcTest
       @controller.process(test_request, response)
       res.header['content-type'] = 'text/xml'
       res.body = response.body
+      # puts res.body
     rescue Exception => e
       $stderr.puts e.message
       $stderr.puts e.backtrace.join("\n")
@@ -62,9 +63,7 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
     assert_equal([5, 6], @container.value_normal)
     assert_equal(5, @client.normal("7", "8"))
     assert_equal([7, 8], @container.value_normal)
-    assert_raises(TypeError) do
-      assert_equal(5, @client.normal(true, false))
-    end
+    assert_equal(5, @client.normal(true, false))
   end
 
   def test_array_return
@@ -91,7 +90,7 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
 
   def test_named_parameters
     assert(@container.value_named_parameters.nil?)
-    assert_equal(nil, @client.named_parameters("xxx", 7))
+    assert_equal(true, @client.named_parameters("xxx", 7))
     assert_equal(["xxx", 7], @container.value_named_parameters)
   end
 

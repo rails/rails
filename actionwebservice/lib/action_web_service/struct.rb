@@ -33,11 +33,20 @@ module ActionWebService
       send(name.to_s)
     end
 
+    # Iterates through each member
+    def each_pair(&block)
+      self.class.members.each do |name, type|
+        yield name, type
+      end
+    end
+
     class << self
       # Creates a structure member with the specified +name+ and +type+. Generates
       # accessor methods for reading and writing the member value.
       def member(name, type)
-        write_inheritable_hash("struct_members", name => WS::BaseTypes.canonical_param_type_class(type))
+        name = name.to_sym
+        type = ActionWebService::SignatureTypes.canonical_signature_entry({ name => type }, 0)
+        write_inheritable_hash("struct_members", name => type)
         class_eval <<-END
           def #{name}; @#{name}; end
           def #{name}=(value); @#{name} = value; end
@@ -46,6 +55,10 @@ module ActionWebService
   
       def members # :nodoc:
         read_inheritable_attribute("struct_members") || {}
+      end
+
+      def member_type(name) # :nodoc:
+        members[name.to_sym]
       end
     end
   end

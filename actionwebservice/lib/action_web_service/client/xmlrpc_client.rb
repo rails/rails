@@ -30,20 +30,22 @@ module ActionWebService # :nodoc:
       def initialize(api, endpoint_uri, options={})
         @api = api
         @handler_name = options[:handler_name]
+        @protocol = ActionWebService::Protocol::XmlRpc::XmlRpcProtocol.new
         @client = XMLRPC::Client.new2(endpoint_uri, options[:proxy], options[:timeout])
-        @marshaler = WS::Marshaling::XmlRpcMarshaler.new
       end
 
       protected
         def perform_invocation(method_name, args)
           method = @api.api_methods[method_name.to_sym]
-          method.register_types(@marshaler)
           if method.expects && method.expects.length != args.length
             raise(ArgumentError, "#{method.public_name}: wrong number of arguments (#{args.length} for #{method.expects.length})")
           end
-          args = method.cast_expects(@marshaler, args)
+          args = method.cast_expects(args.dup) rescue args
+          if method.expects
+            method.expects.each_with_index{ |type, i| args[i] = @protocol.value_to_xmlrpc_wire_format(args[i], type) }
+          end
           ok, return_value = @client.call2(public_name(method_name), *args)
-          return method.cast_returns(@marshaler, return_value) if ok
+          return (method.cast_returns(return_value.dup) rescue return_value) if ok
           raise(ClientError, "#{return_value.faultCode}: #{return_value.faultString}")
         end
 

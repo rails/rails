@@ -3,22 +3,11 @@ module ActionWebService # :nodoc:
     class ProtocolError < ActionWebServiceError # :nodoc:
     end
 
-    class AbstractProtocol
-      attr :marshaler
-      attr :encoder
-
-      def unmarshal_request(ap_request)
+    class AbstractProtocol # :nodoc:
+      def decode_action_pack_request(action_pack_request)
       end
 
-      def marshal_response(method, return_value)
-        body = method.encode_rpc_response(marshaler, encoder, return_value)
-        Response.new(body, 'text/xml')
-      end
-
-      def protocol_client(api, protocol_name, endpoint_uri, options)
-      end
-
-      def create_action_pack_request(service_name, public_method_name, raw_body, options={})
+      def encode_action_pack_request(service_name, public_method_name, raw_body, options={})
         klass = options[:request_class] || SimpleActionPackRequest
         request = klass.new
         request.request_parameters['action'] = service_name.to_s
@@ -27,9 +16,57 @@ module ActionWebService # :nodoc:
         request.env['HTTP_CONTENT_TYPE'] = 'text/xml'
         request
       end
+
+      def decode_request(raw_request, service_name)
+      end
+
+      def encode_request(method_name, params, param_types)
+      end
+
+      def decode_response(raw_response)
+      end
+
+      def encode_response(method_name, return_value, return_type)
+      end
+
+      def protocol_client(api, protocol_name, endpoint_uri, options)
+      end
+
+      def register_api(api)
+      end
     end
 
-    class SimpleActionPackRequest < ActionController::AbstractRequest
+    class Request # :nodoc:
+      attr :protocol
+      attr :method_name
+      attr_accessor :method_params
+      attr :service_name
+      attr_accessor :api
+      attr_accessor :api_method
+
+      def initialize(protocol, method_name, method_params, service_name, api=nil, api_method=nil)
+        @protocol = protocol
+        @method_name = method_name
+        @method_params = method_params
+        @service_name = service_name
+        @api = api
+        @api_method = api_method
+      end
+    end
+
+    class Response # :nodoc:
+      attr :body
+      attr :content_type
+      attr :return_value
+
+      def initialize(body, content_type, return_value)
+        @body = body
+        @content_type = content_type
+        @return_value = return_value
+      end
+    end
+
+    class SimpleActionPackRequest < ActionController::AbstractRequest # :nodoc:
       def initialize
         @env = {}
         @qparams = {}
@@ -64,34 +101,6 @@ module ActionWebService # :nodoc:
 
       def reset_session
         @session = {}
-      end
-    end
-
-    class Request # :nodoc:
-      attr :protocol
-      attr :method_name
-      attr :method_params
-      attr :service_name
-      attr_accessor :api
-      attr_accessor :api_method
-
-      def initialize(protocol, method_name, method_params, service_name, api=nil, api_method=nil)
-        @protocol = protocol
-        @method_name = method_name
-        @method_params = method_params
-        @service_name = service_name
-        @api = api
-        @api_method = api_method
-      end
-    end
-
-    class Response # :nodoc:
-      attr :body
-      attr :content_type
-
-      def initialize(body, content_type)
-        @body = body
-        @content_type = content_type
       end
     end
   end

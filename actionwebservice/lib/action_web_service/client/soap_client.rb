@@ -46,8 +46,7 @@ module ActionWebService # :nodoc:
         @type_namespace = options[:type_namespace] || 'urn:ActionWebService'
         @method_namespace = options[:method_namespace] || 'urn:ActionWebService'
         @driver_options = options[:driver_options] || {}
-        @marshaler = WS::Marshaling::SoapMarshaler.new @type_namespace
-        @encoder = WS::Encoding::SoapRpcEncoding.new @method_namespace
+        @protocol = ActionWebService::Protocol::Soap::SoapProtocol.new
         @soap_action_base = options[:soap_action_base]
         @soap_action_base ||= URI.parse(endpoint_uri).path
         @driver = create_soap_rpc_driver(api, endpoint_uri)
@@ -59,9 +58,9 @@ module ActionWebService # :nodoc:
       protected
         def perform_invocation(method_name, args)
           method = @api.api_methods[method_name.to_sym]
-          args = method.cast_expects(@marshaler, args)
+          args = method.cast_expects(args.dup) rescue args
           return_value = @driver.send(method_name, *args)
-          method.cast_returns(@marshaler, return_value)
+          method.cast_returns(return_value.dup) rescue return_value
         end
 
         def soap_action(method_name)
@@ -70,9 +69,9 @@ module ActionWebService # :nodoc:
 
       private
         def create_soap_rpc_driver(api, endpoint_uri)
-          api.api_methods.each{ |name, method| method.register_types(@marshaler) }
+          @protocol.register_api(api)
           driver = SoapDriver.new(endpoint_uri, nil)
-          driver.mapping_registry = @marshaler.registry
+          driver.mapping_registry = @protocol.marshaler.registry
           api.api_methods.each do |name, method|
             qname = XSD::QName.new(@method_namespace, method.public_name)
             action = soap_action(method.public_name)
@@ -81,15 +80,14 @@ module ActionWebService # :nodoc:
             param_def = []
             i = 0
             if expects
-              expects.each do |spec|
-                param_name = method.param_name(spec, i)
-                type_binding = @marshaler.lookup_type(spec)
-                param_def << ['in', param_name, type_binding.mapping]
+              expects.each do |type|
+                type_binding = @protocol.marshaler.lookup_type(type)
+                param_def << ['in', type.name, type_binding.mapping]
                 i += 1
               end
             end
             if returns
-              type_binding = @marshaler.lookup_type(returns[0])
+              type_binding = @protocol.marshaler.lookup_type(returns[0])
               param_def << ['retval', 'return', type_binding.mapping]
             end
             driver.add_method(qname, action, method.name.to_s, param_def)

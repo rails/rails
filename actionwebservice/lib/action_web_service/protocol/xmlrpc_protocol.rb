@@ -1,3 +1,5 @@
+require 'xmlrpc/marshal'
+
 module ActionWebService # :nodoc:
   module Protocol # :nodoc:
     module XmlRpc # :nodoc:
@@ -6,21 +8,60 @@ module ActionWebService # :nodoc:
       end
       
       class XmlRpcProtocol < AbstractProtocol # :nodoc:
-        def initialize
-          @encoder = WS::Encoding::XmlRpcEncoding.new
-          @marshaler = WS::Marshaling::XmlRpcMarshaler.new
+        def decode_action_pack_request(action_pack_request)
+          service_name = action_pack_request.parameters['action']
+          decode_request(action_pack_request.raw_post, service_name)
         end
 
-        def unmarshal_request(ap_request)
-          method_name, params = @encoder.decode_rpc_call(ap_request.raw_post)
-          params = params.map{|x| @marshaler.unmarshal(x)}
-          service_name = ap_request.parameters['action']
+        def decode_request(raw_request, service_name)
+          method_name, params = XMLRPC::Marshal.load_call(raw_request)
           Request.new(self, method_name, params, service_name)
+        end
+
+        def encode_request(method_name, params, param_types)
+          if param_types
+            params = params.dup
+            param_types.each_with_index{ |type, i| params[i] = value_to_xmlrpc_wire_format(params[i], type) }
+          end
+          XMLRPC::Marshal.dump_call(method_name, *params)
+        end
+
+        def decode_response(raw_response)
+          [nil, XMLRPC::Marshal.load_response(raw_response)]
+        end
+
+        def encode_response(method_name, return_value, return_type)
+          return_value = true if return_value.nil?
+          if return_type
+            return_value = value_to_xmlrpc_wire_format(return_value, return_type)
+          end
+          raw_response = XMLRPC::Marshal.dump_response(return_value)
+          Response.new(raw_response, 'text/xml', return_value)
         end
 
         def protocol_client(api, protocol_name, endpoint_uri, options={})
           return nil unless protocol_name == :xmlrpc
           ActionWebService::Client::XmlRpc.new(api, endpoint_uri, options)
+        end
+
+        def value_to_xmlrpc_wire_format(value, value_type)
+          if value_type.array?
+            value.map{ |val| value_to_xmlrpc_wire_format(val, value_type.element_type) }
+          else
+            if value.is_a?(ActionWebService::Struct)
+              struct = {}
+              value.class.members.each do |name, type|
+                struct[name.to_s] = value_to_xmlrpc_wire_format(value[name], type)
+              end
+              struct
+            elsif value.is_a?(ActiveRecord::Base)
+              value.attributes.dup
+            elsif value.is_a?(Exception) && !value.is_a?(XMLRPC::FaultException)
+              XMLRPC::FaultException.new(2, value.message)
+            else
+              value
+            end
+          end
         end
       end
     end

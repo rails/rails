@@ -2,14 +2,9 @@
   - WS Dynamic Scaffolding
     * add protocol selection ability
     * test with XML-RPC (namespaced method name support)
-    * support structured types as input parameters with the input field helper
 
   - update manual for scaffolding and functional testing
-
-= 0.8.0
-  - Consumption of WSDL services
   
 = Refactoring
-  - Port dispatcher tests to use test_invoke
   - Don't have clean way to go from SOAP Class object to the xsd:NAME type
     string -- NaHi possibly looking at remedying this situation

@@ -5,10 +5,10 @@
 <%= hidden_field_tag "method", @scaffold_method.public_name %>
 
 <% i = 0 %>
-<% @scaffold_method.expects.each do |spec| %>
+<% @scaffold_method.expects.each do |type| %>
   <p>
-  <label for="method_params[]"><%= @scaffold_method.param_name(spec, i).camelize %></label><br />
-  <%= method_parameter_input_fields(@scaffold_method, spec, i) %>
+  <label for="method_params[]"><%= type.name.to_s.camelize %></label><br />
+  <%= method_parameter_input_fields(@scaffold_method, type) %>
   </p>
   <% i += 1 %>
 <% end %>

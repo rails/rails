@@ -23,8 +23,6 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
   include DispatcherCommonTests
 
   def setup
-    @encoder = WS::Encoding::SoapRpcEncoding.new 'urn:ActionWebService'
-    @marshaler = WS::Marshaling::SoapMarshaler.new 'urn:ActionWebService'
     @direct_controller = DirectController.new
     @delegated_controller = DelegatedController.new
     @virtual_controller = VirtualController.new

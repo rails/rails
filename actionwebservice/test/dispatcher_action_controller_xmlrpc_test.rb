@@ -6,8 +6,6 @@ class TC_DispatcherActionControllerXmlRpc < Test::Unit::TestCase
 
   def setup
     @protocol = ActionWebService::Protocol::XmlRpc::XmlRpcProtocol.new
-    @encoder = WS::Encoding::XmlRpcEncoding.new
-    @marshaler = WS::Marshaling::XmlRpcMarshaler.new
     @direct_controller = DirectController.new
     @delegated_controller = DelegatedController.new
     @layered_controller = LayeredController.new
