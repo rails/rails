@@ -40,7 +40,7 @@ class Dispatcher
     private
       def prepare_application
         ActionController::Routing::Routes.reload if Dependencies.load?
-        Breakpoint.activate_drb("druby://localhost:#{BREAKPOINT_SERVER_PORT}", nil, !defined?(FastCGI)) if defined?(BREAKPOINT_SERVER_PORT)
+        Breakpoint.activate_drb("druby://localhost:#{BREAKPOINT_SERVER_PORT}", nil, !defined?(FastCGI)) if defined?(BREAKPOINT_SERVER_PORT) rescue nil
         Controllers.const_load!(:ApplicationController, "application") unless Controllers.const_defined?(:ApplicationController)
       end
     

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added exception shallowing if the DRb server can't be started (not worth making a fuss about to distract new users) #779 [Tobias Luetke]
+
 * Added an empty favicon.ico file to the public directory of new applications (so the logs are not spammed by its absence)
 
 * Fixed that scaffold generator new template should use local variable instead of instance variable #778 [Dan Peterson]
