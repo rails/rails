@@ -100,6 +100,14 @@ module ActiveRecord
         end
   
 
+        def add_to_list_top
+          increment_positions_on_all_items
+        end
+
+        def add_to_list_bottom
+          assume_bottom_position
+        end
+
         def remove_from_list
           decrement_positions_on_lower_items
         end
@@ -135,14 +143,6 @@ module ActiveRecord
         end
 
         private
-          def add_to_list_top
-            increment_positions_on_all_items
-          end
-
-          def add_to_list_bottom
-            write_attribute(position_column, bottom_position_in_list.to_i + 1)
-          end
-      
           # Overwrite this method to define the scope of the list changes
           def scope_condition() "1" end
 
@@ -159,11 +159,11 @@ module ActiveRecord
           end
 
           def assume_bottom_position
-            update_attribute position_column, bottom_position_in_list.to_i + 1
+            update_attribute(position_column, bottom_position_in_list.to_i + 1)
           end
   
           def assume_top_position
-            update_attribute position_column, 1
+            update_attribute(position_column, 1)
           end
   
           def decrement_positions_on_lower_items
