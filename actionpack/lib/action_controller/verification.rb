@@ -15,7 +15,7 @@ module ActionController #:nodoc:
   #   class GlobalController < ActionController::Base
   #     # prevent the #update_settings action from being invoked unless
   #     # the 'admin_privileges' request parameter exists.
-  #     verify :params => "admin_privileges", :only => :update_post
+  #     verify :params => "admin_privileges", :only => :update_post,
   #            :redirect_to => { :action => "settings" }
   #
   #     # disallow a post from being updated if there was no information

@@ -1,5 +1,6 @@
 require 'test/unit'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/text_helper'
+require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/numeric'  # for human_size
 
 class TextHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TextHelper
@@ -52,6 +53,22 @@ class TextHelperTest < Test::Unit::TestCase
       highlight("This is a beautiful? morning", "beautiful? morning")
     )
   end
+  
+  def test_human_size
+    assert_equal("0 Bytes", human_size(0))
+    assert_equal("3 Bytes", human_size(3.14159265))
+    assert_equal("123 Bytes", human_size(123.0))
+    assert_equal("123 Bytes", human_size(123))
+    assert_equal("1.2 KB", human_size(1234))
+    assert_equal("12.1 KB", human_size(12345))
+    assert_equal("1.2 MB", human_size(1234567))
+    assert_equal("1.1 GB", human_size(1234567890))
+    assert_equal("1.1 TB", human_size(1234567890123))
+    assert_equal("444.0 KB", human_size(444.kilobytes))
+    assert_equal("1023.0 MB", human_size(1023.megabytes))
+    assert_equal("3.0 TB", human_size(3.terabytes))
+    assert_nil human_size('x')
+  end
 
   def test_excerpt
     assert_equal("...is a beautiful morni...", excerpt("This is a beautiful morning", "beautiful", 5))
@@ -72,4 +89,5 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %(Go to http://www.rubyonrails.com), auto_link("Go to http://www.rubyonrails.com", :email_addresses)
     assert_equal %(Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a> and say hello to <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>), auto_link("Go to http://www.rubyonrails.com and say hello to david@loudthinking.com")
   end
+  
 end

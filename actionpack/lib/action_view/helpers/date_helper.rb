@@ -15,12 +15,23 @@ module ActionView
 
       # Reports the approximate distance in time between to Time objects. For example, if the distance is 47 minutes, it'll return
       # "about 1 hour". See the source for the complete wording list.
-      def distance_of_time_in_words(from_time, to_time)
-        distance_in_minutes = ((to_time - from_time) / 60).round
+      #Set <tt>include_seconds</tt> to true if you want more detailed approximations if distance < 1 minute
+      def distance_of_time_in_words(from_time, to_time, include_seconds = false)
+        distance_in_minutes = ((to_time - from_time) / 60).round.abs
+        distance_in_seconds = ((to_time - from_time)).round.abs
 
         case distance_in_minutes
-          when 0          then "less than a minute"
-          when 1          then "1 minute"
+          when 0..1
+            return (distance_in_minutes==0) ? "less than a minute" : "1 minute" unless include_seconds
+            case distance_in_seconds
+              when 0..5   then "less than 5 seconds"
+              when 6..10  then "less than 10 seconds"
+              when 11..20 then "less than 20 seconds"
+              when 21..40 then "half a minute"
+              when 41..59 then "less than a minute"
+              else             "1 minute"
+            end
+                                
           when 2..45      then "#{distance_in_minutes} minutes"
           when 46..90     then "about 1 hour"
           when 90..1440   then "about #{(distance_in_minutes.to_f / 60.0).round} hours"
@@ -28,10 +39,10 @@ module ActionView
           else                 "#{(distance_in_minutes / 1440).round} days"
         end
       end
-
+      
       # Like distance_of_time_in_words, but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
-      def distance_of_time_in_words_to_now(from_time)
-        distance_of_time_in_words(from_time, Time.now)
+      def distance_of_time_in_words_to_now(from_time, include_seconds = false)
+        distance_of_time_in_words(from_time, Time.now, include_seconds)
       end
 
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based attribute (identified by

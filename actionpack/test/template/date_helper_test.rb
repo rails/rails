@@ -13,6 +13,22 @@ class DateHelperTest < Test::Unit::TestCase
     assert_equal "about 3 hours", distance_of_time_in_words(from, Time.mktime(2004, 3, 7, 0, 41))
     assert_equal "about 4 hours", distance_of_time_in_words(from, Time.mktime(2004, 3, 7, 1, 20))
     assert_equal "2 days", distance_of_time_in_words(from, Time.mktime(2004, 3, 9, 15, 40))
+
+    # include seconds 
+    assert_equal "less than a minute", distance_of_time_in_words(from, Time.mktime(2004, 3, 6, 21, 41, 19), false)
+    assert_equal "less than 5 seconds", distance_of_time_in_words(from, Time.mktime(2004, 3, 6, 21, 41, 19), true)
+    assert_equal "less than 10 seconds", distance_of_time_in_words(from, Time.mktime(2004, 3, 6, 21, 41, 28), true)
+    assert_equal "less than 20 seconds", distance_of_time_in_words(from, Time.mktime(2004, 3, 6, 21, 41, 38), true)
+    assert_equal "half a minute", distance_of_time_in_words(from, Time.mktime(2004, 3, 6, 21, 41, 48), true)
+    assert_equal "less than a minute", distance_of_time_in_words(from, Time.mktime(2004, 3, 6, 21, 42, 17), true)
+    
+    assert_equal "1 minute", distance_of_time_in_words(from, Time.mktime(2004, 3, 6, 21, 42, 18), true)
+    assert_equal "1 minute", distance_of_time_in_words(from, Time.mktime(2004, 3, 6, 21, 42, 28), true)
+    assert_equal "2 minutes", distance_of_time_in_words(from, Time.mktime(2004, 3, 6, 21, 42, 48), true)
+    
+    # test to < from
+    assert_equal "about 4 hours", distance_of_time_in_words(Time.mktime(2004, 3, 7, 1, 20), from)
+    assert_equal "less than 20 seconds", distance_of_time_in_words(Time.mktime(2004, 3, 6, 21, 41, 38), from, true)
   end
 
   def test_select_day
