@@ -224,6 +224,7 @@ module ActionController
           else
             relative_to = defaults[:controller] ? defaults[:controller].split('/')[0..-2].join('/') : ''
             options[:controller] = relative_to.empty? ? options[:controller] : "#{relative_to}/#{options[:controller]}"
+            defaults.delete(:action) unless options[:controller] == defaults[:controller]
           end
         else
           options[:controller] = defaults[:controller]

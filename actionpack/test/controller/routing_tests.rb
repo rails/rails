@@ -5,7 +5,6 @@
 # ActionController::Routing::RailsRoute:    0 /    4 =   0.00%
 # ActionController::Routing::Route:    0 /    8 =   0.00%
 
-RAILS_ROOT = ""
 require File.dirname(__FILE__) + '/../abstract_unit'
 require 'test/unit'
 require 'cgi'
@@ -394,9 +393,15 @@ class RouteSetTests < Test::Unit::TestCase
     assert_raises(ActionController::RoutingError) {@set.generate({}, @request)}
   end
   
-  
   def test_encoded_strings
     verify_recognize(Controllers::Admin::UserController, {:controller => 'admin/user', :action => 'info', :id => "Nicholas Seckar"}, path='/admin/user/info/Nicholas%20Seckar')
+  end
+  
+  def test_action_dropped_when_controller_changes
+    @request.path_parameters = {:controller => 'content', :action => 'list'}
+    options = {:controller => 'resource'}
+    @set.connect ':action/:controller'
+    verify_generate('index/resource', options)
   end
 end
 
