@@ -609,8 +609,6 @@ class BasicsTest < Test::Unit::TestCase
     topic = Topic.create("content" => myobj)  
     Topic.serialize("content", MyObject)
     assert_equal(myobj, topic.content)
-
-    assert_equal(myobj, topic.content)
   end
 
   def test_serialized_attribute_with_class_constraint
