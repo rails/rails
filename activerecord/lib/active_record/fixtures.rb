@@ -185,6 +185,9 @@ class Fixtures < Hash
   DEFAULT_FILTER_RE = /\.ya?ml$/
 
   def self.instantiate_fixtures(object, table_name, fixtures, load_instances=true)
+    old_logger_level = ActiveRecord::Base.logger.level
+    ActiveRecord::Base.logger.level = Logger::ERROR
+
     object.instance_variable_set "@#{table_name}", fixtures
     if load_instances
       fixtures.each do |name, fixture|
@@ -193,12 +196,14 @@ class Fixtures < Hash
         end
       end
     end
+
+    ActiveRecord::Base.logger.level = old_logger_level
   end
   
   def self.instantiate_all_loaded_fixtures(object, load_instances=true)
     all_loaded_fixtures.each do |table_name, fixtures|
       Fixtures.instantiate_fixtures(object, table_name, fixtures, load_instances)
-    end  
+    end
   end
   
   cattr_accessor :all_loaded_fixtures

@@ -1,9 +1,11 @@
 welcome:
   id: 1
+  author_id: 1
   title: Welcome to the weblog
   body: Such a lovely day
 
 thinking:
   id: 2
+  author_id: 1
   title: So I was thinking
   body: Like I hopefully always am

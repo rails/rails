@@ -50,17 +50,13 @@ module ActiveRecord
       end
 
       def find(*args)
-        # Return an Array if multiple ids are given.
-        expects_array = args.first.kind_of?(Array)
-
-        ids = args.flatten.compact.uniq
-
-        # If no ids given, raise RecordNotFound.
-        if ids.empty?
-          raise RecordNotFound, "Couldn't find #{@association_class.name} without an ID"
+        options = Base.send(:extract_options_from_args!, args)
 
         # If using a custom finder_sql, scan the entire collection.
-        elsif @options[:finder_sql]
+        if @options[:finder_sql]
+          expects_array = args.first.kind_of?(Array)
+          ids = args.flatten.compact.uniq
+
           if ids.size == 1
             id = ids.first
             record = load_target.detect { |record| id == record.id }
@@ -68,11 +64,11 @@ module ActiveRecord
           else
             load_target.select { |record| ids.include?(record.id) }
           end
-
-        # Otherwise, delegate to association class with conditions.
         else
-          args << { :conditions => "#{@association_class_primary_key_name} = #{@owner.quoted_id} #{@conditions ? " AND " + @conditions : ""}" }
-          @association_class.find(*args)
+          original_conditions  = options[:conditions] ? " AND #{options[:conditions]}" : ""
+          options[:conditions] = 
+            "#{@association_class_primary_key_name} = #{@owner.quoted_id} #{@conditions ? " AND " + @conditions : ""}#{original_conditions}"
+          @association_class.find(args.size == 1 ? args.first : args, options)
         end
       end
 

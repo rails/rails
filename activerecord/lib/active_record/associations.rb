@@ -551,6 +551,14 @@ module ActiveRecord
             end
             association
           end
+
+          define_method("set_#{association_name}_target") do |target|
+            association = association_proxy_class.new(self,
+              association_name, association_class_name,
+              association_class_primary_key_name, options)
+            association.target = target
+            instance_variable_set("@#{association_name}", association)
+          end
         end
 
         def collection_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, association_proxy_class)
@@ -630,7 +638,7 @@ module ActiveRecord
                 when :has_many
                   record.send(reflection.name).target = extract_association_for_record(record, rows, reflection)
                 when :has_one, :belongs_to
-                  record.send("#{reflection.name}=", extract_association_for_record(record, rows, reflection).first)
+                  record.send("set_#{reflection.name}_target", extract_association_for_record(record, rows, reflection).first)
               end
             end
           end
@@ -644,8 +652,14 @@ module ActiveRecord
           sql << " FROM #{table_name} "
 
           reflections.each do |reflection| 
-            sql << " LEFT JOIN #{reflection.klass.table_name} ON " +
-              "#{reflection.klass.table_name}.#{table_name.classify.foreign_key} = #{table_name}.#{primary_key} "
+            case reflection.macro
+              when :has_many, :has_one
+                sql << " LEFT JOIN #{reflection.klass.table_name} ON " +
+                  "#{reflection.klass.table_name}.#{table_name.classify.foreign_key} = #{table_name}.#{primary_key} "
+              when :belongs_to
+                sql << " LEFT JOIN #{reflection.klass.table_name} ON " +
+                  "#{reflection.klass.table_name}.#{reflection.klass.primary_key} = #{table_name}.#{reflection.klass.table_name.classify.foreign_key} "
+            end
           end
 
           sql << "#{options[:joins]} " if options[:joins]
