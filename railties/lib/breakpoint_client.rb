@@ -62,6 +62,10 @@ end
 
 options[:ServerURI] = ARGV[0] if ARGV[0]
 
+$running = true
+
+trap("INT"){$running = false}
+
 puts "Waiting for initial breakpoint..."
 
 loop do
@@ -138,7 +142,7 @@ loop do
 
       puts "Connection established. Waiting for breakpoint...", "" if options[:Verbose]
 
-      loop do
+      while $running
         begin
           service.ping
         rescue DRb::DRbConnError => error
@@ -152,6 +156,7 @@ loop do
       service.unregister_handler
     end
   rescue Exception => error
+    break unless $running
     if options[:RetryDelay] > 0 then
       puts "No connection to breakpoint service at #{options[:ServerURI]}:", "  (#{error.inspect})" if options[:Verbose]
       error.backtrace if $DEBUG

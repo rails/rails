@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed CTRL-C exists from the Breakpointer to be a clean affair without error dumping [Kent Sibilev]
+
 * Fixed "rake stats" to work with sub-directories in models and controllers and to report the code to test ration [Scott Baron]
 
 * Added that Active Record associations are now reloaded instead of cleared to work with the new const_missing hook in Active Record.
