@@ -159,7 +159,8 @@ module ActionView
         
         js_options['asynchronous'] = options[:type] != :synchronous
         js_options['method'] = options[:method] if options[:method]
-        
+      	js_options['effect'] = ("\'"+options[:effect].to_s+"\'") if options[:effect]        
+	
         if options[:form]
           js_options['parameters'] = 'Form.serialize(this)'
         elsif options[:with]

@@ -203,6 +203,9 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
   
   updateContent: function() {
     this.container.innerHTML = this.request.transport.responseText;
+    switch(this.options.effect) {
+      case 'highlight': new YellowFader(this.container); break;
+    }
     if (this.onComplete) this.onComplete(this.request);
   }
 });
@@ -346,3 +349,27 @@ Form.Observer.prototype = (new Abstract.TimedObserver()).extend({
   }
 });
 
+/*--------------------------------------------------------------------------*/
+
+var YellowFader = Class.create();
+YellowFader.prototype = {
+  initialize: function(element) {
+    if (typeof element == 'string') element = $(element);
+    if (!element) return;
+    this.element = element;
+    this.start  = 153;
+    this.finish = 255;
+    this.current = this.start;
+    this.fade();
+  },  
+  fade: function() {
+    if (this.isFinished()) return;
+    if (this.timer) clearTimeout(this.timer); // prevent flicker
+    highlight_yellow(this.element, this.current);
+    this.current += 17;
+    this.timer = setTimeout(this.fade.bind(this), 250);
+  },  
+  isFinished: function() {
+    return this.current > this.finish;
+  }
+}
