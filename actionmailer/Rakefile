@@ -58,8 +58,8 @@ spec = Gem::Specification.new do |s|
   s.autorequire = 'action_mailer'
 
   s.files = [ "rakefile", "install.rb", "README", "CHANGELOG", "MIT-LICENSE" ]
-  s.files = s.files + Dir.glob( "lib/**/*" ).delete_if { |item| item.include?( "CVS" ) }
-  s.files = s.files + Dir.glob( "test/**/*" ).delete_if { |item| item.include?( "CVS" ) }
+  s.files = s.files + Dir.glob( "lib/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
+  s.files = s.files + Dir.glob( "test/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
 end
   
 Rake::GemPackageTask.new(spec) do |p|
