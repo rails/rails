@@ -422,16 +422,20 @@ module ActiveRecord
         end
 
         def format_log_entry(message, dump = nil)
-          if @@row_even then
-            @@row_even = false; caller_color = "1;32"; message_color = "4;33"; dump_color = "1;37"
-          else
-            @@row_even = true; caller_color = "1;36"; message_color = "4;35"; dump_color = "0;37"
-          end
+          if ActiveRecord::Base.colorize_logging
+            if @@row_even then
+              @@row_even = false; caller_color = "1;32"; message_color = "4;33"; dump_color = "1;37"
+            else
+              @@row_even = true; caller_color = "1;36"; message_color = "4;35"; dump_color = "0;37"
+            end
           
-          log_entry = "  \e[#{message_color}m#{message}\e[m"
-          log_entry << "   \e[#{dump_color}m%s\e[m" % dump if dump.kind_of?(String) && !dump.nil?
-          log_entry << "   \e[#{dump_color}m%p\e[m" % dump if !dump.kind_of?(String) && !dump.nil?
-          log_entry
+            log_entry = "  \e[#{message_color}m#{message}\e[m"
+            log_entry << "   \e[#{dump_color}m%s\e[m" % dump if dump.kind_of?(String) && !dump.nil?
+            log_entry << "   \e[#{dump_color}m%p\e[m" % dump if !dump.kind_of?(String) && !dump.nil?
+            log_entry
+          else
+            "%s  %s" % [message, dump]
+          end
         end
     end
 

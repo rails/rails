@@ -264,6 +264,12 @@ module ActiveRecord #:nodoc:
     cattr_accessor :pluralize_table_names
     @@pluralize_table_names = true
 
+    # Determines whether or not to use ANSI codes to colorize the logging statements committed by the connection adapter. These colors
+    # makes it much easier to overview things during debugging (when used through a reader like +tail+ and on a black background), but
+    # may complicate matters if you use software like syslog. This is true, by default.
+    cattr_accessor :colorize_logging
+    @@colorize_logging = true
+
     # Determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling dates and times from the database.
     # This is set to :local by default.
     cattr_accessor :default_timezone
