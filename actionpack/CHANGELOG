@@ -1,5 +1,7 @@
 *SVN*
 
+* Added thread-safety to the DRbStore #66, #389 [Ben Stiglitz]
+
 * Added DateHelper#select_time and DateHelper#select_second #373 [Scott Baron]
 
 * Added class declaration for the MissingFile exception #388 [Kent Sibilev]
