@@ -22,11 +22,11 @@ module ActionController #:nodoc:
   module Cookies
     # Returns the cookie container, which operates as described above.
     def cookies
-      CookieContainer.new(self)
+      CookieJar.new(self)
     end
   end
   
-  class CookieContainer < Hash #:nodoc:
+  class CookieJar < Hash #:nodoc:
     def initialize(controller)
       @controller, @cookies = controller, controller.instance_variable_get("@cookies")
       super()
