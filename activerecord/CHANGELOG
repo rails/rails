@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that benchmarking times for rendering included db runtimes #987 [skaes@web.de]
+
 * Fixed boolean queries for t/f fields in PostgreSQL #995 [dave@cherryville.org]
 
 * Added that model.items.delete(child) will delete the child, not just set the foreign key to nil, if the child is dependent on the model #978 [bitsweat]
