@@ -36,7 +36,7 @@ CREATE TABLE `topics` (
 CREATE TABLE `developers` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(100) default NULL,
-  `salary` int(11) NULL,
+  `salary` int(11) default 70000,
   PRIMARY KEY  (`id`)
 );
 

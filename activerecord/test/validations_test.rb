@@ -351,7 +351,7 @@ class ValidationsTest < Test::Unit::TestCase
   def test_throw_away_typing
     d = Developer.create "name" => "David", "salary" => "100,000"
     assert !d.valid?
-    assert_not_equal "100,000", d.salary
+    assert_equal 100, d.salary
     assert_equal "100,000", d.salary_before_type_cast
   end
 end
