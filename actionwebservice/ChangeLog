@@ -1,8 +1,11 @@
 UNRELEASED
 
-	* lib/*,test/*,examples/*: prefix all generic "service"
-	  type names with web_. update all using code as well as
-	  the RDoc.
+	* lib/action_service/dispatcher*: replaces "router" fragments with
+	  one file for Action Controllers, moves dispatching work out of
+	  the container
+	* lib/*,test/*,examples/*: rename project to
+	  ActionWebService. prefix all generic "service" type names with web_.
+	  update all using code as well as the RDoc.
 	* lib/action_service/router/wsdl.rb: ensure that #wsdl is
 	  defined in the final container class, or the new ActionPack
 	  filtering will exclude it

@@ -71,7 +71,7 @@ module ClientTest
     end
 
     def dispatch_request(protocol_request)
-      dispatch_web_service_request(protocol_request)
+      dispatch_protocol_request(protocol_request)
     end
   end
 

@@ -58,9 +58,6 @@ module InvocationTest
     def only_two
     end
   
-    def not_public
-    end
- 
     protected
       def intercept_before(name, args)
         @before_invoked = name
@@ -90,10 +87,7 @@ class TC_Invocation < Test::Unit::TestCase
   def test_invocation
     assert(perform_invocation(:add, 5, 10) == 15)
     assert(perform_invocation(:transmogrify, "hello") == "HELLO")
-    assert_raises(InvocationError) do
-      perform_invocation(:not_public)
-    end
-    assert_raises(InvocationError) do
+    assert_raises(NoMethodError) do
       perform_invocation(:nonexistent_method_xyzzy)
     end
   end
@@ -150,9 +144,6 @@ class TC_Invocation < Test::Unit::TestCase
 
   private
     def perform_invocation(method_name, *args, &block)
-      public_method_name = @service.class.web_service_api.public_api_method_name(method_name)
-      args ||= []
-      request = InvocationRequest.new(ConcreteInvocation, public_method_name, method_name, args)
-      @service.perform_invocation(request, &block)
+      @service.perform_invocation(method_name, args, &block)
     end
 end

@@ -1,8 +1,11 @@
 = 0.4.0 Tasks
   - add ActiveRecord-like logging that includes timing information
-  - rename project to 'actionwebservice', Action Web Service
 
 = Post-0.4.0 Tasks
+  - support namespaced custom types in WSDL in a way that interoperates
+    with .NET (.NET croaks on '::' currently). perhaps a transform
+    that maps Ruby::Class to Ruby.Class and back.
+
   - relax type-checking for XML-RPC, and perform casts between base types if there
     are mismatches (i.e. String received when Integer expected, or vice-versa)
 
@@ -23,12 +26,8 @@
         web_service :xmlrpc { BloggingServices.new(@request) }
       end
 
-  - supported namespaced custom types in WSDL in a way that interoperates
-    with .NET (.NET croaks on '::' currently)
-
-  - simplification: collapse Router::ActionController, Router::Wsdl
-    and API::ActionController into Container::ActionController.
-    the seperation has gained us nothing.
+  - verify that cookie support works, and add cookie-authenticated
+    service examples. test with .NET.
 
 = Low priority tasks
   - add better type mapping tests for XML-RPC

@@ -41,7 +41,7 @@ require 'action_web_service/api'
 require 'action_web_service/struct'
 require 'action_web_service/container'
 require 'action_web_service/protocol'
-require 'action_web_service/router'
+require 'action_web_service/dispatcher'
 
 ActionWebService::Base.class_eval do
   include ActionWebService::API
@@ -55,6 +55,6 @@ ActionController::Base.class_eval do
   include ActionWebService::Protocol::XmlRpc
   include ActionWebService::API
   include ActionWebService::API::ActionController
-  include ActionWebService::Router::ActionController
-  include ActionWebService::Router::Wsdl
+  include ActionWebService::Dispatcher
+  include ActionWebService::Dispatcher::ActionController
 end

@@ -79,18 +79,13 @@ module ProtocolXmlRpcTest
   
   $service = Service.new
   
-  class Container
-    include ActionWebService::Container
-    include ActionWebService::Protocol::Registry
-    include ActionWebService::Protocol::Soap
-    include ActionWebService::Protocol::XmlRpc
-  
+  class Container < ActionController::Base
     def protocol_request(request)
       probe_request_protocol(request)
     end
   
     def dispatch_request(protocol_request)
-      dispatch_web_service_request(protocol_request)
+      dispatch_protocol_request(protocol_request)
     end
   
     web_service :xmlrpc, $service
@@ -134,11 +129,6 @@ class TC_ProtocolXmlRpc < Test::Unit::TestCase
     retval = do_xmlrpc_call('SomeNonexistentMethod', 'test', [1, 2], {'name'=>'value'})
     assert(retval == [true, true])
     assert($service.default_args == ['test', [1, 2], {'name'=>'value'}])
-  end
-
-  def test_xmlrpc_introspection
-    retval = do_xmlrpc_call('system.listMethods', 'test', [1, 2], {'name'=>'value'})
-    assert(retval == [true,  ["Add", "ArrayReturner", "HashReturner", "SomethingHash", "StructArrayReturner"]])
   end
 
   private

@@ -36,7 +36,7 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_files.include('lib/action_web_service/api/*.rb')
   rdoc.rdoc_files.include('lib/action_web_service/client/*.rb')
   rdoc.rdoc_files.include('lib/action_web_service/protocol/*.rb')
-  rdoc.rdoc_files.include('lib/action_web_service/router/*.rb')
+  rdoc.rdoc_files.include('lib/action_web_service/dispatcher/*.rb')
   rdoc.rdoc_files.include('lib/action_web_service/support/*.rb')
 }
 
@@ -63,7 +63,7 @@ spec = Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.autorequire = 'action_web_service'
 
-  s.files = [ "Rakefile", "setup.rb", "README", "TODO", "HACKING", "ChangeLog", "MIT-LICENSE" ]
+  s.files = [ "Rakefile", "setup.rb", "README", "TODO", "ChangeLog", "MIT-LICENSE" ]
   s.files = s.files + Dir.glob( "examples/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   s.files = s.files + Dir.glob( "lib/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   s.files = s.files + Dir.glob( "test/**/*" ).delete_if { |item| item.include?( "\.svn" ) }

@@ -12,6 +12,13 @@ module ProtocolSoapTest
     end
   end
 
+  class EmptyAPI < ActionWebService::API::Base
+  end
+
+  class EmptyService < ActionWebService::Base
+    web_service_api EmptyAPI
+  end
+
   class API < ActionWebService::API::Base
     api_method :argument_passing, :expects => [{:int=>:int}, {:string=>:string}, {:array=>[:int]}], :returns => [:bool]
     api_method :array_returner, :returns => [[:int]]
@@ -72,26 +79,19 @@ module ProtocolSoapTest
     end 
   end
 
-  class AbstractContainer
-    include ActionWebService::API
-    include ActionWebService::Container
-    include ActionWebService::Protocol::Registry
-    include ActionWebService::Protocol::Soap
-
+  class AbstractContainer < ActionController::Base
     wsdl_service_name 'Test'
 
-    def protocol_request(request)
-      probe_request_protocol(request)
-    end
-  
-    def dispatch_request(protocol_request)
-      dispatch_web_service_request(protocol_request)
+    def dispatch_request(request)
+      protocol_request = probe_request_protocol(request)
+      dispatch_protocol_request(protocol_request)
     end
   end
   
   class DelegatedContainer < AbstractContainer
     web_service_dispatching_mode :delegated
     web_service :protocol_soap_service, Service.new
+    web_service :empty_service, EmptyService.new
   end
 
   class DirectContainer < AbstractContainer
@@ -144,12 +144,18 @@ module ProtocolSoapTest
       nil
     end 
   end
+
+  class EmptyContainer < AbstractContainer
+    web_service_dispatching_mode :delegated
+    web_service :empty_service, EmptyService.new
+  end
 end
 
 class TC_ProtocolSoap < AbstractSoapTest
   def setup
     @delegated_container = ProtocolSoapTest::DelegatedContainer.new
     @direct_container = ProtocolSoapTest::DirectContainer.new
+    @empty_container = ProtocolSoapTest::EmptyContainer.new
   end
 
   def test_argument_passing
@@ -180,6 +186,13 @@ class TC_ProtocolSoap < AbstractSoapTest
     end
   end
 
+  def test_nonexistent_method
+    @container = @empty_container
+    assert_raises(ActionWebService::Dispatcher::DispatcherError) do
+      do_soap_call('NonexistentMethod')
+    end
+  end
+
   def test_exception_thrower
     in_all_containers do
       assert_raises(RuntimeError) do
@@ -203,15 +216,29 @@ class TC_ProtocolSoap < AbstractSoapTest
 
   protected
     def service_name
-      @container == @direct_container ? 'api' : 'protocol_soap_service'
+      case
+      when @container == @direct_container
+        'api'
+      when @container == @delegated_container
+        'protocol_soap_service'
+      when @container == @empty_container
+        'empty_service'
+      end
     end
 
     def service
-      @container == @direct_container ? @container : @container.web_service_object(:protocol_soap_service)
+      case
+      when @container == @direct_container
+        @container
+      when @container == @delegated_container
+        @container.web_service_object(:protocol_soap_service)
+      when @container == @empty_container
+        @container.web_service_object(:empty_service)
+      end
     end
 
     def in_all_containers(&block)
-      [@direct_container].each do |container|
+      [@direct_container, @delegated_container].each do |container|
         @container = container
         block.call
       end
@@ -219,8 +246,7 @@ class TC_ProtocolSoap < AbstractSoapTest
 
     def do_soap_call(public_method_name, *args)
       super(public_method_name, *args) do |test_request, test_response|
-        protocol_request = @container.protocol_request(test_request)
-        @container.dispatch_request(protocol_request)
+        @container.dispatch_request(test_request)
       end
     end
 end

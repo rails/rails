@@ -1,11 +1,18 @@
 require File.dirname(__FILE__) + '/abstract_soap'
 require 'wsdl/parser'
 
-module RouterActionControllerTest
+module DispatcherActionControllerTest
   class API < ActionWebService::API::Base
     api_method :add, :expects => [:int, :int], :returns => [:int]
   end
 
+  class DirectAPI < ActionWebService::API::Base
+    api_method :add, :expects => [{:a=>:int}, {:b=>:int}], :returns => [:int]
+    api_method :before_filtered
+    api_method :after_filtered, :returns => [:int]
+    api_method :thrower
+  end
+ 
   class Service < ActionWebService::Base
     web_service_api API
 
@@ -15,21 +22,20 @@ module RouterActionControllerTest
       @added = a + b
     end
   end
-  
-  class DelegatedController < ActionController::Base
+
+  class AbstractController < ActionController::Base
+    def generate_wsdl(container, uri, soap_action_base)
+      to_wsdl(container, uri, soap_action_base)
+    end
+  end
+ 
+  class DelegatedController < AbstractController
     web_service_dispatching_mode :delegated
   
     web_service(:test_service) { @service ||= Service.new; @service }
   end
-
-  class DirectAPI < ActionWebService::API::Base
-    api_method :add, :expects => [{:a=>:int}, {:b=>:int}], :returns => [:int]
-    api_method :before_filtered
-    api_method :after_filtered, :returns => [:int]
-    api_method :thrower
-  end
-  
-  class DirectController < ActionController::Base
+ 
+  class DirectController < AbstractController
     web_service_api DirectAPI
     web_service_dispatching_mode :direct
 
@@ -78,20 +84,22 @@ module RouterActionControllerTest
   end
 end
 
-class TC_RouterActionController < AbstractSoapTest
-  def test_direct_routing
-    @container = RouterActionControllerTest::DirectController.new
+class TC_DispatcherActionController < AbstractSoapTest
+  include DispatcherActionControllerTest
+
+  def test_direct_dispatching
+    @container = DirectController.new
     assert(do_soap_call('Add', 20, 50) == 70)
     assert(@container.added == 70)
   end
 
   def test_direct_entrypoint
-    @container = RouterActionControllerTest::DirectController.new
+    @container = DirectController.new
     assert(@container.respond_to?(:api))
   end
 
   def test_direct_filtering
-    @container = RouterActionControllerTest::DirectController.new
+    @container = DirectController.new
     assert(@container.before_filter_called == false)
     assert(@container.before_filter_target_called == false)
     assert(do_soap_call('BeforeFiltered').nil?)
@@ -104,14 +112,14 @@ class TC_RouterActionController < AbstractSoapTest
     assert(@container.after_filter_target_called == true)
   end
 
-  def test_delegated_routing
-    @container = RouterActionControllerTest::DelegatedController.new
+  def test_delegated_dispatching
+    @container = DelegatedController.new
     assert(do_soap_call('Add', 50, 80) == 130)
     assert(service.added == 130)
   end
 
   def test_exception_marshaling
-    @container = RouterActionControllerTest::DirectController.new
+    @container = DirectController.new
     result = do_soap_call('Thrower')
     exception = result.detail
     assert(exception.cause.is_a?(RuntimeError))
@@ -122,9 +130,21 @@ class TC_RouterActionController < AbstractSoapTest
     end
   end
 
+  def test_wsdl_generation
+    ensure_valid_wsdl_generation DelegatedController.new
+    ensure_valid_wsdl_generation DirectController.new
+  end
+
+  def 
+
+  def test_wsdl_action
+    ensure_valid_wsdl_action DelegatedController.new
+    ensure_valid_wsdl_action DirectController.new
+  end
+
   protected
     def service_name
-      @container.is_a?(RouterActionControllerTest::DelegatedController) ? 'test_service' : 'api'
+      @container.is_a?(DelegatedController) ? 'test_service' : 'api'
     end
 
     def service
@@ -135,5 +155,32 @@ class TC_RouterActionController < AbstractSoapTest
       super(public_method_name, *args) do |test_request, test_response|
         response = @container.process(test_request, test_response)
       end
+    end
+
+    def ensure_valid_wsdl_generation(controller)
+      wsdl = controller.generate_wsdl(controller, 'http://localhost:3000/test/', '/test')
+      ensure_valid_wsdl(wsdl)
+    end
+
+    def ensure_valid_wsdl(wsdl)
+      definitions = WSDL::Parser.new.parse(wsdl)
+      assert(definitions.is_a?(WSDL::Definitions))
+      definitions.bindings.each do |binding|
+        assert(binding.name.name.index(':').nil?)
+      end
+      definitions.services.each do |service|
+        service.ports.each do |port|
+          assert(port.name.name.index(':').nil?)
+        end
+      end
+    end
+
+    def ensure_valid_wsdl_action(controller)
+      test_request = ActionController::TestRequest.new({ 'action' => 'wsdl' })
+      test_request.env['REQUEST_METHOD'] = 'GET'
+      test_request.env['HTTP_HOST'] = 'localhost:3000'
+      test_response = ActionController::TestResponse.new
+      wsdl = controller.process(test_request, test_response).body
+      ensure_valid_wsdl(wsdl)
     end
 end

@@ -1,23 +1,114 @@
 module ActionWebService # :nodoc:
-  module Router # :nodoc:
-    module Wsdl # :nodoc:
+  module Dispatcher # :nodoc:
+    module ActionController # :nodoc:
       def self.append_features(base) # :nodoc:
-        base.class_eval do 
+        super
+        base.class_eval do
           class << self
-            alias_method :inherited_without_wsdl, :inherited
+            alias_method :inherited_without_action_controller, :inherited
+          end
+        end
+        base.class_eval do 
+          alias_method :before_direct_invoke_without_action_controller, :before_direct_invoke
+          alias_method :after_direct_invoke_without_action_controller, :after_direct_invoke
+        end
+        base.add_web_service_api_callback do |klass, api|
+          if klass.web_service_dispatching_mode == :direct
+            klass.class_eval <<-EOS
+              def api
+                controller_dispatch_web_service_request
+              end
+            EOS
+          end
+        end
+        base.add_web_service_definition_callback do |klass, name, info|
+          if klass.web_service_dispatching_mode == :delegated
+            klass.class_eval <<-EOS
+              def #{name}
+                controller_dispatch_web_service_request
+              end
+            EOS
           end
         end
         base.extend(ClassMethods)
+        base.send(:include, ActionWebService::Dispatcher::ActionController::Invocation)
       end
 
-      module ClassMethods
+      module ClassMethods # :nodoc:
         def inherited(child)
-          inherited_without_wsdl(child)
-          child.send(:include, ActionWebService::Router::Wsdl::InstanceMethods)
+          inherited_without_action_controller(child)
+          child.send(:include, ActionWebService::Dispatcher::ActionController::WsdlGeneration)
         end
       end
 
-      module InstanceMethods # :nodoc:
+      module Invocation # :nodoc:
+        private
+          def controller_dispatch_web_service_request
+            request, response, elapsed, exception = dispatch_web_service_request(@request)
+            if response
+              begin
+                log_request(request)
+                log_error(exception) if exception && logger
+                log_response(response, elapsed)
+                response_options = { :type => response.content_type, :disposition => 'inline' }
+                send_data(response.raw_body, response_options)
+              rescue Exception => e
+                log_error(e) unless logger.nil?
+                render_text("Internal protocol error", "500 Internal Server Error")
+              end
+            else
+              logger.error("No response available") unless logger.nil?
+              render_text("Internal protocol error", "500 Internal Server Error")
+            end
+          end
+
+          def before_direct_invoke(request)
+            before_direct_invoke_without_action_controller(request)
+            @params ||= {}
+            signature = request.signature
+            if signature && (expects = request.signature[:expects])
+              (0..(@method_params.size-1)).each do |i|
+                if expects[i].is_a?(Hash)
+                  @params[expects[i].keys[0].to_s] = @method_params[i]
+                else
+                  @params['param%d' % i] = @method_params[i]
+                end
+              end
+            end
+            @params['action'] = request.method_name.to_s
+            @session ||= {}
+            @assigns ||= {}
+            return nil if before_action == false
+            true
+          end
+
+          def after_direct_invoke(request)
+            after_direct_invoke_without_action_controller(request)
+            after_action
+          end
+
+          def log_request(request)
+            unless logger.nil? || request.nil?
+              logger.debug("\nWeb Service Request:")
+              indented = request.raw_body.split(/\n/).map{|x| "  #{x}"}.join("\n")
+              logger.debug(indented)
+            end
+          end
+
+          def log_response(response, elapsed)
+            unless logger.nil? || response.nil?
+              logger.debug("\nWeb Service Response (%f):" % elapsed)
+              indented = response.raw_body.split(/\n/).map{|x| "  #{x}"}.join("\n")
+              logger.debug(indented)
+            end
+          end
+
+          unless method_defined?(:logger)
+            def logger; @logger; end
+          end
+      end
+
+      module WsdlGeneration # :nodoc:
         XsdNs             = 'http://www.w3.org/2001/XMLSchema'
         WsdlNs            = 'http://schemas.xmlsoap.org/wsdl/'
         SoapNs            = 'http://schemas.xmlsoap.org/wsdl/soap/'
@@ -28,7 +119,7 @@ module ActionWebService # :nodoc:
           case @request.method
           when :get
             begin
-              host_name = @request.env['HTTP_HOST']||@request.env['SERVER_NAME']
+              host_name = @request.env['HTTP_HOST'] || @request.env['SERVER_NAME']
               uri = "http://#{host_name}/#{controller_name}/"
               soap_action_base = "/#{controller_name}"
               xml = to_wsdl(self, uri, soap_action_base)

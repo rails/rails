@@ -54,7 +54,6 @@ module ActionWebService # :nodoc:
 
         def initialize(container_class)
           super(container_class)
-          container_class.write_inheritable_hash('default_system_methods', XmlRpcProtocol => method(:xmlrpc_default_system_handler))
         end
 
         def unmarshal_request(protocol_request)
@@ -153,20 +152,6 @@ module ActionWebService # :nodoc:
         end
   
         private
-          def xmlrpc_default_system_handler(name, service_class, *args)
-            case name
-            when 'system.listMethods'
-              methods = []
-              api = service_class.web_service_api
-              api.api_methods.each do |name, info|
-                methods << api.public_api_method_name(name)
-              end
-              methods.sort
-            else
-              throw :try_default
-            end
-          end
-
           def check_array_types(signature)
             signature.map{|x| x.is_a?(Array) ? Array : x}
           end

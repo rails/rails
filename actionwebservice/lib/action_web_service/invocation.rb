@@ -1,9 +1,5 @@
 module ActionWebService # :nodoc:
   module Invocation # :nodoc:
-    ConcreteInvocation = :concrete
-    VirtualInvocation = :virtual
-    UnpublishedConcreteInvocation = :unpublished_concrete
-
     class InvocationError < ActionWebService::ActionWebServiceError # :nodoc:
     end
 
@@ -137,31 +133,15 @@ module ActionWebService # :nodoc:
         end
       end
 
-      def perform_invocation_with_interception(invocation, &block)
-        return if before_invocation(invocation.method_name, invocation.params, &block) == false
-        result = perform_invocation_without_interception(invocation)
-        after_invocation(invocation.method_name, invocation.params, result)
-        result
+      def perform_invocation_with_interception(method_name, params, &block)
+        return if before_invocation(method_name, params, &block) == false
+        return_value = perform_invocation_without_interception(method_name, params)
+        after_invocation(method_name, params, return_value)
+        return_value
       end
 
-      def perform_invocation(invocation)
-        if invocation.concrete?
-          unless self.respond_to?(invocation.method_name) && \
-                 self.class.web_service_api.has_api_method?(invocation.method_name)
-            raise InvocationError, "no such web service method '#{invocation.method_name}' on service object"
-          end
-        end
-        params = invocation.params
-        if invocation.concrete? || invocation.unpublished_concrete?
-          self.send(invocation.method_name, *params)
-        else
-          if invocation.block
-            params = invocation.block_params + params
-            invocation.block.call(invocation.public_method_name, *params)
-          else
-            self.send(invocation.method_name, *params)
-          end
-        end
+      def perform_invocation(method_name, params)
+        send(method_name, *params)
       end
 
       def before_invocation(name, args, &block)
@@ -221,32 +201,5 @@ module ActionWebService # :nodoc:
           end
         end
     end
-
-    class InvocationRequest # :nodoc:
-      attr_accessor :type
-      attr :public_method_name
-      attr_accessor :method_name
-      attr_accessor :params
-      attr_accessor :block
-      attr :block_params
-
-      def initialize(type, public_method_name, method_name, params=nil)
-        @type = type
-        @public_method_name = public_method_name
-        @method_name = method_name
-        @params = params || []
-        @block = nil
-        @block_params = []
-      end
-
-      def concrete?
-        @type == ConcreteInvocation ? true : false
-      end
-
-      def unpublished_concrete?
-        @type == UnpublishedConcreteInvocation ? true : false
-      end
-    end
-
   end
 end
