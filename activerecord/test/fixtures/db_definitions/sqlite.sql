@@ -85,3 +85,16 @@ CREATE TABLE 'colnametests' (
   'id' INTEGER NOT NULL PRIMARY KEY,
   'references' INTEGER NOT NULL
 );
+
+CREATE TABLE 'mixins' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'parent_id' INTEGER DEFAULT NULL,
+  'pos' INTEGER DEFAULT NULL,
+  'lft' INTEGER DEFAULT NULL,
+  'rgt' INTEGER DEFAULT NULL,
+  'root_id' INTEGER DEFAULT NULL,    
+  'created_at' DATETIME DEFAULT NULL,
+  'updated_at' DATETIME DEFAULT NULL
+);
+
+

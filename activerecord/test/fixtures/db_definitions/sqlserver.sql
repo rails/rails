@@ -94,3 +94,17 @@ CREATE TABLE colnametests (
   [references] int NOT NULL,
   PRIMARY KEY (id)
 );
+
+CREATE TABLE mixins (
+  id int NOT NULL IDENTITY(1, 1),
+  parent_id int default NULL,
+  pos int default NULL,
+  lft int default NULL,
+  rgt int default NULL,
+  root_id int default NULL,      
+  created_at datetime default NULL,
+  updated_at datetime default NULL,
+  PRIMARY KEY (id)    
+);
+
+

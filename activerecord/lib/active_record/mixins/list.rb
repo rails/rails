@@ -32,6 +32,12 @@ module ActiveRecord
         base.before_destroy :remove_from_list
         base.after_create   :add_to_list_bottom
       end
+      
+      # can be overriden
+      
+      def position_column
+        "position"
+      end
 
       # Moving around on the list
 
@@ -86,22 +92,22 @@ module ActiveRecord
       # Changing the position
 
       def increment_position
-        update_attribute "position", position.to_i + 1
+        update_attribute position_column, self.send(position_column).to_i + 1
       end
     
       def decrement_position
-        update_attribute "position", position.to_i - 1
+        update_attribute position_column, self.send(position_column).to_i - 1
       end
     
     
       # Querying the position
     
       def first?
-        self.position == 1
+        self.send(position_column) == 1
       end
     
       def last?
-        self.position == bottom_position_in_list
+        self.send(position_column) == bottom_position_in_list
       end
 
       private
@@ -110,51 +116,51 @@ module ActiveRecord
     
         def higher_item
           self.class.find_first(
-            "#{scope_condition} AND position = #{(position.to_i - 1).to_s}"
+            "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i - 1).to_s}"
           )
         end
     
         def lower_item
           self.class.find_first(
-            "#{scope_condition} AND position = #{(position.to_i + 1).to_s}"
+            "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i + 1).to_s}"
           )
         end
     
         def bottom_position_in_list
           item = bottom_item
-          item ? item.position : 0
+          item ? item.send(position_column) : 0
         end
     
         def bottom_item
           self.class.find_first(
             "#{scope_condition} ",
-            "position DESC"
+            "#{position_column} DESC"
           )
         end
 
         def assume_bottom_position
-          update_attribute "position", bottom_position_in_list.to_i + 1
+          update_attribute position_column, bottom_position_in_list.to_i + 1
         end
       
         def assume_top_position
-          update_attribute "position", 1
+          update_attribute position_column, 1
         end
       
         def decrement_positions_on_lower_items
           self.class.update_all(
-            "position = (position - 1)",  "#{scope_condition} AND position > #{position.to_i}"
+            "#{position_column} = (#{position_column} - 1)",  "#{scope_condition} AND #{position_column} > #{send(position_column).to_i}"
           )
         end
       
         def increment_positions_on_higher_items
           self.class.update_all(
-            "position = (position + 1)",  "#{scope_condition} AND position < #{position.to_i}"
+            "#{position_column} = (#{position_column} + 1)",  "#{scope_condition} AND #{position_column} < #{send(position_column)}"
           )
         end
 
         def increment_positions_on_all_items
           self.class.update_all(
-            "position = (position + 1)",  "#{scope_condition}"
+            "#{position_column} = (#{position_column} + 1)",  "#{scope_condition}"
           )
         end
     end

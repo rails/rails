@@ -193,8 +193,11 @@ class Fixtures < Hash
     def read_fixture_files
       if File.file?(yaml_file_path)
         # YAML fixtures
-        YAML::load(erb_render(IO.read(yaml_file_path))).each do |name, data|
-          self[name] = Fixture.new(data, @class_name)
+        begin
+          yaml = YAML::load(erb_render(IO.read(yaml_file_path)))
+          yaml.each { |name, data| self[name] = Fixture.new(data, @class_name) } if yaml
+        rescue Exception=>boom
+          raise Fixture::FormatError, "a YAML error occured parsing #{yaml_file_path}"
         end
       elsif File.file?(csv_file_path)
         # CSV fixtures

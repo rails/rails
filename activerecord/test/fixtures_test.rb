@@ -87,4 +87,23 @@ class FixturesTest < Test::Unit::TestCase
     assert_equal 10, @developers.size
     assert_equal "fixture_5", @dev_5.name
   end
+
+  def test_empty_yaml_fixture
+    assert_not_nil Fixtures.new( Account.connection, "accounts", File.dirname(__FILE__) + "/fixtures/naked/yml/accounts")
+  end
+
+  def test_empty_yaml_fixture_with_a_comment_in_it
+    assert_not_nil Fixtures.new( Account.connection, "companies", File.dirname(__FILE__) + "/fixtures/naked/yml/companies")
+  end
+
+  def test_dirty_dirty_yaml_file
+    assert_raises(Fixture::FormatError) do
+      Fixtures.new( Account.connection, "courses", File.dirname(__FILE__) + "/fixtures/naked/yml/courses")
+    end
+  end
+
+  def test_empty_csv_fixtures
+    assert_not_nil Fixtures.new( Account.connection, "accounts", File.dirname(__FILE__) + "/fixtures/naked/csv/accounts")
+  end
+  
 end

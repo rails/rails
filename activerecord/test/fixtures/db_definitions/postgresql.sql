@@ -113,3 +113,15 @@ CREATE TABLE colnametests (
   id serial,
   "references" integer NOT NULL
 );
+
+CREATE TABLE mixins (
+  id serial,
+  parent_id integer,
+  pos integer,
+  lft integer,
+  rgt integer,
+  root_id integer,  
+  created_at timestamp,
+  updated_at timestamp,
+  PRIMARY KEY  (`id`)
+);

@@ -96,3 +96,15 @@ CREATE TABLE `colnametests` (
   `references` int(11) NOT NULL,
   PRIMARY KEY (`id`)
 );
+
+CREATE TABLE `mixins` (
+  `id` int(11) NOT NULL auto_increment,
+  `parent_id` int(11) default NULL,
+  `pos` int(11) default NULL,
+  `lft` int(11) default NULL,
+  `rgt` int(11) default NULL,
+  `root_id` int(11) default NULL,  
+  `created_at` datetime default NULL,
+  `updated_at` datetime default NULL,
+  PRIMARY KEY  (`id`)
+);
