@@ -52,6 +52,7 @@ files = %w-
  active_record/support/clean_logger.rb
  active_record/support/core_ext/hash/keys.rb
  active_record/support/core_ext/hash.rb
+ active_record/support/core_ext/object_and_class.rb
  active_record/support/core_ext/numeric/bytes.rb
  active_record/support/core_ext/numeric/time.rb
  active_record/support/core_ext/numeric.rb

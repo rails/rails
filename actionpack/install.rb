@@ -65,6 +65,7 @@ files = %w-
  action_controller/support/clean_logger.rb
  action_controller/support/core_ext/hash/keys.rb
  action_controller/support/core_ext/hash.rb
+ action_controller/support/core_ext/object_and_class.rb
  action_controller/support/core_ext/numeric/bytes.rb
  action_controller/support/core_ext/numeric/time.rb
  action_controller/support/core_ext/numeric.rb

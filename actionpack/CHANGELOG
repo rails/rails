@@ -1,4 +1,6 @@
-*SVN*
+*1.4.0* (January 25th, 2005)
+
+* Fixed problems with ActiveRecordStore under the development environment in Rails
 
 * Fixed the ordering of attributes in the xml-decleration of Builder #540 [woeye]
 

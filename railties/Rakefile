@@ -9,7 +9,7 @@ require 'rbconfig'
 
 PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME        = 'rails'
-PKG_VERSION     = '0.9.4.1' + PKG_BUILD
+PKG_VERSION     = '0.9.5' + PKG_BUILD
 PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 
@@ -247,8 +247,8 @@ spec = Gem::Specification.new do |s|
   EOF
 
   s.add_dependency('rake', '>= 0.4.15')
-  s.add_dependency('activerecord', '>= 1.5.1')
-  s.add_dependency('actionpack', '>= 1.3.1')
+  s.add_dependency('activerecord', '>= 1.6.0')
+  s.add_dependency('actionpack', '>= 1.4.0')
   s.add_dependency('actionmailer', '>= 0.6.1')
 
   s.has_rdoc = false
