@@ -24,8 +24,8 @@ module ActionView
       # Examples:
       #  link_to_remote "Delete this post", :update => "posts", :url => { :action => "destroy", :id => post.id }
       #  link_to_remote(image_tag("refresh"), :update => "emails", :url => { :action => "list_emails" })
-      def link_to_remote(name, options = {})  
-        link_to_function(name, remote_function(options))
+      def link_to_remote(name, options = {}, html_options = {})  
+        link_to_function(name, remote_function(options), html_options)
       end
 
       def form_remote_tag(options = {})
@@ -53,7 +53,7 @@ module ActionView
       },
       
       present: function() {
-        for(i = 0; i < arguments.length; i++) { if (o(arguments[i]).value = '') { return false; } }
+        for(i = 0; i < arguments.length; i++) { if (o(arguments[i]).value == '') { return false; } }
         return true;
       }
     }
@@ -76,7 +76,7 @@ module ActionView
       
       req = xml_http_request_object();
       req.open(type, url, async);
-      req.send(parameters);
+      req.send(parameters ? parameters + "&_=" : parameters);
       
       return req.responseText;
     }
