@@ -66,17 +66,17 @@ module ActiveRecord
 
       def native_database_types
         {
-          :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
-          :string      => "varchar(255)",
-          :text        => "text",
-          :integer     => "int(11)",
-          :float       => "float",
-          :datetime    => "datetime",
-          :timestamp   => "datetime",
-          :time        => "datetime",
-          :date        => "date",
-          :binary      => "blob",
-          :boolean     => "tinyint(1)"
+          :primary_key => { :name => "int(11) DEFAULT NULL auto_increment PRIMARY KEY" },
+          :string      => { :name => "varchar", :limit => 255 },
+          :text        => { :name => "text" },
+          :integer     => { :name => "int", :limit => 11 },
+          :float       => { :name => "float" },
+          :datetime    => { :name => "datetime" },
+          :timestamp   => { :name => "datetime" },
+          :time        => { :name => "datetime" },
+          :date        => { :name => "date" },
+          :binary      => { :name => "blob" },
+          :boolean     => { :name => "tinyint", :limit => 1 }
         }
       end
 

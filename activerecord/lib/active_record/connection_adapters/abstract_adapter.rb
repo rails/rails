@@ -377,8 +377,9 @@ module ActiveRecord
       end
 
       def add_column(table_name, column_name, type, options = {})
-        add_column_sql = "ALTER TABLE #{table_name} ADD #{column_name} #{native_database_types[type]}"
-        add_column_sql << "(#{limit})" if options[:limit]
+        native_type = native_database_types[type]
+        add_column_sql = "ALTER TABLE #{table_name} ADD #{column_name} #{native_type[:name]}"
+        add_column_sql << "(#{options[:limit] || native_type[:limit]})" if options[:limit] || native_type[:limit]
         add_column_sql << " DEFAULT '#{options[:default]}'" if options[:default]
         execute(add_column_sql)
       end
