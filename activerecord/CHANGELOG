@@ -1,5 +1,7 @@
 *CVS*
 
+* Added the possibility of marking fields as being in error without adding a message (using nil) to it that'll get displayed wth full_messages #208 [mjobin] 
+
 * Fixed Base.errors to be indifferent as to whether strings or symbols are used. Examples:
 
     Before:
