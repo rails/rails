@@ -70,12 +70,21 @@ module ActiveRecord
         @collection = []
       end
       
+      # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been loaded and
+      # calling collection.size if it has. If it's more likely than not that the collection does have a size larger than zero
+      # and you need to fetch that collection afterwards, it'll take one less SELECT query if you use length.
       def size
         if loaded? then @collection.size else count_records end
       end
       
+      # Returns the size of the collection by loading it and calling size on the array. If you want to use this method to check
+      # whether the collection is empty, use collection.length.zero? instead of collection.empty?
+      def length
+        load_collection.size
+      end
+      
       def empty?
-        size == 0
+        size.zero?
       end
       
       def uniq(collection = self)
