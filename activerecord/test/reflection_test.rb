@@ -49,8 +49,12 @@ class ReflectionTest < Test::Unit::TestCase
       :composed_of, :balance, { :class_name => "Money", :mapping => %w(balance amount) }, Customer
     )
 
+    reflection_for_gps_location = ActiveRecord::Reflection::AggregateReflection.new(
+      :composed_of, :gps_location, { }, Customer
+    )
+
     assert_equal(
-      [ reflection_for_address, reflection_for_balance ],
+      [ reflection_for_address, reflection_for_balance, reflection_for_gps_location ],
       Customer.reflect_on_all_aggregations
     )
     
