@@ -54,14 +54,14 @@ module ActionController #:nodoc:
       module ClassMethods
         def cache_page(content, path)
           return unless perform_caching
-          FileUtils.makedirs(File.dirname(page_cache_directory + path))
-          File.open(page_cache_directory + path, "w+") { |f| f.write(content) }
+          FileUtils.makedirs(File.dirname(page_cache_path(path)))
+          File.open(page_cache_path(path), "w+") { |f| f.write(content) }
           logger.info "Cached page: #{path}" unless logger.nil?
         end
 
         def expire_page(path)
           return unless perform_caching
-          File.delete(page_cache_directory + path) if File.exists?(page_cache_directory + path)
+          File.delete(page_cache_path(path)) if File.exists?(page_cache_path(path))
           logger.info "Expired page: #{path}" unless logger.nil?
         end
         
@@ -69,6 +69,14 @@ module ActionController #:nodoc:
           return unless perform_caching
           actions.each do |action| 
             class_eval "after_filter { |c| c.cache_page if c.action_name == '#{action}' }"
+          end
+        end
+        
+        def page_cache_path(path)
+          if path[-1,1] == '/'
+            page_cache_directory + path + '/index'
+          else
+            page_cache_directory + path
           end
         end
       end
@@ -94,8 +102,12 @@ module ActionController #:nodoc:
       end
       
       def cache_page(content = nil, options = {})
-        return unless perform_caching
+        return unless perform_caching && caching_allowed
         self.class.cache_page(content || @response.body, url_for(options.merge({ :only_path => true })))
+      end
+
+      def caching_allowed
+        !@request.method.post? and (@request.parameters.reject {|k, v| ['id', 'action', 'controller'].include?(k)}).empty?
       end
     end
 
