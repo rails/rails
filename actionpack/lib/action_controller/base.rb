@@ -5,10 +5,6 @@ require 'action_controller/support/class_attribute_accessors'
 require 'action_controller/support/class_inheritable_attributes'
 require 'action_controller/support/inflector'
 
-unless Object.respond_to?(:require_dependency)
-  Object.send(:define_method, :require_dependency) { |file_name| ActionController::Base.require_dependency(file_name) }
-end
-
 module ActionController #:nodoc:
   class ActionControllerError < StandardError #:nodoc:
   end
@@ -197,12 +193,6 @@ module ActionController #:nodoc:
     @@consider_all_requests_local = true
     cattr_accessor :consider_all_requests_local
 
-    # When turned on (which is default), all dependencies are included using "load". This mean that any change is instant in cached
-    # environments like mod_ruby or FastCGI. When set to false, "require" is used, which is faster but requires server restart to
-    # be effective.
-    @@reload_dependencies = true
-    cattr_accessor :reload_dependencies
-
     # Template root determines the base from which template references will be made. So a call to render("test/template")
     # will be converted to "#{template_root}/test/template.rhtml".
     cattr_accessor :template_root
@@ -248,7 +238,7 @@ module ActionController #:nodoc:
       def process(request, response) #:nodoc:
         new.process(request, response)
       end
-
+      
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "NeatController".
       def controller_class_name
         Inflector.demodulize(name)
@@ -258,22 +248,17 @@ module ActionController #:nodoc:
       def controller_name
         Inflector.underscore(controller_class_name.sub(/Controller/, ""))
       end
-
-      # Loads the <tt>file_name</tt> if reload_dependencies is true or requires if it's false.
-      def require_dependency(file_name)
-        reload_dependencies ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
-      end
     end
 
     public
       # Extracts the action_name from the request parameters and performs that action.
-      def process(request, response) #:nodoc:
+      def process(request, response, method = :perform_action, *arguments) #:nodoc:
         initialize_template_class(response)
         assign_shortcuts(request, response)
         initialize_current_url
 
         log_processing unless logger.nil?
-        perform_action
+        send(method, *arguments)
         close_session
 
         return @response

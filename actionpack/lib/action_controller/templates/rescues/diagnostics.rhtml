@@ -1,8 +1,6 @@
 <%
-  base_dir = File.expand_path(File.dirname(__FILE__))
-    
-  clean_backtrace = @exception.backtrace.collect { |line| line.gsub(base_dir, "").gsub("/../config/environments/../../", "") }
-  app_trace       = clean_backtrace.reject { |line| line[0..6] == "vendor/" || line.include?("dispatch.cgi") }
+  clean_backtrace = @exception.backtrace.collect { |line| Object.const_defined?(:RAILS_ROOT) ? line.gsub(RAILS_ROOT, "") : line }
+  app_trace       = clean_backtrace.reject { |line| line =~ /(vendor|dispatch|ruby)/ }
   framework_trace = clean_backtrace - app_trace
 %>
 
@@ -10,9 +8,9 @@
   <%=h @exception.class.to_s %> in
   <%=h @request.parameters["controller"].capitalize %>#<%=h @request.parameters["action"] %>
 </h1>
-<p><%=h @exception.message %></p>
+<p><%=h Object.const_defined?(:RAILS_ROOT) ? @exception.message.gsub(RAILS_ROOT, "") : @exception.message %></p>
 
-<% unless app_trace.empty? %><pre><code><%=h app_trace.collect { |line| line.gsub("/../", "") }.join("\n") %></code></pre><% end %>
+<% unless app_trace.empty? %><pre><code><%=h app_trace.join("\n") %></code></pre><% end %>
 
 <% unless framework_trace.empty? %>
   <a href="#" onclick="document.getElementById('framework_trace').style.display='block'; return false;">Show framework trace</a>

@@ -73,7 +73,7 @@ module Generator
     end
   end
 
-  # Generate model, unit test, and fixtures.
+  # Generate model, unit test, and fixtures. 
   class Model < Base
     def generate
 

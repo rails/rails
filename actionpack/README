@@ -325,7 +325,6 @@ methods:
     
     def create
       @post = Post.create(@params["post"])
-      @post.save
       redirect_to :action => "display", :id => @post.id
     end
   end

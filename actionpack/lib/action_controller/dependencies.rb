@@ -1,11 +1,29 @@
+unless Object.respond_to?(:require_dependency)
+  Object.send(:define_method, :require_dependency) { |file_name| ActionController::Base.require_dependency(file_name) }
+end
+
 module ActionController #:nodoc:
   module Dependencies #:nodoc:
     def self.append_features(base)
       super
+
+      base.class_eval do
+        # When turned on (which is default), all dependencies are included using "load". This mean that any change is instant in cached
+        # environments like mod_ruby or FastCGI. When set to false, "require" is used, which is faster but requires server restart to
+        # be effective.
+        @@reload_dependencies = true
+        cattr_accessor :reload_dependencies
+      end
+
       base.extend(ClassMethods)
     end
 
     module ClassMethods
+      # Loads the <tt>file_name</tt> if reload_dependencies is true or requires if it's false.
+      def require_dependency(file_name)
+        reload_dependencies ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
+      end
+      
       def model(*models)
         require_dependencies(:model, models)
         depend_on(:model, models)

@@ -24,7 +24,7 @@
 class Dispatcher
   DEFAULT_SESSION_OPTIONS = { "database_manager" => CGI::Session::PStore, "prefix" => "ruby_sess.", "session_path" => "/" }
 
-  def self.dispatch(cgi = CGI.new, session_options = DEFAULT_SESSION_OPTIONS, error_page = nil)
+  def self.dispatch(cgi = CGI.new, session_options = DEFAULT_SESSION_OPTIONS)
     begin
       request  = ActionController::CgiRequest.new(cgi, session_options)
       response = ActionController::CgiResponse.new(cgi)
@@ -35,14 +35,8 @@ class Dispatcher
       require_dependency(controller_path(controller_name, module_name))
 
       controller_class(controller_name).process(request, response).out
-    rescue Object => e
-      begin
-        ActionController::Base.logger.info "\n\nException throw during dispatch: #{e.message}\n#{e.backtrace.join("\n")}"
-      rescue Exception
-        # Couldn't log error
-      end
-      
-      if error_page then cgi.out{ IO.readlines(error_page) } else raise e end
+    rescue Object => exception
+      ActionController::Base.process_with_exception(request, response, exception).out
     ensure
       ActiveRecord::Base.reset_associations_loaded
 

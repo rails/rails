@@ -85,7 +85,6 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
       res.set_error(err)
       return true
     rescue => err
-      p err
       return false
     end
   end

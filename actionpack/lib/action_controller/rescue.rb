@@ -8,9 +8,16 @@ module ActionController #:nodoc:
   module Rescue
     def self.append_features(base) #:nodoc:
       super
+      base.extend(ClassMethods)
       base.class_eval do
         alias_method :perform_action_without_rescue, :perform_action
         alias_method :perform_action, :perform_action_with_rescue
+      end
+    end
+
+    module ClassMethods
+      def process_with_exception(request, response, exception)
+        new.process(request, response, :rescue_action, exception)
       end
     end
 
@@ -87,8 +94,7 @@ module ActionController #:nodoc:
       end
       
       def clean_backtrace(exception)
-        base_dir = File.expand_path(File.dirname(__FILE__) + "/../../../../")
-        exception.backtrace.collect { |line| line.gsub(base_dir, "").gsub("/public/../config/environments/../../", "").gsub("/public/../", "") }
+        exception.backtrace.collect { |line| Object.const_defined?(:RAILS_ROOT) ? line.gsub(RAILS_ROOT, "") : line }
       end
   end
 end
