@@ -14,7 +14,7 @@ class CGI #:nodoc:
         @params = CGI::parse(read_query_params)
       end
       
-      @cookies = CGI::Cookie::parse((env_table['HTTP_COOKIE'] or env_table['COOKIE']))
+      @cookies = CGI::Cookie::parse((env_table['HTTP_COOKIE'] || env_table['COOKIE']))
     end
 
     private
@@ -30,13 +30,13 @@ class CGI #:nodoc:
         case env_table['REQUEST_METHOD']
           when 'GET', 'HEAD'
             if defined? MOD_RUBY              
-              Apache::request.args or ''
+              Apache::request.args || ''
             else
-              env_table['QUERY_STRING'] or ''
+              env_table['QUERY_STRING'] || ''
             end
           when 'POST'
             stdinput.binmode if stdinput.respond_to?(:binmode)
-            content = stdinput.read(Integer(env_table['CONTENT_LENGTH'])) or ''
+            content = stdinput.read(Integer(env_table['CONTENT_LENGTH'])) || ''
             env_table['RAW_POST_DATA'] = content.freeze
           else
             read_from_cmdline
