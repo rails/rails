@@ -73,40 +73,52 @@ end
 
 desc "Recreate the test databases from the development structure"
 task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
-  if ActiveRecord::Base.configurations["test"]["adapter"] == "mysql"
-    ActiveRecord::Base.establish_connection(:test)
-    ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
-    IO.readlines("db/#{RAILS_ENV}_structure.sql").join.split("\n\n").each do |table|
-      ActiveRecord::Base.connection.execute(table)
-    end
-  elsif ActiveRecord::Base.configurations["test"]["adapter"] == "postgresql"
-    `psql -U #{ActiveRecord::Base.configurations["test"]["username"]} -f db/#{RAILS_ENV}_structure.sql #{ActiveRecord::Base.configurations["test"]["database"]}`
-  elsif ActiveRecord::Base.configurations["test"]["adapter"] == "sqlite"
-    `sqlite #{ActiveRecord::Base.configurations["test"]["dbfile"]} < db/#{RAILS_ENV}_structure.sql`
+  abcs = ActiveRecord::Base.configurations
+  case abcs["test"]["adapter"]
+    when  "mysql"
+      ActiveRecord::Base.establish_connection(:test)
+      ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
+      IO.readlines("db/#{RAILS_ENV}_structure.sql").join.split("\n\n").each do |table|
+        ActiveRecord::Base.connection.execute(table)
+      end
+    when  "postgresql"
+      `psql -U #{abcs["test"]["username"]} -f db/#{RAILS_ENV}_structure.sql #{abcs["test"]["database"]}`
+    when "sqlite", "sqlite3"
+      `#{abcs[RAILS_ENV]["adapter"]} #{abcs["test"]["dbfile"]} < db/#{RAILS_ENV}_structure.sql`
+    else 
+      raise "Unknown database adapter '#{abcs["test"]["adapter"]}'"
   end
 end
 
 desc "Dump the database structure to a SQL file"
 task :db_structure_dump do
-  if ActiveRecord::Base.configurations[RAILS_ENV]["adapter"] == "mysql"
-    ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[RAILS_ENV])
-    File.open("db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
-  elsif ActiveRecord::Base.configurations[RAILS_ENV]["adapter"] == "postgresql"
-    `pg_dump -U #{ActiveRecord::Base.configurations[RAILS_ENV]["username"]} -s -f db/#{RAILS_ENV}_structure.sql #{ActiveRecord::Base.configurations[RAILS_ENV]["database"]}`
-  elsif ActiveRecord::Base.configurations[RAILS_ENV]["adapter"] == "sqlite"
-    `sqlite #{ActiveRecord::Base.configurations[RAILS_ENV]["dbfile"]} .schema > db/#{RAILS_ENV}_structure.sql`
+  abcs = ActiveRecord::Base.configurations
+  case abcs[RAILS_ENV]["adapter"] 
+    when "mysql"
+      ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
+      File.open("db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
+    when  "postgresql"
+      `pg_dump -U #{abcs[RAILS_ENV]["username"]} -s -f db/#{RAILS_ENV}_structure.sql #{abcs[RAILS_ENV]["database"]}`
+    when "sqlite", "sqlite3"
+      `#{abcs[RAILS_ENV]["adapter"]} #{abcs[RAILS_ENV]["dbfile"]} .schema > db/#{RAILS_ENV}_structure.sql`
+    else 
+      raise "Unknown database adapter '#{abcs["test"]["adapter"]}'"
   end
 end
 
-desc "Drop the test database and bring it back again"
+desc "Empty the test database"
 task :purge_test_database do
-  if ActiveRecord::Base.configurations["test"]["adapter"] == "mysql"
-    ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[RAILS_ENV])
-    ActiveRecord::Base.connection.recreate_database(ActiveRecord::Base.configurations["test"]["database"])
-  elsif ActiveRecord::Base.configurations["test"]["adapter"] == "postgresql"
-    `dropdb -U #{ActiveRecord::Base.configurations["test"]["username"]} #{ActiveRecord::Base.configurations["test"]["database"]}`
-    `createdb -U #{ActiveRecord::Base.configurations["test"]["username"]}  #{ActiveRecord::Base.configurations["test"]["database"]}`
-  elsif ActiveRecord::Base.configurations["test"]["adapter"] == "sqlite"
-    File.delete(ActiveRecord::Base.configurations["test"]["dbfile"]) if File.exist?(ActiveRecord::Base.configurations["test"]["dbfile"])
+  abcs = ActiveRecord::Base.configurations
+  case abcs["test"]["adapter"]
+    when "mysql"
+      ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
+      ActiveRecord::Base.connection.recreate_database(abcs["test"]["database"])
+    when "postgresql"
+      `dropdb -U #{abcs["test"]["username"]} #{abcs["test"]["database"]}`
+      `createdb -U #{abcs["test"]["username"]}  #{abcs["test"]["database"]}`
+    when "sqlite","sqlite3"
+      File.delete(abcs["test"]["dbfile"]) if File.exist?(abcs["test"]["dbfile"])
+    else 
+      raise "Unknown database adapter '#{abcs["test"]["adapter"]}'"
   end
 end

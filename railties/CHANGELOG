@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed skeleton Rakefile to work with sqlite3 out of the box #521 [rasputnik]
+
 * Fixed that script/breakpointer didn't get the Ruby path rewritten as the other scripts #523 [brandt@kurowski.net]
 
 * Fixed superclass mismatch and other controller related problems by not using dependency reloading for controllers. This means that controller
