@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed default IP binding for WEBrick from 127.0.0.1 to 0.0.0.0 so that the server is accessible both locally and remotely #696 [Marcel]
+
 * Fixed that script/server -d was broken so daemon mode couldn't be used #687 [Nicholas Seckar]
 
 * Upgraded to breakpoint 92 which fixes:
