@@ -13,8 +13,6 @@ module Dependencies
     if !loaded.include?(file_name)
       loaded << file_name
 
-      STDERR << "Loaded: #{file_name}\n"
-
       begin
         require_or_load(file_name)
       rescue LoadError
