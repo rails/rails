@@ -224,7 +224,7 @@ module ActionController
           else
             relative_to = defaults[:controller] ? defaults[:controller].split('/')[0..-2].join('/') : ''
             options[:controller] = relative_to.empty? ? options[:controller] : "#{relative_to}/#{options[:controller]}"
-            defaults.delete(:action) unless options[:controller] == defaults[:controller]
+            defaults.delete(:action) if options.key?(:controller)
           end
         else
           options[:controller] = defaults[:controller]
@@ -256,6 +256,6 @@ module ActionController
     end
     
     Routes = RouteSet.new
-    #Routes.reload # Do this here, so that server will die on load if SyntaxError or whatnot.
+    Routes.reload # Server will die on load if SyntaxError
   end
 end
