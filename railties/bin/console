@@ -8,10 +8,10 @@ else
   puts <<-HELP
 
 NAME
-     envcon - interact with the domain model through a environment console (on IRB)
+     console - interact with the domain model through a environment console (on IRB)
 
 SYNOPSIS
-     envcon [environment]
+     console [environment]
 
 DESCRIPTION
      Starts an environment console using IRB that lets you manipulate and interrogate
@@ -21,7 +21,7 @@ DESCRIPTION
      Tab completion is available to see classes and methods on individual objects.
      
 EXAMPLE
-     envcon production
+     console production
      
      This will initialize the production environment (as setup in config/database.yml
      and config/environments/production.rb). You would now be ready to start requiring

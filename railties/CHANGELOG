@@ -5,7 +5,7 @@
 * Renamed AbstractApplicationController and abstract_application.rb to ApplicationController and application.rb, so that it will be possible
   for the framework to automatically pick up on app/views/layouts/application.rhtml and app/helpers/application.rb
 
-* Added script/envcon that makes it even easier to start an IRB session for interacting with the domain model. Run with no-args to
+* Added script/console that makes it even easier to start an IRB session for interacting with the domain model. Run with no-args to
   see help.
 
 * Added breakpoint support through the script/breakpointer client. This means that you can break out of execution at any point in

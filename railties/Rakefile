@@ -21,7 +21,7 @@ TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/testing
 
 LOG_FILES    = %w( apache.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html )
-BIN_FILES    = %w( generate breakpointer envcon server )
+BIN_FILES    = %w( generate breakpointer console server )
 GENERATORS   = %w( controller mailer model scaffold )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer railties )
@@ -109,8 +109,8 @@ task :copy_dispatches do
   cp "dispatches/dispatch.fcgi", "#{PKG_DESTINATION}/public/dispatch.fcgi"
   chmod 0755, "#{PKG_DESTINATION}/public/dispatch.fcgi"
 
-  cp "bin/envcon", "#{PKG_DESTINATION}/script/envcon"
-  chmod 0755, "#{PKG_DESTINATION}/script/envcon"
+  cp "bin/console", "#{PKG_DESTINATION}/script/console"
+  chmod 0755, "#{PKG_DESTINATION}/script/console"
 end
 
 task :copy_html_files do
