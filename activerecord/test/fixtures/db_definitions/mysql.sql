@@ -38,19 +38,19 @@ CREATE TABLE `developers` (
   `name` varchar(100) default NULL,
   `salary` int(11) default 70000,
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `projects` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(100) default NULL,
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `developers_projects` (
   `developer_id` int(11) NOT NULL,
   `project_id` int(11) NOT NULL,
   `joined_on` date default NULL
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `customers` (
   `id` int(11) NOT NULL auto_increment,
@@ -61,31 +61,31 @@ CREATE TABLE `customers` (
   `address_country` varchar(100) default NULL,
   `gps_location` varchar(100) default NULL,
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `movies` (
   `movieid` int(11) NOT NULL auto_increment,
   `name` varchar(100) default NULL,
    PRIMARY KEY  (`movieid`)
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `subscribers` (
   `nick` varchar(100) NOT NULL,
   `name` varchar(100) default NULL,
   PRIMARY KEY  (`nick`)
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `booleantests` (
   `id` int(11) NOT NULL auto_increment,
   `value` integer default NULL,
   PRIMARY KEY (`id`)
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `auto_id_tests` (
   `auto_id` int(11) NOT NULL auto_increment,
   `value` integer default NULL,
   PRIMARY KEY (`auto_id`)
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `entrants` (
   `id` INTEGER NOT NULL PRIMARY KEY,
@@ -97,7 +97,7 @@ CREATE TABLE `colnametests` (
   `id` int(11) NOT NULL auto_increment,
   `references` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `mixins` (
   `id` int(11) NOT NULL auto_increment,
@@ -110,22 +110,22 @@ CREATE TABLE `mixins` (
   `root_id` int(11) default NULL,
   `type` varchar(40) default NULL,
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `people` (
   `id` INTEGER NOT NULL PRIMARY KEY,
   `first_name` VARCHAR(40) NOT NULL,
   `lock_version` INTEGER NOT NULL DEFAULT 0
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `binaries` (
   `id` int(11) NOT NULL auto_increment,
   `data` mediumblob,
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `computers` (
   `id` INTEGER NOT NULL PRIMARY KEY,
   `developer` INTEGER NOT NULL
-);
+) TYPE=InnoDB;
 
