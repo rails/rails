@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :owerwrite_params back to url_for and friends -- it was AWL since the introduction of Routes #921 [raphinou]
+
 * Added :position option to link_to_remote/form_remote_tag that can be either :before, :top, :bottom, or :after and specifies where the return from the method should be inserted #952 [Matthew McCray/Sam Stephenson]
 
 * Added Effect.Highlight to prototype.js to do Yellow Fade Technique (of 37signals' fame) on any container #952 [Sam Stephenson/?]
