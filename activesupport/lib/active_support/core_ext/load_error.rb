@@ -4,6 +4,10 @@ class MissingSourceFile < LoadError
     super(message)
     @path = path
   end
+
+  def is_missing?(path)
+    path.gsub(/\.rb$/, '') == self.path.gsub(/\.rb$/, '')
+  end
   
   def self.from_message(message)
     REGEXPS.each do |regexp, capture|

@@ -86,7 +86,7 @@ module ActionWebService # :nodoc:
             inherited_without_api(child)
             begin child.web_service_api(child.controller_path)
             rescue MissingSourceFile => e
-              raise unless e.path == "apis/#{child.controller_path}_api.rb"
+              raise unless e.is_missing?("apis/#{child.controller_path}_api")
             end
           end
       end

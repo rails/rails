@@ -82,14 +82,6 @@ module ActionController #:nodoc:
 
         def inherited(child)
           inherited_without_model(child)
-          return if child.controller_name == "application" # otherwise the ApplicationController in Rails will include itself
-          model_name = child.controller_name.singularize
-          begin
-            require_dependency model_name
-            child.model model_name
-          rescue MissingSourceFile => e
-            raise unless e.path == model_name + '.rb'
-          end
         end        
     end
   end

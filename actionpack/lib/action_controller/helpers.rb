@@ -93,7 +93,7 @@ module ActionController #:nodoc:
           inherited_without_helper(child)
           begin child.helper(child.controller_path)
           rescue MissingSourceFile => e
-            raise unless e.path == "helpers/#{child.controller_path}_helper.rb"
+            raise unless e.is_missing?("helpers/#{child.controller_path}_helper")
           end
         end        
     end
