@@ -529,10 +529,11 @@ module ActionController #:nodoc:
       end
 
       # Redirects the browser to the specified <tt>url</tt>. Used to redirect outside of the current application. Example:
-      # <tt>redirect_to_url "http://www.rubyonrails.org"</tt>.
-      def redirect_to_url(url) #:doc:
+      # <tt>redirect_to_url "http://www.rubyonrails.org"</tt>. If the resource has moved permanently, it's possible to pass true as the
+      # second parameter and the browser will get "301 Moved Permanently" instead of "302 Found".
+      def redirect_to_url(url, permanently = false) #:doc:
         logger.info("Redirected to #{url}") unless logger.nil?
-        @response.redirect(url)
+        @response.redirect(url, permanently)
         @performed_redirect = true
       end
 

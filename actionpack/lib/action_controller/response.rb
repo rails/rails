@@ -7,8 +7,8 @@ module ActionController
       @body, @headers, @session, @assigns = "", DEFAULT_HEADERS.merge("cookie" => []), [], []
     end
 
-    def redirect(to_url)
-      @headers["Status"]   = "302 Moved"
+    def redirect(to_url, permanently = false)
+      @headers["Status"]   = permanently ? "301 Moved Permanently" : "302 Found"
       @headers["location"] = to_url
     end
   end
