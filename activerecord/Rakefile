@@ -6,6 +6,8 @@ require 'rake/packagetask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
+require 'lib/active_record/support/std_ext/test_unit_ext' # temporary fix until test/unit is cured for 1.8.2
+
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'activerecord'
 PKG_VERSION   = '1.4.0' + PKG_BUILD

@@ -7,6 +7,8 @@ $VERBOSE = nil
 require File.dirname(__FILE__) + '/config/environment'
 require 'code_statistics'
 
+require 'active_record/support/std_ext/test_unit_ext' # temporary fix until test/unit is cured for 1.8.2
+
 desc "Run all the tests on a fresh test database"
 task :default => [ :clone_development_structure_to_test, :test_units, :test_functional ]
 
