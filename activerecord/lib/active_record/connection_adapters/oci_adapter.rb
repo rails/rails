@@ -55,13 +55,14 @@ begin
 
         def cast_to_date_or_time(value)
           return value if value.is_a? Date
-          guess_date_or_time (value.is_a? Time) ?
-            value : Time.local(*value.split(/\D+/).map{ |x| x.to_i })
+          guess_date_or_time (value.is_a? Time) ? value : cast_to_time(value)
         end
 
         def cast_to_time(value)
           return value if value.is_a? Time
-          Time.local(2000, 1, 1,*value.split(/\D+/).map{ |x| x.to_i })
+          time_array = ParseDate.parsedate value
+          time_array[0] ||= 2000; time_array[1] ||= 1; time_array[2] ||= 1;
+          Time.send Base.default_timezone, *time_array
         end
 
         def guess_date_or_time(value)
