@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-
-Dir[File.join(File.dirname(__FILE__), '*_test.rb')].each do |f|
-  require f
-end
+require 'test/unit'
+args = Dir[File.join(File.dirname(__FILE__), '*_test.rb')] + Dir[File.join(File.dirname(__FILE__), 'ws/*_test.rb')]
+(r = Test::Unit::AutoRunner.new(true)).process_args(args)
+exit r.run

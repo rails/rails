@@ -14,136 +14,103 @@ module ActionWebService # :nodoc:
 
     module InstanceMethods # :nodoc:
       private
-        def dispatch_web_service_request(action_pack_request)
-          protocol_request = protocol_response = nil
-          bm = Benchmark.measure do
-            protocol_request = probe_request_protocol(action_pack_request)
-            protocol_response = dispatch_protocol_request(protocol_request)
-          end
-          [protocol_request, protocol_response, bm.real, nil]
-        rescue Exception => e
-          protocol_response = prepare_exception_response(protocol_request, e) 
-          [protocol_request, prepare_exception_response(protocol_request, e), nil, e]
-        end
-      
-        def dispatch_protocol_request(protocol_request)
+        def invoke_web_service_request(protocol_request)
+          invocation = web_service_invocation(protocol_request)
           case web_service_dispatching_mode
           when :direct
-            dispatch_direct_request(protocol_request)
+            web_service_direct_invoke(invocation)
           when :delegated
-            dispatch_delegated_request(protocol_request)
-          else
-            raise(ContainerError, "unsupported dispatching mode :#{web_service_dispatching_mode}")
+            web_service_delegated_invoke(invocation)
           end
         end
-
-        def dispatch_direct_request(protocol_request)
-          request = prepare_dispatch_request(protocol_request)
-          return_value = direct_invoke(request)
-          protocol_request.marshal(return_value)
+      
+        def web_service_direct_invoke(invocation)
+          @method_params = invocation.method_ordered_params
+          return_value = self.__send__(invocation.api_method_name)
+          returns = invocation.returns ? invocation.returns[0] : nil
+          invocation.protocol.marshal_response(invocation.public_method_name, return_value, returns)
         end
 
-        def dispatch_delegated_request(protocol_request)
-          request = prepare_dispatch_request(protocol_request)
-          return_value = delegated_invoke(request)
-          protocol_request.marshal(return_value)
-        end
-
-        def direct_invoke(request)
-          return nil unless before_direct_invoke(request)
-          return_value = send(request.method_name)
-          after_direct_invoke(request)
-          return_value
-        end
-
-        def before_direct_invoke(request)
-          @method_params = request.params
-        end
-
-        def after_direct_invoke(request)
-        end
-
-        def delegated_invoke(request)
+        def web_service_delegated_invoke(invocation)
           cancellation_reason = nil
-          web_service = request.web_service
-          return_value = web_service.perform_invocation(request.method_name, request.params) do |x|
+          return_value = invocation.service.perform_invocation(invocation.api_method_name, invocation.method_ordered_params) do |x|
             cancellation_reason = x
           end
           if cancellation_reason
             raise(DispatcherError, "request canceled: #{cancellation_reason}")
           end
-          return_value
+          returns = invocation.returns ? invocation.returns[0] : nil
+          invocation.protocol.marshal_response(invocation.public_method_name, return_value, returns)
         end
 
-        def prepare_dispatch_request(protocol_request)
-          api = method_name = web_service_name = web_service = params = nil
-          public_method_name = protocol_request.public_method_name
+        def web_service_invocation(request)
+          invocation = Invocation.new
+          invocation.protocol = request.protocol
+          invocation.service_name = request.service_name
           case web_service_dispatching_mode
           when :direct
-            api = self.class.web_service_api
+            invocation.api = self.class.web_service_api
+            invocation.service = self
           when :delegated
-            web_service_name = protocol_request.web_service_name
-            web_service = web_service_object(web_service_name)
-            api = web_service.class.web_service_api
-          end
-          method_name  = api.api_method_name(public_method_name)
-          signature = nil
-          if method_name
-            signature = api.api_methods[method_name]
-            protocol_request.type = Protocol::CheckedMessage
-            protocol_request.signature = signature[:expects]
-            protocol_request.return_signature = signature[:returns]
-          else
-            method_name = api.default_api_method
-            if method_name
-              protocol_request.type = Protocol::UncheckedMessage
-            else
-              raise(DispatcherError, "no such method #{web_service_name}##{public_method_name}")
+            invocation.service = web_service_object(request.service_name) rescue nil
+            unless invocation.service
+              raise(DispatcherError, "failed to instantiate service #{invocation.service_name}")
             end
+            invocation.api = invocation.service.class.web_service_api
           end
-          params = protocol_request.unmarshal
-          DispatchRequest.new(
-            :api                => api,
-            :public_method_name => public_method_name,
-            :method_name        => method_name,
-            :signature          => signature,
-            :web_service_name   => web_service_name,
-            :web_service        => web_service,
-            :params             => params)
-        end
-
-        def prepare_exception_response(protocol_request, exception)
-          if protocol_request && exception
-            case web_service_dispatching_mode
-            when :direct
-              if web_service_exception_reporting
-                return protocol_request.protocol.marshal_exception(exception)
+          public_method_name = request.method_name
+          unless invocation.api.has_public_api_method?(public_method_name)
+            raise(DispatcherError, "no such method '#{public_method_name}' on API #{invocation.api}")
+          end
+          invocation.public_method_name = public_method_name
+          invocation.api_method_name = invocation.api.api_method_name(public_method_name)
+          info = invocation.api.api_methods[invocation.api_method_name]
+          invocation.expects = info[:expects]
+          invocation.returns = info[:returns]
+          if invocation.expects
+            i = 0
+            invocation.method_ordered_params = request.method_params.map do |param|
+              if invocation.protocol.is_a?(Protocol::XmlRpc::XmlRpcProtocol)
+                marshaler = invocation.protocol.marshaler
+                decoded_param = WS::Encoding::XmlRpcDecodedParam.new(param.info.name, param.value)
+                marshaled_param = marshaler.typed_unmarshal(decoded_param, invocation.expects[i]) rescue nil
+                param = marshaled_param ? marshaled_param : param
               end
-            when :delegated
-              web_service = web_service_object(protocol_request.web_service_name)
-              if web_service && web_service.class.web_service_exception_reporting
-                return protocol_request.protocol.marshal_exception(exception)
-              end
+              i += 1
+              param.value
+            end
+            i = 0
+            params = []
+            invocation.expects.each do |spec|
+              type_binding = invocation.protocol.register_signature_type(spec)
+              info = WS::ParamInfo.create(spec, i, type_binding)
+              params << WS::Param.new(invocation.method_ordered_params[i], info)
+              i += 1
+            end
+            invocation.method_ws_params = params
+            invocation.method_named_params = {}
+            invocation.method_ws_params.each do |param|
+              invocation.method_named_params[param.info.name] = param.value
             end
           else
-            protocol_request.protocol.marshal_exception(RuntimeError.new("missing protocol request or exception"))
+            invocation.method_ordered_params = []
+            invocation.method_named_params = {}
           end
-        rescue Exception
-          nil
+          invocation
         end
 
-        class DispatchRequest
-          attr :api
-          attr :public_method_name
-          attr :method_name
-          attr :signature
-          attr :web_service_name
-          attr :web_service
-          attr :params
-
-          def initialize(values={})
-            values.each{|k,v| instance_variable_set("@#{k.to_s}", v)}
-          end
+        class Invocation
+          attr_accessor :protocol
+          attr_accessor :service_name
+          attr_accessor :api
+          attr_accessor :public_method_name
+          attr_accessor :api_method_name
+          attr_accessor :method_ordered_params
+          attr_accessor :method_named_params
+          attr_accessor :method_ws_params
+          attr_accessor :expects
+          attr_accessor :returns
+          attr_accessor :service
         end
     end
   end

@@ -20,6 +20,7 @@ module ClientTest
     api_method :struct_pass,    :expects => [[Person]], :returns => [:bool]
     api_method :client_container, :returns => [:int]
     api_method :named_parameters, :expects => [{:key=>:string}, {:id=>:int}]
+    api_method :thrower
   end
 
   class NullLogOut
@@ -29,11 +30,11 @@ module ClientTest
   class Container < ActionController::Base
     web_service_api API
 
-    attr :value_void
-    attr :value_normal
-    attr :value_array_return
-    attr :value_struct_pass
-    attr :value_named_parameters
+    attr_accessor :value_void
+    attr_accessor :value_normal
+    attr_accessor :value_array_return
+    attr_accessor :value_struct_pass
+    attr_accessor :value_named_parameters
 
     def initialize
       @session = @assigns = {}
@@ -73,12 +74,8 @@ module ClientTest
       @value_named_parameters = @method_params
     end
 
-    def protocol_request(request)
-      probe_request_protocol(request)
-    end
-
-    def dispatch_request(protocol_request)
-      dispatch_protocol_request(protocol_request)
+    def thrower
+      raise "Hi"
     end
   end
 

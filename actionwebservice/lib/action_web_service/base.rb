@@ -1,6 +1,3 @@
-require 'action_web_service/support/class_inheritable_options'
-require 'action_web_service/support/signature'
-
 module ActionWebService # :nodoc:
   class ActionWebServiceError < StandardError # :nodoc:
   end

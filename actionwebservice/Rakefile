@@ -9,7 +9,7 @@ require 'fileutils'
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'actionwebservice'
-PKG_VERSION   = '0.5.0' + PKG_BUILD
+PKG_VERSION   = '0.6.0' + PKG_BUILD
 PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 
@@ -20,7 +20,7 @@ task :default => [ :test ]
 # Run the unit tests
 Rake::TestTask.new { |t|
   t.libs << "test"
-  t.pattern = 'test/*_test.rb'
+  t.test_files = Dir['test/*_test.rb'] + Dir['test/ws/*_test.rb']
   t.verbose = true
 }
 
@@ -54,9 +54,9 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "aws"
   s.homepage = "http://www.rubyonrails.org"
 
-  s.add_dependency('actionpack', '= 1.5.0' + PKG_BUILD)
-  s.add_dependency('activerecord', '= 1.7.0' + PKG_BUILD)
-  s.add_dependency('activesupport', '= 1.0.0' + PKG_BUILD)
+  s.add_dependency('actionpack', '>= 1.5.0' + PKG_BUILD)
+  s.add_dependency('activerecord', '>= 1.7.0' + PKG_BUILD)
+  s.add_dependency('activesupport', '>= 1.0.0' + PKG_BUILD)
 
   s.has_rdoc = true
   s.requirements << 'none'
@@ -94,7 +94,7 @@ def each_source_file(*args)
 	prefix ||= File.dirname(__FILE__)
 	open_file = true if open_file.nil?
 	includes ||= %w[lib\/action_web_service\.rb$ lib\/action_web_service\/.*\.rb$]
-	excludes ||= %w[]
+	excludes ||= %w[lib\/action_web_service\/vendor]
 	Find.find(prefix) do |file_name|
 		next if file_name =~ /\.svn/
 		file_name.gsub!(/^\.\//, '')
@@ -123,7 +123,7 @@ def each_source_file(*args)
 	end
 end
 
-desc "Count lines of the source code"
+desc "Count lines of the AWS source code"
 task :lines do
   total_lines = total_loc = 0
   puts "Per File:"

@@ -35,12 +35,10 @@ module ActionWebService
     end
 
     class << self
-      include ActionWebService::Signature
-
       # Creates a structure member with the specified +name+ and +type+. Generates
       # accessor methods for reading and writing the member value.
       def member(name, type)
-        write_inheritable_hash("struct_members", name => signature_parameter_class(type))
+        write_inheritable_hash("struct_members", name => WS::BaseTypes.canonical_param_type_class(type))
         class_eval <<-END
           def #{name}; @#{name}; end
           def #{name}=(value); @#{name} = value; end

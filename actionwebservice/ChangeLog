@@ -1,3 +1,12 @@
+*0.6.0* (Unreleased)
+
+	* lib/*, test/*: refactored SOAP and XML-RPC protocol specifics into
+	  a small seperate library named 'ws', and drop it in vendor. be
+	  more relaxed about the type of received parameters, perform casting
+	  for XML-RPC if possible, but fallback to the received parameters.
+	  performed extensive cleanup of the way we use SOAP, so that marshaling
+	  of custom and array types should somewhat faster.
+
 *0.5.0* (24th February, 2005)
 
 	* lib/action_service/dispatcher*: replace "router" fragments with

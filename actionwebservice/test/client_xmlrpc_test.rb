@@ -9,12 +9,12 @@ module ClientXmlRpcTest
       test_request = ActionController::TestRequest.new
       test_request.request_parameters['action'] = req.path.gsub(/^\//, '').split(/\//)[1]
       test_request.env['REQUEST_METHOD'] = "POST"
-      test_request.env['HTTP_CONTENTTYPE'] = 'text/xml'
+      test_request.env['HTTP_CONTENT_TYPE'] = 'text/xml'
       test_request.env['RAW_POST_DATA'] = req.body
-      protocol_request = @controller.protocol_request(test_request)
-      response = @controller.dispatch_request(protocol_request)
+      response = ActionController::TestResponse.new
+      @controller.process(test_request, response)
       res.header['content-type'] = 'text/xml'
-      res.body = response.raw_body
+      res.body = response.body
     rescue Exception => e
       $stderr.puts e.message
       $stderr.puts e.backtrace.join("\n")
@@ -88,5 +88,17 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
     assert(@container.value_named_parameters.nil?)
     assert_equal(true, @client.named_parameters("xxx", 7))
     assert_equal(["xxx", 7], @container.value_named_parameters)
+  end
+
+  def test_exception
+    assert_raises(ActionWebService::Client::ClientError) do
+      assert(@client.thrower)
+    end
+  end
+
+  def test_invalid_signature
+    assert_raises(ActionWebService::Client::ClientError) do
+      @client.normal
+    end
   end
 end

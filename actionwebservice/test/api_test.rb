@@ -41,12 +41,25 @@ class TC_API < Test::Unit::TestCase
     assert_equal({:expects=>nil, :returns=>[Integer, [String]]}, API.api_methods[:returns])
     assert_equal({:expects=>[{:appkey=>Integer}, {:publish=>TrueClass}], :returns=>nil}, API.api_methods[:named_signature])
     assert_equal({:expects=>[Integer, String, TrueClass], :returns=>nil}, API.api_methods[:string_types])
-    assert_equal({:expects=>[TrueClass, Bignum, String], :returns=>nil}, API.api_methods[:class_types])
+    assert_equal({:expects=>[TrueClass, Integer, String], :returns=>nil}, API.api_methods[:class_types])
   end
 
   def test_not_instantiable
     assert_raises(NoMethodError) do
       API.new
+    end
+  end
+
+  def test_api_errors
+    assert_raises(ActionWebService::ActionWebServiceError) do
+      klass = Class.new(ActionWebService::API::Base) do
+        api_method :test, :expects => [ActiveRecord::Base]
+      end
+    end
+    assert_raises(ActionWebService::ActionWebServiceError) do
+      klass = Class.new(ActionWebService::API::Base) do
+        api_method :test, :invalid => [:int]
+      end
     end
   end
 end

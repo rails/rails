@@ -1,3 +1,6 @@
+require 'benchmark'
+require 'builder/xmlmarkup'
+
 module ActionWebService # :nodoc:
   module Dispatcher # :nodoc:
     module ActionController # :nodoc:
@@ -7,106 +10,121 @@ module ActionWebService # :nodoc:
           class << self
             alias_method :inherited_without_action_controller, :inherited
           end
-          alias_method :before_direct_invoke_without_action_controller, :before_direct_invoke
-          alias_method :after_direct_invoke_without_action_controller, :after_direct_invoke
+          alias_method :web_service_direct_invoke_without_controller, :web_service_direct_invoke
         end
         base.add_web_service_api_callback do |klass, api|
           if klass.web_service_dispatching_mode == :direct
-            klass.class_eval <<-EOS
-              def api
-                controller_dispatch_web_service_request
-              end
-            EOS
+            klass.class_eval 'def api; dispatch_web_service_request; end'
           end
         end
         base.add_web_service_definition_callback do |klass, name, info|
           if klass.web_service_dispatching_mode == :delegated
-            klass.class_eval <<-EOS
-              def #{name}
-                controller_dispatch_web_service_request
-              end
-            EOS
+            klass.class_eval "def #{name}; dispatch_web_service_request; end"
           end
         end
         base.extend(ClassMethods)
-        base.send(:include, ActionWebService::Dispatcher::ActionController::Invocation)
+        base.send(:include, ActionWebService::Dispatcher::ActionController::InstanceMethods)
       end
 
-      module ClassMethods # :nodoc:
+      module ClassMethods
         def inherited(child)
           inherited_without_action_controller(child)
-          child.send(:include, ActionWebService::Dispatcher::ActionController::WsdlGeneration)
+          child.send(:include, ActionWebService::Dispatcher::ActionController::WsdlAction)
         end
       end
 
-      module Invocation # :nodoc:
+      module InstanceMethods
         private
-          def controller_dispatch_web_service_request
-            request, response, elapsed, exception = dispatch_web_service_request(@request)
-            if response
-              begin
-                log_request(request)
-                log_error(exception) if exception && logger
-                log_response(response, elapsed)
-                response_options = { :type => response.content_type, :disposition => 'inline' }
-                send_data(response.raw_body, response_options)
-              rescue Exception => e
-                log_error(e) unless logger.nil?
-                render_text("Internal protocol error", "500 Internal Server Error")
-              end
-            else
-              logger.error("No response available") unless logger.nil?
-              render_text("Internal protocol error", "500 Internal Server Error")
-            end
-          end
-
-          def before_direct_invoke(request)
-            before_direct_invoke_without_action_controller(request)
-            @params ||= {}
-            signature = request.signature
-            if signature && (expects = request.signature[:expects])
-              (0..(@method_params.size-1)).each do |i|
-                if expects[i].is_a?(Hash)
-                  @params[expects[i].keys[0].to_s] = @method_params[i]
-                else
-                  @params['param%d' % i] = @method_params[i]
+          def dispatch_web_service_request
+            request = discover_web_service_request(@request)
+            if request
+              log_request(request, @request.raw_post)
+              response = nil
+              exception = nil
+              bm = Benchmark.measure do
+                begin
+                  response = invoke_web_service_request(request)
+                rescue Exception => e
+                  exception = e
                 end
               end
+              if exception
+                log_error(exception) unless logger.nil?
+                send_web_service_error_response(request, exception)
+              else
+                send_web_service_response(response, bm.real)
+              end
+            else
+              exception = DispatcherError.new("Malformed SOAP or XML-RPC protocol message")
+              send_web_service_error_response(request, exception)
             end
-            @params['action'] = request.method_name.to_s
+          rescue Exception => e
+            log_error(e) unless logger.nil?
+            send_web_service_error_response(request, e)
+          end
+
+          def send_web_service_response(response, elapsed=nil)
+            log_response(response, elapsed)
+            options = { :type => response.content_type, :disposition => 'inline' }
+            send_data(response.body, options)
+          end
+
+          def send_web_service_error_response(request, exception)
+            if request
+              unless self.class.web_service_exception_reporting
+                exception = DispatcherError.new("Internal server error (exception raised)")
+              end
+              response = request.protocol.marshal_response(request.method_name, exception, exception.class)
+              send_web_service_response(response)
+            else
+              if self.class.web_service_exception_reporting
+                message = exception.message
+              else
+                message = "Exception raised"
+              end
+              render_text("Internal protocol error: #{message}", "500 #{message}")
+            end
+          end
+
+          def web_service_direct_invoke(invocation)
+            @params ||= {}
+            invocation.method_named_params.each do |name, value|
+              @params[name] = value
+            end
             @session ||= {}
             @assigns ||= {}
-            return nil if before_action == false
-            true
-          end
-
-          def after_direct_invoke(request)
-            after_direct_invoke_without_action_controller(request)
+            @params['action'] = invocation.api_method_name.to_s
+            if before_action == false
+              raise(DispatcherError, "Method filtered")
+            end
+            return_value = web_service_direct_invoke_without_controller(invocation)
             after_action
+            return_value
           end
 
-          def log_request(request)
-            unless logger.nil? || request.nil?
-              logger.debug("\nWeb Service Request:")
-              indented = request.raw_body.split(/\n/).map{|x| "  #{x}"}.join("\n")
-              logger.debug(indented)
+          def log_request(request, body)
+            unless logger.nil?
+              name = request.method_name
+              params = request.method_params.map{|x| x.value.inspect}
+              service = request.service_name
+              logger.debug("\nWeb Service Request: #{name}(#{params}) #{service}")
+              logger.debug(indent(body))
             end
           end
 
-          def log_response(response, elapsed)
-            unless logger.nil? || response.nil?
-              logger.debug("\nWeb Service Response" + (elapsed ? " (%f):" % elapsed : ":"))
-              indented = response.raw_body.split(/\n/).map{|x| "  #{x}"}.join("\n")
-              logger.debug(indented)
+          def log_response(response, elapsed=nil)
+            unless logger.nil?
+              logger.debug("\nWeb Service Response (%f):" + (elapsed ? " (%f):" % elapsed : ":"))
+              logger.debug(indent(response.body))
             end
           end
 
-          unless method_defined?(:logger)
-            def logger; @logger; end
+          def indent(body)
+            body.split(/\n/).map{|x| "  #{x}"}.join("\n")
           end
       end
 
-      module WsdlGeneration # :nodoc:
+      module WsdlAction
         XsdNs             = 'http://www.w3.org/2001/XMLSchema'
         WsdlNs            = 'http://schemas.xmlsoap.org/wsdl/'
         SoapNs            = 'http://schemas.xmlsoap.org/wsdl/soap/'
@@ -117,40 +135,53 @@ module ActionWebService # :nodoc:
           case @request.method
           when :get
             begin
-              host_name = @request.env['HTTP_HOST'] || @request.env['SERVER_NAME']
-              uri = "http://#{host_name}/#{controller_name}/"
-              soap_action_base = "/#{controller_name}"
-              xml = to_wsdl(self, uri, soap_action_base)
-              send_data(xml, :type => 'text/xml', :disposition => 'inline')
+              options = { :type => 'text/xml', :disposition => 'inline' }
+              send_data(to_wsdl, options)
             rescue Exception => e
-              log_error e unless logger.nil?
-              render_text('', "500 #{e.message}")
+              log_error(e) unless logger.nil?
             end
           when :post
-            render_text('', "500 POST not supported")
+            render_text('POST not supported', '500 POST not supported')
           end
         end
 
         private
-          def to_wsdl(container, uri, soap_action_base)
-            wsdl = ""
-  
-            web_service_dispatching_mode = container.web_service_dispatching_mode
-            mapper = container.class.soap_mapper
-            namespace = mapper.custom_namespace
-            wsdl_service_name = namespace.split(/:/)[1]
-  
-            services = {}
-            mapper.map_container_services(container) do |name, api, api_methods|
-              services[name] = [api, api_methods]
+          def base_uri
+            host = @request ? (@request.env['HTTP_HOST'] || @request.env['SERVER_NAME']) : 'localhost'
+            'http://%s/%s/' % [host, controller_name]
+          end
+
+          def to_wsdl
+            xml = ''
+            dispatching_mode = web_service_dispatching_mode
+            global_service_name = wsdl_service_name
+            namespace = "urn:#{global_service_name}"
+            soap_action_base = "/#{controller_name}"
+
+            marshaler = WS::Marshaling::SoapMarshaler.new(namespace)
+            apis = {}
+            case dispatching_mode
+            when :direct
+              api = self.class.web_service_api
+              web_service_name = controller_class_name.sub(/Controller$/, '').underscore
+              apis[web_service_name] = [api, register_api(marshaler, api)]
+            when :delegated
+              self.class.web_services.each do |web_service_name, info|
+                service = web_service_object(web_service_name)
+                api = service.class.web_service_api
+                apis[web_service_name] = [api, register_api(marshaler, api)]
+              end
             end
-            custom_types = mapper.custom_types
-  
-  
-            xm = Builder::XmlMarkup.new(:target => wsdl, :indent => 2)
+            custom_types = []
+            apis.values.each do |api, bindings|
+              bindings.each do |b|
+                custom_types << b if b.is_custom_type?
+              end
+            end
+
+            xm = Builder::XmlMarkup.new(:target => xml, :indent => 2)
             xm.instruct!
-  
-            xm.definitions('name' => wsdl_service_name,
+            xm.definitions('name'            => wsdl_service_name,
                            'targetNamespace' => namespace,
                            'xmlns:typens'    => namespace,
                            'xmlns:xsd'       => XsdNs,
@@ -158,95 +189,95 @@ module ActionWebService # :nodoc:
                            'xmlns:soapenc'   => SoapEncodingNs,
                            'xmlns:wsdl'      => WsdlNs,
                            'xmlns'           => WsdlNs) do
-  
-              # Custom type XSD generation
+              # Generate XSD
               if custom_types.size > 0
                 xm.types do
                   xm.xsd(:schema, 'xmlns' => XsdNs, 'targetNamespace' => namespace) do
-                    custom_types.each do |klass, mapping|
+                    custom_types.each do |binding|
                       case
-                      when mapping.is_a?(ActionWebService::Protocol::Soap::SoapArrayMapping)
-                        xm.xsd(:complexType, 'name' => mapping.type_name) do
+                      when binding.is_typed_array?
+                        xm.xsd(:complexType, 'name' => binding.type_name) do
                           xm.xsd(:complexContent) do
                             xm.xsd(:restriction, 'base' => 'soapenc:Array') do
                               xm.xsd(:attribute, 'ref' => 'soapenc:arrayType',
-                                                 'wsdl:arrayType' => mapping.element_mapping.qualified_type_name + '[]')
+                                                 'wsdl:arrayType' => binding.element_binding.qualified_type_name + '[]')
                             end
                           end
                         end
-                      when mapping.is_a?(ActionWebService::Protocol::Soap::SoapMapping)
-                        xm.xsd(:complexType, 'name' => mapping.type_name) do
+                      when binding.is_typed_struct?
+                        xm.xsd(:complexType, 'name' => binding.type_name) do
                           xm.xsd(:all) do
-                            mapping.each_attribute do |name, type_name|
+                            binding.each_member do |name, type_name|
                               xm.xsd(:element, 'name' => name, 'type' => type_name)
                             end
                           end
                         end
-                      else
-                        raise(WsdlError, "unsupported mapping type #{mapping.class.name}")
                       end
                     end
                   end
                 end
               end
-  
-              services.each do |service_name, service_values|
-                service_api, api_methods = service_values
-                # Parameter list message definitions
-                api_methods.each do |method_name, method_signature|
+
+              # APIs
+              apis.each do |api_name, values|
+                api = values[0]
+                api.api_methods.each do |name, info|
                   gen = lambda do |msg_name, direction|
                     xm.message('name' => msg_name) do
                       sym = nil
                       if direction == :out
-                        if method_signature[:returns]
-                          xm.part('name' => 'return', 'type' => method_signature[:returns][0].qualified_type_name)
+                        returns = info[:returns]
+                        if returns
+                          binding = marshaler.register_type(returns[0])
+                          xm.part('name' => 'return', 'type' => binding.qualified_type_name)
                         end
                       else
-                        mapping_list = method_signature[:expects]
+                        expects = info[:expects]
                         i = 1
-                        mapping_list.each do |mapping|
-                          if mapping.is_a?(Hash)
-                            param_name = mapping.keys.shift
-                            mapping = mapping.values.shift
+                        expects.each do |type|
+                          if type.is_a?(Hash)
+                            param_name = type.keys.shift
+                            type = type.values.shift
                           else
                             param_name = "param#{i}"
                           end
-                          xm.part('name' => param_name, 'type' => mapping.qualified_type_name)
+                          binding = marshaler.register_type(type)
+                          xm.part('name' => param_name, 'type' => binding.qualified_type_name)
                           i += 1
-                        end if mapping_list
+                        end if expects
                       end
                     end
                   end
-                  public_name = service_api.public_api_method_name(method_name)
+                  public_name = api.public_api_method_name(name)
                   gen.call(public_name, :in)
                   gen.call("#{public_name}Response", :out)
                 end
-  
-                # Declare the port
-                port_name = port_name_for(wsdl_service_name, service_name)
+
+                # Port
+                port_name = port_name_for(global_service_name, api_name)
                 xm.portType('name' => port_name) do
-                  api_methods.each do |method_name, method_signature|
-                    public_name = service_api.public_api_method_name(method_name)
+                  api.api_methods.each do |name, info|
+                    public_name = api.public_api_method_name(name)
                     xm.operation('name' => public_name) do
                       xm.input('message' => "typens:#{public_name}")
                       xm.output('message' => "typens:#{public_name}Response")
                     end
                   end
                 end
-  
-                # Bind the port to SOAP
-                binding_name = binding_name_for(wsdl_service_name, service_name)
+
+                # Bind it
+                binding_name = binding_name_for(global_service_name, api_name)
                 xm.binding('name' => binding_name, 'type' => "typens:#{port_name}") do
                   xm.soap(:binding, 'style' => 'rpc', 'transport' => SoapHttpTransport)
-                  api_methods.each do |method_name, method_signature|
-                    public_name = service_api.public_api_method_name(method_name)
+                  api.api_methods.each do |name, info|
+                    public_name = api.public_api_method_name(name)
                     xm.operation('name' => public_name) do
                       case web_service_dispatching_mode
                       when :direct
                         soap_action = soap_action_base + "/api/" + public_name
                       when :delegated
                         soap_action = soap_action_base \
-                                    + "/" + service_name.to_s \
+                                    + "/" + api_name.to_s \
                                     + "/" + public_name
                       end
                       xm.soap(:operation, 'soapAction' => soap_action)
@@ -266,32 +297,46 @@ module ActionWebService # :nodoc:
                   end
                 end
               end
-  
-              # Define the service
-              xm.service('name' => "#{wsdl_service_name}Service") do
-                services.each do |service_name, service_values|
-                  port_name = port_name_for(wsdl_service_name, service_name)
-                  binding_name = binding_name_for(wsdl_service_name,  service_name)
+
+              # Define it
+              xm.service('name' => "#{global_service_name}Service") do
+                apis.each do |api_name, values|
+                  port_name = port_name_for(global_service_name, api_name)
+                  binding_name = binding_name_for(global_service_name,  api_name)
                   case web_service_dispatching_mode
                   when :direct
                     binding_target = 'api'
                   when :delegated
-                    binding_target = service_name.to_s
+                    binding_target = api_name.to_s
                   end
                   xm.port('name' => port_name, 'binding' => "typens:#{binding_name}") do
-                    xm.soap(:address, 'location' => "#{uri}#{binding_target}")
+                    xm.soap(:address, 'location' => "#{base_uri}#{binding_target}")
                   end
                 end
               end
             end
           end
 
-          def port_name_for(wsdl_service_name, service_name)
-            "#{wsdl_service_name}#{service_name.to_s.camelize}Port"
+          def port_name_for(global_service, service)
+            "#{global_service}#{service.to_s.camelize}Port"
           end
 
-          def binding_name_for(wsdl_service_name, service_name)
-            "#{wsdl_service_name}#{service_name.to_s.camelize}Binding"
+          def binding_name_for(global_service, service)
+            "#{global_service}#{service.to_s.camelize}Binding"
+          end
+
+          def register_api(marshaler, api)
+            type_bindings = []
+            api.api_methods.each do |name, info|
+              expects, returns = info[:expects], info[:returns]
+              if expects
+                expects.each{|type| type_bindings << marshaler.register_type(type)}
+              end
+              if returns
+                returns.each{|type| type_bindings << marshaler.register_type(type)}
+              end
+            end
+            type_bindings
           end
       end
     end

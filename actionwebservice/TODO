@@ -1,13 +1,6 @@
-= Low priority tasks
-  - add better type mapping tests for XML-RPC
-  - add tests for ActiveRecord support (with mock objects?)
+= 0.6.0 Tasks
+  - finish off tickets #676, #677, #678
 
 = Refactoring
-  - Find an alternative way to map interesting types for SOAP (like ActiveRecord
-    model classes) that doesn't require creation of a sanitized copy object with data
-    copied from the real one. Ideally this would let us get rid of
-    ActionWebService::Struct altogether and provide a block that would yield the
-    attributes and values. "Filters" ?  Not sure how to integrate with SOAP though.
-  
   - Don't have clean way to go from SOAP Class object to the xsd:NAME type
     string -- NaHi possibly looking at remedying this situation

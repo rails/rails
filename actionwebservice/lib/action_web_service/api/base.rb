@@ -1,70 +1,5 @@
 module ActionWebService # :nodoc:
   module API # :nodoc:
-    class APIError < ActionWebService::ActionWebServiceError # :nodoc:
-    end
-
-    def self.append_features(base) # :nodoc:
-      super
-      base.extend(ClassMethods)
-    end
-
-    module ClassMethods
-      # Attaches ActionWebService API +definition+ to the calling class.
-      #
-      # Action Controllers can have a default associated API, removing the need
-      # to call this method if you follow the Action Web Service naming conventions.
-      #
-      # A controller with a class name of GoogleSearchController will
-      # implicitly load <tt>app/apis/google_search_api.rb</tt>, and expect the
-      # API definition class to be named <tt>GoogleSearchAPI</tt> or
-      # <tt>GoogleSearchApi</tt>.
-      #
-      # ==== Service class example
-      #
-      #   class MyService < ActionWebService::Base
-      #     web_service_api MyAPI
-      #   end
-      #
-      #   class MyAPI < ActionWebService::API::Base
-      #     ...
-      #   end
-      #
-      # ==== Controller class example
-      #
-      #   class MyController < ActionController::Base
-      #     web_service_api MyAPI
-      #   end
-      #
-      #   class MyAPI < ActionWebService::API::Base
-      #     ...
-      #   end
-      def web_service_api(definition=nil)
-        if definition.nil?
-          read_inheritable_attribute("web_service_api")
-        else
-          if definition.is_a?(Symbol)
-            raise(APIError, "symbols can only be used for #web_service_api inside of a controller")
-          end
-          unless definition.respond_to?(:ancestors) && definition.ancestors.include?(Base)
-            raise(APIError, "#{definition.to_s} is not a valid API definition")
-          end
-          write_inheritable_attribute("web_service_api", definition)
-          call_web_service_api_callbacks(self, definition)
-        end
-      end
-
-      def add_web_service_api_callback(&block) # :nodoc:
-        write_inheritable_array("web_service_api_callbacks", [block])
-      end
-
-      private
-        def call_web_service_api_callbacks(container_class, definition)
-          (read_inheritable_attribute("web_service_api_callbacks") || []).each do |block|
-            block.call(container_class, definition)
-          end
-        end
-    end
-
     # A web service API class specifies the methods that will be available for
     # invocation for an API. It also contains metadata such as the method type
     # signature hints.
@@ -87,8 +22,6 @@ module ActionWebService # :nodoc:
       private_class_method :new, :allocate
       
       class << self
-        include ActionWebService::Signature
-
         # API methods have a +name+, which must be the Ruby method name to use when
         # performing the invocation on the web service object.
         #
@@ -125,11 +58,11 @@ module ActionWebService # :nodoc:
             expects = options[:expects]
             returns = options[:returns]
           end
-          expects = canonical_signature(expects) if expects
-          returns = canonical_signature(returns) if returns
+          expects = canonical_signature(expects)
+          returns = canonical_signature(returns)
           if expects
             expects.each do |param|
-              klass = signature_parameter_class(param)
+              klass = WS::BaseTypes.canonical_param_type_class(param)
               klass = klass[0] if klass.is_a?(Array)
               if klass.ancestors.include?(ActiveRecord::Base)
                 raise(ActionWebServiceError, "ActiveRecord model classes not allowed in :expects")
@@ -186,6 +119,10 @@ module ActionWebService # :nodoc:
             end
           end
 
+          def canonical_signature(signature)
+            return nil if signature.nil?
+            signature.map{|spec| WS::BaseTypes.canonical_param_type_spec(spec)}
+          end
       end
     end
   end

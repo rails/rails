@@ -12,10 +12,10 @@ module ClientSoapTest
       test_request.env['HTTP_CONTENTTYPE'] = 'text/xml'
       test_request.env['HTTP_SOAPACTION'] = req.header['soapaction'][0]
       test_request.env['RAW_POST_DATA'] = req.body
-      protocol_request = @controller.protocol_request(test_request)
-      response = @controller.dispatch_request(protocol_request)
+      response = ActionController::TestResponse.new
+      @controller.process(test_request, response)
       res.header['content-type'] = 'text/xml'
-      res.body = response.raw_body
+      res.body = response.body
     rescue Exception => e
       $stderr.puts e.message
       $stderr.puts e.backtrace.join("\n")
@@ -24,9 +24,14 @@ module ClientSoapTest
 
   class ClientContainer < ActionController::Base
     web_client_api :client, :soap, "http://localhost:#{PORT}/client/api", :api => ClientTest::API
+    web_client_api :invalid, :null, "", :api => true
 
     def get_client
       client
+    end
+
+    def get_invalid
+      invalid
     end
   end
 
@@ -83,11 +88,19 @@ class TC_ClientSoap < Test::Unit::TestCase
 
   def test_client_container
     assert_equal(50, ClientContainer.new.get_client.client_container)
+    assert(ClientContainer.new.get_invalid.nil?)
   end
 
   def test_named_parameters
     assert(@container.value_named_parameters.nil?)
     assert(@client.named_parameters("key", 5).nil?)
     assert_equal(["key", 5], @container.value_named_parameters)
+  end
+
+  def test_capitalized_method_name
+    @container.value_normal = nil
+    assert_equal(5, @client.Normal(5, 6))
+    assert_equal([5, 6], @container.value_normal)
+    @container.value_normal = nil
   end
 end

@@ -1,5 +1,5 @@
 module ActionWebService # :nodoc:
-  module API # :nodoc:
+  module Container # :nodoc:
     module ActionController # :nodoc:
       def self.append_features(base) # :nodoc:
         base.class_eval do 
@@ -36,7 +36,7 @@ module ActionWebService # :nodoc:
             api_klass = options.delete(:api) || require_web_service_api(name)
             class_eval do
               define_method(name) do
-                probe_protocol_client(api_klass, protocol, endpoint_uri, options)
+                create_web_service_client(api_klass, protocol, endpoint_uri, options)
               end
               protected name
             end

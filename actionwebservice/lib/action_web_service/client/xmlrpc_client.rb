@@ -31,6 +31,7 @@ module ActionWebService # :nodoc:
         @api = api
         @handler_name = options[:handler_name]
         @client = XMLRPC::Client.new2(endpoint_uri, options[:proxy], options[:timeout])
+        @marshaler = WS::Marshaling::XmlRpcMarshaler.new
       end
 
       protected
@@ -43,18 +44,21 @@ module ActionWebService # :nodoc:
 
         def transform_outgoing_method_params(method_name, params)
           info = @api.api_methods[method_name.to_sym]
-          signature = info[:expects]
-          signature_length = signature.nil?? 0 : signature.length
-          if signature_length != params.length
-            raise(ProtocolError, "API declares #{public_name(method_name)} to accept " +
-                                 "#{signature_length} parameters, but #{params.length} parameters " + 
-                                 "were supplied")
+          expects = info[:expects]
+          expects_length = expects.nil?? 0 : expects.length
+          if expects_length != params.length
+            raise(ClientError, "API declares #{public_name(method_name)} to accept " +
+                               "#{expects_length} parameters, but #{params.length} parameters " + 
+                               "were supplied")
           end
-          if signature_length > 0
-            signature = Protocol::XmlRpc::XmlRpcProtocol.transform_array_types(signature)
-            (1..signature.size).each do |i|
-              i -= 1
-              params[i] = Protocol::XmlRpc::XmlRpcProtocol.ruby_to_xmlrpc(params[i], lookup_class(signature[i]))
+          params = params.dup
+          if expects_length > 0
+            i = 0
+            expects.each do |spec|
+              type_binding = @marshaler.register_type(spec)
+              info = WS::ParamInfo.create(spec, i, type_binding)
+              params[i] = @marshaler.marshal(WS::Param.new(params[i], info))
+              i += 1
             end
           end
           params
@@ -62,10 +66,11 @@ module ActionWebService # :nodoc:
 
         def transform_return_value(method_name, return_value)
           info = @api.api_methods[method_name.to_sym]
-          return true unless signature = info[:returns]
-          param_klass = lookup_class(signature[0])
-          signature = Protocol::XmlRpc::XmlRpcProtocol.transform_array_types([param_klass])
-          Protocol::XmlRpc::XmlRpcProtocol.xmlrpc_to_ruby(return_value, signature[0])
+          return true unless returns = info[:returns]
+          type_binding = @marshaler.register_type(returns[0])
+          info = WS::ParamInfo.create(returns[0], 0, type_binding)
+          info.name = 'return'
+          @marshaler.transform_inbound(WS::Param.new(return_value, info))
         end
 
         def public_name(method_name)

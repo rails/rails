@@ -12,23 +12,46 @@ module InvocationTest
     api_method :only_two
   end
 
+  class Interceptor
+    attr :args
+
+    def initialize
+      @args = nil
+    end
+
+    def intercept(*args)
+      @args = args
+    end
+  end
+
+  InterceptorClass = Interceptor.new 
+
   class Service < ActionWebService::Base
     web_service_api API
 
     before_invocation :intercept_before, :except => [:no_before]
     after_invocation :intercept_after, :except => [:no_after]
-    before_invocation :intercept_only, :only => [:only_one, :only_two]
+    prepend_after_invocation :intercept_after_first, :except => [:no_after]
+    prepend_before_invocation :intercept_only, :only => [:only_one, :only_two]
+    after_invocation(:only => [:only_one]) do |*args| 
+      args[0].instance_variable_set('@block_invoked', args[1])
+    end
+    after_invocation InterceptorClass, :only => [:only_one]
 
     attr_accessor :before_invoked
     attr_accessor :after_invoked
+    attr_accessor :after_first_invoked
     attr_accessor :only_invoked
+    attr_accessor :block_invoked
     attr_accessor :invocation_result
   
     def initialize
       @before_invoked = nil
       @after_invoked = nil
+      @after_first_invoked = nil
       @only_invoked = nil
       @invocation_result = nil
+      @block_invoked = nil
     end
   
     def add(a, b)
@@ -69,6 +92,10 @@ module InvocationTest
         @after_invoked = name
         @invocation_result = result
       end
+
+      def intercept_after_first(name, args, result)
+        @after_first_invoked = name
+      end
   
       def intercept_only(name, args)
         raise "Interception error" unless name == :only_one || name == :only_two
@@ -94,11 +121,17 @@ class TC_Invocation < Test::Unit::TestCase
 
   def test_interceptor_registration
     assert(InvocationTest::Service.before_invocation_interceptors.length == 2)
-    assert(InvocationTest::Service.after_invocation_interceptors.length == 1)
+    assert(InvocationTest::Service.after_invocation_interceptors.length == 4)
+    assert_equal(:intercept_only, InvocationTest::Service.before_invocation_interceptors[0])
+    assert_equal(:intercept_after_first, InvocationTest::Service.after_invocation_interceptors[0])
   end
 
   def test_interception
-    assert(@service.before_invoked.nil? && @service.after_invoked.nil? && @service.only_invoked.nil? && @service.invocation_result.nil?)
+    assert(@service.before_invoked.nil?)
+    assert(@service.after_invoked.nil?)
+    assert(@service.only_invoked.nil?)
+    assert(@service.block_invoked.nil?)
+    assert(@service.invocation_result.nil?)
     perform_invocation(:add, 20, 50)
     assert(@service.before_invoked == :add)
     assert(@service.after_invoked == :add)
@@ -124,6 +157,7 @@ class TC_Invocation < Test::Unit::TestCase
   def test_interception_except_conditions
     perform_invocation(:no_before)
     assert(@service.before_invoked.nil?)
+    assert(@service.after_first_invoked == :no_before)
     assert(@service.after_invoked == :no_before)
     assert(@service.invocation_result == 5)
     @service.before_invoked = @service.after_invoked = @service.invocation_result = nil
@@ -137,6 +171,8 @@ class TC_Invocation < Test::Unit::TestCase
     assert(@service.only_invoked.nil?)
     perform_invocation(:only_one)
     assert(@service.only_invoked == :only_one)
+    assert(@service.block_invoked == :only_one)
+    assert(InvocationTest::InterceptorClass.args[1] == :only_one)
     @service.only_invoked = nil
     perform_invocation(:only_two)
     assert(@service.only_invoked == :only_two)
