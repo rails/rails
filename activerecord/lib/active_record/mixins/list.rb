@@ -5,8 +5,8 @@ module ActiveRecord
   module Mixins
     # This mixin provides the capabilities for sorting and reordering a number of objects in list.
     # The class that has this mixin included needs to have a "position" column defined as an integer on
-    # the mapped database table. Further more, you need to implement the <tt>scope_condition</tt> that
-    # defines how to separate one list from another.
+    # the mapped database table. Further more, you need to implement the <tt>scope_condition</tt> if you want
+    # to separate one list from another.
     #
     # Todo list example:
     #
@@ -98,7 +98,7 @@ module ActiveRecord
 
       private
         # Overwrite this method to define the scope of the list changes
-        def scope_condition; end
+        def scope_condition() "1" end
     
         def higher_item
           self.class.find_first(
