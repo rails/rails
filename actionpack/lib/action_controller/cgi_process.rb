@@ -108,7 +108,7 @@ module ActionController #:nodoc:
       $stdout.sync = false
       print @cgi.header(@headers)
 
-      if @cgi.head?
+      if @cgi.send(:env_table)['REQUEST_METHOD'] == 'HEAD'
         return
       elsif @body.respond_to?(:call)
         @body.call(self)
