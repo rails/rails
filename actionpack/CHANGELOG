@@ -1,3 +1,8 @@
+*SVN*
+
+* Added :host and :protocol options to url_for and friends to redirect to another host and protocol than the current.
+
+
 *1.1.0*
 
 * Added search through session to clear out association caches at the end of each request. This makes it possible to place Active Record objects

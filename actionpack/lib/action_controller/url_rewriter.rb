@@ -1,7 +1,7 @@
 module ActionController
   # Rewrites urls for Base.redirect_to and Base.url_for in the controller.
   class UrlRewriter #:nodoc:
-    VALID_OPTIONS = [:action, :action_prefix, :action_suffix, :module, :controller, :controller_prefix, :anchor, :params, :path_params, :id, :only_path, :overwrite_params ]
+    VALID_OPTIONS = [:action, :action_prefix, :action_suffix, :module, :controller, :controller_prefix, :anchor, :params, :path_params, :id, :only_path, :overwrite_params, :host, :protocol ]
   
     def initialize(request, controller, action)
       @request, @controller, @action = request, controller, action
@@ -38,8 +38,8 @@ module ActionController
 
       def rewrite_url(path, options)        
         rewritten_url = ""
-        rewritten_url << @request.protocol unless options[:only_path]
-        rewritten_url << @request.host_with_port unless options[:only_path]
+        rewritten_url << (options[:protocol] || @request.protocol) unless options[:only_path]
+        rewritten_url << (options[:host] || @request.host_with_port) unless options[:only_path]
 
         rewritten_url << path
         rewritten_url << build_query_string(new_parameters(options)) if options[:params] || options[:overwrite_params]

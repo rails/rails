@@ -60,6 +60,20 @@ class UrlTest < Test::Unit::TestCase
     assert_equal "http://www.singlefile.com/library/books/ISBN/0743536703/edit", @library_url.rewrite(:action => "edit")
   end
 
+  def test_clean_action_to_another_host
+    assert_equal(
+      "http://www.booksphere.com/library/books/ISBN/0743536703/edit", 
+      @library_url.rewrite(:action => "edit", :host => "www.booksphere.com")
+    )
+  end
+
+  def test_clean_action_to_another_host_and_protocol
+    assert_equal(
+      "https://www.booksphere.com/library/books/ISBN/0743536703/edit", 
+      @library_url.rewrite(:action => "edit", :host => "www.booksphere.com", :protocol => "https://")
+    )
+  end
+
   def test_clean_action_with_only_path
     assert_equal "/library/books/ISBN/0743536703/edit", @library_url.rewrite(:action => "edit", :only_path => true)
   end
