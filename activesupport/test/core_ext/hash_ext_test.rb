@@ -1,5 +1,5 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/core_ext/hash'
+require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/hash'
 
 class HashExtTest < Test::Unit::TestCase
   def setup

@@ -1,5 +1,5 @@
 require 'optparse'
-require File.dirname(__FILE__) + '/../support/class_inheritable_attributes'
+require 'active_support/class_inheritable_attributes'
 
 module Rails
   module Generator

@@ -23,10 +23,20 @@
 
 $:.unshift(File.dirname(__FILE__))
 
-require 'action_controller/support/core_ext'
-require 'action_controller/support/clean_logger'
-require 'action_controller/support/misc'
-require 'action_controller/support/dependencies'
+begin
+  require 'active_support/core_ext'
+  require 'active_support/clean_logger'
+  require 'active_support/misc'
+  require 'active_support/dependencies'
+rescue LoadError
+  require 'rubygems'
+  require_gem 'activesupport'
+  
+  require 'active_support/core_ext'
+  require 'active_support/clean_logger'
+  require 'active_support/misc'
+  require 'active_support/dependencies'
+end
 
 require 'action_controller/base'
 require 'action_controller/rescue'

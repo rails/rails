@@ -1,5 +1,5 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../lib/misc'
+require File.dirname(__FILE__) + '/../lib/active_support/misc'
 
 class MiscTest < Test::Unit::TestCase
   def test_silence_warnings

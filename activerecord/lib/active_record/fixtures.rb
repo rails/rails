@@ -1,8 +1,8 @@
 require 'erb'
 require 'yaml'
 require 'csv'
-require 'active_record/support/class_inheritable_attributes'
-require 'active_record/support/inflector'
+require 'active_support/class_inheritable_attributes'
+require 'active_support/inflector'
 
 # Fixtures are a way of organizing data that you want to test against; in short, sample data. They come in 3 flavours:
 #

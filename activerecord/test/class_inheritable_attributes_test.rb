@@ -1,7 +1,7 @@
 $:.unshift(File.dirname(__FILE__) + '/../lib')
 
 require 'test/unit'
-require 'active_record/support/class_inheritable_attributes'
+require 'active_support/class_inheritable_attributes'
 
 class A
   include ClassInheritableAttributes

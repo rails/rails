@@ -19,6 +19,7 @@ ADDITIONAL_LOAD_PATHS.concat %w(
   vendor
   vendor/railties
   vendor/railties/lib
+  vendor/activesupport/lib
   vendor/activerecord/lib
   vendor/actionpack/lib
   vendor/actionmailer/lib

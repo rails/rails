@@ -1,21 +1,21 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/core_ext/object_and_class'
+require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/object_and_class'
 
-class A; end
-class B < A; end
-class C < B; end
-class D < A; end
+class ClassA; end
+class ClassB < ClassA; end
+class ClassC < ClassB; end
+class ClassD < ClassA; end
 
 class ClassExtTest < Test::Unit::TestCase
   def test_methods
-    assert defined?(B)
-    assert defined?(C)
-    assert defined?(D)
+    assert defined?(ClassB)
+    assert defined?(ClassC)
+    assert defined?(ClassD)
 
-    A.remove_subclasses
+    ClassA.remove_subclasses
 
-    assert !defined?(B)
-    assert !defined?(C)
-    assert !defined?(D)
+    assert !defined?(ClassB)
+    assert !defined?(ClassC)
+    assert !defined?(ClassD)
   end
 end

@@ -41,6 +41,9 @@ task :fresh_rails_without_docs => [ :clean, :make_dir_structure, :initialize_fil
 desc "Generates a fresh Rails package without documentation (faster)"
 task :fresh_rails_without_docs_using_links => [ :clean, :make_dir_structure, :initialize_file_stubs, :link_vendor_libraries, :copy_ties_content ]
 
+desc "Generates minimal Rails package using symlinks"
+task :dev => [ :clean, :make_dir_structure, :initialize_file_stubs, :link_vendor_libraries, :copy_ties_content ]
+
 desc "Packages the fresh Rails package with documentation"
 task :package => [ :clean, :fresh_rails ] do
   system %{cd ..; tar -czvf #{PKG_NAME}-#{PKG_VERSION}.tgz #{PKG_NAME}}

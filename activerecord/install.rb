@@ -18,7 +18,7 @@ unless $sitedir
   end
 end
 
-makedirs = %w{ active_record/associations active_record/connection_adapters active_record/support active_record/vendor active_record/acts active_record/support/core_ext active_record/support/core_ext/hash active_record/support/core_ext/numeric active_record/support/core_ext/string }
+makedirs = %w{ active_record/associations active_record/connection_adapters active_record/support active_record/vendor active_record/acts }
 makedirs.each {|f| File::makedirs(File.join($sitedir, *f.split(/\//)))}
 
 # deprecated files that should be removed
@@ -48,21 +48,6 @@ files = %w-
  active_record/reflection.rb
  active_record/acts/list.rb
  active_record/acts/tree.rb
- active_record/support/class_attribute_accessors.rb
- active_record/support/class_inheritable_attributes.rb
- active_record/support/clean_logger.rb
- active_record/support/core_ext/hash/keys.rb
- active_record/support/core_ext/hash.rb
- active_record/support/core_ext/object_and_class.rb
- active_record/support/core_ext/numeric/bytes.rb
- active_record/support/core_ext/numeric/time.rb
- active_record/support/core_ext/numeric.rb
- active_record/support/core_ext/string/inflections.rb
- active_record/support/core_ext/string.rb
- active_record/support/core_ext.rb
- active_record/support/inflector.rb
- active_record/support/misc.rb
- active_record/support/module_attribute_accessors.rb
  active_record/timestamp.rb
  active_record/transactions.rb
  active_record/validations.rb

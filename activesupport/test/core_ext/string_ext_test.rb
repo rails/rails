@@ -1,6 +1,6 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/core_ext/string'
-require File.dirname(__FILE__) + '/../../lib/misc'
+require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/string'
+require File.dirname(__FILE__) + '/../../lib/active_support/misc'
 
 silence_warnings do
   require File.dirname(__FILE__) + '/../inflector_test'

@@ -1,5 +1,5 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/core_ext/numeric'
+require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/numeric'
 
 class NumericExtTimeTest < Test::Unit::TestCase
   def setup

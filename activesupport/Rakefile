@@ -1,6 +1,45 @@
 require 'rake/testtask'
+require 'rake/gempackagetask'
+require 'rake/contrib/rubyforgepublisher'
+
+PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+PKG_NAME      = 'activesupport'
+PKG_VERSION   = '1.0.0' + PKG_BUILD
+PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
 
 task :default => :test
 Rake::TestTask.new { |t| 
   t.pattern = 'test/**/*_test.rb'
 }
+
+# Create compressed packages
+dist_dirs = [ "lib", "test"]
+
+spec = Gem::Specification.new do |s|
+  s.name = PKG_NAME
+  s.version = PKG_VERSION
+  s.summary = "Support and utility classes."
+  s.description = %q{Utility library which carries commonly used classes and goodies from the rails project}
+
+  s.files = [ "CHANGELOG" ] + Dir.glob( "lib/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
+  s.require_path = 'lib'
+  s.has_rdoc = true
+
+  s.author = "David Heinemeier Hansson"
+  s.email = "david@loudthinking.com"
+  s.homepage = "http://www.rubyonrails.com"
+  s.rubyforge_project = "activesupport"
+end
+
+Rake::GemPackageTask.new(spec) do |p|
+  p.gem_spec = spec
+  p.need_tar = true
+  p.need_zip = true
+end
+
+# Publish beta gem  
+desc "Publish the beta gem"
+task :pgem => [:package] do
+  Rake::SshFilePublisher.new("davidhh@comox.textdrive.com", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  `ssh davidhh@comox.textdrive.com './gemupdate.sh'`
+end

@@ -2,9 +2,9 @@ require 'action_controller/request'
 require 'action_controller/response'
 require 'action_controller/routing'
 require 'action_controller/url_rewriter'
-require 'action_controller/support/class_attribute_accessors'
-require 'action_controller/support/class_inheritable_attributes'
-require 'action_controller/support/inflector'
+require 'active_support/class_attribute_accessors'
+require 'active_support/class_inheritable_attributes'
+require 'active_support/inflector'
 require 'drb'
 
 module ActionController #:nodoc:

@@ -3,8 +3,8 @@ $:.unshift(File.dirname(__FILE__) + '/../lib')
 require 'test/unit'
 require 'active_record'
 require 'active_record/fixtures'
-require 'active_record/support/binding_of_caller'
-require 'active_record/support/breakpoint'
+require 'active_support/binding_of_caller'
+require 'active_support/breakpoint'
 require 'connection'
 
 class Test::Unit::TestCase #:nodoc:

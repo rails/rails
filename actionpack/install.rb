@@ -19,8 +19,7 @@ unless $sitedir
 end
 
 makedirs = %w{ action_controller/assertions action_controller/cgi_ext
-               action_controller/session action_controller/support action_controller/support/core_ext 
-               action_controller/support/core_ext/hash action_controller/support/core_ext/numeric action_controller/support/core_ext/string
+               action_controller/session action_controller/support
                action_controller/templates action_controller/templates/rescues
                action_controller/templates/scaffolds
                action_view/helpers action_view/vendor action_view/vendor/builder
@@ -60,24 +59,6 @@ files = %w-
  action_controller/session/drb_store.rb
  action_controller/session/mem_cache_store.rb
  action_controller/session.rb
- action_controller/support/class_inheritable_attributes.rb
- action_controller/support/class_attribute_accessors.rb
- action_controller/support/clean_logger.rb
- action_controller/support/core_ext/hash/keys.rb
- action_controller/support/core_ext/hash.rb
- action_controller/support/core_ext/object_and_class.rb
- action_controller/support/core_ext/numeric/bytes.rb
- action_controller/support/core_ext/numeric/time.rb
- action_controller/support/core_ext/numeric.rb
- action_controller/support/core_ext/string/inflections.rb
- action_controller/support/core_ext/string.rb
- active_record/support/core_ext.rb
- action_controller/support/inflector.rb
- action_controller/support/binding_of_caller.rb
- action_controller/support/breakpoint.rb
- action_controller/support/dependencies.rb
- action_controller/support/misc.rb
- action_controller/support/module_attribute_accessors.rb
  action_controller/templates/rescues/_request_and_response.rhtml
  action_controller/templates/rescues/diagnostics.rhtml
  action_controller/templates/rescues/layout.rhtml
