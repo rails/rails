@@ -9,7 +9,7 @@ require 'fileutils'
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'actionwebservice'
-PKG_VERSION   = '0.6.0' + PKG_BUILD
+PKG_VERSION   = '0.5.0' + PKG_BUILD
 PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 
