@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/../../lib/action_view/helpers/date_helper'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/form_helper'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/text_helper'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/tag_helper'
+require File.dirname(__FILE__) + '/../../lib/action_view/helpers/url_helper'
 # require File.dirname(__FILE__) + '/../../lib/action_view/helpers/active_record_helper'
 
 class ActiveRecordHelperTest < Test::Unit::TestCase
@@ -10,6 +11,7 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::ActiveRecordHelper
   include ActionView::Helpers::TextHelper
   include ActionView::Helpers::TagHelper
+  include ActionView::Helpers::UrlHelper
 
   Post   = Struct.new("Post", :title, :author_name, :body, :secret, :written_on)
   Column = Struct.new("Column", :type, :name, :human_name)
@@ -38,6 +40,13 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
     @post.body        = "Back to the hill and over it again!"
     @post.secret = 1
     @post.written_on  = Date.new(2004, 6, 15)
+
+    @controller = Class.new do
+      def url_for(options, *parameters_for_method_reference)
+        options[:action]
+      end
+    end
+    @controller = @controller.new
   end
 
   def test_generic_input_tag
