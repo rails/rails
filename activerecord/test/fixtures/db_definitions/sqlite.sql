@@ -32,7 +32,8 @@ CREATE TABLE 'topics' (
 
 CREATE TABLE 'developers' (
   'id' INTEGER PRIMARY KEY NOT NULL,
-  'name' TEXT DEFAULT NULL
+  'name' TEXT DEFAULT NULL,
+  'salary' INTEGER NULL
 );
 
 CREATE TABLE 'projects' (

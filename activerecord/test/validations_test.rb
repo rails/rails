@@ -348,7 +348,6 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal "hoo 5", t.errors["title"]
   end
 
-
   def test_throw_away_typing
     d = Developer.create "name" => "David", "salary" => "100,000"
     assert !d.valid?

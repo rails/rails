@@ -41,6 +41,7 @@ CREATE TABLE developers (
 CREATE TABLE projects (
   id int NOT NULL IDENTITY(1, 1),
   name varchar(100) default NULL,
+  salary int default NULL,
   PRIMARY KEY  (id)
 );
 
