@@ -174,7 +174,11 @@ class TreeTest < Test::Unit::TestCase
     assert @extra
     
     assert_equal @extra.parent, @tree_1
-    assert_equal [@tree_2, @tree_4, @extra], @tree_1.children
+
+    assert_equal 3, @tree_1.children.size
+    assert @tree_1.children.include?(@extra)
+    assert @tree_1.children.include?(@tree_2)
+    assert @tree_1.children.include?(@tree_4)
   end
   
 

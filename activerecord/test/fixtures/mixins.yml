@@ -1,29 +1,29 @@
 # tree mixins
 tree_1:
-  id: 1
+  id: 1001
   type: TreeMixin
   parent_id: 0 
   
 tree_2:
-  id: 2
+  id: 1002
   type: TreeMixin
-  parent_id: 1
+  parent_id: 1001
 
 tree_3:
-  id: 3
+  id: 1003
   type: TreeMixin  
-  parent_id: 2
+  parent_id: 1002
 
 tree_4:
-  id: 4
+  id: 1004
   type: TreeMixin  
-  parent_id: 1
+  parent_id: 1001
   
 # List mixins
 
 <% (1..4).each do |counter| %>  
 list_<%= counter %>:
-  id: <%= counter+6 %>
+  id: <%= counter+1006 %>
   pos: <%= counter  %>
   type: ListMixin
   parent_id: 5
