@@ -105,6 +105,13 @@ module ActionController #:nodoc:
   # Any object can be placed in the session (as long as it can be Marshalled). But remember that 1000 active sessions each storing a
   # 50kb object could lead to a 50MB memory overhead. In other words, think carefully about size and caching before resorting to the use
   # of the session.
+  # 
+  # If you store a model in the session, you must also include a line like:
+  #
+  #   model :person
+  #
+  # For that particular controller. In Rails, you can also just add it in your app/controller/application.rb file (so the model is available
+  # for all controllers). This lets Action Pack know to have the model definition loaded before retrieving the object from the session.
   #
   # For removing objects from the session, you can either assign a single key to nil, like <tt>@session[:person] = nil</tt>, or you can
   # remove the entire session with reset_session.
