@@ -20,6 +20,7 @@ ADDITIONAL_LOAD_PATHS.concat %w(
   components 
   lib 
   vendor 
+  vendor/rails/railties
   vendor/rails/railties/lib
   vendor/rails/actionpack/lib
   vendor/rails/activesupport/lib
