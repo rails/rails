@@ -5,7 +5,7 @@ require 'fixtures/company'
 
 class FixturesTest < Test::Unit::TestCase
   fixtures :topics, :developers, :accounts
-  
+
   FIXTURES = %w( accounts companies customers
                  developers developers_projects entrants
                  movies projects subscribers topics )
@@ -49,11 +49,17 @@ class FixturesTest < Test::Unit::TestCase
   def test_bad_format
     path = File.join(File.dirname(__FILE__), 'fixtures', 'bad_fixtures')
     Dir.entries(path).each do |file|
-      next unless File.file?(file) and file !~ %r(^.|.yaml$)
+      next unless File.file?(file) and file !~ Fixtures::DEFAULT_FILTER_RE
       assert_raise(Fixture::FormatError) {
         Fixture.new(bad_fixtures_path, file)
       }
     end
+  end
+
+  def test_deprecated_yaml_extension
+    assert_raise(Fixture::FormatError) {
+      Fixtures.new(nil, 'bad_extension', File.join(File.dirname(__FILE__), 'fixtures'))
+    }
   end
 
   def test_logger_level_invariant
@@ -61,22 +67,22 @@ class FixturesTest < Test::Unit::TestCase
     create_fixtures('topics')
     assert_equal level, ActiveRecord::Base.logger.level
   end
-  
+
   def test_instantiation
     topics = create_fixtures("topics")
     assert_kind_of Topic, topics["first"].find
   end
-  
+
   def test_complete_instantiation
     assert_equal 2, @topics.size
     assert_equal "The First Topic", @first.title
   end
-  
+
   def test_fixtures_from_root_yml_with_instantiation
     # assert_equal 2, @accounts.size
     assert_equal 50, @unknown.credit_limit
   end
-  
+
   def test_erb_in_fixtures
     assert_equal 10, @developers.size
     assert_equal "fixture_5", @dev_5.name
