@@ -46,7 +46,7 @@ begin
           unless check_id(id)
             raise ArgumentError, "session_id '%s' is invalid" % id
   	      end
-          @cache = options['cache']
+          @cache = options['cache'] || MemCache.new('localhost')
   	      @session_key = "session:#{id}"
   	      @hash = {}
         end
