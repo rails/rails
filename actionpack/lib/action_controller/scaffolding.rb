@@ -84,8 +84,6 @@ module ActionController
       def scaffold(model_id, options = {})
         validate_options([ :class_name, :suffix ], options.keys)
 
-        require "#{model_id.id2name}" rescue logger.warn "Couldn't auto-require #{model_id.id2name}.rb" unless logger.nil?
-
         singular_name = model_id.id2name
         class_name    = options[:class_name] || Inflector.camelize(singular_name)
         plural_name   = Inflector.pluralize(singular_name)
