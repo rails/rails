@@ -1,5 +1,20 @@
 *SVN*
 
+* Added that all renders and redirects now return false, so they can be used as the last line in before_filters to stop execution.
+
+  Before:
+    def authenticate
+      unless @session[:authenticated]
+        redirect_to :controller => "account", :action => "login"
+        return false
+      end
+    end
+  
+  After:
+    def authenticate
+      redirect_to(:controller => "account", :action => "login") unless @session[:authenticated]
+    end
+
 * Added conditional filters #431 [Marcel]. Example:
 
     class JournalController < ActionController::Base

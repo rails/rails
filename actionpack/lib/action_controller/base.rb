@@ -389,6 +389,7 @@ module ActionController #:nodoc:
         @response.headers["Status"] = status || DEFAULT_RENDER_STATUS_CODE
         @response.body = block_given? ? block : text
         @performed_render = true
+        return false
       end
       
       # Renders an empty response that can be used when the request is only interested in triggering an effect. Do note that good
@@ -543,6 +544,7 @@ module ActionController #:nodoc:
         logger.info("Redirected to #{url}") unless logger.nil?
         @response.redirect(url, permanently)
         @performed_redirect = true
+        return false
       end
 
       # Resets the session by clearsing out all the objects stored within and initializing a new session object.
