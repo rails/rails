@@ -18,7 +18,7 @@ class CookieTest < Test::Unit::TestCase
     end
 
     def authenticate_for_fourten_days_with_symbols
-      cookies["user_name"] = { :value => "david", :expires => Time.local(2005, 10, 10) }
+      cookies[:user_name] = { :value => "david", :expires => Time.local(2005, 10, 10) }
       render_text "hello world"
     end
 
