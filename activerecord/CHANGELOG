@@ -1,3 +1,22 @@
+*SVN*
+
+* Added Base#toggle(attribute) and Base#toggle!(attribute) that makes it easier to flip a switch or flag.
+
+    Before: topic.update_attribute(:approved, !approved?)
+    After : topic.toggle!(:approved)
+
+* Added Base#increment!(attribute) and Base#decrement!(attribute) that also saves the records. Example:
+
+    page.views # => 1
+    page.increment!(:views) # executes an UPDATE statement
+    page.views # => 2
+    
+    page.increment(:views).increment!(:views)
+    page.views # => 4
+
+* Added Base#increment(attribute) and Base#decrement(attribute) that encapsulates the += 1 and -= 1 patterns.
+
+
 *1.4.0* (January 4th, 2005)
 
 * Added automated optimistic locking if the field <tt>lock_version</tt> is present.  Each update to the

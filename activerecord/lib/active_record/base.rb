@@ -828,8 +828,8 @@ module ActiveRecord #:nodoc:
       # Note: This method is overwritten by the Validation module that'll make sure that updates made with this method
       # doesn't get subjected to validation checks. Hence, attributes can be updated even if the full object isn't valid.
       def update_attribute(name, value)
-        self[name] = value
-        return true
+        self[name.to_s] = value
+        save
       end
 
       # Updates all the attributes in from the passed hash and saves the record. If the object is invalid, the saving will
@@ -839,17 +839,52 @@ module ActiveRecord #:nodoc:
         return save
       end
 
+      # Initializes the +attribute+ to zero if nil and adds one. Only makes sense for number-based attributes. Returns self.
+      def increment(attribute)
+        self[attribute] ||= 0
+        self[attribute] += 1
+        self
+      end
+      
+      # Increments the +attribute+ and saves the record.
+      def increment!(attribute)
+        increment(attribute).update_attribute(attribute, self[attribute])
+      end
+
+      # Initializes the +attribute+ to zero if nil and subtracts one. Only makes sense for number-based attributes. Returns self.
+      def decrement(attribute)
+        self[attribute] ||= 0
+        self[attribute] -= 1
+        self
+      end
+
+      # Decrements the +attribute+ and saves the record.
+      def decrement!(attribute)
+        decrement(attribute).update_attribute(attribute, self[attribute])
+      end
+      
+      # Turns an +attribute+ that's currently true into false and vice versa. Returns self.
+      def toggle(attribute)
+        self[attribute] = quote(!send("#{attribute}?", column_for_attribute(attribute)))
+        self
+      end
+
+      # Toggles the +attribute+ and saves the record.
+      def toggle!(attribute)
+        toggle(attribute).update_attribute(attribute, self[attribute])
+      end
+
       # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example, 
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       # (Alias for the protected read_attribute method).
       def [](attr_name) 
-        read_attribute(attr_name)
+        read_attribute(attr_name.to_s)
       end
       
       # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
       # (Alias for the protected write_attribute method).
       def []= (attr_name, value) 
-        write_attribute(attr_name, value)
+        write_attribute(attr_name.to_s, value)
       end
 
       # Allows you to set all the attributes at once by passing in a hash with keys
@@ -881,7 +916,7 @@ module ActiveRecord #:nodoc:
 
       # Returns the column object for the named attribute.
       def column_for_attribute(name)
-        self.class.columns_hash[name]
+        self.class.columns_hash[name.to_s]
       end
             
       # Returns true if the +comparison_object+ is of the same type and has the same id.

@@ -585,4 +585,36 @@ class BasicsTest < Test::Unit::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1) }
     assert_nothing_raised { Reply.find(should_be_destroyed_reply.id) }
   end
+
+  def test_increment_attribute
+    assert_equal 0, @topics["first"].find.replies_count
+    @topics["first"].find.increment! :replies_count
+    assert_equal 1, @topics["first"].find.replies_count
+    
+    @topics["first"].find.increment(:replies_count).increment!(:replies_count)
+    assert_equal 3, @topics["first"].find.replies_count
+  end
+  
+  def test_increment_nil_attribute
+    assert_nil @topics["first"].find.parent_id
+    @topics["first"].find.increment! :parent_id
+    assert_equal 1, @topics["first"].find.parent_id
+  end
+  
+  def test_decrement_attribute
+    @topics["first"].find.increment(:replies_count).increment!(:replies_count)
+    assert_equal 2, @topics["first"].find.replies_count
+    
+    @topics["first"].find.decrement!(:replies_count)
+    assert_equal 1, @topics["first"].find.replies_count
+
+    @topics["first"].find.decrement(:replies_count).decrement!(:replies_count)
+    assert_equal -1, @topics["first"].find.replies_count
+  end
+  
+  def test_toggle_attribute
+    assert !@topics["first"].find.approved?
+    @topics["first"].find.toggle!(:approved)
+    assert @topics["first"].find.approved?
+  end
 end
