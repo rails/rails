@@ -1,3 +1,21 @@
+* Added availability of class inheritable attributes to the masses #477 [bitsweat]
+
+    class Foo
+      class_inheritable_reader :read_me
+      class_inheritable_writer :write_me
+      class_inheritable_accessor :read_and_write_me
+      class_inheritable_array :read_and_concat_me
+      class_inheritable_hash :read_and_update_me
+    end
+
+    # Bar gets a clone of (not a reference to) Foo's attributes.
+    class Bar < Foo
+    end
+
+    Bar.read_and_write_me == Foo.read_and_write_me
+    Bar.read_and_write_me = 'bar'
+    Bar.read_and_write_me != Foo.read_and_write_me
+
 * Added Inflections as an extension on String, so Inflector.pluralize(Inflector.classify(name)) becomes name.classify.pluralize #476 [bitsweat]
 
 * Added Byte operations to Numeric, so 5.5.megabytes + 200.kilobytes #461 [Marcel Molina]
