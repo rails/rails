@@ -69,7 +69,7 @@ module ActionView
         # Returns the text with all the Textile codes turned into HTML-tags. 
         # <i>This method is only available if RedCloth can be required</i>.
         def textilize(text)
-          RedCloth.new(text).to_html
+          text.empty? ? "" : RedCloth.new(text).to_html
         end
 
         # Returns the text with all the Textile codes turned into HTML-tags, but without the regular bounding <p> tag. 
@@ -90,7 +90,7 @@ module ActionView
         # Returns the text with all the Markdown codes turned into HTML-tags. 
         # <i>This method is only available if BlueCloth can be required</i>.
         def markdown(text)
-          BlueCloth.new(text).to_html
+          text.empty? ? "" : BlueCloth.new(text).to_html
         end
       rescue LoadError
         # We can't really help what's not there

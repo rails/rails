@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that textilize and markdown would instantiate their engines even on empty strings. This also fixes #333 [Ulysses]
+
 * Added use of *_before_type_cast for all input and text fields. This is helpful for getting "100,000" back on a integer-based 
   validation where the value would normally be "100".
 
