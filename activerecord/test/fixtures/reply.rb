@@ -1,5 +1,6 @@
 class Reply < Topic
   belongs_to :topic, :foreign_key => "parent_id", :counter_cache => true
+  has_many :silly_replies, :dependent => true, :foreign_key => "parent_id"
 
   validate :errors_on_empty_content
   validate_on_create :title_is_wrong_create
@@ -27,4 +28,7 @@ class Reply < Topic
   def validate_on_update
     errors.add("title", "is Wrong Update") if attribute_present?("title") && title == "Wrong Update"
   end
+end
+
+class SillyReply < Reply
 end

@@ -296,6 +296,14 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 0, Client.find_all.length
   end
 
+  def test_three_levels_of_dependence
+    topic = Topic.create "title" => "neat and simple"
+    reply = topic.replies.create "title" => "neat and simple", "content" => "still digging it"
+    silly_reply = reply.silly_replies.create "title" => "neat and simple", "content" => "ain't complaining"
+    
+    assert_nothing_raised { topic.destroy }
+  end
+
   def test_dependence_with_transaction_support_on_failure
     assert_equal 2, Client.find_all.length
     firm = Firm.find_first
