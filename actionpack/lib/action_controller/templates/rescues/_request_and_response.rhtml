@@ -1,10 +1,13 @@
 <% if defined?(Breakpoint) %>
   <br /><br />
-  <%= form_tag({}, "method" => @request.method) %>
+  <%= form_tag({:params => {}, :only_path => true}, "method" => @request.method) %>
     <input type="hidden" name="BP-RETRY" value="1" />
-
-    <% for key, value in @request.params %>
-      <input type="hidden" name="<%= key %>" value="<%= value %>" />
+  
+    <% for key, values in @params %>
+      <% next if key == "BP-RETRY" %>
+      <% for value in Array(values) %>
+        <input type="hidden" name="<%= key %>" value="<%= value %>" />
+      <% end %>
     <% end %>
 
     <input type="submit" value="Retry with Breakpoint" />

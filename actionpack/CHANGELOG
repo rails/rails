@@ -1,5 +1,12 @@
 *SVN*
 
+* Fixed three issues with retrying breakpoints #417 [Florian Gross]
+
+  1. Don't screw up pages that use multiple values for the same parameter (?foo=bar&foo=qux was converted to ?foo=barqux) 
+  2. Don't screw up all forms when you click the "Retry with Breakpoint" link multiple times instead of reloading 
+     (This caused the parameters to be added multiple times for GET forms leading to trouble.) 
+  3. Don't add ?BP-RETRY=1 multiple times
+
 * Added that all renders and redirects now return false, so they can be used as the last line in before_filters to stop execution.
 
   Before:
