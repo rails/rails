@@ -1,5 +1,7 @@
 *SVN*
 
+* Optimized the SQL used to generate has_and_belongs_to_many queries by listing the join table first #693 [yerejm]
+
 * Fixed that when using validation macros with a custom message, if you happened to use single quotes in the message string you would get a parsing error #657 [tonka]
 
 * Fixed that Active Record would throw Broken Pipe errors with FCGI when the MySQL connection timed out instead of reconnecting #428 [Nicholas Seckar]

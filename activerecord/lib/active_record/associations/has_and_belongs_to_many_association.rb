@@ -147,7 +147,7 @@ module ActiveRecord
         def construct_sql
           interpolate_sql_options!(@options, :finder_sql, :delete_sql)
           @finder_sql = @options[:finder_sql] ||
-                "SELECT t.*, j.* FROM #{@association_table_name} t, #{@join_table} j " +
+                "SELECT t.*, j.* FROM #{@join_table} j, #{@association_table_name} t " +
                 "WHERE t.#{@association_class.primary_key} = j.#{@association_foreign_key} AND " +
                 "j.#{@association_class_primary_key_name} = #{@owner.quoted_id} " +
                 (@options[:conditions] ? " AND " + interpolate_sql(@options[:conditions]) : "") + " " +

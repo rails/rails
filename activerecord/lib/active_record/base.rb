@@ -144,7 +144,7 @@ module ActiveRecord #:nodoc:
   #   class Client < Company; end
   #   class PriorityClient < Client; end
   #
-  # When you do Firm.create("name" => "37signals"), this record with be saved in the companies table with type = "Firm". You can then
+  # When you do Firm.create("name" => "37signals"), this record will be saved in the companies table with type = "Firm". You can then
   # fetch this row again using Company.find_first "name = '37signals'" and it will return a Firm object.
   #
   # If you don't have a type column defined in your table, single-table inheritance won't be triggered. In that case, it'll work just
