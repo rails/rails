@@ -564,11 +564,7 @@ module ActiveRecord
           begin 
             require(Inflector.underscore(class_name))
           rescue LoadError
-            if logger
-              logger.info "#{self.to_s} failed to require #{class_name}"
-            else
-              STDERR << "#{self.to_s} failed to require #{class_name}\n"
-            end
+            # Failed to load the associated class -- let's hope the developer is doing the requiring himself.
           end
         end
     end
