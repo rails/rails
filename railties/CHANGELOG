@@ -31,6 +31,8 @@
 
 * Fixed that generated action_mailers doesnt need to require the action_mailer since thats already done in the environment #382 [Lucas Carlson]
 
+* Upgraded to Action Pack 1.2.0 and Active Record 1.4.0
+
 
 *0.9.2*
 
