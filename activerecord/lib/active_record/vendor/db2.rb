@@ -8,7 +8,7 @@ module DB2
     def handle() @handle; end
 
     def check_rc(rc)
-      if rc != SQL_SUCCESS and rc != SQL_SUCCESS_WITH_INFO and rc != SQL_NO_DATA_FOUND
+      if ![SQL_SUCCESS, SQL_SUCCESS_WITH_INFO, SQL_NO_DATA_FOUND].include?(rc)
         rec = 1
         msg = ''
         loop do
