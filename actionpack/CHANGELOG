@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :encode option to mail_to that'll allow you to masquarede the email address behind javascript or hex encoding #494 [Lucas Carlson]
+
 * Fixed that the content-header was being set to application/octet_stream instead of application/octet-stream on send_date/file [Alexey]
 
 * Removed the need for passing the binding when using CacheHelper#cache
