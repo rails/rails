@@ -1,3 +1,5 @@
+* Fixed Inflector for words like "news" and "series" that are the same in plural and singular #603 [echion], #615 [marcenuc]
+
 * Added Hash#stringify_keys and Hash#stringify_keys!
 
 * Added IndifferentAccess as a way to wrap a hash by a symbol-based store that also can be accessed by string keys

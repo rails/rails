@@ -58,6 +58,7 @@ module Inflector
     def plural_rules #:doc:
       [
         [/(x|ch|ss|sh)$/, '\1es'],               # search, switch, fix, box, process, address
+        [/series$/, '\1series'],
         [/([^aeiouy]|qu)ies$/, '\1y'],
         [/([^aeiouy]|qu)y$/, '\1ies'],        # query, ability, agency
         [/(?:([^f])fe|([lr])f)$/, '\1\2ves'], # half, safe, wife
@@ -75,6 +76,7 @@ module Inflector
       [
         [/(x|ch|ss)es$/, '\1'],
         [/movies$/, 'movie'],
+        [/series$/, 'series'],
         [/([^aeiouy]|qu)ies$/, '\1y'],
         [/([lr])ves$/, '\1f'],
         [/([^f])ves$/, '\1fe'],
@@ -84,6 +86,7 @@ module Inflector
         [/men$/, 'man'],
         [/status$/, 'status'],
         [/children$/, 'child'],
+        [/news$/, 'news'],
         [/s$/, '']
       ]
     end
