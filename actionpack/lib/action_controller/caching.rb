@@ -121,7 +121,7 @@ module ActionController #:nodoc:
 
       private
         def caching_allowed
-          !@request.method.post? && (@request.parameters.reject {|k, v| ['id', 'action', 'controller'].include?(k)}).empty?
+          !@request.post? && (@request.parameters.reject { |k, v| %w( id action controller ).include?(k) }).empty?
         end
     end
 
