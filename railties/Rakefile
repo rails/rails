@@ -237,7 +237,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('rake', '>= 0.4.15')
   s.add_dependency('activesupport',    '= 1.0.2' + PKG_BUILD)
   s.add_dependency('activerecord',     '= 1.9.0' + PKG_BUILD)
-  s.add_dependency('actionpack',       '= 1.7.0' + PKG_BUILD)
+  s.add_dependency('actionpack',       '= 1.6.0' + PKG_BUILD)
   s.add_dependency('actionmailer',     '= 0.8.0' + PKG_BUILD)
   s.add_dependency('actionwebservice', '= 0.6.1' + PKG_BUILD)
 
