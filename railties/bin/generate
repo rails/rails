@@ -2,6 +2,8 @@
 require File.dirname(__FILE__) + '/../config/environment'
 require 'rails_generator'
 
+ARGV.shift unless ARGV.empty? or not ['--help', '-h'].include?(ARGV[0])
+
 unless ARGV.empty?
   begin
     name = ARGV.shift

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for a -h/--help parameter in the generator #331 [Ulysses]
+
 * File.expand_path in config/environment.rb would fail when dealing with symlinked public directories [mjobin].
 
 
