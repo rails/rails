@@ -1,13 +1,12 @@
-/*  Prototype: an object-oriented Javascript library, version 1.0.0
+/*  Prototype: an object-oriented Javascript library, version 1.0.1
  *  (c) 2005 Sam Stephenson <sam@conio.net>
  *
  *  Prototype is freely distributable under the terms of an MIT-style license. 
  *  For details, see http://prototype.conio.net/
  */
 
-
 Prototype = {
-  Version : '1.0.0'
+  Version: '1.0.1'
 }
 
 Class = {
@@ -59,9 +58,8 @@ Try = {
 
 Toggle = {
   display: function() {
-    elements = $.apply(this, arguments);
     for (var i = 0; i < elements.length; i++) {
-      element = elements[i];
+      var element = $(elements[i]);
       element.style.display = 
         (element.style.display == 'none' ? '' : 'none');
     }
@@ -73,7 +71,7 @@ Toggle = {
 function $() {
   var elements = new Array();
   
-  for (i = 0; i < arguments.length; i++) {
+  for (var i = 0; i < arguments.length; i++) {
     var element = arguments[i];
     if (typeof element == 'string')
       element = document.getElementById(element);
@@ -145,23 +143,32 @@ Ajax.Request.prototype = (new Ajax.Base()).extend({
     
       this.transport.open(this.options.method, url, true);
       
-      if (this.options.asynchronous)
+      if (this.options.asynchronous) {
         this.transport.onreadystatechange = this.onStateChange.bind(this);
-      
+        setTimeout((function() {this.respondToReadyState(1)}).bind(this), 10);
+      }
+              
       if (this.options.method == 'post') {
         this.transport.setRequestHeader('Connection', 'close');
         this.transport.setRequestHeader('Content-type',
           'application/x-www-form-urlencoded');
       }
       
-      this.transport.send(this.options.method == 'post' ? this.options.parameters + '&_=' : null);
+      this.transport.send(this.options.method == 'post' ? 
+        this.options.parameters + '&_=' : null);
                       
     } catch (e) {
     }    
   },
       
   onStateChange: function() {
-    var event = Ajax.Request.Events[this.transport.readyState];
+    var readyState = this.transport.readyState;
+    if (readyState != 1)
+      this.respondToReadyState(this.transport.readyState);
+  },
+  
+  respondToReadyState: function(readyState) {
+    var event = Ajax.Request.Events[readyState];
     (this.options['on' + event] || Ajax.emptyFunction)(this.transport);
   }
 });
@@ -189,9 +196,11 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
   }
 });
 
+/*--------------------------------------------------------------------------*/
+
 Field = {
   clear: function() {
-    for (i = 0; i < arguments.length; i++)
+    for (var i = 0; i < arguments.length; i++)
       $(arguments[i]).value = '';
   },
 
@@ -200,7 +209,7 @@ Field = {
   },
   
   present: function() {
-    for (i = 0; i < arguments.length; i++)
+    for (var i = 0; i < arguments.length; i++)
       if ($(arguments[i]).value == '') return false;
     return true;
   }

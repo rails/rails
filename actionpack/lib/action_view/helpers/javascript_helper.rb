@@ -45,10 +45,8 @@ module ActionView
       #       :url => { :action => "undo", :n => word_counter },
       #       :complete => "undoRequestCompleted(request)"
       #
-      # The complete list of callbacks that may be specified are:
+      # The callbacks that may be specified are:
       #
-      # <tt>:uninitialized</tt>:: Called before the remote document is 
-      #                           initialized with data.
       # <tt>:loading</tt>::       Called when the remote document is being 
       #                           loaded with data by the browser.
       # <tt>:loaded</tt>::        Called when the browser has finished loading
