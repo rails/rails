@@ -152,7 +152,7 @@ module ActionView
         html_options.merge!({ "size" => options["maxlength"]}) if options["maxlength"] && !options["size"]
         html_options.delete("size") if field_type == "hidden"
         html_options.merge!({ "type" =>  field_type})
-        html_options.merge!({ "value" => value_before_type_cast }) if options["value"].nil? || field_type == "file"
+        html_options.merge!({ "value" => value_before_type_cast }) if options["value"].nil? && field_type != "file"
         add_default_name_and_id(html_options)
         tag("input", html_options)
       end
