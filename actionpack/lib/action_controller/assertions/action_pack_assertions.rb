@@ -63,10 +63,19 @@ module Test #:nodoc:
 
       # -- cookie assertions ---------------------------------------------------
 
+      def assert_no_cookie(key = nil, message = nil)
+        response = acquire_assertion_target
+        actual = response.cookies[key]
+        msg = build_message(message, "<?> not expected in cookies['?']", actual, key)
+        assert_block(msg) { actual.nil? or actual.empty? }
+      end
+      
       def assert_cookie_equal(expected = nil, key = nil, message = nil)
         response = acquire_assertion_target
-        msg = build_message(message, "<?> expected in cookies['?'] but was <?>", expected, key, response.cookies[key.to_s].first)
-        assert_block(msg) { expected == response.cookies[key.to_s].first }
+        actual = response.cookies[key]
+        actual = actual.first if actual
+        msg = build_message(message, "<?> expected in cookies['?'] but was <?>", expected, key, actual)
+        assert_block(msg) { expected == actual }
       end
       
       # -- flash assertions ---------------------------------------------------

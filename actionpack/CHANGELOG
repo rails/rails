@@ -1,5 +1,7 @@
 *SVN*
 
+* Added assert_no_cookie and fixed assert_cookie_equal to deal with non-existing cookies #979 [bitsweat]
+
 * Fixed :overwrite_param so it doesn't delete but reject elements from @request.parameters #982 [raphinou@yahoo.com]
 
 * Added :method option to verify for ensuring that either GET, POST, etc is allowed #984 [Jamis Buck]
