@@ -64,6 +64,9 @@ class AppGenerator < Rails::Generator::Base
       
       m.template "html/favicon.ico", "public/favicon.ico"
 
+      # Javascripts
+      m.file "javascripts/prototype.js", "public/javascripts/prototype.js"
+
       # Docs
       m.file "doc/README_FOR_APP", "doc/README_FOR_APP"
 
