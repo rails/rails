@@ -43,6 +43,9 @@ class UrlHelperTest < Test::Unit::TestCase
     @params = { "controller" => "weblog", "action" => "show"}
     assert_equal "Showing", link_to_unless_current("Showing", :action => "show", :controller => "weblog")
     assert "<a href=\"http://www.world.com\">Listing</a>", link_to_unless_current("Listing", :action => "list", :controller => "weblog")
+
+    @params = { "controller" => "weblog", "action" => "show", "id" => "1"}
+    assert_equal "Showing", link_to_unless_current("Showing", :action => "show", :controller => "weblog", :id => 1)
   end
 
   def test_mail_to

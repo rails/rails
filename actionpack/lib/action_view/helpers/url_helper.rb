@@ -96,9 +96,9 @@ module ActionView
         def destination_equal_to_current(options)
           params_without_location = @params.reject { |key, value| %w( controller action id ).include?(key) }
 
-          options[:action] == @params['action'] &&
-            options[:id] == @params['id'] &&
-            options[:controller] == @params['controller'] &&
+          options[:action].to_s == @params['action'].to_s &&
+            options[:id].to_s == @params['id'].to_s &&
+            options[:controller].to_s == @params['controller'].to_s &&
             (options.has_key?(:params) ? params_without_location == options[:params] : true) 
         end
 

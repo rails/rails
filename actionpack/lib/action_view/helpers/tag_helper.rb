@@ -1,4 +1,5 @@
 require 'cgi'
+require 'erb'
 
 module ActionView
   module Helpers

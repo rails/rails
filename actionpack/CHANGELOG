@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed UrlHelper#link_to_unless so it doesn't care if the id is a string or fixnum [zenspider]
+
 * Added search through session to clear out association caches at the end of each request. This makes it possible to place Active Record objects
   in the session without worrying about stale data in the associations (the main object is still subject to caching, naturally) #347 [Tobias Luetke]
 
