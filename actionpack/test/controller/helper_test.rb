@@ -77,7 +77,7 @@ class HelperTest < Test::Unit::TestCase
 
   def test_declare_missing_helper
     assert_equal helper_methods, missing_methods
-    assert_raise(LoadError) { @controller_class.helper :missing }
+    assert_raise(MissingSourceFile) { @controller_class.helper :missing }
   end
 
   def test_declare_missing_file_from_helper
