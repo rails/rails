@@ -474,6 +474,11 @@ class RouteSetTests < Test::Unit::TestCase
     @request.path_parameters = {:controller => 'content', :action => 'action', :id => '10'}
     verify_generate 'content/action', {:id => nil}
   end
+
+  def test_url_to_self
+    @request.path_parameters = {:controller => 'admin/users', :action => 'index'}
+    verify_generate 'admin/users', {}
+  end
 end
 
 #require '../assertions/action_pack_assertions.rb'

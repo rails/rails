@@ -215,8 +215,9 @@ module ActionController
 
         options = options.symbolize_keys
         defaults = request.path_parameters.symbolize_keys
-        options = defaults if options.empty? # Get back the current url if no options was passed
-        expand_controller_path!(options, defaults)
+        if options.empty? then options = defaults.clone # Get back the current url if no options was passed
+        else expand_controller_path!(options, defaults) # Expand the supplied controller path.
+        end
         defaults.delete_if {|k, v| options.key?(k) && options[k].nil?} # Remove defaults that have been manually cleared using :name => nil
 
         failures = []
