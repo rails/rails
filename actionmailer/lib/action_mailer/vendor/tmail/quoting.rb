@@ -4,11 +4,11 @@ require 'base64'
 module TMail
   class Mail
     def subject(to_charset = 'utf-8')
-      Unquoter.unquote_and_convert_to(quoted_subject || "", to_charset)
+      Unquoter.unquote_and_convert_to(quoted_subject, to_charset)
     end
 
     def unquoted_body(to_charset = 'utf-8')
-      Unquoter.unquote_and_convert_to(quoted_body || "", to_charset, header["content-type"]["charset"])
+      Unquoter.unquote_and_convert_to(quoted_body, to_charset, header["content-type"]["charset"])
     end
 
     def body(to_charset = 'utf-8', &block)
@@ -29,6 +29,7 @@ module TMail
   class Unquoter
     class << self
       def unquote_and_convert_to(text, to_charset, from_charset = "iso-8859-1")
+        return "" if text.nil?
         if text =~ /^=\?(.*?)\?(.)\?(.*)\?=$/
           from_charset = $1
           quoting_method = $2
@@ -47,11 +48,11 @@ module TMail
       end
    
       def unquote_quoted_printable_and_convert_to(text, from, to)
-        Iconv.iconv(to, from, text.gsub(/_/," ").unpack("M*").first).first
+        text ? Iconv.iconv(to, from || "ISO-8859-1", text.gsub(/_/," ").unpack("M*").first).first : ""
       end
    
       def unquote_base64_and_convert_to(text, from, to)
-        Iconv.iconv(to, from, Base64.decode64(text)).first
+        text ? Iconv.iconv(to, from || "ISO-8859-1", Base64.decode64(text)).first : ""
       end
     end
   end
