@@ -54,6 +54,26 @@ module ActiveSupport #:nodoc:
           end
         end
 
+        # Returns a new Time representing the time a number of specified years ago
+        def years_ago(years)
+          change(:year => self.year - years)
+        end
+        
+        def years_since(years)
+          change(:year => self.year + years)
+        end
+
+        # Short-hand for months_ago(1)
+        def last_year
+          years_since(1)
+        end
+        
+        # Short-hand for months_since(1)
+        def next_year
+          years_since(1)
+        end
+
+
         # Short-hand for months_ago(1)
         def last_month
           months_ago(1)
@@ -87,9 +107,16 @@ module ActiveSupport #:nodoc:
         
         # Returns a new Time representing the start of the month (1st of the month, 0:00)
         def beginning_of_month
-          self - ((self.mday-1).days + self.seconds_since_midnight)
+          #self - ((self.mday-1).days + self.seconds_since_midnight)
+          change(:mday => 1,:hour => 0, :min => 0, :sec => 0, :usec => 0)
         end
         alias :at_beginning_of_month :beginning_of_month
+        
+        # Returns  a new Time representing the start of the year (1st of january, 0:00)
+        def beginning_of_year
+          change(:month => 1,:mday => 1,:hour => 0, :min => 0, :sec => 0, :usec => 0)
+        end
+        alias :at_beginning_of_year :beginning_of_year
         
         # Convenience method which returns a new Time representing the time 1 day ago
         def yesterday

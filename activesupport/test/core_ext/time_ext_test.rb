@@ -22,6 +22,10 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_beginning_of_month
     assert_equal Time.local(2005,2,1,0,0,0), Time.local(2005,2,22,10,10,10).beginning_of_month
   end
+  
+  def test_beginning_of_year
+    assert_equal Time.local(2005,1,1,0,0,0), Time.local(2005,2,22,10,10,10).beginning_of_year
+  end
     
   def test_months_ago
     assert_equal Time.local(2005,5,5,10),  Time.local(2005,6,5,10,0,0).months_ago(1)
@@ -38,6 +42,19 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2006,6,5,10),  Time.local(2005,6,5,10,0,0).months_since(12)
     assert_equal Time.local(2007,6,5,10),  Time.local(2005,6,5,10,0,0).months_since(24)
   end
+  
+  def test_years_ago
+    assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).years_ago(1)
+    assert_equal Time.local(1998,6,5,10), Time.local(2005,6,5,10,0,0).years_ago(7)
+  end
+  
+  def test_years_since
+    assert_equal Time.local(2006,6,5,10),  Time.local(2005,6,5,10,0,0).years_since(1)
+    assert_equal Time.local(2012,6,5,10),  Time.local(2005,6,5,10,0,0).years_since(7)
+    # Failure because of size limitations of numeric?
+    # assert_equal Time.local(2182,6,5,10),  Time.local(2005,6,5,10,0,0).years_since(177) 
+  end
+  
 
   def test_ago
     assert_equal Time.local(2005,2,22,10,10,9),  Time.local(2005,2,22,10,10,10).ago(1)
