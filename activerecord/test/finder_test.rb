@@ -95,6 +95,16 @@ class FinderTest < Test::Unit::TestCase
 	   Company.find_first(["id=?", 2, 3, 4])
     }
   end
+  
+  def test_bind_variables_with_quotes
+    Company.create("name" => "37signals' go'es agains")
+    assert Company.find_first(["name = ?", "37signals' go'es agains"])
+  end
+
+  def test_named_bind_variables_with_quotes
+    Company.create("name" => "37signals' go'es agains")
+    assert Company.find_first(["name = :name", {:name => "37signals' go'es agains"}])
+  end
 
   def test_named_bind_variables
     assert_kind_of Firm, Company.find_first(["name = :name", { :name => "37signals" }])

@@ -14,6 +14,21 @@
 
 * Added Base.validate_presence as an alternative to implementing validate and doing errors.add_on_empty yourself.
 
+* Added Base.validate_uniqueness that alidates whether the value of the specified attributes are unique across the system. 
+  Useful for making sure that only one user can be named "davidhh".
+  
+    Model:
+      class Person < ActiveRecord::Base
+        validate_uniqueness :user_name
+      end
+  
+    View:
+      <%= text_field "person", "user_name" %>
+  
+  When the record is created, a check is performed to make sure that no record exist in the database with the given value for the specified
+  attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
+
+
 * Added Base.validate_confirmation that encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
  
      Model:

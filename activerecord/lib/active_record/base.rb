@@ -665,7 +665,7 @@ module ActiveRecord #:nodoc:
           end
 
           until values.empty?
-            statement.sub!(/\?/, connection.quote(values.shift))
+            statement.sub!(/\?/, encode_quoted_value(values.shift))
           end
           
           statement.gsub('?') { |all, match| connection.quote(values.shift) }
@@ -674,7 +674,7 @@ module ActiveRecord #:nodoc:
         def replace_named_bind_variables(statement, values_hash)
           orig_statement = statement.clone
           values_hash.keys.each do |k|
-            if statement.sub!(/:#{k.id2name}/, connection.quote(values_hash.delete(k))).nil?
+            if statement.sub!(/:#{k.id2name}/, encode_quoted_value(values_hash.delete(k))).nil?
               raise PreparedStatementInvalid, ":#{k} is not a variable in [#{orig_statement}]"
             end
           end
@@ -684,6 +684,12 @@ module ActiveRecord #:nodoc:
           end
 
           return statement
+        end
+        
+        def encode_quoted_value(value)
+          quoted_value = connection.quote(value)
+          quoted_value = "'#{quoted_value[1..-2].gsub(/\'/, "\\\\'")}'" if quoted_value.include?("\\\'")          
+          quoted_value
         end
     end
 

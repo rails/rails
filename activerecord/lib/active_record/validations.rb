@@ -74,7 +74,6 @@ module ActiveRecord
       # situations.
       def validate_confirmation(*attr_names)
         error_message = attr_names.last.is_a?(String) ? attr_names.pop : "doesn't match confirmation"
-
         validation_method = block_given? ? yield : "validate"
 
         for attr_name in attr_names
@@ -111,7 +110,6 @@ module ActiveRecord
       # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
       def validate_acceptance(*attr_names)
         error_message = attr_names.last.is_a?(String) ? attr_names.pop : "must be accepted"
-        
         validation_method = block_given? ? yield : "validate"
         
         for attr_name in attr_names
@@ -132,7 +130,6 @@ module ActiveRecord
 
       def validate_presence(*attr_names)
         error_message = attr_names.last.is_a?(String) ? attr_names.pop : "can't be empty"
-
         validation_method = block_given? ? yield : "validate"
 
         for attr_name in attr_names
@@ -148,6 +145,27 @@ module ActiveRecord
       # Works like validate_presence, but only performs the validation on update (for existing records).
       def validate_presence_on_update(*attr_names)
         validate_presence(*attr_names) { "validate_on_update" }
+      end
+
+      # Validates whether the value of the specified attributes are unique across the system. Useful for making sure that only one user
+      # can be named "davidhh".
+      #
+      #   Model:
+      #     class Person < ActiveRecord::Base
+      #       validate_uniqueness :user_name
+      #     end
+      #
+      #   View:
+      #     <%= text_field "person", "user_name" %>
+      #
+      # When the record is created, a check is performed to make sure that no record exist in the database with the given value for the specified
+      # attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
+      def validate_uniqueness(*attr_names)
+        error_message = attr_names.last.is_a?(String) ? attr_names.pop : "has already been taken"
+
+        for attr_name in attr_names
+          class_eval(%(validate %{errors.add("#{attr_name}", "#{error_message}") if self.class.find_first(new_record? ? ["#{attr_name} = ?", #{attr_name}] : ["#{attr_name} = ? AND id <> ?", #{attr_name}, id])}))
+        end
       end
     end
 
