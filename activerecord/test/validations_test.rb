@@ -220,4 +220,27 @@ class ValidationsTest < Test::Unit::TestCase
 
     assert_raise(ArgumentError) { Topic.validates_format_of(:title, :content) }
   end
+
+  def test_validates_inclusion_of
+    Topic.validates_inclusion_of( :title, :in => %w( a b c d e f g ) )
+
+    assert !Topic.create("title" => "a!", "content" => "abc").valid?
+    assert !Topic.create("title" => "a b", "content" => "abc").valid?
+    assert !Topic.create("title" => nil, "content" => "def").valid?
+    assert !Topic.create("title" => %w(a b c), "content" => "def").valid?
+    
+    t = Topic.create("title" => "a", "content" => "I know you are but what am I?")
+    assert t.valid?
+    t.title = "uhoh"
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "is not included in the list", t.errors["title"]
+
+    assert_raise(ArgumentError) { Topic.validates_inclusion_of( :title, :in => nil ) }
+    assert_raise(ArgumentError) { Topic.validates_inclusion_of( :title, :in => 0) }
+
+    assert_nothing_raised(ArgumentError) { Topic.validates_inclusion_of( :title, :in => "hi!" ) }
+    assert_nothing_raised(ArgumentError) { Topic.validates_inclusion_of( :title, :in => {} ) }
+    assert_nothing_raised(ArgumentError) { Topic.validates_inclusion_of( :title, :in => [] ) }
+  end
 end
