@@ -1,5 +1,7 @@
 *CVS*
 
+* Added Request#ssl? which is shorthand for @request.protocol == "https://"
+
 * Added the choice to call form_tag with no arguments (resulting in a form posting to current action) [bitsweat]
 
 * Upgraded to Builder 1.2.1

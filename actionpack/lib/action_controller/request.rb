@@ -54,6 +54,10 @@ module ActionController
       port == 443 ? "https://" : "http://"
     end
 
+    def ssl?
+      protocol == "https://"
+    end
+
     def path
       request_uri ? request_uri.split("?").first : ""
     end
