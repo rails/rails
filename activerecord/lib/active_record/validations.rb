@@ -213,9 +213,9 @@ module ActiveRecord
 
         for attr_name in attr_names
           if scope = configuration[:scope]
-            class_eval(%(validate %{errors.add('#{attr_name}', '#{configuration[:message]}') if self.class.find_first(new_record? ? ['#{attr_name} = ? AND #{scope} = ?', #{attr_name}, #{scope}] : ["#{attr_name} = ? AND \#{primary_key} <> ? AND #{scope} = ?", #{attr_name}, id, #{scope}])}))
+            class_eval(%(validate %{errors.add('#{attr_name}', '#{configuration[:message]}') if self.class.find_first(new_record? ? ['#{attr_name} = ? AND #{scope} = ?', #{attr_name}, #{scope}] : ["#{attr_name} = ? AND \\\#{self.class.primary_key} <> ? AND #{scope} = ?", #{attr_name}, id, #{scope}])}))
           else
-            class_eval(%(validate %{errors.add('#{attr_name}', '#{configuration[:message]}') if self.class.find_first(new_record? ? ['#{attr_name} = ?', #{attr_name}] : ["#{attr_name} = ? AND \#{primary_key} <> ?", #{attr_name}, id])}))
+            class_eval(%(validate %{errors.add('#{attr_name}', '#{configuration[:message]}') if self.class.find_first(new_record? ? ['#{attr_name} = ?', #{attr_name}] : ["#{attr_name} = ? AND \\\#{self.class.primary_key} <> ?", #{attr_name}, id])}))
           end
         end
       end
