@@ -14,9 +14,10 @@ module ActionWebService # :nodoc:
         end
 
         def decode_action_pack_request(action_pack_request)
-          return nil unless has_valid_soap_action?(action_pack_request)
+          return nil unless soap_action = has_valid_soap_action?(action_pack_request)
           service_name = action_pack_request.parameters['action']
-          decode_request(action_pack_request.raw_post, service_name)
+          protocol_options = { :soap_action => soap_action }
+          decode_request(action_pack_request.raw_post, service_name, protocol_options)
         end
 
         def encode_action_pack_request(service_name, public_method_name, raw_body, options={})
@@ -25,7 +26,7 @@ module ActionWebService # :nodoc:
           request
         end
 
-        def decode_request(raw_request, service_name)
+        def decode_request(raw_request, service_name, protocol_options=nil)
           envelope = SOAP::Processor.unmarshal(raw_request)
           unless envelope
             raise ProtocolError, "Failed to parse SOAP request message"
@@ -33,7 +34,7 @@ module ActionWebService # :nodoc:
           request = envelope.body.request
           method_name = request.elename.name
           params = request.collect{ |k, v| marshaler.soap_to_ruby(request[k]) }
-          Request.new(self, method_name, params, service_name)
+          Request.new(self, method_name, params, service_name, nil, nil, protocol_options)
         end
 
         def encode_request(method_name, params, param_types)

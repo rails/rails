@@ -2,6 +2,9 @@
 
 * Add scaffolding via ActionController::Base.web_service_scaffold for quick testing using a web browser
 
+* The :layered dispatching mode can now be used with SOAP as well, allowing you to support SOAP and XML-RPC
+  clients for APIs like the metaWeblog API
+
 * Remove ActiveRecordSoapMarshallable workaround, see #912 for details
 
 * Generalize casting code to be used by both SOAP and XML-RPC (previously, it was only XML-RPC)

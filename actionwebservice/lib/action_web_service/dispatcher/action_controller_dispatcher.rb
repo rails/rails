@@ -185,7 +185,7 @@ module ActionWebService # :nodoc:
               api = self.class.web_service_api
               web_service_name = controller_class_name.sub(/Controller$/, '').underscore
               apis[web_service_name] = [api, register_api(api, marshaler)]
-            when :delegated
+            when :delegated, :layered
               self.class.web_services.each do |web_service_name, info|
                 service = web_service_object(web_service_name)
                 api = service.class.web_service_api
@@ -244,7 +244,7 @@ module ActionWebService # :nodoc:
                 api = values[0]
                 api.api_methods.each do |name, method|
                   gen = lambda do |msg_name, direction|
-                    xm.message('name' => msg_name) do
+                    xm.message('name' => message_name_for(api_name, msg_name)) do
                       sym = nil
                       if direction == :out
                         returns = method.returns
@@ -271,8 +271,8 @@ module ActionWebService # :nodoc:
                 xm.portType('name' => port_name) do
                   api.api_methods.each do |name, method|
                     xm.operation('name' => method.public_name) do
-                      xm.input('message' => "typens:#{method.public_name}")
-                      xm.output('message' => "typens:#{method.public_name}Response")
+                      xm.input('message' => "typens:" + message_name_for(api_name, method.public_name))
+                      xm.output('message' => "typens:" + message_name_for(api_name, "#{method.public_name}Response"))
                     end
                   end
                 end
@@ -284,9 +284,9 @@ module ActionWebService # :nodoc:
                   api.api_methods.each do |name, method|
                     xm.operation('name' => method.public_name) do
                       case web_service_dispatching_mode
-                      when :direct, :layered
+                      when :direct
                         soap_action = soap_action_base + "/api/" + method.public_name
-                      when :delegated
+                      when :delegated, :layered
                         soap_action = soap_action_base \
                                     + "/" + api_name.to_s \
                                     + "/" + method.public_name
@@ -315,7 +315,7 @@ module ActionWebService # :nodoc:
                   port_name = port_name_for(global_service_name, api_name)
                   binding_name = binding_name_for(global_service_name,  api_name)
                   case web_service_dispatching_mode
-                  when :direct
+                  when :direct, :layered
                     binding_target = 'api'
                   when :delegated
                     binding_target = api_name.to_s
@@ -334,6 +334,15 @@ module ActionWebService # :nodoc:
 
           def binding_name_for(global_service, service)
             "#{global_service}#{service.to_s.camelize}Binding"
+          end
+
+          def message_name_for(api_name, message_name)
+            mode = web_service_dispatching_mode
+            if mode == :layered || mode == :delegated
+              api_name.to_s + '-' + message_name
+            else
+              message_name
+            end
           end
 
           def register_api(api, marshaler)

@@ -162,11 +162,10 @@ This mode is similar to _delegated_ mode, in that multiple web service objects
 can be attached to one controller, however, all protocol requests are sent to a
 single endpoint.
 
-This mode is only usable by XML-RPC. In this mode, method names can contain
-_prefixes_, which will indicate which web service object implements the API
-identified by that prefix.
+Use this mode when you want to share code between XML-RPC and SOAP clients,
+for APIs where the XML-RPC method names have prefixes. An example of such
+a method name would be <tt>blogger.newPost</tt>.
 
-The _prefix_ can be any word, followed by a period.
 
 ==== Layered dispatching example
 
@@ -192,8 +191,8 @@ The _prefix_ can be any word, followed by a period.
   end
 
 
-For this example, a remote call for a method with a name like
-<tt>mt.getCategories</tt> will be dispatched as the <tt>getCategories</tt>
+For this example, an XML-RPC call for a method with a name like
+<tt>mt.getCategories</tt> will be sent to the <tt>getCategories</tt>
 method on the <tt>:mt</tt> service.
 
 

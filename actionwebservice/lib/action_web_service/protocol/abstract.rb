@@ -17,7 +17,7 @@ module ActionWebService # :nodoc:
         request
       end
 
-      def decode_request(raw_request, service_name)
+      def decode_request(raw_request, service_name, protocol_options=nil)
       end
 
       def encode_request(method_name, params, param_types)
@@ -43,14 +43,16 @@ module ActionWebService # :nodoc:
       attr :service_name
       attr_accessor :api
       attr_accessor :api_method
+      attr :protocol_options
 
-      def initialize(protocol, method_name, method_params, service_name, api=nil, api_method=nil)
+      def initialize(protocol, method_name, method_params, service_name, api=nil, api_method=nil, protocol_options=nil)
         @protocol = protocol
         @method_name = method_name
         @method_params = method_params
         @service_name = service_name
         @api = api
         @api_method = api_method
+        @protocol_options = protocol_options || {}
       end
     end
 

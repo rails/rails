@@ -371,24 +371,33 @@ module DispatcherCommonTests
     end
 
     def do_method_call(container, public_method_name, *params)
+      request_env = {}
       mode = container.web_service_dispatching_mode
       case mode
       when :direct
         service_name = service_name(container)
         api = container.class.web_service_api
+        method = api.public_api_method_instance(public_method_name)
       when :delegated
         service_name = service_name(container)
         api = container.web_service_object(service_name).class.web_service_api
+        method = api.public_api_method_instance(public_method_name)
       when :layered
         service_name = nil
+        real_method_name = nil
         if public_method_name =~ /^([^\.]+)\.(.*)$/
           service_name = $1
+          real_method_name = $2
+        end
+        if @protocol.is_a? ActionWebService::Protocol::Soap::SoapProtocol
+          public_method_name = real_method_name
+          request_env['HTTP_SOAPACTION'] = "/soap/#{service_name}/#{real_method_name}"
         end
         api = container.web_service_object(service_name.to_sym).class.web_service_api
+        method = api.public_api_method_instance(real_method_name)
         service_name = self.service_name(container)
       end
       @protocol.register_api(api)
-      method = api.public_api_method_instance(public_method_name)
       virtual = false
       unless method
         virtual = true
@@ -397,6 +406,7 @@ module DispatcherCommonTests
       body = @protocol.encode_request(public_method_name, params.dup, method.expects)
       # puts body
       ap_request = @protocol.encode_action_pack_request(service_name, public_method_name, body, :request_class => ActionController::TestRequest)
+      ap_request.env.update(request_env)
       ap_response = ActionController::TestResponse.new
       container.process(ap_request, ap_response)
       # puts ap_response.body
