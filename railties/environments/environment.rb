@@ -11,7 +11,21 @@ ADDITIONAL_LOAD_PATHS.concat(Dir["#{RAILS_ROOT}/components/[_a-z]*"])
 
 # Followed by the standard includes.
 ADDITIONAL_LOAD_PATHS.concat %w(
-  app app/models app/controllers app/helpers app/apis config components lib vendor
+  app 
+  app/models 
+  app/controllers 
+  app/helpers 
+  app/apis 
+  config 
+  components 
+  lib 
+  vendor 
+  vendor/rails/railties/lib
+  vendor/rails/actionpack/lib
+  vendor/rails/activesupport/lib
+  vendor/rails/activerecord/lib
+  vendor/rails/actionmailer/lib
+  vendor/rails/actionwebservice/lib
 ).map { |dir| "#{RAILS_ROOT}/#{dir}" }.select { |dir| File.directory?(dir) }
 
 # Prepend to $LOAD_PATH
@@ -31,7 +45,12 @@ if rails_files.all? { |f| File.file?(f) }
   rails_files.each { |f| require f }
 else
   require 'rubygems'
-  %w( activesupport activerecord actionpack actionmailer actionwebservice rails ).each { |gem| require_gem(gem) }
+  require_gem 'activesupport'
+  require_gem 'activerecord'
+  require_gem 'actionpack'
+  require_gem 'actionmailer'
+  require_gem 'actionwebservice'
+  require_gem 'rails'
 end
 
 # Environment-specific configuration.
