@@ -350,10 +350,12 @@ module ActiveRecord
       
       @errors.each_key do |attr| 
         @errors[attr].each do |msg|
+          next if msg.nil?
+          
           if attr == "base"
             full_messages << msg
           else
-            full_messages << @base.class.human_attribute_name(attr) + " " + msg unless msg.nil?
+            full_messages << @base.class.human_attribute_name(attr) + " " + msg
           end
         end
       end
