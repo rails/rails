@@ -3,12 +3,13 @@ module ActiveRecord
     class HasManyAssociation < AssociationCollection #:nodoc:
       def initialize(owner, association_name, association_class_name, association_class_primary_key_name, options)
         super(owner, association_name, association_class_name, association_class_primary_key_name, options)
-        @conditions = @association_class.send(:sanitize_conditions, options[:conditions])
+        @conditions = sanitize_sql(options[:conditions])
 
         if options[:finder_sql]
           @finder_sql = interpolate_sql(options[:finder_sql])
         else
-          @finder_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id} #{@conditions ? " AND " + interpolate_sql(@conditions) : ""}"
+          @finder_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id}"
+          @finder_sql << " AND #{@conditions}" if @conditions
         end
 
         if options[:counter_sql]
@@ -35,29 +36,46 @@ module ActiveRecord
         record
       end
 
-      def find_all(runtime_conditions = nil, orderings = nil, limit = nil, joins = nil, &block)
-        if block_given? || @options[:finder_sql]
-          load_collection
-          @collection.find_all(&block)
+      def find_all(runtime_conditions = nil, orderings = nil, limit = nil, joins = nil)
+        if @options[:finder_sql]
+          records = @association_class.find_by_sql(@finder_sql)
         else
-          @association_class.find_all(
-            "#{@association_class_primary_key_name} = #{@owner.quoted_id}" +
-            "#{@conditions ? " AND " + @conditions : ""}#{runtime_conditions ? " AND " + @association_class.send(:sanitize_conditions, runtime_conditions) : ""}",
-            orderings, 
-            limit, 
-            joins
-          )
+          sql = @finder_sql
+          sql << " AND #{sanitize_sql(runtime_conditions)}" if runtime_conditions
+          orderings ||= @options[:order]
+          records = @association_class.find_all(sql, orderings, limit, joins)
         end
       end
 
-      def find(association_id = nil, &block)
-        if block_given? || @options[:finder_sql]
-          load_collection
-          @collection.find(&block)
+      # Find the first associated record.  All arguments are optional.
+      def find_first(conditions = nil, orderings = nil)
+        find_all(conditions, orderings, 1).first
+      end
+
+      def find(*args)
+        # Return an Array if multiple ids are given.
+        expects_array = args.first.kind_of?(Array)
+
+        ids = args.flatten.compact.uniq
+
+        # If no ids given, raise RecordNotFound.
+        if ids.empty?
+          raise RecordNotFound, "Couldn't find #{@association_class.name} without an ID"
+
+        # If using a custom finder_sql, scan the entire collection.
+        elsif @options[:finder_sql]
+          if ids.size == 1
+            id = ids.first
+            record = load_collection.detect { |record| id == record.id }
+            expects_array? ? [record] : record
+          else
+            load_collection.select { |record| ids.include?(record.id) }
+          end
+
+        # Otherwise, delegate to association class with conditions.
         else
-          @association_class.find_on_conditions(association_id,
-            "#{@association_class_primary_key_name} = #{@owner.quoted_id}#{@conditions ? " AND " + @conditions : ""}"
-          )
+          args << { :conditions => "#{@association_class_primary_key_name} = '#{@owner.id}' #{@conditions ? " AND " + @conditions : ""}" }
+          @association_class.find(*args)
         end
       end
 
@@ -71,11 +89,7 @@ module ActiveRecord
 
       protected
         def find_all_records
-          if @options[:finder_sql]
-            @association_class.find_by_sql(@finder_sql)
-          else
-            @association_class.find_all(@finder_sql, @options[:order] ? @options[:order] : nil)
-          end
+          find_all
         end
 
         def count_records

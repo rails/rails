@@ -236,44 +236,58 @@ module ActiveRecord #:nodoc:
       #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
       #   Person.find([7, 17]) # returns an array for objects with IDs in (7, 17)
       #   Person.find([1])     # returns an array for objects the object with ID = 1
+      #
+      # The last argument may be a Hash of find options.  Currently, +conditions+ is the only option, behaving the same as with +find_all+.
+      #   Person.find(1, :conditions => "associate_id='5'"
+      #   Person.find(1, 2, 6, :conditions => "status='active'"
+      #   Person.find([7, 17], :conditions => ["sanitize_me='%s'", "bare'quote"]
+      #
       # +RecordNotFound+ is raised if no record can be found.
-      def find(*ids)
-        expects_array = ids.first.kind_of?(Array)
-        ids = ids.flatten.compact.uniq
+      def find(*args)
+        # Return an Array if ids are passed in an Array.
+        expects_array = args.first.kind_of?(Array)
 
-        if ids.length > 1
-          ids_list = ids.map{ |id| "#{sanitize(id)}" }.join(", ")
-          objects  = find_all("#{primary_key} IN (#{ids_list})", primary_key)
+        # Extract options hash from argument list.
+        options = extract_options_from_args!(args)
+        conditions = " AND #{sanitize_sql(options[:conditions])}" if options[:conditions]
 
-          if objects.length == ids.length
-            return objects
+        ids = args.flatten.compact.uniq
+        case ids.size
+
+          # Raise if no ids passed.
+          when 0
+            raise RecordNotFound, "Couldn't find #{name} without an ID#{conditions}"
+
+          # Find a single id.
+          when 1
+            unless result = find_first("#{primary_key} = #{sanitize(ids.first)}#{conditions}")
+              raise RecordNotFound, "Couldn't find #{name} with ID=#{ids.first}#{conditions}"
+            end
+
+            # Box result if expecting array.
+            expects_array ? [result] : result
+
+          # Find multiple ids.
           else
-            raise RecordNotFound, "Couldn't find #{name} with ID in (#{ids_list})"
-          end
-        elsif ids.length == 1
-          id = ids.first
-          sql = "SELECT * FROM #{table_name} WHERE #{primary_key} = #{sanitize(id)}"
-          sql << " AND #{type_condition}" unless descends_from_active_record?
-
-          if record = connection.select_one(sql, "#{name} Find")
-            expects_array ? [instantiate(record)] : instantiate(record)
-          else 
-            raise RecordNotFound, "Couldn't find #{name} with ID = #{id}"
-          end
-        else
-          raise RecordNotFound, "Couldn't find #{name} without an ID"
+            ids_list = ids.map { |id| sanitize(id) }.join(',')
+            result   = find_all("#{primary_key} IN (#{ids_list})#{conditions}", primary_key)
+            if result.size == ids.size
+              result
+            else
+              raise RecordNotFound, "Couldn't find #{name} with ID in (#{ids_list})#{conditions}"
+            end
         end
       end
 
+      # This method is deprecated in favor of find with the :conditions option.
       # Works like find, but the record matching +id+ must also meet the +conditions+.
       # +RecordNotFound+ is raised if no record can be found matching the +id+ or meeting the condition.
       # Example:
       #   Person.find_on_conditions 5, "first_name LIKE '%dav%' AND last_name = 'heinemeier'"
-      def find_on_conditions(id, conditions)
-        find_first("#{primary_key} = #{sanitize(id)} AND #{sanitize_conditions(conditions)}") || 
-            raise(RecordNotFound, "Couldn't find #{name} with #{primary_key} = #{id} on the condition of #{conditions}")
+      def find_on_conditions(ids, conditions)
+        find(ids, :conditions => conditions)
       end
-    
+
       # Returns an array of all the objects that could be instantiated from the associated
       # table in the database. The +conditions+ can be used to narrow the selection of objects (WHERE-part),
       # such as by "color = 'red'", and arrangement of the selection can be done through +orderings+ (ORDER BY-part),
@@ -287,7 +301,7 @@ module ActiveRecord #:nodoc:
         add_conditions!(sql, conditions)
         sql << "ORDER BY #{orderings} " unless orderings.nil?
 
-        connection.add_limit!(sql, sanitize_conditions(limit)) unless limit.nil?
+        connection.add_limit!(sql, sanitize_sql(limit)) unless limit.nil?
 
         find_by_sql(sql)
       end
@@ -296,8 +310,7 @@ module ActiveRecord #:nodoc:
       #   Post.find_by_sql "SELECT p.*, c.author FROM posts p, comments c WHERE p.id = c.post_id"
       #   Post.find_by_sql ["SELECT * FROM posts WHERE author = ? AND created > ?", author_id, start_date]
       def find_by_sql(sql)
-        sql = sanitize_conditions(sql)
-        connection.select_all(sql, "#{name} Load").inject([]) { |objects, record| objects << instantiate(record) }
+        connection.select_all(sanitize_sql(sql), "#{name} Load").inject([]) { |objects, record| objects << instantiate(record) }
       end
       
       # Returns the object for the first record responding to the conditions in +conditions+, 
@@ -306,14 +319,7 @@ module ActiveRecord #:nodoc:
       # +orderings+, like "income DESC, name", to control exactly which record is to be used. Example: 
       #   Employee.find_first "income > 50000", "income DESC, name"
       def find_first(conditions = nil, orderings = nil)
-        sql  = "SELECT * FROM #{table_name} "
-        add_conditions!(sql, conditions)
-        sql << "ORDER BY #{orderings} " unless orderings.nil?
-
-        connection.add_limit!(sql, 1)
-
-        record = connection.select_one(sql, "#{name} Load First")
-        instantiate(record) unless record.nil?
+        find_all(conditions, orderings, 1).first
       end
     
       # Creates an object, instantly saves it as a record (if the validation permits it), and returns it. If the save
@@ -613,7 +619,7 @@ module ActiveRecord #:nodoc:
 
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that it's the passed +sql+ string is changed.
         def add_conditions!(sql, conditions)
-          sql << "WHERE #{sanitize_conditions(conditions)} " unless conditions.nil?
+          sql << "WHERE #{sanitize_sql(conditions)} " unless conditions.nil?
           sql << (conditions.nil? ? "WHERE " : " AND ") + type_condition unless descends_from_active_record?
         end
         
@@ -656,51 +662,49 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Accepts either a condition array or string. The string is returned untouched, but the array has each of
-        # the condition values sanitized.
-        def sanitize_conditions(conditions)
-          return conditions unless conditions.is_a?(Array)
+        # Accepts an array or string.  The string is returned untouched, but the array has each value
+        # sanitized and interpolated into the sql statement.
+        #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
+        def sanitize_sql(ary)
+          return ary unless ary.is_a?(Array)
 
-          statement, *values = conditions
-
-          if values[0].is_a?(Hash) && statement =~ /:\w+/
-            replace_named_bind_variables(statement, values[0])
-          elsif statement =~ /\?/ 
+          statement, *values = ary
+          if values.first.is_a?(Hash) and statement =~ /:\w+/
+            replace_named_bind_variables(statement, values.first)
+          elsif statement.include?('?')
             replace_bind_variables(statement, values)
           else
             statement % values.collect { |value| connection.quote_string(value.to_s) }
           end
         end
 
+        alias_method :sanitize_conditions, :sanitize_sql
+
         def replace_bind_variables(statement, values)
-          orig_statement = statement.clone
           expected_number_of_variables = statement.count('?')
           provided_number_of_variables = values.size
 
           unless expected_number_of_variables == provided_number_of_variables
-            raise PreparedStatementInvalid, "wrong number of bind variables (#{provided_number_of_variables} for #{expected_number_of_variables})"
+            raise PreparedStatementInvalid, "wrong number of bind variables (#{provided_number_of_variables} for #{expected_number_of_variables}) in: #{statement}"
           end
 
-          until values.empty?
-            statement.sub!(/\?/, encode_quoted_value(values.shift))
-          end
-          
-          statement.gsub('?') { |all, match| connection.quote(values.shift) }
+          bound = values.dup
+          statement.gsub('?') { connection.quote(bound.shift) }
         end
 
-        def replace_named_bind_variables(statement, values_hash)
-          orig_statement = statement.clone
-          values_hash.keys.each do |k|
-            if statement.sub!(/:#{k.id2name}/, encode_quoted_value(values_hash.delete(k))).nil?
-              raise PreparedStatementInvalid, ":#{k} is not a variable in [#{orig_statement}]"
+        def replace_named_bind_variables(statement, bind_vars)
+          statement.gsub(/:(\w+)/) do
+            match = $1.to_sym
+            if bind_vars.has_key?(match)
+              connection.quote(bind_vars[match])
+            else
+              raise PreparedStatementInvalid, "missing value for :#{match} in #{statement}"
             end
           end
+        end
 
-          if statement =~ /(:\w+)/
-            raise PreparedStatementInvalid, "No value provided for #{$1} in [#{orig_statement}]"
-          end
-
-          return statement
+        def extract_options_from_args!(args)
+          if args.last.is_a?(Hash) then args.pop else {} end
         end
         
         def encode_quoted_value(value)

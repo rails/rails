@@ -77,6 +77,11 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_on_conditions
+    assert Topic.find(1, :conditions => "approved = 0")
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => "approved = 1") }
+  end
+  
+  def test_deprecated_find_on_conditions
     assert Topic.find_on_conditions(1, "approved = 0")
     assert_raises(ActiveRecord::RecordNotFound) { Topic.find_on_conditions(1, "approved = 1") }
   end
@@ -111,7 +116,19 @@ class FinderTest < Test::Unit::TestCase
     assert Company.find_first(["name = :name", {:name => "37signals' go'es agains"}])
   end
 
+  def test_bind_arity
+    assert_nothing_raised                                 { bind '' }
+    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind '', 1 }
+  
+    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind '?' }
+    assert_nothing_raised                                 { bind '?', 1 }
+    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind '?', 1, 1  }
+  end
+  
   def test_named_bind_variables
+    assert_equal '1', bind(':a', :a => 1) # ' ruby-mode
+    assert_equal '1 1', bind(':a :a', :a => 1)  # ' ruby-mode
+  
     assert_kind_of Firm, Company.find_first(["name = :name", { :name => "37signals" }])
     assert_nil Company.find_first(["name = :name", { :name => "37signals!" }])
     assert_nil Company.find_first(["name = :name", { :name => "37signals!' OR 1=1" }])
@@ -124,7 +141,13 @@ class FinderTest < Test::Unit::TestCase
     }
   end
 
-  
+  def test_named_bind_arity
+    assert_nothing_raised { bind '', {} }
+    assert_nothing_raised { bind '', :a => 1 }
+    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind ':a', {} } # ' ruby-mode
+    assert_nothing_raised { bind ':a', :a => 1 } # ' ruby-mode
+    assert_nothing_raised { bind ':a', :a => 1, :b => 2 } # ' ruby-mode
+  end
 	
   def test_string_sanitation
     assert_not_equal "'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
@@ -142,4 +165,13 @@ class FinderTest < Test::Unit::TestCase
     assert_equal(1, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 2]))
     assert_equal(2, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 1]))
   end
+
+  protected
+    def bind(statement, *vars)
+      if vars.first.is_a?(Hash)
+        ActiveRecord::Base.send(:replace_named_bind_variables, statement, vars.first)
+      else
+        ActiveRecord::Base.send(:replace_bind_variables, statement, vars)
+      end
+    end
 end

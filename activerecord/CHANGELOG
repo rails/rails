@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that Base#find takes an optional options hash, including :conditions. Base#find_on_conditions deprecated in favor of #find with :conditions #407 [bitsweat]
+
 * Added a db2 adapter that only depends on the Ruby/DB2 bindings (http://raa.ruby-lang.org/project/ruby-db2/) #386 [Maik Schmidt]
 
 * Added the final touches to the Microsoft SQL Server adapter by DeLynn Berry that makes it suitable for actual use #394 [DeLynn Barry]

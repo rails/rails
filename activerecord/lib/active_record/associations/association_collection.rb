@@ -100,33 +100,30 @@ module ActiveRecord
         def interpolate_sql(sql, record = nil)
           @owner.send(:interpolate_sql, sql, record)
         end
-      
+
+        def sanitize_sql(sql)
+          @association_class.send(:sanitize_sql, sql)
+        end
+
+        def extract_options_from_args!(args)
+          @owner.send(:extract_options_from_args!, args)
+        end
+
       private
         def load_collection
-          begin
-            @collection = find_all_records unless loaded?
-          rescue ActiveRecord::RecordNotFound
-            @collection = []
+          if loaded?
+            @collection
+          else
+            begin
+              @collection = find_all_records
+            rescue ActiveRecord::RecordNotFound
+              @collection = []
+            end
           end
         end
 
         def raise_on_type_mismatch(record)
           raise ActiveRecord::AssociationTypeMismatch, "#{@association_class} expected, got #{record.class}" unless record.is_a?(@association_class)
-        end
-
-
-        def load_collection_to_array
-          return unless @collection_array.nil? 
-          begin
-            @collection_array = find_all_records
-          rescue ActiveRecord::StatementInvalid, ActiveRecord::RecordNotFound
-            @collection_array = []
-          end       
-        end
-        
-        def duplicated_records_array(records)
-          records = [records] unless records.is_a?(Array) || records.is_a?(ActiveRecord::Associations::AssociationCollection)
-          records.dup
         end
 
         # Array#flatten has problems with rescursive arrays. Going one level deeper solves the majority of the problems.

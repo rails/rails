@@ -183,9 +183,31 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 0, Firm.find_first.clients_using_zero_counter_sql.size
   end
 
+  def test_find_ids
+    firm = Firm.find_first
+
+    assert_raises(ActiveRecord::RecordNotFound) { firm.clients.find }
+
+    client = firm.clients.find(2)
+    assert_kind_of Client, client
+
+    client_ary = firm.clients.find([2])
+    assert_kind_of Array, client_ary
+    assert_equal client, client_ary.first
+
+    client_ary = firm.clients.find(2, 3)
+    assert_kind_of Array, client_ary
+    assert_equal 2, client_ary.size
+    assert_equal client, client_ary.first
+
+    assert_raises(ActiveRecord::RecordNotFound) { firm.clients.find(2, 99) }
+  end
+
   def test_find_all
-    assert_equal 2, Firm.find_first.clients.find_all("type = 'Client'").length
-    assert_equal 1, Firm.find_first.clients.find_all("name = 'Summit'").length
+    firm = Firm.find_first
+    assert_equal firm.clients, firm.clients.find_all
+    assert_equal 2, firm.clients.find_all("type = 'Client'").length
+    assert_equal 1, firm.clients.find_all("name = 'Summit'").length
   end
 
   def test_find_all_sanitized
@@ -193,9 +215,18 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal firm.clients.find_all("name = 'Summit'"), firm.clients.find_all(["name = '%s'", "Summit"])
   end
 
+  def test_find_first
+    firm = Firm.find_first
+    assert_equal firm.clients.first, firm.clients.find_first
+    assert_equal Client.find(2), firm.clients.find_first("type = 'Client'")
+  end
+
+  def test_find_first_sanitized
+    assert_equal Client.find(2), Firm.find_first.clients.find_first(["type = ?", "Client"])
+  end
+
   def test_find_in_collection
     assert_equal Client.find(2).name, @signals37.clients.find(2).name
-    assert_equal Client.find(2).name, @signals37.clients.find {|c| c.name == @signals37.clients.find(2).name }.name
     assert_raises(ActiveRecord::RecordNotFound) { @signals37.clients.find(6) }
   end
 
