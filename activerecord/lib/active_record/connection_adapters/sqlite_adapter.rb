@@ -1,33 +1,67 @@
 # sqlite_adapter.rb
-# author:   Luke Holden <lholden@cablelan.net>
+# author: Luke Holden <lholden@cablelan.net>
+# updated for SQLite3: Jamis Buck <jamis_buck@byu.edu>
 
 require 'active_record/connection_adapters/abstract_adapter'
 
 module ActiveRecord
   class Base
-    # Establishes a connection to the database that's used by all Active Record objects
-    def self.sqlite_connection(config) # :nodoc:
-      require_library_or_gem('sqlite') unless self.class.const_defined?(:SQLite)
-      symbolize_strings_in_hash(config)
-      unless config.has_key?(:dbfile)
-        raise ArgumentError, "No database file specified. Missing argument: dbfile"
+    class << self
+      # sqlite3 adapter reuses sqlite_connection.
+      def sqlite3_connection(config) # :nodoc:
+        parse_config!(config)
+
+        unless self.class.const_defined?(:SQLite3)
+          require_library_or_gem(config[:adapter])
+        end
+
+        db = SQLite3::Database.new(
+          config[:dbfile],
+          :results_as_hash => true,
+          :type_translation => false
+        )
+        ConnectionAdapters::SQLiteAdapter.new(db, logger)
       end
-      
-      config[:dbfile] = File.expand_path(config[:dbfile], RAILS_ROOT) if Object.const_defined?(:RAILS_ROOT)
-      db = SQLite::Database.new(config[:dbfile], 0)
 
-      db.show_datatypes   = "ON" if !defined? SQLite::Version
-      db.results_as_hash  = true if defined? SQLite::Version
-      db.type_translation = false
+      # Establishes a connection to the database that's used by all Active Record objects
+      def sqlite_connection(config) # :nodoc:
+        parse_config!(config)
 
-      ConnectionAdapters::SQLiteAdapter.new(db, logger)
+        unless self.class.const_defined?(:SQLite)
+          require_library_or_gem(config[:adapter])
+
+          db = SQLite::Database.new(config[:dbfile], 0)
+          db.show_datatypes   = "ON" if !defined? SQLite::Version
+          db.results_as_hash  = true if defined? SQLite::Version
+          db.type_translation = false
+
+          # "Downgrade" deprecated sqlite API
+          if SQLite.const_defined?(:Version)
+            ConnectionAdapters::SQLiteAdapter.new(db, logger)
+          else
+            ConnectionAdapters::DeprecatedSQLiteAdapter.new(db, logger)
+          end
+        end
+      end
+
+      private
+        def parse_config!(config)
+          # Require dbfile.
+          unless config.has_key?(:dbfile)
+            raise ArgumentError, "No database file specified. Missing argument: dbfile"
+          end
+
+          # Allow database path relative to RAILS_ROOT.
+          if Object.const_defined?(:RAILS_ROOT)
+            config[:dbfile] = File.expand_path(config[:dbfile], RAILS_ROOT)
+          end
+        end
     end
   end
 
   module ConnectionAdapters
     
     class SQLiteColumn < Column
-      
       def string_to_binary(value)
         value.gsub(/(\0|\%)/) do
           case $1
@@ -45,92 +79,79 @@ module ActiveRecord
           end
         end                
       end
-      
     end
+
     class SQLiteAdapter < AbstractAdapter # :nodoc:
-      def select_all(sql, name = nil)
-        select(sql, name)
-      end
-
-      def select_one(sql, name = nil)
-        result = select(sql, name)
-        result.nil? ? nil : result.first
-      end
-
-      def columns(table_name, name = nil)
-        table_structure(table_name).inject([]) do |columns, field| 
-          columns << SQLiteColumn.new(field['name'], field['dflt_value'], field['type'])
-          columns
-        end
-      end
-
-      def insert(sql, name = nil, pk = nil, id_value = nil)
-        execute(sql, name = nil)
-        id_value || @connection.send( defined?( SQLite::Version ) ? :last_insert_row_id : :last_insert_rowid )
-      end
-
       def execute(sql, name = nil)
-        log(sql, name, @connection) do |connection|
-          if defined?( SQLite::Version )
-            case sql
-              when "BEGIN" then connection.transaction
-              when "COMMIT" then connection.commit
-              when "ROLLBACK" then connection.rollback
-              else connection.execute(sql)
-            end
-          else
-            connection.execute( sql )
-          end
-        end
+        log(sql, name) { @connection.execute(sql) }
       end
 
       def update(sql, name = nil)
         execute(sql, name)
         @connection.changes
       end
-      
+
       def delete(sql, name = nil)
         sql += " WHERE 1=1" unless sql =~ /WHERE/i
         execute(sql, name)
         @connection.changes
       end
 
-      def begin_db_transaction()    execute "BEGIN" end
-      def commit_db_transaction()   execute "COMMIT" end
-      def rollback_db_transaction() execute "ROLLBACK" end
+      def insert(sql, name = nil, pk = nil, id_value = nil)
+        execute(sql, name = nil)
+        id_value || @connection.last_insert_row_id
+      end
+
+      def select_all(sql, name = nil)
+        execute(sql, name).map do |row|
+          record = {}
+          row.each_key do |key|
+            record[key.sub(/\w+\./, '')] = row[key] unless key.is_a?(Fixnum)
+          end
+          record
+        end
+      end
+
+      def select_one(sql, name = nil)
+        result = select_all(sql, name)
+        result.nil? ? nil : result.first
+      end
+
+
+      def begin_db_transaction()    @connection.transaction end
+      def commit_db_transaction()   @connection.commit      end
+      def rollback_db_transaction() @connection.rollback    end
+
+
+      def tables
+        execute('.table').map { |table| Table.new(table) }
+      end
+
+      def columns(table_name, name = nil)
+        table_structure(table_name).map { |field|
+          SQLiteColumn.new(field['name'], field['dflt_value'], field['type'])
+        }
+      end
 
       def quote_string(s)
-        SQLite::Database.quote(s)
+        @connection.class.quote(s)
       end
-        
+
       def quote_column_name(name)
         return "'#{name}'"
       end
 
-      private
-        def select(sql, name = nil)
-          results = nil
-          log(sql, name, @connection) { |connection| results = connection.execute(sql) }
-
-          rows = []
-
-          results.each do |row|
-            hash_only_row = {}
-            row.each_key do |key|
-              hash_only_row[key.sub(/\w+\./, "")] = row[key] unless key.class == Fixnum
-            end
-            rows << hash_only_row
-          end
-
-          return rows
-        end
-
+      protected
         def table_structure(table_name)
-          sql = "PRAGMA table_info(#{table_name});"
-          results = nil
-          log(sql, nil, @connection) { |connection| results = connection.execute(sql) }
-          return results
+          execute "PRAGMA table_info(#{table_name})"
         end
+    end
+
+    class DeprecatedSQLiteAdapter < SQLiteAdapter # :nodoc:
+      def insert(sql, name = nil, pk = nil, id_value = nil)
+        execute(sql, name = nil)
+        id_value || @connection.last_insert_rowid
+      end
     end
   end
 end

@@ -24,7 +24,7 @@
 
 $:.unshift(File.dirname(__FILE__))
 
-require 'action_controller/support/core_ext'
+require 'active_record/support/core_ext'
 require 'active_record/support/clean_logger'
 require 'active_record/support/misc'
 require 'active_record/support/dependencies'

@@ -89,7 +89,7 @@ module ActiveRecord
             raise AdapterNotSpecified, "#{spec} database is not configured"
           end
         else
-          spec = symbolize_strings_in_hash(spec)
+          spec = spec.symbolize_keys
           unless spec.key?(:adapter) then raise AdapterNotSpecified, "database configuration does not specify adapter" end
           adapter_method = "#{spec[:adapter]}_connection"
           unless respond_to?(adapter_method) then raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter" end
@@ -152,10 +152,7 @@ module ActiveRecord
 
     # Converts all strings in a hash to symbols.
     def self.symbolize_strings_in_hash(hash)
-      hash.inject({}) do |hash_with_symbolized_strings, pair|
-        hash_with_symbolized_strings[pair.first.to_sym] = pair.last
-        hash_with_symbolized_strings
-      end
+      hash.symbolize_keys
     end
   end
 
@@ -356,7 +353,7 @@ module ActiveRecord
       end
 
       def quote_column_name(name)
-        return name
+        name
       end
 
       # Returns a string of the CREATE TABLE SQL statements for recreating the entire structure of the database.
@@ -367,16 +364,20 @@ module ActiveRecord
       end
 
       protected
-        def log(sql, name, connection, &action)
+        def log(sql, name, connection = nil)
+          connection ||= @connection
           begin
             if @logger.nil? || @logger.level > Logger::INFO
-              action.call(connection)
-            else
+              yield connection
+            elsif block_given?
               result = nil
-              bm = measure { result = action.call(connection) }
+              bm = measure { result = yield connection }
               @runtime += bm.real
               log_info(sql, name, bm.real)
               result
+            else
+              log_info(sql, name, 0)
+              nil
             end
           rescue => e
             log_info("#{e.message}: #{sql}", name, 0)

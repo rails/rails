@@ -19,7 +19,7 @@ PKG_FILES = FileList[
 
 
 desc "Default Task"
-task :default => [ :test_ruby_mysql, :test_mysql_ruby, :test_sqlite, :test_postgresql ]
+task :default => [ :test_ruby_mysql, :test_mysql_ruby, :test_sqlite, :test_sqlite3, :test_postgresql ]
 
 # Run the unit tests
 
@@ -43,6 +43,12 @@ Rake::TestTask.new("test_postgresql") { |t|
 
 Rake::TestTask.new("test_sqlite") { |t|
   t.libs << "test" << "test/connections/native_sqlite"
+  t.pattern = 'test/*_test.rb'
+  t.verbose = true
+}
+
+Rake::TestTask.new("test_sqlite3") { |t|
+  t.libs << "test" << "test/connections/native_sqlite3"
   t.pattern = 'test/*_test.rb'
   t.verbose = true
 }
@@ -101,6 +107,9 @@ spec = Gem::Specification.new do |s|
     s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   end
   s.files.delete "test/fixtures/fixture_database.sqlite"
+  s.files.delete "test/fixtures/fixture_database_2.sqlite"
+  s.files.delete "test/fixtures/fixture_database.sqlite3"
+  s.files.delete "test/fixtures/fixture_database_2.sqlite3"
   s.require_path = 'lib'
   s.autorequire = 'active_record'
 
