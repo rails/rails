@@ -137,7 +137,7 @@ module Test #:nodoc:
           if options.is_a?(Symbol)
             response.redirected_to == options
           else
-            options.keys.all? { |k| options[k] == response.redirected_to[k] }
+            options.keys.all? { |k| options[k] == ( response.redirected_to[k].respond_to?(:to_param) ? response.redirected_to[k].to_param : response.redirected_to[k] if response.redirected_to[k] ) }
           end
         end
       end
