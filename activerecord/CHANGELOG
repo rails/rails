@@ -1,5 +1,15 @@
 *SVN*
 
+* Added dynamic attribute-based finders as a cleaner way of getting objects by simple queries without turning to SQL. 
+  They work by appending the name of an attribute to <tt>find_by_</tt>, so you get finders like <tt>Person.find_by_user_name,
+  Payment.find_by_transaction_id</tt>. So instead of writing <tt>Person.find_first(["user_name = ?", user_name])</tt>, you just do
+  <tt>Person.find_by_user_name(user_name)</tt>.
+  
+  It's also possible to use multiple attributes in the same find by separating them with "_and_", so you get finders like
+  <tt>Person.find_by_user_name_and_password</tt> or even <tt>Payment.find_by_purchaser_and_state_and_country</tt>. So instead of writing
+  <tt>Person.find_first(["user_name = ? AND password = ?", user_name, password])</tt>, you just do 
+  <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
+
 * Added that Base#find takes an optional options hash, including :conditions. Base#find_on_conditions deprecated in favor of #find with :conditions #407 [bitsweat]
 
 * Added a db2 adapter that only depends on the Ruby/DB2 bindings (http://raa.ruby-lang.org/project/ruby-db2/) #386 [Maik Schmidt]

@@ -97,6 +97,17 @@ module ActiveRecord #:nodoc:
   #     end
   #   end
   # 
+  # == Dynamic attribute-based finders
+  #
+  # Dynamic attribute-based finders are a cleaner way of getting objects by simple queries without turning to SQL. They work by
+  # appending the name of an attribute to <tt>find_by_</tt>, so you get finders like <tt>Person.find_by_user_name, Payment.find_by_transaction_id</tt>.
+  # So instead of writing <tt>Person.find_first(["user_name = ?", user_name])</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
+  # 
+  # It's also possible to use multiple attributes in the same find by separating them with "_and_", so you get finders like
+  # <tt>Person.find_by_user_name_and_password</tt> or even <tt>Payment.find_by_purchaser_and_state_and_country</tt>. So instead of writing
+  # <tt>Person.find_first(["user_name = ? AND password = ?", user_name, password])</tt>, you just do 
+  # <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
+  #
   # == Saving arrays, hashes, and other non-mappeable objects in text columns
   # 
   # Active Record can serialize any object in text columns using YAML. To do so, you must specify this with a call to the class method +serialize+. 
@@ -636,6 +647,20 @@ module ActiveRecord #:nodoc:
           return table_name
         end
 
+        # Enables dynamic finders like find_by_user_name(user_name) and find_by_user_name_and_password(user_name, password) that are turned into 
+        # find_first(["user_name = ?", user_name]) and find_first(["user_name = ? AND password = ?", user_name, password]) respectively.
+        def method_missing(method_id, *arguments)
+          method_name = method_id.id2name
+
+          if method_name =~ /find_by_([_a-z]+)/
+            attributes = $1.split("_and_")
+            attributes.each { |attr_name| super unless column_methods_hash[attr_name.intern] }
+            conditions = attributes.collect { |attr_name| "#{attr_name} = ? "}.join(" AND ")
+            find_first([conditions, *arguments])
+          else
+            super
+          end
+        end
 
       protected
         def subclasses

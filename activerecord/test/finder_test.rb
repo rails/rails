@@ -4,14 +4,10 @@ require 'fixtures/topic'
 require 'fixtures/entrant'
 
 class FinderTest < Test::Unit::TestCase
-  def setup
-    @company_fixtures = create_fixtures("companies")
-    @topic_fixtures   = create_fixtures("topics")
-    @entrant_fixtures = create_fixtures("entrants")
-  end
+  fixtures :companies, :topics, :entrants
   
   def test_find
-    assert_equal(@topic_fixtures["first"]["title"], Topic.find(1).title)
+    assert_equal(@topics["first"]["title"], Topic.find(1).title)
   end
   
   def test_find_by_array_of_one_id
@@ -21,7 +17,7 @@ class FinderTest < Test::Unit::TestCase
   
   def test_find_by_ids
     assert_equal(2, Topic.find(1, 2).length)
-    assert_equal(@topic_fixtures["second"]["title"], Topic.find([ 2 ]).first.title)
+    assert_equal(@topics["second"]["title"], Topic.find([ 2 ]).first.title)
   end
 
   def test_find_by_ids_missing_one
@@ -34,33 +30,33 @@ class FinderTest < Test::Unit::TestCase
     entrants = Entrant.find_all nil, "id ASC", 2
     
     assert_equal(2, entrants.size)
-    assert_equal(@entrant_fixtures["first"]["name"], entrants.first.name)
+    assert_equal(@entrants["first"]["name"], entrants.first.name)
   end
 
   def test_find_all_with_prepared_limit_and_offset
     entrants = Entrant.find_all nil, "id ASC", ["? OFFSET ?", 2, 1]
     
     assert_equal(2, entrants.size)
-    assert_equal(@entrant_fixtures["second"]["name"], entrants.first.name)
+    assert_equal(@entrants["second"]["name"], entrants.first.name)
   end
 
   def test_find_with_entire_select_statement
     topics = Topic.find_by_sql "SELECT * FROM topics WHERE author_name = 'Mary'"
     
     assert_equal(1, topics.size)
-    assert_equal(@topic_fixtures["second"]["title"], topics.first.title)
+    assert_equal(@topics["second"]["title"], topics.first.title)
   end
   
   def test_find_with_prepared_select_statement
     topics = Topic.find_by_sql ["SELECT * FROM topics WHERE author_name = ?", "Mary"]
     
     assert_equal(1, topics.size)
-    assert_equal(@topic_fixtures["second"]["title"], topics.first.title)
+    assert_equal(@topics["second"]["title"], topics.first.title)
   end
   
   def test_find_first
     first = Topic.find_first "title = 'The First Topic'"
-    assert_equal(@topic_fixtures["first"]["title"], first.title)
+    assert_equal(@topics["first"]["title"], first.title)
   end
   
   def test_find_first_failing
@@ -166,6 +162,20 @@ class FinderTest < Test::Unit::TestCase
     assert_equal(0, Entrant.count_by_sql("SELECT COUNT(*) FROM entrants WHERE id > 3"))
     assert_equal(1, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 2]))
     assert_equal(2, Entrant.count_by_sql(["SELECT COUNT(*) FROM entrants WHERE id > ?", 1]))
+  end
+
+  def test_find_by_one_attribute
+    assert_equal @topics["first"].find, Topic.find_by_title("The First Topic")
+    assert_nil Topic.find_by_title("The First Topic!")
+  end
+
+  def test_find_by_one_missing_attribute
+    assert_raises(NoMethodError) { Topic.find_by_undertitle("The First Topic!") }
+  end
+
+  def test_find_by_two_attributes
+    assert_equal @topics["first"].find, Topic.find_by_title_and_author_name("The First Topic", "David")
+    assert_nil Topic.find_by_title_and_author_name("The First Topic", "Mary")
   end
 
   protected
