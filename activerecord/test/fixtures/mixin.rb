@@ -1,21 +1,13 @@
 class Mixin < ActiveRecord::Base
-  include ActiveRecord::Mixins::Touch
-  include ActiveRecord::Mixins::Tree
+  acts_as_tree :foreign_key => "parent_id", :order => "id"
+
 end
 
 class ListMixin < ActiveRecord::Base
-  include ActiveRecord::Mixins::List
-   
+  acts_as_list :column => "pos", :scope => :parent_id
+
   def self.table_name
     "mixins"
   end
     
-  def scope_condition
-     "parent_id = #{self.parent_id}"
-  end      
-  
-  def position_column
-    "pos"
-  end
-
 end

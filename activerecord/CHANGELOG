@@ -1,5 +1,18 @@
 *CVS*
 
+* Added acts_as_list that can decorates an existing class with methods like move_higher/lower, move_to_top/bottom. Example:
+
+    class TodoItem < ActiveRecord::Base
+      acts_as_list :scope => :todo_list_id
+      belongs_to :todo_list
+    end
+
+* Added acts_as_tree that can decorates an existing class with a many to many relationship with itself. Perfect for categories in 
+  categories and the likes.
+
+* Added that Active Records will automatically record creation and/or update timestamps of database objects if fields of the names 
+  created_at/created_on or updated_at/updated_on are present. [Tobias Luetke]
+
 * Added Base.default_error_messages as a hash of all the error messages used in the validates_*_of so they can be changed in one place [Tobias Luetke]
 
 * Added automatic transaction block around AssociationCollection.<<, AssociationCollection.delete, and AssociationCollection.destroy_all
@@ -95,32 +108,6 @@
       private
         def validate_password
           errors.add("password", "too short") unless password.size > 6
-        end
-    end
-
-* Added ActiveRecord::Mixins::Touch that will record creation and update times of objects [xal]. Example:
-
-    class Bill < ActiveRecord::Base
-      include ActiveRecord::Mixins::Touch
-    end
-  
-    bill = Bill.create("amount" => 100)
-    bill.created_at # => Time.now at the moment of Bill.create
-    bill.updated_at # => Time.now at the moment of Bill.create
-  
-    bill.update_attribute("amount", 150)
-    bill.created_at # => Time.now at the moment of Bill.create
-    bill.updated_at # => Time.now at the moment of bill.update_attribute
-  
-* Added ActiveRecord::Mixins::List that can decorates an existing class with methods like move_higher/lower, move_to_top/bottom. Example:
-
-    class TodoItem < ActiveRecord::Base
-      include ActiveRecord::Mixins::List
-      belongs_to :todo_list
-   
-      private
-        def scope_condition
-          "todo_list_id = #{todo_list_id}"
         end
     end
 
@@ -243,6 +230,7 @@
   The change is NOT backwards compatible. Fixtures written in the old YAML style needs to be rewritten!
 
 * All associations will now attempt to require the classes that they associate to. Relieving the need for most explicit 'require' statements.
+
 
 *1.1.0* (34)
 

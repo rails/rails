@@ -4,6 +4,73 @@ require 'active_record/mixins/list'
 require 'active_record/mixins/touch'
 require 'fixtures/mixin'
 
+
+class ListTest < Test::Unit::TestCase
+  fixtures :mixins
+  
+  def test_injection
+    l = ListMixin.new("parent_id"=>1)
+    assert_equal "parent_id = 1", l.scope_condition
+    assert_equal "pos", l.position_column
+
+  end
+  
+  def test_reordering
+    
+    assert_equal [ListMixin.find(2), ListMixin.find(3)], ListMixin.find_all("parent_id=1", "pos")
+    
+    ListMixin.find(2).move_lower
+    
+    assert_equal [ListMixin.find(3), ListMixin.find(2)], ListMixin.find_all("parent_id=1", "pos")
+    
+    ListMixin.find(2).move_higher
+
+    assert_equal [ListMixin.find(2), ListMixin.find(3)], ListMixin.find_all("parent_id=1", "pos")
+    
+  end
+
+  def test_insert          
+    new = ListMixin.create("parent_id"=>5)
+    assert_equal 1, new.pos
+    assert new.first?
+    assert new.last?
+
+    new = ListMixin.create("parent_id"=>5)
+    assert_equal 2, new.pos
+    assert !new.first?
+    assert new.last?
+    
+    new = ListMixin.create("parent_id"=>5)
+    assert_equal 3, new.pos    
+    assert !new.first?
+    assert new.last?
+    
+    new = ListMixin.create("parent_id"=>10)
+    assert_equal 1, new.pos
+    assert new.first?
+    assert new.last?
+  end  
+  
+  
+  def test_delete_middle
+    first = ListMixin.create("parent_id"=>5)
+    assert_equal 1, first.pos
+
+    second = ListMixin.create("parent_id"=>5)
+    assert_equal 2, second.pos
+    
+    third = ListMixin.create("parent_id"=>5)
+    assert_equal 3, third.pos    
+    
+    second.destroy
+    
+    assert_equal 1, @mixins["first"].find.pos
+    assert_equal 2, @mixins["third"].find.pos
+    
+  end  
+
+end
+
 class TreeTest < Test::Unit::TestCase
   fixtures :mixins
   
@@ -53,49 +120,5 @@ class TouchTest < Test::Unit::TestCase
     @obj = Mixin.create({"parent" => @third})
     assert_not_nil @obj.updated_at
     assert_not_nil @obj.created_at
-  end  
-  
-  
-end
-
-
-class ListTest < Test::Unit::TestCase
-  fixtures :mixins
-  
-  def test_reordering
-    
-    assert_equal [ListMixin.find(2), ListMixin.find(3)], ListMixin.find_all("parent_id=1", "pos")
-    
-    ListMixin.find(2).move_lower
-    
-    assert_equal [ListMixin.find(3), ListMixin.find(2)], ListMixin.find_all("parent_id=1", "pos")
-    
-    ListMixin.find(2).move_higher
-
-    assert_equal [ListMixin.find(2), ListMixin.find(3)], ListMixin.find_all("parent_id=1", "pos")
-    
-  end
-
-  def test_insert
-    new = ListMixin.create("parent_id"=>3)
-    assert_equal 1, new.pos
-    assert new.first?
-    assert new.last?
-
-    new = ListMixin.create("parent_id"=>3)
-    assert_equal 2, new.pos
-    assert !new.first?
-    assert new.last?
-    
-    new = ListMixin.create("parent_id"=>3)
-    assert_equal 3, new.pos    
-    assert !new.first?
-    assert new.last?
-    
-    new = ListMixin.create("parent_id"=>2)
-    assert_equal 1, new.pos
-    assert new.first?
-    assert new.last?
-
   end  
 end

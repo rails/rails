@@ -35,6 +35,9 @@ require 'active_record/associations'
 require 'active_record/aggregations'
 require 'active_record/transactions'
 require 'active_record/reflection'
+require 'active_record/timestamp'
+require 'active_record/mixins/list'
+require 'active_record/mixins/tree'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
@@ -43,10 +46,10 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Aggregations
   include ActiveRecord::Transactions
   include ActiveRecord::Reflection
+  include ActiveRecord::Timestamp
+  include ActiveRecord::Mixins::Tree
+  include ActiveRecord::Mixins::List
 end
-
-require 'active_record/mixins/list'
-require 'active_record/mixins/touch'
 
 require 'active_record/connection_adapters/mysql_adapter'
 require 'active_record/connection_adapters/postgresql_adapter'

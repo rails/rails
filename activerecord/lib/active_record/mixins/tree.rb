@@ -21,16 +21,20 @@ module ActiveRecord
     #   root.children # => [child1]
     #   root.children.first.children.first # => subchild1
     module Tree
-
       def self.append_features(base)
         super        
-
-        base.module_eval <<-associations
-          belongs_to  :parent,    :class_name => name, :foreign_key => "parent_id"        
-          has_many    :children,  :class_name => name, :foreign_key => "parent_id", :order => "id", :dependent => true
-        associations
-              
+        base.extend(ClassMethods)              
       end  
+    end
+    
+    module ClassMethods
+      def acts_as_tree(options = {})
+        configuration = { :foreign_key => "parent_id", :order => nil }
+        configuration.update(options) if options.is_a?(Hash)
+        
+        belongs_to :parent, :class_name => name, :foreign_key => configuration[:foreign_key]
+        has_many :children, :class_name => name, :foreign_key => configuration[:foreign_key], :order => configuration[:order], :dependent => true
+      end
     end
   end
 end
