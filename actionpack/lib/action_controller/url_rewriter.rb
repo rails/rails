@@ -43,6 +43,7 @@ module ActionController
         
         path, extras = Routing::Routes.generate(options, @request)
         path = "/#{path.join('/')}".chomp '/'
+        path = '/' if path.empty?
         path += build_query_string(extras)
         
         return path
