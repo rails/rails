@@ -166,7 +166,7 @@ class Fixtures < Hash
         fixtures.each { |fixture| fixture.insert_fixtures }
       end
 
-      reset_sequences(connection, table_names) if ActiveRecord::ConnectionAdapters::PostgreSQLAdapter === connection
+      reset_sequences(connection, table_names) if connection.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
 
       return fixtures.size > 1 ? fixtures : fixtures.first
     ensure

@@ -1203,7 +1203,7 @@ module ActiveRecord #:nodoc:
       end
 
       def object_from_yaml(string)
-        return string unless String === string
+        return string unless string.is_a?(String)
         if has_yaml_encoding_header?(string)
           begin
             YAML::load(string)

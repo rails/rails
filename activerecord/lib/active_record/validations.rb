@@ -372,9 +372,9 @@ module ActiveRecord
         validations = self.class.read_inheritable_attribute(validation_method.to_s)
         if validations.nil? then return end
         validations.each do |validation|
-          if Symbol === validation
+          if validation.is_a?(Symbol)
             self.send(validation)
-          elsif String === validation
+          elsif validation.is_a?(String)
             eval(validation, binding)
           elsif validation_block?(validation)
             validation.call(self)
