@@ -62,7 +62,7 @@ class ClassInheritableAttributesTest < Test::Unit::TestCase
     assert_equal 'a', @klass.a
     assert_equal 'a', @klass.new.a
     assert_equal @klass.a, @klass.new.a
-    assert_equal @klass.a.id, @klass.new.a.id
+    assert_equal @klass.a.object_id, @klass.new.a.object_id
   end
 
   def test_writer
