@@ -30,7 +30,6 @@ module ActiveRecord
   class Base
     def self.sqlserver_connection(config)
       require_library_or_gem 'dbi' unless self.class.const_defined?(:DBI)
-      class_eval { include ActiveRecord::SQLServerBaseExtensions }
       
       symbolize_strings_in_hash(config)
 
@@ -44,50 +43,6 @@ module ActiveRecord
       conn["AutoCommit"] = true
 
       ConnectionAdapters::SQLServerAdapter.new(conn, logger)
-    end
-  end
-
-  module SQLServerBaseExtensions #:nodoc:
-    def self.append_features(base)
-      super
-      base.extend(ClassMethods)
-    end
-
-    module ClassMethods #:nodoc:
-      def find_first(conditions = nil, orderings = nil)
-        sql  = "SELECT TOP 1 * FROM #{table_name} "
-        add_conditions!(sql, conditions)
-        sql << "ORDER BY #{orderings} " unless orderings.nil?
-
-        record = connection.select_one(sql, "#{name} Load First")
-        instantiate(record) unless record.nil?
-      end
-
-      def find_all(conditions = nil, orderings = nil, limit = nil, joins = nil)
-        sql  = "SELECT "
-        sql << "TOP #{limit} " unless limit.nil?
-        sql << " * FROM #{table_name} " 
-        sql << "#{joins} " if joins
-        add_conditions!(sql, conditions)
-        sql << "ORDER BY #{orderings} " unless orderings.nil?
-
-        find_by_sql(sql)
-      end
-    end
-
-    def attributes_with_quotes
-      columns_hash = self.class.columns_hash
-
-      attrs = @attributes.dup
-
-      attrs = attrs.reject do |name, value|
-        columns_hash[name].identity
-      end
-
-      attrs.inject({}) do |attrs_quoted, pair|
-        attrs_quoted[pair.first] = quote(pair.last, columns_hash[pair.first])
-        attrs_quoted
-      end
     end
   end
 
@@ -236,63 +191,67 @@ EOL
         execute "CREATE DATABASE #{name}"
       end
 
+      def add_limit!(sql, limit)
+        sql.gsub!(/SELECT/i, "SELECT TOP #{limit}")
+      end
+
       private
-      def select(sql, name = nil)
-        rows = []
+        def select(sql, name = nil)
+          rows = []
 
-        log(sql, name, @connection) do |conn|
-          conn.select_all(sql) do |row|
-            record = {}
+          log(sql, name, @connection) do |conn|
+            conn.select_all(sql) do |row|
+              record = {}
 
-            row.column_names.each do |col|
-              record[col] = row[col]
+              row.column_names.each do |col|
+                record[col] = row[col]
+              end
+
+              rows << record
             end
+          end
 
-            rows << record
+          rows
+        end
+
+        def enable_identity_insert(table_name, enable = true)
+          if has_identity_column(table_name)
+            "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
           end
         end
 
-        rows
-      end
-
-      def enable_identity_insert(table_name, enable = true)
-        if has_identity_column(table_name)
-          "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
-        end
-      end
-
-      def get_table_name(sql)
-        if sql =~ /into\s*([^\s]+)\s*/i or
-            sql =~ /update\s*([^\s]+)\s*/i
-          $1
-        else
-          nil
-        end
-      end
-
-      def has_identity_column(table_name)
-        return get_identity_column(table_name) != nil
-      end
-
-      def get_identity_column(table_name)
-        if not @table_columns
-          @table_columns = {}
+        def get_table_name(sql)
+          if sql =~ /into\s*([^\s]+)\s*/i or
+              sql =~ /update\s*([^\s]+)\s*/i
+            $1
+          else
+            nil
+          end
         end
 
-        if @table_columns[table_name] == nil
-          @table_columns[table_name] = columns(table_name)
+        def has_identity_column(table_name)
+          return get_identity_column(table_name) != nil
         end
 
-        @table_columns[table_name].each do |col|
-          return col.name if col.identity
+        def get_identity_column(table_name)
+          if not @table_columns
+            @table_columns = {}
+          end
+
+          if @table_columns[table_name] == nil
+            @table_columns[table_name] = columns(table_name)
+          end
+
+          @table_columns[table_name].each do |col|
+            return col.name if col.identity
+          end
+
+          return nil
         end
 
-        return nil
-      end
-
-      def query_contains_identity_column(sql, col)
-        return sql =~ /[\(\.\,]\s*#{col}/
-      end
+        def query_contains_identity_column(sql, col)
+          return sql =~ /[\(\.\,]\s*#{col}/
+        end
     end
   end
 end

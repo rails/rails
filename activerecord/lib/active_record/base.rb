@@ -288,8 +288,9 @@ module ActiveRecord #:nodoc:
         sql << "#{joins} " if joins
         add_conditions!(sql, conditions)
         sql << "ORDER BY #{orderings} " unless orderings.nil?
-        sql << "LIMIT #{sanitize_conditions(limit)} " unless limit.nil?
-    
+
+        connection.add_limit!(sql, sanitize_conditions(limit)) unless limit.nil?
+
         find_by_sql(sql)
       end
   
@@ -310,7 +311,8 @@ module ActiveRecord #:nodoc:
         sql  = "SELECT * FROM #{table_name} "
         add_conditions!(sql, conditions)
         sql << "ORDER BY #{orderings} " unless orderings.nil?
-        sql << "LIMIT 1"
+
+        connection.add_limit!(sql, 1)
     
         record = connection.select_one(sql, "#{name} Load First")
         instantiate(record) unless record.nil?

@@ -345,6 +345,10 @@ module ActiveRecord
       # Returns a string of the CREATE TABLE SQL statements for recreating the entire structure of the database.
       def structure_dump() end
 
+      def add_limit!(sql, limit)
+        sql << " LIMIT #{limit}"
+      end
+
       protected
         def log(sql, name, connection, &action)
           begin
