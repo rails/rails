@@ -2,9 +2,18 @@ require File.dirname(__FILE__) + '/tag_helper'
 
 module ActionView
   module Helpers
-    # You must call <%= define_javascript_functions %> in your application before using these helpers.
+    # You must call <%= define_javascript_functions %> in your application,
+    # or copy the included Javascript libraries into your application's 
+    # public/javascripts/ directory, before using these helpers.
     module JavascriptHelper
-      # Returns a link that'll trigger a javascript +function+ using the onclick handler and return false after the fact.
+      
+      unless const_defined? :CALLBACKS
+        CALLBACKS = [:uninitialized, :loading, :loaded, :interactive, :complete]
+        JAVASCRIPT_PATH = File.join(File.dirname(__FILE__), 'javascripts')
+      end
+      
+      # Returns a link that'll trigger a javascript +function+ using the 
+      # onclick handler and return false after the fact.
       #
       # Examples:
       #   link_to_function "Greeting", "alert('Hello world!')"
@@ -16,17 +25,20 @@ module ActionView
         )
       end
 
-      # Returns a link to a remote action defined by <tt>options[:url]</tt> (using the url_for format) that's called in the background 
-      # using XMLHttpRequest. The result of that request can then be inserted into a DOM object who's id can be specified
-      # with <tt>options[:update]</tt>. Usually, the result would be a partial prepared by the controller with either render_partial
-      # or render_partial_collection. 
+      # Returns a link to a remote action defined by <tt>options[:url]</tt> 
+      # (using the url_for format) that's called in the background using 
+      # XMLHttpRequest. The result of that request can then be inserted into a
+      # DOM object whose id can be specified with <tt>options[:update]</tt>. 
+      # Usually, the result would be a partial prepared by the controller with
+      # either render_partial or render_partial_collection. 
       #
       # Examples:
       #  link_to_remote "Delete this post", :update => "posts", :url => { :action => "destroy", :id => post.id }
       #  link_to_remote(image_tag("refresh"), :update => "emails", :url => { :action => "list_emails" })
       #
-      # By default, these remote requests are processed asynchronous during which various callbacks can be triggered (for progress indicators
-      # and the likes).
+      # By default, these remote requests are processed asynchronous during 
+      # which various callbacks can be triggered (for progress indicators and
+      # the likes).
       #
       # Example:
       #   link_to_remote word,
@@ -35,14 +47,20 @@ module ActionView
       #
       # The complete list of callbacks that may be specified are:
       #
-      # * <tt>:uninitialized</tt> -- EXPLAIN ME!
-      # * <tt>:loading</tt> --  EXPLAIN ME!
-      # * <tt>:loaded</tt> --  EXPLAIN ME!
-      # * <tt>:interactive</tt> --  EXPLAIN ME!
-      # * <tt>:complete</tt> --  EXPLAIN ME!
+      # <tt>:uninitialized</tt>:: Called before the remote document is 
+      #                           initialized with data.
+      # <tt>:loading</tt>::       Called when the remote document is being 
+      #                           loaded with data by the browser.
+      # <tt>:loaded</tt>::        Called when the browser has finished loading
+      #                           the remote document.
+      # <tt>:interactive</tt>::   Called when the user can interact with the 
+      #                           remote document, even though it has not 
+      #                           finished loading.
+      # <tt>:complete</tt>::      Called when the XMLHttpRequest is complete.
       #
-      # If you for some reason or another needs synchronous processing (that'll block the browser while the request is happening), you
-      # can specify <tt>options[:type] = :sync</tt>.
+      # If you for some reason or another need synchronous processing (that'll
+      # block the browser while the request is happening), you can specify 
+      # <tt>options[:type] = :synchronous</tt>.
       def link_to_remote(name, options = {}, html_options = {})  
         link_to_function(name, remote_function(options), html_options)
       end
@@ -56,20 +74,16 @@ module ActionView
         tag("form", options[:html], true)
       end
 
-      def remote_function(options)
-        callbacks = build_callbacks(options)
+      def remote_function(options) #:nodoc: for now
+        javascript_options = options_for_ajax(options)
 
         function = options[:update] ? 
-          "update_with_response('#{options[:update]}', " :
-          "xml_request("
+          "new Ajax.Updater('#{options[:update]}', " :
+          "new Ajax.Request("
 
         function << "'#{url_for(options[:url])}'"
-        function << ', Form.serialize(this)' if options[:form]
-        function << ', null' if !options[:form] && callbacks
-        function << ", true" if callbacks || options[:type] != :sync
-        function << ", #{callbacks}" if callbacks
-        function << ')'
-
+        function << ", #{javascript_options})"
+        
         function = "#{options[:before]}; #{function}" if options[:before]
         function = "#{function}; #{options[:after]}"  if options[:after]
         function = "if (#{options[:condition]}) { #{function}; }" if options[:condition]
@@ -77,205 +91,90 @@ module ActionView
         return function
       end
 
+      # Includes the Action Pack Javascript library inside a single <script> 
+      # tag.
+      #
+      # Note: The recommended approach is to copy the contents of
+      # lib/action_view/helpers/javascripts/ into your application's
+      # public/javascripts/ directory, and use +javascript_include_tag+ to 
+      # create remote <script> links.
       def define_javascript_functions
-    <<-EOF
-    <script language="JavaScript">
-    /* Convenience form methods */
-    Field = {
-      clear: function() {
-        for(i = 0; i < arguments.length; i++) { o(arguments[i]).value = ''; }
-        return true;
-      },
-
-      focus: function(id) {
-        o(id).focus();
-        return true;
-      },
-      
-      present: function() {
-        for(i = 0; i < arguments.length; i++) { if (o(arguments[i]).value == '') { return false; } }
-        return true;
-      }
-    }
-    
-    /* XMLHttpRequest Methods */
-
-    function update_with_response() {
-      var container  = o(arguments[0]);
-      var url        = arguments[1];
-      var parameters = arguments[2];
-      var async      = arguments[3];
-      var callbacks  = arguments[4];
-
-      if (async) {
-        if(!callbacks) callbacks = {}
-        complete = callbacks['complete']
-        callbacks['complete'] = function(request) {
-          container.innerHTML = request.responseText
-          if(complete) complete(request)
-        }
-        xml_request(url, parameters, true, callbacks)
-      } else {
-        container.innerHTML = xml_request(url, parameters);
-      }
-    }
-
-    function xml_request() {
-      var url        = arguments[0];
-      var parameters = arguments[1];
-      var async      = arguments[2];
-      var callbacks  = arguments[3];
-      var type       = parameters ? "POST" : "GET";
-      
-      req = xml_http_request_object();
-      req.open(type, url, async);
-
-      if (async) {
-        invoke_callback = function(which) {
-          if(callbacks && callbacks[which]) callbacks[which](req)
-        }
-
-        req.onreadystatechange = function() {
-          switch(req.readyState) {
-            case 0: invoke_callback('uninitialized'); break
-            case 1: invoke_callback('loading'); break
-            case 2: invoke_callback('loaded'); break
-            case 3: invoke_callback('interactive'); break
-            case 4: invoke_callback('complete'); break
-          }
-        }
-      }
-
-      req.send(parameters ? parameters + "&_=" : parameters);
-      
-      if(!async) return req.responseText;
-    }
-
-    function xml_http_request_object() {
-      var req = false;
-      try {
-        req = new ActiveXObject("Msxml2.XMLHTTP");
-      } catch (e) {
-        try {
-          req = new ActiveXObject("Microsoft.XMLHTTP");
-        } catch (E) {
-          req = false;
-        }
-      }
-
-      if (!req && typeof XMLHttpRequest!='undefined') {
-        req = new XMLHttpRequest();
-      }
-
-      return req;
-    }
-
-
-    /* Common methods ------------------------------ */
-
-    function toggle_display_by_id(id) {
-      o(id).style.display = (o(id).style.display == "none") ? "" : "none";
-    }
-
-    function toggle_display() {
-      for(i = 0; i < arguments.length; i++) {
-        o(arguments[i]).style.display = (o(arguments[i]).style.display == "none") ? "" : "none";
-      }
-    }
-
-    function o(id) {
-      return document.getElementById(id);
-    }
-
-    function get_elements_by_class(tag_name, class_name) {
-      var all = document.all ? document.all : document.getElementsByTagName(tag_name);
-      var elements = new Array();
-
-      for (var e = 0; e < all.length; e++)
-        if (all[e].className == class_name)
-          elements[elements.length] = all[e];
-
-      return elements;
-    }
-
-
-    /* Serialize a form by Sam Stephenson ------------------------------ */
-
-    Form = {
-      Serializers: {
-        input: function(element) {
-          switch (element.type.toLowerCase()) {
-            case 'hidden':
-            case 'text':
-              return Form.Serializers.textarea(element);
-            case 'checkbox':  
-            case 'radio':
-              return Form.Serializers.inputSelector(element);
-          }
-        },
-    
-        inputSelector: function(element) {
-          if (element.checked)
-            return [element.name, element.value];
-        },
-    
-        textarea: function(element) {
-          return [element.name, element.value];
-        },
-    
-        select: function(element) {
-          var index = element.selectedIndex;
-          return [element.name, element.options[index].value];
-        }
-      },
-  
-      serialize: function(form) {
-        var elements = Form.getFormElements(form);
-        var queryComponents = new Array();
-    
-        for (var i = 0; i < elements.length; i++) {
-          var element = elements[i];
-          var method = element.tagName.toLowerCase();
-      
-          var parameter = Form.Serializers[method](element);
-          if (parameter) {
-            var queryComponent = encodeURIComponent(parameter[0]) + '=' +
-                                 encodeURIComponent(parameter[1]);
-            queryComponents.push(queryComponent);
-          }
-        }
-    
-        return queryComponents.join('&');
-      },
-  
-      getFormElements: function(form) {
-        var elements = new Array();
-        for (tagName in Form.Serializers) {
-          var tagElements = form.getElementsByTagName(tagName);
-          for (var j = 0; j < tagElements.length; j++)
-            elements.push(tagElements[j]);
-        }
-        return elements;
-      }
-    }
-    </script>
-    EOF
+        javascript = '<script type="text/javascript">'
+        Dir.glob(File.join(JAVASCRIPT_PATH, '*')).each do |filename|
+          javascript << "\n" << IO.read(filename)
+        end
+        javascript << '</script>'
       end
 
-      private
-        def build_callbacks(options)
-          callbacks = nil
-          %w{uninitialized loading loaded interactive complete}.each do |cb|
-            cb = cb.to_sym
-            if options[cb]
-              callbacks ? callbacks << "," : callbacks = "{"
-              callbacks <<
-                "#{cb}:function(request){#{options[cb].gsub(/"/){'\"'}}}"
-            end
-          end
-          callbacks << "}" if callbacks
+      # Observes the field with the DOM ID specified by +field_id+ and makes
+      # an Ajax when its contents have changed.
+      # 
+      # Required +options+ are:
+      # <tt>:frequency</tt>:: The frequency (in seconds) at which changes to
+      #                       this field will be detected.
+      # <tt>:url</tt>::       +url_for+-style options for the action to call
+      #                       when the field has changed.
+      # 
+      # Additional options are:
+      # <tt>:update</tt>::    Specifies the DOM ID of the element whose 
+      #                       innerHTML should be updated with the
+      #                       XMLHttpRequest response text.
+      # <tt>:with</tt>::      A Javascript expression specifying the
+      #                       parameters for the XMLHttpRequest. This defaults
+      #                       to 'value', which in the evaluated context 
+      #                       refers to the new field value.
+      #
+      # Additionally, you may specify any of the options documented in
+      # +link_to_remote.
+      def observe_field(field_id, options = {})
+        build_observer('Form.Element.Observer', name, options)
+      end
+      
+      # Like +observe_field+, but operates on an entire form identified by the
+      # DOM ID +form_id+. +options+ are the same as +observe_field+, except 
+      # the default value of the <tt>:with</tt> option evaluates to the
+      # serialized (request string) value of the form.
+      def observe_form(form_id, options = {})
+        build_observer('Form.Observer', name, options)
+      end
+
+    private
+      def escape_javascript(javascript)
+        (javascript || '').gsub('"', '\"')
+      end
+      
+      def options_for_ajax(options)
+        js_options = build_callbacks(options)
+        
+        js_options['asynchronous'] = options[:type] != :synchronous
+        js_options['method'] = options[:method] if options[:method]
+        
+        if options[:form]
+          js_options['parameters'] = 'Form.serialize(this)'
+        elsif options[:with]
+          js_options['parameters'] = options[:with]
+        end
+        
+        '{' + js_options.map {|k, v| "#{k}:#{v}"}.join(', ') + '}'
+      end
+      
+      def build_observer(klass, name, options = {})
+        options[:with] ||= 'value' if options[:update]
+        callback = remote_function(options)
+        javascript = '<script type="text/javascript">'
+        javascript << "new #{klass}('#{name}', "
+        javascript << "#{options[:frequency]}, function(element, value) {"
+        javascript << "#{callback}})</script>"
+      end
+            
+      def build_callbacks(options)
+        CALLBACKS.inject({}) do |callbacks, callback|
+          name = 'on' + callback.to_s.capitalize
+          code = escape_javascript(options[callback])
+          callbacks[name] = "function(request){#{code}}" if callbacks[name]
           callbacks
         end
+      end
     end
   end
 end

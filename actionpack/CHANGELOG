@@ -1,5 +1,7 @@
 *SVN*
 
+* Added a JavascriptHelper and accompanying prototype.js library that opens the world of Ajax to Action Pack with a large array of options for dynamically interacting with an application without reloading the page #884 [Sam Stephenson/David]
+
 * Added pagination support through both a controller and helper add-on #817 [Sam Stephenson]
 
 * Fixed routing and helpers to make Rails work on non-vhost setups #826 [Nicholas Seckar/Tobias Luetke]
