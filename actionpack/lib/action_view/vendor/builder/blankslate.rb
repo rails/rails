@@ -17,7 +17,10 @@ module Builder #:nodoc:
   class BlankSlate #:nodoc:
     class << self
       def hide(name)
-	undef_method name unless name =~ /^(__|instance_eval)/
+	      undef_method name if
+	        instance_methods.include?(name.to_s) and
+	        name !~ /^(__|instance_eval)/
+	      end
       end
     end
 
