@@ -344,7 +344,7 @@ from its distribution directory.
 
 == License
 
-Active Record is released under the same license as Ruby.
+Active Record is released under the MIT license.
 
 
 == Support
