@@ -41,7 +41,6 @@ require 'action_controller/helpers'
 require 'action_controller/cookies'
 require 'action_controller/cgi_process'
 require 'action_controller/caching'
-require 'action_controller/authentication'
 
 ActionController::Base.class_eval do
   include ActionController::Filters
@@ -55,7 +54,6 @@ ActionController::Base.class_eval do
   include ActionController::Cookies
   include ActionController::Session
   include ActionController::Caching
-  include ActionController::Authentication
 end
 
 require 'action_view'
