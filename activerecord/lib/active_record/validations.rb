@@ -228,6 +228,7 @@ module ActiveRecord
       def validates_confirmation_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration[:message].gsub!(/\"/, '\\\\\"')
 
         for attr_name in attr_names
           attr_accessor "#{attr_name}_confirmation"
@@ -253,10 +254,11 @@ module ActiveRecord
       def validates_acceptance_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration[:message].gsub!(/\"/, '\\\\\"')
 
         for attr_name in attr_names
           attr_accessor(attr_name)
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', '#{configuration[:message]}') unless #{attr_name}.nil? or #{attr_name} == "1"}))
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', "#{configuration[:message]}") unless #{attr_name}.nil? or #{attr_name} == "1"}))
         end
       end
 
@@ -268,6 +270,7 @@ module ActiveRecord
       def validates_presence_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:empty], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration[:message].gsub!(/\"/, '\\\\\"')
 
         for attr_name in attr_names
           class_eval(%(#{validation_method(configuration[:on])} %{errors.add_on_empty('#{attr_name}', "#{configuration[:message]}")}))
@@ -411,12 +414,13 @@ module ActiveRecord
       def validates_uniqueness_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken] }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration[:message].gsub!(/\"/, '\\\\\"')
 
         for attr_name in attr_names
           if scope = configuration[:scope]
-            class_eval(%(validate %{errors.add('#{attr_name}', '#{configuration[:message]}') if self.class.find_first(new_record? ? ['#{attr_name} = ? AND #{scope} = ?', #{attr_name}, #{scope}] : ["#{attr_name} = ? AND \\\#{self.class.primary_key} <> ? AND #{scope} = ?", #{attr_name}, id, #{scope}])}))
+            class_eval(%(validate %{errors.add('#{attr_name}', "#{configuration[:message]}") if self.class.find_first(new_record? ? ['#{attr_name} = ? AND #{scope} = ?', #{attr_name}, #{scope}] : ["#{attr_name} = ? AND \\\#{self.class.primary_key} <> ? AND #{scope} = ?", #{attr_name}, id, #{scope}])}))
           else
-            class_eval(%(validate %{errors.add('#{attr_name}', '#{configuration[:message]}') if self.class.find_first(new_record? ? ['#{attr_name} = ?', #{attr_name}] : ["#{attr_name} = ? AND \\\#{self.class.primary_key} <> ?", #{attr_name}, id])}))
+            class_eval(%(validate %{errors.add('#{attr_name}', "#{configuration[:message]}") if self.class.find_first(new_record? ? ['#{attr_name} = ?', #{attr_name}] : ["#{attr_name} = ? AND \\\#{self.class.primary_key} <> ?", #{attr_name}, id])}))
           end
         end
       end
@@ -437,6 +441,7 @@ module ActiveRecord
       def validates_format_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save, :with => nil }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration[:message].gsub!(/\"/, '\\\\\"')
 
         raise(ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash") unless configuration[:with].is_a?(Regexp)
 
@@ -459,6 +464,8 @@ module ActiveRecord
       def validates_inclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration[:message].gsub!(/\"/, '\\\\\"')
+
         enum = configuration[:in] || configuration[:within]
         allow_nil = configuration[:allow_nil]
 
@@ -497,6 +504,7 @@ module ActiveRecord
       def validates_associated(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        configuration[:message].gsub!(/\"/, '\\\\\"')
         
         for attr_name in attr_names
           class_eval(%(#{validation_method(configuration[:on])} %{

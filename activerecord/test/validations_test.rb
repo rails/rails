@@ -522,4 +522,86 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal 100, d.salary
     assert_equal "100,000", d.salary_before_type_cast
   end
+
+  def test_validates_acceptance_of_with_custom_error_using_quotes
+    Developer.validates_acceptance_of :salary, :message=> "This string contains 'single' and \"double\" quotes"
+    d = Developer.new
+    d.salary = "0"
+    assert !d.valid?
+    assert_equal d.errors.on(:salary).first, "This string contains 'single' and \"double\" quotes"
+  end
+
+  def test_validates_confirmation_of_with_custom_error_using_quotes
+    Developer.validates_confirmation_of :name, :message=> "This string contains 'single' and \"double\" quotes"
+    d = Developer.new
+    d.name = "John"
+    d.name_confirmation = "Johnny"
+    assert !d.valid?
+    assert_equal d.errors.on(:name), "This string contains 'single' and \"double\" quotes"
+  end
+
+  def test_validates_format_of_with_custom_error_using_quotes
+    Developer.validates_format_of :name, :with => /^(A-Z*)$/, :message=> "This string contains 'single' and \"double\" quotes"
+    d = Developer.new
+    d.name = "John 32"
+    assert !d.valid?
+    assert_equal d.errors.on(:name), "This string contains 'single' and \"double\" quotes"
+  end
+
+  def test_validates_inclusion_of_with_custom_error_using_quotes
+    Developer.validates_inclusion_of :salary, :in => 1000..80000, :message=> "This string contains 'single' and \"double\" quotes"
+    d = Developer.new
+    d.salary = "90,000"
+    assert !d.valid?
+    assert_equal d.errors.on(:salary).first, "This string contains 'single' and \"double\" quotes"
+  end
+
+  def test_validates_length_of_with_custom_too_long_using_quotes
+    Developer.validates_length_of :name, :maximum => 4, :too_long=> "This string contains 'single' and \"double\" quotes"
+    d = Developer.new
+    d.name = "Jeffrey"
+    assert !d.valid?
+    assert_equal d.errors.on(:name).first, "This string contains 'single' and \"double\" quotes"
+  end
+
+  def test_validates_length_of_with_custom_too_short_using_quotes
+    Developer.validates_length_of :name, :minimum => 4, :too_short=> "This string contains 'single' and \"double\" quotes"
+    d = Developer.new
+    d.name = "Joe"
+    assert !d.valid?
+    assert_equal d.errors.on(:name).first, "This string contains 'single' and \"double\" quotes"
+  end
+
+  def test_validates_length_of_with_custom_message_using_quotes
+    Developer.validates_length_of :name, :minimum => 4, :message=> "This string contains 'single' and \"double\" quotes"
+    d = Developer.new
+    d.name = "Joe"
+    assert !d.valid?
+    assert_equal d.errors.on(:name).first, "This string contains 'single' and \"double\" quotes"
+  end
+
+  def test_validates_presence_of_with_custom_message_using_quotes
+    Developer.validates_presence_of :non_existent, :message=> "This string contains 'single' and \"double\" quotes"
+    d = Developer.new
+    d.name = "Joe"
+    assert !d.valid?
+    assert_equal d.errors.on(:non_existent), "This string contains 'single' and \"double\" quotes"
+  end
+
+  def test_validates_uniqueness_of_with_custom_message_using_quotes
+    Developer.validates_uniqueness_of :name, :message=> "This string contains 'single' and \"double\" quotes"
+    d = Developer.new
+    d.name = "David"
+    assert !d.valid?
+    assert_equal d.errors.on(:name).first, "This string contains 'single' and \"double\" quotes"
+  end
+
+  def test_validates_associated_with_custom_message_using_quotes
+    Reply.validates_associated :topic, :message=> "This string contains 'single' and \"double\" quotes"
+    Topic.validates_presence_of :content
+    r = Reply.create("title" => "A reply", "content" => "with content!")
+    r.topic = Topic.create("title" => "uhohuhoh")
+    assert !r.valid?
+    assert_equal r.errors.on(:topic).first, "This string contains 'single' and \"double\" quotes"
+  end
 end
