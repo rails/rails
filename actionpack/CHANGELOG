@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed regression with Base#reset_session that wouldn't use the the DEFAULT_SESSION_OPTIONS [adam@the-kramers.net]
+
 * Fixed error rendering of rxml documents to not just swallow the exception and return 0 (still not guessing the right line, but hey)
 
 * Fixed that textilize and markdown would instantiate their engines even on empty strings. This also fixes #333 [Ulysses]

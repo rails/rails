@@ -92,7 +92,7 @@ module ActionController #:nodoc:
 
     private
       def new_session
-        CGI::Session.new(@cgi, DEFAULT_SESSION_OPTIONS.merge(@session_options).merge("new_session" => true))
+        CGI::Session.new(@cgi, session_options_with_string_keys.merge("new_session" => true))
       end
       
       def session_options_with_string_keys
