@@ -45,6 +45,15 @@ module ActionView
     #     <input type="submit" value="Save">
     #   </form>    
     #
+    # If the helper is being used to generate a repetitive sequence of similar form elements, for example in a partial
+    # used by render_collection_of_partials, the "index" option may come in handy. Example:
+    #
+    #   <%= text_field "person", "name", "index" => 1 %>
+    #
+    # becomes
+    # 
+    #   <input type="text" id="person_1_name" name="person[1][name]" value="<%= @person.name %>" />
+    #
     # There's also methods for helping to build form tags in link:classes/ActionView/Helpers/FormOptionsHelper.html, 
     # link:classes/ActionView/Helpers/DateHelper.html, and link:classes/ActionView/Helpers/ActiveRecordHelper.html
     module FormHelper
@@ -201,16 +210,30 @@ module ActionView
 
       private
         def add_default_name_and_id(options)
-          options['name'] = tag_name unless options.has_key? "name"
-          options['id'] = tag_id unless options.has_key? "id"
+          if options.has_key? "index"
+            options['name'] = tag_name_with_index(options["index"]) unless options.has_key? "name"
+            options['id'] = tag_id_with_index(options["index"]) unless options.has_key? "id"
+            options.delete("index")
+          else
+            options['name'] = tag_name unless options.has_key? "name"
+            options['id'] = tag_id unless options.has_key? "id"
+          end
         end
 				
         def tag_name
           "#{@object_name}[#{@method_name}]"
         end
+				
+        def tag_name_with_index(index)
+          "#{@object_name}[#{index}][#{@method_name}]"
+        end
 
         def tag_id
           "#{@object_name}_#{@method_name}"
+        end
+
+        def tag_id_with_index(index)
+          "#{@object_name}_#{index}_#{@method_name}"
         end
     end
   end

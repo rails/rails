@@ -1,5 +1,13 @@
 *SVN*
 
+* Added that form helpers now take an index option #448 [Tim Bates]
+
+  Example:
+    text_field "person", "name", "index" => 3
+
+  Becomes:
+    <input type="text" name="person[3][name]" id="person_3_name" value="<%= @person.name %>" />
+
 * Fixed three issues with retrying breakpoints #417 [Florian Gross]
 
   1. Don't screw up pages that use multiple values for the same parameter (?foo=bar&foo=qux was converted to ?foo=barqux) 
