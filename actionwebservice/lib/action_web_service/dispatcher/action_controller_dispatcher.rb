@@ -95,7 +95,7 @@ module ActionWebService # :nodoc:
 
           def log_response(response, elapsed)
             unless logger.nil? || response.nil?
-              logger.debug("\nWeb Service Response (%f):" % elapsed)
+              logger.debug("\nWeb Service Response" + (elapsed ? " (%f):" % elapsed : ":"))
               indented = response.raw_body.split(/\n/).map{|x| "  #{x}"}.join("\n")
               logger.debug(indented)
             end
