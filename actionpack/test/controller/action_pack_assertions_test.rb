@@ -179,7 +179,6 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # test the flash-based assertions with no flash at all
   def test_flash_assertions_negative
     process :nothing
-    assert_flash_not_exists
     assert_flash_empty
     assert_flash_has_no 'hello'
     assert_flash_has_no 'qwerty'
@@ -230,7 +229,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # check the empty flashing
   def test_flash_me_naked
     process :flash_me_naked
-    assert @response.has_flash?
+    assert !@response.has_flash?
     assert !@response.has_flash_with_contents?
   end
 

@@ -7,12 +7,26 @@ class FlashTest < Test::Unit::TestCase
       render_text "hello"
     end
 
+    def set_flash_now
+      flash.now["that"] = "hello"
+      @flash_copy = {}.update flash
+      render_text "hello"
+    end
+
+    def attempt_to_use_flash_now
+      @flash_copy = {}.update flash
+      @flashy = flash["that"]
+      render_text "hello"
+    end
+
     def use_flash
+      @flash_copy = {}.update flash
       @flashy = flash["that"]
       render_text "hello"
     end
 
     def use_flash_and_keep_it
+      @flash_copy = {}.update flash
       @flashy = flash["that"]
       keep_flash
       render_text "hello"
@@ -33,11 +47,11 @@ class FlashTest < Test::Unit::TestCase
 
     @request.action = "use_flash"
     first_response = process_request
-    assert_equal "hello", first_response.template.assigns["flash"]["that"]
+    assert_equal "hello", first_response.template.assigns["flash_copy"]["that"]
     assert_equal "hello", first_response.template.assigns["flashy"]
 
     second_response = process_request
-    assert_nil second_response.template.assigns["flash"]["that"], "On second flash"
+    assert_nil second_response.template.assigns["flash_copy"]["that"], "On second flash"
   end
 
   def test_keep_flash
@@ -46,16 +60,27 @@ class FlashTest < Test::Unit::TestCase
     
     @request.action = "use_flash_and_keep_it"
     first_response = process_request
-    assert_equal "hello", first_response.template.assigns["flash"]["that"]
+    assert_equal "hello", first_response.template.assigns["flash_copy"]["that"]
     assert_equal "hello", first_response.template.assigns["flashy"]
 
     @request.action = "use_flash"
     second_response = process_request
-    assert_equal "hello", second_response.template.assigns["flash"]["that"], "On second flash"
+    assert_equal "hello", second_response.template.assigns["flash_copy"]["that"], "On second flash"
 
     third_response = process_request
-    assert_nil third_response.template.assigns["flash"]["that"], "On third flash"
+    assert_nil third_response.template.assigns["flash_copy"]["that"], "On third flash"
   end
+  
+  def test_flash_now
+    @request.action = "set_flash_now"
+    response = process_request
+    assert_equal "hello", response.template.assigns["flash_copy"]["that"]
+
+    @request.action = "attempt_to_use_flash_now"
+    first_response = process_request
+    assert_nil first_response.template.assigns["flash_copy"]["that"]
+    assert_nil first_response.template.assigns["flashy"]
+  end 
   
   private
     def initialize_request_and_response

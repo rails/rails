@@ -1,5 +1,22 @@
 *SVN*
 
+* Added a much improved Flash module that allows for finer-grained control on expiration and allows you to flash the current action #839 [Caio Chassot]. Example of flash.now:
+
+    class SomethingController < ApplicationController
+      def save
+        ...
+        if @something.save
+          # will redirect, use flash
+          flash['message'] = 'Save successful'
+          redirect_to :action => 'list'
+        else
+          # no redirect, message is for current action, use flash.now
+          flash.now['message'] = 'Save failed, review'
+          render_action 'edit'
+        end
+      end    
+    end
+
 * Added to_param call for parameters when composing an url using url_for from something else than strings #812 [Sam Stephenson]. Example:
 
     class Page

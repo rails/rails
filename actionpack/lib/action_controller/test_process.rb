@@ -168,7 +168,7 @@ module ActionController #:nodoc:
     
     # do we have a flash? 
     def has_flash?
-      !session['flash'].nil?
+      !session['flash'].empty?
     end
 
     # do we have a flash that has contents?
