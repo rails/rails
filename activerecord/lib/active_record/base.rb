@@ -522,7 +522,7 @@ module ActiveRecord #:nodoc:
       # "mice" table. Example:
       #
       #   class Mouse < ActiveRecord::Base
-      #      table_name "mice"
+      #      set_table_name "mice"
       #   end
       def table_name
         table_name_prefix + undecorated_table_name(class_name_of_active_record_descendant(self)) + table_name_suffix
