@@ -71,10 +71,14 @@ module ActiveRecord #:nodoc:
   #     end
   #   end
   # 
-  # The +authenticate_unsafely+ method inserts the parameters directly into the query and is thus susceptible to SQL-injection
-  # attacks if the +user_name+ and +password+ parameters come directly from a HTTP request. The +authenticate_safely+ method, on
-  # the other hand, will sanitize the +user_name+ and +password+ before inserting them in the query, which will ensure that
+  # The <tt>authenticate_unsafely</tt> method inserts the parameters directly into the query and is thus susceptible to SQL-injection
+  # attacks if the <tt>user_name</tt> and +password+ parameters come directly from a HTTP request. The <tt>authenticate_safely</tt> method, 
+  # on the other hand, will sanitize the <tt>user_name</tt> and +password+ before inserting them in the query, which will ensure that
   # an attacker can't escape the query and fake the login (or worse).
+  #
+  # Beware, that the approach used in <tt>authenticate_unsafely</tt> is basically just a wrapped call to sprintf. This means that you
+  # still have to quote when using %s or use %d instead. So find_first([ "firm_id = %s", firm_id ]) is _not_ safe while both
+  # find_first([ "firm_id = '%s'", firm_id ]) and find_first([ "firm_id = %d", firm_id ]) are.
   # 
   # == Overwriting default accessors
   # 
