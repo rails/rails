@@ -193,7 +193,7 @@ module ActionController #:nodoc:
     # parties. The caching is doing using the cache helper available in the Action View. A template with caching might look something like:
     #
     #   <b>Hello <%= @name %></b>
-    #   <% cache(binding) do %>
+    #   <% cache do %>
     #     All the topics in the system:
     #     <%= render_collection_of_partials "topic", Topic.find_all %>
     #   <% end %>
@@ -203,7 +203,7 @@ module ActionController #:nodoc:
     # if you need to cache multiple fragments per action or if the action itself is cached using <tt>caches_action</tt>. So instead we should
     # qualify the name of the action used with something like:
     #
-    #   <% cache(binding, :action => "list", :action_suffix => "all_topics") do %>
+    #   <% cache(:action => "list", :action_suffix => "all_topics") do %>
     #
     # That would result in a name such as "/topics/list/all_topics", which wouldn't conflict with any action cache and neither with another
     # fragment using a different suffix. Note that the URL doesn't have to really exist or be callable. We're just using the url_for system
@@ -247,16 +247,16 @@ module ActionController #:nodoc:
       end
 
       # Called by CacheHelper#cache
-      def cache_erb_fragment(binding, name = {}, options = {})
-        unless perform_caching then yield; return end
+      def cache_erb_fragment(name = {}, options = {}, &block)
+        unless perform_caching then block.call; return end
         
-        buffer = eval("_erbout", binding)
+        buffer = eval("_erbout", block)
 
         if cache = read_fragment(name, options)
           buffer.concat(cache)
         else
           pos = buffer.length
-          yield
+          block.call
           write_fragment(name, buffer[pos..-1], options)
         end
       end

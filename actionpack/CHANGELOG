@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed the need for passing the binding when using CacheHelper#cache
+
 * Added TestResponse#binary_content that'll return as a string the data sent through send_data/send_file for testing #500 [Alexey]
 
 * Added @request.env['RAW_POST_DATA'] for people who need access to the data before Ruby's CGI has parsed it #505 [bitsweat]
