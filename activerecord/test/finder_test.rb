@@ -199,6 +199,16 @@ class FinderTest < Test::Unit::TestCase
 
     assert_equal [], Topic.find_all_by_title("The First Topic!!")
   end
+
+  def test_find_all_by_boolean_attribute
+    topics = Topic.find_all_by_approved(false)
+    assert_equal 1, topics.size
+    assert topics.include?(@topics["first"].find)
+
+    topics = Topic.find_all_by_approved(true)
+    assert_equal 1, topics.size
+    assert topics.include?(@topics["second"].find)
+  end
   
   def test_find_by_nil_attribute
     topic = Topic.find_by_last_read nil

@@ -755,7 +755,7 @@ module ActiveRecord #:nodoc:
             attributes.each { |attr_name| super unless column_methods_hash[attr_name.intern] }
 
             attr_index = -1
-            conditions = attributes.collect { |attr_name| attr_index += 1; "#{attr_name} #{arguments[attr_index] ? "=" : "IS"} ? " }.join(" AND ")
+            conditions = attributes.collect { |attr_name| attr_index += 1; "#{attr_name} #{arguments[attr_index].nil? ? "IS" : "="} ? " }.join(" AND ")
             send(finder, [conditions, *arguments[0...attributes.length]], *arguments[attributes.length..-1])
           else
             super

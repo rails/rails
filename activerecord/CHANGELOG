@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that the dynamic finder like find_all_by_something_boolean(false) didn't work #649 [lmarlow@yahoo.com]
+
 * Added validates_each that validates each specified attribute against a block #610 [bitsweat]. Example:
     
     class Person < ActiveRecord::Base
