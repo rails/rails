@@ -61,14 +61,14 @@ Rake::RDocTask.new { |rdoc|
 # Publish beta gem
 desc "Publish the beta gem"
 task :pgem => [:package] do 
-  Rake::SshFilePublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
-  `ssh davidhh@one.textdrive.com './gemupdate.sh'`
+  Rake::SshFilePublisher.new("davidhh@comox.textdrive.com", "public_html/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  `ssh davidhh@comox.textdrive.com './gemupdate.sh'`
 end
 
 # Publish documentation
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do 
-  Rake::SshDirPublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/ar", "doc").upload
+  Rake::SshDirPublisher.new("davidhh@comox.textdrive.com", "public_html/ar", "doc").upload
 end
 
 
@@ -96,7 +96,7 @@ spec = Gem::Specification.new do |s|
   
   s.author = "David Heinemeier Hansson"
   s.email = "david@loudthinking.com"
-  s.homepage = "http://activerecord.rubyonrails.org"
+  s.homepage = "http://www.rubyonrails.com"
   s.rubyforge_project = "activerecord"
 end
   

@@ -25,6 +25,7 @@ $:.unshift(File.dirname(__FILE__))
 
 require 'action_controller/support/clean_logger'
 require 'action_controller/support/misc'
+require 'action_controller/support/dependencies'
 
 require 'action_controller/base'
 require 'action_controller/rescue'

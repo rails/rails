@@ -1,4 +1,4 @@
-require 'action_controller/support/module_attribute_accessors'
+require File.dirname(__FILE__) + '/module_attribute_accessors'
 
 module Dependencies
   extend self
