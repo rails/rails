@@ -23,7 +23,7 @@
 
 $:.unshift(File.dirname(__FILE__))
 
-require 'rails_generator/support/core_ext'
+require 'support/core_ext'
 
 require 'rails_generator/base'
 require 'rails_generator/lookup'

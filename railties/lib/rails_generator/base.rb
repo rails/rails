@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/support/class_attribute_accessors'
-require File.dirname(__FILE__) + '/support/inflector'
+require File.dirname(__FILE__) + '/../support/class_attribute_accessors'
+require File.dirname(__FILE__) + '/../support/inflector'
 require File.dirname(__FILE__) + '/options'
 require File.dirname(__FILE__) + '/manifest'
 require File.dirname(__FILE__) + '/spec'
