@@ -27,17 +27,17 @@ else
 end_usage
 
   unless contrib_generators.empty?
-    $stderr.puts "  Installed generators (in #{RAILS_ROOT}/generators):"
+    $stderr.puts "  Installed generators (in #{RAILS_ROOT}/script/generators):"
     $stderr.puts "    #{contrib_generators}"
     $stderr.puts
   end
 
   $stderr.puts <<end_usage
-  More generators are available at http://rubyonrails.org
-    1. Download, for example, auth_controller.zip
-    2. Unzip to directory #{RAILS_ROOT}/generators/auth_controller
+  More generators are available at http://rubyonrails.org/show/Generators
+    1. Download, for example, login_generator.tar.gz
+    2. Unzip to directory #{RAILS_ROOT}/script/generators/login
     3. Generate without args for usage information
-         #{$0} auth_controller
+         #{$0} login
 end_usage
   exit 0
 end
