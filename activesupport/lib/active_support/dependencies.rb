@@ -175,7 +175,7 @@ class Object #:nodoc:
       end
 
       begin
-        require_or_load(class_id.to_s.demodulize.underscore)
+        require_dependency(class_id.to_s.demodulize.underscore)
         if Object.const_defined?(class_id) then return Object.const_get(class_id) else raise LoadError end
       rescue LoadError => e
         raise NameError.new("uninitialized constant #{class_id}").copy_blame!(e)
