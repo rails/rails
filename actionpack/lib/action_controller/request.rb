@@ -26,6 +26,10 @@ module ActionController
       method == :delete
     end
 
+    def head?
+      method == :head
+    end
+
     # Determine originating IP address.  REMOTE_ADDR is the standard
     # but will fail if the user is behind a proxy.  HTTP_CLIENT_IP and/or
     # HTTP_X_FORWARDED_FOR are set by proxies so check for these before

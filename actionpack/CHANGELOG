@@ -1,7 +1,11 @@
 *SVN*
 
+* Added proper handling of HEAD requests, so that content isn't returned (Request#head? added as well) #277 [Eric Hodel]
+
+* Added indifference to whether @headers["Content-Type"], @headers["Content-type"], or @headers["content-type"] is used.
+
 * Added TestSession#session_id that returns an empty string to make it easier to functional test applications that doesn't use 
-  cookie-based sessions [jcf]
+  cookie-based sessions #275 [jcf]
 
 * Fixed that cached template loading would still check the file system to see if the file existed #258 [Andreas Schwarz]
 

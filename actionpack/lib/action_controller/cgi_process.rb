@@ -107,7 +107,10 @@ module ActionController #:nodoc:
       $stdout.binmode if $stdout.respond_to?(:binmode)
       $stdout.sync = false
       print @cgi.header(@headers)
-      if @body.respond_to?(:call)
+
+      if @cgi.head?
+        return
+      elsif @body.respond_to?(:call)
         @body.call(self)
       else
         print @body
@@ -116,9 +119,11 @@ module ActionController #:nodoc:
 
     private
       def convert_content_type!(headers)
-        if headers["Content-Type"]
-          headers["type"] = headers["Content-Type"]
-          headers.delete "Content-Type"
+        %w( Content-Type Content-type content-type ).each do |ct|
+          if headers[ct]
+            headers["type"] = headers[ct]
+            headers.delete(ct)
+          end
         end
       end
   end
