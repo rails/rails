@@ -19,7 +19,7 @@ module Controllers
       def public_action
       end
       
-      hide_actions :hidden_action
+      hide_action :hidden_action
       def hidden_action
       end
       
@@ -38,7 +38,7 @@ module Controllers
     def public_action
     end
     
-    hide_actions :hidden_action
+    hide_action :hidden_action
     def hidden_action
     end
   end

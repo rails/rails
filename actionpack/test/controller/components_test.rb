@@ -40,7 +40,7 @@ class CalleeController < ActionController::Base
   def rescue_action(e) raise end
 end
 
-class RenderTest < Test::Unit::TestCase
+class ComponentsTest < Test::Unit::TestCase
   def setup
     @controller = CallerController.new
     @request    = ActionController::TestRequest.new
