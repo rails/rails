@@ -16,7 +16,7 @@ module RouterWsdlTest
   end
   
   class Service < ActionService::Base
-    service_api API
+    web_service_api API
 
     def add(a, b)
       a + b
@@ -37,7 +37,7 @@ module RouterWsdlTest
   end
 
   class DirectController < AbstractController
-    service_api API
+    web_service_api API
 
     def add
     end
@@ -50,8 +50,8 @@ module RouterWsdlTest
   end
   
   class DelegatedController < AbstractController
-    service_dispatching_mode :delegated
-    service(:test_service) { Service.new }
+    web_service_dispatching_mode :delegated
+    web_service(:test_service) { Service.new }
   end
 end
 

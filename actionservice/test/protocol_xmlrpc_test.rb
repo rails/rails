@@ -35,7 +35,7 @@ module ProtocolXmlRpcTest
   end
 
   class Service < ActionService::Base
-    service_api API
+    web_service_api API
 
     attr :result
     attr :hashvalue
@@ -90,11 +90,11 @@ module ProtocolXmlRpcTest
     end
   
     def dispatch_request(protocol_request)
-      dispatch_service_request(protocol_request)
+      dispatch_web_service_request(protocol_request)
     end
   
-    service :xmlrpc, $service
-    service_dispatching_mode :delegated
+    web_service :xmlrpc, $service
+    web_service_dispatching_mode :delegated
   end
 end
 

@@ -23,7 +23,7 @@ module ProtocolSoapTest
   end
 
   class Service < ActionService::Base
-    service_api API
+    web_service_api API
 
     attr :int
     attr :string
@@ -85,18 +85,18 @@ module ProtocolSoapTest
     end
   
     def dispatch_request(protocol_request)
-      dispatch_service_request(protocol_request)
+      dispatch_web_service_request(protocol_request)
     end
   end
   
   class DelegatedContainer < AbstractContainer
-    service_dispatching_mode :delegated
-    service :protocol_soap_service, Service.new
+    web_service_dispatching_mode :delegated
+    web_service :protocol_soap_service, Service.new
   end
 
   class DirectContainer < AbstractContainer
-    service_api API
-    service_dispatching_mode :direct
+    web_service_api API
+    web_service_dispatching_mode :direct
 
     attr :int
     attr :string
@@ -207,7 +207,7 @@ class TC_ProtocolSoap < AbstractSoapTest
     end
 
     def service
-      @container == @direct_container ? @container : @container.service_object(:protocol_soap_service)
+      @container == @direct_container ? @container : @container.web_service_object(:protocol_soap_service)
     end
 
     def in_all_containers(&block)

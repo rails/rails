@@ -22,7 +22,7 @@ module ClientXmlRpcTest
   end
 
   class ClientContainer < ActionController::Base
-    client_api :client, :xmlrpc, "http://localhost:#{PORT}/client/api", :api => ClientTest::API
+    web_client_api :client, :xmlrpc, "http://localhost:#{PORT}/client/api", :api => ClientTest::API
 
     def get_client
       client

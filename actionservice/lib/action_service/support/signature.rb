@@ -1,5 +1,5 @@
 module ActionService # :nodoc:
-  # Action Service parameter type specifiers may contain symbols or strings
+  # Action Service parameter specifiers may contain symbols or strings
   # instead of Class objects, for a limited set of base types.
   #
   # This provides an unambiguous way to specify that a given parameter

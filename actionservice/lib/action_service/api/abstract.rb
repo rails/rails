@@ -11,12 +11,6 @@ module ActionService # :nodoc:
     module ClassMethods
       # Attaches ActionService API +definition+ to the calling class.
       #
-      # If +definition+ is not an ActionService::API::Base derivative class
-      # object, it may be a symbol or a string, in which case a file named
-      # <tt>definition_api.rb</tt> will be expected to exist in the load path,
-      # containing an API definition class named <tt>DefinitionAPI</tt> or
-      # <tt>DefinitionApi</tt>.
-      #
       # Action Controllers can have a default associated API, removing the need
       # to call this method if you follow the Action Service naming conventions.
       #
@@ -28,7 +22,7 @@ module ActionService # :nodoc:
       # ==== Service class example
       #
       #   class MyService < ActionService::Base
-      #     service_api MyAPI
+      #     web_service_api MyAPI
       #   end
       #
       #   class MyAPI < ActionService::API::Base
@@ -38,50 +32,50 @@ module ActionService # :nodoc:
       # ==== Controller class example
       #
       #   class MyController < ActionController::Base
-      #     service_api MyAPI
+      #     web_service_api MyAPI
       #   end
       #
       #   class MyAPI < ActionService::API::Base
       #     ...
       #   end
-      def service_api(definition=nil)
+      def web_service_api(definition=nil)
         if definition.nil?
-          read_inheritable_attribute("service_api")
+          read_inheritable_attribute("web_service_api")
         else
           if definition.is_a?(Symbol)
-            raise(APIError, "symbols can only be used for #service_api inside of a controller")
+            raise(APIError, "symbols can only be used for #web_service_api inside of a controller")
           end
           unless definition.respond_to?(:ancestors) && definition.ancestors.include?(Base)
             raise(APIError, "#{definition.to_s} is not a valid API definition")
           end
-          write_inheritable_attribute("service_api", definition)
-          call_service_api_callbacks(self, definition)
+          write_inheritable_attribute("web_service_api", definition)
+          call_web_service_api_callbacks(self, definition)
         end
       end
 
-      def add_service_api_callback(&block) # :nodoc:
-        write_inheritable_array("service_api_callbacks", [block])
+      def add_web_service_api_callback(&block) # :nodoc:
+        write_inheritable_array("web_service_api_callbacks", [block])
       end
 
       private
-        def call_service_api_callbacks(container_class, definition)
-          (read_inheritable_attribute("service_api_callbacks") || []).each do |block|
+        def call_web_service_api_callbacks(container_class, definition)
+          (read_inheritable_attribute("web_service_api_callbacks") || []).each do |block|
             block.call(container_class, definition)
           end
         end
     end
 
-    # A service API class specifies the methods that will be available for
+    # A web service API class specifies the methods that will be available for
     # invocation for an API. It also contains metadata such as the method type
     # signature hints.
     #
     # It is not intended to be instantiated.
     #
-    # It is attached to service implementation classes like ActionService::Base
-    # and ActionController::Base derivatives with ClassMethods#service_api.
+    # It is attached to web service implementation classes like
+    # ActionService::Base and ActionController::Base derivatives by using
+    # ClassMethods#web_service_api.
     class Base
-      # Whether to transform API method names into camel-cased
-      # names 
+      # Whether to transform the public API method names into camel-cased names 
       class_inheritable_option :inflect_names, true
 
       # If present, the name of a method to call when the remote caller
@@ -96,13 +90,13 @@ module ActionService # :nodoc:
         include ActionService::Signature
 
         # API methods have a +name+, which must be the Ruby method name to use when
-        # performing the invocation on the service object.
+        # performing the invocation on the web service object.
         #
-        # The type signature hints for the method input parameters and return value
-        # can by specified in +options+.
+        # The signatures for the method input parameters and return value can
+        # by specified in +options+.
         #
-        # A signature hint is an array of one or more parameter type specifiers. 
-        # A type specifier can be one of the following:
+        # A signature is an array of one or more parameter specifiers. 
+        # A parameter specifier can be one of the following:
         #
         # * A symbol or string of representing one of the Action Service base types.
         #   See ActionService::Signature for a canonical list of the base types.
@@ -113,15 +107,15 @@ module ActionService # :nodoc:
         # * A Hash containing as key the name of the parameter, and as value
         #   one of the three preceding items
         # 
-        # If no method input parameter or method return value hints are given,
-        # the method is assumed to take no parameters and return no values of
+        # If no method input parameter or method return value signatures are given,
+        # the method is assumed to take no parameters and/or return no values of
         # interest, and any values that are received by the server will be
         # discarded and ignored.
         #
         # Valid options:
-        # [<tt>:expects</tt>]             Signature hint for the method input parameters
-        # [<tt>:returns</tt>]             Signature hint for the method return value
-        # [<tt>:expects_and_returns</tt>] Signature hint for both input parameters and return value
+        # [<tt>:expects</tt>]             Signature for the method input parameters
+        # [<tt>:returns</tt>]             Signature for the method return value
+        # [<tt>:expects_and_returns</tt>] Signature for both input parameters and return value
         def api_method(name, options={})
           validate_options([:expects, :returns, :expects_and_returns], options.keys)
           if options[:expects_and_returns]
@@ -133,7 +127,7 @@ module ActionService # :nodoc:
           end
           expects = canonical_signature(expects) if expects
           returns = canonical_signature(returns) if returns
-          if expects && Object.const_defined?('ActiveRecord')
+          if expects
             expects.each do |param|
               klass = signature_parameter_class(param)
               klass = klass[0] if klass.is_a?(Array)

@@ -28,9 +28,6 @@ module ActionService # :nodoc:
       end
 
       class XmlRpcProtocol < AbstractProtocol # :nodoc:
-
-        public
-
         def self.create_protocol_request(container_class, action_pack_request)
           helper = XMLRPC::XmlRpcHelper.instance
           service_name = action_pack_request.parameters['action']
@@ -160,7 +157,7 @@ module ActionService # :nodoc:
             case name
             when 'system.listMethods'
               methods = []
-              api = service_class.service_api
+              api = service_class.web_service_api
               api.api_methods.each do |name, info|
                 methods << api.public_api_method_name(name)
               end
@@ -181,7 +178,6 @@ module ActionService # :nodoc:
             end
           end
       end
-
     end
   end
 end

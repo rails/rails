@@ -89,15 +89,15 @@ module ActionService # :nodoc:
       attr :protocol
       attr :raw_body
 
-      attr_accessor :service_name
+      attr_accessor :web_service_name
       attr_accessor :public_method_name
       attr_accessor :content_type
 
-      def initialize(protocol, raw_body, service_name, public_method_name, content_type, options={})
+      def initialize(protocol, raw_body, web_service_name, public_method_name, content_type, options={})
         super(options)
         @protocol = protocol
         @raw_body = raw_body
-        @service_name = service_name
+        @web_service_name = web_service_name
         @public_method_name = public_method_name
         @content_type = content_type
       end

@@ -1,6 +1,5 @@
 = Google Service example
 
-
 This example shows how one would implement an API like Google
 Search that uses lots of structured types.
 
@@ -9,26 +8,19 @@ modes.
 
 There is also an example for API definition file autoloading.
 
-= Running
 
-  1. Ensure you have the 'actionservice' Gem installed. You can generate it using
-     this command:
+= Running the examples
 
-       $ rake package
+  1. Add the files to an Action Web Service enabled Rails project.
 
-
-  2. Edit config/environment.rb, and add the following line after the rest of the
-     require_gem statements:
-
-      require_gem 'actionservice'
-
-
-  3. "Direct" example:
+    "Direct" example:
 
       * Copy direct/search_controller.rb to "app/controllers"
         in a Rails project.
+      * Copy direct/google_search_api.rb to "app/apis"
+        in a Rails project
 
-     "Delegated" example:
+    "Delegated" example:
 
       * Copy delegated/search_controller.rb to "app/controllers"
         in a Rails project.
@@ -44,7 +36,7 @@ There is also an example for API definition file autoloading.
         in a Rails project.
   
 
-  4. Go to the WSDL url in a browser, and check that it looks correct.
+  2. Go to the WSDL url in a browser, and check that it looks correct.
 
       "Direct" and "Delegated" examples:
         http://url_to_project/search/wsdl
@@ -60,7 +52,7 @@ There is also an example for API definition file autoloading.
      explain extreme similarities :)
 
 
-  5. Test that it works with .NET (Mono in this example):
+  3. Test that it works with .NET (Mono in this example):
 
         $ wget WSDL_URL
         $ mv wsdl GoogleSearch.wsdl
@@ -144,8 +136,8 @@ There is also an example for API definition file autoloading.
     If you don't like this behaviour, you can do:
 
       class MyController < ActionController::Base
-        service_exception_reporting false
+        web_service_exception_reporting false
       end
 
-  6. Crack open a beer. Publishing APIs for working with the same model as
+  4. Crack open a beer. Publishing APIs for working with the same model as
      your Rails web app should be easy from now on :)

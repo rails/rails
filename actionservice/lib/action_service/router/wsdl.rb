@@ -46,7 +46,7 @@ module ActionService # :nodoc:
           def to_wsdl(container, uri, soap_action_base)
             wsdl = ""
   
-            service_dispatching_mode = container.service_dispatching_mode
+            web_service_dispatching_mode = container.web_service_dispatching_mode
             mapper = container.class.soap_mapper
             namespace = mapper.custom_namespace
             wsdl_service_name = namespace.split(/:/)[1]
@@ -152,7 +152,7 @@ module ActionService # :nodoc:
                   api_methods.each do |method_name, method_signature|
                     public_name = service_api.public_api_method_name(method_name)
                     xm.operation('name' => public_name) do
-                      case service_dispatching_mode
+                      case web_service_dispatching_mode
                       when :direct
                         soap_action = soap_action_base + "/api/" + public_name
                       when :delegated
@@ -183,7 +183,7 @@ module ActionService # :nodoc:
                 services.each do |service_name, service_values|
                   port_name = port_name_for(wsdl_service_name, service_name)
                   binding_name = binding_name_for(wsdl_service_name,  service_name)
-                  case service_dispatching_mode
+                  case web_service_dispatching_mode
                   when :direct
                     binding_target = 'api'
                   when :delegated

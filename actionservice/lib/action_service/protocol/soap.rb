@@ -297,34 +297,34 @@ module ActionService # :nodoc:
         alias :map :lookup
         
         def map_container_services(container, &block)
-          dispatching_mode = container.service_dispatching_mode
-          services = nil
+          dispatching_mode = container.web_service_dispatching_mode
+          web_services = nil
           case dispatching_mode
           when :direct
-            api = container.class.service_api
+            api = container.class.web_service_api
             if container.respond_to?(:controller_class_name)
-              service_name = container.controller_class_name.sub(/Controller$/, '').underscore
+              web_service_name = container.controller_class_name.sub(/Controller$/, '').underscore
             else
-              service_name = container.class.name.demodulize.underscore
+              web_service_name = container.class.name.demodulize.underscore
             end
-            services = { service_name => api }
+            web_services = { web_service_name => api }
           when :delegated
-            services = {}
-            container.class.services.each do |service_name, service_info|
+            web_services = {}
+            container.class.web_services.each do |web_service_name, web_service_info|
               begin
-                object = container.service_object(service_name)
+                object = container.web_service_object(web_service_name)
               rescue Exception => e
-                raise(ProtocolError, "failed to retrieve service object for mapping: #{e.message}")
+                raise(ProtocolError, "failed to retrieve web service object for web service '#{web_service_name}': #{e.message}")
               end
-              services[service_name] = object.class.service_api
+              web_services[web_service_name] = object.class.web_service_api
             end
           end
-          services.each do |service_name, api|
+          web_services.each do |web_service_name, api|
             if api.nil?
-              raise(ProtocolError, "no service API set while in :#{dispatching_mode} mode")
+              raise(ProtocolError, "no web service API set while in :#{dispatching_mode} mode")
             end
             map_api(api) do |api_methods|
-              yield service_name, api, api_methods if block_given?
+              yield web_service_name, api, api_methods if block_given?
             end
           end
         end

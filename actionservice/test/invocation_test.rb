@@ -13,7 +13,7 @@ module InvocationTest
   end
 
   class Service < ActionService::Base
-    service_api API
+    web_service_api API
 
     before_invocation :intercept_before, :except => [:no_before]
     after_invocation :intercept_after, :except => [:no_after]
@@ -150,7 +150,7 @@ class TC_Invocation < Test::Unit::TestCase
 
   private
     def perform_invocation(method_name, *args, &block)
-      public_method_name = @service.class.service_api.public_api_method_name(method_name)
+      public_method_name = @service.class.web_service_api.public_api_method_name(method_name)
       args ||= []
       request = InvocationRequest.new(ConcreteInvocation, public_method_name, method_name, args)
       @service.perform_invocation(request, &block)

@@ -7,7 +7,7 @@ module RouterActionControllerTest
   end
 
   class Service < ActionService::Base
-    service_api API
+    web_service_api API
 
     attr :added
   
@@ -17,9 +17,9 @@ module RouterActionControllerTest
   end
   
   class DelegatedController < ActionController::Base
-    service_dispatching_mode :delegated
+    web_service_dispatching_mode :delegated
   
-    service(:test_service) { @service ||= Service.new; @service }
+    web_service(:test_service) { @service ||= Service.new; @service }
   end
 
   class DirectAPI < ActionService::API::Base
@@ -30,8 +30,8 @@ module RouterActionControllerTest
   end
   
   class DirectController < ActionController::Base
-    service_api DirectAPI
-    service_dispatching_mode :direct
+    web_service_api DirectAPI
+    web_service_dispatching_mode :direct
 
     before_filter :alwaysfail, :only => [:before_filtered]
     after_filter :alwaysok, :only => [:after_filtered]
@@ -116,7 +116,7 @@ class TC_RouterActionController < AbstractSoapTest
     exception = result.detail
     assert(exception.cause.is_a?(RuntimeError))
     assert_equal("Hi, I'm a SOAP exception", exception.cause.message)
-    @container.service_exception_reporting = false
+    @container.web_service_exception_reporting = false
     assert_raises(SoapTestError) do
       do_soap_call('Thrower')
     end
@@ -128,7 +128,7 @@ class TC_RouterActionController < AbstractSoapTest
     end
 
     def service
-      @container.service_object(:test_service)
+      @container.web_service_object(:test_service)
     end
 
     def do_soap_call(public_method_name, *args)

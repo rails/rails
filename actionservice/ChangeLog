@@ -1,5 +1,8 @@
 UNRELEASED
 
+	* lib/*,test/*,examples/*: prefix all generic "service"
+	  type names with web_. update all using code as well as
+	  the RDoc.
 	* lib/action_service/router/wsdl.rb: ensure that #wsdl is
 	  defined in the final container class, or the new ActionPack
 	  filtering will exclude it

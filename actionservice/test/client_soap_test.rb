@@ -23,7 +23,7 @@ module ClientSoapTest
   end
 
   class ClientContainer < ActionController::Base
-    client_api :client, :soap, "http://localhost:#{PORT}/client/api", :api => ClientTest::API
+    web_client_api :client, :soap, "http://localhost:#{PORT}/client/api", :api => ClientTest::API
 
     def get_client
       client

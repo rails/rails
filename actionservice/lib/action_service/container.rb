@@ -5,40 +5,40 @@ module ActionService # :nodoc:
 
     def self.append_features(base) # :nodoc:
       super
-      base.class_inheritable_option(:service_dispatching_mode, :direct)
-      base.class_inheritable_option(:service_exception_reporting, true)
+      base.class_inheritable_option(:web_service_dispatching_mode, :direct)
+      base.class_inheritable_option(:web_service_exception_reporting, true)
       base.extend(ClassMethods)
       base.send(:include, ActionService::Container::InstanceMethods)
     end
 
     module ClassMethods
-      # Declares a service that will provides access to the API of the given
-      # service +object+. +object+ must be an ActionService::Base derivative.
+      # Declares a web service that will provides access to the API of the given
+      # +object+. +object+ must be an ActionService::Base derivative.
       #
-      # Service object creation can either be _immediate_, where the object
+      # Web service object creation can either be _immediate_, where the object
       # instance is given at class definition time, or _deferred_, where
       # object instantiation is delayed until request time.
       #
-      # ==== Immediate service object example
+      # ==== Immediate web service object example
       #
       #   class ApiController < ApplicationController
-      #     service_dispatching_mode :delegated
+      #     web_service_dispatching_mode :delegated
       #
-      #     service :person, PersonService.new
+      #     web_service :person, PersonService.new
       #   end
       #
       # For deferred instantiation, a block should be given instead of an
       # object instance. This block will be executed in controller instance
       # context, so it can rely on controller instance variables being present.
       #
-      # ==== Deferred service object example
+      # ==== Deferred web service object example
       #
       #   class ApiController < ApplicationController
-      #     service_dispatching_mode :delegated
+      #     web_service_dispatching_mode :delegated
       #
-      #     service(:person) { PersonService.new(@request.env) }
+      #     web_service(:person) { PersonService.new(@request.env) }
       #   end
-      def service(name, object=nil, &block)
+      def web_service(name, object=nil, &block)
         if (object && block_given?) || (object.nil? && block.nil?)
           raise(ContainerError, "either service, or a block must be given")
         end
@@ -48,56 +48,56 @@ module ActionService # :nodoc:
         else
           info = { name => { :object => object } }
         end
-        write_inheritable_hash("action_services", info)
-        call_service_definition_callbacks(self, name, info)
+        write_inheritable_hash("web_services", info)
+        call_web_service_definition_callbacks(self, name, info)
       end
 
       # Whether this service contains a service with the given +name+
-      def has_service?(name)
-        services.has_key?(name.to_sym)
+      def has_web_service?(name)
+        web_services.has_key?(name.to_sym)
       end
 
-      def services # :nodoc:
-        read_inheritable_attribute("action_services") || {}
+      def web_services # :nodoc:
+        read_inheritable_attribute("web_services") || {}
       end
 
-      def add_service_definition_callback(&block) # :nodoc:
-        write_inheritable_array("service_definition_callbacks", [block])
+      def add_web_service_definition_callback(&block) # :nodoc:
+        write_inheritable_array("web_service_definition_callbacks", [block])
       end
 
       private
-        def call_service_definition_callbacks(container_class, service_name, service_info)
-          (read_inheritable_attribute("service_definition_callbacks") || []).each do |block|
-            block.call(container_class, service_name, service_info)
+        def call_web_service_definition_callbacks(container_class, web_service_name, service_info)
+          (read_inheritable_attribute("web_service_definition_callbacks") || []).each do |block|
+            block.call(container_class, web_service_name, service_info)
           end
         end
     end
 
     module InstanceMethods # :nodoc:
-      def service_object(service_name)
-        info = self.class.services[service_name.to_sym]
+      def web_service_object(web_service_name)
+        info = self.class.web_services[web_service_name.to_sym]
         unless info
-          raise(ContainerError, "no such service '#{service_name}'")
+          raise(ContainerError, "no such web service '#{web_service_name}'")
         end
         service = info[:block]
         service ? instance_eval(&service) : info[:object]
       end
 
       private
-        def dispatch_service_request(protocol_request)
-          case service_dispatching_mode
+        def dispatch_web_service_request(protocol_request)
+          case web_service_dispatching_mode
           when :direct
-            dispatch_direct_service_request(protocol_request)
+            dispatch_direct_web_service_request(protocol_request)
           when :delegated
-            dispatch_delegated_service_request(protocol_request)
+            dispatch_delegated_web_service_request(protocol_request)
           else
-            raise(ContainerError, "unsupported dispatching mode '#{service_dispatching_mode}'")
+            raise(ContainerError, "unsupported dispatching mode :#{web_service_dispatching_mode}")
           end
         end
 
-        def dispatch_direct_service_request(protocol_request)
+        def dispatch_direct_web_service_request(protocol_request)
           public_method_name = protocol_request.public_method_name
-          api = self.class.service_api
+          api = self.class.web_service_api
           method_name = api.api_method_name(public_method_name)
           block = nil
           expects = nil
@@ -164,10 +164,10 @@ module ActionService # :nodoc:
           protocol_request.marshal(result)
         end
 
-        def dispatch_delegated_service_request(protocol_request)
-          service_name = protocol_request.service_name
-          service = service_object(service_name)
-          api = service.class.service_api
+        def dispatch_delegated_web_service_request(protocol_request)
+          web_service_name = protocol_request.web_service_name
+          service = web_service_object(web_service_name)
+          api = service.class.web_service_api
           public_method_name = protocol_request.public_method_name
           method_name = api.api_method_name(public_method_name)
 
@@ -197,7 +197,7 @@ module ActionService # :nodoc:
                 invocation.params = protocol_request.unmarshal
                 invocation.method_name = method_name.to_sym
               else
-                raise(ContainerError, "no such method /#{service_name}##{public_method_name}")
+                raise(ContainerError, "no such method /#{web_service_name}##{public_method_name}")
               end
             end
           end
@@ -221,7 +221,7 @@ module ActionService # :nodoc:
               invocation.method_name = method_name.to_sym
               invocation.type = ActionService::Invocation::UnpublishedConcreteInvocation
             else
-              raise(ContainerError, "no such method /#{service_name}##{public_method_name}")
+              raise(ContainerError, "no such method /#{web_service_name}##{public_method_name}")
             end
             result = perform_invoke.call
           end

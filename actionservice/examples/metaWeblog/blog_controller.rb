@@ -1,3 +1,6 @@
+# point your client at http://project_url/blog/api to test
+# this
+
 # structures as defined by the metaWeblog/blogger
 # specifications.
 module Blog
@@ -73,7 +76,7 @@ class MetaWeblogAPI < ActionService::API::Base
 end
 
 class BlogController < ApplicationController
-  service_api MetaWeblogAPI
+  web_service_api MetaWeblogAPI
 
   def initialize
     @postid = 0
@@ -99,23 +102,26 @@ class BlogController < ApplicationController
 
   def getUsersBlogs
     $stderr.puts "Returning user %s's blogs" % @params['username']
-    blog = Blog::Blog.new
-    blog.url = 'http://blog.xeraph.org'
-    blog.blogid = 'sttm'
-    blog.blogName = 'slave to the machine'
+    blog = Blog::Blog.new(
+      :url =>'http://blog.xeraph.org',
+      :blogid => 'sttm',
+      :blogName => 'slave to the machine'
+    )
     [blog]
   end
 
   def getRecentPosts
     $stderr.puts "Returning recent posts (%d requested)" % @params['numberOfPosts']
-    post1 = Blog::Post.new
-    post1.title = 'first post!'
-    post1.link = 'http://blog.xeraph.org/testOne.html'
-    post1.description = 'this is the first post'
-    post2 = Blog::Post.new
-    post2.title = 'second post!'
-    post2.link = 'http://blog.xeraph.org/testTwo.html'
-    post2.description = 'this is the second post'
+    post1 = Blog::Post.new(
+      :title => 'first post!',
+      :link => 'http://blog.xeraph.org/testOne.html',
+      :description => 'this is the first post'
+    )
+    post2 = Blog::Post.new(
+      :title => 'second post!',
+      :link => 'http://blog.xeraph.org/testTwo.html',
+      :description => 'this is the second post'
+    )
     [post1, post2]
   end
 end

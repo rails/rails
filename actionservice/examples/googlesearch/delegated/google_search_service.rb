@@ -1,5 +1,3 @@
-require 'action_service'
-
 class DirectoryCategory < ActionService::Struct
   member :fullViewableName, :string
   member :specialEncoding,  :string
@@ -52,7 +50,7 @@ class GoogleSearchAPI < ActionService::API::Base
 end
 
 class GoogleSearchService < ActionService::Base
-  service_api GoogleSearchAPI
+  web_service_api GoogleSearchAPI
 
   def doGetCachedPage(key, url)
     "<html><body>i am a cached page</body></html>"

@@ -14,7 +14,7 @@ module BaseTest
   end
 
   class Service < ActionService::Base
-    service_api API
+    web_service_api API
 
     def add(a, b)
     end
@@ -24,7 +24,7 @@ module BaseTest
   end
   
   class PristineService < ActionService::Base
-    service_api PristineAPI
+    web_service_api PristineAPI
 
     def add
     end
@@ -36,7 +36,7 @@ end
 
 class TC_Base < Test::Unit::TestCase
   def test_options
-    assert(BaseTest::PristineService.service_api.inflect_names == false)
-    assert(BaseTest::Service.service_api.inflect_names == true)
+    assert(BaseTest::PristineService.web_service_api.inflect_names == false)
+    assert(BaseTest::Service.web_service_api.inflect_names == true)
   end
 end

@@ -5,40 +5,35 @@ module ActionService # :nodoc:
         base.class_eval do 
           class << self
             alias_method :inherited_without_api, :inherited
-            alias_method :service_api_without_require, :service_api
+            alias_method :web_service_api_without_require, :web_service_api
           end
         end
         base.extend(ClassMethods)
       end
 
       module ClassMethods
-        # Creates a _protected_ factory method with the given
-        # +name+. This method will create a +protocol+ client connected
-        # to the given endpoint URL.
+        # Creates a client for accessing remote web services, using the
+        # given +protocol+ to communicate with the +endpoint_uri+.
         #
         # ==== Example
         #
         #   class MyController < ActionController::Base
-        #     client_api :blogger, :xmlrpc, "http://blogger.com/myblog/api/RPC2", :handler_name => 'blogger'
+        #     web_client_api :blogger, :xmlrpc, "http://blogger.com/myblog/api/RPC2", :handler_name => 'blogger'
         #   end
         #
         # In this example, a protected method named <tt>blogger</tt> will
         # now exist on the controller, and calling it will return the
         # XML-RPC client object for working with that remote service.
         #
-        # The same rules as ActionService::API::Base#service_api are
-        # used to retrieve the API definition with the given +name+.
-        #
         # +options+ is the set of protocol client specific options,
-        # see the protocol client class for details.
+        # see a protocol client class for details.
         #
-        # If your API definition does not exist on the load path
-        # with the correct rules for it to be found, you can
-        # pass through the API definition class in +options+, using
-        # a key of <tt>:api</tt>
-        def client_api(name, protocol, endpoint_uri, options={})
+        # If your API definition does not exist on the load path with the
+        # correct rules for it to be found using +name+, you can pass through
+        # the API definition class in +options+, using a key of <tt>:api</tt>
+        def web_client_api(name, protocol, endpoint_uri, options={})
           unless method_defined?(name)
-            api_klass = options.delete(:api) || require_api(name)
+            api_klass = options.delete(:api) || require_web_service_api(name)
             class_eval do
               define_method(name) do
                 probe_protocol_client(api_klass, protocol, endpoint_uri, options)
@@ -48,18 +43,18 @@ module ActionService # :nodoc:
           end
         end
 
-        def service_api(definition=nil) # :nodoc:
-          return service_api_without_require if definition.nil?
+        def web_service_api(definition=nil) # :nodoc:
+          return web_service_api_without_require if definition.nil?
           case definition
           when String, Symbol
-            klass = require_api(definition)
+            klass = require_web_service_api(definition)
           else
             klass = definition
           end
-          service_api_without_require(klass)
+          web_service_api_without_require(klass)
         end
 
-        def require_api(name) # :nodoc:
+        def require_web_service_api(name) # :nodoc:
           case name
           when String, Symbol
             file_name = name.to_s.underscore + "_api"
@@ -88,7 +83,7 @@ module ActionService # :nodoc:
         private
           def inherited(child)
             inherited_without_api(child)
-            child.service_api(child.controller_path)
+            child.web_service_api(child.controller_path)
           rescue Exception => e
           end
       end

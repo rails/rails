@@ -1,3 +1,7 @@
+= 0.4.0 Tasks
+  - add ActiveRecord-like logging that includes timing information
+  - rename project to 'actionwebservice', Action Web Service
+
 = Post-0.4.0 Tasks
   - relax type-checking for XML-RPC, and perform casts between base types if there
     are mismatches (i.e. String received when Integer expected, or vice-versa)
@@ -9,14 +13,14 @@
           @request = controller.request
         end
 
-        service :mt         {MTService.new(@request)}
-        service :blogger    {BloggerService.new(@request)}
-        service :metaWeblog {MetaWeblogService.new(@request)}
+        web_service :mt         {MTService.new(@request)}
+        web_service :blogger    {BloggerService.new(@request)}
+        web_service :metaWeblog {MetaWeblogService.new(@request)}
       end
 
       class ApiController < ApplicationController
-        service_dispatching_mode :delegated
-        service :xmlrpc { BloggingServices.new(@request) }
+        web_service_dispatching_mode :delegated
+        web_service :xmlrpc { BloggingServices.new(@request) }
       end
 
 = Low priority tasks

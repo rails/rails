@@ -12,7 +12,7 @@ module ActionService # :nodoc:
   # ==== Example
   # 
   #   class PersonService < ActionService::Base
-  #     service_api PersonAPI
+  #     web_service_api PersonAPI
   #
   #     def find_person(criteria)
   #       Person.find_all [...]
@@ -36,6 +36,6 @@ module ActionService # :nodoc:
   class Base
     # Whether to report exceptions back to the caller in the protocol's exception
     # format
-    class_inheritable_option :service_exception_reporting, true
+    class_inheritable_option :web_service_exception_reporting, true
   end
 end

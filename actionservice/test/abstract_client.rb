@@ -26,7 +26,7 @@ module ClientTest
   end
 
   class Container < ActionController::Base
-    service_api API
+    web_service_api API
 
     attr :value_void
     attr :value_normal
@@ -71,7 +71,7 @@ module ClientTest
     end
 
     def dispatch_request(protocol_request)
-      dispatch_service_request(protocol_request)
+      dispatch_web_service_request(protocol_request)
     end
   end
 

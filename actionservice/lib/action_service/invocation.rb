@@ -17,7 +17,7 @@ module ActionService # :nodoc:
     # and after method invocations on ActionService::Base objects.
     #
     # When running in _Direct_ dispatching mode, ActionController filters
-    # should be used for this functionality.
+    # should be used for this functionality instead.
     #
     # The semantics of invocation interceptors are the same as ActionController
     # filters, and accept the same parameters and options.
@@ -147,8 +147,8 @@ module ActionService # :nodoc:
       def perform_invocation(invocation)
         if invocation.concrete?
           unless self.respond_to?(invocation.method_name) && \
-                 self.class.service_api.has_api_method?(invocation.method_name)
-            raise InvocationError, "no such service method '#{invocation.method_name}'"
+                 self.class.web_service_api.has_api_method?(invocation.method_name)
+            raise InvocationError, "no such web service method '#{invocation.method_name}' on service object"
           end
         end
         params = invocation.params

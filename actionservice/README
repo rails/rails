@@ -60,7 +60,7 @@ ActionService::API::Base +inflect_names+ option.
 ==== API usage example
 
   class PersonController < ActionController::Base
-    service_api PersonAPI
+    web_service_api PersonAPI
 
     def add
     end
@@ -93,7 +93,7 @@ overridden.</em>
 ==== Direct dispatching example
 
   class PersonController < ApplicationController
-    service_api PersonAPI
+    web_service_api PersonAPI
 
     def add
     end
@@ -113,23 +113,23 @@ For this example, protocol requests for +Add+ and +Remove+ methods sent to
 
 === Delegated dispatching
 
-This mode can be turned on by setting the +service_dispatching_mode+ option
+This mode can be turned on by setting the +web_service_dispatching_mode+ option
 in a controller.
 
-In this mode, the controller contains one or more service API objects (objects
-that implement an ActionService::API::Base definition). These API
+In this mode, the controller contains one or more web service objects (objects
+that implement an ActionService::API::Base definition). These web service
 objects are each mapped onto one controller action only.
 
 ==== Delegated dispatching example
 
   class ApiController < ApplicationController
-    service_dispatching_mode :delegated
+    web_service_dispatching_mode :delegated
 
-    service :person, PersonService.new
+    web_service :person, PersonService.new
   end
 
   class PersonService < ActionService::Base
-    service_api PersonAPI
+    web_service_api PersonAPI
 
     def add
     end
@@ -146,10 +146,10 @@ objects are each mapped onto one controller action only.
 For this example, all protocol requests for +PersonService+ are
 sent to the <tt>/api/person</tt> action.
 
-The <tt>/api/person</tt> action is generated when the +service+
+The <tt>/api/person</tt> action is generated when the +web_service+
 method is called. <em>This action must not be overridden.</em>
 
-Other controller actions (actions that aren't the target of a +service+ call)
+Other controller actions (actions that aren't the target of a +web_service+ call)
 are ignored for ActionService purposes, and can do normal action tasks.
 
 
@@ -166,21 +166,18 @@ applications that both use Action Service. It may work with other servers, but
 that is not its intended use, and interoperability can't be guaranteed, especially
 not for .NET web services. 
 
-Web services protocol specifications are complex, and Action Service can only
-be guaranteed to work with a subset.
+Web services protocol specifications are complex, and Action Service client
+support can only be guaranteed to work with a subset.
 
-If you have the need for clients for a complex service not running on Action
-Service, it is recommended that you use +wsdl2ruby+ and generate the client
-stub classes.
 
 ==== Factory created client example
 
   class BlogManagerController < ApplicationController
-    client_api :blogger, :xmlrpc, 'http://url/to/blog/api/RPC2', :handler_name => 'blogger'
+    web_client_api :blogger, :xmlrpc, 'http://url/to/blog/api/RPC2', :handler_name => 'blogger'
   end
 
   class SearchingController < ApplicationController
-    client_api :google, :soap, 'http://url/to/blog/api/beta', :service_name => 'GoogleSearch'
+    web_client_api :google, :soap, 'http://url/to/blog/api/beta', :service_name => 'GoogleSearch'
   end
 
 See ActionService::API::ActionController::ClassMethods for more details.
