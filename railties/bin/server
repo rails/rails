@@ -23,9 +23,6 @@ ARGV.options do |opts|
   opts.on("-b", "--binding=ip", String,
           "Binds Rails to the specified ip.",
           "Default: 0.0.0.0") { |OPTIONS[:ip]| }
-  opts.on("-i", "--index=controller", String,
-          "Specifies an index controller that requests for root will go to (instead of congratulations screen)."
-          ) { |OPTIONS[:index_controller]| }
   opts.on("-e", "--environment=name", String,
           "Specifies the environment to run this server under (test/development/production).",
           "Default: development") { |OPTIONS[:environment]| }
