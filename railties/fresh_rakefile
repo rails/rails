@@ -121,7 +121,7 @@ task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
       end
     when "postgresql"
       ENV['PGHOST']     = abcs["test"]["host"] if abcs["test"]["host"]
-      ENV['PGPORT']     = abcs["test"]["host"] if abcs["test"]["port"]
+      ENV['PGPORT']     = abcs["test"]["port"].to_s if abcs["test"]["port"]
       ENV['PGPASSWORD'] = abcs["test"]["password"]
       `psql -U "#{abcs["test"]["username"]}" -f db/#{RAILS_ENV}_structure.sql #{abcs["test"]["database"]}`
     when "sqlite", "sqlite3"
@@ -140,7 +140,7 @@ task :db_structure_dump => :environment do
       File.open("db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
     when "postgresql"
       ENV['PGHOST']     = abcs[RAILS_ENV]["host"] if abcs[RAILS_ENV]["host"]
-      ENV['PGPORT']     = abcs[RAILS_ENV]["host"] if abcs[RAILS_ENV]["port"]
+      ENV['PGPORT']     = abcs[RAILS_ENV]["port"].to_s if abcs[RAILS_ENV]["port"]
       ENV['PGPASSWORD'] = abcs[RAILS_ENV]["password"]
       `pg_dump -U "#{abcs[RAILS_ENV]["username"]}" -s -x -f db/#{RAILS_ENV}_structure.sql #{abcs[RAILS_ENV]["database"]}`
     when "sqlite", "sqlite3"
@@ -159,7 +159,7 @@ task :purge_test_database => :environment do
       ActiveRecord::Base.connection.recreate_database(abcs["test"]["database"])
     when "postgresql"
       ENV['PGHOST']     = abcs["test"]["host"] if abcs["test"]["host"]
-      ENV['PGPORT']     = abcs["test"]["host"] if abcs["test"]["port"]
+      ENV['PGPORT']     = abcs["test"]["port"].to_s if abcs["test"]["port"]
       ENV['PGPASSWORD'] = abcs["test"]["password"]
       `dropdb -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
       `createdb -T template0 -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
