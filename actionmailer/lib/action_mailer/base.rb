@@ -3,10 +3,12 @@ module ActionMailer #:nodoc:
   #
   #   class ApplicationMailer < ActionMailer::Base
   #     def post_notification(recipients, post)
-  #       @recipients   = recipients
-  #       @subject      = "[#{post.account.name} #{post.title}]"
-  #       @body["post"] = post
-  #       @from         = post.author.email_address_with_name
+  #       @recipients          = recipients
+  #       @from                = post.author.email_address_with_name
+  #       @headers["bcc"]      = SYSTEM_ADMINISTRATOR_EMAIL
+  #       @headers["reply-to"] = "notifications@example.com"
+  #       @subject             = "[#{post.account.name} #{post.title}]"
+  #       @body["post"]        = post
   #     end
   #     
   #     def comment_notification(recipient, comment)
@@ -72,7 +74,11 @@ module ActionMailer #:nodoc:
     @@deliveries = []
     cattr_accessor :deliveries
 
-    attr_accessor :recipients, :subject, :body, :from, :sent_on, :bcc, :cc
+    attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers, :bcc, :cc
+
+    def initialize
+      @headers = {}
+    end
 
     class << self
       def method_missing(method_symbol, *parameters)#:nodoc:
@@ -88,14 +94,18 @@ module ActionMailer #:nodoc:
         end        
       end
 
-      def mail(to, subject, body, from, timestamp = nil) #:nodoc:
-        deliver(create(to, subject, body, from, timestamp))
+      def mail(to, subject, body, from, timestamp = nil, headers = nil) #:nodoc:
+        deliver(create(to, subject, body, from, timestamp, headers))
       end
 
-      def create(to, subject, body, from, timestamp = nil) #:nodoc:
+      def create(to, subject, body, from, timestamp = nil, headers = nil) #:nodoc:
         m = TMail::Mail.new
         m.to, m.subject, m.body, m.from = to, subject, body, from
         m.date = timestamp.respond_to?("to_time") ? timestamp.to_time : (timestamp || Time.now)    
+        headers.each do |k, v|
+          m[k] = v
+        end
+
         return m
       end
 
@@ -129,9 +139,9 @@ module ActionMailer #:nodoc:
           mailer.send(method_name, *parameters)
 
           if String === mailer.body
-            mail = create(mailer.recipients, mailer.subject, mailer.body, mailer.from, mailer.sent_on)
+            mail = create(mailer.recipients, mailer.subject, mailer.body, mailer.from, mailer.sent_on, mailer.headers)
           else
-            mail = create(mailer.recipients, mailer.subject, render_body(mailer, method_name), mailer.from, mailer.sent_on)
+            mail = create(mailer.recipients, mailer.subject, render_body(mailer, method_name), mailer.from, mailer.sent_on, mailer.headers)
           end
 
           mail.bcc = @bcc if @bcc

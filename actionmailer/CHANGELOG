@@ -1,3 +1,16 @@
+*SVN*
+
+* Added access to custom headers, like cc, bcc, and reply-to #268 [Andreas Schwarz]. Example:
+
+    def post_notification(recipients, post)
+      @recipients          = recipients
+      @from                = post.author.email_address_with_name
+      @headers["bcc"]      = SYSTEM_ADMINISTRATOR_EMAIL
+      @headers["reply-to"] = "notifications@example.com"
+      @subject             = "[#{post.account.name} #{post.title}]"
+      @body["post"]        = post
+    end
+
 *0.4* (5)
 
 * Consolidated the server configuration options into Base#server_settings= and expanded that with controls for authentication and more [Marten]
