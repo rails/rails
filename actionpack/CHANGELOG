@@ -1,5 +1,26 @@
 *SVN*
 
+* Added to_param call for parameters when composing an url using url_for from something else than strings #812 [Sam Stephenson]. Example:
+
+    class Page
+      def initialize(number)
+        @number = number
+      end
+      # ...
+      def to_param
+        @number.to_s
+      end
+    end
+
+  You can now use instances of Page with url_for:
+
+    class BarController < ApplicationController
+      def baz
+        page = Page.new(4)
+        url = url_for :page => page # => "http://foo/bar/baz?page=4"
+      end
+    end
+
 * Fixed form helpers to query Model#id_before_type_cast instead of Model#id as a temporary workaround for Ruby 1.8.2 warnings #818 [DeLynn B]
 
 * Fixed TextHelper#markdown to use blank? instead of empty? so it can deal with nil strings passed #814 [Johan Sörensen]

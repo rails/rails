@@ -64,9 +64,9 @@ module ActionController
       	    if value.nil? || item == :controller
               value
             elsif collection
-	            CGI.escape(value.to_s).gsub(/%2F/, "/")
+	            Routing.extract_parameter_value(value).gsub(/%2F/, "/")
             else
-              CGI.escape(value.to_s)
+              Routing.extract_parameter_value(value)
             end
           else
             item
@@ -316,6 +316,11 @@ module ActionController
       end
     end
     
+    def self.extract_parameter_value(parameter)
+      value = parameter.respond_to?(:to_param) ? parameter.to_param : parameter.to_s
+      CGI.escape(value)
+    end
+
     def self.draw(*args, &block) #:nodoc:
       Routes.draw(*args) {|*args| block.call(*args)}
     end

@@ -95,7 +95,7 @@ module ActionController
           key = CGI.escape key
           key += '[]' if value.class == Array
           value = [ value ] unless value.class == Array
-          value.each { |val| elements << "#{key}=#{CGI.escape(val.to_s)}" }
+          value.each { |val| elements << "#{key}=#{Routing.extract_parameter_value(val)}" }
         end
         
         query_string << ("?" + elements.join("&")) unless elements.empty?
