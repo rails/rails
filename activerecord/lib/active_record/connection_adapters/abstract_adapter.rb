@@ -182,6 +182,7 @@ module ActiveRecord
           when :float         then Float
           when :datetime      then Time
           when :date          then Date
+         when :time          then Time
           when :text, :string then String
           when :boolean       then Object
         end
@@ -195,6 +196,7 @@ module ActiveRecord
           when :integer  then value.to_i
           when :float    then value.to_f
           when :datetime then string_to_time(value)
+         when :time     then string_to_dummy_time(value)
           when :date     then string_to_date(value)
           when :boolean  then (value == "t" or value == true ? true : false)
           else value
@@ -220,6 +222,14 @@ module ActiveRecord
           Time.local(*time_array) rescue nil
         end
 
+       def string_to_dummy_time(string)
+         return string if Time === string
+         time_array = ParseDate.parsedate(string)
+         # pad the resulting array with dummy date information
+         time_array[0] = 2000; time_array[1] = 1; time_array[2] = 1;
+         Time.local(*time_array) rescue nil
+       end
+
         def extract_limit(sql_type)
           $1.to_i if sql_type =~ /\((.*)\)/
         end
@@ -230,8 +240,10 @@ module ActiveRecord
               :integer
             when /float|double|decimal|numeric/i
               :float
-            when /time/i
+            when /datetime/i
               :datetime
+           when /time/i
+             :time
             when /date/i
               :date
             when /(c|b)lob/i, /text/i

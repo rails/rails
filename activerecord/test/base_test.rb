@@ -147,6 +147,11 @@ class BasicsTest < Test::Unit::TestCase
       Date, Topic.find(1).last_read, 
       "The last_read attribute should be of the Date class"
     )
+
+    assert_kind_of(
+      Time, Topic.find(1).bonus_time,
+      "The bonus_time attribute should be of the Time class"
+    )
   end
 
   def test_preserving_time_objects
@@ -311,6 +316,7 @@ class BasicsTest < Test::Unit::TestCase
     topic = Topic.new
     assert_equal 1, topic.approved
     assert_nil topic.written_on
+    assert_nil topic.bonus_time
     assert_nil topic.last_read
     
     topic.save
@@ -424,6 +430,15 @@ class BasicsTest < Test::Unit::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
+  end
+
+  def test_attributes_on_dummy_time
+    attributes = {
+      "bonus_time" => "5:42:00AM"
+    }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    assert_equal Time.local(2000, 1, 1, 5, 42, 0), topic.bonus_time
   end
 
   def test_boolean

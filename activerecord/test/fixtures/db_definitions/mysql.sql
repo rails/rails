@@ -23,6 +23,7 @@ CREATE TABLE `topics` (
   `author_name` varchar(255) default NULL,
   `author_email_address` varchar(255) default NULL,
   `written_on` datetime default NULL,
+  `bonus_time` time default NULL,
   `last_read` date default NULL,
   `content` text,
   `approved` tinyint(1) default 1,

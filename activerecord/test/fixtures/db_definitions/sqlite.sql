@@ -21,6 +21,7 @@ CREATE TABLE 'topics' (
   'author_name' VARCHAR(255) DEFAULT NULL,
   'author_email_address' VARCHAR(255) DEFAULT NULL,
   'written_on' DATETIME DEFAULT NULL,
+  'bonus_time' TIME DEFAULT NULL,
   'last_read' DATE DEFAULT NULL,
   'content' TEXT,
   'approved' INTEGER DEFAULT 1,

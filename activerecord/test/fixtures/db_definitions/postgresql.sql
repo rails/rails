@@ -46,6 +46,7 @@ CREATE TABLE topics (
     author_name character varying(255),
     author_email_address character varying(255),
     written_on timestamp without time zone,
+    bonus_time time,
     last_read date,
     content text,
     replies_count integer default 0,
