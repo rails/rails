@@ -39,7 +39,7 @@ module ActionView
       #
       # * <tt>:alt</tt> - If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
       # * <tt>:size</tt> - Supplied as "XxY", so "30x45" becomes width="30" and height="45"
-      # * <tt>:border</tt> - Is set to 0 by default
+      # * <tt>:border</tt> - Draws a border around the link
       # * <tt>:align</tt> - Sets the alignment, no special features
       #
       # The +src+ can be supplied as a...
@@ -70,8 +70,6 @@ module ActionView
         if html_options["border"]
           image_options["border"] = html_options["border"]
           html_options.delete "border"
-        else
-          image_options["border"] = "0"
         end
 
         if html_options["align"]
