@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that models that weren't referenced in associations weren't being reloaded in the development mode by reinstating the reload
+
 * Fixed that generate scaffold would produce bad functional tests
 
 * Fixed that FCGI can also display SyntaxErrors
