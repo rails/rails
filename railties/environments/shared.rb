@@ -30,6 +30,7 @@ ADDITIONAL_LOAD_PATHS.reverse.each { |dir| $:.unshift(dir) if File.directory?(di
 
 
 # Require Rails libraries.
+require 'active_support'
 require 'active_record'
 require 'action_controller'
 require 'action_mailer'

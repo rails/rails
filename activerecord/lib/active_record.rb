@@ -25,18 +25,10 @@
 $:.unshift(File.dirname(__FILE__))
 
 begin
-  require 'active_support/core_ext'
-  require 'active_support/clean_logger'
-  require 'active_support/misc'
-  require 'active_support/dependencies'
+  require 'active_support'
 rescue LoadError
   require 'rubygems'
   require_gem 'activesupport'
-  
-  require 'active_support/core_ext'
-  require 'active_support/clean_logger'
-  require 'active_support/misc'
-  require 'active_support/dependencies'
 end
 
 require 'active_record/base'

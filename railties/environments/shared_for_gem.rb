@@ -25,6 +25,7 @@ ADDITIONAL_LOAD_PATHS.reverse.each { |dir| $:.unshift(dir) if File.directory?(di
 
 # Require Rails gems.
 require 'rubygems'
+require_gem 'activesupport'
 require_gem 'activerecord'
 require_gem 'actionpack'
 require_gem 'actionmailer'

@@ -1,5 +1,3 @@
-require 'active_support/class_attribute_accessors'
-require 'active_support/inflector'
 require File.dirname(__FILE__) + '/options'
 require File.dirname(__FILE__) + '/manifest'
 require File.dirname(__FILE__) + '/spec'

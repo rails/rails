@@ -24,7 +24,7 @@
 require 'breakpoint'
 
 class Dispatcher
-  class <<self
+  class << self
     def dispatch(cgi = CGI.new, session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS)
       begin
         prepare_application

@@ -1,5 +1,4 @@
 require 'optparse'
-require 'active_support/class_inheritable_attributes'
 
 module Rails
   module Generator
