@@ -20,17 +20,15 @@ module ActiveRecord
 
         base.before_create :touch_on_create
         base.before_update :touch_on_update
-
-        base.class_eval do
-          def touch_on_create
-            self.updated_at = (self.created_at ||= Time.now)
-          end
-
-          def touch_on_update
-            self.updated_at = Time.now
-          end
-        end
       end  
+
+      def touch_on_create
+        self.updated_at = (self.created_at ||= Time.now)
+      end
+
+      def touch_on_update
+        self.updated_at = Time.now
+      end
     end
   end
 end
