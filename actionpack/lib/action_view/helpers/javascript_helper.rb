@@ -57,9 +57,18 @@ module ActionView
       end
 
       def remote_function(options)
+        callbacks = build_callbacks(options)
+
         function = options[:update] ? 
-          "update_with_response('#{options[:update]}', '#{url_for(options[:url])}'#{', Form.serialize(this)' if options[:form]})" :
-          "xml_request('#{url_for(options[:url])}'#{', Form.serialize(this)' if options[:form]})"
+          "update_with_response('#{options[:update]}', " :
+          "xml_request("
+
+        function << "'#{url_for(options[:url])}'"
+        function << ', Form.serialize(this)' if options[:form]
+        function << ', null' if !options[:form] && callbacks
+        function << ", true" if callbacks || options[:type] != :sync
+        function << ", #{callbacks}" if callbacks
+        function << ')'
 
         function = "#{options[:before]}; #{function}" if options[:before]
         function = "#{function}; #{options[:after]}"  if options[:after]
@@ -266,27 +275,6 @@ module ActionView
           end
           callbacks << "}" if callbacks
           callbacks
-        end
-
-        def remote_function(options)
-          callbacks = build_callbacks(options)
-
-          function = options[:update] ? 
-            "update_with_response('#{options[:update]}', " :
-            "xml_request("
-
-          function << "'#{url_for(options[:url])}'"
-          function << ', Form.serialize(this)' if options[:form]
-          function << ', null' if !options[:form] && callbacks
-          function << ", true" if callbacks || options[:type] != :sync
-          function << ", #{callbacks}" if callbacks
-          function << ')'
-
-          function = "#{options[:before]}; #{function}" if options[:before]
-          function = "#{function}; #{options[:after]}"  if options[:after]
-          function = "if (#{options[:condition]}) { #{function}; }" if options[:condition]
-      
-          return function
         end
     end
   end
