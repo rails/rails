@@ -28,15 +28,32 @@ module ActionWebService # :nodoc:
       #                               declare its custom types, you can specify it here
       # [<tt>:method_namespace</tt>]  If the remote server has used a custom namespace to
       #                               declare its methods, you can specify it here
+      # [<tt>:driver_options</tt>]    If you want to supply any custom SOAP RPC driver
+      #                               options, you can provide them as a Hash here
+      #
+      # The <tt>:driver_options</tt> option can be used to configure the backend SOAP
+      # RPC driver. An example of configuring the SOAP backend to do
+      # client-certificate authenticated SSL connections to the server:
+      #
+      #   opts = {}
+      #   opts['protocol.http.ssl_config.verify_mode'] = 'OpenSSL::SSL::VERIFY_PEER'
+      #   opts['protocol.http.ssl_config.client_cert'] = client_cert_file_path
+      #   opts['protocol.http.ssl_config.client_key'] = client_key_file_path
+      #   opts['protocol.http.ssl_config.ca_file'] = ca_cert_file_path
+      #   client = ActionWebService::Client::Soap.new(api, 'https://some/service', :driver_options => opts)
       def initialize(api, endpoint_uri, options={})
         super(api, endpoint_uri)
         @type_namespace = options[:type_namespace] || 'urn:ActionWebService'
         @method_namespace = options[:method_namespace] || 'urn:ActionWebService'
+        @driver_options = options[:driver_options] || {}
         @marshaler = WS::Marshaling::SoapMarshaler.new @type_namespace
         @encoder = WS::Encoding::SoapRpcEncoding.new @method_namespace
         @soap_action_base = options[:soap_action_base]
         @soap_action_base ||= URI.parse(endpoint_uri).path
         @driver = create_soap_rpc_driver(api, endpoint_uri)
+        @driver_options.each do |name, value|
+          @driver.options[name.to_s] = value.to_s
+        end
       end
 
       protected
