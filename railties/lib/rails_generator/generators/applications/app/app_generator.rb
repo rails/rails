@@ -71,7 +71,7 @@ class AppGenerator < Rails::Generator::Base
       m.file "doc/README_FOR_APP", "doc/README_FOR_APP"
 
       # Logs
-      %w(apache production development test).each { |file|
+      %w(server production development test).each { |file|
         m.file "configs/empty.log", "log/#{file}.log", :chmod => 0666
       }
     end
