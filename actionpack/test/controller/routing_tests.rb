@@ -325,6 +325,15 @@ class RouteTests < Test::Unit::TestCase
     assert_equal Controllers::Admin::UserController, controller
     assert_equal %w{action id}, leftovers
   end
+
+  def test_path_collection
+    route '*path_info', :controller => 'content', :action => 'fish'
+    verify_recognize'path/with/slashes',
+        :controller => 'content', :action => 'fish', :path_info => 'path/with/slashes'
+    verify_generate('path/with/slashes', {},
+	{:controller => 'content', :action => 'fish', :path_info => 'path/with/slashes'},
+	{})
+  end
   
   def test_special_characters
     route ':id', :controller => 'content', :action => 'fish'

@@ -1,5 +1,12 @@
 *SVN*
 
+* Added path collection syntax for Routes that will gobble up the rest of the url and pass it on to the controller #830 [rayners]. Example:
+
+    map.connect 'categories/*path_info', :controller => 'categories', :action => 'show'
+
+  A request for /categories/top-level-cat, would give @params[:path_info] with "top-level-cat".
+  A request for /categories/top-level-cat/level-1-cat, would give @params['path_info'] with "top-level-cat/level-1-cat" and so forth.
+
 * Fixed options_for_select on selected line issue #624 [Florian Weber]
 
 * Added CaptureHelper with CaptureHelper#capture and CaptureHelper#content_for. See documentation in helper #837 [Tobias Luetke]

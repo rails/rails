@@ -48,12 +48,28 @@ module ActionController
         used_names = @requirements.inject({}) {|hash, (k, v)| hash[k] = true; hash} # Mark requirements as used so they don't get put in the query params
         components = @items.collect do |item|
           if item.kind_of? Symbol
+            collection = false
+
+            if /^\*/ =~ item.to_s
+              collection = true
+              item = item.to_s.sub(/^\*/,"").intern
+            end
+
             used_names[item] = true
             value = options[item] || defaults[item] || @defaults[item]
             return nil, requirements_for(item) unless passes_requirements?(item, value)
+
             defaults = {} unless defaults == {} || value == defaults[item] # Stop using defaults if this component isn't the same as the default.
-            (value.nil? || item == :controller) ? value : CGI.escape(value.to_s)
-          else item
+
+      	    if value.nil? || item == :controller
+              value
+            elsif collection
+	            CGI.escape(value.to_s).gsub(/%2F/, "/")
+            else
+              CGI.escape(value.to_s)
+            end
+          else
+            item
           end
         end
         
@@ -96,6 +112,10 @@ module ActionController
             end
             options[:controller] = controller_class.controller_path
             return nil, requirements_for(:controller) unless passes_requirements?(:controller, options[:controller])
+          elsif /^\*/ =~ item.to_s
+            value = components.join("/") || @defaults[item]
+            components = []
+            options[item.to_s.sub(/^\*/,"").intern] = value.nil? ? value : CGI.unescape(value)
           elsif item.kind_of? Symbol
             value = components.shift || @defaults[item]
             return nil, requirements_for(item) unless passes_requirements?(item, value)
@@ -142,7 +162,7 @@ module ActionController
         end
       
         def items=(path)
-          items = path.split('/').collect {|c| (/^:(\w+)$/ =~ c) ? $1.intern : c} if path.kind_of?(String) # split and convert ':xyz' to symbols
+          items = path.split('/').collect {|c| (/^(:|\*)(\w+)$/ =~ c) ? (($1 == ':' ) ? $2.intern : "*#{$2}".intern) : c} if path.kind_of?(String) # split and convert ':xyz' to symbols
           items.shift if items.first == ""
           items.pop if items.last == ""
           @items = items
@@ -172,6 +192,7 @@ module ActionController
           end
         end
         def requirements_for(name)
+          name = name.to_s.sub(/^\*/,"").intern if (/^\*/ =~ name.inspect)
           presence = (@defaults.key?(name) && @defaults[name].nil?)
           requirement = case @requirements[name]
             when nil then nil
