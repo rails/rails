@@ -134,6 +134,7 @@ module ActionController
         def eat_path_to_controller(path)
           path.inject([Controllers, 1]) do |(mod, length), name|
             name = name.camelize
+            return nil, nil unless /^[A-Z][_a-zA-Z\d]*$/ =~ name
             controller_name = name + "Controller"
             return mod.const_get(controller_name), path[length..-1] if mod.const_available? controller_name
             return nil, nil unless mod.const_available? name

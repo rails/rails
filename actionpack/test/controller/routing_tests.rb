@@ -479,6 +479,17 @@ class RouteSetTests < Test::Unit::TestCase
     @request.path_parameters = {:controller => 'admin/users', :action => 'index'}
     verify_generate 'admin/users', {}
   end
+
+  def test_url_with_spaces_in_controller
+    @request.path = 'not%20a%20valid/controller/name'
+    @set.add_route(@rails_route) if @set.empty?
+    assert_raises(ActionController::RoutingError) {@set.recognize!(@request)}
+  end
+  def test_url_with_dots_in_controller
+    @request.path = 'not.valid/controller/name'
+    @set.add_route(@rails_route) if @set.empty?
+    assert_raises(ActionController::RoutingError) {@set.recognize!(@request)}
+  end
 end
 
 #require '../assertions/action_pack_assertions.rb'
