@@ -36,7 +36,7 @@ module ActionController #:nodoc:
     # Returns the value of the cookie by +name+ -- or nil if no such cookie exist. You set new cookies using either the cookie method
     # or cookies[]= (for simple name/value cookies without options).
     def [](name)
-      @cookies[name.to_s].value if @cookies.is_a?(Hash) && @cookies[name.to_s]
+      @cookies[name.to_s].value if @cookies[name.to_s] && @cookies[name.to_s].respond_to?(:value)
     end
     
     def []=(name, options)
