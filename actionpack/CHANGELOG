@@ -1,5 +1,10 @@
 *SVN*
 
+* Added :order option for date_select that allows control over the order in which the date dropdowns is used and which of them should be used #619 [Tim Bates]. Examples:
+
+    date_select("post", "written_on", :order => [:day, :month, :year])
+    date_select("user", "birthday",   :order => [:month, :day])
+
 * Added ActionView::Base.register_template_handler for easy integration of an alternative template language to ERb and Builder. See test/controller/custom_handler_test.rb for a usage example #656 [Jamis Buck]
 
 * Added AssetTagHelper that provides methods for linking a HTML page together with other assets, such as javascripts, stylesheets, and feeds.

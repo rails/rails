@@ -35,19 +35,23 @@ module ActionView
       end
 
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based attribute (identified by
-      # +method+) on an object assigned to the template (identified by +object+). It's possible to tailor the selects through the +options+ hash, 
-      # which both accepts all the keys that each of the individual select builders does (like :use_month_numbers for select_month) and a range
-      # of discard options. The discard options are <tt>:discard_month</tt> and <tt>:discard_day</tt>. Set to true, they'll drop the respective
-      # select. Discarding the month select will also automatically discard the day select. 
+      # +method+) on an object assigned to the template (identified by +object+). It's possible to tailor the selects through the +options+ hash,
+      # which both accepts all the keys that each of the individual select builders does (like :use_month_numbers for select_month) and a range of
+      # discard options. The discard options are <tt>:discard_year</tt>, <tt>:discard_month</tt> and <tt>:discard_day</tt>. Set to true, they'll
+      # drop the respective select. Discarding the month select will also automatically discard the day select. It's also possible to explicitly
+      # set the order of the tags using the <tt>:order</tt> option with an array of symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in
+      # the desired order. Symbols may be omitted and the respective select is not included.
       #
-      # NOTE: Discarded selects will default to 1. So if no month select is available, January will be assumed. Additionally, you can get the 
-      # month select before the year by setting :month_before_year to true in the options. This is especially useful for credit card forms. 
+      # NOTE: Discarded selects will default to 1. So if no month select is available, January will be assumed.
+      #
       # Examples:
       #
       #   date_select("post", "written_on")
       #   date_select("post", "written_on", :start_year => 1995)
       #   date_select("post", "written_on", :start_year => 1995, :use_month_numbers => true, 
       #                                     :discard_day => true, :include_blank => true)
+      #   date_select("post", "written_on", :order => [:day, :month, :year])
+      #   date_select("user", "birthday",   :order => [:month, :day])
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       def date_select(object, method, options = {})
@@ -219,15 +223,22 @@ module ActionView
 
         date_select = ""
         
-        if options[:month_before_year]
-          date_select << select_month(date, options_with_prefix.call(2)) unless options[:discard_month]
-          date_select << select_year(date, options_with_prefix.call(1))
-        else
-          date_select << select_year(date, options_with_prefix.call(1))
-          date_select << select_month(date, options_with_prefix.call(2)) unless options[:discard_month]
+        if options[:month_before_year] # For backwards compatibility
+          options[:order] = [:month, :year, :day]
         end
 
-        date_select << select_day(date, options_with_prefix.call(3))   unless options[:discard_day] || options[:discard_month]
+        options[:order] ||= [:year, :month, :day]
+
+        position = {:year => 1, :month => 2, :day => 3}
+        
+        discard = {}
+        discard[:year]  = true if options[:discard_year]
+        discard[:month] = true if options[:discard_month]
+        discard[:day]   = true if options[:discard_day] or options[:discard_month]
+        
+        options[:order].each do |param|
+          date_select << self.send("select_#{param}", date, options_with_prefix.call(position[param])) unless discard[param]
+        end
 
         return date_select
       end
