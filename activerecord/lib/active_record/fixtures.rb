@@ -151,7 +151,7 @@ class Fixture #:nodoc:
   end
   
   def find
-    Object.const_get(@class_name).find(self["id"])
+    Object.const_get(@class_name).find(self[Object.const_get(@class_name).primary_key])
   end
   
   private

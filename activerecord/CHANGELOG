@@ -1,5 +1,7 @@
 *CVS*
 
+* Fixed fixtures using primary key fields called something else than "id" [dave]
+
 * Added proper handling of time fields that are turned into Time objects with the dummy date of 2000/1/1 [HariSeldon]
 
 * Added reverse order of deleting fixtures, so referential keys can be maintained #247 [Tim Bates]
