@@ -110,8 +110,8 @@ task :copy_dispatches do
 
   cp "dispatches/dispatch.servlet", "#{PKG_DESTINATION}/public/dispatch.servlet"
 
-  cp "dispatches/start_server", "#{PKG_DESTINATION}/start_server"
-  chmod 0755, "#{PKG_DESTINATION}/start_server"
+  cp "bin/envcon", "#{PKG_DESTINATION}/script/envcon"
+  chmod 0755, "#{PKG_DESTINATION}/script/envcon"
 end
 
 task :copy_html_files do

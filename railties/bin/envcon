@@ -1,0 +1,30 @@
+#!/usr/local/bin/ruby
+
+if ARGV[0]
+  ENV['RAILS_ENV'] = ARGV[0]
+  puts "Loading environment..."
+  exec "irb -r config/environment.rb -r irb/completion --noinspect"
+else
+  puts <<-HELP
+
+NAME
+     envcon - interact with the domain model through a environment console (on IRB)
+
+SYNOPSIS
+     envcon [environment]
+
+DESCRIPTION
+     Starts an environment console using IRB that lets you manipulate and interrogate
+     the domain model or even trigger controller actions. The database connection and
+     configuration available to the web application is already setup.
+     
+     Tab completion is available to see classes and methods on individual objects.
+     
+EXAMPLE
+     envcon production
+     
+     This will initialize the production environment (as setup in config/database.yml
+     and config/environments/production.rb). You would now be ready to start requiring
+     models using require_dependency.
+HELP
+end
