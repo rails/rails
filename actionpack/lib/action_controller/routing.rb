@@ -211,10 +211,13 @@ module ActionController
       # Note that we *do* return immediately if 
       def generate(options, request)
         raise RoutingError, "There are no routes defined!" if @routes.empty?
+
         options = options.symbolize_keys
         defaults = request.path_parameters.symbolize_keys
         expand_controller_path!(options, defaults)
         defaults.delete_if {|k, v| options.key?(k) && options[k].nil?} # Remove defaults that have been manually cleared using :name => nil
+
+        options = defaults if options.empty? # Get back the current url if no options was passed
 
         failures = []
         selected = nil
