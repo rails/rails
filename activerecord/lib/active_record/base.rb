@@ -91,6 +91,15 @@ module ActiveRecord #:nodoc:
   # on the other hand, will sanitize the <tt>user_name</tt> and +password+ before inserting them in the query, which will ensure that
   # an attacker can't escape the query and fake the login (or worse).
   #
+  # When using multiple parameters in the conditions, it can easily become hard to read exactly what the fourth or fifth
+  # question mark is supposed to represent. In those cases, you can resort to named bind variables instead. That's done by replacing 
+  # the question marks with symbols and supplying a hash with values for the matching symbol keys:
+  #
+  #   Company.find_first([ 
+  #     "id = :id AND name = :name AND division = :division AND created_at > :accounting_date", 
+  #     { :id => 3, :name => "37signals", :division => "First", :accounting_date => '2005-01-01' }
+  #   ])
+  #
   # == Overwriting default accessors
   # 
   # All column values are automatically available through basic accessors on the Active Record object, but some times you
@@ -288,6 +297,7 @@ module ActiveRecord #:nodoc:
       #   Person.find(1, :conditions => "associate_id = 5"
       #   Person.find(1, 2, 6, :conditions => "status = 'active'"
       #   Person.find([7, 17], :conditions => ["sanitize_me = ?", "bare'quote"]
+      #   Person.find(25, :conditions => ["name = :name AND age = :age", { :name => "Mary", :age => 22 }]
       #
       # +RecordNotFound+ is raised if no record can be found.
       def find(*args)
