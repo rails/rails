@@ -10,10 +10,14 @@ module Dependencies
   mattr_accessor :mechanism
   
   def depend_on(file_name, swallow_load_errors = false)
-    begin
-      loaded << require_or_load(file_name) if !loaded.include?(file_name)
-    rescue LoadError
-      raise unless swallow_load_errors
+    if !loaded.include?(file_name)
+      loaded << file_name
+
+      begin
+        require_or_load(file_name)
+      rescue LoadError
+        raise unless swallow_load_errors
+      end
     end
   end
 
@@ -38,7 +42,6 @@ module Dependencies
   private
     def require_or_load(file_name)
       mechanism == :load ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
-      return file_name
     end
 end
 
