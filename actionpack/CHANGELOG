@@ -1,5 +1,7 @@
 *SVN*
 
+* Added FormHelper#radio_button to work with radio buttons like its already possible with check boxes [Michael Koziarski]
+
 * Added TemplateError#backtrace that makes it much easier to debug template errors from unit and functional tests
 
 * Added display of error messages with scaffolded form pages

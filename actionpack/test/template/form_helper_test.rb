@@ -1,4 +1,5 @@
 require 'test/unit'
+require 'erb'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/form_helper'
 
 class FormHelperTest < Test::Unit::TestCase
@@ -68,6 +69,15 @@ class FormHelperTest < Test::Unit::TestCase
     assert_equal(
       '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
       check_box("post", "secret")
+    )
+  end
+
+  def test_radio_button
+    assert_equal('<input checked="checked" id="post_title" name="post[title]" size="30" type="radio" value="Hello World" />',
+      radio_button("post", "title", "Hello World") 
+    )
+    assert_equal('<input id="post_title" name="post[title]" size="30" type="radio" value="Goodbye World" />',
+      radio_button("post", "title", "Goodbye World") 
     )
   end
   

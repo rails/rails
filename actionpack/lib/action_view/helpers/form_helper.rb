@@ -99,6 +99,20 @@ module ActionView
       def check_box(object, method, options = {}, checked_value = "1", unchecked_value = "0")
         InstanceTag.new(object, method, self).to_check_box_tag(options, checked_value, unchecked_value)
       end
+
+      # Returns a radio button tag for accessing a specified attribute (identified by +method+) on an object
+      # assigned to the template (identified by +object+). If the current value of +method+ is +tag_value+ the
+      # radio button will be checked. Additional options on the input tag can be passed as a
+      # hash with +options+. 
+      # Example (call, result). Imagine that @post.category returns "rails":
+      #   radio_button("post", "category", "rails")
+      #   radio_button("post", "category", "java")
+      #     <input type="radio" id="post_category" name="post[category] value="rails" checked="checked" />
+      #     <input type="radio" id="post_category" name="post[category] value="java" />
+      #     
+      def radio_button(object, method, tag_value, options = {})
+        InstanceTag.new(object, method, self).to_radio_button_tag(tag_value, options)
+      end
     end
 
     class InstanceTag #:nodoc:
@@ -120,6 +134,15 @@ module ActionView
         html_options.delete("size") if field_type == "hidden"
         html_options.merge!({ "type" =>  field_type})
         html_options.merge!({ "value" => value.to_s }) unless options["value"]
+        add_default_name_and_id(html_options)
+        tag("input", html_options)
+      end
+
+      def to_radio_button_tag(tag_value, options={})
+        html_options = DEFAULT_FIELD_OPTIONS.merge(options)
+        html_options.merge!({"checked"=>"checked"}) if value == tag_value
+        html_options.merge!({"type"=>"radio", "value"=>tag_value.to_s})
+                       
         add_default_name_and_id(html_options)
         tag("input", html_options)
       end
