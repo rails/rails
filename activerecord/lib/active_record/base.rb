@@ -681,18 +681,13 @@ module ActiveRecord #:nodoc:
         alias_method :sanitize_conditions, :sanitize_sql
 
         def replace_bind_variables(statement, values)
-          expected_number_of_variables = statement.count('?')
-          provided_number_of_variables = values.size
-
-          unless expected_number_of_variables == provided_number_of_variables
-            raise PreparedStatementInvalid, "wrong number of bind variables (#{provided_number_of_variables} for #{expected_number_of_variables}) in: #{statement}"
-          end
-
+          raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
           bound = values.dup
           statement.gsub('?') { connection.quote(bound.shift) }
         end
 
         def replace_named_bind_variables(statement, bind_vars)
+          raise_if_bind_arity_mismatch(statement, statement.scan(/:(\w+)/).uniq.size, bind_vars.size)
           statement.gsub(/:(\w+)/) do
             match = $1.to_sym
             if bind_vars.has_key?(match)
@@ -700,6 +695,12 @@ module ActiveRecord #:nodoc:
             else
               raise PreparedStatementInvalid, "missing value for :#{match} in #{statement}"
             end
+          end
+        end
+
+        def raise_if_bind_arity_mismatch(statement, expected, provided)
+          unless expected == provided
+            raise PreparedStatementInvalid, "wrong number of bind variables (#{provided} for #{expected}) in: #{statement}"
           end
         end
 

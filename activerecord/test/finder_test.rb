@@ -143,10 +143,12 @@ class FinderTest < Test::Unit::TestCase
 
   def test_named_bind_arity
     assert_nothing_raised { bind '', {} }
-    assert_nothing_raised { bind '', :a => 1 }
+    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind '', :a => 1 }
     assert_raises(ActiveRecord::PreparedStatementInvalid) { bind ':a', {} } # ' ruby-mode
     assert_nothing_raised { bind ':a', :a => 1 } # ' ruby-mode
-    assert_nothing_raised { bind ':a', :a => 1, :b => 2 } # ' ruby-mode
+    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind ':a', :a => 1, :b => 2 } # ' ruby-mode
+    assert_nothing_raised { bind ':a :a', :a => 1 } # ' ruby-mode
+    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind ':a :a', :a => 1, :b => 2 } # ' ruby-mode
   end
 	
   def test_string_sanitation
