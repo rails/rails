@@ -565,7 +565,7 @@ module ActiveRecord #:nodoc:
       # Transforms attribute key names into a more humane format, such as "First name" instead of "first_name". Example:
       #   Person.human_attribute_name("first_name") # => "First name"
       def human_attribute_name(attribute_key_name)
-        attribute_key_name.gsub(/_/, " ").capitalize unless attribute_key_name.nil?
+        attribute_key_name.humanize
       end
       
       def descends_from_active_record? # :nodoc:
