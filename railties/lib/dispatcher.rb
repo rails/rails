@@ -49,9 +49,9 @@ class Dispatcher
     private
       def reset_application(controller_name)
         begin
+          remove_class_hierarchy(controller_class(controller_name), ActionController::Base)
           ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
           Dependencies.clear
-          remove_class_hierarchy(controller_class(controller_name), ActionController::Base)
         rescue Object => exception
           # Compilation errors are caught on the first run through
         end
