@@ -27,11 +27,10 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
 
   def do_GET(req, res)
     begin
-      REQUEST_MUTEX.lock
-
       unless handle_index(req, res)
         unless handle_dispatch(req, res)
           unless handle_file(req, res)
+            REQUEST_MUTEX.lock
             unless handle_mapped(req, res)
               raise WEBrick::HTTPStatus::NotFound, "`#{req.path}' not found."
             end
@@ -39,7 +38,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
         end
       end
     ensure
-      REQUEST_MUTEX.unlock
+      REQUEST_MUTEX.unlock if REQUEST_MUTEX.locked?
     end
   end
 
