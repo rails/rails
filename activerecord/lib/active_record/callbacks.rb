@@ -191,7 +191,7 @@ module ActiveRecord
         alias_method :destroy, :destroy_with_callbacks
       end
 
-      CALLBACKS.each { |cb| base.class_eval("def self.#{cb}(*methods) write_inheritable_array(\"#{cb}\", methods) end") }
+      CALLBACKS.each { |cb| base.class_eval("def self.#{cb}(*methods) write_inheritable_attribute(\"#{cb}\", (read_inheritable_attribute(\"#{cb}\") + methods).uniq) end") }
     end
 
     module ClassMethods #:nodoc:
