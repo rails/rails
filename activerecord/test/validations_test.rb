@@ -138,8 +138,23 @@ class ValidationsTest < Test::Unit::TestCase
 
     t = Topic.create("title" => "We should be confirmed")
     assert !t.save
+    assert_equal "must be accepted", t.errors.on(:terms_of_service)
 
     t.terms_of_service = "1"
+    assert t.save
+
+    Topic.write_inheritable_attribute("validate_on_create", [])
+  end
+
+
+  def test_eula
+    Topic.validate_acceptance(:eula, "must be abided")
+
+    t = Topic.create("title" => "We should be confirmed")
+    assert !t.save
+    assert_equal "must be abided", t.errors.on(:eula)
+
+    t.eula = "1"
     assert t.save
 
     Topic.write_inheritable_attribute("validate_on_create", [])

@@ -1,5 +1,17 @@
 *CVS*
 
+* Fixed Base.errors to be indifferent as to whether strings or symbols are used. Examples:
+
+    Before:
+      errors.add(:name, "must be shorter") if name.size > 10
+      errors.on(:name)  # => "must be shorter"
+      errors.on("name") # => nil
+
+    After:
+      errors.add(:name, "must be shorter") if name.size > 10
+      errors.on(:name)  # => "must be shorter"
+      errors.on("name") # => "must be shorter"
+
 * Added Base.validate_confirmation that encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
  
      Model:

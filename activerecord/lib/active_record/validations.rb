@@ -60,7 +60,8 @@ module ActiveRecord
       #
       #   Model:
       #     class Person < ActiveRecord::Base
-      #       validate_confirmation :password
+      #       validate_confirmation :user_name, :password
+      #       validate_confirmation :email_address, "should match confirmation"
       #     end
       #
       #   View:
@@ -73,20 +74,22 @@ module ActiveRecord
       # NOTE: This validation is only happening on create. When you want to update the record, you'll have to decide and pursue your
       # own course of action.
       def validate_confirmation(*attr_names)
+        error_message = attr_names.last.is_a?(String) ? attr_names.pop : "doesn't match confirmation"
+
         for attr_name in attr_names
           attr_accessor "#{attr_name}_confirmation"
           class_eval <<-EOM
-            validate_on_create %{errors.add('#{attr_name}', "doesn't match confirmation") unless #{attr_name} == #{attr_name}_confirmation}
+            validate_on_create %{errors.add('#{attr_name}', "#{error_message}") unless #{attr_name} == #{attr_name}_confirmation}
 EOM
         end
       end
-
       
       # Encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
       #
       #   Model:
       #     class Person < ActiveRecord::Base
       #       validate_acceptance :terms_of_service
+      #       validate_acceptance :eula, "must be abided"
       #     end
       #
       #   View:
@@ -96,10 +99,12 @@ EOM
       #
       # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
       def validate_acceptance(*attr_names)
+        error_message = attr_names.last.is_a?(String) ? attr_names.pop : "must be accepted"
+        
         for attr_name in attr_names
           attr_accessor(attr_name)
           class_eval <<-EOM
-            validate_on_create %{errors.add('#{attr_name}', "must be accepted") unless #{attr_name} == "1"}
+            validate_on_create %{errors.add('#{attr_name}', '#{error_message}') unless #{attr_name} == "1"}
 EOM
         end
       end
@@ -208,21 +213,21 @@ EOM
     # error can be added to the same +attribute+ in which case an array will be returned on a call to <tt>on(attribute)</tt>.
     # If no +msg+ is supplied, "invalid" is assumed.
     def add(attribute, msg = "invalid")
-      @errors[attribute] = [] if @errors[attribute].nil?
-      @errors[attribute] << msg
+      @errors[attribute.to_s] = [] if @errors[attribute.to_s].nil?
+      @errors[attribute.to_s] << msg
     end
 
     # Will add an error message to each of the attributes in +attributes+ that is empty (defined by <tt>attribute_present?</tt>).
     def add_on_empty(attributes, msg = "can't be empty")
-      [attributes].flatten.each { |attr| add(attr, msg) unless @base.attribute_present?(attr) }
+      [attributes].flatten.each { |attr| add(attr, msg) unless @base.attribute_present?(attr.to_s) }
     end
 
     # Will add an error message to each of the attributes in +attributes+ that has a length outside of the passed boundary +range+. 
     # If the length is above the boundary, the too_long_msg message will be used. If below, the too_short_msg.
     def add_on_boundary_breaking(attributes, range, too_long_msg = "is too long (max is %d characters)", too_short_msg = "is too short (min is %d characters)")
       for attr in [attributes].flatten
-        add(attr, too_short_msg % range.begin) if @base.attribute_present?(attr) && @base.send(attr).length < range.begin
-        add(attr, too_long_msg % range.end) if @base.attribute_present?(attr) && @base.send(attr).length > range.end
+        add(attr, too_short_msg % range.begin) if @base.attribute_present?(attr.to_s) && @base.send(attr.to_s).length < range.begin
+        add(attr, too_long_msg % range.end) if @base.attribute_present?(attr.to_s) && @base.send(attr.to_s).length > range.end
       end
     end
 
@@ -230,19 +235,19 @@ EOM
 
     # Returns true if the specified +attribute+ has errors associated with it.
     def invalid?(attribute)
-      !@errors[attribute].nil?
+      !@errors[attribute.to_s].nil?
     end
 
     # * Returns nil, if no errors are associated with the specified +attribute+.
     # * Returns the error message, if one error is associated with the specified +attribute+.
     # * Returns an array of error messages, if more than one error is associated with the specified +attribute+.
     def on(attribute)
-      if @errors[attribute].nil?
+      if @errors[attribute.to_s].nil?
         nil
-      elsif @errors[attribute].length == 1
-        @errors[attribute].first
+      elsif @errors[attribute.to_s].length == 1
+        @errors[attribute.to_s].first
       else
-        @errors[attribute]
+        @errors[attribute.to_s]
       end
     end
 
@@ -270,7 +275,7 @@ EOM
       
       @errors.each_key do |attr| 
         @errors[attr].each do |msg|
-          if attr == :base
+          if attr == "base"
             full_messages << msg
           else
             full_messages << @base.class.human_attribute_name(attr) + " " + msg
