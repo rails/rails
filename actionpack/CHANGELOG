@@ -1,5 +1,7 @@
 *SVN*
 
+* Added @request.raw_post as a convenience access to @request.env['RAW_POST_DATA'] #534 [Tobias Luetke]
+
 * Added support for automatic id-based indexing for lists of items #532 [dblack]. Example:
 
     <% @students.each do |@student| %>

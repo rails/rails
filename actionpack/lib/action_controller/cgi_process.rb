@@ -1,6 +1,6 @@
 require 'action_controller/cgi_ext/cgi_ext'
 require 'action_controller/cgi_ext/cookie_performance_fix'
-# require 'action_controller/cgi_ext/raw_post_data_fix'
+require 'action_controller/cgi_ext/raw_post_data_fix'
 require 'action_controller/session/drb_store'
 require 'action_controller/session/active_record_store'
 require 'action_controller/session/mem_cache_store'

@@ -13,10 +13,12 @@ class CGI #:nodoc:
         @multipart = false
         @params = CGI::parse(read_query_params)
       end
+      
+      @cookies = CGI::Cookie::parse((env_table['HTTP_COOKIE'] or env_table['COOKIE']))
     end
 
     private
-      MULTIPART_FORM_BOUNDARY_RE = %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n
+      MULTIPART_FORM_BOUNDARY_RE = %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n #"
 
       def multipart_form_boundary        
         if env_table['REQUEST_METHOD'] == 'POST'
@@ -27,7 +29,7 @@ class CGI #:nodoc:
       def read_query_params
         case env_table['REQUEST_METHOD']
           when 'GET', 'HEAD'
-            if defined? MOD_RUBY
+            if defined? MOD_RUBY              
               Apache::request.args or ''
             else
               env_table['QUERY_STRING'] or ''
