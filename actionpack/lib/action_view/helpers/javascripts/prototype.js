@@ -89,9 +89,10 @@ function getElementsByClassName(className, element) {
   var all = document.all ? document.all : document.getElementsByTagName(element);
   var elements = new Array();
 
-  for (var e = 0; e < all.length; e++)
+  for (var e = 0; e < all.length; e++) {
     if (all[e].className == className)
       elements[elements.length] = all[e];
+  }
 
   return elements;
 }
@@ -351,6 +352,12 @@ Form.Observer.prototype = (new Abstract.TimedObserver()).extend({
 
 /*--------------------------------------------------------------------------*/
 
+Number.prototype.toColorPart = function() {
+  var digits = this.toString(16);
+  if (this < 16) return '0' + digits;
+  return digits;
+}
+
 var YellowFader = Class.create();
 YellowFader.prototype = {
   initialize: function(element) {
@@ -365,11 +372,14 @@ YellowFader.prototype = {
   fade: function() {
     if (this.isFinished()) return;
     if (this.timer) clearTimeout(this.timer); // prevent flicker
-    highlight_yellow(this.element, this.current);
+    this.highlight(this.element, this.current);
     this.current += 17;
     this.timer = setTimeout(this.fade.bind(this), 250);
   },  
   isFinished: function() {
     return this.current > this.finish;
+  },
+  highlight: function(element, current) {
+    element.style.backgroundColor = "#ffff" + current.toColorPart();
   }
 }
