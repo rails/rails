@@ -1,5 +1,7 @@
 *SVN*
 
+* Added TimeZone as the first of a number of value objects that Active Record will start shipping to provide incentatives to use rich value objects using composed_of #688 [Jamis Buck]
+
 * Added option :schema_order to the PostgreSQL adapter to support the use of multiple schemas per database #697 [YuriSchimke]
 
 * Optimized the SQL used to generate has_and_belongs_to_many queries by listing the join table first #693 [yerejm]
