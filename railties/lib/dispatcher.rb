@@ -41,10 +41,9 @@ class Dispatcher
       ActionController::Base.process_with_exception(request, response, exception).out
     ensure
       if Dependencies.mechanism == :load
-        Object.send(:remove_const, "ApplicationController") if Object.const_defined?(:ApplicationController)
-        Object.send(:remove_const, controller_class_name(controller_name)) if Object.const_defined?(controller_class_name(controller_name))
+        remove_class_hierarchy(controller_class(controller_name), ActionController::Base)
         ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
-        Dependencies.reload
+        Dependencies.reload rescue nil # Ignore out of order reloading errors for Controllers
       end
       
       Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
@@ -73,5 +72,12 @@ class Dispatcher
   
   def self.module_name(parameters)
     parameters["module"].gsub(/[^_a-zA-Z0-9]/, "").untaint if parameters["module"]
+  end
+
+  def self.remove_class_hierarchy(klass, until_superclass)
+    while klass
+      Object.send(:remove_const, "#{klass}".intern)
+      klass = (klass.superclass unless until_superclass == klass.superclass)
+    end
   end
 end

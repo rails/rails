@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed problems with dependency caching and controller hierarchies on Ruby 1.8.2 in development mode #351
+
 * Added automated rewriting of the shebang lines on installs through the gem rails command #379 [Manfred Stienstra]
 
 * Fixed that generated action_mailers doesnt need to require the action_mailer since thats already done in the environment #382 [Lucas Carlson]
