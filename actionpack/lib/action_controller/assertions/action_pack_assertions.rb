@@ -161,33 +161,50 @@ module Test #:nodoc:
       # -- routing assertions --------------------------------------------------
 
       # Asserts that the routing of the given path is handled correctly and that the parsed options match.
-      # Also verifies that the provided options can be used to generate the provided path.
-      def assert_routing(path, options, defaults={}, extras={}, message=nil)
-        defaults[:controller] ||= options[:controller] # Assume given controller,
-        request = ActionController::TestRequest.new({}, {}, nil)
-        request.path_parameters = defaults.clone
+      def assert_recognizes(expected_options, path, extras={}, message=nil)
+        # Load routes.rb if it hasn't been loaded.
+        ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
         
-        ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? # Load routes.rb if it hasn't been loaded.
+        # Assume given controller
+        request = ActionController::TestRequest.new({}, {}, nil)
+        request.path = path
+        ActionController::Routing::Routes.recognize!(request)
+        
+        expected_options = expected_options.clone
+        extras.each_key { |key| expected_options.delete key } unless extras.nil?
+        
+        msg = build_message(message, "The recognized options <?> did not match <?>", 
+            request.path_parameters, expected_options)
+        assert_block(msg) { request.path_parameters == expected_options }
+      end
+
+      # Asserts that the provided options can be used to generate the provided path.
+      def assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)
+        # Load routes.rb if it hasn't been loaded.
+        ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
+        
+        # Assume given controller
+        request = ActionController::TestRequest.new({}, {}, nil)
+        request.path_parameters = (defaults or {}).clone
+        request.path_parameters[:controller] ||= options[:controller]
         
         generated_path, found_extras = ActionController::Routing::Routes.generate(options, request)
         generated_path = generated_path.join('/')
         msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
         assert_block(msg) { found_extras == extras }
         
-        msg = build_message(message, "The generated path <?> did not match <?>", generated_path, path)
-        assert_block(msg) { path == generated_path }
-        
-        request = ActionController::TestRequest.new({}, {}, nil)
-        request.path = path
-        ActionController::Routing::Routes.recognize!(request)
-        
-        expected_options = options.clone
-        extras.each {|k,v| expected_options.delete k}
-        
-        msg = build_message(message, "The recognized options <?> did not match <?>", request.path_parameters, expected_options)
-        assert_block(msg) { request.path_parameters == expected_options }
+        msg = build_message(message, "The generated path <?> did not match <?>", generated_path, 
+            expected_path)
+        assert_block(msg) { expected_path == generated_path }
       end
 
+      # asserts that path and options match both ways, in other words, the URL generated from 
+      # options is same as path, and also that the options recognized from path are same as options
+      def assert_routing(path, options, defaults={}, extras={}, message=nil)
+        assert_recognizes(options, path, extras, message)
+        assert_generates(path, options, defaults, extras, message)
+      end
+      
       # -- template assertions ------------------------------------------------
 
       # ensure that a template object with the given name exists
