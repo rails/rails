@@ -67,30 +67,30 @@ goes through FCGI (or mod_ruby) that requires restart to show changes.
 
 == Example for lighttpd conf (with FastCGI)
 
-server.port = 8080
-server.bind = "127.0.0.1"
-# server.event-handler = "freebsd-kqueue" # needed on OS X
-
-server.modules = ( "mod_rewrite", "mod_fastcgi" )
-
-url.rewrite = ( "^/$" => "index.html", "^([^.]+)$" => "$1.html" )
-server.error-handler-404 = "/dispatch.fcgi"
-
-server.document-root = "/path/application/public"
-server.errorlog      = "/path/application/log/server.log"
-
-fastcgi.server = ( ".fcgi" =>
-  ( "localhost" =>
-      (
-        "min-procs" => 1, 
-        "max-procs" => 5,
-        "socket"   => "/tmp/application.fcgi.socket",
-        "bin-path" => "/path/application/public/dispatch.fcgi",
-        "bin-environment" => ( "RAILS_ENV" => "development" )
-      )
+  server.port = 8080
+  server.bind = "127.0.0.1"
+  # server.event-handler = "freebsd-kqueue" # needed on OS X
+  
+  server.modules = ( "mod_rewrite", "mod_fastcgi" )
+  
+  url.rewrite = ( "^/$" => "index.html", "^([^.]+)$" => "$1.html" )
+  server.error-handler-404 = "/dispatch.fcgi"
+  
+  server.document-root = "/path/application/public"
+  server.errorlog      = "/path/application/log/server.log"
+  
+  fastcgi.server = ( ".fcgi" =>
+    ( "localhost" =>
+        (
+          "min-procs" => 1, 
+          "max-procs" => 5,
+          "socket"   => "/tmp/application.fcgi.socket",
+          "bin-path" => "/path/application/public/dispatch.fcgi",
+          "bin-environment" => ( "RAILS_ENV" => "development" )
+        )
+    )
   )
-)
-
+  
 
 == Debugging Rails
 
@@ -139,7 +139,8 @@ Finally, when you're ready to resume execution, you press CTRL-D
 You can interact with the domain model by starting the console through script/console. 
 Here you'll have all parts of the application configured, just like it is when the
 application is running. You can inspect domain models, change values, and save to the
-database. Start the script without arguments to see the options.
+database. Start the script without arguments will launch it in the development environment.
+Passing an argument will specify a different environment, like <tt>console production</tt>.
 
 
 == Description of contents
