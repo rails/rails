@@ -51,7 +51,7 @@ module ActiveRecord
         alias_method :update_attribute_without_validation_skipping, :update_attribute
         alias_method :update_attribute, :update_attribute_with_validation_skipping
 
-        VALIDATIONS.each { |vd| base.class_eval("def self.#{vd}(*methods) write_inheritable_array(\"#{vd}\", methods - (read_inheritable_attribute(\"#{vd}\") || [])) end") }
+        VALIDATIONS.each { |vd| base.class_eval("def self.#{vd}(*methods, &block) write_inheritable_array(\"#{vd}\", methods + [block].compact - (read_inheritable_attribute(\"#{vd}\") || [])) end") }
       end
       
       base.extend(ClassMethods)
@@ -300,7 +300,7 @@ module ActiveRecord
         for attr_name in attr_names
           class_eval(%(#{validation_method(configuration[:on])} %{
             errors.add("#{attr_name}", "#{configuration[:message]}") unless
-              (#{attr_name}.is_a?(Array) ? #{attr_name} : [#{attr_name}]).inject(true){ |memo, record| memo and (record.nil? or record.valid?) }
+              (#{attr_name}.is_a?(Array) ? #{attr_name} : [#{attr_name}]).inject(true){ |memo, record| (record.nil? or record.valid?) and memo }
           }))
         end
       end
@@ -378,7 +378,7 @@ module ActiveRecord
             eval(validation, binding)
           elsif validation_block?(validation)
             validation.call(self)
-          elsif filter_class?(validation, validation_method)
+          elsif validation_class?(validation, validation_method)
             validation.send(validation_method, self)
           else
             raise(

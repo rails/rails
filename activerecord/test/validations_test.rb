@@ -392,10 +392,12 @@ class ValidationsTest < Test::Unit::TestCase
   def test_validates_associated_many
     Topic.validates_associated( :replies )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
-    t.replies << [r = Reply.create("title" => "A reply"), Reply.create("title" => "Another reply", "content" => "with content!")]
+    t.replies << [r = Reply.create("title" => "A reply"), r2 = Reply.create("title" => "Another reply")]
     assert !t.valid?
     assert t.errors.on(:replies)
-    r.content = "non-empty"
+    assert_equal 1, r.errors.count  # make sure all associated objects have been validated
+    assert_equal 1, r2.errors.count
+    r.content = r2.content = "non-empty"
     assert t.valid?
   end
 
@@ -408,6 +410,19 @@ class ValidationsTest < Test::Unit::TestCase
     assert r.errors.on(:topic)
     r.topic.content = "non-empty"
     assert r.valid?
+  end
+
+  def test_validate_block
+    Topic.validate { |topic| topic.errors.add("title", "will never be valid") }
+    t = Topic.create("title" => "Title", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "will never be valid", t.errors["title"]
+  end
+
+  def test_invalid_validator
+    Topic.validate 3
+    assert_raise(ActiveRecord::ActiveRecordError) { t = Topic.create }
   end
 
   def test_throw_away_typing

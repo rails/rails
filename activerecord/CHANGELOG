@@ -1,5 +1,13 @@
 *SVN*
 
+* Added that validates_* now accept blocks to perform validations #618 [Tim Bates]. Example:
+
+    class Person < ActiveRecord::Base
+      validate { |person| person.errors.add("title", "will never be valid") if SHOULD_NEVER_BE_VALID }
+    end
+
+* Addded validation for validate all the associated objects before declaring failure with validates_associated #618 [Tim Bates]
+
 * Added keyword-style approach to defining the custom relational bindings #545 [Jamis Buck]. Example:
 
     class Project < ActiveRecord::Base
