@@ -289,8 +289,7 @@ module ActiveRecord
         module_eval do
           after_save <<-EOF
             association = instance_variable_get("@#{association_name}")
-            loaded = instance_variable_get("@#{association_name}_loaded")
-            if loaded and not association.nil?
+            unless association.nil?
               association["#{association_class_primary_key_name}"] = id
               association.save(true)
               association.send(:construct_sql)
@@ -365,8 +364,7 @@ module ActiveRecord
         module_eval do
           before_save <<-EOF
             association = instance_variable_get("@#{association_name}")
-            loaded = instance_variable_get("@#{association_name}_loaded")
-            if loaded and not association.nil? and association.new_record?
+            if not association.nil? and association.new_record?
               association.save(true)
               self["#{association_class_primary_key_name}"] = association.id
               association.send(:construct_sql)
@@ -516,20 +514,16 @@ module ActiveRecord
         def association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, association_proxy_class)
           define_method(association_name) do |*params|
             force_reload = params.first unless params.empty?
-            loaded = instance_variable_get("@#{association_name}_loaded")
-            if loaded and not force_reload
-              association = instance_variable_get("@#{association_name}")
-            else
+            association = instance_variable_get("@#{association_name}")
+            if association.nil? or force_reload
               association = association_proxy_class.new(self,
                 association_name, association_class_name,
                 association_class_primary_key_name, options)
               retval = association.reload
               unless retval.nil?
                 instance_variable_set("@#{association_name}", association)
-                instance_variable_set("@#{association_name}_loaded", true)
               else
                 instance_variable_set("@#{association_name}", nil)
-                instance_variable_set("@#{association_name}_loaded", nil)
                 return nil
               end
             end
@@ -537,9 +531,8 @@ module ActiveRecord
           end
 
           define_method("#{association_name}=") do |new_value|
-            loaded = instance_variable_get("@#{association_name}_loaded")
             association = instance_variable_get("@#{association_name}")
-            unless loaded and association
+            if association.nil?
               association = association_proxy_class.new(self,
                 association_name, association_class_name,
                 association_class_primary_key_name, options)
@@ -547,10 +540,9 @@ module ActiveRecord
             association.replace(new_value)
             unless new_value.nil?
               instance_variable_set("@#{association_name}", association)
-              instance_variable_set("@#{association_name}_loaded", true)
             else
               instance_variable_set("@#{association_name}", nil)
-              instance_variable_set("@#{association_name}_loaded", nil)
+              return nil
             end
             association
           end
