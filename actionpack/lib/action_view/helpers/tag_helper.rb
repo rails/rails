@@ -23,7 +23,10 @@ module ActionView
       end
 
       # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like 
-      # ActionController::Base#url_for.
+      # ActionController::Base#url_for. The method for the form defaults to POST.
+      #
+      # Options:
+      # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
       def form_tag(url_for_options = {}, options = {}, *parameters_for_url)
         html_options = { "method" => "post" }.merge(options)
         
