@@ -1,5 +1,7 @@
 *0.7.0* (Unreleased)
 
+* Remove ActiveRecordSoapMarshallable workaround, see #912 for details
+
 * Add scaffolding via ActionController::Base.web_service_scaffold for quick testing using a web browser
 
 * Generalize casting code to be used by both SOAP and XML-RPC (previously, it was only XML-RPC)

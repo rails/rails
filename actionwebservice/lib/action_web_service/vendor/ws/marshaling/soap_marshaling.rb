@@ -279,19 +279,5 @@ module WS
         return false
       end
     end
-
-    module ActiveRecordSoapMarshallable
-      def allocate
-        obj = super
-        attrs = {}
-        self.columns.each{|c| attrs[c.name.to_s] = c.default}
-        obj.instance_variable_set('@attributes', attrs)
-        obj
-      end
-    end
-
-    if Object.const_defined?('ActiveRecord')
-      ActiveRecord::Base.extend(ActiveRecordSoapMarshallable)
-    end
   end
 end
