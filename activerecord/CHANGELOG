@@ -1,5 +1,8 @@
 *SVN*
 
+* Added work-around for PostgreSQL and the problem of getting fixtures to be created from id 1 on each test case.
+  This only works for auto-incrementing primary keys called "id" for now #359 [Scott Baron]
+
 * Added Base#clear_association_cache to empty all the cached associations #347 [Tobias Luetke]
 
 * Added more informative exceptions in establish_connection #356 [bitsweat]

@@ -166,9 +166,27 @@ class Fixtures < Hash
         fixtures.each { |fixture| fixture.insert_fixtures }
       end
 
+      reset_sequences(connection, table_names) if ActiveRecord::ConnectionAdapters::PostgreSQLAdapter === connection
+
       return fixtures.size > 1 ? fixtures : fixtures.first
     ensure
       ActiveRecord::Base.logger.level = old_logger_level
+    end
+  end
+
+  # Work around for PostgreSQL to have new fixtures created from id 1 and running.
+  def self.reset_sequences(connection, table_names)
+    table_names.flatten.each do |table|
+      table_class = Inflector.classify(table.to_s)
+      if Object.const_defined?(table_class)
+        pk = eval("#{table_class}::primary_key")
+        if pk == 'id'
+          connection.execute(
+            "SELECT setval('public.#{table.to_s}_id_seq', (SELECT MAX(id) FROM #{table.to_s}), true)", 
+            'Setting Sequence'
+          )
+        end
+      end
     end
   end
 
