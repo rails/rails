@@ -36,7 +36,7 @@ require 'active_record/support/inflector'
 #
 # = CSV fixtures
 #
-# Fixtures can also be kept in the in the Comma Separated Value format. Akin to YAML fixtures, CSV fixtures are stored
+# Fixtures can also be kept in the Comma Separated Value format. Akin to YAML fixtures, CSV fixtures are stored
 # in a single file, but, instead end with the .csv file extension (Rails example: "<your-rails-app>/test/fixtures/web_sites.csv")
 #
 # The format of this tye of fixture file is much more compact than the others, but also a little harder to read by us
@@ -134,7 +134,7 @@ require 'active_record/support/inflector'
 #   name: guy_<%= 1 %>
 # <% end %>
 #
-# This will create 1000 YAML very simple fixtures.
+# This will create 1000 very simple YAML fixtures.
 #
 # Using ERb, you can also inject dynamic values into your fixtures with inserts like <%= Date.today.strftime("%Y-%m-%d") %>.
 # This is however a feature to be used with some caution. The point of fixtures are that they're stable units of predictable 
