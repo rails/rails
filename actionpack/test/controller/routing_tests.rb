@@ -403,6 +403,13 @@ class RouteSetTests < Test::Unit::TestCase
     @set.connect ':action/:controller'
     verify_generate('index/resource', options)
   end
+
+  def test_action_dropped_when_controller_given
+    @request.path_parameters = {:controller => 'content', :action => 'list'}
+    options = {:controller => 'content'}
+    @set.connect ':action/:controller'
+    verify_generate('index/content', options)
+  end
 end
 
 #require '../assertions/action_pack_assertions.rb'
