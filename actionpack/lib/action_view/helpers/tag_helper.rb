@@ -22,9 +22,36 @@ module ActionView
         "<#{name}#{tag_options(options)}>#{content}</#{name}>"
       end
 
+
+      # Returns an image tag converting the +options+ instead html options on the tag, but with these special cases:
+      #
+      # * <tt>:alt</tt>  - If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
+      # * <tt>:size</tt> - Supplied as "XxY", so "30x45" becomes width="30" and height="45"
+      #
+      # The +src+ can be supplied as a...
+      # * full path, like "/my_images/image.gif"
+      # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
+      # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
+      def image_tag(src, options = {})
+        options.symbolize_keys
+  
+        options.update({ :src => src.include?("/") ? src : "/images/#{src}" })
+        options[:src] += ".png" unless options[:src].include?(".")
+
+        options[:alt] ||= src.split("/").last.split(".").first.capitalize
+        
+        if options[:size]
+          options[:width], options[:height] = options[:size].split("x")
+          options.delete :size
+        end
+
+        tag("img", options)
+      end
+
       private
         def tag_options(options)
           unless options.empty?
+            options.symbolize_keys
             " " + options.map { |key, value|
               %(#{key}="#{html_escape(value.to_s)}")
             }.sort.join(" ")

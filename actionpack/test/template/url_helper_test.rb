@@ -1,4 +1,5 @@
-require 'test/unit'
+require File.dirname(__FILE__) + '/../abstract_unit'
+
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/url_helper'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/tag_helper'
 
@@ -37,6 +38,11 @@ class UrlHelperTest < Test::Unit::TestCase
     assert_equal(
       "<a href=\"http://www.example.com\"><img alt=\"Rss\" border=\"0\" height=\"45\" src=\"/images/rss.png\" width=\"30\" /></a>",
       link_image_to("rss", "http://www.example.com", "size" => "30x45", "border" => "0")
+    )
+
+    assert_equal(
+      "<a href=\"http://www.example.com\"><img alt=\"Rss\" border=\"0\" height=\"45\" src=\"/images/rss.png\" width=\"30\" /></a>",
+      link_to(image_tag("rss", :size => "30x45", :border => 0), "http://www.example.com")
     )
 
     assert_equal(
@@ -91,6 +97,15 @@ class UrlHelperTest < Test::Unit::TestCase
     )
     assert_equal mail_to("david@loudthinking.com", "David Heinemeier Hansson", "class" => "admin"),
                  mail_to("david@loudthinking.com", "David Heinemeier Hansson", :class => "admin")
+  end
+
+
+  def test_mail_to_with_javascript
+    assert_equal "<script type=\"text/javascript\" language=\"javascript\">eval(unescape('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%22%3e%4d%79%20%65%6d%61%69%6c%3c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", "My email", :encode => "javascript")
+  end
+
+  def test_mail_to_with_hex
+    assert_equal "<a href=\"mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d\">My email</a>", mail_to("me@domain.com", "My email", :encode => "hex")
   end
 
   def test_link_with_nil_html_options

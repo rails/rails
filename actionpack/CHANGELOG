@@ -1,5 +1,7 @@
 *SVN*
 
+* Added TagHelper#image_tag and deprecated UrlHelper#link_image_to (recommended approach is to combine image_tag and link_to instead)
+
 * Fixed textilize to be resilient to getting nil parsed (by using Object#blank? instead of String#empty?)
 
 * Fixed that the :multipart option in FormTagHelper#form_tag would be ignored [Yonatan Feldman]

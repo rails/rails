@@ -52,6 +52,9 @@ module ActionView
       # Examples:
       #   link_image_to "logo", { :controller => "home" }, :alt => "Homepage", :size => "45x80"
       #   link_image_to "delete", { :action => "destroy" }, :size => "10x10", :confirm => "Are you sure?", "class" => "admin"
+      #
+      # NOTE: This tag is deprecated. Combine the link_to and image_tag yourself instead, like:
+      #   link_to(image_tag("rss", :size => "30x45", :border => 0), "http://www.example.com")
       def link_image_to(src, options = {}, html_options = {}, *parameters_for_method_reference)
         image_options = { "src" => src.include?("/") ? src : "/images/#{src}" }
         image_options["src"] += ".png" unless image_options["src"].include?(".")
