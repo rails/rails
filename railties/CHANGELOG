@@ -1,5 +1,24 @@
 *SVN*
 
+* Fixed superclass mismatch and other controller related problems by not using dependency reloading for controllers. This means that controller
+  hierarchies need to explicitly require the superclass if its not ApplicationController. Example:
+  
+    # application.rb
+    class ApplicationController < ActionController::Base
+    end
+  
+    # base.rb
+    class BaseController < ApplicationController
+    end
+  
+    # media_controller.rb
+    require_or_load 'base'
+    class MediaController < BaseController
+    end
+  
+
+* Fixed handling of syntax errors in models that had already been succesfully required once in the current interpreter
+
 * Fixed that models that weren't referenced in associations weren't being reloaded in the development mode by reinstating the reload
 
 * Fixed that generate scaffold would produce bad functional tests

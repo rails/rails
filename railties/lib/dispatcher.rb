@@ -34,29 +34,39 @@ class Dispatcher
     
         controller_name, module_name = controller_name(request.parameters), module_name(request.parameters)
 
+        reload_models
+
         require_or_load("application")
         require_or_load(controller_path(controller_name, module_name))
-
-        if Dependencies.mechanism == :load
-          ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
-          Dependencies.reload
-        end
 
         controller_class(controller_name).process(request, response).out
       rescue Object => exception
         ActionController::Base.process_with_exception(request, response, exception).out
       ensure
-        remove_class_hierarchy(controller_class(controller_name), ActionController::Base) if Dependencies.mechanism == :load
+        remove_controllers(controller_name)
         Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
       end
     end
     
     private
+      def reload_models
+        if Dependencies.load?
+          ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
+          Dependencies.reload
+        end
+      end
+      
+      def remove_controllers(controller_name)
+        if Dependencies.load? && defined?(ApplicationController)
+          remove_class_hierarchy(controller_class(controller_name), ActionController::Base)
+        end
+      end
+    
       def controller_path(controller_name, module_name = nil)
         if module_name
-          "#{module_name}/#{Inflector.underscore(controller_name)}_controller"
+          "#{module_name}/#{controller_name.underscore}_controller"
         else
-          "#{Inflector.underscore(controller_name)}_controller"
+          "#{controller_name.underscore}_controller"
         end
       end
 
@@ -65,7 +75,7 @@ class Dispatcher
       end
 
       def controller_class_name(controller_name)
-        "#{Inflector.camelize(controller_name)}Controller"
+        "#{controller_name.camelize}Controller"
       end
 
       def controller_name(parameters)

@@ -9,6 +9,10 @@ module Dependencies
   @@mechanism = :load
   mattr_accessor :mechanism
   
+  def load?
+    mechanism == :load
+  end
+  
   def depend_on(file_name, swallow_load_errors = false)
     if !loaded.include?(file_name)
       loaded << file_name
