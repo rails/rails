@@ -8,8 +8,7 @@ When you have the database online, you can import the fixture tables with
 the test/fixtures/db_definitions/*.sql files.
 
 Make sure that you create database objects with the same user that you specified in i
-connection.rb otherwise (on Postgres, at least) tests for default values will fail
-(see http://dev.rubyonrails.org/trac.cgi/ticket/118)
+connection.rb otherwise (on Postgres, at least) tests for default values will fail.
 
 == Running with Rake
 
