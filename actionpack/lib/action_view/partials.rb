@@ -34,13 +34,16 @@ module ActionView
     def render_partial(partial_path, object = nil, local_assigns = {})
       path, partial_name = partial_pieces(partial_path)
       object ||= controller.instance_variable_get("@#{partial_name}")
+      counter_name  = partial_counter_name(partial_name)
+      local_assigns = local_assigns.merge(counter_name => 1) unless local_assigns.has_key?(counter_name)
       render("#{path}/_#{partial_name}", { partial_name => object }.merge(local_assigns))
     end
 
     def render_collection_of_partials(partial_name, collection, partial_spacer_template = nil)
       collection_of_partials = Array.new
+      counter_name = partial_counter_name(partial_name)
       collection.each_with_index do |element, counter|
-        collection_of_partials.push(render_partial(partial_name, element, "#{partial_name.split("/").last}_counter" => counter))
+        collection_of_partials.push(render_partial(partial_name, element, counter_name => counter))
       end
 
       return nil if collection_of_partials.empty?
@@ -59,6 +62,10 @@ module ActionView
         else
           return controller.send(:controller_name), partial_path
         end
+      end
+
+      def partial_counter_name(partial_name)
+        "#{partial_name.split('/').last}_counter"
       end
   end
 end
