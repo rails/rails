@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2004 Jeremy Kemper
+# Copyright (c) 2005 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -23,20 +23,7 @@
 
 $:.unshift(File.dirname(__FILE__))
 
-begin
-  require 'active_support'
-rescue LoadError
-  require 'rubygems'
-  require_gem 'activesupport'
-end
-
-require 'rails_generator/base'
-require 'rails_generator/lookup'
-require 'rails_generator/commands'
-
-Rails::Generator::Base.send(:include, Rails::Generator::Lookup)
-Rails::Generator::Base.send(:include, Rails::Generator::Commands)
-
-# Set up a default logger for convenience.
-require 'rails_generator/simple_logger'
-Rails::Generator::Base.logger = Rails::Generator::SimpleLogger.new(STDOUT)
+require 'active_support/core_ext'
+require 'active_support/clean_logger'
+require 'active_support/misc'
+require 'active_support/dependencies'

@@ -86,3 +86,5 @@ module ActionController #:nodoc:
     end
   end
 end
+
+Controllers = Dependencies::LoadingModule.new(File.expand_path(File.join(RAILS_ROOT, 'app', 'controllers'))) if defined?(RAILS_ROOT)
