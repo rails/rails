@@ -1,5 +1,9 @@
 *SVN*
 
+* Added Effect.Squish for scaling down an element and making it disappear at the end #972 [thomas@fesch.at]
+
+* Added Effect.Scale for smoothly scaling images or text up and down #972 [thomas@fesch.at]
+
 * Added Effect.Fade which smoothly turns opacity from 100 to 0 and then hides the element #960 [thomas@fesch.at]
 
 * Fixed problem with page caching #958 [Rick Olson]

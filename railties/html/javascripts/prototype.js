@@ -482,3 +482,69 @@ Effect.Fade.prototype = {
     element.style.opacity = opacity/100;
   }
 }
+
+Effect.Scale = Class.create();
+Effect.Scale.prototype = {
+  initialize: function(element, percent) {
+    this.element = $(element);
+    this.startScale    = 1.0;
+    this.startHeight   = this.element.height || this.element.offsetHeight;
+    this.startWidth    = this.element.width || this.element.offsetWidth;
+    this.currentHeight = this.startHeight;
+    this.currentWidth  = this.startWidth;
+    this.finishScale   = (percent/100);
+    if (element.style.fontSize=="") this.sizeEm = 1.0;
+    if (element.style.fontSize && element.style.fontSize.indexOf("em")>0)
+       this.sizeEm      = parseFloat(element.style.fontSize);
+    if(this.element.effect_scale) {
+      clearTimeout(this.element.effect_scale.timer);
+      this.startScale  = element.effect_scale.currentScale;
+      this.startHeight = element.effect_scale.startHeight;
+      this.startWidth  = element.effect_scale.startWidth;
+      if(element.effect_scale.sizeEm) 
+        this.sizeEm    = element.effect_scale.sizeEm;      
+    }
+    this.element.effect_scale = this;
+    this.currentScale  = this.startScale;
+    this.factor        = this.finishScale - this.startScale;
+    this.options       = arguments[2] || {}; 
+    this.scale();
+  },
+  
+  scale: function() {
+    if (this.isFinished()) { 
+      this.setDimensions(this.element, this.startWidth*this.finishScale, this.startHeight*this.finishScale);
+      if(this.sizeEm) this.element.style.fontSize = this.sizeEm*this.finishScale + "em";
+      if(this.options.complete) this.options.complete(this);
+      return; 
+    }
+    if (this.timer) clearTimeout(this.timer);
+    this.setDimensions(this.element, this.currentWidth, this.currentHeight);
+    if(this.sizeEm) this.element.style.fontSize = this.sizeEm*this.currentScale + "em";
+    this.currentScale += (this.factor/10);
+    this.currentWidth = this.startWidth * this.currentScale;
+    this.currentHeight = this.startHeight * this.currentScale;
+    this.timer = setTimeout(this.scale.bind(this), 50);
+  },
+  
+  isFinished: function() {
+    return (this.factor < 0) ? 
+      this.currentScale <= this.finishScale : this.currentScale >= this.finishScale;
+  },
+  
+  setDimensions: function(element, width, height) {
+    element.style.width = width + 'px';
+    element.style.height = height + 'px';
+  }
+}
+
+Effect.Squish = Class.create();
+Effect.Squish.prototype = {
+  initialize: function(element) {
+    this.element = $(element);
+    new Effect.Scale(element, 1, { complete: this.hide.bind(this) } );
+  },
+  hide: function() {
+    this.element.style.display = 'none';
+  } 
+}
