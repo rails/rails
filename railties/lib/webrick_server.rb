@@ -136,11 +136,20 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
       when %r{^/#{component}/#{component}/$} then
         { :module => $1, :controller => $2, :action => "index" }
       when %r{^/#{component}/#{component}/#{component}$} then
-        { :module => $1, :controller => $2, :action => $3 }
+        if DispatchServlet.modules(component).include?($1)
+          { :module => $1, :controller => $2, :action => $3 }
+        else
+          { :controller => $1, :action => $2, :id => $3 }
+        end
       when %r{^/#{component}/#{component}/#{component}/#{id}$} then
         { :module => $1, :controller => $2, :action => $3, :id => $4 }
       else
         false
     end
   end  
+
+  def self.modules(module_pattern = '[^.]+')
+    path = RAILS_ROOT + '/app/controllers'
+    Dir.entries(path).grep(/^#{module_pattern}$/).find_all {|e| File.directory?("#{path}/#{e}")}
+  end
 end
