@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed the MS SQL adapter to work with the new limit/offset approach and with binary data (still suffering from 7KB limit, though) #901 [delynnb]
+
+
 *1.9.0* (22th March, 2005)
 
 * Added adapter independent limit clause as a two-element array with the first being the limit, the second being the offset #795 [Sam Stephenson]. Example:

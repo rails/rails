@@ -2,10 +2,11 @@ require 'abstract_unit'
 require 'fixtures/company'
 require 'fixtures/topic'
 require 'fixtures/entrant'
+require 'fixtures/developer'
 
 class FinderTest < Test::Unit::TestCase
   fixtures :companies, :topics, :entrants, :developers
-  
+
   def test_find
     assert_equal(@topics["first"]["title"], Topic.find(1).title)
   end
@@ -43,10 +44,10 @@ class FinderTest < Test::Unit::TestCase
   def test_find_all_with_prepared_limit_and_offset
     if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
       if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
-        assert_raises(ArgumentError) { Entrant.find_all nil, "id ASC", ["? OFFSET ?", 2, 1] }
+        assert_raises(ArgumentError) { Entrant.find_all nil, "id ASC", [2, 1] }
       end
     else
-      entrants = Entrant.find_all nil, "id ASC", ["? OFFSET ?", 2, 1]
+      entrants = Entrant.find_all nil, "id ASC", [2, 1]
 
       assert_equal(2, entrants.size)
       assert_equal(@entrants["second"]["name"], entrants.first.name)
@@ -256,11 +257,11 @@ class FinderTest < Test::Unit::TestCase
     assert_equal first_five_developers, Developer.find_all(nil, 'id ASC', [5])
     assert_equal no_developers, Developer.find_all(nil, 'id ASC', [0])
   end
-  
+ 
   def test_find_all_with_limit_and_offset
     first_three_developers = Developer.find_all nil, 'id ASC', [3, 0]
     second_three_developers = Developer.find_all nil, 'id ASC', [3, 3]
-    last_two_developers = Developer.find_all nil, 'id ASC', [3, 8]
+    last_two_developers = Developer.find_all nil, 'id ASC', [2, 8]
     
     assert_equal 3, first_three_developers.length
     assert_equal 3, second_three_developers.length
