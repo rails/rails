@@ -1,6 +1,22 @@
 require File.dirname(__FILE__) + '/assertions/action_pack_assertions'
 require File.dirname(__FILE__) + '/assertions/active_record_assertions'
 
+if defined?(RAILS_ROOT)
+  # Temporary hack for getting functional tests in Rails running under 1.8.2
+  class Object #:nodoc:
+    alias_method :require_without_load_path_reloading, :require
+    def require(file_name)
+      begin
+        require_without_load_path_reloading(file_name)
+      rescue Object => e
+        ADDITIONAL_LOAD_PATHS.reverse.each { |dir| $:.unshift(dir) if File.directory?(dir) }
+        require_without_load_path_reloading(file_name)
+      end
+    end
+  end
+end
+
+
 module ActionController #:nodoc:
   class Base
     # Process a test request called with a +TestRequest+ object.
