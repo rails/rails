@@ -8,7 +8,7 @@ module ActionView
       # Returns the URL for the set of +options+ provided. This takes the same options 
       # as url_for. For a list, see the url_for documentation in link:classes/ActionController/Base.html#M000079.
       def url_for(options = {}, *parameters_for_method_reference)
-        if Hash === options then options = { :only_path => true }.update(options.stringify_keys) end
+        options = { :only_path => true }.update(options.symbolize_keys) if options.kind_of? Hash
         @controller.send(:url_for, options, *parameters_for_method_reference)
       end
 
