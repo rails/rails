@@ -15,6 +15,8 @@ module ActionController #:nodoc:
         cattr_accessor :reload_dependencies
       end
 
+      base.class_eval { class << self; alias_method :inherited_without_model, :inherited; end }
+
       base.extend(ClassMethods)
     end
 
@@ -62,6 +64,16 @@ module ActionController #:nodoc:
             end
           end
         end
+
+        def inherited(child)
+          inherited_without_model(child)
+          begin
+            child.model(child.controller_name)
+            child.model(Inflector.singularize(child.controller_name))
+          rescue LoadError
+            # No neither singular or plural model available for this controller
+          end
+        end        
     end
   end
 end
