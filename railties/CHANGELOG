@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for SQLite in the auto-dumping/importing of schemas for development -> test #416
+
 * Fixed problems with dependency caching and controller hierarchies on Ruby 1.8.2 in development mode #351
 
 * Added automated rewriting of the shebang lines on installs through the gem rails command #379 [Manfred Stienstra]
