@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed form helpers to query Model#id_before_type_cast instead of Model#id as a temporary workaround for Ruby 1.8.2 warnings #818 [DeLynn B]
+
 * Fixed TextHelper#markdown to use blank? instead of empty? so it can deal with nil strings passed #814 [Johan Sörensen]
 
 * Added TextHelper#simple_format as a non-dependency text presentation helper #814 [Johan Sörensen]

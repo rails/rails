@@ -19,6 +19,7 @@ class FormHelperTest < Test::Unit::TestCase
     def @post.errors() Class.new{ def on(field) field == "author_name" end }.new end
 
     def @post.id; 123; end
+    def @post.id_before_type_cast; 123; end
 
     @post.title       = "Hello World"
     @post.author_name = ""

@@ -152,7 +152,7 @@ module ActionView
         @object_name, @method_name = object_name, method_name
         @template_object, @local_binding = template_object, local_binding
         if @object_name.sub!(/\[\]$/,"")
-          @auto_index = @template_object.instance_variable_get("@#{Regexp.last_match.pre_match}").id
+          @auto_index = @template_object.instance_variable_get("@#{Regexp.last_match.pre_match}").id_before_type_cast
         end
       end
 
