@@ -12,6 +12,15 @@ class MockRequest
   end
 end
 
+class UrlMockFactory
+  def self.create(path, parameters)
+    ActionController::UrlRewriter.new(
+      MockRequest.new("http://", "example.com", 80, path, parameters), 
+      parameters["controller"], parameters["action"]
+    )
+  end
+end
+
 class UrlTest < Test::Unit::TestCase
   def setup
     @library_url = ActionController::UrlRewriter.new(MockRequest.new(
@@ -408,12 +417,29 @@ class UrlTest < Test::Unit::TestCase
   end
 
   def test_rewriting_on_similar_fragments
-    url = ActionController::UrlRewriter.new(
-      MockRequest.new(
-        "http://", "example.com", 80, "/advertisements/advert/",
-        {"controller"=>"advert", "action"=>"index"}
-      ), "advert", "index"
-    )
+    url = UrlMockFactory.create("/advertisements/advert/", {"controller"=>"advert", "action"=>"index"})
     assert_equal("http://example.com/advertisements/advert/news", url.rewrite(:action => 'news'))
+  end
+
+  def test_rewriting_on_similar_fragments_with_action_prefixes
+    url = UrlMockFactory.create(
+      "/clients/prall/1/msg/all/", 
+      { "category_name"=>"all", "client_name"=>"prall", "action"=>"index", "controller"=>"msg", "project_name"=>"1"}
+    )
+
+    assert_equal(
+      "http://example.com/clients/prall/1/msg/all/new", 
+      url.rewrite({ :controller => "msg", :action_prefix => "all", :action => "new" })
+    )
+
+    url = UrlMockFactory.create(
+      "/clients/prall/1/msg/all/", 
+      { "category_name"=>"all", "client_name"=>"prall", "action"=>"index", "controller"=>"msg", "project_name"=>"1"}
+    )
+
+    assert_equal(
+      "http://example.com/clients/prall/1/msg/allous/new", 
+      url.rewrite({ :controller => "msg", :action_prefix => "allous", :action => "new" })
+    )
   end
 end

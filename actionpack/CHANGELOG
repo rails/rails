@@ -1,6 +1,6 @@
 *SVN*
 
-* Fixed url rewriter confusion when the controller name was a substring of the controller_prefix
+* Fixed url rewriter confusion when the controller or action name was a substring of the controller_prefix or action_prefix
 
 * Added conditional layouts like <tt>layout "weblog_standard", :except => :rss</tt> #452 [Marcel Molina]
 

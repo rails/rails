@@ -49,7 +49,7 @@ module ActionController
 
       def rewrite_path(path, options)
         include_id_in_path_params(options)
-      
+
         path = rewrite_action(path, options)      if options[:action] || options[:action_prefix]
         path = rewrite_path_params(path, options) if options[:path_params]
         path = rewrite_controller(path, options)  if options[:controller] || options[:controller_prefix]
@@ -86,7 +86,7 @@ module ActionController
             # don't tell action_name about our little boo-boo
             path = path.sub(action_prefix, action_name(options, nil))
           elsif action_prefix && !action_prefix.empty?
-            path = path.sub(action_prefix, action_name(options, action_prefix))
+            path = path.sub(%r(/#{action_prefix}/?), "/" + action_name(options, action_prefix))
           else
             path = path.sub(%r(#{@controller}/?$), @controller + "/" + action_name(options)) # " ruby-mode
           end
