@@ -152,8 +152,8 @@ task :purge_test_database => :environment do
       ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
       ActiveRecord::Base.connection.recreate_database(abcs["test"]["database"])
     when "postgresql"
-      `dropdb -U #{abcs["test"]["username"]} -h #{abcs[RAILS_ENV]["host"]} #{abcs["test"]["database"]}`
-      `createdb -U #{abcs["test"]["username"]} -h #{abcs[RAILS_ENV]["host"]} #{abcs["test"]["database"]}`
+      `dropdb -U #{abcs["test"]["username"]} -h #{abcs["test"]["host"]} #{abcs["test"]["database"]}`
+      `createdb -U #{abcs["test"]["username"]} -h #{abcs["test"]["host"]} #{abcs["test"]["database"]}`
     when "sqlite","sqlite3"
       File.delete(abcs["test"]["dbfile"]) if File.exist?(abcs["test"]["dbfile"])
     else 
