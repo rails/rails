@@ -99,18 +99,35 @@ module ActionView
       # link unless +name+ is specified. Additional HTML options, such as class or id, can be passed in the <tt>html_options</tt> hash.
       #
       # You can also make it difficult for spiders to harvest email address by obfuscating them.
-       # Examples:
+      # Examples:
       #   mail_to "me@domain.com", "My email", :encode => "javascript"  # =>
       #     <script type="text/javascript" language="javascript">eval(unescape('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%22%3e%4d%79%20%65%6d%61%69%6c%3c%2f%61%3e%27%29%3b'))</script>
       #
       #   mail_to "me@domain.com", "My email", :encode => "hex"  # =>
       #     <a href="mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d">My email</a>
+      #
+      # You can also specify the cc address, bcc address, subject, and body parts of the message header to create a complex e-mail using the
+      # corresponding +cc+, +bcc+, +subject+, and +body+ <tt>html_options</tt> keys. Each of these options are URI escaped and then appended to
+      # the <tt>email_address</tt> before being output. <b>Be aware that javascript keywords will not be escaped and may break this feature
+      # when encoding with javascript.</b>
+      # Examples:
+      #   mail_to "me@domain.com", "My email", :cc => "ccaddress@domain.com", :bcc => "bccaddress@domain.com", :subject => "This is an example email", :body => "This is the body of the message."   # =>
+      #     <a href="mailto:me@domain.com?cc="ccaddress@domain.com"&bcc="bccaddress@domain.com"&body="This%20is%20the%20body%20of%20the%20message."&subject="This%20is%20an%20example%20email">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
         html_options = html_options.stringify_keys
         encode = html_options.delete("encode")
+        cc, bcc, subject, body = html_options.delete("cc"), html_options.delete("bcc"), html_options.delete("subject"), html_options.delete("body")
+
         string = ''
+        extras = ''
+        extras << "cc=#{CGI.escape(cc).gsub("+", "%20")}&" unless cc.nil?
+        extras << "bcc=#{CGI.escape(bcc).gsub("+", "%20")}&" unless bcc.nil?
+        extras << "body=#{CGI.escape(body).gsub("+", "%20")}&" unless body.nil?
+        extras << "subject=#{CGI.escape(subject).gsub("+", "%20")}&" unless subject.nil?
+        extras = "?" << extras.gsub!(/&?$/,"") unless extras.empty?
+
         if encode == 'javascript'
-          tmp = "document.write('#{content_tag("a", name || email_address, html_options.merge({ "href" => "mailto:"+email_address.to_s }))}');"
+          tmp = "document.write('#{content_tag("a", name || email_address, html_options.merge({ "href" => "mailto:"+email_address.to_s+extras }))}');"
           for i in 0...tmp.length
             string << sprintf("%%%x",tmp[i])
           end
@@ -123,9 +140,9 @@ module ActionView
               string << email_address[i,1]
             end
           end
-          content_tag "a", name || email_address, html_options.merge({ "href" => "mailto:#{string}" })
+          content_tag "a", name || email_address, html_options.merge({ "href" => "mailto:#{string}#{extras}" })
         else
-          content_tag "a", name || email_address, html_options.merge({ "href" => "mailto:#{email_address}" })
+          content_tag "a", name || email_address, html_options.merge({ "href" => "mailto:#{email_address}#{extras}" })
         end
       end
 

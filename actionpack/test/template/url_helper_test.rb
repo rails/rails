@@ -79,9 +79,15 @@ class UrlHelperTest < Test::Unit::TestCase
                  mail_to("david@loudthinking.com", "David Heinemeier Hansson", :class => "admin")
   end
 
-
   def test_mail_to_with_javascript
     assert_equal "<script type=\"text/javascript\" language=\"javascript\">eval(unescape('%64%6f%63%75%6d%65%6e%74%2e%77%72%69%74%65%28%27%3c%61%20%68%72%65%66%3d%22%6d%61%69%6c%74%6f%3a%6d%65%40%64%6f%6d%61%69%6e%2e%63%6f%6d%22%3e%4d%79%20%65%6d%61%69%6c%3c%2f%61%3e%27%29%3b'))</script>", mail_to("me@domain.com", "My email", :encode => "javascript")
+  end
+  
+  def test_mail_with_options
+    assert_equal(
+      %(<a href="mailto:me@example.com?cc=ccaddress%40example.com&amp;bcc=bccaddress%40example.com&amp;body=This%20is%20the%20body%20of%20the%20message.&amp;subject=This%20is%20an%20example%20email">My email</a>),
+      mail_to("me@example.com", "My email", :cc => "ccaddress@example.com", :bcc => "bccaddress@example.com", :subject => "This is an example email", :body => "This is the body of the message.")
+    )
   end
 
   def test_mail_to_with_hex
