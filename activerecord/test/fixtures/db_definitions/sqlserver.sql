@@ -99,6 +99,7 @@ CREATE TABLE colnametests (
 CREATE TABLE mixins (
   id int NOT NULL IDENTITY(1, 1),
   parent_id int default NULL,
+  type varchar(40) default NULL,  
   pos int default NULL,
   lft int default NULL,
   rgt int default NULL,

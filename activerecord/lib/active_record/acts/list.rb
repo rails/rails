@@ -109,6 +109,18 @@ module ActiveRecord
         def last?
           self.send(position_column) == bottom_position_in_list
         end
+        
+        def higher_item
+          self.class.find_first(
+            "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i - 1).to_s}"
+          )
+        end
+
+        def lower_item
+          self.class.find_first(
+            "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i + 1).to_s}"
+          )
+        end
 
         private
         
@@ -122,18 +134,6 @@ module ActiveRecord
       
         # Overwrite this method to define the scope of the list changes
         def scope_condition() "1" end
-
-        def higher_item
-          self.class.find_first(
-            "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i - 1).to_s}"
-          )
-        end
-
-        def lower_item
-          self.class.find_first(
-            "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i + 1).to_s}"
-          )
-        end
 
         def bottom_position_in_list
           item = bottom_item
@@ -163,7 +163,7 @@ module ActiveRecord
   
         def increment_positions_on_higher_items
           self.class.update_all(
-            "#{position_column} = (#{position_column} + 1)",  "#{scope_condition} AND #{position_column} < #{send(position_column)}"
+            "#{position_column} = (#{position_column} + 1)",  "#{scope_condition} AND #{position_column} < #{send(position_column).to_i}"
           )
         end
 

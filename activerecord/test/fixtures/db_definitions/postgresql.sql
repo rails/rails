@@ -118,6 +118,7 @@ CREATE TABLE colnametests (
 CREATE TABLE mixins (
   id serial,
   parent_id integer,
+  type character varying,  
   pos integer,
   lft integer,
   rgt integer,

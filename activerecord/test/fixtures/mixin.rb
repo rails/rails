@@ -1,9 +1,12 @@
 class Mixin < ActiveRecord::Base
-  acts_as_tree :foreign_key => "parent_id", :order => "id"
 
 end
 
-class ListMixin < ActiveRecord::Base
+class TreeMixin < Mixin 
+    acts_as_tree :foreign_key => "parent_id", :order => "id"
+end
+
+class ListMixin < Mixin
   acts_as_list :column => "pos", :scope => :parent
 
   def self.table_name() "mixins" end
