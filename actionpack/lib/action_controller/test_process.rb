@@ -177,6 +177,10 @@ end
       @attributes[key] = value
     end
     
+    def session_id
+      ""
+    end
+    
     def update() end
     def close() end
     def delete() @attributes = {} end

@@ -1,5 +1,8 @@
 *SVN*
 
+* Added TestSession#session_id that returns an empty string to make it easier to functional test applications that doesn't use 
+  cookie-based sessions [jcf]
+
 * Fixed that cached template loading would still check the file system to see if the file existed #258 [Andreas Schwarz]
 
 * Added options to tailor header tag, div id, and div class on ActiveRecordHelper#error_messages_for [josh]
