@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Fixnum#even? and Fixnum#odd?
+
 * Fixed problem with classes being required twice. Object#const_missing now uses require_dependency to load files. It used to use require_or_load which would cause models to be loaded twice, which was not good for validations and other class methods #971 [Nicholas Seckar]
 
 
