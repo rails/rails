@@ -96,7 +96,7 @@ Rake::RDocTask.new("apidoc") { |rdoc|
 }
 
 desc "Report code statistics (KLOCs, etc) from the application"
-task :stats do
+task :stats => [ :environment ] do
   require 'code_statistics'
   CodeStatistics.new(
     ["Helpers", "app/helpers"], 
