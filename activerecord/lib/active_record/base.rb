@@ -794,7 +794,7 @@ module ActiveRecord #:nodoc:
 
       # Updates all the attributes in from the passed hash and saves the record.
       def update_attributes(attributes)
-        attributes = attributes
+        self.attributes = attributes
         return save
       end
 
