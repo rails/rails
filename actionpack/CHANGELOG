@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed to_input_field_tag so it no longer explicitly uses InstanceTag.value if value was specified in the options hash [evl]
+
 * Added the possibility of having validate be protected for assert_(in)valid_column #263 [Tobias Luetke]
 
 * Added that ActiveRecordHelper#form now calls url_for on the :action option.
