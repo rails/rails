@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that the html options disabled, readonly, and multiple can all be treated as booleans. So specifying <tt>disabled => :true</tt> will give <tt>disabled="disabled"</tt>. #809 [mindel]
+
 * Added path collection syntax for Routes that will gobble up the rest of the url and pass it on to the controller #830 [rayners]. Example:
 
     map.connect 'categories/*path_info', :controller => 'categories', :action => 'show'
