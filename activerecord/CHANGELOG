@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed the automated timestamping feature when running under Rails' development environment that resets the inheritable attributes on each request.
+
 * Added Base#update_attributes that'll accept a hash of attributes and save the record (returning true if it passed validation, false otherwise). 
 
     Before:

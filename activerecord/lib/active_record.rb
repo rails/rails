@@ -41,12 +41,12 @@ require 'active_record/acts/tree'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
+  include ActiveRecord::Timestamp
   include ActiveRecord::Callbacks
   include ActiveRecord::Associations
   include ActiveRecord::Aggregations
   include ActiveRecord::Transactions
   include ActiveRecord::Reflection
-  include ActiveRecord::Timestamp
   include ActiveRecord::Acts::Tree
   include ActiveRecord::Acts::List
 end

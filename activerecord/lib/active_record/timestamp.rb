@@ -7,19 +7,31 @@ module ActiveRecord
   module Timestamp 
     def self.append_features(base) # :nodoc:
       super
-      base.before_create :timestamp_before_create
-      base.before_update :timestamp_before_update
+
+      base.class_eval do
+        alias_method :create_without_timestamps, :create
+        alias_method :create, :create_with_timestamps
+
+        alias_method :update_without_timestamps, :update
+        alias_method :update, :update_with_timestamps
+      end
     end    
       
-    def timestamp_before_create
+    def create_with_timestamps
       write_attribute("created_at", Time.now) if record_timestamps && respond_to?(:created_at) && created_at.nil?
       write_attribute("created_on", Time.now) if record_timestamps && respond_to?(:created_on) && created_on.nil?
-      timestamp_before_update
-    end
 
-    def timestamp_before_update
       write_attribute("updated_at", Time.now) if record_timestamps && respond_to?(:updated_at)
       write_attribute("updated_on", Time.now) if record_timestamps && respond_to?(:updated_on)
+      
+      create_without_timestamps
+    end
+
+    def update_with_timestamps
+      write_attribute("updated_at", Time.now) if record_timestamps && respond_to?(:updated_at)
+      write_attribute("updated_on", Time.now) if record_timestamps && respond_to?(:updated_on)
+
+      update_without_timestamps
     end
   end 
 
