@@ -31,12 +31,20 @@ module ActionView
         "</form>"
       end
 
+      def select_tag(name, option_tags = nil, options = {})
+        content_tag("select", option_tags, { "name" => name, "id" => name }.update(options))
+      end
+
       def text_field_tag(name, value = nil, options = {})
         tag("input", {"type" => "text", "name" => name, "id" => name, "value" => value}.update(options))
       end
 
+      def hidden_field_tag(name, value = nil, options = {})
+        text_field_tag(name, value, options.update("type" => "hidden"))
+      end
+
       def password_field_tag(name = "password", value = nil, options = {})
-        tag("input", {"type" => "password", "name" => name, "id" => name, "value" => value}.update(options))
+        text_field_tag(name, value, options.update("type" => "password"))
       end
 
       def text_area_tag(name, content = nil, options = {})
@@ -50,6 +58,12 @@ module ActionView
 
       def check_box_tag(name, value = "1", checked = false, options = {})
         html_options = {"type" => "checkbox", "name" => name, "id" => name, "value" => value}.update(options)
+        html_options["checked"] = "checked" if checked
+        tag("input", html_options)
+      end
+
+      def radio_button_tag(name, value, checked = false, options = {})
+        html_options = {"type" => "radio", "name" => name, "id" => name, "value" => value}.update(options)
         html_options["checked"] = "checked" if checked
         tag("input", html_options)
       end
