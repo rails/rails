@@ -42,8 +42,8 @@ class Dispatcher
         Object.send(:remove_const, "AbstractApplicationController") if Object.const_defined?(:AbstractApplicationController)
         Object.send(:remove_const, controller_class_name(controller_name)) if Object.const_defined?(controller_class_name(controller_name))
         ActiveRecord::Base.reset_associations_loaded
-        ActiveRecord::Base.subclasses.each { |klass| klass.reset_inheritable_attributes }
-      end      
+        ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
+      end
     end
   end
   
