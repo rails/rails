@@ -167,7 +167,7 @@ module ActionView
 
       private
         # All the countries included in the country_options output.
-        COUNTRIES = [ "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", 
+        COUNTRIES = [ "Afghanistan", "Albania", "Algeria", "American Samoa", "Andorra", "Angola", "Anguilla", 
             "Antarctica", "Antigua And Barbuda", "Argentina", "Armenia", "Aruba", "Australia", 
             "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", 
             "Belgium", "Belize", "Benin", "Bermuda", "Bhutan", "Bolivia", "Bosnia and Herzegowina", 
