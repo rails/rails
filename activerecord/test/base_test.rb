@@ -103,15 +103,14 @@ class BasicsTest < Test::Unit::TestCase
   end
  
   def test_attributes_hash
-    assert_equal @projects["action_controller"].to_hash, @action_controller.attributes
+    assert_equal @projects['active_record'].to_hash, Project.find_first.attributes
   end
-  
+
   def test_create
     topic = Topic.new
     topic.title = "New Topic"
     topic.save
-    id = topic.id
-    topicReloaded = Topic.find(id)
+    topicReloaded = Topic.find(topic.id)
     assert_equal("New Topic", topicReloaded.title)
   end
   
@@ -139,16 +138,13 @@ class BasicsTest < Test::Unit::TestCase
     topic.title = "Another New Topic"
     topic.written_on = "2003-12-12 23:23:00"
     topic.save
-    id = topic.id
-    assert_equal(id, topic.id)
-    
-    topicReloaded = Topic.find(id)
+    topicReloaded = Topic.find(topic.id)
     assert_equal("Another New Topic", topicReloaded.title)
 
     topicReloaded.title = "Updated topic"
     topicReloaded.save
     
-    topicReloadedAgain = Topic.find(id)
+    topicReloadedAgain = Topic.find(topic.id)
     
     assert_equal("Updated topic", topicReloadedAgain.title)
   end
@@ -157,9 +153,8 @@ class BasicsTest < Test::Unit::TestCase
     topic = Topic.new
     topic.title = "Still another topic"
     topic.save
-    id = topic.id
     
-    topicReloaded = Topic.find(id)
+    topicReloaded = Topic.find(topic.id)
     topicReloaded.title = "A New Topic"
     topicReloaded.send :write_attribute, 'does_not_exist', 'test'
     assert_nothing_raised { topicReloaded.save }
@@ -198,10 +193,9 @@ class BasicsTest < Test::Unit::TestCase
     topic.title = "Yet Another New Topic"
     topic.written_on = "2003-12-12 23:23:00"
     topic.save
-    id = topic.id
     topic.destroy
-    
-    assert_raises(ActiveRecord::RecordNotFound) { topicReloaded = Topic.find(id) }
+    assert_raise(TypeError) { topic.save }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
   
   def test_record_not_found_exception
@@ -353,7 +347,7 @@ class BasicsTest < Test::Unit::TestCase
   def test_attribute_keys_on_new_instance
     t = Topic.new
     assert_equal nil, t.title, "The topics table has a title column, so it should be nil"
-    assert_raises(NoMethodError) { t.title2 }
+    assert_raise(NoMethodError) { t.title2 }
   end
   
   def test_class_name
@@ -644,7 +638,7 @@ class BasicsTest < Test::Unit::TestCase
     topic = Topic.create("content" => myobj)
     Topic.serialize(:content, Hash)
 
-    assert_raises(ActiveRecord::SerializationTypeMismatch) { Topic.find(topic.id).content }
+    assert_raise(ActiveRecord::SerializationTypeMismatch) { Topic.find(topic.id).content }
 
     settings = { "color" => "blue" }
     Topic.find(topic.id).update_attribute("content", settings)
@@ -660,19 +654,19 @@ class BasicsTest < Test::Unit::TestCase
   
   def test_class_level_destroy
     should_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
-    @first.replies << should_be_destroyed_reply
+    Topic.find(1).replies << should_be_destroyed_reply
 
     Topic.destroy(1)
-    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1) }
-    assert_raises(ActiveRecord::RecordNotFound) { Reply.find(should_be_destroyed_reply.id) }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1) }
+    assert_raise(ActiveRecord::RecordNotFound) { Reply.find(should_be_destroyed_reply.id) }
   end
 
   def test_class_level_delete
     should_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
-    @first.replies << should_be_destroyed_reply
+    Topic.find(1).replies << should_be_destroyed_reply
 
     Topic.delete(1)
-    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1) }
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1) }
     assert_nothing_raised { Reply.find(should_be_destroyed_reply.id) }
   end
 
