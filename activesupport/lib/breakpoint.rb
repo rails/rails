@@ -21,9 +21,6 @@ require 'drb'
 require 'drb/acl'
 
 module Breakpoint
-  id = %q$Id$
-  Version = id.split(" ")[2].to_i
-  
   extend self
 
   # This will pop up an interactive ruby session at a
@@ -136,24 +133,15 @@ module Breakpoint
       end
 
       # Will execute the specified statement at the client.
-      def method_missing(method, *args, &block)
-        if args.empty? and not block
-          result = eval "#{method}"
+      def method_missing(method, *args)
+        if args.empty?
+          result = eval("#{method}")
         else
           result = eval("#{method}(*Marshal.load(#{Marshal.dump(args).inspect}))")
-          # This is a bit ugly. The alternative would be using an
-          # eval context instead of an eval handler for executing
-          # the code at the client. The problem with that approach
-          # is that we would have to handle special expressions
-          # like "self", "nil" or constants ourself which is hard.
-          remote = eval %{
-            result = lambda { |block, *args| #{method}(*args, &block) }
-            def result.call_with_block(*args, &block)
-              call(block, *args)
-            end
-            result
-          }
-          remote.call_with_block(*args, &block)
+        end
+
+        unless [true, false, nil].include?(result)
+          result.extend(DRbUndumped) if result
         end
 
         return result
@@ -187,7 +175,6 @@ module Breakpoint
     #   client.File.open("temp.txt", "w") { |f| f.puts "Hello" } 
     def client()
       if Breakpoint.use_drb? then
-        sleep(0.5) until Breakpoint.drb_service.eval_handler
         Client.new(Breakpoint.drb_service.eval_handler)
       else
         Client.new(lambda { |code| eval(code, TOPLEVEL_BINDING) })
@@ -292,7 +279,7 @@ module Breakpoint
       @collision_handler.call
     end
 
-    def ping() end
+    def ping; end
 
     def add_breakpoint(context, message)
       workspace = IRB::WorkSpace.new(context)
@@ -303,7 +290,31 @@ module Breakpoint
       @handler.call(workspace, message)
     end
 
-    attr_accessor :handler, :eval_handler, :collision_handler
+    def register_handler(&block)
+      @handler = block
+    end
+
+    def unregister_handler
+      @handler = nil
+    end
+
+    attr_reader :eval_handler
+
+    def register_eval_handler(&block)
+      @eval_handler = block
+    end
+
+    def unregister_eval_handler
+      @eval_handler = lambda { }
+    end
+
+    def register_collision_handler(&block)
+      @collision_handler = block
+    end
+
+    def unregister_collision_handler
+      @collision_handler = lambda { }
+    end
   end
 
   # Will run Breakpoint in DRb mode. This will spawn a server
@@ -496,8 +507,8 @@ end
 
 module DRb # :nodoc:
   class DRbObject#:nodoc:
-    undef :inspect if method_defined?(:inspect)
-    undef :clone if method_defined?(:clone)
+    undef :inspect
+    undef :clone
   end
 end
 

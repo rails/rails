@@ -1,4 +1,3 @@
 #!/usr/local/bin/ruby
 $LOAD_PATH << File.dirname(__FILE__) + '/../vendor/railties/lib'
-$LOAD_PATH << File.dirname(__FILE__) + '/../vendor/activerecord/lib/support'
 require 'breakpoint_client'
