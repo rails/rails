@@ -808,17 +808,7 @@ module ActiveRecord #:nodoc:
 
       # Returns a clone of the record that hasn't been assigned an id yet and is treated as a new record.
       def clone
-        attr = Hash.new
-
-        self.attribute_names.each do |name|
-          begin
-            attr[name] = read_attribute(name).clone
-          rescue TypeError
-            attr[name] = read_attribute(name)
-          end
-        end
-
-        cloned_record = self.class.new(attr)
+        cloned_record = self.class.new(self.attributes)
         cloned_record.instance_variable_set "@new_record", true
         cloned_record.id = nil
         cloned_record
