@@ -2,9 +2,13 @@
 
 * Fixed webrick_server cookie handling to allow multiple cookes to be set at once #800, #813 [dave@cherryville.org]
 
-* Fixed the Rakefile's interaction with postgresql use PGPASSWORD and PGHOST in the environment to fix prompting for passwords when connecting to a remote db and local socket connections. Also added a '-x' flag to pg_dump which stops it dumping privileges #807 [rasputnik]
+* Fixed the Rakefile's interaction with postgresql to:
 
-* Fixed the Rakefile's interaction with postgresql to quote the user name and use template0 when dumping so the functions doesn't get dumped too #855 [pburleson]
+    1. Use PGPASSWORD and PGHOST in the environment to fix prompting for 
+       passwords when connecting to a remote db and local socket connections. 
+    2. Added a '-x' flag to pg_dump which stops it dumping privileges #807 [rasputnik]
+    3. Quote the user name and use template0 when dumping so the functions doesn't get dumped too #855 [pburleson]
+    4. Use the port if available #875 [madrobby]
 
 
 *0.10.1* (7th March, 2005)
