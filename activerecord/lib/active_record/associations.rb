@@ -3,6 +3,10 @@ require 'active_record/associations/has_many_association'
 require 'active_record/associations/has_and_belongs_to_many_association'
 require 'active_record/deprecated_associations'
 
+unless Object.respond_to?(:require_association)
+  Object.send(:define_method, :require_association) { |file_name| ActiveRecord::Base.require_association(file_name) }
+end
+
 module ActiveRecord
   module Associations # :nodoc:
     def self.append_features(base)
@@ -445,6 +449,20 @@ module ActiveRecord
         deprecated_add_association_relation(association_name)
         deprecated_remove_association_relation(association_name)
         deprecated_has_collection_method(association_name)
+      end
+
+      # Loads the <tt>file_name</tt> if reload_associations is true or requires if it's false.
+      def require_association(file_name)
+        if !associations_loaded.include?(file_name)
+          associations_loaded << file_name
+          reload_associations ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
+        end
+      end
+
+      # Resets the list of dependencies loaded (typically to be called by the end of a request), so when require_association is
+      # called for that dependency it'll be loaded anew.
+      def reset_associations_loaded
+        associations_loaded = []
       end
 
       private

@@ -28,10 +28,13 @@ module ClassInheritableAttributes # :nodoc:
       inheritable_attributes[key]
     end
     
+    def reset_inheritable_attributes
+      inheritable_attributes.clear
+    end
+    
     private 
       def inherited(child)
         @@classes[child] = inheritable_attributes.dup
-      end
-      
+      end 
   end
 end

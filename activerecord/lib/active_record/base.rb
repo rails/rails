@@ -3,10 +3,6 @@ require 'active_record/support/class_inheritable_attributes'
 require 'active_record/support/inflector'
 require 'yaml'
 
-unless Object.respond_to?(:require_association)
-  Object.send(:define_method, :require_association) { |file_name| ActiveRecord::Base.require_association(file_name) }
-end
-
 module ActiveRecord #:nodoc:
   class ActiveRecordError < StandardError #:nodoc:
   end
@@ -192,6 +188,10 @@ module ActiveRecord #:nodoc:
     end
 
     @@subclasses = {}
+    
+    def self.subclasses
+      @@subclasses.values.flatten
+    end
 
     cattr_accessor :configurations
     @@primary_key_prefix_type = {}
@@ -559,20 +559,6 @@ module ActiveRecord #:nodoc:
         return result
       end
 
-      # Loads the <tt>file_name</tt> if reload_associations is true or requires if it's false.
-      def require_association(file_name)
-        if !associations_loaded.include?(file_name)
-          associations_loaded << file_name
-          reload_associations ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
-        end
-      end
-      
-      # Resets the list of dependencies loaded (typically to be called by the end of a request), so when require_association is
-      # called for that dependency it'll be loaded anew.
-      def reset_associations_loaded
-        associations_loaded = []
-      end
-
       private
         # Finder methods must instantiate through this method to work with the single-table inheritance model
         # that makes it possible to create objects of different types from the same table.
@@ -840,16 +826,6 @@ module ActiveRecord #:nodoc:
       def respond_to?(method)
         self.class.column_methods_hash[method.to_sym] || respond_to_without_attributes?(method)
       end
-
-      # Loads the <tt>file_name</tt> if reload_associations is true or requires if it's false.
-      def require_association(file_name)
-        if !associations_loaded.include?(file_name)
-          associations_loaded << file_name
-          reload_associations ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
-        end
-      end
-      
-      Object.send(:define_method, :require_association) { |file_name| ActiveRecord::Base.require_association(file_name) }
       
     private
       def create_or_update

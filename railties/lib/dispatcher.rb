@@ -22,7 +22,7 @@
 #++
 
 class Dispatcher
-  DEFAULT_SESSION_OPTIONS = { "database_manager" => CGI::Session::PStore, "prefix" => "ruby_sess.", "session_path" => "/" }
+  DEFAULT_SESSION_OPTIONS = { :database_manager => CGI::Session::PStore, :prefix => "ruby_sess.", :session_path => "/" }
 
   def self.dispatch(cgi = CGI.new, session_options = DEFAULT_SESSION_OPTIONS)
     begin
@@ -38,12 +38,12 @@ class Dispatcher
     rescue Object => exception
       ActionController::Base.process_with_exception(request, response, exception).out
     ensure
-      ActiveRecord::Base.reset_associations_loaded
-
       if ActionController::Base.reload_dependencies
         Object.send(:remove_const, "AbstractApplicationController") if Object.const_defined?(:AbstractApplicationController)
         Object.send(:remove_const, controller_class_name(controller_name)) if Object.const_defined?(controller_class_name(controller_name))
-      end
+        ActiveRecord::Base.reset_associations_loaded
+        ActiveRecord::Base.subclasses.each { |klass| klass.reset_inheritable_attributes }
+      end      
     end
   end
   

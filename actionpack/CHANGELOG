@@ -1,5 +1,7 @@
 *SVN*
 
+* Added display of error messages with scaffolded form pages
+
 * Added option to ERB templates to swallow newlines by using <% if something -%> instead of just <% if something %>. Example:
 
     class SomeController < AbstractApplicationController

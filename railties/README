@@ -34,15 +34,13 @@ link:files/vendor/actionpack/README.html.
 
 * Apache 1.3.x or 2.x (or any FastCGI-capable webserver with a
   mod_rewrite-like module)
-* FastCGI (or mod_ruby) for production performance (CGI is used for
-  development)
+* FastCGI (or mod_ruby) for better performance on Apache
 
 == Getting started
 
-1a. Setup Apache for the Rails application (see "Example for Apache conf")
-1b. Run the WEBrick servlet: <tt>ruby public/dispatch.servlet --help</tt>
-2. Go to http://rails/ (or whatever is your ServerName) and check
-   that you get the "Congratulations, you're on Rails!" screen
+1. Run the WEBrick servlet: <tt>ruby public/dispatch.servlet</tt>
+   (run with --help for options)
+2. Go to http://localhost:3000/ and get "Congratulations, you've put Ruby on Rails!"
 3. Follow the guidelines on the "Congratulations, you're on Rails!" screen
 
 
@@ -50,7 +48,7 @@ link:files/vendor/actionpack/README.html.
 
   <VirtualHost *:80>
     ServerName rails
-    DocumentRoot /path/tapplication/public/
+    DocumentRoot /path/application/public/
     ErrorLog /path/application/log/apache.log
   
     <Directory /path/application/public/>

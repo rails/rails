@@ -50,7 +50,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
       if @server_options[:index_controller]
         res.set_redirect WEBrick::HTTPStatus::MovedPermanently, "/#{@server_options[:index_controller]}/"
       else
-        res.set_redirect WEBrick::HTTPStatus::MovedPermanently, "/_doc/index.html"
+        res.set_redirect WEBrick::HTTPStatus::MovedPermanently, "/_doc/"
       end
 
       return true
@@ -72,9 +72,8 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   end
 
   def handle_mapped(req, res)
-    parsed_ok, controller, action, id = DispatchServlet.parse_uri(req.request_uri.path)
-    if parsed_ok
-      query = "controller=#{controller}&action=#{action}&id=#{id}"
+    if mappings = DispatchServlet.parse_uri(req.request_uri.path)
+      query = mappings.collect { |pair| "#{pair.first}=#{pair.last}" }.join("&")
       query << "&#{req.request_uri.query}" if req.request_uri.query
       origin = req.request_uri.path + "?" + query
       req.request_uri.path = "/dispatch.rb"
@@ -124,17 +123,21 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   end
   
   def self.parse_uri(path)
-    component = /([-_a-zA-Z0-9]+)/
+    component, id = /([-_a-zA-Z0-9]+)/, /([0-9]+)/
 
     case path.sub(%r{^/(?:fcgi|mruby|cgi)/}, "/")
       when %r{^/#{component}/?$} then
-        [true, $1, "index", nil]
-      when %r{^/#{component}/#{component}/?$} then
-        [true, $1, $2, nil]
-      when %r{^/#{component}/#{component}/#{component}/?$} then
-        [true, $1, $2, $3]
+        { :controller => $1, :action => "index" }
+      when %r{^/#{component}/#{component}$} then
+        { :controller => $1, :action => $2 }
+      when %r{^/#{component}/#{component}/$} then
+        { :module => $1, :controller => $2, :action => "index" }
+      when %r{^/#{component}/#{component}/#{id}$} then
+        { :controller => $1, :action => $2, :id => $3 }
+      when %r{^/#{component}/#{component}/#{component}/#{id}$} then
+        { :module => $1, :controller => $2, :action => $3, :id => $4 }
       else
-        [false, nil, nil, nil]
+        false
     end
   end  
 end
