@@ -90,7 +90,9 @@ module ActionController #:nodoc:
         
         private
           def page_cache_file(path)
-            ((path.empty? || path == "/") ? "/index" : path) + ".html"
+            name = ((path.empty? || path == "/") ? "/index" : path)
+            name << '.html' unless path.split('/').last.include? '.'
+            return name
           end
         
           def page_cache_path(path)
