@@ -77,13 +77,17 @@ module ActiveRecord
     # Tribute: Object-level transactions are implemented by Transaction::Simple by Austin Ziegler.
     module ClassMethods      
       def transaction(*objects, &block)
-        TRANSACTION_MUTEX.lock
+        TRANSACTION_MUTEX.synchronize do
+          Thread.current['open_transactions'] ||= 0
+          Thread.current['start_db_transaction'] = (Thread.current['open_transactions'] == 0)
+          Thread.current['open_transactions'] += 1
+        end
 
         begin
           objects.each { |o| o.extend(Transaction::Simple) }
           objects.each { |o| o.start_transaction }
 
-          result = connection.transaction(&block)
+          result = connection.transaction(Thread.current['start_db_transaction'], &block)
 
           objects.each { |o| o.commit_transaction }
           return result
@@ -91,7 +95,9 @@ module ActiveRecord
           objects.each { |o| o.abort_transaction }
           raise
         ensure
-          TRANSACTION_MUTEX.unlock
+          TRANSACTION_MUTEX.synchronize do
+            Thread.current['open_transactions'] -= 1
+          end
         end
       end
     end
@@ -101,19 +107,11 @@ module ActiveRecord
     end
 
     def destroy_with_transactions #:nodoc:
-      if TRANSACTION_MUTEX.locked?
-        destroy_without_transactions
-      else
-        transaction { destroy_without_transactions }
-      end
+      transaction { destroy_without_transactions }
     end
     
     def save_with_transactions(perform_validation = true) #:nodoc:
-      if TRANSACTION_MUTEX.locked?
-        save_without_transactions(perform_validation)
-      else
-        transaction { save_without_transactions(perform_validation) }
-      end
+      transaction { save_without_transactions(perform_validation) }
     end
   end
 end

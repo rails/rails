@@ -84,7 +84,7 @@ class TransactionTest < Test::Unit::TestCase
     end
   end
 
-  def xtest_nested_explicit_transactions
+  def test_nested_explicit_transactions
     Topic.transaction do
       Topic.transaction do
         @first.approved  = 1

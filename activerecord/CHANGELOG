@@ -1,5 +1,9 @@
 *SVN*
 
+* Fixed that nested transactions now work by letting the outer most transaction have the responsibilty of starting and rolling back the transaction.
+  If any of the inner transactions swallow the exception raised, though, the transaction will not be rolled back. So always let the transaction
+  bubble up even when you've dealt with local issues. Closes #231 and #340.
+
 * Fixed validates_{confirmation,acceptance}_of to only happen when the virtual attributes are not nil #348 [dpiddy@gmail.com]
 
 * Added a require_association hook on const_missing that makes it possible to use any model class without requiring it first. This makes STI look like:

@@ -298,16 +298,16 @@ module ActiveRecord
       end
 
       # Wrap a block in a transaction.  Returns result of block.
-      def transaction
+      def transaction(start_db_transaction = true)
         begin
           if block_given?
-            begin_db_transaction
+            begin_db_transaction if start_db_transaction
             result = yield
-            commit_db_transaction
+            commit_db_transaction if start_db_transaction
             result
           end
         rescue Exception => database_transaction_rollback
-          rollback_db_transaction
+          rollback_db_transaction if start_db_transaction
           raise
         end
       end
