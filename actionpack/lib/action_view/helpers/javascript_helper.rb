@@ -127,7 +127,7 @@ module ActionView
       # Additionally, you may specify any of the options documented in
       # +link_to_remote.
       def observe_field(field_id, options = {})
-        build_observer('Form.Element.Observer', name, options)
+        build_observer('Form.Element.Observer', field_id, options)
       end
       
       # Like +observe_field+, but operates on an entire form identified by the
@@ -135,7 +135,7 @@ module ActionView
       # the default value of the <tt>:with</tt> option evaluates to the
       # serialized (request string) value of the form.
       def observe_form(form_id, options = {})
-        build_observer('Form.Observer', name, options)
+        build_observer('Form.Observer', form_id, options)
       end
 
     private
