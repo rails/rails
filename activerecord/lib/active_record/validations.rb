@@ -188,6 +188,28 @@ module ActiveRecord
           class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name} and #{attr_name}.to_s.match(/#{configuration[:with]}/)}))
         end
       end
+
+      # Validates whether the value of the specified attribute is available in a particular enumerable object.
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_inclusion_of :gender, :in=>%w( m f ), :message=>"woah! what are you then!??!!"
+      #     validates_inclusion_of :age, :in=>0..99
+      #   end
+      #
+      # Configuration options:
+      # ::in: An enumerable object of available items
+      # ::message: Specifieds a customer error message (default is: "is not included in the list")
+      def validates_inclusion_of(*attr_names)
+        configuration = { :message => ActiveRecord::Errors.default_error_messagess[:inclusion], :on => :save }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        enum = configuration[:in]
+
+        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
+
+        for attr_name in attr_names
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless (#{enum.inspect}).include?(#{attr_name}) }))
+        end
+      end
       
       private
         def validation_method(on)
@@ -290,6 +312,7 @@ module ActiveRecord
     end
     
     @@default_error_messagess = {
+      :inclusion => "is not included in the list",
       :invalid => "is invalid",
       :confirmation => "doesn't match confirmation",
       :accepted  => "must be accepted",

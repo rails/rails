@@ -1,5 +1,13 @@
 *CVS*
 
+* Added Base.validates_inclusion_of that validates whether the value of the specified attribute is available in a particular enumerable
+  object. [what-a-day]
+
+    class Person < ActiveRecord::Base
+      validates_inclusion_of :gender, :in=>%w( m f ), :message=>"woah! what are you then!??!!"
+      validates_inclusion_of :age, :in=>0..99
+    end
+
 * Added acts_as_list that can decorates an existing class with methods like move_higher/lower, move_to_top/bottom. [Tobias Luetke] Example:
 
     class TodoItem < ActiveRecord::Base
