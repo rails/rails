@@ -28,7 +28,7 @@ module ActionWebService # :nodoc:
           else
             return_value = nil
           end
-          body = @encoder.encode_rpc_response(method_name, return_value)
+          body = @encoder.encode_rpc_response(method_name + 'Response', return_value)
           Response.new(body, 'text/xml')
         end
 
