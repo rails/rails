@@ -49,14 +49,13 @@ module ActionView
     end
   
     def line_number
-      begin
-        @original_exception.backtrace.join.scan(/\((?:erb)\):([0-9]*)/).first.first.to_i
-      rescue
-        begin
-          original_exception.message.scan(/\((?:eval)\):([0-9]*)/).first.first.to_i
-        rescue
-          1
-        end
+      trace = @original_exception.backtrace.join
+      if trace.include?("erb):")
+        trace.scan(/\((?:erb)\):([0-9]*)/).first.first.to_i
+      elsif trace.include?("eval):")
+        trace.scan(/\((?:eval)\):([0-9]*)/).first.first.to_i
+      else
+        1
       end
     end
   
