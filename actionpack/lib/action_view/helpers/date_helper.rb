@@ -104,7 +104,7 @@ module ActionView
         second_options = []
 
         0.upto(59) do |second|
-          second_options << ((datetime.kind_of?(Fixnum) ? datetime : datetime.sec) == second ?
+          second_options << ((datetime && (datetime.kind_of?(Fixnum) ? datetime : datetime.sec) == second) ?
             "<option selected=\"selected\">#{leading_zero_on_single_digits(second)}</option>\n" :
             "<option>#{leading_zero_on_single_digits(second)}</option>\n"
           )
@@ -119,7 +119,7 @@ module ActionView
         minute_options = []
 
         0.upto(59) do |minute|
-          minute_options << ((datetime.kind_of?(Fixnum) ? datetime : datetime.min) == minute ?
+          minute_options << ((datetime && (datetime.kind_of?(Fixnum) ? datetime : datetime.min) == minute) ?
             "<option selected=\"selected\">#{leading_zero_on_single_digits(minute)}</option>\n" :
             "<option>#{leading_zero_on_single_digits(minute)}</option>\n"
           )
@@ -134,7 +134,7 @@ module ActionView
         hour_options = []
 
         0.upto(23) do |hour|
-          hour_options << ((datetime.kind_of?(Fixnum) ? datetime : datetime.hour) == hour ?
+          hour_options << ((datetime && (datetime.kind_of?(Fixnum) ? datetime : datetime.hour) == hour) ?
             "<option selected=\"selected\">#{leading_zero_on_single_digits(hour)}</option>\n" :
             "<option>#{leading_zero_on_single_digits(hour)}</option>\n"
           )
@@ -149,7 +149,7 @@ module ActionView
         day_options = []
 
         1.upto(31) do |day|
-          day_options << ((date.kind_of?(Fixnum) ? date : date.day) == day ?
+          day_options << ((date && (date.kind_of?(Fixnum) ? date : date.day) == day) ?
             "<option selected=\"selected\">#{day}</option>\n" :
             "<option>#{day}</option>\n"
           )
@@ -179,7 +179,7 @@ module ActionView
             Date::MONTHNAMES[month_number]
           end
 
-          month_options << ((date.kind_of?(Fixnum) ? date : date.month) == month_number ?
+          month_options << ((date && (date.kind_of?(Fixnum) ? date : date.month) == month_number) ?
             %(<option value="#{month_number}" selected="selected">#{month_name}</option>\n) :
             %(<option value="#{month_number}">#{month_name}</option>\n)
           )
@@ -195,11 +195,11 @@ module ActionView
       #   select_year(Date.today, :start_year => 1992, :end_year => 2007)
       def select_year(date, options = {})
         year_options = []
-        y = date.kind_of?(Fixnum) ? (y = (date == 0) ? Date.today.year : date) : date.year
+        y = date ? (date.kind_of?(Fixnum) ? (y = (date == 0) ? Date.today.year : date) : date.year) : Date.today.year
         default_start_year, default_end_year = y-5, y+5
 
         (options[:start_year] || default_start_year).upto(options[:end_year] || default_end_year) do |year|
-          year_options << ((date.kind_of?(Fixnum) ? date : date.year) == year ?
+          year_options << ((date && (date.kind_of?(Fixnum) ? date : date.year) == year) ?
             "<option selected=\"selected\">#{year}</option>\n" :
             "<option>#{year}</option>\n"
           )
@@ -256,7 +256,7 @@ module ActionView
         defaults = { :discard_type => true }
         options  = defaults.merge(options)
         options_with_prefix = Proc.new { |position| options.merge(:prefix => "#{@object_name}[#{@method_name}(#{position}i)]") }
-        datetime = options[:include_blank] ? (value || 0) : (value || Time.now)
+        datetime = options[:include_blank] ? (value || nil) : (value || Time.now)
 
         datetime_select  = select_year(datetime, options_with_prefix.call(1))
         datetime_select << select_month(datetime, options_with_prefix.call(2)) unless options[:discard_month]

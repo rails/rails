@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed include_blank for select_hour/minute/second #527 [edward@debian.org]
+
 * Improved the message display on the exception handler pages #963 [Johan Sorensen]
 
 * Fixed that on very rare occasions, webrick would raise a NoMethodError: private method 'split' called for nil #1001 [Flurin Egger]
