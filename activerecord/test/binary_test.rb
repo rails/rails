@@ -7,6 +7,12 @@ class BinaryTest < Test::Unit::TestCase
   end
   
   def test_load_save
+    # Without using prepared statements, it makes no sense to test
+    # BLOB data with DB2, because the length of a statement is
+    # limited to 32KB.
+    if ActiveRecord::ConnectionAdapters.const_defined? :DB2Adapter
+      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::DB2Adapter)
+    end
     bin = Binary.new
     bin.data = @data
 

@@ -85,7 +85,7 @@ module ActiveRecord
 
         # Otherwise, delegate to association class with conditions.
         else
-          args << { :conditions => "#{@association_class_primary_key_name} = '#{@owner.id}' #{@conditions ? " AND " + @conditions : ""}" }
+          args << { :conditions => "#{@association_class_primary_key_name} = #{@owner.quoted_id} #{@conditions ? " AND " + @conditions : ""}" }
           @association_class.find(*args)
         end
       end
