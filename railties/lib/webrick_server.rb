@@ -6,6 +6,7 @@ require 'stringio'
 
 include WEBrick
 
+ABSOLUTE_RAILS_ROOT = File.expand_path(RAILS_ROOT)
 
 class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   REQUEST_MUTEX = Mutex.new
@@ -18,12 +19,12 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
 
     trap("INT") { server.shutdown }
     server.start
-    Dir::chdir(OPTIONS['working_directory']) if OPTIONS['working_directory']
   end
 
   def initialize(server, options)
     @server_options = options
     @file_handler = WEBrick::HTTPServlet::FileHandler.new(server, options[:server_root])
+    Dir.chdir(ABSOLUTE_RAILS_ROOT)
     super
   end
 
