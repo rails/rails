@@ -4,7 +4,7 @@ class Mixin < ActiveRecord::Base
 end
 
 class ListMixin < ActiveRecord::Base
-  acts_as_list :column => "pos", :scope => :parent_id
+  acts_as_list :column => "pos", :scope => :parent
 
   def self.table_name
     "mixins"
