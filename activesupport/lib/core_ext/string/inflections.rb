@@ -1,7 +1,8 @@
 require File.dirname(__FILE__) + '/../../inflector'
-module ActiveSupport
-  module CoreExtensions
-    module String
+module ActiveSupport #:nodoc:
+  module CoreExtensions #:nodoc:
+    module String #:nodoc:
+      # Makes it possible to do "posts".singularize that returns "post" and "MegaCoolClass".underscore that returns "mega_cool_class".
       module Inflections
         def pluralize
           Inflector.pluralize(self)
