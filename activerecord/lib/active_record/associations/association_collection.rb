@@ -37,11 +37,14 @@ module ActiveRecord
       # Add +records+ to this association.  Returns +self+ so method calls may be chained.  
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def <<(*records)
-        flatten_deeper(records).each do |record|
-          raise_on_type_mismatch(record)
-          insert_record(record)
-          @collection << record if loaded?
+        @owner.transaction do
+          flatten_deeper(records).each do |record|
+            raise_on_type_mismatch(record)
+            insert_record(record)
+            @collection << record if loaded?
+          end
         end
+
         self
       end
 
@@ -51,13 +54,19 @@ module ActiveRecord
       # Remove +records+ from this association.  Does not destroy +records+.
       def delete(*records)
         records = flatten_deeper(records)
-        records.each { |record| raise_on_type_mismatch(record) }
-        delete_records(records)
-        records.each { |record| @collection.delete(record) } if loaded?
+        
+        @owner.transaction do
+          records.each { |record| raise_on_type_mismatch(record) }
+          delete_records(records)
+          records.each { |record| @collection.delete(record) } if loaded?
+        end
       end
       
       def destroy_all
-        each { |record| record.destroy }
+        @owner.transaction do
+          each { |record| record.destroy }
+        end
+
         @collection = []
       end
       

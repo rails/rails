@@ -1,5 +1,7 @@
 *CVS*
 
+* Added automatic transaction block around AssociationCollection.<<, AssociationCollection.delete, and AssociationCollection.destroy_all
+
 * Fixed that Base#find will return an array if given an array -- regardless of the number of elements #270 [Marten]
 
 * Fixed that has_and_belongs_to_many would generate bad sql when naming conventions differed from using vanilla "id" everywhere [RedTerror]
