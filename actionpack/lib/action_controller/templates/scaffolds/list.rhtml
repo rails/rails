@@ -19,6 +19,9 @@
 <% end %>
 </table>
 
+<%= link_to "Previous page", { :page => instance_variable_get("@#{@scaffold_singular_name}_pages").current.previous } if instance_variable_get("@#{@scaffold_singular_name}_pages").current.previous %>
+<%= link_to "Next page", { :page => instance_variable_get("@#{@scaffold_singular_name}_pages").current.next } if instance_variable_get("@#{@scaffold_singular_name}_pages").current.next %> 
+
 <br />
 
 <%= link_to "New #{@scaffold_singular_name}", :action => "new#{@scaffold_suffix}" %>

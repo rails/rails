@@ -166,7 +166,7 @@ module ActionController
               :find_collection_for_pagination
 
     def paginator_and_collection_for(collection_id, options) #:nodoc:
-      klass = eval options[:class_name]
+      klass = options[:class_name].constantize
       page  = @params[options[:parameter]]
       count = count_collection_for_pagination(klass, options[:conditions])
 

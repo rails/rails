@@ -12,7 +12,7 @@ class <%= controller_class_name %>Controller < ApplicationController
 
 <% end -%>
   def list<%= suffix %>
-    @<%= plural_name %> = <%= model_name %>.find_all
+    @<%= singular_name %>_pages, @<%= plural_name %> = paginate :<%= singular_name %>, :per_page => 10
   end
 
   def show<%= suffix %>

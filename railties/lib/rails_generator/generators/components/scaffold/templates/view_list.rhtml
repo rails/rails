@@ -19,6 +19,9 @@
 <%% end %>
 </table>
 
+<%%= link_to "Previous page", { :page => @<%= singular_name %>_pages.current.previous } if @<%= singular_name %>_pages.current.previous %>
+<%%= link_to "Next page", { :page => @<%= singular_name %>_pages.current.next } if @<%= singular_name %>_pages.current.next %> 
+
 <br />
 
 <%%= link_to 'New <%= singular_name %>', :action => 'new<%= suffix %>' %>
