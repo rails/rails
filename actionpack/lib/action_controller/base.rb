@@ -163,6 +163,17 @@ module ActionController #:nodoc:
   # For more examples of redirecting options, have a look at the unit test in test/controller/url_test.rb. It's very readable and will give
   # you an excellent understanding of the different options and what they do.
   #
+  # == Calling multiple redirects or renders
+  #
+  # The rule for handling calls of multiple redirects and renders is that the first call wins. So in the following example:
+  #
+  #   def do_something
+  #     redirect_to :action => "elsewhere"
+  #     render_action "overthere"
+  #   end
+  #
+  # Only the redirect happens. The rendering call is simply ignored.
+  #
   # == Environments
   #
   # Action Controller works out of the box with CGI, FastCGI, and mod_ruby. CGI and mod_ruby controllers are triggered just the same using:
@@ -385,11 +396,11 @@ module ActionController #:nodoc:
       # considerably faster than rendering through the template engine.
       # Use block for response body if provided (useful for deferred rendering or streaming output).
       def render_text(text = nil, status = nil, &block) #:doc:
+        return if performed?
         add_variables_to_assigns
         @response.headers["Status"] = status || DEFAULT_RENDER_STATUS_CODE
         @response.body = block_given? ? block : text
         @performed_render = true
-        return false
       end
       
       # Renders an empty response that can be used when the request is only interested in triggering an effect. Do note that good
@@ -541,10 +552,10 @@ module ActionController #:nodoc:
       # <tt>redirect_to_url "http://www.rubyonrails.org"</tt>. If the resource has moved permanently, it's possible to pass true as the
       # second parameter and the browser will get "301 Moved Permanently" instead of "302 Found".
       def redirect_to_url(url, permanently = false) #:doc:
+        return if performed?
         logger.info("Redirected to #{url}") unless logger.nil?
         @response.redirect(url, permanently)
         @performed_redirect = true
-        return false
       end
 
       # Resets the session by clearsing out all the objects stored within and initializing a new session object.
@@ -594,12 +605,16 @@ module ActionController #:nodoc:
       def perform_action
         if action_methods.include?(action_name) || action_methods.include?('method_missing')
           send(action_name)
-          render unless @performed_render || @performed_redirect
+          render unless performed?
         elsif template_exists? && template_public?
           render
         else
           raise UnknownAction, "No action responded to #{action_name}", caller
         end
+      end
+      
+      def performed?
+        @performed_render || @performed_redirect
       end
 
       def action_methods

@@ -12,9 +12,9 @@ module ActionController #:nodoc:
     #
     # Filters have access to the request, response, and all the instance variables set by other filters in the chain
     # or by the action (in the case of after filters). Additionally, it's possible for a pre-processing <tt>before_filter</tt>
-    # to halt the processing before the intended action is processed by returning false. This is especially useful for
-    # filters like authentication where you're not interested in allowing the action to be performed if the proper 
-    # credentials are not in order.
+    # to halt the processing before the intended action is processed by returning false or performing a redirect or render. 
+    # This is especially useful for filters like authentication where you're not interested in allowing the action to be 
+    # performed if the proper credentials are not in order.
     #
     # == Filter inheritance
     #
@@ -290,7 +290,7 @@ module ActionController #:nodoc:
       end
 
       def perform_action_with_filters
-        return if before_action == false
+        return if before_action == false || performed?
         perform_action_without_filters
         after_action
       end

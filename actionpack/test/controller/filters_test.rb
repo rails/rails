@@ -14,6 +14,20 @@ class FilterTest < Test::Unit::TestCase
         @ran_filter << "ensure_login"
       end
   end
+
+  class RenderingController < ActionController::Base
+    before_filter :render_something_else
+
+    def show
+      @ran_action = true
+      render_text "ran action"
+    end
+
+    private
+      def render_something_else
+        render_text "something else"
+      end
+  end
   
   class ConditionalFilterController < ActionController::Base
     def show
@@ -263,6 +277,12 @@ class FilterTest < Test::Unit::TestCase
     assert_equal " before aroundfilter  before procfilter  before appended aroundfilter " +
                  " after appended aroundfilter  after aroundfilter  after procfilter ", 
                  MixedFilterController.execution_log
+  end
+  
+  def test_rendering_breaks_filtering_chain
+    response = test_process(RenderingController)
+    assert_equal "something else", response.body
+    assert !response.template.assigns["ran_action"]
   end
 
   private

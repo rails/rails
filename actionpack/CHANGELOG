@@ -1,3 +1,35 @@
+*SVN*
+
+* Fixed that a default fragment store wan't being set to MemoryStore as intended.
+
+* Fixed that all redirect and render calls now return true, so you can use the pattern of "do and return". Example:
+
+    def show
+      redirect_to(:action => "login") and return unless @person.authenticated?
+      render_text "I won't happen unless the person is authenticated"
+    end
+
+* Added that renders and redirects called in before_filters will have the same effect as returning false: stopping the chain. Example:
+
+    class WeblogController
+      before_filter { |c| c.send(:redirect_to_url("http://www.farfaraway.com")}) }
+      
+      def hello
+        render_text "I will never be called"
+      end
+    end
+
+
+* Added that only one render or redirect can happen per action. The first call wins and subsequent calls are ignored. Example:
+
+    def do_something
+      redirect_to :action => "elsewhere"
+      render_action "overthere"
+    end
+  
+  Only the redirect happens. The rendering call is simply ignored.
+
+
 *1.3.1* (January 18th, 2005)
 
 * Fixed a bug where cookies wouldn't be set if a symbol was used instead of a string as the key
