@@ -31,7 +31,7 @@ module ActiveRecord
         #   as the foreign key restriction. It's also possible to give it an entire string that is interpolated if you need a tighter scope than
         #   just a foreign key. Example: <tt>acts_as_list :scope => 'todo_list_id = #{todo_list_id} AND completed = 0'</tt>
         def acts_as_list(options = {})
-          configuration = { :column => "position", :scope => "1" }
+          configuration = { :column => "position", :scope => "1 = 1" }
           configuration.update(options) if options.is_a?(Hash)
 
           configuration[:scope] = "#{configuration[:scope]}_id".intern if configuration[:scope].is_a?(Symbol) && configuration[:scope].to_s !~ /_id$/
