@@ -1,5 +1,7 @@
 *CVS*
 
+* Fixed that has_and_belongs_to_many would generate bad sql when naming conventions differed from using vanilla "id" everywhere [RedTerror]
+
 * Added a better exception for when a type column is used in a table without the intention of triggering single-table inheritance. Example:
 
     ActiveRecord::SubclassNotFound: The single-table inheritance mechanism failed to locate the subclass: 'bad_class!'.

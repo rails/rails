@@ -3,16 +3,16 @@ module ActiveRecord
     class HasAndBelongsToManyAssociation < AssociationCollection #:nodoc:
       def initialize(owner, association_name, association_class_name, association_class_primary_key_name, join_table, options)
         super(owner, association_name, association_class_name, association_class_primary_key_name, options)
-            
+
         @association_foreign_key = options[:association_foreign_key] || Inflector.underscore(Inflector.demodulize(association_class_name)) + "_id"
         association_table_name = options[:table_name] || @association_class.table_name(association_class_name)
         @join_table = join_table
-        @order = options[:order] || "t.#{@owner.class.primary_key}"
+        @order = options[:order] || "t.#{@association_class.primary_key}"
 
         interpolate_sql_options!(options, :finder_sql, :delete_sql)
         @finder_sql = options[:finder_sql] ||
               "SELECT t.*, j.* FROM #{association_table_name} t, #{@join_table} j " +
-              "WHERE t.#{@owner.class.primary_key} = j.#{@association_foreign_key} AND " +
+              "WHERE t.#{@association_class.primary_key} = j.#{@association_foreign_key} AND " +
               "j.#{association_class_primary_key_name} = #{@owner.quoted_id} " +
               (options[:conditions] ? " AND " + options[:conditions] : "") + " " +
               "ORDER BY #{@order}"
