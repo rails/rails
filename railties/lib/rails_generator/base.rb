@@ -145,7 +145,7 @@ module Rails
     # See Rails::Generator::Base for a discussion of Manifests and Commands.
     class NamedBase < Base
       attr_reader   :name, :class_name, :singular_name, :plural_name
-      attr_reader   :class_path, :class_nesting
+      attr_reader   :class_path, :file_path, :class_nesting, :class_nesting_depth
       alias_method  :file_name,  :singular_name
       alias_method  :table_name, :plural_name
       alias_method  :actions, :args
@@ -170,7 +170,7 @@ module Rails
       private
         def assign_names!(name)
           @name = name
-          base_name, @class_path, @class_nesting = extract_modules(@name)
+          base_name, @class_path, @file_path, @class_nesting, @class_nesting_depth = extract_modules(@name)
           @class_name_without_nesting, @singular_name, @plural_name = inflect_names(base_name)
           if @class_nesting.empty?
             @class_name = @class_name_without_nesting
@@ -187,8 +187,9 @@ module Rails
           modules = name.include?('/') ? name.split('/') : name.split('::')
           name    = modules.pop
           path    = modules.map { |m| m.underscore }
+          file_path = (path + [name.underscore]).join('/')
           nesting = modules.map { |m| m.camelize }.join('::')
-          [name, path, nesting]
+          [name, path, file_path, nesting, modules.size]
         end
 
         def inflect_names(name)

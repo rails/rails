@@ -30,7 +30,9 @@ end
 class ScaffoldGenerator < Rails::Generator::NamedBase
   attr_reader   :controller_name,
                 :controller_class_path,
+                :controller_file_path,
                 :controller_class_nesting,
+                :controller_class_nesting_depth,
                 :controller_class_name,
                 :controller_singular_name,
                 :controller_plural_name
@@ -40,7 +42,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
   def initialize(runtime_args, runtime_options = {})
     super
     @controller_name = args.shift || @name.pluralize
-    base_name, @controller_class_path, @controller_class_nesting = extract_modules(@controller_name)
+    base_name, @controller_class_path, @controller_file_path, @controller_class_nesting, @controller_class_nesting_depth = extract_modules(@controller_name)
     @controller_class_name_without_nesting, @controller_singular_name, @controller_plural_name = inflect_names(base_name)
     if @controller_class_nesting.empty?
       @controller_class_name = @controller_class_name_without_nesting
@@ -75,7 +77,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
                             controller_class_path,
                             "#{controller_file_name}_controller_test.rb")
 
-      m.template 'controller:helper.rb',
+      m.template 'helper.rb',
                   File.join('app/helpers',
                             controller_class_path,
                             "#{controller_file_name}_helper.rb")
