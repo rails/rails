@@ -244,6 +244,14 @@ class ValidationsTest < Test::Unit::TestCase
     assert_nothing_raised(ArgumentError) { Topic.validates_inclusion_of( :title, :in => [] ) }
   end
 
+  def test_validates_inclusion_of_with_allow_nil
+    Topic.validates_inclusion_of( :title, :in => %w( a b c d e f g ), :allow_nil=>true )
+
+    assert !Topic.create("title" => "a!", "content" => "abc").valid?
+    assert !Topic.create("title" => "", "content" => "abc").valid?
+    assert Topic.create("title" => nil, "content" => "abc").valid?
+  end
+
   def test_validates_length_of_using_minimum
     Topic.validates_length_of( :title, :minimum=>5 )
     t = Topic.create("title" => "valid", "content" => "whatever")

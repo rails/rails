@@ -249,15 +249,21 @@ module ActiveRecord
       # Configuration options:
       # * <tt>in</tt> - An enumerable object of available items
       # * <tt>message</tt> - Specifieds a customer error message (default is: "is not included in the list")
+      # * <tt>allows_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
       def validates_inclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
         enum = configuration[:in] || configuration[:within]
+        allow_nil = configuration[:allow_nil]
 
         raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
 
         for attr_name in attr_names
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless (#{enum.inspect}).include?(#{attr_name}) }))
+          if allow_nil
+            class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name}.nil? or (#{enum.inspect}).include?(#{attr_name}) }))
+          else
+            class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless (#{enum.inspect}).include?(#{attr_name}) }))
+          end
         end
       end
       
