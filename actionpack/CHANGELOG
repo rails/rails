@@ -1,5 +1,21 @@
 *SVN*
 
+* Added assigns shortcut for @response.template.assigns to controller test cases [bitsweat]. Example:
+
+  Before:
+
+    def test_list
+      assert_equal 5, @response.template.assigns['recipes'].size
+      assert_equal 8, @response.template.assigns['categories'].size
+    end
+
+  After:
+
+    def test_list
+      assert_equal 5, assigns(:recipes).size
+      assert_equal 8, assigns(:categories).size
+    end
+
 * Added TagHelper#image_tag and deprecated UrlHelper#link_image_to (recommended approach is to combine image_tag and link_to instead)
 
 * Fixed textilize to be resilient to getting nil parsed (by using Object#blank? instead of String#empty?)

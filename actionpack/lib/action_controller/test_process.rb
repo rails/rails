@@ -277,6 +277,10 @@ module Test
           
           get(@response.redirected_to.delete(:action), @response.redirected_to.stringify_keys)
         end
-    end
+
+        def assigns(name)
+          @response.template.assigns[name.to_s]
+        end
+      end
   end
 end
