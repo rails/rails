@@ -32,6 +32,7 @@ module ActionView
       #
       # ::alt: If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
       # ::size: Supplied as "XxY", so "30x45" becomes width="30" and height="45"
+      # ::border: Is set to 0 by default
       # ::align: Sets the alignment, no special features
       #
       # The +src+ can be supplied as a... 
@@ -52,6 +53,13 @@ module ActionView
         if html_options["size"]
           image_options["width"], image_options["height"] = html_options["size"].split("x")
           html_options.delete "size"
+        end
+
+        if html_options["border"]
+          image_options["border"] = html_options["border"]
+          html_options.delete "border"
+        else
+          image_options["border"] = "0"
         end
         
         if html_options["align"]
