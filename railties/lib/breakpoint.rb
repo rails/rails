@@ -359,10 +359,12 @@ module Breakpoint
   #
   # Detailed information about running DRb through firewalls is
   # available at http://www.rubygarden.org/ruby?DrbTutorial
-  def activate_drb(uri = 'druby://localhost:42531',
-    allowed_hosts = ['localhost', '127.0.0.1', '::1'])
+  def activate_drb(uri = nil, allowed_hosts = ['localhost', '127.0.0.1', '::1'],
+    ignore_collisions = false)
 
     return false if @use_drb
+
+    uri ||= 'druby://localhost:42531'
 
     if allowed_hosts then
       acl = ["deny", "all"]
@@ -380,17 +382,21 @@ module Breakpoint
     begin
       DRb.start_service(uri, @drb_service)
     rescue Errno::EADDRINUSE
-      # The port is already occupied by another
-      # Breakpoint service. We will try to tell
-      # the old service that we want its port.
-      # It will then forward that request to the
-      # user and retry.
-      unless did_collision then
-        DRbObject.new(nil, uri).collision
-        did_collision = true
+      if ignore_collisions then
+        nil
+      else
+        # The port is already occupied by another
+        # Breakpoint service. We will try to tell
+        # the old service that we want its port.
+        # It will then forward that request to the
+        # user and retry.
+        unless did_collision then
+          DRbObject.new(nil, uri).collision
+          did_collision = true
+        end
+        sleep(10)
+        retry
       end
-      sleep(10)
-      retry
     end
 
     return true
