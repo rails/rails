@@ -16,6 +16,7 @@ module Dependencies
   def depend_on(file_name, swallow_load_errors = false)
     if !loaded.include?(file_name)
       loaded << file_name
+
       begin
         require_or_load(file_name)
       rescue LoadError
@@ -69,11 +70,13 @@ module Dependencies
     end
   
     # Load the controller class or a parent module.
-    def const_load!(name)
-      path = self.path + [name]
+    def const_load!(name, file_name = nil)
+      path = self.path + [file_name || name]
+
       load_paths.each do |load_path|
         fs_path = load_path.filesystem_path(path)
         next unless fs_path
+
         if File.directory?(fs_path)
           self.const_set name, LoadingModule.new(self.root, self.path + [name])
           break
@@ -82,6 +85,7 @@ module Dependencies
           break
         end
       end
+
       return self.const_defined?(name)
     end
     
@@ -94,16 +98,20 @@ module Dependencies
   
   class RootLoadingModule < LoadingModule
     attr_reader :load_paths
+
     def initialize(*paths)
       @load_paths = paths.flatten.collect {|p| p.kind_of?(ConstantLoadPath) ? p : ConstantLoadPath.new(p)}
     end
+
     def root() self end
+
     def path() [] end
     
     # Load the source file at the given file path
     def load_file!(file_path)
       root.module_eval(IO.read(file_path), file_path, 1)
     end
+
     # Erase all items in this module
     def clear!
       constants.each do |name|
@@ -123,17 +131,21 @@ module Dependencies
     def filesystem_path(path, allow_module=true)
       fs_path = [@root]
       fs_path += path[0..-2].collect {|name| const_name_to_module_name name}
+
       if allow_module
         result = File.join(fs_path, const_name_to_module_name(path.last))
         return result if File.directory? result # Return the module path if one exists
-   end
+      end
+
       result = File.join(fs_path, const_name_to_file_name(path.last))
+
       return File.file?(result) ? result : nil
     end
     
     def const_name_to_file_name(name)
       name.to_s.underscore + '.rb'
     end
+
     def const_name_to_module_name(name)
       name.to_s.underscore
     end
@@ -152,6 +164,7 @@ class Object #:nodoc:
       if Object.const_defined?(:Controllers) and Object::Controllers.const_available?(class_id)
         return Object::Controllers.const_get(class_id)
       end
+
       begin
         require_or_load(class_id.to_s.demodulize.underscore)
         if Object.const_defined?(class_id) then return Object.const_get(class_id) else raise LoadError end
@@ -160,6 +173,7 @@ class Object #:nodoc:
       end
     end
   end
+
   def load(file, *extras)
     begin super(file, *extras)
     rescue Object => exception
@@ -167,6 +181,7 @@ class Object #:nodoc:
       raise
     end
   end
+
   def require(file, *extras)
     begin super(file, *extras)
     rescue Object => exception
@@ -181,7 +196,9 @@ class Exception
   def blame_file!(file)
     (@blamed_files ||= []).unshift file
   end
+
   attr_reader :blamed_files
+
   def describe_blame
     return nil if blamed_files.empty?
     "This error occured while loading the following files:\n   #{blamed_files.join '\n   '}"
