@@ -121,8 +121,7 @@ task :copy_dispatches do
 end
 
 task :copy_html_files do
-  cp HTML_FILES.map { |dir| File.join('html', dir) },
-     File.join(PKG_DESTINATION, 'public')
+  HTML_FILES.each { |file| cp File.join('html', file), File.join(PKG_DESTINATION, 'public', file) }
 end
 
 task :copy_application do
