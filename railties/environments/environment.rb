@@ -16,8 +16,8 @@ ADDITIONAL_LOAD_PATHS.concat %w(
   app/controllers 
   app/helpers 
   app/apis 
-  config 
   components 
+  config 
   lib 
   vendor 
   vendor/rails/railties
@@ -33,26 +33,13 @@ ADDITIONAL_LOAD_PATHS.concat %w(
 ADDITIONAL_LOAD_PATHS.reverse.each { |dir| $:.unshift(dir) if File.directory?(dir) }
 
 # Require Rails libraries.
-rails_files = %w(
-  actionpack/lib/action_controller
-  actionpack/lib/action_view
-  activesupport/lib/active_support
-  activerecord/lib/active_record
-  actionmailer/lib/action_mailer
-  actionwebservice/lib/action_web_service
-).collect { |p| File.join(RAILS_ROOT, 'vendor', 'rails', "#{p}.rb") }
+require 'rubygems' unless File.directory?("#{RAILS_ROOT}/vendor/rails")
 
-if rails_files.all? { |f| File.file?(f) }
-  rails_files.each { |f| require f }
-else
-  require 'rubygems'
-  require_gem 'activesupport'
-  require_gem 'activerecord'
-  require_gem 'actionpack'
-  require_gem 'actionmailer'
-  require_gem 'actionwebservice'
-  require_gem 'rails'
-end
+require 'active_support'
+require 'active_record'
+require 'action_controller'
+require 'action_mailer'
+require 'action_web_service'
 
 # Environment-specific configuration.
 require_dependency "environments/#{RAILS_ENV}"
