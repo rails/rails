@@ -56,6 +56,10 @@ class TC_API < Test::Unit::TestCase
         api_method :test, :expects => [ActiveRecord::Base]
       end
     end
+    klass = Class.new(ActionWebService::API::Base) do
+      allow_active_record_expects true
+      api_method :test2, :expects => [ActiveRecord::Base]
+    end
     assert_raises(ActionWebService::ActionWebServiceError) do
       klass = Class.new(ActionWebService::API::Base) do
         api_method :test, :invalid => [:int]
