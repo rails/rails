@@ -54,17 +54,6 @@ class RequestTest < Test::Unit::TestCase
     assert_equal "/", @request.path
   end
 
-  def test_path_info
-    @request.env["PATH_INFO"] = "/path/of/some/uri"
-    assert_equal "/path/of/some/uri", @request.path_info
-    assert_equal "/path/of/some/uri", @request.path
-    
-    # PATH_INFO actually has a .html suffix on many servers. But we don't want Rails to see the .html part.
-    @request.env["PATH_INFO"] = "/path/of/some/uri.html"
-    assert_equal "/path/of/some/uri", @request.path_info
-    assert_equal "/path/of/some/uri", @request.path
-  end
-
   def test_host_with_port
     @request.env['HTTP_HOST'] = "rubyonrails.org:8080"
     assert_equal "rubyonrails.org:8080", @request.host_with_port

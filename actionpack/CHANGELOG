@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed the reliance on PATH_INFO as it was causing problems for caching and inhibited the new non-vhost support #822 [Nicholas Seckar]
+
 * Added assigns shortcut for @response.template.assigns to controller test cases [bitsweat]. Example:
 
   Before:
