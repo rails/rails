@@ -462,13 +462,13 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
   def test_deleting_type_mismatch
     david = Developer.find(1)
-    david.projects.id
+    david.projects.reload
     assert_raises(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(1) }
   end
 
   def test_deleting_self_type_mismatch
     david = Developer.find(1)
-    david.projects.id
+    david.projects.reload
     assert_raises(ActiveRecord::AssociationTypeMismatch) { david.projects.delete(Project.find(1).developers) }
   end
 
@@ -672,7 +672,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   
   def test_adding_single
     jamis = Developer.find(2)
-    jamis.projects.id # causing the collection to load 
+    jamis.projects.reload # causing the collection to load 
     action_controller = Project.find(2)
     assert_equal 1, jamis.projects.size
     assert_equal 1, action_controller.developers.size    
@@ -693,7 +693,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_adding_from_the_project
     jamis = Developer.find(2)
     action_controller = Project.find(2)
-    action_controller.developers.id
+    action_controller.developers.reload
     assert_equal 1, jamis.projects.size
     assert_equal 1, action_controller.developers.size
 
@@ -707,7 +707,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_adding_multiple
     aridridel = Developer.new("name" => "Aridridel")
     aridridel.save
-    aridridel.projects.id
+    aridridel.projects.reload
     aridridel.projects.push(Project.find(1), Project.find(2))
     assert_equal 2, aridridel.projects.size
     assert_equal 2, aridridel.projects(true).size
@@ -716,7 +716,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_adding_a_collection
     aridridel = Developer.new("name" => "Aridridel")
     aridridel.save
-    aridridel.projects.id
+    aridridel.projects.reload
     aridridel.projects.concat([Project.find(1), Project.find(2)])
     assert_equal 2, aridridel.projects.size
     assert_equal 2, aridridel.projects(true).size
@@ -791,7 +791,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_deleting
     david = Developer.find(1)
     active_record = Project.find(1)
-    david.projects.id
+    david.projects.reload
     assert_equal 2, david.projects.size
     assert_equal 2, active_record.developers.size
 
@@ -804,7 +804,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
 
   def test_deleting_array
     david = Developer.find(1)
-    david.projects.id
+    david.projects.reload
     david.projects.delete(Project.find_all)
     assert_equal 0, david.projects.size
     assert_equal 0, david.projects(true).size
@@ -812,7 +812,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
 
   def test_deleting_all
     david = Developer.find(1)
-    david.projects.id
+    david.projects.reload
     david.projects.clear
     assert_equal 0, david.projects.size
     assert_equal 0, david.projects(true).size
@@ -829,7 +829,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   
   def test_destroy_all
     david = Developer.find(1)
-    david.projects.id
+    david.projects.reload
     assert !david.projects.empty?
     david.projects.destroy_all
     assert david.projects.empty?

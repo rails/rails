@@ -201,7 +201,7 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_record_not_found_exception
-    assert_raises(ActiveRecord::RecordNotFound) { topicReloaded = Topic.find(id) }
+    assert_raises(ActiveRecord::RecordNotFound) { topicReloaded = Topic.find(99999) }
   end
   
   def test_initialize_with_attributes
