@@ -25,22 +25,24 @@ module ActionView
       #  link_to_remote "Delete this post", :update => "posts", :url => { :action => "destroy", :id => post.id }
       #  link_to_remote(image_tag("refresh"), :update => "emails", :url => { :action => "list_emails" })
       #
-      # Asynchronous requests may be made by specifying a callback function
-      # to invoke when the request finishes.
+      # By default, these remote requests are processed asynchronous during which various callbacks can be triggered (for progress indicators
+      # and the likes).
       #
       # Example:
       #   link_to_remote word,
       #       :url => { :action => "undo", :n => word_counter },
-      #       :before => "if(!prepareForUndo()) return false",
       #       :complete => "undoRequestCompleted(request)"
       #
       # The complete list of callbacks that may be specified are:
       #
-      # * uninitialized
-      # * loading
-      # * loaded
-      # * interactive
-      # * complete
+      # * <tt>:uninitialized</tt> -- EXPLAIN ME!
+      # * <tt>:loading</tt> --  EXPLAIN ME!
+      # * <tt>:loaded</tt> --  EXPLAIN ME!
+      # * <tt>:interactive</tt> --  EXPLAIN ME!
+      # * <tt>:complete</tt> --  EXPLAIN ME!
+      #
+      # If you for some reason or another needs synchronous processing (that'll block the browser while the request is happening), you
+      # can specify <tt>options[:type] = :sync</tt>.
       def link_to_remote(name, options = {}, html_options = {})  
         link_to_function(name, remote_function(options), html_options)
       end
@@ -52,6 +54,18 @@ module ActionView
         options[:html][:onsubmit] = "#{remote_function(options)}; return false;"
 
         tag("form", options[:html], true)
+      end
+
+      def remote_function(options)
+        function = options[:update] ? 
+          "update_with_response('#{options[:update]}', '#{url_for(options[:url])}'#{', Form.serialize(this)' if options[:form]})" :
+          "xml_request('#{url_for(options[:url])}'#{', Form.serialize(this)' if options[:form]})"
+
+        function = "#{options[:before]}; #{function}" if options[:before]
+        function = "#{function}; #{options[:after]}"  if options[:after]
+        function = "if (#{options[:condition]}) { #{function}; }" if options[:condition]
+
+        return function
       end
 
       def define_javascript_functions
@@ -160,6 +174,17 @@ module ActionView
       return document.getElementById(id);
     }
 
+    function get_elements_by_class(tag_name, class_name) {
+      var all = document.all ? document.all : document.getElementsByTagName(tag_name);
+      var elements = new Array();
+
+      for (var e = 0; e < all.length; e++)
+        if (all[e].className == class_name)
+          elements[elements.length] = all[e];
+
+      return elements;
+    }
+
 
     /* Serialize a form by Sam Stephenson ------------------------------ */
 
@@ -248,8 +273,9 @@ module ActionView
 
           function << "'#{url_for(options[:url])}'"
           function << ', Form.serialize(this)' if options[:form]
-          function << ', nil' if !options[:form] && callbacks
-          function << ", true, " << callbacks if callbacks
+          function << ', null' if !options[:form] && callbacks
+          function << ", true" if callbacks || options[:type] != :sync
+          function << ", #{callbacks}" if callbacks
           function << ')'
 
           function = "#{options[:before]}; #{function}" if options[:before]
