@@ -158,7 +158,7 @@ class Fixtures < Hash
       ActiveRecord::Base.logger.level = Logger::ERROR
 
       fixtures = table_names.flatten.map do |table_name|
-        Fixtures.new(connection, table_name.to_s, File.join(fixtures_directory, table_name.to_s))
+        Fixtures.new(connection, File.split(table_name.to_s).last, File.join(fixtures_directory, table_name.to_s))
       end
 
       connection.transaction do

@@ -13,6 +13,8 @@ module Dependencies
     if !loaded.include?(file_name)
       loaded << file_name
 
+      STDERR << "Loaded: #{file_name}\n"
+
       begin
         require_or_load(file_name)
       rescue LoadError
@@ -26,19 +28,9 @@ module Dependencies
   end
 
   def reload
-    old_loaded = loaded
+    reloading = loaded.dup
     clear
-    
-    old_loaded.each do |file_name| 
-      next if loaded.include?(file_name)
-
-      begin
-        silence_warnings { load("#{file_name}.rb") }
-        loaded << file_name
-      rescue LoadError
-        # The association didn't reside in its own file, so we assume it was required by other means
-      end
-    end
+    reloading.each { |file_name| depend_on(file_name, true) }
   end
   
   def clear

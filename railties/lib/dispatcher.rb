@@ -24,13 +24,11 @@
 require 'breakpoint'
 
 class Dispatcher
-  
   class <<self
-    
     def dispatch(cgi = CGI.new, session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS)
-     Breakpoint.activate_drb("druby://localhost:#{BREAKPOINT_SERVER_PORT}", nil, !defined?(FastCGI)) if defined?(BREAKPOINT_SERVER_PORT)
-
       begin
+        Breakpoint.activate_drb("druby://localhost:#{BREAKPOINT_SERVER_PORT}", nil, !defined?(FastCGI)) if defined?(BREAKPOINT_SERVER_PORT)
+
         request  = ActionController::CgiRequest.new(cgi, session_options)
         response = ActionController::CgiResponse.new(cgi)
     
@@ -38,25 +36,21 @@ class Dispatcher
 
         require_dependency("application")
         require_dependency(controller_path(controller_name, module_name))
-        
-        reload_application rescue nil # Ignore out of order reloading errors for Controllers
-        
+
         controller_class(controller_name).process(request, response).out
       rescue Object => exception
         ActionController::Base.process_with_exception(request, response, exception).out
-      ensure      
-        remove_class_hierarchy(controller_class(controller_name), ActionController::Base) if Dependencies.mechanism == :load
+      ensure
+        reset_application(controller_name) if Dependencies.mechanism == :load
         Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
       end
     end
     
     private
-    
-      def reload_application
-        if Dependencies.mechanism == :load
-          ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
-          Dependencies.reload 
-        end    
+      def reset_application(controller_name)
+        ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
+        Dependencies.clear
+        remove_class_hierarchy(controller_class(controller_name), ApplicationController)
       end
 
       def controller_path(controller_name, module_name = nil)
