@@ -487,8 +487,10 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 end
 
 class BelongsToAssociationsTest < Test::Unit::TestCase
+  fixtures :accounts, :companies, :developers, :projects, :topics
+  
   def setup
-    create_fixtures "accounts", "companies", "developers", "projects", "developers_projects", "topics"
+    create_fixtures "developers_projects"
     @signals37 = Firm.find(1)
   end
 
@@ -575,6 +577,11 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert !apple.new_record?
     assert_equal apple, final_cut.firm
     assert_equal apple, final_cut.firm(true)
+  end
+
+  def test_new_record_with_foreign_key_but_no_object
+    c = Client.new("firm_id" => 1)
+    assert_equal @first_firm, c.firm_with_basic_id
   end
 
   def test_field_name_same_as_foreign_key
