@@ -50,7 +50,7 @@ class Dispatcher
       def reset_application(controller_name)
         ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
         Dependencies.clear
-        remove_class_hierarchy(controller_class(controller_name), ApplicationController)
+        remove_class_hierarchy(controller_class(controller_name), ActionController::Base)
       end
 
       def controller_path(controller_name, module_name = nil)
