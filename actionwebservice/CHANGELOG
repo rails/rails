@@ -1,6 +1,10 @@
 *0.7.0* (Unreleased)
 
+* Add scaffolding via ActionController::Base.web_service_scaffold for quick testing using a web browser
+
 * Generalize casting code to be used by both SOAP and XML-RPC (previously, it was only XML-RPC)
+
+* Include backtraces in 500 error responses for failed request parsing, and remove "rescue nil" statements obscuring real errors for XML-RPC
 
 
 *0.6.2* (27th March, 2005)

@@ -7,9 +7,63 @@ module ActionWebService # :nodoc:
       attr :marshaler
       attr :encoder
 
+      def unmarshal_request(ap_request)
+      end
+
       def marshal_response(method, return_value)
         body = method.encode_rpc_response(marshaler, encoder, return_value)
         Response.new(body, 'text/xml')
+      end
+
+      def protocol_client(api, protocol_name, endpoint_uri, options)
+      end
+
+      def create_action_pack_request(service_name, public_method_name, raw_body, options={})
+        klass = options[:request_class] || SimpleActionPackRequest
+        request = klass.new
+        request.request_parameters['action'] = service_name.to_s
+        request.env['RAW_POST_DATA'] = raw_body
+        request.env['REQUEST_METHOD'] = 'POST'
+        request.env['HTTP_CONTENT_TYPE'] = 'text/xml'
+        request
+      end
+    end
+
+    class SimpleActionPackRequest < ActionController::AbstractRequest
+      def initialize
+        @env = {}
+        @qparams = {}
+        @rparams = {}
+        @cookies = {}
+        reset_session
+      end
+
+      def query_parameters
+        @qparams
+      end
+
+      def request_parameters
+        @rparams
+      end
+
+      def env
+        @env
+      end
+
+      def host
+        ''
+      end
+
+      def cookies
+        @cookies
+      end
+
+      def session
+        @session
+      end
+
+      def reset_session
+        @session = {}
       end
     end
 

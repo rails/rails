@@ -63,6 +63,7 @@ module ActionWebService # :nodoc:
               end
             else
               exception ||= DispatcherError.new("Malformed SOAP or XML-RPC protocol message")
+              log_error(exception) unless logger.nil?
               send_web_service_error_response(request, exception)
             end
           rescue Exception => e

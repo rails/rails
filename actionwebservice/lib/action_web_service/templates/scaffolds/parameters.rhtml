@@ -1,0 +1,20 @@
+<h4>Method Parameters for <em><%= @scaffold_service %>#<%= @scaffold_method.public_name %></em></h4>
+
+<%= form_tag :action => @scaffold_action_name + '_submit'  %>
+<%= hidden_field_tag "service", @scaffold_service.name %>
+<%= hidden_field_tag "method", @scaffold_method.public_name %>
+
+<% i = 0 %>
+<% @scaffold_method.expects.each do |spec| %>
+  <p>
+  <label for="method_params[]"><%= @scaffold_method.param_name(spec, i).camelize %></label><br />
+  <%= method_parameter_input_fields(@scaffold_method, spec, i) %>
+  </p>
+  <% i += 1 %>
+<% end %>
+
+<%= submit_tag "Invoke" %>
+
+<p>
+<%= link_to "Back", :action => @scaffold_action_name %>
+</p>

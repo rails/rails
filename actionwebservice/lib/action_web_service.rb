@@ -46,6 +46,7 @@ require 'action_web_service/container'
 require 'action_web_service/protocol'
 require 'action_web_service/struct'
 require 'action_web_service/dispatcher'
+require 'action_web_service/scaffolding'
 
 ActionWebService::Base.class_eval do
   include ActionWebService::Container::Direct
@@ -61,4 +62,5 @@ ActionController::Base.class_eval do
   include ActionWebService::Container::ActionController
   include ActionWebService::Dispatcher
   include ActionWebService::Dispatcher::ActionController
+  include ActionWebService::Scaffolding
 end

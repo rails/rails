@@ -1,6 +1,10 @@
 = 0.7.0
   - WS Dynamic Scaffolding
-  - WS Scaffolding Generators
+    * add protocol selection ability
+    * test with XML-RPC (namespaced method name support)
+    * support structured types as input parameters with the input field helper
+
+  - update manual for scaffolding and functional testing
 
 = 0.8.0
   - Consumption of WSDL services

@@ -18,7 +18,7 @@ module ActionWebService # :nodoc:
           Request.new(self, method_name, params, service_name)
         end
 
-        def protocol_client(api, protocol_name, endpoint_uri, options)
+        def protocol_client(api, protocol_name, endpoint_uri, options={})
           return nil unless protocol_name == :xmlrpc
           ActionWebService::Client::XmlRpc.new(api, endpoint_uri, options)
         end

@@ -73,4 +73,8 @@ class TC_API < Test::Unit::TestCase
       end
     end
   end
+
+  def test_to_s
+    assert_equal 'void Expects(int p1, bool p2)', APITest::API.api_methods[:expects].to_s
+  end
 end

@@ -2,9 +2,6 @@ require 'xmlrpc/marshal'
 
 module WS
   module Encoding
-    class XmlRpcError < WSError
-    end
-
     class XmlRpcEncoding < AbstractEncoding
       def encode_rpc_call(method_name, params)
         XMLRPC::Marshal.dump_call(method_name, *params)

@@ -284,9 +284,30 @@ module ActionWebService # :nodoc:
         marshaler.cast_inbound_recursive(return_value, @returns[0])
       end
 
+      # String representation of this method
+      def to_s
+        fqn = ""
+        fqn << (@returns ? (friendly_param(@returns[0], nil) + " ") : "void ")
+        fqn << "#{@public_name}("
+        if @expects
+          i = 0
+          fqn << @expects.map{ |p| friendly_param(p, i+= 1) }.join(", ")
+        end
+        fqn << ")"
+        fqn
+      end
+
       private
         def response_name(encoder)
           encoder.is_a?(WS::Encoding::SoapRpcEncoding) ? (@public_name + "Response") : @public_name
+        end
+
+        def friendly_param(spec, i)
+          name = param_name(spec, i)
+          type = param_type(spec)
+          spec = spec.values.first if spec.is_a?(Hash)
+          type = spec.is_a?(Array) ? (type.to_s + "[]") : type.to_s
+          i ? (type + " " + name) : type
         end
     end
   end

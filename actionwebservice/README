@@ -197,6 +197,51 @@ For this example, a remote call for a method with a name like
 method on the <tt>:mt</tt> service.
 
 
+== Testing your APIs
+
+
+=== Functional testing
+
+You can perform testing of your APIs by creating a functional test for the
+controller dispatching the API, and calling #invoke in the test case to
+perform the invocation.
+
+Example:
+
+  class PersonApiControllerTest < Test::Unit::TestCase
+    def setup
+      @controller = PersonController.new
+      @request    = ActionController::TestRequest.new
+      @response   = ActionController::TestResponse.new
+    end
+
+    def test_add
+      result = invoke :remove, 1
+      assert_equal true, result
+    end
+  end
+
+This example invokes the API method <tt>test</tt>, defined on 
+the PersonController, and returns the result.
+
+
+=== Scaffolding
+
+You can also test your APIs with a web browser by attaching scaffolding
+to the controller.
+
+Example:
+
+  class PersonController
+    web_service_scaffold :invocation
+  end
+
+This creates an action named <tt>invocation</tt> on the PersonController.
+
+Navigating to this action lets you select the method to invoke, supply the parameters,
+and view the result of the invocation.
+
+
 == Using the client support
 
 Action Web Service includes client classes that can use the same API

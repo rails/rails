@@ -20,9 +20,15 @@ module ActionWebService # :nodoc:
           Request.new(self, method_name, params, service_name)
         end
 
-        def protocol_client(api, protocol_name, endpoint_uri, options)
+        def protocol_client(api, protocol_name, endpoint_uri, options={})
           return nil unless protocol_name == :soap
           ActionWebService::Client::Soap.new(api, endpoint_uri, options)
+        end
+
+        def create_action_pack_request(service_name, public_method_name, raw_body, options={})
+          request = super
+          request.env['HTTP_SOAPACTION'] = '/soap/%s/%s' % [service_name, public_method_name]
+          request
         end
 
         private

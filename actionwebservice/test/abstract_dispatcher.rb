@@ -301,7 +301,8 @@ module DispatcherCommonTests
     [@direct_controller, @delegated_controller].each do |controller|
       controller.class.web_service_exception_reporting = true
       send_garbage_request = lambda do
-        request = create_ap_request(controller, 'invalid request body', 'xxx')
+        service_name = service_name(controller)
+        request = @protocol.create_action_pack_request(service_name, 'broken, method, name!', 'broken request body', :request_class => ActionController::TestRequest)
         response = ActionController::TestResponse.new
         controller.process(request, response)
         # puts response.body
@@ -378,22 +379,25 @@ module DispatcherCommonTests
       mode = container.web_service_dispatching_mode
       case mode
       when :direct
+        service_name = service_name(container)
         api = container.class.web_service_api
       when :delegated
-        api = container.web_service_object(service_name(container)).class.web_service_api
+        service_name = service_name(container)
+        api = container.web_service_object(service_name).class.web_service_api
       when :layered
         service_name = nil
         if public_method_name =~ /^([^\.]+)\.(.*)$/
           service_name = $1
         end
         api = container.web_service_object(service_name.to_sym).class.web_service_api
+        service_name = self.service_name(container)
       end
       method = api.public_api_method_instance(public_method_name)
       method ||= api.dummy_public_api_method_instance(public_method_name)
       # we turn off strict so we can test our own handling of incorrectly typed parameters
       body = method.encode_rpc_call(@marshaler, @encoder, params.dup, :strict => false)
       # puts body
-      ap_request = create_ap_request(container, body, public_method_name, *params)
+      ap_request = protocol.create_action_pack_request(service_name, public_method_name, body, :request_class => ActionController::TestRequest)
       ap_response = ActionController::TestResponse.new
       container.process(ap_request, ap_response)
       # puts ap_response.body

@@ -28,6 +28,7 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
     @direct_controller = DirectController.new
     @delegated_controller = DelegatedController.new
     @virtual_controller = VirtualController.new
+    @protocol = ActionWebService::Protocol::Soap::SoapProtocol.new
   end
 
   def test_wsdl_generation
@@ -68,16 +69,6 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
     def is_exception?(obj)
       obj.respond_to?(:detail) && obj.detail.respond_to?(:cause) && \
       obj.detail.cause.is_a?(Exception)
-    end
-
-    def create_ap_request(container, body, public_method_name, *args)
-      test_request = ActionController::TestRequest.new
-      test_request.request_parameters['action'] = service_name(container)
-      test_request.env['REQUEST_METHOD'] = "POST"
-      test_request.env['HTTP_CONTENT_TYPE'] = 'text/xml'
-      test_request.env['HTTP_SOAPACTION'] = "/soap/#{service_name(container)}/#{public_method_name}"
-      test_request.env['RAW_POST_DATA'] = body
-      test_request
     end
 
     def service_name(container)
