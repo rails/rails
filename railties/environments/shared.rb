@@ -37,8 +37,9 @@ require 'action_mailer'
 
 
 # Environment-specific configuration.
-require 'yaml'
 ActiveRecord::Base.configurations = YAML::load(File.open("#{RAILS_ROOT}/config/database.yml"))
+ActiveRecord::Base.establish_connection
+
 ActionController::Base.require_or_load 'abstract_application'
 ActionController::Base.require_or_load "environments/#{RAILS_ENV}"
 
@@ -51,6 +52,5 @@ end
 [ActionController::Base, ActionMailer::Base].each do |klass|
   klass.template_root ||= "#{RAILS_ROOT}/app/views/"
 end
-
 
 # Include your app's configuration here:
