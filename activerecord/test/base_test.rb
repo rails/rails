@@ -287,6 +287,9 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal 2, Topic.update_all("content = 'bulk updated!'")
     assert_equal "bulk updated!", Topic.find(1).content
     assert_equal "bulk updated!", Topic.find(2).content
+    assert_equal 2, Topic.update_all(['content = ?', 'bulk updated again!']);
+    assert_equal "bulk updated again!", Topic.find(1).content
+    assert_equal "bulk updated again!", Topic.find(2).content
   end
 
   def test_delete_all

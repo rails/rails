@@ -368,7 +368,7 @@ module ActiveRecord #:nodoc:
       # A subset of the records can be selected by specifying +conditions+. Example:
       #   Billing.update_all "category = 'authorized', approved = 1", "author = 'David'"
       def update_all(updates, conditions = nil)
-        sql  = "UPDATE #{table_name} SET #{updates} "
+        sql  = "UPDATE #{table_name} SET #{sanitize_sql(updates)} "
         add_conditions!(sql, conditions)
         return connection.update(sql, "#{name} Update")
       end

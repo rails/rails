@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that update_all calls sanitize_sql on its updates argument, so stuff like MyRecord.update_all(['time = ?', Time.now]) works #519 [notahat]
+
 * Fixed that the dynamic finders didn't treat nil as a "IS NULL" but rather "= NULL" case #515 [Demetrius]
 
 * Added bind-named arrays for interpolating a group of ids or strings in conditions #528 [bitsweat]
