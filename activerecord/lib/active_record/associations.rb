@@ -122,7 +122,7 @@ module ActiveRecord
     # All of the association macros can be specialized through options which makes more complex cases than the simple and guessable ones
     # possible.
     module ClassMethods
-      # Adds the following methods for retrival and query of collections of associated objects.
+      # Adds the following methods for retrieval and query of collections of associated objects.
       # +collection+ is replaced with the symbol passed as the first argument, so 
       # <tt>has_many :clients</tt> would add among others <tt>has_clients?</tt>.
       # * <tt>collection(force_reload = false)</tt> - returns an array of all the associated objects.
@@ -224,7 +224,7 @@ module ActiveRecord
         deprecated_build_method(association_name)
       end
 
-      # Adds the following methods for retrival and query of a single associated object.
+      # Adds the following methods for retrieval and query of a single associated object.
       # +association+ is replaced with the symbol passed as the first argument, so 
       # <tt>has_one :manager</tt> would add among others <tt>has_manager?</tt>.
       # * <tt>association(force_reload = false)</tt> - returns the associated object. Nil is returned if none is found.
@@ -280,7 +280,7 @@ module ActiveRecord
         module_eval "before_destroy '#{association_name}.destroy if has_#{association_name}?'" if options[:dependent]
       end
 
-      # Adds the following methods for retrival and query for a single associated object that this object holds an id to.
+      # Adds the following methods for retrieval and query for a single associated object that this object holds an id to.
       # +association+ is replaced with the symbol passed as the first argument, so 
       # <tt>belongs_to :author</tt> would add among others <tt>has_author?</tt>.
       # * <tt>association(force_reload = false)</tt> - returns the associated object. Nil is returned if none is found.
@@ -289,7 +289,7 @@ module ActiveRecord
       #   same id as the associated object.
       # * <tt>association.nil?</tt> - returns true if there is no associated object.
       #
-      # Example: An Post class declares <tt>has_one :author</tt>, which will add:
+      # Example: A Post class declares <tt>has_one :author</tt>, which will add:
       # * <tt>Post#author</tt> (similar to <tt>Author.find(author_id)</tt>)
       # * <tt>Post#author=(author)</tt> (similar to <tt>post.author_id = author.id</tt>)
       # * <tt>Post#author?</tt> (similar to <tt>post.author == some_author</tt>)
@@ -364,9 +364,12 @@ module ActiveRecord
       #
       # Any additional fields added to the join table will be placed as attributes when pulling records out through
       # has_and_belongs_to_many associations. This is helpful when have information about the association itself
-      # that you want available on retrival.
+      # that you want available on retrieval. Note that any fields in the join table will override matching field names
+      # in the two joined tables. As a consequence, having an "id" field in the join table usually has the undesirable
+      # result of clobbering the "id" fields in either of the other two tables.
+      # 
       #
-      # Adds the following methods for retrival and query.
+      # Adds the following methods for retrieval and query.
       # +collection+ is replaced with the symbol passed as the first argument, so 
       # <tt>has_and_belongs_to_many :categories</tt> would add among others +add_categories+.
       # * <tt>collection(force_reload = false)</tt> - returns an array of all the associated objects.
