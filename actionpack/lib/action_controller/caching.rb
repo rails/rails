@@ -1,10 +1,15 @@
 require 'fileutils'
 
 module ActionController #:nodoc:
-  module Caching #:nodoc:
+  # To turn off all caching and sweeping, set Base.perform_caching = false.
+  module Caching
     def self.append_features(base)
       super
       base.send(:include, Pages, Actions, Fragments, Sweeping)
+      base.class_eval do
+        @@perform_caching = true
+        cattr_accessor :perform_caching
+      end
     end
 
     # Page caching is an approach to caching where the entire action output of is stored as a HTML file that the web server 
@@ -48,17 +53,20 @@ module ActionController #:nodoc:
 
       module ClassMethods
         def cache_page(content, path)
+          return unless perform_caching
           FileUtils.makedirs(File.dirname(page_cache_directory + path))
           File.open(page_cache_directory + path, "w+") { |f| f.write(content) }
           logger.info "Cached page: #{path}" unless logger.nil?
         end
 
         def expire_page(path)
+          return unless perform_caching
           File.delete(page_cache_directory + path) if File.exists?(page_cache_directory + path)
           logger.info "Expired page: #{path}" unless logger.nil?
         end
         
         def caches_page(*actions)
+          return unless perform_caching
           actions.each do |action| 
             class_eval "after_filter { |c| c.cache_page if c.action_name == '#{action}' }"
           end
@@ -66,6 +74,7 @@ module ActionController #:nodoc:
       end
 
       def expire_page(options = {})
+        return unless perform_caching
         if options[:action].is_a?(Array)
           options[:action].dup.each do |action|
             self.class.expire_page(url_for(options.merge({ :only_path => true, :action => action })))
@@ -85,6 +94,7 @@ module ActionController #:nodoc:
       end
       
       def cache_page(content = nil, options = {})
+        return unless perform_caching
         self.class.cache_page(content || @response.body, url_for(options.merge({ :only_path => true })))
       end
     end
@@ -115,11 +125,13 @@ module ActionController #:nodoc:
 
       module ClassMethods
         def caches_action(*actions)
+          return unless perform_caching
           around_filter(ActionCacheFilter.new(*actions))
         end
       end
 
       def expire_action(options = {})
+        return unless perform_caching
         if options[:action].is_a?(Array)
           options[:action].dup.each do |action|
             expire_fragment(url_for(options.merge({ :action => action })).split("://").last)
@@ -186,6 +198,8 @@ module ActionController #:nodoc:
 
       # Called by CacheHelper#cache
       def cache_erb_fragment(binding, name = {}, options = {})
+        unless perform_caching then yield; return end
+        
         buffer = eval("_erbout", binding)
 
         if cache = read_fragment(name, options)
@@ -324,6 +338,7 @@ module ActionController #:nodoc:
       # In the example above, four actions are cached and three actions are responsible of expiring those caches.
       module ClassMethods
         def cache_sweeper(*sweepers)
+          return unless perform_caching
           configuration = sweepers.last.is_a?(Hash) ? sweepers.pop : {}
           sweepers.each do |sweeper| 
             observer(sweeper)
