@@ -29,12 +29,8 @@ class CGI
       #
       # This session's ActiveRecord database row will be created if it does not exist, or opened if it does.
       def initialize(session, option=nil)
-        @session = Session.find_first(["sessid = '%s'", session.session_id])
-        if @session
-          @data = @session.data
-        else
-          @session = Session.new("sessid" => session.session_id, "data" => {})
-        end
+        @session = Session.find_by_sessid(session.session_id) || Session.new("sessid" => session.session_id, "data" => {})
+        @data    = @session.data
       end
 
       # Update and close the session's ActiveRecord object.
@@ -60,8 +56,7 @@ class CGI
       # Save session state in the session's ActiveRecord object.
       def update
         return unless @session
-        @session.data = @data
-        @session.save
+        @session.update_attribute "data", @data
       end
     end #ActiveRecordStore
   end #Session
