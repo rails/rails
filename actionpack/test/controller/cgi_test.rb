@@ -133,10 +133,40 @@ class CGITest < Test::Unit::TestCase
   end
 
   def test_parse_params_with_array
-      input = { "selected[]" =>  [ "1", "2", "3" ] }
+    input = { "selected[]" =>  [ "1", "2", "3" ] }
 
-      expected_output = { "selected" => [ "1", "2", "3" ] }
+    expected_output = { "selected" => [ "1", "2", "3" ] }
 
-      assert_equal expected_output, CGIMethods.parse_request_parameters(input)
+    assert_equal expected_output, CGIMethods.parse_request_parameters(input)
+  end
+
+  def test_parse_params_with_non_alphanumeric_name
+    input     = { "a/b[c]" =>  %w(d) }
+    expected  = { "a/b" => { "c" => "d" }}
+    assert_equal expected, CGIMethods.parse_request_parameters(input)
+  end
+
+  def test_parse_params_with_single_brackets_in_middle
+    input     = { "a/b[c]d" =>  %w(e) }
+    expected  = { "a/b[c]d" => "e" }
+    assert_equal expected, CGIMethods.parse_request_parameters(input)
+  end
+
+  def test_parse_params_with_separated_brackets
+    input     = { "a/b@[c]d[e]" =>  %w(f) }
+    expected  = { "a/b@" => { "c]d[e" => "f" }}
+    assert_equal expected, CGIMethods.parse_request_parameters(input)
+  end
+
+  def test_parse_params_with_separated_brackets_and_array
+    input     = { "a/b@[c]d[e][]" =>  %w(f) }
+    expected  = { "a/b@" => { "c]d[e" => ["f"] }}
+    assert_equal expected , CGIMethods.parse_request_parameters(input)
+  end
+
+  def test_parse_params_with_unmatched_brackets_and_array
+    input     = { "a/b@[c][d[e][]" =>  %w(f) }
+    expected  = { "a/b@" => { "c" => { "d[e" => ["f"] }}}
+    assert_equal expected, CGIMethods.parse_request_parameters(input)
   end
 end

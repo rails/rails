@@ -63,25 +63,23 @@ class CGIMethods #:nodoc:
       end
     end
   
-    def CGIMethods.get_levels(key_string)
-      return [] if key_string.nil? or key_string.empty?
-
-      levels = []
-      main, existance = /(\w+)(\[)?.?/.match(key_string).captures
-      levels << main
-      
-      unless existance.nil?
-        hash_part = key_string.sub(/\w+\[/, "")
-        hash_part.slice!(-1, 1)
-        levels += hash_part.split(/\]\[/)
+    PARAMS_HASH_RE = /^([^\[]+)(\[.*\])?(.)?.*$/
+    def CGIMethods.get_levels(key)
+      all, main, bracketed, trailing = PARAMS_HASH_RE.match(key).to_a
+      if main.nil?
+        []
+      elsif trailing
+        [key]
+      elsif bracketed
+        [main] + bracketed.slice(1...-1).split('][')
+      else
+        [main]
       end
-      
-      levels
     end
-    
+
     def CGIMethods.build_deep_hash(value, hash, levels)
       if levels.length == 0
-        value;
+        value
       elsif hash.nil?
         { levels.first => CGIMethods.build_deep_hash(value, nil, levels[1..-1]) }
       else
