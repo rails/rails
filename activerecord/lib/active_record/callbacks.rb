@@ -78,6 +78,10 @@ module ActiveRecord
   # you want to ensure that a certain callback is called for the entire hierarchy and the regular overwriteable methods when you
   # want to leave it up to each descendent to decide whether they want to call +super+ and trigger the inherited callbacks.
   #
+  # *IMPORTANT:* In order for inheritance to work for the callback queues, you must specify the callbacks before specifying the
+  # associations. Otherwise, you might trigger the loading of a child before the parent has registered the callbacks and they won't
+  # be inherited.
+  #
   # == Types of callbacks
   #
   # There are four types of callbacks accepted by the callback macros: Method references (symbol), callback objects,
