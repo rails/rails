@@ -18,6 +18,8 @@ class FormHelperTest < Test::Unit::TestCase
     @post = Post.new    
     def @post.errors() Class.new{ def on(field) field == "author_name" end }.new end
 
+    def @post.id; 123; end
+
     @post.title       = "Hello World"
     @post.author_name = ""
     @post.body        = "Back to the hill and over it again!"
@@ -136,4 +138,28 @@ class FormHelperTest < Test::Unit::TestCase
       check_box("post", "secret", "id" => "i mean it")
     )
   end
+
+  def test_auto_index
+    pid = @post.id
+    assert_equal(
+      "<input id=\"post_#{pid}_title\" name=\"post[#{pid}][title]\" size=\"30\" type=\"text\" value=\"Hello World\" />", text_field("post[]","title")
+    )
+    assert_equal(
+      "<textarea cols=\"40\" id=\"post_#{pid}_body\" name=\"post[#{pid}][body]\" rows=\"20\" wrap=\"virtual\">Back to the hill and over it again!</textarea>",
+      text_area("post[]", "body")
+    )
+    assert_equal(
+      "<input checked=\"checked\" id=\"post_#{pid}_secret\" name=\"post[#{pid}][secret]\" type=\"checkbox\" value=\"1\" /><input name=\"post[#{pid}][secret]\" type=\"hidden\" value=\"0\" />",
+      check_box("post[]", "secret")
+    )
+   assert_equal(
+"<input checked=\"checked\" id=\"post_#{pid}_title\" name=\"post[#{pid}][title]\" size=\"30\" type=\"radio\" value=\"Hello World\" />",
+      radio_button("post[]", "title", "Hello World")
+    )
+    assert_equal("<input id=\"post_#{pid}_title\" name=\"post[#{pid}][title]\" size=\"30\" type=\"radio\" value=\"Goodbye World\" />",
+      radio_button("post[]", "title", "Goodbye World")
+    )
+
+  end
+
 end

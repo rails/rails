@@ -137,6 +137,9 @@ module ActionView
       def initialize(object_name, method_name, template_object, local_binding = nil)
         @object_name, @method_name = object_name, method_name
         @template_object, @local_binding = template_object, local_binding
+        if @object_name.sub!(/\[\]$/,"")
+          @auto_index = @template_object.instance_variable_get("@#{Regexp.last_match.pre_match}").id
+        end
       end
       
       def to_input_field_tag(field_type, options = {})
@@ -214,6 +217,9 @@ module ActionView
             options['name'] = tag_name_with_index(options["index"]) unless options.has_key? "name"
             options['id'] = tag_id_with_index(options["index"]) unless options.has_key? "id"
             options.delete("index")
+          elsif @auto_index
+            options['name'] = tag_name_with_index(@auto_index) unless options.has_key? "name"
+            options['id'] = tag_id_with_index(@auto_index) unless options.has_key? "id"
           else
             options['name'] = tag_name unless options.has_key? "name"
             options['id'] = tag_id unless options.has_key? "id"
