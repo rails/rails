@@ -1,4 +1,13 @@
-* Added Time::Calculations to ask for things like Time.now.tomorrow, Time.now.yesterday, Time.now.months_ago(4) #580 [DP|Flurin]
+* Added Time::Calculations to ask for things like Time.now.tomorrow, Time.now.yesterday, Time.now.months_ago(4) #580 [DP|Flurin]. Examples:
+
+    "Later today"         => now.in(3.hours),
+    "Tomorrow morning"    => now.tomorrow.change(:hour => 9),
+    "Tomorrow afternoon"  => now.tomorrow.change(:hour => 14),
+    "In a couple of days" => now.tomorrow.tomorrow.change(:hour => 9),
+    "Next monday"         => now.next_week.change(:hour => 9),
+    "In a month"          => now.next_month.change(:hour => 9),
+    "In 6 months"         => now.months_since(6).change(:hour => 9),
+    "In a year"           => now.in(1.year).change(:hour => 9)
 
 * Upgraded to breakpoint 92 which fixes:
 
