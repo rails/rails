@@ -8,6 +8,11 @@ require 'active_record/deprecated_associations'
 
 module ActiveRecord
   module Associations # :nodoc:
+    def self.append_features(base)
+      super
+      base.extend(ClassMethods)
+    end
+
     # Clears out the association cache 
     def clear_association_cache #:nodoc:
       self.class.reflect_on_all_associations.to_a.each do |assoc|

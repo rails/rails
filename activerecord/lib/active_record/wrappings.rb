@@ -9,6 +9,11 @@ module ActiveRecord
       end
     end
 
+    def self.append_features(base)
+      super
+      base.extend(ClassMethods)
+    end
+
     class AbstractWrapper #:nodoc:
       def self.wrap(attribute, record_binding) #:nodoc:
         %w( before_save after_save after_initialize ).each do |callback|

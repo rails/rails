@@ -27,6 +27,11 @@ module ActionController #:nodoc:
   #            :redirect_to => :category_url
   #
   module Verification
+    def self.append_features(base) #:nodoc:
+      super
+      base.extend(ClassMethods)
+    end
+
     module ClassMethods
       # Verify the given actions so that if certain prerequisites are not met,
       # the user is redirected to a different action. The +options+ parameter

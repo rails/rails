@@ -120,7 +120,7 @@ if Object.const_defined?("ActiveRecord") || File.exist?(path_to_ar)
       end
     end 
 
-  rescue SqliteError => e
+  rescue Object => e
     puts "Skipping active record based tests"    
     puts e.message    
   end

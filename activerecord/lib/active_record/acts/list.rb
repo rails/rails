@@ -1,6 +1,11 @@
 module ActiveRecord
   module Acts #:nodoc:
     module List #:nodoc:
+      def self.append_features(base)
+        super
+        base.extend(ClassMethods)
+      end
+      
       # This act provides the capabilities for sorting and reordering a number of objects in list.
       # The class that has this specified needs to have a "position" column defined as an integer on
       # the mapped database table.
