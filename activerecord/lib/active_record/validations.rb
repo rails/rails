@@ -16,6 +16,7 @@ module ActiveRecord
       :too_short => "is too short (min is %d characters)", 
       :wrong_length => "is the wrong length (should be %d characters)", 
       :taken => "has already been taken",
+      :not_a_number => "is not a number",
       }
       
     # Holds a hash with all the default error messages, such that they can be replaced by your own copy or localizations.
@@ -193,6 +194,20 @@ module ActiveRecord
     # They offer a more declarative way of specifying when the model is valid and when it is not. It is recommended to use
     # these over the low-level calls to validate and validate_on_create when possible.
     module ClassMethods
+      DEFAULT_VALIDATION_OPTIONS = {
+        :on => :save,
+        :allow_nil => false,
+        :message => nil
+      }.freeze
+
+      DEFAULT_SIZE_VALIDATION_OPTIONS = DEFAULT_VALIDATION_OPTIONS.merge(
+        :too_long => ActiveRecord::Errors.default_error_messages[:too_long],
+        :too_short => ActiveRecord::Errors.default_error_messages[:too_short],
+        :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length]
+      ).freeze
+
+      ALL_RANGE_OPTIONS = [ :is, :within, :in, :minimum, :maximum ].freeze
+
       def validate(*methods, &block)
         methods << block if block_given?
         write_inheritable_set(:validate, methods)
@@ -206,6 +221,31 @@ module ActiveRecord
       def validate_on_update(*methods, &block)
         methods << block if block_given?
         write_inheritable_set(:validate_on_update, methods)
+      end
+
+      # Validates each attribute against a block.
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_each :first_name, :last_name do |record, attr|
+      #       record.errors.add attr, 'starts with z.' if attr[0] == ?z
+      #     end
+      #   end
+      #
+      # Options:
+      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>allow_nil</tt> - Skip validation if attribute is nil.
+      def validates_each(*attrs)
+        options = attrs.last.is_a?(Hash) ? attrs.pop.symbolize_keys : {}
+        attrs = attrs.flatten
+
+        # Declare the validation.
+        send(validation_method(options[:on] || :save)) do |record|
+          attrs.each do |attr|
+            value = record.send(attr)
+            next if value.nil? && options[:allow_nil]
+            yield record, attr, value
+          end
+        end
       end
 
       # Encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
@@ -278,48 +318,6 @@ module ActiveRecord
           class_eval(%(#{validation_method(configuration[:on])} %{errors.add_on_empty('#{attr_name}', "#{configuration[:message]}")}))
         end
       end
-
-
-      DEFAULT_VALIDATION_OPTIONS = {
-        :on => :save,
-        :allow_nil => false,
-        :message => nil
-      }.freeze
-
-      DEFAULT_SIZE_VALIDATION_OPTIONS = DEFAULT_VALIDATION_OPTIONS.merge(
-        :too_long => ActiveRecord::Errors.default_error_messages[:too_long],
-        :too_short => ActiveRecord::Errors.default_error_messages[:too_short],
-        :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length]
-      ).freeze
-
-      ALL_RANGE_OPTIONS = [ :is, :within, :in, :minimum, :maximum ].freeze
-
-
-      # Validates each attribute against a block.
-      #
-      #   class Person < ActiveRecord::Base
-      #     validates_each :first_name, :last_name do |record, attr|
-      #       record.errors.add attr, 'starts with z.' if attr[0] == ?z
-      #     end
-      #   end
-      #
-      # Options:
-      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
-      # * <tt>allow_nil</tt> - Skip validation if attribute is nil.
-      def validates_each(*attrs)
-        options = attrs.last.is_a?(Hash) ? attrs.pop.symbolize_keys : {}
-        attrs = attrs.flatten
-
-        # Declare the validation.
-        send(validation_method(options[:on] || :save)) do |record|
-          attrs.each do |attr|
-            value = record.send(attr)
-            next if value.nil? && options[:allow_nil]
-            yield record, attr, value
-          end
-        end
-      end
-
 
       # Validates that the specified attribute matches the length restrictions supplied. Only one option can be used at a time:
       #
@@ -516,6 +514,42 @@ module ActiveRecord
         end
       end
       
+      # Validates whether the value of the specified attribute is numeric by trying to convert it to
+      # a float with Kernel.Float (if <tt>integer</tt> is false) or applying it to the regular expression
+      # <tt>/^[\+\-]?\d+$/</tt> (if <tt>integer</tt> is set to true).
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_numericality_of :value, :on => :create
+      #   end
+      #
+      # Configuration options:
+      # * <tt>message</tt> - A custom error message (default is: "is not a number")
+      # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>only_integer</tt> Specifies whether the value has to be an integer, e.g. an integral value (default is false)
+      def validates_numericality_of(*attr_names)
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:not_a_number], :on => :save,
+                           :integer => false }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
+        for attr_name in attr_names
+          if configuration[:only_integer]
+            # we have to use a regexp here, because Kernel.Integer accepts nil and "0xdeadbeef", but does not
+            # accept "099" and String#to_i accepts everything. The string containing the regexp is evaluated twice
+            # so we have to escape everything properly
+            class_eval(%(#{validation_method(configuration[:on])} %{
+                errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name}_before_type_cast.to_s =~ /^[\\\\+\\\\-]?\\\\d+$/
+            }))          
+          else
+            class_eval(%(#{validation_method(configuration[:on])} %{
+                begin
+                  Kernel.Float(#{attr_name}_before_type_cast)
+                rescue ArgumentError, TypeError
+                  errors.add("#{attr_name}", "#{configuration[:message]}")
+                end
+            }))
+          end
+        end
+      end
 
       private
         def write_inheritable_set(key, methods)

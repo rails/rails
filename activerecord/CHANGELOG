@@ -1,5 +1,21 @@
 *SVN*
 
+* Added validates_numericality_of #716 [skanthak/c.r.mcgrath]. Docuemntation:
+
+    Validates whether the value of the specified attribute is numeric by trying to convert it to
+    a float with Kernel.Float (if <tt>integer</tt> is false) or applying it to the regular expression
+    <tt>/^[\+\-]?\d+$/</tt> (if <tt>integer</tt> is set to true).
+    
+      class Person < ActiveRecord::Base
+        validates_numericality_of :value, :on => :create
+      end
+    
+    Configuration options:
+    * <tt>message</tt> - A custom error message (default is: "is not a number")
+    * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
+    * <tt>only_integer</tt> Specifies whether the value has to be an integer, e.g. an integral value (default is false)
+    
+
 * Fixed that HasManyAssociation#count was using :finder_sql rather than :counter_sql if it was available #445 [Scott Barron]
 
 * Added better defaults for composed_of, so statements like composed_of :time_zone, :mapping => %w( time_zone time_zone ) can be written without the mapping part (it's now assumed)

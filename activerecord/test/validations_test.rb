@@ -604,4 +604,42 @@ class ValidationsTest < Test::Unit::TestCase
     assert !r.valid?
     assert_equal r.errors.on(:topic).first, "This string contains 'single' and \"double\" quotes"
   end
+
+  def test_validates_numericality_of_with_string
+    Topic.validates_numericality_of( :replies_count )
+    ["not a number","42 not a number","0xdeadbeef","00-1","-+019.0","12.12.13.12",nil].each do |v|
+        t = Topic.create("title" => "numeric test", "content" => "whatever", "replies_count" => "not a number")
+        assert !t.valid?, "#{v} not rejected as a number"
+        assert t.errors.on(:replies_count)
+    end
+  end
+
+  def test_validates_numericality_of
+    Topic.validates_numericality_of( :replies_count )
+    ["10", "10.0", "10.5", "-10.5", "-0.0001","0090","-090","-090.1"].each do |v|
+        t = Topic.create("title" => "numeric test", "content" => "whatever", "replies_count" => v)
+        assert t.valid?, "#{v} not recognized as a number"
+        # we cannot check this as replies_count is actually an integer field
+        #assert_in_delta v.to_f, t.replies_count, 0.0000001
+    end
+  end
+  
+  def test_validates_numericality_of_int_with_string
+    Topic.validates_numericality_of( :replies_count, :only_integer => true )
+    ["not a number","42 not a number","0xdeadbeef","0-1","--3","+-3","+3-1",nil].each do |v|
+        t = Topic.create("title" => "numeric test", "content" => "whatever", "replies_count" => v)
+        assert !t.valid?, "#{v} not rejected as integer"
+        assert t.errors.on(:replies_count)
+    end
+  end
+  
+  def test_validates_numericality_of_int
+    Topic.validates_numericality_of( :replies_count, :only_integer => true )
+    ["42", "+42", "-42", "042", "0042", "-042", 42].each do |v|
+        t = Topic.create("title" => "numeric test", "content" => "whatever", "replies_count" => v)
+        assert t.valid?, "#{v} not recognized as integer"
+        assert_equal v.to_i, t.replies_count
+    end
+  end
+  
 end
