@@ -154,7 +154,7 @@ Ajax.Request.prototype = (new Ajax.Base()).extend({
           'application/x-www-form-urlencoded');
       }
       
-      this.transport.send(this.options.parameters);
+      this.transport.send(this.options.method == 'post' ? this.options.parameters + '&_=' : null);
                       
     } catch (e) {
     }    
