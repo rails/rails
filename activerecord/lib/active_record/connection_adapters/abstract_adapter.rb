@@ -349,7 +349,7 @@ module ActiveRecord
       protected
         def log(sql, name, connection, &action)
           begin
-            if @logger.nil?
+            if @logger.nil? || @logger.level > Logger::INFO
               action.call(connection)
             else
               result = nil

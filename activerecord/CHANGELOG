@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that query benchmarking will only happen if its going to be logged anyway #344
+
 * Added higher_item and lower_item as public methods for acts_as_list #342 [Tobias Luetke]
 
 * Added respondence to *_before_type_cast for all attributes to return their string-state before they were type casted by the column type.
