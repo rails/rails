@@ -1,0 +1,1 @@
+* Added time unit extensions to Fixnum that'll return the period in seconds, like 2.days + 4.hours.
