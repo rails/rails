@@ -44,7 +44,7 @@ module ActionController #:nodoc:
         options.each { |key, value| options[key.to_s] = value }
         options["name"] = name.to_s
       else
-        options = [ name, options ]
+        options = { "name" => name, "value" => options }
       end
       
       set_cookie(name, options)
@@ -57,7 +57,8 @@ module ActionController #:nodoc:
 
     private
       def set_cookie(name, options) #:doc:
-        cookie = options.is_a?(Array) ? CGI::Cookie.new(*options) : CGI::Cookie.new(options)
+        options["path"] = "/" unless options["path"]
+        cookie = CGI::Cookie.new(options)
         @controller.logger.info "Cookie set: #{cookie}" unless @controller.logger.nil?
         @controller.response.headers["cookie"] << cookie
       end
