@@ -21,10 +21,14 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
+require 'breakpoint'
+
 class Dispatcher
   DEFAULT_SESSION_OPTIONS = { :database_manager => CGI::Session::PStore, :prefix => "ruby_sess.", :session_path => "/" }
 
   def self.dispatch(cgi = CGI.new, session_options = DEFAULT_SESSION_OPTIONS)
+    Breakpoint.activate_drb("druby://localhost:#{BREAKPOINT_SERVER_PORT}", nil, !defined?(FastCGI)) if defined?(BREAKPOINT_SERVER_PORT)
+
     begin
       request  = ActionController::CgiRequest.new(cgi, session_options)
       response = ActionController::CgiResponse.new(cgi)
@@ -44,6 +48,8 @@ class Dispatcher
         ActiveRecord::Base.reset_associations_loaded
         ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
       end
+      
+      DRb.stop_service if defined?(BREAKPOINT_SERVER_PORT)
     end
   end
   
