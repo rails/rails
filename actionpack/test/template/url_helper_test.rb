@@ -27,6 +27,10 @@ class UrlHelperTest < Test::Unit::TestCase
       "<a href=\"http://www.world.com\" onclick=\"return confirm('Are you sure?');\">Hello</a>",
       link_to("Hello", "http://www.world.com", :confirm => "Are you sure?")
     )
+    assert_equal(
+      "<a href=\"http://www.world.com\" onclick=\"return confirm('You can\\'t possibly be sure, can you?');\">Hello</a>", 
+      link_to("Hello", "http://www.world.com", :confirm => "You can't possibly be sure, can you?")
+    )
   end
 
   def test_link_image_to

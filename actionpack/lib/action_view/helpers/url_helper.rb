@@ -138,7 +138,7 @@ module ActionView
       private
         def convert_confirm_option_to_javascript!(html_options)
           if confirm = html_options.delete("confirm")
-            html_options["onclick"] = "return confirm('#{confirm}');"
+            html_options["onclick"] = "return confirm('#{confirm.gsub(/'/, '\\\\\'')}');"
           end
         end
     end
