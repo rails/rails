@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Base.silence/benchmark to only log if a logger has been configured #986 [skaes@web.de]
+
 * Added a join parameter as the third argument to Base.find_first and as the second to Base.count #426, #988 [skaes@web.de]
 
 * Fixed bug in Base#hash method that would treat records with the same string-based id as different [Dave Thomas]

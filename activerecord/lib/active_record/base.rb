@@ -687,16 +687,16 @@ module ActiveRecord #:nodoc:
       def benchmark(title)
         result = nil
         bm = Benchmark.measure { result = silence { yield } }
-        logger.info "#{title} (#{sprintf("%f", bm.real)})"
+        logger.info "#{title} (#{sprintf("%f", bm.real)})" if logger
         return result
       end
       
       # Silences the logger for the duration of the block.
       def silence
         result = nil
-        logger.level = Logger::ERROR
+        logger.level = Logger::ERROR if logger
         result = yield
-        logger.level = Logger::DEBUG
+        logger.level = Logger::DEBUG if logger
         return result
       end
 
