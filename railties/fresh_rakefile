@@ -84,11 +84,11 @@ end
 
 desc "Dump the database structure to a SQL file"
 task :db_structure_dump do
-  if ActiveRecord::Base.configurations["test"]["adapter"] == "mysql"
-    ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["test"])
+  if ActiveRecord::Base.configurations["development"]["adapter"] == "mysql"
+    ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["development"])
     File.open("db/development_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
-  elsif ActiveRecord::Base.configurations["test"]["adapter"] == "postgresql"
-    `pg_dump -U #{ActiveRecord::Base.configurations["test"]["username"]} -s -f db/development_structure.sql #{ActiveRecord::Base.configurations["test"]["database"]}`
+  elsif ActiveRecord::Base.configurations["development"]["adapter"] == "postgresql"
+    `pg_dump -U #{ActiveRecord::Base.configurations["development"]["username"]} -s -f db/development_structure.sql #{ActiveRecord::Base.configurations["development"]["database"]}`
   end
 end
 
