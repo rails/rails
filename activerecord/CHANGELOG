@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that validates_uniqueness_of used 'id' instead of defined primary key #406
+
 * Fixed that the overwritten respond_to? method didn't take two parameters like the original #391
 
 * Added HasManyAssociation#count that works like Base#count #413 [intinig]
