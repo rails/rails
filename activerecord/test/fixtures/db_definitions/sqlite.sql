@@ -104,3 +104,8 @@ CREATE TABLE 'people' (
   'first_name' VARCHAR(40) DEFAULT NULL,
   'lock_version' INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE 'binaries' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'data' BLOB DEFAULT NULL
+);

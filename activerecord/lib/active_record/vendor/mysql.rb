@@ -1091,7 +1091,7 @@ class << Mysql
       when "\0" then "\\0"
       when "\n" then "\\n"
       when "\r" then "\\r"
-      when "\032" then "\Z"
+      when "\032" then "\\Z"
       else "\\"+$1
       end
     end

@@ -134,3 +134,9 @@ CREATE TABLE people (
   lock_version integer default 0,
   PRIMARY KEY  (id)
 );
+
+CREATE TABLE binaries ( 
+  id serial , 
+  data bytea,
+  PRIMARY KEY (id)
+);

@@ -116,3 +116,9 @@ CREATE TABLE `people` (
   `first_name` VARCHAR(40) NOT NULL,
   `lock_version` INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE TABLE `binaries` (
+  `id` int(11) NOT NULL auto_increment,
+  `data` mediumblob,
+  PRIMARY KEY  (`id`)
+);

@@ -109,10 +109,17 @@ CREATE TABLE mixins (
   PRIMARY KEY (id)    
 );
 
-
 CREATE TABLE people (
   id int NOT NULL IDENTITY(1, 1),
   first_name varchar(40) NULL,
   lock_version int default 0,
   PRIMARY KEY (id)
 );
+
+CREATE TABLE binaries (
+  id int NOT NULL IDENTITY(1, 1),
+  data blob NULL,
+  PRIMARY KEY (id)
+);
+
+
