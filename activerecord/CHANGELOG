@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that Base.table_name would expect a parameter when used in has_and_belongs_to_many joins [Anna Lissa Cruz]
+
 * Fixed that nested transactions now work by letting the outer most transaction have the responsibilty of starting and rolling back the transaction.
   If any of the inner transactions swallow the exception raised, though, the transaction will not be rolled back. So always let the transaction
   bubble up even when you've dealt with local issues. Closes #231 and #340.

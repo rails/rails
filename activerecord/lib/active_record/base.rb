@@ -473,13 +473,8 @@ module ActiveRecord #:nodoc:
       #   class Mouse < ActiveRecord::Base
       #      def self.table_name() "mice" end
       #   end
-      def table_name(class_name = nil)
-        if class_name.nil?
-          class_name  = class_name_of_active_record_descendant(self)
-          table_name_prefix + undecorated_table_name(class_name) + table_name_suffix
-        else
-          table_name_prefix + undecorated_table_name(class_name) + table_name_suffix
-        end
+      def table_name
+        table_name_prefix + undecorated_table_name(class_name_of_active_record_descendant(self)) + table_name_suffix
       end
 
       # Defines the primary key field -- can be overridden in subclasses. Overwritting will negate any effect of the
