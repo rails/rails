@@ -25,8 +25,7 @@ module ActiveRecord
       end
 
       def respond_to?(symbol, include_priv = false)
-        load_target
-        proxy_respond_to?(symbol, include_priv) || @target.respond_to?(symbol, include_priv)
+        proxy_respond_to?(symbol, include_priv) || (load_target && @target.respond_to?(symbol, include_priv))
       end
 
       def loaded?
