@@ -135,7 +135,8 @@ Ajax.Base.prototype = {
     this.options = {
       method:       'post',
       asynchronous: true,
-      parameters:   ''
+      parameters:   '',
+      position:     'replace'
     }.extend(options || {});
   }
 }
@@ -204,9 +205,17 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
   
   updateContent: function() {
     this.container.innerHTML = this.request.transport.responseText;
+
+    if (this.options.position.toLowerCase() == 'replace') {
+      this.container.innerHTML = this.request.transport.responseText;
+    } else {
+      Insert[this.options.position.toLowerCase()]( this.container, this.request.transport.responseText );
+    }
+
     switch(this.options.effect) {
       case 'highlight': new YellowFader(this.container); break;
     }
+
     if (this.onComplete) this.onComplete(this.request);
   }
 });
@@ -383,3 +392,57 @@ YellowFader.prototype = {
     element.style.backgroundColor = "#ffff" + current.toColorPart();
   }
 }
+
+/*--------------------------------------------------------------------------*/
+
+Insert = {
+  before_begin: function(dom, html) {
+    dom = $(dom);
+    if (dom.insertAdjacentHTML) {
+      dom.insertAdjacentHTML('BeforeBegin', html);
+    } else {
+      var r = dom.ownerDocument.createRange();
+      r.setStartBefore(dom);
+      var df = r.createContextualFragment(html);
+      dom.parentNode.insertBefore(df, dom);
+    }
+  },
+
+  after_begin: function(dom, html) {
+    dom = $(dom);
+    if (dom.insertAdjacentHTML) {
+      dom.insertAdjacentHTML('AfterBegin', html);
+    } else {
+      var r = dom.ownerDocument.createRange();
+      r.selectNodeContents(dom);
+      r.collapse(true);
+      var df = r.createContextualFragment( html );
+      dom.insertBefore(df, dom.firstChild );
+    }
+  },
+
+  before_end: function(dom, html) {
+    dom = $(dom);
+    if (dom.insertAdjacentHTML) {
+      dom.insertAdjacentHTML('BeforeEnd', html);
+    } else {
+      var r = dom.ownerDocument.createRange();
+      r.selectNodeContents(dom);
+      r.collapse(dom);
+      var df = r.createContextualFragment(html);
+      dom.appendChild(df);
+    }
+  },
+
+  after_end: function(dom, html) {
+    dom = $(dom);
+    if (dom.insertAdjacentHTML) {
+      dom.insertAdjacentHTML('BeforeBegin', html);
+    } else {
+      var r = dom.ownerDocument.createRange();
+      r.setStartAfter(dom);
+      var df = r.createContextualFragment( html );
+      dom.parentNode.insertBefore(df, dom.nextSibling);
+    }
+  }
+};

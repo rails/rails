@@ -58,8 +58,8 @@ Try = {
 
 Toggle = {
   display: function() {
-    for (var i = 0; i < elements.length; i++) {
-      var element = $(elements[i]);
+    for (var i = 0; i < arguments.length; i++) {
+      var element = $(arguments[i]);
       element.style.display = 
         (element.style.display == 'none' ? '' : 'none');
     }
@@ -86,22 +86,34 @@ function $() {
 }
 
 function getElementsByClassName(className, element) {
-  var children = (element || document).getElementsByTagName('*');
+  var all = document.all ? document.all : document.getElementsByTagName(element);
   var elements = new Array();
-  
-  for (var i = 0; i < children.length; i++) {
-    var child = children[i];
-    var classNames = child.className.split(' ');
-    for (var j = 0; j < classNames.length; j++) {
-      if (classNames[j] == className) {
-        elements.push(child);
-        break;
-      }
-    }
+
+  for (var e = 0; e < all.length; e++) {
+    if (all[e].className == className)
+      elements[elements.length] = all[e];
   }
-  
+
   return elements;
 }
+
+// function getElementsByClassName(className, element) {
+//   var children = (element || document).getElementsByTagName('*');
+//   var elements = new Array();
+//   
+//   for (var i = 0; i < children.length; i++) {
+//     var child = children[i];
+//     var classNames = child.className.split(' ');
+//     for (var j = 0; j < classNames.length; j++) {
+//       if (classNames[j] == className) {
+//         elements.push(child);
+//         break;
+//       }
+//     }
+//   }
+//   
+//   return elements;
+// }
 
 /*--------------------------------------------------------------------------*/
 
@@ -123,7 +135,8 @@ Ajax.Base.prototype = {
     this.options = {
       method:       'post',
       asynchronous: true,
-      parameters:   ''
+      parameters:   '',
+      position:     'replace'
     }.extend(options || {});
   }
 }
@@ -192,6 +205,17 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
   
   updateContent: function() {
     this.container.innerHTML = this.request.transport.responseText;
+
+    if (this.options.position.toLowerCase() == 'replace') {
+      this.container.innerHTML = this.request.transport.responseText;
+    } else {
+      Insert[this.options.position.toLowerCase()]( this.container, this.request.transport.responseText );
+    }
+
+    switch(this.options.effect) {
+      case 'highlight': new YellowFader(this.container); break;
+    }
+
     if (this.onComplete) this.onComplete(this.request);
   }
 });
@@ -335,3 +359,90 @@ Form.Observer.prototype = (new Abstract.TimedObserver()).extend({
   }
 });
 
+/*--------------------------------------------------------------------------*/
+
+Number.prototype.toColorPart = function() {
+  var digits = this.toString(16);
+  if (this < 16) return '0' + digits;
+  return digits;
+}
+
+var YellowFader = Class.create();
+YellowFader.prototype = {
+  initialize: function(element) {
+    if (typeof element == 'string') element = $(element);
+    if (!element) return;
+    this.element = element;
+    this.start  = 153;
+    this.finish = 255;
+    this.current = this.start;
+    this.fade();
+  },  
+  fade: function() {
+    if (this.isFinished()) return;
+    if (this.timer) clearTimeout(this.timer); // prevent flicker
+    this.highlight(this.element, this.current);
+    this.current += 17;
+    this.timer = setTimeout(this.fade.bind(this), 250);
+  },  
+  isFinished: function() {
+    return this.current > this.finish;
+  },
+  highlight: function(element, current) {
+    element.style.backgroundColor = "#ffff" + current.toColorPart();
+  }
+}
+
+/*--------------------------------------------------------------------------*/
+
+Insert = {
+  before_begin: function(dom, html) {
+    dom = $(dom);
+    if (dom.insertAdjacentHTML) {
+      dom.insertAdjacentHTML('BeforeBegin', html);
+    } else {
+      var r = dom.ownerDocument.createRange();
+      r.setStartBefore(dom);
+      var df = r.createContextualFragment(html);
+      dom.parentNode.insertBefore(df, dom);
+    }
+  },
+
+  after_begin: function(dom, html) {
+    dom = $(dom);
+    if (dom.insertAdjacentHTML) {
+      dom.insertAdjacentHTML('AfterBegin', html);
+    } else {
+      var r = dom.ownerDocument.createRange();
+      r.selectNodeContents(dom);
+      r.collapse(true);
+      var df = r.createContextualFragment( html );
+      dom.insertBefore(df, dom.firstChild );
+    }
+  },
+
+  before_end: function(dom, html) {
+    dom = $(dom);
+    if (dom.insertAdjacentHTML) {
+      dom.insertAdjacentHTML('BeforeEnd', html);
+    } else {
+      var r = dom.ownerDocument.createRange();
+      r.selectNodeContents(dom);
+      r.collapse(dom);
+      var df = r.createContextualFragment(html);
+      dom.appendChild(df);
+    }
+  },
+
+  after_end: function(dom, html) {
+    dom = $(dom);
+    if (dom.insertAdjacentHTML) {
+      dom.insertAdjacentHTML('BeforeBegin', html);
+    } else {
+      var r = dom.ownerDocument.createRange();
+      r.setStartAfter(dom);
+      var df = r.createContextualFragment( html );
+      dom.parentNode.insertBefore(df, dom.nextSibling);
+    }
+  }
+};

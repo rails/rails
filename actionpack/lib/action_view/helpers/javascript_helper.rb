@@ -158,8 +158,9 @@ module ActionView
         js_options = build_callbacks(options)
         
         js_options['asynchronous'] = options[:type] != :synchronous
-        js_options['method'] = options[:method] if options[:method]
-      	js_options['effect'] = ("\'"+options[:effect].to_s+"\'") if options[:effect]        
+        js_options['method']       = options[:method] if options[:method]
+        js_options['position']     = options[:position] ? "'#{options[:position].to_s}'" : "'replace'"
+      	js_options['effect']       = ("\'"+options[:effect].to_s+"\'") if options[:effect]
 	
         if options[:form]
           js_options['parameters'] = 'Form.serialize(this)'
