@@ -22,7 +22,7 @@ ARGV.options do |opts|
           "Default: 3000") { |OPTIONS[:port]| }
   opts.on("-b", "--binding=ip", String,
           "Binds Rails to the specified ip.",
-          "Default: 127.0.0.1") { |OPTIONS[:ip]| }
+          "Default: 0.0.0.0") { |OPTIONS[:ip]| }
   opts.on("-i", "--index=controller", String,
           "Specifies an index controller that requests for root will go to (instead of congratulations screen)."
           ) { |OPTIONS[:index_controller]| }
