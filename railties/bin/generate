@@ -26,9 +26,10 @@ unless ARGV.empty?
       $stderr.puts msg
 
       if synonyms = find_synonyms(generator.class_name) then
-        $stderr.puts "", "Here's a few synonyms from WordNets.",
-          "Maybe they will help you find an alternative name."
+        $stderr.puts(
+          "", "Here are a few synonyms from WordNets. Maybe they will help you find an alternative name.",
           "", synonyms
+        )
       end
     else
       generator.generate

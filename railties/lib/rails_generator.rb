@@ -126,10 +126,9 @@ module Rails
         end
 
         if builtin then
-          "Sorry, you can't have a #{self.class.generator_name} named\n" +
-          "'#{full_class_name}' because Ruby or RubyOnRails already has\n" +
-          "a #{type} with that name. Please rerun the generator with a\n" +
-          "different name."
+          "Sorry, you can't have a #{self.class.generator_name} named " +
+          "'#{full_class_name}' because Ruby or Rails already has a #{type} with that name.\n" + 
+          "Please rerun the generator with a different name."
         end
       end
 
