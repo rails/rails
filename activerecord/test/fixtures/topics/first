@@ -1,0 +1,9 @@
+id          => 1
+title            => The First Topic
+author_name       => David
+author_email_address => david@loudthinking.com
+written_on        => 2003-07-16 15:28
+last_read        => 2004-04-15
+content          => Have a nice day
+approved => 0
+replies_count => 0

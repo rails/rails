@@ -1,0 +1,8 @@
+signals37:
+  id: 1
+  firm_id: 1
+  credit_limit: 50
+
+unknown:
+  id: 2
+  credit_limit: 50

@@ -1,0 +1,36 @@
+== Creating the test database
+
+The default names for the test databases are "activerecord_unittest" and 
+"activerecord_unittest2". If you want to use another database name then be sure 
+to update the connection adapter setups you want to test with in 
+test/connections/<your database>/connection.rb. 
+When you have the database online, you can import the fixture tables with 
+the test/fixtures/db_definitions/*.sql files.
+
+Make sure that you create database objects with the same user that you specified in i
+connection.rb otherwise (on Postgres, at least) tests for default values will fail
+(see http://dev.rubyonrails.org/trac.cgi/ticket/118)
+
+== Running with Rake
+
+The easiest way to run the unit tests is through Rake. The default task runs
+the entire test suite for all the adapters. You can also run the suite on just
+one adapter by using the tasks test_mysql_ruby, test_ruby_mysql, test_sqlite, 
+or test_postresql. For more information, checkout the full array of rake tasks with "rake -T"
+
+Rake can be found at http://rake.rubyforge.org
+
+== Running by hand
+
+Unit tests are located in test directory. If you only want to run a single test suite, 
+or don't want to bother with Rake, you can do so with something like:
+
+   cd test; ruby -I "connections/native_mysql" base_test.rb
+   
+That'll run the base suite using the MySQL-Ruby adapter. Change the adapter
+and test suite name as needed.
+
+You can also run all the suites on a specific adapter with:
+
+   cd test; all.sh "connections/native_mysql"
+

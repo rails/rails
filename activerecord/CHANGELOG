@@ -1,0 +1,757 @@
+*CVS*
+
+* Added ADO-based SQLServerAdapter (only works on Windows) [Joey Gibson]
+
+* Fixed problems with primary keys and postgresql sequences (#230) [Tim Bates]
+
+* Fixed problems with nested transactions (#231) [Tim Bates]
+
+* Added reloading for associations under cached environments like FastCGI and mod_ruby. This makes it possible to use those environments for development.
+  This is turned on by default, but can be turned off with ActiveRecord::Base.reload_dependencies = false in production environments.
+
+  NOTE: This will only have an effect if you let the associations manage the requiring of model classes. All libraries loaded through
+  require will be "forever" cached. You can, however, use ActiveRecord::Base.load_or_require("library") to get this behavior outside of the
+  auto-loading associations.
+
+* Added ERB capabilities to the fixture files for dynamic fixture generation. You don't need to do anything, just include ERB blocks like:
+
+    david:
+      id: 1
+      name: David
+
+    jamis:
+      id: 2
+      name: Jamis
+
+    <% for digit in 3..10 %>
+    dev_<%= digit %>:
+      id: <%= digit %>
+      name: fixture_<%= digit %>
+    <% end %>
+
+* Changed the yaml fixture searcher to look in the root of the fixtures directory, so when you before could have something like:
+
+    fixtures/developers/fixtures.yaml
+    fixtures/accounts/fixtures.yaml
+  
+  ...you now need to do:
+  
+    fixtures/developers.yaml
+    fixtures/accounts.yaml
+
+* Changed the fixture format from:
+
+    name: david
+    data:
+     id: 1
+     name: David Heinemeier Hansson
+     birthday: 1979-10-15
+     profession: Systems development
+    ---
+    name: steve
+    data:
+     id: 2
+     name: Steve Ross Kellock
+     birthday: 1974-09-27
+     profession: guy with keyboard
+
+  ...to:
+
+    david:
+     id: 1
+     name: David Heinemeier Hansson
+     birthday: 1979-10-15
+     profession: Systems development
+    
+    steve:
+     id: 2
+     name: Steve Ross Kellock
+     birthday: 1974-09-27
+     profession: guy with keyboard
+    
+  The change is NOT backwards compatible. Fixtures written in the old YAML style needs to be rewritten!
+
+* All associations will now attempt to require the classes that they associate to. Relieving the need for most explicit 'require' statements.
+
+*1.1.0* (34)
+
+* Added automatic fixture setup and instance variable availability. Fixtures can also be automatically 
+  instantiated in instance variables relating to their names using the following style:
+
+    class FixturesTest < Test::Unit::TestCase
+      fixtures :developers # you can add more with comma separation
+
+      def test_developers
+        assert_equal 3, @developers.size # the container for all the fixtures is automatically set
+        assert_kind_of Developer, @david # works like @developers["david"].find
+        assert_equal "David Heinemeier Hansson", @david.name
+      end
+    end
+
+* Added HasAndBelongsToManyAssociation#push_with_attributes(object, join_attributes) that can create associations in the join table with additional
+  attributes. This is really useful when you have information that's only relevant to the join itself, such as a "added_on" column for an association
+  between post and category. The added attributes will automatically be injected into objects retrieved through the association similar to the piggy-back
+  approach:
+  
+    post.categories.push_with_attributes(category, :added_on => Date.today)
+    post.categories.first.added_on # => Date.today
+    
+  NOTE: The categories table doesn't have a added_on column, it's the categories_post join table that does!
+
+* Fixed that :exclusively_dependent and :dependent can't be activated at the same time on has_many associations [bitsweat]
+
+* Fixed that database passwords couldn't be all numeric [bitsweat]
+
+* Fixed that calling id would create the instance variable for new_records preventing them from being saved correctly [bitsweat]
+
+* Added sanitization feature to HasManyAssociation#find_all so it works just like Base.find_all [Sam Stephenson/bitsweat]
+
+* Added that you can pass overlapping ids to find without getting duplicated records back [bitsweat]
+
+* Added that Base.benchmark returns the result of the block [bitsweat]
+
+* Fixed problem with unit tests on Windows with SQLite [paterno]
+
+* Fixed that quotes would break regular non-yaml fixtures [Dmitry Sabanin/daft]
+
+* Fixed fixtures on windows with line endings cause problems under unix / mac [Tobias Luetke]
+
+* Added HasAndBelongsToManyAssociation#find(id) that'll search inside the collection and find the object or record with that id
+
+* Added :conditions option to has_and_belongs_to_many that works just like the one on all the other associations
+
+* Added AssociationCollection#clear to remove all associations from has_many and has_and_belongs_to_many associations without destroying the records [geech]
+
+* Added type-checking and remove in 1-instead-of-N sql statements to AssociationCollection#delete [geech]
+
+* Added a return of self to AssociationCollection#<< so appending can be chained, like project << Milestone.create << Milestone.create [geech]
+
+* Added Base#hash and Base#eql? which means that all of the equality using features of array and other containers now works:
+
+    [ Person.find(1), Person.find(2), Person.find(3) ] & [ Person.find(1), Person.find(4) ] # => [ Person.find(1) ]
+
+* Added :uniq as an option to has_and_belongs_to_many which will automatically ensure that AssociateCollection#uniq is called
+  before pulling records out of the association. This is especially useful for three-way (and above) has_and_belongs_to_many associations.
+
+* Added AssociateCollection#uniq which is especially useful for has_and_belongs_to_many associations that can include duplicates,
+  which is common on associations that also use metadata. Usage: post.categories.uniq
+
+* Fixed respond_to? to use a subclass specific hash instead of an Active Record-wide one
+
+* Fixed has_and_belongs_to_many to treat associations between classes in modules properly [Florian Weber]
+
+* Added a NoMethod exception to be raised when query and writer methods are called for attributes that doesn't exist [geech]
+
+* Added a more robust version of Fixtures that throws meaningful errors when on formatting issues [geech]
+
+* Added Base#transaction as a compliment to Base.transaction for prettier use in instance methods [geech]
+
+* Improved the speed of respond_to? by placing the dynamic methods lookup table in a hash [geech]
+
+* Added that any additional fields added to the join table in a has_and_belongs_to_many association 
+  will be placed as attributes when pulling records out through has_and_belongs_to_many associations. 
+  This is helpful when have information about the association itself that you want available on retrival.
+
+* Added better loading exception catching and RubyGems retries to the database adapters [alexeyv]
+
+* Fixed bug with per-model transactions [daniel]
+
+* Fixed Base#transaction so that it returns the result of the last expression in the transaction block [alexeyv]
+
+* Added Fixture#find to find the record corresponding to the fixture id. The record 
+  class name is guessed by using Inflector#classify (also new) on the fixture directory name.
+  
+    Before: Document.find(@documents["first"]["id"])
+    After : @documents["first"].find
+
+* Fixed that the table name part of column names ("TABLE.COLUMN") wasn't removed properly [Andreas Schwarz]
+
+* Fixed a bug with Base#size when a finder_sql was used that didn't capitalize SELECT and FROM [geech]
+
+* Fixed quoting problems on SQLite by adding quote_string to the AbstractAdapter that can be overwritten by the concrete
+  adapters for a call to the dbm. [Andreas Schwarz]
+  
+* Removed RubyGems backup strategy for requiring SQLite-adapter -- if people want to use gems, they're already doing it with AR.
+
+
+*1.0.0 (35)*
+
+* Added OO-style associations methods [Florian Weber]. Examples:
+
+    Project#milestones_count       => Project#milestones.size
+    Project#build_to_milestones    => Project#milestones.build
+    Project#create_for_milestones  => Project#milestones.create
+    Project#find_in_milestones     => Project#milestones.find
+    Project#find_all_in_milestones => Project#milestones.find_all
+
+* Added serialize as a new class method to control when text attributes should be YAMLized or not. This means that automated
+  serialization of hashes, arrays, and so on WILL NO LONGER HAPPEN (#10). You need to do something like this:
+  
+    class User < ActiveRecord::Base
+      serialize :settings
+    end
+  
+  This will assume that settings is a text column and will now YAMLize any object put in that attribute. You can also specify
+  an optional :class_name option that'll raise an exception if a serialized object is retrieved as a descendent of a class not in
+  the hierarchy. Example:
+  
+    class User < ActiveRecord::Base
+      serialize :settings, :class_name => "Hash"
+    end
+  
+    user = User.create("settings" => %w( one two three ))
+    User.find(user.id).settings # => raises SerializationTypeMismatch
+
+* Added the option to connect to a different database for one model at a time. Just call establish_connection on the class
+  you want to have connected to another database than Base. This will automatically also connect decendents of that class
+  to the different database [Renald Buter].
+
+* Added transactional protection for Base#save. Validations can now check for values knowing that it happens in a transaction and callbacks
+  can raise exceptions knowing that the save will be rolled back. [Suggested by Alexey Verkhovsky]
+
+* Added column name quoting so reserved words, such as "references", can be used as column names [Ryan Platte]
+
+* Added the possibility to chain the return of what happened inside a logged block [geech]:
+
+    This now works: 
+      log { ... }.map { ... }
+
+    Instead of doing:
+      result = []
+      log { result = ... }
+      result.map { ... }
+
+* Added "socket" option for the MySQL adapter, so you can change it to something else than "/tmp/mysql.sock" [Anna Lissa Cruz]
+
+* Added respond_to? answers for all the attribute methods. So if Person has a name attribute retrieved from the table schema, 
+  person.respond_to? "name" will return true.
+
+* Added Base.benchmark which can be used to aggregate logging and benchmark, so you can measure and represent multiple statements in a single block.
+  Usage (hides all the SQL calls for the individual actions and calculates total runtime for them all):
+
+    Project.benchmark("Creating project") do
+      project = Project.create("name" => "stuff")
+      project.create_manager("name" => "David")
+      project.milestones << Milestone.find_all
+    end
+
+* Added logging of invalid SQL statements [Suggested by Daniel Von Fange]
+
+* Added alias Errors#[] for Errors#on, so you can now say person.errors["name"] to retrieve the errors for name [Andreas Schwarz]
+
+* Added RubyGems require attempt if sqlite-ruby is not available through regular methods.
+
+* Added compatibility with 2.x series of sqlite-ruby drivers. [Jamis Buck]
+
+* Added type safety for association assignments, so a ActiveRecord::AssociationTypeMismatch will be raised if you attempt to
+  assign an object that's not of the associated class. This cures the problem with nil giving id = 4 and fixnums giving id = 1 on 
+  mistaken association assignments. [Reported by Andreas Schwarz]
+
+* Added the option to keep many fixtures in one single YAML document [what-a-day]
+
+* Added the class method "inheritance_column" that can be overwritten to return the name of an alternative column than "type" for storing
+  the type for inheritance hierarchies. [Dave Steinberg]
+
+* Added [] and []= as an alternative way to access attributes when the regular methods have been overwritten [Dave Steinberg]
+
+* Added the option to observer more than one class at the time by specifying observed_class as an array
+
+* Added auto-id propagation support for tables with arbitrary primary keys that have autogenerated sequences associated with them 
+  on PostgreSQL. [Dave Steinberg]
+
+* Changed that integer and floats set to "" through attributes= remain as NULL. This was especially a problem for scaffolding and postgresql. (#49)
+
+* Changed the MySQL Adapter to rely on MySQL for its defaults for socket, host, and port [Andreas Schwarz]
+
+* Changed ActionControllerError to decent from StandardError instead of Exception. It can now be caught by a generic rescue.
+
+* Changed class inheritable attributes to not use eval [Caio Chassot]
+
+* Changed Errors#add to now use "invalid" as the default message instead of true, which means full_messages work with those [Marcel Molina Jr]
+
+* Fixed spelling on Base#add_on_boundry_breaking to Base#add_on_boundary_breaking (old naming still works) [Marcel Molina Jr.]
+
+* Fixed that entries in the has_and_belongs_to_many join table didn't get removed when an associated object was destroyed.
+
+* Fixed unnecessary calls to SET AUTOCOMMIT=0/1 for MySQL adapter [Andreas Schwarz]
+
+* Fixed PostgreSQL defaults are now handled gracefully [Dave Steinberg]
+
+* Fixed increment/decrement_counter are now atomic updates [Andreas Schwarz]
+
+* Fixed the problems the Inflector had turning Attachment into attuchments and Cases into Casis [radsaq/Florian Gross]
+
+* Fixed that cloned records would point attribute references on the parent object [Andreas Schwarz]
+
+* Fixed SQL for type call on inheritance hierarchies [Caio Chassot]
+
+* Fixed bug with typed inheritance [Florian Weber]
+
+* Fixed a bug where has_many collection_count wouldn't use the conditions specified for that association
+
+
+*0.9.5*
+
+* Expanded the table_name guessing rules immensely [Florian Green]. Documentation:
+
+    Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
+    directly from ActiveRecord. So if the hierarchy looks like: Reply < Message < ActiveRecord, then Message is used
+    to guess the table name from even when called on Reply. The guessing rules are as follows:
+    * Class name ends in "x", "ch" or "ss": "es" is appended, so a Search class becomes a searches table.
+    * Class name ends in "y" preceded by a consonant or "qu": The "y" is replaced with "ies", 
+      so a Category class becomes a categories table. 
+    * Class name ends in "fe": The "fe" is replaced with "ves", so a Wife class becomes a wives table.
+    * Class name ends in "lf" or "rf": The "f" is replaced with "ves", so a Half class becomes a halves table.
+    * Class name ends in "person": The "person" is replaced with "people", so a Salesperson class becomes a salespeople table.
+    * Class name ends in "man": The "man" is replaced with "men", so a Spokesman class becomes a spokesmen table.
+    * Class name ends in "sis": The "i" is replaced with an "e", so a Basis class becomes a bases table.
+    * Class name ends in "tum" or "ium": The "um" is replaced with an "a", so a Datum class becomes a data table.
+    * Class name ends in "child": The "child" is replaced with "children", so a NodeChild class becomes a node_children table.
+    * Class name ends in an "s": No additional characters are added or removed.
+    * Class name doesn't end in "s": An "s" is appended, so a Comment class becomes a comments table.
+    * Class name with word compositions: Compositions are underscored, so CreditCard class becomes a credit_cards table.
+    Additionally, the class-level table_name_prefix is prepended to the table_name and the table_name_suffix is appended.
+    So if you have "myapp_" as a prefix, the table name guess for an Account class becomes "myapp_accounts".
+    
+    You can also overwrite this class method to allow for unguessable links, such as a Mouse class with a link to a
+    "mice" table. Example:
+    
+      class Mouse < ActiveRecord::Base
+         def self.table_name() "mice" end
+      end
+  
+  This conversion is now done through an external class called Inflector residing in lib/active_record/support/inflector.rb.
+
+* Added find_all_in_collection to has_many defined collections. Works like this:
+
+    class Firm < ActiveRecord::Base
+      has_many :clients
+    end
+    
+    firm.id # => 1
+    firm.find_all_in_clients "revenue > 1000" # SELECT * FROM clients WHERE firm_id = 1 AND revenue > 1000
+
+  [Requested by Dave Thomas]
+
+* Fixed finders for inheritance hierarchies deeper than one level [Florian Weber]
+
+* Added add_on_boundry_breaking to errors to accompany add_on_empty as a default validation method. It's used like this:
+
+    class Person < ActiveRecord::Base
+      protected
+        def validation
+          errors.add_on_boundry_breaking "password", 3..20
+        end
+    end
+    
+  This will add an error to the tune of "is too short (min is 3 characters)" or "is too long (min is 20 characters)" if
+  the password is outside the boundry. The messages can be changed by passing a third and forth parameter as message strings.
+
+* Implemented a clone method that works properly with AR. It returns a clone of the record that 
+  hasn't been assigned an id yet and is treated as a new record.
+
+* Allow for domain sockets in PostgreSQL by not assuming localhost when no host is specified [Scott Barron]
+
+* Fixed that bignums are saved properly instead of attempted to be YAMLized [Andreas Schwartz]
+
+* Fixed a bug in the GEM where the rdoc options weren't being passed according to spec [Chad Fowler]
+
+* Fixed a bug with the exclusively_dependent option for has_many
+
+
+*0.9.4*
+
+* Correctly guesses the primary key when the class is inside a module [Dave Steinberg].
+
+* Added [] and []= as alternatives to read_attribute and write_attribute [Dave Steinberg]
+
+* has_and_belongs_to_many now accepts an :order key to determine in which order the collection is returned [radsaq].
+
+* The ids passed to find and find_on_conditions are now automatically sanitized.
+
+* Added escaping of plings in YAML content.
+
+* Multi-parameter assigns where all the parameters are empty will now be set to nil instead of a new instance of their class.
+
+* Proper type within an inheritance hierarchy is now ensured already at object initialization (instead of first at create)
+
+
+*0.9.3*
+
+* Fixed bug with using a different primary key name together with has_and_belongs_to_many [Investigation by Scott] 
+
+* Added :exclusively_dependent option to the has_many association macro. The doc reads:
+
+    If set to true all the associated object are deleted in one SQL statement without having their
+    before_destroy callback run. This should only be used on associations that depend solely on 
+    this class and don't need to do any clean-up in before_destroy. The upside is that it's much
+    faster, especially if there's a counter_cache involved.
+
+* Added :port key to connection options, so the PostgreSQL and MySQL adapters can connect to a database server
+  running on another port than the default.
+
+* Converted the new natural singleton methods that prevented AR objects from being saved by PStore
+  (and hence be placed in a Rails session) to a module. [Florian Weber]
+
+* Fixed the use of floats (was broken since 0.9.0+)
+
+* Fixed PostgreSQL adapter so default values are displayed properly when used in conjunction with 
+  Action Pack scaffolding.
+
+* Fixed booleans support for PostgreSQL (use real true/false on boolean fields instead of 0/1 on tinyints) [radsaq]
+
+
+*0.9.2*
+
+* Added static method for instantly updating a record
+
+* Treat decimal and numeric as Ruby floats [Andreas Schwartz]
+
+* Treat chars as Ruby strings (fixes problem for Action Pack form helpers too)
+
+* Removed debugging output accidently left in (which would screw web applications)
+
+
+*0.9.1*
+
+* Added MIT license
+
+* Added natural object-style assignment for has_and_belongs_to_many associations. Consider the following model:
+
+    class Event < ActiveRecord::Base
+      has_one_and_belongs_to_many :sponsors
+    end
+    
+    class Sponsor < ActiveRecord::Base
+      has_one_and_belongs_to_many :sponsors
+    end
+
+  Earlier, you'd have to use synthetic methods for creating associations between two objects of the above class:
+  
+    roskilde_festival.add_to_sponsors(carlsberg)
+    roskilde_festival.remove_from_sponsors(carlsberg)
+
+    nike.add_to_events(world_cup)
+    nike.remove_from_events(world_cup)
+    
+  Now you can use regular array-styled methods:
+  
+    roskilde_festival.sponsors << carlsberg
+    roskilde_festival.sponsors.delete(carlsberg)
+
+    nike.events << world_cup
+    nike.events.delete(world_cup)
+
+* Added delete method for has_many associations. Using this will nullify an association between the has_many and the belonging
+  object by setting the foreign key to null. Consider this model:
+  
+    class Post < ActiveRecord::Base
+      has_many :comments
+    end
+
+    class Comment < ActiveRecord::Base
+      belongs_to :post
+    end
+
+  You could do something like:
+
+    funny_comment.has_post? # => true
+    announcement.comments.delete(funny_comment)
+    funny_comment.has_post? # => false
+
+
+*0.9.0*
+
+* Active Record is now thread safe! (So you can use it with Cerise and WEBrick applications)
+  [Implementation idea by Michael Neumann, debugging assistance by Jamis Buck]
+
+* Improved performance by roughly 400% on a basic test case of pulling 100 records and querying one attribute. 
+  This brings the tax for using Active Record instead of "riding on the metal" (using MySQL-ruby C-driver directly) down to ~50%.
+  Done by doing lazy type conversions and caching column information on the class-level.
+
+* Added callback objects and procs as options for implementing the target for callback macros.
+
+* Added "counter_cache" option to belongs_to that automates the usage of increment_counter and decrement_counter. Consider:
+
+    class Post < ActiveRecord::Base
+      has_many :comments
+    end
+
+    class Comment < ActiveRecord::Base
+      belongs_to :post
+    end
+
+  Iterating over 100 posts like this:
+  
+    <% for post in @posts %>
+      <%= post.title %> has <%= post.comments_count %> comments
+    <% end %>
+    
+  Will generate 100 SQL count queries -- one for each call to post.comments_count. If you instead add a "comments_count" int column
+  to the posts table and rewrite the comments association macro with:
+
+    class Comment < ActiveRecord::Base
+      belongs_to :post, :counter_cache => true
+    end
+  
+  Those 100 SQL count queries will be reduced to zero. Beware that counter caching is only appropriate for objects that begin life
+  with the object it's specified to belong with and is destroyed like that as well. Typically objects where you would also specify
+  :dependent => true. If your objects switch from one belonging to another (like a post that can be move from one category to another),
+  you'll have to manage the counter yourself. 
+
+* Added natural object-style assignment for has_one and belongs_to associations. Consider the following model:
+
+    class Project < ActiveRecord::Base
+      has_one :manager
+    end
+    
+    class Manager < ActiveRecord::Base
+      belongs_to :project
+    end
+  
+  Earlier, assignments would work like following regardless of which way the assignment told the best story:
+  
+    active_record.manager_id = david.id
+  
+  Now you can do it either from the belonging side:
+
+    david.project = active_record
+  
+  ...or from the having side:
+  
+    active_record.manager = david
+  
+  If the assignment happens from the having side, the assigned object is automatically saved. So in the example above, the 
+  project_id attribute on david would be set to the id of active_record, then david would be saved.
+
+* Added natural object-style assignment for has_many associations [Florian Weber]. Consider the following model:
+
+    class Project < ActiveRecord::Base
+      has_many :milestones
+    end
+    
+    class Milestone < ActiveRecord::Base
+      belongs_to :project
+    end
+  
+  Earlier, assignments would work like following regardless of which way the assignment told the best story:
+  
+    deadline.project_id = active_record.id
+  
+  Now you can do it either from the belonging side:
+
+    deadline.project = active_record
+  
+  ...or from the having side:
+  
+    active_record.milestones << deadline
+  
+  The milestone is automatically saved with the new foreign key.
+
+* API CHANGE: Attributes for text (or blob or similar) columns will now have unknown classes stored using YAML instead of using
+  to_s. (Known classes that won't be yamelized are: String, NilClass, TrueClass, FalseClass, Fixnum, Date, and Time).
+  Likewise, data pulled out of text-based attributes will be attempted converged using Yaml if they have the "--- " header.
+  This was primarily done to be enable the storage of hashes and arrays without wrapping them in aggregations, so now you can do:
+  
+    user = User.find(1)
+    user.preferences = { "background" => "black", "display" => large }
+    user.save
+    
+    User.find(1).preferences # => { "background" => "black", "display" => large }
+  
+  Please note that this method should only be used when you don't care about representing the object in proper columns in
+  the database. A money object consisting of an amount and a currency is still a much better fit for a value object done through
+  aggregations than this new option.
+
+* POSSIBLE CODE BREAKAGE: As a consequence of the lazy type conversions, it's a bad idea to reference the @attributes hash
+  directly (it always was, but now it's paramount that you don't). If you do, you won't get the type conversion. So to implement
+  new accessors for existing attributes, use read_attribute(attr_name) and write_attribute(attr_name, value) instead. Like this:
+  
+    class Song < ActiveRecord::Base
+      # Uses an integer of seconds to hold the length of the song
+      
+      def length=(minutes)
+        write_attribute("length", minutes * 60)
+      end
+      
+      def length
+        read_attribute("length") / 60
+      end
+    end
+
+  The clever kid will notice that this opens a door to sidestep the automated type conversion by using @attributes directly.
+  This is not recommended as read/write_attribute may be granted additional responsibilities in the future, but if you think
+  you know what you're doing and aren't afraid of future consequences, this is an option.
+
+* Applied a few minor bug fixes reported by Daniel Von Fange.
+
+
+*0.8.4*
+
+_Reflection_
+
+* Added ActiveRecord::Reflection with a bunch of methods and classes for reflecting in aggregations and associations.
+
+* Added Base.columns and Base.content_columns which returns arrays of column description (type, default, etc) objects.
+
+* Added Base#attribute_names which returns an array of names for the attributes available on the object.
+
+* Added Base#column_for_attribute(name) which returns the column description object for the named attribute.
+
+
+_Misc_
+
+* Added multi-parameter assignment:
+
+    # Instantiate objects for all attribute classes that needs more than one constructor parameter. This is done
+    # by calling new on the column type or aggregation type (through composed_of) object with these parameters.
+    # So having the pairs written_on(1) = "2004", written_on(2) = "6", written_on(3) = "24", will instantiate
+    # written_on (a date type) with Date.new("2004", "6", "24"). You can also specify a typecast character in the
+    # parenteses to have the parameters typecasted before they're used in the constructor. Use i for Fixnum, f for Float,
+    # s for String, and a for Array.
+  
+  This is incredibly useful for assigning dates from HTML drop-downs of month, year, and day.
+
+* Fixed bug with custom primary key column name and Base.find on multiple parameters.
+
+* Fixed bug with dependent option on has_one associations if there was no associated object.
+
+
+*0.8.3*
+
+_Transactions_
+
+* Added transactional protection for destroy (important for the new :dependent option) [Suggested by Carl Youngblood]
+
+* Fixed so transactions are ignored on MyISAM tables for MySQL (use InnoDB to get transactions)
+
+* Changed transactions so only exceptions will cause a rollback, not returned false.
+
+
+_Mapping_
+
+* Added support for non-integer primary keys [Aredridel/earlier work by Michael Neumann]
+  
+    User.find "jdoe"
+    Product.find "PDKEY-INT-12"
+
+* Added option to specify naming method for primary key column. ActiveRecord::Base.primary_key_prefix_type can either
+  be set to nil, :table_name, or :table_name_with_underscore. :table_name will assume that Product class has a primary key
+  of "productid" and :table_name_with_underscore will assume "product_id". The default nil will just give "id".
+    
+* Added an overwriteable primary_key method that'll instruct AR to the name of the 
+  id column [Aredridele/earlier work by Guan Yang]
+    
+    class Project < ActiveRecord::Base
+      def self.primary_key() "project_id" end
+    end
+
+* Fixed that Active Records can safely associate inside and out of modules.
+
+    class MyApplication::Account < ActiveRecord::Base
+      has_many :clients # will look for MyApplication::Client
+      has_many :interests, :class_name => "Business::Interest" # will look for Business::Interest
+    end
+
+* Fixed that Active Records can safely live inside modules [Aredridel]
+
+    class MyApplication::Account < ActiveRecord::Base
+    end
+
+
+_Misc_
+
+* Added freeze call to value object assignments to ensure they remain immutable [Spotted by Gavin Sinclair]
+ 
+* Changed interface for specifying observed class in observers. Was OBSERVED_CLASS constant, now is 
+  observed_class() class method. This is more consistant with things like self.table_name(). Works like this:
+
+    class AuditObserver < ActiveRecord::Observer
+      def self.observed_class() Account end
+      def after_update(account)
+        AuditTrail.new(account, "UPDATED")
+      end
+    end
+
+  [Suggested by Gavin Sinclair]
+
+* Create new Active Record objects by setting the attributes through a block. Like this:
+
+    person = Person.new do |p|
+      p.name = 'Freddy'
+      p.age  = 19
+    end
+
+  [Suggested by Gavin Sinclair]
+
+
+*0.8.2*
+
+* Added inheritable callback queues that can ensure that certain callback methods or inline fragments are
+  run throughout the entire inheritance hierarchy. Regardless of whether a descendent overwrites the callback
+  method:
+  
+    class Topic < ActiveRecord::Base
+      before_destroy :destroy_author, 'puts "I'm an inline fragment"'
+    end
+  
+  Learn more in link:classes/ActiveRecord/Callbacks.html
+
+* Added :dependent option to has_many and has_one, which will automatically destroy associated objects when 
+  the holder is destroyed:
+  
+    class Album < ActiveRecord::Base
+      has_many :tracks, :dependent => true
+    end
+    
+  All the associated tracks are destroyed when the album is.
+
+* Added Base.create as a factory that'll create, save, and return a new object in one step.
+
+* Automatically convert strings in config hashes to symbols for the _connection methods. This allows you
+  to pass the argument hashes directly from yaml. (Luke)
+
+* Fixed the install.rb to include simple.rb [Spotted by Kevin Bullock]
+
+* Modified block syntax to better follow our code standards outlined in 
+  http://www.rubyonrails.org/CodingStandards
+
+
+*0.8.1*
+
+* Added object-level transactions [Thanks to Austin Ziegler for Transaction::Simple]
+
+* Changed adapter-specific connection methods to use centralized ActiveRecord::Base.establish_connection,
+  which is parametized through a config hash with symbol keys instead of a regular parameter list.
+  This will allow for database connections to be opened in a more generic fashion. (Luke)
+  
+  NOTE: This requires all *_connections to be updated! Read more in:
+  http://ar.rubyonrails.org/classes/ActiveRecord/Base.html#M000081
+
+* Fixed SQLite adapter so objects fetched from has_and_belongs_to_many have proper attributes
+  (t.name is now name). [Spotted by Garrett Rooney]
+
+* Fixed SQLite adapter so dates are returned as Date objects, not Time objects [Spotted by Gavin Sinclair]
+
+* Fixed requirement of date class, so date conversions are succesful regardless of whether you 
+  manually require date or not.
+
+
+*0.8.0*
+
+* Added transactions
+
+* Changed Base.find to also accept either a list (1, 5, 6) or an array of ids ([5, 7]) 
+  as parameter and then return an array of objects instead of just an object
+
+* Fixed method has_collection? for has_and_belongs_to_many macro to behave as a 
+  collection, not an association
+
+* Fixed SQLite adapter so empty or nil values in columns of datetime, date, or time type
+  aren't treated as current time [Spotted by Gavin Sinclair]
+
+
+*0.7.6*
+
+* Fixed the install.rb to create the lib/active_record/support directory [Spotted by Gavin Sinclair]
+* Fixed that has_association? would always return true [Spotted by Daniel Von Fange]

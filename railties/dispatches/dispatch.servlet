@@ -1,0 +1,49 @@
+#!/usr/local/bin/ruby
+
+require 'webrick'
+require 'optparse'
+
+OPTIONS = {
+  :port        => 3000,
+  :ip          => "127.0.0.1",
+  :environment => "development",
+  :server_root => File.expand_path(File.dirname(__FILE__)),
+  :server_type => WEBrick::SimpleServer
+}
+
+ARGV.options do |opts|
+  script_name = File.basename($0)
+  opts.banner = "Usage: ruby #{script_name} [options]"
+
+  opts.separator ""
+
+  opts.on("-p", "--port=port", Integer,
+          "Runs Rails on the specified port.",
+          "Default: 3000") { |OPTIONS[:port]| }
+  opts.on("-b", "--binding=ip", String,
+          "Binds Rails to the specified ip.",
+          "Default: 127.0.0.1") { |OPTIONS[:ip]| }
+  opts.on("-i", "--index=controller", String,
+          "Specifies an index controller that requests for root will go to (instead of congratulations screen)."
+          ) { |OPTIONS[:index_controller]| }
+  opts.on("-e", "--environment=name", String,
+          "Specifies the environment to run this server under (test/development/production).",
+          "Default: development") { |OPTIONS[:environment]| }
+  opts.on("-d", "--daemon",
+          "Make Rails run as a Daemon (only works if fork is available -- meaning on *nix)."
+          ) { OPTIONS[:server_type] = WEBrick::Daemon }
+
+  opts.separator ""
+
+  opts.on("-h", "--help",
+          "Show this help message.") { puts opts; exit }
+
+  opts.parse!
+end
+
+ENV["RAILS_ENV"] = OPTIONS[:environment]
+require File.dirname(__FILE__) + "/../config/environment"
+require 'webrick_server'
+
+puts "=> Rails application started on http://#{OPTIONS[:ip]}:#{OPTIONS[:port]}"
+DispatchServlet.dispatch(OPTIONS)

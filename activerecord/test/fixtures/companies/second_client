@@ -1,0 +1,6 @@
+id => 3
+type => Client
+firm_id => 1
+client_of => 1
+name => Microsoft
+ruby_type => Client

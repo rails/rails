@@ -1,0 +1,26 @@
+<%
+  base_dir = File.expand_path(File.dirname(__FILE__))
+  
+  framework_trace = @exception.original_exception.backtrace.collect do |line| 
+    line.gsub(base_dir, "").gsub("/../config/environments/../../", "")
+  end
+%>
+
+<h1>
+  <%=h @exception.original_exception.class.to_s %> in
+  <%=h @request.parameters["controller"].capitalize %>#<%=h @request.parameters["action"] %>
+</h1>
+
+<p>
+  Showing <i><%=h @exception.file_name %></i> where line <b>#<%=h @exception.line_number %></b> raised
+  <u><%=h @exception.message %></u>
+</p>
+
+<pre><code><%=h @exception.source_extract %></code></pre>
+
+<p><%=h @exception.sub_template_message %></p>
+
+<a href="#" onclick="document.getElementById('framework_trace').style.display='block'">Show template trace</a>
+<pre id="framework_trace" style="display:none"><code><%=h framework_trace.join("\n") %></code></pre>
+
+<%= render_file(@rescues_path + "/_request_and_response.rhtml", false) %>

@@ -1,0 +1,418 @@
+= Action Pack -- On rails from request to response
+
+Action Pack splits the response to a web request into a controller part
+(performing the logic) and a view part (rendering a template). This two-step
+approach is known as an action, which will normally create, read, update, or
+delete (CRUD for short) some sort of model part (often backed by a database)
+before choosing either to render a template or redirecting to another action.
+
+Action Pack implements these actions as public methods on Action Controllers
+and uses Action Views to implement the template rendering. Action Controllers
+are then responsible for handling all the actions relating to a certain part
+of an application. This grouping usually consists of actions for lists and for
+CRUDs revolving around a single (or a few) model objects. So ContactController
+would be responsible for listing contacts, creating, deleting, and updating
+contacts. A WeblogController could be responsible for both posts and comments.
+
+Action View templates are written using embedded Ruby in tags mingled in with
+the HTML. To avoid cluttering the templates with code, a bunch of helper
+classes provide common behavior for forms, dates, and strings. And it's easy
+to add specific helpers to keep the separation as the application evolves.
+
+Note: Some of the features, such as scaffolding and form building, are tied to
+ActiveRecord[http://activerecord.rubyonrails.org] (an object-relational
+mapping package), but that doesn't mean that Action Pack depends on Active
+Record. Action Pack is an independent package that can be used with any sort
+of backend (Instiki[http://www.instiki.org], which is based on an older version
+of Action Pack, uses Madeleine for example). Read more about the role Action
+Pack can play when used together with Active Record on
+http://www.rubyonrails.org.
+
+A short rundown of the major features:
+
+* Actions grouped in controller as methods instead of separate command objects
+  and can therefore helper share methods.
+
+    BlogController < ActionController::Base
+      def display
+        @customer = find_customer
+      end
+      
+      def update
+        @customer = find_customer
+        @customer.attributes = @params["customer"]
+        @customer.save ? 
+          redirect_to(:action => "display") : 
+          render("customer/edit")
+      end
+      
+      private
+        def find_customer() Customer.find(@params["id"]) end
+    end
+
+  Learn more in link:classes/ActionController/Base.html
+
+
+* Embedded Ruby for templates (no new "easy" template language)
+
+    <% for post in @posts %>
+      Title: <%= post.title %>
+    <% end %>
+
+    All post titles: <%= @post.collect{ |p| p.title }.join ", " %>
+
+    <% unless @person.is_client? %>
+      Not for clients to see...
+    <% end %>
+  
+  Learn more in link:classes/ActionView.html
+
+
+* Builder-based templates (great for XML content, like RSS)
+
+  xml.rss("version" => "2.0") do
+    xml.channel do
+      xml.title(@feed_title)
+      xml.link(@url)
+      xml.description "Basecamp: Recent items"
+      xml.language "en-us"
+      xml.ttl "40"
+
+      for item in @recent_items
+        xml.item do
+          xml.title(item_title(item))
+          xml.description(item_description(item))
+          xml.pubDate(item_pubDate(item))
+          xml.guid(@recent_items.url(item))
+          xml.link(@recent_items.url(item))
+        end
+      end
+    end
+  end
+
+
+* Filters for pre and post processing of the response (as methods, procs, and classes)
+
+    class WeblogController < ActionController::Base
+      before_filter :authenticate, :cache, :audit
+      after_filter { |c| c.response.body = GZip::compress(c.response.body) }
+      after_filter LocalizeFilter
+      
+      def list
+        # Before this action is run, the user will be authenticated, the cache
+        # will be examined to see if a valid copy of the results already
+        # exist, and the action will be logged for auditing.
+        
+        # After this action has run, the output will first be localized then 
+        # compressed to minimize bandwith usage
+      end
+      
+      private
+        def authenticate
+          # Implement the filter will full access to both request and response
+        end
+    end
+  
+  Learn more in link:classes/ActionController/Filters/ClassMethods.html
+  
+
+* Helpers for forms, dates, action links, and text
+
+    <%= text_field "post", "title", "size" => 30 %>
+    <%= html_date_select(Date.today) %>
+    <%= link_to "New post", :controller => "post", :action => "new" %>
+    <%= truncate(post.title, 25) %>
+ 
+  Learn more in link:classes/ActionView/Helpers.html
+
+
+* Layout sharing for template reuse (think simple version of Struts 
+  Tiles[http://jakarta.apache.org/struts/userGuide/dev_tiles.html])
+
+    class WeblogController < ActionController::Base
+      layout "weblog_layout"
+      
+      def hello_world
+      end
+    end
+
+    Layout file (called weblog_layout):
+      <html><body><%= @content_for_layout %></body></html>
+    
+    Template for hello_world action:
+      <h1>Hello world</h1>
+    
+    Result of running hello_world action:
+      <html><body><h1>Hello world</h1></body></html>
+
+  Learn more in link:classes/ActionController/Layout.html
+
+
+* Advanced redirection that makes pretty urls easy
+
+    RewriteRule ^/library/books/([A-Z]+)([0-9]+)/([-_a-zA-Z0-9]+)$ \
+      /books_controller.cgi?action=$3&type=$1&code=$2 [QSA] [L]
+
+    Accessing /library/books/ISBN/0743536703/show calls BooksController#show
+    
+    From that URL, you can rewrite the redirect in a number of ways:
+    
+    redirect_to(:action => "edit") =>
+      /library/books/ISBN/0743536703/edit
+
+    redirect_to(:path_params => { "type" => "XTC", "code" => "12354345" }) =>
+      /library/books/XTC/12354345/show
+
+    redirect_to(:controller_prefix => "admin", :controller => "accounts") =>
+      /admin/accounts/
+
+  Learn more in link:classes/ActionController/Base.html
+
+
+* Easy testing of both controller and template result through TestRequest/Response
+
+    class LoginControllerTest < Test::Unit::TestCase
+      def setup
+        @controller = LoginController.new
+        @request    = ActionController::TestRequest.new
+        @response   = ActionController::TestResponse.new
+      end
+
+      def test_failing_authenticate
+        process :authenticate, "user_name" => "nop", "password" => ""
+        assert_flash_has 'alert'
+        assert_redirected_to :action => "index"
+      end
+    end
+
+  Learn more in link:classes/ActionController/TestRequest.html
+
+
+* Automated benchmarking and integrated logging
+
+    Processing WeblogController#index (for 127.0.0.1 at Fri May 28 00:41:55)
+    Parameters: {"action"=>"index", "controller"=>"weblog"}
+    Rendering weblog/index (200 OK)
+    Completed in 0.029281 (34 reqs/sec)
+
+    If Active Record is used as the model, you'll have the database debugging
+    as well:
+
+    Processing WeblogController#create (for 127.0.0.1 at Sat Jun 19 14:04:23)
+    Params: {"controller"=>"weblog", "action"=>"create",  
+             "post"=>{"title"=>"this is good"} }
+    SQL (0.000627) INSERT INTO posts (title) VALUES('this is good')
+    Redirected to http://test/weblog/display/5
+    Completed in 0.221764 (4 reqs/sec) | DB: 0.059920 (27%)
+
+    You specify a logger through a class method, such as:
+
+    ActionController::Base.logger = Logger.new("Application Log")
+    ActionController::Base.logger = Log4r::Logger.new("Application Log")
+
+
+* Powerful debugging mechanism for local requests
+
+    All exceptions raised on actions performed on the request of a local user
+    will be presented with a tailored debugging screen that includes exception
+    message, stack trace, request parameters, session contents, and the
+    half-finished response.
+
+  Learn more in link:classes/ActionController/Rescue.html
+
+
+* Scaffolding for Action Record model objects
+
+    require 'account' # must be an Active Record class
+    class AccountController < ActionController::Base
+      scaffold :account
+    end
+    
+    The AccountController now has the full CRUD range of actions and default
+    templates: list, show, destroy, new, create, edit, update
+    
+  Learn more in link:classes/ActionController/Scaffolding/ClassMethods.html
+
+
+* Form building for Active Record model objects
+
+    The post object has a title (varchar), content (text), and 
+    written_on (date)
+
+    <%= form "post" %>
+    
+    ...will generate something like (the selects will have more options of
+    course):
+    
+    <form action="create" method="POST">
+      <p>
+        <b>Title:</b><br/> 
+        <input type="text" name="post[title]" value="<%= @post.title %>" />
+      </p>
+      <p>
+        <b>Content:</b><br/>
+        <textarea name="post[content]"><%= @post.title %></textarea>
+      </p>
+      <p>
+        <b>Written on:</b><br/>
+        <select name='post[written_on(3i)]'><option>18</option></select>
+        <select name='post[written_on(2i)]'><option value='7'>July</option></select>
+        <select name='post[written_on(1i)]'><option>2004</option></select>
+      </p>
+
+      <input type="submit" value="Create">
+    </form>
+
+    This form generates a @params["post"] array that can be used directly in a save action:
+    
+    class WeblogController < ActionController::Base
+      def save
+        post = Post.create(@params["post"])
+        redirect_to :action => "display", :path_params => { "id" => post.id }
+      end
+    end
+
+  Learn more in link:classes/ActionView/Helpers/ActiveRecordHelper.html
+
+
+* Automated mapping of URLs to controller/action pairs through Apache's
+  mod_rewrite
+
+    Requesting /blog/display/5 will call BlogController#display and 
+    make 5 available as an instance variable through @params["id"]
+
+
+* Runs on top of CGI, FCGI, and mod_ruby
+
+    See the address_book_controller example for all three forms
+
+
+== Simple example
+
+This example will implement a simple weblog system using inline templates and
+an Active Record model. The first thing we need to do is setup an .htaccess to
+interpret pretty URLs into something the controller can use. Let's use the
+simplest form for starters:
+
+  RewriteRule ^weblog/([-_a-zA-Z0-9]+)/([0-9]+)$ \
+    /weblog_controller.cgi?action=$2&id=$3 [QSA]
+  RewriteRule ^weblog/([-_a-zA-Z0-9]+)$ \
+    /weblog_controller.cgi?action=$2 [QSA]
+  RewriteRule ^weblog/$ \
+    /weblog_controller.cgi?action=index [QSA]
+
+Now we'll be able to access URLs like weblog/display/5 and have
+WeblogController#display called with { "id" => 5 } in the @params array
+available for the action. So let's build that WeblogController with just a few
+methods:
+
+  require 'action_controller'
+  require 'post'
+  class WeblogController < ActionController::Base
+    layout "weblog/layout"
+  
+    def index
+      @posts = Post.find_all
+    end
+    
+    def display
+      @post = Post.find(@params["id"])
+    end
+    
+    def new
+      @post = Post.new
+    end
+    
+    def create
+      @post = Post.create(@params["post"])
+      @post.save
+      redirect_to :action => "display", :id => @post.id
+    end
+  end
+
+  WeblogController::Base.template_root = File.dirname(__FILE__)
+  WeblogController.process_cgi if $0 == __FILE__
+
+The last two lines are responsible for telling ActionController where the
+template files are located and actually running the controller on a new
+request from the web-server (like to be Apache).
+
+And the templates look like this:
+
+  weblog/layout.rhtml:
+    <html><body>
+    <%= @content_for_layout %>
+    </body></html>
+
+  weblog/index.rhtml:
+    <% for post in @posts %>
+      <p><%= link_to(post.title, :action => "display", :id => post.id %></p>
+    <% end %>
+
+  weblog/display.rhtml:
+    <p>
+      <b><%= post.title %></b><br/>
+      <b><%= post.content %></b>
+    </p>
+
+  weblog/new.rhtml:
+    <%= form "post" %>
+  
+This simple setup will list all the posts in the system on the index page,
+which is called by accessing /weblog/. It uses the form builder for the Active
+Record model to make the new screen, which in turns hand everything over to
+the create action (that's the default target for the form builder when given a
+new model). After creating the post, it'll redirect to the display page using
+an URL such as /weblog/display/5 (where 5 is the id of the post.
+
+
+== Examples
+
+Action Pack ships with three examples that all demonstrate an increasingly
+detailed view of the possibilities. First is blog_controller that is just a
+single file for the whole MVC (but still split into separate parts). Second is
+the debate_controller that uses separate template files and multiple screens.
+Third is the address_book_controller that uses the layout feature to separate
+template casing from content.
+
+Please note that you might need to change the "shebang" line to 
+#!/usr/local/env ruby, if your Ruby is not placed in /usr/local/bin/ruby
+
+
+== Download
+
+The latest version of Action Pack can be found at
+
+* http://rubyforge.org/project/showfiles.php?group_id=249
+
+Documentation can be found at 
+
+* http://actionpack.rubyonrails.org
+
+
+== Installation
+
+You can install Action Pack with the following command.
+
+  % [sudo] ruby install.rb
+
+from its distribution directory.
+
+
+== License
+
+Action Pack is released under the same license as Ruby.
+
+
+== Support
+
+The Action Pack homepage is http://actionpack.rubyonrails.org. You can find
+the Action Pack RubyForge page at http://rubyforge.org/projects/actionpack.
+And as Jim from Rake says:
+
+   Feel free to submit commits or feature requests.  If you send a patch,
+   remember to update the corresponding unit tests.  If fact, I prefer
+   new feature to be submitted in the form of new unit tests.
+
+For other information, feel free to ask on the ruby-talk mailing list (which
+is mirrored to comp.lang.ruby) or contact mailto:david@loudthinking.com.

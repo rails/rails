@@ -1,0 +1,19 @@
+*0.4* (5)
+
+* Consolidated the server configuration options into Base#server_settings= and expanded that with controls for authentication and more [Marten]
+  NOTE: This is an API change that could potentially break your application if you used the old application form. Please do change!
+
+* Added Base#deliveries as an accessor for an array of emails sent out through that ActionMailer class when using the :test delivery option. [bitsweat]
+
+* Added Base#perform_deliveries= which can be set to false to turn off the actual delivery of the email through smtp or sendmail.
+  This is especially useful for functional testing that shouldn't send off real emails, but still trigger delivery_* methods.
+
+* Added option to specify delivery method with Base#delivery_method=. Default is :smtp and :sendmail is currently the only other option.
+  Sendmail is assumed to be present at "/usr/sbin/sendmail" if that option is used. [Kent Sibilev]
+
+* Dropped "include TMail" as it added to much baggage into the default namespace (like Version) [Chad Fowler]
+
+
+*0.3*
+
+* First release

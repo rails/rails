@@ -1,0 +1,24 @@
+<IfModule mod_ruby.c>
+  RubyRequire apache/ruby-run
+  RubySafeLevel 0
+
+  <Files *.rbx>
+    SetHandler ruby-object
+    RubyHandler Apache::RubyRun.instance
+  </Files>
+</IfModule>
+
+
+RewriteEngine On
+RewriteRule ^fcgi/([-_a-zA-Z0-9]+)/([-_a-zA-Z0-9]+)/([0-9]+)$ /$1_controller.fcgi?action=$2&id=$3 [QSA]
+RewriteRule ^fcgi/([-_a-zA-Z0-9]+)/([-_a-zA-Z0-9]+)$ /$1_controller.fcgi?action=$2 [QSA]
+RewriteRule ^fcgi/([-_a-zA-Z0-9]+)/$ /$1_controller.fcgi?action=index [QSA]
+
+RewriteRule ^modruby/([-_a-zA-Z0-9]+)/([-_a-zA-Z0-9]+)/([0-9]+)$ /$1_controller.rbx?action=$2&id=$3 [QSA]
+RewriteRule ^modruby/([-_a-zA-Z0-9]+)/([-_a-zA-Z0-9]+)$ /$1_controller.rbx?action=$2 [QSA]
+RewriteRule ^modruby/([-_a-zA-Z0-9]+)/$ /$1_controller.rbx?action=index [QSA]
+
+RewriteRule ^([-_a-zA-Z0-9]+)/([-_a-zA-Z0-9]+)/([0-9]+)$ /$1_controller.cgi?action=$2&id=$3 [QSA]
+RewriteRule ^([-_a-zA-Z0-9]+)/([-_a-zA-Z0-9]+)$ /$1_controller.cgi?action=$2 [QSA]
+RewriteRule ^([-_a-zA-Z0-9]+)/$ /$1_controller.cgi?action=index [QSA]
+

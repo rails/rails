@@ -1,0 +1,22 @@
+<%
+  base_dir = File.expand_path(File.dirname(__FILE__))
+    
+  clean_backtrace = @exception.backtrace.collect { |line| line.gsub(base_dir, "").gsub("/../config/environments/../../", "") }
+  app_trace       = clean_backtrace.reject { |line| line[0..6] == "vendor/" || line.include?("dispatch.cgi") }
+  framework_trace = clean_backtrace - app_trace
+%>
+
+<h1>
+  <%=h @exception.class.to_s %> in
+  <%=h @request.parameters["controller"].capitalize %>#<%=h @request.parameters["action"] %>
+</h1>
+<p><%=h @exception.message %></p>
+
+<% unless app_trace.empty? %><pre><code><%=h app_trace.collect { |line| line.gsub("/../", "") }.join("\n") %></code></pre><% end %>
+
+<% unless framework_trace.empty? %>
+  <a href="#" onclick="document.getElementById('framework_trace').style.display='block'; return false;">Show framework trace</a>
+  <pre id="framework_trace" style="display:none"><code><%=h framework_trace.join("\n") %></code></pre>
+<% end %>
+
+<%= render_file(@rescues_path + "/_request_and_response.rhtml", false) %>

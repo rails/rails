@@ -1,0 +1,28 @@
+<%
+  base_dir = File.expand_path(File.dirname(__FILE__))
+    
+  request_parameters_without_action = @request.parameters.clone
+  request_parameters_without_action.delete("action")
+  request_parameters_without_action.delete("controller")
+  
+  request_dump  = request_parameters_without_action.inspect.gsub(/,/, ",\n")
+  session_dump  = @request.session.instance_variable_get("@data").inspect.gsub(/,/, ",\n")
+  response_dump = @response.inspect.gsub(/,/, ",\n")
+
+  template_assigns = @response.template.instance_variable_get("@assigns")
+  %w( response exception template session request template_root template_class url ignore_missing_templates logger cookies headers params ).each { |t| template_assigns.delete(t) }
+  template_dump = template_assigns.inspect.gsub(/,/, ",\n")
+%>
+
+<h2 style="margin-top: 30px">Request</h2>
+<p><b>Parameters</b>: <%=h request_dump == "{}" ? "None" : request_dump %></p>
+
+<p><a href="#" onclick="document.getElementById('session_dump').style.display='block'; return false;">Show session dump</a></p>
+<div id="session_dump" style="display:none"><%= debug(@request.session.instance_variable_get("@data")) %></div>
+
+
+<h2 style="margin-top: 30px">Response</h2>
+<b>Headers</b>: <%=h @response.headers.inspect.gsub(/,/, ",\n") %><br/>
+
+<p><a href="#" onclick="document.getElementById('template_dump').style.display='block'; return false;">Show template parameters</a></p>
+<div id="template_dump" style="display:none"><%= debug(template_assigns) %></div>

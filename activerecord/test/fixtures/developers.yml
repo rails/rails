@@ -1,0 +1,13 @@
+david:
+  id: 1
+  name: David
+
+jamis:
+  id: 2
+  name: Jamis
+
+<% for digit in 3..10 %>
+dev_<%= digit %>:
+  id: <%= digit %>
+  name: fixture_<%= digit %>
+<% end %>

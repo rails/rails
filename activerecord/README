@@ -1,0 +1,361 @@
+= Active Record -- Object-relation mapping put on rails
+
+Active Record connects business objects and database tables to create a persistable
+domain model where logic and data is presented in one wrapping. It's an implementation 
+of the object-relational mapping (ORM) pattern[http://www.martinfowler.com/eaaCatalog/activeRecord.html] 
+by the same name as described by Martin Fowler:
+
+  "An object that wraps a row in a database table or view, encapsulates 
+       the database access, and adds domain logic on that data."
+
+Active Records main contribution to the pattern is to relieve the original of two stunting problems:
+lack of associations and inheritance. By adding a simple domain language-like set of macros to describe
+the former and integrating the Single Table Inheritance pattern for the latter, Active Record narrows the
+gap of functionality between the data mapper and active record approach.
+
+A short rundown of the major features:
+
+* Automated mapping between classes and tables, attributes and columns.
+
+   class Product < ActiveRecord::Base; end
+   
+   ...is automatically mapped to the table named "products", such as:
+   
+   CREATE TABLE products (
+     id int(11) NOT NULL auto_increment,
+     name varchar(255),
+     PRIMARY KEY  (id)
+   );
+
+   ...which again gives Product#name and Product#name=(new_name) 
+   
+  Learn more in link:classes/ActiveRecord/Base.html
+
+
+* Associations between objects controlled by simple meta-programming macros. 
+
+   class Firm < ActiveRecord::Base
+     has_many   :clients
+     has_one    :account
+     belongs_to :conglomorate
+   end
+
+  Learn more in link:classes/ActiveRecord/Associations/ClassMethods.html
+
+
+* Aggregations of value objects controlled by simple meta-programming macros. 
+
+   class Account < ActiveRecord::Base
+     composed_of :balance, :class_name => "Money",
+                 :mapping => %w(balance amount)
+     composed_of :address, 
+                 :mapping => [%w(address_street street), %w(address_city city)]
+   end
+
+  Learn more in link:classes/ActiveRecord/Aggregations/ClassMethods.html
+
+
+* Validation rules that can differ for new or existing objects.
+
+   class Post < ActiveRecord::Base
+     def validate # validates on both creates and updates
+       errors.add_on_empty "title"
+     end
+
+     def validate_on_update
+       errors.add_on_empty "password"
+     end
+   end
+
+  Learn more in link:classes/ActiveRecord/Validations.html
+
+ 
+* Callbacks as methods or queues on the entire lifecycle (instantiation, saving, destroying, validating, etc).
+
+   class Person < ActiveRecord::Base
+     def before_destroy # is called just before Person#destroy
+       CreditCard.find(credit_card_id).destroy
+     end
+   end
+
+   class Account < ActiveRecord::Base
+     after_find :eager_load, 'self.class.announce(#{id})'
+   end
+
+  Learn more in link:classes/ActiveRecord/Callbacks.html
+
+
+* Observers for the entire lifecycle
+
+   class CommentObserver < ActiveRecord::Observer
+     def after_create(comment) # is called just after Comment#save
+       NotificationService.send_email("david@loudthinking.com", comment)
+     end
+   end
+
+  Learn more in link:classes/ActiveRecord/Observer.html
+
+
+* Inheritance hierarchies 
+
+   class Company < ActiveRecord::Base; end
+   class Firm < Company; end
+   class Client < Company; end
+   class PriorityClient < Client; end
+
+  Learn more in link:classes/ActiveRecord/Base.html
+
+
+* Transaction support on both a database and object level. The latter is implemented 
+  by using Transaction::Simple[http://www.halostatue.ca/ruby/Transaction__Simple.html]
+
+    # Just database transaction
+    Account.transaction do
+      david.withdrawal(100)
+      mary.deposit(100)
+    end
+
+    # Database and object transaction
+    Account.transaction(david, mary) do
+      david.withdrawal(100)
+      mary.deposit(100)
+    end
+
+  Learn more in link:classes/ActiveRecord/Transactions/ClassMethods.html
+
+
+* Reflections on columns, associations, and aggregations
+
+    reflection = Firm.reflect_on_association(:clients)
+    reflection.klass # => Client (class)
+    Firm.columns # Returns an array of column descriptors for the firms table
+
+  Learn more in link:classes/ActiveRecord/Reflection/ClassMethods.html
+
+
+* Direct manipulation (instead of service invocation)
+
+  So instead of (Hibernate[http://www.hibernate.org/] example):
+
+     long pkId = 1234;
+     DomesticCat pk = (DomesticCat) sess.load( Cat.class, new Long(pkId) );
+     // something interesting involving a cat...
+     sess.save(cat);
+     sess.flush(); // force the SQL INSERT
+
+  Active Record lets you:
+
+     pkId = 1234
+     cat = Cat.find(pkId)
+     # something even more interesting involving a the same cat...
+     cat.save
+
+  Learn more in link:classes/ActiveRecord/Base.html
+
+
+* Database abstraction through simple adapters (~100 lines) with a shared connector
+
+   ActiveRecord::Base.establish_connection(:adapter => "sqlite", :dbfile => "dbfile")
+
+   ActiveRecord::Base.establish_connection(
+     :adapter  => "mysql", 
+     :host     => "localhost", 
+     :username => "me", 
+     :password => "secret", 
+     :database => "activerecord"
+   )
+
+  Learn more in link:classes/ActiveRecord/Base.html#M000081
+
+
+* Logging support for Log4r[http://log4r.sourceforge.net] and Logger[http://www.ruby-doc.org/stdlib/libdoc/logger/rdoc]
+
+    ActiveRecord::Base.logger = Logger.new(STDOUT)
+    ActiveRecord::Base.logger = Log4r::Logger.new("Application Log")
+
+
+== Simple example (1/2): Defining tables and classes (using MySQL)
+
+Data definitions are specified only in the database. Active Record queries the database for 
+the column names (that then serves to determine which attributes are valid) on regular
+objects instantiation through the new constructor and relies on the column names in the rows
+with the finders.
+ 
+   # CREATE TABLE companies (
+   #   id int(11) unsigned NOT NULL auto_increment,
+   #   client_of int(11),
+   #   name varchar(255),
+   #   type varchar(100),
+   #   PRIMARY KEY  (id)
+   # )
+
+Active Record automatically links the "Company" object to the "companies" table
+
+   class Company < ActiveRecord::Base
+     has_many :people, :class_name => "Person"
+   end
+
+   class Firm < Company
+     has_many :clients
+  
+     def people_with_all_clients
+      clients.inject([]) { |people, client| people + client.people }
+     end
+   end
+
+The foreign_key is only necessary because we didn't use "firm_id" in the data definition
+ 
+   class Client < Company
+     belongs_to :firm, :foreign_key => "client_of"
+   end
+
+   # CREATE TABLE people (
+   #   id int(11) unsigned NOT NULL auto_increment,
+   #   name text,
+   #   company_id text,
+   #   PRIMARY KEY  (id)
+   # )
+
+Active Record will also automatically link the "Person" object to the "people" table
+
+   class Person < ActiveRecord::Base
+     belongs_to :company
+   end
+
+== Simple example (2/2): Using the domain
+
+Picking a database connection for all the active records
+
+   ActiveRecord::Base.establish_connection(
+     :adapter  => "mysql", 
+     :host     => "localhost", 
+     :username => "me", 
+     :password => "secret", 
+     :database => "activerecord"
+   )
+
+Create some fixtures
+
+   firm = Firm.new("name" => "Next Angle")
+   # SQL: INSERT INTO companies (name, type) VALUES("Next Angle", "Firm")
+   firm.save
+
+   client = Client.new("name" => "37signals", "client_of" => firm.id)
+   # SQL: INSERT INTO companies (name, client_of, type) VALUES("37signals", 1, "Firm")
+   client.save
+
+Lots of different finders
+
+   # SQL: SELECT * FROM companies WHERE id = 1
+   next_angle = Company.find(1)
+
+   # SQL: SELECT * FROM companies WHERE id = 1 AND type = 'Firm'
+   next_angle = Firm.find(1)    
+
+   # SQL: SELECT * FROM companies WHERE id = 1 AND name = 'Next Angle'
+   next_angle = Company.find_first "name = 'Next Angle'"
+
+   next_angle = Firm.find_by_sql("SELECT * FROM companies WHERE id = 1").first
+
+The supertype, Company, will return subtype instances
+
+   Firm === next_angle
+
+All the dynamic methods added by the has_many macro
+
+  next_angle.clients.empty?  # true
+  next_angle.clients.size    # total number of clients
+  all_clients = next_angle.clients
+
+Constrained finds makes access security easier when ID comes from a web-app
+
+   # SQL: SELECT * FROM companies WHERE client_of = 1 AND type = 'Client' AND id = 2
+   thirty_seven_signals = next_angle.clients.find(2)
+
+Bi-directional associations thanks to the "belongs_to" macro
+
+   thirty_seven_signals.firm.nil? # true
+
+
+== Examples
+
+Active Record ships with a couple of examples that should give you a good feel for
+operating usage. Be sure to edit the <tt>examples/shared_setup.rb</tt> file for your
+own database before running the examples. Possibly also the table definition SQL in 
+the examples themselves.
+
+It's also highly recommended to have a look at the unit tests. Read more in link:files/RUNNING_UNIT_TESTS.html
+
+
+== Database support
+
+Active Record ships with adapters for MySQL/Ruby[http://www.tmtm.org/en/mysql/ruby/] 
+(compatible with Ruby/MySQL[http://www.tmtm.org/ruby/mysql/README_en.html]), 
+PostgreSQL[http://www.postgresql.jp/interfaces/ruby/], and 
+SQLite[http://rubyforge.org/projects/sqlite-ruby/] (needs SQLite 2.8.13+ and SQLite-Ruby 1.1.2+).
+The adapters are around 100 lines of code fulfilling the interface specified by 
+ActiveRecord::ConnectionAdapters::AbstractAdapter. Writing a new adapter should be a small task --
+especially considering the extensive test suite that'll make sure you're fulfilling the contract.
+
+
+== Philosophy 
+
+Active Record attempts to provide a coherent wrapping for the inconvenience that is 
+object-relational mapping. The prime directive for this mapping has been to minimize
+the amount of code needed to built a real-world domain model. This is made possible
+by relying on a number of conventions that make it easy for Active Record to infer
+complex relations and structures from a minimal amount of explicit direction.
+
+Convention over Configuration:
+* No XML-files!
+* Lots of reflection and run-time extension
+* Magic is not inherently a bad word 
+
+Admit the Database:
+* Lets you drop down to SQL for odd cases and performance
+* Doesn't attempt to duplicate or replace data definitions
+
+
+== Download
+
+The latest version of Active Record can be found at
+
+* http://rubyforge.org/project/showfiles.php?group_id=182
+
+Documentation can be found at 
+
+* http://ar.rubyonrails.org
+
+
+== Installation
+
+The prefered method of installing Active Record is through its GEM file. You'll need to have
+RubyGems[http://rubygems.rubyforge.org/wiki/wiki.pl] installed for that, though. If you have,
+then use:
+
+  % [sudo] gem install activerecord-0.9.0.gem
+
+You can also install Active Record the old-fashion way with the following command:
+
+  % [sudo] ruby install.rb
+
+from its distribution directory.
+
+
+== License
+
+Active Record is released under the same license as Ruby.
+
+
+== Support
+
+The Active Record homepage is http://activerecord.rubyonrails.org. You can find the Active Record
+RubyForge page at http://rubyforge.org/projects/activerecord. And as Jim from Rake says:
+
+   Feel free to submit commits or feature requests.  If you send a patch,
+   remember to update the corresponding unit tests.  If fact, I prefer
+   new feature to be submitted in the form of new unit tests.
+
+For other information, feel free to ask on the ruby-talk mailing list
+(which is mirrored to comp.lang.ruby) or contact mailto:david@loudthinking.com.
+

@@ -1,0 +1,19 @@
+class <%= class_name %>Controller < AbstractApplicationController
+  helper :<%= file_name %>
+<% if options[:scaffold] -%>
+  model    :<%= file_name %>
+  scaffold :<%= options[:scaffold] %>
+
+  <%- for action in actions -%>
+  #def <%= action %>
+  #end
+
+  <%- end -%>
+<% else -%>
+  <%- for action in actions -%>
+  def <%= action %>
+  end
+
+  <%- end -%>
+<% end -%>
+end

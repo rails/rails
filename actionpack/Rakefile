@@ -1,0 +1,105 @@
+require 'rubygems'
+require 'rake'
+require 'rake/testtask'
+require 'rake/rdoctask'
+require 'rake/packagetask'
+require 'rake/gempackagetask'
+require 'rake/contrib/rubyforgepublisher'
+
+PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+PKG_NAME      = 'actionpack'
+PKG_VERSION   = '0.9.5' + PKG_BUILD
+PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
+
+desc "Default Task"
+task :default => [ :test ]
+
+# Run the unit tests
+
+Rake::TestTask.new { |t|
+  t.libs << "test"
+  t.pattern = 'test/*/*_test.rb'
+  t.verbose = true
+}
+
+
+# Genereate the RDoc documentation
+
+Rake::RDocTask.new { |rdoc|
+  rdoc.rdoc_dir = 'doc'
+  rdoc.title    = "Action Pack -- On rails from request to response"
+  rdoc.options << '--line-numbers --inline-source --main README'
+  rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
+  rdoc.rdoc_files.include('lib/**/*.rb')
+}
+
+
+# Create compressed packages
+
+
+dist_dirs = [ "lib", "test", "examples" ]
+
+spec = Gem::Specification.new do |s|
+  s.platform = Gem::Platform::RUBY
+  s.name = PKG_NAME
+  s.version = PKG_VERSION
+  s.summary = "Web-flow and rendering framework putting the VC in MVC."
+  s.description = %q{Eases web-request routing, handling, and response as a half-way front, half-way page controller. Implemented with specific emphasis on enabling easy unit/integration testing that doesn't require a browser.}
+
+  s.author = "David Heinemeier Hansson"
+  s.email = "david@loudthinking.com"
+  s.rubyforge_project = "actionpack"
+  s.homepage = "http://actionpack.rubyonrails.org"
+
+  s.has_rdoc = true
+  s.requirements << 'none'
+  s.require_path = 'lib'
+  s.autorequire = 'action_controller'
+
+  s.files = [ "rakefile", "install.rb", "README", "RUNNING_UNIT_TESTS", "CHANGELOG", "MIT-LICENSE", "examples/.htaccess" ]
+  dist_dirs.each do |dir|
+    s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "CVS" ) }
+  end
+  s.files.delete "examples/benchmark.rb"
+  s.files.delete "examples/benchmark_with_ar.fcgi"
+end
+  
+Rake::GemPackageTask.new(spec) do |p|
+  p.gem_spec = spec
+  p.need_tar = true
+  p.need_zip = true
+end
+
+
+# Publish beta gem
+desc "Publish the API documentation"
+task :pgem => [:package] do 
+  Rake::SshFilePublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  `ssh davidhh@one.textdrive.com './gemupdate.sh'`
+end
+
+# Publish documentation
+desc "Publish the API documentation"
+task :pdoc => [:rdoc] do 
+  Rake::SshDirPublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/ap", "doc").upload
+end
+
+
+desc "Count lines in the main rake file"
+task :lines do
+  lines = 0
+  codelines = 0
+  Dir.foreach("lib/action_controller") { |file_name| 
+    next unless file_name =~ /.*rb/
+    
+    f = File.open("lib/action_controller/" + file_name)
+
+    while line = f.gets
+      lines += 1
+      next if line =~ /^\s*$/
+      next if line =~ /^\s*#/
+      codelines += 1
+    end
+  }
+  puts "Lines #{lines}, LOC #{codelines}"
+end

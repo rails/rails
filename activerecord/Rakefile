@@ -1,0 +1,126 @@
+require 'rubygems'
+require 'rake'
+require 'rake/testtask'
+require 'rake/rdoctask'
+require 'rake/packagetask'
+require 'rake/gempackagetask'
+require 'rake/contrib/rubyforgepublisher'
+
+PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+PKG_NAME      = 'activerecord'
+PKG_VERSION   = '1.1.0' + PKG_BUILD
+PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
+
+PKG_FILES = FileList[
+    "lib/**/*", "test/**/*", "examples/**/*", "doc/**/*", "[A-Z]*", "install.rb", "rakefile"
+].exclude(/\bCVS\b|~$/)
+
+
+desc "Default Task"
+task :default => [ :test_ruby_mysql, :test_mysql_ruby, :test_sqlite, :test_postgresql ]
+
+# Run the unit tests
+
+Rake::TestTask.new("test_ruby_mysql") { |t|
+  t.libs << "test" << "test/connections/native_mysql"
+  t.pattern = 'test/*_test.rb'
+  t.verbose = true
+}
+
+Rake::TestTask.new("test_mysql_ruby") { |t|
+  t.libs << "test" << "test/connections/native_mysql"
+  t.pattern = 'test/*_test.rb'
+  t.verbose = true
+}
+
+Rake::TestTask.new("test_postgresql") { |t|
+  t.libs << "test" << "test/connections/native_postgresql"
+  t.pattern = 'test/*_test.rb'
+  t.verbose = true
+}
+
+Rake::TestTask.new("test_sqlite") { |t|
+  t.libs << "test" << "test/connections/native_sqlite"
+  t.pattern = 'test/*_test.rb'
+  t.verbose = true
+}
+
+# Generate the RDoc documentation
+
+Rake::RDocTask.new { |rdoc|
+  rdoc.rdoc_dir = 'doc'
+  rdoc.title    = "Active Record -- Object-relation mapping put on rails"
+  rdoc.options << '--line-numbers --inline-source --accessor cattr_accessor=object'
+  rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
+  rdoc.rdoc_files.include('lib/**/*.rb')
+  rdoc.rdoc_files.exclude('lib/active_record/vendor/*')
+  rdoc.rdoc_files.include('dev-utils/*.rb')
+}
+
+
+# Publish beta gem
+desc "Publish the beta gem"
+task :pgem => [:package] do 
+  Rake::SshFilePublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  `ssh davidhh@one.textdrive.com './gemupdate.sh'`
+end
+
+# Publish documentation
+desc "Publish the API documentation"
+task :pdoc => [:rdoc] do 
+  Rake::SshDirPublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/ar", "doc").upload
+end
+
+
+# Create compressed packages
+
+dist_dirs = [ "lib", "test", "examples", "dev-utils" ]
+
+spec = Gem::Specification.new do |s|
+  s.name = PKG_NAME
+  s.version = PKG_VERSION
+  s.summary = "Implements the ActiveRecord pattern for ORM."
+  s.description = %q{Implements the ActiveRecord pattern (Fowler, PoEAA) for ORM. It ties database tables and classes together for business objects, like Customer or Subscription, that can find, save, and destroy themselves without resorting to manual SQL.}
+
+  s.files = [ "rakefile", "install.rb", "README", "RUNNING_UNIT_TESTS", "CHANGELOG" ]
+  dist_dirs.each do |dir|
+    s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "CVS" ) }
+  end
+  s.files.delete "test/fixtures/fixture_database.sqlite"
+  s.require_path = 'lib'
+  s.autorequire = 'active_record'
+
+  s.has_rdoc = true
+  s.extra_rdoc_files = %w( README )
+  s.rdoc_options.concat ['--main',  'README']
+  
+  s.author = "David Heinemeier Hansson"
+  s.email = "david@loudthinking.com"
+  s.homepage = "http://activerecord.rubyonrails.org"
+  s.rubyforge_project = "activerecord"
+end
+  
+Rake::GemPackageTask.new(spec) do |p|
+  p.gem_spec = spec
+  p.need_tar = true
+  p.need_zip = true
+end
+
+
+task :lines do
+  lines = 0
+  codelines = 0
+  Dir.foreach("lib/active_record") { |file_name| 
+    next unless file_name =~ /.*rb/
+    
+    f = File.open("lib/active_record/" + file_name)
+
+    while line = f.gets
+      lines += 1
+      next if line =~ /^\s*$/
+      next if line =~ /^\s*#/
+      codelines += 1
+    end
+  }
+  puts "Lines #{lines}, LOC #{codelines}"
+end

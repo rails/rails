@@ -1,0 +1,94 @@
+<html>
+<head>
+  <title>Rails: Welcome on board</title>
+  <style>
+    body { background-color: #fff; color: #333; }
+
+    body, p, ol, ul, td {
+      font-family: verdana, arial, helvetica, sans-serif;
+      font-size:   12px;
+      line-height: 18px;
+    }
+
+    li {
+      margin-bottom: 7px;
+    }
+
+    pre {
+      background-color: #eee;
+      padding: 10px;
+      font-size: 11px;
+    }
+
+    a { color: #000; }
+    a:visited { color: #666; }
+    a:hover { color: #fff; background-color:#000; }
+  </style>
+</head>
+<body>
+
+<h1>Congratulations, you're on Rails!</h1>
+
+<p>
+  <i>You've succesfully configured your web server to point at this Rails application.</i>
+</p>
+
+<p>Before you move on, verify that the following conditions have been met:</p>
+
+<ol>
+  <li>The log directory and the empty log files must be writable to the web server (<code>chmod -R 777 log</code>).
+  <li>
+    The shebang line in the public/dispatch* files must reference your Ruby installation. <br/>
+    You might need to change it to <code>#!/usr/bin/env ruby</code> or point directly at the installation.
+  </li>
+  <li>
+    Rails on Apache needs to have the cgi handler and mod_rewrite enabled.  <br/>
+    Somewhere in your httpd.conf, you should have:<br/>
+    <code>AddHandler cgi-script .cgi</code><br/>
+    <code>LoadModule rewrite_module     libexec/httpd/mod_rewrite.so</code><br/>
+    <code>AddModule mod_rewrite.c</code>
+  </li>
+</ol>
+
+<p>Take the following steps to get started:</p>
+
+<ol>
+  <li>Create empty production and test databases for your application.<br/>
+      <small>Warning: Don't point your test database at your production database, it'll destroy the latter on test runs!</small>
+  <li>Edit config/database.yml with your database settings.
+  <li>Create a new controller using the <code>script/new_controller</code> generator <br/>
+      <small>Help: Run with no arguments for documentation</small>
+  <li>Create a new model using the <code>script/new_model</code> generator <br/>
+      <small>Help: Run with no arguments for documentation</small>
+  <li>See all the tests run and fail by running <code>rake</code>.
+  <li>Develop your Rails application!
+  <li>Setup FastCGI or mod_ruby to get production-level performance
+</ol>
+
+<p>
+  Having problems getting up and running? First try debugging it yourself by looking at the log files. <br/> Then try the friendly Rails 
+  community on IRC  (<a href="http://www.rubyonrails.org/show/IRC">howto IRC</a>). It's on FreeNET in channel #rubyonrails. 
+</p>
+
+<div style="float: left; margin-right: 20px">
+  <h2>Rails Online</h2>
+
+  <ul>
+    <li><a href="http://www.rubyonrails.org">Ruby on Rails</a></li>
+    <li><a href="http://activerecord.rubyonrails.org">Active Record</a></li>
+    <li><a href="http://actionpack.rubyonrails.org">Action Pack</a></li>
+  </ul>
+</div>
+
+<div style="float: left">
+  <h2>Beyond CGI</h2>
+
+  <ul>
+    <li><a href="http://www.fastcgi.com">FastCGI</a></li>
+    <li><a href="http://raa.ruby-lang.org/list.rhtml?name=fcgi">FastCGI bindings for Ruby</a></li>
+    <li><a href="http://modruby.net/en/">mod_ruby</a></li>
+  </ul>
+</div>
+
+</body>
+</html>

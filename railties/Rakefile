@@ -1,0 +1,279 @@
+require 'rake'
+require 'rake/testtask'
+require 'rake/rdoctask'
+require 'rake/gempackagetask'
+require 'rake/contrib/rubyforgepublisher'
+
+require 'date'
+
+
+PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
+PKG_NAME        = 'rails'
+PKG_VERSION     = '0.8.5' + PKG_BUILD
+PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
+PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
+
+desc "Default Task"
+task :default => [ :fresh_rails ]
+
+desc "Generates a fresh Rails package with documentation"
+task :fresh_rails => [ :make_dir_structure, :initialize_file_stubs, :copy_vendor_libraries, :copy_ties_content, :generate_documentation ]
+
+desc "Generates a fresh Rails package using GEMs with documentation"
+task :fresh_gem_rails => [ :make_dir_structure, :initialize_file_stubs, :copy_ties_content, :copy_gem_environment ]
+
+desc "Generates a fresh Rails package without documentation (faster)"
+task :fresh_rails_without_docs => [ :make_dir_structure, :initialize_file_stubs, :copy_vendor_libraries, :copy_ties_content ]
+
+desc "Packages the fresh Rails package with documentation"
+task :package => [ :clean, :fresh_rails ] do
+  system %{cd ..; tar -czvf #{PKG_NAME}-#{PKG_VERSION}.tgz #{PKG_NAME}}
+  system %{cd ..; zip -r #{PKG_NAME}-#{PKG_VERSION}.zip #{PKG_NAME}}
+end
+
+task :clean do
+  File.rm_rf "#{PKG_DESTINATION}"
+end
+
+
+# Make directory structure ----------------------------------------------------------------
+
+desc "Make the directory structure for the new Rails application"
+task :make_dir_structure => [ :make_base_dirs, :make_app_dirs, :make_public_dirs, :make_test_dirs ] do
+end
+
+task :make_base_dirs do
+  File.rm_rf PKG_DESTINATION
+  File.mkdir "#{PKG_DESTINATION}"
+  File.mkdir "#{PKG_DESTINATION}/app"
+  File.mkdir "#{PKG_DESTINATION}/config"
+  File.mkdir "#{PKG_DESTINATION}/config/environments"
+  File.mkdir "#{PKG_DESTINATION}/db"
+  File.mkdir "#{PKG_DESTINATION}/doc"
+  File.mkdir "#{PKG_DESTINATION}/log"
+  File.mkdir "#{PKG_DESTINATION}/lib"
+  File.mkdir "#{PKG_DESTINATION}/public"
+  File.mkdir "#{PKG_DESTINATION}/script"
+  File.mkdir "#{PKG_DESTINATION}/test"
+  File.mkdir "#{PKG_DESTINATION}/vendor"
+end
+
+task :make_app_dirs do
+  File.mkdir "#{PKG_DESTINATION}/app/models"
+  File.mkdir "#{PKG_DESTINATION}/app/controllers"
+  File.mkdir "#{PKG_DESTINATION}/app/helpers"
+  File.mkdir "#{PKG_DESTINATION}/app/views"
+  File.mkdir "#{PKG_DESTINATION}/app/views/layouts"
+end
+
+task :make_public_dirs do
+  File.mkdir "#{PKG_DESTINATION}/public/images"
+  File.mkdir "#{PKG_DESTINATION}/public/javascripts"
+  File.mkdir "#{PKG_DESTINATION}/public/stylesheets"
+  File.mkdir "#{PKG_DESTINATION}/public/_doc"
+end
+
+task :make_test_dirs do
+  File.mkdir "#{PKG_DESTINATION}/test/fixtures"
+  File.mkdir "#{PKG_DESTINATION}/test/unit"
+  File.mkdir "#{PKG_DESTINATION}/test/functional"
+  File.mkdir "#{PKG_DESTINATION}/test/mocks/development"
+  File.mkdir "#{PKG_DESTINATION}/test/mocks/testing"
+end
+
+
+# Initialize file stubs -------------------------------------------------------------------
+
+desc "Initialize empty file stubs (such as for logging)"
+task :initialize_file_stubs => [ :initialize_log_files ] do
+end
+
+task :initialize_log_files do
+  chmod 0777, "#{PKG_DESTINATION}/log"
+
+  File.touch "#{PKG_DESTINATION}/log/apache.log"
+  File.touch "#{PKG_DESTINATION}/log/production.log"
+
+  chmod 0777, "#{PKG_DESTINATION}/log/apache.log"
+  chmod 0777, "#{PKG_DESTINATION}/log/production.log"
+end
+
+
+# Copy Vendors ----------------------------------------------------------------------------
+
+desc "Copy in all the Rails packages to vendor"
+task :copy_vendor_libraries => [ :copy_action_pack, :copy_active_record, :copy_ties, :copy_action_mailer ]
+
+task :copy_action_pack do
+  File.cp_r "../actionpack", "#{PKG_DESTINATION}/vendor/actionpack"
+end
+
+task :copy_active_record do
+  File.cp_r "../activerecord", "#{PKG_DESTINATION}/vendor/activerecord" 
+end
+
+task :copy_action_mailer do
+  File.cp_r "../actionmailer", "#{PKG_DESTINATION}/vendor/actionmailer" 
+end
+
+task :copy_ties do
+  File.cp_r "../railties", "#{PKG_DESTINATION}/vendor/railties" 
+end
+
+
+# Copy Ties Content -----------------------------------------------------------------------
+
+# :link_apache_config
+desc "Make copies of all the default content of ties"
+task :copy_ties_content => [ 
+  :copy_rootfiles, :copy_dispatches, :copy_html_files, :copy_abstract_application,
+  :copy_configs, :copy_generators, :copy_test_helpers, :copy_docs_in_public,
+  :copy_app_doc_readme ] do
+end
+
+task :copy_dispatches do
+  File.cp "dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.rb"
+  chmod 0755, "#{PKG_DESTINATION}/public/dispatch.rb"
+
+  File.cp "dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.cgi"
+  chmod 0755, "#{PKG_DESTINATION}/public/dispatch.cgi"
+
+  File.cp "dispatches/dispatch.fcgi", "#{PKG_DESTINATION}/public/dispatch.fcgi"
+  chmod 0755, "#{PKG_DESTINATION}/public/dispatch.fcgi"
+
+  File.cp "dispatches/dispatch.servlet", "#{PKG_DESTINATION}/public/dispatch.servlet"
+
+  File.cp "dispatches/start_server", "#{PKG_DESTINATION}/start_server"
+  chmod 0755, "#{PKG_DESTINATION}/start_server"
+end
+
+task :copy_html_files do
+  File.cp "html/404.html", "#{PKG_DESTINATION}/public/404.html"
+  File.cp "html/500.html", "#{PKG_DESTINATION}/public/500.html"
+  File.cp "html/index.html", "#{PKG_DESTINATION}/public/index.html"
+end
+
+task :copy_abstract_application do
+  File.cp "helpers/abstract_application.rb", "#{PKG_DESTINATION}/app/controllers/abstract_application.rb"
+  File.cp "helpers/application_helper.rb", "#{PKG_DESTINATION}/app/helpers/application_helper.rb"
+end
+
+task :copy_configs do
+  File.cp "configs/database.yml", "#{PKG_DESTINATION}/config/database.yml"
+
+  File.cp "configs/apache.conf", "#{PKG_DESTINATION}/public/.htaccess"
+
+  File.cp "environments/shared.rb", "#{PKG_DESTINATION}/config/environment.rb"
+  File.cp "environments/production.rb", "#{PKG_DESTINATION}/config/environments/production.rb"
+  File.cp "environments/development.rb", "#{PKG_DESTINATION}/config/environments/development.rb"
+  File.cp "environments/test.rb", "#{PKG_DESTINATION}/config/environments/test.rb"
+end
+
+task :copy_generators do
+  File.cp "generators/new_controller.rb", "#{PKG_DESTINATION}/script/new_controller"
+  File.cp "generators/new_model.rb", "#{PKG_DESTINATION}/script/new_model"
+  File.cp "generators/new_mailer.rb", "#{PKG_DESTINATION}/script/new_mailer"
+  File.cp "generators/new_crud.rb", "#{PKG_DESTINATION}/script/new_crud"
+  chmod 0755, "#{PKG_DESTINATION}/script/new_controller"
+  chmod 0755, "#{PKG_DESTINATION}/script/new_model"
+  chmod 0755, "#{PKG_DESTINATION}/script/new_mailer"
+  chmod 0755, "#{PKG_DESTINATION}/script/new_crud"
+end
+
+task :copy_rootfiles do
+  File.cp "fresh_rakefile", "#{PKG_DESTINATION}/Rakefile"
+  File.cp "README", "#{PKG_DESTINATION}/README"
+end
+
+task :copy_test_helpers do
+  File.cp "helpers/test_helper.rb", "#{PKG_DESTINATION}/test/test_helper.rb"
+end
+
+task :copy_docs_in_public do
+  File.cp "doc/index.html", "#{PKG_DESTINATION}/public/_doc/index.html"
+end
+
+task :copy_app_doc_readme do
+  File.cp "doc/README_FOR_APP", "#{PKG_DESTINATION}/doc/README_FOR_APP"
+end
+
+task :link_apache_config do
+  cd "#{PKG_DESTINATION}/config/"
+  ln_s "../public/.htaccess", "apache.conf"
+  cd "../../railties"
+end
+
+
+# Generate documentation ------------------------------------------------------------------
+
+desc "Generate documentation for the framework and for the empty application"
+task :generate_documentation => [ :generate_app_doc, :generate_rails_framework_doc ] do
+end
+
+task :generate_rails_framework_doc do
+  system %{cd #{PKG_DESTINATION}; rake apidoc}
+end
+
+task :generate_app_doc do
+  File.cp "doc/README_FOR_APP", "#{PKG_DESTINATION}/doc/README_FOR_APP"
+  system %{cd #{PKG_DESTINATION}; rake appdoc}
+end
+
+
+# Generate GEM ----------------------------------------------------------------------------
+
+task :copy_gem_environment do
+  File.cp "environments/shared_for_gem.rb", "#{PKG_DESTINATION}/config/environment.rb"
+end
+
+
+PKG_FILES = FileList[
+  '[a-zA-Z]*',
+  'bin/**/*', 
+  'configs/**/*', 
+  'doc/**/*', 
+  'dispatches/**/*', 
+  'environments/**/*', 
+  'generators/**/*', 
+  'helpers/**/*', 
+  'html/**/*', 
+  'lib/**/*'
+]
+
+spec = Gem::Specification.new do |s|
+  s.name = 'rails'
+  s.version = PKG_VERSION
+  s.summary = "Web-application framework with template engine, control-flow layer, and ORM."
+  s.description = <<-EOF
+    Rails is a framework for building web-application using CGI, FCGI, mod_ruby, or WEBrick
+    on top of either MySQL, PostgreSQL, or SQLite with eRuby-based templates.
+  EOF
+
+  s.add_dependency('rake', '>= 0.4.11')
+  s.add_dependency('activerecord', '>= 1.1.0')
+  s.add_dependency('actionpack', '>= 0.9.5')
+  s.add_dependency('actionmailer', '>= 0.4.0')
+  s.add_dependency('dev-utils', '>= 1.0.1')
+
+  s.files = PKG_FILES.to_a
+  s.require_path = 'lib'
+
+  s.bindir = "bin"                               # Use these for applications.
+  s.executables = ["rails"]
+  s.default_executable = "rails"
+
+  s.author = "David Heinemeier Hansson"
+  s.email = "david@loudthinking.com"
+  s.homepage = "http://www.rubyonrails.org"
+  s.rubyforge_project = "rails"
+end
+
+Rake::GemPackageTask.new(spec) do |pkg|
+end
+
+# Publish beta gem
+desc "Publish the API documentation"
+task :pgem => [:gem] do 
+  Rake::SshFilePublisher.new("davidhh@one.textdrive.com", "domains/rubyonrails.org/gems/gems", "pkg", "#{PKG_FILE_NAME}.gem").upload
+  `ssh davidhh@one.textdrive.com './gemupdate.sh'`
+end

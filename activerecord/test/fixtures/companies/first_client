@@ -1,0 +1,6 @@
+id => 2
+type => Client
+firm_id => 1
+client_of => 2
+name => Summit
+ruby_type => Client

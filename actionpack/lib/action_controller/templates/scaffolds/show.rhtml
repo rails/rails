@@ -1,0 +1,9 @@
+<% for column in @scaffold_class.content_columns %>
+  <p>
+    <b><%= column.human_name %>:</b>
+    <%= instance_variable_get("@#{@scaffold_singular_name}").send(column.name) %>
+  </p>
+<% end %>
+
+<%= link_to "Edit", :action => "edit#{@scaffold_suffix}", :id => instance_variable_get("@#{@scaffold_singular_name}").id %> |
+<%= link_to "Back", :action => "list#{@scaffold_suffix}" %>

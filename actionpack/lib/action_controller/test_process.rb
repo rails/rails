@@ -1,0 +1,195 @@
+require File.dirname(__FILE__) + '/assertions/action_pack_assertions'
+require File.dirname(__FILE__) + '/assertions/active_record_assertions'
+
+module ActionController #:nodoc:
+  class Base
+    # Process a test request called with a +TestRequest+ object.
+    def self.process_test(request)
+      new.process_test(request)
+    end
+  
+    def process_test(request) #:nodoc:
+      process(request, TestResponse.new)
+    end
+  end
+
+  class TestRequest < AbstractRequest #:nodoc:
+    attr_writer   :cookies
+    attr_accessor :query_parameters, :request_parameters, :session, :env
+    attr_accessor :host, :path, :request_uri, :remote_addr
+
+    def initialize(query_parameters = nil, request_parameters = nil, session = nil)
+      @query_parameters   = query_parameters || {}
+      @request_parameters = request_parameters || {}
+      @session            = session || TestSession.new
+      
+      initialize_containers
+      initialize_default_values
+
+      super()
+    end
+
+    def reset_session
+      @session = {}
+    end    
+
+    def cookies
+      @cookies.freeze
+    end
+
+    def action=(action_name)
+      @query_parameters.update({ "action" => action_name })
+      @parameters = nil
+    end
+    
+    def request_uri=(uri)
+      @request_uri = uri
+      @path = uri.split("?").first
+    end
+
+    private
+      def initialize_containers
+        @env, @cookies = {}, {}
+      end
+    
+      def initialize_default_values
+        @host               = "test.host"
+        @request_uri        = "/"
+        @remote_addr        = "127.0.0.1"        
+        @env["SERVER_PORT"] = 80
+      end
+  end
+  
+  class TestResponse < AbstractResponse #:nodoc:
+    # the class attribute ties a TestResponse to the assertions 
+    class << self
+      attr_accessor :assertion_target
+    end
+
+    # initializer
+    def initialize
+      TestResponse.assertion_target=self# if TestResponse.assertion_target.nil?
+      super()
+    end
+    
+    # the response code of the request
+    def response_code
+      headers['Status'][0,3].to_i rescue 0
+    end
+   
+    # was the response successful?
+    def success?
+      response_code == 200
+    end
+
+    # was the URL not found?
+    def missing?
+      response_code == 404
+    end
+
+    # were we redirected?
+    def redirect?
+      (300..399).include?(response_code)
+    end
+    
+    # was there a server-side error?
+    def server_error?
+      (500..599).include?(response_code)
+    end
+
+    # returns the redirection location or nil
+    def redirect_url
+      redirect? ? headers['location'] : nil
+    end
+    
+    # does the redirect location match this regexp pattern?
+    def redirect_url_match?( pattern )
+      return false if redirect_url.nil?
+      p = Regexp.new(pattern) if pattern.class == String
+      p = pattern if pattern.class == Regexp
+      return false if p.nil?
+      p.match(redirect_url) != nil
+    end
+   
+    # returns the template path of the file which was used to
+    # render this response (or nil) 
+    def rendered_file(with_controller=false)
+      unless template.first_render.nil?
+        unless with_controller
+          template.first_render
+        else
+          template.first_render.split('/').last || template.first_render
+        end
+      end
+    end
+
+    # was this template rendered by a file?
+    def rendered_with_file?
+      !rendered_file.nil?
+    end
+
+    # a shortcut to the flash (or an empty hash if no flash.. hey! that rhymes!)
+    def flash
+      session['flash'] || {}
+    end
+    
+    # do we have a flash? 
+    def has_flash?
+      !session['flash'].nil?
+    end
+
+    # do we have a flash that has contents?
+    def has_flash_with_contents?
+      !flash.empty?
+    end
+
+    # does the specified flash object exist?
+    def has_flash_object?(name=nil)
+      !flash[name].nil?
+    end
+
+    # does the specified object exist in the session?
+    def has_session_object?(name=nil)
+      !session[name].nil?
+    end
+
+    # a shortcut to the template.assigns
+    def template_objects
+      template.assigns || {}
+    end
+   
+    # does the specified template object exist? 
+    def has_template_object?(name=nil)
+      !template_objects[name].nil?      
+    end
+end
+
+  class TestSession #:nodoc:
+    def initialize(attributes = {})
+      @attributes = attributes
+    end
+
+    def [](key)
+      @attributes[key]
+    end
+
+    def []=(key, value)
+      @attributes[key] = value
+    end
+    
+    def update() end
+    def close() end
+    def delete() @attributes = {} end
+  end
+end
+
+class Test::Unit::TestCase #:nodoc:
+  private  
+    # execute the request and set/volley the response
+    def process(action, parameters = nil, session = nil)
+      @request.action = action.to_s
+      @request.parameters.update(parameters) unless parameters.nil?
+      @request.session = ActionController::TestSession.new(session) unless session.nil?
+      @controller.process(@request, @response)
+    end
+end

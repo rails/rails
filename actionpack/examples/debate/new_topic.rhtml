@@ -1,0 +1,22 @@
+<html>
+<body>
+<h1>New topic</h1>
+
+<form action="<%= url_for(:action => "create_topic") %>" method="post">
+  <p>
+    Title:<br>
+    <input type="text" name="topic[title]">
+  </p>
+
+  <p>
+    Body:<br>
+    <textarea name="topic[body]" style="width: 200px; height: 200px"></textarea>
+  </p>
+
+  <p>
+    <input type="submit" value="Create topic">
+  </p>
+</form>
+
+</body>
+</html>

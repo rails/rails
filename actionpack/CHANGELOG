@@ -1,0 +1,738 @@
+*CVS*
+
+* Upgraded to Builder 1.2.1
+
+* Added :module as an alias for :controller_prefix to url_for and friends, so you can do redirect_to(:module => "shop", :controller => "purchases")
+  and go to /shop/purchases/
+
+* Added support for controllers in modules through @params["module"].
+
+* Added reloading for dependencies under cached environments like FastCGI and mod_ruby. This makes it possible to use those environments for development.
+  This is turned on by default, but can be turned off with ActionController::Base.reload_dependencies = false in production environments.
+
+  NOTE: This will only have an effect if you use the new model, service, and observer class methods to mark dependencies. All libraries loaded through
+  require will be "forever" cached. You can, however, use ActionController::Base.load_or_require("library") to get this behavior outside of the new
+  dependency style.
+
+* Added that controllers will automatically require their own helper if possible. So instead of doing:
+
+    class MsgController < AbstractApplicationController
+      helper :msg
+    end
+    
+  ...you can just do:
+  
+    class MsgController < AbstractApplicationController
+    end
+
+* Added dependencies_on(layer) to query the dependencies of a controller. Examples:
+  
+    MsgController.dependencies_on(:model)    # => [ :post, :comment, :attachment ]
+    MsgController.dependencies_on(:service)  # => [ :notification_service ]
+    MsgController.dependencies_on(:observer) # => [ :comment_observer ]
+
+* Added a new dependency model with the class methods model, service, and observer. Example:
+
+    class MsgController < AbstractApplicationController
+      model    :post, :comment, :attachment
+      service  :notification_service
+      observer :comment_observer
+    end
+
+  These new "keywords" remove the need for explicitly calling 'require' in most cases. The observer method even instantiates the
+  observer as well as requiring it.
+
+* Fixed that link_to would escape & in the url again after url_for already had done so
+
+*0.9.5* (28)
+
+* Added helper_method to designate that a given private or protected method you should available as a helper in the view. [bitsweat]
+
+* Fixed assert_rendered_file so it actually verifies if that was the rendered file [htonl]
+
+* Added the option for sharing partial spacer templates just like partials themselves [radsaq]
+
+* Fixed that Russia was named twice in country_select [alexey]
+
+* Fixed request_origin to use remote_ip instead of remote_addr [bitsweat]
+
+* Fixed link_to breakage when nil was passed for html_options [alexey]
+
+* Fixed redirect_to on a virtual server setup with apache with a port other than the default where it would forget the port number [seanohalpin]
+
+* Fixed that auto-loading webrick on Windows would cause file uploads to fail [bitsweat]
+
+* Fixed issues with sending files on WEBrick by setting the proper binmode [bitsweat]
+
+* Added send_data as an alternative to send_file when the stream is not read off the filesystem but from a database or generated live [bitsweat]
+
+* Added a new way to include helpers that doesn't require the include hack and can go without the explicit require. [bitsweat]
+
+  Before:
+
+    module WeblogHelper
+      def self.append_features(controller) #:nodoc:
+        controller.ancestors.include?(ActionController::Base) ? controller.add_template_helper(self) : super
+      end
+    end
+
+    require 'weblog_helper'
+    class WeblogController < ActionController::Base
+      include WeblogHelper
+    end
+    
+  After:
+
+    module WeblogHelper
+    end
+
+    class WeblogController < ActionController::Base
+      helper :weblog
+    end
+
+* Added a default content-type of "text/xml" to .rxml renders [Ryan Platte]
+
+* Fixed that when /controller/index was requested by the browser, url_for would generates wrong URLs [Ryan Platte]
+
+* Fixed a bug that would share cookies between users when using FastCGI and mod_ruby [The Robot Co-op]
+
+* Added an optional third hash parameter to the process method in functional tests that takes the session data to be used [alexey]
+
+* Added UrlHelper#mail_to to make it easier to create mailto: style ahrefs
+
+* Added better error messages for layouts declared with the .rhtml extension (which they shouldn't) [geech]
+
+* Added another case to DateHelper#distance_in_minutes to return "less than a minute" instead of "0 minutes" and "1 minute" instead of "1 minutes"
+
+* Added a hidden field to checkboxes generated with FormHelper#check_box that will make sure that the unchecked value (usually 0)
+  is sent even if the checkbox is not checked. This relieves the controller from doing custom checking if the the checkbox wasn't
+  checked. BEWARE: This might conflict with your run-on-the-mill work-around code. [Tobias Luetke]
+
+* Fixed error_message_on to just use the first if more than one error had been added [marcel]
+
+* Fixed that URL rewriting with /controller/ was working but /controller was not and that you couldn't use :id on index [geech]
+
+* Fixed a bug with link_to where the :confirm option wouldn't be picked up if the link was a straight url instead of an option hash
+
+* Changed scaffolding of forms to use <label> tags instead of <b> to please W3C [evl]
+
+* Added DateHelper#distance_of_time_in_words_to_now(from_time) that works like distance_of_time_in_words, 
+  but where <tt>to_time</tt> is fixed to <tt>Time.now</tt>.
+
+* Added assert_flash_equal(expected, key, message), assert_session_equal(expected, key, message), 
+  assert_assigned_equal(expected, key, message) to test the contents of flash, session, and template assigns.
+
+* Improved the failure report on assert_success when the action triggered a redirection [alexey].
+
+* Added "markdown" to accompany "textilize" as a TextHelper method for converting text to HTML using the Markdown syntax.
+  BlueCloth must be installed in order for this method to become available.
+
+* Made sure that an active session exists before we attempt to delete it [Samuel]
+
+* Changed link_to with Javascript confirmation to use onclick instead of onClick for XHTML validity [Scott Barron]
+
+
+*0.9.0 (43)*
+
+* Added support for Builder-based templates for files with the .rxml extension. These new templates are an alternative to ERb that
+  are especially useful for generating XML content, such as this RSS example from Basecamp:
+
+    xml.rss("version" => "2.0", "xmlns:dc" => "http://purl.org/dc/elements/1.1/") do
+      xml.channel do
+        xml.title(@feed_title)
+        xml.link(@url)
+        xml.description "Basecamp: Recent items"
+        xml.language "en-us"
+        xml.ttl "40"
+    
+        for item in @recent_items
+          xml.item do
+            xml.title(item_title(item))
+            xml.description(item_description(item)) if item_description(item)
+            xml.pubDate(item_pubDate(item))
+            xml.guid(@person.firm.account.url + @recent_items.url(item))
+            xml.link(@person.firm.account.url + @recent_items.url(item))
+        
+            xml.tag!("dc:creator", item.author_name) if item_has_creator?(item)
+          end
+        end
+      end
+    end
+
+    ...which will generate something like:
+
+    <rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/">
+      <channel>
+        <title>Web Site Redesign</title>
+        <link>http://www.basecamphq.com/clients/travelcenter/1/</link>
+        <description>Basecamp: Recent items</description>
+        <language>en-us</language>
+        <ttl>40</ttl>
+        <item>
+          <title>Post: don't you know</title>
+          <description>&amp;lt;p&amp;gt;deeper and down&amp;lt;/p&amp;gt;</description>
+          <pubDate>Fri, 20 Aug 2004 21:13:50 CEST</pubDate>
+          <guid>http://www.basecamphq.com/clients/travelcenter/1/msg/assets/96976/comments</guid>
+          <link>http://www.basecamphq.com/clients/travelcenter/1/msg/assets/96976/comments</link>
+          <dc:creator>David H. Heinemeier</dc:creator>
+        </item>
+        <item>
+          <title>Milestone completed: Design Comp 2</title>
+          <pubDate>Mon,  9 Aug 2004 14:42:06 CEST</pubDate>
+          <guid>http://www.basecamphq.com/clients/travelcenter/1/milestones/#49</guid>
+          <link>http://www.basecamphq.com/clients/travelcenter/1/milestones/#49</link>
+        </item>
+      </channel>
+    </rss>
+
+  The "xml" local variable is automatically available in .rxml templates. You construct the template by calling a method with the name
+  of the tag you want. Options for the tag can be specified as a hash parameter to that method.
+
+  Builder-based templates can be mixed and matched with the regular ERb ones. The only thing that differentiates them is the extension.
+  No new methods have been added to the public interface to handle them. 
+  
+  Action Pack ships with a version of Builder, but it will use the RubyGems version if you have one installed.
+  
+  Read more about Builder on: http://onestepback.org/index.cgi/Tech/Ruby/StayingSimple.rdoc
+  
+  [Builder is created by Jim Weirich]
+
+* Added much improved support for functional testing [what-a-day].
+
+    # Old style
+    def test_failing_authenticate
+      @request.request_uri = "/login/authenticate"
+      @request.action = "authenticate"
+      @request.request_parameters["user_name"] = "nop"
+      @request.request_parameters["password"]  = ""
+  
+      response = LoginController.process_test(@request)
+  
+      assert_equal "The username and/or password you entered is invalid.", response.session["flash"]["alert"]
+      assert_equal "http://37signals.basecamp.com/login/", response.headers["location"]
+    end
+
+    # New style
+    def test_failing_authenticate
+      process :authenticate, "user_name" => "nop", "password" => ""
+      assert_flash_has 'alert'
+      assert_redirected_to :action => "index"
+    end
+
+  See a full example on http://codepaste.org/view/paste/334
+
+* Increased performance by up to 100% with a revised cookie class that fixes the performance problems with the 
+  default one that ships with 1.8.1 and below. It replaces the inheritance on SimpleDelegator with DelegateClass(Array)
+  following the suggestion from Matz on:
+  http://groups.google.com/groups?th=e3a4e68ba042f842&seekm=c3sioe%241qvm%241%40news.cybercity.dk#link14
+
+* Added caching for compiled ERb templates. On Basecamp, it gave between 8.5% and 71% increase in performance [Andreas Schwarz].
+
+* Added implicit counter variable to render_collection_of_partials [Marcel]. From the docs:
+
+    <%= render_collection_of_partials "ad", @advertisements %>
+    
+    This will render "advertiser/_ad.rhtml" and pass the local variable +ad+ to the template for display. An iteration counter
+    will automatically be made available to the template with a name of the form +partial_name_counter+. In the case of the 
+    example above, the template would be fed +ad_counter+.
+
+* Fixed problems with two sessions being maintained on reset_session that would particularly screw up ActiveRecordStore.
+
+* Fixed reset_session to start an entirely new session instead of merely deleting the old. So you can now safely access @session
+  after calling reset_ression and expect it to work.
+
+* Added @request.get?, @request.post?, @request.put?, @request.delete? as convenience query methods for @request.method [geech]
+
+* Added @request.method that'll return a symbol representing the HTTP method, such as :get, :post, :put, :delete [geech]
+
+* Changed @request.remote_ip and @request.host to work properly even when a proxy is in front of the application [geech]
+
+* Added JavaScript confirm feature to link_to. Documentation:
+
+    The html_options have a special feature for creating javascript confirm alerts where if you pass 
+    :confirm => 'Are you sure?', the link will be guarded with a JS popup asking that question.
+    If the user accepts, the link is processed, otherwise not.
+
+* Added link_to_unless_current as a UrlHelper method [Sam Stephenson]. Documentation:
+
+    Creates a link tag of the given +name+ using an URL created by the set of +options+, unless the current 
+    controller, action, and id are the same as the link's, in which case only the name is returned (or the
+    given block is yielded, if one exists). This is useful for creating link bars where you don't want to link 
+    to the page currently being viewed.
+
+* Fixed that UrlRewriter (the driver for url_for, link_to, etc) would blow up when the anchor was an integer [alexey]
+
+* Added that layouts defined with no directory defaults to layouts. So layout "weblog/standard" will use
+  weblog/standard (as always), but layout "standard" will use layouts/standard.
+
+* Fixed that partials (or any template starting with an underscore) was publically viewable [Marten]
+
+* Added HTML escaping to text_area helper.
+
+* Added :overwrite_params to url_for and friends to keep the parameters as they were passed to the current action and only overwrite a subset.
+  The regular :params will clear the slate so you need to manually add in existing parameters if you want to reuse them. [raphinou]
+
+* Fixed scaffolding problem with composite named objects [Moo Jester]
+
+* Added the possibility for shared partials. Example:
+
+    <%= render_partial "advertisement/ad", ad %>
+  
+  This will render the partial "advertisement/_ad.rhtml" regardless of which controller this is being called from.
+  
+  [Jacob Fugal]
+
+* Fixed crash when encountering forms that have empty-named fields [James Prudente]
+
+* Added check_box form helper method now accepts true/false as well as 1/0 [what-a-day]
+
+* Fixed the lacking creation of all directories with install.rb [Dave Steinberg]
+
+* Fixed that date_select returns valid XHTML selected options [Andreas Schwarz]
+
+* Fixed referencing an action with the same name as a controller in url_for [what-a-day]
+
+* Fixed the destructive nature of Base#attributes= on the argument [Kevin Watt]
+
+* Changed ActionControllerError to decent from StandardError instead of Exception. It can now be caught by a generic rescue.
+
+* Added SessionRestoreError that is raised when a session being restored holds objects where there is no class available.
+
+* Added block as option for inline filters. So what used to be written as:
+
+    before_filter Proc { |controller| return false if controller.params["stop_action"] }
+
+  ...can now be as:
+
+    before_filter { |controller| return false if controller.params["stop_action"] }
+  
+  [Jeremy Kemper]
+
+* Made the following methods public (was protected): url_for, controller_class_name, controller_name, action_name
+  This makes it easier to write filters without cheating around the encapsulation with send.
+
+* ActionController::Base#reset_session now sticks even if you access @session afterwards [Kent Sibilev]
+
+* Improved the exception logging so the log file gets almost as much as in-browser debugging.
+
+* Changed base class setup from AbstractTemplate/ERbTemplate to ActionView::Base. This change should be harmless unless you were
+  accessing Action View directly in which case you now need to reference the Base class.\
+
+* Added that render_collection_of_partials returns nil if the collection is empty. This makes showing a “no items” message easier. 
+  For example: <%= render_collection_of_partials("message", @messages) || "No messages found." %> [Sam Stephenson]
+
+* Added :month_before_year as an option to date_select to get the month select before the year. Especially useful for credit card forms.
+
+* Added :add_month_numbers to select_month to get options like "3 - March".
+
+* Removed Base.has_active_layout? as it couldn't answer the question without the instance. Use Base#active_layout instead.
+
+* Removed redundant call to update on ActionController::Base#close_session [Andreas Schwarz]
+
+* Fixed that DRb Store accidently started its own server (instead of just client) [Andreas]
+
+* Fixed strip_links so it now works across multiple lines [Chad Fowler]
+
+* Fixed the TemplateError exception to show the proper trace on to_s (useful for unit test debugging)
+
+* Implemented class inheritable attributes without eval [Caio Chassot]
+
+* Made TextHelper#concat accept binding as it would otherwise not work
+
+* The FormOptionsHelper will now call to_s on the keys and values used to generate options
+
+
+*0.8.5*
+
+* Introduced passing of locally scoped variables between templates:
+
+    You can pass local variables to sub templates by using a hash of with the variable 
+    names as keys and the objects as values:
+    
+      <%= render "shared/header", { "headline" => "Welcome", "person" => person } %>
+    
+    These can now be accessed in shared/header with:
+    
+      Headline: <%= headline %>
+      First name: <%= person.first_name %>
+    
+* Introduced the concept of partials as a certain type of sub templates:
+
+    There's also a convenience method for rendering sub templates within the current 
+    controller that depends on a single object (we call this kind of sub templates for 
+    partials). It relies on the fact that partials should follow the naming convention
+    of being prefixed with an underscore -- as to separate them from regular templates
+    that could be rendered on their own. In the template for Advertiser#buy, we could have:
+    
+      <% for ad in @advertisements %>
+        <%= render_partial "ad", ad %>
+      <% end %>
+    
+    This would render "advertiser/_ad.rhtml" and pass the local variable +ad+ 
+    for the template to display.
+    
+    == Rendering a collection of partials
+    
+    The example of partial use describes a familar pattern where a template needs
+    to iterate over a array and render a sub template for each of the elements. 
+    This pattern has been implemented as a single method that accepts an array and 
+    renders a partial by the same name of as the elements contained within. So the 
+    three-lined example in "Using partials" can be rewritten with a single line:
+    
+      <%= render_collection_of_partials "ad", @advertisements %>
+    
+    So this will render "advertiser/_ad.rhtml" and pass the local variable +ad+ for 
+    the template to display.
+
+* Improved send_file by allowing a wide range of options to be applied [Jeremy Kemper]:
+
+    Sends the file by streaming it 4096 bytes at a time. This way the
+    whole file doesn't need to be read into memory at once.  This makes
+    it feasible to send even large files.
+    
+    Be careful to sanitize the path parameter if it coming from a web
+    page.  send_file(@params['path'] allows a malicious user to
+    download any file on your server.
+    
+    Options:
+    * <tt>:filename</tt> - specifies the filename the browser will see.  
+      Defaults to File.basename(path).
+    * <tt>:type</tt> - specifies an HTTP content type.  
+      Defaults to 'application/octet-stream'.
+    * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
+      Valid values are 'inline' and 'attachment' (default).
+    * <tt>:buffer_size</tt> - specifies size (in bytes) of the buffer used to stream
+      the file.  Defaults to 4096.
+    
+    The default Content-Type and Content-Disposition headers are
+    set to download arbitrary binary files in as many browsers as
+    possible.  IE versions 4, 5, 5.5, and 6 are all known to have
+    a variety of quirks (especially when downloading over SSL).
+    
+    Simple download:
+      send_file '/path/to.zip'
+    
+    Show a JPEG in browser:
+      send_file '/path/to.jpeg', :type => 'image/jpeg', :disposition => 'inline'
+    
+    Read about the other Content-* HTTP headers if you'd like to
+    provide the user with more information (such as Content-Description).
+    http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11
+    
+    Also be aware that the document may be cached by proxies and browsers.
+    The Pragma and Cache-Control headers declare how the file may be cached
+    by intermediaries.  They default to require clients to validate with
+    the server before releasing cached responses.  See
+    http://www.mnot.net/cache_docs/ for an overview of web caching and
+    http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
+    for the Cache-Control header spec.
+
+* Added pluralize method to the TextHelper that makes it easy to get strings like "1 message", "3 messages"
+
+* Added proper escaping for the rescues [Andreas Schwartz]
+
+* Added proper escaping for the option and collection tags [Andreas Schwartz]
+
+* Fixed NaN errors on benchmarking [Jim Weirich]
+
+* Fixed query string parsing for URLs that use the escaped versions of & or ; as part of a key or value
+
+* Fixed bug with custom Content-Type headers being in addition to rather than instead of the default header.
+  (This bug didn't matter with neither CGI or mod_ruby, but FCGI exploded on it) [With help from Ara T. Howard]
+
+
+*0.8.0*
+
+* Added select, collection_select, and country_select to make it easier for Active Records to set attributes through
+  drop-down lists of options. Example:
+  
+    <%= select "person", "gender", %w( Male Female ) %>
+    
+  ...would give the following:
+  
+    <select name="person[gender]" id="person_gender"><option>Male</option><option>Female</option></select>
+
+* Added an option for getting multiple values on a single form name into an array instead of having the last one overwrite.
+  This is especially useful for groups of checkboxes, which can now be written as:
+  
+    <input type="checkbox" name="rights[]" value="CREATE" />
+    <input type="checkbox" name="rights[]" value="UPDATE" />
+    <input type="checkbox" name="rights[]" value="DELETE" />
+  
+  ...and retrieved in the controller action with:
+  
+    @params["rights"] # => [ "CREATE", "UPDATE", "DELETE" ]
+  
+  The old behavior (where the last one wins, "DELETE" in the example) is still available. Just don't add "[]" to the 
+  end of the name. [Scott Baron]
+  
+* Added send_file which uses the new render_text block acceptance to make it feasible to send large files.
+  The files is sent with a bunch of voodoo HTTP headers required to get arbitrary files to download as 
+  expected in as many browsers as possible (eg, IE hacks). Example:
+  
+  def play_movie
+    send_file "/movies/that_movie.avi"
+  end
+  
+  [Jeremy Kemper]
+
+* render_text now accepts a block for deferred rendering. Useful for streaming large files, displaying 
+  a “please wait” message during a complex search, etc. Streaming example:
+  
+    render_text do |response|
+      File.open(path, 'rb') do |file|
+        while buf = file.read(1024)
+          print buf 
+        end 
+      end
+    end
+  
+  [Jeremy Kemper]
+
+* Added a new Tag Helper that can generate generic tags programmatically insted of through HTML. Example:
+    
+    tag("br", "clear" => "all") => <br clear="all" />
+  
+  ...that's usually not terribly interesting (unless you have a lot of options already in a hash), but it 
+  gives way for more specific tags, like the new form tag:
+  
+    form_tag({ :controller => "weblog", :action => "update" }, { :multipart => "true", "style" => "width: 200px"}) =>
+      <form action="/weblog/update" enctype="multipart/formdata" style="width: 200px">
+    
+  There's even a "pretty" version for people who don't like to open tags in code and close them in HTML:
+  
+    <%= start_form_tag :action => "update" %>
+      # all the input fields
+    <%= end_form_tag %>
+  
+  (end_form_tag just returns "</form>")
+
+* The selected parameter in options_for_select may now also an array of values to be selected when 
+  using a multiple select. Example:
+
+    options_for_select([ "VISA", "Mastercard", "Discover" ], ["VISA", "Discover"]) =>
+      <option selected>VISA</option>\n<option>Mastercard</option>\n<option selected>Discover</option>
+      
+  [Scott Baron]
+
+* Changed the URL rewriter so controller_prefix and action_prefix can be used in isolation. You can now do:
+
+    url_for(:controller_prefix => "clients")
+
+  ...or:
+  
+    url_for(:action_prefix => "category/messages")
+
+  Neither would have worked in isolation before (:controller_prefix required a :controller and :action_prefix required an :action)
+
+* Started process of a cleaner separation between Action Controller and ERb-based Action Views by introducing an
+  abstract base class for views. And Amita adapter could be fitted in more easily now.
+
+* The date helper methods date_select and datetime_select now also use the field error wrapping 
+  (div with class fieldWithErrors by default).
+
+* The date helper methods date_select and datetime_select can now discard selects
+
+* Added option on AbstractTemplate to specify a different field error wrapping. Example:
+
+    ActionView::AbstractTemplate.field_error_proc = Proc.new do |html, instance|
+      "<p>#{instance.method_name + instance.error_message}</p><div style='background-color: red'>#{html}</div>"
+    end
+
+  ...would give the following on a Post#title (text field) error:
+  
+    <p>Title can't be empty</p>
+    <div style='background-color: red'>
+      <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
+    </div>
+
+* The UrlHelper methods url_for and link_to will now by default only return paths, not complete URIs.
+  That should make it easier to fit a Rails application behind a proxy or load-balancer.
+  You can overwrite this by passing :only_path => false as part of the options. [Suggested by U235]
+
+* Fixed bug with having your own layout for use with scaffolding [Kevin Radloff]
+
+* Fixed bug where redirect_to_path didn't append the port on non-standard ports [dhawkins]
+
+* Scaffolding plays nicely with single-table inheritance (LoadErrors are caught) [Jeremy Kemper]
+
+* Scaffolding plays nice with plural models like Category/categories [Jeremy Kemper]
+
+* Fixed missing suffix appending in scaffolding [Kevin Radloff]
+
+
+*0.7.9*
+
+* The "form" method now present boolean fields from PostgreSQL as drop-down menu. [Scott]
+
+* Scaffolding now automatically attempts to require the class that's being scaffolded.
+
+* Scaffolding will use the current active layout, instead of its own, if one has been specified. Example:
+
+    class WeblogController < ActionController::Base
+      layout "layouts/weblog"
+      scaffold :post
+    end
+  
+  [Suggested by Scott]
+
+* Changed url_for (and all the that drives, like redirect_to, link_to, link_for) so you can pass it a symbol instead of a hash.
+  This symbol is a method reference which is then called to calculate the url. Example:
+  
+    class WeblogController < ActionController::Base
+      def update
+        # do some update
+        redirect_to :dashboard_url
+      end
+      
+      protected
+        def dashboard_url
+          if @project.active?
+            url_for :controller => "project", :action => "dashboard"
+          else
+            url_for :controller => "account", :action => "dashboard"
+          end
+        end
+    end
+      
+* Added default_url_options to specialize behavior for all url_for (and friends) calls:
+
+    Overwrite to implement a number of default options that all url_for-based methods will use. 
+    The default options should come in form of a hash, just like the one you would use for 
+    url_for directly. Example:
+    
+      def default_url_options(options)
+        { :controller_prefix => @project.active? ? "projects/" : "accounts/" }
+      end
+    
+    As you can infer from the example, this is mostly useful for situations where you want to 
+    centralize dynamic dissions about the urls as they stem from the business domain. Please note
+    that any individual url_for call can always override the defaults set by this method.
+    
+
+* Changed url_for so that an "id" passed in the :params is not treated special. You need to use the dedicated :id to get 
+  the special auto path-params treatment. Considering the url http://localhost:81/friends/list
+
+    url_for(:action => "show", :params => { "id" => 5 })
+      ...used to give http://localhost:81/friends/show/5
+      ......now gives http://localhost:81/friends/show?id=5
+
+    If you want the automated id behavior, do:
+
+    url_for(:action => "show", :id => 5 )
+      ....which gives http://localhost:81/friends/show/5
+
+
+* Fixed problem with anchor being inserted before path parameters with url_for (and friends)
+
+
+*0.7.8*
+
+* Fixed session bug where you couldn't store any objects that didn't exist in the standard library 
+  (such as Active Record objects).
+
+* Added reset_session method for Action Controller objects to clear out all objects in the session.
+
+* Fixed that exceptions raised during filters are now also caught by the default rescues
+
+* Added new around_filter for doing before and after filtering with a single object [Florian Weber]:
+
+    class WeblogController < ActionController::Base
+      around_filter BenchmarkingFilter.new
+      
+      # Before this action is performed, BenchmarkingFilter#before(controller) is executed
+      def index
+      end
+      # After this action has been performed, BenchmarkingFilter#after(controller) is executed
+    end
+    
+    class BenchmarkingFilter
+      def initialize
+        @runtime
+      end
+      
+      def before
+        start_timer
+      end
+      
+      def after
+        stop_timer
+        report_result
+      end
+    end
+
+* Added the options for specifying a different name and id for the form helper methods than what is guessed [Florian Weber]:
+
+    text_field "post", "title"
+      ...just gives: <input id="post_title" name="post[title]" size="30" type="text" value="" />
+      
+    text_field "post", "title", "id" => "title_for_post", "name" => "first_post_title"
+      ...can now give: <input id="title_for_post" name="first_post_title" size="30" type="text" value="" />
+
+* Added DebugHelper with a single "debug" method for doing pretty dumps of objects in the view
+  (now used in the default rescues to better present the contents of session and template variables)
+
+* Added note to log about the templates rendered within layouts (before just the layout was shown)
+
+* Fixed redirects on https setups [Andreas]
+
+* Fixed scaffolding problem on the edit action when using :suffix => true [Scott]
+
+* Fixed scaffolding problem where implementing list.rhtml wouldn't work for the index action
+
+* URLs generated now uses &amp; instead of just & so pages using it can validate with W3C [Spotted by Andreas]
+
+
+*0.7.7*
+
+* Fixed bug in CGI extension that prevented multipart forms from working
+
+
+*0.7.6*
+
+* Included ERB::Util so all templates can easily escape HTML content with <%=h @person.content %>
+
+* All requests are now considered local by default, so everyone will be exposed to detailed debugging screens on errors.
+  When the application is ready to go public, set ActionController::Base.consider_all_requests_local to false, 
+  and implement the protected method local_request? in the controller to determine when debugging screens should be shown.
+
+* Fixed three bugs with the url_for/redirect_to/link_to handling. Considering the url http://localhost:81/friends/show/1
+
+    url_for(:action => "list")
+      ...used to give http://localhost:81/friends/list/1
+      ......now gives http://localhost:81/friends/list
+    
+    url_for(:controller => "friends", :action => "destroy", :id => 5)
+      ...used to give http://localhost:81/friends/destroy
+      ......now gives http://localhost:81/friends/destroy/5
+
+  Considering the url http://localhost:81/teachers/show/t
+
+    url_for(:action => "list", :id => 5)
+      ...used to give http://localhost:81/5eachers/list/t
+      ......now gives http://localhost:81/teachers/list/5
+  
+  [Reported by David Morton & Radsaq]
+
+* Logs exception to logfile in addition to showing them for local requests
+
+* Protects the eruby load behind a begin/rescue block. eRuby is not required to run ActionController.
+
+* Fixed install.rb to also install clean_logger and the templates
+
+* Added ActiveRecordStore as a session option. Read more in lib/action_controller/session/active_record_store.rb [Tim Bates]
+
+* Change license to MIT License (and included license file in package)
+
+* Application error page now returns status code 500 instead of 200
+
+* Fixed using Procs as layout handlers [Florian Weber]
+
+* Fixed bug with using redirects ports other than 80
+
+* Added index method that calls list on scaffolding
+
+
+*0.7.5*
+
+* First public release

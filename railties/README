@@ -1,0 +1,121 @@
+== Welcome to Rails
+
+Rails is a web-application and persistance framework that includes everything
+needed to create database-backed web-applications according to the
+Model-View-Control pattern of separation. This pattern splits the view (also
+called the presentation) into "dumb" templates that are primarily responsible
+for inserting pre-build data in between HTML tags. The model contains the
+"smart" domain objects (such as Account, Product, Person, Post) that holds all
+the business logic and knows how to persist themselves to a database. The
+controller handles the incoming requests (such as Save New Account, Update
+Product, Show Post) by manipulating the model and directing data to the view.
+
+In Rails, the model is handled by what's called a object-relational mapping
+layer entitled Active Record. This layer allows you to present the data from
+database rows as objects and embellish these data objects with business logic
+methods. You can read more about Active Record in 
+link:files/vendor/activerecord/README.html.
+
+The controller and view is handled by the Action Pack, which handles both
+layers by its two parts: Action View and Action Controller. These two layers
+are bundled in a single package due to their heavy interdependence. This is
+unlike the relationship between the Active Record and Action Pack that is much
+more separate. Each of these packages can be used independently outside of
+Rails.  You can read more about Action Pack in 
+link:files/vendor/actionpack/README.html.
+
+
+== Requirements
+
+* Database and driver (MySQL, PostgreSQL, or SQLite)
+* Rake[http://rake.rubyforge.org] for running tests and the generating documentation
+
+== Optionals
+
+* Apache 1.3.x or 2.x (or any FastCGI-capable webserver with a
+  mod_rewrite-like module)
+* FastCGI (or mod_ruby) for production performance (CGI is used for
+  development)
+
+== Getting started
+
+1a. Setup Apache for the Rails application (see "Example for Apache conf")
+1b. Run the WEBrick servlet: <tt>ruby public/dispatch.servlet --help</tt>
+2. Go to http://rails/ (or whatever is your ServerName) and check
+   that you get the "Congratulations, you're on Rails!" screen
+3. Follow the guidelines on the "Congratulations, you're on Rails!" screen
+
+
+== Example for Apache conf
+
+  <VirtualHost *:80>
+    ServerName rails
+    DocumentRoot /path/tapplication/public/
+    ErrorLog /path/application/log/apache.log
+  
+    <Directory /path/application/public/>
+      Options ExecCGI FollowSymLinks
+      AllowOverride all
+      Allow from all
+      Order allow,deny
+    </Directory>
+  </VirtualHost>
+
+NOTE: Be sure that CGIs can be executed in that directory as well. So ExecCGI
+should be on and ".cgi" should respond. All requests from 127.0.0.1 goes
+through CGI, so no Apache restart is necessary for changes. All other requests
+goes through FCGI (or mod_ruby) that requires restart to show changes.
+
+
+== Debugging Rails
+
+Have "tail -f" commands running on both the apache.log, production.log, and
+test.log files. Rails will automatically display debugging and runtime
+information to these files. Debugging info will also be shown in the browser
+on requests from 127.0.0.1.
+
+
+== Description of contents
+
+app
+  Holds all the code that's specific to this particular application.
+
+app/controllers
+  Holds controllers that should be named like weblog_controller.rb for
+  automated URL mapping. All controllers should descend from
+  ActionController::Base.
+
+app/models
+  Holds models that should be named like post.rb.
+  Most models will descent from ActiveRecord::Base.
+  
+app/views
+  Holds the template files for the view that should be named like
+  weblog/index.rhtml for the WeblogController#index action. All views uses eRuby
+  syntax. This directory can also be used to keep stylesheets, images, and so on
+  that can be symlinked to public.
+  
+app/helpers
+  Holds view helpers that should be named like weblog_helper.rb.
+
+config
+  Configuration files for Apache, database, and other dependencies.
+
+lib
+  Application specific libraries. Basically, any kind of custom code that doesn't
+  belong controllers, models, or helpers. This directory is in the load path.
+    
+public
+  The directory available for Apache, which includes symbolic links to other
+  parts of the structure that are to be made available. Refrain from placing
+  actual files in here if you're using CVS and don't want to check in this
+  directory.
+
+script
+  Helper scripts for automation and generation.
+
+test
+  Unit and functional tests along with fixtures.
+
+vendor
+  External libraries that the application depend on. This directory is in the load path.
