@@ -1,5 +1,7 @@
 *SVN*
 
+* Added CaptureHelper with CaptureHelper#capture and CaptureHelper#content_for. See documentation in helper #837 [Tobias Luetke]
+
 * Fixed :anchor use in url_for #821 [Nicholas Seckar]
 
 * Removed the reliance on PATH_INFO as it was causing problems for caching and inhibited the new non-vhost support #822 [Nicholas Seckar]
