@@ -1,5 +1,6 @@
 require 'breakpoint'
 require 'optparse'
+require 'timeout'
 
 options = {
   :ClientURI  => nil,
@@ -61,6 +62,19 @@ begin
   service = DRbObject.new(nil, options[:ServerURI])
 
   begin
+    timeout(10) { service.ping }
+  rescue Timeout::Error, DRb::DRbConnError
+    puts "",
+      "  *** Breakpoint service didn't respond to ping request ***",
+      "  This likely happened because of a misconfigured ACL (see the",
+      "  documentation of Breakpoint.activate_drb, note that by default",
+      "  you can only connect to a remote Breakpoint service via a SSH",
+      "  tunnel), but might also be caused by an extremely slow connection.",
+      ""
+    raise
+  end
+
+  begin
     service.register_eval_handler do |code|
       result = eval(code, TOPLEVEL_BINDING)
       result.extend(DRb::DRbUndumped) rescue nil
@@ -105,7 +119,10 @@ begin
     service.register_handler do |workspace, message|
       puts message
       IRB.start(nil, nil, workspace)
+      puts "", "Resumed execution. Waiting for next breakpoint...", ""
     end
+
+    puts "Connection established. Waiting for breakpoint...", ""
 
     loop do
       begin
@@ -123,8 +140,9 @@ begin
 rescue Exception => error
   if options[:RetryDelay] > 0 then
     puts "No connection to breakpoint service at #{options[:ServerURI]}:",
-         "  (#{error})",
-         "  Reconnecting in #{options[:RetryDelay]} seconds..."
+         "  (#{error.inspect})"
+    puts error.backtrace if $DEBUG
+    puts "  Reconnecting in #{options[:RetryDelay]} seconds..."
  
     sleep options[:RetryDelay]
     retry
