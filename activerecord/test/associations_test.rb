@@ -584,6 +584,14 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert_equal @first_firm, c.firm_with_basic_id
   end
 
+  def test_forgetting_the_load_when_foreign_key_enters_late
+    c = Client.new
+    assert_nil c.firm_with_basic_id
+
+    c.firm_id = 1
+    assert_equal @first_firm, c.firm_with_basic_id
+  end
+
   def test_field_name_same_as_foreign_key
     computer = Computer.find 1
     assert_not_nil computer.developer, ":foreign key == attribute didn't lock up"
