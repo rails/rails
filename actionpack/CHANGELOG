@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed issues with caching root pages #734 [Nicholas Seckar]
+
 * Changed ActiveRecordStore to use Marshal instead of YAML as the latter proved troublesome in persisting circular dependencies. Updating existing applications MUST clear their existing session table from data to start using this updated store #739 [Jamis Buck]
 
 * Added shortcut :id assignment to render_component and friends (before you had to go through :params) #784 [Lucas Carlson]
