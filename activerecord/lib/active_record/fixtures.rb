@@ -367,7 +367,7 @@ module Test #:nodoc:
       self.use_instantiated_fixtures = true
 
       def self.fixtures(*table_names)
-        self.fixture_table_names = table_names.flatten
+        self.fixture_table_names |= table_names.flatten
         require_fixture_classes
       end
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added the possibility of specifying fixtures in multiple calls #816 [kim@tinker.com]
+
 * Added Base.exists?(id) that'll return true if an object of the class with the given id exists #854 [stian@grytoyr.net]
 
 * Added optionally allow for nil or empty strings with validates_numericality_of #801 [Sebastian Kanthak]

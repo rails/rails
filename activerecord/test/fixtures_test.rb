@@ -136,3 +136,23 @@ class TransactionalFixturesTest < Test::Unit::TestCase
     assert_not_nil @first
   end
 end
+
+
+class MultipleFixturesTest < Test::Unit::TestCase
+  fixtures :topics
+  fixtures :developers, :accounts
+
+  def test_fixture_table_names
+    assert_equal([:topics, :developers, :accounts], fixture_table_names)
+  end
+end
+
+
+class OverlappingFixturesTest < Test::Unit::TestCase
+  fixtures :topics, :developers
+  fixtures :developers, :accounts
+
+  def test_fixture_table_names
+    assert_equal([:topics, :developers, :accounts], fixture_table_names)
+  end
+end
