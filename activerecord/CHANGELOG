@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that records fetched with piggy-back attributes or through rich has_and_belongs_to_many associations couldn't be saved due to the extra attributes not part of the table #522 [Eric Anderson]
+
 * Added mass-assignment protection for the inheritance column -- regardless of a custom column is used or not
 
 * Fixed that association proxies would fail === tests like PremiumSubscription === @account.subscription

@@ -114,7 +114,14 @@ class BasicsTest < Test::Unit::TestCase
     topicReloaded = Topic.find(id)
     assert_equal("New Topic", topicReloaded.title)
   end
-  
+
+  def test_create_columns_not_equal_attributes
+    topic = Topic.new
+    topic.title = 'Another New Topic'
+    topic.send :write_attribute, 'does_not_exist', 'test'
+    assert_nothing_raised { topic.save }
+  end
+
   def test_create_through_factory
     topic = Topic.create("title" => "New Topic")
     topicReloaded = Topic.find(topic.id)
@@ -138,6 +145,18 @@ class BasicsTest < Test::Unit::TestCase
     topicReloadedAgain = Topic.find(id)
     
     assert_equal("Updated topic", topicReloadedAgain.title)
+  end
+
+  def test_update_columns_not_equal_attributes
+    topic = Topic.new
+    topic.title = "Still another topic"
+    topic.save
+    id = topic.id
+    
+    topicReloaded = Topic.find(id)
+    topicReloaded.title = "A New Topic"
+    topicReloaded.send :write_attribute, 'does_not_exist', 'test'
+    assert_nothing_raised { topicReloaded.save }
   end
 
   def test_preserving_date_objects
