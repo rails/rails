@@ -53,12 +53,18 @@ module ActiveSupport #:nodoc:
           end
         end
 
-        # Returns a new Time representing the "start" of this week (sunday, 0:00)
+        # Returns a new Time representing the "start" of this week (Monday, 0:00)
         def beginning_of_week
-          (self - self.wday.days).midnight
+          (self - self.wday.days).midnight + 1.day
         end
-        alias :sunday :beginning_of_week
+        alias :monday :beginning_of_week
         alias :at_beginning_of_week :beginning_of_week
+        
+        # Returns a new Time representing the start of the given day in next week (default is Monday).
+        def next_week(day = :monday)
+          days_into_week = { :monday => 0, :tuesday => 1, :wednesday => 2, :thursday => 3, :friday => 4, :saturday => 5, :sunday => 6}
+          since(1.week).beginning_of_week.since(days_into_week[day].day).change(:hour => 0)
+        end
         
         # Returns a new Time representing the start of the day (0:00)
         def beginning_of_day

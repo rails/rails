@@ -12,7 +12,7 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_begining_of_week
-    assert_equal Time.local(2005,1,30), Time.local(2005,2,4,10,10,10).beginning_of_week
+    assert_equal Time.local(2005,1,31), Time.local(2005,2,4,10,10,10).beginning_of_week
   end
   
   def test_beginning_of_day
@@ -79,5 +79,11 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.utc(2005,2,22,16),       Time.utc(2005,2,22,15,15,10).change(:hour => 16)
     assert_equal Time.utc(2005,2,22,16,45),    Time.utc(2005,2,22,15,15,10).change(:hour => 16, :min => 45)
     assert_equal Time.utc(2005,2,22,15,45),    Time.utc(2005,2,22,15,15,10).change(:min => 45)
+  end
+  
+  def test_next_week
+    assert_equal Time.local(2005,2,28), Time.local(2005,2,22,15,15,10).next_week
+    assert_equal Time.local(2005,2,29), Time.local(2005,2,22,15,15,10).next_week(:tuesday)
+    assert_equal Time.local(2005,3,4), Time.local(2005,2,22,15,15,10).next_week(:friday)
   end
 end
