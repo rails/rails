@@ -6,8 +6,6 @@
 
 * Added early failure if the Ruby version isn't 1.8.2 or above #735
 
-* Fixed the missing shebang in main "rails" script #736
-
 * Removed the obsolete -i/--index option from the WEBrick servlet #743
 
 
