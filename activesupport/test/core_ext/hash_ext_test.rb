@@ -47,29 +47,31 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal @strings, @mixed.dup.stringify_keys!
   end
 
-  def test_indifferent_access
+  def test_indifferent_assorted
     @strings = @strings.with_indifferent_access
     @symbols = @symbols.with_indifferent_access
     @mixed   = @mixed.with_indifferent_access
+   
+    assert_equal 'a', @strings.send(:convert_key, :a)
   
-    assert_equal @strings[:a], @strings['a']
-    assert_equal @symbols[:a], @symbols['a']
-    assert_equal @strings['b'], @mixed['b']
-    assert_equal @strings[:b], @mixed['b']
-
+    assert_equal 1, @strings.fetch('a')
+    assert_equal 1, @strings.fetch(:a.to_s)
+    assert_equal 1, @strings.fetch(:a)
+  
     hashes = { :@strings => @strings, :@symbols => @symbols, :@mixed => @mixed }
-    
-    method_map = { :'[]' => 1, :fetch => 1, :index => 1, :values_at => 1,
-                   :has_key? => true, :include? => true, :key => true,
-                   :member? => true }
-
+    method_map = { :'[]' => 1, :fetch => 1, :values_at => [1],
+      :has_key? => true, :include? => true, :key? => true,
+      :member? => true }
+  
     hashes.each do |name, hash|
       method_map.sort_by { |m| m.to_s }.each do |meth, expected|
-        assert_equal(expected, hash.send(meth, 'a'), "Calling #{name}.#{meth} 'a'")
-        assert_equal(expected, hash.send(meth, :a), "Calling #{name}.#{meth} :a")
+        assert_equal(expected, hash.send(meth, 'a'),
+                     "Calling #{name}.#{meth} 'a'")
+        assert_equal(expected, hash.send(meth, :a),
+                     "Calling #{name}.#{meth} :a")
       end
     end
-    
+  
     assert_equal [1, 2], @strings.values_at('a', 'b')
     assert_equal [1, 2], @strings.values_at(:a, :b)
     assert_equal [1, 2], @symbols.values_at('a', 'b')
@@ -89,39 +91,6 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal hash[:a], 1
     assert_equal hash[:b], 2
     assert_equal hash[3], 3
-  end
-
-  def test_indifferent_assorted
-    @strings = @strings.with_indifferent_access
-    @symbols = @symbols.with_indifferent_access
-    @mixed   = @mixed.with_indifferent_access
-   
-    assert_equal 'a', @strings.send(:convert_key, :a)
-
-    assert_equal 1, @strings.fetch('a')
-    assert_equal 1, @strings.fetch(:a.to_s)
-    assert_equal 1, @strings.fetch(:a)
-
-    hashes = { :@strings => @strings, :@symbols => @symbols, :@mixed => @mixed }
-    method_map = { :'[]' => 1, :fetch => 1, :values_at => [1],
-      :has_key? => true, :include? => true, :key? => true,
-      :member? => true }
-
-    hashes.each do |name, hash|
-      method_map.sort_by { |m| m.to_s }.each do |meth, expected|
-        assert_equal(expected, hash.send(meth, 'a'),
-                     "Calling #{name}.#{meth} 'a'")
-        assert_equal(expected, hash.send(meth, :a),
-                     "Calling #{name}.#{meth} :a")
-      end
-    end
-
-    assert_equal [1, 2], @strings.values_at('a', 'b')
-    assert_equal [1, 2], @strings.values_at(:a, :b)
-    assert_equal [1, 2], @symbols.values_at('a', 'b')
-    assert_equal [1, 2], @symbols.values_at(:a, :b)
-    assert_equal [1, 2], @mixed.values_at('a', 'b')
-    assert_equal [1, 2], @mixed.values_at(:a, :b)
   end
 
   def test_assert_valid_keys
