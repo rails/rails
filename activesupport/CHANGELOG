@@ -1,3 +1,5 @@
+* Added Inflections as an extension on String, so Inflector.pluralize(Inflector.classify(name)) becomes name.classify.pluralize #476 [bitsweat]
+
 * Added Byte operations to Numeric, so 5.5.megabytes + 200.kilobytes #461 [Marcel Molina]
 
 * Fixed that Dependencies.reload can't load the same file twice #420 [Kent Sibilev]
