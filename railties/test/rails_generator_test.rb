@@ -52,7 +52,7 @@ class RailsGeneratorTest < Test::Unit::TestCase
   end
 
   def test_instance_missing_generator
-    assert_raise(LoadError) {
+    assert_raise(Rails::Generator::GeneratorError) {
       Rails::Generator.instance('missing_generator')
     }
   end
