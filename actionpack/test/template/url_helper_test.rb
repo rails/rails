@@ -2,6 +2,8 @@ require 'test/unit'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/url_helper'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/tag_helper'
 
+RequestMock = Struct.new("Request", :request_uri)
+
 class UrlHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::UrlHelper
   include ActionView::Helpers::TagHelper
@@ -40,11 +42,12 @@ class UrlHelperTest < Test::Unit::TestCase
   end
   
   def test_link_unless_current
-    @params = { "controller" => "weblog", "action" => "show"}
+    @request = RequestMock.new("http://www.world.com")
     assert_equal "Showing", link_to_unless_current("Showing", :action => "show", :controller => "weblog")
+    @request = RequestMock.new("http://www.notworld.com")
     assert "<a href=\"http://www.world.com\">Listing</a>", link_to_unless_current("Listing", :action => "list", :controller => "weblog")
 
-    @params = { "controller" => "weblog", "action" => "show", "id" => "1"}
+    @request = RequestMock.new("http://www.world.com")
     assert_equal "Showing", link_to_unless_current("Showing", :action => "show", :controller => "weblog", :id => 1)
   end
 

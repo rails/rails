@@ -1,7 +1,7 @@
 require 'test/unit'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/form_options_helper'
 
-class TimeZone
+class MockTimeZone
   attr_reader :name
 
   def initialize( name )
@@ -20,6 +20,8 @@ class TimeZone
     @name
   end
 end
+
+ActionView::Helpers::FormOptionsHelper::TimeZone = MockTimeZone
 
 class FormOptionsHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::FormOptionsHelper
