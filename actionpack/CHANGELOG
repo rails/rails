@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed javascript_include_tag to output type instead of language and conform to XHTML #1018 [Rick Olson]
+
 * Added NumberHelper for common string representations like phone number, currency, and percentage #1015 [DeLynn]
 
 * Added pagination for scaffolding (10 items per page) #964 [mortonda@dgrmm.net]

@@ -26,15 +26,15 @@ module ActionView
       # Returns a script include tag per source given as argument. Examples:
       #
       #   javascript_include_tag "xmlhr" # =>
-      #     <script language="JavaScript" type="text/javascript" src="/javascripts/xmlhr.js"></script>
+      #     <script type="text/javascript" src="/javascripts/xmlhr.js"></script>
       #
       #   javascript_include_tag "common.javascript", "/elsewhere/cools" # =>
-      #     <script language="JavaScript" type="text/javascript" src="/javascripts/common.javascript"></script>
-      #     <script language="JavaScript" type="text/javascript" src="/elsewhere/cools.js"></script>
+      #     <script type="text/javascript" src="/javascripts/common.javascript"></script>
+      #     <script type="text/javascript" src="/elsewhere/cools.js"></script>
       def javascript_include_tag(*sources)
         sources.collect { |source|
           source = compute_public_path(source, 'javascripts', 'js')        
-          content_tag("script", "", "language" => "JavaScript", "type" => "text/javascript", "src" => source)
+          content_tag("script", "", "type" => "text/javascript", "src" => source)
         }.join("\n")
       end
 
