@@ -85,7 +85,7 @@ end
 # Publish documentation
 desc "Publish the API documentation"
 task :pdoc => [:rdoc] do 
-  Rake::SshDirPublisher.new("davidhh@comox.textdrive.com", "public_html/as", "doc").upload
+  Rake::SshDirPublisher.new("davidhh@comox.textdrive.com", "public_html/aws", "doc").upload
 end
 
 

@@ -221,12 +221,8 @@ module ActionView
         options_with_prefix = Proc.new { |position| options.update({ :prefix => "#{@object_name}[#{@method_name}(#{position}i)]" }) }
         date     = options[:include_blank] ? (value || 0) : (value || Date.today)
 
-        date_select = ""
-        
-        if options[:month_before_year] # For backwards compatibility
-          options[:order] = [:month, :year, :day]
-        end
-
+        date_select = ""        
+        options[:order]   = [:month, :year, :day] if options[:month_before_year] # For backwards compatibility
         options[:order] ||= [:year, :month, :day]
 
         position = {:year => 1, :month => 2, :day => 3}
