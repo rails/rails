@@ -1,5 +1,15 @@
 *CVS*
 
+* Added bind-style variable interpolation for the condition arrays that uses the adapter's quote method [Michael Koziarski]
+
+  Before:
+    find_first([ "user_name = '%s' AND password = '%s'", user_name, password ])]
+    find_first([ "firm_id = %s", firm_id ])] # unsafe!
+
+  After:
+    find_first([ "user_name = ? AND password = ?", user_name, password ])]
+    find_first([ "firm_id = ?", firm_id ])]
+
 * Added CSV format for fixtures #272 [what-a-day]. (See the new and expanded documentation on fixtures for more information)
 
 * Fixed fixtures using primary key fields called something else than "id" [dave]

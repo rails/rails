@@ -60,6 +60,13 @@ class FinderTest < Test::Unit::TestCase
     assert_kind_of Time, Topic.find_first(["id = %d", 1]).written_on
   end
 
+  def test_bind_variables
+    assert_kind_of Firm, Company.find_first(["name = ?", "37signals"])
+    assert_nil Company.find_first(["name = ?", "37signals!"])
+    assert_nil Company.find_first(["name = ?", "37signals!' OR 1=1"])
+    assert_kind_of Time, Topic.find_first(["id = ?", 1]).written_on
+  end
+	
   def test_string_sanitation
     assert_equal "something '' 1=1", ActiveRecord::Base.sanitize("something ' 1=1")
     assert_equal "something select table", ActiveRecord::Base.sanitize("something; select table")

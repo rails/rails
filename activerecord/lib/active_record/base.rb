@@ -67,7 +67,7 @@ module ActiveRecord #:nodoc:
   #     end
   # 
   #     def self.authenticate_safely(user_name, password)
-  #       find_first([ "user_name = '%s' AND password = '%s'", user_name, password ])
+  #       find_first([ "user_name = ? AND password = ?", user_name, password ])
   #     end
   #   end
   # 
@@ -76,10 +76,6 @@ module ActiveRecord #:nodoc:
   # on the other hand, will sanitize the <tt>user_name</tt> and +password+ before inserting them in the query, which will ensure that
   # an attacker can't escape the query and fake the login (or worse).
   #
-  # Beware, that the approach used in <tt>authenticate_unsafely</tt> is basically just a wrapped call to sprintf. This means that you
-  # still have to quote when using %s or use %d instead. So find_first([ "firm_id = %s", firm_id ]) is _not_ safe while both
-  # find_first([ "firm_id = '%s'", firm_id ]) and find_first([ "firm_id = %d", firm_id ]) are.
-  # 
   # == Overwriting default accessors
   # 
   # All column values are automatically available through basic accessors on the Active Record object, but some times you
@@ -636,13 +632,21 @@ module ActiveRecord #:nodoc:
         # Accepts either a condition array or string. The string is returned untouched, but the array has each of
         # the condition values sanitized.
         def sanitize_conditions(conditions)
-          if Array === conditions
-            statement, values = conditions[0], conditions[1..-1]
-            values.collect! { |value| sanitize(value) }
-            conditions = statement % values
+          return conditions unless conditions.is_a?(Array)
+
+          statement, values = conditions[0], conditions[1..-1]
+
+          statement =~ /\?/ ?
+            replace_bind_variables(statement, values) :
+            statement % values.collect { |value| sanitize(value) }
+        end
+
+        def replace_bind_variables(statement, values)
+          while statement =~ /\?/
+            statement.sub!(/\?/, connection.quote(values.shift))
           end
-          
-          return conditions
+	
+  		    return statement
         end
     end
 
