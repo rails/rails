@@ -207,6 +207,7 @@ PKG_FILES = FileList[
   'dispatches/**/*', 
   'environments/**/*', 
   'helpers/**/*', 
+  'generators/**/*', 
   'html/**/*', 
   'lib/**/*'
 ]
