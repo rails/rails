@@ -5,10 +5,11 @@ module ActionView
     # You must call <%= define_javascript_functions %> in your application before using these helpers.
     module JavascriptHelper
       def link_to_toggle_display(name, tags, html_options = {})
+        html_options.symbolize_keys!
         toggle_functions = [ tags ].flatten.collect { |tag| "toggle_display_by_id('#{tag}'); " }.join
         content_tag(
           "a", name, 
-          html_options.symbolize_keys.merge(:href => "#", :onclick => "#{toggle_functions}; #{html_options['onclick']}; return false;")
+          html_options.merge(:href => "#", :onclick => "#{toggle_functions}#{html_options[:onclick]}; return false;")
         )
       end
   
