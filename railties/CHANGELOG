@@ -1,5 +1,7 @@
 *SVN*
 
+* Added 5-second timeout to WordNet alternatives on creating reserved-word models #501 [Marcel Molina]
+
 * Fixed binding of caller #496 [Alexey]
 
 
