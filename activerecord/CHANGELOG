@@ -1,5 +1,8 @@
 *CVS*
 
+* Fixed has_and_belongs_to_many guessing of foreign key so that keys are generated correctly for models like SomeVerySpecialClient 
+  [Florian Weber]
+
 * Added counter_sql option for has_many associations [bitsweat]. Documentation:
 
     <tt>:counter_sql</tt> - specify a complete SQL statement to fetch the size of the association. If +:finder_sql+ is

@@ -4,7 +4,7 @@ module ActiveRecord
       def initialize(owner, association_name, association_class_name, association_class_primary_key_name, join_table, options)
         super(owner, association_name, association_class_name, association_class_primary_key_name, options)
             
-        @association_foreign_key = options[:association_foreign_key] || Inflector.underscore(Inflector.demodulize(association_class_name.downcase)) + "_id"
+        @association_foreign_key = options[:association_foreign_key] || Inflector.underscore(Inflector.demodulize(association_class_name)) + "_id"
         association_table_name = options[:table_name] || @association_class.table_name(association_class_name)
         @join_table = join_table
         @order = options[:order] || "t.#{@owner.class.primary_key}"
