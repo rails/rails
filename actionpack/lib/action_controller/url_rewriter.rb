@@ -174,7 +174,12 @@ module ActionController
         elements = []
         query_string = ""
 
-        hash.each { |key, value| elements << "#{CGI.escape(key)}=#{CGI.escape(value.to_s)}" }
+        hash.each do |key, value|
+	  key = CGI.escape key
+	  key += '[]' if value.class == Array
+	  value = [ value ] unless value.class == Array
+	  value.each { |val| elements << "#{key}=#{CGI.escape(val.to_s)}" }
+	end
         unless elements.empty? then query_string << ("?" + elements.join("&")) end
         
         return query_string

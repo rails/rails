@@ -246,7 +246,18 @@ class UrlTest < Test::Unit::TestCase
       )
     end
   end
-  
+
+  def test_parameters_with_array
+    @clean_urls.each do |url|
+      assert_equal(
+        "http://www.singlefile.com/identity/show?id[]=3&id[]=5&id[]=10",
+	url.rewrite(
+		:action => "show",
+		:params => { 'id' => [ 3, 5, 10 ] } )
+      )
+    end
+  end
+
   def test_action_with_id
    assert_equal(
       "http://www.singlefile.com/identity/show/7", 

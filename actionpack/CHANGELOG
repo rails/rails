@@ -1,5 +1,10 @@
 *SVN*
 
+* Added arrays as a value option for params in url_for and friends #467 [Eric Anderson]. Example:
+
+    url_for(:controller => 'user', :action => 'delete', :params => { 'username' =>  %( paul john steve ) } )
+    # => /user/delete?username[]=paul&username[]=john&username[]=steve
+
 * Fixed that controller tests can now assert on the use of cookies #466 [Alexey]
 
 * Fixed that send_file would "remember" all the files sent by adding to the headers again and again #458 [bitsweat]
