@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed https handling on other ports than 443 [Alan Gano]
+
 * Added follow_redirect method for functional tests that'll get-request the redirect that was made. Example:
 
     def test_create_post

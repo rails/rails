@@ -117,7 +117,7 @@ module ActionController #:nodoc:
             when RoutingError then "routing_error"
             when UnknownAction   then "unknown_action"
             when ActionView::TemplateError then "template_error"
-            else raise ;"diagnostics"
+            else "diagnostics"
           end
         )
       end
