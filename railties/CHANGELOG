@@ -1,5 +1,7 @@
 *SVN*
 
+* Added 'recent' as a rake target that'll run tests for files that changed in the last 10 minutes #612 [bitsweat]
+
 * Changed script/console to default to development environment and drop --no-inspect #650 [bitsweat]
 
 * Added that the 'fixture :posts' syntax can be used for has_and_belongs_to_many fixtures where a model doesn't exist #572 [bitsweat]
