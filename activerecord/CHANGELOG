@@ -1,5 +1,7 @@
 *CVS*
 
+* Fixed that Base#find will return an array if given an array -- regardless of the number of elements #270 [Marten]
+
 * Fixed that has_and_belongs_to_many would generate bad sql when naming conventions differed from using vanilla "id" everywhere [RedTerror]
 
 * Added a better exception for when a type column is used in a table without the intention of triggering single-table inheritance. Example:

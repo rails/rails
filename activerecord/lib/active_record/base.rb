@@ -234,8 +234,10 @@ module ActiveRecord #:nodoc:
       #   Person.find(1)       # returns the object for ID = 1
       #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
       #   Person.find([7, 17]) # returns an array for objects with IDs in (7, 17)
+      #   Person.find([1])     # returns an array for objects the object with ID = 1
       # +RecordNotFound+ is raised if no record can be found.
       def find(*ids)
+        expects_array = ids.first.kind_of?(Array)
         ids = ids.flatten.compact.uniq
 
         if ids.length > 1
@@ -253,7 +255,7 @@ module ActiveRecord #:nodoc:
           sql << " AND #{type_condition}" unless descends_from_active_record?
 
           if record = connection.select_one(sql, "#{name} Find")
-            instantiate(record)
+            expects_array ? [instantiate(record)] : instantiate(record)
           else 
             raise RecordNotFound, "Couldn't find #{name} with ID = #{id}"
           end

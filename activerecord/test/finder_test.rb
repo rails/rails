@@ -14,9 +14,14 @@ class FinderTest < Test::Unit::TestCase
     assert_equal(@topic_fixtures["first"]["title"], Topic.find(1).title)
   end
   
+  def test_find_by_array_of_one_id
+    assert_kind_of(Array, Topic.find([ 1 ]))
+       assert_equal(1, Topic.find([ 1 ]).length)
+  end
+  
   def test_find_by_ids
     assert_equal(2, Topic.find(1, 2).length)
-    assert_equal(@topic_fixtures["second"]["title"], Topic.find([ 2 ]).title)
+    assert_equal(@topic_fixtures["second"]["title"], Topic.find([ 2 ]).first.title)
   end
 
   def test_find_by_ids_missing_one
