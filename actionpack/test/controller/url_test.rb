@@ -191,7 +191,6 @@ class UrlTest < Test::Unit::TestCase
     assert_equal "http://www.singlefile.com/login/logout", @clean_url_with_same_action_and_controller_name.rewrite(:action => "logout")
   end
 
-  # FIXME
   def xtest_same_module_and_controller_and_action_names
     assert_equal "http://www.singlefile.com/login/login/logout", @clean_url_with_same_action_and_controller_and_module_name.rewrite(:action => "logout")
   end
@@ -408,4 +407,13 @@ class UrlTest < Test::Unit::TestCase
     assert_equal("http://example.com/controller/foo", url.rewrite(:action => 'foo'))
   end
 
+  def test_rewriting_on_similar_fragments
+    url = ActionController::UrlRewriter.new(
+      MockRequest.new(
+        "http://", "example.com", 80, "/advertisements/advert/",
+        {"controller"=>"advert", "action"=>"index"}
+      ), "advert", "index"
+    )
+    assert_equal("http://example.com/advertisements/advert/news", url.rewrite(:action => 'news'))
+  end
 end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed url rewriter confusion when the controller name was a substring of the controller_prefix
+
 * Added conditional layouts like <tt>layout "weblog_standard", :except => :rss</tt> #452 [Marcel Molina]
 
 * Fixed that MemCacheStore wasn't included by default and added default MemCache object pointing to localhost #447 [Lucas Carlson]
