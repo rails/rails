@@ -1,5 +1,7 @@
 *0.6.0* (Unreleased)
 
+* Add <tt>ActionWebService::API::Base.allow_active_record_expects</tt> option, with a default of false. Setting this to true will allow specifying ActiveRecord::Base model classes in <tt>:expects</tt>. API writers should take care to validate the received ActiveRecord model objects when turning it on, and/or have an authentication mechanism in place to reduce the security risk.
+
 * Improve error message reporting. Bugs in either AWS or the web service itself will send back a protocol-specific error report message if possible, otherwise, provide as much detail as possible.
 
 * Removed type checking of received parameters, and perform casting for XML-RPC if possible, but fallback to the received parameters if casting fails, closes #677
