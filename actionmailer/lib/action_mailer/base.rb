@@ -128,7 +128,7 @@ module ActionMailer #:nodoc:
         def perform_delivery_smtp(mail)
           Net::SMTP.start(server_settings[:address], server_settings[:port], server_settings[:domain], 
               server_settings[:user_name], server_settings[:password], server_settings[:authentication]) do |smtp|
-            smtp.sendmail(mail.encoded, mail.from_address, mail.destinations)
+            smtp.sendmail(mail.encoded, mail.from, mail.destinations)
           end
         end
 
