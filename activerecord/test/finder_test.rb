@@ -193,6 +193,29 @@ class FinderTest < Test::Unit::TestCase
 
     assert_equal [], Topic.find_all_by_title("The First Topic!!")
   end
+  
+  def test_find_by_nil_attribute
+    topic = Topic.find_by_last_read nil
+    assert_not_nil topic
+    assert_nil topic.last_read
+  end
+  
+  def test_find_all_by_nil_attribute
+    topics = Topic.find_all_by_last_read nil
+    assert_equal 1, topics.size
+    assert_nil topics[0].last_read
+  end
+  
+  def test_find_by_nil_and_not_nil_attributes
+    topic = Topic.find_by_last_read_and_author_name nil, "Mary"
+    assert_equal "Mary", topic.author_name
+  end
+
+  def test_find_all_by_nil_and_not_nil_attributes
+    topics = Topic.find_all_by_last_read_and_author_name nil, "Mary"
+    assert_equal 1, topics.size
+    assert_equal "Mary", topics[0].author_name
+  end
 
   protected
     def bind(statement, *vars)

@@ -668,7 +668,9 @@ module ActiveRecord #:nodoc:
           if method_name =~ /find_(all_by|by)_([_a-z]+)/
             finder, attributes = ($1 == "all_by" ? :find_all : :find_first), $2.split("_and_")
             attributes.each { |attr_name| super unless column_methods_hash[attr_name.intern] }
-            conditions = attributes.collect { |attr_name| "#{attr_name} = ? "}.join(" AND ")
+
+            attr_index = -1
+            conditions = attributes.collect { |attr_name| attr_index += 1; "#{attr_name} #{arguments[attr_index] ? "=" : "IS"} ? " }.join(" AND ")
             send(finder, [conditions, *arguments[0...attributes.length]], *arguments[attributes.length..-1])
           else
             super

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that the dynamic finders didn't treat nil as a "IS NULL" but rather "= NULL" case #515 [Demetrius]
+
 * Added bind-named arrays for interpolating a group of ids or strings in conditions #528 [bitsweat]
 
 * Added that has_and_belongs_to_many associations with additional attributes also can be created between unsaved objects and only committed to the database when Base#save is called on the associator #524 [Eric Anderson]
