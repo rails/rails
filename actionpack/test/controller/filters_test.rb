@@ -15,24 +15,6 @@ class FilterTest < Test::Unit::TestCase
       end
   end
   
-  class LimitedFilterController < ActionController::Base
-    before_filter :ensure_login, :for => :show
-
-    def show
-      render_text "ran action"
-    end
-
-    def show_without_filter
-      render_text "ran action without filter"
-    end
-
-    private
-      def ensure_login
-        @ran_filter ||= []
-        @ran_filter << "ensure_login"
-      end
-  end
-  
   class PrependingController < TestController
     prepend_before_filter :wonderful_life
 
@@ -144,11 +126,6 @@ class FilterTest < Test::Unit::TestCase
     assert test_process(AuditController).template.assigns["was_audited"]
   end
 
-  def test_running_limited_filters
-    assert_equal %w( fire_flash ensure_login ), test_process(LimitedFilterController, "show").template.assigns["ran_filter"]
-    assert_equal %w( fire_flash ), test_process(LimitedFilterController, "show_without_filter").template.assigns["ran_filter"]
-  end
-  
   def test_bad_filter
     assert_raises(ActionController::ActionControllerError) { 
       test_process(BadFilterController)
