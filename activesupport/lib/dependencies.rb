@@ -18,8 +18,8 @@ module Dependencies
       loaded << file_name
       begin
         require_or_load(file_name)
-      rescue LoadError
-        raise unless swallow_load_errors
+      rescue Object => e
+        raise ScriptError, "#{e.message}" unless e.is_a?(LoadError) && swallow_load_errors
       end
     end
   end
@@ -32,18 +32,8 @@ module Dependencies
     self.loaded = [ ]
   end
   
-  def reload
-    loaded.each do |file_name| 
-      begin
-        silence_warnings { load("#{file_name}.rb") }
-      rescue LoadError
-        # We don't care if the file was removed now
-      end
-    end
-  end
-  
   def require_or_load(file_name)
-    mechanism == :load ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
+    load? ? load("#{file_name}.rb") : require(file_name)
   end
 end
 
@@ -57,7 +47,7 @@ class Object #:nodoc:
     # require_association when using single-table inheritance.
     def const_missing(class_id)
       begin
-        require_dependency(Inflector.underscore(Inflector.demodulize(class_id.to_s)))
+        require_or_load(class_id.to_s.demodulize.underscore)
         if Object.const_defined?(class_id) then return Object.const_get(class_id) else raise LoadError end
       rescue LoadError
         raise NameError, "uninitialized constant #{class_id}"

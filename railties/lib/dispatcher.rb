@@ -34,8 +34,6 @@ class Dispatcher
     
         controller_name, module_name = controller_name(request.parameters), module_name(request.parameters)
 
-        reload_models
-
         require_or_load("application")
         require_or_load(controller_path(controller_name, module_name))
 
@@ -43,23 +41,17 @@ class Dispatcher
       rescue Object => exception
         ActionController::Base.process_with_exception(request, response, exception).out
       ensure
-        remove_controllers(controller_name)
+        reset_application if Dependencies.load?
         Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
       end
     end
     
     private
-      def reload_models
-        if Dependencies.load?
-          ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
-          Dependencies.reload
-        end
-      end
-      
-      def remove_controllers(controller_name)
-        if Dependencies.load? && defined?(ApplicationController)
-          remove_class_hierarchy(controller_class(controller_name), ActionController::Base)
-        end
+      def reset_application
+        Dependencies.clear
+        ActiveRecord::Base.remove_subclasses
+        ActiveRecord::Observer.remove_subclasses
+        ActionController::Base.remove_subclasses
       end
     
       def controller_path(controller_name, module_name = nil)
@@ -84,13 +76,6 @@ class Dispatcher
 
       def module_name(parameters)
         parameters["module"].downcase.gsub(/[^_a-zA-Z0-9]/, "").untaint if parameters["module"]
-      end
-
-      def remove_class_hierarchy(klass, until_superclass)
-        while klass
-          Object.send(:remove_const, "#{klass}".intern)
-          klass = (klass.superclass unless until_superclass == klass.superclass)
-        end
       end
   end
 end
