@@ -1,4 +1,8 @@
-*0.7.0* (Unreleased)
+*0.6.1* (Unreleased)
+
+* Fix that method response QNames mismatched with that declared in the WSDL, makes SOAP::WSDLDriverFactory work against AWS again
+
+* Fix that @request.env was being modified, instead, dup the value gotten from env
 
 * Fix XML-RPC example to use :layered mode, so it works again
 
