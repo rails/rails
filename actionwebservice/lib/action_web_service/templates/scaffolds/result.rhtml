@@ -1,6 +1,10 @@
 <h4>Method Invocation Result for <em><%= @scaffold_service %>#<%= @scaffold_method.public_name %></em></h4>
 
 <p>
+Invocation took <tt><%= '%f' % @method_elapsed %></tt> seconds
+</p>
+
+<p>
 <strong>Return Value:</strong><br />
 <pre>
 <%= h @method_return_value.inspect %>

@@ -1,5 +1,6 @@
 require 'ostruct'
 require 'uri'
+require 'benchmark'
 
 module ActionWebService
   module Scaffolding # :nodoc:
@@ -62,12 +63,15 @@ module ActionWebService
               when :xmlrpc
                 protocol = Protocol::XmlRpc::XmlRpcProtocol.new
               end
-              @method_request_xml = @scaffold_method.encode_rpc_call(protocol.marshaler, protocol.encoder, @params['method_params'].dup)
               cgi = @request.cgi
-              @request = protocol.create_action_pack_request(@scaffold_service.name, @scaffold_method.public_name, @method_request_xml)
-              dispatch_web_service_request
-              @method_response_xml = @response.body
-              @method_return_value = protocol.marshaler.unmarshal(protocol.encoder.decode_rpc_response(@method_response_xml)[1]).value
+              bm = Benchmark.measure do
+                @method_request_xml = @scaffold_method.encode_rpc_call(protocol.marshaler, protocol.encoder, @params['method_params'].dup)
+                @request = protocol.create_action_pack_request(@scaffold_service.name, @scaffold_method.public_name, @method_request_xml)
+                dispatch_web_service_request
+                @method_response_xml = @response.body
+                @method_return_value = protocol.marshaler.unmarshal(protocol.encoder.decode_rpc_response(@method_response_xml)[1]).value
+              end
+              @method_elapsed = bm.real
               add_instance_variables_to_assigns
               @response = ::ActionController::CgiResponse.new(cgi)
               @performed_render = false
