@@ -13,17 +13,31 @@ class NumericExtTimeTest < Test::Unit::TestCase
     }
   end
 
-  def test_time_units
+  def test_units
     @seconds.each do |actual, expected|
       assert_equal expected, actual
-      assert_equal expected.since(@now),  @now + actual
-      assert_equal expected.until(@now),  @now - actual
+    end
+  end
+
+  def test_intervals
+    @seconds.values.each do |seconds|
+      assert_equal seconds.since(@now), @now + seconds
+      assert_equal seconds.until(@now), @now - seconds
+    end
+  end
+
+  # Test intervals based from Time.now
+  def test_now
+    @seconds.values.each do |seconds|
+      now = Time.now
+      assert seconds.ago >= now - seconds
+      now = Time.now
+      assert seconds.from_now >= now + seconds
     end
   end
 end
 
 class NumericExtSizeTest < Test::Unit::TestCase
-
   def test_unit_in_terms_of_another
     relationships = {
         1024.kilobytes =>   1.megabyte,

@@ -38,7 +38,7 @@ module ActiveSupport
         alias :year :years
 
         # Reads best without arguments:  10.minutes.ago
-        def ago(time = Time.now)
+        def ago(time = ::Time.now)
           time - self
         end
 
@@ -46,7 +46,7 @@ module ActiveSupport
         alias :until :ago
 
         # Reads best with argument:  10.minutes.since(time)
-        def since(time = Time.now)
+        def since(time = ::Time.now)
           time + self
         end
 
