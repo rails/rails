@@ -79,11 +79,11 @@ class Dispatcher
       end
 
       def controller_name(parameters)
-        parameters["controller"].gsub(/[^_a-zA-Z0-9]/, "").untaint
+        parameters["controller"].downcase.gsub(/[^_a-zA-Z0-9]/, "").untaint
       end
 
       def module_name(parameters)
-        parameters["module"].gsub(/[^_a-zA-Z0-9]/, "").untaint if parameters["module"]
+        parameters["module"].downcase.gsub(/[^_a-zA-Z0-9]/, "").untaint if parameters["module"]
       end
 
       def remove_class_hierarchy(klass, until_superclass)

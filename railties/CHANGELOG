@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that /Recipe/new and /recipe/new points to the same thing [Lyle Johnson]
+
 * Added Florian Gross' latest version of Breakpointer and friends that fixes a variaty of bugs #441 [Florian Gross]
 
 * Fixed skeleton Rakefile to work with sqlite3 out of the box #521 [rasputnik]
