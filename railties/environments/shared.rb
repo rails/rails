@@ -36,7 +36,7 @@ require 'active_support'
 require 'active_record'
 require 'action_controller'
 require 'action_mailer'
-require 'action_service'
+require 'action_web_service'
 
 
 # Environment-specific configuration.
