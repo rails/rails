@@ -57,6 +57,15 @@ ARGV.options do |opts|
     "Show this help message."
   ) { puts opts; exit }
 
+  opts.on("-v", "--version",
+    "Display the version information."
+  ) do
+    id = %q$Id$
+    puts id.sub("Id: ", "")
+    puts "(Breakpoint::Version = #{Breakpoint::Version})"
+    exit
+  end
+  
   opts.parse!
 end
 
@@ -67,6 +76,60 @@ $running = true
 trap("INT"){$running = false}
 
 puts "Waiting for initial breakpoint..."
+
+module Handlers
+  extend self
+
+  def breakpoint_handler(workspace, message)
+    puts message
+    IRB.start(nil, nil, workspace)
+    puts "", "Resumed execution. Waiting for next breakpoint...", ""
+  end
+
+  def eval_handler(code)
+    result = eval(code, TOPLEVEL_BINDING)
+    if result then
+      DRbObject.new(result)
+    else
+      result
+    end
+  end
+
+  def collision_handler()
+    msg = [
+      "  *** Breakpoint service collision ***",
+      "  Another Breakpoint service tried to use the",
+      "  port already occupied by this one. It will",
+      "  keep waiting until this Breakpoint service",
+      "  is shut down.",
+      "  ",
+      "  If you are using the Breakpoint library for",
+      "  debugging a Rails or other CGI application",
+      "  this likely means that this Breakpoint",
+      "  session belongs to an earlier, outdated",
+      "  request and should be shut down via 'exit'."
+    ].join("\n")
+
+    if RUBY_PLATFORM["win"] then
+      # This sucks. Sorry, I'm not doing this because
+      # I like funky message boxes -- I need to do this
+      # because on Windows I have no way of displaying
+      # my notification via puts() when gets() is still
+      # being performed on STDIN. I have not found a
+      # better solution.
+      begin
+        require 'tk'
+        root = TkRoot.new { withdraw }
+        Tk.messageBox('message' => msg, 'type' => 'ok')
+        root.destroy
+      rescue Exception
+        puts "", msg, ""
+      end
+    else
+      puts "", msg, ""
+    end
+  end
+end
 
 loop do
   DRb.start_service(options[:ClientURI])
@@ -90,55 +153,9 @@ loop do
     end
 
     begin
-      service.register_eval_handler do |code|
-        result = eval(code, TOPLEVEL_BINDING)
-        if result
-          DRbObject.new(result)
-        else
-          result
-        end
-      end 
-
-      service.register_collision_handler do
-        msg = [
-          "  *** Breakpoint service collision ***",
-          "  Another Breakpoint service tried to use the",
-          "  port already occupied by this one. It will",
-          "  keep waiting until this Breakpoint service",
-          "  is shut down.",
-          "  ",
-          "  If you are using the Breakpoint library for",
-          "  debugging a Rails or other CGI application",
-          "  this likely means that this Breakpoint",
-          "  session belongs to an earlier, outdated",
-          "  request and should be shut down via 'exit'."
-        ].join("\n")
-
-        if RUBY_PLATFORM["win"] then
-          # This sucks. Sorry, I'm not doing this because
-          # I like funky message boxes -- I need to do this
-          # because on Windows I have no way of displaying
-          # my notification via puts() when gets() is still
-          # being performed on STDIN. I have not found a
-          # better solution.
-          begin
-            require 'tk'
-            root = TkRoot.new { withdraw }
-            Tk.messageBox('message' => msg, 'type' => 'ok')
-            root.destroy
-          rescue Exception
-            puts "", msg, ""
-          end
-        else
-          puts "", msg, ""
-        end
-      end
-
-      service.register_handler do |workspace, message|
-        puts message
-        IRB.start(nil, nil, workspace)
-        puts "", "Resumed execution. Waiting for next breakpoint...", ""
-      end
+      service.eval_handler = Handlers.method(:eval_handler)
+      service.collision_handler = Handlers.method(:collision_handler)
+      service.handler = Handlers.method(:breakpoint_handler)
 
       puts "Connection established. Waiting for breakpoint...", "" if options[:Verbose]
 
@@ -153,7 +170,9 @@ loop do
         sleep(0.5)
       end
     ensure
-      service.unregister_handler
+      service.eval_handler = nil
+      service.collision_handler = nil
+      service.handler = nil
     end
   rescue Exception => error
     break unless $running
