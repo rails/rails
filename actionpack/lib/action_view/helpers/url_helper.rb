@@ -86,14 +86,28 @@ module ActionView
       # request uri is the same as the link's, in which case only the name is returned (or the
       # given block is yielded, if one exists). This is useful for creating link bars where you don't want to link
       # to the page currently being viewed.
-      def link_to_unless_current(name, options = {}, html_options = {}, *parameters_for_method_reference)
-        if current_page?(options)
-          block_given? ?
-            yield(name, options, html_options, *parameters_for_method_reference) :
+      def link_to_unless_current(name, options = {}, html_options = {}, *parameters_for_method_reference, &block)
+        link_to_unless current_page?(options), name, options, html_options, *parameters_for_method_reference, &block
+      end
+
+      # Create a link tag of the given +name+ using an URL created by the set of +options+, unless +condition+
+      # is true, in which case only the name is returned (or the given block is yielded, if one exists). 
+      def link_to_unless(condition, name, options = {}, html_options = {}, *parameters_for_method_reference, &block)
+        if condition
+          if block_given?
+            block.arity <= 1 ? yield(name) : yield(name, options, html_options, *parameters_for_method_reference)
+          else
             html_escape(name)
+          end
         else
           link_to(name, options, html_options, *parameters_for_method_reference)
-        end
+        end  
+      end
+      
+      # Create a link tag of the given +name+ using an URL created by the set of +options+, if +condition+
+      # is true, in which case only the name is returned (or the given block is yielded, if one exists). 
+      def link_to_if(condition, name, options = {}, html_options = {}, *parameters_for_method_reference, &block)
+        link_to_unless !condition, name, options, html_options, *parameters_for_method_reference, &block
       end
 
       # Creates a link tag for starting an email to the specified <tt>email_address</tt>, which is also used as the name of the

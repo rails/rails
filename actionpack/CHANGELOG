@@ -1,5 +1,7 @@
 *SVN*
 
+* Added UrlHelper#link_to_if/link_to_unless to enable other conditions that just link_to_unless_current #757 [mindel]
+
 * Fixed that single quote was not escaped in a UrlHelper#link_to javascript confirm #549 [Scott Barron]
 
 * Removed the default border on link_image_to (it broke xhtml strict) -- can be specified with :border => 0 #517 [?/caleb]

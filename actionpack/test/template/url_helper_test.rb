@@ -50,6 +50,28 @@ class UrlHelperTest < Test::Unit::TestCase
                  link_image_to("rss.gif", "http://www.example.com", :size => "30x45", :alt => "Feed", :class => "admin")
   end
 
+  def test_link_to_unless
+    assert_equal "Showing", link_to_unless(true, "Showing", :action => "show", :controller => "weblog")
+    assert "<a href=\"http://www.example.com\">Listing</a>", link_to_unless(false, "Listing", :action => "list", :controller => "weblog")
+    assert_equal "Showing", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1)
+    assert_equal "<strong>Showing</strong>", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1) { |name, options, html_options, *parameters_for_method_reference|
+      "<strong>#{name}</strong>"
+    }
+    assert_equal "<strong>Showing</strong>", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1) { |name|
+      "<strong>#{name}</strong>"
+    }    
+    assert_equal "test", link_to_unless(true, "Showing", :action => "show", :controller => "weblog", :id => 1) {
+      "test"
+    }    
+  end
+  
+  def test_link_to_if
+    assert_equal "Showing", link_to_if(false, "Showing", :action => "show", :controller => "weblog")
+    assert "<a href=\"http://www.example.com\">Listing</a>", link_to_if(true, "Listing", :action => "list", :controller => "weblog")
+    assert_equal "Showing", link_to_if(false, "Showing", :action => "show", :controller => "weblog", :id => 1)
+  end
+
+
   def test_link_unless_current
     @request = RequestMock.new("http://www.example.com")
     assert_equal "Showing", link_to_unless_current("Showing", :action => "show", :controller => "weblog")
