@@ -33,13 +33,17 @@ module ActiveRecord
       
       symbolize_strings_in_hash(config)
 
-      if config.has_key? :dsn
-        dsn = config[:dsn]
+      host     = config[:host]
+      username = config[:username] ? config[:username].to_s : 'sa'
+      password = config[:password].to_s
+
+      if config.has_key? :database
+        database = config[:database]
       else
-        raise ArgumentError, "No DSN specified"
+        raise ArgumentError, "No database specified. Missing argument: database."
       end
 
-      conn = DBI.connect(dsn)
+      conn = DBI.connect("DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User Id=#{username};Password=#{password};")
       conn["AutoCommit"] = true
 
       ConnectionAdapters::SQLServerAdapter.new(conn, logger)
@@ -59,7 +63,7 @@ module ActiveRecord
 
     class SQLServerAdapter < AbstractAdapter # :nodoc:
       def quote_column_name(name)
-        " [#{name}] "
+        "[#{name}]"
       end
 
       def select_all(sql, name = nil)
@@ -82,7 +86,6 @@ JOIN sysobjects AS s ON (c.id = s.id)
 LEFT OUTER JOIN syscomments AS com ON (c.cdefault = com.id)
 WHERE s.name = '#{table_name}'
 EOL
-
         columns = []
 
         log(sql, name, @connection) do |conn|
@@ -151,8 +154,12 @@ EOL
         end
       end
 
-      alias_method :update, :execute
-      alias_method :delete, :execute
+      def update(sql, name = nil)
+        execute(sql, name)
+        affected_rows(name)
+      end
+
+      alias_method :delete, :update
 
       def begin_db_transaction
         begin
@@ -192,7 +199,13 @@ EOL
       end
 
       def add_limit!(sql, limit)
-        sql.gsub!(/SELECT/i, "SELECT TOP #{limit}")
+        limit_amount = limit.to_s.include?("OFFSET") ? get_offset_amount(limit) : Array.new([limit])
+        order_by = sql.include?("ORDER BY") ? get_order_by(sql.sub(/.*ORDER\sBY./, "")) : nil
+        if limit_amount.size == 2
+          sql.gsub!(/SELECT/i, "SELECT * FROM ( SELECT TOP #{limit_amount[0]} * FROM ( SELECT TOP #{limit_amount[1]}")<<" ) AS tmp1 ORDER BY #{order_by[1]} ) AS tmp2 ORDER BY #{order_by[0]}"
+        else
+          sql.gsub!(/SELECT/i, "SELECT TOP #{limit_amount[0]}")
+        end     
       end
 
       private
@@ -251,6 +264,24 @@ EOL
 
         def query_contains_identity_column(sql, col)
           return sql =~ /[\(\.\,]\s*#{col}/
+        end
+
+        def get_order_by(sql)
+          return sql, sql.gsub(/\s*DESC\s*/, "").gsub(/\s*ASC\s*/, " DESC")
+        end
+
+        def get_offset_amount(limit)
+          limit = limit.gsub!(/.OFFSET./i, ",").split(',')
+          return limit[0].to_i, limit[0].to_i+limit[1].to_i
+        end
+
+        def affected_rows(name = nil)
+          sql = "SELECT @@ROWCOUNT AS AffectedRows"
+          log(sql, name, @connection) do |conn|
+            conn.select_all(sql) do |row|
+              return row[:AffectedRows].to_i
+            end
+          end
         end
     end
   end

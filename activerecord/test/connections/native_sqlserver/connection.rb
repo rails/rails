@@ -6,10 +6,16 @@ ActiveRecord::Base.logger = Logger.new("debug.log")
 
 ActiveRecord::Base.establish_connection(
   :adapter  => "sqlserver",
-  :dsn => "DBI:ADO:Provider=SQLOLEDB;Data Source=(local);Initial Catalog=test;User Id=sa;Password=password;"
+  :host     => "localhost",
+  :username => "sa",
+  :password => "",
+  :database => db1
 )
 
 Course.establish_connection(
-  :adapter => "sqlserver",
-  :dsn => "DBI:ADO:Provider=SQLOLEDB;Data Source=(local);Initial Catalog=test2;User Id=sa;Password=password;"
+  :adapter  => "sqlserver",
+  :host     => "localhost",
+  :username => "sa",
+  :password => "",
+  :database => db2
 )

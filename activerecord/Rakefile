@@ -45,6 +45,12 @@ Rake::TestTask.new("test_sqlite") { |t|
   t.verbose = true
 }
 
+Rake::TestTask.new("test_sqlserver") { |t|
+  t.libs << "test" << "test/connections/native_sqlserver"
+  t.pattern = 'test/*_test.rb'
+  t.verbose = true
+}
+
 # Generate the RDoc documentation
 
 Rake::RDocTask.new { |rdoc|

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added the final touches to the Microsoft SQL Server adapter by DeLynn Berry that makes it suitable for actual use #394 [DeLynn Barry]
+
 * Fixed a bug in the Ruby/MySQL that caused binary content to be escaped badly and come back mangled #405 [Tobias Luetke]
 
 * Added block-style for callbacks #332 [bitsweat].
