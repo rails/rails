@@ -2,6 +2,25 @@ module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Hash #:nodoc:
       module Keys
+        # Return a new hash with all keys converted to strings.
+        def stringify_keys
+          inject({}) do |options, (key, value)|
+            options[key.to_s] = value
+            options
+          end
+        end
+
+        # Destructively convert all keys to strings.
+        def stringify_keys!
+          keys.each do |key|
+            unless key.is_a?(String)
+              self[key.to_s] = self[key]
+              delete(key)
+            end
+          end
+          self
+        end
+
         # Return a new hash with all keys converted to symbols.
         def symbolize_keys
           inject({}) do |options, (key, value)|

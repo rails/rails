@@ -12,6 +12,8 @@ class HashExtTest < Test::Unit::TestCase
     h = {}
     assert_respond_to h, :symbolize_keys
     assert_respond_to h, :symbolize_keys!
+    assert_respond_to h, :stringify_keys
+    assert_respond_to h, :stringify_keys!
     assert_respond_to h, :to_options
     assert_respond_to h, :to_options!
   end
@@ -30,6 +32,18 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal @symbols, @mixed.dup.symbolize_keys!
 
     assert_raises(NoMethodError) { { [] => 1 }.symbolize_keys! }
+  end
+
+  def test_stringify_keys
+    assert_equal @strings, @symbols.stringify_keys
+    assert_equal @strings, @strings.stringify_keys
+    assert_equal @strings, @mixed.stringify_keys
+  end
+
+  def test_stringify_keys!
+    assert_equal @strings, @symbols.dup.stringify_keys!
+    assert_equal @strings, @strings.dup.stringify_keys!
+    assert_equal @strings, @mixed.dup.stringify_keys!
   end
 
   def test_indifferent_access
