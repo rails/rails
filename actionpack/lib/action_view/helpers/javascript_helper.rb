@@ -169,9 +169,11 @@ module ActionView
             
       def build_callbacks(options)
         CALLBACKS.inject({}) do |callbacks, callback|
-          name = 'on' + callback.to_s.capitalize
-          code = escape_javascript(options[callback])
-          callbacks[name] = "function(request){#{code}}" if callbacks[name]
+          if options[callback]
+            name = 'on' + callback.to_s.capitalize
+            code = escape_javascript(options[callback])
+            callbacks[name] = "function(request){#{code}}"
+          end
           callbacks
         end
       end
