@@ -246,7 +246,7 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('activerecord', '>= 1.6.0')
   s.add_dependency('actionpack', '>= 1.4.0')
   s.add_dependency('actionmailer', '>= 0.6.1')
-  s.add_dependency('actionservice', '>= 0.4.0')
+  s.add_dependency('actionwebservice', '>= 0.4.0')
 
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false

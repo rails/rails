@@ -24,7 +24,7 @@ ADDITIONAL_LOAD_PATHS.concat %w(
   vendor/activerecord/lib
   vendor/actionpack/lib
   vendor/actionmailer/lib
-  vendor/actionservice/lib
+  vendor/actionwebservice/lib
 ).map { |dir| "#{RAILS_ROOT}/#{dir}" }
 
 # Prepend to $LOAD_PATH

@@ -30,7 +30,7 @@ require_gem 'activesupport'
 require_gem 'activerecord'
 require_gem 'actionpack'
 require_gem 'actionmailer'
-require_gem 'actionservice'
+require_gem 'actionwebservice'
 require_gem 'rails'
 
 
