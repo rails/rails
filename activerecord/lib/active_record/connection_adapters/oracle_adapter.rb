@@ -3,13 +3,13 @@ require 'active_record/connection_adapters/abstract_adapter'
 require 'date'
 
 begin
-  require 'oracle' unless self.class.const_defined?(:ORAconn)
 
   module ActiveRecord
     class Base
       # Establishes a connection to the database that's used by
       # all Active Record objects
       def self.oracle_connection(config) # :nodoc:
+        require 'oracle' unless self.class.const_defined?(:ORAconn)
         symbolize_strings_in_hash(config)
         usr = config[:username] || ''
         pwd = config[:password] || ''
