@@ -185,7 +185,7 @@ class RouteTests < Test::Unit::TestCase
     assert_equal nil, @route.recognize([])[0]
     assert_equal nil, @route.recognize(%w{some_static route with more than expected})[0]
   end
-
+  
   def test_basecamp
     route 'clients/', :controller => 'content'
     verify_generate('clients', {}, {:controller => 'content'}, {}) # Would like to have clients/
@@ -421,6 +421,11 @@ class RouteSetTests < Test::Unit::TestCase
     options = {:controller => 'content'}
     @set.connect ':action/:controller'
     verify_generate('index/content', options)
+  end
+  
+  def test_default_dropped_with_nil_option
+    @request.path_parameters = {:controller => 'content', :action => 'action', :id => '10'}
+    verify_generate 'content/action', {:id => nil}
   end
 end
 
