@@ -1,5 +1,7 @@
 *SVN*
 
+* Added @request.env['RAW_POST_DATA'] for people who need access to the data before Ruby's CGI has parsed it #505 [bitsweat]
+
 * Fixed that a default fragment store wan't being set to MemoryStore as intended.
 
 * Fixed that all redirect and render calls now return true, so you can use the pattern of "do and return". Example:

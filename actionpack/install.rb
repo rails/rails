@@ -41,6 +41,7 @@ files = %w-
  action_controller/cgi_ext/cgi_ext.rb
  action_controller/cgi_ext/cgi_methods.rb
  action_controller/cgi_ext/cookie_performance_fix.rb
+ action_controller/cgi_ext/raw_post_data_fix.rb
  action_controller/caching.rb
  action_controller/cgi_process.rb
  action_controller/cookies.rb
