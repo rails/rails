@@ -13,17 +13,30 @@ PKG_VERSION     = '0.8.5' + PKG_BUILD
 PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 
+
+BASE_DIRS   = %w( app config/environments db doc log lib public script test vendor )
+APP_DIRS    = %w( models controllers helpers views views/layouts )
+PUBLIC_DIRS = %w( images javascripts stylesheets _doc )
+TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/testing )
+
+LOG_FILES    = %w( apache.log development.log test.log production.log )
+HTML_FILES   = %w( 404.html 500.html index.html )
+SCRIPT_FILES = %w( new_controller new_model new_mailer new_crud )
+
+VENDOR_LIBS = %w( actionpack activerecord actionmailer railties )
+
+
 desc "Default Task"
 task :default => [ :fresh_rails ]
 
 desc "Generates a fresh Rails package with documentation"
-task :fresh_rails => [ :make_dir_structure, :initialize_file_stubs, :copy_vendor_libraries, :copy_ties_content, :generate_documentation ]
+task :fresh_rails => [ :clean, :make_dir_structure, :initialize_file_stubs, :copy_vendor_libraries, :copy_ties_content, :generate_documentation ]
 
 desc "Generates a fresh Rails package using GEMs with documentation"
-task :fresh_gem_rails => [ :make_dir_structure, :initialize_file_stubs, :copy_ties_content, :copy_gem_environment ]
+task :fresh_gem_rails => [ :clean, :make_dir_structure, :initialize_file_stubs, :copy_ties_content, :copy_gem_environment ]
 
 desc "Generates a fresh Rails package without documentation (faster)"
-task :fresh_rails_without_docs => [ :make_dir_structure, :initialize_file_stubs, :copy_vendor_libraries, :copy_ties_content ]
+task :fresh_rails_without_docs => [ :clean, :make_dir_structure, :initialize_file_stubs, :copy_vendor_libraries, :copy_ties_content ]
 
 desc "Packages the fresh Rails package with documentation"
 task :package => [ :clean, :fresh_rails ] do
@@ -32,92 +45,47 @@ task :package => [ :clean, :fresh_rails ] do
 end
 
 task :clean do
-  File.rm_rf "#{PKG_DESTINATION}"
+  rm_rf PKG_DESTINATION
 end
 
 
 # Make directory structure ----------------------------------------------------------------
 
+def make_dest_dirs(dirs, path = nil)
+  mkdir_p dirs.map { |dir| File.join(PKG_DESTINATION, path, dir) }
+end
+
 desc "Make the directory structure for the new Rails application"
-task :make_dir_structure => [ :make_base_dirs, :make_app_dirs, :make_public_dirs, :make_test_dirs ] do
-end
+task :make_dir_structure => [ :make_base_dirs, :make_app_dirs, :make_public_dirs, :make_test_dirs ]
 
-task :make_base_dirs do
-  File.rm_rf PKG_DESTINATION
-  File.mkdir "#{PKG_DESTINATION}"
-  File.mkdir "#{PKG_DESTINATION}/app"
-  File.mkdir "#{PKG_DESTINATION}/config"
-  File.mkdir "#{PKG_DESTINATION}/config/environments"
-  File.mkdir "#{PKG_DESTINATION}/db"
-  File.mkdir "#{PKG_DESTINATION}/doc"
-  File.mkdir "#{PKG_DESTINATION}/log"
-  File.mkdir "#{PKG_DESTINATION}/lib"
-  File.mkdir "#{PKG_DESTINATION}/public"
-  File.mkdir "#{PKG_DESTINATION}/script"
-  File.mkdir "#{PKG_DESTINATION}/test"
-  File.mkdir "#{PKG_DESTINATION}/vendor"
-end
-
-task :make_app_dirs do
-  File.mkdir "#{PKG_DESTINATION}/app/models"
-  File.mkdir "#{PKG_DESTINATION}/app/controllers"
-  File.mkdir "#{PKG_DESTINATION}/app/helpers"
-  File.mkdir "#{PKG_DESTINATION}/app/views"
-  File.mkdir "#{PKG_DESTINATION}/app/views/layouts"
-end
-
-task :make_public_dirs do
-  File.mkdir "#{PKG_DESTINATION}/public/images"
-  File.mkdir "#{PKG_DESTINATION}/public/javascripts"
-  File.mkdir "#{PKG_DESTINATION}/public/stylesheets"
-  File.mkdir "#{PKG_DESTINATION}/public/_doc"
-end
-
-task :make_test_dirs do
-  File.mkdir "#{PKG_DESTINATION}/test/fixtures"
-  File.mkdir "#{PKG_DESTINATION}/test/unit"
-  File.mkdir "#{PKG_DESTINATION}/test/functional"
-  File.mkdir "#{PKG_DESTINATION}/test/mocks/development"
-  File.mkdir "#{PKG_DESTINATION}/test/mocks/testing"
-end
+task(:make_base_dirs)   { make_dest_dirs BASE_DIRS              }
+task(:make_app_dirs)    { make_dest_dirs APP_DIRS,    'app'     }
+task(:make_public_dirs) { make_dest_dirs PUBLIC_DIRS, 'public'  }
+task(:make_test_dirs)   { make_dest_dirs TEST_DIRS,   'test'    }
 
 
 # Initialize file stubs -------------------------------------------------------------------
 
 desc "Initialize empty file stubs (such as for logging)"
-task :initialize_file_stubs => [ :initialize_log_files ] do
-end
+task :initialize_file_stubs => [ :initialize_log_files ]
 
 task :initialize_log_files do
-  chmod 0777, "#{PKG_DESTINATION}/log"
-
-  File.touch "#{PKG_DESTINATION}/log/apache.log"
-  File.touch "#{PKG_DESTINATION}/log/production.log"
-
-  chmod 0777, "#{PKG_DESTINATION}/log/apache.log"
-  chmod 0777, "#{PKG_DESTINATION}/log/production.log"
+  log_dir = File.join(PKG_DESTINATION, 'log')
+  chmod 0777, log_dir
+  LOG_FILES.each do |log_file|
+    log_path = File.join(log_dir, log_file)
+    touch log_path
+    chmod 0777, log_path
+  end
 end
 
 
 # Copy Vendors ----------------------------------------------------------------------------
 
 desc "Copy in all the Rails packages to vendor"
-task :copy_vendor_libraries => [ :copy_action_pack, :copy_active_record, :copy_ties, :copy_action_mailer ]
-
-task :copy_action_pack do
-  File.cp_r "../actionpack", "#{PKG_DESTINATION}/vendor/actionpack"
-end
-
-task :copy_active_record do
-  File.cp_r "../activerecord", "#{PKG_DESTINATION}/vendor/activerecord" 
-end
-
-task :copy_action_mailer do
-  File.cp_r "../actionmailer", "#{PKG_DESTINATION}/vendor/actionmailer" 
-end
-
-task :copy_ties do
-  File.cp_r "../railties", "#{PKG_DESTINATION}/vendor/railties" 
+task :copy_vendor_libraries do
+  cp_r VENDOR_LIBS.map { |dir| File.join('..', dir) },
+       File.join(PKG_DESTINATION, 'vendor')
 end
 
 
@@ -128,87 +96,81 @@ desc "Make copies of all the default content of ties"
 task :copy_ties_content => [ 
   :copy_rootfiles, :copy_dispatches, :copy_html_files, :copy_abstract_application,
   :copy_configs, :copy_generators, :copy_test_helpers, :copy_docs_in_public,
-  :copy_app_doc_readme ] do
-end
+  :copy_app_doc_readme ]
 
 task :copy_dispatches do
-  File.cp "dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.rb"
+  cp "dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.rb"
   chmod 0755, "#{PKG_DESTINATION}/public/dispatch.rb"
 
-  File.cp "dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.cgi"
+  cp "dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.cgi"
   chmod 0755, "#{PKG_DESTINATION}/public/dispatch.cgi"
 
-  File.cp "dispatches/dispatch.fcgi", "#{PKG_DESTINATION}/public/dispatch.fcgi"
+  cp "dispatches/dispatch.fcgi", "#{PKG_DESTINATION}/public/dispatch.fcgi"
   chmod 0755, "#{PKG_DESTINATION}/public/dispatch.fcgi"
 
-  File.cp "dispatches/dispatch.servlet", "#{PKG_DESTINATION}/public/dispatch.servlet"
+  cp "dispatches/dispatch.servlet", "#{PKG_DESTINATION}/public/dispatch.servlet"
 
-  File.cp "dispatches/start_server", "#{PKG_DESTINATION}/start_server"
+  cp "dispatches/start_server", "#{PKG_DESTINATION}/start_server"
   chmod 0755, "#{PKG_DESTINATION}/start_server"
 end
 
 task :copy_html_files do
-  File.cp "html/404.html", "#{PKG_DESTINATION}/public/404.html"
-  File.cp "html/500.html", "#{PKG_DESTINATION}/public/500.html"
-  File.cp "html/index.html", "#{PKG_DESTINATION}/public/index.html"
+  cp HTML_FILES.map { |dir| File.join('html', dir) },
+     File.join(PKG_DESTINATION, 'public')
 end
 
 task :copy_abstract_application do
-  File.cp "helpers/abstract_application.rb", "#{PKG_DESTINATION}/app/controllers/abstract_application.rb"
-  File.cp "helpers/application_helper.rb", "#{PKG_DESTINATION}/app/helpers/application_helper.rb"
+  cp "helpers/abstract_application.rb", "#{PKG_DESTINATION}/app/controllers/abstract_application.rb"
+  cp "helpers/application_helper.rb", "#{PKG_DESTINATION}/app/helpers/application_helper.rb"
 end
 
 task :copy_configs do
-  File.cp "configs/database.yml", "#{PKG_DESTINATION}/config/database.yml"
+  cp "configs/database.yml", "#{PKG_DESTINATION}/config/database.yml"
 
-  File.cp "configs/apache.conf", "#{PKG_DESTINATION}/public/.htaccess"
+  cp "configs/apache.conf", "#{PKG_DESTINATION}/public/.htaccess"
 
-  File.cp "environments/shared.rb", "#{PKG_DESTINATION}/config/environment.rb"
-  File.cp "environments/production.rb", "#{PKG_DESTINATION}/config/environments/production.rb"
-  File.cp "environments/development.rb", "#{PKG_DESTINATION}/config/environments/development.rb"
-  File.cp "environments/test.rb", "#{PKG_DESTINATION}/config/environments/test.rb"
+  cp "environments/shared.rb", "#{PKG_DESTINATION}/config/environment.rb"
+  cp "environments/production.rb", "#{PKG_DESTINATION}/config/environments/production.rb"
+  cp "environments/development.rb", "#{PKG_DESTINATION}/config/environments/development.rb"
+  cp "environments/test.rb", "#{PKG_DESTINATION}/config/environments/test.rb"
 end
 
 task :copy_generators do
-  File.cp "generators/new_controller.rb", "#{PKG_DESTINATION}/script/new_controller"
-  File.cp "generators/new_model.rb", "#{PKG_DESTINATION}/script/new_model"
-  File.cp "generators/new_mailer.rb", "#{PKG_DESTINATION}/script/new_mailer"
-  File.cp "generators/new_crud.rb", "#{PKG_DESTINATION}/script/new_crud"
-  chmod 0755, "#{PKG_DESTINATION}/script/new_controller"
-  chmod 0755, "#{PKG_DESTINATION}/script/new_model"
-  chmod 0755, "#{PKG_DESTINATION}/script/new_mailer"
-  chmod 0755, "#{PKG_DESTINATION}/script/new_crud"
+  SCRIPT_FILES.each do |file|
+    dest_file = File.join(PKG_DESTINATION, 'script', file)
+    cp File.join('generators', "#{file}.rb"), dest_file
+    chmod 0755, dest_file
+  end
 end
 
 task :copy_rootfiles do
-  File.cp "fresh_rakefile", "#{PKG_DESTINATION}/Rakefile"
-  File.cp "README", "#{PKG_DESTINATION}/README"
+  cp "fresh_rakefile", "#{PKG_DESTINATION}/Rakefile"
+  cp "README", "#{PKG_DESTINATION}/README"
 end
 
 task :copy_test_helpers do
-  File.cp "helpers/test_helper.rb", "#{PKG_DESTINATION}/test/test_helper.rb"
+  cp "helpers/test_helper.rb", "#{PKG_DESTINATION}/test/test_helper.rb"
 end
 
 task :copy_docs_in_public do
-  File.cp "doc/index.html", "#{PKG_DESTINATION}/public/_doc/index.html"
+  cp "doc/index.html", "#{PKG_DESTINATION}/public/_doc/index.html"
 end
 
 task :copy_app_doc_readme do
-  File.cp "doc/README_FOR_APP", "#{PKG_DESTINATION}/doc/README_FOR_APP"
+  cp "doc/README_FOR_APP", "#{PKG_DESTINATION}/doc/README_FOR_APP"
 end
 
 task :link_apache_config do
-  cd "#{PKG_DESTINATION}/config/"
-  ln_s "../public/.htaccess", "apache.conf"
-  cd "../../railties"
+  chdir(File.join(PKG_DESTINATION, 'config')) {
+    ln_s "../public/.htaccess", "apache.conf"
+  }
 end
 
 
 # Generate documentation ------------------------------------------------------------------
 
 desc "Generate documentation for the framework and for the empty application"
-task :generate_documentation => [ :generate_app_doc, :generate_rails_framework_doc ] do
-end
+task :generate_documentation => [ :generate_app_doc, :generate_rails_framework_doc ]
 
 task :generate_rails_framework_doc do
   system %{cd #{PKG_DESTINATION}; rake apidoc}
@@ -223,7 +185,7 @@ end
 # Generate GEM ----------------------------------------------------------------------------
 
 task :copy_gem_environment do
-  File.cp "environments/shared_for_gem.rb", "#{PKG_DESTINATION}/config/environment.rb"
+  cp "environments/shared_for_gem.rb", "#{PKG_DESTINATION}/config/environment.rb"
 end
 
 
