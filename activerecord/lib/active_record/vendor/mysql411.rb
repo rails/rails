@@ -22,11 +22,6 @@
 # full & correct MySQL 4.1 support has been achieved.
 # 
 
-if __FILE__ == $0
-  $:.unshift( File.join( File.dirname( __FILE__ ), "..", "vendor" ) )
-  require 'mysql'
-end
-
 require 'digest/sha1'
 
 #
@@ -37,7 +32,6 @@ require 'digest/sha1'
 #
 
 class Mysql
-
   CLIENT_PROTOCOL_41 = 512
   CLIENT_SECURE_CONNECTION = 32768
   
@@ -308,11 +302,4 @@ class Mysql
     end
     self
   end
-  
-end
-
-if __FILE__ == $0
-  io = Mysql::real_connect( "<host>", "<user>", "<password>", "activerecord_unittest" )
-  puts io.list_dbs
-  io.close
 end
