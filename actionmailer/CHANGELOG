@@ -1,4 +1,4 @@
-*SVN*
+*0.6* (January 17th, 2005)
 
 * Fixed that bcc and cc should be settable through @bcc and @cc -- not just @headers["Bcc"] and @headers["Cc"] #453 [Eric Hodel]
 

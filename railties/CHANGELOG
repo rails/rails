@@ -1,4 +1,4 @@
-*SVN*
+*0.9.4* (January 17th, 2005)
 
 * Added that ApplicationController will catch a ControllerNotFound exception if someone attempts to access a url pointing to an unexisting controller [Tobias Luetke]
 
@@ -20,6 +20,8 @@
 * Fixed WEBrick servlet slowdown over time by restricting the load path reloading to mod_ruby
 
 * Removed Fancy Indexing as a default option on the WEBrick servlet as it made it harder to use various caching schemes
+
+* Upgraded to Active Record 1.5, Action Pack 1.3, Action Mailer 0.6
 
 
 *0.9.3* (January 4th, 2005)

@@ -56,6 +56,7 @@ files = %w-
  active_record/transactions.rb
  active_record/validations.rb
  active_record/vendor/mysql.rb
+ active_record/vendor/mysql411.rb
  active_record/vendor/simple.rb
 -
 
