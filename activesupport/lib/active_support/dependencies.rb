@@ -100,7 +100,12 @@ module Dependencies
     end
 
     def load_file(file_path)
-      Controllers.module_eval(IO.read(file_path), file_path, 1) # Hard coded Controller line here!!!
+      begin
+        Controllers.module_eval(IO.read(file_path), file_path, 1) # Hard coded Controller line here!!!
+      rescue Object => exception
+        exception.blame_file! file_path
+        raise
+      end
     end
   end
 end
@@ -124,5 +129,31 @@ class Object #:nodoc:
         raise NameError, "uninitialized constant #{class_id}"
       end
     end
+  end
+  def load(file, *extras)
+    begin super(file, *extras)
+    rescue Object => exception
+      exception.blame_file! file
+      raise
+    end
+  end
+  def require(file, *extras)
+    begin super(file, *extras)
+    rescue Object => exception
+      exception.blame_file! file
+      raise
+    end
+  end
+end
+
+# Add file-blaming to exceptions
+class Exception
+  def blame_file!(file)
+    (@blamed_files ||= []).unshift file
+  end
+  attr_reader :blamed_files
+  def describe_blame
+    return nil if blamed_files.empty?
+    "This error occured while loading the following files:\n   #{blamed_files.join '\n   '}"
   end
 end

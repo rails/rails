@@ -6,7 +6,7 @@
 
 <h1>
   <%=h @exception.class.to_s %> in
-  <%=h @request.parameters["controller"].capitalize %>#<%=h @request.parameters["action"] %>
+  <%=h (@request.parameters["controller"] || "<controller not set>").capitalize %>#<%=h @request.parameters["action"] || "<action not set>" %>
 </h1>
 <p><%=h Object.const_defined?(:RAILS_ROOT) ? @exception.message.gsub(RAILS_ROOT, "") : @exception.message %></p>
 
