@@ -270,11 +270,11 @@ module ActiveRecord
       def validates_confirmation_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-        configuration[:message].gsub!(/\"/, '\\\\\"')
 
-        for attr_name in attr_names
-          attr_accessor "#{attr_name}_confirmation"
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', "#{configuration[:message]}") unless #{attr_name}_confirmation.nil? or #{attr_name} == #{attr_name}_confirmation}))
+        attr_accessor *(attr_names.map { |n| "#{n}_confirmation" })
+	
+        validates_each(attr_names, configuration) do |record, attr_name, value|
+          record.errors.add(attr_name, configuration[:message]) unless record.send("#{attr_name}_confirmation").nil? or value == record.send("#{attr_name}_confirmation")
         end
       end
 
@@ -294,13 +294,13 @@ module ActiveRecord
       #
       # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
       def validates_acceptance_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save }
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save, :allow_nil => true }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-        configuration[:message].gsub!(/\"/, '\\\\\"')
 
-        for attr_name in attr_names
-          attr_accessor(attr_name)
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', "#{configuration[:message]}") unless #{attr_name}.nil? or #{attr_name} == "1"}))
+        attr_accessor *attr_names
+	
+        validates_each(attr_names,configuration) do |record, attr_name, value|
+          record.errors.add(attr_name, configuration[:message]) unless value == "1"	  
         end
       end
 
@@ -312,10 +312,13 @@ module ActiveRecord
       def validates_presence_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:empty], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-        configuration[:message].gsub!(/\"/, '\\\\\"')
 
-        for attr_name in attr_names
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add_on_empty('#{attr_name}', "#{configuration[:message]}")}))
+        # can't use validates_each here, because it cannot cope with non-existant attributes,
+        # while errors.add_on_empty can	
+        attr_names.each do |attr_name|
+          send(validation_method(configuration[:on])) do |record|
+            record.errors.add_on_empty(attr_name,configuration[:message])
+          end
         end
       end
 
@@ -414,13 +417,14 @@ module ActiveRecord
       def validates_uniqueness_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken] }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-        configuration[:message].gsub!(/\"/, '\\\\\"')
 
-        for attr_name in attr_names
-          if scope = configuration[:scope]
-            class_eval(%(validate %{errors.add('#{attr_name}', "#{configuration[:message]}") if self.class.find_first(new_record? ? ['#{attr_name} = ? AND #{scope} = ?', #{attr_name}, #{scope}] : ["#{attr_name} = ? AND \\\#{self.class.primary_key} <> ? AND #{scope} = ?", #{attr_name}, id, #{scope}])}))
-          else
-            class_eval(%(validate %{errors.add('#{attr_name}', "#{configuration[:message]}") if self.class.find_first(new_record? ? ['#{attr_name} = ?', #{attr_name}] : ["#{attr_name} = ? AND \\\#{self.class.primary_key} <> ?", #{attr_name}, id])}))
+        if scope = configuration[:scope]
+          validates_each(attr_names,configuration) do |record, attr_name, value|
+            record.errors.add(attr_name, configuration[:message]) if record.class.find_first(record.new_record? ? ["#{attr_name} = ? AND #{scope} = ?", record.send(attr_name), record.send(scope)] : ["#{attr_name} = ? AND #{record.class.primary_key} <> ? AND #{scope} = ?", record.send(attr_name), record.send(:id), record.send(scope)])
+          end
+        else
+          validates_each(attr_names,configuration) do |record, attr_name, value|
+            record.errors.add(attr_name, configuration[:message]) if record.class.find_first(record.new_record? ? ["#{attr_name} = ?", record.send(attr_name)] : ["#{attr_name} = ? AND #{record.class.primary_key} <> ?", record.send(attr_name), record.send(:id) ] )
           end
         end
       end
@@ -441,12 +445,11 @@ module ActiveRecord
       def validates_format_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save, :with => nil }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-        configuration[:message].gsub!(/\"/, '\\\\\"')
 
         raise(ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash") unless configuration[:with].is_a?(Regexp)
 
-        for attr_name in attr_names 
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name} and #{attr_name}.to_s.match(/#{Regexp.quote(configuration[:with].source)}/)}))
+        validates_each(attr_names, configuration) do |record, attr_name, value|
+          record.errors.add(attr_name, configuration[:message]) unless value.to_s =~ configuration[:with]
         end
       end
 
@@ -464,19 +467,13 @@ module ActiveRecord
       def validates_inclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-        configuration[:message].gsub!(/\"/, '\\\\\"')
-
+ 
         enum = configuration[:in] || configuration[:within]
-        allow_nil = configuration[:allow_nil]
-
+ 
         raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
 
-        for attr_name in attr_names
-          if allow_nil
-            class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name}.nil? or (#{enum.inspect}).include?(#{attr_name}) }))
-          else
-            class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless (#{enum.inspect}).include?(#{attr_name}) }))
-          end
+        validates_each(attr_names, configuration) do |record, attr_name, value|
+          record.errors.add(attr_name, configuration[:message]) unless enum.include?(value)
         end
       end
 
@@ -504,13 +501,10 @@ module ActiveRecord
       def validates_associated(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-        configuration[:message].gsub!(/\"/, '\\\\\"')
-        
-        for attr_name in attr_names
-          class_eval(%(#{validation_method(configuration[:on])} %{
-            errors.add("#{attr_name}", "#{configuration[:message]}") unless
-              (#{attr_name}.is_a?(Array) ? #{attr_name} : [#{attr_name}]).inject(true){ |memo, record| (record.nil? or record.valid?) and memo }
-          }))
+
+        validates_each(attr_names, configuration) do |record, attr_name, value|
+          record.errors.add(attr_name, configuration[:message]) unless 
+            (value.is_a?(Array) ? value : [value]).inject(true) { |memo, r| (r.nil? or r.valid?) and memo }
         end
       end
       
@@ -526,29 +520,25 @@ module ActiveRecord
       # * <tt>message</tt> - A custom error message (default is: "is not a number")
       # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
       # * <tt>only_integer</tt> Specifies whether the value has to be an integer, e.g. an integral value (default is false)
+      # * <tt>allow_nil</tt> Skip validation if attribute is nil (default is false). Notice that for fixnum and float columsn empty strings are converted to nil
       def validates_numericality_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:not_a_number], :on => :save,
-                           :integer => false }
+                           :only_integer => false, :allow_nil => false }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
-        for attr_name in attr_names
-          if configuration[:only_integer]
-            # we have to use a regexp here, because Kernel.Integer accepts nil and "0xdeadbeef", but does not
-            # accept "099" and String#to_i accepts everything. The string containing the regexp is evaluated twice
-            # so we have to escape everything properly
-            class_eval(%(#{validation_method(configuration[:on])} %{
-                errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name}_before_type_cast.to_s =~ /^[\\\\+\\\\-]?\\\\d+$/
-            }))          
-          else
-            class_eval(%(#{validation_method(configuration[:on])} %{
-                begin
-                  Kernel.Float(#{attr_name}_before_type_cast)
-                rescue ArgumentError, TypeError
-                  errors.add("#{attr_name}", "#{configuration[:message]}")
-                end
-            }))
+        if configuration[:only_integer]
+          validates_each(attr_names,configuration) do |record, attr_name,value|
+            record.errors.add(attr_name, configuration[:message]) unless record.send("#{attr_name}_before_type_cast").to_s =~ /^[+-]?\d+$/
           end
-        end
+        else
+          validates_each(attr_names,configuration) do |record, attr_name,value|
+            begin
+              Kernel.Float(record.send("#{attr_name}_before_type_cast").to_s)
+            rescue ArgumentError, TypeError
+              record.errors.add(attr_name, configuration[:message])
+            end
+          end
+      	end
       end
 
       private
