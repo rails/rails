@@ -168,7 +168,7 @@ module ActionWebService
           if @real_container.class.web_service_dispatching_mode == :direct
             @services << Service.new(@real_container.controller_name, @real_container)
           else
-            @real_container.class.web_services.each do |name|
+            @real_container.class.web_services.each do |name, obj|
               @services << Service.new(name, @real_container.instance_eval{ web_service_object(name) })
             end
           end

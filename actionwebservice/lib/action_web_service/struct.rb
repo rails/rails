@@ -16,8 +16,8 @@ module ActionWebService
   #   end
   #   person = Person.new(:id => 5, :firstname => 'john', :lastname => 'doe')
   #
-  # Active Record model classes are already implicitly supported for method
-  # return signatures.
+  # Active Record model classes are already implicitly supported in method
+  # signatures.
   class Struct
     
     # If a Hash is given as argument to an ActionWebService::Struct constructor,

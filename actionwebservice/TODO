@@ -1,9 +1,5 @@
 = 0.7.0
-  - WS Dynamic Scaffolding
-    * add protocol selection ability
-    * test with XML-RPC (namespaced method name support)
-
-  - update manual for scaffolding and functional testing
+  - Update manual for scaffolding and functional testing
   
 = Refactoring
   - Don't have clean way to go from SOAP Class object to the xsd:NAME type

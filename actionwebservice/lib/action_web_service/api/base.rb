@@ -195,7 +195,7 @@ module ActionWebService # :nodoc:
       private
         def friendly_param(type, show_name=true)
           name = type.name.to_s
-          type_type = type.type.to_s
+          type_type = type.array?? type.element_type.type.to_s : type.type.to_s
           str = type.array?? (type_type + '[]') : type_type
           show_name ? (str + " " + name) : str
         end
