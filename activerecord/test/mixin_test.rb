@@ -125,4 +125,14 @@ class TouchTest < Test::Unit::TestCase
     assert_not_nil @obj.updated_at
     assert_not_nil @obj.created_at
   end  
+  
+  def test_create_turned_off
+    Mixin.record_timestamps = false
+
+    assert_nil @first.updated_at
+    @first.save
+    assert_nil @first.updated_at
+
+    Mixin.record_timestamps = true
+  end
 end
