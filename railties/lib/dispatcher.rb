@@ -28,19 +28,14 @@ class Dispatcher
     begin
       request  = ActionController::CgiRequest.new(cgi, session_options)
       response = ActionController::CgiResponse.new(cgi)
+      
+      controller_name, module_name = controller_name(request.parameters), module_name(request.parameters)
 
-      controller_name = request.parameters["controller"].gsub(/[^_a-zA-Z0-9]/, "").untaint
+      ActionController::Base.require_or_load("abstract_application")
+      ActionController::Base.require_or_load(controller_path(controller_name, module_name))
 
-      if module_name = request.parameters["module"]
-        Module.new do
-          ActionController::Base.require_or_load "#{module_name}/#{Inflector.underscore(controller_name)}_controller"
-          Object.const_get("#{Inflector.camelize(controller_name)}Controller").process(request, response).out
-        end
-      else
-        ActionController::Base.require_or_load "#{Inflector.underscore(controller_name)}_controller"
-        Object.const_get("#{Inflector.camelize(controller_name)}Controller").process(request, response).out
-      end
-    rescue Exception => e
+      controller_class(controller_name).process(request, response).out
+    rescue Object => e
       begin
         ActionController::Base.logger.info "\n\nException throw during dispatch: #{e.message}\n#{e.backtrace.join("\n")}"
       rescue Exception
@@ -50,6 +45,35 @@ class Dispatcher
       if error_page then cgi.out{ IO.readlines(error_page) } else raise e end
     ensure
       ActiveRecord::Base.reset_associations_loaded
+
+      if ActionController::Base.reload_dependencies
+        Object.send(:remove_const, "AbstractApplicationController")
+        Object.send(:remove_const, controller_class_name(controller_name)) if Object.const_defined?(controller_class_name(controller_name))
+      end
     end
+  end
+  
+  def self.controller_path(controller_name, module_name = nil)
+    if module_name
+      "#{module_name}/#{Inflector.underscore(controller_name)}_controller"
+    else
+      "#{Inflector.underscore(controller_name)}_controller"
+    end
+  end
+  
+  def self.controller_class(controller_name)
+    Object.const_get(controller_class_name(controller_name))
+  end
+  
+  def self.controller_class_name(controller_name)
+    "#{Inflector.camelize(controller_name)}Controller"
+  end
+  
+  def self.controller_name(parameters)
+    parameters["controller"].gsub(/[^_a-zA-Z0-9]/, "").untaint
+  end
+  
+  def self.module_name(parameters)
+    parameters["module"].gsub(/[^_a-zA-Z0-9]/, "").untaint if parameters["module"]
   end
 end

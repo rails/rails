@@ -6,14 +6,14 @@ RAILS_ENV  = ENV['RAILS_ENV'] || 'development'
 ADDITIONAL_LOAD_PATHS = ["#{RAILS_ROOT}/test/mocks/#{RAILS_ENV}"]
 
 # Then model subdirectories.
-ADDITIONAL_LOAD_PATHS.concat(Dir["#{RAILS_ROOT}/app/models/[a-z]*"])
+ADDITIONAL_LOAD_PATHS.concat(Dir["#{RAILS_ROOT}/app/models/[_a-z]*"])
 
 # Followed by the standard includes.
 ADDITIONAL_LOAD_PATHS.concat %w(
+  app
   app/models
   app/controllers
   app/helpers
-  app
   config
   lib
   vendor
@@ -25,9 +25,7 @@ ADDITIONAL_LOAD_PATHS.concat %w(
 ).map { |dir| "#{RAILS_ROOT}/#{dir}" }
 
 # Prepend to $LOAD_PATH
-ADDITIONAL_LOAD_PATHS.reverse.each do |dir|
-  $:.unshift(dir) if File.directory?(dir)
-end
+ADDITIONAL_LOAD_PATHS.reverse.each { |dir| $:.unshift(dir) if File.directory?(dir) }
 
 
 # Require Rails libraries.
@@ -37,11 +35,9 @@ require 'action_mailer'
 
 
 # Environment-specific configuration.
+ActionController::Base.require_or_load "environments/#{RAILS_ENV}"
 ActiveRecord::Base.configurations = YAML::load(File.open("#{RAILS_ROOT}/config/database.yml"))
 ActiveRecord::Base.establish_connection
-
-ActionController::Base.require_or_load 'abstract_application'
-ActionController::Base.require_or_load "environments/#{RAILS_ENV}"
 
 
 # Configure defaults if the included environment did not.
@@ -52,5 +48,6 @@ end
 [ActionController::Base, ActionMailer::Base].each do |klass|
   klass.template_root ||= "#{RAILS_ROOT}/app/views/"
 end
+
 
 # Include your app's configuration here:

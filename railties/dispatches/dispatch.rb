@@ -6,5 +6,5 @@ require File.dirname(__FILE__) + "/../config/environment"
 # "/usr/local/lib/ruby/gems/1.8/gems/rails-0.8.0/lib/dispatcher" -- otherwise performance is severely impaired
 require "dispatcher"
 
-ADDITIONAL_LOAD_PATHS.flatten.each { |dir| $:.unshift "#{RAILS_ROOT}/#{dir}" }
+ADDITIONAL_LOAD_PATHS.reverse.each { |dir| $:.unshift(dir) if File.directory?(dir) }
 Dispatcher.dispatch
