@@ -66,7 +66,7 @@ module ActiveRecord
 
       def native_database_types
         {
-          :primary_key => { :name => "int(11) DEFAULT NULL auto_increment PRIMARY KEY" },
+          :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255 },
           :text        => { :name => "text" },
           :integer     => { :name => "int", :limit => 11 },
