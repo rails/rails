@@ -341,10 +341,8 @@ module ActionController #:nodoc:
       # * <tt>:host</tt> -- overrides the default (current) host if provided
       # * <tt>:protocol</tt> -- overrides the default (current) protocol if provided
       #  
-      # All other keys are used to generate an appropriate path for the new URL. This is handled by the Routes mechanism,
-      # and the generated path is wildly configurable. The options that Routes does not use are
-      # are encoded into a typical query string. Once (and if) the link is followed, all provided options are made
-      # available to the controller in <tt>@params</tt>.
+      # The URL is generated from the remaining keys in the hash. A URL contains two key parts: the <base> and a query string.
+      # Routes composes a query string as the key/value pairs not included in the <base>.
       #  
       # The default Routes setup supports a typical Rails path of "controller/action/id" where action and id are optional, with
       # action defaulting to 'index' when not given. Here are some typical url_for statements and their corresponding URLs:
@@ -476,6 +474,12 @@ module ActionController #:nodoc:
       # HTTP manners mandate that you don't use GET requests to trigger data changes.
       def render_nothing(status = nil)
         render_text "", status
+      end
+
+      # Returns the result of the render as a string.
+      def render_to_string(template_name = default_template_name)
+        add_variables_to_assigns
+        @template.render_file(template_name)
       end
 
       # Sends the file by streaming it 4096 bytes at a time. This way the

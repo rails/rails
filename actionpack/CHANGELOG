@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Base#render_to_string to parse a template and get the result back as a string #479
+
 * Fixed that send_file/data can work even if render* has been called before in action processing to render the content of a file to be send for example #601
 
 * Added FormOptionsHelper#time_zone_select and FormOptionsHelper#time_zone_options_for_select to work with the new value object TimeZone in Active Record #688 [Jamis Buck]

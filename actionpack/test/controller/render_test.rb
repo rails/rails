@@ -59,6 +59,11 @@ class TestController < ActionController::Base
     render_action "list"
   end
 
+  def hello_in_a_string
+    @customers = [ Customer.new("david"), Customer.new("mary") ]
+    render_text "How's there? #{render_to_string("test/list")}"
+  end
+
   def rescue_action(e) raise end
     
   private
@@ -71,6 +76,7 @@ class TestController < ActionController::Base
 end
 
 TestController.template_root = File.dirname(__FILE__) + "/../fixtures/"
+Fun::GamesController.template_root = File.dirname(__FILE__) + "/../fixtures/"
 
 class TestLayoutController < ActionController::Base
   layout "layouts/standard"
@@ -173,6 +179,11 @@ class RenderTest < Test::Unit::TestCase
   def test_partials_list
     @request.action = "partials_list"
     assert_equal "Hello: davidHello: mary", process_request.body
+  end
+
+  def test_render_to_string
+    @request.action = "hello_in_a_string"
+    assert_equal "How's there? Hello: davidHello: mary", process_request.body
   end
 
   def test_nested_rendering
