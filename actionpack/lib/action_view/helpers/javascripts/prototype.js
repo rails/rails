@@ -97,24 +97,6 @@ function getElementsByClassName(className, element) {
   return elements;
 }
 
-// function getElementsByClassName(className, element) {
-//   var children = (element || document).getElementsByTagName('*');
-//   var elements = new Array();
-//   
-//   for (var i = 0; i < children.length; i++) {
-//     var child = children[i];
-//     var classNames = child.className.split(' ');
-//     for (var j = 0; j < classNames.length; j++) {
-//       if (classNames[j] == className) {
-//         elements.push(child);
-//         break;
-//       }
-//     }
-//   }
-//   
-//   return elements;
-// }
-
 /*--------------------------------------------------------------------------*/
 
 Ajax = {
@@ -204,12 +186,10 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
   },
   
   updateContent: function() {
-    this.container.innerHTML = this.request.transport.responseText;
-
     if (this.options.position.toLowerCase() == 'replace') {
       this.container.innerHTML = this.request.transport.responseText;
     } else {
-      Insert[this.options.position.toLowerCase()]( this.container, this.request.transport.responseText );
+      Insert[this.options.position.toLowerCase()](this.container, this.request.transport.responseText);
     }
 
     switch(this.options.effect) {
@@ -393,10 +373,11 @@ YellowFader.prototype = {
   }
 }
 
+
 /*--------------------------------------------------------------------------*/
 
 Insert = {
-  before_begin: function(dom, html) {
+  before: function(dom, html) {
     dom = $(dom);
     if (dom.insertAdjacentHTML) {
       dom.insertAdjacentHTML('BeforeBegin', html);
@@ -408,7 +389,7 @@ Insert = {
     }
   },
 
-  after_begin: function(dom, html) {
+  top: function(dom, html) {
     dom = $(dom);
     if (dom.insertAdjacentHTML) {
       dom.insertAdjacentHTML('AfterBegin', html);
@@ -421,7 +402,7 @@ Insert = {
     }
   },
 
-  before_end: function(dom, html) {
+  bottom: function(dom, html) {
     dom = $(dom);
     if (dom.insertAdjacentHTML) {
       dom.insertAdjacentHTML('BeforeEnd', html);
@@ -434,7 +415,7 @@ Insert = {
     }
   },
 
-  after_end: function(dom, html) {
+  after: function(dom, html) {
     dom = $(dom);
     if (dom.insertAdjacentHTML) {
       dom.insertAdjacentHTML('BeforeBegin', html);

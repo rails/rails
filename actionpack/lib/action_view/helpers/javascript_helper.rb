@@ -153,14 +153,14 @@ module ActionView
         (javascript || '').gsub(/\r\n|\n|\r/, "\\n").gsub(/["']/) { |m| "\\#{m}" }
       end
 
-    private      
+    private
       def options_for_ajax(options)
         js_options = build_callbacks(options)
         
         js_options['asynchronous'] = options[:type] != :synchronous
         js_options['method']       = options[:method] if options[:method]
         js_options['position']     = options[:position] ? "'#{options[:position].to_s}'" : "'replace'"
-      	js_options['effect']       = ("\'"+options[:effect].to_s+"\'") if options[:effect]
+        js_options['effect']       = ("\'" + options[:effect].to_s + "\'") if options[:effect]
 	
         if options[:form]
           js_options['parameters'] = 'Form.serialize(this)'
@@ -184,7 +184,7 @@ module ActionView
         CALLBACKS.inject({}) do |callbacks, callback|
           if options[callback]
             name = 'on' + callback.to_s.capitalize
-            code = escape_javascript(options[callback])
+            code = options[callback]
             callbacks[name] = "function(request){#{code}}"
           end
           callbacks
