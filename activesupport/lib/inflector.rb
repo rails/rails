@@ -4,7 +4,7 @@ module Inflector
   extend self
 
   def pluralize(word)
-    result = word.dup
+    result = word.to_s.dup
     plural_rules.each do |(rule, replacement)|
       break if result.gsub!(rule, replacement)
     end
@@ -12,7 +12,7 @@ module Inflector
   end
 
   def singularize(word)
-    result = word.dup
+    result = word.to_s.dup
     singular_rules.each do |(rule, replacement)|
       break if result.gsub!(rule, replacement)
     end
@@ -20,15 +20,15 @@ module Inflector
   end
 
   def camelize(lower_case_and_underscored_word)
-    lower_case_and_underscored_word.gsub(/(^|_)(.)/){$2.upcase}
+    lower_case_and_underscored_word.to_s.gsub(/(^|_)(.)/){$2.upcase}
   end
   
   def underscore(camel_cased_word)
-    camel_cased_word.gsub(/([A-Z]+)([A-Z])/,'\1_\2').gsub(/([a-z])([A-Z])/,'\1_\2').downcase
+    camel_cased_word.to_s.gsub(/([A-Z]+)([A-Z])/,'\1_\2').gsub(/([a-z])([A-Z])/,'\1_\2').downcase
   end
 
   def demodulize(class_name_in_module)
-    class_name_in_module.gsub(/^.*::/, '')
+    class_name_in_module.to_s.gsub(/^.*::/, '')
   end
 
   def tableize(class_name)
