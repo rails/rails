@@ -652,7 +652,7 @@ module ActiveRecord
 
         def extract_association_for_record(record, rows, reflection)
           association = rows.collect do |row| 
-            if row["#{table_name}__#{primary_key}"] == record.id.to_s
+            if row["#{table_name}__#{primary_key}"] == record.id.to_s && !row["#{reflection.klass.table_name}__#{reflection.klass.primary_key}"].nil?
               reflection.klass.send(:instantiate, extract_record(reflection.klass.table_name, row))
             end
           end
