@@ -11,13 +11,14 @@ module ActionController
   # controller, have it automatically query your model for pagination; or,
   # if you prefer, create Paginator objects yourself.
   #
+  # Pagination is included automatically for all controllers.
+  #
   # For help rendering pagination links, see 
   # ActionView::Helpers::PaginationHelper.
   #
   # ==== Automatic pagination for every action in a controller
   #
-  #   class PersonController < ApplicationController
-  #     helper :pagination     
+  #   class PersonController < ApplicationController   
   #     model :person
   #
   #     paginate :people, :order_by => 'last_name, first_name',
@@ -110,8 +111,7 @@ module ActionController
       paginator_and_collection_for(collection_id, options)
     end
 
-    # These methods become class methods on any controller which includes
-    # PaginationHelper.
+    # These methods become class methods on any controller 
     module ClassMethods
       # Creates a +before_filter+ which automatically paginates an Active
       # Record model for all actions in a controller (or certain actions if

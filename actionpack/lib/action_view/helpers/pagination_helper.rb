@@ -1,6 +1,14 @@
 module ActionView
   module Helpers
     # Provides methods for linking to ActionController::Pagination objects.
+    #
+    # You can also build your links manually, like in this example:
+    #
+    # <%= link_to "Previous page", { :page => paginator.current.previous } if paginator.current.previous %>
+    #
+    # <%= link_to "Next page", { :page => paginator.current.next } of paginator.current.next =%>
+    # 
+    #
     module PaginationHelper
       unless const_defined?(:DEFAULT_OPTIONS)
         DEFAULT_OPTIONS = {
@@ -25,7 +33,7 @@ module ActionView
       # <tt>:link_to_current_page</tt>:: whether or not the current page
       #                                  should be linked to (defaults to
       #                                  +false+)
-      # <tt>:pararms</tt>::              any additional routing parameters
+      # <tt>:params</tt>::               any additional routing parameters
       #                                  for page URLs
       def pagination_links(paginator, options={})
         options.merge!(DEFAULT_OPTIONS) {|key, old, new| old}
