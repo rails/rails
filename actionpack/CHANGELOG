@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that proxy IPs do not follow all RFC1918 nets #251 [caleb@aei-tech.com]
+
 * Added Base#render_to_string to parse a template and get the result back as a string #479
 
 * Fixed that send_file/data can work even if render* has been called before in action processing to render the content of a file to be send for example #601
