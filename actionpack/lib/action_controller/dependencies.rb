@@ -78,7 +78,6 @@ module ActionController #:nodoc:
           inherited_without_model(child)
           return if child.controller_name == "application" # otherwise the ApplicationController in Rails will include itself
           begin
-            Object.const_get(child.controller_name.singularize.classify)
             child.model(child.controller_name.singularize)
           rescue NameError, LoadError
             # No neither singular or plural model available for this controller
