@@ -2,7 +2,7 @@ require 'observer'
 
 module ActiveRecord
   # Callbacks are hooks into the lifecycle of an Active Record object that allows you to trigger logic
-  # before or after an alteration of the object state. This can be used to make sure that associated and 
+  # before or after an alteration of the object state. This can be used to make sure that associated and
   # dependent objects are deleted when destroy is called (by overwriting before_destroy) or to massage attributes
   # before they're validated (by overwriting before_validation). As an example of the callbacks initiated, consider
   # the Base#save call:
@@ -14,19 +14,19 @@ module ActiveRecord
   # * (-) validate
   # * (-) validate_on_create
   # * (4) after_validation
-  # * (5) after_validation_on_create 
+  # * (5) after_validation_on_create
   # * (6) before_save
   # * (7) before_create
   # * (-) create
   # * (8) after_create
   # * (9) after_save
-  # 
+  #
   # That's a total of nine callbacks, which gives you immense power to react and prepare for each state in the
   # Active Record lifecyle.
   #
   # Examples:
   #   class CreditCard < ActiveRecord::Base
-  #     # Strip everything but digits, so the user can specify "555 234 34" or 
+  #     # Strip everything but digits, so the user can specify "555 234 34" or
   #     # "5552-3434" or both will mean "55523434"
   #     def before_validation_on_create
   #       self.number = number.gsub(/[^0-9]/, "") if attribute_present?("number")
@@ -73,13 +73,13 @@ module ActiveRecord
   #     def before_destroy() destroy_readers end
   #   end
   #
-  # In that case, Reply#destroy would only run +destroy_readers+ and _not_ +destroy_author+. So use the callback macros when 
+  # In that case, Reply#destroy would only run +destroy_readers+ and _not_ +destroy_author+. So use the callback macros when
   # you want to ensure that a certain callback is called for the entire hierarchy and the regular overwriteable methods when you
   # want to leave it up to each descendent to decide whether they want to call +super+ and trigger the inherited callbacks.
   #
   # == Types of callbacks
   #
-  # There are four types of callbacks accepted by the callback macros: Method references (symbol), callback objects, 
+  # There are four types of callbacks accepted by the callback macros: Method references (symbol), callback objects,
   # inline methods (using a proc), and inline eval methods (using a string). Method references and callback objects are the
   # recommended approaches, inline methods using a proc is some times appropriate (such as for creating mix-ins), and inline
   # eval methods are deprecated.
@@ -115,7 +115,7 @@ module ActiveRecord
   #     def after_save(record)
   #       record.credit_card_number = decrypt(record.credit_card_number)
   #     end
-  #     
+  #
   #     alias_method :after_initialize, :after_save
   #
   #     private
@@ -142,7 +142,7 @@ module ActiveRecord
   # inline callbacks can be stacked just like the regular ones:
   #
   #   class Topic < ActiveRecord::Base
-  #     before_destroy 'self.class.delete_all "parent_id = #{id}"', 
+  #     before_destroy 'self.class.delete_all "parent_id = #{id}"',
   #                    'puts "Evaluated after parents are destroyed"'
   #   end
   #
@@ -153,8 +153,8 @@ module ActiveRecord
   # after_initialize can only be declared using an explicit implementation. So using the inheritable callback queue for after_find and
   # after_initialize won't work.
   module Callbacks
-    CALLBACKS = %w( 
-      after_find after_initialize before_save after_save before_create after_create before_update after_update before_validation 
+    CALLBACKS = %w(
+      after_find after_initialize before_save after_save before_create after_create before_update after_update before_validation
       after_validation before_validation_on_create after_validation_on_create before_validation_on_update
       after_validation_on_update before_destroy after_destroy
     )
@@ -210,10 +210,11 @@ module ActiveRecord
     # def after_initialize() end
     def initialize_with_callbacks(attributes = nil) #:nodoc:
       initialize_without_callbacks(attributes)
-      yield self if block_given?
+      result = yield self if block_given?
       after_initialize if respond_to_without_attributes?(:after_initialize)
+      result
     end
-    
+
     # Is called _before_ Base.save (regardless of whether it's a create or update save).
     def before_save() end
 
@@ -221,8 +222,9 @@ module ActiveRecord
     def after_save()  end
     def create_or_update_with_callbacks #:nodoc:
       callback(:before_save)
-      create_or_update_without_callbacks
+      result = create_or_update_without_callbacks
       callback(:after_save)
+      result
     end
 
     # Is called _before_ Base.save on new objects that haven't been saved yet (no record exists).
@@ -232,8 +234,9 @@ module ActiveRecord
     def after_create() end
     def create_with_callbacks #:nodoc:
       callback(:before_create)
-      create_without_callbacks
+      result = create_without_callbacks
       callback(:after_create)
+      result
     end
 
     # Is called _before_ Base.save on existing objects that has a record.
@@ -244,8 +247,9 @@ module ActiveRecord
 
     def update_with_callbacks #:nodoc:
       callback(:before_update)
-      update_without_callbacks
+      result = update_without_callbacks
       callback(:after_update)
+      result
     end
 
     # Is called _before_ Validations.validate (which is part of the Base.save call).
@@ -262,11 +266,11 @@ module ActiveRecord
     # that haven't been saved yet (no record exists).
     def after_validation_on_create()  end
 
-    # Is called _before_ Validations.validate (which is part of the Base.save call) on 
+    # Is called _before_ Validations.validate (which is part of the Base.save call) on
     # existing objects that has a record.
     def before_validation_on_update() end
 
-    # Is called _after_ Validations.validate (which is part of the Base.save call) on 
+    # Is called _after_ Validations.validate (which is part of the Base.save call) on
     # existing objects that has a record.
     def after_validation_on_update()  end
 
@@ -278,7 +282,7 @@ module ActiveRecord
 
       callback(:after_validation)
       if new_record? then callback(:after_validation_on_create) else callback(:after_validation_on_update) end
-      
+
       return result
     end
 
@@ -289,8 +293,9 @@ module ActiveRecord
     def after_destroy()  end
     def destroy_with_callbacks #:nodoc:
       callback(:before_destroy)
-      destroy_without_callbacks
+      result = destroy_without_callbacks
       callback(:after_destroy)
+      result
     end
 
     def callback(callback_method) #:nodoc:
@@ -302,7 +307,7 @@ module ActiveRecord
     def run_callbacks(callback_method)
       filters = self.class.read_inheritable_attribute(callback_method.to_s)
       if filters.nil? then return end
-      filters.each do |filter| 
+      filters.each do |filter|
         if Symbol === filter
           self.send(filter)
         elsif String === filter
@@ -313,22 +318,22 @@ module ActiveRecord
           filter.send(callback_method, self)
         else
           raise(
-            ActiveRecordError, 
+            ActiveRecordError,
             "Filters need to be either a symbol, string (to be eval'ed), proc/method, or " +
             "class implementing a static filter method"
           )
         end
       end
     end
-    
+
     def filter_block?(filter)
       filter.respond_to?("call") && (filter.arity == 1 || filter.arity == -1)
     end
-    
+
     def filter_class?(filter, callback_method)
       filter.respond_to?(callback_method)
     end
-    
+
     def notify(callback_method) #:nodoc:
       self.class.changed
       self.class.notify_observers(callback_method, self)
