@@ -35,7 +35,6 @@ module ActiveRecord
     # The project class now has the following methods (and more) to ease the traversal and manipulation of its relationships:
     # * <tt>Project#portfolio, Project#portfolio=(portfolio), Project#portfolio.nil?</tt>
     # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
-    #   <tt>Project#project_manager.build, Project#project_manager.create</tt>
     # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone),</tt>
     #   <tt>Project#milestones.delete(milestone), Project#milestones.find(milestone_id), Project#milestones.find_all(conditions),</tt>
     #   <tt>Project#milestones.build, Project#milestones.create</tt>
@@ -249,9 +248,11 @@ module ActiveRecord
       #   and saves the associate object.
       # * <tt>association.nil?</tt> - returns true if there is no associated object.
       # * <tt>association.build(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
-      #   with +attributes+ and linked to this object through a foreign key but has not yet been saved.
+      #   with +attributes+ and linked to this object through a foreign key but has not yet been saved. Note: This ONLY works if
+      #   an association already exists. It will NOT work if the association is nil.
       # * <tt>association.create(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key and that has already been saved (if it passed the validation).
+      #   Note: This ONLY works if an association already exists. It will NOT work if the association is nil.
       #
       # Example: An Account class declares <tt>has_one :beneficiary</tt>, which will add:
       # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.find_first "account_id = #{id}"</tt>)
