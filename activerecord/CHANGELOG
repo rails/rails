@@ -1,5 +1,23 @@
 *SVN*
 
+* Added a OCI8-based Oracle adapter that has been verified to work with Oracle 8 and 9 #629 [Graham Jenkins]. Usage notes:
+
+    1.  Key generation uses a sequence "rails_sequence" for all tables. (I couldn't find a simple
+        and safe way of passing table-specific sequence information to the adapter.)
+    2.  Oracle uses DATE or TIMESTAMP datatypes for both dates and times. Consequently I have had to
+        resort to some hacks to get data converted to Date or Time in Ruby.
+        If the column_name ends in _at (like created_at, updated_at) it's created as a Ruby Time. Else if the
+        hours/minutes/seconds are 0, I make it a Ruby Date. Else it's a Ruby Time.
+        This is nasty - but if you use Duck Typing you'll probably not care very much.
+        In 9i it's tempting to map DATE to Date and TIMESTAMP to Time but I don't think that is
+        valid - too many databases use DATE for both.
+        Timezones and sub-second precision on timestamps are not supported.
+    3.  Default values that are functions (such as "SYSDATE") are not supported. This is a
+        restriction of the way active record supports default values.
+    4.  Referential integrity constraints are not fully supported. Under at least
+        some circumstances, active record appears to delete parent and child records out of
+        sequence and out of transaction scope. (Or this may just be a problem of test setup.)
+
 * Added TimeZone as the first of a number of value objects that Active Record will start shipping to provide incentatives to use rich value objects using composed_of #688 [Jamis Buck]
 
 * Added option :schema_order to the PostgreSQL adapter to support the use of multiple schemas per database #697 [YuriSchimke]
@@ -52,21 +70,6 @@
       table_name "XYZ_PROJECT"
       inheritance_column { original_inheritance_column + "_id" }
     end
-
-* Added an Oracle adapter that works with the Oracle bindings by Yoshida (http://raa.ruby-lang.org/project/oracle/) #564 [Maik Schmidt]
-  
-  A number of caveats:
-
-    1. You have to create a sequence for every table that need an auto-generated primary key. 
-       The sequence name is built by appending "_id" to the according table_name, 
-       i.e. if you have a table called "employees", you have to create a sequence called "employees_id". 
-    
-    2. The data type TIME is not supported, because Oracle does not support it. 
-    
-    3. Binary data (BLOBs etc.) are currently not supported. Will be fixed soon. 
-    
-    4. LIMIT clauses with OFFSET are not supported, because I could not find a way to simulate this behaviour using ROWNUM and "SELECT *".
-
 
 * Fixed Base#clone for use with PostgreSQL #565 [hanson@surgery.wisc.edu]
 

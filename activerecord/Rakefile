@@ -69,6 +69,12 @@ Rake::TestTask.new("test_oracle") { |t|
   t.verbose = true
 }
 
+Rake::TestTask.new("test_oci") { |t|
+  t.libs << "test" << "test/connections/native_oci"
+  t.pattern = 'test/*_test.rb'
+  t.verbose = true
+}
+
 # Generate the RDoc documentation
 
 Rake::RDocTask.new { |rdoc|
