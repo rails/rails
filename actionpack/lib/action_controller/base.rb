@@ -1,5 +1,6 @@
 require 'action_controller/request'
 require 'action_controller/response'
+require 'action_controller/routing'
 require 'action_controller/url_rewriter'
 require 'action_controller/support/class_attribute_accessors'
 require 'action_controller/support/class_inheritable_attributes'
@@ -12,6 +13,15 @@ module ActionController #:nodoc:
   class SessionRestoreError < ActionControllerError #:nodoc:
   end
   class MissingTemplate < ActionControllerError #:nodoc:
+  end
+  class RoutingError < ActionControllerError
+    attr_reader :failures
+    def initialize(message, failures=[])
+      super(message)
+      @failures = failures
+    end
+  end
+  class UnknownController < ActionControllerError #:nodoc:
   end
   class UnknownAction < ActionControllerError #:nodoc:
   end
@@ -205,6 +215,12 @@ module ActionController #:nodoc:
     # should instead be implemented in the controller to determine when debugging screens should be shown.
     @@consider_all_requests_local = true
     cattr_accessor :consider_all_requests_local
+    
+    # Enable or disable the collection of failure information for RoutingErrors.
+    # This information can be extremely useful when tweaking custom routes, but is
+    # pointless once routes have been tested and verified.
+    @@debug_routes = true
+    cattr_accessor :debug_routes
 
     # Template root determines the base from which template references will be made. So a call to render("test/template")
     # will be converted to "#{template_root}/test/template.rhtml".
@@ -260,6 +276,14 @@ module ActionController #:nodoc:
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "neat".
       def controller_name
         Inflector.underscore(controller_class_name.sub(/Controller/, ""))
+      end
+      
+      # Convert the class name from something like "OneModule::TwoModule::NeatController" to "one_module/two_module/neat".
+      def controller_path
+        components = self.name.to_s.split('::').collect { |name| name.underscore }
+        components[-1] = $1 if /^(.*)_controller$/ =~ components[-1]
+        components.shift if components.first == 'controllers' # Transitional conditional to accomodate root Controllers module
+        components.join('/')
       end
     end
 
@@ -335,10 +359,6 @@ module ActionController #:nodoc:
           when Symbol then send(options, *parameters_for_method_reference)
           when Hash   then @url.rewrite(rewrite_options(options))
         end
-      end
-
-      def module_name
-        @params["module"]
       end
 
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "NeatController".
@@ -594,7 +614,7 @@ module ActionController #:nodoc:
       end
       
       def initialize_current_url
-        @url = UrlRewriter.new(@request, controller_name, action_name)
+        @url = UrlRewriter.new(@request, @params.clone())
       end
 
       def log_processing
@@ -691,7 +711,7 @@ module ActionController #:nodoc:
       end
 
       def default_template_name(default_action_name = action_name)
-        module_name ? "#{module_name}/#{controller_name}/#{default_action_name}" : "#{controller_name}/#{default_action_name}"
+        "#{self.class.controller_path}/#{default_action_name}"
       end
   end
 end

@@ -132,6 +132,7 @@ end
 
 task :copy_configs do
   cp "configs/database.yml", "#{PKG_DESTINATION}/config/database.yml"
+  cp "configs/routes.rb", "#{PKG_DESTINATION}/config/routes.rb"
 
   cp "configs/apache.conf", "#{PKG_DESTINATION}/public/.htaccess"
 

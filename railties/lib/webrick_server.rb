@@ -27,14 +27,10 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
 
   def do_GET(req, res)
     begin
-      unless handle_index(req, res)
+      unless handle_file(req, res)
+        REQUEST_MUTEX.lock
         unless handle_dispatch(req, res)
-          unless handle_file(req, res)
-            REQUEST_MUTEX.lock
-            unless handle_mapped(req, res)
-              raise WEBrick::HTTPStatus::NotFound, "`#{req.path}' not found."
-            end
-          end
+          raise WEBrick::HTTPStatus::NotFound, "`#{req.path}' not found."
         end
       end
     ensure
@@ -43,20 +39,6 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   end
 
   alias :do_POST :do_GET
-
-  def handle_index(req, res)
-    if req.request_uri.path == "/"
-      if @server_options[:index_controller]
-        res.set_redirect WEBrick::HTTPStatus::MovedPermanently, "/#{@server_options[:index_controller]}/"
-      else
-        res.set_redirect WEBrick::HTTPStatus::MovedPermanently, "/_doc/"
-      end
-
-      return true
-    else
-      return false
-    end
-  end
 
   def handle_file(req, res)
     begin
@@ -70,22 +52,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     end
   end
 
-  def handle_mapped(req, res)
-    if mappings = DispatchServlet.parse_uri(req.request_uri.path)
-      query = mappings.collect { |pair| "#{pair.first}=#{pair.last}" }.join("&")
-      query << "&#{req.request_uri.query}" if req.request_uri.query
-      origin = req.request_uri.path + "?" + query
-      req.request_uri.path = "/dispatch.rb"
-      req.request_uri.query = query
-      handle_dispatch(req, res, origin)
-    else
-      return false
-    end
-  end
-
   def handle_dispatch(req, res, origin = nil)
-    return false unless /^\/dispatch\.(?:cgi|rb|fcgi)$/.match(req.request_uri.path)
-
     env = req.meta_vars.clone
     env["QUERY_STRING"] = req.request_uri.query
     env["REQUEST_URI"] = origin if origin
@@ -119,36 +86,5 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   rescue => err
     p err, err.backtrace
     return false
-  end
-  
-  def self.parse_uri(path)
-    component, id = /([-_a-zA-Z0-9]+)/, /([0-9]+)/
-
-    case path.sub(%r{^/(?:fcgi|mruby|cgi)/}, "/")
-      when %r{^/#{component}/?$} then
-        { :controller => $1, :action => "index" }
-      when %r{^/#{component}/#{component}$} then
-        { :controller => $1, :action => $2 }
-      when %r{^/#{component}/#{component}/#{id}$} then
-        { :controller => $1, :action => $2, :id => $3 }
-
-      when %r{^/#{component}/#{component}/$} then
-        { :module => $1, :controller => $2, :action => "index" }
-      when %r{^/#{component}/#{component}/#{component}$} then
-        if DispatchServlet.modules(component).include?($1)
-          { :module => $1, :controller => $2, :action => $3 }
-        else
-          { :controller => $1, :action => $2, :id => $3 }
-        end
-      when %r{^/#{component}/#{component}/#{component}/#{id}$} then
-        { :module => $1, :controller => $2, :action => $3, :id => $4 }
-      else
-        false
-    end
-  end  
-
-  def self.modules(module_pattern = '[^.]+')
-    path = RAILS_ROOT + '/app/controllers'
-    Dir.entries(path).grep(/^#{module_pattern}$/).find_all {|e| File.directory?("#{path}/#{e}")}
   end
 end

@@ -1,20 +1,30 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
+$:.unshift(File.dirname(__FILE__) + '/../fixtures/helpers')
+
+class TestController < ActionController::Base
+  attr_accessor :delegate_attr
+  def delegate_method() end
+  def rescue_action(e) raise end
+end
+
+module Fun
+  class GamesController < ActionController::Base
+    def render_hello_world
+      render_template "hello: <%= stratego %>"
+    end
+
+    def rescue_action(e) raise end
+  end
+end
+
+module LocalAbcHelper
+  def a() end
+  def b() end
+  def c() end
+end
 
 class HelperTest < Test::Unit::TestCase
   HELPER_PATHS = %w(/../fixtures/helpers)
-
-  class TestController < ActionController::Base
-    attr_accessor :delegate_attr
-    def delegate_method() end
-    def rescue_action(e) raise end
-  end
-
-  module LocalAbcHelper
-    def a() end
-    def b() end
-    def c() end
-  end
-
 
   def setup
     # Increment symbol counter.
@@ -102,6 +112,13 @@ class HelperTest < Test::Unit::TestCase
     assert template_methods.include?('delegate_attr=')
   end
 
+  def test_helper_for_nested_controller
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @request.action = "render_hello_world"
+    
+    assert_equal "hello: Iz guuut!", Fun::GamesController.process(@request, @response).body
+  end
 
   private
     def helper_methods;   TestHelper.instance_methods      end

@@ -149,7 +149,7 @@ module ActionController
           
           private
             def render#{suffix}_scaffold(action = caller_method_name(caller))
-              if template_exists?("\#{controller_name}/\#{action}")
+              if template_exists?("\#{self.class.controller_path}/\#{action}")
                 render_action(action)
               else
                 @scaffold_class = #{class_name}

@@ -5,9 +5,6 @@ module Rails::Generator::Scripts
     mandatory_options :command => :update
 
     protected
-      def add_options!(opt)
-      end
-
       def banner
         "Usage: #{$0} [options] scaffold"
       end

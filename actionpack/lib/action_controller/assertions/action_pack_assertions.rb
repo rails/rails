@@ -141,7 +141,7 @@ module Test #:nodoc:
           end
         end
       end
-
+      
       # ensure our redirection url is an exact match
       def assert_redirect_url(url=nil, message=nil)
         assert_redirect(message)
@@ -156,6 +156,36 @@ module Test #:nodoc:
         response = acquire_assertion_target
         msg = build_message(message, "<?> was not found in the location: <?>", pattern, response.redirect_url)
         assert_block(msg) { response.redirect_url_match?(pattern) }
+      end
+
+      # -- routing assertions --------------------------------------------------
+
+      # Asserts that the routing of the given path is handled correctly and that the parsed options match.
+      # Also verifies that the provided options can be used to generate the provided path.
+      def assert_routing(path, options, defaults={}, extras={}, message=nil)
+        defaults[:controller] ||= options[:controller] # Assume given controller,
+        request = ActionController::TestRequest.new({}, {}, nil)
+        request.path_parameters = defaults.clone
+        
+        ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? # Load routes.rb if it hasn't been loaded.
+        
+        generated_path, found_extras = ActionController::Routing::Routes.generate(options, request)
+        generated_path = generated_path.join('/')
+        msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
+        assert_block(msg) { found_extras == extras }
+        
+        msg = build_message(message, "The generated path <?> did not match <?>", generated_path, path)
+        assert_block(msg) { path == generated_path }
+        
+        request = ActionController::TestRequest.new({}, {}, nil)
+        request.path = path
+        ActionController::Routing::Routes.recognize!(request)
+        
+        expected_options = options.clone
+        extras.each {|k,v| expected_options.delete k}
+        
+        msg = build_message(message, "The recognized options <?> did not match <?>", request.path_parameters, expected_options)
+        assert_block(msg) { request.path_parameters == expected_options }
       end
 
       # -- template assertions ------------------------------------------------

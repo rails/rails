@@ -46,8 +46,16 @@ module ActionController #:nodoc:
       super()
     end
 
+    def query_string
+      return @cgi.query_string unless @cgi.query_string.nil? || @cgi.query_string.empty?
+      parts = env['REQUEST_URI'].split('?')
+      parts.shift
+      return parts.join('?')
+    end
+
     def query_parameters
-      @cgi.query_string ? CGIMethods.parse_query_parameters(@cgi.query_string) : {}
+      qs = self.query_string
+      qs.empty? ? {} : CGIMethods.parse_query_parameters(query_string)
     end
 
     def request_parameters

@@ -10,7 +10,7 @@
 <%% for <%= singular_name %> in @<%= plural_name %> %>
   <tr>
   <%% for column in <%= class_name %>.content_columns %>
-    <td><%%=h <%= singular_name %>[column.name] %></td>
+    <td><%%=h <%= singular_name %>.send(column.name) %></td>
   <%% end %>
     <td><%%= link_to 'Show', :action => 'show<%= suffix %>', :id => <%= singular_name %>.id %></td>
     <td><%%= link_to 'Edit', :action => 'edit<%= suffix %>', :id => <%= singular_name %>.id %></td>

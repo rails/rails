@@ -4,8 +4,11 @@ class ControllerGenerator < Rails::Generator::NamedBase
       # Check for class naming collisions.
       m.class_collisions "#{class_name}Controller", "#{class_name}ControllerTest", "#{class_name}Helper"
 
-      # Views directory even if there are no actions.
+      # Controller, helper, views, and test directories.
+      m.directory File.join('app/controllers', class_path)
+      m.directory File.join('app/helpers', class_path)
       m.directory File.join('app/views', class_path, file_name)
+      m.directory File.join('test/functional', class_path)
 
       # Controller class, functional test, and helper class.
       m.template 'controller.rb',
