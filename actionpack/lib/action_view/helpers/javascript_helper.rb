@@ -4,21 +4,6 @@ module ActionView
   module Helpers
     # You must call <%= define_javascript_functions %> in your application before using these helpers.
     module JavascriptHelper
-      # Returns a link that'll toggle the visibility of the DOM objects which ids are mentioned in +tags+. If they're visible, we hide them,
-      # and vice versa. This is particularly useful for hiding and showing input and edit forms on in-page elements. 
-      #
-      # Examples:
-      #   link_to_toggle_display "Toggle controls", "control_box"
-      #   link_to_toggle_display "Add note", %w( add_link add_form )
-      def link_to_toggle_display(name, tags, html_options = {})
-        html_options.symbolize_keys!
-        toggle_functions = [ tags ].flatten.collect { |tag| "toggle_display_by_id('#{tag}'); " }.join
-        content_tag(
-          "a", name, 
-          html_options.merge(:href => "#", :onclick => "#{toggle_functions}#{html_options[:onclick]}; return false;")
-        )
-      end
-  
       # Returns a link that'll trigger a javascript +function+ using the onclick handler and return false after the fact.
       #
       # Examples:
