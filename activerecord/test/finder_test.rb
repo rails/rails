@@ -178,6 +178,14 @@ class FinderTest < Test::Unit::TestCase
     assert_nil Topic.find_by_title_and_author_name("The First Topic", "Mary")
   end
 
+  def test_find_all_by_one_attribute
+    topics = Topic.find_all_by_content("Have a nice day")
+    assert_equal 2, topics.size
+    assert topics.include?(@topics["first"].find)
+
+    assert_equal [], Topic.find_all_by_title("The First Topic!!")
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)

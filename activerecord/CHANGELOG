@@ -10,6 +10,10 @@
   <tt>Person.find_first(["user_name = ? AND password = ?", user_name, password])</tt>, you just do 
   <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
 
+  While primarily a construct for easier find_firsts, it can also be used as a construct for find_all by using calls like 
+  <tt>Payment.find_all_by_amount(50)</tt> that is turned into <tt>Payment.find_all(["amount = ?", 50])</tt>. This is something not as equally useful,
+  though, as it's not possible to specify the order in which the objects are returned.
+
 * Added that Base#find takes an optional options hash, including :conditions. Base#find_on_conditions deprecated in favor of #find with :conditions #407 [bitsweat]
 
 * Added a db2 adapter that only depends on the Ruby/DB2 bindings (http://raa.ruby-lang.org/project/ruby-db2/) #386 [Maik Schmidt]

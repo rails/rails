@@ -108,6 +108,10 @@ module ActiveRecord #:nodoc:
   # <tt>Person.find_first(["user_name = ? AND password = ?", user_name, password])</tt>, you just do 
   # <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
   #
+  # While primarily a construct for easier find_firsts, it can also be used as a construct for find_all by using calls like 
+  # <tt>Payment.find_all_by_amount(50)</tt> that is turned into <tt>Payment.find_all(["amount = ?", 50])</tt>. This is something not as equally useful,
+  # though, as it's not possible to specify the order in which the objects are returned.
+  #
   # == Saving arrays, hashes, and other non-mappeable objects in text columns
   # 
   # Active Record can serialize any object in text columns using YAML. To do so, you must specify this with a call to the class method +serialize+. 
@@ -648,15 +652,16 @@ module ActiveRecord #:nodoc:
         end
 
         # Enables dynamic finders like find_by_user_name(user_name) and find_by_user_name_and_password(user_name, password) that are turned into 
-        # find_first(["user_name = ?", user_name]) and find_first(["user_name = ? AND password = ?", user_name, password]) respectively.
+        # find_first(["user_name = ?", user_name]) and find_first(["user_name = ? AND password = ?", user_name, password]) respectively. Also works
+        # for find_all, but using find_all_by_amount(50) that are turned into find_all(["amount = ?", 50]).
         def method_missing(method_id, *arguments)
           method_name = method_id.id2name
 
-          if method_name =~ /find_by_([_a-z]+)/
-            attributes = $1.split("_and_")
+          if method_name =~ /find_(all_by|by)_([_a-z]+)/
+            finder, attributes = ($1 == "all_by" ? :find_all : :find_first), $2.split("_and_")
             attributes.each { |attr_name| super unless column_methods_hash[attr_name.intern] }
             conditions = attributes.collect { |attr_name| "#{attr_name} = ? "}.join(" AND ")
-            find_first([conditions, *arguments])
+            send(finder, [conditions, *arguments])
           else
             super
           end
