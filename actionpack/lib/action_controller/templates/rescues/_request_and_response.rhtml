@@ -1,4 +1,15 @@
-<% if defined?(Breakpoint) then %><a href="?BP-RETRY=1">Retry with Breakpoint</a><% end %>
+<% if defined?(Breakpoint) %>
+  <br /><br />
+  <%= form_tag({}, "method" => @request.method) %>
+    <input type="hidden" name="BP-RETRY" value="1" />
+
+    <% for key, value in @request.params %>
+      <input type="hidden" name="<%= key %>" value="<%= value %>" />
+    <% end %>
+
+    <input type="submit" value="Retry with Breakpoint" />
+  </form>
+<% end %>
 
 <%
   request_parameters_without_action = @request.parameters.clone

@@ -1,3 +1,8 @@
+*SVN*
+
+* Added POST support for the breakpoint retries, so form processing that raises an exception can be retried with the original request [Florian Gross]
+
+
 *1.0.1*
 
 * Fixed a bug that would cause an ApplicationController to require itself three times and hence cause filters to be run three times [evl]
