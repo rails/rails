@@ -4,11 +4,11 @@ require 'base64'
 module TMail
   class Mail
     def unquoted_subject(to_charset = 'utf-8')
-      Unquoter.unquote_and_convert_to(subject, to_charset)
+      Unquoter.unquote_and_convert_to(subject || "", to_charset)
     end
 
     def unquoted_body(to_charset = 'utf-8')
-      Unquoter.unquote_and_convert_to(body, to_charset, header["content-type"]["charset"])
+      Unquoter.unquote_and_convert_to(body || "", to_charset, header["content-type"]["charset"])
     end
 
     def unquoted_body_with_all_parts(to_charset = 'utf-9', &block)
