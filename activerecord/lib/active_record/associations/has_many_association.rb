@@ -33,7 +33,9 @@ module ActiveRecord
 
       # Count the number of associated records. All arguments are optional.
       def count(runtime_conditions = nil)
-        if @options[:finder_sql]
+        if @options[:counter_sql]
+          @association_class.count_by_sql(@counter_sql)
+        elsif @options[:finder_sql]
           @association_class.count_by_sql(@finder_sql)
         else
           sql = @finder_sql
