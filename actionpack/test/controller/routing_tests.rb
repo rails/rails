@@ -192,6 +192,53 @@ class RouteTests < Test::Unit::TestCase
     verify_generate('clients', {}, {:controller => 'content'}, @defaults)
   end
 
+  def test_regexp_requirements
+    const_options = {:controller => 'content', :action => 'by_date'}
+    route ':year/:month/:day', const_options.merge(:year => /\d{4}/, :month => /\d{1,2}/, :day => /\d{1,2}/)
+    verify_recognize('2004/01/02', const_options.merge(:year => '2004', :month => '01', :day => '02'))
+    verify_recognize('2004/1/2', const_options.merge(:year => '2004', :month => '1', :day => '2'))
+    assert_equal nil, @route.recognize(%w{200 10 10})[0]
+    assert_equal nil, @route.recognize(%w{content show 10})[0]
+    
+    verify_generate('2004/01/02', {}, const_options.merge(:year => '2004', :month => '01', :day => '02'), @defaults)
+    verify_generate('2004/1/2', {}, const_options.merge(:year => '2004', :month => '1', :day => '2'), @defaults)
+    assert_equal nil, @route.generate(const_options.merge(:year => '12004', :month => '01', :day => '02'), @defaults)[0]
+  end
+  
+  def test_regexp_requirement_not_in_path
+    assert_raises(ArgumentError) {route 'constant/path', :controller => 'content', :action => 'by_date', :something => /\d+/}
+  end
+  
+  def test_special_hash_names
+  	route ':year/:name', :requirements => {:year => /\d{4}/, :controller => 'content'}, :defaults => {:name => 'ulysses'}, :action => 'show_bio_year'
+  	verify_generate('1984', {}, {:controller => 'content', :action => 'show_bio_year', :year => 1984}, @defaults)
+  	verify_generate('1984', {}, {:controller => 'content', :action => 'show_bio_year', :year => '1984'}, @defaults)
+  	verify_generate('1984/odessys', {}, {:controller => 'content', :action => 'show_bio_year', :year => 1984, :name => 'odessys'}, @defaults)
+  	verify_generate('1984/odessys', {}, {:controller => 'content', :action => 'show_bio_year', :year => '1984', :name => 'odessys'}, @defaults)
+  
+    verify_recognize('1984/odessys', {:controller => 'content', :action => 'show_bio_year', :year => '1984', :name => 'odessys'})
+    verify_recognize('1984', {:controller => 'content', :action => 'show_bio_year', :year => '1984', :name => 'ulysses'})
+  end
+  
+  def test_defaults_and_restrictions_for_items_not_in_path
+    assert_raises(ArgumentError) {route ':year/:name', :requirements => {:year => /\d{4}/}, :defaults => {:name => 'ulysses', :controller => 'content'}, :action => 'show_bio_year'}
+    assert_raises(ArgumentError) {route ':year/:name', :requirements => {:year => /\d{4}/, :imagine => /./}, :defaults => {:name => 'ulysses'}, :controller => 'content', :action => 'show_bio_year'}
+  end
+  
+  def test_optionals_with_regexp
+    route ':year/:month/:day', :requirements => {:year => /\d{4}/, :month => /\d{1,2}/, :day => /\d{1,2}/},
+                               :defaults => {:month => nil, :day => nil},
+                               :controller => 'content', :action => 'post_by_day'
+    verify_recognize('2005/06/12', {:controller => 'content', :action => 'post_by_day', :year => '2005', :month => '06', :day => '12'})
+    verify_recognize('2005/06', {:controller => 'content', :action => 'post_by_day', :year => '2005', :month => '06'})
+    verify_recognize('2005', {:controller => 'content', :action => 'post_by_day', :year => '2005'})
+    
+    verify_generate('2005/06/12', {}, {:controller => 'content', :action => 'post_by_day', :year => '2005', :month => '06', :day => '12'}, @defaults)
+    verify_generate('2005/06', {}, {:controller => 'content', :action => 'post_by_day', :year => '2005', :month => '06'}, @defaults)
+    verify_generate('2005', {}, {:controller => 'content', :action => 'post_by_day', :year => '2005'}, @defaults)
+  end
+  
+
   def test_basecamp2
     route 'clients/:client_name/:project_name/', :controller => 'content', :action => 'start_page_redirect'
     verify_recognize('clients/projects/2', {:controller => 'content', :client_name => 'projects', :project_name => '2', :action => 'start_page_redirect'})
