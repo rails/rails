@@ -2,7 +2,7 @@ begin
   require 'simplecc'
 rescue LoadError
   class Continuation #:nodoc:
-    def create(*args, &block)
+    def self.create(*args, &block)
       cc = nil; result = callcc {|c| cc = c; block.call(cc) if block and args.empty?}
       result ||= args
       return *[cc, *result]
@@ -36,7 +36,7 @@ class Binding #:nodoc:
   # If you don't do this an Exception will be raised. Because of
   # the way that Binding.of_caller is implemented it has to be
   # done this way.
-  def of_caller(&block)
+  def self.of_caller(&block)
     old_critical = Thread.critical
     Thread.critical = true
     count = 0
