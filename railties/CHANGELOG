@@ -1,4 +1,4 @@
-*SVN*
+*0.11.0* (22th March, 2005)
 
 * Removed SCRIPT_NAME from the WEBrick environment to prevent conflicts with PATH_INFO #896 [Nicholas Seckar]
 
@@ -28,6 +28,8 @@
     2. Add a '-x' flag to pg_dump which stops it dumping privileges #807 [rasputnik]
     3. Quote the user name and use template0 when dumping so the functions doesn't get dumped too #855 [pburleson]
     4. Use the port if available #875 [madrobby]
+
+* Upgraded to Active Record 1.9.0, Action Pack 1.6.0, Action Mailer 0.8.0, Action Web Service 0.6.1, Active Support 1.0.2
 
 
 *0.10.1* (7th March, 2005)

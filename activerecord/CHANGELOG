@@ -1,4 +1,4 @@
-*SVN*
+*1.9.0* (22th March, 2005)
 
 * Added adapter independent limit clause as a two-element array with the first being the limit, the second being the offset #795 [Sam Stephenson]. Example:
 

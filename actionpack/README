@@ -168,6 +168,15 @@ A short rundown of the major features:
   {Learn more}[link:classes/ActionController/Base.html]
 
 
+* Javascript and Ajax integration.
+
+    link_to_function "Greeting", "alert('Hello world!')"
+    link_to_remote "Delete this post", :update => "posts", 
+                   :url => { :action => "destroy", :id => post.id }
+  
+  {Learn more}[link:classes/ActionView/Helpers/JavascriptHelper.html]
+
+
 * Easy testing of both controller and template result through TestRequest/Response
 
     class LoginControllerTest < Test::Unit::TestCase

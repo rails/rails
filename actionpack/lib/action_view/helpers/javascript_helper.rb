@@ -11,6 +11,9 @@ module ActionView
     # the Javascript support functions in a <script> block) or reference the Javascript library using 
     # <%= javascript_include_tag "prototype" %> (which looks for the library in /javascripts/prototype.js). The latter is
     # recommended as the browser can then cache the library instead of fetching all the functions anew on every request.
+    #
+    # If you're the visual type, there's an Ajax movie[http://www.rubyonrails.com/media/video/rails-ajax.mov] demonstrating
+    # the use of form_remote_tag.
     module JavascriptHelper      
       unless const_defined? :CALLBACKS
         CALLBACKS = [:uninitialized, :loading, :loaded, :interactive, :complete]
