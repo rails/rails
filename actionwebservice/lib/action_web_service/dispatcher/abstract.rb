@@ -34,7 +34,12 @@ module ActionWebService # :nodoc:
       
         def web_service_direct_invoke(invocation)
           @method_params = invocation.method_ordered_params
-          return_value = self.__send__(invocation.api_method_name)
+          arity = method(invocation.api_method_name).arity rescue 0
+          if arity < 0 || arity > 0
+            return_value = self.__send__(invocation.api_method_name, *@method_params)
+          else
+            return_value = self.__send__(invocation.api_method_name)
+          end
           if invocation.api.has_api_method?(invocation.api_method_name)
             returns = invocation.returns ? invocation.returns[0] : nil
           else

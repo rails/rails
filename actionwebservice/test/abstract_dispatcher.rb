@@ -40,6 +40,7 @@ module DispatcherTest
 
   class DirectAPI < ActionWebService::API::Base
     api_method :add, :expects => [{:a=>:int}, {:b=>:int}], :returns => [:int]
+    api_method :add2, :expects => [{:a=>:int}, {:b=>:int}], :returns => [:int]
     api_method :before_filtered
     api_method :after_filtered, :returns => [[:int]]
     api_method :struct_return, :returns => [[Node]]
@@ -141,6 +142,7 @@ module DispatcherTest
     after_filter :alwaysok, :only => [:after_filtered]
 
     attr :added
+    attr :added2
     attr :before_filter_called
     attr :before_filter_target_called
     attr :after_filter_called
@@ -157,6 +159,10 @@ module DispatcherTest
   
     def add
       @added = @params['a'] + @params['b']
+    end
+
+    def add2(a, b)
+      @added2 = a + b
     end
 
     def before_filtered
@@ -212,6 +218,8 @@ module DispatcherCommonTests
   def test_direct_dispatching
     assert_equal(70, do_method_call(@direct_controller, 'Add', 20, 50))
     assert_equal(70, @direct_controller.added)
+    assert_equal(50, do_method_call(@direct_controller, 'Add2', 25, 25))
+    assert_equal(50, @direct_controller.added2)
     assert(@direct_controller.void_called == false)
     case @encoder
     when WS::Encoding::SoapRpcEncoding

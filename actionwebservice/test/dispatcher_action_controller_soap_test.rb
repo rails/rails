@@ -2,6 +2,18 @@ $:.unshift(File.dirname(__FILE__) + '/apis')
 require File.dirname(__FILE__) + '/abstract_dispatcher'
 require 'wsdl/parser'
 
+class ActionController::Base
+  class << self
+    alias :inherited_without_name_error :inherited
+    def inherited(child)
+      begin
+        inherited_without_name_error(child)
+      rescue NameError => e
+      end
+    end
+  end
+end
+
 class AutoLoadController < ActionController::Base; end
 class FailingAutoLoadController < ActionController::Base; end
 class BrokenAutoLoadController < ActionController::Base; end
@@ -39,7 +51,7 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
     assert(!AutoLoadController.web_service_api.nil?)
     assert(AutoLoadController.web_service_api.has_public_api_method?('Void'))
     assert(FailingAutoLoadController.web_service_api.nil?)
-    assert_raises(LoadError, NameError) do
+    assert_raises(MissingSourceFile) do
       FailingAutoLoadController.require_web_service_api :blah
     end
     assert_raises(ArgumentError) do
