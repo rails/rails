@@ -66,7 +66,7 @@ module ActionController #:nodoc:
       def perform_action_with_rescue #:nodoc:
         begin
           perform_action_without_rescue
-        rescue Exception => exception
+        rescue => exception
           rescue_action(exception)
         end
       end
