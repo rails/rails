@@ -10,6 +10,9 @@
 
 * Include backtraces in 500 error responses for failed request parsing, and remove "rescue nil" statements obscuring real errors for XML-RPC
 
+* Perform casting of struct members even if the structure is already of the correct type, so that the type we specify for
+  the struct member is always the type of the value seen by the API implementation
+
 
 *0.6.2* (27th March, 2005)
 

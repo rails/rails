@@ -59,10 +59,8 @@ module Test # :nodoc:
 
         def decode_rpc_response
           public_method_name, return_value = protocol.decode_response(@response.body)
-          unless @return_exceptions
-            exception = is_exception?(return_value)
-            raise exception if exception
-          end
+          exception = is_exception?(return_value)
+          raise exception if exception
           return_value
         end
 
@@ -90,10 +88,10 @@ module Test # :nodoc:
 
         def is_exception?(obj)
           case protocol
-          when :soap
+          when :soap, ActionWebService::Protocol::Soap::SoapProtocol
             (obj.respond_to?(:detail) && obj.detail.respond_to?(:cause) && \
             obj.detail.cause.is_a?(Exception)) ? obj.detail.cause : nil
-          when :xmlrpc
+          when :xmlrpc, ActionWebService::Protocol::XmlRpc::XmlRpcProtocol
             obj.is_a?(XMLRPC::FaultException) ? obj : nil
           end
         end

@@ -44,11 +44,9 @@ class TC_Struct < Test::Unit::TestCase
   end
 
   def test_each_pair
-    members = {}
-    @struct.each_pair do |name, type|
-      members[name] = type
-      assert ActionWebService::BaseType === type
+    @struct.each_pair do |name, value|
+      assert_equal @struct.__send__(name), value
+      assert_equal @struct[name], value
     end
-    assert_equal members, Struct.members
   end
 end

@@ -40,7 +40,7 @@ module ActionWebService # :nodoc:
 
         def cast(value, signature_type) # :nodoc:
           return value if signature_type.nil? # signature.length != params.length
-          unless signature_type.array?
+          unless signature_type.array? || signature_type.structured?
             return value if canonical_type(value.class) == signature_type.type
           end
           if signature_type.array?
@@ -86,13 +86,20 @@ module ActionWebService # :nodoc:
         end
 
         def cast_to_structured_type(value, signature_type) # :nodoc:
-          obj = signature_type.type_class.new
+          obj = nil
+          obj = value if canonical_type(value.class) == canonical_type(signature_type.type)
+          obj ||= signature_type.type_class.new
           if value.respond_to?(:each_pair)
             klass = signature_type.type_class
             value.each_pair do |name, val|
               type = klass.respond_to?(:member_type) ? klass.member_type(name) : nil
               val = cast(val, type) if type
-              obj.send("#{name}=", val)
+              obj.__send__("#{name}=", val)
+            end
+          elsif value.respond_to?(:attributes)
+            signature_type.each_member do |name, type|
+              val = value.__send__(name)
+              obj.__send__("#{name}=", cast(val, type))
             end
           else
             raise CastingError, "Don't know how to cast #{value.class} to #{signature_type.type_class}"

@@ -24,7 +24,7 @@ module ActionWebService
     # it can contain initial values for the structure member.
     def initialize(values={})
       if values.is_a?(Hash)
-        values.map{|k,v| send('%s=' % k.to_s, v)}
+        values.map{|k,v| __send__('%s=' % k.to_s, v)}
       end
     end
 
@@ -36,7 +36,7 @@ module ActionWebService
     # Iterates through each member
     def each_pair(&block)
       self.class.members.each do |name, type|
-        yield name, type
+        yield name, self.__send__(name)
       end
     end
 
