@@ -22,32 +22,6 @@ module ActionView
         "<#{name}#{tag_options(options)}>#{content}</#{name}>"
       end
 
-      # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like 
-      # ActionController::Base#url_for. The method for the form defaults to POST.
-      #
-      # Options:
-      # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
-      def form_tag(url_for_options = {}, options = {}, *parameters_for_url)
-        html_options = { "method" => "post" }.merge(options)
-        
-        if html_options[:multipart]
-          html_options["enctype"] = "multipart/form-data"
-          html_options.delete(:multipart)
-        end
-        
-        html_options["action"] = url_for(url_for_options, *parameters_for_url)
-        
-        tag("form", html_options, true)
-      end
-      
-      alias_method :start_form_tag, :form_tag
-
-      # Outputs "</form>"
-      def end_form_tag
-        "</form>"
-      end
-
-
       private
         def tag_options(options)
           unless options.empty?
