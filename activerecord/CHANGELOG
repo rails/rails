@@ -1,5 +1,7 @@
 *SVN*
 
+* Added more informative exceptions in establish_connection #356 [bitsweat]
+
 * Fixed that options[:counter_sql] was overwritten with interpolated sql rather than original sql #355 [bitsweat]
 
 * Fixed that overriding an attribute's accessor would be disregarded by add_on_empty and add_on_boundary_breaking because they simply used 

@@ -86,14 +86,13 @@ module ActiveRecord
           if configuration = configurations[spec.to_s]
             establish_connection(configuration)
           else
-            raise AdapterNotSpecified
+            raise AdapterNotSpecified, "#{spec} database is not configured"
           end
         else
           spec = symbolize_strings_in_hash(spec)
-          unless spec.key?(:adapter) then raise AdapterNotSpecified end
-
+          unless spec.key?(:adapter) then raise AdapterNotSpecified, "database configuration does not specify adapter" end
           adapter_method = "#{spec[:adapter]}_connection"
-          unless respond_to?(adapter_method) then raise AdapterNotFound end
+          unless respond_to?(adapter_method) then raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter" end
           remove_connection
           establish_connection(ConnectionSpecification.new(spec, adapter_method))
       end
