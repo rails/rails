@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed that caching the root would result in .html not index.html
+
+
 *1.5.0* (24th February, 2005)
 
 * Added Routing as a replacement for mod_rewrite pretty urls [Nicholas Seckar]. Read more in ActionController::Base.url_for and on http://manuals.rubyonrails.com/read/book/9
