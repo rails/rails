@@ -113,7 +113,7 @@ class AppGenerator < Rails::Generator::Base
     test/fixtures
     test/functional
     test/mocks/development
-    test/mocks/testing
+    test/mocks/test
     test/unit
     vendor
   )

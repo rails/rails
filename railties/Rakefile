@@ -17,7 +17,7 @@ PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 BASE_DIRS   = %w( app config/environments components db doc log lib public script test vendor )
 APP_DIRS    = %w( apis models controllers helpers views views/layouts )
 PUBLIC_DIRS = %w( images javascripts stylesheets )
-TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/testing )
+TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/test )
 
 LOG_FILES    = %w( server.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html )
