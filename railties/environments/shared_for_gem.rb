@@ -59,8 +59,8 @@ end
 ActionController::Routing::Routes.reload
 
 Controllers = Dependencies::LoadingModule.root(
-  File.expand_path(File.join(RAILS_ROOT, 'app', 'controllers')),
-  File.expand_path(File.join(RAILS_ROOT, 'components'))
+  File.join(RAILS_ROOT, 'app', 'controllers'),
+  File.join(RAILS_ROOT, 'components')
 )
 
 # Include your app's configuration here:
