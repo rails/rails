@@ -45,21 +45,21 @@ module ActionWebService
         module_eval <<-END, __FILE__, __LINE__
           def #{action_name}
             if @request.method == :get
-              setup_#{action_name}_assigns
-              render_#{action_name}_scaffold 'methods'
+              setup_invocation_assigns
+              render_invocation_scaffold 'methods'
             end
           end
 
           def #{action_name}_method_params
             if @request.method == :get
-              setup_#{action_name}_assigns
-              render_#{action_name}_scaffold 'parameters'
+              setup_invocation_assigns
+              render_invocation_scaffold 'parameters'
             end
           end
 
           def #{action_name}_submit
             if @request.method == :post
-              setup_#{action_name}_assigns
+              setup_invocation_assigns
               protocol_name = @params['protocol'] ? @params['protocol'].to_sym : :soap
               case protocol_name
               when :soap
@@ -67,39 +67,30 @@ module ActionWebService
               when :xmlrpc
                 protocol = Protocol::XmlRpc::XmlRpcProtocol.new
               end
-              cgi = @request.respond_to?(:cgi) ? @request.cgi : nil
+              @invocation_cgi = @request.respond_to?(:cgi) ? @request.cgi : nil
               bm = Benchmark.measure do
                 protocol.register_api(@scaffold_service.api)
                 params = @params['method_params'] ? @params['method_params'].dup : nil
                 params = @scaffold_method.cast_expects(params)
                 @method_request_xml = protocol.encode_request(@scaffold_method.public_name, params, @scaffold_method.expects)
-                @request = protocol.encode_action_pack_request(@scaffold_service.name, @scaffold_method.public_name, @method_request_xml)
+                new_request = protocol.encode_action_pack_request(@scaffold_service.name, @scaffold_method.public_name, @method_request_xml)
+                new_request.parameters.update(@request.parameters)
+                @request = new_request
                 dispatch_web_service_request
                 @method_response_xml = @response.body
                 method_name, obj = protocol.decode_response(@method_response_xml)
-                if obj.respond_to?(:detail) && obj.detail.respond_to?(:cause) && obj.detail.cause.is_a?(Exception)
-                  raise obj.detail.cause
-                elsif obj.is_a?(XMLRPC::FaultException)
-                  raise obj
-                end
+                return if handle_invocation_exception(obj)
                 @method_return_value = @scaffold_method.cast_returns(obj)
               end
               @method_elapsed = bm.real
               add_instance_variables_to_assigns
-              template = @response.template
-              if cgi
-                @response = ::ActionController::CgiResponse.new(cgi)
-              else
-                @response = ::ActionController::TestResponse.new
-              end
-              @response.template = template
-              @performed_render = false
-              render_#{action_name}_scaffold 'result'
+              reset_invocation_response
+              render_invocation_scaffold 'result'
             end
           end
 
           private
-            def setup_#{action_name}_assigns
+            def setup_invocation_assigns
               @scaffold_class = self.class
               @scaffold_action_name = "#{action_name}"
               @scaffold_container = WebServiceModel::Container.new(self)
@@ -110,7 +101,7 @@ module ActionWebService
               add_instance_variables_to_assigns
             end
 
-            def render_#{action_name}_scaffold(action)
+            def render_invocation_scaffold(action)
               customized_template = "\#{self.class.controller_path}/#{action_name}/\#{action}"
               default_template = scaffold_path(action)
               @content_for_layout = template_exists?(customized_template) ? @template.render_file(customized_template) : @template.render_file(default_template, false)
@@ -119,6 +110,30 @@ module ActionWebService
 
             def scaffold_path(template_name)
               Pathname.new(File.dirname(__FILE__) + "/templates/scaffolds/" + template_name + ".rhtml").realpath.to_s
+            end
+
+            def reset_invocation_response
+              template = @response.template
+              if @invocation_cgi
+                @response = ::ActionController::CgiResponse.new(@invocation_cgi)
+              else
+                @response = ::ActionController::TestResponse.new
+              end
+              @response.template = template
+              @performed_render = false
+            end
+
+            def handle_invocation_exception(obj)
+              exception = nil
+              if obj.respond_to?(:detail) && obj.detail.respond_to?(:cause) && obj.detail.cause.is_a?(Exception)
+                exception = obj.detail.cause
+              elsif obj.is_a?(XMLRPC::FaultException)
+                exception = obj
+              end
+              return unless exception
+              reset_invocation_response
+              rescue_action(exception)
+              true
             end
         END
       end

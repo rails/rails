@@ -44,7 +44,6 @@ require 'action_web_service/casting'
 require 'action_web_service/struct'
 require 'action_web_service/container'
 require 'action_web_service/protocol'
-require 'action_web_service/struct'
 require 'action_web_service/dispatcher'
 require 'action_web_service/scaffolding'
 
