@@ -555,11 +555,17 @@ module ActionController #:nodoc:
         @response.headers["cookie"] << CGI::Cookie.new(*options)
       end
 
-      # Returns the value of the cookie by +name+ -- or nil if no such cookie exist. You set new cookies using the cookie method.
+      # Alias for cookie "name", "value"
+      def cookies[]=(name, value)
+        cookie(name, value)
+      end
+
+      # Returns the value of the cookie by +name+ -- or nil if no such cookie exist. You set new cookies using either the cookie method
+      # or cookies[]= (for simple name/value cookies without options).
       def cookies[](name)
         @cookies[name].value if @cookies[name]
       end
-
+      
       # Resets the session by clearsing out all the objects stored within and initializing a new session object.
       def reset_session #:doc:
         @request.reset_session

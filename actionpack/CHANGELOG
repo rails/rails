@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActionController#cookies[]= as an alias for cookie "name", "value" -- you'll still need to use the latter if you have options to set.
+
 * Added ActionController#cookies[] as a reader for @cookies that'll return the value of the cookie instead of the cookie object itself.
   NOTE: If you were using the old accessor, this could potentially break your code -- if you expect a full cookie object!
 
