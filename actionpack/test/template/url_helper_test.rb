@@ -11,7 +11,7 @@ class UrlHelperTest < Test::Unit::TestCase
   def setup
     @controller = Class.new do
       def url_for(options, *parameters_for_method_reference)
-        "http://www.world.com"
+        "http://www.example.com"
       end
     end
     @controller = @controller.new
@@ -19,44 +19,44 @@ class UrlHelperTest < Test::Unit::TestCase
 
   # todo: missing test cases
   def test_link_tag_with_straight_url
-    assert_equal "<a href=\"http://www.world.com\">Hello</a>", link_to("Hello", "http://www.world.com")
+    assert_equal "<a href=\"http://www.example.com\">Hello</a>", link_to("Hello", "http://www.example.com")
   end
 
   def test_link_tag_with_javascript_confirm
     assert_equal(
-      "<a href=\"http://www.world.com\" onclick=\"return confirm('Are you sure?');\">Hello</a>",
-      link_to("Hello", "http://www.world.com", :confirm => "Are you sure?")
+      "<a href=\"http://www.example.com\" onclick=\"return confirm('Are you sure?');\">Hello</a>",
+      link_to("Hello", "http://www.example.com", :confirm => "Are you sure?")
     )
     assert_equal(
-      "<a href=\"http://www.world.com\" onclick=\"return confirm('You can\\'t possibly be sure, can you?');\">Hello</a>", 
-      link_to("Hello", "http://www.world.com", :confirm => "You can't possibly be sure, can you?")
+      "<a href=\"http://www.example.com\" onclick=\"return confirm('You can\\'t possibly be sure, can you?');\">Hello</a>", 
+      link_to("Hello", "http://www.example.com", :confirm => "You can't possibly be sure, can you?")
     )
   end
 
   def test_link_image_to
     assert_equal(
-      "<a href=\"http://www.world.com\"><img alt=\"Rss\" border=\"0\" height=\"45\" src=\"/images/rss.png\" width=\"30\" /></a>",
-      link_image_to("rss", "http://www.world.com", "size" => "30x45", "border" => "0")
+      "<a href=\"http://www.example.com\"><img alt=\"Rss\" border=\"0\" height=\"45\" src=\"/images/rss.png\" width=\"30\" /></a>",
+      link_image_to("rss", "http://www.example.com", "size" => "30x45", "border" => "0")
     )
 
     assert_equal(
-      "<a class=\"admin\" href=\"http://www.world.com\"><img alt=\"Feed\" height=\"45\" src=\"/images/rss.gif\" width=\"30\" /></a>",
-      link_image_to("rss.gif", "http://www.world.com", "size" => "30x45", "alt" => "Feed", "class" => "admin")
+      "<a class=\"admin\" href=\"http://www.example.com\"><img alt=\"Feed\" height=\"45\" src=\"/images/rss.gif\" width=\"30\" /></a>",
+      link_image_to("rss.gif", "http://www.example.com", "size" => "30x45", "alt" => "Feed", "class" => "admin")
     )
 
-    assert_equal link_image_to("rss", "http://www.world.com", "size" => "30x45"),
-                 link_image_to("rss", "http://www.world.com", :size => "30x45")
-    assert_equal link_image_to("rss.gif", "http://www.world.com", "size" => "30x45", "alt" => "Feed", "class" => "admin"),
-                 link_image_to("rss.gif", "http://www.world.com", :size => "30x45", :alt => "Feed", :class => "admin")
+    assert_equal link_image_to("rss", "http://www.example.com", "size" => "30x45"),
+                 link_image_to("rss", "http://www.example.com", :size => "30x45")
+    assert_equal link_image_to("rss.gif", "http://www.example.com", "size" => "30x45", "alt" => "Feed", "class" => "admin"),
+                 link_image_to("rss.gif", "http://www.example.com", :size => "30x45", :alt => "Feed", :class => "admin")
   end
 
   def test_link_unless_current
-    @request = RequestMock.new("http://www.world.com")
+    @request = RequestMock.new("http://www.example.com")
     assert_equal "Showing", link_to_unless_current("Showing", :action => "show", :controller => "weblog")
-    @request = RequestMock.new("http://www.notworld.com")
-    assert "<a href=\"http://www.world.com\">Listing</a>", link_to_unless_current("Listing", :action => "list", :controller => "weblog")
+    @request = RequestMock.new("http://www.example.org")
+    assert "<a href=\"http://www.example.com\">Listing</a>", link_to_unless_current("Listing", :action => "list", :controller => "weblog")
 
-    @request = RequestMock.new("http://www.world.com")
+    @request = RequestMock.new("http://www.example.com")
     assert_equal "Showing", link_to_unless_current("Showing", :action => "show", :controller => "weblog", :id => 1)
   end
 
@@ -72,6 +72,6 @@ class UrlHelperTest < Test::Unit::TestCase
   end
 
   def test_link_with_nil_html_options
-    assert_equal "<a href=\"http://www.world.com\">Hello</a>", link_to("Hello", {:action => 'myaction'}, nil)
+    assert_equal "<a href=\"http://www.example.com\">Hello</a>", link_to("Hello", {:action => 'myaction'}, nil)
   end
 end

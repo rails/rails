@@ -9,16 +9,16 @@ class AssetTagHelperTest < Test::Unit::TestCase
   def setup
     @controller = Class.new do
       def url_for(options, *parameters_for_method_reference)
-        "http://www.world.com"
+        "http://www.example.com"
       end
     end
     @controller = @controller.new
   end
 
   AutoDiscoveryToTag = {
-    %(auto_discovery_link_tag) => %(<link href="http://www.world.com" rel="alternate" title="RSS" type="application/rss+xml" />),
-    %(auto_discovery_link_tag(:atom)) => %(<link href="http://www.world.com" rel="alternate" title="ATOM" type="application/atom+xml" />),
-    %(auto_discovery_link_tag(:rss, :action => "feed")) => %(<link href="http://www.world.com" rel="alternate" title="RSS" type="application/rss+xml" />),
+    %(auto_discovery_link_tag) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
+    %(auto_discovery_link_tag(:atom)) => %(<link href="http://www.example.com" rel="alternate" title="ATOM" type="application/atom+xml" />),
+    %(auto_discovery_link_tag(:rss, :action => "feed")) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
   }
 
   JavascriptIncludeToTag = {
