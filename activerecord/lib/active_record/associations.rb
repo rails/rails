@@ -676,7 +676,7 @@ module ActiveRecord
             end
           end
 
-          return association.compact
+          return association.uniq.compact
         end
 
         def extract_record(table_name, row)
