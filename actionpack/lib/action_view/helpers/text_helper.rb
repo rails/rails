@@ -96,22 +96,19 @@ module ActionView
         # We can't really help what's not there
       end
 
-      # Turns all urls and email addresses into clickable links. Example:
-      #   "Go to http://www.rubyonrails.com and say hello to david@loudthinking.com" =>
-      #   Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a> and 
-      #   say hello to <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>
-      def auto_link(text)
-        auto_link_urls(auto_link_email_addresses(text))
-      end
-
-      # Turns all urls into clickable links.
-      def auto_link_urls(text)
-        text.gsub(/([^=><!:'"\/]|^)((http[s]?:\/\/)|(www\.))(\S+\b\/?)([[:punct:]]*)(\s|$)/, '\1<a href="\3\4\5">\3\4\5</a>\6\7')
-      end
-
-      # Turns all email addresses into clickable links.
-      def auto_link_email_addresses(text)
-        text.gsub(/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/, '<a href="mailto:\1">\1</a>')
+      # Turns all urls and email addresses into clickable links. The +link+ parameter can limit what should be linked.
+      # Options are :all (default), :email_addresses, and :urls.
+      #
+      # Example:
+      #   auto_link("Go to http://www.rubyonrails.com and say hello to david@loudthinking.com") =>
+      #     Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a> and 
+      #     say hello to <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>
+      def auto_link(text, link = :all)
+        case link
+          when :all             then auto_link_urls(auto_link_email_addresses(text))
+          when :email_addresses then auto_link_email_addresses(text)
+          when :urls            then auto_link_urls(text)
+        end
       end
 
       # Turns all links into words, like "<a href="something">else</a>" to "else".
@@ -123,6 +120,16 @@ module ActionView
         # Returns a version of the text that's safe to use in a regular expression without triggering engine features.
         def escape_regexp(text)
           text.gsub(/([\\|?+*\/\)\(])/) { |m| "\\#{$1}" }
+        end
+
+        # Turns all urls into clickable links.
+        def auto_link_urls(text)
+          text.gsub(/([^=><!:'"\/]|^)((http[s]?:\/\/)|(www\.))(\S+\b\/?)([[:punct:]]*)(\s|$)/, '\1<a href="\3\4\5">\3\4\5</a>\6\7')
+        end
+
+        # Turns all email addresses into clickable links.
+        def auto_link_email_addresses(text)
+          text.gsub(/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/, '<a href="mailto:\1">\1</a>')
         end
     end
   end
