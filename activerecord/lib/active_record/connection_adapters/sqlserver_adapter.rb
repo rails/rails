@@ -253,19 +253,12 @@ EOL
         "[#{name}]"
       end
 
-      def add_limit!(sql, limit)
-        if sql =~ /LIMIT/i
-          limit = sql.slice!(/LIMIT.*/).gsub(/LIMIT.(.*)$/, '\1')
-        end
-        if !limit.nil?
-          limit_amount = limit.to_s.include?("OFFSET") ? get_offset_amount(limit) : Array.new([limit])
-          order_by = sql.include?("ORDER BY") ? get_order_by(sql.sub(/.*ORDER\sBY./, "")) : nil
-          if limit_amount.size == 2
-            sql.gsub!(/SELECT/i, "SELECT * FROM ( SELECT TOP #{limit_amount[0]} * FROM ( SELECT TOP #{limit_amount[1]}")<<" ) AS tmp1 ORDER BY #{order_by[1]} ) AS tmp2 ORDER BY #{order_by[0]}"
-          else
-            sql.gsub!(/SELECT/i, "SELECT TOP #{limit_amount[0]}")
-          end
-        end
+      def add_limit_with_offset!(sql, limit, offset)
+        raise ArgumentError, 'add_limit_with_offset! not implemented'
+      end
+
+      def add_limit_without_offset!(sql, limit)
+        raise ArgumentError, 'add_limit_without_offset! not implemented'
       end
 
       def recreate_database(name)

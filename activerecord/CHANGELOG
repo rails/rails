@@ -1,5 +1,12 @@
 *SVN*
 
+* Added adapter independent limit clause as a two-element array with the first being the limit, the second being the offset #795 [Sam Stephenson]. Example:
+
+    Developer.find_all nil, 'id ASC', 5      # return the first five developers 
+    Developer.find_all nil, 'id ASC', [3, 8] # return three developers, starting from #8 and forward
+    
+  This doesn't yet work with the DB2 or MS SQL adapters. Patches to make that happen are encouraged. 
+
 * Added alias_method :to_param, :id to Base, such that Active Record objects to be used as URL parameters in Action Pack automatically #812 [Nicholas Seckar/Sam Stephenson]
 
 * Improved the performance of the OCI8 adapter for Oracle #723 [pilx/gjenkins]

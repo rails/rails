@@ -89,7 +89,11 @@ begin
           s.gsub(/'/, "''") # ' (for ruby-mode)
         end
 
-        def add_limit!(sql, limit)
+        def add_limit_with_offset!(sql, limit, offset)
+          raise ArgumentError, 'add_limit_with_offset! not implemented'
+        end
+
+        def add_limit_without_offset!(sql, limit)
           sql << " FETCH FIRST #{limit} ROWS ONLY"
         end
 

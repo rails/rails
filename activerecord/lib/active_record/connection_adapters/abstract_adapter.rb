@@ -353,9 +353,21 @@ module ActiveRecord
       def structure_dump() end
 
       def add_limit!(sql, limit)
+        if limit.is_a? Array
+          limit, offset = *limit
+          add_limit_with_offset!(sql, limit.to_i, offset.to_i)
+        else
+          add_limit_without_offset!(sql, limit)
+        end
+      end
+        
+      def add_limit_with_offset!(sql, limit, offset)
+        sql << " LIMIT #{limit} OFFSET #{offset}"
+      end
+      
+      def add_limit_without_offset!(sql, limit)
         sql << " LIMIT #{limit}"
       end
-
 
       def initialize_schema_information
         begin

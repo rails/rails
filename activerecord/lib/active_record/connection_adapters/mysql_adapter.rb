@@ -172,7 +172,11 @@ module ActiveRecord
           structure += select_one("SHOW CREATE TABLE #{table.to_a.first.last}")["Create Table"] + ";\n\n"
         end
       end
- 
+      
+      def add_limit_with_offset!(sql, limit, offset)
+        sql << " LIMIT #{offset}, #{limit}"
+      end
+       
       def recreate_database(name)
         drop_database(name)
         create_database(name)

@@ -346,16 +346,18 @@ module ActiveRecord #:nodoc:
       # table in the database. The +conditions+ can be used to narrow the selection of objects (WHERE-part),
       # such as by "color = 'red'", and arrangement of the selection can be done through +orderings+ (ORDER BY-part),
       # such as by "last_name, first_name DESC". A maximum of returned objects and their offset can be specified in 
-      # +limit+ (LIMIT...OFFSET-part). Examples:
+      # +limit+ with either just a single integer as the limit or as an array with the first element as the limit, 
+      # the second as the offset. Examples:
       #   Project.find_all "category = 'accounts'", "last_accessed DESC", 15
-      #   Project.find_all ["category = ?", category_name], "created ASC", ["? OFFSET ?", 15, 20]
+      #   Project.find_all ["category = ?", category_name], "created ASC", [15, 20]
       def find_all(conditions = nil, orderings = nil, limit = nil, joins = nil)
         sql  = "SELECT * FROM #{table_name} " 
         sql << "#{joins} " if joins
         add_conditions!(sql, conditions)
         sql << "ORDER BY #{orderings} " unless orderings.nil?
 
-        connection.add_limit!(sql, sanitize_sql(limit)) unless limit.nil?
+        limit = sanitize_sql(limit) if limit.is_a? Array and limit.first.is_a? String
+        connection.add_limit!(sql, limit) if limit
 
         find_by_sql(sql)
       end

@@ -4,7 +4,7 @@ require 'fixtures/topic'
 require 'fixtures/entrant'
 
 class FinderTest < Test::Unit::TestCase
-  fixtures :companies, :topics, :entrants
+  fixtures :companies, :topics, :entrants, :developers
   
   def test_find
     assert_equal(@topics["first"]["title"], Topic.find(1).title)
@@ -242,6 +242,33 @@ class FinderTest < Test::Unit::TestCase
 
   def test_find_with_bad_sql
     assert_raises(ActiveRecord::StatementInvalid) { Topic.find_by_sql "select 1 from badtable" }
+  end
+
+  def test_find_all_with_limit
+    first_five_developers = Developer.find_all nil, 'id ASC', 5
+    assert_equal 5, first_five_developers.length
+    assert_equal 'David', first_five_developers.first.name
+    assert_equal 'fixture_5', first_five_developers.last.name
+    
+    no_developers = Developer.find_all nil, 'id ASC', 0
+    assert_equal 0, no_developers.length
+    
+    assert_equal first_five_developers, Developer.find_all(nil, 'id ASC', [5])
+    assert_equal no_developers, Developer.find_all(nil, 'id ASC', [0])
+  end
+  
+  def test_find_all_with_limit_and_offset
+    first_three_developers = Developer.find_all nil, 'id ASC', [3, 0]
+    second_three_developers = Developer.find_all nil, 'id ASC', [3, 3]
+    last_two_developers = Developer.find_all nil, 'id ASC', [3, 8]
+    
+    assert_equal 3, first_three_developers.length
+    assert_equal 3, second_three_developers.length
+    assert_equal 2, last_two_developers.length
+    
+    assert_equal 'David', first_three_developers.first.name
+    assert_equal 'fixture_4', second_three_developers.first.name
+    assert_equal 'fixture_9', last_two_developers.first.name
   end
 
   protected

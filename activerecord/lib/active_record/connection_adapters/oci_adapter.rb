@@ -182,10 +182,6 @@ begin
         alias :update :execute
         alias :delete :execute
 
-        def add_limit!(sql, limit)
-          sql << "LIMIT=" << limit.to_s
-        end
-
         def begin_db_transaction()
           @connection.autocommit = false
         end
