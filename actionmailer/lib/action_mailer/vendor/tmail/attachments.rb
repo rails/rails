@@ -14,8 +14,14 @@ module TMail
       if multipart?
         parts.collect { |part| 
           if part.header["content-type"].main_type != "text"
-            attachment = Attachment.new(Base64.decode64(part.body))
-            attachment.original_filename = part.header["content-type"].params["name"].strip.dup
+            content   = part.body.unpack("m")[0]
+            content   = part.body if content.blank?
+            file_name = part.header["content-type"].params["name"]
+            
+            next if file_name.blank? || content.blank?
+            
+            attachment = Attachment.new(content)
+            attachment.original_filename = file_name.strip.dup
             attachment
           end
         }.compact
