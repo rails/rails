@@ -11,6 +11,16 @@ class Object #:nodoc:
     end
     subclasses
   end
+
+  def blank?
+    if respond_to? :empty?
+      empty?
+    elsif respond_to? :zero?
+      zero?
+    else
+      !self
+    end
+  end
 end
 
 class Class #:nodoc:
