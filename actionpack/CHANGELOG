@@ -2,6 +2,8 @@
 
 * Added authentication framework to protect actions behind a condition and redirect on failure. See ActionController::Authentication for more.
 
+* Added Base#render_nothing as a cleaner way of doing render_text "" when you're not interested in returning anything but an empty response.
+
 * Added the possibility of passing nil to UrlHelper#link_to to use the link itself as the name
 
 

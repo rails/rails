@@ -34,9 +34,11 @@ module ActionController #:nodoc:
       #
       # Options are:
       # * <tt>:by</tt> - the code fragment that will be evaluated on each request to determine whether the request is authenticated.
+      # * <tt>:before</tt> - a code fragment that's run before the failure redirect happens, such as 
+      #   '@session[:return_to] = @request.request_uri'.
       # * <tt>:failure</tt> - redirection options following the format of Base#url_for.
       def authentication(options)
-        options.assert_valid_keys([:by, :failure])
+        options.assert_valid_keys([:by, :failure, :before])
         class_eval <<-EOV
           protected          
             def actions_excepted_from_authentication
@@ -71,6 +73,7 @@ module ActionController #:nodoc:
               if !action_needs_authentication? || #{options[:by]}
                 return true
               else
+                #{options[:before]}
                 redirect_to(#{options[:failure].inspect})
                 return false
               end
