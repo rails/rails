@@ -18,8 +18,10 @@ module Dependencies
       loaded << file_name
       begin
         require_or_load(file_name)
+      rescue LoadError
+        raise unless swallow_load_errors
       rescue Object => e
-        raise ScriptError, "#{e.message}" unless e.is_a?(LoadError) && swallow_load_errors
+        raise ScriptError, "#{e.message}"
       end
     end
   end

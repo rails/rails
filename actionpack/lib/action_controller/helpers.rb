@@ -96,7 +96,7 @@ module ActionController #:nodoc:
           inherited_without_helper(child)
           begin
             child.helper(child.controller_name)
-          rescue Object
+          rescue NameError, LoadError
             # No default helper available for this controller
           end
         end        
