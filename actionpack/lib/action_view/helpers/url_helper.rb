@@ -25,6 +25,43 @@ module ActionView
         end
       end
 
+      # Creates a link tag to the image residing at the +src+ using an URL created by the set of +options+. See the valid options in
+      # link:classes/ActionController/Base.html#M000021. It's also possible to pass a string instead of an options hash to
+      # get a link tag that just points without consideration. The <tt>html_options</tt> works jointly for the image and ahref tag by
+      # letting the following special values enter the options on the image and the rest goes to the ahref:
+      #
+      # ::alt: If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
+      # ::size: Supplied as "XxY", so "30x45" becomes width="30" and height="45"
+      # ::align: Sets the alignment, no special features
+      #
+      # The +src+ can be supplied as a... 
+      # * full path, like "/my_images/image.gif"
+      # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
+      # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
+      def link_to_image(src, options = {}, html_options = {}, *parameters_for_method_reference)
+        image_options = { "src" => src.include?("/") ? src : "/images/#{src}" }
+        image_options["src"] = image_options["src"] + ".png" unless image_options["src"].include?(".")
+        
+        if html_options["alt"]
+          image_options["alt"] = html_options["alt"]
+          html_options.delete "alt"
+        else
+          image_options["alt"] = src.split("/").last.split(".").first.capitalize
+        end
+
+        if html_options["size"]
+          image_options["width"], image_options["height"] = html_options["size"].split("x")
+          html_options.delete "size"
+        end
+        
+        if html_options["align"]
+          image_options["align"] = html_options["align"]
+          html_options.delete "align"
+        end
+
+        link_to(tag("img", image_options), options, html_options, *parameters_for_method_reference)
+      end
+
       # Creates a link tag of the given +name+ using an URL created by the set of +options+, unless the current 
       # controller, action, and id are the same as the link's, in which case only the name is returned (or the
       # given block is yielded, if one exists). This is useful for creating link bars where you don't want to link 

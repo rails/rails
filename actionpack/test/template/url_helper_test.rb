@@ -27,6 +27,18 @@ class UrlHelperTest < Test::Unit::TestCase
     )
   end
   
+  def test_link_to_image
+    assert_equal(
+      "<a href=\"http://www.world.com\"><img alt=\"Rss\" height=\"45\" src=\"/images/rss.png\" width=\"30\" /></a>", 
+      link_to_image("rss", "http://www.world.com", "size" => "30x45")
+    )
+
+    assert_equal(
+      "<a class=\"admin\" href=\"http://www.world.com\"><img alt=\"Feed\" height=\"45\" src=\"/images/rss.gif\" width=\"30\" /></a>", 
+      link_to_image("rss.gif", "http://www.world.com", "size" => "30x45", "alt" => "Feed", "class" => "admin")
+    )
+  end
+  
   def test_link_unless_current
     @params = { "controller" => "weblog", "action" => "show"}
     assert_equal "Showing", link_to_unless_current("Showing", :action => "show", :controller => "weblog")
