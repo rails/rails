@@ -10,7 +10,7 @@ module ActiveRecord
 
           def composed_of_with_reflection(part_id, options = {})
             composed_of_without_reflection(part_id, options)
-            write_inheritable_array "aggregations", [ AggregateReflection.new(part_id, options, self) ]
+            write_inheritable_array "aggregations", [ AggregateReflection.new(:composed_of, part_id, options, self) ]
           end
 
           alias_method :composed_of, :composed_of_with_reflection          
@@ -24,7 +24,7 @@ module ActiveRecord
 
             def #{association_type}_with_reflection(association_id, options = {})
               #{association_type}_without_reflection(association_id, options)
-              write_inheritable_array "associations", [ AssociationReflection.new(association_id, options, self) ]
+              write_inheritable_array "associations", [ AssociationReflection.new(:#{association_type}, association_id, options, self) ]
             end
 
             alias_method :#{association_type}, :#{association_type}_with_reflection          
@@ -67,14 +67,20 @@ module ActiveRecord
     # those classes. Objects of AggregateReflection and AssociationReflection are returned by the Reflection::ClassMethods.
     class MacroReflection
       attr_reader :active_record
-      def initialize(name, options, active_record)
-        @name, @options, @active_record = name, options, active_record
+      def initialize(macro, name, options, active_record)
+        @macro, @name, @options, @active_record = macro, name, options, active_record
       end
       
       # Returns the name of the macro, so it would return :balance for "composed_of :balance, :class_name => 'Money'" or
       # :clients for "has_many :clients".
       def name
         @name
+      end
+      
+      # Returns the name of the macro, so it would return :composed_of for 
+      # "composed_of :balance, :class_name => 'Money'" or :has_many for "has_many :clients".
+      def macro
+        @macro
       end
       
       # Returns the hash of options used for the macro, so it would return { :class_name => "Money" } for 

@@ -42,11 +42,11 @@ class ReflectionTest < Test::Unit::TestCase
 
   def test_aggregation_reflection
     reflection_for_address = ActiveRecord::Reflection::AggregateReflection.new(
-      :address, { :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer
+      :composed_of, :address, { :mapping => [ %w(address_street street), %w(address_city city), %w(address_country country) ] }, Customer
     )
 
     reflection_for_balance = ActiveRecord::Reflection::AggregateReflection.new(
-      :balance, { :class_name => "Money", :mapping => %w(balance amount) }, Customer
+      :composed_of, :balance, { :class_name => "Money", :mapping => %w(balance amount) }, Customer
     )
 
     assert_equal(
@@ -61,7 +61,7 @@ class ReflectionTest < Test::Unit::TestCase
   
   def test_association_reflection
     reflection_for_clients = ActiveRecord::Reflection::AssociationReflection.new(
-      :clients, { :order => "id", :dependent => true }, Firm
+      :has_many, :clients, { :order => "id", :dependent => true }, Firm
     )
 
     assert_equal reflection_for_clients, Firm.reflect_on_association(:clients)
