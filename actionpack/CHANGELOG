@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that controller tests can now assert on the use of cookies #466 [Alexey]
+
 * Fixed that send_file would "remember" all the files sent by adding to the headers again and again #458 [bitsweat]
 
 * Fixed url rewriter confusion when the controller or action name was a substring of the controller_prefix or action_prefix

@@ -182,6 +182,15 @@ module ActionController #:nodoc:
     def has_template_object?(name=nil)
       !template_objects[name].nil?      
     end
+    
+    # Returns the response cookies, converted to a Hash of (name => CGI::Cookie) pairs
+    # Example:
+    # 
+    # assert_equal ['AuthorOfNewPage'], r.cookies['author'].value
+    def cookies
+      headers['cookie'].inject({}) { |hash, cookie| hash[cookie.name] = cookie; hash }
+    end
+
 end
 
   class TestSession #:nodoc:
