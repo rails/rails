@@ -84,10 +84,23 @@ class TextHelperTest < Test::Unit::TestCase
   end
 
   def test_auto_linking
-    assert_equal %(hello <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>), auto_link("hello david@loudthinking.com", :email_addresses)
-    assert_equal %(Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a>), auto_link("Go to http://www.rubyonrails.com", :urls)
-    assert_equal %(Go to http://www.rubyonrails.com), auto_link("Go to http://www.rubyonrails.com", :email_addresses)
-    assert_equal %(Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a> and say hello to <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>), auto_link("Go to http://www.rubyonrails.com and say hello to david@loudthinking.com")
+    email_raw    = 'david@loudthinking.com'
+    email_result = %{<a href="mailto:#{email_raw}">#{email_raw}</a>}
+    link_raw     = 'http://www.rubyonrails.com'
+    link_result  = %{<a href="#{link_raw}">#{link_raw}</a>}
+    link2_raw    = 'www.rubyonrails.com'
+    link2_result = %{<a href="http://#{link2_raw}">#{link2_raw}</a>}
+
+    assert_equal %(hello #{email_result}), auto_link("hello #{email_raw}", :email_addresses)
+    assert_equal %(Go to #{link_result}), auto_link("Go to #{link_raw}", :urls)
+    assert_equal %(Go to #{link_raw}), auto_link("Go to #{link_raw}", :email_addresses)
+    assert_equal %(Go to #{link_result} and say hello to #{email_result}), auto_link("Go to #{link_raw} and say hello to #{email_raw}")
+    assert_equal %(<p>Link #{link_result}</p>), auto_link("<p>Link #{link_raw}</p>")
+    assert_equal %(<p>#{link_result} Link</p>), auto_link("<p>#{link_raw} Link</p>")
+    assert_equal %(Go to #{link2_result}), auto_link("Go to #{link2_raw}", :urls)
+    assert_equal %(Go to #{link2_raw}), auto_link("Go to #{link2_raw}", :email_addresses)
+    assert_equal %(<p>Link #{link2_result}</p>), auto_link("<p>Link #{link2_raw}</p>")
+    assert_equal %(<p>#{link2_result} Link</p>), auto_link("<p>#{link2_raw} Link</p>")
   end
   
 end
