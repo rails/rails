@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed script/console to default to development environment and drop --no-inspect #650 [bitsweat]
+
 * Added that the 'fixture :posts' syntax can be used for has_and_belongs_to_many fixtures where a model doesn't exist #572 [bitsweat]
 
 * Added that running test_units and test_functional now performs the clone_structure_to_test as well #566 [rasputnik]

@@ -1,35 +1,5 @@
 #!/usr/local/bin/ruby
-
-if ARGV[0]
-  ENV['RAILS_ENV'] = ARGV[0]
-  puts "Loading environment..."
-  if RUBY_PLATFORM =~ /mswin32/
-    irb_name = "irb.bat"
-  else
-    irb_name = 'irb'
-  end
-  exec "#{irb_name} -r config/environment.rb -r irb/completion --noinspect"
-else
-  puts <<-HELP
-
-NAME
-     console - interact with the domain model through a environment console (on IRB)
-
-SYNOPSIS
-     console [environment]
-
-DESCRIPTION
-     Starts an environment console using IRB that lets you manipulate and interrogate
-     the domain model or even trigger controller actions. The database connection and
-     configuration available to the web application is already setup.
-     
-     Tab completion is available to see classes and methods on individual objects.
-     
-EXAMPLE
-     console production
-     
-     This will initialize the production environment (as setup in config/database.yml
-     and config/environments/production.rb). You would now be ready to start requiring
-     models using require_dependency.
-HELP
-end
+ENV['RAILS_ENV'] = ARGV[0] || 'development'
+puts "Loading environment: #{ENV['RAILS_ENV']}"
+irb = RUBY_PLATFORM =~ /mswin32/ ? 'irb.bat' : 'irb'
+exec "#{irb} -r config/environment.rb -r irb/completion"
