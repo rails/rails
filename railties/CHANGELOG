@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that association#count would produce invalid sql when called sequentialy #659 [kanis@comcard.de]
+
 * Fixed test/mocks/testing to the correct test/mocks/test #740
 
 * Added early failure if the Ruby version isn't 1.8.2 or above #735

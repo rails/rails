@@ -24,8 +24,8 @@ module ActiveRecord
         if @options[:finder_sql]
           records = @association_class.find_by_sql(@finder_sql)
         else
-          sql = @finder_sql.dup
-          sql << " AND #{sanitize_sql(runtime_conditions)}" if runtime_conditions
+          sql = @finder_sql
+          sql += " AND #{sanitize_sql(runtime_conditions)}" if runtime_conditions
           orderings ||= @options[:order]
           records = @association_class.find_all(sql, orderings, limit, joins)
         end
@@ -37,7 +37,7 @@ module ActiveRecord
           @association_class.count_by_sql(@finder_sql)
         else
           sql = @finder_sql
-          sql << " AND #{sanitize_sql(runtime_conditions)}" if runtime_conditions
+          sql += " AND #{sanitize_sql(runtime_conditions)}" if runtime_conditions
           @association_class.count(sql)
         end
       end
