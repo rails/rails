@@ -45,6 +45,8 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Reflection
 end
 
+require 'active_record/mixins/list'
+
 require 'active_record/connection_adapters/mysql_adapter'
 require 'active_record/connection_adapters/postgresql_adapter'
 require 'active_record/connection_adapters/sqlite_adapter'
