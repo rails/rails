@@ -23,7 +23,7 @@ module WS
         if param.value.is_a?(Exception)
           detail = SOAP::Mapping::SOAPException.new(param.value)
           soap_obj = SOAP::SOAPFault.new(
-            SOAP::SOAPString.new('Server'),
+            SOAP::SOAPQName.new('%s:%s' % [SOAP::SOAPNamespaceTag, 'Server']),
             SOAP::SOAPString.new(param.value.to_s),
             SOAP::SOAPString.new(self.class.name),
             SOAP::Mapping.obj2soap(detail))
