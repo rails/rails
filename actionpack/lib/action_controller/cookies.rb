@@ -48,7 +48,7 @@ module ActionController #:nodoc:
         options = options.inject({}) { |options, pair| options[pair.first.to_s] = pair.last; options }
         options["name"] = name.to_s
       else
-        options = { "name" => name, "value" => options }
+        options = { "name" => name.to_s, "value" => options }
       end
       
       set_cookie(options)
