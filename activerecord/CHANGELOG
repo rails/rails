@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that the overwritten respond_to? method didn't take two parameters like the original #391
+
 * Added HasManyAssociation#count that works like Base#count #413 [intinig]
 
 * Fixed handling of binary content in blobs and similar fields for Ruby/MySQL and SQLite #409 [xal]
