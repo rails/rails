@@ -256,9 +256,11 @@ module ActionController #:nodoc:
       end
 
       # Loads the <tt>file_name</tt> if reload_dependencies is true or requires if it's false.
-      def require_or_load(file_name)
+      def require_dependency(file_name)
         reload_dependencies ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
       end
+
+      Object.send(:define_method, :require_dependency) { |file_name| ActiveRecord::Base.require_dependency(file_name) }
     end
 
     public

@@ -32,7 +32,7 @@ require_gem 'rails'
 
 
 # Environment-specific configuration.
-ActionController::Base.require_or_load "environments/#{RAILS_ENV}"
+require_dependency "environments/#{RAILS_ENV}"
 ActiveRecord::Base.configurations = YAML::load(File.open("#{RAILS_ROOT}/config/database.yml"))
 ActiveRecord::Base.establish_connection
 

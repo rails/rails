@@ -546,12 +546,14 @@ module ActiveRecord #:nodoc:
       end
 
       # Loads the <tt>file_name</tt> if reload_associations is true or requires if it's false.
-      def require_or_load(file_name)
+      def require_association(file_name)
         if !associations_loaded.include?(file_name)
           associations_loaded << file_name
           reload_associations ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
         end
       end
+      
+      Object.send(:define_method, :require_association) { |file_name| ActiveRecord::Base.require_association(file_name) }
       
       # Resets the list of dependencies loaded (typically to be called by the end of a request), so when require_or_load is
       # called for that dependency it'll be loaded anew.
@@ -782,9 +784,15 @@ module ActiveRecord #:nodoc:
         self.class.column_methods_hash[method.to_sym] || respond_to_without_attributes?(method)
       end
 
-      def require_or_load(file_name)
-        self.class.require_or_load(file_name)
+      # Loads the <tt>file_name</tt> if reload_associations is true or requires if it's false.
+      def require_association(file_name)
+        if !associations_loaded.include?(file_name)
+          associations_loaded << file_name
+          reload_associations ? silence_warnings { load("#{file_name}.rb") } : require(file_name)
+        end
       end
+      
+      Object.send(:define_method, :require_association) { |file_name| ActiveRecord::Base.require_association(file_name) }
       
     private
       def create_or_update

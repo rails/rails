@@ -31,8 +31,8 @@ class Dispatcher
       
       controller_name, module_name = controller_name(request.parameters), module_name(request.parameters)
 
-      ActionController::Base.require_or_load("abstract_application")
-      ActionController::Base.require_or_load(controller_path(controller_name, module_name))
+      require_dependency("abstract_application")
+      require_dependency(controller_path(controller_name, module_name))
 
       controller_class(controller_name).process(request, response).out
     rescue Object => e

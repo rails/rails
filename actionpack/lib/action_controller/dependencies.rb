@@ -38,7 +38,7 @@ module ActionController #:nodoc:
         def require_dependencies(layer, dependencies)
           dependencies.flatten.each do |dependency|
             begin
-              require_or_load(dependency.to_s)
+              require_dependency(dependency.to_s)
             rescue LoadError
               raise LoadError, "Missing #{layer} #{dependency}.rb"
             end

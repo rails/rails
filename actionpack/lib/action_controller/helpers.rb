@@ -54,7 +54,7 @@ module ActionController #:nodoc:
             file_name  = Inflector.underscore(arg.to_s.downcase) + '_helper'
             class_name = Inflector.camelize(file_name)
             begin
-              require_or_load(file_name)
+              require_dependency(file_name)
             rescue LoadError
               raise LoadError, "Missing helper file helpers/#{file_name}.rb"
             end
