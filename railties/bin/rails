@@ -1,6 +1,6 @@
 #!/usr/local/bin/ruby
 
-puts "Rails requires Ruby 1.8.2" and exit if RUBY_VERSION < "1.8.2"
+abort "Rails requires Ruby 1.8.2" if RUBY_VERSION < "1.8.2"
 
 require File.dirname(__FILE__) + '/../lib/rails_generator'
 require 'rails_generator/scripts/generate'
