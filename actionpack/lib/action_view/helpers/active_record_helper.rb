@@ -51,12 +51,15 @@ module ActionView
       #     </form>
       def form(record_name, options = {})
         record   = instance_eval("@#{record_name}")
-        action   = url_for(:action => options[:action] || (record.new_record? ? "create" : "update"))
-        submit_value = options[:submit_value] || action.gsub(/[^\w]/, '').capitalize
+
+        options[:action] ||= record.new_record? ? "create" : "update"
+        action   = url_for(:action => options[:action])
+
+        submit_value = options[:submit_value] || options[:action].gsub(/[^\w]/, '').capitalize
         
         id_field = record.new_record? ? "" : InstanceTag.new(record_name, "id", self).to_input_field_tag("hidden")
         
-        %(<form action="#{action}" method="POST">#{id_field}) +
+        %(<form action="#{action}" method="post">#{id_field}) +
           all_input_tags(record, record_name, options) +
           %(<input type="submit" value="#{submit_value}" /></form>)
       end
