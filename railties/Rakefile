@@ -148,6 +148,7 @@ task :copy_generators do
 
   GENERATORS.each do |dir|
     cp_r File.join('generators', dir), File.join(PKG_DESTINATION, 'script', dir)
+    cp_r File.join('generators', dir), File.join(PKG_DESTINATION, 'script', 'generators', dir)
   end
 end
 
