@@ -76,6 +76,26 @@ module ActionView
         select_hour(datetime, options) + select_minute(datetime, options)
       end
 
+      # Returns a set of html select-tags (one for hour and minute)
+      def select_time(datetime = Time.now, options = {})
+        h = select_hour(datetime, options) + select_minute(datetime, options) + (options[:include_seconds] ? select_second(datetime, options) : '')
+      end
+
+      # Returns a select tag with options for each of the seconds 0 through 59 with the current second selected.
+      # The <tt>second</tt> can also be substituted for a second number.
+      def select_second(datetime, options = {})
+        second_options = []
+
+        0.upto(59) do |second|
+          second_options << ((datetime.kind_of?(Fixnum) ? datetime : datetime.sec) == second ?
+            "<option selected=\"selected\">#{leading_zero_on_single_digits(second)}</option>\n" :
+            "<option>#{leading_zero_on_single_digits(second)}</option>\n"
+          )
+        end
+
+        select_html("second", second_options, options[:prefix], options[:include_blank], options[:discard_type])
+      end
+
       # Returns a select tag with options for each of the minutes 0 through 59 with the current minute selected.
       # The <tt>minute</tt> can also be substituted for a minute number.
       def select_minute(datetime, options = {})
