@@ -3,6 +3,7 @@ require '<%= file_name %>'
 
 class <%= class_name %>Test < Test::Unit::TestCase
   FIXTURES_PATH = File.dirname(__FILE__) + '/../fixtures'
+  CHARSET = "utf-8"
 
   def setup
     ActionMailer::Base.delivery_method = :test
@@ -10,11 +11,12 @@ class <%= class_name %>Test < Test::Unit::TestCase
     ActionMailer::Base.deliveries = []
 
     @expected = TMail::Mail.new
+    @expected.set_content_type "text", "plain", { "charset" => CHARSET }
   end
 
 <% for action in actions -%>
   def test_<%= action %>
-    @expected.subject = '<%= class_name %>#<%= action %>'
+    @expected.subject = encode '<%= class_name %>#<%= action %>'
     @expected.body    = read_fixture('<%= action %>')
     @expected.date    = Time.now
 
@@ -25,5 +27,9 @@ class <%= class_name %>Test < Test::Unit::TestCase
   private
     def read_fixture(action)
       IO.readlines("#{FIXTURES_PATH}/<%= file_name %>/#{action}")
+    end
+
+    def encode(subject)
+      ActionMailer::Base.quoted_printable(subject, CHARSET)
     end
 end

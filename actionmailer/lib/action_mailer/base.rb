@@ -140,13 +140,12 @@ module ActionMailer #:nodoc:
         send("perform_delivery_#{delivery_method}", mail) if perform_deliveries
       end
 
-      def quoted_printable( text, charset )
-        text = text.gsub( /[^a-z ]/i ) { "=%02x" % $&[0] }.
-                    gsub( / /, "_" )
+      def quoted_printable(text, charset)
+        text = text.gsub( /[^a-z ]/i ) { "=%02x" % $&[0] }.gsub( / /, "_" )
         "=?#{charset}?Q?#{text}?="
       end
 
-      private      
+      private
         def perform_delivery_smtp(mail)
           Net::SMTP.start(server_settings[:address], server_settings[:port], server_settings[:domain], 
               server_settings[:user_name], server_settings[:password], server_settings[:authentication]) do |smtp|
