@@ -27,6 +27,8 @@ class TypesTest < Test::Unit::TestCase
     assert_equal('50.0', @caster.cast(50.0, String))
     assert_equal(true, @caster.cast('true', FalseClass))
     assert_equal(false, @caster.cast('false', TrueClass))
+    assert_equal(true, @caster.cast(1, FalseClass))
+    assert_equal(false, @caster.cast(0, TrueClass))
     assert_raises(TypeError) do
       @caster.cast('yes', FalseClass)
     end

@@ -1,7 +1,6 @@
 = 0.7.0
-  - WS Test Integration
-  - WS Scaffolding
-  - WS Generators
+  - WS Dynamic Scaffolding
+  - WS Scaffolding Generators
 
 = 0.8.0
   - Consumption of WSDL services

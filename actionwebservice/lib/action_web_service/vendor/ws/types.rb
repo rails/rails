@@ -146,6 +146,9 @@ module WS
           value.to_s
         when :bool
           return false if value.nil?
+          int_value = Integer(value) rescue nil
+          return true if int_value == 1
+          return false if int_value == 0
           value = value.to_s
           return true if value == 'true'
           return false if value == 'false'

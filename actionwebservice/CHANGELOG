@@ -1,3 +1,11 @@
+*0.7.0* (Unreleased)
+
+* Fix XML-RPC example to use :layered mode, so it works again
+
+* Support casting '0' or 0 into false, and '1' or 1 into true, when expecting a boolean value
+
+* Fix that SOAP fault response fault code values were not QName's #804
+
 *0.6.0* (7th March, 2005)
 
 * Add action_controller/test_invoke, used for integrating AWS with the Rails testing infrastructure
