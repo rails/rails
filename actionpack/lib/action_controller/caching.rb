@@ -243,6 +243,12 @@ module ActionController #:nodoc:
         end    
       end
 
+      class MemCacheStore < MemoryStore
+        def initialize(address = 'localhost')
+          @data = MemCache.new(address)
+        end    
+      end
+
       class FileStore
         def initialize(cache_path)
           @cache_path = cache_path
