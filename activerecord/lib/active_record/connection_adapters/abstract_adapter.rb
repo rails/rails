@@ -75,20 +75,23 @@ module ActiveRecord
     #   end
     #
     #   Courses.establish_connection( ... )
-    def self.establish_connection(spec)
-      if spec.instance_of? ConnectionSpecification
-        @@defined_connections[self] = spec
-      elsif spec.is_a?(Symbol)
-        establish_connection(configurations[spec.to_s])
-      else
-        if spec.nil? then raise AdapterNotSpecified end
-        symbolize_strings_in_hash(spec)
-        unless spec.key?(:adapter) then raise AdapterNotSpecified end
+    def self.establish_connection(spec = nil)
+      case spec
+        when nil
+          raise AdapterNotSpecified unless defined? RAILS_ENV
+          establish_connection(RAILS_ENV)
+        when ConnectionSpecification
+          @@defined_connections[self] = spec
+        when Symbol, String
+          establish_connection(configurations[spec.to_s])
+        else
+          symbolize_strings_in_hash(spec)
+          unless spec.key?(:adapter) then raise AdapterNotSpecified end
     
-        adapter_method = "#{spec[:adapter]}_connection"
-        unless methods.include?(adapter_method) then raise AdapterNotFound end
-        remove_connection
-        @@defined_connections[self] = ConnectionSpecification.new(spec, adapter_method)
+          adapter_method = "#{spec[:adapter]}_connection"
+          unless respond_to?(adapter_method) then raise AdapterNotFound end
+          remove_connection
+          establish_connection(ConnectionSpecification.new(spec, adapter_method))
       end
     end
 

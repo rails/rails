@@ -1,5 +1,7 @@
 *CVS*
 
+* Added option to establish_connection where you'll be able to leave out the parameter to have it use the RAILS_ENV environment variable
+
 * Added ADO-based SQLServerAdapter (only works on Windows) [Joey Gibson]
 
 * Fixed problems with primary keys and postgresql sequences (#230) [Tim Bates]
