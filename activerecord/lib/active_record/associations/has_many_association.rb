@@ -20,7 +20,7 @@ module ActiveRecord
         if @options[:finder_sql]
           records = @association_class.find_by_sql(@finder_sql)
         else
-          sql = @finder_sql
+          sql = @finder_sql.dup
           sql << " AND #{sanitize_sql(runtime_conditions)}" if runtime_conditions
           orderings ||= @options[:order]
           records = @association_class.find_all(sql, orderings, limit, joins)
