@@ -24,14 +24,14 @@ class AssociationsTest < Test::Unit::TestCase
   end
   
   def test_force_reload
-    firm = Firm.new
+    firm = Firm.new("name" => "A New Firm, Inc")
     firm.save
     firm.clients.each {|c|} # forcing to load all clients
     assert firm.clients.empty?, "New firm shouldn't have client objects"
     assert !firm.has_clients?, "New firm shouldn't have clients"
     assert_equal 0, firm.clients.size, "New firm should have 0 clients"
 
-    client = Client.new("firm_id" => firm.id)
+    client = Client.new("name" => "TheClient.com", "firm_id" => firm.id)
     client.save
 
     assert firm.clients.empty?, "New firm should have cached no client objects"
@@ -72,12 +72,6 @@ class HasOneAssociationsTest < Test::Unit::TestCase
   def test_has_one
     assert_equal @signals37.account, Account.find(1)
     assert_equal Account.find(1).credit_limit, @signals37.account.credit_limit
-    assert @signals37.has_account?, "37signals should have an account"
-    assert Account.find(1).firm?(@signals37), "37signals account should be able to backtrack"
-    assert Account.find(1).has_firm?, "37signals account should be able to backtrack"
-
-    assert !Account.find(2).has_firm?, "Unknown isn't linked"
-    assert !Account.find(2).firm?(@signals37), "Unknown isn't linked"
   end
 
   def test_type_mismatch
@@ -100,30 +94,6 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     assert_nil Account.find(old_account_id).firm_id
   end
 
-  def test_build
-    firm = Firm.new("name" => "GlobalMegaCorp")
-    firm.save
-    
-    account = firm.build_account("credit_limit" => 1000)
-    assert account.save
-    assert_equal account, firm.account
-  end
-
-  def test_failing_build_association
-    firm = Firm.new("name" => "GlobalMegaCorp")
-    firm.save
-    
-    account = firm.build_account
-    assert !account.save
-    assert_equal "can't be empty", account.errors.on("credit_limit")
-  end
-
-  def test_create
-    firm = Firm.new("name" => "GlobalMegaCorp")
-    firm.save
-    assert_equal firm.create_account("credit_limit" => 1000), firm.account
-  end
-  
   def test_dependence
     firm = Firm.find(1)
     assert !firm.account.nil?
@@ -131,11 +101,97 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     assert_equal 1, Account.find_all.length
   end
 
+  def test_build
+    firm = Firm.new("name" => "GlobalMegaCorp")
+    firm.save
+
+    account = firm.account.build("credit_limit" => 1000)
+    assert_equal account, firm.account
+    assert account.save
+    assert_equal account, firm.account
+  end
+
+  def test_build_before_child_saved
+    firm = Firm.find(1)
+
+    account = firm.account.build("credit_limit" => 1000)
+    assert_equal account, firm.account
+    assert account.new_record?
+    assert firm.save
+    assert_equal account, firm.account
+    assert !account.new_record?
+  end
+
+  def test_build_before_either_saved
+    firm = Firm.new("name" => "GlobalMegaCorp")
+
+    account = firm.account.build("credit_limit" => 1000)
+    assert_equal account, firm.account
+    assert account.new_record?
+    assert firm.save
+    assert_equal account, firm.account
+    assert !account.new_record?
+  end
+
+  def test_failing_build_association
+    firm = Firm.new("name" => "GlobalMegaCorp")
+    firm.save
+    
+    account = firm.account.build
+    assert_equal account, firm.account
+    assert !account.save
+    assert_equal account, firm.account
+    assert_equal "can't be empty", account.errors.on("credit_limit")
+  end
+
+  def test_create
+    firm = Firm.new("name" => "GlobalMegaCorp")
+    firm.save
+    assert_equal firm.account.create("credit_limit" => 1000), firm.account
+  end
+
+  def test_create_before_save
+    firm = Firm.new("name" => "GlobalMegaCorp")
+    assert_equal firm.account.create("credit_limit" => 1000), firm.account
+  end
+
   def test_dependence_with_missing_association
     Account.destroy_all
-    firm = Firm.find(1)    
-    assert !firm.has_account?
+    firm = Firm.find(1)
+    assert firm.account.nil?
     firm.destroy
+  end
+
+  def test_assignment_before_parent_saved
+    firm = Firm.new("name" => "GlobalMegaCorp")
+    firm.account = a = Account.find(1)
+    assert firm.new_record?
+    assert_equal a, firm.account
+    assert firm.save
+    assert_equal a, firm.account
+    assert_equal a, firm.account(true)
+  end
+
+  def test_assignment_before_child_saved
+    firm = Firm.find(1)
+    firm.account = a = Account.new("credit_limit" => 1000)
+    assert !a.new_record?
+    assert_equal a, firm.account
+    assert_equal a, firm.account
+    assert_equal a, firm.account(true)
+  end
+
+  def test_assignment_before_either_saved
+    firm = Firm.new("name" => "GlobalMegaCorp")
+    firm.account = a = Account.new("credit_limit" => 1000)
+    assert firm.new_record?
+    assert a.new_record?
+    assert_equal a, firm.account
+    assert firm.save
+    assert !firm.new_record?
+    assert !a.new_record?
+    assert_equal a, firm.account
+    assert_equal a, firm.account(true)
   end
 end
 
@@ -257,16 +313,72 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 3, @signals37.clients_of_firm(true).size
   end
 
+  def test_adding_before_save
+    no_of_firms = Firm.count
+    no_of_clients = Client.count
+    new_firm = Firm.new("name" => "A New Firm, Inc")
+    new_firm.clients_of_firm.push Client.new("name" => "Natural Company")
+    new_firm.clients_of_firm << (c = Client.new("name" => "Apple"))
+    assert new_firm.new_record?
+    assert c.new_record?
+    assert_equal 2, new_firm.clients_of_firm.size
+    assert_equal no_of_firms, Firm.count      # Firm was not saved to database.
+    assert_equal no_of_clients, Client.count  # Clients were not saved to database.
+    assert new_firm.save
+    assert !new_firm.new_record?
+    assert !c.new_record?
+    assert_equal new_firm, c.firm
+    assert_equal no_of_firms+1, Firm.count      # Firm was saved to database.
+    assert_equal no_of_clients+2, Client.count  # Clients were saved to database.
+    assert_equal 2, new_firm.clients_of_firm.size
+    assert_equal 2, new_firm.clients_of_firm(true).size
+  end
+
+  def test_invalid_adding
+    firm = Firm.find(1)
+    assert !(firm.clients_of_firm << c = Client.new)
+    assert c.new_record?
+    assert !firm.save
+    assert c.new_record?
+  end
+
+  def test_invalid_adding_before_save
+    no_of_firms = Firm.count
+    no_of_clients = Client.count
+    new_firm = Firm.new("name" => "A New Firm, Inc")
+    new_firm.clients_of_firm.concat([c = Client.new, Client.new("name" => "Apple")])
+    assert c.new_record?
+    assert !c.valid?
+    assert new_firm.valid?
+    assert !new_firm.save
+    assert c.new_record?
+    assert new_firm.new_record?
+  end
+
   def test_build
     new_client = @signals37.clients_of_firm.build("name" => "Another Client")
     assert_equal "Another Client", new_client.name
-    assert new_client.save
+    assert new_client.new_record?
+    assert_equal new_client, @signals37.clients_of_firm.last
+    assert @signals37.save
+    assert !new_client.new_record?
     assert_equal 2, @signals37.clients_of_firm(true).size
+  end
+
+  def test_invalid_build
+    new_client = @signals37.clients_of_firm.build
+    assert new_client.new_record?
+    assert !new_client.valid?
+    assert_equal new_client, @signals37.clients_of_firm.last
+    assert !@signals37.save
+    assert new_client.new_record?
+    assert_equal 1, @signals37.clients_of_firm(true).size
   end
   
   def test_create
     force_signal37_to_load_all_clients_of_firm
     new_client = @signals37.clients_of_firm.create("name" => "Another Client")
+    assert !new_client.new_record?
     assert_equal new_client, @signals37.clients_of_firm.last
     assert_equal new_client, @signals37.clients_of_firm(true).last
   end
@@ -276,6 +388,14 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     @signals37.clients_of_firm.delete(@signals37.clients_of_firm.first)
     assert_equal 0, @signals37.clients_of_firm.size
     assert_equal 0, @signals37.clients_of_firm(true).size
+  end
+
+  def test_deleting_before_save
+    new_firm = Firm.new("name" => "A New Firm, Inc.")
+    new_client = new_firm.clients_of_firm.build("name" => "Another Client")
+    assert_equal 1, new_firm.clients_of_firm.size
+    new_firm.clients_of_firm.delete(new_client)
+    assert_equal 0, new_firm.clients_of_firm.size
   end
 
   def test_deleting_a_collection
@@ -419,6 +539,44 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply deleted"
   end
 
+  def test_assignment_before_parent_saved
+    client = Client.find_first
+    apple = Firm.new("name" => "Apple")
+    client.firm = apple
+    assert_equal apple, client.firm
+    assert apple.new_record?
+    assert client.save
+    assert apple.save
+    assert !apple.new_record?
+    assert_equal apple, client.firm
+    assert_equal apple, client.firm(true)
+  end
+
+  def test_assignment_before_child_saved
+    final_cut = Client.new("name" => "Final Cut")
+    firm = Firm.find(1)
+    final_cut.firm = firm
+    assert final_cut.new_record?
+    assert final_cut.save
+    assert !final_cut.new_record?
+    assert !firm.new_record?
+    assert_equal firm, final_cut.firm
+    assert_equal firm, final_cut.firm(true)
+  end
+
+  def test_assignment_before_either_saved
+    final_cut = Client.new("name" => "Final Cut")
+    apple = Firm.new("name" => "Apple")
+    final_cut.firm = apple
+    assert final_cut.new_record?
+    assert apple.new_record?
+    assert final_cut.save
+    assert !final_cut.new_record?
+    assert !apple.new_record?
+    assert_equal apple, final_cut.firm
+    assert_equal apple, final_cut.firm(true)
+  end
+
   def test_field_name_same_as_foreign_key
     computer = Computer.find 1
     assert_not_nil computer.developer, ":foreign key == attribute didn't lock up"
@@ -513,6 +671,38 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     aridridel.projects.concat([Project.find(1), Project.find(2)])
     assert_equal 2, aridridel.projects.size
     assert_equal 2, aridridel.projects(true).size
+  end
+
+  def test_habtm_adding_before_save
+    no_of_devels = Developer.count
+    no_of_projects = Project.count
+    aridridel = Developer.new("name" => "Aridridel")
+    aridridel.projects.concat([Project.find(1), p = Project.new("name" => "Projekt")])
+    assert aridridel.new_record?
+    assert p.new_record?
+    assert aridridel.save
+    assert !aridridel.new_record?
+    assert_equal no_of_devels+1, Developer.count
+    assert_equal no_of_projects+1, Project.count
+    assert_equal 2, aridridel.projects.size
+    assert_equal 2, aridridel.projects(true).size
+  end
+
+  def test_build
+    devel = Developer.find(1)
+    proj = devel.projects.build("name" => "Projekt")
+    assert_equal devel.projects.last, proj
+    assert proj.new_record?
+    devel.save
+    assert !proj.new_record?
+    assert_equal devel.projects.last, proj
+  end
+  
+  def test_create
+    devel = Developer.find(1)
+    proj = devel.projects.create("name" => "Projekt")
+    assert_equal devel.projects.last, proj
+    assert !proj.new_record?
   end
   
   def test_uniq_after_the_fact

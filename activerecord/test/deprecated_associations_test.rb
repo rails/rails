@@ -138,14 +138,14 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   end
 
   def test_force_reload
-    firm = Firm.new
+    firm = Firm.new("name" => "A New Firm, Inc")
     firm.save
     firm.clients.each {|c|} # forcing to load all clients
     assert firm.clients.empty?, "New firm shouldn't have client objects"
     assert !firm.has_clients?, "New firm shouldn't have clients"
     assert_equal 0, firm.clients_count, "New firm should have 0 clients"
 
-    client = Client.new("firm_id" => firm.id)
+    client = Client.new("name" => "TheClient.com", "firm_id" => firm.id)
     client.save
 
     assert firm.clients.empty?, "New firm should have cached no client objects"
@@ -339,5 +339,39 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   def test_has_many_find_all
     assert_equal 2, Firm.find_first.find_all_in_clients("type = 'Client'").length
     assert_equal 1, Firm.find_first.find_all_in_clients("name = 'Summit'").length
+  end
+
+  def test_has_one
+    assert @signals37.account?(Account.find(1))
+    assert @signals37.has_account?, "37signals should have an account"
+    assert Account.find(1).firm?(@signals37), "37signals account should be able to backtrack"
+    assert Account.find(1).has_firm?, "37signals account should be able to backtrack"
+
+    assert !Account.find(2).has_firm?, "Unknown isn't linked"
+    assert !Account.find(2).firm?(@signals37), "Unknown isn't linked"
+  end
+
+  def test_has_one_build
+    firm = Firm.new("name" => "GlobalMegaCorp")
+    assert firm.save
+
+    account = firm.build_account("credit_limit" => 1000)
+    assert account.save
+    assert_equal account, firm.account
+  end
+
+  def test_has_one_failing_build_association
+    firm = Firm.new("name" => "GlobalMegaCorp")
+    firm.save
+    
+    account = firm.build_account
+    assert !account.save
+    assert_equal "can't be empty", account.errors.on("credit_limit")
+  end
+
+  def test_has_one_create
+    firm = Firm.new("name" => "GlobalMegaCorp")
+    firm.save
+    assert_equal firm.create_account("credit_limit" => 1000), firm.account
   end
 end

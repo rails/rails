@@ -227,4 +227,20 @@ class CallbacksTest < Test::Unit::TestCase
       [ :after_initialize,            :method ]
     ], david.history
   end
+
+  def test_zzz_callback_returning_false # must be run last since we modify CallbackDeveloper
+    david = CallbackDeveloper.find(1)
+    CallbackDeveloper.before_validation proc { |model| model.history << [:before_validation, :returning_false]; return false }
+    CallbackDeveloper.before_validation proc { |model| model.history << [:before_validation, :should_never_get_here] }
+    david.save
+    assert_equal [
+      [ :after_find,                  :method ],
+      [ :after_initialize,            :method ],
+      [ :before_validation,           :string ],
+      [ :before_validation,           :proc   ],
+      [ :before_validation,           :object ],
+      [ :before_validation,           :block  ],
+      [ :before_validation, :returning_false  ]
+    ], david.history
+  end
 end

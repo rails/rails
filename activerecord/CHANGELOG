@@ -1,5 +1,38 @@
 *SVN*
 
+* Added support for associating unsaved objects #402 [Tim Bates]. Rules that govern this addition:
+
+    == Unsaved objects and associations
+    
+    You can manipulate objects and associations before they are saved to the database, but there is some special behaviour you should be
+    aware of, mostly involving the saving of associated objects.
+    
+    === One-to-one associations
+    
+    * Assigning an object to a has_one association automatically saves that object, and the object being replaced (if there is one), in
+      order to update their primary keys - except if the parent object is unsaved (new_record? == true).
+    * If either of these saves fail (due to one of the objects being invalid) the assignment statement returns false and the assignment
+      is cancelled.
+    * If you wish to assign an object to a has_one association without saving it, use the #association.build method (documented below).
+    * Assigning an object to a belongs_to association does not save the object, since the foreign key field belongs on the parent. It does
+      not save the parent either.
+    
+    === Collections
+    
+    * Adding an object to a collection (has_many or has_and_belongs_to_many) automatically saves that object, except if the parent object
+      (the owner of the collection) is not yet stored in the database.
+    * If saving any of the objects being added to a collection (via #push or similar) fails, then #push returns false.
+    * You can add an object to a collection without automatically saving it by using the #collection.build method (documented below).
+    * All unsaved (new_record? == true) members of the collection are automatically saved when the parent is saved.
+
+* Added replace to associations, so you can do project.manager.replace(new_manager) or project.milestones.replace(new_milestones) #402 [Tim Bates]
+
+* Added build and create methods to has_one and belongs_to associations, so you can now do project.manager.build(attributes) #402 [Tim Bates]
+
+* Added that if a before_* callback returns false, all the later callbacks and the associated action are cancelled. If an after_* callback returns false, all the later callbacks are cancelled. Callbacks are generally run in the order they are defined, with the exception of callbacks defined as methods on the model, which are called last. #402 [Tim Bates]
+
+* Fixed that Base#== wouldn't work for multiple references to the same unsaved object #402 [Tim Bates]
+
 * Fixed binary support for PostgreSQL #444 [alex@byzantine.no]
 
 * Added a differenciation between AssociationCollection#size and -length. Now AssociationCollection#size returns the size of the 

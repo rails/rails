@@ -1,4 +1,7 @@
+require 'active_record/associations/association_proxy'
 require 'active_record/associations/association_collection'
+require 'active_record/associations/belongs_to_association'
+require 'active_record/associations/has_one_association'
 require 'active_record/associations/has_many_association'
 require 'active_record/associations/has_and_belongs_to_many_association'
 require 'active_record/deprecated_associations'
@@ -30,9 +33,9 @@ module ActiveRecord
     #   end
     #
     # The project class now has the following methods (and more) to ease the traversal and manipulation of its relationships:
-    # * <tt>Project#portfolio, Project#portfolio=(portfolio), Project#portfolio.nil?, Project#portfolio?(portfolio)</tt>
+    # * <tt>Project#portfolio, Project#portfolio=(portfolio), Project#portfolio.nil?</tt>
     # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
-    #   <tt>Project#project_manager?(project_manager), Project#build_project_manager, Project#create_project_manager</tt>
+    #   <tt>Project#project_manager.build, Project#project_manager.create</tt>
     # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone),</tt>
     #   <tt>Project#milestones.delete(milestone), Project#milestones.find(milestone_id), Project#milestones.find_all(conditions),</tt>
     #   <tt>Project#milestones.build, Project#milestones.create</tt>
@@ -70,6 +73,29 @@ module ActiveRecord
     #     name varchar default NULL,
     #     PRIMARY KEY  (id)
     #   )
+    #
+    # == Unsaved objects and associations
+    #
+    # You can manipulate objects and associations before they are saved to the database, but there is some special behaviour you should be
+    # aware of, mostly involving the saving of associated objects.
+    #
+    # === One-to-one associations
+    #
+    # * Assigning an object to a has_one association automatically saves that object, and the object being replaced (if there is one), in
+    #   order to update their primary keys - except if the parent object is unsaved (new_record? == true).
+    # * If either of these saves fail (due to one of the objects being invalid) the assignment statement returns false and the assignment
+    #   is cancelled.
+    # * If you wish to assign an object to a has_one association without saving it, use the #association.build method (documented below).
+    # * Assigning an object to a belongs_to association does not save the object, since the foreign key field belongs on the parent. It does
+    #   not save the parent either.
+    #
+    # === Collections
+    #
+    # * Adding an object to a collection (has_many or has_and_belongs_to_many) automatically saves that object, except if the parent object
+    #   (the owner of the collection) is not yet stored in the database.
+    # * If saving any of the objects being added to a collection (via #push or similar) fails, then #push returns false.
+    # * You can add an object to a collection without automatically saving it by using the #collection.build method (documented below).
+    # * All unsaved (new_record? == true) members of the collection are automatically saved when the parent is saved.
     #
     # == Caching
     #
@@ -124,7 +150,7 @@ module ActiveRecord
     module ClassMethods
       # Adds the following methods for retrieval and query of collections of associated objects.
       # +collection+ is replaced with the symbol passed as the first argument, so 
-      # <tt>has_many :clients</tt> would add among others <tt>has_clients?</tt>.
+      # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.
       # * <tt>collection(force_reload = false)</tt> - returns an array of all the associated objects.
       #   An empty array is returned if none are found.
       # * <tt>collection<<(object, ...)</tt> - adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
@@ -200,18 +226,9 @@ module ActiveRecord
           module_eval "before_destroy { |record| #{association_class_name}.delete_all(%(#{association_class_primary_key_name} = \#{record.quoted_id})) }"
         end
 
-        define_method(association_name) do |*params|
-          force_reload = params.first unless params.empty?
-          association = instance_variable_get("@#{association_name}")
-          if association.nil?
-            association = HasManyAssociation.new(self,
-              association_name, association_class_name,
-              association_class_primary_key_name, options)
-            instance_variable_set("@#{association_name}", association)
-          end
-          association.reload if force_reload
-          association
-        end
+        add_multiple_associated_save_callbacks(association_name)
+
+        association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasManyAssociation)
         
         # deprecated api
         deprecated_collection_count_method(association_name)
@@ -220,31 +237,28 @@ module ActiveRecord
         deprecated_has_collection_method(association_name)
         deprecated_find_in_collection_method(association_name)
         deprecated_find_all_in_collection_method(association_name)
-        deprecated_create_method(association_name)
-        deprecated_build_method(association_name)
+        deprecated_collection_create_method(association_name)
+        deprecated_collection_build_method(association_name)
       end
 
       # Adds the following methods for retrieval and query of a single associated object.
       # +association+ is replaced with the symbol passed as the first argument, so 
-      # <tt>has_one :manager</tt> would add among others <tt>has_manager?</tt>.
+      # <tt>has_one :manager</tt> would add among others <tt>manager.nil?</tt>.
       # * <tt>association(force_reload = false)</tt> - returns the associated object. Nil is returned if none is found.
       # * <tt>association=(associate)</tt> - assigns the associate object, extracts the primary key, sets it as the foreign key, 
       #   and saves the associate object.
-      # * <tt>association?(object, force_reload = false)</tt> - returns true if the +object+ is of the same type and has the
-      #   same id as the associated object.
       # * <tt>association.nil?</tt> - returns true if there is no associated object.
-      # * <tt>build_association(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
+      # * <tt>association.build(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key but has not yet been saved.
-      # * <tt>create_association(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
+      # * <tt>association.create(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key and that has already been saved (if it passed the validation).
       #
       # Example: An Account class declares <tt>has_one :beneficiary</tt>, which will add:
       # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.find_first "account_id = #{id}"</tt>)
       # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
-      # * <tt>Account#beneficiary?</tt> (similar to <tt>account.beneficiary == some_beneficiary</tt>)
       # * <tt>Account#beneficiary.nil?</tt>
-      # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
-      # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
+      # * <tt>Account#beneficiary.build</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
+      # * <tt>Account#beneficiary.create</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
       # 
       # Options are:
@@ -265,35 +279,53 @@ module ActiveRecord
       #   has_one :last_comment, :class_name => "Comment", :order => "posted_on"
       #   has_one :project_manager, :class_name => "Person", :conditions => "role = 'project_manager'"
       def has_one(association_id, options = {})
-        options.merge!({ :remote => true })
-        belongs_to(association_id, options)
+        validate_options([ :class_name, :foreign_key, :remote, :conditions, :order, :dependent, :counter_cache ], options.keys)
 
-        association_name, association_class_name, class_primary_key_name =
+        association_name, association_class_name, association_class_primary_key_name =
             associate_identification(association_id, options[:class_name], options[:foreign_key], false)
 
         require_association_class(association_class_name)
 
-        has_one_writer_method(association_name, association_class_name, class_primary_key_name)
-        build_method("build_", association_name, association_class_name, class_primary_key_name)
-        create_method("create_", association_name, association_class_name, class_primary_key_name)
+        module_eval do
+          after_save <<-EOF
+            association = instance_variable_get("@#{association_name}")
+            if (true or @new_record_before_save) and association.respond_to?(:loaded?) and not association.nil?
+              association["#{association_class_primary_key_name}"] = id
+              association.save(true)
+              association.send(:construct_sql)
+            end
+          EOF
+        end
+      
+        association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasOneAssociation)
         
-        module_eval "before_destroy '#{association_name}.destroy if has_#{association_name}?'" if options[:dependent]
+        module_eval "before_destroy '#{association_name}.destroy unless #{association_name}.nil?'" if options[:dependent]
+
+        # deprecated api
+        deprecated_has_association_method(association_name)
+        deprecated_build_method("build_", association_name, association_class_name, association_class_primary_key_name)
+        deprecated_create_method("create_", association_name, association_class_name, association_class_primary_key_name)
+        deprecated_association_comparison_method(association_name, association_class_name)
       end
 
       # Adds the following methods for retrieval and query for a single associated object that this object holds an id to.
       # +association+ is replaced with the symbol passed as the first argument, so 
-      # <tt>belongs_to :author</tt> would add among others <tt>has_author?</tt>.
+      # <tt>belongs_to :author</tt> would add among others <tt>author.nil?</tt>.
       # * <tt>association(force_reload = false)</tt> - returns the associated object. Nil is returned if none is found.
       # * <tt>association=(associate)</tt> - assigns the associate object, extracts the primary key, and sets it as the foreign key.
-      # * <tt>association?(object, force_reload = false)</tt> - returns true if the +object+ is of the same type and has the
-      #   same id as the associated object.
       # * <tt>association.nil?</tt> - returns true if there is no associated object.
+      # * <tt>association.build(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
+      #   with +attributes+ and linked to this object through a foreign key but has not yet been saved.
+      # * <tt>association.create(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
+      #   with +attributes+ and linked to this object through a foreign key and that has already been saved (if it passed the validation).
       #
       # Example: A Post class declares <tt>has_one :author</tt>, which will add:
       # * <tt>Post#author</tt> (similar to <tt>Author.find(author_id)</tt>)
       # * <tt>Post#author=(author)</tt> (similar to <tt>post.author_id = author.id</tt>)
       # * <tt>Post#author?</tt> (similar to <tt>post.author == some_author</tt>)
       # * <tt>Post#author.nil?</tt>
+      # * <tt>Post#author.build</tt> (similar to <tt>Author.new("post_id" => id)</tt>)
+      # * <tt>Post#author.create</tt> (similar to <tt>b = Author.new("post_id" => id); b.save; b</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
       # 
       # Options are:
@@ -317,46 +349,45 @@ module ActiveRecord
       #   belongs_to :author, :class_name => "Person", :foreign_key => "author_id"
       #   belongs_to :valid_coupon, :class_name => "Coupon", :foreign_key => "coupon_id", 
       #              :conditions => 'discounts > #{payments_count}'
-       def belongs_to(association_id, options = {})
-          validate_options([ :class_name, :foreign_key, :remote, :conditions, :order, :dependent, :counter_cache ], options.keys)
+      def belongs_to(association_id, options = {})
+        validate_options([ :class_name, :foreign_key, :remote, :conditions, :order, :dependent, :counter_cache ], options.keys)
 
-          association_name, association_class_name, class_primary_key_name =
-              associate_identification(association_id, options[:class_name], options[:foreign_key], false)
+        association_name, association_class_name, class_primary_key_name =
+            associate_identification(association_id, options[:class_name], options[:foreign_key], false)
 
-          require_association_class(association_class_name)
+        require_association_class(association_class_name)
 
-          association_class_primary_key_name = options[:foreign_key] || Inflector.underscore(Inflector.demodulize(association_class_name)) + "_id"
+        association_class_primary_key_name = options[:foreign_key] || Inflector.underscore(Inflector.demodulize(association_class_name)) + "_id"
 
-          if options[:remote]
-            association_finder = <<-"end_eval"
-              #{association_class_name}.find_first(
-                "#{class_primary_key_name} = \#{quoted_id}#{options[:conditions] ? " AND " + options[:conditions] : ""}",
-                #{options[:order] ? "\"" + options[:order] + "\"" : "nil" }
-              )
-            end_eval
-          else
-            association_finder = options[:conditions] ?
-              "#{association_class_name}.find_on_conditions(read_attribute(\"#{association_class_primary_key_name}\"), \"#{options[:conditions]}\")" :
-              "#{association_class_name}.find(read_attribute(\"#{association_class_primary_key_name}\"))"
-          end
+        association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
 
-          has_association_method(association_name)
-          association_reader_method(association_name, association_finder)
-          belongs_to_writer_method(association_name, association_class_name, association_class_primary_key_name)
-          association_comparison_method(association_name, association_class_name)
-
-          if options[:counter_cache]
-            module_eval(
-              "after_create '#{association_class_name}.increment_counter(\"#{Inflector.pluralize(self.to_s.downcase). + "_count"}\", #{association_class_primary_key_name})" +
-              " if has_#{association_name}?'"
-            )
-
-            module_eval(
-              "before_destroy '#{association_class_name}.decrement_counter(\"#{Inflector.pluralize(self.to_s.downcase) + "_count"}\", #{association_class_primary_key_name})" +
-              " if has_#{association_name}?'"
-            )          
-          end
+        module_eval do
+          before_save <<-EOF
+            association = instance_variable_get("@#{association_name}")
+            if association.respond_to?(:loaded?) and not association.nil? and association.new_record?
+              association.save(true)
+              self["#{association_class_primary_key_name}"] = association.id
+              association.send(:construct_sql)
+            end
+          EOF
         end
+      
+        if options[:counter_cache]
+          module_eval(
+            "after_create '#{association_class_name}.increment_counter(\"#{Inflector.pluralize(self.to_s.downcase). + "_count"}\", #{association_class_primary_key_name})" +
+            " unless #{association_name}.nil?'"
+          )
+
+          module_eval(
+            "before_destroy '#{association_class_name}.decrement_counter(\"#{Inflector.pluralize(self.to_s.downcase) + "_count"}\", #{association_class_primary_key_name})" +
+            " unless #{association_name}.nil?'"
+          )          
+        end
+
+        # deprecated api
+        deprecated_has_association_method(association_name)
+        deprecated_association_comparison_method(association_name, association_class_name)
+      end
 
       # Associates two classes via an intermediate join table.  Unless the join table is explicitly specified as
       # an option, it is guessed using the lexical order of the class names. So a join between Developer and Project
@@ -371,7 +402,7 @@ module ActiveRecord
       #
       # Adds the following methods for retrieval and query.
       # +collection+ is replaced with the symbol passed as the first argument, so 
-      # <tt>has_and_belongs_to_many :categories</tt> would add among others +add_categories+.
+      # <tt>has_and_belongs_to_many :categories</tt> would add among others +categories.empty?+.
       # * <tt>collection(force_reload = false)</tt> - returns an array of all the associated objects.
       #   An empty array is returned if none is found.
       # * <tt>collection<<(object, ...)</tt> - adds one or more objects to the collection by creating associations in the join table 
@@ -385,10 +416,13 @@ module ActiveRecord
       # * <tt>collection.clear</tt> - removes every object from the collection. This does not destroy the objects.
       # * <tt>collection.empty?</tt> - returns true if there are no associated objects.
       # * <tt>collection.size</tt> - returns the number of associated objects.
+      # * <tt>collection.find(id)</tt> - finds an associated object responding to the +id+ and that
+      #   meets the condition that it has to be associated with this object.
       #
       # Example: An Developer class declares <tt>has_and_belongs_to_many :projects</tt>, which will add:
       # * <tt>Developer#projects</tt>
       # * <tt>Developer#projects<<</tt>
+      # * <tt>Developer#projects.push_with_attributes</tt>
       # * <tt>Developer#projects.delete</tt>
       # * <tt>Developer#projects.clear</tt>
       # * <tt>Developer#projects.empty?</tt>
@@ -431,23 +465,13 @@ module ActiveRecord
 
         require_association_class(association_class_name)
 
-        join_table = options[:join_table] || 
-          join_table_name(undecorated_table_name(self.to_s), undecorated_table_name(association_class_name))
-        
-        define_method(association_name) do |*params|
-          force_reload = params.first unless params.empty?
-          association = instance_variable_get("@#{association_name}")
-          if association.nil?
-            association = HasAndBelongsToManyAssociation.new(self,
-              association_name, association_class_name,
-              association_class_primary_key_name, join_table, options)
-            instance_variable_set("@#{association_name}", association)
-          end
-          association.reload if force_reload
-          association
-        end
+        options[:join_table] ||= join_table_name(undecorated_table_name(self.to_s), undecorated_table_name(association_class_name))
 
-        before_destroy_sql = "DELETE FROM #{join_table} WHERE #{association_class_primary_key_name} = \\\#{self.quoted_id}"
+        add_multiple_associated_save_callbacks(association_name)
+      
+        association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasAndBelongsToManyAssociation)
+
+        before_destroy_sql = "DELETE FROM #{options[:join_table]} WHERE #{association_class_primary_key_name} = \\\#{self.quoted_id}"
         module_eval(%{before_destroy "self.connection.delete(%{#{before_destroy_sql}})"}) # "
         
         # deprecated api
@@ -487,93 +511,69 @@ module ActiveRecord
           return association_id.id2name, association_class_name, primary_key_name
         end
         
-        def association_comparison_method(association_name, association_class_name)
-          module_eval <<-"end_eval", __FILE__, __LINE__
-            def #{association_name}?(comparison_object, force_reload = false)
-              if comparison_object.kind_of?(#{association_class_name})
-                #{association_name}(force_reload) == comparison_object
-              else
-                raise "Comparison object is a #{association_class_name}, should have been \#{comparison_object.class.name}"
-              end
+        def association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, association_proxy_class)
+          define_method(association_name) do |*params|
+            force_reload = params.first unless params.empty?
+            association = instance_variable_get("@#{association_name}")
+            unless association.respond_to?(:loaded?)
+              association = association_proxy_class.new(self,
+                association_name, association_class_name,
+                association_class_primary_key_name, options)
+              instance_variable_set("@#{association_name}", association)
             end
-          end_eval
-        end
+            association.reload if force_reload
+            association
+          end
 
-        def association_reader_method(association_name, association_finder)
-          module_eval <<-"end_eval", __FILE__, __LINE__
-            def #{association_name}(force_reload = false)
-              if @#{association_name}.nil? || force_reload
-                begin
-                  @#{association_name} = #{association_finder}
-                rescue ActiveRecord::StatementInvalid, ActiveRecord::RecordNotFound
-                  nil
-                end
-              end
-              
-              return @#{association_name}
+          define_method("#{association_name}=") do |new_value|
+            association = instance_variable_get("@#{association_name}")
+            unless association.respond_to?(:loaded?)
+              association = association_proxy_class.new(self,
+                association_name, association_class_name,
+                association_class_primary_key_name, options)
+              instance_variable_set("@#{association_name}", association)
             end
-          end_eval
-        end
-
-        def has_one_writer_method(association_name, association_class_name, class_primary_key_name)
-          module_eval <<-"end_eval", __FILE__, __LINE__
-            def #{association_name}=(association)
-              if association.nil?
-                @#{association_name}.#{class_primary_key_name} = nil
-                @#{association_name}.save(false)
-                @#{association_name} = nil
-              else
-                raise ActiveRecord::AssociationTypeMismatch unless #{association_class_name} === association
-                association.#{class_primary_key_name} = id
-                association.save(false)
-                @#{association_name} = association
-              end
-            end
-          end_eval
-        end
-
-        def belongs_to_writer_method(association_name, association_class_name, association_class_primary_key_name)
-          module_eval <<-"end_eval", __FILE__, __LINE__
-            def #{association_name}=(association)
-              if association.nil?
-                @#{association_name} = self.#{association_class_primary_key_name} = nil
-              else
-                raise ActiveRecord::AssociationTypeMismatch unless #{association_class_name} === association
-                @#{association_name} = association
-                self.#{association_class_primary_key_name} = association.id
-              end
-            end
-          end_eval
-        end
-
-        def has_association_method(association_name)
-          module_eval <<-"end_eval", __FILE__, __LINE__
-            def has_#{association_name}?(force_reload = false)
-              !#{association_name}(force_reload).nil?
-            end
-          end_eval
-        end
-        
-        def build_method(method_prefix, collection_name, collection_class_name, class_primary_key_name)
-          module_eval <<-"end_eval", __FILE__, __LINE__
-            def #{method_prefix + collection_name}(attributes = {})
-              association = #{collection_class_name}.new
-              association.attributes = attributes.merge({ "#{class_primary_key_name}" => id})
-              association
-            end
-          end_eval
-        end
-
-        def create_method(method_prefix, collection_name, collection_class_name, class_primary_key_name)
-          module_eval <<-"end_eval", __FILE__, __LINE__
-            def #{method_prefix + collection_name}(attributes = nil)
-              #{collection_class_name}.create((attributes || {}).merge({ "#{class_primary_key_name}" => id}))
-            end
-          end_eval
+            association.replace(new_value)
+            association
+          end
         end
 
         def require_association_class(class_name)
           require_association(Inflector.underscore(class_name)) if class_name
+        end
+
+        def add_multiple_associated_save_callbacks(association_name)
+          module_eval do
+            before_save <<-end_eval
+              @new_record_before_save = new_record?
+              association = instance_variable_get("@#{association_name}")
+              if association.respond_to?(:loaded?)
+                if new_record?
+                  records_to_save = association
+                else
+                  records_to_save = association.select{ |record| record.new_record? }
+                end
+                records_to_save.inject(true) do |result,record|
+                  result &&= record.valid?
+                end
+              end
+            end_eval
+          end
+
+          module_eval do
+            after_save <<-end_eval
+              association = instance_variable_get("@#{association_name}")
+              if association.respond_to?(:loaded?)
+                if @new_record_before_save
+                  records_to_save = association
+                else
+                  records_to_save = association.select{ |record| record.new_record? }
+                end
+                records_to_save.each{ |record| association.send(:insert_record, record) }
+                association.send(:construct_sql)   # reconstruct the SQL queries now that we know the owner's id
+              end
+            end_eval
+          end
         end
     end
   end

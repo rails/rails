@@ -1,26 +1,27 @@
 module ActiveRecord
   module Associations
     class HasAndBelongsToManyAssociation < AssociationCollection #:nodoc:
-      def initialize(owner, association_name, association_class_name, association_class_primary_key_name, join_table, options)
-        super(owner, association_name, association_class_name, association_class_primary_key_name, options)
+      def initialize(owner, association_name, association_class_name, association_class_primary_key_name, options)
+        super
 
         @association_foreign_key = options[:association_foreign_key] || Inflector.underscore(Inflector.demodulize(association_class_name)) + "_id"
-        association_table_name = options[:table_name] || @association_class.table_name
-        @join_table = join_table
+        @association_table_name = options[:table_name] || @association_class.table_name
+        @join_table = options[:join_table]
         @order = options[:order] || "t.#{@association_class.primary_key}"
 
-        interpolate_sql_options!(options, :finder_sql, :delete_sql)
-        @finder_sql = options[:finder_sql] ||
-              "SELECT t.*, j.* FROM #{association_table_name} t, #{@join_table} j " +
-              "WHERE t.#{@association_class.primary_key} = j.#{@association_foreign_key} AND " +
-              "j.#{association_class_primary_key_name} = #{@owner.quoted_id} " +
-              (options[:conditions] ? " AND " + interpolate_sql(options[:conditions]) : "") + " " +
-              "ORDER BY #{@order}"
+        construct_sql
       end
  
+      def build(attributes = {})
+        load_target
+        record = @association_class.new(attributes)
+        @target << record
+        record
+      end
+
       # Removes all records from this association.  Returns +self+ so method calls may be chained.
       def clear
-        return self if size == 0 # forces load_collection if hasn't happened already
+        return self if size == 0 # forces load_target if hasn't happened already
 
         if sql = @options[:delete_sql]
           each { |record| @owner.connection.execute(sql) }
@@ -34,12 +35,12 @@ module ActiveRecord
           @owner.connection.execute(sql)
         end
 
-        @collection = []
+        @target = []
         self
       end
 
       def find_first
-        load_collection.first
+        load_target.first
       end
 
       def find(*args)
@@ -56,16 +57,16 @@ module ActiveRecord
         elsif @options[:finder_sql]
           if ids.size == 1
             id = ids.first
-            record = load_collection.detect { |record| id == record.id }
+            record = load_target.detect { |record| id == record.id }
             expects_array? ? [record] : record
           else
-            load_collection.select { |record| ids.include?(record.id) }
+            load_target.select { |record| ids.include?(record.id) }
           end
 
         # Otherwise, construct a query.
         else
           ids_list = ids.map { |id| @owner.send(:quote, id) }.join(',')
-          records = find_all_records(@finder_sql.sub(/ORDER BY/, "AND j.#{@association_foreign_key} IN (#{ids_list}) ORDER BY"))
+          records = find_target(@finder_sql.sub(/ORDER BY/, "AND j.#{@association_foreign_key} IN (#{ids_list}) ORDER BY"))
           if records.size == ids.size
             if ids.size == 1 and !expects_array
               records.first
@@ -82,7 +83,7 @@ module ActiveRecord
         raise_on_type_mismatch(record)
         insert_record_with_join_attributes(record, join_attributes)
         join_attributes.each { |key, value| record.send(:write_attribute, key, value) }
-        @collection << record if loaded?
+        @target << record
         self
       end
       
@@ -93,16 +94,17 @@ module ActiveRecord
       end
       
       protected
-        def find_all_records(sql = @finder_sql)
+        def find_target(sql = @finder_sql)
           records = @association_class.find_by_sql(sql)
           @options[:uniq] ? uniq(records) : records
         end
 
         def count_records
-          load_collection.size
+          load_target.size
         end
 
         def insert_record(record)
+          return false unless record.save
           if @options[:insert_sql]
             @owner.connection.execute(interpolate_sql(@options[:insert_sql], record))
           else
@@ -110,6 +112,7 @@ module ActiveRecord
                   "VALUES (#{@owner.quoted_id},#{record.quoted_id})"
             @owner.connection.execute(sql)
           end
+          true
         end
         
         def insert_record_with_join_attributes(record, join_attributes)
@@ -129,6 +132,16 @@ module ActiveRecord
             @owner.connection.execute(sql)
           end
         end
-      end
+
+        def construct_sql
+          interpolate_sql_options!(@options, :finder_sql, :delete_sql)
+          @finder_sql = @options[:finder_sql] ||
+                "SELECT t.*, j.* FROM #{@association_table_name} t, #{@join_table} j " +
+                "WHERE t.#{@association_class.primary_key} = j.#{@association_foreign_key} AND " +
+                "j.#{@association_class_primary_key_name} = #{@owner.quoted_id} " +
+                (@options[:conditions] ? " AND " + interpolate_sql(@options[:conditions]) : "") + " " +
+                "ORDER BY #{@order}"
+        end
+    end
   end
 end

@@ -789,7 +789,6 @@ module ActiveRecord #:nodoc:
       # * A record does exist: Updates the record with values matching those of the object attributes.
       def save
         create_or_update
-        return true
       end
     
       # Deletes the record in the database and freezes this instance to reflect that no changes should
@@ -928,9 +927,9 @@ module ActiveRecord #:nodoc:
         self.class.columns_hash[name.to_s]
       end
             
-      # Returns true if the +comparison_object+ is of the same type and has the same id.
+      # Returns true if the +comparison_object+ is the same object, or is of the same type and has the same id.
       def ==(comparison_object)
-        comparison_object.instance_of?(self.class) && comparison_object.id == id
+        comparison_object.equal?(self) or (comparison_object.instance_of?(self.class) and comparison_object.id == id)
       end
 
       # Delegates to ==
@@ -956,6 +955,7 @@ module ActiveRecord #:nodoc:
     private
       def create_or_update
         if new_record? then create else update end
+        return true
       end
 
       # Updates the associated record with values matching those of the instant attributes.

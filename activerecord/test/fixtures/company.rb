@@ -1,5 +1,7 @@
 class Company < ActiveRecord::Base
   attr_protected :rating
+
+  validates_presence_of :name
 end
 
 

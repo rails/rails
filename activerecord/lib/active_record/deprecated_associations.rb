@@ -18,7 +18,7 @@ module ActiveRecord
         end_eval
       end
     
-       def deprecated_remove_association_relation(association_name)# :nodoc:
+      def deprecated_remove_association_relation(association_name)# :nodoc:
         module_eval <<-"end_eval", __FILE__, __LINE__
           def remove_#{association_name}(*items)
             #{association_name}.delete(items)
@@ -50,7 +50,7 @@ module ActiveRecord
         end_eval
       end
     
-      def deprecated_create_method(collection_name)# :nodoc:
+      def deprecated_collection_create_method(collection_name)# :nodoc:
         module_eval <<-"end_eval", __FILE__, __LINE__
           def create_in_#{collection_name}(attributes = {})
             #{collection_name}.create(attributes)
@@ -58,13 +58,51 @@ module ActiveRecord
         end_eval
       end
     
-      def deprecated_build_method(collection_name)# :nodoc:
-          module_eval <<-"end_eval", __FILE__, __LINE__
-            def build_to_#{collection_name}(attributes = {})
-              #{collection_name}.build(attributes)
+      def deprecated_collection_build_method(collection_name)# :nodoc:
+        module_eval <<-"end_eval", __FILE__, __LINE__
+          def build_to_#{collection_name}(attributes = {})
+            #{collection_name}.build(attributes)
+          end
+        end_eval
+      end
+
+      def deprecated_association_comparison_method(association_name, association_class_name)
+        module_eval <<-"end_eval", __FILE__, __LINE__
+          def #{association_name}?(comparison_object, force_reload = false)
+            if comparison_object.kind_of?(#{association_class_name})
+              #{association_name}(force_reload) == comparison_object
+            else
+              raise "Comparison object is a #{association_class_name}, should have been \#{comparison_object.class.name}"
             end
-          end_eval
-        end
+          end
+        end_eval
+      end
+        
+      def deprecated_has_association_method(association_name)
+        module_eval <<-"end_eval", __FILE__, __LINE__
+          def has_#{association_name}?(force_reload = false)
+            !#{association_name}(force_reload).nil?
+          end
+        end_eval
+      end
+      
+      def deprecated_build_method(method_prefix, collection_name, collection_class_name, class_primary_key_name)
+        module_eval <<-"end_eval", __FILE__, __LINE__
+          def #{method_prefix + collection_name}(attributes = {})
+            association = #{collection_class_name}.new
+            association.attributes = attributes.merge({ "#{class_primary_key_name}" => id})
+            association
+          end
+        end_eval
+      end
+
+      def deprecated_create_method(method_prefix, collection_name, collection_class_name, class_primary_key_name)
+        module_eval <<-"end_eval", __FILE__, __LINE__
+          def #{method_prefix + collection_name}(attributes = nil)
+            #{collection_class_name}.create((attributes || {}).merge({ "#{class_primary_key_name}" => id}))
+          end
+        end_eval
+      end
     end
   end
 end

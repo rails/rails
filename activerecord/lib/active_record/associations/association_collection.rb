@@ -1,51 +1,34 @@
 module ActiveRecord
   module Associations
-    class AssociationCollection #:nodoc:
-      alias_method :proxy_respond_to?, :respond_to?
-      instance_methods.each { |m| undef_method m unless m =~ /(^__|^nil\?|^proxy_respond_to\?)/ }
-
-      def initialize(owner, association_name, association_class_name, association_class_primary_key_name, options)
-        @owner = owner
-        @options = options
-        @association_name = association_name
-        @association_class = eval(association_class_name)
-        @association_class_primary_key_name = association_class_primary_key_name
-      end
-      
-      def method_missing(symbol, *args, &block)
-        load_collection
-        @collection.send(symbol, *args, &block)
-      end
-  
+    class AssociationCollection < AssociationProxy #:nodoc:
       def to_ary
-        load_collection
-        @collection.to_ary
+        load_target
+        @target.to_ary
       end
   
-      def respond_to?(symbol, include_priv = false)
-        proxy_respond_to?(symbol, include_priv) || [].respond_to?(symbol, include_priv)
+      def reset
+        @target = []
+        @loaded = false
       end
 
-      def loaded?
-        !@collection.nil?
-      end
-      
       def reload
-        @collection = nil
+        reset
       end
 
       # Add +records+ to this association.  Returns +self+ so method calls may be chained.  
       # Since << flattens its argument list and inserts each record, +push+ and +concat+ behave identically.
       def <<(*records)
+        result = true
+        load_target
         @owner.transaction do
           flatten_deeper(records).each do |record|
             raise_on_type_mismatch(record)
-            insert_record(record)
-            @collection << record if loaded?
+            result &&= insert_record(record) unless @owner.new_record?
+            @target << record
           end
         end
 
-        self
+        result and self
       end
 
       alias_method :push, :<<
@@ -54,11 +37,13 @@ module ActiveRecord
       # Remove +records+ from this association.  Does not destroy +records+.
       def delete(*records)
         records = flatten_deeper(records)
+        records.each { |record| raise_on_type_mismatch(record) }
+        records.reject! { |record| @target.delete(record) if record.new_record? }
+        return if records.empty?
         
         @owner.transaction do
-          records.each { |record| raise_on_type_mismatch(record) }
           delete_records(records)
-          records.each { |record| @collection.delete(record) } if loaded?
+          records.each { |record| @target.delete(record) }
         end
       end
       
@@ -67,20 +52,27 @@ module ActiveRecord
           each { |record| record.destroy }
         end
 
-        @collection = []
+        @target = []
       end
       
+      def create(attributes = {})
+        # Can't use Base.create since the foreign key may be a protected attribute.
+        record = build(attributes)
+        record.save unless @owner.new_record?
+        record
+      end
+
       # Returns the size of the collection by executing a SELECT COUNT(*) query if the collection hasn't been loaded and
       # calling collection.size if it has. If it's more likely than not that the collection does have a size larger than zero
       # and you need to fetch that collection afterwards, it'll take one less SELECT query if you use length.
       def size
-        if loaded? then @collection.size else count_records end
+        if loaded? then @target.size else count_records end
       end
       
       # Returns the size of the collection by loading it and calling size on the array. If you want to use this method to check
       # whether the collection is empty, use collection.length.zero? instead of collection.empty?
       def length
-        load_collection.size
+        load_target.size
       end
       
       def empty?
@@ -91,11 +83,14 @@ module ActiveRecord
         collection.inject([]) { |uniq_records, record| uniq_records << record unless uniq_records.include?(record); uniq_records }
       end
 
-      protected
-        def loaded?
-          not @collection.nil?
-        end
+      def replace(other_array)
+        other_array.each{ |val| raise_on_type_mismatch(val) }
 
+        @target = other_array
+        @loaded = true
+      end
+
+      protected
         def quoted_record_ids(records)
           records.map { |record| record.quoted_id }.join(',')
         end
@@ -117,20 +112,12 @@ module ActiveRecord
         end
 
       private
-        def load_collection
-          if loaded?
-            @collection
-          else
-            begin
-              @collection = find_all_records
-            rescue ActiveRecord::RecordNotFound
-              @collection = []
-            end
-          end
-        end
-
         def raise_on_type_mismatch(record)
           raise ActiveRecord::AssociationTypeMismatch, "#{@association_class} expected, got #{record.class}" unless record.is_a?(@association_class)
+        end
+
+        def target_obsolete?
+          false
         end
 
         # Array#flatten has problems with rescursive arrays. Going one level deeper solves the majority of the problems.

@@ -2,37 +2,17 @@ module ActiveRecord
   module Associations
     class HasManyAssociation < AssociationCollection #:nodoc:
       def initialize(owner, association_name, association_class_name, association_class_primary_key_name, options)
-        super(owner, association_name, association_class_name, association_class_primary_key_name, options)
+        super
         @conditions = sanitize_sql(options[:conditions])
 
-        if options[:finder_sql]
-          @finder_sql = interpolate_sql(options[:finder_sql])
-        else
-          @finder_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id}"
-          @finder_sql << " AND #{interpolate_sql(@conditions)}" if @conditions
-        end
-
-        if options[:counter_sql]
-          @counter_sql = interpolate_sql(options[:counter_sql])
-        elsif options[:finder_sql]
-          options[:counter_sql] = options[:finder_sql].gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
-          @counter_sql = interpolate_sql(options[:counter_sql])
-        else
-          @counter_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id}#{@conditions ? " AND " + interpolate_sql(@conditions) : ""}"
-        end
-      end
-
-      def create(attributes = {})
-        # Can't use Base.create since the foreign key may be a protected attribute.
-        record = build(attributes)
-        record.save
-        @collection << record if loaded?
-        record
+        construct_sql
       end
 
       def build(attributes = {})
+        load_target
         record = @association_class.new(attributes)
-        record[@association_class_primary_key_name] = @owner.id
+        record[@association_class_primary_key_name] = @owner.id unless @owner.new_record?
+        @target << record
         record
       end
 
@@ -77,10 +57,10 @@ module ActiveRecord
         elsif @options[:finder_sql]
           if ids.size == 1
             id = ids.first
-            record = load_collection.detect { |record| id == record.id }
+            record = load_target.detect { |record| id == record.id }
             expects_array? ? [record] : record
           else
-            load_collection.select { |record| ids.include?(record.id) }
+            load_target.select { |record| ids.include?(record.id) }
           end
 
         # Otherwise, delegate to association class with conditions.
@@ -94,12 +74,12 @@ module ActiveRecord
       # method calls may be chained.
       def clear
         @association_class.update_all("#{@association_class_primary_key_name} = NULL", "#{@association_class_primary_key_name} = #{@owner.quoted_id}")
-        @collection = []
+        @target = []
         self
       end
 
       protected
-        def find_all_records
+        def find_target
           find_all
         end
 
@@ -122,7 +102,8 @@ module ActiveRecord
         end
 
         def insert_record(record)
-          record.update_attribute(@association_class_primary_key_name, @owner.id)
+          record[@association_class_primary_key_name] = @owner.id
+          record.save
         end
 
         def delete_records(records)
@@ -131,6 +112,29 @@ module ActiveRecord
             "#{@association_class_primary_key_name} = NULL", 
             "#{@association_class_primary_key_name} = #{@owner.quoted_id} AND #{@association_class.primary_key} IN (#{ids})"
           )
+        end
+
+        def target_obsolete?
+          false
+        end
+
+        def construct_sql
+          if @options[:finder_sql]
+            @finder_sql = interpolate_sql(@options[:finder_sql])
+          else
+            @finder_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id}"
+            @finder_sql << " AND #{interpolate_sql(@conditions)}" if @conditions
+          end
+
+          if @options[:counter_sql]
+            @counter_sql = interpolate_sql(@options[:counter_sql])
+          elsif @options[:finder_sql]
+            @options[:counter_sql] = @options[:finder_sql].gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
+            @counter_sql = interpolate_sql(@options[:counter_sql])
+          else
+            @counter_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id}"
+            @counter_sql << " AND #{interpolate_sql(@conditions)}" if @conditions
+          end
         end
     end
   end

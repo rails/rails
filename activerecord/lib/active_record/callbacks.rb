@@ -153,6 +153,12 @@ module ActiveRecord
   # to implement a simple performance constraint (50% more speed on a simple test case). Unlike all the other callbacks, after_find and
   # after_initialize can only be declared using an explicit implementation. So using the inheritable callback queue for after_find and
   # after_initialize won't work.
+  #
+  # == Cancelling callbacks
+  #
+  # If a before_* callback returns false, all the later callbacks and the associated action are cancelled. If an after_* callback returns
+  # false, all the later callbacks are cancelled. Callbacks are generally run in the order they are defined, with the exception of callbacks
+  # defined as methods on the model, which are called last.
   module Callbacks
     CALLBACKS = %w(
       after_find after_initialize before_save after_save before_create after_create before_update after_update before_validation
@@ -227,7 +233,7 @@ module ActiveRecord
     # Is called _after_ Base.save (regardless of whether it's a create or update save).
     def after_save()  end
     def create_or_update_with_callbacks #:nodoc:
-      callback(:before_save)
+      return false if callback(:before_save) == false
       result = create_or_update_without_callbacks
       callback(:after_save)
       result
@@ -239,7 +245,7 @@ module ActiveRecord
     # Is called _after_ Base.save on new objects that haven't been saved yet (no record exists).
     def after_create() end
     def create_with_callbacks #:nodoc:
-      callback(:before_create)
+      return false if callback(:before_create) == false
       result = create_without_callbacks
       callback(:after_create)
       result
@@ -252,7 +258,7 @@ module ActiveRecord
     def after_update() end
 
     def update_with_callbacks #:nodoc:
-      callback(:before_update)
+      return false if callback(:before_update) == false
       result = update_without_callbacks
       callback(:after_update)
       result
@@ -281,8 +287,9 @@ module ActiveRecord
     def after_validation_on_update()  end
 
     def valid_with_callbacks #:nodoc:
-      callback(:before_validation)
-      if new_record? then callback(:before_validation_on_create) else callback(:before_validation_on_update) end
+      return false if callback(:before_validation) == false
+      if new_record? then result = callback(:before_validation_on_create) else result = callback(:before_validation_on_update) end
+      return false if result == false
 
       result = valid_without_callbacks
 
@@ -298,7 +305,7 @@ module ActiveRecord
     # Is called _after_ Base.destroy (and all the attributes have been frozen).
     def after_destroy()  end
     def destroy_with_callbacks #:nodoc:
-      callback(:before_destroy)
+      return false if callback(:before_destroy) == false
       result = destroy_without_callbacks
       callback(:after_destroy)
       result
@@ -307,7 +314,7 @@ module ActiveRecord
     private
       def callback(method)
         callbacks_for(method).each do |callback|
-          case callback
+          result = case callback
             when Symbol
               self.send(callback)
             when String
@@ -321,9 +328,11 @@ module ActiveRecord
                 raise ActiveRecordError, "Callbacks must be a symbol denoting the method to call, a string to be evaluated, a block to be invoked, or an object responding to the callback method."
               end
           end
+          return false if result == false
         end
 
         invoke_and_notify(method)
+        true
       end
 
       def callbacks_for(method)
