@@ -1,404 +1,4 @@
 module ActiveRecord
-  # Active Records implement validation by overwriting Base#validate (or the variations, +validate_on_create+ and 
-  # +validate_on_update+). Each of these methods can inspect the state of the object, which usually means ensuring
-  # that a number of attributes have a certain value (such as not empty, within a given range, matching a certain regular expression).
-  #
-  # Example:
-  #
-  #   class Person < ActiveRecord::Base
-  #     protected
-  #       def validate
-  #         errors.add_on_empty %w( first_name last_name )
-  #         errors.add("phone_number", "has invalid format") unless phone_number =~ /[0-9]*/
-  #       end
-  #
-  #       def validate_on_create # is only run the first time a new object is saved
-  #         unless valid_discount?(membership_discount)
-  #           errors.add("membership_discount", "has expired")
-  #         end
-  #       end
-  #
-  #       def validate_on_update
-  #         errors.add_to_base("No changes have occurred") if unchanged_attributes?
-  #       end
-  #   end
-  #
-  #   person = Person.new("first_name" => "David", "phone_number" => "what?")
-  #   person.save                         # => false (and doesn't do the save)
-  #   person.errors.empty?                # => false
-  #   person.count                        # => 2
-  #   person.errors.on "last_name"        # => "can't be empty"
-  #   person.errors.on "phone_number"     # => "has invalid format"
-  #   person.each_full { |msg| puts msg } # => "Last name can't be empty\n" +
-  #                                            "Phone number has invalid format"
-  #
-  #   person.attributes = { "last_name" => "Heinemeier", "phone_number" => "555-555" }
-  #   person.save # => true (and person is now saved in the database)
-  #
-  # An +Errors+ object is automatically created for every Active Record.
-  #
-  # Please do have a look at ActiveRecord::Validations::ClassMethods for a higher level of validations.
-  module Validations
-    VALIDATIONS = %w( validate validate_on_create validate_on_update )
-    
-    def self.append_features(base) # :nodoc:
-      super
-
-      base.class_eval do
-        alias_method :save_without_validation, :save
-        alias_method :save, :save_with_validation
-
-        alias_method :update_attribute_without_validation_skipping, :update_attribute
-        alias_method :update_attribute, :update_attribute_with_validation_skipping
-
-        VALIDATIONS.each { |vd| base.class_eval("def self.#{vd}(*methods, &block) write_inheritable_array(\"#{vd}\", methods + [block].compact - (read_inheritable_attribute(\"#{vd}\") || [])) end") }
-      end
-      
-      base.extend(ClassMethods)
-    end
-
-    # All of the following validations are defined in the class scope of the model that you're interested in validating.
-    # They offer a more declarative way of specifying when the model is valid and when it is not. It is recommended to use
-    # these over the low-level calls to validate and validate_on_create when possible.
-    module ClassMethods
-      # Encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
-      #
-      #   Model:
-      #     class Person < ActiveRecord::Base
-      #       validates_confirmation_of :user_name, :password
-      #       validates_confirmation_of :email_address, :message => "should match confirmation"
-      #     end
-      #
-      #   View:
-      #     <%= password_field "person", "password" %>
-      #     <%= password_field "person", "password_confirmation" %>
-      #
-      # The person has to already have a password attribute (a column in the people table), but the password_confirmation is virtual.
-      # It exists only as an in-memory variable for validating the password. This check is performed only if password_confirmation
-      # is not nil and by default on save.
-      #
-      # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "doesn't match confirmation")
-      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
-      def validates_confirmation_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-
-        for attr_name in attr_names
-          attr_accessor "#{attr_name}_confirmation"
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', "#{configuration[:message]}") unless #{attr_name}_confirmation.nil? or #{attr_name} == #{attr_name}_confirmation}))
-        end
-      end
-
-      # Encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
-      #
-      #   class Person < ActiveRecord::Base
-      #     validates_acceptance_of :terms_of_service
-      #     validates_acceptance_of :eula, :message => "must be abided"
-      #   end
-      #
-      # The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed only if
-      # terms_of_service is not nil and by default on save.
-      #
-      # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "can't be empty")
-      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
-      #
-      # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
-      def validates_acceptance_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-
-        for attr_name in attr_names
-          attr_accessor(attr_name)
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', '#{configuration[:message]}') unless #{attr_name}.nil? or #{attr_name} == "1"}))
-        end
-      end
-
-      # Validates that the specified attributes are neither nil nor empty. Happens by default on save.
-      #
-      # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "has already been taken")
-      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
-      def validates_presence_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:empty], :on => :save }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-
-        for attr_name in attr_names
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add_on_empty('#{attr_name}', "#{configuration[:message]}")}))
-        end
-      end
-      
-      # Validates that the specified attribute matches the length restrictions supplied. Only one option can be used at a time:
-      #
-      #   class Person < ActiveRecord::Base
-      #     validates_length_of :first_name, :maximum=>30
-      #     validates_length_of :last_name, :maximum=>30, :message=>"less than %d if you don't mind"
-      #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
-      #     validates_length_of :fav_bra_size, :minimum=>1, :too_short=>"please enter at least %d character"
-      #     validates_length_of :smurf_leader, :is=>4, :message=>"papa is spelled with %d characters... don't play me."
-      #   end
-      #
-      # Configuration options:
-      # * <tt>minimum</tt> - The minimum size of the attribute
-      # * <tt>maximum</tt> - The maximum size of the attribute
-      # * <tt>is</tt> - The exact size of the attribute
-      # * <tt>within</tt> - A range specifying the minimum and maximum size of the attribute
-      # * <tt>in</tt> - A synonym(or alias) for :within
-      # 
-      # * <tt>too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (max is %d characters)")
-      # * <tt>too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)")
-      # * <tt>wrong_length</tt> - The error message if using the :is method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)")
-      # * <tt>message</tt> - The error message to use for a :minimum, :maximum, or :is violation.  An alias of the appropriate too_long/too_short/wrong_length message
-      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
-      def validates_length_of(*attr_names)
-        configuration = { :too_long => ActiveRecord::Errors.default_error_messages[:too_long], :too_short => ActiveRecord::Errors.default_error_messages[:too_short], :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length], :on => :save }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-
-        # you must use one of 4 options, :within, :maximum, :minimum, or :is
-        within = configuration[:within] || configuration[:in]
-        maximum = configuration[:maximum]
-        minimum = configuration[:minimum]
-        is = configuration[:is]
-        
-        raise(ArgumentError, "The :within, :maximum, :minimum, or :is options must be passed in the configuration hash") unless within or maximum or minimum or is
-        # but not more than 1 of them at a time
-        options_used = 0
-        options_used += 1 if within
-        options_used += 1 if maximum
-        options_used += 1 if minimum
-        options_used += 1 if is
-        raise(ArgumentError, "The :within, :maximum, :minimum, and :is options are mutually exclusive") if options_used > 1
-
-        option_to_use = within || maximum || minimum || is
-        for attr_name in attr_names
-          if within
-            raise(ArgumentError, "The :within option must be a Range") unless within.kind_of?(Range)
-            class_eval(%(#{validation_method(configuration[:on])} %{errors.add_on_boundary_breaking('#{attr_name}', #{within}, "#{configuration[:too_long]}", "#{configuration[:too_short]}")}))
-          elsif maximum
-            raise(ArgumentError, "The :maximum option must be a Fixnum") unless maximum.kind_of?(Fixnum)
-            msg = configuration[:message] || configuration[:too_long]
-            msg = (msg % maximum) rescue msg
-            class_eval(%(#{validation_method(configuration[:on])} %{errors.add( '#{attr_name}', '#{msg}') if #{attr_name}.to_s.length > #{maximum}  }))
-          elsif minimum
-            raise(ArgumentError, "The :minimum option must be a Fixnum") unless minimum.kind_of?(Fixnum)
-            msg = configuration[:message] || configuration[:too_short]
-            msg = (msg % minimum) rescue msg
-            class_eval(%(#{validation_method(configuration[:on])} %{errors.add( '#{attr_name}', '#{msg}') if #{attr_name}.to_s.length < #{minimum}  }))
-          else
-            raise(ArgumentError, "The :is option must be a Fixnum") unless is.kind_of?(Fixnum)
-            msg = configuration[:message] || configuration[:wrong_length]
-            msg = (msg % is) rescue msg
-            class_eval(%(#{validation_method(configuration[:on])} %{errors.add( '#{attr_name}', '#{msg}') if #{attr_name}.to_s.length != #{is}  }))
-          end
-        end        
-      end
-
-      # Validates whether the value of the specified attributes are unique across the system. Useful for making sure that only one user
-      # can be named "davidhh".
-      #
-      #   class Person < ActiveRecord::Base
-      #     validates_uniqueness_of :user_name, :scope => "account_id"
-      #   end
-      #
-      # When the record is created, a check is performed to make sure that no record exist in the database with the given value for the specified
-      # attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
-      #
-      # Configuration options:
-      # * <tt>message</tt> - Specifies a custom error message (default is: "has already been taken")
-      # * <tt>scope</tt> - Ensures that the uniqueness is restricted to a condition of "scope = record.scope"
-      def validates_uniqueness_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken] }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-
-        for attr_name in attr_names
-          if scope = configuration[:scope]
-            class_eval(%(validate %{errors.add('#{attr_name}', '#{configuration[:message]}') if self.class.find_first(new_record? ? ['#{attr_name} = ? AND #{scope} = ?', #{attr_name}, #{scope}] : ["#{attr_name} = ? AND \\\#{self.class.primary_key} <> ? AND #{scope} = ?", #{attr_name}, id, #{scope}])}))
-          else
-            class_eval(%(validate %{errors.add('#{attr_name}', '#{configuration[:message]}') if self.class.find_first(new_record? ? ['#{attr_name} = ?', #{attr_name}] : ["#{attr_name} = ? AND \\\#{self.class.primary_key} <> ?", #{attr_name}, id])}))
-          end
-        end
-      end
-      
-      # Validates whether the value of the specified attribute is of the correct form by matching it against the regular expression 
-      # provided.
-      #
-      #   class Person < ActiveRecord::Base
-      #     validates_format_of :email, :with => /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/, :on => :create
-      #   end
-      #
-      # A regular expression must be provided or else an exception will be raised.
-      #
-      # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "is invalid")
-      # * <tt>with</tt> - The regular expression used to validate the format with (note: must be supplied!)
-      # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
-      def validates_format_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save, :with => nil }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-
-        raise(ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash") unless configuration[:with].is_a?(Regexp)
-
-        for attr_name in attr_names 
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name} and #{attr_name}.to_s.match(/#{Regexp.quote(configuration[:with].source)}/)}))
-        end
-      end
-
-      # Validates whether the value of the specified attribute is available in a particular enumerable object.
-      #
-      #   class Person < ActiveRecord::Base
-      #     validates_inclusion_of :gender, :in=>%w( m f ), :message=>"woah! what are you then!??!!"
-      #     validates_inclusion_of :age, :in=>0..99
-      #   end
-      #
-      # Configuration options:
-      # * <tt>in</tt> - An enumerable object of available items
-      # * <tt>message</tt> - Specifies a customer error message (default is: "is not included in the list")
-      # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
-      def validates_inclusion_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-        enum = configuration[:in] || configuration[:within]
-        allow_nil = configuration[:allow_nil]
-
-        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
-
-        for attr_name in attr_names
-          if allow_nil
-            class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name}.nil? or (#{enum.inspect}).include?(#{attr_name}) }))
-          else
-            class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless (#{enum.inspect}).include?(#{attr_name}) }))
-          end
-        end
-      end
-
-      # Validates whether the associated object or objects are all themselves valid. Works with any kind of association.
-      #
-      #   class Book < ActiveRecord::Base
-      #     has_many :pages
-      #     belongs_to :library
-      #
-      #     validates_associated :pages, :library
-      #   end
-      #
-      # Warning: If, after the above definition, you then wrote:
-      #
-      #   class Page < ActiveRecord::Base
-      #     belongs_to :book
-      #
-      #     validates_associated :book
-      #   end
-      #
-      # this would specify a circular dependency and cause infinite recursion. The Rails team recommends against this practice.
-      #
-      # Configuration options:
-      # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
-      def validates_associated(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save }
-        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-        
-        for attr_name in attr_names
-          class_eval(%(#{validation_method(configuration[:on])} %{
-            errors.add("#{attr_name}", "#{configuration[:message]}") unless
-              (#{attr_name}.is_a?(Array) ? #{attr_name} : [#{attr_name}]).inject(true){ |memo, record| (record.nil? or record.valid?) and memo }
-          }))
-        end
-      end
-      
-
-      private
-        def validation_method(on)
-          case on
-            when :save   then :validate
-            when :create then :validate_on_create
-            when :update then :validate_on_update
-          end
-        end
-    end
-
-    # The validation process on save can be skipped by passing false. The regular Base#save method is
-    # replaced with this when the validations module is mixed in, which it is by default.
-    def save_with_validation(perform_validation = true)
-      if perform_validation && valid? || !perform_validation then save_without_validation else false end
-    end
-
-    # Updates a single attribute and saves the record without going through the normal validation procedure.
-    # This is especially useful for boolean flags on existing records. The regular +update_attribute+ method
-    # in Base is replaced with this when the validations module is mixed in, which it is by default.
-    def update_attribute_with_validation_skipping(name, value)
-      self[name] = value
-      save(false)
-    end
-
-    # Runs validate and validate_on_create or validate_on_update and returns true if no errors were added otherwise false.
-    def valid?
-      errors.clear
-
-      run_validations(:validate)
-      validate
-
-      if new_record?
-        run_validations(:validate_on_create)
-        validate_on_create 
-      else
-        run_validations(:validate_on_update)
-        validate_on_update
-      end
-
-      errors.empty?
-    end
-
-    # Returns the Errors object that holds all information about attribute error messages.
-    def errors
-      @errors = Errors.new(self) if @errors.nil?
-      @errors
-    end
-
-    protected
-      # Overwrite this method for validation checks on all saves and use Errors.add(field, msg) for invalid attributes.
-      def validate #:doc:
-      end 
-
-      # Overwrite this method for validation checks used only on creation.
-      def validate_on_create #:doc:
-      end
-
-      # Overwrite this method for validation checks used only on updates.
-      def validate_on_update # :doc:
-      end
-
-    private
-      def run_validations(validation_method)
-        validations = self.class.read_inheritable_attribute(validation_method.to_s)
-        if validations.nil? then return end
-        validations.each do |validation|
-          if validation.is_a?(Symbol)
-            self.send(validation)
-          elsif validation.is_a?(String)
-            eval(validation, binding)
-          elsif validation_block?(validation)
-            validation.call(self)
-          elsif validation_class?(validation, validation_method)
-            validation.send(validation_method, self)
-          else
-            raise(
-              ActiveRecordError,
-              "Validations need to be either a symbol, string (to be eval'ed), proc/method, or " +
-              "class implementing a static validation method"
-            )
-          end
-        end
-      end
-
-      def validation_block?(validation)
-        validation.respond_to?("call") && (validation.arity == 1 || validation.arity == -1)
-      end
-
-      def validation_class?(validation, validation_method)
-        validation.respond_to?(validation_method)
-      end
-  end
-
   # Active Record validation is reported to and from this object, which is used by Base#save to
   # determine whether the object in a valid state to be saved. See usage example in Validations.
   class Errors
@@ -530,5 +130,478 @@ module ActiveRecord
       @errors.each_value { |attribute| error_count += attribute.length }
       error_count
     end
+  end
+
+
+  # Active Records implement validation by overwriting Base#validate (or the variations, +validate_on_create+ and 
+  # +validate_on_update+). Each of these methods can inspect the state of the object, which usually means ensuring
+  # that a number of attributes have a certain value (such as not empty, within a given range, matching a certain regular expression).
+  #
+  # Example:
+  #
+  #   class Person < ActiveRecord::Base
+  #     protected
+  #       def validate
+  #         errors.add_on_empty %w( first_name last_name )
+  #         errors.add("phone_number", "has invalid format") unless phone_number =~ /[0-9]*/
+  #       end
+  #
+  #       def validate_on_create # is only run the first time a new object is saved
+  #         unless valid_discount?(membership_discount)
+  #           errors.add("membership_discount", "has expired")
+  #         end
+  #       end
+  #
+  #       def validate_on_update
+  #         errors.add_to_base("No changes have occurred") if unchanged_attributes?
+  #       end
+  #   end
+  #
+  #   person = Person.new("first_name" => "David", "phone_number" => "what?")
+  #   person.save                         # => false (and doesn't do the save)
+  #   person.errors.empty?                # => false
+  #   person.count                        # => 2
+  #   person.errors.on "last_name"        # => "can't be empty"
+  #   person.errors.on "phone_number"     # => "has invalid format"
+  #   person.each_full { |msg| puts msg } # => "Last name can't be empty\n" +
+  #                                            "Phone number has invalid format"
+  #
+  #   person.attributes = { "last_name" => "Heinemeier", "phone_number" => "555-555" }
+  #   person.save # => true (and person is now saved in the database)
+  #
+  # An +Errors+ object is automatically created for every Active Record.
+  #
+  # Please do have a look at ActiveRecord::Validations::ClassMethods for a higher level of validations.
+  module Validations
+    VALIDATIONS = %w( validate validate_on_create validate_on_update )
+
+    def self.append_features(base) # :nodoc:
+      super
+      base.extend ClassMethods
+      base.class_eval do
+        alias_method :save_without_validation, :save
+        alias_method :save, :save_with_validation
+
+        alias_method :update_attribute_without_validation_skipping, :update_attribute
+        alias_method :update_attribute, :update_attribute_with_validation_skipping
+      end
+    end
+
+    # All of the following validations are defined in the class scope of the model that you're interested in validating.
+    # They offer a more declarative way of specifying when the model is valid and when it is not. It is recommended to use
+    # these over the low-level calls to validate and validate_on_create when possible.
+    module ClassMethods
+      def validate(*methods, &block)
+        methods << block if block_given?
+        write_inheritable_set(:validate, methods)
+      end
+
+      def validate_on_create(*methods, &block)
+        methods << block if block_given?
+        write_inheritable_set(:validate_on_create, methods)
+      end
+
+      def validate_on_update(*methods, &block)
+        methods << block if block_given?
+        write_inheritable_set(:validate_on_update, methods)
+      end
+
+      # Encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
+      #
+      #   Model:
+      #     class Person < ActiveRecord::Base
+      #       validates_confirmation_of :user_name, :password
+      #       validates_confirmation_of :email_address, :message => "should match confirmation"
+      #     end
+      #
+      #   View:
+      #     <%= password_field "person", "password" %>
+      #     <%= password_field "person", "password_confirmation" %>
+      #
+      # The person has to already have a password attribute (a column in the people table), but the password_confirmation is virtual.
+      # It exists only as an in-memory variable for validating the password. This check is performed only if password_confirmation
+      # is not nil and by default on save.
+      #
+      # Configuration options:
+      # * <tt>message</tt> - A custom error message (default is: "doesn't match confirmation")
+      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
+      def validates_confirmation_of(*attr_names)
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
+        for attr_name in attr_names
+          attr_accessor "#{attr_name}_confirmation"
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', "#{configuration[:message]}") unless #{attr_name}_confirmation.nil? or #{attr_name} == #{attr_name}_confirmation}))
+        end
+      end
+
+      # Encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_acceptance_of :terms_of_service
+      #     validates_acceptance_of :eula, :message => "must be abided"
+      #   end
+      #
+      # The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed only if
+      # terms_of_service is not nil and by default on save.
+      #
+      # Configuration options:
+      # * <tt>message</tt> - A custom error message (default is: "can't be empty")
+      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
+      #
+      # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
+      def validates_acceptance_of(*attr_names)
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
+        for attr_name in attr_names
+          attr_accessor(attr_name)
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', '#{configuration[:message]}') unless #{attr_name}.nil? or #{attr_name} == "1"}))
+        end
+      end
+
+      # Validates that the specified attributes are neither nil nor empty. Happens by default on save.
+      #
+      # Configuration options:
+      # * <tt>message</tt> - A custom error message (default is: "has already been taken")
+      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
+      def validates_presence_of(*attr_names)
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:empty], :on => :save }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
+        for attr_name in attr_names
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add_on_empty('#{attr_name}', "#{configuration[:message]}")}))
+        end
+      end
+
+
+      DEFAULT_VALIDATION_OPTIONS = {
+        :on => :save,
+        :allow_nil => false,
+        :message => nil
+      }.freeze
+
+      DEFAULT_SIZE_VALIDATION_OPTIONS = DEFAULT_VALIDATION_OPTIONS.merge(
+        :too_long => ActiveRecord::Errors.default_error_messages[:too_long],
+        :too_short => ActiveRecord::Errors.default_error_messages[:too_short],
+        :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length]
+      ).freeze
+
+      ALL_RANGE_OPTIONS = [ :is, :within, :in, :minimum, :maximum ].freeze
+
+
+      # Validates each attribute against a block.
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_each :first_name, :last_name do |record, attr|
+      #       record.errors.add attr, 'starts with z.' if attr[0] == ?z
+      #     end
+      #   end
+      #
+      # Options:
+      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>allow_nil</tt> - Skip validation if attribute is nil.
+      def validates_each(*attrs)
+        options = attrs.last.is_a?(Hash) ? attrs.pop.symbolize_keys : {}
+        attrs = attrs.flatten
+
+        # Declare the validation.
+        send(validation_method(options[:on] || :save)) do |record|
+          attrs.each do |attr|
+            value = record.send(attr)
+            next if value.nil? && options[:allow_nil]
+            yield record, attr, value
+          end
+        end
+      end
+
+
+      # Validates that the specified attribute matches the length restrictions supplied. Only one option can be used at a time:
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_length_of :first_name, :maximum=>30
+      #     validates_length_of :last_name, :maximum=>30, :message=>"less than %d if you don't mind"
+      #     validates_length_of :fax, :in => 7..32, :allow_nil => true
+      #     validates_length_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
+      #     validates_length_of :fav_bra_size, :minimum=>1, :too_short=>"please enter at least %d character"
+      #     validates_length_of :smurf_leader, :is=>4, :message=>"papa is spelled with %d characters... don't play me."
+      #   end
+      #
+      # Configuration options:
+      # * <tt>minimum</tt> - The minimum size of the attribute
+      # * <tt>maximum</tt> - The maximum size of the attribute
+      # * <tt>is</tt> - The exact size of the attribute
+      # * <tt>within</tt> - A range specifying the minimum and maximum size of the attribute
+      # * <tt>in</tt> - A synonym(or alias) for :within
+      # * <tt>allow_nil</tt> - Attribute may be nil; skip validation.
+      #
+      # * <tt>too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (max is %d characters)")
+      # * <tt>too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)")
+      # * <tt>wrong_length</tt> - The error message if using the :is method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)")
+      # * <tt>message</tt> - The error message to use for a :minimum, :maximum, or :is violation.  An alias of the appropriate too_long/too_short/wrong_length message
+      # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
+      def validates_length_of(*attrs)
+        # Merge given options with defaults.
+        options = DEFAULT_SIZE_VALIDATION_OPTIONS.dup
+        options.update(attrs.pop.symbolize_keys) if attrs.last.is_a?(Hash)
+
+        # Ensure that one and only one range option is specified.
+        range_options = ALL_RANGE_OPTIONS & options.keys
+        case range_options.size
+        when 0
+          raise ArgumentError, 'Range unspecified.  Specify the :within, :maximum, :minimum, or :is option.'
+        when 1
+          # Valid number of options; do nothing.
+        else
+          raise ArgumentError, 'Too many range options specified.  Choose only one.'
+        end
+
+        # Get range option and value.
+        option = range_options.first
+        option_value = options[range_options.first]
+
+        # Declare different validations per option.
+        case range_options.first
+        when :within, :in
+          raise ArgumentError, ':within must be a Range' unless option_value.is_a?(Range)
+          validates_each(attrs, options) do |record, attr|
+            next if record.send(attr).nil? and options[:allow_nil]
+            record.errors.add_on_boundary_breaking(attr, option_value, options[:too_long], options[:too_short])
+          end
+        when :is
+          raise ArgumentError, ':is must be a nonnegative Integer' unless option_value.is_a?(Integer) and option_value >= 0
+          message = options[:message] || options[:wrong_length]
+          message = (message % option_value) rescue message
+          validates_each(attrs, options) do |record, attr, value|
+            record.errors.add(attr, message) if value.nil? or value.size != option_value
+          end
+        when :minimum
+          raise ArgumentError, ':minimum must be a nonnegative Integer' unless option_value.is_a?(Integer) and option_value >= 0
+          message = options[:message] || options[:too_short]
+          message = (message % option_value) rescue message
+          validates_each(attrs, options) do |record, attr, value|
+            record.errors.add(attr, message) if value.nil? or value.size < option_value
+          end
+        when :maximum
+          raise ArgumentError, ':maximum must be a nonnegative Integer' unless option_value.is_a?(Integer) and option_value >= 0
+          message = options[:message] || options[:too_long]
+          message = (message % option_value) rescue message
+          validates_each(attrs, options) do |record, attr, value|
+            record.errors.add(attr, message) if value.nil? or value.size > option_value
+          end
+        end
+      end
+
+      alias_method :validates_size_of, :validates_length_of
+
+
+      # Validates whether the value of the specified attributes are unique across the system. Useful for making sure that only one user
+      # can be named "davidhh".
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_uniqueness_of :user_name, :scope => "account_id"
+      #   end
+      #
+      # When the record is created, a check is performed to make sure that no record exist in the database with the given value for the specified
+      # attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
+      #
+      # Configuration options:
+      # * <tt>message</tt> - Specifies a custom error message (default is: "has already been taken")
+      # * <tt>scope</tt> - Ensures that the uniqueness is restricted to a condition of "scope = record.scope"
+      def validates_uniqueness_of(*attr_names)
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken] }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
+        for attr_name in attr_names
+          if scope = configuration[:scope]
+            class_eval(%(validate %{errors.add('#{attr_name}', '#{configuration[:message]}') if self.class.find_first(new_record? ? ['#{attr_name} = ? AND #{scope} = ?', #{attr_name}, #{scope}] : ["#{attr_name} = ? AND \\\#{self.class.primary_key} <> ? AND #{scope} = ?", #{attr_name}, id, #{scope}])}))
+          else
+            class_eval(%(validate %{errors.add('#{attr_name}', '#{configuration[:message]}') if self.class.find_first(new_record? ? ['#{attr_name} = ?', #{attr_name}] : ["#{attr_name} = ? AND \\\#{self.class.primary_key} <> ?", #{attr_name}, id])}))
+          end
+        end
+      end
+      
+      # Validates whether the value of the specified attribute is of the correct form by matching it against the regular expression 
+      # provided.
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_format_of :email, :with => /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/, :on => :create
+      #   end
+      #
+      # A regular expression must be provided or else an exception will be raised.
+      #
+      # Configuration options:
+      # * <tt>message</tt> - A custom error message (default is: "is invalid")
+      # * <tt>with</tt> - The regular expression used to validate the format with (note: must be supplied!)
+      # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
+      def validates_format_of(*attr_names)
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save, :with => nil }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
+        raise(ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash") unless configuration[:with].is_a?(Regexp)
+
+        for attr_name in attr_names 
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name} and #{attr_name}.to_s.match(/#{Regexp.quote(configuration[:with].source)}/)}))
+        end
+      end
+
+      # Validates whether the value of the specified attribute is available in a particular enumerable object.
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_inclusion_of :gender, :in=>%w( m f ), :message=>"woah! what are you then!??!!"
+      #     validates_inclusion_of :age, :in=>0..99
+      #   end
+      #
+      # Configuration options:
+      # * <tt>in</tt> - An enumerable object of available items
+      # * <tt>message</tt> - Specifies a customer error message (default is: "is not included in the list")
+      # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
+      def validates_inclusion_of(*attr_names)
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        enum = configuration[:in] || configuration[:within]
+        allow_nil = configuration[:allow_nil]
+
+        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
+
+        for attr_name in attr_names
+          if allow_nil
+            class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name}.nil? or (#{enum.inspect}).include?(#{attr_name}) }))
+          else
+            class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless (#{enum.inspect}).include?(#{attr_name}) }))
+          end
+        end
+      end
+
+      # Validates whether the associated object or objects are all themselves valid. Works with any kind of association.
+      #
+      #   class Book < ActiveRecord::Base
+      #     has_many :pages
+      #     belongs_to :library
+      #
+      #     validates_associated :pages, :library
+      #   end
+      #
+      # Warning: If, after the above definition, you then wrote:
+      #
+      #   class Page < ActiveRecord::Base
+      #     belongs_to :book
+      #
+      #     validates_associated :book
+      #   end
+      #
+      # this would specify a circular dependency and cause infinite recursion. The Rails team recommends against this practice.
+      #
+      # Configuration options:
+      # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
+      def validates_associated(*attr_names)
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        
+        for attr_name in attr_names
+          class_eval(%(#{validation_method(configuration[:on])} %{
+            errors.add("#{attr_name}", "#{configuration[:message]}") unless
+              (#{attr_name}.is_a?(Array) ? #{attr_name} : [#{attr_name}]).inject(true){ |memo, record| (record.nil? or record.valid?) and memo }
+          }))
+        end
+      end
+      
+
+      private
+        def write_inheritable_set(key, methods)
+          existing_methods = read_inheritable_attribute(key) || []
+          write_inheritable_attribute(key, methods | existing_methods)
+        end
+
+        def validation_method(on)
+          case on
+            when :save   then :validate
+            when :create then :validate_on_create
+            when :update then :validate_on_update
+          end
+        end
+    end
+
+    # The validation process on save can be skipped by passing false. The regular Base#save method is
+    # replaced with this when the validations module is mixed in, which it is by default.
+    def save_with_validation(perform_validation = true)
+      if perform_validation && valid? || !perform_validation then save_without_validation else false end
+    end
+
+    # Updates a single attribute and saves the record without going through the normal validation procedure.
+    # This is especially useful for boolean flags on existing records. The regular +update_attribute+ method
+    # in Base is replaced with this when the validations module is mixed in, which it is by default.
+    def update_attribute_with_validation_skipping(name, value)
+      self[name] = value
+      save(false)
+    end
+
+    # Runs validate and validate_on_create or validate_on_update and returns true if no errors were added otherwise false.
+    def valid?
+      errors.clear
+
+      run_validations(:validate)
+      validate
+
+      if new_record?
+        run_validations(:validate_on_create)
+        validate_on_create 
+      else
+        run_validations(:validate_on_update)
+        validate_on_update
+      end
+
+      errors.empty?
+    end
+
+    # Returns the Errors object that holds all information about attribute error messages.
+    def errors
+      @errors = Errors.new(self) if @errors.nil?
+      @errors
+    end
+
+    protected
+      # Overwrite this method for validation checks on all saves and use Errors.add(field, msg) for invalid attributes.
+      def validate #:doc:
+      end 
+
+      # Overwrite this method for validation checks used only on creation.
+      def validate_on_create #:doc:
+      end
+
+      # Overwrite this method for validation checks used only on updates.
+      def validate_on_update # :doc:
+      end
+
+    private
+      def run_validations(validation_method)
+        validations = self.class.read_inheritable_attribute(validation_method.to_sym)
+        if validations.nil? then return end
+        validations.each do |validation|
+          if validation.is_a?(Symbol)
+            self.send(validation)
+          elsif validation.is_a?(String)
+            eval(validation, binding)
+          elsif validation_block?(validation)
+            validation.call(self)
+          elsif validation_class?(validation, validation_method)
+            validation.send(validation_method, self)
+          else
+            raise(
+              ActiveRecordError,
+              "Validations need to be either a symbol, string (to be eval'ed), proc/method, or " +
+              "class implementing a static validation method"
+            )
+          end
+        end
+      end
+
+      def validation_block?(validation)
+        validation.respond_to?("call") && (validation.arity == 1 || validation.arity == -1)
+      end
+
+      def validation_class?(validation, validation_method)
+        validation.respond_to?(validation_method)
+      end
   end
 end
