@@ -69,7 +69,7 @@ module ActionView
         # Returns the text with all the Textile codes turned into HTML-tags.
         # <i>This method is only available if RedCloth can be required</i>.
         def textilize(text)
-          text.empty? ? "" : RedCloth.new(text, [ :hard_breaks ]).to_html
+          text.blank? ? "" : RedCloth.new(text, [ :hard_breaks ]).to_html
         end
 
         # Returns the text with all the Textile codes turned into HTML-tags, but without the regular bounding <p> tag.
