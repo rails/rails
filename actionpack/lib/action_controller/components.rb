@@ -8,7 +8,7 @@ module ActionController #:nodoc:
     protected
       def render_component(options = {}) #:doc:
         response = component_response(options)
-        render_text(response.body, response.response_code)
+        render_text(response.body, response.headers["Status"])
       end
   
     private
