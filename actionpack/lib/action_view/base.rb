@@ -251,7 +251,7 @@ module ActionView #:nodoc:
       end
 
       def rhtml_render(template, binding)
-        @@compiled_erb_templates[template] ||= ERB.new(template)
+        @@compiled_erb_templates[template] ||= ERB.new(template, nil, '-')
         @@compiled_erb_templates[template].result(binding)
       end
 

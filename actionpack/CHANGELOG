@@ -1,5 +1,37 @@
 *SVN*
 
+* Added option to ERB templates to swallow newlines by using <% if something -%> instead of just <% if something %>. Example:
+
+    class SomeController < AbstractApplicationController
+    <% if options[:scaffold] %>
+      scaffold :<%= singular_name %>
+    <% end %>
+      helper :post
+  
+  ...produces this on post as singular_name:
+
+    class SomeController < AbstractApplicationController
+    
+      scaffold :post
+    
+      helper :post
+  
+  ...where as:
+
+    class SomeController < AbstractApplicationController
+    <% if options[:scaffold] -%>
+      scaffold :<%= singular_name %>
+    <% end -%>
+      helper :post
+  
+  ...produces:
+
+    class SomeController < AbstractApplicationController
+      scaffold :post
+      helper :post
+  
+  [This undocumented gem for ERb was uncovered by bitsweat]
+
 * Fixed CgiRequest so that it'll now accept session options with Symbols as keys (as the documentation points out) [Suggested by Andreas]
 
 * Added that render_partial will always by default include a counter with value 1 unless there is a counter passed in via the 
