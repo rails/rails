@@ -13,7 +13,7 @@ module ActiveRecord
         raise ArgumentError, "No database file specified. Missing argument: dbfile"
       end
       
-      config[:dbfile] = File.join(RAILS_ROOT, config[:dbfile]) if config[:dbfile] =~ /^\w/ && Object.const_defined?(:RAILS_ROOT)
+      config[:dbfile] = File.expand_path(config[:dbfile], RAILS_ROOT) if Object.const_defined?(:RAILS_ROOT)
       db = SQLite::Database.new(config[:dbfile], 0)
 
       db.show_datatypes   = "ON" if !defined? SQLite::Version
