@@ -87,6 +87,22 @@ module ActiveRecord
     #
     # * <tt>:dbfile</tt> -- Path to the database file.
     class SQLiteAdapter < AbstractAdapter
+      def native_database_types
+        {
+          :primary_key => "INTEGER PRIMARY KEY NOT NULL",
+          :string      => "VARCHAR(255)",
+          :text        => "TEXT",
+          :integer     => "INTEGER",
+          :float       => "float",
+          :datetime    => "DATETIME",
+          :timestamp   => "DATETIME",
+          :time        => "DATETIME",
+          :date        => "DATE",
+          :binary      => "BLOB",
+          :boolean     => "INTEGER"
+        }
+      end
+
       def execute(sql, name = nil)
         log(sql, name) { @connection.execute(sql) }
       end
@@ -149,6 +165,7 @@ module ActiveRecord
       def adapter_name()
         'SQLite'
       end
+
 
       protected
         def table_structure(table_name)

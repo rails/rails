@@ -63,12 +63,33 @@ module ActiveRecord
         "Lost connection to MySQL server during query", 
         "MySQL server has gone away"
       ]
-      
+
+      def native_database_types
+        {
+          :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
+          :string      => "varchar(255)",
+          :text        => "text",
+          :integer     => "int(11)",
+          :float       => "float",
+          :datetime    => "datetime",
+          :timestamp   => "datetime",
+          :time        => "datetime",
+          :date        => "date",
+          :binary      => "blob",
+          :boolean     => "tinyint(1)"
+        }
+      end
+
       def initialize(connection, logger, connection_options=nil)
         super(connection, logger)
         @connection_options = connection_options
       end
  
+      def adapter_name
+        'MySQL'
+      end
+
+
       def select_all(sql, name = nil)
         select(sql, name)
       end
@@ -111,6 +132,7 @@ module ActiveRecord
  
       alias_method :delete, :update
  
+ 
       def begin_db_transaction
         begin
           execute "BEGIN"
@@ -134,15 +156,17 @@ module ActiveRecord
           # Transactions aren't supported
         end
       end
+
  
       def quote_column_name(name)
         return "`#{name}`"
       end
  
-      def adapter_name()
-        'MySQL'
+      def quote_string(s)
+        Mysql::quote(s)
       end
- 
+
+
       def structure_dump
         select_all("SHOW TABLES").inject("") do |structure, table|
           structure += select_one("SHOW CREATE TABLE #{table.to_a.first.last}")["Create Table"] + ";\n\n"
@@ -161,11 +185,8 @@ module ActiveRecord
       def create_database(name)
         execute "CREATE DATABASE #{name}"
       end
- 
-      def quote_string(s)
-        Mysql::quote(s)
-      end
- 
+
+
       private
         def select(sql, name = nil)
           result = nil

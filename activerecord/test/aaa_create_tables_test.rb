@@ -45,13 +45,13 @@ class CreateTablesTest < Test::Unit::TestCase
 
   def test_table_creation
     adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
-    run_sql_file ActiveRecord::Base.connection, "test/fixtures/db_definitions/" + adapter_name + ".drop.sql"
-    run_sql_file ActiveRecord::Base.connection, "test/fixtures/db_definitions/" + adapter_name + ".sql"
+    run_sql_file ActiveRecord::Base.connection, "#{File.dirname(__FILE__)}/fixtures/db_definitions/" + adapter_name + ".drop.sql"
+    run_sql_file ActiveRecord::Base.connection, "#{File.dirname(__FILE__)}/fixtures/db_definitions/" + adapter_name + ".sql"
 
     # Now do the same thing with the connection used by multiple_db_test.rb
     adapter_name = Course.retrieve_connection.adapter_name.downcase
-    run_sql_file Course.retrieve_connection, "test/fixtures/db_definitions/" + adapter_name + "2.drop.sql"
-    run_sql_file Course.retrieve_connection, "test/fixtures/db_definitions/" + adapter_name + "2.sql"
+    run_sql_file Course.retrieve_connection, "#{File.dirname(__FILE__)}/fixtures/db_definitions/" + adapter_name + "2.drop.sql"
+    run_sql_file Course.retrieve_connection, "#{File.dirname(__FILE__)}/fixtures/db_definitions/" + adapter_name + "2.sql"
     
     assert_equal 1,1
   end

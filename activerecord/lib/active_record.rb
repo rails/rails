@@ -47,6 +47,7 @@ require 'active_record/timestamp'
 require 'active_record/acts/list'
 require 'active_record/acts/tree'
 require 'active_record/locking'
+require 'active_record/migration'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations

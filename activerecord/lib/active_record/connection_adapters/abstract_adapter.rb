@@ -356,6 +356,38 @@ module ActiveRecord
         sql << " LIMIT #{limit}"
       end
 
+
+      def initialize_schema_information
+        begin
+          execute "CREATE TABLE schema_info (version #{native_database_types[:integer]})"
+          insert "INSERT INTO schema_info (version) VALUES(0)"
+        rescue ActiveRecord::StatementInvalid
+          # Schema has been intialized
+        end
+      end
+
+      def create_table(name)
+        execute "CREATE TABLE #{name} (id #{native_database_types[:primary_key]})"
+        table_definition = yield TableDefinition.new
+        table_definition.columns.each { |column_name, type, options| add_column(name, column_name, type, options) }
+      end
+
+      def drop_table(name)
+        execute "DROP TABLE #{name}"
+      end
+
+      def add_column(table_name, column_name, type, options = {})
+        add_column_sql = "ALTER TABLE #{table_name} ADD #{column_name} #{native_database_types[type]}"
+        add_column_sql << "(#{limit})" if options[:limit]
+        add_column_sql << " DEFAULT '#{options[:default]}'" if options[:default]
+        execute(add_column_sql)
+      end
+
+      def remove_column(table_name, column_name)
+        execute "ALTER TABLE #{table_name} DROP #{column_name}"
+      end
+
+
       protected
         def log(sql, name, connection = nil)
           connection ||= @connection
@@ -402,6 +434,18 @@ module ActiveRecord
           log_entry
         end
     end
-    
+
+    class TableDefinition
+      attr_accessor :columns
+      
+      def initialize
+        @columns = []
+      end
+
+      def column(name, type, options = {})
+        @columns << [ name, type, options ]
+        self
+      end
+    end
   end
 end
