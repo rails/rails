@@ -96,15 +96,18 @@ module ActionController #:nodoc:
   #
   # You can place objects in the session by using the <tt>@session</tt> hash:
   #
-  #   @session["person"] = Person.authenticate(user_name, password)
+  #   @session[:person] = Person.authenticate(user_name, password)
   #
   # And retrieved again through the same hash:
   #
-  #   Hello #{@session["person"]}
+  #   Hello #{@session[:person]}
   #
   # Any object can be placed in the session (as long as it can be Marshalled). But remember that 1000 active sessions each storing a
   # 50kb object could lead to a 50MB memory overhead. In other words, think carefully about size and caching before resorting to the use
   # of the session.
+  #
+  # For removing objects from the session, you can either assign a single key to nil, like <tt>@session[:person] = nil</tt>, or you can
+  # remove the entire session with reset_session.
   #
   # == Responses
   #
