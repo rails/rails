@@ -189,10 +189,6 @@ module ActiveRecord #:nodoc:
 
     @@subclasses = {}
     
-    def self.subclasses
-      @@subclasses.values.flatten
-    end
-
     cattr_accessor :configurations
     @@primary_key_prefix_type = {}
     
@@ -222,7 +218,7 @@ module ActiveRecord #:nodoc:
 
     # When turned on (which is default), all associations are included using "load". This mean that any change is instant in cached
     # environments like mod_ruby or FastCGI. When set to false, "require" is used, which is faster but requires server restart to
-    # be effective.
+    # reflect changes.
     @@reload_associations = true
     cattr_accessor :reload_associations
 
@@ -521,6 +517,15 @@ module ActiveRecord #:nodoc:
           methods["#{attr}?".to_sym] = true
           methods
         end
+      end
+      
+      # Resets all the cached information about columns, which will cause they to be reloaded on the next request.
+      def reset_column_information
+        @columns = @columns_hash = @content_columns = @dynamic_methods_hash = nil
+      end
+
+      def reset_column_information_and_inheritable_attributes_for_all_subclasses
+        subclasses.each { |klass| klass.reset_inheritable_attributes; klass.reset_column_information }
       end
 
       # Transforms attribute key names into a more humane format, such as "First name" instead of "first_name". Example:
