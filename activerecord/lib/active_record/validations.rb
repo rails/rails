@@ -37,7 +37,7 @@ module ActiveRecord
   #
   # An +Errors+ object is automatically created for every Active Record.
   module Validations
-    VALIDATIONS = %w( validate validate_on_create validate_on_create )
+    VALIDATIONS = %w( validate validate_on_create validate_on_update )
 
     def self.append_features(base) # :nodoc:
       super
@@ -60,8 +60,8 @@ module ActiveRecord
       #
       #   Model:
       #     class Person < ActiveRecord::Base
-      #       validate_confirmation :user_name, :password
-      #       validate_confirmation :email_address, :message => "should match confirmation"
+      #       validates_confirmation_of :user_name, :password
+      #       validates_confirmation_of :email_address, :message => "should match confirmation"
       #     end
       #
       #   View:
@@ -70,93 +70,55 @@ module ActiveRecord
       #
       # The person has to already have a password attribute (a column in the people table), but the password_confirmation is virtual.
       # It exists only as an in-memory variable for validating the password. This check is performed both on create and update.
-      # See validate_confirmation_on_create and validate_confirmation_on_update if you want to restrict the validation to just one of the two
-      # situations.
       #
       # Configuration options:
       # ::message: Specifies a custom error message (default is: "doesn't match confirmation")
-      def validate_confirmation(*attr_names)
-        configuration = { :message => "doesn't match confirmation" }
+      # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
+      def validates_confirmation_of(*attr_names)
+        configuration = { :message => "doesn't match confirmation", :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
-
-        validation_method = block_given? ? yield : "validate"
 
         for attr_name in attr_names
           attr_accessor "#{attr_name}_confirmation"
-          class_eval(%(#{validation_method} %{errors.add('#{attr_name}', "#{configuration[:message]}") unless #{attr_name} == #{attr_name}_confirmation}))
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', "#{configuration[:message]}") unless #{attr_name} == #{attr_name}_confirmation}))
         end
-      end
-
-      # Works like validate_confirmation, but only performs the validation on creation (for new records).
-      def validate_confirmation_on_create(*attr_names)
-        validate_confirmation(*attr_names) { "validate_on_create" }
-      end
-
-      # Works like validate_confirmation, but only performs the validation on creation (for new records).
-      def validate_confirmation_on_update(*attr_names)
-        validate_confirmation(*attr_names) { "validate_on_update" }
       end
 
       # Encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
       #
       #   Model:
       #     class Person < ActiveRecord::Base
-      #       validate_acceptance :terms_of_service
-      #       validate_acceptance :eula, :message => "must be abided"
+      #       validates_acceptance_of :terms_of_service
+      #       validates_acceptance_of :eula, :message => "must be abided"
       #     end
       #
       #   View:
       #     <%= check_box "person", "terms_of_service" %>
       #
       # The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed both on create and update.
-      # See validate_acceptance_on_create and validate_acceptance_on_update if you want to restrict the validation to just one of the two
-      # situations.
       #
       # Configuration options:
       # ::message: Specifies a custom error message (default is: "must be accepted")
+      # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
       #
       # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
-      def validate_acceptance(*attr_names)
-        configuration = { :message => "must be accepted" }
+      def validates_acceptance_of(*attr_names)
+        configuration = { :message => "must be accepted", :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
-        validation_method = block_given? ? yield : "validate"
-        
         for attr_name in attr_names
           attr_accessor(attr_name)
-          class_eval(%(#{validation_method} %{errors.add('#{attr_name}', '#{configuration[:message]}') unless #{attr_name} == "1"}))
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', '#{configuration[:message]}') unless #{attr_name} == "1"}))
         end
       end
-      
-      # Works like validate_acceptance, but only performs the validation on creation (for new records).
-      def validate_acceptance_on_create(*attr_names)
-        validate_acceptance(*attr_names) { "validate_on_create" }
-      end
 
-      # Works like validate_acceptance, but only performs the validation on update (for existing records).
-      def validate_acceptance_on_update(*attr_names)
-        validate_acceptance(*attr_names) { "validate_on_update" }
-      end
-
-      def validate_presence(*attr_names)
-        configuration = { :message => "can't be empty" }
+      def validates_presence_of(*attr_names)
+        configuration = { :message => "can't be empty", :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
-        validation_method = block_given? ? yield : "validate"
-
         for attr_name in attr_names
-          class_eval(%(#{validation_method} %{errors.add_on_empty('#{attr_name}', "#{configuration[:message]}")}))
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add_on_empty('#{attr_name}', "#{configuration[:message]}")}))
         end
-      end
-
-      # Works like validate_presence, but only performs the validation on creation (for new records).
-      def validate_presence_on_create(*attr_names)
-        validate_presence(*attr_names) { "validate_on_create" }
-      end
-
-      # Works like validate_presence, but only performs the validation on update (for existing records).
-      def validate_presence_on_update(*attr_names)
-        validate_presence(*attr_names) { "validate_on_update" }
       end
 
       # Validates whether the value of the specified attributes are unique across the system. Useful for making sure that only one user
@@ -164,7 +126,7 @@ module ActiveRecord
       #
       #   Model:
       #     class Person < ActiveRecord::Base
-      #       validate_uniqueness :user_name
+      #       validates_uniqueness_of :user_name
       #     end
       #
       #   View:
@@ -175,7 +137,7 @@ module ActiveRecord
       #
       # Configuration options:
       # ::message: Specifies a custom error message (default is: "has already been taken")
-      def validate_uniqueness(*attr_names)
+      def validates_uniqueness_of(*attr_names)
         configuration = { :message => "has already been taken" }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
@@ -183,6 +145,15 @@ module ActiveRecord
           class_eval(%(validate %{errors.add("#{attr_name}", "#{configuration[:message]}") if self.class.find_first(new_record? ? ["#{attr_name} = ?", #{attr_name}] : ["#{attr_name} = ? AND id <> ?", #{attr_name}, id])}))
         end
       end
+      
+      private
+        def validation_method(on)
+          case on
+            when :save   then :validate
+            when :create then :validate_on_create
+            when :update then :validate_on_update
+          end
+        end
     end
 
     # The validation process on save can be skipped by passing false. The regular Base#save method is

@@ -1,4 +1,7 @@
 require 'abstract_unit'
+require 'fixtures/topic'
+require 'fixtures/reply'
+require 'fixtures/developer'
 
 class ValidationsTest < Test::Unit::TestCase
   fixtures :topics, :developers
@@ -123,7 +126,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_title_confirmation
-    Topic.validate_confirmation(:title)
+    Topic.validates_confirmation_of(:title)
 
     t = Topic.create("title" => "We should be confirmed")
     assert !t.save
@@ -133,7 +136,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_terms_of_service_agreement
-    Topic.validate_acceptance_on_create(:terms_of_service)
+    Topic.validates_acceptance_of(:terms_of_service, :on => :create)
 
     t = Topic.create("title" => "We should be confirmed")
     assert !t.save
@@ -145,7 +148,7 @@ class ValidationsTest < Test::Unit::TestCase
 
 
   def test_eula
-    Topic.validate_acceptance_on_create(:eula, :message => "must be abided")
+    Topic.validates_acceptance_of(:eula, :message => "must be abided", :on => :create)
 
     t = Topic.create("title" => "We should be confirmed")
     assert !t.save
@@ -156,7 +159,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
   
   def test_validate_presences
-    Topic.validate_presence(:title, :content)
+    Topic.validates_presence_of(:title, :content)
 
     t = Topic.create
     assert !t.save
@@ -170,7 +173,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
   
   def test_validate_uniqueness
-    Topic.validate_uniqueness(:title)
+    Topic.validates_uniqueness_of(:title)
     
     t = Topic.new("title" => "I'm unique!")
     assert t.save, "Should save t as unique"

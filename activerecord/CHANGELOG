@@ -28,12 +28,12 @@
 
 * Added Base.validate_presence as an alternative to implementing validate and doing errors.add_on_empty yourself.
 
-* Added Base.validate_uniqueness that alidates whether the value of the specified attributes are unique across the system. 
+* Added Base.validates_uniqueness_of that alidates whether the value of the specified attributes are unique across the system. 
   Useful for making sure that only one user can be named "davidhh".
   
     Model:
       class Person < ActiveRecord::Base
-        validate_uniqueness :user_name
+        validates_uniqueness_of :user_name
       end
   
     View:
@@ -43,11 +43,11 @@
   attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
 
 
-* Added Base.validate_confirmation that encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
+* Added Base.validates_confirmation_of that encapsulates the pattern of wanting to validate a password or email address field with a confirmation. Example:
  
      Model:
        class Person < ActiveRecord::Base
-         validate_confirmation :password
+         validates_confirmation_of :password
        end
   
      View:
@@ -56,23 +56,19 @@
   
    The person has to already have a password attribute (a column in the people table), but the password_confirmation is virtual.
    It exists only as an in-memory variable for validating the password. This check is performed both on create and update.
-   See validate_confirmation_on_create and validate_confirmation_on_update if you want to restrict the validation to just one of the two
-   situations.
 
 
-* Added Base.validate_confirmation that encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
+* Added Base.validates_acceptance_of that encapsulates the pattern of wanting to validate the acceptance of a terms of service check box (or similar agreement). Example:
   
     Model:
       class Person < ActiveRecord::Base
-        validate_acceptance :terms_of_service
+        validates_acceptance_of :terms_of_service
       end
   
     View:
       <%= check_box "person", "terms_of_service" %>
   
   The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed both on create and update.
-  See validate_acceptance_on_create and validate_acceptance_on_update if you want to restrict the validation to just one of the two
-  situations.
 
   NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
 
