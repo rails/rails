@@ -7,16 +7,16 @@ module ActionView
       include ERB::Util
 
       # Examples: 
-      # * tag("br") => <br />
-      # * tag("input", { "type" => "text"}) => <input type="text" />
+      # * <tt>tag("br") => <br /></tt>
+      # * <tt>tag("input", { "type" => "text"}) => <input type="text" /></tt>
       def tag(name, options = {}, open = false)
         "<#{name}#{tag_options(options)}" + (open ? ">" : " />")
       end
       
       # Examples: 
-      # * content_tag("p", "Hello world!") => <p>Hello world!</p>
-      # * content_tag("div", content_tag("p", "Hello world!"), "class" => "strong") => 
-      #   <div class="strong"><p>Hello world!</p></div>
+      # * <tt>content_tag("p", "Hello world!") => <p>Hello world!</p></tt>
+      # * <tt>content_tag("div", content_tag("p", "Hello world!"), "class" => "strong") => </tt>
+      #   <tt><div class="strong"><p>Hello world!</p></div></tt>
       def content_tag(name, content, options = {})
         "<#{name}#{tag_options(options)}>#{content}</#{name}>"
       end

@@ -31,7 +31,7 @@ module ActionController #:nodoc:
       # Makes all the (instance) methods in the helper module available to templates rendered through this controller.
       # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules 
       # available to the templates.
-      def add_template_helper(helper_module)
+      def add_template_helper(helper_module) #:nodoc:
         template_class.class_eval "include #{helper_module}"
       end
 

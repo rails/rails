@@ -141,7 +141,7 @@ module ActionView #:nodoc:
       end
     end
 
-    def self.controller_delegate(*methods)
+    def self.controller_delegate(*methods)#:nodoc:
       methods.flatten.each do |method|
         class_eval <<-end_eval
           def #{method}(*args, &block)

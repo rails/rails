@@ -187,25 +187,28 @@ end
   end
 end
 
-class Test::Unit::TestCase #:nodoc:
-  private  
-    # execute the request and set/volley the response
-    def process(action, parameters = nil, session = nil)
-      @request.env['REQUEST_METHOD'] ||= "GET"
-      @request.action = action.to_s
-      @request.parameters.update(parameters) unless parameters.nil?
-      @request.session = ActionController::TestSession.new(session) unless session.nil?
-      @controller.process(@request, @response)
-    end
-    
-    # execute the request simulating a specific http method and set/volley the response
-    %w( get post put delete head ).each do |method|
-      class_eval <<-EOV
-        def #{method}(action, parameters = nil, session = nil)
-          @request.env['REQUEST_METHOD'] = "#{method.upcase}"
-          process(action, parameters, session)
+module Test
+  module Unit
+    class TestCase #:nodoc:
+      private  
+        # execute the request and set/volley the response
+        def process(action, parameters = nil, session = nil)
+          @request.env['REQUEST_METHOD'] ||= "GET"
+          @request.action = action.to_s
+          @request.parameters.update(parameters) unless parameters.nil?
+          @request.session = ActionController::TestSession.new(session) unless session.nil?
+          @controller.process(@request, @response)
         end
-      EOV
+    
+        # execute the request simulating a specific http method and set/volley the response
+        %w( get post put delete head ).each do |method|
+          class_eval <<-EOV
+            def #{method}(action, parameters = nil, session = nil)
+              @request.env['REQUEST_METHOD'] = "#{method.upcase}"
+              process(action, parameters, session)
+            end
+          EOV
+        end
     end
-
+  end
 end

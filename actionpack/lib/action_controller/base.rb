@@ -58,7 +58,7 @@ module ActionController #:nodoc:
   # accessing the environment hash, like this:
   #
   #   def hello_ip
-  #     location = @request.env["REMOTE_ADDRESS"]
+  #     location = @request.env["REMOTE_IP"]
   #     render_text "Hello stranger from #{location}"
   #   end
   #

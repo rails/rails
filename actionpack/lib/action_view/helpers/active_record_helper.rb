@@ -83,9 +83,9 @@ module ActionView
       # Returns a string with a div containing all the error messages for the object located as an instance variable by the name
       # of <tt>object_name</tt>. This div can be tailored by the following options:
       #
-      # ::header_tag: Used for the header of the error div (default: h2)
-      # ::id: The id of the error div (default: errorExplanation)
-      # ::class: The class of the error div (default: errorExplanation)
+      # * <tt>header_tag</tt> - Used for the header of the error div (default: h2)
+      # * <tt>id</tt> - The id of the error div (default: errorExplanation)
+      # * <tt>class</tt> - The class of the error div (default: errorExplanation)
       def error_messages_for(object_name, options={})
         object = instance_eval "@#{object_name}"
         unless object.errors.empty?

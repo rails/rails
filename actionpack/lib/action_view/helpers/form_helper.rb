@@ -91,11 +91,13 @@ module ActionView
       #
       # Example (call, result). Imagine that @post.validated? returns 1:
       #   check_box("post", "validated")
-      #     <input type="checkbox" id="post_validate" name="post[validated] value="1" checked="checked" /><input name="post[validated]" type="hidden" value="0" />
+      #     <input type="checkbox" id="post_validate" name="post[validated] value="1" checked="checked" />
+      #     <input name="post[validated]" type="hidden" value="0" />
       #
       # Example (call, result). Imagine that @puppy.gooddog returns no:
       #   check_box("puppy", "gooddog", {}, "yes", "no")
-      #     <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog] value="yes" /><input name="puppy[gooddog]" type="hidden" value="no" />
+      #     <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog] value="yes" />
+      #     <input name="puppy[gooddog]" type="hidden" value="no" />
       def check_box(object, method, options = {}, checked_value = "1", unchecked_value = "0")
         InstanceTag.new(object, method, self).to_check_box_tag(options, checked_value, unchecked_value)
       end

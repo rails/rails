@@ -30,10 +30,10 @@ module ActionView
       # get a link tag that just points without consideration. The <tt>html_options</tt> works jointly for the image and ahref tag by
       # letting the following special values enter the options on the image and the rest goes to the ahref:
       #
-      # ::alt: If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
-      # ::size: Supplied as "XxY", so "30x45" becomes width="30" and height="45"
-      # ::border: Is set to 0 by default
-      # ::align: Sets the alignment, no special features
+      # * <tt>alt</tt> - If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
+      # * <tt>size</tt> - Supplied as "XxY", so "30x45" becomes width="30" and height="45"
+      # * <tt>border</tt> - Is set to 0 by default
+      # * <tt>align</tt> - Sets the alignment, no special features
       #
       # The +src+ can be supplied as a... 
       # * full path, like "/my_images/image.gif"

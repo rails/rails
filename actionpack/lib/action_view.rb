@@ -28,15 +28,6 @@ rescue LoadError
   # RubyGems is not available, use included Builder
   $:.unshift(File.dirname(__FILE__) + "/action_view/vendor")
   require 'action_view/vendor/builder'
-ensure
-  # Temporary patch until it's in Builder 1.2.2
-  class BlankSlate
-    class << self
-      def hide(name)
-        undef_method name if instance_methods.include?(name) and name !~ /^(__|instance_eval)/
-      end
-    end
-  end
 end
 
 require 'action_view/base'

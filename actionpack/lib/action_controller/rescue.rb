@@ -15,7 +15,7 @@ module ActionController #:nodoc:
       end
     end
 
-    module ClassMethods
+    module ClassMethods #:nodoc:
       def process_with_exception(request, response, exception)
         new.process(request, response, :rescue_action, exception)
       end

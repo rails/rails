@@ -10,15 +10,19 @@ module ActionController #:nodoc:
   #
   #   cookies["user_name"] # => "david"
   #   cookies.size         # => 2
+  # 
+  # Example for deleting:
+  #
+  #   cookies.delete "user_name"
   #
   # All the option symbols for setting cookies are:
   #
-  # value:: the cookie's value or list of values (as an array).
-  # path:: the path for which this cookie applies.  Defaults to the root of the application.
-  # domain:: the domain for which this cookie applies.
-  # expires:: the time at which this cookie expires, as a +Time+ object.
-  # secure:: whether this cookie is a secure cookie or not (default to false).
-  #          Secure cookies are only transmitted to HTTPS servers.
+  # * <tt>value</tt> - the cookie's value or list of values (as an array).
+  # * <tt>path</tt> - the path for which this cookie applies.  Defaults to the root of the application.
+  # * <tt>domain</tt> - the domain for which this cookie applies.
+  # * <tt>expires</tt> - the time at which this cookie expires, as a +Time+ object.
+  # * <tt>secure</tt> - whether this cookie is a secure cookie or not (default to false).
+  #   Secure cookies are only transmitted to HTTPS servers.
   module Cookies
     # Returns the cookie container, which operates as described above.
     def cookies
