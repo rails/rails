@@ -34,7 +34,7 @@ module ActiveRecord
       #   Project.find_all ["category = ?", category_name], "created ASC", [15, 20]
       def find_all(conditions = nil, orderings = nil, limit = nil, joins = nil)
         limit, offset = limit.is_a?(Array) ? limit : [ limit, nil ]
-        find(:all, { :conditions => conditions, :order => orderings, :joins => joins, :limit => limit, :offset => offset})
+        find(:all, :conditions => conditions, :order => orderings, :joins => joins, :limit => limit, :offset => offset)
       end
     end
   end

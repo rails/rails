@@ -65,9 +65,7 @@ module ActiveRecord
             load_target.select { |record| ids.include?(record.id) }
           end
         else
-          original_conditions  = options[:conditions] ? " AND #{options[:conditions]}" : ""
-          options[:conditions] = 
-            "#{@association_class_primary_key_name} = #{@owner.quoted_id} #{@conditions ? " AND " + @conditions : ""}#{original_conditions}"
+          options[:conditions] = @finder_sql + (options[:conditions] ? " AND #{options[:conditions]}" : "")
           @association_class.find(args.size == 1 ? args.first : args, options)
         end
       end
