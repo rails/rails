@@ -902,7 +902,7 @@ module ActiveRecord #:nodoc:
       # Returns a clone of the record that hasn't been assigned an id yet and is treated as a new record.
       def clone
         attrs = self.attributes
-	attrs.delete(self.class.primary_key)
+        attrs.delete(self.class.primary_key)
         cloned_record = self.class.new(attrs)
         cloned_record
       end
