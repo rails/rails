@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that generated action_mailers doesnt need to require the action_mailer since thats already done in the environment #382 [Lucas Carlson]
+
 * Fixed dependency management to happen in a unified fashion for Active Record and Action Pack using the new Dependencies module. This means that
   the environment options needs to change from:
   

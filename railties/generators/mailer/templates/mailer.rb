@@ -1,5 +1,3 @@
-require 'action_mailer'
-
 class <%= class_name %> < ActionMailer::Base
 <% for action in actions -%>
 
