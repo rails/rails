@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed binding of caller #496 [Alexey]
+
+
 *0.9.4* (January 17th, 2005)
 
 * Added that ApplicationController will catch a ControllerNotFound exception if someone attempts to access a url pointing to an unexisting controller [Tobias Luetke]
