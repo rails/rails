@@ -598,6 +598,11 @@ module ActiveRecord #:nodoc:
         return result
       end
 
+      # Overwrite the default class equality method to provide support for association proxies.
+      def ===(object)
+        object.is_a?(self)
+      end
+
       private
         # Finder methods must instantiate through this method to work with the single-table inheritance model
         # that makes it possible to create objects of different types from the same table.

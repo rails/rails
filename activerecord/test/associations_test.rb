@@ -74,6 +74,10 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     assert_equal Account.find(1).credit_limit, @signals37.account.credit_limit
   end
 
+  def test_triple_equality
+    assert Account === @signals37.account
+  end
+
   def test_type_mismatch
     assert_raises(ActiveRecord::AssociationTypeMismatch) { @signals37.account = 1 }
     assert_raises(ActiveRecord::AssociationTypeMismatch) { @signals37.account = Project.find(1) }
