@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActionView::Base.register_template_handler for easy integration of an alternative template language to ERb and Builder. See test/controller/custom_handler_test.rb for a usage example #656 [Jamis Buck]
+
 * Added AssetTagHelper that provides methods for linking a HTML page together with other assets, such as javascripts, stylesheets, and feeds.
 
 * Added FormTagHelper that provides a number of methods for creating form tags that doesn't rely on conventions with an object assigned to the template like FormHelper does. With the FormTagHelper, you provide the names and values yourself.

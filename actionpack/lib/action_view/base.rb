@@ -130,6 +130,7 @@ module ActionView #:nodoc:
 
     @@compiled_erb_templates = {}
     @@loaded_templates = {}
+    @@template_handlers = {}
 
     def self.load_helpers(helper_dir)#:nodoc:
       Dir.foreach(helper_dir) do |helper_file| 
@@ -149,6 +150,10 @@ module ActionView #:nodoc:
           end
         end_eval
       end
+    end
+
+    def self.register_template_handler(extension, klass)
+      @@template_handlers[extension] = klass
     end
 
     def initialize(base_path = nil, assigns_for_first_render = {}, controller = nil)#:nodoc:
@@ -193,26 +198,32 @@ module ActionView #:nodoc:
     # Renders the +template+ which is given as a string as either rhtml or rxml depending on <tt>template_extension</tt>.
     # The hash in <tt>local_assigns</tt> is made available as local variables.
     def render_template(template_extension, template, local_assigns = {})
-      b = binding
-      local_assigns.each { |key, value| eval "#{key} = local_assigns[\"#{key}\"]", b }
-      @assigns.each { |key, value| instance_variable_set "@#{key}", value }
-      xml = Builder::XmlMarkup.new(:indent => 2)
-      
-      send(pick_rendering_method(template_extension), template, binding)
+      send(pick_rendering_method(template_extension), template_extension,
+        template, local_assigns)
     end
 
     def pick_template_extension(template_path)#:nodoc:
-      if erb_template_exists?(template_path)
+      if match = delegate_template_exists?(template_path)
+        match.first
+      elsif erb_template_exists?(template_path)
         "rhtml"
       elsif builder_template_exists?(template_path)
         "rxml"
       else
-        raise ActionViewError, "No rhtml or rxml template found for #{template_path}"
+        raise ActionViewError, "No rhtml, rxml, or delegate template found for #{template_path}"
       end
     end
     
     def pick_rendering_method(template_extension)#:nodoc:
-      (template_extension == "rxml" ? "rxml" : "rhtml") + "_render"
+      if @@template_handlers[template_extension]
+        "delegate_render"
+      else
+        (template_extension == "rxml" ? "rxml" : "rhtml") + "_render"
+      end
+    end
+
+    def delegate_template_exists?(template_path)#:nodoc:
+      @@template_handlers.find { |k,| template_exists?(template_path, k) }
     end
 
     def erb_template_exists?(template_path)#:nodoc:
@@ -224,7 +235,7 @@ module ActionView #:nodoc:
     end
 
     def file_exists?(template_path)#:nodoc:
-      erb_template_exists?(template_path) || builder_template_exists?(template_path)
+      erb_template_exists?(template_path) || builder_template_exists?(template_path) || delegate_template_exists?(template_path)
     end
 
     # Returns true is the file may be rendered implicitly.
@@ -250,14 +261,30 @@ module ActionView #:nodoc:
         @@loaded_templates[template_path]
       end
 
-      def rhtml_render(template, binding)
-        @@compiled_erb_templates[template] ||= ERB.new(template, nil, '-')
-        @@compiled_erb_templates[template].result(binding)
+      def evaluate_locals(local_assigns = {})
+        b = binding
+
+        local_assigns.each { |key, value| eval "#{key} = local_assigns[\"#{key}\"]", b }
+        @assigns.each { |key, value| instance_variable_set "@#{key}", value }
+        xml = Builder::XmlMarkup.new(:indent => 2)
+
+        b
       end
 
-      def rxml_render(template, binding)
+      def rhtml_render(extension, template, local_assigns)
+        b = evaluate_locals(local_assigns)
+        @@compiled_erb_templates[template] ||= ERB.new(template, nil, '-')
+        @@compiled_erb_templates[template].result(b)
+      end
+
+      def rxml_render(extension, template, local_assigns)
         @controller.headers["Content-Type"] ||= 'text/xml'
-        eval(template, binding)
+        eval(template, evaluate_locals(local_assigns))
+      end
+
+      def delegate_render(extension, template, local_assigns)
+        delegator = @@template_handlers[extension].new(self)
+        delegator.render(template, local_assigns)
       end
   end
 end
