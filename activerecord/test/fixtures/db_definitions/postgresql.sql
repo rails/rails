@@ -127,3 +127,10 @@ CREATE TABLE mixins (
   updated_at timestamp,
   PRIMARY KEY  (id)
 );
+
+CREATE TABLE people (
+  id serial,
+  first_name text,
+  lock_version integer default 0,
+  PRIMARY KEY  (id)
+);

@@ -39,11 +39,13 @@ require 'active_record/reflection'
 require 'active_record/timestamp'
 require 'active_record/acts/list'
 require 'active_record/acts/tree'
+require 'active_record/locking'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
-  include ActiveRecord::Timestamp
   include ActiveRecord::Callbacks
+  include ActiveRecord::Locking
+  include ActiveRecord::Timestamp
   include ActiveRecord::Associations
   include ActiveRecord::Aggregations
   include ActiveRecord::Transactions

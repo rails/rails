@@ -26,6 +26,8 @@ module ActiveRecord #:nodoc:
   end
   class PreparedStatementInvalid < ActiveRecordError #:nodoc:
   end
+  class StaleObjectError < ActiveRecordError #:nodoc:
+  end
 
   # Active Record objects doesn't specify their attributes directly, but rather infer them from the table definition with
   # which they're linked. Adding, removing, and changing attributes and their type is done directly in the database. Any change

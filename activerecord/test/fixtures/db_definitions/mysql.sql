@@ -110,3 +110,9 @@ CREATE TABLE `mixins` (
   `type` varchar(40) default NULL,
   PRIMARY KEY  (`id`)
 );
+
+CREATE TABLE `people` (
+  `id` INTEGER NOT NULL PRIMARY KEY,
+  `first_name` VARCHAR(40) NOT NULL,
+  `lock_version` INTEGER NOT NULL DEFAULT 0
+);

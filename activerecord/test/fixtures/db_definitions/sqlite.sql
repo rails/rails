@@ -99,4 +99,8 @@ CREATE TABLE 'mixins' (
   'updated_at' DATETIME DEFAULT NULL
 );
 
-
+CREATE TABLE 'people' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'first_name' VARCHAR(40) DEFAULT NULL,
+  'lock_version' INTEGER NOT NULL DEFAULT 0
+);
