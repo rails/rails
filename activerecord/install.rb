@@ -42,8 +42,8 @@ files = %w-
  active_record/fixtures.rb
  active_record/observer.rb
  active_record/reflection.rb
- active_record/mixins/list.rb
- active_record/mixins/touch.rb
+ active_record/acts/list.rb
+ active_record/acts/tree.rb
  active_record/support/class_attribute_accessors.rb
  active_record/support/class_inheritable_attributes.rb
  active_record/support/clean_logger.rb
