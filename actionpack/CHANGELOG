@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Form.Serialize for the JavascriptHelper to also seriliaze password fields #934 [dweitzman@gmail.com]
+
 * Added JavascriptHelper#escape_javascript as a public method (was private) and made it escape both single and double quotes and new lines #940 [mortonda@dgrmm.net]
 
 * Added trailing_slash option to url_for, so you can generate urls ending in a slash. Note that is currently not recommended unless you need it for special reasons since it breaks caching #937 [stian@grytoyr.net]

@@ -280,6 +280,7 @@ Form.Element.Serializers = {
   input: function(element) {
     switch (element.type.toLowerCase()) {
       case 'hidden':
+      case 'password':
       case 'text':
         return Form.Element.Serializers.textarea(element);
       case 'checkbox':  
