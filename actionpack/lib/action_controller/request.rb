@@ -77,6 +77,10 @@ module ActionController
       (%r{^\w+\://[^/]+(/.*|$)$} =~ env['REQUEST_URI']) ? $1 : env['REQUEST_URI'] # Remove domain, which webrick puts into the request_uri.
     end
 
+    def path_info
+      env['PATH_INFO']
+    end
+
     def protocol
       env["HTTPS"] == "on" ? 'https://' : 'http://'
     end
@@ -86,7 +90,7 @@ module ActionController
     end
 
     def path
-      path = request_uri ? request_uri.split('?').first : ''
+      path = path_info ? path_info : ( request_uri ? request_uri.split('?').first : '' )
     end
 
     def port

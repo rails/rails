@@ -1,6 +1,8 @@
 *SVN*
 
-* Fixed that caching the root would result in .html not index.html
+* Added PATH_INFO access from the request that allows urls like the following to be interpreted by rails: http://www.example.com/dispatcher.cgi/controller/action -- that makes it possible to use rails as a CGI under lighttpd and would also allow (for example) Rublog to be ported to rails without breaking existing links to Rublog-powered blogs. #728 [Jamis Buck]
+
+* Fixed that caching the root would result in .html not index.html #731 [alisdair]
 
 
 *1.5.0* (24th February, 2005)
