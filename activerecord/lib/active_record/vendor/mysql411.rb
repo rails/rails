@@ -139,6 +139,7 @@ class Mysql
   #          candidate_hash2=sha1(hash_stage1)
   #          check(candidate_hash2==hash_stage2)
   def scramble411( password, seed, old_ver )
+    return "" if password == nil or password == ""
     raise "old version password is not implemented" if old_ver
     
     #    print "Seed Bytes = "

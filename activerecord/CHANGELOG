@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed that the Ruby/MySQL adapter wouldn't connect if the password was empty #503 [Pelle]
+
+
 *1.5.0* (January 17th, 2005)
 
 * Fixed that unit tests for MySQL are now run as the "rails" user instead of root #455 [Eric Hodel]
