@@ -78,7 +78,7 @@ module ActionController
     end
 
     def path_info
-      env['PATH_INFO']
+      (/^(.*)\.html$/ =~ env['PATH_INFO']) ? $1 : env['PATH_INFO']
     end
 
     def protocol

@@ -36,7 +36,8 @@ module Dependencies
   end
   
   def require_or_load(file_name)
-    load? ? load("#{file_name}.rb") : require(file_name)
+    file_name = "#{file_name}.rb" unless ! load? || /\.rb$/ =~ file_name
+    load? ? load(file_name) : require(file_name)
   end
   
   def remove_subclasses_for(*classes)
@@ -62,6 +63,7 @@ module Dependencies
       @root = root
     end
     
+    def root?() self.root == self end
     def load_paths() self.root.load_paths end
     
     # Load missing constants if possible.
@@ -78,10 +80,19 @@ module Dependencies
         next unless fs_path
 
         if File.directory?(fs_path)
-          self.const_set name, LoadingModule.new(self.root, self.path + [name])
+          new_module = LoadingModule.new(self.root, self.path + [name])
+          self.const_set name, new_module
+          if self.root?
+            raise NameError, "Cannot load controller module named #{name}: An object of type #{Object.const_get(name).class.to_s} already exists." \
+              if Object.const_defined?(name)
+            Object.const_set(name, new_module) 
+          end
           break
         elsif File.file?(fs_path)
           self.root.load_file!(fs_path)
+          
+          # Import the loaded constant from Object provided we are the root node.
+          self.const_set(name, Object.const_get(name)) if self.root? && Object.const_defined?(name)
           break
         end
       end
@@ -109,17 +120,13 @@ module Dependencies
     
     # Load the source file at the given file path
     def load_file!(file_path)
-      begin root.module_eval(IO.read(file_path), file_path, 1)
-      rescue Object => exception
-        exception.blame_file! file_path
-        raise
-      end
+      require_dependency(file_path)
     end
 
     # Erase all items in this module
     def clear!
       constants.each do |name|
-        Object.send(:remove_const, name) if Object.const_defined?(name) && self.path.empty?
+        Object.send(:remove_const, name) if Object.const_defined?(name)
         self.send(:remove_const, name)
       end
     end
