@@ -1,8 +1,6 @@
 module ActionController
   # See http://manuals.rubyonrails.com/read/chapter/65
   module Routing
-    ROUTE_FILE = defined?(RAILS_ROOT) ? File.expand_path(File.join(RAILS_ROOT, 'config', 'routes')) : nil
-  
     class Route #:nodoc:
       attr_reader :defaults # The defaults hash
       
@@ -282,7 +280,8 @@ module ActionController
       
       def reload
         begin
-          require_dependency(ROUTE_FILE) if ROUTE_FILE
+          route_file = defined?(RAILS_ROOT) ? File.expand_path(File.join(RAILS_ROOT, 'config', 'routes')) : nil
+          require_dependency(route_file) if route_file
         rescue LoadError, ScriptError => e
           raise RoutingError, "Cannot load config/routes.rb:\n    #{e.message}"
         ensure # Ensure that there is at least one route:

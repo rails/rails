@@ -1,5 +1,11 @@
 *SVN*
 
+* Fixed that RAILS_ROOT might not be defined when AP was loaded, so do a late initialization of the ROUTE_FILE #761 [Scott Barron]
+
+* Fix request.path_info and clear up LoadingModule behavior #754 [Nicholas Seckar]
+
+* Fixed caching to be aware of extensions (so you can cache files like api.wsdl or logo.png) #734 [Nicholas Seckar]
+
 * Fixed that Routes would raise NameErrors if a controller component contains characters that are not valid constant names #733 [Nicholas Seckar]
 
 * Added PATH_INFO access from the request that allows urls like the following to be interpreted by rails: http://www.example.com/dispatcher.cgi/controller/action -- that makes it possible to use rails as a CGI under lighttpd and would also allow (for example) Rublog to be ported to rails without breaking existing links to Rublog-powered blogs. #728 [Jamis Buck]
