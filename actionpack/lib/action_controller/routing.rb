@@ -317,7 +317,7 @@ module ActionController
     end
     
     def self.extract_parameter_value(parameter)
-      value = parameter.respond_to?(:to_param) ? parameter.to_param : parameter.to_s
+      value = (parameter.respond_to?(:to_param) ? parameter.to_param : parameter).to_s
       CGI.escape(value)
     end
 

@@ -346,6 +346,13 @@ class RouteTests < Test::Unit::TestCase
     verify_generate('id%2Fwith%2Fslashes', {},
         {:controller => 'content', :action => 'fish', :id => 'id/with/slashes'}, {})
   end
+
+  def test_generate_with_numeric_param
+    o = Object.new
+    def o.to_param() 10 end
+    verify_generate('content/action/10', {}, {:controller => 'content', :action => 'action', :id => o}, @defaults)
+    verify_generate('content/show/10', {}, {:controller => 'content', :action => 'show', :id => o}, @defaults)
+  end
 end
 
 class RouteSetTests < Test::Unit::TestCase
