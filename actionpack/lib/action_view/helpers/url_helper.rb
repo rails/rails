@@ -13,15 +13,18 @@ module ActionView
 
       # Creates a link tag of the given +name+ using an URL created by the set of +options+. See the valid options in
       # link:classes/ActionController/Base.html#M000021. It's also possible to pass a string instead of an options hash to
-      # get a link tag that just points without consideration. The html_options have a special feature for creating javascript
-      # confirm alerts where if you pass :confirm => 'Are you sure?', the link will be guarded with a JS popup asking that question.
-      # If the user accepts, the link is processed, otherwise not.
+      # get a link tag that just points without consideration. If nil is passed as a name, the link itself will become the name. 
+      # The html_options have a special feature for creating javascript confirm alerts where if you pass :confirm => 'Are you sure?', 
+      # the link will be guarded with a JS popup asking that question. If the user accepts, the link is processed, otherwise not.
       def link_to(name, options = {}, html_options = {}, *parameters_for_method_reference)
         convert_confirm_option_to_javascript!(html_options) unless html_options.nil?
         if options.is_a?(String)
-          content_tag "a", name, (html_options || {}).merge({ "href" => options })
+          content_tag "a", name || options, (html_options || {}).merge({ "href" => options })
         else
-          content_tag("a", name, (html_options || {}).merge({ "href" => url_for(options, *parameters_for_method_reference) }))
+          content_tag(
+            "a", name || url_for(options, *parameters_for_method_reference), 
+            (html_options || {}).merge({ "href" => url_for(options, *parameters_for_method_reference) })
+          )
         end
       end
 

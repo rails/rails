@@ -130,15 +130,15 @@ module ActionController #:nodoc:
       # The passed <tt>filters</tt> will be appended to the array of filters that's run _before_ actions
       # on this controller are performed.
       def append_before_filter(*filters, &block)
-          filters << block if block_given?
-          append_filter_to_chain("before", filters)
+        filters << block if block_given?
+        append_filter_to_chain("before", filters)
       end
 
       # The passed <tt>filters</tt> will be prepended to the array of filters that's run _before_ actions
       # on this controller are performed.
       def prepend_before_filter(*filters, &block)
-          filters << block if block_given?
-          prepend_filter_to_chain("before", filters)
+        filters << block if block_given?
+        prepend_filter_to_chain("before", filters)
       end
 
       # Short-hand for append_before_filter since that's the most common of the two.
@@ -147,15 +147,15 @@ module ActionController #:nodoc:
       # The passed <tt>filters</tt> will be appended to the array of filters that's run _after_ actions
       # on this controller are performed.
       def append_after_filter(*filters, &block)
-          filters << block if block_given?
-          append_filter_to_chain("after", filters)
+        filters << block if block_given?
+        append_filter_to_chain("after", filters)
       end
 
       # The passed <tt>filters</tt> will be prepended to the array of filters that's run _after_ actions
       # on this controller are performed.
       def prepend_after_filter(*filters, &block)
-          filters << block if block_given?
-          prepend_filter_to_chain("after", filters)
+        filters << block if block_given?
+        prepend_filter_to_chain("after", filters)
       end
 
       # Short-hand for append_after_filter since that's the most common of the two.
