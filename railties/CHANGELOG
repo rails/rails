@@ -1,5 +1,8 @@
 *SVN*
 
+* Added that rake clone_structure_to_test, db_structure_dump, and purge_test_database tasks now pick up the source database to use from
+  RAILS_ENV instead of just forcing development #424 [Tobias Luetke]
+
 * Fixed script/console to work with Windows (that requires the use of irb.bat) #418 [octopod]
 
 * Fixed WEBrick servlet slowdown over time by restricting the load path reloading to mod_ruby

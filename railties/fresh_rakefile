@@ -10,7 +10,7 @@ require 'code_statistics'
 require 'active_record/support/std_ext/test_unit_ext' # temporary fix until test/unit is cured for 1.8.2
 
 desc "Run all the tests on a fresh test database"
-task :default => [ :clone_development_structure_to_test, :test_units, :test_functional ]
+task :default => [ :clone_structure_to_test, :test_units, :test_functional ]
 
 desc "Generate API documentatio, show coding stats"
 task :doc => [ :appdoc, :stats ]
@@ -74,36 +74,36 @@ task :stats do
 end
 
 desc "Recreate the test databases from the development structure"
-task :clone_development_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
+task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
   if ActiveRecord::Base.configurations["test"]["adapter"] == "mysql"
     ActiveRecord::Base.establish_connection(:test)
     ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
-    IO.readlines("db/development_structure.sql").join.split("\n\n").each do |table|
+    IO.readlines("db/#{RAILS_ENV}_structure.sql").join.split("\n\n").each do |table|
       ActiveRecord::Base.connection.execute(table)
     end
   elsif ActiveRecord::Base.configurations["test"]["adapter"] == "postgresql"
-    `psql -U #{ActiveRecord::Base.configurations["test"]["username"]} -f db/development_structure.sql #{ActiveRecord::Base.configurations["test"]["database"]}`
+    `psql -U #{ActiveRecord::Base.configurations["test"]["username"]} -f db/#{RAILS_ENV}_structure.sql #{ActiveRecord::Base.configurations["test"]["database"]}`
   elsif ActiveRecord::Base.configurations["test"]["adapter"] == "sqlite"
-    `sqlite #{ActiveRecord::Base.configurations["test"]["dbfile"]} < db/development_structure.sql`
+    `sqlite #{ActiveRecord::Base.configurations["test"]["dbfile"]} < db/#{RAILS_ENV}_structure.sql`
   end
 end
 
 desc "Dump the database structure to a SQL file"
 task :db_structure_dump do
-  if ActiveRecord::Base.configurations["development"]["adapter"] == "mysql"
-    ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["development"])
-    File.open("db/development_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
-  elsif ActiveRecord::Base.configurations["development"]["adapter"] == "postgresql"
-    `pg_dump -U #{ActiveRecord::Base.configurations["development"]["username"]} -s -f db/development_structure.sql #{ActiveRecord::Base.configurations["development"]["database"]}`
-  elsif ActiveRecord::Base.configurations["development"]["adapter"] == "sqlite"
-    `sqlite #{ActiveRecord::Base.configurations["development"]["dbfile"]} .schema > db/development_structure.sql`
+  if ActiveRecord::Base.configurations[RAILS_ENV]["adapter"] == "mysql"
+    ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[RAILS_ENV])
+    File.open("db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
+  elsif ActiveRecord::Base.configurations[RAILS_ENV]["adapter"] == "postgresql"
+    `pg_dump -U #{ActiveRecord::Base.configurations[RAILS_ENV]["username"]} -s -f db/#{RAILS_ENV}_structure.sql #{ActiveRecord::Base.configurations[RAILS_ENV]["database"]}`
+  elsif ActiveRecord::Base.configurations[RAILS_ENV]["adapter"] == "sqlite"
+    `sqlite #{ActiveRecord::Base.configurations[RAILS_ENV]["dbfile"]} .schema > db/#{RAILS_ENV}_structure.sql`
   end
 end
 
 desc "Drop the test database and bring it back again"
 task :purge_test_database do
   if ActiveRecord::Base.configurations["test"]["adapter"] == "mysql"
-    ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations["development"])
+    ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[RAILS_ENV])
     ActiveRecord::Base.connection.recreate_database(ActiveRecord::Base.configurations["test"]["database"])
   elsif ActiveRecord::Base.configurations["test"]["adapter"] == "postgresql"
     `dropdb -U #{ActiveRecord::Base.configurations["test"]["username"]} #{ActiveRecord::Base.configurations["test"]["database"]}`
