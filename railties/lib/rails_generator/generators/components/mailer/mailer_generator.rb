@@ -24,7 +24,6 @@ class MailerGenerator < Rails::Generator::NamedBase
                    File.join('app/views', class_path, file_name, "#{action}.rhtml"),
                    :assigns => { :action => action }
         m.template "fixture.rhtml",
-                   "test/fixtures/#{table_name}/#{action}",
                    File.join('test/fixtures', class_path, table_name, action),
                    :assigns => { :action => action }
       end
