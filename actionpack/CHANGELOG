@@ -1,5 +1,17 @@
 *SVN*
 
+* Added follow_redirect method for functional tests that'll get-request the redirect that was made. Example:
+
+    def test_create_post
+      post :create, "post" => { "title" => "Exciting!" }
+      assert_redirected_to :action => "show"
+      
+      follow_redirect
+      assert_rendered_file "post/show"
+    end
+  
+  Limitation: Only works for redirects to other actions within the same controller.
+
 * Fixed double requiring of models with the same name as the controller
 
 * Fixed that query params could be forced to nil on a POST due to the raw post fix #562 [moriq@moriq.com]

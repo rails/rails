@@ -251,6 +251,14 @@ module Test
             end
           EOV
         end
+
+        def follow_redirect
+          if @response.redirected_to[:controller]
+            raise "Can't follow redirects outside of current controller (#{@response.redirected_to[:controller]})"
+          end
+          
+          get(@response.redirected_to.delete(:action), @response.redirected_to)
+        end
     end
   end
 end
