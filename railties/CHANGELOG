@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed WEBrick servlet slowdown over time by restricting the load path reloading to mod_ruby
+
 * Removed Fancy Indexing as a default option on the WEBrick servlet as it made it harder to use various caching schemes
 
 
