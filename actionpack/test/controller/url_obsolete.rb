@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 require 'action_controller/url_rewriter'
 
-MockRequest = Struct.new("MockRequest", :protocol, :host, :port, :path, :parameters)
+MockRequest = Struct.new("MockRequest", :protocol, :host, :port, :path, :parameters, :path_parameters)
 class MockRequest
   def host_with_port
     if (protocol == "http://" && port == 80) || (protocol == "https://" && port == 443)
@@ -16,14 +16,24 @@ class UrlMockFactory
   def self.create(path, parameters)
     ActionController::UrlRewriter.new(
       MockRequest.new("http://", "example.com", 80, path, parameters), 
-      parameters["controller"], parameters["action"]
+      parameters
     )
   end
 end
 
+# old-style support for .new
+module ActionController
+  class UrlRewriter
+    def self.old_new(request, controller, action)
+      request.parameters[:controller] = controller
+      request.parameters[:action] = action
+      return new(request, request.parameters)
+    end
+  end
+end
 class UrlTest < Test::Unit::TestCase
   def setup
-    @library_url = ActionController::UrlRewriter.new(MockRequest.new(
+    @library_url = ActionController::UrlRewriter.old_new(MockRequest.new(
       "http://",
       "www.singlefile.com", 
       80,
@@ -31,7 +41,7 @@ class UrlTest < Test::Unit::TestCase
       { "type" => "ISBN", "code" => "0743536703" }
     ), "books", "show")
 
-    @library_url_using_module = ActionController::UrlRewriter.new(MockRequest.new(
+    @library_url_using_module = ActionController::UrlRewriter.old_new(MockRequest.new(
       "http://",
       "www.singlefile.com", 
       80,
@@ -39,7 +49,7 @@ class UrlTest < Test::Unit::TestCase
       { "type" => "ISBN", "code" => "0743536703", "module" => "library" }
     ), "books", "show")
 
-    @library_url_on_index = ActionController::UrlRewriter.new(MockRequest.new(
+    @library_url_on_index = ActionController::UrlRewriter.old_new(MockRequest.new(
       "http://",
       "www.singlefile.com", 
       80,
@@ -48,27 +58,27 @@ class UrlTest < Test::Unit::TestCase
     ), "books", "index")
     
     @clean_urls = [
-      ActionController::UrlRewriter.new(MockRequest.new(
+      ActionController::UrlRewriter.old_new(MockRequest.new(
         "http://", "www.singlefile.com", 80, "/identity/", {}
       ), "identity", "index"),
-      ActionController::UrlRewriter.new(MockRequest.new(
+      ActionController::UrlRewriter.old_new(MockRequest.new(
         "http://", "www.singlefile.com", 80, "/identity", {}
       ), "identity", "index")
     ]
 
-    @clean_url_with_id = ActionController::UrlRewriter.new(MockRequest.new(
+    @clean_url_with_id = ActionController::UrlRewriter.old_new(MockRequest.new(
       "http://", "www.singlefile.com", 80, "/identity/show/5", { "id" => "5" }
     ), "identity", "show")
 
-    @clean_url_with_same_action_and_controller_name = ActionController::UrlRewriter.new(MockRequest.new(
+    @clean_url_with_same_action_and_controller_name = ActionController::UrlRewriter.old_new(MockRequest.new(
       "http://", "www.singlefile.com", 80, "/login/login", {  }
     ), "login", "login")
 
-    @clean_url_with_same_action_and_controller_and_module_name = ActionController::UrlRewriter.new(MockRequest.new(
+    @clean_url_with_same_action_and_controller_and_module_name = ActionController::UrlRewriter.old_new(MockRequest.new(
       "http://", "www.singlefile.com", 80, "/login/login/login", { "module" => "login" }
     ), "login", "login")
 
-    @clean_url_with_id_as_char = ActionController::UrlRewriter.new(MockRequest.new(
+    @clean_url_with_id_as_char = ActionController::UrlRewriter.old_new(MockRequest.new(
       "http://", "www.singlefile.com", 80, "/teachers/show/t", { "id" => "t" }
     ), "teachers", "show")
   end
@@ -386,7 +396,7 @@ class UrlTest < Test::Unit::TestCase
   end
   
   def test_from_another_port
-    @library_url = ActionController::UrlRewriter.new(MockRequest.new(
+    @library_url = ActionController::UrlRewriter.old_new(MockRequest.new(
       "http://",
       "www.singlefile.com", 
       8080,
@@ -403,7 +413,7 @@ class UrlTest < Test::Unit::TestCase
   end
   
   def test_basecamp
-    basecamp_url = ActionController::UrlRewriter.new(MockRequest.new(
+    basecamp_url = ActionController::UrlRewriter.old_new(MockRequest.new(
       "http://",
       "projects.basecamp", 
       80,
@@ -418,7 +428,7 @@ class UrlTest < Test::Unit::TestCase
   end
 
   def test_on_explicit_index_page # My index page is very modest, thank you...
-    url = ActionController::UrlRewriter.new(
+    url = ActionController::UrlRewriter.old_new(
       MockRequest.new(
         "http://", "example.com", 80, "/controller/index",
         {"controller"=>"controller", "action"=>"index"}

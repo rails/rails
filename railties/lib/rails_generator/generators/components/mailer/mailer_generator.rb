@@ -4,21 +4,28 @@ class MailerGenerator < Rails::Generator::NamedBase
       # Check for class naming collisions.
       m.class_collisions class_name, "#{class_name}Test"
 
-      # Mailer class and unit test.
-      m.template "mailer.rb",    "app/models/#{file_name}.rb"
-      m.template "unit_test.rb", "test/unit/#{file_name}_test.rb"
+      # Mailer, view, test, and fixture directories.
+      m.directory File.join('app/models', class_path)
+      m.directory File.join('app/views', class_path, file_name)
+      m.directory File.join('test/unit', class_path)
+      m.directory File.join('test/fixtures', class_path, table_name)
 
-      # Views and fixtures directories.
-      m.directory "app/views/#{file_name}"
-      m.directory "test/fixtures/#{table_name}"
+      # Mailer class and unit test.
+      m.template "mailer.rb",    File.join('app/models',
+                                           class_path,
+                                           "#{file_name}.rb")
+      m.template "unit_test.rb", File.join('test/unit',
+                                           class_path,
+                                           "#{file_name}_test.rb")
 
       # View template and fixture for each action.
       actions.each do |action|
         m.template "view.rhtml",
-                   "app/views/#{file_name}/#{action}.rhtml",
+                   File.join('app/views', class_path, file_name, "#{action}.rhtml"),
                    :assigns => { :action => action }
         m.template "fixture.rhtml",
                    "test/fixtures/#{table_name}/#{action}",
+                   File.join('test/fixtures', class_path, table_name, action),
                    :assigns => { :action => action }
       end
     end

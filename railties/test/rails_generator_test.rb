@@ -1,21 +1,28 @@
-$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
-RAILS_ROOT = File.dirname(__FILE__)
-
 require 'test/unit'
 
-require 'rails_generator'
-require 'rails_generator/simple_logger'
-Rails::Generator::Base.logger = Rails::Generator::SimpleLogger.new
-
+# Optionally load RubyGems.
 begin
   require 'rubygems'
-  require_gem 'actionpack'
 rescue LoadError
 end
+
+# Must set before requiring generator libs.
+RAILS_ROOT = File.dirname(__FILE__)
+
+# Preemptively load the rest of Rails so Gems don't hijack our requires.
+require File.dirname(__FILE__) + '/../../activerecord/lib/active_record'
+require File.dirname(__FILE__) + '/../../actionpack/lib/action_controller'
+require File.dirname(__FILE__) + '/../lib/rails_generator'
 
 class RailsGeneratorTest < Test::Unit::TestCase
   BUILTINS = %w(controller mailer model scaffold)
   CAPITALIZED_BUILTINS = BUILTINS.map { |b| b.capitalize }
+
+  def test_sources
+    expected = [:app, :user, :RubyGems, :builtin]
+    expected.delete(:gem) unless Object.const_defined?(:Gem)
+    assert_equal expected, Rails::Generator::Base.sources.map { |s| s.label }
+  end
 
   def test_lookup_builtins
     (BUILTINS + CAPITALIZED_BUILTINS).each do |name|
@@ -71,7 +78,7 @@ class RailsGeneratorTest < Test::Unit::TestCase
     assert_equal 'admin/foo', g.name
     assert_equal %w(admin), g.class_path
     assert_equal 'Admin', g.class_nesting
-    assert_equal 'Foo', g.class_name
+    assert_equal 'Admin::Foo', g.class_name
     assert_equal 'foo', g.singular_name
     assert_equal 'foos', g.plural_name
     assert_equal g.singular_name, g.file_name

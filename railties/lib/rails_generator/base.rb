@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/../support/class_attribute_accessors'
-require File.dirname(__FILE__) + '/../support/inflector'
+require File.dirname(__FILE__) + '/support/class_attribute_accessors'
+require File.dirname(__FILE__) + '/support/inflector'
 require File.dirname(__FILE__) + '/options'
 require File.dirname(__FILE__) + '/manifest'
 require File.dirname(__FILE__) + '/spec'
@@ -69,8 +69,8 @@ module Rails
         @source_root = options[:source] || File.join(spec.path, 'templates')
         if options[:destination]
           @destination_root = options[:destination]
-        elsif Object.const_defined?(:RAILS_ROOT)
-          @destination_root = Object.const_get(:RAILS_ROOT)
+        elsif defined? ::RAILS_ROOT
+          @destination_root = ::RAILS_ROOT
         end
 
         # Silence the logger if requested.
@@ -173,11 +173,20 @@ module Rails
         def assign_names!(name)
           @name = name
           base_name, @class_path, @class_nesting = extract_modules(@name)
-          @class_name, @singular_name, @plural_name = inflect_names(base_name)
+          @class_name_without_nesting, @singular_name, @plural_name = inflect_names(base_name)
+          if @class_nesting.empty?
+            @class_name = @class_name_without_nesting
+          else
+            @class_name = "#{@class_nesting}::#{@class_name_without_nesting}"
+          end
         end
 
+        # Extract modules from filesystem-style or ruby-style path:
+        #   good/fun/stuff
+        #   Good::Fun::Stuff
+        # produce the same results.
         def extract_modules(name)
-          modules = name.split('/')
+          modules = name.include?('/') ? name.split('/') : name.split('::')
           name    = modules.pop
           path    = modules.map { |m| m.underscore }
           nesting = modules.map { |m| m.camelize }.join('::')

@@ -48,25 +48,22 @@ module ActionController #:nodoc:
       def helper(*args, &block)
         args.flatten.each do |arg|
           case arg
-          when Module
-            add_template_helper(arg)
-          when String, Symbol
-            file_name  = Inflector.underscore(arg.to_s.downcase) + '_helper'
-            class_name = Inflector.camelize(file_name)
-            begin
-              require_dependency(file_name)
-            rescue LoadError => load_error
-              requiree = / -- (.*?)(\.rb)?$/.match(load_error).to_a[1]
-              if requiree == file_name
-                raise LoadError, "Missing helper file helpers/#{file_name}.rb"
-              else
-                raise LoadError, "Can't load file: #{requiree}"
+            when Module
+              add_template_helper(arg)
+            when String, Symbol
+              file_name  = arg.to_s.underscore + '_helper'
+              class_name = file_name.camelize
+
+              begin
+                require_dependency(file_name)
+              rescue LoadError => load_error
+                requiree = / -- (.*?)(\.rb)?$/.match(load_error).to_a[1]
+                raise LoadError, requiree == file_name ? "Missing helper file helpers/#{file_name}.rb" : "Can't load file: #{requiree}"
               end
-            end
-            raise ArgumentError, "Missing #{class_name} module in helpers/#{file_name}.rb" unless Object.const_defined?(class_name)
-            add_template_helper(Object.const_get(class_name))
-          else
-            raise ArgumentError, 'helper expects String, Symbol, or Module argument'
+
+              add_template_helper(class_name.constantize)
+            else
+              raise ArgumentError, 'helper expects String, Symbol, or Module argument'
           end
         end
 
@@ -95,7 +92,7 @@ module ActionController #:nodoc:
         def inherited(child)
           inherited_without_helper(child)
           begin
-            child.helper(child.controller_name)
+            child.helper(child.controller_path)
           rescue ArgumentError, LoadError
             # No default helper available for this controller
           end

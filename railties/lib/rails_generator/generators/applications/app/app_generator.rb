@@ -1,15 +1,16 @@
+require 'rbconfig'
+
 class AppGenerator < Rails::Generator::Base
   DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'],
                               Config::CONFIG['ruby_install_name'])
 
   default_options   :gem => true, :shebang => DEFAULT_SHEBANG
-  mandatory_options :source  => "#{File.dirname(__FILE__)}/../.."
+  mandatory_options :source  => "#{File.dirname(__FILE__)}/../../../../.."
 
   def initialize(runtime_args, runtime_options = {})
     super
     usage if args.empty?
     @destination_root = args.shift
-    puts "eek! #{destination_root.inspect}"
   end
 
   def manifest
@@ -32,6 +33,7 @@ class AppGenerator < Rails::Generator::Base
 
       # database.yml and .htaccess
       m.template "configs/database.yml", "config/database.yml"
+      m.template "configs/routes.rb", "config/routes.rb"
       m.template "configs/apache.conf", "public/.htaccess"
 
       # Environments

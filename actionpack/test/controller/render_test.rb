@@ -2,86 +2,91 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 
 Customer = Struct.new("Customer", :name)
 
-class RenderTest < Test::Unit::TestCase
-  class TestController < ActionController::Base
-    layout :determine_layout
-
+module Fun
+  class GamesController < ActionController::Base
     def hello_world
     end
+  end
+end
 
-    def render_hello_world
-      render "test/hello_world"
-    end
 
-    def render_hello_world_from_variable
-      @person = "david"
-      render_text "hello #{@person}"
-    end
+class TestController < ActionController::Base
+  layout :determine_layout
 
-    def render_action_hello_world
-      render_action "hello_world"
-    end
-    
-    def render_text_hello_world
-      render_text "hello world"
-    end
-
-    def render_custom_code
-      render_text "hello world", "404 Moved"
-    end
-    
-    def render_xml_hello
-      @name = "David"
-      render "test/hello"
-    end
-
-    def greeting
-      # let's just rely on the template
-    end
-
-    def layout_test
-      render_action "hello_world"
-    end
-    
-    def builder_layout_test
-      render_action "hello"
-    end
-
-    def partials_list
-      @customers = [ Customer.new("david"), Customer.new("mary") ]
-      render_action "list"
-    end
-
-    def modgreet
-    end
-
-    def rescue_action(e) raise end
-      
-    private
-      def determine_layout
-        case action_name 
-          when "layout_test":         "layouts/standard"
-          when "builder_layout_test": "layouts/builder"
-        end
-      end
+  def hello_world
   end
 
-  TestController.template_root = File.dirname(__FILE__) + "/../fixtures/"
+  def render_hello_world
+    render "test/hello_world"
+  end
+
+  def render_hello_world_from_variable
+    @person = "david"
+    render_text "hello #{@person}"
+  end
+
+  def render_action_hello_world
+    render_action "hello_world"
+  end
   
-  class TestLayoutController < ActionController::Base
-    layout "layouts/standard"
-    
-    def hello_world
-    end
-    
-    def hello_world_outside_layout
-    end
-
-    def rescue_action(e)
-      raise unless ActionController::MissingTemplate === e
-    end
+  def render_text_hello_world
+    render_text "hello world"
   end
 
+  def render_custom_code
+    render_text "hello world", "404 Moved"
+  end
+  
+  def render_xml_hello
+    @name = "David"
+    render "test/hello"
+  end
+
+  def greeting
+    # let's just rely on the template
+  end
+
+  def layout_test
+    render_action "hello_world"
+  end
+  
+  def builder_layout_test
+    render_action "hello"
+  end
+
+  def partials_list
+    @customers = [ Customer.new("david"), Customer.new("mary") ]
+    render_action "list"
+  end
+
+  def rescue_action(e) raise end
+    
+  private
+    def determine_layout
+      case action_name 
+        when "layout_test":         "layouts/standard"
+        when "builder_layout_test": "layouts/builder"
+      end
+    end
+end
+
+TestController.template_root = File.dirname(__FILE__) + "/../fixtures/"
+
+class TestLayoutController < ActionController::Base
+  layout "layouts/standard"
+  
+  def hello_world
+  end
+  
+  def hello_world_outside_layout
+  end
+
+  def rescue_action(e)
+    raise unless ActionController::MissingTemplate === e
+  end
+end
+
+class RenderTest < Test::Unit::TestCase
   def setup
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
@@ -170,10 +175,9 @@ class RenderTest < Test::Unit::TestCase
     assert_equal "Hello: davidHello: mary", process_request.body
   end
 
-  def test_module_rendering
-    @request.action = "modgreet"
-    @request.parameters["module"] = "scope"
-    assert_equal "<p>Beautiful modules!</p>", process_request.body
+  def test_nested_rendering
+    @request.action = "hello_world"
+    assert_equal "Living in a nested world", Fun::GamesController.process(@request, @response).body
   end
 
   private

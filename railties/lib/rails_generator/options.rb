@@ -1,8 +1,12 @@
 require 'optparse'
-require File.dirname(__FILE__) + '/../support/class_inheritable_attributes'
+require File.dirname(__FILE__) + '/support/class_inheritable_attributes'
 
 module Rails
   module Generator
+    # Implement add_options! to add your options to the parser:
+    #   def add_options!(opt)
+    #     opt.on('-v', '--verbose') { |value| options[:verbose] = value }
+    #   end
     module Options
       def self.append_features(base)
         super
@@ -85,13 +89,14 @@ module Rails
 
           @option_parser = OptionParser.new do |opt|
             opt.banner = banner
-            add_options!(opt)
+            add_options!(opt) if respond_to?(:add_options!)
             add_general_options!(opt)
             opt.parse!(args)
           end
 
+          return args
+        ensure
           self.options = full_options(runtime_options)
-          args
         end
 
         # Raise a usage error.  Override usage_message to provide a blurb
@@ -107,14 +112,6 @@ module Rails
         # Override with your own usage banner.
         def banner
           "Usage: #{$0} [options]"
-        end
-
-        # Override with a method that adds options to the parser.
-        # Added options should use the options hash.  For example,
-        #   def add_options!(opt)
-        #     opt.on('-v', '--verbose') { |value| options[:verbose] = value }
-        #   end
-        def add_options!(opt)
         end
 
         # Adds general options like -h and --quiet.  Usually don't override.

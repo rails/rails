@@ -8,9 +8,9 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
   fixtures :<%= table_name %>
 
   def setup
-    $base_id = 1000001
     @controller = <%= controller_class_name %>Controller.new
-    @request, @response = ActionController::TestRequest.new, ActionController::TestResponse.new
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
   end
 
 <% for action in unscaffolded_actions -%>
@@ -34,7 +34,7 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
   end
 
   def test_show<%= suffix %>
-    process :show<%= suffix %>, 'id' => $base_id
+    process :show<%= suffix %>, 'id' => 1
     assert_rendered_file 'show'
     assert_template_has '<%= singular_name %>'
     assert_valid_record '<%= singular_name %>'
@@ -56,25 +56,25 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
   end
 
   def test_edit<%= suffix %>
-    process :edit<%= suffix %>, 'id' => $base_id
+    process :edit<%= suffix %>, 'id' => 1
     assert_rendered_file 'edit<%= suffix %>'
     assert_template_has '<%= singular_name %>'
     assert_valid_record '<%= singular_name %>'
   end
 
   def test_update<%= suffix %>
-    process :update<%= suffix %>, '<%= singular_name %>' => { 'id' => $base_id }
-    assert_redirected_to :action => 'show<%= suffix %>', :id => $base_id
+    process :update<%= suffix %>, '<%= singular_name %>' => { 'id' => 1 }
+    assert_redirected_to :action => 'show<%= suffix %>', :id => 1
   end
 
   def test_destroy<%= suffix %>
-    assert_not_nil <%= class_name %>.find($base_id)
+    assert_not_nil <%= class_name %>.find(1)
 
-    process :destroy, 'id' => $base_id
+    process :destroy, 'id' => 1
     assert_redirected_to :action => 'list<%= suffix %>'
 
     assert_raise(ActiveRecord::RecordNotFound) {
-      <%= singular_name %> = <%= class_name %>.find($base_id)
+      <%= singular_name %> = <%= class_name %>.find(1)
     }
   end
 end

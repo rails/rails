@@ -24,56 +24,34 @@
 require 'breakpoint'
 
 class Dispatcher
-  class <<self
+  class << self
     def dispatch(cgi = CGI.new, session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS)
       begin
-        Breakpoint.activate_drb("druby://localhost:#{BREAKPOINT_SERVER_PORT}", nil, !defined?(FastCGI)) if defined?(BREAKPOINT_SERVER_PORT)
-
-        request  = ActionController::CgiRequest.new(cgi, session_options)
-        response = ActionController::CgiResponse.new(cgi)
-    
-        controller_name, module_name = controller_name(request.parameters), module_name(request.parameters)
-
-        require_or_load("application")
-        require_or_load(controller_path(controller_name, module_name))
-
-        controller_class(controller_name).process(request, response).out
+        prepare_application
+        request, response = ActionController::CgiRequest.new(cgi, session_options), ActionController::CgiResponse.new(cgi)        
+        ActionController::Routing::Routes.recognize!(request).process(request, response).out
       rescue Object => exception
         ActionController::Base.process_with_exception(request, response, exception).out
       ensure
-        reset_application if Dependencies.load?
-        Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
+        reset_application
       end
     end
     
     private
-      def reset_application
-        Dependencies.clear
-        Dependencies.remove_subclasses_for(ActiveRecord::Base, ActiveRecord::Observer, ActionController::Base)
+      def prepare_application
+        ActionController::Routing::Routes.reload if Dependencies.load?
+        Breakpoint.activate_drb("druby://localhost:#{BREAKPOINT_SERVER_PORT}", nil, !defined?(FastCGI)) if defined?(BREAKPOINT_SERVER_PORT)
+        Controllers.const_load!("application") unless Controllers.const_defined?(:ApplicationController)
       end
     
-      def controller_path(controller_name, module_name = nil)
-        if module_name
-          "#{module_name}/#{controller_name.underscore}_controller"
-        else
-          "#{controller_name.underscore}_controller"
+      def reset_application
+        if Dependencies.load?
+          Controllers.clear
+          Dependencies.clear
+          Dependencies.remove_subclasses_for(ActiveRecord::Base, ActiveRecord::Observer, ActionController::Base)
         end
-      end
 
-      def controller_class(controller_name)
-        Object.const_get(controller_class_name(controller_name))
-      end
-
-      def controller_class_name(controller_name)
-        "#{controller_name.camelize}Controller"
-      end
-
-      def controller_name(parameters)
-        parameters["controller"].downcase.gsub(/[^_a-zA-Z0-9]/, "").untaint
-      end
-
-      def module_name(parameters)
-        parameters["module"].downcase.gsub(/[^_a-zA-Z0-9]/, "").untaint if parameters["module"]
+        Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
       end
   end
 end

@@ -4,11 +4,11 @@ class <%= class_name %>Test < Test::Unit::TestCase
   fixtures :<%= table_name %>
 
   def setup
-    $base_id = 1000001
+    @<%= singular_name %> = <%= class_name %>.find(1)
   end
 
   # Replace this with your real tests.
   def test_truth
-    assert true
+    assert_kind_of <%= class_name %>,  @<%= singular_name %>
   end
 end
