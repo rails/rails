@@ -1,5 +1,7 @@
 *SVN*
 
+* Added conditional layouts like <tt>layout "weblog_standard", :except => :rss</tt> #452 [Marcel Molina]
+
 * Fixed that MemCacheStore wasn't included by default and added default MemCache object pointing to localhost #447 [Lucas Carlson]
 
 * Added fourth argument to render_collection_of_partials that allows you to specify local_assigns -- just like render_partial #432 [zenspider]

@@ -58,12 +58,21 @@ module ActionController #:nodoc:
     #   <h1>Welcome</h1>
     #   Off-world colonies offers you a chance to start a new life
     #
+    # == Automatic layout assignment
+    #
+    # If there is a template in <tt>app/views/layouts/</tt> with the same name as the current controller then it will be automatically
+    # set as that controller's layout unless explicitly told otherwise. Say you have a WeblogController, for example. If a template named 
+    # <tt>app/views/layouts/weblog.rhtml</tt> or <tt>app/views/layouts/weblog.rxml</tt> exists then it will be automatically set as
+    # the layout for your WeblogController. You can create a layout with the name <tt>application.rhtml</tt> or <tt>application.rxml</tt>
+    # and this will be set as the default controller if there is no layout with the same name as the current controller and there is 
+    # no layout explicitly assigned with the +layout+ method. Setting a layout explicity will always override the automatic behaviour. 
+    #
     # == Inheritance for layouts
     #
     # Layouts are shared downwards in the inheritance hierarchy, but not upwards. Examples:
     #
     #   class BankController < ActionController::Base
-    #     layout "layouts/bank_standard"
+    #     layout "bank_standard"
     #
     #   class InformationController < BankController
     #
@@ -73,7 +82,7 @@ module ActionController #:nodoc:
     #   class EmployeeController < BankController
     #     layout nil
     #
-    # The InformationController uses "layouts/bank_standard" inherited from the BankController, the VaultController overwrites
+    # The InformationController uses "bank_standard" inherited from the BankController, the VaultController overwrites
     # and picks the layout dynamically, and the EmployeeController doesn't want to use a layout at all.
     #
     # == Types of layouts
@@ -104,16 +113,31 @@ module ActionController #:nodoc:
     #   class WeblogController < ActionController::Base
     #     layout proc{ |controller| controller.logged_in? ? "writer_layout" : "reader_layout" }
     #
-    # Of course, the most common way of specifying a layout is still just as a plain template path:
+    # Of course, the most common way of specifying a layout is still just as a plain template name:
     #
     #   class WeblogController < ActionController::Base
-    #     layout "layouts/weblog_standard"
+    #     layout "weblog_standard"
     #
-    # == Avoiding the use of a layout
+    # If no directory is specified for the template name, the template will by default by looked for in +app/views/layouts/+.
     #
-    # If you have a layout that by default is applied to all the actions of a controller, you still have the option to rendering
-    # a given action without a layout. Just use the method <tt>render_without_layout</tt>, which works just like Base.render --
-    # it just doesn't apply any layouts.
+    # == Conditional layouts
+    #
+    # If you have a layout that by default is applied to all the actions of a controller, you still have the option of rendering
+    # a given action or set of actions without a layout, or restricting a layout to only a single action or a set of actions. The 
+    # +:only+ and +:except+ options can be passed to the layout call. For example:
+    #
+    #   class WeblogController < ActionController::Base
+    #     layout "weblog_standard", :except => :rss
+    # 
+    #     # ...
+    #
+    #   end
+    #
+    # This will assign "weblog_standard" as the WeblogController's layout  except for the +rss+ action, which will not wrap a layout 
+    # around the rendered view.
+    #
+    # Both the +:only+ and +:except+ condition can accept an aribtrary number of method references, so +:except => [ :rss, :text_only ]+ 
+    # is valid, as is # +:except => :rss+.
     #
     # == Using a different layout in the action render call
     # 
@@ -130,32 +154,36 @@ module ActionController #:nodoc:
     #
     # As you can see, you pass the template as the first parameter, the status code as the second ("200" is OK), and the layout
     # as the third.
-    #
-    # == Automatic layout assignment
-    #
-    # If there is a template in <tt>app/views/layouts/</tt> with the same name as the current controller then it will be automatically
-    # set as that controller's layout unless explicitly told otherwise. Say you have a WeblogController, for example. If a template named 
-    # <tt>app/views/layouts/weblog.rhtml</tt> or <tt>app/views/layouts/weblog.rxml</tt> exists then it will be automatically set as
-    # the layout for your WeblogController. You can create a layout with the name <tt>application.rhtml</tt> or <tt>application.rxml</tt>
-    # and this will be set as the default controller if there is no layout with the same name as the current controller and there is 
-    # no layout explicitly assigned with the +layout+ method. Setting a layout explicity will always override the automatic behaviour. 
     module ClassMethods
       # If a layout is specified, all actions rendered through render and render_action will have their result assigned 
       # to <tt>@content_for_layout</tt>, which can then be used by the layout to insert their contents with
       # <tt><%= @content_for_layout %></tt>. This layout can itself depend on instance variables assigned during action
       # performance and have access to them as any normal template would.
-      def layout(template_name)
+      def layout(template_name, conditions = {})
+        add_layout_conditions(conditions)
         write_inheritable_attribute "layout", template_name
+      end
+
+      def layout_conditions #:nodoc:
+        read_inheritable_attribute("layout_conditions")
       end
 
       private
         def inherited(child)
           inherited_without_layout(child)
-          child.layout(child.controller_name) unless layout_list.grep(/^#{child.controller_name}\.r(?:xml|html)$/).empty?
+          child.layout(child.controller_name) unless layout_list.grep(/^#{child.controller_name}\.r(?:x|ht)ml$/).empty?
         end
 
         def layout_list
-          Dir.glob("#{template_root}/layouts/*.r{xml,html}").map { |layout| File.basename(layout) }
+          Dir.glob("#{template_root}/layouts/*.r{x,ht}ml").map { |layout| File.basename(layout) }
+        end
+
+        def add_layout_conditions(conditions)
+          write_inheritable_hash "layout_conditions", normalize_conditions(conditions)
+        end
+
+        def normalize_conditions(conditions)
+          conditions.inject({}) {|hash, (key, value)| hash.merge(key => [value].flatten.map {|action| action.to_s})}
         end
     end
 
@@ -174,7 +202,7 @@ module ActionController #:nodoc:
     end
 
     def render_with_layout(template_name = default_template_name, status = nil, layout = nil) #:nodoc:
-      if layout ||= active_layout
+      if layout ||= active_layout and action_has_layout?
         add_variables_to_assigns
         logger.info("Rendering #{template_name} within #{layout}") unless logger.nil?
         @content_for_layout = @template.render_file(template_name, true)
@@ -183,6 +211,20 @@ module ActionController #:nodoc:
         render_without_layout(template_name, status)
       end
     end
+
+    private
+      
+      def action_has_layout?
+        conditions = self.class.layout_conditions
+        case
+          when conditions[:only]
+            conditions[:only].include?(action_name)
+          when conditions[:except]
+            !conditions[:except].include?(action_name) 
+          else
+            true
+        end
+      end
 
   end
 end
