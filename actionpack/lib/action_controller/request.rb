@@ -78,7 +78,7 @@ module ActionController
     end
 
     def protocol
-      port == 443 ? 'https://' : 'http://'
+      env["HTTPS"] == "on" ? 'https://' : 'http://'
     end
 
     def ssl?
