@@ -96,6 +96,7 @@ class AppGenerator < Rails::Generator::Base
   # Installation skeleton.  Intermediate directories are automatically
   # created so don't sweat their absence here.
   BASEDIRS = %w(
+    app/apis
     app/controllers
     app/helpers
     app/models
