@@ -63,6 +63,7 @@ module Inflector
     def singular_rules #:doc:
       [
           [/(x|ch|ss)es$/, '\1'],
+          [/movies$/, 'movie'],
           [/([^aeiouy]|qu)ies$/, '\1y'],
           [/([lr])ves$/, '\1f'],
           [/([^f])ves$/, '\1fe'],

@@ -1,5 +1,7 @@
 *CVS*
 
+* Fixed the Inflector to handle the movie/movies pair correctly #261 [Scott Baron]
+
 * Added bind-style variable interpolation for the condition arrays that uses the adapter's quote method [Michael Koziarski]
 
   Before:

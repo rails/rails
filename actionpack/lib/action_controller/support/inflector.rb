@@ -48,6 +48,7 @@ module Inflector
     def plural_rules #:doc:
       [
         [/(x|ch|ss)$/, '\1es'],               # search, switch, fix, box, process, address
+        [/([^aeiouy]|qu)ies$/, '\1y'],
         [/([^aeiouy]|qu)y$/, '\1ies'],        # query, ability, agency
         [/(?:([^f])fe|([lr])f)$/, '\1\2ves'], # half, safe, wife
         [/sis$/, 'ses'],                      # basis, diagnosis
