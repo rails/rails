@@ -28,9 +28,30 @@ module ActiveRecord
         @loaded
       end
 
+      protected
+        def quoted_record_ids(records)
+          records.map { |record| record.quoted_id }.join(',')
+        end
+
+        def interpolate_sql_options!(options, *keys)
+          keys.each { |key| options[key] &&= interpolate_sql(options[key]) }
+        end
+
+        def interpolate_sql(sql, record = nil)
+          @owner.send(:interpolate_sql, sql, record)
+        end
+
+        def sanitize_sql(sql)
+          @association_class.send(:sanitize_sql, sql)
+        end
+
+        def extract_options_from_args!(args)
+          @owner.send(:extract_options_from_args!, args)
+        end
+
       private
         def load_target
-          unless @owner.new_record?
+          if !@owner.new_record? || foreign_key_present
             begin
               @target = find_target if not loaded?
             rescue ActiveRecord::RecordNotFound
@@ -39,6 +60,12 @@ module ActiveRecord
           end
           @loaded = true
           @target
+        end
+
+        # Can be overwritten by associations that might have the foreign key available for an association without
+        # having the object itself (and still being a new record). Currently, only belongs_to present this scenario.
+        def foreign_key_present
+          false
         end
 
         def raise_on_type_mismatch(record)

@@ -90,27 +90,6 @@ module ActiveRecord
         @loaded = true
       end
 
-      protected
-        def quoted_record_ids(records)
-          records.map { |record| record.quoted_id }.join(',')
-        end
-
-        def interpolate_sql_options!(options, *keys)
-          keys.each { |key| options[key] &&= interpolate_sql(options[key]) }
-        end
-
-        def interpolate_sql(sql, record = nil)
-          @owner.send(:interpolate_sql, sql, record)
-        end
-
-        def sanitize_sql(sql)
-          @association_class.send(:sanitize_sql, sql)
-        end
-
-        def extract_options_from_args!(args)
-          @owner.send(:extract_options_from_args!, args)
-        end
-
       private
         def raise_on_type_mismatch(record)
           raise ActiveRecord::AssociationTypeMismatch, "#{@association_class} expected, got #{record.class}" unless record.is_a?(@association_class)

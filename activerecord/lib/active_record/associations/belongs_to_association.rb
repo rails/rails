@@ -45,10 +45,14 @@ module ActiveRecord
       private
         def find_target
           if @options[:conditions]
-            @association_class.find_on_conditions(@owner[@association_class_primary_key_name], @options[:conditions])
+            @association_class.find_on_conditions(@owner[@association_class_primary_key_name], interpolate_sql(@options[:conditions]))
           else
             @association_class.find(@owner[@association_class_primary_key_name])
           end
+        end
+
+        def foreign_key_present
+          !@owner[@association_class_primary_key_name].nil?
         end
 
         def target_obsolete?
