@@ -10,7 +10,7 @@ db2 = 'activerecord_unittest2'
 ActiveRecord::Base.establish_connection(
   :adapter  => "mysql",
   :host     => "localhost",
-  :username => "root",
+  :username => "rails",
   :password => "",
   :database => db1
 )
@@ -18,7 +18,7 @@ ActiveRecord::Base.establish_connection(
 Course.establish_connection(
   :adapter  => "mysql",
   :host     => "localhost",
-  :username => "root",
+  :username => "rails",
   :password => "",
   :database => db2
 )

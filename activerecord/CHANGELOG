@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that unit tests for MySQL are now run as the "rails" user instead of root #455 [Eric Hodel]
+
 * Added validates_associated that enables validation of objects in an unsaved association #398 [Tim Bates]. Example:
 
     class Book < ActiveRecord::Base
