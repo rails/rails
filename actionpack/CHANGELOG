@@ -1,5 +1,7 @@
 *SVN*
 
+* Added TextHelper#human_size for formatting file sizes, like human_size(1234567) => 1.2 MB #943 [thomas@fesch.at]
+
 * Fixed link_to :confirm #936 [Nicholas Seckar]
 
 * Improved error reporting especially around never shallowing exceptions. Debugging helpers should be much easier now #980 [Nicholas Seckar]

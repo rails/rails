@@ -128,6 +128,26 @@ module ActionView
       def strip_links(text)
         text.gsub(/<a.*>(.*)<\/a>/m, '\1')
       end
+      
+      # Returns a formatted-for-humans file size.
+      # 
+      # Examples:
+      #   human_size(123)          => 123 Bytes
+      #   human_size(1234)         => 1.2 KB
+      #   human_size(12345)        => 12.1 KB
+      #   human_size(1234567)      => 1.2 MB
+      #   human_size(1234567890)   => 1.1 GB
+      def human_size(size)
+        begin
+          return "%d Bytes" % size                if size < 1.kilobytes
+          return "%.1f KB" % (size/1.0.kilobytes) if size < 1.megabytes
+          return "%.1f MB" % (size/1.0.megabytes) if size < 1.gigabytes
+          return "%.1f GB" % (size/1.0.gigabytes) if size < 1.terabytes
+          return "%.1f TB" % (size/1.0.terabytes) 
+        rescue
+          # just return nothing
+        end
+      end
 
       private
         # Returns a version of the text that's safe to use in a regular expression without triggering engine features.
