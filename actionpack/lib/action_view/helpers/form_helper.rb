@@ -117,7 +117,9 @@ module ActionView
       def to_input_field_tag(field_type, options = {})
         html_options = DEFAULT_FIELD_OPTIONS.merge(options)
         html_options.merge!({ "size" => options["maxlength"]}) if options["maxlength"] && !options["size"]
-        html_options.merge!({ "type" =>  field_type, "value" => value.to_s })
+        html_options.delete("size") if field_type == "hidden"
+        html_options.merge!({ "type" =>  field_type})
+        html_options.merge!({ "value" => value.to_s }) unless options["value"]
         add_default_name_and_id(html_options)
         tag("input", html_options)
       end
