@@ -146,7 +146,11 @@ class Fixtures < Hash
   def self.instantiate_fixtures(object, fixtures_directory, *table_names)
     [ create_fixtures(fixtures_directory, *table_names) ].flatten.each_with_index do |fixtures, idx|
       object.instance_variable_set "@#{table_names[idx]}", fixtures
-      fixtures.each { |name, fixture| object.instance_variable_set "@#{name}", fixture.find }
+      fixtures.each do |name, fixture|
+        if model = fixture.find
+          object.instance_variable_set "@#{name}", model
+        end
+      end
     end
   end
 
@@ -294,7 +298,10 @@ class Fixture #:nodoc:
   end
 
   def find
-    Object.const_get(@class_name).find(self[Object.const_get(@class_name).primary_key])
+    if Object.const_defined?(@class_name)
+      klass = Object.const_get(@class_name)
+      klass.find(self[klass.primary_key])
+    end
   end
 
   private
