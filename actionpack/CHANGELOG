@@ -1,5 +1,7 @@
 *SVN*
 
+* Added shortcut :id assignment to render_component and friends (before you had to go through :params) #784 [Lucas Carlson]
+
 * Fixed that map.connect should convert arguments to strings #780 [Nicholas Seckar]
 
 * Added UrlHelper#link_to_if/link_to_unless to enable other conditions that just link_to_unless_current #757 [mindel]

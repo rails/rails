@@ -6,13 +6,13 @@ module ActionController #:nodoc:
   #     # Performs a method and then lets hello_world output its render
   #     def delegate_action
   #       do_other_stuff_before_hello_world
-  #       render_component :controller => "greeter",  :action => "hello_world"
+  #       render_component :controller => "greeter",  :action => "hello_world", :params => { "person" => "david" }
   #     end
   #   end
   #
   #   class GreeterController < ActionController::Base
   #     def hello_world
-  #       render_text "Hello World!"
+  #       render_text "#{@params['person']} says, Hello World!"
   #     end
   #   end
   #
@@ -54,7 +54,7 @@ module ActionController #:nodoc:
         request_for_component = @request.dup
         request_for_component.send(
           :instance_variable_set, :@parameters, 
-          (options[:params] || {}).merge({ "controller" => options[:controller], "action" => options[:action] })
+          (options[:params] || {}).merge({ "controller" => options[:controller], "action" => options[:action], "id" => options[:id] })
         )
         return request_for_component
       end
