@@ -52,11 +52,9 @@ module ActionController #:nodoc:
 
     private
       def set_cookie(name, options) #:doc:
-        if options.is_a?(Array)
-          @controller.response.headers["cookie"] << CGI::Cookie.new(*options)
-        else
-          @controller.response.headers["cookie"] << CGI::Cookie.new(options)
-        end
+        cookie = options.is_a?(Array) ? CGI::Cookie.new(*options) : CGI::Cookie.new(options)
+        @controller.logger.info "Cookie set: #{cookie}" unless @controller.logger.nil?
+        @controller.response.headers["cookie"] << cookie
       end
   end
 end
