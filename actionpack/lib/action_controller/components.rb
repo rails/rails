@@ -32,7 +32,7 @@ module ActionController #:nodoc:
       end
       
       def request_for_component(options)
-        request_for_component = Marshal::load(Marshal::dump(@request))
+        request_for_component = @request.dup
         request_for_component.send(
           :instance_variable_set, :@parameters, 
           (options[:params] || {}).merge({ "controller" => options[:controller], "action" => options[:action] })
