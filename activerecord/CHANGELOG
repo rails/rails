@@ -1,5 +1,15 @@
 *SVN*
 
+* Added MultiparameterAssignmentErrors and AttributeAssignmentError exceptions #777 [demetrius]. Documentation:
+
+   * +MultiparameterAssignmentErrors+ -- collection of errors that occurred during a mass assignment using the 
+     +attributes=+ method. The +errors+ property of this exception contains an array of +AttributeAssignmentError+ 
+     objects that should be inspected to determine which attributes triggered the errors.
+   * +AttributeAssignmentError+ -- an error occurred while doing a mass assignment through the +attributes=+ method.
+     You can inspect the +attribute+ property of the exception object to determine which attribute triggered the error.
+
+* Fixed that postgresql adapter would fails when reading bytea fields with null value #771 [rodrigo k]
+
 * Added transactional fixtures that uses rollback to undo changes to fixtures instead of DELETE/INSERT -- it's much faster. See documentation under Fixtures #760 [bitsweat]
 
 * Added destruction of dependent objects in has_one associations when a new assignment happens #742 [mindel]. Example:

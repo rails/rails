@@ -26,6 +26,22 @@ module ActiveRecord #:nodoc:
   class StaleObjectError < ActiveRecordError #:nodoc:
   end
 
+  class AttributeAssignmentError < ActiveRecordError #:nodoc:
+    attr_reader :exception, :attribute
+    def initialize(message, exception, attribute)
+      @exception = exception
+      @attribute = attribute
+      @message = message
+    end
+  end
+  
+  class MultiparameterAssignmentErrors < ActiveRecordError #:nodoc:
+    attr_reader :errors
+    def initialize(errors)
+      @errors = errors
+    end
+  end
+  
   # Active Record objects doesn't specify their attributes directly, but rather infer them from the table definition with
   # which they're linked. Adding, removing, and changing attributes and their type is done directly in the database. Any change
   # is instantly reflected in the Active Record objects. The mapping that binds a given Active Record class to a certain
@@ -184,7 +200,11 @@ module ActiveRecord #:nodoc:
   #   Either the row with the given ID doesn't exist or the row didn't meet the additional restrictions.
   # * +StatementInvalid+ -- the database server rejected the SQL statement. The precise error is added in the  message.
   #   Either the record with the given ID doesn't exist or the record didn't meet the additional restrictions.
-  # 
+  # * +MultiparameterAssignmentErrors+ -- collection of errors that occurred during a mass assignment using the 
+  #   +attributes=+ method. The +errors+ property of this exception contains an array of +AttributeAssignmentError+ 
+  #   objects that should be inspected to determine which attributes triggered the errors.
+  # * +AttributeAssignmentError+ -- an error occurred while doing a mass assignment through the +attributes=+ method.
+  #   You can inspect the +attribute+ property of the exception object to determine which attribute triggered the error.
   # *Note*: The attributes listed are class-level attributes (accessible from both the class and instance level). 
   # So it's possible to assign a logger to the class through Base.logger= which will then be used by all
   # instances in the current object space.
@@ -1251,13 +1271,21 @@ module ActiveRecord #:nodoc:
       
       # Includes an ugly hack for Time.local instead of Time.new because the latter is reserved by Time itself.
       def execute_callstack_for_multiparameter_attributes(callstack)
+        errors = []
         callstack.each do |name, values|
           klass = (self.class.reflect_on_aggregation(name) || column_for_attribute(name)).klass
           if values.empty?
             send(name + "=", nil)
           else
-            send(name + "=", Time == klass ? klass.local(*values) : klass.new(*values))
+            begin
+              send(name + "=", Time == klass ? klass.local(*values) : klass.new(*values))
+            rescue => ex
+              errors << AttributeAssignmentError.new("error on assignment #{values.inspect} to #{name}", ex, name)
+            end
           end
+        end
+        unless errors.empty?
+          raise MultiparameterAssignmentErrors.new(errors), "#{errors.size} error(s) on assignment of multiparameter attributes"
         end
       end
       

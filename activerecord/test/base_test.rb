@@ -216,6 +216,16 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal("initialized from attributes", topic.title)
   end
   
+  def test_initialize_with_invalid_attribute
+    begin
+      topic = Topic.new({ "title" => "test", 
+        "last_read(1i)" => "2005", "last_read(2i)" => "2", "last_read(3i)" => "31"})
+    rescue ActiveRecord::MultiparameterAssignmentErrors => ex
+      assert_equal(1, ex.errors.size)
+      assert_equal("last_read", ex.errors[0].attribute)
+    end
+  end
+  
   def test_load
     topics = Topic.find_all nil, "id"    
     assert_equal(2, topics.size)
