@@ -107,10 +107,10 @@ module ActiveRecord #:nodoc:
   # <tt>Person.find_by_user_name_and_password</tt> or even <tt>Payment.find_by_purchaser_and_state_and_country</tt>. So instead of writing
   # <tt>Person.find_first(["user_name = ? AND password = ?", user_name, password])</tt>, you just do 
   # <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
-  #
-  # While primarily a construct for easier find_firsts, it can also be used as a construct for find_all by using calls like 
-  # <tt>Payment.find_all_by_amount(50)</tt> that is turned into <tt>Payment.find_all(["amount = ?", 50])</tt>. This is something not as equally useful,
-  # though, as it's not possible to specify the order in which the objects are returned.
+  # 
+  # It's even possible to use all the additional parameters to find_first and find_all. For example, the full interface for Payment.find_all_by_amount
+  # is actually Payment.find_all_by_amount(amount, orderings = nil, limit = nil, joins = nil). And the full interface to Person.find_by_user_name is
+  # actually Person.find_by_user_name(user_name, orderings = nil)
   #
   # == Saving arrays, hashes, and other non-mappeable objects in text columns
   # 
@@ -253,9 +253,9 @@ module ActiveRecord #:nodoc:
       #   Person.find([1])     # returns an array for objects the object with ID = 1
       #
       # The last argument may be a Hash of find options.  Currently, +conditions+ is the only option, behaving the same as with +find_all+.
-      #   Person.find(1, :conditions => "associate_id='5'"
-      #   Person.find(1, 2, 6, :conditions => "status='active'"
-      #   Person.find([7, 17], :conditions => ["sanitize_me='%s'", "bare'quote"]
+      #   Person.find(1, :conditions => "associate_id = 5"
+      #   Person.find(1, 2, 6, :conditions => "status = 'active'"
+      #   Person.find([7, 17], :conditions => ["sanitize_me = ?", "bare'quote"]
       #
       # +RecordNotFound+ is raised if no record can be found.
       def find(*args)
@@ -654,6 +654,9 @@ module ActiveRecord #:nodoc:
         # Enables dynamic finders like find_by_user_name(user_name) and find_by_user_name_and_password(user_name, password) that are turned into 
         # find_first(["user_name = ?", user_name]) and find_first(["user_name = ? AND password = ?", user_name, password]) respectively. Also works
         # for find_all, but using find_all_by_amount(50) that are turned into find_all(["amount = ?", 50]).
+        # 
+        # It's even possible to use all the additional parameters to find_first and find_all. For example, the full interface for find_all_by_amount
+        # is actually find_all_by_amount(amount, orderings = nil, limit = nil, joins = nil).
         def method_missing(method_id, *arguments)
           method_name = method_id.id2name
 
@@ -661,7 +664,7 @@ module ActiveRecord #:nodoc:
             finder, attributes = ($1 == "all_by" ? :find_all : :find_first), $2.split("_and_")
             attributes.each { |attr_name| super unless column_methods_hash[attr_name.intern] }
             conditions = attributes.collect { |attr_name| "#{attr_name} = ? "}.join(" AND ")
-            send(finder, [conditions, *arguments])
+            send(finder, [conditions, *arguments[0...attributes.length]], *arguments[attributes.length..-1])
           else
             super
           end
