@@ -115,6 +115,22 @@ module ActionController #:nodoc:
     # a given action without a layout. Just use the method <tt>render_without_layout</tt>, which works just like Base.render --
     # it just doesn't apply any layouts.
     #
+    # == Using a different layout in the action render call
+    # 
+    # If most of your actions use the same layout, it makes perfect sense to define a controller-wide layout as described above.
+    # Some times you'll have exceptions, though, where one action wants to use a different layout than the rest of the controller.
+    # This is possible using <tt>render_with_layout</tt> method. It's just a bit more manual work as you'll have to supply fully
+    # qualified template and layout names as this example shows:
+    #
+    #   class WeblogController < ActionController::Base
+    #     def help
+    #       render_with_layout "help/index", "200", "layouts/help"
+    #     end
+    #   end
+    #
+    # As you can see, you pass the template as the first parameter, the status code as the second ("200" is OK), and the layout
+    # as the third.
+    #
     # == Automatic layout assignment
     #
     # If there is a template in <tt>app/views/layouts/</tt> with the same name as the current controller then it will be automatically
