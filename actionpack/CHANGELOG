@@ -3,8 +3,17 @@
 * Fixed that on very rare occasions, webrick would raise a NoMethodError: private method 'split' called for nil #1001 [Flurin Egger]
 
 * Added a wide range of new Javascript effects:
+    * Effect.Puff zooms the element out and makes it smoothly transparent at the same time, giving a "puff" illusion #996 [thomas@fesch.at]
+      After the animation is completed, the display property will be set to none. 
+      This effect will work on relative and absolute positioned elements.
+      
+    * Effect.Appear as the opposite of Effect.Fade #990 [thomas@fesch.at]
+      You should return elements with style="display:none;" or a like class for this to work best and have no chance of flicker.
+      
     * Effect.Squish for scaling down an element and making it disappear at the end #972 [thomas@fesch.at]
+    
     * Effect.Scale for smoothly scaling images or text up and down #972 [thomas@fesch.at]
+    
     * Effect.Fade which smoothly turns opacity from 100 to 0 and then hides the element #960 [thomas@fesch.at]
 
 * Fixed problem with page caching #958 [Rick Olson]

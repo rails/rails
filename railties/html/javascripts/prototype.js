@@ -519,6 +519,7 @@ Effect.Scale.prototype = {
       return; 
     }
     if (this.timer) clearTimeout(this.timer);
+    if (this.options.step) this.options.step(this);
     this.setDimensions(this.element, this.currentWidth, this.currentHeight);
     if(this.sizeEm) this.element.style.fontSize = this.sizeEm*this.currentScale + "em";
     this.currentScale += (this.factor/10);
@@ -548,3 +549,67 @@ Effect.Squish.prototype = {
     this.element.style.display = 'none';
   } 
 }
+
+Effect.Puff = Class.create();
+Effect.Puff.prototype = {
+  initialize: function(element) {
+    this.element = $(element);
+    this.opacity = 100;
+    this.startTop  = this.element.top || this.element.offsetTop;
+    this.startLeft = this.element.left || this.element.offsetLeft;
+    new Effect.Scale(this.element, 200, { step: this.fade.bind(this), complete: this.hide.bind(this) } );
+  },
+  fade: function(effect) {
+    topd    = (((effect.currentScale)*effect.startHeight) - effect.startHeight)/2;
+    leftd   = (((effect.currentScale)*effect.startWidth) - effect.startWidth)/2;
+    if(this.element.style.position='absolute') {
+      this.element.style.top = this.startTop-topd + "px";
+      this.element.style.left = this.startLeft-leftd + "px";
+    } else {
+      this.element.style.top = -topd + "px";
+      this.element.style.left = -leftd + "px";
+    }
+    this.opacity -= 10;
+    this.setOpacity(this.element, this.opacity); 
+    if(navigator.appVersion.indexOf('AppleWebKit')>0) this.element.innerHTML += ''; //force redraw on safari
+  },
+  hide: function() {
+    this.element.style.display = 'none';
+  },
+  setOpacity: function(element, opacity) {
+    opacity = (opacity == 100) ? 99.999 : opacity;
+    element.style.filter = "alpha(opacity:"+opacity+")";
+    element.style.opacity = opacity/100;
+  }
+}
+
+Effect.Appear = Class.create();
+Effect.Appear.prototype = {
+  initialize: function(element) {
+    this.element = $(element);
+    this.start  = 0;
+    this.finish = 100;
+    this.current = this.start;
+    this.fade();
+  },
+  
+  fade: function() {
+    if (this.isFinished()) return;
+    if (this.timer) clearTimeout(this.timer);
+    this.setOpacity(this.element, this.current);
+    this.current += 10;
+    this.timer = setTimeout(this.fade.bind(this), 100);
+  },
+  
+  isFinished: function() {
+    return this.current > this.finish;
+  },
+  
+  setOpacity: function(element, opacity) {
+    opacity = (opacity == 100) ? 99.999 : opacity;
+    element.style.filter = "alpha(opacity:"+opacity+")";
+    element.style.opacity = opacity/100;
+    element.style.display = '';
+  }
+}
+
