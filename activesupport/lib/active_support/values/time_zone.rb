@@ -37,8 +37,14 @@ class TimeZone
     adjust(Time.now)
   end
 
+  # Return the current date in this time zone.
+  def today
+    now.to_date
+  end
+
   # Adjust the given time to the time zone represented by +self+.
   def adjust(time)
+    time = time.to_time
     offset = time.utc_offset
     time + utc_offset - offset
   end

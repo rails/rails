@@ -185,6 +185,9 @@ module ActionView
       # (long) list. (You can use TimeZone.us_zones as a convenience for
       # obtaining a list of the US time zones.)
       #
+      # The +selected+ parameter must be either +nil+, or a string that names
+      # a TimeZone.
+      #
       # By default, +model+ is the TimeZone constant (which can be obtained
       # in ActiveRecord as a value object). The only requirement is that the
       # +model+ parameter be an object that responds to #all, and returns
@@ -195,16 +198,17 @@ module ActionView
       def time_zone_options_for_select(selected = nil, priority_zones = nil, model = TimeZone)
         zone_options = ""
 
+        zones = model.all
+        convert_zones = lambda { |list| list.map { |z| [ z.to_s, z.name ] } }
+
         if priority_zones
-          zone_options += options_for_select(priority_zones, selected)
+          zone_options += options_for_select(convert_zones[priority_zones], selected)
           zone_options += "<option>-------------</option>\n"
 
-          zones = model.all.reject { |z| priority_zones.include?( z ) }
-          zone_options += options_for_select(zones, selected)
-        else
-          zone_options += options_for_select(model.all, selected)
+          zones = zones.reject { |z| priority_zones.include?( z ) }
         end
 
+        zone_options += options_for_select(convert_zones[zones], selected)
         zone_options
       end
 
