@@ -84,14 +84,13 @@ module ActionController
       env["SERVER_PORT"].to_i
     end
 
+    # Returns a string like ":8080" if the port is not 80 or 443 while on https.
+    def port_string
+      (protocol == "http://" && port == 80) || (protocol == "https://" && port == 443) ? "" : ":#{port}"
+    end
+
     def host_with_port
-      if env['HTTP_HOST']
-        env['HTTP_HOST']
-      elsif (protocol == "http://" && port == 80) || (protocol == "https://" && port == 443)
-        host
-      else
-        host + ":#{port}"
-      end
+      env['HTTP_HOST'] || host + port_string
     end
 
     #--

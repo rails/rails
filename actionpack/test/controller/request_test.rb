@@ -23,4 +23,26 @@ class RequestTest < Test::Unit::TestCase
     @request.host = "dev.www.rubyonrails.co.uk"
     assert_equal %w( dev www ), @request.subdomains(2)
   end
+  
+  def test_port_string
+    @request.port = 80
+    assert_equal "", @request.port_string
+
+    @request.port = 8080
+    assert_equal ":8080", @request.port_string
+  end
+
+  def test_host_with_port
+    @request.env['HTTP_HOST'] = "rubyonrails.org:8080"
+    assert_equal "rubyonrails.org:8080", @request.host_with_port
+    @request.env['HTTP_HOST'] = nil
+    
+    @request.host = "rubyonrails.org"
+    @request.port = 80
+    assert_equal "rubyonrails.org", @request.host_with_port
+    
+    @request.host = "rubyonrails.org"
+    @request.port = 81
+    assert_equal "rubyonrails.org:81", @request.host_with_port
+  end
 end

@@ -37,6 +37,10 @@ module ActionController #:nodoc:
       @cookies.freeze
     end
 
+    def port=(number)
+      @env["SERVER_PORT"] = number.to_i
+    end
+
     def action=(action_name)
       @query_parameters.update({ "action" => action_name })
       @parameters = nil

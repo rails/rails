@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Request#port_string to get something like ":8080" back on 8080 and "" on 80 (or 443 with https).
+
 * Added Request#domain (returns string) and Request#subdomains (returns array).
 
 * Added POST support for the breakpoint retries, so form processing that raises an exception can be retried with the original request [Florian Gross]
