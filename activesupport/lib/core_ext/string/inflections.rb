@@ -31,6 +31,10 @@ module ActiveSupport #:nodoc:
         def classify
           Inflector.classify(self)
         end
+        
+        def humanize
+          Inflector.humanize(self)
+        end
 
         def foreign_key(separate_class_name_and_id_with_underscore = true)
           Inflector.foreign_key(self, separate_class_name_and_id_with_underscore)
