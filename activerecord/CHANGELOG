@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Base.update_collection that can update an array of id/attribute pairs, such as the ones produced by the recent added support for automatic id-based indexing for lists of items #526 [Duane Johnson]
+
 * Added ActiveRecord::Base.timestamps_gmt that can be set to true to make the automated timestamping use GMT instead of local time #520 [Scott Baron]
 
 * Added that update_all calls sanitize_sql on its updates argument, so stuff like MyRecord.update_all(['time = ?', Time.now]) works #519 [notahat]
