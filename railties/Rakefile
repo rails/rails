@@ -21,7 +21,8 @@ TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/testing
 
 LOG_FILES    = %w( apache.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html )
-SCRIPT_FILES = %w( generate )
+SCRIPT_FILES = %w( generate breakpoint_client envcon )
+BIN_FILES    = %w( breakpointing envcon )
 GENERATORS   = %w( controller mailer model scaffold )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer railties )
@@ -96,7 +97,7 @@ end
 desc "Make copies of all the default content of ties"
 task :copy_ties_content => [ 
   :copy_rootfiles, :copy_dispatches, :copy_html_files, :copy_abstract_application,
-  :copy_configs, :copy_generators, :copy_test_helpers, :copy_docs_in_public,
+  :copy_configs, :copy_generators, :copy_binfiles, :copy_test_helpers, :copy_docs_in_public,
   :copy_app_doc_readme ]
 
 task :copy_dispatches do
@@ -147,6 +148,14 @@ task :copy_generators do
 
   GENERATORS.each do |dir|
     cp_r File.join('generators', dir), File.join(PKG_DESTINATION, 'script', 'generators', dir)
+  end
+end
+
+task :copy_binfiles do
+  BIN_FILES.each do |file|
+    dest_file = File.join(PKG_DESTINATION, 'script', file)
+    cp File.join('bin', file), dest_file
+    chmod 0755, dest_file
   end
 end
 

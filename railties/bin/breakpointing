@@ -1,0 +1,2 @@
+#!/usr/local/bin/ruby
+require 'breakpoint_client'

@@ -4,24 +4,6 @@ require 'webrick'
 require 'cgi'
 require 'stringio'
 
-begin
-  require 'dev-utils/debug'
-  require 'irb/completion'
-
-  module DevUtils::Debug  
-    alias_method :breakpoint_without_io, :breakpoint unless method_defined?(:breakpoint_without_io)
-
-    def breakpoint(name = nil, context = nil, &block)
-      $new_stdin, $new_stdout = $stdin, $stdout
-      $stdin, $stdout = $old_stdin, $old_stdout
-      breakpoint_without_io(name, context, &block)
-      $stdin, $stdout = $new_stdin, $new_stdout
-    end
-  end
-rescue LoadError
-  # dev utils not available
-end
-
 include WEBrick
 
 class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
