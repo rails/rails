@@ -1,4 +1,4 @@
-UNRELEASED
+*0.5.0* (24th February, 2005)
 
 	* lib/action_service/dispatcher*: replace "router" fragments with
 	  one file for Action Controllers, moves dispatching work out of

@@ -1,4 +1,4 @@
-*SVN*
+*1.7.0* (24th February, 2005)
 
 * Changed the auto-timestamping feature to use ActiveRecord::Base.default_timezone instead of entertaining the parallel ActiveRecord::Base.timestamps_gmt method. The latter is now deprecated and will throw a warning on use (but still work) #710 [Jamis Buck]
 

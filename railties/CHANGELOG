@@ -1,4 +1,4 @@
-*SVN*
+*0.10.0* (24th February, 2005)
 
 * Changed default IP binding for WEBrick from 127.0.0.1 to 0.0.0.0 so that the server is accessible both locally and remotely #696 [Marcel]
 
@@ -36,6 +36,12 @@
 * Added that running test_units and test_functional now performs the clone_structure_to_test as well #566 [rasputnik]
 
 * Added new generator framework that informs about its doings on generation and enables updating and destruction of generated artifacts. See the new script/destroy and script/update for more details #487 [bitsweat]
+
+* Added Action Web Service as a new add-on framework for Action Pack [Leon Bredt]
+
+* Added Active Support as an independent utility and standard library extension bundle
+
+* Upgraded to Active Record 1.7.0, Action Pack 1.5.0, Action Mailer 0.7.0
 
 
 *0.9.5* (January 25th, 2005)

@@ -1,4 +1,4 @@
-*SVN*
+*0.7.0* (24th February, 2005)
 
 * Added support for charsets for both subject and body. The default charset is now UTF-8 #673 [Jamis Buck]. Examples:
 
