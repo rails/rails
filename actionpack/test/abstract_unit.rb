@@ -8,3 +8,4 @@ require 'action_controller/test_process'
 
 ActionController::Base.logger = nil
 ActionController::Base.ignore_missing_templates = true
+ActionController::Routing::Routes.reload

@@ -337,6 +337,13 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     assert_equal "Mr. David", @response.body
   end
 
+  def test_assert_template_xpath_match_no_matches
+    process :hello_xml_world
+    assert_raises Test::Unit::AssertionFailedError do
+      assert_template_xpath_match('/no/such/node/in/document')
+    end
+  end
+
   def test_simple_one_element_xpath_match
     process :hello_xml_world
     assert_template_xpath_match('//title', "Hello World")

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that assert_template_xpath_matches did not indicate when a path was not found #658 [Eric Hodel]
+
 * Added TextHelper#auto_link, TextHelper#auto_link_urls, and TextHelper#auto_link_email_addresses to turn those elements into ahrefs
 
 * Fixed that on validation errors, scaffold couldn't find template #654 [mindel]

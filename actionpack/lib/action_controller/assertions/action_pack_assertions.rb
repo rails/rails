@@ -217,7 +217,14 @@ module Test #:nodoc:
         response = acquire_assertion_target
         xml, matches = REXML::Document.new(response.body), []
         xml.elements.each(expression) { |e| matches << e.text }
-        matches = matches.first if matches.length < 2
+        if matches.empty? then
+          msg = build_message(message, "<?> not found in document",
+                              expression)
+          flunk(msg)
+          return
+        elsif matches.length < 2 then
+          matches = matches.first
+        end
 
         msg = build_message(message, "<?> found <?>, not <?>", expression, matches, expected)
         assert_block(msg) { matches == expected }
