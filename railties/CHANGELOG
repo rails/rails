@@ -1,5 +1,22 @@
 *SVN*
 
+* Fixed dependency management to happen in a unified fashion for Active Record and Action Pack using the new Dependencies module. This means that
+  the environment options needs to change from:
+  
+    Before in development.rb:
+      ActionController::Base.reload_dependencies = true  
+      ActiveRecord::Base.reload_associations     = true
+    
+    Now in development.rb:
+      Dependencies.mechanism = :load
+
+    Before in production.rb and test.rb:
+      ActionController::Base.reload_dependencies = false
+      ActiveRecord::Base.reload_associations     = false
+
+    Now in production.rb and test.rb:
+      Dependencies.mechanism = :require
+
 * Added ActionMailer::Base.deliver_method = :test to the test environment so that mail objects are available in ActionMailer::Base.deliveries
   for functional testing.
 
