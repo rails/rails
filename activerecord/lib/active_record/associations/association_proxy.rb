@@ -58,7 +58,7 @@ module ActiveRecord
               reset
             end
           end
-          @loaded = true
+          @loaded = true if @target
           @target
         end
 
