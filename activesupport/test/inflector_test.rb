@@ -18,6 +18,8 @@ class InflectorTest < Test::Unit::TestCase
     "address"     => "addresses",
     "case"        => "cases",
     "stack"       => "stacks",
+    "wish"		=> "wishes",
+    "fish"		=> "fish",
 
     "category"    => "categories",
     "query"       => "queries",

@@ -57,6 +57,7 @@ module Inflector
   private
     def plural_rules #:doc:
       [
+        [/fish$/, 'fish'],               # fish
         [/(x|ch|ss|sh)$/, '\1es'],               # search, switch, fix, box, process, address
         [/series$/, '\1series'],
         [/([^aeiouy]|qu)ies$/, '\1y'],
@@ -74,7 +75,8 @@ module Inflector
 
     def singular_rules #:doc:
       [
-        [/(x|ch|ss)es$/, '\1'],
+        [/fish$/, 'fish'],
+        [/(x|ch|ss|sh)es$/, '\1'],
         [/movies$/, 'movie'],
         [/series$/, 'series'],
         [/([^aeiouy]|qu)ies$/, '\1y'],

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added inflection rules for "sh" words, like "wish" and "fish" #755 [phillip@pjbsoftware.com]
+
 * Fixed an exception when using Ajax based requests from Safari because Safari appends a \000 to the post body. Symbols can't have \000 in them so indifferent access would throw an exception in the constructor. Indifferent hashes now use strings internally instead. #746 [Tobias Luetke]
 
 * Added String#to_time and String#to_date for wrapping ParseDate
