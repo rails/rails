@@ -40,11 +40,11 @@ class Dispatcher
     rescue Object => exception
       ActionController::Base.process_with_exception(request, response, exception).out
     ensure
-      if ActionController::Base.reload_dependencies
+      if Dependencies.mechanism == :load
         Object.send(:remove_const, "ApplicationController") if Object.const_defined?(:ApplicationController)
         Object.send(:remove_const, controller_class_name(controller_name)) if Object.const_defined?(controller_class_name(controller_name))
         ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
-        ActiveRecord::Base.reload_associations_loaded
+        Dependencies.reload
       end
       
       Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)

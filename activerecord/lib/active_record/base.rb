@@ -226,15 +226,6 @@ module ActiveRecord #:nodoc:
     cattr_accessor :default_timezone
     @@default_timezone = :local
 
-    # When turned on (which is default), all associations are included using "load". This mean that any change is instant in cached
-    # environments like mod_ruby or FastCGI. When set to false, "require" is used, which is faster but requires server restart to
-    # reflect changes.
-    @@reload_associations = true
-    cattr_accessor :reload_associations
-
-    @@associations_loaded = []
-    cattr_accessor :associations_loaded
-
     class << self # Class methods
       # Returns objects for the records responding to either a specific id (1), a list of ids (1, 5, 6) or an array of ids. 
       # If only one ID is specified, that object is returned directly. If more than one ID is specified, an array is returned.
