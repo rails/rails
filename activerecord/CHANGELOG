@@ -1,5 +1,7 @@
 *CVS*
 
+* Added CSV format for fixtures #272 [what-a-day]. (See the new and expanded documentation on fixtures for more information)
+
 * Fixed fixtures using primary key fields called something else than "id" [dave]
 
 * Added proper handling of time fields that are turned into Time objects with the dummy date of 2000/1/1 [HariSeldon]
