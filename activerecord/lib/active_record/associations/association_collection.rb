@@ -22,8 +22,8 @@ module ActiveRecord
         @collection.to_ary
       end
   
-      def respond_to?(symbol)
-        proxy_respond_to?(symbol) || [].respond_to?(symbol)
+      def respond_to?(symbol, include_priv = false)
+        proxy_respond_to?(symbol, include_priv) || [].respond_to?(symbol, include_priv)
       end
 
       def loaded?
