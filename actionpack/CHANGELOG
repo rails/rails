@@ -1,5 +1,7 @@
 *SVN*
 
+* Added NumberHelper for common string representations like phone number, currency, and percentage #1015 [DeLynn]
+
 * Added pagination for scaffolding (10 items per page) #964 [mortonda@dgrmm.net]
 
 * Added assert_no_cookie and fixed assert_cookie_equal to deal with non-existing cookies #979 [bitsweat]
