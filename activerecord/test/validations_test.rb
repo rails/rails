@@ -149,7 +149,7 @@ class ValidationsTest < Test::Unit::TestCase
 
 
   def test_eula
-    Topic.validate_acceptance_on_create(:eula, "must be abided")
+    Topic.validate_acceptance_on_create(:eula, :message => "must be abided")
 
     t = Topic.create("title" => "We should be confirmed")
     assert !t.save

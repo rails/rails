@@ -324,7 +324,7 @@ module ActiveRecord
 
       def quote(value, column = nil)
         case value
-          when String                then %('#{quote_string(value)}') # ' (for ruby-mode)
+          when String                then "'#{quote_string(value)}'" # ' (for ruby-mode)
           when NilClass              then "NULL"
           when TrueClass             then (column && column.type == :boolean ? "'t'" : "1")
           when FalseClass            then (column && column.type == :boolean ? "'f'" : "0")

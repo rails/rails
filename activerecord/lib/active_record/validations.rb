@@ -61,7 +61,7 @@ module ActiveRecord
       #   Model:
       #     class Person < ActiveRecord::Base
       #       validate_confirmation :user_name, :password
-      #       validate_confirmation :email_address, "should match confirmation"
+      #       validate_confirmation :email_address, :message => "should match confirmation"
       #     end
       #
       #   View:
@@ -72,13 +72,18 @@ module ActiveRecord
       # It exists only as an in-memory variable for validating the password. This check is performed both on create and update.
       # See validate_confirmation_on_create and validate_confirmation_on_update if you want to restrict the validation to just one of the two
       # situations.
+      #
+      # Configuration options:
+      # ::message: Specifies a custom error message (default is: "doesn't match confirmation")
       def validate_confirmation(*attr_names)
-        error_message = attr_names.last.is_a?(String) ? attr_names.pop : "doesn't match confirmation"
+        configuration = { :message => "doesn't match confirmation" }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
         validation_method = block_given? ? yield : "validate"
 
         for attr_name in attr_names
           attr_accessor "#{attr_name}_confirmation"
-          class_eval(%(#{validation_method} %{errors.add('#{attr_name}', "#{error_message}") unless #{attr_name} == #{attr_name}_confirmation}))
+          class_eval(%(#{validation_method} %{errors.add('#{attr_name}', "#{configuration[:message]}") unless #{attr_name} == #{attr_name}_confirmation}))
         end
       end
 
@@ -97,7 +102,7 @@ module ActiveRecord
       #   Model:
       #     class Person < ActiveRecord::Base
       #       validate_acceptance :terms_of_service
-      #       validate_acceptance :eula, "must be abided"
+      #       validate_acceptance :eula, :message => "must be abided"
       #     end
       #
       #   View:
@@ -107,14 +112,19 @@ module ActiveRecord
       # See validate_acceptance_on_create and validate_acceptance_on_update if you want to restrict the validation to just one of the two
       # situations.
       #
+      # Configuration options:
+      # ::message: Specifies a custom error message (default is: "must be accepted")
+      #
       # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
       def validate_acceptance(*attr_names)
-        error_message = attr_names.last.is_a?(String) ? attr_names.pop : "must be accepted"
+        configuration = { :message => "must be accepted" }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
         validation_method = block_given? ? yield : "validate"
         
         for attr_name in attr_names
           attr_accessor(attr_name)
-          class_eval(%(#{validation_method} %{errors.add('#{attr_name}', '#{error_message}') unless #{attr_name} == "1"}))
+          class_eval(%(#{validation_method} %{errors.add('#{attr_name}', '#{configuration[:message]}') unless #{attr_name} == "1"}))
         end
       end
       
@@ -129,11 +139,13 @@ module ActiveRecord
       end
 
       def validate_presence(*attr_names)
-        error_message = attr_names.last.is_a?(String) ? attr_names.pop : "can't be empty"
+        configuration = { :message => "can't be empty" }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
         validation_method = block_given? ? yield : "validate"
 
         for attr_name in attr_names
-          class_eval(%(#{validation_method} %{errors.add_on_empty('#{attr_name}', "#{error_message}")}))
+          class_eval(%(#{validation_method} %{errors.add_on_empty('#{attr_name}', "#{configuration[:message]}")}))
         end
       end
 
@@ -160,11 +172,15 @@ module ActiveRecord
       #
       # When the record is created, a check is performed to make sure that no record exist in the database with the given value for the specified
       # attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
+      #
+      # Configuration options:
+      # ::message: Specifies a custom error message (default is: "has already been taken")
       def validate_uniqueness(*attr_names)
-        error_message = attr_names.last.is_a?(String) ? attr_names.pop : "has already been taken"
+        configuration = { :message => "has already been taken" }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         for attr_name in attr_names
-          class_eval(%(validate %{errors.add("#{attr_name}", "#{error_message}") if self.class.find_first(new_record? ? ["#{attr_name} = ?", #{attr_name}] : ["#{attr_name} = ? AND id <> ?", #{attr_name}, id])}))
+          class_eval(%(validate %{errors.add("#{attr_name}", "#{configuration[:message]}") if self.class.find_first(new_record? ? ["#{attr_name} = ?", #{attr_name}] : ["#{attr_name} = ? AND id <> ?", #{attr_name}, id])}))
         end
       end
     end
