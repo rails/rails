@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed the Rakefile's interaction with postgresql to quote the user name and use template0 when dumping so the functions doesn't get dumped too #855 [pburleson]
+
+
 *0.10.1* (7th March, 2005)
 
 * Fixed rake stats to ignore editor backup files like model.rb~ #791 [skanthak]

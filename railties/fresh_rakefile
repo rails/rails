@@ -120,7 +120,7 @@ task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
         ActiveRecord::Base.connection.execute(table)
       end
     when  "postgresql"
-      `psql -U #{abcs["test"]["username"]} -h #{abcs["test"]["host"]} -f db/#{RAILS_ENV}_structure.sql #{abcs["test"]["database"]}`
+      `psql -U "#{abcs["test"]["username"]}" -h #{abcs["test"]["host"]} -f db/#{RAILS_ENV}_structure.sql #{abcs["test"]["database"]}`
     when "sqlite", "sqlite3"
       `#{abcs[RAILS_ENV]["adapter"]} #{abcs["test"]["dbfile"]} < db/#{RAILS_ENV}_structure.sql`
     else 
@@ -136,7 +136,7 @@ task :db_structure_dump => :environment do
       ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
       File.open("db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
     when  "postgresql"
-      `pg_dump -U #{abcs[RAILS_ENV]["username"]} -h #{abcs[RAILS_ENV]["host"]} -s -f db/#{RAILS_ENV}_structure.sql #{abcs[RAILS_ENV]["database"]}`
+      `pg_dump -U "#{abcs[RAILS_ENV]["username"]}" -h #{abcs[RAILS_ENV]["host"]} -s -f db/#{RAILS_ENV}_structure.sql #{abcs[RAILS_ENV]["database"]}`
     when "sqlite", "sqlite3"
       `#{abcs[RAILS_ENV]["adapter"]} #{abcs[RAILS_ENV]["dbfile"]} .schema > db/#{RAILS_ENV}_structure.sql`
     else 
@@ -152,8 +152,8 @@ task :purge_test_database => :environment do
       ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
       ActiveRecord::Base.connection.recreate_database(abcs["test"]["database"])
     when "postgresql"
-      `dropdb -U #{abcs["test"]["username"]} -h #{abcs["test"]["host"]} #{abcs["test"]["database"]}`
-      `createdb -U #{abcs["test"]["username"]} -h #{abcs["test"]["host"]} #{abcs["test"]["database"]}`
+      `dropdb -U "#{abcs["test"]["username"]}" -h #{abcs["test"]["host"]} #{abcs["test"]["database"]}`
+      `createdb -T template0 -U "#{abcs["test"]["username"]}" -h #{abcs["test"]["host"]} #{abcs["test"]["database"]}`
     when "sqlite","sqlite3"
       File.delete(abcs["test"]["dbfile"]) if File.exist?(abcs["test"]["dbfile"])
     else 
