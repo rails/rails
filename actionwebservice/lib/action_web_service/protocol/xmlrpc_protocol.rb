@@ -51,11 +51,18 @@ module ActionWebService # :nodoc:
             if value.is_a?(ActionWebService::Struct)
               struct = {}
               value.class.members.each do |name, type|
-                struct[name.to_s] = value_to_xmlrpc_wire_format(value[name], type)
+                member_value = value[name]
+                next if member_value.nil?
+                struct[name.to_s] = value_to_xmlrpc_wire_format(member_value, type)
               end
               struct
             elsif value.is_a?(ActiveRecord::Base)
-              value.attributes.dup
+              struct = {}
+              value.attributes.each do |key, member_value|
+                next if member_value.nil?
+                struct[key.to_s] = member_value
+              end
+              struct
             elsif value.is_a?(Exception) && !value.is_a?(XMLRPC::FaultException)
               XMLRPC::FaultException.new(2, value.message)
             else
