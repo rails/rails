@@ -62,8 +62,16 @@ module ActiveRecord
         end
       end
 
-      alias_method :update, :execute
-      alias_method :delete, :execute
+      def update(sql, name = nil)
+        execute(sql, name)
+        @connection.changes
+      end
+      
+      def delete(sql, name = nil)
+        sql += " WHERE 1=1" unless sql =~ /WHERE/i
+        execute(sql, name)
+        @connection.changes
+      end
 
       def begin_db_transaction()    execute "BEGIN" end
       def commit_db_transaction()   execute "COMMIT" end

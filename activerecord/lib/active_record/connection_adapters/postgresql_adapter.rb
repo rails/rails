@@ -64,8 +64,13 @@ module ActiveRecord
         log(sql, name, @connection) { |connection| connection.query(sql) }
       end
 
-      alias_method :update, :execute
-      alias_method :delete, :execute
+      def update(sql, name = nil)
+        result = nil
+        log(sql, name, @connection) { |connection| result = connection.exec(sql) }
+        result.cmdtuples
+      end
+
+      alias_method :delete, :update
 
       def begin_db_transaction()    execute "BEGIN" end
       def commit_db_transaction()   execute "COMMIT" end

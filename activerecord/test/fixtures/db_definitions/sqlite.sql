@@ -33,7 +33,7 @@ CREATE TABLE 'topics' (
 CREATE TABLE 'developers' (
   'id' INTEGER PRIMARY KEY NOT NULL,
   'name' TEXT DEFAULT NULL,
-  'salary' INTEGER 70000
+  'salary' INTEGER DEFAULT 70000
 );
 
 CREATE TABLE 'projects' (

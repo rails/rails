@@ -285,10 +285,10 @@ module ActiveRecord
       # Returns the last auto-generated ID from the affected table.
       def insert(sql, name = nil, pk = nil, id_value = nil) end
 
-      # Executes the update statement.
+      # Executes the update statement and returns the number of rows affected.
       def update(sql, name = nil) end
 
-      # Executes the delete statement.
+      # Executes the delete statement and returns the number of rows affected.
       def delete(sql, name = nil) end
 
       def reset_runtime # :nodoc:

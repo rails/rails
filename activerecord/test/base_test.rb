@@ -260,11 +260,15 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_update_all
-    Topic.update_all "content = 'bulk updated!'"
+    assert_equal 2, Topic.update_all("content = 'bulk updated!'")
     assert_equal "bulk updated!", Topic.find(1).content
     assert_equal "bulk updated!", Topic.find(2).content
   end
-  
+
+  def test_delete_all
+    assert_equal 2, Topic.delete_all
+  end
+
   def test_update_by_condition
     Topic.update_all "content = 'bulk updated!'", "approved = 1"
     assert_equal "Have a nice day", Topic.find(1).content

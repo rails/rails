@@ -343,13 +343,13 @@ module ActiveRecord #:nodoc:
         find(id).destroy
       end
 
-      # Updates all records with the SET-part of an SQL update statement in +updates+. A subset of the records can be selected 
-      # by specifying +conditions+. Example:
+      # Updates all records with the SET-part of an SQL update statement in +updates+ and returns an integer with the number of rows updates.
+      # A subset of the records can be selected by specifying +conditions+. Example:
       #   Billing.update_all "category = 'authorized', approved = 1", "author = 'David'"
       def update_all(updates, conditions = nil)
         sql  = "UPDATE #{table_name} SET #{updates} "
         add_conditions!(sql, conditions)
-        connection.update(sql, "#{name} Update")
+        return connection.update(sql, "#{name} Update")
       end
     
       # Destroys the objects for all the records that matches the +condition+ by instantiating each object and calling
