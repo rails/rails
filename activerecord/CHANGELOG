@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :counter_cache option to acts_as_tree that works just like the one you can define on belongs_to #371 [Josh]
+
 * Fixed quoting in validates_format_of that would allow some rules to pass regardless of input #390 [Dmitry V. Sabanin]
 
 * Fixed broken transactions that were actually only running object-level and not db level transactions [andreas]
