@@ -31,7 +31,7 @@ def recent_tests(source_pattern, test_path, touched_since = 10.minutes.ago)
 end
 
 desc 'Test recent changes.'
-Rake::TestTask.new('recent') do |t|
+Rake::TestTask.new(:recent => [ :clone_structure_to_test ]) do |t|
   since = TEST_CHANGES_SINCE
   touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
     recent_tests('app/models/*.rb', 'test/unit', since) +
