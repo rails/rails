@@ -46,6 +46,7 @@ ActiveRecord::Base.class_eval do
 end
 
 require 'active_record/mixins/list'
+require 'active_record/mixins/touch'
 
 require 'active_record/connection_adapters/mysql_adapter'
 require 'active_record/connection_adapters/postgresql_adapter'
