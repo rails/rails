@@ -1,4 +1,5 @@
 require 'yaml'
+require 'active_record/deprecated_finders'
 
 module ActiveRecord #:nodoc:
   class ActiveRecordError < StandardError #:nodoc:
@@ -301,77 +302,40 @@ module ActiveRecord #:nodoc:
       #
       # +RecordNotFound+ is raised if no record can be found.
       def find(*args)
-        # Return an Array if ids are passed in an Array.
-        expects_array = args.first.kind_of?(Array)
-
-        # Extract options hash from argument list.
         options = extract_options_from_args!(args)
-        conditions = " AND #{sanitize_sql(options[:conditions])}" if options[:conditions]
 
-        ids = args.flatten.compact.uniq
-        case ids.size
-
-          # Raise if no ids passed.
-          when 0
-            raise RecordNotFound, "Couldn't find #{name} without an ID#{conditions}"
-
-          # Find a single id.
-          when 1
-            unless result = find_first("#{primary_key} = #{sanitize(ids.first)}#{conditions}")
-              raise RecordNotFound, "Couldn't find #{name} with ID=#{ids.first}#{conditions}"
-            end
-
-            # Box result if expecting array.
-            expects_array ? [result] : result
-
-          # Find multiple ids.
+        case args.first
+          when :first
+            find(:all, options.merge({ :limit => 1 })).first
+          when :all
+            options[:include] ? find_with_associations(options) : find_by_sql(construct_finder_sql(options))
           else
-            ids_list = ids.map { |id| sanitize(id) }.join(',')
-            result   = find_all("#{primary_key} IN (#{ids_list})#{conditions}", primary_key)
-            if result.size == ids.size
-              result
-            else
-              raise RecordNotFound, "Couldn't find all #{name.pluralize} with IDs (#{ids_list})#{conditions}"
+            expects_array = args.first.kind_of?(Array)
+            conditions = " AND #{sanitize_sql(options[:conditions])}" if options[:conditions]
+
+            ids = args.flatten.compact.uniq
+            case ids.size
+              when 0
+                raise RecordNotFound, "Couldn't find #{name} without an ID#{conditions}"
+              when 1
+                if result = find(:first, options.merge({ :conditions => "#{primary_key} = #{sanitize(ids.first)}#{conditions}" }))
+                  return expects_array ? [ result ] : result
+                else
+                  raise RecordNotFound, "Couldn't find #{name} with ID=#{ids.first}#{conditions}"
+                end
+              else
+                # Find multiple ids
+                ids_list = ids.map { |id| sanitize(id) }.join(',')
+                result   = find(:all, options.merge({ :conditions => "#{primary_key} IN (#{ids_list})#{conditions}", :order => primary_key }))
+                if result.size == ids.size
+                  return result
+                else
+                  raise RecordNotFound, "Couldn't find all #{name.pluralize} with IDs (#{ids_list})#{conditions}"
+                end
             end
         end
       end
 
-      # Returns true if the given +id+ represents the primary key of a record in the database, false otherwise.
-      # Example:
-      #   Person.exists?(5)
-      def exists?(id)
-        !find_first("#{primary_key} = #{sanitize(id)}").nil? rescue false
-      end
-
-      # This method is deprecated in favor of find with the :conditions option.
-      # Works like find, but the record matching +id+ must also meet the +conditions+.
-      # +RecordNotFound+ is raised if no record can be found matching the +id+ or meeting the condition.
-      # Example:
-      #   Person.find_on_conditions 5, "first_name LIKE '%dav%' AND last_name = 'heinemeier'"
-      def find_on_conditions(ids, conditions)
-        find(ids, :conditions => conditions)
-      end
-
-      # Returns an array of all the objects that could be instantiated from the associated
-      # table in the database. The +conditions+ can be used to narrow the selection of objects (WHERE-part),
-      # such as by "color = 'red'", and arrangement of the selection can be done through +orderings+ (ORDER BY-part),
-      # such as by "last_name, first_name DESC". A maximum of returned objects and their offset can be specified in 
-      # +limit+ with either just a single integer as the limit or as an array with the first element as the limit, 
-      # the second as the offset. Examples:
-      #   Project.find_all "category = 'accounts'", "last_accessed DESC", 15
-      #   Project.find_all ["category = ?", category_name], "created ASC", [15, 20]
-      def find_all(conditions = nil, orderings = nil, limit = nil, joins = nil)
-        sql  = "SELECT * FROM #{table_name} " 
-        sql << "#{joins} " if joins
-        add_conditions!(sql, conditions)
-        sql << "ORDER BY #{orderings} " unless orderings.nil?
-
-        limit = sanitize_sql(limit) if limit.is_a? Array and limit.first.is_a? String
-        connection.add_limit!(sql, limit) if limit
-
-        find_by_sql(sql)
-      end
-  
       # Works like find_all, but requires a complete SQL string. Examples:
       #   Post.find_by_sql "SELECT p.*, c.author FROM posts p, comments c WHERE p.id = c.post_id"
       #   Post.find_by_sql ["SELECT * FROM posts WHERE author = ? AND created > ?", author_id, start_date]
@@ -379,15 +343,13 @@ module ActiveRecord #:nodoc:
         connection.select_all(sanitize_sql(sql), "#{name} Load").inject([]) { |objects, record| objects << instantiate(record) }
       end
       
-      # Returns the object for the first record responding to the conditions in +conditions+, 
-      # such as "group = 'master'". If more than one record is returned from the query, it's the first that'll
-      # be used to create the object. In such cases, it might be beneficial to also specify 
-      # +orderings+, like "income DESC, name", to control exactly which record is to be used. Example: 
-      #   Employee.find_first "income > 50000", "income DESC, name"
-      def find_first(conditions = nil, orderings = nil, joins = nil)
-        find_all(conditions, orderings, 1, joins).first
+      # Returns true if the given +id+ represents the primary key of a record in the database, false otherwise.
+      # Example:
+      #   Person.exists?(5)
+      def exists?(id)
+        !find_first("#{primary_key} = #{sanitize(id)}").nil? rescue false
       end
-    
+
       # Creates an object, instantly saves it as a record (if the validation permits it), and returns it. If the save
       # fail under validations, the unsaved object is still returned.
       def create(attributes = nil)
@@ -737,6 +699,21 @@ module ActiveRecord #:nodoc:
         # MyApp::Business::Account would be appear as "MyApp::Business::AccountSubclass".
         def type_name_with_module(type_name)
           self.name =~ /::/ ? self.name.scan(/(.*)::/).first.first + "::" + type_name : type_name
+        end
+
+        def construct_finder_sql(options)
+          sql  = "SELECT * FROM #{table_name} " 
+          sql << "#{options[:joins]} " if options[:joins]
+          add_conditions!(sql, options[:conditions])
+          sql << "ORDER BY #{options[:order]} " if options[:order]
+
+          if options[:limit] && options[:offset]
+            connection.add_limit_with_offset!(sql, options[:limit].to_i, options[:offset].to_i)
+          elsif options[:limit]
+            connection.add_limit_without_offset!(sql, options[:limit].to_i)
+          end
+          
+          return sql
         end
 
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that it's the passed +sql+ string is changed.

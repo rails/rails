@@ -31,6 +31,11 @@ module ActiveRecord
       def loaded?
         @loaded
       end
+      
+      def target=(t)
+        @target = t
+        @loaded = true
+      end
 
       protected
         def dependent?

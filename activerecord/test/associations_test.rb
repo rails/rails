@@ -5,6 +5,9 @@ require 'fixtures/company'
 require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/computer'
+require 'fixtures/post'
+require 'fixtures/comment'
+require 'fixtures/author'
 
 # Can't declare new classes in test case methods, so tests before that
 bad_collection_keys = false
@@ -203,8 +206,9 @@ end
 
 
 class HasManyAssociationsTest < Test::Unit::TestCase
+  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :topics, :posts, :comments
+  
   def setup
-    create_fixtures "accounts", "companies", "developers", "projects", "developers_projects", "topics"
     @signals37 = Firm.find(1)
   end
   
@@ -529,6 +533,24 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
   def test_adding_array_and_collection
     assert_nothing_raised { Firm.find_first.clients + Firm.find_all.last.clients }
+  end
+
+  def test_eager_association_loading_with_one_association
+    posts = Post.find(:all, :include => :comments)
+    assert_equal 2, posts.first.comments.size
+    assert_equal @greetings.body, posts.first.comments.first.body
+  end
+
+  def test_eager_association_loading_with_multiple_associations
+    posts = Post.find(:all, :include => [ :comments, :author ])
+    assert_equal 2, posts.first.comments.size
+    assert_equal @greetings.body, posts.first.comments.first.body
+  end
+
+  def xtest_eager_association_loading_with_belongs_to
+    comments = Comment.find(:all, :include => :post)
+    assert_equal @welcome.title, comments.first.post.title
+    assert_equal @thinking.title, comments.last.post.title
   end
 end
 

@@ -19,7 +19,7 @@ module ActiveRecord
         instance_variable_set "@#{assoc.name}", nil
       end
     end
-
+    
     # Associations are a set of macro-like class methods for tying objects together through foreign keys. They express relationships like 
     # "Project has one Project Manager" or "Project belongs to a Portfolio". Each macro adds a number of methods to the class which are 
     # specialized according to the collection or association symbol and the options hash. It works much the same was as Ruby's own attr* 
@@ -616,6 +616,60 @@ module ActiveRecord
               end
             end_eval
           end
+        end
+
+
+        def find_with_associations(options = {})
+          reflections = [ options[:include] ].flatten.collect { |association| reflect_on_association(association) }
+          rows = connection.select_all(construct_finder_sql_with_included_associations(reflections), "#{name} Load Including Associations")
+          records = rows.collect { |row| instantiate(extract_record(table_name, row)) }.uniq
+
+          reflections.each do |reflection| 
+            records.each do |record|
+              case reflection.macro
+                when :has_many
+                  record.send(reflection.name).target = extract_association_for_record(record, rows, reflection)
+                when :has_one, :belongs_to
+                  record.send("#{reflection.name}=", extract_association_for_record(record, rows, reflection).first)
+              end
+            end
+          end
+          
+          return records
+        end
+
+        def construct_finder_sql_with_included_associations(reflections)
+          sql = "SELECT #{selected_columns(table_name, columns)}"
+          reflections.each { |reflection| sql << ", #{selected_columns(reflection.klass.table_name, reflection.klass.columns)}" }
+          sql << " FROM #{table_name} "
+          reflections.each do |reflection| 
+            sql << " LEFT JOIN #{reflection.klass.table_name} ON " +
+              "#{reflection.klass.table_name}.#{table_name.classify.foreign_key} = #{table_name}.#{primary_key}"
+          end
+          
+          return sanitize_sql(sql)
+        end
+
+        def extract_association_for_record(record, rows, reflection)
+          association = rows.collect do |row| 
+            if row["#{table_name}__#{primary_key}"] == record.id.to_s
+              reflection.klass.send(:instantiate, extract_record(reflection.klass.table_name, row))
+            end
+          end
+
+          return association.compact
+        end
+
+        def extract_record(table_name, row)
+          row.inject({}) do |record, pair|
+            prefix, column_name = pair.first.split("__")
+            record[column_name] = pair.last if prefix == table_name
+            record
+          end
+        end
+
+        def selected_columns(table_name, columns)
+          columns.collect { |column| "#{table_name}.#{column.name} as #{table_name}__#{column.name}" }.join(", ")
         end
     end
   end

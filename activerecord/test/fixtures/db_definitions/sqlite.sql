@@ -116,3 +116,21 @@ CREATE TABLE 'computers' (
   'developer' INTEGER NOT NULL
 );
 
+CREATE TABLE 'posts' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'title' VARCHAR(255) NOT NULL,
+  'body' TEXT NOT NULL
+);
+
+CREATE TABLE 'comments' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'post_id' INTEGER NOT NULL,
+  'body' TEXT NOT NULL
+);
+
+CREATE TABLE 'authors' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'post_id' INTEGER NOT NULL,
+  'name' VARCHAR(255) NOT NULL
+);
+
