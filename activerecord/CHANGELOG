@@ -1,5 +1,18 @@
 *SVN*
 
+* Added a require_association hook on const_missing that makes it possible to use any model class without requiring it first. This makes STI look like:
+
+    before:
+      require_association 'person'
+      class Employee < Person
+      end
+    
+    after:
+      class Employee < Person
+      end
+
+  This also reduces the usefulness of Controller.model in Action Pack to currently only being for documentation purposes.      
+
 * Added that Base.update_all and Base.delete_all return an integer of the number of affected rows #341
 
 * Changed the interface on AbstractAdapter to require that adapters return the number of affected rows on delete and update operations.

@@ -3,8 +3,28 @@ require 'active_record/associations/has_many_association'
 require 'active_record/associations/has_and_belongs_to_many_association'
 require 'active_record/deprecated_associations'
 
-unless Object.respond_to?(:require_association)
-  Object.send(:define_method, :require_association) { |file_name| ActiveRecord::Base.require_association(file_name) }
+
+class << Object #:nodoc:
+  # Make require_association available as a bare method.
+  unless respond_to?(:require_association)
+    def require_association(file_name)
+      ActiveRecord::Base.require_association(file_name)
+    end
+  end
+
+  # Use const_missing to autoload associations so we don't have to
+  # require_association when using single-table inheritance.
+  unless respond_to?(:pre_association_const_missing)
+    alias_method :pre_association_const_missing, :const_missing
+
+    def const_missing(class_id)
+      begin
+        require_association(Inflect.underscore(Inflector.demodulize(class_id.to_s)))
+      rescue LoadError
+        pre_association_const_missing(class_id)
+      end
+    end
+  end
 end
 
 module ActiveRecord
@@ -463,6 +483,11 @@ module ActiveRecord
       # called for that dependency it'll be loaded anew.
       def reset_associations_loaded
         self.associations_loaded = []
+      end
+      
+      # Reload all the associations that have already been loaded once.
+      def reload_associations_loaded
+        associations_loaded.each { |file_name| silence_warnings { load("#{file_name}.rb") } }
       end
 
       private
