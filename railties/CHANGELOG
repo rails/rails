@@ -1,20 +1,22 @@
 *SVN*
 
+* Added automated rewriting of the shebang lines on installs through the gem rails command #379 [Manfred Stienstra]
+
 * Fixed that generated action_mailers doesnt need to require the action_mailer since thats already done in the environment #382 [Lucas Carlson]
 
 * Fixed dependency management to happen in a unified fashion for Active Record and Action Pack using the new Dependencies module. This means that
   the environment options needs to change from:
   
     Before in development.rb:
-      ActionController::Base.reload_dependencies = true  
-      ActiveRecord::Base.reload_associations     = true
+      ActionController::Base.reload_dependenciesÂ = true Â 
+      ActiveRecord::Base.reload_associationsÂ  Â  Â = true
     
     Now in development.rb:
       Dependencies.mechanism = :load
 
     Before in production.rb and test.rb:
-      ActionController::Base.reload_dependencies = false
-      ActiveRecord::Base.reload_associations     = false
+      ActionController::Base.reload_dependenciesÂ = false
+      ActiveRecord::Base.reload_associationsÂ  Â  Â = false
 
     Now in production.rb and test.rb:
       Dependencies.mechanism = :require

@@ -5,7 +5,7 @@ require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
 
 require 'date'
-
+require 'rbconfig'
 
 PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME        = 'rails'
@@ -100,17 +100,14 @@ task :copy_ties_content => [
   :copy_app_doc_readme ]
 
 task :copy_dispatches do
-  cp "dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.rb"
+  copy_with_rewritten_ruby_path("dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.rb")
   chmod 0755, "#{PKG_DESTINATION}/public/dispatch.rb"
 
-  cp "dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.cgi"
+  copy_with_rewritten_ruby_path("dispatches/dispatch.rb", "#{PKG_DESTINATION}/public/dispatch.cgi")
   chmod 0755, "#{PKG_DESTINATION}/public/dispatch.cgi"
 
-  cp "dispatches/dispatch.fcgi", "#{PKG_DESTINATION}/public/dispatch.fcgi"
+  copy_with_rewritten_ruby_path("dispatches/dispatch.fcgi", "#{PKG_DESTINATION}/public/dispatch.fcgi")
   chmod 0755, "#{PKG_DESTINATION}/public/dispatch.fcgi"
-
-  cp "bin/console", "#{PKG_DESTINATION}/script/console"
-  chmod 0755, "#{PKG_DESTINATION}/script/console"
 end
 
 task :copy_html_files do
@@ -145,7 +142,7 @@ end
 task :copy_binfiles do
   BIN_FILES.each do |file|
     dest_file = File.join(PKG_DESTINATION, 'script', file)
-    cp File.join('bin', file), dest_file
+    copy_with_rewritten_ruby_path(File.join('bin', file), dest_file)
     chmod 0755, dest_file
   end
 end
@@ -172,6 +169,22 @@ task :link_apache_config do
   chdir(File.join(PKG_DESTINATION, 'config')) {
     ln_s "../public/.htaccess", "apache.conf"
   }
+end
+
+def copy_with_rewritten_ruby_path(src_file, dest_file)
+  ruby = File.join(Config::CONFIG['bindir'], Config::CONFIG['ruby_install_name'])
+
+  File.open(dest_file, 'w') do |df|
+    File.open(src_file) do |sf|
+      line = sf.gets
+      if (line =~ /#!.+ruby\s*/) != nil
+        df.puts("#!#{ruby}")
+      else
+        df.puts(line)
+      end
+      df.write(sf.read)
+    end
+  end
 end
 
 
