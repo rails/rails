@@ -97,7 +97,7 @@ end
 desc "Make copies of all the default content of ties"
 task :copy_ties_content => [ 
   :copy_rootfiles, :copy_dispatches, :copy_html_files, :copy_application,
-  :copy_configs, :copy_generators, :copy_binfiles, :copy_test_helpers, :copy_docs_in_public,
+  :copy_configs, :copy_binfiles, :copy_test_helpers, :copy_docs_in_public,
   :copy_app_doc_readme ]
 
 task :copy_dispatches do
@@ -213,7 +213,6 @@ PKG_FILES = FileList[
   'doc/**/*', 
   'dispatches/**/*', 
   'environments/**/*', 
-  'generators/**/*', 
   'helpers/**/*', 
   'html/**/*', 
   'lib/**/*'
