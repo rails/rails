@@ -26,6 +26,8 @@ module ActiveRecord #:nodoc:
   end
   class StatementInvalid < ActiveRecordError #:nodoc:
   end
+  class PreparedStatementInvalid < ActiveRecordError #:nodoc:
+  end
 
   # Active Record objects doesn't specify their attributes directly, but rather infer them from the table definition with
   # which they're linked. Adding, removing, and changing attributes and their type is done directly in the database. Any change
@@ -642,19 +644,46 @@ module ActiveRecord #:nodoc:
         def sanitize_conditions(conditions)
           return conditions unless conditions.is_a?(Array)
 
-          statement, values = conditions[0], conditions[1..-1]
+          statement, *values = conditions
 
-          statement =~ /\?/ ?
-            replace_bind_variables(statement, values) :
+          if values[0].is_a?(Hash) && statement =~ /:\w+/
+            replace_named_bind_variables(statement, values[0])
+          elsif statement =~ /\?/ 
+            replace_bind_variables(statement, values)
+          else
             statement % values.collect { |value| connection.quote_string(value.to_s) }
+          end
         end
 
         def replace_bind_variables(statement, values)
-          while statement =~ /\?/
+          orig_statement = statement.clone
+          expected_number_of_variables = statement.count('?')
+          provided_number_of_variables = values.size
+
+          unless expected_number_of_variables == provided_number_of_variables
+            raise PreparedStatementInvalid, "wrong number of bind variables (#{provided_number_of_variables} for #{expected_number_of_variables})"
+          end
+
+          until values.empty?
             statement.sub!(/\?/, connection.quote(values.shift))
           end
-	
-  		    return statement
+          
+          statement.gsub('?') { |all, match| connection.quote(values.shift) }
+        end
+
+        def replace_named_bind_variables(statement, values_hash)
+          orig_statement = statement.clone
+          values_hash.keys.each do |k|
+            if statement.sub!(/:#{k.id2name}/, connection.quote(values_hash.delete(k))).nil?
+              raise PreparedStatementInvalid, ":#{k} is not a variable in [#{orig_statement}]"
+            end
+          end
+
+          if statement =~ /(:\w+)/
+            raise PreparedStatementInvalid, "No value provided for #{$1} in [#{orig_statement}]"
+          end
+
+          return statement
         end
     end
 

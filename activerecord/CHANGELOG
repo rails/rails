@@ -21,6 +21,10 @@
 
 * Fixed the Inflector to handle the movie/movies pair correctly #261 [Scott Baron]
 
+* Added named bind-style variable interpolation #281 [Michael Koziarski]. Example:
+
+    Person.find(["id = :id and first_name = :first_name", { :id => 5, :first_name = "bob' or 1=1" }])
+
 * Added bind-style variable interpolation for the condition arrays that uses the adapter's quote method [Michael Koziarski]
 
   Before:

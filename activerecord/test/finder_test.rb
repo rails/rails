@@ -88,7 +88,28 @@ class FinderTest < Test::Unit::TestCase
     assert_nil Company.find_first(["name = ?", "37signals!"])
     assert_nil Company.find_first(["name = ?", "37signals!' OR 1=1"])
     assert_kind_of Time, Topic.find_first(["id = ?", 1]).written_on
+    assert_raises(ActiveRecord::PreparedStatementInvalid) {
+      Company.find_first(["id=? AND name = ?", 2])
+    }
+    assert_raises(ActiveRecord::PreparedStatementInvalid) {
+	   Company.find_first(["id=?", 2, 3, 4])
+    }
   end
+
+  def test_named_bind_variables
+    assert_kind_of Firm, Company.find_first(["name = :name", { :name => "37signals" }])
+    assert_nil Company.find_first(["name = :name", { :name => "37signals!" }])
+    assert_nil Company.find_first(["name = :name", { :name => "37signals!' OR 1=1" }])
+    assert_kind_of Time, Topic.find_first(["id = :id", { :id => 1 }]).written_on
+    assert_raises(ActiveRecord::PreparedStatementInvalid) {
+      Company.find_first(["id=:id and name=:name", { :id=>3 }])
+    }
+    assert_raises(ActiveRecord::PreparedStatementInvalid) {
+      Company.find_first(["id=:id", { :id=>3, :name=>"37signals!" }])
+    }
+  end
+
+  
 	
   def test_string_sanitation
     assert_not_equal "'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
