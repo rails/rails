@@ -1,5 +1,7 @@
 *SVN*
 
+* Added the original exception message to session recall errors (so you can see which class wasnt required)
+
 * Fixed that RAILS_ROOT might not be defined when AP was loaded, so do a late initialization of the ROUTE_FILE #761 [Scott Barron]
 
 * Fix request.path_info and clear up LoadingModule behavior #754 [Nicholas Seckar]

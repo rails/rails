@@ -86,7 +86,7 @@ module ActionController #:nodoc:
           ActionController::SessionRestoreError, 
           "Session contained objects where the class definition wasn't available. " +
           "Remember to require classes for all objects kept in the session. " +
-          "The session has been deleted."
+          "The session has been deleted. (Original exception: #{e.message} [#{e.class}])"
         )
       end
     end
