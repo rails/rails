@@ -24,6 +24,23 @@ module ActionView
       # Examples:
       #  link_to_remote "Delete this post", :update => "posts", :url => { :action => "destroy", :id => post.id }
       #  link_to_remote(image_tag("refresh"), :update => "emails", :url => { :action => "list_emails" })
+      #
+      # Asynchronous requests may be made by specifying a callback function
+      # to invoke when the request finishes.
+      #
+      # Example:
+      #   link_to_remote word,
+      #       :url => { :action => "undo", :n => word_counter },
+      #       :before => "if(!prepareForUndo()) return false",
+      #       :complete => "undoRequestCompleted(request)"
+      #
+      # The complete list of callbacks that may be specified are:
+      #
+      # * uninitialized
+      # * loading
+      # * loaded
+      # * interactive
+      # * complete
       def link_to_remote(name, options = {}, html_options = {})  
         link_to_function(name, remote_function(options), html_options)
       end
@@ -64,21 +81,47 @@ module ActionView
       var container  = o(arguments[0]);
       var url        = arguments[1];
       var parameters = arguments[2];
-    
-      container.innerHTML = xml_request(url, parameters);
+      var async      = arguments[3];
+
+      if (async) {
+        xml_request(url, parameters, true,
+          { complete: function(request) {
+              container.innerHTML = request.responseText }
+          })
+      } else {
+        container.innerHTML = xml_request(url, parameters);
+      }
     }
 
     function xml_request() {
       var url        = arguments[0];
       var parameters = arguments[1];
       var async      = arguments[2];
+      var callbacks  = arguments[3];
       var type       = parameters ? "POST" : "GET";
       
       req = xml_http_request_object();
       req.open(type, url, async);
+
+      if (async) {
+        invoke_callback = function(which) {
+          if(callbacks && callbacks[which]) callbacks[which](req)
+        }
+
+        req.onreadystatechange = function() {
+          switch(req.readyState) {
+            case 0: invoke_callback('uninitialized'); break
+            case 1: invoke_callback('loading'); break
+            case 2: invoke_callback('loaded'); break
+            case 3: invoke_callback('interactive'); break
+            case 4: invoke_callback('complete'); break
+          }
+        }
+      }
+
       req.send(parameters ? parameters + "&_=" : parameters);
       
-      return req.responseText;
+      if(!async) return req.responseText;
     }
 
     function xml_http_request_object() {
@@ -182,10 +225,32 @@ module ActionView
       end
 
       private
+        def build_callbacks(options)
+          callbacks = nil
+          %w{uninitialized loading loaded interactive complete}.each do |cb|
+            cb = cb.to_sym
+            if options[cb]
+              callbacks ? callbacks << "," : callbacks = "{"
+              callbacks <<
+                "#{cb}:function(request){#{options[cb].gsub(/"/){'\"'}}}"
+            end
+          end
+          callbacks << "}" if callbacks
+          callbacks
+        end
+
         def remote_function(options)
+          callbacks = build_callbacks(options)
+
           function = options[:update] ? 
-            "update_with_response('#{options[:update]}', '#{url_for(options[:url])}'#{', Form.serialize(this)' if options[:form]})" :
-            "xml_request('#{url_for(options[:url])}'#{', Form.serialize(this)' if options[:form]})"
+            "update_with_response('#{options[:update]}', " :
+            "xml_request("
+
+          function << "'#{url_for(options[:url])}'"
+          function << ', Form.serialize(this)' if options[:form]
+          function << ', nil' if !options[:form] && callbacks
+          function << ", true, " << callbacks if callbacks
+          function << ')'
 
           function = "#{options[:before]}; #{function}" if options[:before]
           function = "#{function}; #{options[:after]}"  if options[:after]
