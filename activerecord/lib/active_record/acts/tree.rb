@@ -1,5 +1,5 @@
 module ActiveRecord
-  module Mixins
+  module Acts
     # Including this mixin if you want to model a tree structure by providing a parent association and an children 
     # association. This mixin assumes that you have a column called parent_id
     # 

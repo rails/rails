@@ -18,7 +18,7 @@ unless $sitedir
   end
 end
 
-makedirs = %w{ active_record/associations active_record/connection_adapters active_record/support active_record/vendor active_record/mixins }
+makedirs = %w{ active_record/associations active_record/connection_adapters active_record/support active_record/vendor active_record/acts }
 makedirs.each {|f| File::makedirs(File.join($sitedir, *f.split(/\//)))}
 
 # deprecated files that should be removed

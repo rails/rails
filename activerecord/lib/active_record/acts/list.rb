@@ -2,7 +2,7 @@ module ActiveRecord
   # Mixins are a way of decorating existing Active Record models with additional behavior. If you for example
   # want to keep a number of Documents in order, you can include Mixins::List, and all of the sudden be able to
   # call <tt>document.move_to_bottom</tt>.
-  module Mixins
+  module Acts
     # This mixin provides the capabilities for sorting and reordering a number of objects in list.
     # The class that has this mixin included needs to have a "position" column defined as an integer on
     # the mapped database table. Further more, you need to implement the <tt>scope_condition</tt> if you want

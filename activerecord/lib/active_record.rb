@@ -36,8 +36,8 @@ require 'active_record/aggregations'
 require 'active_record/transactions'
 require 'active_record/reflection'
 require 'active_record/timestamp'
-require 'active_record/mixins/list'
-require 'active_record/mixins/tree'
+require 'active_record/acts/list'
+require 'active_record/acts/tree'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
@@ -47,8 +47,8 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Transactions
   include ActiveRecord::Reflection
   include ActiveRecord::Timestamp
-  include ActiveRecord::Mixins::Tree
-  include ActiveRecord::Mixins::List
+  include ActiveRecord::Acts::Tree
+  include ActiveRecord::Acts::List
 end
 
 require 'active_record/connection_adapters/mysql_adapter'

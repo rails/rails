@@ -57,17 +57,25 @@ A short rundown of the major features:
 
 * Validation rules that can differ for new or existing objects.
 
-   class Post < ActiveRecord::Base
-     def validate # validates on both creates and updates
-       errors.add_on_empty "title"
-     end
-
-     def validate_on_update
-       errors.add_on_empty "password"
-     end
-   end
+    class Account < ActiveRecord::Base
+      validates_presence_of     :subdomain, :name, :email_address, :password
+      validates_uniqueness_of   :subdomain
+      validates_acceptance_of   :terms_of_service, :on => :create
+      validates_confirmation_of :password, :email_address, :on => :create
+    end
 
   Learn more in link:classes/ActiveRecord/Validations.html
+
+
+* Acts that can make records work as lists or trees:
+
+    class Item < ActiveRecord::Base
+      belongs_to   :list
+      acts_as_list :scope => :list
+    end
+    
+    item.move_higher
+    item.move_to_bottom
 
  
 * Callbacks as methods or queues on the entire lifecycle (instantiation, saving, destroying, validating, etc).

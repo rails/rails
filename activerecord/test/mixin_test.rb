@@ -1,6 +1,6 @@
 require 'abstract_unit'
-require 'active_record/mixins/tree'
-require 'active_record/mixins/list'
+require 'active_record/acts/tree'
+require 'active_record/acts/list'
 require 'fixtures/mixin'
 
 
