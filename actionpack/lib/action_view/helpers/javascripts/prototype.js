@@ -58,9 +58,10 @@ Try = {
 }
 
 Toggle = {
-  visibility: function() {
-    for (i = 0; i < arguments.length; i++) {
-      var element = $(arguments[i]);
+  display: function() {
+    elements = $.apply(this, arguments);
+    for (var i = 0; i < elements.length; i++) {
+      element = elements[i];
       element.style.display = 
         (element.style.display == 'none' ? '' : 'none');
     }
