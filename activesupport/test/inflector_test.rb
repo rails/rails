@@ -65,6 +65,11 @@ class InflectorTest < Test::Unit::TestCase
     "PrimarySpokesman" => "primary_spokesmen",
     "NodeChild"        => "node_children"
   }
+  
+  UnderscoreToHuman = {
+    "employee_salary" => "Employee salary",
+    "underground"     => "Underground"
+  }
 
   def test_pluralize
     SingularToPlural.each do |singular, plural|
@@ -118,6 +123,12 @@ class InflectorTest < Test::Unit::TestCase
   def test_classify
     ClassNameToTableName.each do |class_name, table_name|
       assert_equal(class_name, Inflector.classify(table_name))
+    end
+  end
+  
+  def test_humanize
+    UnderscoreToHuman.each do |underscore, human|
+      assert_equal(human, Inflector.humanize(underscore))
     end
   end
 end

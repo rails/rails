@@ -27,6 +27,10 @@ module Inflector
     camel_cased_word.to_s.gsub(/([A-Z]+)([A-Z])/,'\1_\2').gsub(/([a-z])([A-Z])/,'\1_\2').downcase
   end
 
+  def humanize(lower_case_and_underscored_word)
+    lower_case_and_underscored_word.to_s.gsub(/_/, " ").capitalize
+  end
+
   def demodulize(class_name_in_module)
     class_name_in_module.to_s.gsub(/^.*::/, '')
   end

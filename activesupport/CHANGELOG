@@ -1,3 +1,5 @@
+* Added Inflector.humanize to turn attribute names like employee_salary into "Employee salary". Used by automated error reporting in AR.
+
 * Added availability of class inheritable attributes to the masses #477 [bitsweat]
 
     class Foo
