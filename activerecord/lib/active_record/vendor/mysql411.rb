@@ -255,7 +255,7 @@ class Mysql
       def_value = f[7]
       max_length = 0
       
-      ret << Field::new(table_name, table_name, column_name, length, type, flags, decimals, def_value, max_length)
+      ret << Field::new(table_name, table_name, column_name_alias, length, type, flags, decimals, def_value, max_length)
     end
     ret
   end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that column aliases didn't work as expected with the new MySql411 driver #507 [Demetrius]
+
 * Fixed that find_all would produce invalid sql when called sequentialy #490 [Scott Baron]
 
 
