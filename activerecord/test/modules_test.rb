@@ -1,5 +1,4 @@
 require 'abstract_unit'
-# require File.dirname(__FILE__) + '/../dev-utils/eval_debugger'
 require 'fixtures/company_in_module'
 
 class ModulesTest < Test::Unit::TestCase

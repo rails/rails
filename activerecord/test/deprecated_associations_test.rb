@@ -3,7 +3,6 @@ require 'fixtures/developer'
 require 'fixtures/project'
 require 'fixtures/company'
 require 'fixtures/topic'
-# require File.dirname(__FILE__) + '/../dev-utils/eval_debugger'
 require 'fixtures/reply'
 
 # Can't declare new classes in test case methods, so tests before that

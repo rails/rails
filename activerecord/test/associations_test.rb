@@ -1,7 +1,6 @@
 require 'abstract_unit'
 require 'fixtures/developer'
 require 'fixtures/project'
-# require File.dirname(__FILE__) + '/../dev-utils/eval_debugger'
 require 'fixtures/company'
 require 'fixtures/topic'
 require 'fixtures/reply'

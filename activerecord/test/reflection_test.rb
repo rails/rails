@@ -1,4 +1,3 @@
-#require File.dirname(__FILE__) + '/../dev-utils/eval_debugger'
 require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/customer'
