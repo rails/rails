@@ -16,9 +16,6 @@ logger.info "\nCreate tables"
 # Class setup ---------------
 
 class Person < ActiveRecord::Base
-  # Active Record can only guess simple table names like Card/cards, Company/companies
-  def self.table_name() "people" end
-
   # Using 
   def self.authenticate(name, pass)
     # find_first "name = '#{name}' AND pass = '#{pass}'" would be open to sql-injection (in a web-app scenario)
