@@ -292,11 +292,7 @@ module ActionController #:nodoc:
         end
 
         def read(name, options = {}) #:nodoc:
-          begin
-            @mutex.synchronize { @data[name] }
-          rescue
-            nil
-          end
+          @mutex.synchronize { @data[name] } rescue nil
         end
 
         def write(name, value, options = {}) #:nodoc:
@@ -326,20 +322,14 @@ module ActionController #:nodoc:
         end
     
         def write(name, value, options = {}) #:nodoc:
-          begin
-            ensure_cache_path(File.dirname(real_file_path(name)))
-            File.open(real_file_path(name), "w+") { |f| f.write(value) }
-          rescue => e
-            Base.logger.info "Couldn't create cache directory: #{name} (#{e.message})" unless Base.logger.nil?
-          end
+          ensure_cache_path(File.dirname(real_file_path(name)))
+          File.open(real_file_path(name), "w+") { |f| f.write(value) }
+        rescue => e
+          Base.logger.info "Couldn't create cache directory: #{name} (#{e.message})" unless Base.logger.nil?
         end
 
         def read(name, options = {}) #:nodoc:
-          begin
-            IO.read(real_file_path(name))
-          rescue
-            nil
-          end
+          IO.read(real_file_path(name)) rescue nil
         end
 
         def delete(name, options) #:nodoc:
