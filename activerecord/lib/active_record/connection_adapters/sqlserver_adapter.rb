@@ -43,6 +43,10 @@ module ActiveRecord
         raise ArgumentError, "No database specified. Missing argument: database."
       end
 
+      def adapter_name()
+        'SqlServer'
+      end
+
       conn = DBI.connect("DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User Id=#{username};Password=#{password};")
       conn["AutoCommit"] = true
 

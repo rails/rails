@@ -141,6 +141,10 @@ module ActiveRecord
         return "'#{name}'"
       end
 
+      def adapter_name()
+        'SQLite'
+      end
+
       protected
         def table_structure(table_name)
           execute "PRAGMA table_info(#{table_name})"

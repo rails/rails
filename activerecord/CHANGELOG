@@ -1,5 +1,7 @@
 *SVN*
 
+* Added automatic dropping/creating of test tables for running the unit tests on all databases #587 [adelle@bullet.net.au]
+
 * Fixed that find_by_* would fail when column names had numbers #670 [demetrius]
 
 * Fixed the SQL Server adapter on a bunch of issues #667 [DeLynn]

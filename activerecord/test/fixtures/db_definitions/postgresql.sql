@@ -145,3 +145,4 @@ CREATE TABLE computers (
   id serial,
   developer integer NOT NULL
 );
+

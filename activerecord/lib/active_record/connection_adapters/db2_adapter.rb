@@ -74,6 +74,10 @@ begin
 
         def quote_column_name(name) name; end
 
+        def adapter_name()
+          'DB2'
+        end
+
         def quote_string(s)
           s.gsub(/'/, "''") # ' (for ruby-mode)
         end

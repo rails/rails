@@ -102,7 +102,11 @@ module ActiveRecord
       def quote_column_name(name)
         return "`#{name}`"
       end
-      
+
+      def adapter_name()
+        'MySQL'
+      end
+
       def structure_dump
         select_all("SHOW TABLES").inject("") do |structure, table|
           structure += select_one("SHOW CREATE TABLE #{table.to_a.first.last}")["Create Table"] + ";\n\n"

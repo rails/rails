@@ -356,6 +356,11 @@ module ActiveRecord
         name
       end
 
+      # Returns the human-readable name of the adapter.  Use mixed case - one can always use downcase if needed.
+      def adapter_name()
+        'Abstract'
+      end
+
       # Returns a string of the CREATE TABLE SQL statements for recreating the entire structure of the database.
       def structure_dump() end
 

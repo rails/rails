@@ -127,3 +127,4 @@ CREATE TABLE computers (
   developer int NOT NULL,
   PRIMARY KEY (id)
 );
+

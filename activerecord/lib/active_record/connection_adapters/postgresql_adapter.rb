@@ -89,6 +89,10 @@ module ActiveRecord
         return "\"#{name}\""
       end
 
+      def adapter_name()
+        'PostgreSQL'
+      end
+
       private
         def last_insert_id(table, column = "id")
           sequence_name = "#{table}_#{column || 'id'}_seq"
