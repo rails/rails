@@ -90,8 +90,6 @@ module ActiveRecord
       def uniq(collection = self)
         collection.inject([]) { |uniq_records, record| uniq_records << record unless uniq_records.include?(record); uniq_records }
       end
-      
-      alias_method :length, :size
 
       protected
         def loaded?
