@@ -27,9 +27,10 @@ module ActiveRecord
         # Configuration options are:
         #
         # * +column+ - specifies the column name to use for keeping the position integer (default: position)
-        # * +scope+ - restricts what is to be considered a list. Given a symbol, it'll attach "_id" (if that hasn't been already) and use that
-        #   as the foreign key restriction. It's also possible to give it an entire string that is interpolated if you need a tighter scope than
-        #   just a foreign key. Example: <tt>acts_as_list :scope => 'todo_list_id = #{todo_list_id} AND completed = 0'</tt>
+        # * +scope+ - restricts what is to be considered a list. Given a symbol, it'll attach "_id" 
+        #   (if that hasn't been already) and use that as the foreign key restriction. It's also possible 
+        #   to give it an entire string that is interpolated if you need a tighter scope than just a foreign key.
+        #   Example: <tt>acts_as_list :scope => 'todo_list_id = #{todo_list_id} AND completed = 0'</tt>
         def acts_as_list(options = {})
           configuration = { :column => "position", :scope => "1 = 1" }
           configuration.update(options) if options.is_a?(Hash)
@@ -65,7 +66,10 @@ module ActiveRecord
         end
       end
         
-      # All the methods available to a record that has had <tt>acts_as_list</tt> specified.
+      # All the methods available to a record that has had <tt>acts_as_list</tt> specified. Each method works
+      # by assuming the object to be the item in the list, so <tt>chapter.move_lower</tt> would move that chapter
+      # lower in the list of all chapters. Likewise, <tt>chapter.first?</tt> would return true if that chapter is
+      # the first in the list of all chapters.
       module InstanceMethods
         def move_lower
           return unless lower_item
@@ -75,7 +79,7 @@ module ActiveRecord
             increment_position
           end
         end
-
+        
         def move_higher
           return unless higher_item
 
@@ -84,14 +88,14 @@ module ActiveRecord
             decrement_position
           end
         end
-  
+        
         def move_to_bottom
           self.class.transaction do
             decrement_positions_on_lower_items
             assume_bottom_position
           end
         end
-
+        
         def move_to_top
           self.class.transaction do
             increment_positions_on_higher_items
@@ -99,7 +103,6 @@ module ActiveRecord
           end
         end
   
-
         def remove_from_list
           decrement_positions_on_lower_items
         end
@@ -113,11 +116,10 @@ module ActiveRecord
           update_attribute position_column, self.send(position_column).to_i - 1
         end
   
-  
         def first?
           self.send(position_column) == 1
         end
-  
+        
         def last?
           self.send(position_column) == bottom_position_in_list
         end
@@ -165,7 +167,8 @@ module ActiveRecord
           def assume_top_position
             update_attribute(position_column, 1)
           end
-  
+
+          # This has the effect of moving all the lower items up one.
           def decrement_positions_on_lower_items
             self.class.update_all(
               "#{position_column} = (#{position_column} - 1)",  "#{scope_condition} AND #{position_column} > #{send(position_column).to_i}"
