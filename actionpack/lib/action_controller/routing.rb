@@ -1,4 +1,5 @@
 module ActionController
+  # See http://manuals.rubyonrails.com/read/chapter/65
   module Routing
     ROUTE_FILE = defined?(RAILS_ROOT) ? File.expand_path(File.join(RAILS_ROOT, 'config', 'routes')) : nil
   
@@ -293,7 +294,7 @@ module ActionController
       end
     end
     
-    def self.draw(*args, &block)
+    def self.draw(*args, &block) #:nodoc:
       Routes.draw(*args) {|*args| block.call(*args)}
     end
     
