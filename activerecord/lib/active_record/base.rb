@@ -529,7 +529,6 @@ module ActiveRecord #:nodoc:
       # is available. 
       def column_methods_hash
         @dynamic_methods_hash ||= columns_hash.keys.inject(Hash.new(false)) do |methods, attr|
-          next if attr == primary_key
           methods[attr.to_sym]       = true
           methods["#{attr}=".to_sym] = true
           methods["#{attr}?".to_sym] = true
