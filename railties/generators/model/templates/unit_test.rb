@@ -1,5 +1,4 @@
 require File.dirname(__FILE__) + '/../test_helper'
-require '<%= file_name %>'
 
 class <%= class_name %>Test < Test::Unit::TestCase
   fixtures :<%= table_name %>
