@@ -63,10 +63,13 @@ class Fixtures < Hash
 
     begin
       ActiveRecord::Base.logger.level = Logger::ERROR
-      fixtures = connection.transaction do
-        table_names.flatten.map do |table_name|
+      fixtures = []
+      connection.transaction do
+        fixtures = table_names.flatten.map do |table_name|
           Fixtures.new(connection, table_name.to_s, File.join(fixtures_directory, table_name.to_s))
         end
+        fixtures.reverse.each{ |fixture| fixture.delete_existing_fixtures }
+        fixtures.each{ |fixture| fixture.insert_fixtures }
       end
       return fixtures.size > 1 ? fixtures : fixtures.first
     ensure
@@ -79,8 +82,16 @@ class Fixtures < Hash
     @class_name = Inflector.classify(@table_name)
 
     read_fixture_files
-    delete_existing_fixtures
-    insert_fixtures
+  end
+
+  def delete_existing_fixtures
+    @connection.delete "DELETE FROM #{@table_name}"
+  end
+
+  def insert_fixtures
+    values.each do |fixture|
+      @connection.execute "INSERT INTO #{@table_name} (#{fixture.key_list}) VALUES(#{fixture.value_list})"
+    end
   end
 
   private
@@ -93,16 +104,6 @@ class Fixtures < Hash
         Dir.entries(@fixture_path).each do |file| 
           self[file] = Fixture.new(File.join(@fixture_path, file), @class_name) unless file =~ @file_filter
         end
-      end
-    end
-
-    def delete_existing_fixtures
-      @connection.delete "DELETE FROM #{@table_name}"
-    end
-
-    def insert_fixtures
-      values.each do |fixture|
-        @connection.execute "INSERT INTO #{@table_name} (#{fixture.key_list}) VALUES(#{fixture.value_list})"
       end
     end
 

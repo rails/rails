@@ -18,7 +18,7 @@ raise "ActiveRecord should have barked on bad collection keys" unless bad_collec
 
 class DeprecatedAssociationsTest < Test::Unit::TestCase
   def setup
-    create_fixtures "accounts", "companies", "accounts", "developers", "projects", "developers_projects", "topics"
+    create_fixtures "accounts", "companies", "developers", "projects", "developers_projects", "topics"
     @signals37 = Firm.find(1)
   end
 

@@ -4,7 +4,7 @@ require 'fixtures/developer'
 require 'fixtures/company'
 
 class FixturesTest < Test::Unit::TestCase
-  fixtures :topics, :developers, :accounts, :developers
+  fixtures :topics, :developers, :accounts
   
   FIXTURES = %w( accounts companies customers
                  developers developers_projects entrants

@@ -18,7 +18,7 @@ raise "ActiveRecord should have barked on bad collection keys" unless bad_collec
 
 class AssociationsTest < Test::Unit::TestCase
   def setup
-    create_fixtures "accounts", "companies", "accounts", "developers", "projects", "developers_projects"  
+    create_fixtures "accounts", "companies", "developers", "projects", "developers_projects"  
     @signals37 = Firm.find(1)
   end
   
@@ -64,7 +64,7 @@ end
 
 class HasOneAssociationsTest < Test::Unit::TestCase
   def setup
-    create_fixtures "accounts", "companies", "accounts", "developers", "projects", "developers_projects"
+    create_fixtures "accounts", "companies", "developers", "projects", "developers_projects"
     @signals37 = Firm.find(1)
   end
   
@@ -141,7 +141,7 @@ end
 
 class HasManyAssociationsTest < Test::Unit::TestCase
   def setup
-    create_fixtures "accounts", "companies", "accounts", "developers", "projects", "developers_projects", "topics"
+    create_fixtures "accounts", "companies", "developers", "projects", "developers_projects", "topics"
     @signals37 = Firm.find(1)
   end
   
@@ -319,7 +319,7 @@ end
 
 class BelongsToAssociationsTest < Test::Unit::TestCase
   def setup
-    create_fixtures "accounts", "companies", "accounts", "developers", "projects", "developers_projects", "topics"
+    create_fixtures "accounts", "companies", "developers", "projects", "developers_projects", "topics"
     @signals37 = Firm.find(1)
   end
 
