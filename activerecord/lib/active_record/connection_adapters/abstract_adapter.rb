@@ -83,11 +83,15 @@ module ActiveRecord
         when ConnectionSpecification
           @@defined_connections[self] = spec
         when Symbol, String
-          establish_connection(configurations[spec.to_s])
+          if configuration = configurations[spec.to_s]
+            establish_connection(configuration)
+          else
+            raise AdapterNotSpecified
+          end
         else
           spec = symbolize_strings_in_hash(spec)
           unless spec.key?(:adapter) then raise AdapterNotSpecified end
-    
+
           adapter_method = "#{spec[:adapter]}_connection"
           unless respond_to?(adapter_method) then raise AdapterNotFound end
           remove_connection
