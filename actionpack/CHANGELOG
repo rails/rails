@@ -1,5 +1,7 @@
 *SVN*
 
+* Added trailing_slash option to url_for, so you can generate urls ending in a slash. Note that is currently not recommended unless you need it for special reasons since it breaks caching #937 [stian@grytoyr.net]
+
 * Added expire_matched_fragments(regular_expression) to clear out a lot of fragment caches at once #927 [technoweenie@gmail.com]
 
 * Fixed the problems with : and ? in file names for fragment caches on Windows #927 [technoweenie@gmail.com]
