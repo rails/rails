@@ -7,7 +7,7 @@ OPTIONS = {
   :port        => 3000,
   :ip          => "127.0.0.1",
   :environment => "development",
-  :server_root => File.expand_path(File.dirname(__FILE__)),
+  :server_root => File.expand_path(File.dirname(__FILE__) + "/../public/"),
   :server_type => WEBrick::SimpleServer
 }
 
