@@ -1,5 +1,7 @@
 *SVN*
 
+* Added app/apis and components to code statistics report #729 [Scott Barron]
+
 * Fixed WEBrick server to use ABSOLUTE_RAILS_ROOT instead of working_directory #687 [Nicholas Seckar]
 
 * Fixed rails_generator to be usable without RubyGems #686 [Cristi BALAN]
