@@ -21,7 +21,7 @@ end
 # the acual gruntwork
 Dir.chdir("lib")
 
-Find.find("action_controller", "action_controller.rb", "action_view", "action_view.rb") { |f|
+Find.find("action_web_service", "action_web_service.rb") { |f|
   if f[-3..-1] == ".rb"
     File::install(f, File.join($sitedir, *f.split(/\//)), 0644, true)
   else
