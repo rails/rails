@@ -60,7 +60,7 @@ module ActiveRecord
             
             #{scope_condition_method}
             
-            before_destroy :remove_from_list
+            after_destroy  :remove_from_list
             before_create  :add_to_list_bottom
           EOV
         end
