@@ -18,7 +18,7 @@ class Object
       def const_missing(class_id)
         begin
           require_association(Inflector.underscore(Inflector.demodulize(class_id.to_s)))
-          return Object.const_get(class_id) if Object.const_get(class_id).ancestors.include?(ActiveRecord::Base)
+          return Object.const_get(class_id) if Object.const_defined?(class_id) && Object.const_get(class_id).ancestors.include?(ActiveRecord::Base)
         rescue LoadError
           pre_association_const_missing(class_id)
         end

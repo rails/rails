@@ -1,4 +1,14 @@
-*1.3.0*
+*SVN*
+
+* Added the possibility for adapters to overwrite add_limit! to implement a different limiting scheme than "LIMIT X" used by MySQL, PostgreSQL, and SQLite.
+
+* Fixed that the const_missing autoload assumes the requested constant is set by require_association and calls const_get to retrieve it. 
+  If require_association did not set the constant then const_get will call const_missing, resulting in an infinite loop #380 [bitsweat]
+
+* Added the possibility of having objects with acts_as_list created before their scope is available or...
+
+
+*1.3.0* (December 23, 2004)
 
 * Added a require_association hook on const_missing that makes it possible to use any model class without requiring it first. This makes STI look like:
 
