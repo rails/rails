@@ -1,3 +1,5 @@
+* Added TimeZone as the first of a number of value objects that among others Active Record can use rich value objects using composed_of #688 [Jamis Buck]
+
 * Added Date::Conversions for getting dates in different convenient string representations and other objects
 
 * Added Time::Conversions for getting times in different convenient string representations and other objects
