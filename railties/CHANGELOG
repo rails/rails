@@ -1,5 +1,7 @@
 *SVN*
 
+* Added web_service generator (run ./script/generate web_service for help) #776 [Leon Bredt]
+
 * Added app/apis and components to code statistics report #729 [Scott Barron]
 
 * Fixed WEBrick server to use ABSOLUTE_RAILS_ROOT instead of working_directory #687 [Nicholas Seckar]

@@ -5,6 +5,7 @@ require 'application'
 require 'test/unit'
 require 'active_record/fixtures'
 require 'action_controller/test_process'
+require 'action_web_service/test_invoke'
 require 'breakpoint'
 
 def create_fixtures(*table_names)
