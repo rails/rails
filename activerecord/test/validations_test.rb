@@ -389,6 +389,27 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal "hoo 5", t.errors["title"]
   end
 
+  def test_validates_associated_many
+    Topic.validates_associated( :replies )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    t.replies << [r = Reply.create("title" => "A reply"), Reply.create("title" => "Another reply", "content" => "with content!")]
+    assert !t.valid?
+    assert t.errors.on(:replies)
+    r.content = "non-empty"
+    assert t.valid?
+  end
+
+  def test_validates_associated_one
+    Reply.validates_associated( :topic )
+    Topic.validates_presence_of( :content )
+    r = Reply.create("title" => "A reply", "content" => "with content!")
+    r.topic = Topic.create("title" => "uhohuhoh")
+    assert !r.valid?
+    assert r.errors.on(:topic)
+    r.topic.content = "non-empty"
+    assert r.valid?
+  end
+
   def test_throw_away_typing
     d = Developer.create "name" => "David", "salary" => "100,000"
     assert !d.valid?

@@ -1,5 +1,14 @@
 *SVN*
 
+* Added validates_associated that enables validation of objects in an unsaved association #398 [Tim Bates]. Example:
+
+    class Book < ActiveRecord::Base
+      has_many :pages
+      belongs_to :library
+    
+      validates_associated :pages, :library
+    end
+    
 * Added support for associating unsaved objects #402 [Tim Bates]. Rules that govern this addition:
 
     == Unsaved objects and associations

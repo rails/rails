@@ -271,6 +271,39 @@ module ActiveRecord
           end
         end
       end
+
+      # Validates whether the associated object or objects are all themselves valid. Works with any kind of assocation.
+      #
+      #   class Book < ActiveRecord::Base
+      #     has_many :pages
+      #     belongs_to :library
+      #
+      #     validates_associated :pages, :library
+      #   end
+      #
+      # Warning: If, after the above definition, you then wrote:
+      #
+      #   class Page < ActiveRecord::Base
+      #     belongs_to :book
+      #
+      #     validates_associated :book
+      #   end
+      #
+      # this would specify a circular dependency and cause infinite recursion. The Rails team recommends against this practice.
+      #
+      # Configuration options:
+      # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
+      def validates_associated(*attr_names)
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+        
+        for attr_name in attr_names
+          class_eval(%(#{validation_method(configuration[:on])} %{
+            errors.add("#{attr_name}", "#{configuration[:message]}") unless
+              (#{attr_name}.is_a?(Array) ? #{attr_name} : [#{attr_name}]).inject(true){ |memo, record| memo and (record.nil? or record.valid?) }
+          }))
+        end
+      end
       
 
       private
