@@ -6,6 +6,8 @@ require 'yaml'
 module ActiveRecord #:nodoc:
   class ActiveRecordError < StandardError #:nodoc:
   end
+  class SubclassNotFound < ActiveRecordError #:nodoc:
+  end
   class AssociationTypeMismatch < ActiveRecordError #:nodoc:
   end
   class SerializationTypeMismatch < ActiveRecordError #:nodoc:
@@ -535,7 +537,7 @@ module ActiveRecord #:nodoc:
       end
       
       def descends_from_active_record? # :nodoc:
-        superclass == Base
+        superclass == Base || !columns_hash.has_key?(inheritance_column)
       end
 
       def quote(object)
@@ -568,7 +570,20 @@ module ActiveRecord #:nodoc:
         # Finder methods must instantiate through this method to work with the single-table inheritance model
         # that makes it possible to create objects of different types from the same table.
         def instantiate(record)
-          object = record_with_type?(record) ? compute_type(record[inheritance_column]).allocate : allocate
+          require_association_class(record[inheritance_column])
+
+          begin
+            object = record_with_type?(record) ? compute_type(record[inheritance_column]).allocate : allocate
+          rescue NameError
+            raise(
+              SubclassNotFound, 
+              "The single-table inheritance mechanism failed to locate the subclass: '#{record[inheritance_column]}'. " +
+              "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
+              "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
+              "or overwrite #{self.to_s}.inheritance_column to use another column for that information."
+            )
+          end
+
           object.instance_variable_set("@attributes", record)
           return object
         end

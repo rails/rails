@@ -581,7 +581,9 @@ module ActiveRecord
         end
 
         def require_association_class(class_name)
-          begin 
+          return unless class_name
+          
+          begin
             require_association(Inflector.underscore(class_name))
           rescue LoadError
             # Failed to load the associated class -- let's hope the developer is doing the requiring himself.

@@ -3,7 +3,7 @@ class Topic < ActiveRecord::Base
   serialize :content
   
   before_create  :default_written_on
-  before_destroy :destroy_children #'self.class.delete_all "parent_id = #{id}"'
+  before_destroy :destroy_children
 
   def parent
     self.class.find(parent_id)

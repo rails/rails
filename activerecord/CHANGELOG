@@ -1,5 +1,15 @@
 *CVS*
 
+* Added a better exception for when a type column is used in a table without the intention of triggering single-table inheritance. Example:
+
+    ActiveRecord::SubclassNotFound: The single-table inheritance mechanism failed to locate the subclass: 'bad_class!'.
+    This error is raised because the column 'type' is reserved for storing the class in case of inheritance. 
+    Please rename this column if you didn't intend it to be used for storing the inheritance class or 
+    overwrite Company.inheritance_column to use another column for that information.
+
+* Added that single-table inheritance will only kick in if the inheritance_column (by default "type") is present. Otherwise, inheritance won't
+  have any magic side effects.
+
 * Added the possibility of marking fields as being in error without adding a message (using nil) to it that'll get displayed wth full_messages #208 [mjobin] 
 
 * Fixed Base.errors to be indifferent as to whether strings or symbols are used. Examples:

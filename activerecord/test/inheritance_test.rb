@@ -1,20 +1,13 @@
 require 'abstract_unit'
 require 'fixtures/company'
-
+require 'fixtures/project'
 
 class InheritanceTest < Test::Unit::TestCase
-  def setup
-    @company_fixtures = create_fixtures "companies"
-  end
+  fixtures :companies, :projects
 
-  def switch_to_alt_inheritance_column
-    # we don't want misleading test results, so get rid of the values in the type column
-    Company.find_all(nil, "id").each do |c|
-	    c['type'] = nil
-      c.save
-    end
-    
-    def Company.inheritance_column() "ruby_type" end
+  def test_a_bad_type_column
+    Company.connection.insert "INSERT INTO companies (id, type, name) VALUES(100, 'bad_class!', 'Not happening')"
+    assert_raises(ActiveRecord::SubclassNotFound) { Company.find(100) }
   end
 
   def test_inheritance_find
@@ -122,4 +115,21 @@ class InheritanceTest < Test::Unit::TestCase
     switch_to_alt_inheritance_column
     test_complex_inheritance
   end
+
+  def test_inheritance_without_mapping
+    assert_kind_of SpecialProject, SpecialProject.find(1)
+    assert_nothing_raised { SpecialProject.create("name" => "And breaaaaathe!") }
+    
+  end
+
+  private
+    def switch_to_alt_inheritance_column
+      # we don't want misleading test results, so get rid of the values in the type column
+      Company.find_all(nil, "id").each do |c|
+        c['type'] = nil
+        c.save
+      end
+    
+      def Company.inheritance_column() "ruby_type" end
+    end
 end
