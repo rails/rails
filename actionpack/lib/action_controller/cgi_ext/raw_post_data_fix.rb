@@ -16,11 +16,11 @@ class CGI #:nodoc:
     end
 
     private
-      def multipart_form_boundary
-        multipart_form_boundary_re = %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n # " ruby-mode
-        
+      MULTIPART_FORM_BOUNDARY_RE = %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n
+
+      def multipart_form_boundary        
         if env_table['REQUEST_METHOD'] == 'POST'
-          multipart_form_boundary_re.match(env_table['CONTENT_TYPE']).to_a.pop
+          MULTIPART_FORM_BOUNDARY_RE.match(env_table['CONTENT_TYPE']).to_a.pop
         end
       end
 

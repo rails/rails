@@ -247,10 +247,10 @@ module ActionController #:nodoc:
       end
 
       # Called by CacheHelper#cache
-      def cache_erb_fragment(name = {}, options = {}, &block)
+      def cache_erb_fragment(block, name = {}, options = {})
         unless perform_caching then block.call; return end
         
-        buffer = eval("_erbout", block)
+        buffer = eval("_erbout", block.binding)
 
         if cache = read_fragment(name, options)
           buffer.concat(cache)
