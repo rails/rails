@@ -57,7 +57,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       m.dependency 'model', [@name], :collision => :skip
 
       # Check for class naming collisions.
-      m.class_collisions "#{controller_class_name}Controller", "#{controller_class_name}ControllerTest", "#{controller_class_name}Helper"
+      m.class_collisions controller_class_path, "#{controller_class_name}Controller", "#{controller_class_name}ControllerTest", "#{controller_class_name}Helper"
 
       # Controller, helper, views, and test directories.
       m.directory File.join('app/controllers', controller_class_path)

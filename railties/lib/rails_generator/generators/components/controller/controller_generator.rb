@@ -2,7 +2,7 @@ class ControllerGenerator < Rails::Generator::NamedBase
   def manifest
     record do |m|
       # Check for class naming collisions.
-      m.class_collisions "#{class_name}Controller", "#{class_name}ControllerTest", "#{class_name}Helper"
+      m.class_collisions class_path, "#{class_name}Controller", "#{class_name}ControllerTest", "#{class_name}Helper"
 
       # Controller, helper, views, and test directories.
       m.directory File.join('app/controllers', class_path)
