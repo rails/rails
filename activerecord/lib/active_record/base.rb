@@ -1047,7 +1047,7 @@ module ActiveRecord #:nodoc:
       # that instances loaded from the database would.
       def attributes_from_column_definition
         connection.columns(self.class.table_name, "#{self.class.name} Columns").inject({}) do |attributes, column| 
-          attributes[column.name] = column.default unless column.name == self.class.primary_key
+          attributes[column.name] = (column.default unless column.name == self.class.primary_key)
           attributes
         end
       end
