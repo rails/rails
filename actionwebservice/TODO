@@ -1,4 +1,8 @@
 = 0.8.0
+  - Allow locking down a controller to only accept messages for a particular protocol.
+    This will allow us to generate fully conformant error messages in cases where we
+    currently fudge it if we don't know the protocol.
+
   - Allow AWS user to participate in typecasting, so they can centralize workarounds
     for buggy input in one place
   

@@ -1,6 +1,5 @@
 require 'time'
 require 'date'
-require 'generator'
 
 module ActionWebService # :nodoc:
   module Casting # :nodoc:
@@ -30,7 +29,8 @@ module ActionWebService # :nodoc:
 
         def cast_expects(api_method, params) # :nodoc:
           return [] if api_method.expects.nil?
-          SyncEnumerator.new(params, api_method.expects).map{ |r| cast(r[0], r[1]) }
+          i = -1
+          api_method.expects.map{ |type| cast(params[i+=1], type) }
         end
 
         def cast_returns(api_method, return_value) # :nodoc:
