@@ -99,7 +99,7 @@ module ActiveRecord
       # The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed both on create and update.
       #
       # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "must be accepted")
+      # * <tt>message</tt> - A custom error message (default is: "can't be empty")
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
       #
       # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
