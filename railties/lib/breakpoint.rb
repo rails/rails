@@ -380,7 +380,7 @@ module Breakpoint
     @drb_service = DRbService.new
     did_collision = false
     begin
-      DRb.start_service(uri, @drb_service)
+      @service = DRb.start_service(uri, @drb_service)
     rescue Errno::EADDRINUSE
       if ignore_collisions then
         nil
@@ -400,6 +400,14 @@ module Breakpoint
     end
 
     return true
+  end
+
+  # Deactivates a running Breakpoint service.
+  def deactivate_drb
+    @service.stop_service unless @service.nil?
+    @service = nil
+    @use_drb = false
+    @drb_service = nil
   end
 
   # Returns true when Breakpoints are used over DRb.

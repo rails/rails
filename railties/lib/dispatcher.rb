@@ -49,7 +49,7 @@ class Dispatcher
         ActiveRecord::Base.reset_column_information_and_inheritable_attributes_for_all_subclasses
       end
       
-      DRb.stop_service if defined?(BREAKPOINT_SERVER_PORT)
+      Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
     end
   end
   
