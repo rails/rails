@@ -273,7 +273,7 @@ task :pgem => [:gem] do
 end
 
 desc "Publish the release files to RubyForge."
-task :release => [:package] do
+task :release => [:gem] do
   files = ["gem"].map { |ext| "pkg/#{PKG_FILE_NAME}.#{ext}" }
 
   if RUBY_FORGE_PROJECT then
