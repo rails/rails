@@ -462,7 +462,7 @@ module ActiveRecord
       # Resets the list of dependencies loaded (typically to be called by the end of a request), so when require_association is
       # called for that dependency it'll be loaded anew.
       def reset_associations_loaded
-        associations_loaded = []
+        self.associations_loaded = []
       end
 
       private
