@@ -19,7 +19,7 @@ unless $sitedir
 end
 
 makedirs = %w{ action_controller/assertions action_controller/cgi_ext
-               action_controller/session action_controller/support
+               action_controller/session action_controller/support action_controller/support/core_ext
                action_controller/templates action_controller/templates/rescues
                action_controller/templates/scaffolds
                action_view/helpers action_view/vendor action_view/vendor/builder
