@@ -32,6 +32,7 @@ module Dependencies
     old_loaded.each do |file_name| 
       begin
         silence_warnings { load("#{file_name}.rb") } unless loaded.include?(file_name)
+        loaded << file_name
       rescue LoadError
         # The association didn't reside in its own file, so we assume it was required by other means
       end
