@@ -295,7 +295,7 @@ module ActionController #:nodoc:
       end
 
       # Hide each of the given methods from being callable as actions.
-      def hide_actions(*names)
+      def hide_action(*names)
         write_inheritable_attribute(:hidden_actions, hidden_actions | names.collect {|n| n.to_s})
       end
 
