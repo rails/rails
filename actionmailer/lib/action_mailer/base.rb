@@ -55,6 +55,11 @@ module ActionMailer #:nodoc:
   #
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful
   #   for unit and functional testing.
+  #
+  # * <tt>default_charset</tt> - The default charset used for the body and to encode the subject. Defaults to UTF-8. You can also 
+  #    pick a different charset from inside a method with <tt>@encoding</tt>.
+  #
+  # * <tt>encode_subject</tt> - Whether or not to encode the subject with the active charset. Defaults to true.
   class Base
     private_class_method :new #:nodoc:
 
@@ -140,7 +145,7 @@ module ActionMailer #:nodoc:
         send("perform_delivery_#{delivery_method}", mail) if perform_deliveries
       end
 
-      def quoted_printable(text, charset)
+      def quoted_printable(text, charset)#:nodoc:
         text = text.gsub( /[^a-z ]/i ) { "=%02x" % $&[0] }.gsub( / /, "_" )
         "=?#{charset}?Q?#{text}?="
       end
