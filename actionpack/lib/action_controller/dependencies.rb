@@ -71,8 +71,8 @@ module ActionController #:nodoc:
           dependencies.flatten.each do |dependency|
             begin
               require_dependency(dependency.to_s)
-            rescue LoadError
-              raise LoadError, "Missing #{layer} #{dependency}.rb"
+            rescue LoadError => e
+              raise LoadError.new("Missing #{layer} #{dependency}.rb").copy_blame!(e)
             rescue Object => exception
               exception.blame_file! "=> #{layer} #{dependency}.rb"
               raise
@@ -83,10 +83,12 @@ module ActionController #:nodoc:
         def inherited(child)
           inherited_without_model(child)
           return if child.controller_name == "application" # otherwise the ApplicationController in Rails will include itself
+          model_name = child.controller_name.singularize
           begin
-            child.model(child.controller_name.singularize)
-          rescue NameError, LoadError
-            # No neither singular or plural model available for this controller
+            require_dependency model_name
+            child.model model_name
+          rescue MissingSourceFile => e
+            raise unless e.path == model_name + '.rb'
           end
         end        
     end

@@ -19,3 +19,15 @@ class ClassExtTest < Test::Unit::TestCase
     assert !defined?(ClassD)
   end
 end
+
+class ObjectTests < Test::Unit::TestCase
+  def test_suppress_re_raises
+    assert_raises(LoadError) { suppress(ArgumentError) {raise LoadError} }
+  end
+  def test_suppress_supresses
+    suppress(ArgumentError) { raise ArgumentError }
+    suppress(LoadError) { raise LoadError }
+    suppress(LoadError, ArgumentError) { raise LoadError }
+    suppress(LoadError, ArgumentError) { raise ArgumentError }
+  end
+end

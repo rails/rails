@@ -21,8 +21,6 @@ module Dependencies
         require_or_load(file_name)
       rescue LoadError
         raise unless swallow_load_errors
-      rescue Object => e
-        raise ScriptError, "#{e.message}"
       end
     end
   end
@@ -179,8 +177,8 @@ class Object #:nodoc:
       begin
         require_or_load(class_id.to_s.demodulize.underscore)
         if Object.const_defined?(class_id) then return Object.const_get(class_id) else raise LoadError end
-      rescue LoadError
-        raise NameError, "uninitialized constant #{class_id}"
+      rescue LoadError => e
+        raise NameError.new("uninitialized constant #{class_id}").copy_blame!(e)
       end
     end
   end
@@ -215,5 +213,10 @@ class Exception
   def describe_blame
     return nil if blamed_files.empty?
     "This error occured while loading the following files:\n   #{blamed_files.join "\n   "}"
+  end
+
+  def copy_blame!(exc)
+    @blamed_files = exc.blamed_files.clone
+    self
   end
 end

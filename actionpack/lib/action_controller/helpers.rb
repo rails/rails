@@ -52,12 +52,13 @@ module ActionController #:nodoc:
             when String, Symbol
               file_name  = arg.to_s.underscore + '_helper'
               class_name = file_name.camelize
-
+                
               begin
                 require_dependency(file_name)
               rescue LoadError => load_error
                 requiree = / -- (.*?)(\.rb)?$/.match(load_error).to_a[1]
-                raise LoadError, requiree == file_name ? "Missing helper file helpers/#{file_name}.rb" : "Can't load file: #{requiree}"
+                msg = (requiree == file_name) ? "Missing helper file helpers/#{file_name}.rb" : "Can't load file: #{requiree}"
+                raise LoadError.new(msg).copy_blame!(load_error)
               end
 
               add_template_helper(class_name.constantize)
@@ -90,10 +91,9 @@ module ActionController #:nodoc:
       private 
         def inherited(child)
           inherited_without_helper(child)
-          begin
-            child.helper(child.controller_path)
-          rescue ArgumentError, LoadError
-            # No default helper available for this controller
+          begin child.helper(child.controller_path)
+          rescue MissingSourceFile => e
+            raise unless e.path == "helpers/#{child.controller_path}_helper.rb"
           end
         end        
     end

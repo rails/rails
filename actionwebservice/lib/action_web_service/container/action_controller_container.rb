@@ -64,7 +64,8 @@ module ActionWebService # :nodoc:
               require_dependency(file_name)
             rescue LoadError => load_error
               requiree = / -- (.*?)(\.rb)?$/.match(load_error).to_a[1]
-              raise LoadError, requiree == file_name ? "Missing API definition file in apis/#{file_name}.rb" : "Can't load file: #{requiree}"
+              msg = requiree == file_name ? "Missing API definition file in apis/#{file_name}.rb" : "Can't load file: #{requiree}"
+              raise LoadError.new(msg).copy_blame!(load_error)
             end
             klass = nil
             class_names.each do |name|
@@ -83,8 +84,10 @@ module ActionWebService # :nodoc:
         private
           def inherited(child)
             inherited_without_api(child)
-            child.web_service_api(child.controller_path)
-          rescue Exception => e
+            begin child.web_service_api(child.controller_path)
+            rescue MissingSourceFile => e
+              raise unless e.path == "apis/#{child.controller_path}_api.rb"
+            end
           end
       end
     end

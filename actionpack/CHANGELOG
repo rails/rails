@@ -1,5 +1,7 @@
 *SVN*
 
+* Improved error reporting especially around never shallowing exceptions. Debugging helpers should be much easier now #980 [Nicholas Seckar]
+
 * Fixed Toggle.display in prototype.js #902 [Lucas Carlson]
 
 

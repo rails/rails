@@ -312,7 +312,7 @@ module ActionController
           route_file = defined?(RAILS_ROOT) ? File.join(RAILS_ROOT, 'config', 'routes') : nil
           require_dependency(route_file) if route_file
         rescue LoadError, ScriptError => e
-          raise RoutingError, "Cannot load config/routes.rb:\n    #{e.message}"
+          raise RoutingError.new("Cannot load config/routes.rb:\n    #{e.message}").copy_blame!(e)
         ensure # Ensure that there is at least one route:
           connect(':controller/:action/:id', :action => 'index', :id => nil) if @routes.empty?
         end

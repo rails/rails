@@ -21,6 +21,13 @@ class Object #:nodoc:
       !self
     end
   end
+    
+  def suppress(*exception_classes)
+    begin yield
+    rescue Exception => e
+      raise unless exception_classes.any? {|cls| e.kind_of? cls}
+    end
+  end
 end
 
 class Class #:nodoc:
