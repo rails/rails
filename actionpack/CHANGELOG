@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that @request.remote_ip didn't work in the test environment #369 [Bruno Mattarollo]
+
 * Added :host and :protocol options to url_for and friends to redirect to another host and protocol than the current.
 
 
