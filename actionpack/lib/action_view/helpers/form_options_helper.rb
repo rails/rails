@@ -5,6 +5,19 @@ require File.dirname(__FILE__) + '/form_helper'
 module ActionView
   module Helpers
     # Provides a number of methods for turning different kinds of containers into a set of option tags.
+    # == Options
+    # The <tt>collection_select</tt>, <tt>country_select</tt>, and <tt>select</tt> methods take an <tt>options</tt> parameter, a hash.
+    #
+    # * <tt>:include_blank</tt> - set to true if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
+    #   select("post", "category", Post::CATEGORIES, {:include_blank => true})
+    #
+    # Could become:
+    #
+    #   <select name="post[category]">
+    #     <option></option>
+    #     <option>joke</option>
+    #     <option>poem</option>
+    #   </select>
     module FormOptionsHelper
       include ERB::Util
 
