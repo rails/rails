@@ -303,11 +303,11 @@ module TMail
     alias eql? ==
 
     def hash
-      @buffer.id.hash
+      @buffer.object_id.hash
     end
 
     def inspect
-      "#<#{self.class}:id=#{sprintf '0x%x', @buffer.id}>"
+      "#<#{self.class}:id=#{sprintf '0x%x', @buffer.object_id}>"
     end
 
     def reproducible?
