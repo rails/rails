@@ -26,12 +26,6 @@ module Dependencies
   def associate_with(file_name)
     depend_on(file_name, true)
   end
-
-  def reload
-    reloading = loaded.dup
-    clear
-    reloading.each { |file_name| depend_on(file_name, true) }
-  end
   
   def clear
     self.loaded = [ ]
