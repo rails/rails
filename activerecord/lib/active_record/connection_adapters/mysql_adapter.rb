@@ -64,12 +64,9 @@ module ActiveRecord
       end
  
       def columns(table_name, name = nil)
-        sql = "SHOW FIELDS FROM #{table_name}"
-        result = nil
-        log(sql, name, @connection) { |connection| result = connection.query(sql) }
- 
+        sql = "SHOW FIELDS FROM #{table_name}" 
         columns = []
-        result.each { |field| columns << Column.new(field[0], field[4], field[1]) }
+        execute(sql, name).each { |field| columns << Column.new(field[0], field[4], field[1]) }
         columns
       end
  
