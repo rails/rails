@@ -145,7 +145,7 @@ A short rundown of the major features:
     Result of running hello_world action:
       <html><body><h1>Hello world</h1></body></html>
 
-  Learn more in link:classes/ActionController/Layout.html
+  Learn more in link:classes/ActionController/Layout/ClassMethods.html
 
 
 * Advanced redirection that makes pretty urls easy

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that ApplicationController will catch a ControllerNotFound exception if someone attempts to access a url pointing to an unexisting controller [Tobias Luetke]
+
 * Flipped code-to-test ratio around to be more readable #468 [Scott Baron]
 
 * Fixed log file permissions to be 666 instead of 777 (so they're not executable) #471 [Lucas Carlson]
