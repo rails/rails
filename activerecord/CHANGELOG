@@ -32,7 +32,14 @@
       errors.on(:name)  # => "must be shorter"
       errors.on("name") # => "must be shorter"
 
-* Added Base.validates_boundries_of that delegates to add_on_boundary_breaking #312 [Tobias Luetke]. Example:
+* Added Base.validates_format_of that Validates whether the value of the specified attribute is of the correct form by matching 
+  it against the regular expression provided. [Marcel]
+
+    class Person < ActiveRecord::Base
+      validates_format_of :email, :with => /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/, :on => :create
+    end
+
+* Added Base.validates_boundaries_of that delegates to add_on_boundary_breaking #312 [Tobias Luetke]. Example:
 
     class Person < ActiveRecord::Base
       validates_boundries_of :password, :password_confirmation

@@ -24,7 +24,7 @@ module MyApplication
 
       protected
         def validate
-          errors.add_on_boundry_breaking("name", 3..20)
+          errors.add_on_boundary_breaking("name", 3..20)
       end
     end
     

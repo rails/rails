@@ -123,5 +123,5 @@ CREATE TABLE mixins (
   root_id integer,  
   created_at timestamp,
   updated_at timestamp,
-  PRIMARY KEY  (`id`)
+  PRIMARY KEY  (id)
 );

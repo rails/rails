@@ -123,11 +123,11 @@ module ActiveRecord
         end
       end
       
-      # Validates that the specified attributes are within the boundry defined in configuration[:within]. Happens by default on both create and update.
+      # Validates that the specified attributes are within the boundary defined in configuration[:within]. Happens by default on both create and update.
       #
       #   class Person < ActiveRecord::Base
-      #     validates_boundries_of :password, :password_confirmation
-      #     validates_boundries_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
+      #     validates_boundaries_of :password, :password_confirmation
+      #     validates_boundaries_of :user_name, :within => 6..20, :too_long => "pick a shorter name", :too_short => "pick a longer name"
       #   end
       #
       # Configuration options:
@@ -135,7 +135,7 @@ module ActiveRecord
       # ::too_long: The error message if the attributes go over the boundary  (default is: "is too long (max is %d characters)")
       # ::too_short: The error message if the attributes go under the boundary  (default is: "is too short (min is %d characters)")
       # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
-      def validates_boundries_of(*attr_names)
+      def validates_boundaries_of(*attr_names)
         configuration = { :within => 5..20, :too_long => ActiveRecord::Errors.default_error_messagess[:too_long], :too_short => ActiveRecord::Errors.default_error_messagess[:too_short], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
@@ -165,7 +165,29 @@ module ActiveRecord
         end
       end
       
-      
+      # Validates whether the value of the specified attribute is of the correct form by matching it against the regular expression 
+      # provided.
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_format_of :email, :with => /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/, :on => :create
+      #   end
+      #
+      # A regular expression must be provided or else an exception will be raised.
+      #
+      # Configuration options:
+      # ::message: A custom error message (default is: "is invalid")
+      # ::with: The regular expression used to validate the format with (note: must be supplied!)
+      # ::on: Specifies when this validation is active (default is :save, other options :create, :update)
+      def validates_format_of(*attr_names)
+        configuration = { :message => ActiveRecord::Errors.default_error_messagess[:invalid], :on => :save, :with => nil }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
+        raise(ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash") unless configuration[:with].is_a?(Regexp)
+
+        for attr_name in attr_names 
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name} and #{attr_name}.to_s.match(/#{configuration[:with]}/)}))
+        end
+      end
       
       private
         def validation_method(on)
@@ -310,7 +332,7 @@ module ActiveRecord
       end
     end
 
-    alias :add_on_boundry_breaking :add_on_boundary_breaking
+    alias :add_on_boundary_breaking :add_on_boundary_breaking
 
     # Returns true if the specified +attribute+ has errors associated with it.
     def invalid?(attribute)

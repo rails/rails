@@ -191,7 +191,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
   
   def test_validate_boundaries
-    Topic.validates_boundries_of(:title, :content, :within => 3..5)
+    Topic.validates_boundaries_of(:title, :content, :within => 3..5)
 
     t = Topic.create("title" => "a!", "content" => "I'm ooooooooh so very long")
     assert !t.save
@@ -202,5 +202,22 @@ class ValidationsTest < Test::Unit::TestCase
     t.content  = "mad"
 
     assert t.save
+  end
+
+  def test_validate_format
+    Topic.validates_format_of(:title, :content, :with => /^Validation macros rule!$/, :message => "is bad data")
+
+    t = Topic.create("title" => "i'm incorrect", "content" => "Validation macros rule!")
+    assert !t.valid?, "Shouldn't be valid"
+    assert !t.save, "Shouldn't save because it's invalid"
+    assert_equal "is bad data", t.errors.on(:title)
+    assert_nil t.errors.on(:content)
+
+    t.title = "Validation macros rule!"
+
+    assert t.save
+    assert_nil t.errors.on(:title)
+
+    assert_raise(ArgumentError) { Topic.validates_format_of(:title, :content) }
   end
 end
