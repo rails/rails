@@ -27,13 +27,9 @@
 </head>
 <body>
 
-<h1>Congratulations, you're on Rails!</h1>
+<h1>Congratulations, you've put Ruby on Rails!</h1>
 
-<p>
-  <i>You've succesfully configured your web server to point at this Rails application.</i>
-</p>
-
-<p>Before you move on, verify that the following conditions have been met:</p>
+<p><b>Before you move on</b>, verify that the following conditions have been met:</p>
 
 <ol>
   <li>The log directory and the empty log files must be writable to the web server (<code>chmod -R 777 log</code>).
@@ -53,43 +49,22 @@
 <p>Take the following steps to get started:</p>
 
 <ol>
-  <li>Create empty production and test databases for your application.<br/>
-      <small>Warning: Don't point your test database at your production database, it'll destroy the latter on test runs!</small>
+  <li>Create empty development and test databases for your application.<br/>
+    <small>Recommendation: Use *_development and *_test names, such as basecamp_development and basecamp_test</small><br/>
+    <small>Warning: Don't point your test database at your development database, it'll destroy the latter on test runs!</small>
   <li>Edit config/database.yml with your database settings.
-  <li>Create a new controller using the <code>script/new_controller</code> generator <br/>
-      <small>Help: Run with no arguments for documentation</small>
-  <li>Create a new model using the <code>script/new_model</code> generator <br/>
-      <small>Help: Run with no arguments for documentation</small>
-  <li>See all the tests run and fail by running <code>rake</code>.
+  <li>Create controllers and models using the generators in <code>script/new_*</code> <br/>
+    <small>Help: Run a generator with no arguments for documentation</small>
+  <li>See all the tests run by running <code>rake</code>.
   <li>Develop your Rails application!
-  <li>Setup FastCGI or mod_ruby to get production-level performance
+  <li>Setup Apache with <a href="http://www.fastcgi.com">FastCGI</a> (and <a href="http://raa.ruby-lang.org/list.rhtml?name=fcgi">Ruby bindings</a>), if you need better performance
 </ol>
 
 <p>
-  Having problems getting up and running? First try debugging it yourself by looking at the log files. <br/> Then try the friendly Rails 
-  community on IRC  (<a href="http://www.rubyonrails.org/show/IRC">howto IRC</a>). It's on FreeNode, in channel 
-  <a href="irc://irc.freenode.net/#rubyonrails">#rubyonrails</a>. 
+  Having problems getting up and running? First try debugging it yourself by looking at the log files. <br/>
+  Then try the friendly Rails community <a href="http://www.rubyonrails.org">on the web</a> or <a href="http://www.rubyonrails.org/show/IRC">on IRC</a>
+  (<a href="irc://irc.freenode.net/#rubyonrails">FreeNode#rubyonrails</a>).
 </p>
-
-<div style="float: left; margin-right: 20px">
-  <h2>Rails Online</h2>
-
-  <ul>
-    <li><a href="http://www.rubyonrails.org">Ruby on Rails</a></li>
-    <li><a href="http://activerecord.rubyonrails.org">Active Record</a></li>
-    <li><a href="http://actionpack.rubyonrails.org">Action Pack</a></li>
-  </ul>
-</div>
-
-<div style="float: left">
-  <h2>Beyond CGI</h2>
-
-  <ul>
-    <li><a href="http://www.fastcgi.com">FastCGI</a></li>
-    <li><a href="http://raa.ruby-lang.org/list.rhtml?name=fcgi">FastCGI bindings for Ruby</a></li>
-    <li><a href="http://modruby.net/en/">mod_ruby</a></li>
-  </ul>
-</div>
 
 </body>
 </html>
