@@ -47,7 +47,7 @@ module ActionView
       # where the elements respond to first and last (such as a two-element array), the "lasts" serve as option values and
       # the "firsts" as option text. Hashes are turned into this form automatically, so the keys become "firsts" and values
       # become lasts. If +selected+ is specified, the matching "last" or element will get the selected option-tag.  +Selected+
-      # may also be an array of values to be selected when using a multiple select.
+      # may also be an array of values to be selected when using a multiple select. 
       #
       # Examples (call, result):
       #   options_for_select([["Dollar", "$"], ["Kroner", "DKK"]])
@@ -61,6 +61,8 @@ module ActionView
       #
       #   options_for_select([ "VISA", "MasterCard", "Discover" ], ["VISA", "Discover"])
       #     <option selected="selected">VISA</option>\n<option>MasterCard</option>\n<option selected="selected">Discover</option>
+      #
+      # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def options_for_select(container, selected = nil)
         container = container.to_a if Hash === container
       
@@ -88,6 +90,8 @@ module ActionView
       # Example (call, result). Imagine a loop iterating over each +person+ in <tt>@project.people</tt> to generate a input tag:
       #   options_from_collection_for_select(@project.people, "id", "name")
       #     <option value="#{person.id}">#{person.name}</option>
+      #
+      # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def options_from_collection_for_select(collection, value_method, text_method, selected_value = nil)
         options_for_select(
           collection.inject([]) { |options, object| options << [ object.send(text_method), object.send(value_method) ] }, 
@@ -126,6 +130,8 @@ module ActionView
       #	  def country_id() @id; end
       #	  def country_name() @name; end
       # end
+      #
+      # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def option_groups_from_collection_for_select(collection, group_method, group_label_method, 
             option_key_method, option_value_method, selected_key = nil)
         collection.inject("") do |options_for_select, group|
@@ -139,6 +145,8 @@ module ActionView
       # Returns a string of option tags for pretty much any country in the world. Supply a country name as +selected+ to 
       # have it marked as the selected option tag. You can also supply an array of countries as +priority_countries+, so
       # that they will be listed above the rest of the (long) list.
+      #
+      # NOTE: Only the option tags are returned, you have to wrap this call in a regular HTML select tag.
       def country_options_for_select(selected = nil, priority_countries = nil)
         country_options = ""
         
@@ -176,7 +184,7 @@ module ActionView
             "Georgia", "Germany", "Ghana", "Gibraltar", "Great Britain", "Greece", "Greenland", 
             "Grenada", "Guadeloupe", "Guam", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", 
             "Haiti", "Heard and Mc Donald Islands", "Honduras", "Hong Kong", "Hungary", "Iceland", 
-            "India", "Indonesia", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", 
+            "India", "Indonesia", "Ireland", "Israel", "Italy", , "Iran", "Irak", "Jamaica", "Japan", "Jordan", 
             "Kazakhstan", "Kenya", "Kiribati", "Korea, Republic of", "Korea (South)", "Kuwait", 
             "Kyrgyzstan", "Lao People's Democratic Republic", "Latvia", "Lebanon", "Lesotho", 
             "Liberia", "Liechtenstein", "Lithuania", "Luxembourg", "Macau", "Macedonia", 
