@@ -1,4 +1,4 @@
-*SVN*
+*0.6.1* (January 18th, 2005)
 
 * Fixed sending of emails to use Tmail#from not the deprecated Tmail#from_address
 
