@@ -55,6 +55,24 @@ module ActionView
       def define_javascript_functions
     <<-EOF
     <script language="JavaScript">
+    /* Convenience form methods */
+    Field = {
+      clear: function() {
+        for(i = 0; i < arguments.length; i++) { o(arguments[i]).value = ''; }
+        return true;
+      },
+
+      focus: function(id) {
+        o(id).focus();
+        return true;
+      },
+      
+      present: function() {
+        for(i = 0; i < arguments.length; i++) { if (o(arguments[i]).value = '') { return false; } }
+        return true;
+      }
+    }
+    
     /* XMLHttpRequest Methods */
 
     function update_with_response() {
@@ -102,6 +120,12 @@ module ActionView
 
     function toggle_display_by_id(id) {
       o(id).style.display = (o(id).style.display == "none") ? "" : "none";
+    }
+
+    function toggle_display() {
+      for(i = 0; i < arguments.length; i++) {
+        o(arguments[i]).style.display = (o(arguments[i]).style.display == "none") ? "" : "none";
+      }
     }
 
     function o(id) {
@@ -178,7 +202,8 @@ module ActionView
             "update_with_response('#{options[:update]}', '#{url_for(options[:url])}'#{', Form.serialize(this)' if options[:form]})" :
             "xml_request('#{url_for(options[:url])}'#{', Form.serialize(this)' if options[:form]})"
 
-          function = [ options[:before], function, options[:before] ].join("; ")
+          function = "#{options[:before]}; #{function}" if options[:before]
+          function = "#{function}; #{options[:after]}"  if options[:after]
           function = "if (#{options[:condition]}) { #{function}; }" if options[:condition]
       
           return function
