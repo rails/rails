@@ -79,7 +79,7 @@ task :initialize_log_files do
   LOG_FILES.each do |log_file|
     log_path = File.join(log_dir, log_file)
     touch log_path
-    chmod 0777, log_path
+    chmod 0666, log_path
   end
 end
 

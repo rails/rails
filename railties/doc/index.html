@@ -32,7 +32,7 @@
 <p><b>Before you move on</b>, verify that the following conditions have been met:</p>
 
 <ol>
-  <li>The log directory and the empty log files must be writable to the web server (<code>chmod -R 777 log</code>).
+  <li>The log directory and the empty log files must be writable to the web server (<code>chmod -R 666 log/*</code>).
   <li>
     The shebang line in the public/dispatch* files must reference your Ruby installation. <br/>
     You might need to change it to <code>#!/usr/bin/env ruby</code> or point directly at the installation.

@@ -44,7 +44,7 @@ rescue StandardError
   RAILS_DEFAULT_LOGGER = Logger.new(STDERR)
   RAILS_DEFAULT_LOGGER.level = Logger::WARN
   RAILS_DEFAULT_LOGGER.warn(
-    "Rails Error: Unable to access log file. Please ensure that log/#{RAILS_ENV}.log exists and is chmod 0777. " +
+    "Rails Error: Unable to access log file. Please ensure that log/#{RAILS_ENV}.log exists and is chmod 0666. " +
     "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
   )
 end
