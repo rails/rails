@@ -137,12 +137,12 @@ class RouteTests < Test::Unit::TestCase
     verify_recognize('admin/user', {:controller => 'admin/user', :action => 'index'})
   end
   def test_generate_default_nested_no_extras
-    verify_generate('admin/user/', {}, {:controller => 'admin/user'}, @defaults)
-    verify_generate('admin/user/', {}, {:controller => 'admin/user'}, @defaults)
+    verify_generate('admin/user', {}, {:controller => 'admin/user'}, @defaults)
+    verify_generate('admin/user', {}, {:controller => 'admin/user'}, @defaults)
   end
   def test_generate_default_nested
-    verify_generate('admin/user/', {:a => 'a'}, {:controller => 'admin/user', :a => 'a'}, @defaults)
-    verify_generate('admin/user/', {:a => 'a'}, {:controller => 'admin/user', :a => 'a'}, @defaults)
+    verify_generate('admin/user', {:a => 'a'}, {:controller => 'admin/user', :a => 'a'}, @defaults)
+    verify_generate('admin/user', {:a => 'a'}, {:controller => 'admin/user', :a => 'a'}, @defaults)
   end
   
   # Test generate with a default controller set.
@@ -429,16 +429,16 @@ class RouteSetTests < Test::Unit::TestCase
   end
   def test_generate_typical_controller_index_path_explicit_index
     typical_request
-    verify_generate('content/', {:controller => 'content', :action => 'index'})
+    verify_generate('content', {:controller => 'content', :action => 'index'})
   end
   def test_generate_typical_controller_index_path_explicit_index
     typical_request
-    verify_generate('content/', {:controller => 'content', :action => 'index'})
+    verify_generate('content', {:controller => 'content', :action => 'index'})
   end
   def test_generate_typical_controller_index_path_implicit_index
     typical_request
     @request.path_parameters[:controller] = 'resource'
-    verify_generate('content/', {:controller => 'content'})
+    verify_generate('content', {:controller => 'content'})
   end
   
   def test_generate_no_perfect_route
@@ -480,6 +480,6 @@ end
 class AssertionRoutingTests < Test::Unit::TestCase
   def test_assert_routing
     ActionController::Routing::Routes.reload rescue nil
-    assert_routing('content/', {:controller => 'content', :action => 'index'})
+    assert_routing('content', {:controller => 'content', :action => 'index'})
   end
 end

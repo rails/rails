@@ -42,7 +42,7 @@ module ActionController
         RESERVED_OPTIONS.each {|k| options.delete k}
         
         path, extras = Routing::Routes.generate(options, @request)
-        path = "/#{path.join('/')}"
+        path = "/#{path.join('/')}".chomp '/'
         path += build_query_string(extras)
         
         return path

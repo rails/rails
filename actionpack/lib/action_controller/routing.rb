@@ -74,8 +74,6 @@ module ActionController
         end
         
         components.collect! {|c| c.to_s}
-        components.unshift(components.shift + '/') if components.length == 1 && @items.first == :controller # Add '/' to controllers
-        
         return components, unused
       end
       
