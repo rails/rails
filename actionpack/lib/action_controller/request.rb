@@ -33,17 +33,17 @@ module ActionController
     # delimited list in the case of multiple chained proxies; the first is
     # the originating IP.
     def remote_ip
-      if env['HTTP_CLIENT_IP']
-        env['HTTP_CLIENT_IP']
-      elsif env['HTTP_X_FORWARDED_FOR']
-        remote_ip = env['HTTP_X_FORWARDED_FOR'].split(',').reject { |ip|
+      return env['HTTP_CLIENT_IP'] if env.include? 'HTTP_CLIENT_IP'
+
+      if env.include? 'HTTP_X_FORWARDED_FOR' then
+        remote_ips = env['HTTP_X_FORWARDED_FOR'].split(',').reject do |ip|
             ip =~ /^unknown$|^(10|172\.16|192\.168)\./i
-        }.first
-        
-        remote_ip ? remote_ip.strip : env['REMOTE_ADDR']
-      else
-        env['REMOTE_ADDR']
+        end
+
+        return remote_ips.first.strip unless remote_ips.empty?
       end
+
+      return env['REMOTE_ADDR']
     end
 
     def request_uri

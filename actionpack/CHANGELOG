@@ -1,5 +1,7 @@
 *CVS*
 
+* Fixed AbstractRequest#remote_ip for users going through proxies - Patch #228 [Eric Hodel]
+
 * Added Request#ssl? which is shorthand for @request.protocol == "https://"
 
 * Added the choice to call form_tag with no arguments (resulting in a form posting to current action) [bitsweat]
