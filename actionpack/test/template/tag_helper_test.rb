@@ -17,8 +17,4 @@ class TagHelperTest < Test::Unit::TestCase
     assert_equal content_tag("a", "Create", "href" => "create"),
                  content_tag("a", "Create", :href => "create")
   end
-
-  def test_image_tag
-    assert_equal %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />), image_tag("gold", :size => "45x70")
-  end
 end

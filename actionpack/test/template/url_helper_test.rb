@@ -1,11 +1,13 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/url_helper'
+require File.dirname(__FILE__) + '/../../lib/action_view/helpers/asset_tag_helper'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/tag_helper'
 
 RequestMock = Struct.new("Request", :request_uri)
 
 class UrlHelperTest < Test::Unit::TestCase
+  include ActionView::Helpers::AssetTagHelper
   include ActionView::Helpers::UrlHelper
   include ActionView::Helpers::TagHelper
 

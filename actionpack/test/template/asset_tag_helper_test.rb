@@ -42,4 +42,8 @@ class AssetTagHelperTest < Test::Unit::TestCase
   def test_style_link
     StyleLinkToTag.each { |method, tag| assert_equal(tag, eval(method)) }
   end
+
+  def test_image_tag
+    assert_equal %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />), image_tag("gold", :size => "45x70")
+  end
 end
