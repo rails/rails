@@ -1,5 +1,7 @@
 *SVN*
 
+* Added the possibility of having validate be protected for assert_(in)valid_column #263 [Tobias Luetke]
+
 * Added that ActiveRecordHelper#form now calls url_for on the :action option.
 
 * Added all the HTTP methods as alternatives to the generic "process" for functional testing #276 [Tobias Luetke]. Examples:

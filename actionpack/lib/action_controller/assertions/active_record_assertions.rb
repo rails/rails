@@ -22,7 +22,7 @@ module Test #:nodoc:
       # Assert the template object with the given name is an Active Record descendant and the specified column(s) are valid.
       def assert_valid_column_on_record(key = nil, columns = "", message = nil)
         record = find_record_in_template(key)
-        record.validate
+        record.send(:validate)
 
         cols = glue_columns(columns)
         cols.delete_if { |col| !record.errors.invalid?(col) }
@@ -33,7 +33,7 @@ module Test #:nodoc:
       # Assert the template object with the given name is an Active Record descendant and the specified column(s) are invalid.
       def assert_invalid_column_on_record(key = nil, columns = "", message = nil)
         record = find_record_in_template(key)
-        record.validate
+        record.send(:validate)
 
         cols = glue_columns(columns)
         cols.delete_if { |col| record.errors.invalid?(col) }

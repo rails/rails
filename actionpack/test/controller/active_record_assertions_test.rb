@@ -21,11 +21,12 @@ require 'fixtures/company'
 
 # add some validation rules to trip up the assertions
 class Company
-  def validate
-    errors.add_on_empty('name')
-    errors.add('rating', 'rating should not be 2') if rating == 2
-    errors.add_to_base('oh oh') if rating == 3
-  end  
+  protected
+    def validate
+      errors.add_on_empty('name')
+      errors.add('rating', 'rating should not be 2') if rating == 2
+      errors.add_to_base('oh oh') if rating == 3
+    end  
 end
 
 # -----------------------------------------------------------------------------
