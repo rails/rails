@@ -301,7 +301,18 @@ class Test::Unit::TestCase #:nodoc:
   cattr_accessor :fixture_table_names
 
   def self.fixtures(*table_names)
+    require_fixture_classes(table_names)
     write_inheritable_attribute("fixture_table_names", table_names)
+  end
+
+  def self.require_fixture_classes(table_names)
+    table_names.each do |table_name| 
+      begin
+        require(Inflector.singularize(table_name.to_s))
+      rescue LoadError
+        # Let's hope the developer is included it himself
+      end
+    end
   end
 
   def setup

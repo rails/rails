@@ -1,8 +1,4 @@
 require 'abstract_unit'
-require 'fixtures/topic'
-require 'fixtures/reply'
-require 'fixtures/developer'
-
 
 class ValidationsTest < Test::Unit::TestCase
   fixtures :topics, :developers
