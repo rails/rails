@@ -37,6 +37,7 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
+
     class PostgreSQLAdapter < AbstractAdapter # :nodoc:
       def select_all(sql, name = nil)
         select(sql, name)
@@ -76,6 +77,14 @@ module ActiveRecord
       def commit_db_transaction()   execute "COMMIT" end
       def rollback_db_transaction() execute "ROLLBACK" end
 
+      def quote(value, column = nil)
+        if value.class == String && column && column.type == :binary
+          quote_bytea(value)
+        else
+          super
+        end
+      end
+
       def quote_column_name(name)
         return "\"#{name}\""
       end
@@ -96,11 +105,29 @@ module ActiveRecord
             fields = res.fields
             results.each do |row|
               hashed_row = {}
-              row.each_index { |cel_index| hashed_row[fields[cel_index]] = row[cel_index] }
+              row.each_index do |cel_index|
+                column = row[cel_index]
+                if res.type(cel_index) == 17  # type oid for bytea
+                  column = unescape_bytea(column)
+                end
+                hashed_row[fields[cel_index]] = column
+              end
               rows << hashed_row
             end
           end
           return rows
+        end
+
+        def quote_bytea(s)
+          "'#{escape_bytea(s)}'"
+        end
+
+        def escape_bytea(s)
+          s.gsub(/\\/) { '\\\\\\\\' }.gsub(/[^\\]/) { |c| sprintf('\\\\%03o', c[0].to_i) }
+        end
+
+        def unescape_bytea(s)
+          s.gsub(/\\([0-9][0-9][0-9])/) { $1.oct.chr }.gsub(/\\\\/) { '\\' }
         end
 
         def split_table_schema(table_name)
@@ -141,6 +168,7 @@ module ActiveRecord
             when 'numeric', 'real', 'money'      then 'float'
             when 'character varying', 'interval' then 'string'
             when 'timestamp without time zone'   then 'datetime'
+            when 'bytea'                         then 'binary'
             else field_type
           end
 
