@@ -376,12 +376,12 @@ module ActiveRecord
       
         if options[:counter_cache]
           module_eval(
-            "after_create '#{association_class_name}.increment_counter(\"#{Inflector.pluralize(self.to_s.downcase). + "_count"}\", #{association_class_primary_key_name})" +
+            "after_create '#{association_class_name}.increment_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{association_class_primary_key_name})" +
             " unless #{association_name}.nil?'"
           )
 
           module_eval(
-            "before_destroy '#{association_class_name}.decrement_counter(\"#{Inflector.pluralize(self.to_s.downcase) + "_count"}\", #{association_class_primary_key_name})" +
+            "before_destroy '#{association_class_name}.decrement_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{association_class_primary_key_name})" +
             " unless #{association_name}.nil?'"
           )          
         end

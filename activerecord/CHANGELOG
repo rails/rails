@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that :counter_cache option would look for a line_items_count column for a LineItem object instead of lineitems_count
+
 * Fixed that AR exists?() would explode on postgresql if the passed id did not match the PK type #900 [Scott Barron]
 
 * Fixed the MS SQL adapter to work with the new limit/offset approach and with binary data (still suffering from 7KB limit, though) #901 [delynnb]
