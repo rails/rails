@@ -2,15 +2,15 @@
 # 1.  I had to redefine a method in ActiveRecord to make it possible to implement an autonumbering
 #     solution for oracle. It's implemented in a way that is intended to not break other adapters.
 # 2.  Default value support needs a patch to the OCI8 driver, to enable it to read LONG columns.
-#     LONG is deprecated, and so may never be properly added to driver.
-#     A similar patch is needed for TIMESTAMP.
-#     This is dangerous because it may break with newer versions of the driver.
+#     The driver-author has said he will add this in a future release.
+#     A similar patch is needed for TIMESTAMP. This should be replaced with the 0.2 version of the
+#     driver, which will support TIMESTAMP properly.
 # 3.  Large Object support works by an after_save callback added to the ActiveRecord. This is not
 #     a problem - you can add other (chained) after_save callbacks.
-# 4.  LIMIT and OFFSET work by scrolling through a cursor - no rownum select from select required.
-#     It does mean that large OFFSETs will have to scroll through the intervening records. To keep
-#     consistency with other adapters I've allowed the LIMIT and OFFSET clauses to be included in
-#     the sql string and later extracted them by parsing the string.
+# 4.  LIMIT and OFFSET now work using a select from select from select. This pattern enables
+#     the middle select to limit downwards as much as possible, before the outermost select
+#     limits upwards. The extra rownum column is stripped from the results.
+#     See http://asktom.oracle.com/pls/ask/f?p=4950:8:::::F4950_P8_DISPLAYID:127412348064
 #
 # Do what you want with this code, at your own peril, but if any significant portion of my code
 # remains then please acknowledge my contribution.
@@ -118,13 +118,17 @@ begin
         end
 
         def select_all(sql, name = nil)
-          offset = sql =~ /OFFSET (\d+)$/ ? $1.to_i : -1
+          offset = sql =~ /OFFSET (\d+)$/ ? $1.to_i : 0
           sql, limit = $1, $2.to_i if sql =~ /(.*)(?: LIMIT[= ](\d+))(\s*OFFSET \d+)?$/
+          if limit
+            sql = "select * from (select raw_sql_.*, rownum raw_rnum_ from (#{sql}) raw_sql_ where rownum <= #{offset+limit}) where raw_rnum_ > #{offset}"
+          elsif offset > 0
+            sql = "select * from (select raw_sql_.*, rownum raw_rnum_ from (#{sql}) raw_sql_) where raw_rnum_ > #{offset}"
+          end
           cursor = log(sql, name, @connection) { @connection.exec sql }
           cols = cursor.get_col_names.map { |x| x.downcase }
           rows = []
           while row = cursor.fetch
-            next if cursor.row_count <= offset
             hash = Hash.new
             cols.each_with_index { |col, i|
               hash[col] = case row[i]
@@ -134,10 +138,9 @@ begin
                   (row[i].hour == 0 and row[i].minute == 0 and row[i].second == 0) ?
                     row[i].to_date : row[i].to_time
                 else row[i]
-                end
+                end unless col == 'raw_rnum_'
             }
             rows << hash
-            break if rows.size == limit
           end
           rows
         ensure
