@@ -74,7 +74,7 @@ module ActiveRecord
       #     <%= password_field "person", "password_confirmation" %>
       #
       # The person has to already have a password attribute (a column in the people table), but the password_confirmation is virtual.
-      # It exists only as an in-memory variable for validating the password. This check is performed both on create and update.
+      # It exists only as an in-memory variable for validating the password. This check is performed on save by default.
       #
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "doesn't match confirmation")
@@ -96,7 +96,7 @@ module ActiveRecord
       #     validates_acceptance_of :eula, :message => "must be abided"
       #   end
       #
-      # The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed both on create and update.
+      # The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed on save by default.
       #
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "can't be empty")
@@ -113,7 +113,7 @@ module ActiveRecord
         end
       end
 
-      # Validates that the specified attributes are neither nil nor empty. Happens by default on both create and update.
+      # Validates that the specified attributes are neither nil nor empty. Happens by default on save.
       #
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "has already been taken")
