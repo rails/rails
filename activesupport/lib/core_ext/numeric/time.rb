@@ -1,6 +1,7 @@
-module ActiveSupport
-  module CoreExtensions
-    module Numeric
+module ActiveSupport #:nodoc:
+  module CoreExtensions #:nodoc:
+    module Numeric #:nodoc:
+      # Enables the use of time calculations and declarations, like 45.minutes + 2.hours + 4.years
       module Time
         def minutes
           self * 60

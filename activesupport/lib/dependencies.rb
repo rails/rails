@@ -38,7 +38,7 @@ end
 Object.send(:define_method, :require_dependency)  { |file_name| Dependencies.depend_on(file_name) } unless Object.respond_to?(:require_dependency)
 Object.send(:define_method, :require_association) { |file_name| Dependencies.associate_with(file_name) } unless Object.respond_to?(:require_association)
 
-class Object
+class Object #:nodoc:
   class << self
     # Use const_missing to autoload associations so we don't have to
     # require_association when using single-table inheritance.

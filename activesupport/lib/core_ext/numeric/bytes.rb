@@ -1,8 +1,8 @@
-module ActiveSupport
-  module CoreExtensions
-    module Numeric
+module ActiveSupport #:nodoc:
+  module CoreExtensions #:nodoc:
+    module Numeric #:nodoc:
+      # Enables the use of byte calculations and declarations, like 45.bytes + 2.6.megabytes
       module Bytes
-
         def bytes
           self
         end

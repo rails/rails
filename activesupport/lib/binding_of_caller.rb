@@ -1,7 +1,7 @@
 begin
   require 'simplecc'
 rescue LoadError
-  def Continuation.create(*args, &block)
+  def Continuation.create(*args, &block) #:nodoc:
     cc = nil; result = callcc {|c| cc = c; block.call(cc) if block and args.empty?}
     result ||= args
     return *[cc, *result]
@@ -33,7 +33,7 @@ end
 # If you don't do this an Exception will be raised. Because of
 # the way that Binding.of_caller is implemented it has to be
 # done this way.
-def Binding.of_caller(&block)
+def Binding.of_caller(&block) #:nodoc:
   old_critical = Thread.critical
   Thread.critical = true
   count = 0

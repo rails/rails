@@ -1,6 +1,6 @@
-module ActiveSupport
-  module CoreExtensions
-    module Hash
+module ActiveSupport #:nodoc:
+  module CoreExtensions #:nodoc:
+    module Hash #:nodoc:
       module Keys
 
         # Return a new hash with all keys converted to symbols.
@@ -29,7 +29,6 @@ module ActiveSupport
           unknown_keys = keys - valid_keys
           raise(ArgumentError, "Unknown key(s): #{unknown_keys.join(", ")}") unless unknown_keys.empty?
         end
-
       end
     end
   end

@@ -1,5 +1,5 @@
 require File.dirname(__FILE__) + '/hash/keys'
 
-class Hash
+class Hash #:nodoc:
   include ActiveSupport::CoreExtensions::Hash::Keys
 end
