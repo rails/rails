@@ -18,13 +18,7 @@ class <%= class_name %>Test < Test::Unit::TestCase
     @expected.body    = read_fixture('<%= action %>')
     @expected.date    = Time.now
 
-    created = nil
-    assert_nothing_raised { created = <%= class_name %>.create_<%= action %>(@expected.date) }
-    assert_not_nil created
-    assert_equal @expected.encoded, created.encoded
-
-    assert_nothing_raised { <%= class_name %>.deliver_<%= action %>(@expected.date) }
-    assert_equal @expected.encoded, ActionMailer::Base.deliveries.first.encoded
+    assert_equal @expected.encoded, <%= class_name %>.create_<%= action %>(@expected.date).encoded
   end
 
 <% end -%>
