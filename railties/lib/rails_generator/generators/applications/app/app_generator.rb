@@ -67,7 +67,6 @@ class AppGenerator < Rails::Generator::Base
       end
 
       # Docs
-      m.template "doc/index.html", "public/_doc/index.html"
       m.file "doc/README_FOR_APP", "doc/README_FOR_APP"
 
       # Logs
@@ -107,7 +106,6 @@ class AppGenerator < Rails::Generator::Base
     doc
     lib
     log
-    public/_doc
     public/images
     public/javascripts
     public/stylesheets

@@ -59,11 +59,11 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   end
 
   def add_dot_html(req)
-    if /^([^.]+)$/ =~ req.path then req.instance_variable_set(:@path_info, "#{$1}.html") end
+    if /^([^.]+)$/ =~ req.path && req.path != "/" then req.instance_variable_set(:@path_info, "#{$1}.html") end
   end
   
   def remove_dot_html(req)
-    if /^([^.]+).html$/ =~ req.path then req.instance_variable_set(:@path_info, $1) end
+    if /^([^.]+).html$/ =~ req.path && req.path != "/" then req.instance_variable_set(:@path_info, $1) end
   end
 
   def handle_dispatch(req, res, origin = nil)

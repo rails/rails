@@ -16,7 +16,7 @@ PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 
 BASE_DIRS   = %w( app config/environments components db doc log lib public script test vendor )
 APP_DIRS    = %w( apis models controllers helpers views views/layouts )
-PUBLIC_DIRS = %w( images javascripts stylesheets _doc )
+PUBLIC_DIRS = %w( images javascripts stylesheets )
 TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/testing )
 
 LOG_FILES    = %w( server.log development.log test.log production.log )
@@ -161,10 +161,6 @@ end
 
 task :copy_test_helpers do
   cp "helpers/test_helper.rb", "#{PKG_DESTINATION}/test/test_helper.rb"
-end
-
-task :copy_docs_in_public do
-  cp "doc/index.html", "#{PKG_DESTINATION}/public/_doc/index.html"
 end
 
 task :copy_app_doc_readme do
