@@ -1,5 +1,14 @@
 *SVN*
 
+* Fixed the SQL Server adapter on a bunch of issues #667 [DeLynn]
+
+    1. Created a new columns method that is much cleaner. 
+    2. Corrected a problem with the select and select_all methods 
+       that didn't account for the LIMIT clause being passed into raw SQL statements. 
+    3. Implemented the string_to_time method in order to create proper instances of the time class. 
+    4. Added logic to the simplified_type method that allows the database to specify the scale of float data. 
+    5. Adjusted the quote_column_name to account for the fact that MS SQL is bothered by a forward slash in the data string.
+
 * Fixed that the dynamic finder like find_all_by_something_boolean(false) didn't work #649 [lmarlow@yahoo.com]
 
 * Added validates_each that validates each specified attribute against a block #610 [bitsweat]. Example:

@@ -23,7 +23,7 @@ require 'active_record/connection_adapters/abstract_adapter'
 # with User Id replaced with your proper login, and Password with your
 # password.
 #
-# I have tested this code on a Windows XP Pro SP1 system,
+# I have tested this code on a WindowsXP Pro SP1 system,
 # ruby 1.8.2 (2004-07-29) [i386-mswin32], SQL Server 2000.
 #
 module ActiveRecord
@@ -52,58 +52,112 @@ module ActiveRecord
 
   module ConnectionAdapters
     class ColumnWithIdentity < Column# :nodoc:
-      attr_reader :identity
+      attr_reader :identity, :scale
 
-      def initialize(name, default, sql_type = nil, is_identity = false)
+      def initialize(name, default, sql_type = nil, is_identity = false, scale_value = 0)
         super(name, default, sql_type)
 
+        @scale = scale_value
         @identity = is_identity
+      end 
+
+      def binary_to_string(value)
+        value
+      end 
+
+      def string_to_binary(value)
+        value
+      end 
+
+      def simplified_type(field_type)
+        case field_type
+          when /int/i
+            :integer
+          when /float|double|decimal|numeric/i
+            if @scale == 0
+              :integer
+            else  
+              :float
+              nil
+            end  
+          when /datetime/i
+            :datetime
+          when /timestamp/i
+            :timestamp
+          when /time/i
+            :time
+          when /date/i
+            :date
+          when /clob|text|ntext/i
+            :text
+          when /blob|binary|image/i
+            :binary
+          when /char|string/i
+            :string
+          when /boolean|bit/i
+            :boolean
+        end
       end
+
+      def string_to_time(string)
+        return string if string.is_a?(Time)
+        time_array = ParseDate.parsedate(string, true)
+        time_array.each_index do |i|
+          case i
+            when 0
+              time_array[i] = time_array[i].nil? ? "2000" : time_array[i].to_s
+            when 1
+              time_array[i] = time_array[i].nil? ? "Jan" : time_array[i].to_s
+            when 2
+              time_array[i] = time_array[i].nil? ? "1" : time_array[i].to_s
+            when 3
+              time_array[i] = time_array[i].nil? ? "0" : time_array[i].to_s
+            when 4
+              time_array[i] = time_array[i].nil? ? "0" : time_array[i].to_s
+            when 5
+              time_array[i] = time_array[i].nil? ? "0" : time_array[i].to_s
+          end
+        end
+        # treat 0000-00-00 00:00:00 as nil
+        Time.send(Base.default_timezone, *time_array) rescue nil
+      end
+
     end
 
     class SQLServerAdapter < AbstractAdapter # :nodoc:
-      def quote_column_name(name)
-        "[#{name}]"
-      end
 
       def select_all(sql, name = nil)
+        add_limit!(sql, nil)
         select(sql, name)
       end
 
       def select_one(sql, name = nil)
+        add_limit!(sql, nil)
         result = select(sql, name)
         result.nil? ? nil : result.first
       end
 
       def columns(table_name, name = nil)
         sql = <<EOL
-SELECT s.name AS TableName, c.id AS ColId, c.name AS ColName, t.name AS ColType, c.length AS Length,
-c.AutoVal AS IsIdentity,
-c.cdefault AS DefaultId, com.text AS DefaultValue
-FROM syscolumns AS c
-JOIN systypes AS t ON (c.xtype = t.xtype AND c.usertype = t.usertype)
-JOIN sysobjects AS s ON (c.id = s.id)
-LEFT OUTER JOIN syscomments AS com ON (c.cdefault = com.id)
-WHERE s.name = '#{table_name}'
+SELECT 
+COLUMN_NAME as ColName,
+COLUMN_DEFAULT as DefaultValue,
+DATA_TYPE as ColType,
+COL_LENGTH('#{table_name}', COLUMN_NAME) as Length,
+COLUMNPROPERTY(OBJECT_ID('#{table_name}'), COLUMN_NAME, 'IsIdentity') as IsIdentity,
+NUMERIC_SCALE as Scale
+FROM INFORMATION_SCHEMA.columns
+WHERE TABLE_NAME = '#{table_name}'
 EOL
+
+        result = nil
+        # Uncomment if you want to have the Columns select statment logged.
+        # Personnally, I think it adds unneccessary SQL statement bloat to the log. 
+        # If you do uncomment, make sure to comment the "result" line that follows
+        log(sql, name, @connection) { |conn| result = conn.select_all(sql) }
+        #result = @connection.select_all(sql)
         columns = []
-
-        log(sql, name, @connection) do |conn|
-          conn.select_all(sql) do |row|
-            default_value = row[:DefaultValue]
-
-            if default_value =~ /null/i
-              default_value = nil
-            else
-              default_value =~ /\(([^)]+)\)/
-              default_value = $1
-            end
-
-            col = ColumnWithIdentity.new(row[:ColName], default_value, "#{row[:ColType]}(#{row[:Length]})", row[:IsIdentity] != nil)
-
-            columns << col
-          end
-        end
+        result.each { |field| columns << ColumnWithIdentity.new(field[:ColName], field[:DefaultValue].to_s.gsub!(/[()\']/,"") =~ /null/ ? nil : field[:DefaultValue], "#{field[:ColType]}(#{field[:Length]})", field[:IsIdentity] == 1 ? true : false, field[:Scale]) }
 
         columns
       end
@@ -122,7 +176,7 @@ EOL
                 execute enable_identity_insert(table_name, true)
                 ii_enabled = true
               rescue Exception => e
-                # Couldn't turn on IDENTITY_INSERT
+                # Coulnd't turn on IDENTITY_INSERT
               end
             end
           end
@@ -140,16 +194,6 @@ EOL
             rescue Exception => e
               # Couldn't turn off IDENTITY_INSERT
             end
-          end
-        end
-      end
-
-      def execute(sql, name = nil)
-        if sql =~ /^INSERT/i
-          insert(sql, name)
-        else
-          log(sql, name, @connection) do |conn|
-            conn.execute(sql)
           end
         end
       end
@@ -185,6 +229,47 @@ EOL
         end
       end
 
+      def quote(value, column = nil)
+        case value
+          when String                
+            if column && column.type == :binary
+              "'#{quote_string(column.string_to_binary(value))}'"
+            else
+              "'#{quote_string(value)}'"
+            end
+          when NilClass              then "NULL"
+          when TrueClass             then (column && column.type == :boolean ? "'t'" : "1")
+          when FalseClass            then (column && column.type == :boolean ? "'f'" : "0")
+          when Float, Fixnum, Bignum then value.to_s
+          when Date                  then "'#{value.to_s}'" 
+          when Time, DateTime        then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
+          else                            "'#{quote_string(value.to_yaml)}'"
+        end
+      end
+
+      def quote_string(s)
+        s.gsub(/\'/, "''")
+      end
+
+      def quote_column_name(name)
+        "[#{name}]"
+      end
+
+      def add_limit!(sql, limit)
+        if sql =~ /LIMIT/i
+          limit = sql.slice!(/LIMIT.*/).gsub(/LIMIT.(.*)$/, '\1')
+        end
+        if !limit.nil?
+          limit_amount = limit.to_s.include?("OFFSET") ? get_offset_amount(limit) : Array.new([limit])
+          order_by = sql.include?("ORDER BY") ? get_order_by(sql.sub(/.*ORDER\sBY./, "")) : nil
+          if limit_amount.size == 2
+            sql.gsub!(/SELECT/i, "SELECT * FROM ( SELECT TOP #{limit_amount[0]} * FROM ( SELECT TOP #{limit_amount[1]}")<<" ) AS tmp1 ORDER BY #{order_by[1]} ) AS tmp2 ORDER BY #{order_by[0]}"
+          else
+            sql.gsub!(/SELECT/i, "SELECT TOP #{limit_amount[0]}")
+          end
+        end
+      end
+
       def recreate_database(name)
         drop_database(name)
         create_database(name)
@@ -198,14 +283,14 @@ EOL
         execute "CREATE DATABASE #{name}"
       end
 
-      def add_limit!(sql, limit)
-        limit_amount = limit.to_s.include?("OFFSET") ? get_offset_amount(limit) : Array.new([limit])
-        order_by = sql.include?("ORDER BY") ? get_order_by(sql.sub(/.*ORDER\sBY./, "")) : nil
-        if limit_amount.size == 2
-          sql.gsub!(/SELECT/i, "SELECT * FROM ( SELECT TOP #{limit_amount[0]} * FROM ( SELECT TOP #{limit_amount[1]}")<<" ) AS tmp1 ORDER BY #{order_by[1]} ) AS tmp2 ORDER BY #{order_by[0]}"
+      def execute(sql, name = nil)
+        if sql =~ /^INSERT/i
+          insert(sql, name)
         else
-          sql.gsub!(/SELECT/i, "SELECT TOP #{limit_amount[0]}")
-        end     
+          log(sql, name, @connection) do |conn|
+            conn.execute(sql)
+          end
+        end
       end
 
       private
@@ -264,6 +349,10 @@ EOL
 
         def query_contains_identity_column(sql, col)
           return sql =~ /[\(\.\,]\s*#{col}/
+        end
+
+        def query_contains_text_column(sql, col)
+          
         end
 
         def get_order_by(sql)
