@@ -91,7 +91,7 @@ module ActionController
             path = path.sub(%r(#{@controller}/?), @controller + "/" + action_name(options)) # " ruby-mode
           end
         else
-          path = path.sub((action_prefix || "") + @action + (action_suffix || ""), action_name(options, action_prefix))
+          path = path.sub(@controller + "/" + (action_prefix || "") + @action + (action_suffix || ""), @controller + "/" + action_name(options, action_prefix))
         end
 
         if options[:controller_prefix] && !options[:controller]

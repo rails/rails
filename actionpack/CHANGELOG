@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed redirects when the controller and action is named the same. Still haven't fixed same controller, module, and action, though #201 [Josh]
+
 * Fixed problems with running multiple functional tests in Rails under 1.8.2 by including hack for test/unit weirdness
 
 * Added thread-safety to the DRbStore #66, #389 [Ben Stiglitz]

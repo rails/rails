@@ -51,6 +51,14 @@ class UrlTest < Test::Unit::TestCase
       "http://", "www.singlefile.com", 80, "/identity/show/5", { "id" => "5" }
     ), "identity", "show")
 
+    @clean_url_with_same_action_and_controller_name = ActionController::UrlRewriter.new(MockRequest.new(
+      "http://", "www.singlefile.com", 80, "/login/login", {  }
+    ), "login", "login")
+
+    @clean_url_with_same_action_and_controller_and_module_name = ActionController::UrlRewriter.new(MockRequest.new(
+      "http://", "www.singlefile.com", 80, "/login/login/login", { "module" => "login" }
+    ), "login", "login")
+
     @clean_url_with_id_as_char = ActionController::UrlRewriter.new(MockRequest.new(
       "http://", "www.singlefile.com", 80, "/teachers/show/t", { "id" => "t" }
     ), "teachers", "show")
@@ -177,6 +185,15 @@ class UrlTest < Test::Unit::TestCase
 
   def test_controller_and_index_action
     assert_equal "http://www.singlefile.com/library/settings/", @library_url.rewrite(:controller => "settings", :action => "index")
+  end
+
+  def test_same_controller_and_action_names
+    assert_equal "http://www.singlefile.com/login/logout", @clean_url_with_same_action_and_controller_name.rewrite(:action => "logout")
+  end
+
+  # FIXME
+  def xtest_same_module_and_controller_and_action_names
+    assert_equal "http://www.singlefile.com/login/login/logout", @clean_url_with_same_action_and_controller_and_module_name.rewrite(:action => "logout")
   end
 
   def test_controller_and_action_with_same_name_as_controller
