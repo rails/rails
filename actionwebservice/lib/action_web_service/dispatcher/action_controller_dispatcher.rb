@@ -38,7 +38,12 @@ module ActionWebService # :nodoc:
       module InstanceMethods # :nodoc:
         private
           def dispatch_web_service_request
-            request = discover_web_service_request(@request)
+            exception = nil
+            begin
+              request = discover_web_service_request(@request)
+            rescue Exception => e
+              exception = e
+            end
             if request
               log_request(request, @request.raw_post)
               response = nil
@@ -57,7 +62,7 @@ module ActionWebService # :nodoc:
                 send_web_service_response(response, bm.real)
               end
             else
-              exception = DispatcherError.new("Malformed SOAP or XML-RPC protocol message")
+              exception ||= DispatcherError.new("Malformed SOAP or XML-RPC protocol message")
               send_web_service_error_response(request, exception)
             end
           rescue Exception => e

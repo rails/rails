@@ -16,8 +16,6 @@ module ActionWebService # :nodoc:
           params = params.map{|x| @marshaler.unmarshal(x)}
           service_name = ap_request.parameters['action']
           Request.new(self, method_name, params, service_name)
-        rescue
-          nil
         end
 
         def protocol_client(api, protocol_name, endpoint_uri, options)
