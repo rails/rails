@@ -1,9 +1,3 @@
 #!/usr/local/bin/ruby
-begin
-  require 'rubygems'
-  require_gem 'rails'
-rescue LoadError
-  require File.dirname(__FILE__) + '/../vendor/railties/lib/breakpoint'
-end
-
+$LOAD_PATH << File.dirname(__FILE__) + '/../vendor/railties/lib'
 require 'breakpoint_client'

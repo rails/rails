@@ -1,0 +1,4 @@
+#!/usr/local/bin/ruby
+require 'rubygems'
+require_gem 'rails'
+require 'breakpoint_client'

@@ -202,6 +202,7 @@ end
 
 task :copy_gem_environment do
   cp "environments/shared_for_gem.rb", "#{PKG_DESTINATION}/config/environment.rb"
+  cp "bin/breakpointing_for_gem", "#{PKG_DESTINATION}/script/breakpointing"
 end
 
 
