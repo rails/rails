@@ -45,7 +45,7 @@ module ActionView
         
         returning html = '' do
           if options[:always_show_anchors] and not window_pages[0].first?
-            html << link_to(first.number, options[:name] => first)
+            html << link_to(first.number, { options[:name] => first }.update( options[:params] ))
             html << ' ... ' if window_pages[0].number - first.number > 1
             html << ' '
           end
@@ -54,14 +54,14 @@ module ActionView
             if paginator.current == page && !options[:link_to_current_page]
               html << page.number.to_s
             else
-              html << link_to(page.number, options[:name] => page)
+              html << link_to(page.number, { options[:name] => page }.update( options[:params] ))
             end
             html << ' '
           end
           
           if options[:always_show_anchors] && !window_pages.last.last?
             html << ' ... ' if last.number - window_pages[-1].number > 1
-            html << link_to(paginator.last.number, options[:name] => last)
+            html << link_to(paginator.last.number, { options[:name] => last }.update( options[:params]))
           end
         end
       end
