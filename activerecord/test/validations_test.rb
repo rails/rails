@@ -204,6 +204,25 @@ class ValidationsTest < Test::Unit::TestCase
     assert t2.save, "Should now save t2 as unique"
   end
 
+  def test_validate_uniqueness_with_scope
+    Reply.validates_uniqueness_of(:content, :scope => "parent_id")
+    
+    t = Topic.create("title" => "I'm unique!")
+
+    r1 = t.replies.create "title" => "r1", "content" => "hello world"
+    assert r1.valid?, "Saving r1"
+
+    r2 = t.replies.create "title" => "r2", "content" => "hello world"
+    assert !r2.valid?, "Saving r2 first time"
+
+    r2.content = "something else"
+    assert r2.save, "Saving r2 second time"
+
+    t2 = Topic.create("title" => "I'm unique too!")
+    r3 = t2.replies.create "title" => "r3", "content" => "hello world"
+    assert r3.valid?, "Saving r3"
+  end
+
   def test_validate_format
     Topic.validates_format_of(:title, :content, :with => /^Validation macros rule!$/, :message => "is bad data")
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added scope option to validation_uniqueness #349 [Kent Sibilev]
+
 * Added allow_nil options to validates_inclusion_of so that validation is only triggered if the attribute is not nil [what-a-day]
 
 * Added work-around for PostgreSQL and the problem of getting fixtures to be created from id 1 on each test case.

@@ -198,7 +198,7 @@ module ActiveRecord
       # can be named "davidhh".
       #
       #   class Person < ActiveRecord::Base
-      #     validates_uniqueness_of :user_name
+      #     validates_uniqueness_of :user_name, :scope => "account_id"
       #   end
       #
       # When the record is created, a check is performed to make sure that no record exist in the database with the given value for the specified
@@ -206,12 +206,17 @@ module ActiveRecord
       #
       # Configuration options:
       # * <tt>message</tt> - Specifies a custom error message (default is: "has already been taken")
+      # * <tt>scope</tt> - Ensures that the uniqueness is restricted to a condition of "scope = record.scope"
       def validates_uniqueness_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken] }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         for attr_name in attr_names
-          class_eval(%(validate %{errors.add("#{attr_name}", "#{configuration[:message]}") if self.class.find_first(new_record? ? ["#{attr_name} = ?", #{attr_name}] : ["#{attr_name} = ? AND id <> ?", #{attr_name}, id])}))
+          if scope = configuration[:scope]
+            class_eval(%(validate %{errors.add('#{attr_name}', '#{configuration[:message]}') if self.class.find_first(new_record? ? ['#{attr_name} = ? AND #{scope} = ?', #{attr_name}, #{scope}] : ["#{attr_name} = ? AND id <> ? AND #{scope} = ?", #{attr_name}, id, #{scope}])}))
+          else
+            class_eval(%(validate %{errors.add('#{attr_name}', '#{configuration[:message]}') if self.class.find_first(new_record? ? ['#{attr_name} = ?', #{attr_name}] : ["#{attr_name} = ? AND id <> ?", #{attr_name}, id])}))
+          end
         end
       end
       
