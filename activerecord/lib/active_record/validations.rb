@@ -240,7 +240,7 @@ module ActiveRecord
         raise(ArgumentError, "A regular expression must be supplied as the :with option of the configuration hash") unless configuration[:with].is_a?(Regexp)
 
         for attr_name in attr_names 
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name} and #{attr_name}.to_s.match(/#{configuration[:with]}/)}))
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add("#{attr_name}", "#{configuration[:message]}") unless #{attr_name} and #{attr_name}.to_s.match(/#{Regexp.quote(configuration[:with].source)}/)}))
         end
       end
 

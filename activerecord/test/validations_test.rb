@@ -224,7 +224,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_validate_format
-    Topic.validates_format_of(:title, :content, :with => /^Validation macros rule!$/, :message => "is bad data")
+    Topic.validates_format_of(:title, :content, :with => /^Validation\smacros \w+!$/, :message => "is bad data")
 
     t = Topic.create("title" => "i'm incorrect", "content" => "Validation macros rule!")
     assert !t.valid?, "Shouldn't be valid"

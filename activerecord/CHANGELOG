@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed quoting in validates_format_of that would allow some rules to pass regardless of input #390 [Dmitry V. Sabanin]
+
 * Fixed broken transactions that were actually only running object-level and not db level transactions [andreas]
 
 * Added Base.default_timezone accessor that determines whether to use Time.local (using :local) or Time.utc (using :utc) when pulling dates 
