@@ -1,9 +1,20 @@
 *SVN*
 
-* Added ActionController#cookies[]= as an alias for cookie "name", "value" -- you'll still need to use the latter if you have options to set.
+* Added a new container for cookies that makes them more intuative to use. The old methods of cookie and @cookies have been deprecated.
 
-* Added ActionController#cookies[] as a reader for @cookies that'll return the value of the cookie instead of the cookie object itself.
-  NOTE: If you were using the old accessor, this could potentially break your code -- if you expect a full cookie object!
+  Examples for writing:
+
+    cookies["user_name"] = "david" # => Will set a simple session cookie
+    cookies["login"] = { "value" => "XJ-122", "expires" => Time.now + 360} # => Will set a cookie that expires in 1 hour
+    
+  Examples for reading:
+  
+    cookies["user_name"] # => "david"
+    cookies.size         # => 2
+
+  Read more in ActionController::Cookies
+
+  NOTE: If you were using the old accessor (cookies instead of @cookies), this could potentially break your code -- if you expect a full cookie object!
 
 * Added the opportunity to defined method_missing on a controller which will handle all requests for actions not otherwise defined #223 [timb]
 

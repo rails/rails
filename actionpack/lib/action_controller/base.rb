@@ -539,33 +539,6 @@ module ActionController #:nodoc:
         @performed_redirect = true
       end
 
-      # Creates a new cookie that is sent along-side the next render or redirect command. API is the same as for CGI::Cookie.
-      # Examples:
-      #
-      #   cookie("name", "value1", "value2", ...)
-      #   cookie("name" => "name", "value" => "value")
-      #   cookie('name'    => 'name',
-      #          'value'   => ['value1', 'value2', ...],
-      #          'path'    => 'path',   # optional
-      #          'domain'  => 'domain', # optional
-      #          'expires' => Time.now, # optional
-      #          'secure'  => true      # optional
-      #   )
-      def cookie(*options) #:doc:
-        @response.headers["cookie"] << CGI::Cookie.new(*options)
-      end
-
-      # Alias for cookie "name", "value"
-      def cookies[]=(name, value)
-        cookie(name, value)
-      end
-
-      # Returns the value of the cookie by +name+ -- or nil if no such cookie exist. You set new cookies using either the cookie method
-      # or cookies[]= (for simple name/value cookies without options).
-      def cookies[](name)
-        @cookies[name].value if @cookies[name]
-      end
-      
       # Resets the session by clearsing out all the objects stored within and initializing a new session object.
       def reset_session #:doc:
         @request.reset_session
@@ -573,6 +546,11 @@ module ActionController #:nodoc:
         @response.session = @session
       end
     
+      # Deprecated cookie writer method
+      def cookie(*options)
+        @response.headers["cookie"] << CGI::Cookie.new(*options)
+      end
+
     private
       def initialize_template_class(response)
         begin
