@@ -292,6 +292,23 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal "bulk updated again!", Topic.find(2).content
   end
 
+  def test_update_collection
+    ids_and_attributes = { "1" => { "content" => "1 updated" }, "2" => { "content" => "2 updated" } }
+    updated = Topic.update_collection(ids_and_attributes)
+
+    assert_equal 2, updated.size
+    assert_equal "1 updated", Topic.find(1).content
+    assert_equal "2 updated", Topic.find(2).content
+
+    ids_and_attributes["1"]["content"] = "one updated"
+    ids_and_attributes["2"]["content"] = "two updated"
+    updated = Topic.update_collection(ids_and_attributes) { |ar, attrs| ar.id == 1 }
+
+    assert_equal 1, updated.size
+    assert_equal "one updated", Topic.find(1).content
+    assert_equal "2 updated", Topic.find(2).content
+  end
+
   def test_delete_all
     assert_equal 2, Topic.delete_all
   end
