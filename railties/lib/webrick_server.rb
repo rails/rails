@@ -132,6 +132,8 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
         { :controller => $1, :action => $2 }
       when %r{^/#{component}/#{component}/$} then
         { :module => $1, :controller => $2, :action => "index" }
+      when %r{^/#{component}/#{component}/#{component}$} then
+        { :module => $1, :controller => $2, :action => $3 }
       when %r{^/#{component}/#{component}/#{id}$} then
         { :controller => $1, :action => $2, :id => $3 }
       when %r{^/#{component}/#{component}/#{component}/#{id}$} then
