@@ -1,5 +1,17 @@
 *SVN*
 
+* Added conditional filters #431 [Marcel]. Example:
+
+    class JournalController < ActionController::Base
+      # only require authentication if the current action is edit or delete
+      before_filter :authorize, :only_on => [ :edit, :delete ]
+    
+      private
+        def authorize
+          # redirect to login unless authenticated
+        end
+    end
+
 * Added authentication framework to protect actions behind a condition and redirect on failure. See ActionController::Authentication for more.
 
 * Added Base#render_nothing as a cleaner way of doing render_text "" when you're not interested in returning anything but an empty response.
