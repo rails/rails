@@ -1,3 +1,8 @@
+*SVN*
+
+* File.expand_path in config/environment.rb would fail when dealing with symlinked public directories [mjobin].
+
+
 *0.9.1*
 
 * Upgraded to Action Pack 1.0.1 for important bug fix

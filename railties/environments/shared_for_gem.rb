@@ -1,4 +1,4 @@
-RAILS_ROOT = File.expand_path(File.dirname(__FILE__) + "/../")
+RAILS_ROOT = File.dirname(__FILE__) + "/../"
 RAILS_ENV  = ENV['RAILS_ENV'] || 'development'
 
 
