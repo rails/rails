@@ -153,6 +153,7 @@ end
 task :copy_rootfiles do
   cp "fresh_rakefile", "#{PKG_DESTINATION}/Rakefile"
   cp "README", "#{PKG_DESTINATION}/README"
+  cp "CHANGELOG", "#{PKG_DESTINATION}/CHANGELOG"
 end
 
 task :copy_test_helpers do
