@@ -1,5 +1,11 @@
 *SVN*
 
+* Added Base#hide_actions(*names) to hide public methods from a controller that would otherwise have been callable through the URL. For the majority of cases, its preferred just to make the methods you don't want to expose protected or private (so they'll automatically be hidden) -- but if you must have a public method, this is a way to make it uncallable. Base#hidden_actions retrieve the list of all hidden actions for the controller #644 [Nicholas Seckar]
+
+* Fixed that a bunch of methods from ActionController::Base was accessible as actions (callable through a URL) when they shouldn't have been #644 [Nicholas Seckar]
+
+* Added UrlHelper#current_page?(options) method to check if the url_for options passed corresponds to the current page
+
 * Fixed https handling on other ports than 443 [Alan Gano]
 
 * Added follow_redirect method for functional tests that'll get-request the redirect that was made. Example:

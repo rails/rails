@@ -285,6 +285,19 @@ module ActionController #:nodoc:
         components.shift if components.first == 'controllers' # Transitional conditional to accomodate root Controllers module
         components.join('/')
       end
+
+      # Return an array containing the names of public methods that have been marked hidden from the action processor.
+      # By default, all methods defined in ActionController::Base and included modules are hidden.
+      # More methods can be hidden using +hide_actions+.
+      def hidden_actions
+        write_inheritable_attribute(:hidden_actions, ActionController::Base.public_instance_methods) unless read_inheritable_attribute(:hidden_actions)
+        read_inheritable_attribute(:hidden_actions)
+      end
+
+      # Hide each of the given methods from being callable as actions.
+      def hide_actions(*names)
+        write_inheritable_attribute(:hidden_actions, hidden_actions | names.collect {|n| n.to_s})
+      end
     end
 
     public
@@ -638,10 +651,9 @@ module ActionController #:nodoc:
       end
 
       def action_methods
-        action_controller_classes = self.class.ancestors.reject{ |a| [Object, Kernel].include?(a) }
-        action_controller_classes.inject([]) { |action_methods, klass| action_methods + klass.public_instance_methods(false) }
+        @action_methods ||= (self.class.public_instance_methods - self.class.hidden_actions)
       end
-
+      
       def add_variables_to_assigns
         add_instance_variables_to_assigns
         add_class_variables_to_assigns if view_controller_internals
