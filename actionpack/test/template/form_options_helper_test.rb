@@ -94,6 +94,17 @@ class FormOptionsHelperTest < Test::Unit::TestCase
       )
   end
 
+  def test_array_options_for_string_include_in_other_string_bug_fix
+      assert_equal(
+        "<option>ruby</option>\n<option selected=\"selected\">rubyonrails</option>",
+        options_for_select([ "ruby", "rubyonrails" ], "rubyonrails")
+      )
+      assert_equal(
+        "<option selected=\"selected\">ruby</option>\n<option>rubyonrails</option>",
+        options_for_select([ "ruby", "rubyonrails" ], "ruby")
+      )
+  end
+  
   def test_hash_options_for_select
     assert_equal(
       "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\">$</option>",

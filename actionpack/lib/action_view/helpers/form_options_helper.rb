@@ -83,6 +83,7 @@ module ActionView
         options_for_select = container.inject([]) do |options, element|
           if element.respond_to?(:first) && element.respond_to?(:last)
             is_selected = ( (selected.respond_to?(:include?) ? selected.include?(element.last) : element.last == selected) )
+            is_selected = ( (selected.respond_to?(:include?) && !selected.is_a?(String) ? selected.include?(element.last) : element.last == selected) )
             if is_selected
               options << "<option value=\"#{html_escape(element.last.to_s)}\" selected=\"selected\">#{html_escape(element.first.to_s)}</option>"
             else
@@ -90,6 +91,7 @@ module ActionView
             end
           else
             is_selected = ( (selected.respond_to?(:include?) ? selected.include?(element) : element == selected) )
+            is_selected = ( (selected.respond_to?(:include?) && !selected.is_a?(String) ? selected.include?(element) : element == selected) )
             options << ((is_selected) ? "<option selected=\"selected\">#{html_escape(element.to_s)}</option>" : "<option>#{html_escape(element.to_s)}</option>")
           end
         end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed options_for_select on selected line issue #624 [Florian Weber]
+
 * Added CaptureHelper with CaptureHelper#capture and CaptureHelper#content_for. See documentation in helper #837 [Tobias Luetke]
 
 * Fixed :anchor use in url_for #821 [Nicholas Seckar]
