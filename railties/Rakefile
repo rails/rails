@@ -21,7 +21,7 @@ TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/test )
 
 LOG_FILES    = %w( server.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html favicon.ico )
-BIN_FILES    = %w( generate destroy breakpointer console server update )
+BIN_FILES    = %w( generate destroy breakpointer console server update runner )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )
 
