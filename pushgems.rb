@@ -4,5 +4,5 @@ build_number = `svn log -q -rhead http://dev.rubyonrails.org/svn/rails`.scan(/r(
 
 (%w( actionwebservice actionmailer actionpack activerecord railties activesupport) - ARGV).each do |pkg|
   puts "Pushing: #{pkg} (#{build_number})"
-  `cd #{pkg} && PKG_BUILD=#{build_number} rake pgem && cd ..`
+  `cd #{pkg} && rm -rf pkg && PKG_BUILD=#{build_number} rake pgem && cd ..`
 end
