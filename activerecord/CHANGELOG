@@ -1,5 +1,7 @@
 *SVN*
 
+* Added alias_method :to_param, :id to Base, such that Active Record objects to be used as URL parameters in Action Pack automatically #812 [Nicholas Seckar/Sam Stephenson]
+
 * Improved the performance of the OCI8 adapter for Oracle #723 [pilx/gjenkins]
 
 * Added type conversion before saving a record, so string-based values like "10.0" aren't left for the database to convert #820 [dave@cherryville.org]

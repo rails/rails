@@ -896,6 +896,9 @@ module ActiveRecord #:nodoc:
         read_attribute(self.class.primary_key)
       end
       
+      # Enables Active Record objects to be used as URL parameters in Action Pack automatically.
+      alias_method :to_param, :id
+      
       def id_before_type_cast #:nodoc:
         read_attribute_before_type_cast(self.class.primary_key)
       end
