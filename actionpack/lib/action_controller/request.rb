@@ -50,6 +50,20 @@ module ActionController
       return env['REMOTE_ADDR']
     end
 
+    # Returns the domain part of a host, such as rubyonrails.org in "www.rubyonrails.org". You can specify
+    # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
+    def domain(tld_length = 1)
+      host.split(".").last(1 + tld_length).join(".")
+    end
+
+    # Returns all the subdomains as an array, so ["dev", "www"] would be returned for "dev.www.rubyonrails.org".
+    # You can specify a different <tt>tld_length</tt>, such as 2 to catch ["www"] instead of ["www", "rubyonrails"]
+    # in "www.rubyonrails.co.uk".
+    def subdomains(tld_length = 1)
+      parts = host.split(".")
+      parts - parts.last(1 + tld_length)
+    end
+
     def request_uri
       env["REQUEST_URI"]
     end
