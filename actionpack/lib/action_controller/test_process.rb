@@ -57,10 +57,10 @@ module ActionController #:nodoc:
       end
     
       def initialize_default_values
-        @host               = "test.host"
-        @request_uri        = "/"
-        @remote_addr        = "127.0.0.1"        
-        @env["SERVER_PORT"] = 80
+        @host                    = "test.host"
+        @request_uri             = "/"
+        @remote_addr, @remote_ip = "127.0.0.1"        
+        @env["SERVER_PORT"]      = 80
       end
   end
   
