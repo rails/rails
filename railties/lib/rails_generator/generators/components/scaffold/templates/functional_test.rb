@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + <%= '/..' * controller_class_nesting_depth %> + '/../test_helper'
+require File.dirname(__FILE__) + '<%= '/..' * controller_class_nesting_depth %>/../test_helper'
 require '<%= controller_file_path %>_controller'
 
 # Re-raise errors caught by the controller.
