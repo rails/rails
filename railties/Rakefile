@@ -218,7 +218,9 @@ end
 
 task :copy_gem_environment do
   cp "environments/shared_for_gem.rb", "#{PKG_DESTINATION}/config/environment.rb"
-  cp "bin/breakpointer_for_gem", "#{PKG_DESTINATION}/script/breakpointer"
+  dest_file = File.join(PKG_DESTINATION, 'script', 'breakpointer')
+  copy_with_rewritten_ruby_path(File.join('bin', 'breakpointer_for_gem'), dest_file)
+  chmod 0755, dest_file
 end
 
 

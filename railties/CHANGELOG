@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that script/breakpointer didn't get the Ruby path rewritten as the other scripts #523 [brandt@kurowski.net]
+
 * Fixed superclass mismatch and other controller related problems by not using dependency reloading for controllers. This means that controller
   hierarchies need to explicitly require the superclass if its not ApplicationController. Example:
   
