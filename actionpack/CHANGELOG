@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed problems with running multiple functional tests in Rails under 1.8.2 by including hack for test/unit weirdness
+
 * Added thread-safety to the DRbStore #66, #389 [Ben Stiglitz]
 
 * Added DateHelper#select_time and DateHelper#select_second #373 [Scott Baron]
