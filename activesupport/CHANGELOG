@@ -1,3 +1,5 @@
+* Added Time::Conversions for getting times in different convenient string representations and other objects
+
 * Added Time::Calculations to ask for things like Time.now.tomorrow, Time.now.yesterday, Time.now.months_ago(4) #580 [DP|Flurin]. Examples:
 
     "Later today"         => now.in(3.hours),
