@@ -137,6 +137,12 @@ class ListTest < Test::Unit::TestCase
     assert new.first?
     assert new.last?
   end 
+
+  def test_nil_scope
+    new1, new2, new3 = ListMixin.create, ListMixin.create, ListMixin.create
+    new2.move_higher
+    assert_equal [new2, new1, new3], ListMixin.find_all("parent_id IS NULL", "pos")
+  end
 end
 
 class TreeTest < Test::Unit::TestCase
