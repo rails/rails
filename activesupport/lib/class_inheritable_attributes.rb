@@ -24,6 +24,11 @@ module ClassInheritableAttributes # :nodoc:
       write_inheritable_attribute(key, read_inheritable_attribute(key) + elements)
     end
 
+    def write_inheritable_hash(key, hash)
+      write_inheritable_attribute(key, {}) if read_inheritable_attribute(key).nil?
+      write_inheritable_attribute(key, read_inheritable_attribute(key).merge(hash))
+    end
+
     def read_inheritable_attribute(key)
       inheritable_attributes[key]
     end
