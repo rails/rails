@@ -6,6 +6,7 @@ require 'stringio'
 
 include WEBrick
 
+
 class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   REQUEST_MUTEX = Mutex.new
 
@@ -42,14 +43,26 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
 
   def handle_file(req, res)
     begin
+      add_dot_html(req)
       @file_handler.send(:do_GET, req, res)
+      remove_dot_html(req)
       return true
     rescue HTTPStatus::PartialContent, HTTPStatus::NotModified => err
       res.set_error(err)
       return true
     rescue => err
       return false
+    ensure
+      remove_dot_html(req)
     end
+  end
+
+  def add_dot_html(req)
+    if /^([^.]+)$/ =~ req.path then req.instance_variable_set(:@path_info, "#{$1}.html") end
+  end
+  
+  def remove_dot_html(req)
+    if /^([^.]+).html$/ =~ req.path then req.instance_variable_set(:@path_info, $1) end
   end
 
   def handle_dispatch(req, res, origin = nil)

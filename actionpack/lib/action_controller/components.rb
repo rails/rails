@@ -5,8 +5,9 @@ module ActionController #:nodoc:
       base.helper do
         def render_component(options) 
           @controller.logger.info("Start rendering component (#{options.inspect}): ")
-          @controller.send(:component_response, options).body
+          result = @controller.send(:component_response, options).body
           @controller.logger.info("\n\nEnd of component rendering")
+          return result
         end
       end
     end
@@ -15,8 +16,9 @@ module ActionController #:nodoc:
       def render_component(options = {}) #:doc:
         response = component_response(options)
         logger.info "Rendering component (#{options.inspect}): "
-        render_text(response.body, response.headers["Status"])
+        result = render_text(response.body, response.headers["Status"])
         logger.info("\n\nEnd of component rendering")
+        return result
       end
   
     private

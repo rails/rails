@@ -90,11 +90,7 @@ module ActionController #:nodoc:
         
         private
           def page_cache_path(path)
-            if path[-1,1] == '/'
-              page_cache_directory + path + '/index'
-            else
-              page_cache_directory + path
-            end
+            page_cache_directory + path + ".html"
           end
       end
 
@@ -115,13 +111,14 @@ module ActionController #:nodoc:
       # If no options are provided, the current +options+ for this action is used. Example:
       #   cache_page "I'm the cached content", :controller => "lists", :action => "show"
       def cache_page(content = nil, options = {})
+        logger.info "Cached page: #{options.inspect} || #{caching_allowed}"
         return unless perform_caching && caching_allowed
         self.class.cache_page(content || @response.body, url_for(options.merge({ :only_path => true })))
       end
 
       private
         def caching_allowed
-          !@request.post? && (@request.parameters.reject { |k, v| %w( id action controller ).include?(k) }).empty?
+          !@request.post?
         end
     end
 
