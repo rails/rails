@@ -13,7 +13,7 @@ module ActiveRecord
           # Only use the supplied backup Ruby/MySQL driver if no driver is already in place
           begin 
             require 'active_record/vendor/mysql'
-            require 'active_record/connection_adapters/mysql411'
+            require 'active_record/vendor/mysql411'
           rescue LoadError
             raise cannot_require_mysql
           end
