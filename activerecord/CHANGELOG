@@ -1,5 +1,7 @@
 *SVN*
 
+* Added HasManyAssociation#count that works like Base#count #413 [intinig]
+
 * Fixed handling of binary content in blobs and similar fields for Ruby/MySQL and SQLite #409 [xal]
 
 * Added dynamic attribute-based finders as a cleaner way of getting objects by simple queries without turning to SQL. 

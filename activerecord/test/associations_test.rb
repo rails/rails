@@ -149,6 +149,10 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     @signals37.clients_of_firm.each {|f| }
   end
   
+  def test_counting
+    assert_equal 2, Firm.find_first.clients.count
+  end
+  
   def test_finding
     assert_equal 2, Firm.find_first.clients.length
   end

@@ -47,6 +47,17 @@ module ActiveRecord
         end
       end
 
+      # Count the number of associated records. All arguments are optional.
+      def count(runtime_conditions = nil)
+        if @options[:finder_sql]
+          @association_class.count_by_sql(@finder_sql)
+        else
+          sql = @finder_sql
+          sql << " AND #{sanitize_sql(runtime_conditions)}" if runtime_conditions
+          @association_class.count(sql)
+        end
+      end
+      
       # Find the first associated record.  All arguments are optional.
       def find_first(conditions = nil, orderings = nil)
         find_all(conditions, orderings, 1).first
