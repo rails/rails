@@ -14,6 +14,8 @@ require 'tmail/header'
 require 'tmail/port'
 require 'tmail/config'
 require 'tmail/utils'
+require 'tmail/attachments'
+require 'tmail/quoting'
 require 'socket'
 
 
