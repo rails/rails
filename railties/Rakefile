@@ -21,7 +21,7 @@ TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/testing
 
 LOG_FILES    = %w( apache.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html )
-BIN_FILES    = %w( generate breakpointing envcon )
+BIN_FILES    = %w( generate breakpointer envcon )
 GENERATORS   = %w( controller mailer model scaffold )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer railties )
@@ -195,7 +195,7 @@ end
 
 task :copy_gem_environment do
   cp "environments/shared_for_gem.rb", "#{PKG_DESTINATION}/config/environment.rb"
-  cp "bin/breakpointing_for_gem", "#{PKG_DESTINATION}/script/breakpointing"
+  cp "bin/breakpointer_for_gem", "#{PKG_DESTINATION}/script/breakpointer"
 end
 
 
