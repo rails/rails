@@ -23,7 +23,7 @@ LOG_FILES    = %w( apache.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html )
 BIN_FILES    = %w( generate destroy breakpointer console server update )
 
-VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport railties )
+VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )
 
 
 desc "Default Task"
