@@ -41,7 +41,7 @@ class Dispatcher
       ActiveRecord::Base.reset_associations_loaded
 
       if ActionController::Base.reload_dependencies
-        Object.send(:remove_const, "AbstractApplicationController")
+        Object.send(:remove_const, "AbstractApplicationController") if Object.const_defined?(:AbstractApplicationController)
         Object.send(:remove_const, controller_class_name(controller_name)) if Object.const_defined?(controller_class_name(controller_name))
       end
     end
