@@ -37,24 +37,34 @@ module ActiveRecord
 
       def move_lower
         return unless lower_item
-        lower_item.decrement_position
-        increment_position
+
+        self.class.transaction do
+          lower_item.decrement_position
+          increment_position
+        end
       end
 
       def move_higher
         return unless higher_item
-        higher_item.increment_position
-        decrement_position
+
+        self.class.transaction do
+          higher_item.increment_position
+          decrement_position
+        end
       end
     
       def move_to_bottom
-        decrement_positions_on_lower_items
-        assume_bottom_position
+        self.class.transaction do
+          decrement_positions_on_lower_items
+          assume_bottom_position
+        end
       end
 
       def move_to_top
-        increment_positions_on_higher_items
-        assume_top_position
+        self.class.transaction do
+          increment_positions_on_higher_items
+          assume_top_position
+        end
       end
     
 
@@ -76,13 +86,11 @@ module ActiveRecord
       # Changing the position
 
       def increment_position
-        self.position = position.to_i + 1
-        save
+        update_attribute "position", position.to_i + 1
       end
     
       def decrement_position
-        self.position = position.to_i - 1
-        save
+        update_attribute "position", position.to_i - 1
       end
     
     
@@ -125,13 +133,11 @@ module ActiveRecord
         end
 
         def assume_bottom_position
-          self.position = bottom_position_in_list.to_i + 1
-          save
+          update_attribute "position", bottom_position_in_list.to_i + 1
         end
       
         def assume_top_position
-          self.position = 1
-          save
+          update_attribute "position", 1
         end
       
         def decrement_positions_on_lower_items
