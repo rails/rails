@@ -45,6 +45,14 @@ module ActionView
     #     <input type="submit" value="Save">
     #   </form>
     #
+    # If the object name contains square brackets the id for the object will be inserted. Example:
+    #
+    #   <%= textfield "person[]", "name" %> 
+    # 
+    # ...becomes:
+    #
+    #   <input type="text" id="person_<%= @person.id %>_name" name="person[<%= @person.id %>][name]" value="<%= @person.name %>" />
+    #
     # If the helper is being used to generate a repetitive sequence of similar form elements, for example in a partial
     # used by render_collection_of_partials, the "index" option may come in handy. Example:
     #
