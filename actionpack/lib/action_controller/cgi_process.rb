@@ -105,6 +105,7 @@ module ActionController #:nodoc:
     def out
       convert_content_type!(@headers)
       $stdout.binmode if $stdout.respond_to?(:binmode)
+      $stdout.sync = false
       print @cgi.header(@headers)
       if @body.respond_to?(:call)
         @body.call(self)
