@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed validates_{confirmation,acceptance}_of to only happen when the virtual attributes are not nil #348 [dpiddy@gmail.com]
+
 * Added a require_association hook on const_missing that makes it possible to use any model class without requiring it first. This makes STI look like:
 
     before:

@@ -125,20 +125,34 @@ class ValidationsTest < Test::Unit::TestCase
     assert developer.save
   end
 
+  def test_title_confirmation_no_confirm
+    Topic.validates_confirmation_of(:title)
+    
+    t = Topic.create("title" => "We should not be confirmed")
+    assert t.save
+  end
+  
   def test_title_confirmation
     Topic.validates_confirmation_of(:title)
 
-    t = Topic.create("title" => "We should be confirmed")
+    t = Topic.create("title" => "We should be confirmed","title_confirmation" => "")
     assert !t.save
 
     t.title_confirmation = "We should be confirmed"
     assert t.save
   end
 
+  def test_terms_of_service_agreement_no_acceptance
+    Topic.validates_acceptance_of(:terms_of_service, :on => :create)
+
+    t = Topic.create("title" => "We should not be confirmed")
+    assert t.save
+  end
+
   def test_terms_of_service_agreement
     Topic.validates_acceptance_of(:terms_of_service, :on => :create)
 
-    t = Topic.create("title" => "We should be confirmed")
+    t = Topic.create("title" => "We should be confirmed","terms_of_service" => "")
     assert !t.save
     assert_equal "must be accepted", t.errors.on(:terms_of_service)
 
@@ -150,7 +164,7 @@ class ValidationsTest < Test::Unit::TestCase
   def test_eula
     Topic.validates_acceptance_of(:eula, :message => "must be abided", :on => :create)
 
-    t = Topic.create("title" => "We should be confirmed")
+    t = Topic.create("title" => "We should be confirmed","eula" => "")
     assert !t.save
     assert_equal "must be abided", t.errors.on(:eula)
 

@@ -74,7 +74,8 @@ module ActiveRecord
       #     <%= password_field "person", "password_confirmation" %>
       #
       # The person has to already have a password attribute (a column in the people table), but the password_confirmation is virtual.
-      # It exists only as an in-memory variable for validating the password. This check is performed on save by default.
+      # It exists only as an in-memory variable for validating the password. This check is performed only if password_confirmation
+      # is not nil and by default on save.
       #
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "doesn't match confirmation")
@@ -85,7 +86,7 @@ module ActiveRecord
 
         for attr_name in attr_names
           attr_accessor "#{attr_name}_confirmation"
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', "#{configuration[:message]}") unless #{attr_name} == #{attr_name}_confirmation}))
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', "#{configuration[:message]}") unless #{attr_name}_confirmation.nil? or #{attr_name} == #{attr_name}_confirmation}))
         end
       end
 
@@ -96,7 +97,8 @@ module ActiveRecord
       #     validates_acceptance_of :eula, :message => "must be abided"
       #   end
       #
-      # The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed on save by default.
+      # The terms_of_service attribute is entirely virtual. No database column is needed. This check is performed only if
+      # terms_of_service is not nil and by default on save.
       #
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "can't be empty")
@@ -109,7 +111,7 @@ module ActiveRecord
 
         for attr_name in attr_names
           attr_accessor(attr_name)
-          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', '#{configuration[:message]}') unless #{attr_name} == "1"}))
+          class_eval(%(#{validation_method(configuration[:on])} %{errors.add('#{attr_name}', '#{configuration[:message]}') unless #{attr_name}.nil? or #{attr_name} == "1"}))
         end
       end
 
