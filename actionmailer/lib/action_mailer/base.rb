@@ -26,24 +26,41 @@ module ActionMailer #:nodoc:
   #  
   #   ApplicationMailer.create_comment_notification(david, hello_world)  # => a tmail object
   #   ApplicationMailer.deliver_comment_notification(david, hello_world) # sends the email
+  #
+  # = Configuration options
+  #
+  # These options are specified on the class level, like <tt>ActionMailer::Base.template_root = "/my/templates"</tt>
+  #
+  # * <tt>template_root</tt> - template root determines the base from which template references will be made.
+  #
+  # * <tt>logger</tt> - the logger is used for generating information on the mailing run if available.
+  #   Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
+  #
+  # * <tt>server_settings</tt> -  Allows detailed configuration of the server:
+  #   * <tt>:address</tt> Allows you to use a remote mail server. Just change it away from it's default "localhost" setting.
+  #   * <tt>:port</tt> On the off change that your mail server doesn't run on port 25, you can change it.
+  #   * <tt>:domain</tt> If you need to specify a HELO domain, you can do it here.
+  #   * <tt>:user_name</tt> If your mail server requires authentication, set the username and password in these two settings.
+  #   * <tt>:password</tt> If your mail server requires authentication, set the username and password in these two settings.
+  #   * <tt>:authentication</tt> If your mail server requires authentication, you need to specify the authentication type here. 
+  #     This is a symbol and one of :plain, :login, :cram_md5
+  #
+  # * <tt>raise_delivery_errors</tt> - whether or not errors should be raised if the email fails to be delivered.
+  #
+  # * <tt>delivery_method</tt> - Defines a delivery method. Possible values are :smtp (default), :sendmail, and :test.
+  #   Sendmail is assumed to be present at "/usr/sbin/sendmail".
+  #
+  # * <tt>perform_deliveries</tt> - Determines whether deliver_* methods are actually carried out. By default they are,
+  #   but this can be turned off to help functional testing.
+  #
+  # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful
+  #   for unit and functional testing.
   class Base
-    private_class_method :new
+    private_class_method :new #:nodoc:
 
-    # Template root determines the base from which template references will be made.
     cattr_accessor :template_root
-
-    # The logger is used for generating information on the mailing run if available.
-    # Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
     cattr_accessor :logger
 
-    # Allows detailed configuration of the server:
-    # * <tt>:address</tt> Allows you to use a remote mail server. Just change it away from it's default "localhost" setting.
-    # * <tt>:port</tt> On the off change that your mail server doesn't run on port 25, you can change it.
-    # * <tt>:domain</tt> If you need to specify a HELO domain, you can do it here.
-    # * <tt>:user_name</tt> If your mail server requires authentication, set the username and password in these two settings.
-    # * <tt>:password</tt> If your mail server requires authentication, set the username and password in these two settings.
-    # * <tt>:authentication</tt> If your mail server requires authentication, you need to specify the authentication type here. 
-    #   This is a symbol and one of :plain, :login, :cram_md5
     @@server_settings = { 
       :address        => "localhost", 
       :port           => 25, 
@@ -54,23 +71,15 @@ module ActionMailer #:nodoc:
     }
     cattr_accessor :server_settings
 
-
-    # Whether or not errors should be raised if the email fails to be delivered
     @@raise_delivery_errors = true
     cattr_accessor :raise_delivery_errors
 
-    # Defines a delivery method. Possible values are :smtp (default), :sendmail, and :test.
-    # Sendmail is assumed to be present at "/usr/sbin/sendmail".
     @@delivery_method = :smtp
     cattr_accessor :delivery_method
     
-    # Determines whether deliver_* methods are actually carried out. By default they are,
-    # but this can be turned off to help functional testing.
     @@perform_deliveries = true
     cattr_accessor :perform_deliveries
     
-    # Keeps an array of all the emails sent out through the Action Mailer with delivery_method :test. Most useful
-    # for unit and functional testing.
     @@deliveries = []
     cattr_accessor :deliveries
 
