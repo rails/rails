@@ -6,7 +6,12 @@ class FormHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::FormHelper
 
   old_verbose, $VERBOSE = $VERBOSE, nil
-  Post = Struct.new("Post", :title, :author_name, :body, :secret, :written_on)
+  Post = Struct.new("Post", :title, :author_name, :body, :secret, :written_on, :cost)
+  Post.class_eval do
+    alias_method :title_before_type_cast, :title unless respond_to?(:title_before_type_cast)
+    alias_method :body_before_type_cast, :body unless respond_to?(:body_before_type_cast)
+    alias_method :author_name_before_type_cast, :author_name unless respond_to?(:author_name_before_type_cast)
+  end
   $VERBOSE = old_verbose
 
   def setup

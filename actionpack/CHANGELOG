@@ -1,5 +1,8 @@
 *SVN*
 
+* Added use of *_before_type_cast for all input and text fields. This is helpful for getting "100,000" back on a integer-based 
+  validation where the value would normally be "100".
+
 * Added Request#port_string to get something like ":8080" back on 8080 and "" on 80 (or 443 with https).
 
 * Added Request#domain (returns string) and Request#subdomains (returns array).

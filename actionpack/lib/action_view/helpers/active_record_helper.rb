@@ -132,7 +132,6 @@ module ActionView
       end
 
       alias_method :tag_without_error_wrapping, :tag
-
       def tag(name, options)
         if object.respond_to?("errors") && object.errors.respond_to?("on")
           error_wrapping(tag_without_error_wrapping(name, options), object.errors.on(@method_name))
@@ -142,7 +141,6 @@ module ActionView
       end
 
       alias_method :content_tag_without_error_wrapping, :content_tag
-
       def content_tag(name, value, options)
         if object.respond_to?("errors") && object.errors.respond_to?("on")
           error_wrapping(content_tag_without_error_wrapping(name, value, options), object.errors.on(@method_name))

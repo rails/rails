@@ -920,10 +920,10 @@ module ActiveRecord #:nodoc:
       def method_missing(method_id, *arguments)
         method_name = method_id.id2name
       
-      
-      
         if method_name =~ read_method? && @attributes.include?($1)
           return read_attribute($1)
+        elsif method_name =~ read_untyped_method? && @attributes.include?($1)
+          return read_attribute_before_type_cast($1)
         elsif method_name =~ write_method? && @attributes.include?($1)
           write_attribute($1, arguments[0])
         elsif method_name =~ query_method? && @attributes.include?($1)
@@ -933,23 +933,28 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      def read_method?()  /^([a-zA-Z][-_\w]*)[^=?]*$/ end
-      def write_method?() /^([a-zA-Z][-_\w]*)=.*$/    end
-      def query_method?() /^([a-zA-Z][-_\w]*)\?$/     end
+      def read_method?()         /^([a-zA-Z][-_\w]*)[^=?]*$/ end
+      def read_untyped_method?() /^([a-zA-Z][-_\w]*)_before_type_cast$/ end
+      def write_method?()        /^([a-zA-Z][-_\w]*)=.*$/    end
+      def query_method?()        /^([a-zA-Z][-_\w]*)\?$/     end
 
-      # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example, 
+      # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name) #:doc:
         if @attributes.keys.include? attr_name
           if column = column_for_attribute(attr_name)
-            @attributes[attr_name] = unserializable_attribute?(attr_name, column) ?
+            unserializable_attribute?(attr_name, column) ?
               unserialize_attribute(attr_name) : column.type_cast(@attributes[attr_name])
+          else
+            @attributes[attr_name]
           end
-          
-          @attributes[attr_name]
         else
           nil
         end
+      end
+
+      def read_attribute_before_type_cast(attr_name)
+        @attributes[attr_name]
       end
 
       # Returns true if the attribute is of a text column and marked for serialization.

@@ -1,5 +1,8 @@
 *SVN*
 
+* Added respondence to *_before_type_cast for all attributes to return their string-state before they were type casted by the column type.
+  This is helpful for getting "100,000" back on a integer-based validation where the value would normally be "100".
+
 * Fixed the automated timestamping feature when running under Rails' development environment that resets the inheritable attributes on each request.
 
 * Added Base#update_attributes that'll accept a hash of attributes and save the record (returning true if it passed validation, false otherwise). 
