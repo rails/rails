@@ -50,62 +50,92 @@ module Dependencies
   # Ruby-style modules are supported, as a folder named 'submodule' will load 'submodule.rb' when available.
   class LoadingModule < Module
     attr_reader :path
-
-    def initialize(filesystem_root, path=[])
-      @path = path
-      @filesystem_root = filesystem_root
+    attr_reader :root
+    
+    def self.root(*load_paths)
+      RootLoadingModule.new(*load_paths)
     end
-
-    # The path to this module in the filesystem.
-    # Any subpath provided is taken to be composed of filesystem names.
-    def filesystem_path(subpath=[])
-      File.join(@filesystem_root, self.path, subpath)
+            
+    def initialize(root, path=[])
+      @path = path.clone.freeze
+      @root = root
     end
-
+    
+    def load_paths() self.root.load_paths end
+    
     # Load missing constants if possible.
     def const_missing(name)
-      return const_get(name) if const_defined?(name) == false && const_load!(name)
-      super(name)
+      const_load!(name) ? const_get(name) : super(name)
     end
-
+  
     # Load the controller class or a parent module.
     def const_load!(name)
-      name = name.to_s if name.kind_of? Symbol
-
-      if File.directory? filesystem_path(name.underscore)
-        # Is it a submodule? If so, create a new LoadingModule *before* loading it.
-        # This ensures that subitems will be loadable
-        new_module = LoadingModule.new(@filesystem_root, self.path + [name.underscore])
-        const_set(name, new_module)
-        Object.const_set(name, new_module) if @path.empty?
+      path = self.path + [name]
+      load_paths.each do |load_path|
+        fs_path = load_path.filesystem_path(path)
+        next unless fs_path
+        if File.directory?(fs_path)
+          self.const_set name, LoadingModule.new(self.root, self.path + [name])
+          break
+        elsif File.file?(fs_path)
+          self.root.load_file!(fs_path)
+          break
+        end
       end
-      
-      source_file = filesystem_path("#{(name == 'ApplicationController' ? 'Application' : name).underscore}.rb")
-      self.load_file(source_file) if File.file?(source_file)
-      self.const_defined?(name.camelize)
+      return self.const_defined?(name)
     end
-
+    
     # Is this name present or loadable?
     # This method is used by Routes to find valid controllers.
     def const_available?(name)
-      name = name.to_s unless name.kind_of? String
-      File.directory?(filesystem_path(name.underscore)) || File.file?(filesystem_path("#{name.underscore}.rb"))
+      self.const_defined?(name) || load_paths.any? {|lp| lp.filesystem_path(path + [name])}
     end
-
-    def clear
+  end
+  
+  class RootLoadingModule < LoadingModule
+    attr_reader :load_paths
+    def initialize(*paths)
+      @load_paths = paths.flatten.collect {|p| p.kind_of?(ConstantLoadPath) ? p : ConstantLoadPath.new(p)}
+    end
+    def root() self end
+    def path() [] end
+    
+    # Load the source file at the given file path
+    def load_file!(file_path)
+      root.module_eval(IO.read(file_path), file_path, 1)
+    end
+    # Erase all items in this module
+    def clear!
       constants.each do |name|
-        Object.send(:remove_const, name) if Object.const_defined?(name) && @path.empty?
+        Object.send(:remove_const, name) if Object.const_defined?(name) && self.path.empty?
         self.send(:remove_const, name)
       end
     end
-
-    def load_file(file_path)
-      begin
-        Controllers.module_eval(IO.read(file_path), file_path, 1) # Hard coded Controller line here!!!
-      rescue Object => exception
-        exception.blame_file! file_path
-        raise
-      end
+  end
+  
+  # This object defines a path from which Constants can be loaded.
+  class ConstantLoadPath
+    # Create a new load path with the filesystem path
+    def initialize(root) @root = root end
+    
+    # Return nil if the path does not exist, or the path to a directory
+    # if the path leads to a module, or the path to a file if it leads to an object.
+    def filesystem_path(path, allow_module=true)
+      fs_path = [@root]
+      fs_path += path[0..-2].collect {|name| const_name_to_module_name name}
+      if allow_module
+        result = File.join(fs_path, const_name_to_module_name(path.last))
+        return result if File.directory? result # Return the module path if one exists
+   end
+      result = File.join(fs_path, const_name_to_file_name(path.last))
+      return File.file?(result) ? result : nil
+    end
+    
+    def const_name_to_file_name(name)
+      name.to_s.underscore + '.rb'
+    end
+    def const_name_to_module_name(name)
+      name.to_s.underscore
     end
   end
 end

@@ -1,12 +1,13 @@
 require 'test/unit'
-require '../lib/core_ext.rb'
-require '../lib/dependencies.rb'
+require File.dirname(__FILE__) + '/../lib/active_support/core_ext.rb'
+require File.dirname(__FILE__) + '/../lib/active_support/dependencies.rb'
 
-STAGING_DIRECTORY = 'loading_module'
+STAGING_DIRECTORY = File.join(File.dirname(__FILE__), 'loading_module')
+COMPONENTS_DIRECTORY = File.join(File.dirname(__FILE__), 'loading_module_components')
 
 class LoadingModuleTests < Test::Unit::TestCase
   def setup
-    @loading_module = Dependencies::LoadingModule.new(STAGING_DIRECTORY)
+    @loading_module = Dependencies::LoadingModule.root(STAGING_DIRECTORY)
     Object.const_set(:Controllers, @loading_module)
   end
   def teardown
@@ -59,5 +60,28 @@ class LoadingModuleTests < Test::Unit::TestCase
   def test_missing_name
     assert_raises(NameError) {@loading_module::PersonController}
     assert_raises(NameError) {@loading_module::Admin::FishController}
+  end
+end
+
+class LoadingModuleMultiPathTests < Test::Unit::TestCase
+  def setup
+    @loading_module = Dependencies::LoadingModule.root(STAGING_DIRECTORY, COMPONENTS_DIRECTORY)
+    Object.const_set(:Controllers, @loading_module)
+  end
+  def teardown
+    @loading_module.clear
+    Object.send :remove_const, :Controllers
+  end
+  
+  def test_access_from_first
+    assert_kind_of Module, @loading_module::Admin
+    assert_kind_of Dependencies::LoadingModule, @loading_module::Admin
+    assert_kind_of Class, @loading_module::Admin::UserController
+  end
+  def test_access_from_second
+    assert_kind_of Module, @loading_module::List
+    assert_kind_of Dependencies::LoadingModule, @loading_module::List
+    assert @loading_module::List.const_load! :ListController
+    assert_kind_of Class, @loading_module::List::ListController
   end
 end

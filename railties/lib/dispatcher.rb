@@ -46,7 +46,7 @@ class Dispatcher
     
       def reset_application
         if Dependencies.load?
-          Controllers.clear
+          Controllers.clear!
           Dependencies.clear
           Dependencies.remove_subclasses_for(ActiveRecord::Base, ActiveRecord::Observer, ActionController::Base)
         end
