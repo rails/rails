@@ -1,5 +1,20 @@
 *SVN*
 
+* Added an Oracle adapter that works with the Oracle bindings by Yoshida (http://raa.ruby-lang.org/project/oracle/) #564 [Maik Schmidt]
+  
+  A number of caveats:
+
+    1. You have to create a sequence for every table that need an auto-generated primary key. 
+       The sequence name is built by appending "_id" to the according table_name, 
+       i.e. if you have a table called "employees", you have to create a sequence called "employees_id". 
+    
+    2. The data type TIME is not supported, because Oracle does not support it. 
+    
+    3. Binary data (BLOBs etc.) are currently not supported. Will be fixed soon. 
+    
+    4. LIMIT clauses with OFFSET are not supported, because I could not find a way to simulate this behaviour using ROWNUM and "SELECT *".
+
+
 * Fixed Base#clone for use with PostgreSQL #565 [hanson@surgery.wisc.edu]
 
 

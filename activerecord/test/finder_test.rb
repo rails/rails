@@ -34,10 +34,16 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_all_with_prepared_limit_and_offset
-    entrants = Entrant.find_all nil, "id ASC", ["? OFFSET ?", 2, 1]
-    
-    assert_equal(2, entrants.size)
-    assert_equal(@entrants["second"]["name"], entrants.first.name)
+    if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
+      if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
+        assert_raises(ArgumentError) { Entrant.find_all nil, "id ASC", ["? OFFSET ?", 2, 1] }
+      end
+    else
+      entrants = Entrant.find_all nil, "id ASC", ["? OFFSET ?", 2, 1]
+
+      assert_equal(2, entrants.size)
+      assert_equal(@entrants["second"]["name"], entrants.first.name)
+    end
   end
 
   def test_find_with_entire_select_statement

@@ -1,5 +1,4 @@
-# db2_adapter.rb
-# author: Maik Schmidt <contact@maik-schmidt.de>
+# Author: Maik Schmidt <contact@maik-schmidt.de>
 
 require 'active_record/connection_adapters/abstract_adapter'
 
@@ -100,27 +99,28 @@ begin
         end
 
         private
-          def last_insert_id
-            row = select_one(<<-GETID.strip)
-            with temp(id) as (values (identity_val_local())) select * from temp
-            GETID
-            row['id'].to_i
+
+        def last_insert_id
+          row = select_one(<<-GETID.strip)
+          with temp(id) as (values (identity_val_local())) select * from temp
+          GETID
+          row['id'].to_i
+        end
+
+        def select(sql, name = nil)
+          stmt = nil
+          log(sql, name, @connection) do |connection|
+            stmt = DB2::Statement.new(connection)
+            stmt.exec_direct(sql + " with ur")
           end
 
-          def select(sql, name = nil)
-            stmt = nil
-            log(sql, name, @connection) do |connection|
-              stmt = DB2::Statement.new(connection)
-              stmt.exec_direct(sql + " with ur")
-            end
-
-            rows = []
-            while row = stmt.fetch_as_hash
-              rows << row
-            end
-            stmt.free
-            rows
+          rows = []
+          while row = stmt.fetch_as_hash
+            rows << row
           end
+          stmt.free
+          rows
+        end
       end
     end
   end

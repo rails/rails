@@ -176,6 +176,10 @@ class BasicsTest < Test::Unit::TestCase
       "The last_read attribute should be of the Date class"
     )
 
+    # Oracle does not have a TIME datatype.
+    if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
+      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
+    end
     assert_kind_of(
       Time, Topic.find(1).bonus_time,
       "The bonus_time attribute should be of the Time class"
@@ -381,6 +385,11 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_utc_as_time_zone
+    # Oracle does not have a TIME datatype.
+    if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
+      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
+    end
+
     Topic.default_timezone = :utc
     attributes = { "bonus_time" => "5:42:00AM" }
     topic = Topic.find(1)
@@ -506,6 +515,11 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_attributes_on_dummy_time
+    # Oracle does not have a TIME datatype.
+    if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
+      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
+    end
+
     attributes = {
       "bonus_time" => "5:42:00AM"
     }

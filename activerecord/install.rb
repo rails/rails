@@ -37,6 +37,7 @@ files = %w-
  active_record/connection_adapters/abstract_adapter.rb
  active_record/connection_adapters/db2_adapter.rb
  active_record/connection_adapters/mysql_adapter.rb
+ active_record/connection_adapters/oracle_adapter.rb
  active_record/connection_adapters/postgresql_adapter.rb
  active_record/connection_adapters/sqlite_adapter.rb
  active_record/connection_adapters/sqlserver_adapter.rb
@@ -65,6 +66,7 @@ files = %w-
  active_record/timestamp.rb
  active_record/transactions.rb
  active_record/validations.rb
+ active_record/vendor/db2.rb
  active_record/vendor/mysql.rb
  active_record/vendor/mysql411.rb
  active_record/vendor/simple.rb

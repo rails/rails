@@ -13,6 +13,10 @@ class BinaryTest < Test::Unit::TestCase
     if ActiveRecord::ConnectionAdapters.const_defined? :DB2Adapter
       return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::DB2Adapter)
     end
+
+    if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
+      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
+    end
     bin = Binary.new
     bin.data = @data
 
@@ -27,10 +31,10 @@ class BinaryTest < Test::Unit::TestCase
     db_bin = Binary.find(bin.id)
 
     assert db_bin.data == bin.data,
-      "Loaded binary data differes from memory version"
+      "Loaded binary data differs from memory version"
     
     assert db_bin.data == File.new(File.dirname(__FILE__)+"/fixtures/associations.png","rb").read, 
-      "Loaded binary data differes from file version"
+      "Loaded binary data differs from file version"
   end
   
   private
