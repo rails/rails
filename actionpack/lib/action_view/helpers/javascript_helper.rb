@@ -71,6 +71,15 @@ module ActionView
         link_to_function(name, remote_function(options), html_options)
       end
 
+      # Periodically calls the specified url (<tt>options[:url]</tt>) every <tt>options[:frequency]</tt> seconds (default is 10).
+      # Usually used to update a specified div (<tt>options[:update]</tt>) with the results of the remote call.
+      # The options for specifying the target with :url and defining callbacks is the same as link_to_remote.
+      def periodically_call_remote(options = {})
+         frequency = options[:frequency] || 10 # every ten seconds by default
+         code = "new PeriodicalExecuter(function() {#{remote_function(options)}}, #{frequency})"
+         content_tag("script", code, options[:html_options] || {})
+      end
+      
       # Returns a form tag that will submit using XMLHttpRequest in the background instead of the regular 
       # reloading POST arrangement. Even though it's using Javascript to serialize the form elements, the form submission 
       # will work just like a regular submission as viewed by the receiving side (all elements available in @params).

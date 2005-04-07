@@ -613,3 +613,32 @@ Effect.Appear.prototype = {
   }
 }
 
+/*--------------------------------------------------------------------------*/
+
+PeriodicalExecuter = Class.create();
+PeriodicalExecuter.prototype = {
+  initialize: function(what, frequency) {
+    this.what = what;
+    this.frequency = frequency;
+    this.currentlyExecuting = false;
+    
+    this.registerCallback();
+  },
+  
+  registerCallback: function() {
+    setTimeout(this.onTimerEvent.bind(this), this.frequency * 1000);
+  },
+  
+  onTimerEvent: function() {
+    if (!this.currentlyExecuting) {
+      try { 
+        this.currentlyExecuting = true;
+        this.what(); 
+      } finally { 
+        this.currentlyExecuting = false;
+      }
+    }
+    
+    this.registerCallback();
+  }
+}
