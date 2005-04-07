@@ -74,7 +74,7 @@ module ActionView
       # Example:
       #    number_with_delimeter(12345678) => 1,235,678
       def number_with_delimeter(number, delimeter=",")
-        number.gsub(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{delimeter}"
+        number.gsub(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{delimeter}")
       end
 
       # Formats a +number+ with a level of +precision+.
