@@ -35,14 +35,13 @@ module ActionView
       # Examples:
       #    number_to_currency(1234567890.50)     => $1,234,567,890.50
       #    number_to_currency(1234567890.506)    => $1,234,567,890.51
-      #    number_to_currency(1234567890.50, {:unit => "&pound;", :separator => ",", :delim => ""}) => &pound;123456789,50
+      #    number_to_currency(1234567890.50, {:unit => "&pound;", :separator => ",", :delimeter => ""}) => &pound;123456789,50
       def number_to_currency(number, options = {})
         options = options.stringify_keys
-        precision, unit, separator, delim = options.delete("precision") { 2 }, options.delete("unit") { "$" }, options.delete("separator") { "." }, options.delete("delim") { "," }
+        precision, unit, separator, delimeter = options.delete("precision") { 2 }, options.delete("unit") { "$" }, options.delete("separator") { "." }, options.delete("delimeter") { "," }
         begin
           parts = number_with_precision(number, precision).split('.')
-          parts[0].gsub!(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{delim}")
-          unit + parts[0] + separator + parts[1].to_s
+          unit + number_with_delimeter(parts[0]) + separator + parts[1].to_s
         rescue
           number
         end
@@ -69,6 +68,13 @@ module ActionView
         rescue
           number
         end
+      end
+
+      # Formats a +number+ with a +delimeter+.
+      # Example:
+      #    number_with_delimeter(12345678) => 1,235,678
+      def number_with_delimeter(number, delimeter=",")
+        number.gsub(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{delimeter}"
       end
 
       # Formats a +number+ with a level of +precision+.
