@@ -57,12 +57,14 @@ class InflectorTest < Test::Unit::TestCase
     "old_news"    => "old_news",
     "news"        => "news",
     
-    "series"      => "series"
+    "series"      => "series",
+
+    "perspective" => "perspectives"
   }
 
   CamelToUnderscore = {
-    "Product"                       => "product",
-    "SpecialGuest"                  => "special_guest",
+    "Product"               => "product",
+    "SpecialGuest"          => "special_guest",
     "ApplicationController" => "application_controller"
   }
   
