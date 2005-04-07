@@ -124,7 +124,7 @@ module Rails
           opt.on('-p', '--pretend', 'Run but do not make any changes.') { |options[:pretend]| }
           opt.on('-f', '--force', 'Overwrite files that already exist.') { options[:collision] = :force }
           opt.on('-s', '--skip', 'Skip files that already exist.') { options[:collision] = :skip }
-          opt.on('-q', '--quiet', 'Keep is like a secret with /dev/null.') { |options[:quiet]| }
+          opt.on('-q', '--quiet', 'Suppress normal output.') { |options[:quiet]| }
           opt.on('-t', '--backtrace', 'Debugging: show backtrace on errors.') { |options[:backtrace]| }
           opt.on('-h', '--help', 'Show this help message.') { |options[:help]| }
         end
