@@ -9,7 +9,8 @@ begin
       end
 
       def unquoted_body(to_charset = 'utf-8')
-        Unquoter.unquote_and_convert_to(quoted_body, to_charset, header["content-type"]["charset"])
+        from_charset = header['content-type']['charset'] rescue 'us-ascii'
+        Unquoter.unquote_and_convert_to(quoted_body, to_charset, from_charset)
       end
 
       def body(to_charset = 'utf-8', &block)
