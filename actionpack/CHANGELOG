@@ -1,5 +1,9 @@
 *SVN*
 
+* Fixed autolinking to work better in more cases #1013 [Jamis Buck]
+
+* Added the possible of using symbols in form helpers that relate to instance variables like text_field :account, :name in addition to text_field "account", "name"'
+
 * Fixed javascript_include_tag to output type instead of language and conform to XHTML #1018 [Rick Olson]
 
 * Added NumberHelper for common string representations like phone number, currency, and percentage #1015 [DeLynn]
