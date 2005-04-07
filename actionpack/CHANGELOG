@@ -1,5 +1,7 @@
 *SVN*
 
+* Added simulation of @request.request_uri in functional tests #1038 [Jamis Buck]
+
 * Fixed autolinking to work better in more cases #1013 [Jamis Buck]
 
 * Added the possible of using symbols in form helpers that relate to instance variables like text_field :account, :name in addition to text_field "account", "name"'

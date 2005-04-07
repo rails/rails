@@ -258,6 +258,7 @@ module Test
           @request.parameters.update(parameters) unless parameters.nil?
           @request.session = ActionController::TestSession.new(session) unless session.nil?
           @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
+          build_request_uri(action, parameters)
           @controller.process(@request, @response)
         end
     
@@ -281,6 +282,14 @@ module Test
 
         def assigns(name)
           @response.template.assigns[name.to_s]
+        end
+
+        def build_request_uri(action, parameters)
+          return if @request.env['REQUEST_URI']
+          url = ActionController::UrlRewriter.new(@request, parameters)
+          @request.set_REQUEST_URI(
+            url.rewrite(@controller.send(:rewrite_options,
+              (parameters||{}).update(:only_path => true, :action=>action))))
         end
       end
   end
