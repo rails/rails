@@ -250,6 +250,10 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 1, Firm.find_first.clients_using_counter_sql.size
     assert_equal 0, Firm.find_first.clients_using_zero_counter_sql.size
   end
+
+  def test_counting_non_existant_items_using_sql
+    assert_equal 0, Firm.find_first.no_clients_using_counter_sql.size
+  end
   
   def test_belongs_to_sanity
     c = Client.new

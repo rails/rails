@@ -426,8 +426,14 @@ module ActiveRecord #:nodoc:
       #   Product.count "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
       def count_by_sql(sql)
         sql = sanitize_conditions(sql)
-        count = connection.select_one(sql, "#{name} Count").values.first
-        return count ? count.to_i : 0
+        rows = connection.select_one(sql, "#{name} Count")
+
+        if rows.nil?
+          return 0
+        else
+          count = rows.values.first
+          return count ? count.to_i : 0
+        end
       end
         
       # Increments the specified counter by one. So <tt>DiscussionBoard.increment_counter("post_count", 

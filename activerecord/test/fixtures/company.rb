@@ -17,6 +17,9 @@ class Firm < Company
   has_many :clients_using_zero_counter_sql, :class_name => "Client",
            :finder_sql  => 'SELECT * FROM companies WHERE client_of = #{id}',
            :counter_sql => 'SELECT 0 FROM companies WHERE client_of = #{id}'
+  has_many :no_clients_using_counter_sql, :class_name => "Client",
+           :finder_sql  => 'SELECT * FROM companies WHERE client_of = 1000',
+           :counter_sql => 'SELECT COUNT(*) FROM companies WHERE client_of = 1000'
 
   has_one :account, :dependent => true
 end

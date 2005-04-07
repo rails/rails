@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed counter_sql when no records exist in database for PostgreSQL (would give error, not 0) #1039 [Caleb Tennis]
+
 * Fixed that benchmarking times for rendering included db runtimes #987 [skaes@web.de]
 
 * Fixed boolean queries for t/f fields in PostgreSQL #995 [dave@cherryville.org]
