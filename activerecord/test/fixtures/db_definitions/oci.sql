@@ -166,3 +166,9 @@ create table computers (
   id integer not null primary key,
   developer integer not null references developers initially deferred disable
 );
+
+create table tasks (
+  id integer not null primary key,
+  starting date default null,
+  ending date default null
+);

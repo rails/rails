@@ -116,3 +116,8 @@ CREATE TABLE computers (
   developer int NOT NULL
 );
 
+CREATE TABLE tasks (
+  id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+  starting datetime default NULL,
+  ending datetime default NULL
+);

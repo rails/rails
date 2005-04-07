@@ -147,3 +147,9 @@ CREATE TABLE computers (
   developer integer NOT NULL
 );
 
+CREATE TABLE taske (
+  id serial,
+  starting timestamp,
+  ending timestamp,
+  PRIMARY KEY (id)
+);

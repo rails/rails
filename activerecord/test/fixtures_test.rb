@@ -2,13 +2,14 @@ require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/developer'
 require 'fixtures/company'
+require 'fixtures/task'
 
 class FixturesTest < Test::Unit::TestCase
-  fixtures :topics, :developers, :accounts
+  fixtures :topics, :developers, :accounts, :tasks
 
   FIXTURES = %w( accounts companies customers
                  developers developers_projects entrants
-                 movies projects subscribers topics )
+                 movies projects subscribers topics tasks )
   MATCH_ATTRIBUTE_NAME = /[a-zA-Z][-_\w]*/
 
   def test_clean_fixtures
@@ -45,6 +46,13 @@ class FixturesTest < Test::Unit::TestCase
     secondRow = ActiveRecord::Base.connection.select_one("SELECT * FROM topics WHERE author_name = 'Mary'")
     assert_nil(secondRow["author_email_address"])
   end
+
+  def test_insert_with_datetime
+    topics = create_fixtures("tasks")
+    first = Task.find(1)
+    assert first
+  end
+
 
   def test_bad_format
     path = File.join(File.dirname(__FILE__), 'fixtures', 'bad_fixtures')

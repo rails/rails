@@ -147,3 +147,9 @@ CREATE TABLE `authors` (
   `name` VARCHAR(255) NOT NULL
 ) TYPE=InnoDB;
 
+CREATE TABLE `tasks` (
+  `id` int(11) NOT NULL auto_increment,
+  `starting` datetime NOT NULL default '0000-00-00 00:00:00',
+  `ending` datetime NOT NULL default '0000-00-00 00:00:00',
+  PRIMARY KEY  (`id`)
+);

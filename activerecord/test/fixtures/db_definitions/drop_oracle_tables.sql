@@ -32,4 +32,6 @@ DROP TABLE binaries;
 DROP SEQUENCE binaries_id;
 DROP TABLE computers;
 DROP SEQUENCE computers_id;
+DROP TABLE tasks;
+DROP SEQUENCE tasks_id;
 EXIT;

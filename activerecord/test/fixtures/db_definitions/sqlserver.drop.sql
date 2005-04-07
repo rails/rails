@@ -15,3 +15,4 @@ DROP TABLE mixins;
 DROP TABLE people;
 DROP TABLE binaries;
 DROP TABLE computers;
+DROP TABLE tasks;

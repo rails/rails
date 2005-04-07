@@ -134,3 +134,9 @@ CREATE TABLE 'authors' (
   'name' VARCHAR(255) NOT NULL
 );
 
+CREATE TABLE 'tasks' (
+  'id' INTEGER NOT NULL PRIMARY KEY,  
+  'starting' DATETIME DEFAULT NULL,
+  'ending' DATETIME DEFAULT NULL
+);
+

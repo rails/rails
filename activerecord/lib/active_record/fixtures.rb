@@ -347,7 +347,8 @@ class Fixture #:nodoc:
   end
 
   def key_list
-    @fixture.keys.join(", ")
+    columns = @fixture.keys.collect{ |column_name| ActiveRecord::Base.connection.quote_column_name(column_name) }
+    columns.join(", ")
   end
 
   def value_list

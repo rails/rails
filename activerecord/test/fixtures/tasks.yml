@@ -1,0 +1,7 @@
+# Read about fixtures at http://ar.rubyonrails.org/classes/Fixtures.html
+first_task:
+  id: 1
+  starting: "2005-03-30 06:30:00"
+  ending: "2005-03-30 08:30:00"
+another_task:
+  id: 2
