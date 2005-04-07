@@ -186,7 +186,7 @@ module ActiveRecord
           when :time      then string_to_dummy_time(value)
           when :date      then string_to_date(value)
           when :binary    then binary_to_string(value)
-          when :boolean   then value == true or value =~ /^t(rue)?$/i or value.to_s == '1'
+          when :boolean   then value == true or (value =~ /^t(rue)?$/i) == 0 or value.to_s == '1'
           else value
         end
       end
