@@ -256,6 +256,15 @@ module ActionController #:nodoc:
         end
       end
 
+      def cache_base_url
+        @@cache_base_url ||= url_for(:controller => '')
+      end
+
+      def fragment_cache_key(name)
+        key = name.is_a?(Hash) ? url_for(name) : cache_base_url + name
+        key.split("://").last
+      end
+
       # Called by CacheHelper#cache
       def cache_erb_fragment(block, name = {}, options = {})
         unless perform_caching then block.call; return end
@@ -272,16 +281,16 @@ module ActionController #:nodoc:
       end
       
       def write_fragment(name, content, options = {})
-        name = url_for(name).split("://").last if name.is_a?(Hash)
-        fragment_cache_store.write(name, content, options)
-        logger.info "Cached fragment: #{name}" unless logger.nil?
+        key = fragment_cache_key(name)
+        fragment_cache_store.write(key, content, options)
+        logger.info "Cached fragment: #{key}" unless logger.nil?
         content
       end
       
       def read_fragment(name, options = {})
-        name = url_for(name).split("://").last if name.is_a?(Hash)
-        if cache = fragment_cache_store.read(name, options)
-          logger.info "Fragment hit: #{name}" unless logger.nil?
+        key = fragment_cache_key(name)
+        if cache = fragment_cache_store.read(key, options)
+          logger.info "Fragment hit: #{key}" unless logger.nil?
           cache
         else
           false
@@ -289,14 +298,15 @@ module ActionController #:nodoc:
       end
       
       def expire_fragment(name, options = {})
-        name = url_for(name).split("://").last if name.is_a?(Hash)
-        fragment_cache_store.delete(name, options)
-        logger.info "Expired fragment: #{name}" unless logger.nil?
+        key = fragment_cache_key(name)
+        fragment_cache_store.delete(key, options)
+        logger.info "Expired fragment: #{key}" unless logger.nil?
       end
 
-      def expire_matched_fragments(re=Regexp.new('/*/'), options = {})
-        fragment_cache_store.delete_matched(re, { :root_path => url_for.split('://').last.split('/').first })
-        logger.info "Expired all fragments matching: #{re} " unless logger.nil?
+      def expire_matched_fragments(re=Regexp.new('/.*/'), options = {})
+        rp = cache_base_url
+        fragment_cache_store.delete_matched(re, { :root_path => rp })
+        logger.info "Expired all fragments matching: #{rp}#{re.source}" unless logger.nil?
       end
 
       class MemoryStore #:nodoc:
@@ -317,7 +327,8 @@ module ActionController #:nodoc:
         end
 
         def delete_matched(re, options) #:nodoc:
-          @mutex.synchronize { @data.delete_if {|k,v| k.index(options[:root_path]) == 0 and k =~ re} }
+          re = Regexp.new("#{Regexp.escape(options[:root_path])}#{re.source}")
+          @mutex.synchronize { @data.delete_if { |k,v| k =~ re } }
         end
       end
 

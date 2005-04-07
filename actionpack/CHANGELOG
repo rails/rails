@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Cache#expire_matched_fragments that couldn't recognize the difference between string and url_for options #1030 [skaes@web.de]
+
 * Added simulation of @request.request_uri in functional tests #1038 [Jamis Buck]
 
 * Fixed autolinking to work better in more cases #1013 [Jamis Buck]
