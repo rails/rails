@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that the content-type for some browsers could include an additional \r which made wonky things happen #1067 [Thomas Fuchs]
+
 * Fixed that radio buttons shouldn't have a default size attribute #1074 [hendrik@mans.de]
 
 * Added ActionView::Helpers::InstanceTag::DEFAULT_RADIO_OPTIONS that contains a hash of default options for radio buttons #1074 [hendrik@mans.de]

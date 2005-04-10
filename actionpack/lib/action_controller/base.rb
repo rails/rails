@@ -776,7 +776,7 @@ module ActionController #:nodoc:
 
         @headers.update(
           'Content-Length'            => options[:length],
-          'Content-Type'              => options[:type],
+          'Content-Type'              => options[:type].strip,  # fixes a problem with extra '\r' with some browsers
           'Content-Disposition'       => disposition,
           'Content-Transfer-Encoding' => 'binary'
         );
