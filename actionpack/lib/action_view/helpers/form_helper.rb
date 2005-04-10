@@ -145,6 +145,7 @@ module ActionView
       attr_reader :method_name, :object_name
 
       DEFAULT_FIELD_OPTIONS     = { "size" => 30 }.freeze unless const_defined?(:DEFAULT_FIELD_OPTIONS)
+      DEFAULT_RADIO_OPTIONS     = { }.freeze unless const_defined?(:DEFAULT_RADIO_OPTIONS)
       DEFAULT_TEXT_AREA_OPTIONS = { "wrap" => "virtual", "cols" => 40, "rows" => 20 }.freeze unless const_defined?(:DEFAULT_TEXT_AREA_OPTIONS)
       DEFAULT_DATE_OPTIONS = { :discard_type => true }.freeze unless const_defined?(:DEFAULT_DATE_OPTIONS)
 
@@ -158,10 +159,10 @@ module ActionView
 
       def to_input_field_tag(field_type, options = {})
         options = options.stringify_keys
+        options["size"] ||= options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"]
+        options = DEFAULT_FIELD_OPTIONS.merge(options)
         if field_type == "hidden"
           options.delete("size")
-        else
-          options["size"] ||= options["maxlength"] || DEFAULT_FIELD_OPTIONS["size"]
         end
         options["type"] = field_type
         options["value"] ||= value_before_type_cast unless field_type == "file"
@@ -170,7 +171,7 @@ module ActionView
       end
 
       def to_radio_button_tag(tag_value, options = {})
-        options = DEFAULT_FIELD_OPTIONS.merge(options.stringify_keys)
+        options = DEFAULT_RADIO_OPTIONS.merge(options.stringify_keys)
         options["type"]     = "radio"
         options["value"]    = tag_value
         options["checked"]  = "checked" if value == tag_value

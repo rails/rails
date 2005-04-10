@@ -1,5 +1,9 @@
 *SVN*
 
+* Fixed that radio buttons shouldn't have a default size attribute #1074 [hendrik@mans.de]
+
+* Added ActionView::Helpers::InstanceTag::DEFAULT_RADIO_OPTIONS that contains a hash of default options for radio buttons #1074 [hendrik@mans.de]
+
 * Fixed that in some circumstances controllers outside of modules may have hidden ones inside modules. For example, admin/content might have been hidden by /content. #1075 [Nicholas Seckar]
 
 * Added JavascriptHelper#periodically_call_remote in order to create areas of a page that update automatically at a set interval #945 [Jon Tirsen]
