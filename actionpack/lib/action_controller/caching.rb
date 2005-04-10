@@ -304,7 +304,7 @@ module ActionController #:nodoc:
       end
 
       def expire_matched_fragments(re=Regexp.new('/.*/'), options = {})
-        rp = cache_base_url
+        rp = cache_base_url.split("://").last
         fragment_cache_store.delete_matched(re, { :root_path => rp })
         logger.info "Expired all fragments matching: #{rp}#{re.source}" unless logger.nil?
       end
