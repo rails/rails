@@ -158,7 +158,8 @@ CREATE TABLE `tasks` (
 
 CREATE TABLE `categories` (
   `id` int(11) NOT NULL auto_increment,
-  `name` VARCHAR(255) NOT NULL
+  `name` VARCHAR(255) NOT NULL,
+  PRIMARY KEY  (`id`)
 );
 
 CREATE TABLE `categories_posts` (
