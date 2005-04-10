@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed that ownership is brought over in pg_dump during tests for PostgreSQL #1060 [pburleson@gmail.com]
+
+
 *0.11.1* (27th March, 2005)
 
 * Fixed the dispatch.fcgi use of a logger
