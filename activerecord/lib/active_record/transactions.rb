@@ -6,6 +6,9 @@ module ActiveRecord
   module Transactions # :nodoc:
     TRANSACTION_MUTEX = Mutex.new
 
+    class TransactionError < ActiveRecordError # :nodoc:
+    end
+
     def self.append_features(base)
       super
       base.extend(ClassMethods)
@@ -78,6 +81,9 @@ module ActiveRecord
     # Tribute: Object-level transactions are implemented by Transaction::Simple by Austin Ziegler.
     module ClassMethods
       def transaction(*objects, &block)
+        previous_handler = trap('TERM') do
+          raise TransactionError, "Transaction aborted"
+        end
         lock_mutex
         
         begin
@@ -93,6 +99,7 @@ module ActiveRecord
           raise
         ensure
           unlock_mutex
+          trap('TERM', previous_handler)
         end
       end
       
