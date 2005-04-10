@@ -30,8 +30,8 @@ class AssetTagHelperTest < Test::Unit::TestCase
   }
 
   JavascriptIncludeToTag = {
-    %(javascript_include_tag("xmlhr")) => %(<script language="JavaScript" src="/javascripts/xmlhr.js" type="text/javascript"></script>),
-    %(javascript_include_tag("common.javascript", "/elsewhere/cools")) => %(<script language="JavaScript" src="/javascripts/common.javascript" type="text/javascript"></script>\n<script language="JavaScript" src="/elsewhere/cools.js" type="text/javascript"></script>),
+    %(javascript_include_tag("xmlhr")) => %(<script src="/javascripts/xmlhr.js" type="text/javascript"></script>),
+    %(javascript_include_tag("common.javascript", "/elsewhere/cools")) => %(<script src="/javascripts/common.javascript" type="text/javascript"></script>\n<script src="/elsewhere/cools.js" type="text/javascript"></script>),
   }
 
   StyleLinkToTag = {
@@ -92,8 +92,8 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
   }
 
   JavascriptIncludeToTag = {
-    %(javascript_include_tag("xmlhr")) => %(<script language="JavaScript" src="/calloboration/hieraki/javascripts/xmlhr.js" type="text/javascript"></script>),
-    %(javascript_include_tag("common.javascript", "/elsewhere/cools")) => %(<script language="JavaScript" src="/calloboration/hieraki/javascripts/common.javascript" type="text/javascript"></script>\n<script language="JavaScript" src="/calloboration/hieraki/elsewhere/cools.js" type="text/javascript"></script>),
+    %(javascript_include_tag("xmlhr")) => %(<script src="/calloboration/hieraki/javascripts/xmlhr.js" type="text/javascript"></script>),
+    %(javascript_include_tag("common.javascript", "/elsewhere/cools")) => %(<script src="/calloboration/hieraki/javascripts/common.javascript" type="text/javascript"></script>\n<script src="/calloboration/hieraki/elsewhere/cools.js" type="text/javascript"></script>),
   }
 
   StyleLinkToTag = {
