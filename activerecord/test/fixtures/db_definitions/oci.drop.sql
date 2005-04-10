@@ -14,5 +14,8 @@ drop table colnametests;
 drop table mixins;
 drop table people;
 drop table binaries;
+drop table posts;
+drop table comments;
+drop table authors;
 drop table computers;
 drop sequence rails_sequence;

@@ -167,6 +167,26 @@ create table computers (
   developer integer not null references developers initially deferred disable
 );
 
+create table posts (
+  id integer not null primary key,
+  author_id integer default null,
+  title varchar(255) default null,
+  type varchar(255) default null,
+  body varchar(3000) default null
+);
+
+create table comments (
+  id integer not null primary key,
+  post_id integer default null,
+  type varchar(255) default null,
+  body varchar(3000) default null
+);
+
+create table authors (
+  id integer not null primary key,
+  name varchar(255) default null
+);
+
 create table tasks (
   id integer not null primary key,
   starting date default null,

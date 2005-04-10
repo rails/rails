@@ -116,6 +116,26 @@ CREATE TABLE computers (
   developer int NOT NULL
 );
 
+CREATE TABLE posts (
+  id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+  author_id int default NULL,
+  title varchar(255) default NULL,
+  type varchar(255) default NULL,
+  body text default NULL
+);
+
+CREATE TABLE comments (
+  id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+  post_id int default NULL,
+  type varchar(255) default NULL,
+  body text default NULL
+);
+
+CREATE TABLE authors (
+  id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+  name varchar(255) default NULL
+);
+
 CREATE TABLE tasks (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
   starting datetime default NULL,

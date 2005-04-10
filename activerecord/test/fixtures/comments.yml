@@ -2,13 +2,16 @@ greetings:
   id: 1
   post_id: 1
   body: Thank you for the welcome
+  type: Comment
 
 more_greetings:
   id: 2
   post_id: 1
   body: Thank you again for the welcome
-
+  type: Comment
+  
 does_it_hurt:
   id: 3
   post_id: 2
   body: Don't think too hard
+  type: SpecialComment

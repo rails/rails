@@ -147,6 +147,26 @@ CREATE TABLE computers (
   developer integer NOT NULL
 );
 
+CREATE TABLE posts (
+  id serial,
+  author_id integer,
+  title varchar(255),
+  type varchar(255),
+  body text
+);
+
+CREATE TABLE comments (
+  id serial,
+  post_id integer,
+  type varchar(255),
+  body text
+);
+
+CREATE TABLE authors (
+  id serial,
+  name varchar(255) default NULL
+);
+
 CREATE TABLE taske (
   id serial,
   starting timestamp,

@@ -732,9 +732,11 @@ module ActiveRecord #:nodoc:
         end
         
         def type_condition
-          " (" + subclasses.inject("#{inheritance_column} = '#{Inflector.demodulize(name)}' ") do |condition, subclass| 
-            condition << "OR #{inheritance_column} = '#{Inflector.demodulize(subclass.name)}' "
-          end + ") "
+          type_condition = subclasses.inject("#{table_name}.#{inheritance_column} = '#{name.demodulize}' ") do |condition, subclass| 
+            condition << "OR #{table_name}.#{inheritance_column} = '#{subclass.name.demodulize}' "
+          end
+          
+          return " (#{type_condition})"
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.

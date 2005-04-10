@@ -32,5 +32,10 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_equal @welcome.title, comments.first.post.title
     assert_equal @thinking.title, comments.last.post.title
   end
+  
+  def test_eager_with_inheritance
+    posts = SpecialPost.find(:all, :include => [ :comments ])
+  end
+  
 end
 

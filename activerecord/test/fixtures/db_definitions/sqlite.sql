@@ -120,12 +120,14 @@ CREATE TABLE 'posts' (
   'id' INTEGER NOT NULL PRIMARY KEY,
   'author_id' INTEGER NOT NULL,
   'title' VARCHAR(255) NOT NULL,
+  'type' VARCHAR(255) NOT NULL,
   'body' TEXT NOT NULL
 );
 
 CREATE TABLE 'comments' (
   'id' INTEGER NOT NULL PRIMARY KEY,
   'post_id' INTEGER NOT NULL,
+  'type' VARCHAR(255) NOT NULL,
   'body' TEXT NOT NULL
 );
 
