@@ -2,8 +2,10 @@
 
 * Add scaffolding via ActionController::Base.web_service_scaffold for quick testing using a web browser
 
-* The :layered dispatching mode can now be used with SOAP as well, allowing you to support SOAP and XML-RPC
-  clients for APIs like the metaWeblog API
+* ActionWebService::API::Base#api_methods now returns a hash containing ActionWebService::API::Method objects
+  instead of hashes
+
+* The :layered dispatching mode can now be used with SOAP as well, allowing you to support SOAP and XML-RPC clients for APIs like the metaWeblog API
 
 * Remove ActiveRecordSoapMarshallable workaround, see #912 for details
 
@@ -13,8 +15,7 @@
 
 * Include backtraces in 500 error responses for failed request parsing, and remove "rescue nil" statements obscuring real errors for XML-RPC
 
-* Perform casting of struct members even if the structure is already of the correct type, so that the type we specify for
-  the struct member is always the type of the value seen by the API implementation
+* Perform casting of struct members even if the structure is already of the correct type, so that the type we specify for the struct member is always the type of the value seen by the API implementation
 
 
 *0.6.2* (27th March, 2005)
