@@ -19,3 +19,5 @@ DROP TABLE tasks;
 DROP TABLE posts;
 DROP TABLE comments;
 DROP TABLE authors;
+DROP TABLE categories;
+DROP TABLE categories_posts;

@@ -18,4 +18,6 @@ drop table posts;
 drop table comments;
 drop table authors;
 drop table computers;
+drop table categories;
+drop table categories_posts;
 drop sequence rails_sequence;

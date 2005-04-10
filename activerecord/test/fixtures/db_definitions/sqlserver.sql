@@ -141,3 +141,13 @@ CREATE TABLE tasks (
   starting datetime default NULL,
   ending datetime default NULL
 );
+
+CREATE TABLE categories (
+  id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+  name varchar(255)
+);
+
+CREATE TABLE categories_posts (
+  category_id int NOT NULL,
+  post_id int int NOT NULL
+);

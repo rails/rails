@@ -142,3 +142,12 @@ CREATE TABLE 'tasks' (
   'ending' DATETIME DEFAULT NULL
 );
 
+CREATE TABLE 'categories' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'name' VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE 'categories_posts' (
+  'category_id' INTEGER NOT NULL,
+  'post_id' INTEGER NOT NULL
+);

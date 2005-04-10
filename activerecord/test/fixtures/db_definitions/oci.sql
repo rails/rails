@@ -192,3 +192,13 @@ create table tasks (
   starting date default null,
   ending date default null
 );
+
+create table categories (
+  id integer not null primary key,
+  name varchar(255) default null
+);
+
+create table categories_posts (
+  category_id integer not null references developers initially deferred disable,
+  post_id int integer not null references developers initially deferred disable
+);

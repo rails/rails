@@ -155,3 +155,13 @@ CREATE TABLE `tasks` (
   `ending` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`)
 );
+
+CREATE TABLE `categories` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE `categories_posts` (
+  `category_id` int(11) NOT NULL,
+  `post_id` int(11) NOT NULL
+);

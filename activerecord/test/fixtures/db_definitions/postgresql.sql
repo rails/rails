@@ -173,3 +173,13 @@ CREATE TABLE taske (
   ending timestamp,
   PRIMARY KEY (id)
 );
+
+CREATE TABLE categories (
+  id serial,
+  name varchar(255)
+);
+
+CREATE TABLE categories_posts (
+  category_id integer NOT NULL,
+  post_id int integer NOT NULL
+);

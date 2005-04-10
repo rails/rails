@@ -1,0 +1,11 @@
+general_welcome:
+  category_id: 1
+  post_id: 1
+
+technology_welcome:
+  category_id: 2
+  post_id: 1
+
+general_thinking:
+  category_id: 1
+  post_id: 2

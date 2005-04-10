@@ -1,0 +1,7 @@
+general:
+  id: 1
+  name: General
+
+technology:
+  id: 2
+  name: Technology
