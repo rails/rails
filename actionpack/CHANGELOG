@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that in some circumstances controllers outside of modules may have hidden ones inside modules. For example, admin/content might have been hidden by /content. #1075 [Nicholas Seckar]
+
 * Added JavascriptHelper#periodically_call_remote in order to create areas of a page that update automatically at a set interval #945 [Jon Tirsen]
 
 * Fixed Cache#expire_matched_fragments that couldn't recognize the difference between string and url_for options #1030 [skaes@web.de]

@@ -55,7 +55,7 @@ module Dependencies
     def self.root(*load_paths)
       RootLoadingModule.new(*load_paths)
     end
-            
+    
     def initialize(root, path=[])
       @path = path.clone.freeze
       @root = root
@@ -81,9 +81,11 @@ module Dependencies
           new_module = LoadingModule.new(self.root, self.path + [name])
           self.const_set name, new_module
           if self.root?
-            raise NameError, "Cannot load controller module named #{name}: An object of type #{Object.const_get(name).class.to_s} already exists." \
-              if Object.const_defined?(name)
-            Object.const_set(name, new_module) 
+            if Object.const_defined?(name)
+              msg = "Cannot load module #{name}: Object::#{name} is set to #{Object.const_get(name).inspect}"
+              raise NameError, msg
+            end
+            Object.const_set(name, new_module)
           end
           break
         elsif File.file?(fs_path)
@@ -94,7 +96,7 @@ module Dependencies
           break
         end
       end
-
+      
       return self.const_defined?(name)
     end
     
@@ -124,7 +126,7 @@ module Dependencies
     # Erase all items in this module
     def clear!
       constants.each do |name|
-        Object.send(:remove_const, name) if Object.const_defined?(name)
+        Object.send(:remove_const, name) if Object.const_defined?(name) && Object.const_get(name).object_id == self.const_get(name).object_id
         self.send(:remove_const, name)
       end
     end

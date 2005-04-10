@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that in some circumstances controllers outside of modules may have hidden ones inside modules. For example, admin/content might have been hidden by /content. #1075 [Nicholas Seckar]
+
 * Fixed inflection of perspectives and similar words #1045 [thijs@vandervossen.net]
 
 * Added Fixnum#even? and Fixnum#odd?
