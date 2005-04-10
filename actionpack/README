@@ -187,7 +187,7 @@ A short rundown of the major features:
 
     # view
     <%= link_to "Previous page", { :page => @pages.current.previous } if @pages.current.previous %>
-    <%= link_to "Next page", { :page => @pages.current.next } of @pages.current.next =%>
+    <%= link_to "Next page", { :page => @pages.current.next } if @pages.current.next %>
 
   {Learn more}[link:classes/ActionController/Pagination.html]
 
