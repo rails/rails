@@ -44,6 +44,11 @@ module ActiveRecord
   # == Available callback methods
   #
   # The observer can implement callback methods for each of the methods described in the Callbacks module.
+  #
+  # == Triggering Observers
+  # 
+  # In order to activate an observer, you need to call Observer.instance. In Rails, this can be done in controllers
+  # using the short-hand of for example observer :comment_observer.
   class Observer
     include Singleton
 
