@@ -1,10 +1,11 @@
 require 'singleton'
 
 module ActiveRecord
-  # Observers can be programmed to react to lifecycle callbacks in another class to implement
-  # trigger-like behavior outside the original class. This is a great way to reduce the clutter that
-  # normally comes when the model class is burdened with excess responsibility that doesn't pertain to
-  # the core and nature of the class. Example:
+  # Observer classes respond to lifecycle callbacks to implement trigger-like
+  # behavior outside the original class. This is a great way to reduce the
+  # clutter that normally comes when the model class is burdened with
+  # functionality that doesn't pertain to the core responsibility of the
+  # class. Example:
   #
   #   class CommentObserver < ActiveRecord::Observer
   #     def after_save(comment)
@@ -12,13 +13,13 @@ module ActiveRecord
   #     end
   #   end
   #
-  # This Observer is triggered when a Comment#save is finished and sends a notification about it to the administrator.
+  # This Observer sends an email when a Comment#save is finished.
   #
-  # == Observing a class that can't be infered
+  # == Observing a class that can't be inferred
   #
   # Observers will by default be mapped to the class with which they share a name. So CommentObserver will
   # be tied to observing Comment, ProductManagerObserver to ProductManager, and so on. If you want to name your observer
-  # something else than the class you're interested in observing, you can implement the observed_class class method. Like this:
+  # differently than the class you're interested in observing, you can use the Observer.observe class method:
   #
   #   class AuditObserver < ActiveRecord::Observer
   #     observe Account
@@ -28,9 +29,7 @@ module ActiveRecord
   #     end
   #   end
   #
-  # == Observing multiple classes at once
-  #
-  # If the audit observer needs to watch more than one kind of object, this can be specified in an array, like this:
+  # If the audit observer needs to watch more than one kind of object, this can be specified with multiple arguments:
   #
   #   class AuditObserver < ActiveRecord::Observer
   #     observe Account, Balance
@@ -41,6 +40,8 @@ module ActiveRecord
   #   end
   #
   # The AuditObserver will now act on both updates to Account and Balance by treating them both as records.
+  #
+  # == Available callback methods
   #
   # The observer can implement callback methods for each of the methods described in the Callbacks module.
   class Observer
