@@ -109,9 +109,15 @@ module Rails
         def lookup(generator_name)
           @found ||= {}
           generator_name = generator_name.to_s.downcase
-          @found[generator_name] ||= cache.find { |spec|
-            spec.name == generator_name
-          } or raise GeneratorError, "Couldn't find '#{generator_name}' generator"
+          @found[generator_name] ||= cache.find { |spec| spec.name == generator_name }
+          unless @found[generator_name] 
+            chars = generator_name.scan(/./).map{|c|"#{c}.*?"}
+            rx = /^#{chars}$/
+            gns = cache.select{|spec| spec.name =~ rx }
+            @found[generator_name] ||= gns.first if gns.length == 1
+            raise GeneratorError, "Pattern '#{generator_name}' matches more than one generator: #{gns.map{|sp|sp.name}.join(', ')}" if gns.length > 1
+          end
+          @found[generator_name] or raise GeneratorError, "Couldn't find '#{generator_name}' generator"
         end
 
         # Convenience method to lookup and instantiate a generator.
