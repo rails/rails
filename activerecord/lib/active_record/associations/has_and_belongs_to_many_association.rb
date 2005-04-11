@@ -51,7 +51,7 @@ module ActiveRecord
 
         # If no block is given, raise RecordNotFound.
         if ids.empty?
-          raise RecordNotFound, "Couldn't find #{@association_class.name} without an ID#{conditions}"
+          raise RecordNotFound, "Couldn't find #{@association_class.name} without an ID"
 
         # If using a custom finder_sql, scan the entire collection.
         elsif @options[:finder_sql]
