@@ -63,6 +63,16 @@ class TestMailer < ActionMailer::Base
     @charset    = "iso-8859-1"
   end
 
+  def utf8_body(recipient)
+    @recipients = recipient
+    @subject    = "testing utf-8 body"
+    @from       = "김치통 <kimchi@example.net.kr>"
+    @sent_on    = Time.local 2004, 12, 12
+    @cc         = "김치통 <kimchi@example.net.kr>"
+    @bcc        = "김치통 <kimchi@example.net.kr>"
+    @body       = "안녕하세요!"
+    @charset    = "utf-8"
+  end
 end
 
 TestMailer.template_root = File.dirname(__FILE__) + "/fixtures"
@@ -265,6 +275,21 @@ EOF
     assert_not_nil ActionMailer::Base.deliveries.first
     assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
   end
+  
+  def test_utf8_body_is_not_quoted
+    @recipient = "김치통 <kimchi@example.net.kr>"
+    expected = new_mail "utf-8"
+    expected.to      = TestMailer.quote_address_if_necessary @recipient, "utf-8"
+    expected.subject = "testing utf-8 body"
+    expected.body    = "안녕하세요!"
+    expected.from    = TestMailer.quote_address_if_necessary @recipient, "utf-8"
+    expected.cc      = TestMailer.quote_address_if_necessary @recipient, "utf-8"
+    expected.bcc     = TestMailer.quote_address_if_necessary @recipient, "utf-8"
+    expected.date    = Time.local 2004, 12, 12
+
+    created = TestMailer.create_utf8_body @recipient
+    assert_match(/안녕하세요!/, created.encoded)
+   end
 
 end
 

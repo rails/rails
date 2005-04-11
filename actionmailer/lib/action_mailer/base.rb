@@ -100,9 +100,9 @@ module ActionMailer #:nodoc:
     class << self
       def method_missing(method_symbol, *parameters)#:nodoc:
         case method_symbol.id2name
-          when /^create_([_a-z]*)/
+          when /^create_([_a-z]\w*)/
             create_from_action($1, *parameters)
-          when /^deliver_([_a-z]*)/
+          when /^deliver_([_a-z]\w*)/
             begin
               deliver(send("create_" + $1, *parameters))
             rescue Object => e
@@ -121,7 +121,8 @@ module ActionMailer #:nodoc:
                  charset = @@default_charset
       ) #:nodoc:
         m = TMail::Mail.new
-        m.subject, m.body = quote_any_if_necessary(charset, subject, body)
+        m.body = body
+        m.subject, = quote_any_if_necessary(charset, subject)
         m.to, m.from = quote_any_address_if_necessary(charset, to, from)
 
         m.date = timestamp.respond_to?("to_time") ? timestamp.to_time : (timestamp || Time.now)    
