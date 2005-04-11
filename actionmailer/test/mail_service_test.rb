@@ -33,7 +33,7 @@ class TestMailer < ActionMailer::Base
 
   def iso_charset(recipient)
     @recipients = recipient
-    @subject    = "testing iso charsets"
+    @subject    = "testing isø charsets"
     @from       = "system@loudthinking.com"
     @sent_on    = Time.local 2004, 12, 12
     @cc         = "nobody@loudthinking.com"
@@ -50,7 +50,17 @@ class TestMailer < ActionMailer::Base
     @cc         = "nobody@loudthinking.com"
     @bcc        = "root@loudthinking.com"
     @body       = "Nothing to see here."
-    @encode_subject = false
+  end
+
+  def extended_headers(recipient)
+    @recipients = recipient
+    @subject    = "testing extended headers"
+    @from       = "Grytøyr <stian1@example.net>"
+    @sent_on    = Time.local 2004, 12, 12
+    @cc         = "Grytøyr <stian2@example.net>"
+    @bcc        = "Grytøyr <stian3@example.net>"
+    @body       = "Nothing to see here."
+    @charset    = "iso-8859-1"
   end
 
 end
@@ -82,7 +92,7 @@ class ActionMailerTest < Test::Unit::TestCase
   def test_signed_up
     expected = new_mail
     expected.to      = @recipient
-    expected.subject = encode "[Signed up] Welcome #{@recipient}"
+    expected.subject = "[Signed up] Welcome #{@recipient}"
     expected.body    = "Hello there, \n\nMr. #{@recipient}"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
@@ -100,7 +110,7 @@ class ActionMailerTest < Test::Unit::TestCase
   def test_cancelled_account
     expected = new_mail
     expected.to      = @recipient
-    expected.subject = encode "[Cancelled] Goodbye #{@recipient}"
+    expected.subject = "[Cancelled] Goodbye #{@recipient}"
     expected.body    = "Goodbye, Mr. #{@recipient}"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
@@ -118,7 +128,7 @@ class ActionMailerTest < Test::Unit::TestCase
   def test_cc_bcc
     expected = new_mail
     expected.to      = @recipient
-    expected.subject = encode "testing bcc/cc"
+    expected.subject = "testing bcc/cc"
     expected.body    = "Nothing to see here."
     expected.from    = "system@loudthinking.com"
     expected.cc      = "nobody@loudthinking.com"
@@ -143,7 +153,7 @@ class ActionMailerTest < Test::Unit::TestCase
   def test_iso_charset
     expected = new_mail( "iso-8859-1" )
     expected.to      = @recipient
-    expected.subject = encode "testing iso charsets", "iso-8859-1"
+    expected.subject = encode "testing isø charsets", "iso-8859-1"
     expected.body    = "Nothing to see here."
     expected.from    = "system@loudthinking.com"
     expected.cc      = "nobody@loudthinking.com"
@@ -226,6 +236,34 @@ EOF
     assert_equal "=?utf-8?Q?testing_testing_=D6=A4?=", mail.quoted_subject
     assert_equal "This is a test\n2 + 2 = 4\n", mail.body
     assert_equal "This_is_a_test\n2 + 2 =3D 4\n", mail.quoted_body
+  end
+
+  def test_extended_headers
+    @recipient = "Grytøyr <test@localhost>"
+
+    expected = new_mail "iso-8859-1"
+    expected.to      = TestMailer.quote_address_if_necessary @recipient, "iso-8859-1"
+    expected.subject = "testing extended headers"
+    expected.body    = "Nothing to see here."
+    expected.from    = TestMailer.quote_address_if_necessary "Grytøyr <stian1@example.net>", "iso-8859-1"
+    expected.cc      = TestMailer.quote_address_if_necessary "Grytøyr <stian2@example.net>", "iso-8859-1"
+    expected.bcc     = TestMailer.quote_address_if_necessary "Grytøyr <stian3@example.net>", "iso-8859-1"
+    expected.date    = Time.local 2004, 12, 12
+
+    created = nil
+    assert_nothing_raised do
+      created = TestMailer.create_extended_headers @recipient
+    end
+
+    assert_not_nil created
+    assert_equal expected.encoded, created.encoded
+
+    assert_nothing_raised do
+      TestMailer.deliver_extended_headers @recipient
+    end
+
+    assert_not_nil ActionMailer::Base.deliveries.first
+    assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
   end
 
 end

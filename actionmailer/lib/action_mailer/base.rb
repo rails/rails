@@ -58,8 +58,6 @@ module ActionMailer #:nodoc:
   #
   # * <tt>default_charset</tt> - The default charset used for the body and to encode the subject. Defaults to UTF-8. You can also 
   #    pick a different charset from inside a method with <tt>@encoding</tt>.
-  #
-  # * <tt>encode_subject</tt> - Whether or not to encode the subject with the active charset. Defaults to true.
   class Base
     private_class_method :new #:nodoc:
 
@@ -91,15 +89,11 @@ module ActionMailer #:nodoc:
     @@default_charset = "utf-8"
     cattr_accessor :default_charset
 
-    @@encode_subject = true
-    cattr_accessor :encode_subject
-
-    attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers, :bcc, :cc, :charset, :encode_subject
+    attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers, :bcc, :cc, :charset
 
     def initialize
       @bcc = @cc = @from = @recipients = @sent_on = @subject = @body = nil
       @charset = @@default_charset.dup
-      @encode_subject = @@encode_subject
       @headers = {}
     end
 
@@ -118,17 +112,18 @@ module ActionMailer #:nodoc:
       end
 
       def mail(to, subject, body, from, timestamp = nil, headers = {},
-               encode = @@encode_subject, charset = @@default_charset
+               charset = @@default_charset
       ) #:nodoc:
         deliver(create(to, subject, body, from, timestamp, headers, charset))
       end
 
       def create(to, subject, body, from, timestamp = nil, headers = {},
-                 encode = @@encode_subject, charset = @@default_charset
+                 charset = @@default_charset
       ) #:nodoc:
         m = TMail::Mail.new
-        m.to, m.subject, m.body, m.from = to,
-          ( encode ? quoted_printable(subject,charset) : subject ), body, from
+        m.subject, m.body = quote_any_if_necessary(charset, subject, body)
+        m.to, m.from = quote_any_address_if_necessary(charset, to, from)
+
         m.date = timestamp.respond_to?("to_time") ? timestamp.to_time : (timestamp || Time.now)    
 
         m.set_content_type "text", "plain", { "charset" => charset }
@@ -148,6 +143,40 @@ module ActionMailer #:nodoc:
       def quoted_printable(text, charset)#:nodoc:
         text = text.gsub( /[^a-z ]/i ) { "=%02x" % $&[0] }.gsub( / /, "_" )
         "=?#{charset}?Q?#{text}?="
+      end
+
+      CHARS_NEEDING_QUOTING = /[\000-\011\013\014\016-\037\177-\377]/
+
+      # Quote the given text if it contains any "illegal" characters
+      def quote_if_necessary(text, charset)
+        (text =~ CHARS_NEEDING_QUOTING) ?
+          quoted_printable(text, charset) :
+          text
+      end
+
+      # Quote any of the given strings if they contain any "illegal" characters
+      def quote_any_if_necessary(charset, *args)
+        args.map { |v| quote_if_necessary(v, charset) }
+      end
+
+      # Quote the given address if it needs to be. The address may be a
+      # regular email address, or it can be a phrase followed by an address in
+      # brackets. The phrase is the only part that will be quoted, and only if
+      # it needs to be. This allows extended characters to be used in the
+      # "to", "from", "cc", and "bcc" headers.
+      def quote_address_if_necessary(address, charset)
+        if address =~ /^([^<>\s]+) (<.*>)$/
+          address = $2
+          phrase = quote_if_necessary($1, charset)
+          "#{phrase} #{address}"
+        else
+          address
+        end
+      end
+
+      # Quote any of the given addresses, if they need to be.
+      def quote_any_address_if_necessary(charset, *args)
+        args.map { |v| quote_address_if_necessary(v, charset) }
       end
 
       def receive(raw_email)
@@ -185,10 +214,10 @@ module ActionMailer #:nodoc:
 
           mail = create(mailer.recipients, mailer.subject, mailer.body,
                         mailer.from, mailer.sent_on, mailer.headers,
-                        mailer.encode_subject, mailer.charset)
+                        mailer.charset)
 
-          mail.bcc = mailer.bcc unless mailer.bcc.nil?
-          mail.cc  = mailer.cc  unless mailer.cc.nil?
+          mail.bcc = quote_address_if_necessary(mailer.bcc, mailer.charset) unless mailer.bcc.nil?
+          mail.cc  = quote_address_if_necessary(mailer.cc, mailer.charset)  unless mailer.cc.nil?
 
           return mail
         end
