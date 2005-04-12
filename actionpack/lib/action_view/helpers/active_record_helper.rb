@@ -101,7 +101,7 @@ module ActionView
           content_tag("div",
             content_tag(
               options[:header_tag] || "h2",
-              "#{pluralize(object.errors.count, "error")} prohibited this #{object_name.gsub("_", " ")} from being saved"
+              "#{pluralize(object.errors.count, "error")} prohibited this #{object_name.to_s.gsub("_", " ")} from being saved"
             ) +
             content_tag("p", "There were problems with the following fields:") +
             content_tag("ul", object.errors.full_messages.collect { |msg| content_tag("li", msg) }),
