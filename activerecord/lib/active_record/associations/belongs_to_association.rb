@@ -1,7 +1,6 @@
 module ActiveRecord
   module Associations
     class BelongsToAssociation < AssociationProxy #:nodoc:
-
       def reset
         @target = nil
         @loaded = false

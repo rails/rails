@@ -163,9 +163,11 @@ module ActiveRecord
       # * <tt>collection.find_all(conditions = nil, orderings = nil, limit = nil, joins = nil)</tt> - finds all associated objects responding 
       #   criteria mentioned (like in the standard find_all) and that meets the condition that it has to be associated with this object.
       # * <tt>collection.build(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
-      #   with +attributes+ and linked to this object through a foreign key but has not yet been saved.
+      #   with +attributes+ and linked to this object through a foreign key but has not yet been saved. *Note:* This only works if an 
+      #   associated object already exists, not if its nil!
       # * <tt>collection.create(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key and that has already been saved (if it passed the validation).
+      #   *Note:* This only works if an associated object already exists, not if its nil!
       #
       # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
       # * <tt>Firm#clients</tt> (similar to <tt>Clients.find_all "firm_id = #{id}"</tt>)
@@ -250,19 +252,19 @@ module ActiveRecord
       # * <tt>association=(associate)</tt> - assigns the associate object, extracts the primary key, sets it as the foreign key, 
       #   and saves the associate object.
       # * <tt>association.nil?</tt> - returns true if there is no associated object.
-      # * <tt>association.build(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
+      # * <tt>build_association(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key but has not yet been saved. Note: This ONLY works if
       #   an association already exists. It will NOT work if the association is nil.
-      # * <tt>association.create(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
+      # * <tt>create_association(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key and that has already been saved (if it passed the validation).
-      #   Note: This ONLY works if an association already exists. It will NOT work if the association is nil.
       #
       # Example: An Account class declares <tt>has_one :beneficiary</tt>, which will add:
       # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.find_first "account_id = #{id}"</tt>)
       # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
       # * <tt>Account#beneficiary.nil?</tt>
-      # * <tt>Account#beneficiary.build</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
-      # * <tt>Account#beneficiary.create</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
+      # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
+      # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
+      #
       # The declaration can also include an options hash to specialize the behavior of the association.
       # 
       # Options are:
@@ -303,13 +305,13 @@ module ActiveRecord
         end
       
         association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasOneAssociation)
+        association_constructor_method(:build, association_name, association_class_name, association_class_primary_key_name, options, HasOneAssociation)
+        association_constructor_method(:create, association_name, association_class_name, association_class_primary_key_name, options, HasOneAssociation)
         
         module_eval "before_destroy '#{association_name}.destroy unless #{association_name}.nil?'" if options[:dependent]
 
         # deprecated api
         deprecated_has_association_method(association_name)
-        deprecated_build_method("build_", association_name, association_class_name, association_class_primary_key_name)
-        deprecated_create_method("create_", association_name, association_class_name, association_class_primary_key_name)
         deprecated_association_comparison_method(association_name, association_class_name)
       end
 
@@ -319,9 +321,9 @@ module ActiveRecord
       # * <tt>association(force_reload = false)</tt> - returns the associated object. Nil is returned if none is found.
       # * <tt>association=(associate)</tt> - assigns the associate object, extracts the primary key, and sets it as the foreign key.
       # * <tt>association.nil?</tt> - returns true if there is no associated object.
-      # * <tt>association.build(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
+      # * <tt>build_association(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key but has not yet been saved.
-      # * <tt>association.create(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
+      # * <tt>create_association(attributes = {})</tt> - returns a new object of the associated type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key and that has already been saved (if it passed the validation).
       #
       # Example: A Post class declares <tt>belongs_to :author</tt>, which will add:
@@ -329,8 +331,8 @@ module ActiveRecord
       # * <tt>Post#author=(author)</tt> (similar to <tt>post.author_id = author.id</tt>)
       # * <tt>Post#author?</tt> (similar to <tt>post.author == some_author</tt>)
       # * <tt>Post#author.nil?</tt>
-      # * <tt>Post#author.build</tt> (similar to <tt>Author.new("post_id" => id)</tt>)
-      # * <tt>Post#author.create</tt> (similar to <tt>b = Author.new("post_id" => id); b.save; b</tt>)
+      # * <tt>Post#build_author</tt> (similar to <tt>Author.new("post_id" => id)</tt>)
+      # * <tt>Post#create_author</tt> (similar to <tt>b = Author.new("post_id" => id); b.save; b</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
       # 
       # Options are:
@@ -365,6 +367,8 @@ module ActiveRecord
         association_class_primary_key_name = options[:foreign_key] || Inflector.underscore(Inflector.demodulize(association_class_name)) + "_id"
 
         association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
+        association_constructor_method(:build, association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
+        association_constructor_method(:create, association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
 
         module_eval do
           before_save <<-EOF
@@ -626,6 +630,21 @@ module ActiveRecord
           end
         end
 
+        def association_constructor_method(constructor, association_name, association_class_name, association_class_primary_key_name, options, association_proxy_class)
+          define_method("#{constructor}_#{association_name}") do |*params|
+            attributees = params.first unless params.empty?
+            association = instance_variable_get("@#{association_name}")
+
+            if association.nil?
+              association = association_proxy_class.new(self,
+                association_name, association_class_name,
+                association_class_primary_key_name, options)
+              instance_variable_set("@#{association_name}", association)
+            end
+
+            association.send(constructor, attributees)
+          end
+        end
 
         def find_with_associations(options = {})
           reflections          = reflect_on_included_associations(options[:include])

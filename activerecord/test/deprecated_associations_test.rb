@@ -174,30 +174,6 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     assert_equal @signals37.create_in_clients_of_firm("name" => "Another Client"), @signals37.clients_of_firm(true).last
   end
 
-  def test_succesful_build_association
-    firm = Firm.new("name" => "GlobalMegaCorp")
-    firm.save
-
-    account = firm.build_account("credit_limit" => 1000)
-    assert account.save
-    assert_equal account, firm.account
-  end
-
-  def test_failing_build_association
-    firm = Firm.new("name" => "GlobalMegaCorp")
-    firm.save
-
-    account = firm.build_account
-    assert !account.save
-    assert_equal "can't be empty", account.errors.on("credit_limit")
-  end
-
-  def test_create_association
-    firm = Firm.new("name" => "GlobalMegaCorp")
-    firm.save
-    assert_equal firm.create_account("credit_limit" => 1000), firm.account
-  end
-
   def test_has_and_belongs_to_many
     david = Developer.find(1)
     assert david.has_projects?

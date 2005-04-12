@@ -84,25 +84,7 @@ module ActiveRecord
             !#{association_name}(force_reload).nil?
           end
         end_eval
-      end
-      
-      def deprecated_build_method(method_prefix, collection_name, collection_class_name, class_primary_key_name)# :nodoc:
-        module_eval <<-"end_eval", __FILE__, __LINE__
-          def #{method_prefix + collection_name}(attributes = {})
-            association = #{collection_class_name}.new
-            association.attributes = attributes.merge({ "#{class_primary_key_name}" => id})
-            association
-          end
-        end_eval
-      end
-
-      def deprecated_create_method(method_prefix, collection_name, collection_class_name, class_primary_key_name)# :nodoc:
-        module_eval <<-"end_eval", __FILE__, __LINE__
-          def #{method_prefix + collection_name}(attributes = nil)
-            #{collection_class_name}.create((attributes || {}).merge({ "#{class_primary_key_name}" => id}))
-          end
-        end_eval
-      end
+      end      
     end
   end
 end

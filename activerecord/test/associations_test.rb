@@ -105,6 +105,30 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     assert_equal 1, Account.find_all.length
   end
 
+  def test_succesful_build_association
+    firm = Firm.new("name" => "GlobalMegaCorp")
+    firm.save
+
+    account = firm.build_account("credit_limit" => 1000)
+    assert account.save
+    assert_equal account, firm.account
+  end
+
+  def test_failing_build_association
+    firm = Firm.new("name" => "GlobalMegaCorp")
+    firm.save
+
+    account = firm.build_account
+    assert !account.save
+    assert_equal "can't be empty", account.errors.on("credit_limit")
+  end
+
+  def test_create_association
+    firm = Firm.new("name" => "GlobalMegaCorp")
+    firm.save
+    assert_equal firm.create_account("credit_limit" => 1000), firm.account
+  end
+
   def test_build
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
@@ -560,6 +584,19 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     apple = Firm.create("name" => "Apple")
     citibank = Account.create("credit_limit" => 10)
     citibank.firm = apple
+    assert_equal apple.id, citibank.firm_id
+  end
+  
+  def test_creating_the_belonging_object
+    citibank = Account.create("credit_limit" => 10)
+    apple    = citibank.create_firm("name" => "Apple")
+    assert_equal apple, citibank.firm
+  end
+
+  def test_building_the_belonging_object
+    citibank = Account.create("credit_limit" => 10)
+    apple    = citibank.build_firm("name" => "Apple")
+    citibank.save
     assert_equal apple.id, citibank.firm_id
   end
   
