@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that Base.silence should restore the old logger level when done, not just set it to DEBUG #1084 [yon@milliped.com]
+
 * Fixed boolean saving on Oracle #1093 [mparrish@pearware.org]
 
 * Moved build_association and create_association for has_one and belongs_to out of deprecation as they work when the association is nil unlike association.build and association.create, which require the association to be already in place #864

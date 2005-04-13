@@ -662,9 +662,10 @@ module ActiveRecord #:nodoc:
       # Silences the logger for the duration of the block.
       def silence
         result = nil
+        old_logger_level = logger.level if logger
         logger.level = Logger::ERROR if logger
         result = yield
-        logger.level = Logger::DEBUG if logger
+        logger.level = old_logger_level if logger
         return result
       end
 
