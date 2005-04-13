@@ -114,11 +114,12 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the minutes 0 through 59 with the current minute selected.
+      # Also can return a select tag with options by <tt>minute_step</tt> from 0 through 59 with the 00 minute selected
       # The <tt>minute</tt> can also be substituted for a minute number.
       def select_minute(datetime, options = {})
         minute_options = []
 
-        0.upto(59) do |minute|
+        0.step(59, options[:minute_step] || 1) do |minute|
           minute_options << ((datetime && (datetime.kind_of?(Fixnum) ? datetime : datetime.min) == minute) ?
             "<option selected=\"selected\">#{leading_zero_on_single_digits(minute)}</option>\n" :
             "<option>#{leading_zero_on_single_digits(minute)}</option>\n"

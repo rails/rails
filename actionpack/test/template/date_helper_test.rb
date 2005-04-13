@@ -164,6 +164,14 @@ class DateHelperTest < Test::Unit::TestCase
     assert_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), :include_blank => true)
   end
 
+  def test_select_minute_with_blank_and_step
+    expected = %(<select name="date[minute]">\n)
+    expected << %(<option></option>\n<option>00</option>\n<option>15</option>\n<option>30</option>\n<option>45</option>\n)
+    expected << "</select>\n"
+
+    assert_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), { :include_blank => true , :minute_step => 15 })
+  end
+
   def test_select_minute_nil_with_blank
     expected = %(<select name="date[minute]">\n)
     expected << %(<option></option>\n<option>00</option>\n<option>01</option>\n<option>02</option>\n<option>03</option>\n<option>04</option>\n<option>05</option>\n<option>06</option>\n<option>07</option>\n<option>08</option>\n<option>09</option>\n<option>10</option>\n<option>11</option>\n<option>12</option>\n<option>13</option>\n<option>14</option>\n<option>15</option>\n<option>16</option>\n<option>17</option>\n<option>18</option>\n<option>19</option>\n<option>20</option>\n<option>21</option>\n<option>22</option>\n<option>23</option>\n<option>24</option>\n<option>25</option>\n<option>26</option>\n<option>27</option>\n<option>28</option>\n<option>29</option>\n<option>30</option>\n<option>31</option>\n<option>32</option>\n<option>33</option>\n<option>34</option>\n<option>35</option>\n<option>36</option>\n<option>37</option>\n<option>38</option>\n<option>39</option>\n<option>40</option>\n<option>41</option>\n<option>42</option>\n<option>43</option>\n<option>44</option>\n<option>45</option>\n<option>46</option>\n<option>47</option>\n<option>48</option>\n<option>49</option>\n<option>50</option>\n<option>51</option>\n<option>52</option>\n<option>53</option>\n<option>54</option>\n<option>55</option>\n<option>56</option>\n<option>57</option>\n<option>58</option>\n<option>59</option>\n)
@@ -172,6 +180,14 @@ class DateHelperTest < Test::Unit::TestCase
     assert_equal expected, select_minute(nil, :include_blank => true)
   end
 
+  def test_select_minute_nil_with_blank_and_step
+    expected = %(<select name="date[minute]">\n)
+    expected << %(<option></option>\n<option>00</option>\n<option>15</option>\n<option>30</option>\n<option>45</option>\n)
+    expected << "</select>\n"
+
+    assert_equal expected, select_minute(nil, { :include_blank => true , :minute_step => 15 })
+  end
+  
   def test_select_second
     expected = %(<select name="date[second]">\n)
     expected << %(<option>00</option>\n<option>01</option>\n<option>02</option>\n<option>03</option>\n<option>04</option>\n<option>05</option>\n<option>06</option>\n<option>07</option>\n<option>08</option>\n<option>09</option>\n<option>10</option>\n<option>11</option>\n<option>12</option>\n<option>13</option>\n<option>14</option>\n<option>15</option>\n<option>16</option>\n<option>17</option>\n<option selected="selected">18</option>\n<option>19</option>\n<option>20</option>\n<option>21</option>\n<option>22</option>\n<option>23</option>\n<option>24</option>\n<option>25</option>\n<option>26</option>\n<option>27</option>\n<option>28</option>\n<option>29</option>\n<option>30</option>\n<option>31</option>\n<option>32</option>\n<option>33</option>\n<option>34</option>\n<option>35</option>\n<option>36</option>\n<option>37</option>\n<option>38</option>\n<option>39</option>\n<option>40</option>\n<option>41</option>\n<option>42</option>\n<option>43</option>\n<option>44</option>\n<option>45</option>\n<option>46</option>\n<option>47</option>\n<option>48</option>\n<option>49</option>\n<option>50</option>\n<option>51</option>\n<option>52</option>\n<option>53</option>\n<option>54</option>\n<option>55</option>\n<option>56</option>\n<option>57</option>\n<option>58</option>\n<option>59</option>\n)
