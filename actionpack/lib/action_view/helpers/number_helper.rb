@@ -35,13 +35,13 @@ module ActionView
       # Examples:
       #    number_to_currency(1234567890.50)     => $1,234,567,890.50
       #    number_to_currency(1234567890.506)    => $1,234,567,890.51
-      #    number_to_currency(1234567890.50, {:unit => "&pound;", :separator => ",", :delimiter => ""}) => &pound;123456789,50
+      #    number_to_currency(1234567890.50, {:unit => "&pound;", :separator => ",", :delimiter => ""}) => &pound;1234567890,50
       def number_to_currency(number, options = {})
         options = options.stringify_keys
         precision, unit, separator, delimiter = options.delete("precision") { 2 }, options.delete("unit") { "$" }, options.delete("separator") { "." }, options.delete("delimiter") { "," }
         begin
           parts = number_with_precision(number, precision).split('.')
-          unit + number_with_delimiter(parts[0]) + separator + parts[1].to_s
+          unit + number_with_delimiter(parts[0], delimiter) + separator + parts[1].to_s
         rescue
           number
         end
@@ -72,9 +72,9 @@ module ActionView
 
       # Formats a +number+ with a +delimiter+.
       # Example:
-      #    number_with_delimiter(12345678) => 1,235,678
+      #    number_with_delimiter(12345678) => 12,345,678
       def number_with_delimiter(number, delimiter=",")
-        number.gsub(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{delimiter}")
+        number.to_s.gsub(/(\d)(?=(\d\d\d)+(?!\d))/, "\\1#{delimiter}")
       end
 
       # Returns a formatted-for-humans file size.
