@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :confirm option to link_to_remote just like link_to has #1082 [yrashk@fp.org.ua]
+
 * Added minute_step as an option to select_minute (and the helpers that use it) to jump in larger increments than just 1 minute. At 15, it would return 0, 15, 30, 45 options #1085 [ordwaye@evergreen.edu]
 
 * Fixed that an exception would be thrown when an empty form was submitted #1090 [jan@ulbrich-boerwang.de]
