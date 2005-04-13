@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed pagination to work with joins #1034 [scott@sigkill.org]
+
 * Fixed that *rest parameter in map.connect couldn't accept an empty list #1037 [Dee.Zsombor@gmail.com]
 
 * Added :confirm option to link_to_remote just like link_to has #1082 [yrashk@fp.org.ua]

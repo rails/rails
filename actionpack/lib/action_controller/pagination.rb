@@ -150,8 +150,8 @@ module ActionController
     # Returns the total number of items in the collection to be paginated for
     # the +model+ and given +conditions+. Override this method to implement a
     # custom counter.
-    def count_collection_for_pagination(model, conditions)
-      model.count(conditions)
+    def count_collection_for_pagination(model, conditions, joins)
+      model.count(conditions,joins)
     end
   
     # Returns a collection of items for the given +model+ and +conditions+,
@@ -168,7 +168,7 @@ module ActionController
     def paginator_and_collection_for(collection_id, options) #:nodoc:
       klass = options[:class_name].constantize
       page  = @params[options[:parameter]]
-      count = count_collection_for_pagination(klass, options[:conditions])
+      count = count_collection_for_pagination(klass, options[:conditions], options[:join])
 
       paginator = Paginator.new(self, count, options[:per_page], page)
       
