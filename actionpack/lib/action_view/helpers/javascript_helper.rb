@@ -92,6 +92,20 @@ module ActionView
 
         tag("form", options[:html], true)
       end
+      
+      # Returns a button input tag that will submit form using XMLHttpRequest in tghe background instead of regular
+      # reloading POST arrangement. <tt>options</tt> argument is the same as in <tt>form_remote_tag</tt>
+      def submit_to_remote(name,value,options = {})
+	options[:with] = 'Form.serialize(this.form)'
+
+	options[:html] ||= {}
+	options[:html][:type] = 'button'
+	options[:html][:onclick] = "#{remote_function(options)}; return false;"
+	options[:html][:name] = name
+	options[:html][:value] = value
+	
+	tag("input", options[:html], false)
+      end
 
       def remote_function(options) #:nodoc: for now
         javascript_options = options_for_ajax(options)

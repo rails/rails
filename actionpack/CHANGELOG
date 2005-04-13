@@ -1,5 +1,7 @@
 *SVN*
 
+* Added submit_to_remote that allows you to trigger an Ajax form submition at the click of the submission button, which allows for multiple targets in a single form through the use of multiple submit buttons #930 [yrashk@gmail.com]
+
 * Fixed pagination to work with joins #1034 [scott@sigkill.org]
 
 * Fixed that *rest parameter in map.connect couldn't accept an empty list #1037 [Dee.Zsombor@gmail.com]
