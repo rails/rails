@@ -46,7 +46,7 @@ module ActiveRecord
         end
 
         def construct_sql
-          @finder_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id}#{@options[:conditions] ? " AND " + @options[:conditions] : ""}"
+          @finder_sql = "#{@association_class.table_name}.#{@association_class_primary_key_name} = #{@owner.quoted_id}#{@options[:conditions] ? " AND " + @options[:conditions] : ""}"
         end
     end
   end

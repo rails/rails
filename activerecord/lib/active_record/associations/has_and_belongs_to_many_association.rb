@@ -156,7 +156,7 @@ module ActiveRecord
               "j.#{@association_class_primary_key_name} = #{@owner.quoted_id} "
             
             @finder_sql << " AND #{interpolate_sql(@options[:conditions])}" if @options[:conditions]
-            @finder_sql << "ORDER BY #{@order}" if @order
+            @finder_sql << " ORDER BY #{@order}" if @order
           end
         end
     end

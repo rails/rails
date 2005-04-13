@@ -112,7 +112,7 @@ module ActiveRecord
           else
             ids = quoted_record_ids(records)
             @association_class.update_all(
-              "#{@association_class_primary_key_name} = NULL", 
+              "#{@association_class.table_name}.#{@association_class_primary_key_name} = NULL", 
               "#{@association_class_primary_key_name} = #{@owner.quoted_id} AND #{@association_class.primary_key} IN (#{ids})"
             )
           end
@@ -126,7 +126,7 @@ module ActiveRecord
           if @options[:finder_sql]
             @finder_sql = interpolate_sql(@options[:finder_sql])
           else
-            @finder_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id}"
+            @finder_sql = "#{@association_class.table_name}.#{@association_class_primary_key_name} = #{@owner.quoted_id}"
             @finder_sql << " AND #{interpolate_sql(@conditions)}" if @conditions
           end
 
@@ -136,7 +136,7 @@ module ActiveRecord
             @options[:counter_sql] = @options[:finder_sql].gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
             @counter_sql = interpolate_sql(@options[:counter_sql])
           else
-            @counter_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id}"
+            @counter_sql = "#{@association_class.table_name}.#{@association_class_primary_key_name} = #{@owner.quoted_id}"
             @counter_sql << " AND #{interpolate_sql(@conditions)}" if @conditions
           end
         end

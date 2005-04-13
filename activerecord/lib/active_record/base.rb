@@ -737,7 +737,7 @@ module ActiveRecord #:nodoc:
             condition << "OR #{table_name}.#{inheritance_column} = '#{subclass.name.demodulize}' "
           end
           
-          return " (#{type_condition})"
+          return " (#{type_condition}) "
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
