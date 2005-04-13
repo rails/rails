@@ -178,3 +178,11 @@ task :purge_test_database => :environment do
       raise "Unknown database adapter '#{abcs["test"]["adapter"]}'"
   end
 end
+
+desc "Clears all *.log files in log/"
+task :clear_logs => :environment do
+  FileList["log/*.log"].each do |log_file|
+    f = File.open(log_file, "w")
+    f.close
+  end
+end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Rake target clear_logs that'll truncate all the *.log files in log/ to zero #1079 [Lucas Carlson]
+
 * Added lazy typing for generate, such that ./script/generate cn == ./script/generate controller and the likes #1051 [k@v2studio.com]
 
 * Fixed that ownership is brought over in pg_dump during tests for PostgreSQL #1060 [pburleson@gmail.com]
