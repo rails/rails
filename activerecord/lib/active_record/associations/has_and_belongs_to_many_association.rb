@@ -7,7 +7,7 @@ module ActiveRecord
         @association_foreign_key = options[:association_foreign_key] || Inflector.underscore(Inflector.demodulize(association_class_name)) + "_id"
         @association_table_name = options[:table_name] || @association_class.table_name
         @join_table = options[:join_table]
-        @order = options[:order] || "t.#{@association_class.primary_key}"
+        @order = options[:order]
 
         construct_sql
       end
@@ -146,12 +146,18 @@ module ActiveRecord
 
         def construct_sql
           interpolate_sql_options!(@options, :finder_sql, :delete_sql)
-          @finder_sql = @options[:finder_sql] ||
-                "SELECT t.*, j.* FROM #{@join_table} j, #{@association_table_name} t " +
-                "WHERE t.#{@association_class.primary_key} = j.#{@association_foreign_key} AND " +
-                "j.#{@association_class_primary_key_name} = #{@owner.quoted_id} " +
-                (@options[:conditions] ? " AND " + interpolate_sql(@options[:conditions]) : "") + " " +
-                "ORDER BY #{@order}"
+          
+          if @options[:finder_sql]
+            @finder_sql = @options[:finder_sql]
+          else
+            @finder_sql = 
+              "SELECT t.*, j.* FROM #{@join_table} j, #{@association_table_name} t " +
+              "WHERE t.#{@association_class.primary_key} = j.#{@association_foreign_key} AND " +
+              "j.#{@association_class_primary_key_name} = #{@owner.quoted_id} "
+            
+            @finder_sql << " AND #{interpolate_sql(@options[:conditions])}" if @options[:conditions]
+            @finder_sql << "ORDER BY #{@order}" if @order
+          end
         end
     end
   end
