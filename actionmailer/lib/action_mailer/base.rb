@@ -168,9 +168,9 @@ module ActionMailer #:nodoc:
       def quote_address_if_necessary(address, charset)
         if Array === address
           address.map { |a| quote_address_if_necessary(a, charset) }
-        elsif address =~ /^(\S.+)\s+(<.*>)$/
+        elsif address =~ /^(\S.*)\s+(<.*>)$/
           address = $2
-          phrase = quote_if_necessary($1, charset)
+          phrase = quote_if_necessary($1.gsub(/^['"](.*)['"]$/, '\1'), charset)
           "#{phrase} #{address}"
         else
           address

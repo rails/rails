@@ -66,11 +66,11 @@ class TestMailer < ActionMailer::Base
   def utf8_body(recipient)
     @recipients = recipient
     @subject    = "testing utf-8 body"
-    @from       = "김치통 <kimchi@example.net.kr>"
+    @from       = "Foo áëô îü <extended@example.net>"
     @sent_on    = Time.local 2004, 12, 12
-    @cc         = "김치통 <kimchi@example.net.kr>"
-    @bcc        = "김치통 <kimchi@example.net.kr>"
-    @body       = "안녕하세요!"
+    @cc         = "Foo áëô îü <extended@example.net>"
+    @bcc        = "Foo áëô îü <extended@example.net>"
+    @body       = "åœö blah"
     @charset    = "utf-8"
   end
 end
@@ -277,34 +277,34 @@ EOF
   end
   
   def test_utf8_body_is_not_quoted
-    @recipient = "김치통 <kimchi@example.net.kr>"
+    @recipient = "Foo áëô îü <extended@example.net>"
     expected = new_mail "utf-8"
     expected.to      = TestMailer.quote_address_if_necessary @recipient, "utf-8"
     expected.subject = "testing utf-8 body"
-    expected.body    = "안녕하세요!"
+    expected.body    = "åœö blah"
     expected.from    = TestMailer.quote_address_if_necessary @recipient, "utf-8"
     expected.cc      = TestMailer.quote_address_if_necessary @recipient, "utf-8"
     expected.bcc     = TestMailer.quote_address_if_necessary @recipient, "utf-8"
     expected.date    = Time.local 2004, 12, 12
 
     created = TestMailer.create_utf8_body @recipient
-    assert_match(/안녕하세요!/, created.encoded)
+    assert_match(/åœö blah/, created.encoded)
   end
 
   def test_multiple_utf8_recipients
-    @recipient = ["김치통 <kimchi@example.net.kr>", "\"Example Recipient\" <me@example.com>"]
+    @recipient = ["\"Foo áëô îü\" <extended@example.net>", "\"Example Recipient\" <me@example.com>"]
     expected = new_mail "utf-8"
     expected.to      = TestMailer.quote_address_if_necessary @recipient, "utf-8"
     expected.subject = "testing utf-8 body"
-    expected.body    = "안녕하세요!"
+    expected.body    = "åœö blah"
     expected.from    = TestMailer.quote_address_if_necessary @recipient.first, "utf-8"
     expected.cc      = TestMailer.quote_address_if_necessary @recipient, "utf-8"
     expected.bcc     = TestMailer.quote_address_if_necessary @recipient, "utf-8"
     expected.date    = Time.local 2004, 12, 12
 
     created = TestMailer.create_utf8_body @recipient
-    assert_match(/\nFrom: =\?.*?\?= <kimchi@example.net.kr>\r/, created.encoded)
-    assert_match(/\nTo: =\?.*?\?= <kimchi.*?>, Example Recipient <me/, created.encoded)
+    assert_match(/\nFrom: =\?utf-8\?Q\?Foo_.*?\?= <extended@example.net>\r/, created.encoded)
+    assert_match(/\nTo: =\?utf-8\?Q\?Foo_.*?\?= <extended@example.net>, Example Recipient <me/, created.encoded)
   end
 
 end
