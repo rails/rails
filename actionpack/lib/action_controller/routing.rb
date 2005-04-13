@@ -119,7 +119,11 @@ module ActionController
             options[:controller] = controller_class.controller_path
             return nil, requirements_for(:controller) unless passes_requirements?(:controller, options[:controller])
           elsif /^\*/ =~ item.to_s
-            value = components.empty? ? @defaults[item].clone : components.clone
+            if components.empty?
+              value = @defaults.has_key?(item) ? @defaults[item].clone : []
+            else
+              value = components.clone
+            end
             value.collect! {|c| CGI.unescape c}
             components = []
             def value.to_s() self.join('/') end

@@ -343,7 +343,10 @@ class RouteTests < Test::Unit::TestCase
 	{})
   end
 
-
+  def test_path_empty_list
+    route '*a', :controller => 'content'
+    verify_recognize '', :controller => 'content', :a => []
+  end
   
   def test_special_characters
     route ':id', :controller => 'content', :action => 'fish'
