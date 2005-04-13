@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed boolean saving on Oracle #1093 [mparrish@pearware.org]
+
 * Moved build_association and create_association for has_one and belongs_to out of deprecation as they work when the association is nil unlike association.build and association.create, which require the association to be already in place #864
 
 * Added rollbacks of transactions if they're active as the dispatcher is killed gracefully (TERM signal) #1054 [Leon Bredt]

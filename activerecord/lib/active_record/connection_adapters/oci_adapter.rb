@@ -45,7 +45,7 @@ begin
           return nil if value.nil? || value =~ /^\s*null\s*$/i
           case type
           when :string   then value
-          when :integer  then value.to_i
+          when :integer  then defined?(value.to_i) ? value.to_i : (value ? 1 : 0)
           when :float    then value.to_f
           when :datetime then cast_to_date_or_time(value)
           when :time     then cast_to_time(value)
