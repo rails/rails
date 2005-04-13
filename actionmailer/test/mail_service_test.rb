@@ -289,7 +289,23 @@ EOF
 
     created = TestMailer.create_utf8_body @recipient
     assert_match(/안녕하세요!/, created.encoded)
-   end
+  end
+
+  def test_multiple_utf8_recipients
+    @recipient = ["김치통 <kimchi@example.net.kr>", "\"Example Recipient\" <me@example.com>"]
+    expected = new_mail "utf-8"
+    expected.to      = TestMailer.quote_address_if_necessary @recipient, "utf-8"
+    expected.subject = "testing utf-8 body"
+    expected.body    = "안녕하세요!"
+    expected.from    = TestMailer.quote_address_if_necessary @recipient.first, "utf-8"
+    expected.cc      = TestMailer.quote_address_if_necessary @recipient, "utf-8"
+    expected.bcc     = TestMailer.quote_address_if_necessary @recipient, "utf-8"
+    expected.date    = Time.local 2004, 12, 12
+
+    created = TestMailer.create_utf8_body @recipient
+    assert_match(/\nFrom: =\?.*?\?= <kimchi@example.net.kr>\r/, created.encoded)
+    assert_match(/\nTo: =\?.*?\?= <kimchi.*?>, Example Recipient <me/, created.encoded)
+  end
 
 end
 

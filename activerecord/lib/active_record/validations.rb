@@ -369,27 +369,27 @@ module ActiveRecord
         # Declare different validations per option.
         case range_options.first
         when :within, :in
-          raise ArgumentError, ':within must be a Range' unless option_value.is_a?(Range)
+          raise ArgumentError, ':within must be a Range' unless option_value.is_a?(Range) # '
           validates_each(attrs, options) do |record, attr|
             next if record.send(attr).nil? and options[:allow_nil]
             record.errors.add_on_boundary_breaking(attr, option_value, options[:too_long], options[:too_short])
           end
         when :is
-          raise ArgumentError, ':is must be a nonnegative Integer' unless option_value.is_a?(Integer) and option_value >= 0
+          raise ArgumentError, ':is must be a nonnegative Integer' unless option_value.is_a?(Integer) and option_value >= 0 # '
           message = options[:message] || options[:wrong_length]
           message = (message % option_value) rescue message
           validates_each(attrs, options) do |record, attr, value|
             record.errors.add(attr, message) if value.nil? or value.size != option_value
           end
         when :minimum
-          raise ArgumentError, ':minimum must be a nonnegative Integer' unless option_value.is_a?(Integer) and option_value >= 0
+          raise ArgumentError, ':minimum must be a nonnegative Integer' unless option_value.is_a?(Integer) and option_value >= 0 # '
           message = options[:message] || options[:too_short]
           message = (message % option_value) rescue message
           validates_each(attrs, options) do |record, attr, value|
             record.errors.add(attr, message) if value.nil? or value.size < option_value
           end
         when :maximum
-          raise ArgumentError, ':maximum must be a nonnegative Integer' unless option_value.is_a?(Integer) and option_value >= 0
+          raise ArgumentError, ':maximum must be a nonnegative Integer' unless option_value.is_a?(Integer) and option_value >= 0 # '
           message = options[:message] || options[:too_long]
           message = (message % option_value) rescue message
           validates_each(attrs, options) do |record, attr, value|

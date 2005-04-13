@@ -166,7 +166,9 @@ module ActionMailer #:nodoc:
       # it needs to be. This allows extended characters to be used in the
       # "to", "from", "cc", and "bcc" headers.
       def quote_address_if_necessary(address, charset)
-        if address =~ /^([^<>\s]+) (<.*>)$/
+        if Array === address
+          address.map { |a| quote_address_if_necessary(a, charset) }
+        elsif address =~ /^(\S.+)\s+(<.*>)$/
           address = $2
           phrase = quote_if_necessary($1, charset)
           "#{phrase} #{address}"
