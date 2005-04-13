@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that an exception would be thrown when an empty form was submitted #1090 [jan@ulbrich-boerwang.de]
+
 * Moved TextHelper#human_size to NumberHelper#number_to_human_size, but kept an deprecated alias to the old method name
 
 * Fixed that the content-type for some browsers could include an additional \r which made wonky things happen #1067 [Thomas Fuchs]

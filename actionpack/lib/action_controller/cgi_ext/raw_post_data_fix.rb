@@ -11,7 +11,7 @@ class CGI #:nodoc:
         @params = read_multipart(boundary, Integer(env_table['CONTENT_LENGTH']))
       else
         @multipart = false
-        @params = CGI::parse(read_query_params)
+        @params = CGI::parse(read_query_params || "")
       end
       
       @cookies = CGI::Cookie::parse((env_table['HTTP_COOKIE'] || env_table['COOKIE']))
