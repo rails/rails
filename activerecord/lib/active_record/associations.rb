@@ -557,6 +557,7 @@ module ActiveRecord
           end
 
           define_method("set_#{association_name}_target") do |target|
+            return if target.nil?
             association = association_proxy_class.new(self,
               association_name, association_class_name,
               association_class_primary_key_name, options)

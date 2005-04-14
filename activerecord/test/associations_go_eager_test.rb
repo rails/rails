@@ -29,6 +29,10 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_equal 2, posts.first.comments.size
   end
 
+  def test_loading_with_no_associations
+    assert_nil Post.find(@authorless.id, :include => :author).author
+  end
+
   def test_eager_association_loading_with_belongs_to
     comments = Comment.find(:all, :include => :post)
     assert_equal @welcome.title, comments.first.post.title
