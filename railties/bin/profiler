@@ -1,0 +1,14 @@
+#!/usr/local/bin/ruby
+
+if ARGV.empty?
+  puts "Usage: profiler 'Person.expensive_method(10)' [times]"
+  exit
+end
+
+require File.dirname(__FILE__) + '/../config/environment'
+require "profiler"
+
+Profiler__::start_profile
+(ARGV[1] || 1).to_i.times { eval(ARGV.first) }
+Profiler__::stop_profile
+Profiler__::print_profile($stdout)

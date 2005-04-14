@@ -1,5 +1,19 @@
 *SVN*
 
+* Added script/benchmarker to easily benchmark one or more statement a number of times from within the environment. Examples:
+
+    # runs the one statement 10 times
+    script/benchmarker 10 'Person.expensive_method(10)'
+    
+    # pits the two statements against each other with 50 runs each
+    script/benchmarker 50 'Person.expensive_method(10)' 'Person.cheap_method(10)'
+
+
+* Added script/profiler to easily profile a single statement from within the environment. Examples:
+
+    script/profiler 'Person.expensive_method(10)'
+    script/profiler 'Person.expensive_method(10)' 10 # runs the statement 10 times
+
 * Added Rake target clear_logs that'll truncate all the *.log files in log/ to zero #1079 [Lucas Carlson]
 
 * Added lazy typing for generate, such that ./script/generate cn == ./script/generate controller and the likes #1051 [k@v2studio.com]
