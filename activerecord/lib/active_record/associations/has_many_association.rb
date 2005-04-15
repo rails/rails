@@ -66,6 +66,7 @@ module ActiveRecord
           end
         else
           options[:conditions] = @finder_sql + (options[:conditions] ? " AND #{options[:conditions]}" : "")
+          options[:order] = options[:order] ? "#{options[:order]}, #{@options[:order]}" : @options[:order]
           @association_class.find(args.size == 1 ? args.first : args, options)
         end
       end
