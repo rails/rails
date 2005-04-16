@@ -95,7 +95,7 @@ module ActionWebService # :nodoc:
                 message = "Exception raised"
                 backtrace = ""
               end
-              render_text("Internal protocol error: #{message}#{backtrace}", "500 #{message}")
+              render_text("Internal protocol error: #{message}#{backtrace}", "500 Internal Protocol Error")
             end
           end
 
