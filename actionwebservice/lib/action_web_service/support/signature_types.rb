@@ -2,6 +2,9 @@ module ActionWebService # :nodoc:
   module SignatureTypes # :nodoc:
     def canonical_signature(signature)
       return nil if signature.nil?
+      unless signature.is_a?(Array)
+        raise(ActionWebServiceError, "Expected signature to be an Array")
+      end
       i = -1
       signature.map{ |spec| canonical_signature_entry(spec, i += 1) }
     end

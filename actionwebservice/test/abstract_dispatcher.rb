@@ -344,6 +344,15 @@ module DispatcherCommonTests
       assert !person.equal?(@direct_controller.struct_pass_value)
     end
     assert_equal person, do_method_call(@direct_controller, 'HashStructReturn')[0]
+    result = do_method_call(@direct_controller, 'StructPass', {'id' => '1', 'name' => 'test', 'nonexistent_attribute' => 'value'})
+    case @protocol
+    when ActionWebService::Protocol::Soap::SoapProtocol
+      assert_equal(person, @direct_controller.struct_pass_value)
+      assert !person.equal?(@direct_controller.struct_pass_value)
+    when ActionWebService::Protocol::XmlRpc::XmlRpcProtocol
+      assert_equal(person, @direct_controller.struct_pass_value)
+      assert !person.equal?(@direct_controller.struct_pass_value)
+    end
   end
 
   def test_logging

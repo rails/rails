@@ -73,6 +73,9 @@ module ActionWebService # :nodoc:
             invocation.service = web_service_object(invocation.service_name)
             invocation.api = invocation.service.class.web_service_api
           end
+          if invocation.api.nil?
+            raise(DispatcherError, "no API attached to #{invocation.service.class}")
+          end
           invocation.protocol.register_api(invocation.api)
           request.api = invocation.api
           if invocation.api.has_public_api_method?(public_method_name)

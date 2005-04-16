@@ -58,6 +58,9 @@ module ActionWebService # :nodoc:
         # [<tt>:returns</tt>]             Signature for the method return value
         # [<tt>:expects_and_returns</tt>] Signature for both input parameters and return value
         def api_method(name, options={})
+          unless options.is_a?(Hash)
+            raise(ActionWebServiceError, "Expected a Hash for options")
+          end
           validate_options([:expects, :returns, :expects_and_returns], options.keys)
           if options[:expects_and_returns]
             expects = options[:expects_and_returns]

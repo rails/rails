@@ -93,12 +93,12 @@ module ActionWebService # :nodoc:
             value.each_pair do |name, val|
               type = klass.respond_to?(:member_type) ? klass.member_type(name) : nil
               val = cast(val, type) if type
-              obj.__send__("#{name}=", val)
+              obj.__send__("#{name}=", val) if obj.respond_to?(name)
             end
           elsif value.respond_to?(:attributes)
             signature_type.each_member do |name, type|
               val = value.__send__(name)
-              obj.__send__("#{name}=", cast(val, type))
+              obj.__send__("#{name}=", cast(val, type)) if obj.respond_to?(name)
             end
           else
             raise CastingError, "Don't know how to cast #{value.class} to #{signature_type.type_class}"
