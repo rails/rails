@@ -378,8 +378,8 @@ module ActiveRecord
         end
       end
 
-      def create_table(name)
-        execute "CREATE TABLE #{name} (id #{native_database_types[:primary_key]})"
+      def create_table(name, options = "")
+        execute "CREATE TABLE #{name} (id #{native_database_types[:primary_key]}) #{options}"
         table_definition = yield TableDefinition.new
         table_definition.columns.each { |column_name, type, options| add_column(name, column_name, type, options) }
       end

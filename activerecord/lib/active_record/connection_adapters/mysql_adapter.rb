@@ -190,6 +190,10 @@ module ActiveRecord
         execute "CREATE DATABASE #{name}"
       end
 
+      
+      def create_table(name)
+        super(name, "ENGINE=InnoDB")
+      end
 
       private
         def select(sql, name = nil)
