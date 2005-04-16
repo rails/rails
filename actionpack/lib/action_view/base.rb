@@ -264,6 +264,7 @@ module ActionView #:nodoc:
       def evaluate_locals(local_assigns = {})
         b = binding
 
+        local_assigns.stringify_keys!
         local_assigns.each { |key, value| eval "#{key} = local_assigns[\"#{key}\"]", b }
         @assigns.each { |key, value| instance_variable_set "@#{key}", value }
         xml = Builder::XmlMarkup.new(:indent => 2)

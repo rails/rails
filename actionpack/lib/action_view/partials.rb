@@ -31,11 +31,12 @@ module ActionView
   #
   # This will render the partial "advertisement/_ad.rhtml" regardless of which controller this is being called from.
   module Partials
-    def render_partial(partial_path, object = nil, local_assigns = {})
+    def render_partial(partial_path, local_assigns = {}, deprecated_local_assigns = {})
       path, partial_name = partial_pieces(partial_path)
-      object ||= controller.instance_variable_get("@#{partial_name}")
-      counter_name  = partial_counter_name(partial_name)
-      local_assigns = local_assigns.merge(counter_name => 1) unless local_assigns.has_key?(counter_name)
+      object = extracting_object(partial_name, local_assigns, deprecated_local_assigns)
+      local_assigns = extract_local_assigns(local_assigns, deprecated_local_assigns)
+      add_counter_to_local_assigns!(partial_name, local_assigns)
+
       render("#{path}/_#{partial_name}", { partial_name => object }.merge(local_assigns))
     end
 
@@ -68,6 +69,24 @@ module ActionView
 
       def partial_counter_name(partial_name)
         "#{partial_name.split('/').last}_counter"
+      end
+      
+      def extracting_object(partial_name, local_assigns, deprecated_local_assigns)
+        if local_assigns.is_a?(Hash) || local_assigns.nil?
+          controller.instance_variable_get("@#{partial_name}")
+        else
+          # deprecated form where object could be passed in as second parameter
+          local_assigns
+        end
+      end
+      
+      def extract_local_assigns(local_assigns, deprecated_local_assigns)
+        local_assigns.is_a?(Hash) ? local_assigns : deprecated_local_assigns
+      end
+      
+      def add_counter_to_local_assigns!(partial_name, local_assigns)
+        counter_name = partial_counter_name(partial_name)
+        local_assigns[counter_name] = 1 unless local_assigns.has_key?(counter_name)
       end
   end
 end
