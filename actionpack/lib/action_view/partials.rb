@@ -1,14 +1,25 @@
 module ActionView
   # There's also a convenience method for rendering sub templates within the current controller that depends on a single object 
   # (we call this kind of sub templates for partials). It relies on the fact that partials should follow the naming convention of being 
-  # prefixed with an underscore -- as to separate them from regular templates that could be rendered on their own. In the template for 
-  # Advertiser#buy, we could have:
+  # prefixed with an underscore -- as to separate them from regular templates that could be rendered on their own. 
+  #
+  # In a template for Advertiser#account:
+  #
+  #  <%= render_partial "account" %>
+  #
+  # This would render "advertiser/_account.rhtml" and pass the instance variable @account in as a local variable +account+ to 
+  # the template for display.
+  #
+  # In another template for Advertiser#buy, we could have:
+  #
+  #   <%= render_partial "account", :account => @buyer %>
   #
   #   <% for ad in @advertisements %>
-  #     <%= render_partial "ad", ad %>
+  #     <%= render_partial "ad", :ad => ad %>
   #   <% end %>
   #
-  # This would render "advertiser/_ad.rhtml" and pass the local variable +ad+ to the template for display.
+  # This would first render "advertiser/_account.rhtml" with @buyer passed in as the local variable +account+, then render 
+  # "advertiser/_ad.rhtml" and pass the local variable +ad+ to the template for display.
   #
   # == Rendering a collection of partials
   #
@@ -27,7 +38,7 @@ module ActionView
   #
   # Two controllers can share a set of partials and render them like this:
   #
-  #   <%= render_partial "advertisement/ad", ad %>
+  #   <%= render_partial "advertisement/ad", :ad => @advertisement %>
   #
   # This will render the partial "advertisement/_ad.rhtml" regardless of which controller this is being called from.
   module Partials

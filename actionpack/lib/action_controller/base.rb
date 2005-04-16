@@ -242,7 +242,7 @@ module ActionController #:nodoc:
     cattr_accessor :ignore_missing_templates
 
     # Holds the request object that's primarily used to get environment variables through access like
-    # <tt>@request.env["REQUEST_URI"]</tt>.
+    # <tt>request.env["REQUEST_URI"]</tt>.
     attr_accessor :request
     
     # Holds a hash of all the GET, POST, and Url parameters passed to the action. Accessed like <tt>@params["post_id"]</tt>
@@ -250,16 +250,16 @@ module ActionController #:nodoc:
     attr_accessor :params
     
     # Holds the response object that's primarily used to set additional HTTP headers through access like 
-    # <tt>@response.headers["Cache-Control"] = "no-cache"</tt>. Can also be used to access the final body HTML after a template
-    # has been rendered through @response.body -- useful for <tt>after_filter</tt>s that wants to manipulate the output,
+    # <tt>response.headers["Cache-Control"] = "no-cache"</tt>. Can also be used to access the final body HTML after a template
+    # has been rendered through response.body -- useful for <tt>after_filter</tt>s that wants to manipulate the output,
     # such as a OutputCompressionFilter.
     attr_accessor :response
     
-    # Holds a hash of objects in the session. Accessed like <tt>@session["person"]</tt> to get the object tied to the "person"
+    # Holds a hash of objects in the session. Accessed like <tt>session[:person]</tt> to get the object tied to the "person"
     # key. The session will hold any type of object as values, but the key should be a string.
     attr_accessor :session
     
-    # Holds a hash of header names and values. Accessed like <tt>@headers["Cache-Control"]</tt> to get the value of the Cache-Control
+    # Holds a hash of header names and values. Accessed like <tt>headers["Cache-Control"]</tt> to get the value of the Cache-Control
     # directive. Values should always be specified as strings.
     attr_accessor :headers
     
