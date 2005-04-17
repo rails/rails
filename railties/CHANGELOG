@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that purge_test_database would use database settings from the development environment when recreating the test database #1122 [rails@cogentdude.com]
+
 * Added script/benchmarker to easily benchmark one or more statement a number of times from within the environment. Examples:
 
     # runs the one statement 10 times

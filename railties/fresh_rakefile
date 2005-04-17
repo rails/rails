@@ -164,7 +164,7 @@ task :purge_test_database => :environment do
   abcs = ActiveRecord::Base.configurations
   case abcs["test"]["adapter"]
     when "mysql"
-      ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
+      ActiveRecord::Base.establish_connection(:test)
       ActiveRecord::Base.connection.recreate_database(abcs["test"]["database"])
     when "postgresql"
       ENV['PGHOST']     = abcs["test"]["host"] if abcs["test"]["host"]
