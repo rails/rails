@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed url_for(nil) in functional tests #1116 [Alisdair McDiarmid]
+
 * Fixed error handling of broken layouts #1115 [Michael Schubert]
 
 * Changed render_partial to take local assigns as the second parameter instead of an explicit object and then the assigns. So the API changes from:

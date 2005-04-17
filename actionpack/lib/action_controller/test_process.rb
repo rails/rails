@@ -254,7 +254,8 @@ module Test
         def process(action, parameters = nil, session = nil, flash = nil)
           @request.env['REQUEST_METHOD'] ||= "GET"
           @request.action = action.to_s
-          @request.path_parameters = { :controller => @controller.class.controller_path }
+          @request.path_parameters = { :controller => @controller.class.controller_path,
+                                       :action => action.to_s }
           @request.parameters.update(parameters) unless parameters.nil?
           @request.session = ActionController::TestSession.new(session) unless session.nil?
           @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
