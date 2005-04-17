@@ -203,7 +203,6 @@ module ActiveRecord
               end
             end
           end
-
           log(sql, name, @connection) do |conn|
             conn.execute(sql)
             select_one("SELECT @@IDENTITY AS Ident")["Ident"]
@@ -362,7 +361,7 @@ module ActiveRecord
         end
 
         def query_contains_identity_column(sql, col)
-          return sql =~ /[\(\.\,]\s*#{col}/
+          return sql =~ /[\[.,]\s*#{col}/
         end
 
         def get_order_by(sql)
