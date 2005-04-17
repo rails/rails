@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed page caching for non-vhost applications living underneath the root #1004 [Ben Schumacher]
+
 * Fixes a problem with the SQL Adapter which was resulting in IDENTITY_INSERT not being set to ON when it should be #1104 [adelle]
 
 * Added the option to specify the acceptance string in validates_acceptance_of #1106 [caleb@aei-tech.com]

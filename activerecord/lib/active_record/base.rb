@@ -55,7 +55,7 @@ module ActiveRecord #:nodoc:
   # Active Records accepts constructor parameters either in a hash or as a block. The hash method is especially useful when
   # you're receiving the data from somewhere else, like a HTTP request. It works like this:
   # 
-  #   user = User.new("name" => "David", "occupation" => "Code Artist")
+  #   user = User.new(:name => "David", :occupation => "Code Artist")
   #   user.name # => "David"
   # 
   # You can also use block initialization:
@@ -112,14 +112,17 @@ module ActiveRecord #:nodoc:
   #     # Uses an integer of seconds to hold the length of the song
   #     
   #     def length=(minutes)
-  #       write_attribute("length", minutes * 60)
+  #       write_attribute(:length, minutes * 60)
   #     end
   #     
   #     def length
-  #       read_attribute("length") / 60
+  #       read_attribute(:length) / 60
   #     end
   #   end
   # 
+  # You can alternatively use self[:attribute]=(value) and self[:attribute] instead of write_attribute(:attribute, vaule) and
+  # read_attribute(:attribute) as a shorter form.
+  #
   # == Accessing attributes before they have been type casted
   #
   # Some times you want to be able to read the raw attribute data without having the column-determined type cast run its course first.
@@ -134,16 +137,16 @@ module ActiveRecord #:nodoc:
   #
   # Dynamic attribute-based finders are a cleaner way of getting objects by simple queries without turning to SQL. They work by
   # appending the name of an attribute to <tt>find_by_</tt>, so you get finders like <tt>Person.find_by_user_name, Payment.find_by_transaction_id</tt>.
-  # So instead of writing <tt>Person.find_first(["user_name = ?", user_name])</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
+  # So instead of writing <tt>Person.find(:first, ["user_name = ?", user_name])</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
   # 
   # It's also possible to use multiple attributes in the same find by separating them with "_and_", so you get finders like
   # <tt>Person.find_by_user_name_and_password</tt> or even <tt>Payment.find_by_purchaser_and_state_and_country</tt>. So instead of writing
-  # <tt>Person.find_first(["user_name = ? AND password = ?", user_name, password])</tt>, you just do 
+  # <tt>Person.find(:first, ["user_name = ? AND password = ?", user_name, password])</tt>, you just do 
   # <tt>Person.find_by_user_name_and_password(user_name, password)</tt>.
   # 
-  # It's even possible to use all the additional parameters to find_first and find_all. For example, the full interface for Payment.find_all_by_amount
-  # is actually Payment.find_all_by_amount(amount, orderings = nil, limit = nil, joins = nil). And the full interface to Person.find_by_user_name is
-  # actually Person.find_by_user_name(user_name, orderings = nil)
+  # It's even possible to use all the additional parameters to find. For example, the full interface for Payment.find_all_by_amount
+  # is actually Payment.find_all_by_amount(amount, options). And the full interface to Person.find_by_user_name is
+  # actually Person.find_by_user_name(user_name, options). So you could call <tt>Payment.find_all_by_amount(50, :order => "created_on")</tt>.
   #
   # == Saving arrays, hashes, and other non-mappable objects in text columns
   # 
@@ -154,7 +157,7 @@ module ActiveRecord #:nodoc:
   #     serialize :preferences
   #   end
   # 
-  #   user = User.create("preferences" => { "background" => "black", "display" => large })
+  #   user = User.create(:preferences) => { "background" => "black", "display" => large })
   #   User.find(user.id).preferences # => { "background" => "black", "display" => large }
   # 
   # You can also specify an class option as the second parameter that'll raise an exception if a serialized object is retrieved as a 
@@ -164,7 +167,7 @@ module ActiveRecord #:nodoc:
   #     serialize :preferences, Hash
   #   end
   # 
-  #   user = User.create("preferences" => %w( one two three ))
+  #   user = User.create(:preferences => %w( one two three ))
   #   User.find(user.id).preferences    # raises SerializationTypeMismatch
   # 
   # == Single table inheritance
@@ -177,8 +180,8 @@ module ActiveRecord #:nodoc:
   #   class Client < Company; end
   #   class PriorityClient < Client; end
   #
-  # When you do Firm.create("name" => "37signals"), this record will be saved in the companies table with type = "Firm". You can then
-  # fetch this row again using Company.find_first "name = '37signals'" and it will return a Firm object.
+  # When you do Firm.create(:name => "37signals"), this record will be saved in the companies table with type = "Firm". You can then
+  # fetch this row again using Company.find(:first, "name = '37signals'") and it will return a Firm object.
   #
   # If you don't have a type column defined in your table, single-table inheritance won't be triggered. In that case, it'll work just
   # like normal subclasses with no special magic for differentiating between them or reloading the right type with find.
@@ -347,7 +350,7 @@ module ActiveRecord #:nodoc:
       # Example:
       #   Person.exists?(5)
       def exists?(id)
-        !find_first("#{primary_key} = #{sanitize(id)}").nil? rescue false
+        !find(:first, :conditions => ["#{primary_key} = ?", id]).nil? rescue false
       end
 
       # Creates an object, instantly saves it as a record (if the validation permits it), and returns it. If the save
@@ -751,18 +754,24 @@ module ActiveRecord #:nodoc:
         # find_first(["user_name = ?", user_name]) and find_first(["user_name = ? AND password = ?", user_name, password]) respectively. Also works
         # for find_all, but using find_all_by_amount(50) that are turned into find_all(["amount = ?", 50]).
         # 
-        # It's even possible to use all the additional parameters to find_first and find_all. For example, the full interface for find_all_by_amount
-        # is actually find_all_by_amount(amount, orderings = nil, limit = nil, joins = nil).
+        # It's even possible to use all the additional parameters to find. For example, the full interface for find_all_by_amount
+        # is actually find_all_by_amount(amount, options).
         def method_missing(method_id, *arguments)
           method_name = method_id.id2name
 
           if method_name =~ /find_(all_by|by)_([_a-z][_a-z\d]*)/
-            finder, attributes = ($1 == "all_by" ? :find_all : :find_first), $2.split("_and_")
+            finder, attributes = ($1 == "all_by" ? :all : :first), $2.split("_and_")
             attributes.each { |attr_name| super unless column_methods_hash[attr_name.intern] }
 
             attr_index = -1
             conditions = attributes.collect { |attr_name| attr_index += 1; "#{attr_name} #{arguments[attr_index].nil? ? "IS" : "="} ? " }.join(" AND ")
-            send(finder, [conditions, *arguments[0...attributes.length]], *arguments[attributes.length..-1])
+            
+            if arguments[attributes.length].is_a?(Hash)
+              find(finder, { :conditions => [conditions, *arguments[0...attributes.length]]}.merge(arguments[attributes.length]))
+            else
+              # deprecated API
+              send("find_#{finder}", [conditions, *arguments[0...attributes.length]], *arguments[attributes.length..-1])
+            end
           else
             super
           end

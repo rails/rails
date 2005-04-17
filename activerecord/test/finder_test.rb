@@ -202,6 +202,14 @@ class FinderTest < Test::Unit::TestCase
 
     assert_equal [], Topic.find_all_by_title("The First Topic!!")
   end
+  
+  def test_find_all_by_one_attribute_with_options
+    topics = Topic.find_all_by_content("Have a nice day", :order => "id DESC")
+    assert @topics["first"].find, topics.last
+
+    topics = Topic.find_all_by_content("Have a nice day", :order => "id")
+    assert @topics["first"].find, topics.first
+  end
 
   def test_find_all_by_boolean_attribute
     topics = Topic.find_all_by_approved(false)
@@ -241,16 +249,13 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_all_with_limit
-    first_five_developers = Developer.find_all nil, 'id ASC', 5
+    first_five_developers = Developer.find :all, :order => 'id ASC', :limit =>  5
     assert_equal 5, first_five_developers.length
     assert_equal 'David', first_five_developers.first.name
     assert_equal 'fixture_5', first_five_developers.last.name
     
-    no_developers = Developer.find_all nil, 'id ASC', 0
+    no_developers = Developer.find :all, :order => 'id ASC', :limit => 0
     assert_equal 0, no_developers.length
-    
-    assert_equal first_five_developers, Developer.find_all(nil, 'id ASC', [5])
-    assert_equal no_developers, Developer.find_all(nil, 'id ASC', [0])
   end
  
   def test_find_all_with_limit_and_offset

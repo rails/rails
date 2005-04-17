@@ -127,6 +127,15 @@ class FinderTest < Test::Unit::TestCase
     assert_equal 'fixture_9', last_two_developers.first.name
   end
 
+  def test_find_all_by_one_attribute_with_options
+    topics = Topic.find_all_by_content("Have a nice day", nil, "id DESC")
+    assert @topics["first"].find, topics.last
+
+    topics = Topic.find_all_by_content("Have a nice day", nil, "id DESC")
+    assert @topics["first"].find, topics.first
+  end
+
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
