@@ -59,8 +59,8 @@ module Test #:nodoc:
         end
       end
 
-      # Asserts that the request was rendered with the appropriate template file
-      def assert_template(expected=nil, message=nil)
+      # Asserts that the request was rendered with the appropriate template file.
+      def assert_template(expected = nil, message=nil)
         rendered = expected ? @response.rendered_file(!expected.include?('/')) : @response.rendered_file
         msg = build_message(message, "expecting <?> but rendering with <?>", expected, rendered)
         assert_block(msg) do
@@ -71,10 +71,6 @@ module Test #:nodoc:
           end
         end
       end
-
-      alias_method :assert_rendered_file, :assert_template #:nodoc:
-      
-      # -- routing assertions --------------------------------------------------
 
       # Asserts that the routing of the given path is handled correctly and that the parsed options match.
       def assert_recognizes(expected_options, path, extras={}, message=nil)
