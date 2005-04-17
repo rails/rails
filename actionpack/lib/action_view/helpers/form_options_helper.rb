@@ -92,7 +92,7 @@ module ActionView
           else
             is_selected = ( (selected.respond_to?(:include?) ? selected.include?(element) : element == selected) )
             is_selected = ( (selected.respond_to?(:include?) && !selected.is_a?(String) ? selected.include?(element) : element == selected) )
-            options << ((is_selected) ? "<option selected=\"selected\">#{html_escape(element.to_s)}</option>" : "<option>#{html_escape(element.to_s)}</option>")
+            options << ((is_selected) ? "<option value=\"#{html_escape(element.to_s)}\" selected=\"selected\">#{html_escape(element.to_s)}</option>" : "<option value=\"#{html_escape(element.to_s)}\">#{html_escape(element.to_s)}</option>")
           end
         end
 
@@ -168,7 +168,7 @@ module ActionView
 
         if priority_countries
           country_options += options_for_select(priority_countries, selected)
-          country_options += "<option>-------------</option>\n"
+          country_options += "<option value=\"\">-------------</option>\n"
         end
 
         if priority_countries && priority_countries.include?(selected)
@@ -205,7 +205,7 @@ module ActionView
 
         if priority_zones
           zone_options += options_for_select(convert_zones[priority_zones], selected)
-          zone_options += "<option>-------------</option>\n"
+          zone_options += "<option value=\"\">-------------</option>\n"
 
           zones = zones.reject { |z| priority_zones.include?( z ) }
         end
@@ -298,7 +298,7 @@ module ActionView
 
       private
         def add_blank_option(option_tags, add_blank)
-          add_blank ? "<option></option>\n" + option_tags : option_tags
+          add_blank ? "<option value=\"\"></option>\n" + option_tags : option_tags
         end
     end
   end

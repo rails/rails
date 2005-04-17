@@ -105,8 +105,8 @@ module ActionView
 
         0.upto(59) do |second|
           second_options << ((datetime && (datetime.kind_of?(Fixnum) ? datetime : datetime.sec) == second) ?
-            "<option selected=\"selected\">#{leading_zero_on_single_digits(second)}</option>\n" :
-            "<option>#{leading_zero_on_single_digits(second)}</option>\n"
+            "<option value=\"#{leading_zero_on_single_digits(second)}\" selected=\"selected\">#{leading_zero_on_single_digits(second)}</option>\n" :
+            "<option value=\"#{leading_zero_on_single_digits(second)}\">#{leading_zero_on_single_digits(second)}</option>\n"
           )
         end
 
@@ -121,8 +121,8 @@ module ActionView
 
         0.step(59, options[:minute_step] || 1) do |minute|
           minute_options << ((datetime && (datetime.kind_of?(Fixnum) ? datetime : datetime.min) == minute) ?
-            "<option selected=\"selected\">#{leading_zero_on_single_digits(minute)}</option>\n" :
-            "<option>#{leading_zero_on_single_digits(minute)}</option>\n"
+            "<option value=\"#{leading_zero_on_single_digits(minute)}\" selected=\"selected\">#{leading_zero_on_single_digits(minute)}</option>\n" :
+            "<option value=\"#{leading_zero_on_single_digits(minute)}\">#{leading_zero_on_single_digits(minute)}</option>\n"
           )
         end
 
@@ -136,8 +136,8 @@ module ActionView
 
         0.upto(23) do |hour|
           hour_options << ((datetime && (datetime.kind_of?(Fixnum) ? datetime : datetime.hour) == hour) ?
-            "<option selected=\"selected\">#{leading_zero_on_single_digits(hour)}</option>\n" :
-            "<option>#{leading_zero_on_single_digits(hour)}</option>\n"
+            "<option value=\"#{leading_zero_on_single_digits(hour)}\" selected=\"selected\">#{leading_zero_on_single_digits(hour)}</option>\n" :
+            "<option value=\"#{leading_zero_on_single_digits(hour)}\">#{leading_zero_on_single_digits(hour)}</option>\n"
           )
         end
 
@@ -151,8 +151,8 @@ module ActionView
 
         1.upto(31) do |day|
           day_options << ((date && (date.kind_of?(Fixnum) ? date : date.day) == day) ?
-            "<option selected=\"selected\">#{day}</option>\n" :
-            "<option>#{day}</option>\n"
+            "<option value=\"#{day}\" selected=\"selected\">#{day}</option>\n" :
+            "<option value=\"#{day}\">#{day}</option>\n"
           )
         end
 
@@ -201,8 +201,8 @@ module ActionView
 
         (options[:start_year] || default_start_year).upto(options[:end_year] || default_end_year) do |year|
           year_options << ((date && (date.kind_of?(Fixnum) ? date : date.year) == year) ?
-            "<option selected=\"selected\">#{year}</option>\n" :
-            "<option>#{year}</option>\n"
+            "<option value=\"#{year}\" selected=\"selected\">#{year}</option>\n" :
+            "<option value=\"#{year}\">#{year}</option>\n"
           )
         end
 
@@ -214,7 +214,7 @@ module ActionView
           select_html  = %(<select name="#{prefix || DEFAULT_PREFIX})
           select_html << "[#{type}]" unless discard_type
           select_html << %(">\n)
-          select_html << "<option></option>\n" if include_blank
+          select_html << "<option value=\"\"></option>\n" if include_blank
           select_html << options.to_s
           select_html << "</select>\n"
 
