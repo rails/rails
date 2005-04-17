@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Element.toggle, Element.show, and Element.hide to the prototype javascript library. Toggle.display has been deprecated, but will still work #992 [Lucas Carlson]
+
 * Added that deleting a cookie should not just set it to an empty string but also instantly expire it #1118 [todd@robotcoop.com]
 
 * Added AssetTagHelper#image_path, AssetTagHelper#javascript_path, and AssetTagHelper#stylesheet_path #1110 [Larry Halff]

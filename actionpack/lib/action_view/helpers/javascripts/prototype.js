@@ -1,4 +1,4 @@
-/*  Prototype: an object-oriented Javascript library, version 1.0.1
+/*  Prototype: an object-oriented Javascript library, version 1.1.0
  *  (c) 2005 Sam Stephenson <sam@conio.net>
  *
  *  Prototype is freely distributable under the terms of an MIT-style license. 
@@ -62,12 +62,27 @@ var Try = {
   }
 }
 
-var Toggle = {
-  display: function() {
+// Deprecated accessor for Element.toggle
+var Toggle = { display: function() { Element.toggle(arguments); } }
+
+var Element = {
+  toggle: function() {
     for (var i = 0; i < arguments.length; i++) {
       var element = $(arguments[i]);
       element.style.display = 
         (element.style.display == 'none' ? '' : 'none');
+    }
+  }
+  hide: function() {
+    for (var i = 0; i < arguments.length; i++) {
+      var element = $(arguments[i]);
+      element.style.display = 'none';
+    }
+  }
+  show: function() {
+    for (var i = 0; i < arguments.length; i++) {
+      var element = $(arguments[i]);
+      element.style.display = '';
     }
   }
 }
