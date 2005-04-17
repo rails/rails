@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Request#xml_http_request? (and an alias xhr?) to that'll return true when the request came from one of the Javascript helper methods (Ajax). This can be used to give one behavior for modern browsers supporting Ajax, another to old browsers #1127 [Sam Stephenson]
+
 * Deprecated the majority of all the testing assertions and replaced them with a much smaller core and access to all the collections the old assertions relied on. That way the regular test/unit assertions can be used against these. Added documentation about how to use it all.
 
 * Fixed DateHelper to return values on the option tags such that they'll work properly in IE with form_remote_tag #1024 [rscottmace@gmail.com]
