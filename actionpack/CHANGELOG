@@ -1,5 +1,7 @@
 *SVN*
 
+* Added AssetTagHelper#image_path, AssetTagHelper#javascript_path, and AssetTagHelper#stylesheet_path #1110 [Larry Halff]
+
 * Fixed url_for(nil) in functional tests #1116 [Alisdair McDiarmid]
 
 * Fixed error handling of broken layouts #1115 [Michael Schubert]

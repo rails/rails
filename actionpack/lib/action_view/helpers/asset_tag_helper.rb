@@ -23,6 +23,13 @@ module ActionView
         )
       end
 
+      # Returns path to a javascript asset. Example:
+      #
+      #   javascript_path "xmlhr" # => /javascripts/xmlhr.js
+      def javascript_path(source)
+        compute_public_path(source, 'javascripts', 'js')        
+      end
+
       # Returns a script include tag per source given as argument. Examples:
       #
       #   javascript_include_tag "xmlhr" # =>
@@ -33,9 +40,16 @@ module ActionView
       #     <script type="text/javascript" src="/elsewhere/cools.js"></script>
       def javascript_include_tag(*sources)
         sources.collect { |source|
-          source = compute_public_path(source, 'javascripts', 'js')        
+          source = javascript_path(source)        
           content_tag("script", "", "type" => "text/javascript", "src" => source)
         }.join("\n")
+      end
+
+      # Returns path to a stylesheet asset. Example:
+      #
+      #   stylesheet_path "style" # => /stylesheets/style.css
+      def stylesheet_path(source)
+        compute_public_path(source, 'stylesheets', 'css')
       end
 
       # Returns a css link tag per source given as argument. Examples:
@@ -48,9 +62,19 @@ module ActionView
       #     <link href="/css/stylish.css" media="screen" rel="Stylesheet" type="text/css" />
       def stylesheet_link_tag(*sources)
         sources.collect { |source|
-          source = compute_public_path(source, 'stylesheets', 'css')
+          source = stylesheet_path(source)
           tag("link", "rel" => "Stylesheet", "type" => "text/css", "media" => "screen", "href" => source)
         }.join("\n")
+      end
+
+      # Returns path to an image asset. Example:
+      #
+      # The +src+ can be supplied as a...
+      # * full path, like "/my_images/image.gif"
+      # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
+      # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
+      def image_path(source)
+        compute_public_path(source, 'images', 'png')
       end
 
       # Returns an image tag converting the +options+ instead html options on the tag, but with these special cases:
@@ -65,7 +89,7 @@ module ActionView
       def image_tag(source, options = {})
         options.symbolize_keys
                 
-        options[:src] = compute_public_path(source, 'images', 'png')
+        options[:src] = image_path(source)
         options[:alt] ||= source.split("/").last.split(".").first.capitalize
         
         if options[:size]
@@ -77,14 +101,12 @@ module ActionView
       end
       
       private
-      
         def compute_public_path(source, dir, ext)
           source = "/#{dir}/#{source}" unless source.include?("/")
           source = "#{source}.#{ext}" unless source.include?(".")
           source = "#{@request.relative_url_root}#{source}" 
           source
         end
-        
     end
   end
 end
