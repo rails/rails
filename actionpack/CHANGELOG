@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed error handling of broken layouts #1115 [Michael Schubert]
+
 * Changed render_partial to take local assigns as the second parameter instead of an explicit object and then the assigns. So the API changes from:
 
     <%= render_partial "account", person, "rules" => regulations.rules %>
