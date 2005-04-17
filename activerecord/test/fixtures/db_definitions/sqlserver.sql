@@ -149,5 +149,5 @@ CREATE TABLE categories (
 
 CREATE TABLE categories_posts (
   category_id int NOT NULL,
-  post_id int int NOT NULL
+  post_id int NOT NULL
 );
