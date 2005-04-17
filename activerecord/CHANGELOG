@@ -1,5 +1,12 @@
 *SVN*
 
+* Added acts_as_nested_set #1000 [wschenk]. Introduction:
+
+    This acts provides Nested Set functionality.  Nested Set is similiar to Tree, but with
+    the added feature that you can select the children and all of it's descendants with
+    a single query.  A good use case for this is a threaded post system, where you want
+    to display every reply to a comment without multiple selects.
+
 * Added insert_at(position) to acts_as_list #1083 [DeLynnB]
 
 * Removed the default order by id on has_and_belongs_to_many queries as it could kill performance on large sets (you can still specify by hand with :order)

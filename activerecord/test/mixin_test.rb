@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'active_record/acts/tree'
 require 'active_record/acts/list'
+require 'active_record/acts/nested_set'
 require 'fixtures/mixin'
 
 class ListTest < Test::Unit::TestCase

@@ -43,6 +43,7 @@ require 'active_record/reflection'
 require 'active_record/timestamp'
 require 'active_record/acts/list'
 require 'active_record/acts/tree'
+require 'active_record/acts/nested_set'
 require 'active_record/locking'
 require 'active_record/migration'
 
@@ -57,6 +58,7 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Reflection
   include ActiveRecord::Acts::Tree
   include ActiveRecord::Acts::List
+  include ActiveRecord::Acts::NestedSet
 end
 
 require 'active_record/connection_adapters/mysql_adapter'
