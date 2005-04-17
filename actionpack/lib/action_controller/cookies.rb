@@ -54,9 +54,10 @@ module ActionController #:nodoc:
       set_cookie(options)
     end
     
-    # Removes the cookie on the client machine by setting the value to an empty string.
+    # Removes the cookie on the client machine by setting the value to an empty string
+    # and setting its expiration date into the past
     def delete(name)
-      set_cookie("name" => name.to_s, "value" => "")
+      set_cookie("name" => name.to_s, "value" => "", "expires" => Time.at(0))
     end
 
     private
