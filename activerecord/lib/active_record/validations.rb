@@ -291,16 +291,18 @@ module ActiveRecord
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "can't be empty")
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>accept</tt> - Specifies value that is considered accepted.  The default value is a string "1", which
+      # makes it easy to relate to an HTML checkbox.
       #
-      # NOTE: The agreement is considered valid if it's set to the string "1". This makes it easy to relate it to an HTML checkbox.
+
       def validates_acceptance_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save, :allow_nil => true }
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save, :allow_nil => true, :accept => "1" }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         attr_accessor *attr_names
 	
         validates_each(attr_names,configuration) do |record, attr_name, value|
-          record.errors.add(attr_name, configuration[:message]) unless value == "1"	  
+          record.errors.add(attr_name, configuration[:message]) unless value == configuration[:accept]
         end
       end
 

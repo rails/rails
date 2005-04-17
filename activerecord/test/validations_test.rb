@@ -189,6 +189,17 @@ class ValidationsTest < Test::Unit::TestCase
     assert t.save
   end
 
+  def test_terms_of_service_agreement_with_accept_value
+    Topic.validates_acceptance_of(:terms_of_service, :on => :create, :accept => "I agree.")
+
+    t = Topic.create("title" => "We should be confirmed", "terms_of_service" => "")
+    assert !t.save
+    assert_equal "must be accepted", t.errors.on(:terms_of_service)
+
+    t.terms_of_service = "I agree."
+    assert t.save
+  end
+
   def test_validate_presences
     Topic.validates_presence_of(:title, :content)
 
