@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/assertions/action_pack_assertions'
-require File.dirname(__FILE__) + '/assertions/active_record_assertions'
+require File.dirname(__FILE__) + '/assertions'
+require File.dirname(__FILE__) + '/deprecated_assertions'
 
 if defined?(RAILS_ROOT)
   # Temporary hack for getting functional tests in Rails running under 1.8.2
@@ -94,17 +94,6 @@ module ActionController #:nodoc:
   end
   
   class TestResponse < AbstractResponse #:nodoc:
-    # the class attribute ties a TestResponse to the assertions 
-    class << self
-      attr_accessor :assertion_target
-    end
-
-    # initializer
-    def initialize
-      TestResponse.assertion_target=self# if TestResponse.assertion_target.nil?
-      super()
-    end
-    
     # the response code of the request
     def response_code
       headers['Status'][0,3].to_i rescue 0
@@ -126,9 +115,11 @@ module ActionController #:nodoc:
     end
     
     # was there a server-side error?
-    def server_error?
+    def error?
       (500..599).include?(response_code)
     end
+
+    alias_method :server_error?, :error?
 
     # returns the redirection location or nil
     def redirect_url
@@ -281,8 +272,28 @@ module Test
           get(@response.redirected_to.delete(:action), @response.redirected_to.stringify_keys)
         end
 
-        def assigns(name)
-          @response.template.assigns[name.to_s]
+        def assigns(key = nil)
+          if key.nil?
+            @response.template.assigns
+          else
+            @response.template.assigns[key.to_s]
+          end
+        end
+        
+        def session
+          @response.session
+        end
+
+        def flash
+          @response.flash
+        end
+
+        def cookies
+          @response.cookies
+        end
+
+        def redirect_to_url
+          @response.redirect_url
         end
 
         def build_request_uri(action, parameters)

@@ -170,7 +170,6 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     process :flash_me
     assert @response.has_flash_with_contents?
     assert_flash_exists
-    assert ActionController::TestResponse.assertion_target.has_flash_with_contents?
     assert_flash_not_empty
     assert_flash_has 'hello'
     assert_flash_has_no 'stds'

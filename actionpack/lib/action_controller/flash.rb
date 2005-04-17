@@ -24,7 +24,6 @@ module ActionController #:nodoc:
   #
   # See docs on the FlashHash class for more details about the flash.
   module Flash
-
     def self.append_features(base) #:nodoc:
       super
       base.before_filter(:fire_flash)
@@ -44,7 +43,6 @@ module ActionController #:nodoc:
     end
     
     class FlashHash < Hash
-    
       def initialize #:nodoc:
         super
         @used = {}
@@ -113,49 +111,45 @@ module ActionController #:nodoc:
       end
     
       private
-    
-      # Used internally by the <tt>keep</tt> and <tt>discard</tt> methods
-      #     use()               # marks the entire flash as used
-      #     use('msg')          # marks the "msg" entry as used
-      #     use(nil, false)     # marks the entire flash as unused (keeps it around for one more action)
-      #     use('msg', false)   # marks the "msg" entry as unused (keeps it around for one more action)
-      def use(k=nil, v=true)
-        unless k.nil?
-          @used[k] = v
-        else
-          keys.each{|key| use key, v }
+        # Used internally by the <tt>keep</tt> and <tt>discard</tt> methods
+        #     use()               # marks the entire flash as used
+        #     use('msg')          # marks the "msg" entry as used
+        #     use(nil, false)     # marks the entire flash as unused (keeps it around for one more action)
+        #     use('msg', false)   # marks the "msg" entry as unused (keeps it around for one more action)
+        def use(k=nil, v=true)
+          unless k.nil?
+            @used[k] = v
+          else
+            keys.each{|key| use key, v }
+          end
         end
-      end
-
     end
      
    
     protected 
+      # Access the contents of the flash. Use <tt>flash["notice"]</tt> to read a notice you put there or 
+      # <tt>flash["notice"] = "hello"</tt> to put a new one.
+      def flash #:doc:
+        @session['flash'] ||= FlashHash.new
+      end
   
-    # Access the contents of the flash. Use <tt>flash["notice"]</tt> to read a notice you put there or 
-    # <tt>flash["notice"] = "hello"</tt> to put a new one.
-    def flash #:doc:
-      @session['flash'] ||= FlashHash.new
-    end
-  
-    # deprecated. use <tt>flash.keep</tt> instead
-    def keep_flash #:doc:
-      flash.keep
-    end
+      # deprecated. use <tt>flash.keep</tt> instead
+      def keep_flash #:doc:
+        flash.keep
+      end
   
   
-    private
+      private
   
-    # marks flash entries as used and expose the flash to the view 
-    def fire_flash
-      flash.discard
-      @assigns["flash"] = flash
-    end
+      # marks flash entries as used and expose the flash to the view 
+      def fire_flash
+        flash.discard
+        @assigns["flash"] = flash
+      end
   
-    # deletes the flash entries that were not marked for keeping
-    def sweep_flash
-      flash.sweep
-    end
-  
+      # deletes the flash entries that were not marked for keeping
+      def sweep_flash
+        flash.sweep
+      end  
   end
 end

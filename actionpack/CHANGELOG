@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecated the majority of all the testing assertions and replaced them with a much smaller core and access to all the collections the old assertions relied on. That way the regular test/unit assertions can be used against these. Added documentation about how to use it all.
+
 * Fixed DateHelper to return values on the option tags such that they'll work properly in IE with form_remote_tag #1024 [rscottmace@gmail.com]
 
 * Fixed FormTagHelper#check_box to respect checked #1049 [DelynnB]

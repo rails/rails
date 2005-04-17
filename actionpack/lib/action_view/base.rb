@@ -119,7 +119,7 @@ module ActionView #:nodoc:
   class Base
     include ERB::Util
     
-    attr_reader :first_render
+    attr_reader   :first_render
     attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller
 
@@ -157,7 +157,7 @@ module ActionView #:nodoc:
     end
 
     def initialize(base_path = nil, assigns_for_first_render = {}, controller = nil)#:nodoc:
-      @base_path, @assigns = base_path, assigns_for_first_render
+      @base_path, @assigns = base_path, assigns_for_first_render.with_indifferent_access
       @controller = controller
     end
 
