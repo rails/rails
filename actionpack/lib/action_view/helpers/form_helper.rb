@@ -199,7 +199,7 @@ module ActionView
           else
             value.to_i != 0
           end
-        if checked
+        if checked || options["checked"] == "checked"
           options["checked"] = "checked"
         else
           options.delete("checked")

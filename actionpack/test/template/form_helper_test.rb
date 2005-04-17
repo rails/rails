@@ -1,6 +1,7 @@
 require 'test/unit'
 require 'erb'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/form_helper'
+require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/hash' #for stringify keys
 
 class FormHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::FormHelper
@@ -64,13 +65,15 @@ class FormHelperTest < Test::Unit::TestCase
       '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
       check_box("post", "secret")
     )
-
     @post.secret = 0
     assert_equal(
       '<input id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
       check_box("post", "secret")
     )
-
+    assert_equal(
+      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />', 
+      check_box("post", "secret" ,{"checked"=>"checked"})
+    )
     @post.secret = true
     assert_equal(
       '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',

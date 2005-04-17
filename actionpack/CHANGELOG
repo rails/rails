@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed FormTagHelper#check_box to respect checked #1049 [DelynnB]
+
 * Added that render_partial called from a controller will use the action name as default #828 [Dan Peterson]
 
 * Added Element.toggle, Element.show, and Element.hide to the prototype javascript library. Toggle.display has been deprecated, but will still work #992 [Lucas Carlson]
