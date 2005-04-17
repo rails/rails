@@ -354,12 +354,12 @@ module ActiveRecord
         # Ensure that one and only one range option is specified.
         range_options = ALL_RANGE_OPTIONS & options.keys
         case range_options.size
-        when 0
-          raise ArgumentError, 'Range unspecified.  Specify the :within, :maximum, :minimum, or :is option.'
-        when 1
-          # Valid number of options; do nothing.
-        else
-          raise ArgumentError, 'Too many range options specified.  Choose only one.'
+          when 0
+            raise ArgumentError, 'Range unspecified.  Specify the :within, :maximum, :minimum, or :is option.'
+          when 1
+            # Valid number of options; do nothing.
+          else
+            raise ArgumentError, 'Too many range options specified.  Choose only one.'
         end
 
         # Get range option and value.
@@ -367,33 +367,21 @@ module ActiveRecord
         option_value = options[range_options.first]
 
         # Declare different validations per option.
-        case range_options.first
+        
+        validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
+        message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
+
+        case option
         when :within, :in
           raise ArgumentError, ':within must be a Range' unless option_value.is_a?(Range) # '
-          validates_each(attrs, options) do |record, attr|
-            next if record.send(attr).nil? and options[:allow_nil]
-            record.errors.add_on_boundary_breaking(attr, option_value, options[:too_long], options[:too_short])
-          end
-        when :is
-          raise ArgumentError, ':is must be a nonnegative Integer' unless option_value.is_a?(Integer) and option_value >= 0 # '
-          message = options[:message] || options[:wrong_length]
+          validates_length_of attrs, :minimum => option_value.begin, :allow_nil => options[:allow_nil]
+          validates_length_of attrs, :maximum => option_value.end, :allow_nil => options[:allow_nil]
+        when :is, :minimum, :maximum
+          raise ArgumentError, ":#{option} must be a nonnegative Integer" unless option_value.is_a?(Integer) and option_value >= 0 # '
+          message = options[:message] || options[message_options[option]]
           message = (message % option_value) rescue message
           validates_each(attrs, options) do |record, attr, value|
-            record.errors.add(attr, message) if value.nil? or value.size != option_value
-          end
-        when :minimum
-          raise ArgumentError, ':minimum must be a nonnegative Integer' unless option_value.is_a?(Integer) and option_value >= 0 # '
-          message = options[:message] || options[:too_short]
-          message = (message % option_value) rescue message
-          validates_each(attrs, options) do |record, attr, value|
-            record.errors.add(attr, message) if value.nil? or value.size < option_value
-          end
-        when :maximum
-          raise ArgumentError, ':maximum must be a nonnegative Integer' unless option_value.is_a?(Integer) and option_value >= 0 # '
-          message = options[:message] || options[:too_long]
-          message = (message % option_value) rescue message
-          validates_each(attrs, options) do |record, attr, value|
-            record.errors.add(attr, message) if value.nil? or value.size > option_value
+            record.errors.add(attr, message) if value.nil? or !value.size.method(validity_checks[option])[option_value]
           end
         end
       end
