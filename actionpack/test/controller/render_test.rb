@@ -59,6 +59,10 @@ class TestController < ActionController::Base
     render_action "list"
   end
 
+  def partial_only
+    render_partial
+  end
+
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render_text "How's there? #{render_to_string("test/list")}"
@@ -179,6 +183,11 @@ class RenderTest < Test::Unit::TestCase
   def test_partials_list
     @request.action = "partials_list"
     assert_equal "Hello: davidHello: mary", process_request.body
+  end
+
+  def test_partial_only
+    @request.action = "partial_only"
+    assert_equal "only partial", process_request.body
   end
 
   def test_render_to_string

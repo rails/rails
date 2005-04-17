@@ -489,11 +489,19 @@ module ActionController #:nodoc:
         @template.render_file(template_name)
       end
       
-      def render_partial(partial_path, object = nil, local_assigns = {}) #:doc:
+      # Renders the partial specified by <tt>partial_path</tt>, which by default is the name of the action itself. Example:
+      #
+      #   class WeblogController < ActionController::Base
+      #     def show
+      #       render_partial # renders "weblog/_show.r(xml|html)"
+      #     end
+      #   end
+      def render_partial(partial_path = default_template_name, object = nil, local_assigns = {}) #:doc:
         add_variables_to_assigns
         render_text(@template.render_partial(partial_path, object, local_assigns))
       end
 
+      # Renders a collection of partials using <tt>partial_name</tt> to iterate over the +collection+.
       def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {})#:doc:
         add_variables_to_assigns
         render_text(@template.render_collection_of_partials(partial_name, collection, partial_spacer_template, local_assigns))
