@@ -1,5 +1,4 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
-$:.unshift(File.dirname(__FILE__) + '/../fixtures/helpers')
 
 class TestController < ActionController::Base
   attr_accessor :delegate_attr
@@ -24,7 +23,6 @@ module LocalAbcHelper
 end
 
 class HelperTest < Test::Unit::TestCase
-  HELPER_PATHS = %w(/../fixtures/helpers)
 
   def setup
     # Increment symbol counter.
@@ -41,11 +39,6 @@ class HelperTest < Test::Unit::TestCase
     @template_class = self.class.const_get(template_class_name)
     @controller_class.template_class = @template_class
 
-    # Add helper paths to LOAD_PATH.
-    HELPER_PATHS.each { |path|
-      $LOAD_PATH.unshift(File.dirname(__FILE__) + path)
-    }
-
     # Set default test helper.
     self.test_helper = LocalAbcHelper
   end
@@ -53,11 +46,6 @@ class HelperTest < Test::Unit::TestCase
   def teardown
     # Reset template class.
     #ActionController::Base.template_class = ActionView::Base
-
-    # Remove helper paths from LOAD_PATH.
-    HELPER_PATHS.each { |path|
-      $LOAD_PATH.delete(File.dirname(__FILE__) + path)
-    }
   end
 
 
