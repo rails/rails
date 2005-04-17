@@ -1,0 +1,431 @@
+require 'strscan'
+
+module HTML
+  
+  class Conditions < Hash
+    def initialize(hash)
+      super()
+      hash = { :content => hash } unless Hash === hash
+      hash = keys_to_symbols(hash)
+      hash.each do |k,v|
+        case k
+          when :tag, :content then
+            # keys are valid, and require no further processing
+          when :attributes then
+            hash[k] = keys_to_strings(v)
+          when :parent, :child, :ancestor, :descendant
+            hash[k] = Conditions.new(v)
+          when :children
+            hash[k] = v = keys_to_symbols(v)
+            v.each do |k,v2|
+              case k
+                when :count, :greater_than, :less_than
+                  # keys are valid, and require no further processing
+                when :only
+                  v[k] = Conditions.new(v2)
+                else
+                  raise "illegal key #{k.inspect} => #{v2.inspect}"
+              end
+            end
+          else
+            raise "illegal key #{k.inspect} => #{v.inspect}"
+        end
+      end
+      update hash
+    end
+
+    private
+
+      def keys_to_strings(hash)
+        hash.keys.inject({}) do |h,k|
+          h[k.to_s] = hash[k]
+          h
+        end
+      end
+
+      def keys_to_symbols(hash)
+        hash.keys.inject({}) do |h,k|
+          raise "illegal key #{k.inspect}" unless k.respond_to?(:to_sym)
+          h[k.to_sym] = hash[k]
+          h
+        end
+      end
+  end
+
+  # The base class of all nodes, textual and otherwise, in an HTML document.
+  class Node
+    # The array of children of this node. Not all nodes have children.
+    attr_reader :children
+    
+    # The parent node of this node. All nodes have a parent, except for the
+    # root node.
+    attr_reader :parent
+    
+    # The line number of the input where this node was begun
+    attr_reader :line
+    
+    # The byte position in the input where this node was begun
+    attr_reader :position
+    
+    # Create a new node as a child of the given parent.
+    def initialize(parent, line=0, pos=0)
+      @parent = parent
+      @children = []
+      @line, @position = line, pos
+    end
+
+    # Return a textual representation of the node.
+    def to_s
+      s = ""
+      @children.each { |child| s << child.to_s }
+      s
+    end
+
+    # Return false (subclasses must override this to provide specific matching
+    # behavior.) +conditions+ may be of any type.
+    def match(conditions)
+      false
+    end
+
+    # Search the children of this node for the first node for which #find
+    # returns non +nil+. Returns the result of the #find call that succeeded.
+    def find(conditions)
+      @children.each do |child|        
+        node = child.find(conditions)
+        return node if node
+      end
+      nil
+    end
+
+    # Search for all nodes that match the given conditions, and return them
+    # as an array.
+    def find_all(conditions)
+      matches = []
+      matches << self if match(conditions)
+      @children.each do |child|
+        matches.concat child.find_all(conditions)
+      end
+      matches
+    end
+
+    # Returns +false+. Subclasses may override this if they define a kind of
+    # tag.
+    def tag?
+      false
+    end
+
+    def validate_conditions(conditions)
+      Conditions === conditions ? conditions : Conditions.new(conditions)
+    end
+    
+    class <<self
+      def parse(parent, line, pos, content)
+        if content !~ /^<\S/
+          Text.new(parent, line, pos, content)
+        else
+          scanner = StringScanner.new(content)
+          scanner.skip(/</) or raise "expected <"
+          closing = ( scanner.scan(/\//) ? :close : nil )
+          return Text.new(parent, line, pos, content) unless name = scanner.scan(/[\w:]+/)
+          name.downcase!
+  
+          unless closing
+            scanner.skip(/\s*/)
+            attributes = {}
+            while attr = scanner.scan(/[-\w:]+/)
+              value = true
+              if scanner.scan(/\s*=\s*/)
+                if delim = scanner.scan(/['"]/)
+                  value = ""
+                  while text = scanner.scan(/[^#{delim}\\]+|./)
+                    case text
+                      when "\\" then
+                        value << text
+                        value << scanner.getch
+                      when delim
+                        break
+                      else value << text
+                    end
+                  end
+                else
+                  value = scanner.scan(/[^\s>\/]+/)
+                end
+              end
+              attributes[attr.downcase] = value
+              scanner.skip(/\s*/)
+            end
+    
+            closing = ( scanner.scan(/\//) ? :self : nil )
+          end
+          
+          scanner.scan(/\s*>/) or raise "expected > (got #{scanner.rest.inspect} for #{content}, #{attributes.inspect})" 
+
+          Tag.new(parent, line, pos, name, attributes, closing)
+        end
+      end
+    end
+  end
+
+  # A node that represents text, rather than markup.
+  class Text < Node
+    
+    attr_reader :content
+    
+    # Creates a new text node as a child of the given parent, with the given
+    # content.
+    def initialize(parent, line, pos, content)
+      super(parent, line, pos)
+      @content = content
+    end
+
+    # Returns the content of this node.
+    def to_s
+      @content
+    end
+
+    # Returns +self+ if this node meets the given conditions. Text nodes support
+    # conditions of the following kinds:
+    #
+    # * if +conditions+ is a string, it must be a substring of the node's
+    #   content
+    # * if +conditions+ is a regular expression, it must match the node's
+    #   content
+    # * if +conditions+ is a hash, it must contain a <tt>:content</tt> key that
+    #   is either a string or a regexp, and which is interpreted as described
+    #   above.
+    def find(conditions)
+      match(conditions) && self
+    end
+    
+    # Returns non-+nil+ if this node meets the given conditions, or +nil+
+    # otherwise. See the discussion of #find for the valid conditions.
+    def match(conditions)
+      case conditions
+        when String
+          @content.index(conditions)
+        when Regexp
+          @content =~ conditions
+        when Hash
+          conditions = validate_conditions(conditions)
+
+          # Text nodes only have :content, :parent, :ancestor
+          unless (conditions.keys - [:content, :parent, :ancestor]).empty?
+            return false
+          end
+
+          match(conditions[:content])
+        else
+          nil
+      end
+    end
+  end
+
+  # A Tag is any node that represents markup. It may be an opening tag, a
+  # closing tag, or a self-closing tag. It has a name, and may have a hash of
+  # attributes.
+  class Tag < Node
+    
+    # Either +nil+, <tt>:close</tt>, or <tt>:self</tt>
+    attr_reader :closing
+    
+    # Either +nil+, or a hash of attributes for this node.
+    attr_reader :attributes
+
+    # The name of this tag.
+    attr_reader :name
+        
+    # Create a new node as a child of the given parent, using the given content
+    # to describe the node. It will be parsed and the node name, attributes and
+    # closing status extracted.
+    def initialize(parent, line, pos, name, attributes, closing)
+      super(parent, line, pos)
+      @name = name
+      @attributes = attributes
+      @closing = closing
+    end
+
+    # A convenience for obtaining an attribute of the node. Returns +nil+ if
+    # the node has no attributes.
+    def [](attr)
+      @attributes ? @attributes[attr] : nil
+    end
+
+    # Returns non-+nil+ if this tag can contain child nodes.
+    def childless?
+      @name =~ /^(img|br|hr|link|meta|area|base|basefont|col|frame|input|isindex|param)$/o
+    end
+
+    # Returns a textual representation of the node
+    def to_s
+      if @closing == :close
+        "</#{@name}>"
+      else
+        s = "<#{@name}"
+        @attributes.each { |k,v| s << " #{k}='#{v.gsub(/'/,"\\\\'")}'" }
+        s << " /" if @closing == :self
+        s << ">"
+        @children.each { |child| s << child.to_s }
+        s
+      end
+    end
+
+    # If either the node or any of its children meet the given conditions, the
+    # matching node is returned. Otherwise, +nil+ is returned. (See the
+    # description of the valid conditions in the +match+ method.)
+    def find(conditions)
+      match(conditions) && self || super
+    end
+
+    # Returns +true+, indicating that this node represents an HTML tag.
+    def tag?
+      true
+    end
+    
+    # Returns +true+ if the node meets any of the given conditions. The
+    # +conditions+ parameter must be a hash of any of the following keys
+    # (all are optional):
+    #
+    # * <tt>:tag</tt>: the node name must match the corresponding value
+    # * <tt>:attributes</tt>: a hash. The node's values must match the
+    #   corresponding values in the hash.
+    # * <tt>:parent</tt>: a hash. The node's parent must match the
+    #   corresponding hash.
+    # * <tt>:child</tt>: a hash. At least one of the node's immediate children
+    #   must meet the criteria described by the hash.
+    # * <tt>:ancestor</tt>: a hash. At least one of the node's ancestors must
+    #   meet the criteria described by the hash.
+    # * <tt>:descendant</tt>: a hash. At least one of the node's descendants
+    #   must meet the criteria described by the hash.
+    # * <tt>:children</tt>: a hash, for counting children of a node. Accepts the
+    #   keys:
+    # ** <tt>:count</tt>: either a number or a range which must equal (or
+    #    include) the number of children that match.
+    # ** <tt>:less_than</tt>: the number of matching children must be less than
+    #    this number.
+    # ** <tt>:greater_than</tt>: the number of matching children must be
+    #    greater than this number.
+    # ** <tt>:only</tt>: another hash consisting of the keys to use
+    #    to match on the children, and only matching children will be
+    #    counted.
+    #
+    # Conditions are matched using the following algorithm:
+    #
+    # * if the condition is a string, it must be a substring of the value.
+    # * if the condition is a regexp, it must match the value.
+    # * if the condition is a number, the value must match number.to_s.
+    # * if the condition is +true+, the value must not be +nil+.
+    # * if the condition is +false+ or +nil+, the value must be +nil+.
+    #
+    # Usage:
+    #
+    #   # test if the node is a "span" tag
+    #   node.match :tag => "span"
+    #
+    #   # test if the node's parent is a "div"
+    #   node.match :parent => { :tag => "div" }
+    #
+    #   # test if any of the node's ancestors are "table" tags
+    #   node.match :ancestor => { :tag => "table" }
+    #
+    #   # test if any of the node's immediate children are "em" tags
+    #   node.match :child => { :tag => "em" }
+    #
+    #   # test if any of the node's descendants are "strong" tags
+    #   node.match :descendant => { :tag => "strong" }
+    #
+    #   # test if the node has between 2 and 4 span tags as immediate children
+    #   node.match :children => { :count => 2..4, :only => { :tag => "span" } } 
+    #
+    #   # get funky: test to see if the node is a "div", has a "ul" ancestor
+    #   # and an "li" parent (with "class" = "enum"), and whether or not it has
+    #   # a "span" descendant that contains # text matching /hello world/:
+    #   node.match :tag => "div",
+    #              :ancestor => { :tag => "ul" },
+    #              :parent => { :tag => "li",
+    #                           :attributes => { :class => "enum" } },
+    #              :descendant => { :tag => "span",
+    #                               :child => /hello world/ }
+    def match(conditions)
+      conditions = validate_conditions(conditions)
+  
+      # only Text nodes have content
+      return false if conditions[:content]
+
+      # test the name
+      return false unless match_condition(@name, conditions[:tag]) if conditions[:tag]
+
+      # test attributes
+      (conditions[:attributes] || {}).each do |key, value|
+        return false unless match_condition(self[key], value)
+      end
+
+      # test parent
+      return false unless parent.match(conditions[:parent]) if conditions[:parent]
+
+      # test children
+      return false unless children.find { |child| child.match(conditions[:child]) } if conditions[:child]
+   
+      # test ancestors
+      if conditions[:ancestor]
+        return false unless catch :found do
+          p = self
+          throw :found, true if p.match(conditions[:ancestor]) while p = p.parent
+        end
+      end
+
+      # test descendants
+      if conditions[:descendant]
+        return false unless children.find do |child|
+          # test the child
+          child.match(conditions[:descendant]) ||
+          # test the child's descendants
+          child.match(:descendant => conditions[:descendant])
+        end
+      end
+      
+      # count children
+      if opts = conditions[:children]
+        matches = children
+        matches = matches.select { |c| c.match(opts[:only]) } if opts[:only]
+        opts.each do |key, value|
+          next if key == :only
+          case key
+            when :count
+              if Integer === value
+                return false if matches.length != value
+              else
+                return false unless value.include?(matches.length)
+              end
+            when :less_than
+              return false unless matches.length < value
+            when :greater_than
+              return false unless matches.length > value
+            else raise "unknown count condition #{key}"
+          end
+        end
+      end
+  
+      true
+    end
+
+    private
+
+      # Match the given value to the given condition.
+      def match_condition(value, condition)
+        case condition
+          when String
+            value && value.index(condition)
+          when Regexp
+            value && value.match(condition)
+          when Numeric
+            value == condition.to_s
+          when true
+            !value.nil?
+          when false, nil
+            value.nil?
+          else
+            false
+        end
+      end
+  end
+end

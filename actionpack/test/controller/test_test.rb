@@ -9,6 +9,26 @@ class TestTest < Test::Unit::TestCase
     def test_uri
       render_text @request.request_uri
     end
+
+    def test_html_output
+      render_text <<HTML
+<html>
+  <body>
+    <div id="foo">
+      <ul>
+        <li class="item">hello</li>
+        <li class="item">goodbye</li>
+      </ul>
+    </div>
+    <div id="bar">
+      <form action="/somewhere">
+        Name: <input type="text" name="person[name]" id="person_name" />
+      </form>
+    </div>
+  </body>
+</html>
+HTML
+    end
   end
 
   def setup
@@ -46,5 +66,22 @@ class TestTest < Test::Unit::TestCase
     @request.set_REQUEST_URI "/explicit/uri"
     process :test_uri, :id => 7
     assert_equal @response.body, "/explicit/uri"
+  end
+
+  def test_assert_tag
+    process :test_html_output
+
+    # there is a 'div', id='bar', with an immediate child whose 'action'
+    # attribute matches the regexp /somewhere/.
+    assert_tag :tag => "div", :attributes => { :id => "bar" },
+               :child => { :attributes => { :action => /somewhere/ } }
+
+    # there is no 'div', id='foo', with a 'ul' child with more than
+    # 2 "li" children.
+    assert_no_tag :tag => "div", :attributes => { :id => "foo" },
+                  :child => {
+                    :tag => "ul",
+                    :children => { :greater_than => 2,
+                                   :only => { :tag => "li" } } }
   end
 end

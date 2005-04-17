@@ -243,6 +243,7 @@ module Test
       private  
         # execute the request and set/volley the response
         def process(action, parameters = nil, session = nil, flash = nil)
+          @html_document = nil
           @request.env['REQUEST_METHOD'] ||= "GET"
           @request.action = action.to_s
           @request.path_parameters = { :controller => @controller.class.controller_path,
@@ -302,6 +303,27 @@ module Test
           @request.set_REQUEST_URI(
             url.rewrite(@controller.send(:rewrite_options,
               (parameters||{}).update(:only_path => true, :action=>action))))
+        end
+
+        def html_document
+          require_html_scanner
+          @html_document ||= HTML::Document.new(@response.body)
+        end
+        
+        def find_tag(conditions)
+          html_document.find(conditions)
+        end
+
+        def find_all_tag(conditions)
+          html_document.find_all(conditions)
+        end
+
+        def require_html_scanner
+          return true if defined?(HTML::Document)
+          require 'html/document'
+        rescue LoadError
+          $:.unshift File.dirname(__FILE__) + "/vendor/html-scanner"
+          require 'html/document'
         end
       end
   end
