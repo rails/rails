@@ -113,7 +113,7 @@ module ActiveRecord
           else
             ids = quoted_record_ids(records)
             @association_class.update_all(
-              "#{@association_class.table_name}.#{@association_class_primary_key_name} = NULL", 
+              "#{@association_class_primary_key_name} = NULL", 
               "#{@association_class_primary_key_name} = #{@owner.quoted_id} AND #{@association_class.primary_key} IN (#{ids})"
             )
           end
