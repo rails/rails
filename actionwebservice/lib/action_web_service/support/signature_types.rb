@@ -10,19 +10,20 @@ module ActionWebService # :nodoc:
     end
 
     def canonical_signature_entry(spec, i)
+      orig_spec = spec
       name = "param#{i}"
       if spec.is_a?(Hash)
         name, spec = spec.keys.first, spec.values.first
       end
       type = spec
       if spec.is_a?(Array)
-        ArrayType.new(canonical_signature_entry(spec[0], 0), name)
+        ArrayType.new(orig_spec, canonical_signature_entry(spec[0], 0), name)
       else
         type = canonical_type(type)
         if type.is_a?(Symbol)
-          BaseType.new(type, name)
+          BaseType.new(orig_spec, type, name)
         else
-          StructuredType.new(type, name)
+          StructuredType.new(orig_spec, type, name)
         end
       end
     end
@@ -126,11 +127,13 @@ module ActionWebService # :nodoc:
   class BaseType # :nodoc:
     include SignatureTypes
 
+    attr :spec
     attr :type
     attr :type_class
     attr :name
 
-    def initialize(type, name)
+    def initialize(spec, type, name)
+      @spec = spec
       @type = canonical_type(type)
       @type_class = canonical_type_class(@type)
       @name = name
@@ -152,8 +155,8 @@ module ActionWebService # :nodoc:
   class ArrayType < BaseType # :nodoc:
     attr :element_type
 
-    def initialize(element_type, name)
-      super(Array, name)
+    def initialize(spec, element_type, name)
+      super(spec, Array, name)
       @element_type = element_type
     end
 

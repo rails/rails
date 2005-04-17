@@ -91,6 +91,11 @@ class TC_API < Test::Unit::TestCase
     assert_equal({:appkey => 5, :publish => false}, hash)
   end
 
+  def test_api_methods_compat
+    sig = API.api_methods[:named_signature][:expects]
+    assert_equal [{:appkey=>Integer}, {:publish=>TrueClass}], sig
+  end
+
   def test_to_s
     assert_equal 'void Expects(int param0, bool param1)', APITest::API.api_methods[:expects].to_s
   end

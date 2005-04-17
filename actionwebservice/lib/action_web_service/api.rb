@@ -204,6 +204,16 @@ module ActionWebService # :nodoc:
         h
       end
 
+      # Backwards compatibility with previous API
+      def [](sig_type)
+        case sig_type
+        when :expects
+          @expects.map{|x| compat_signature_entry(x)}
+        when :returns
+          @returns.map{|x| compat_signature_entry(x)}
+        end
+      end
+
       # String representation of this method
       def to_s
         fqn = ""
@@ -215,6 +225,18 @@ module ActionWebService # :nodoc:
       end
 
       private
+        def compat_signature_entry(entry)
+          if entry.array?
+            [compat_signature_entry(entry.element_type)]
+          else
+            if entry.spec.is_a?(Hash)
+              {entry.spec.keys.first => entry.type_class}
+            else
+              entry.type_class
+            end
+          end
+        end
+
         def friendly_param(type, show_name=true)
           name = type.name.to_s
           type_type = type.array?? type.element_type.type.to_s : type.type.to_s

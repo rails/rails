@@ -4,8 +4,7 @@
 
 * Add scaffolding via ActionController::Base.web_service_scaffold for quick testing using a web browser
 
-* ActionWebService::API::Base#api_methods now returns a hash containing ActionWebService::API::Method objects
-  instead of hashes
+* ActionWebService::API::Base#api_methods now returns a hash containing ActionWebService::API::Method objects instead of hashes. However, ActionWebService::API::Method defines a #[]() backwards compatibility method so any existing code utilizing this will still work.
 
 * The :layered dispatching mode can now be used with SOAP as well, allowing you to support SOAP and XML-RPC clients for APIs like the metaWeblog API
 
