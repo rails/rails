@@ -5,7 +5,7 @@ require 'fixtures/mixin'
 
 class ListTest < Test::Unit::TestCase
   fixtures :mixins
-  
+ 
   def test_reordering
     
     assert_equal [@mixins['list_1'].find, 
@@ -100,6 +100,32 @@ class ListTest < Test::Unit::TestCase
     assert new.first?
     assert new.last?
   end    
+
+  def test_insert_at
+    new = ListMixin.create("parent_id" => 20)
+    assert_equal 1, new.pos
+
+	 new = ListMixin.create("parent_id" => 20)
+	 assert_equal 2, new.pos
+	
+	 new = ListMixin.create("parent_id" => 20)
+	 assert_equal 3, new.pos
+
+	 new4 = ListMixin.create("parent_id" => 20)
+	 assert_equal 4, new4.pos
+
+	 new4.insert_at(3)
+	 assert_equal 3, new4.pos
+
+	 new.reload
+	 assert_equal 4, new.pos
+    
+    new.insert_at(2)
+    assert_equal 2, new.pos
+
+    new4.reload
+    assert_equal 4, new4.pos
+  end
   
   def test_delete_middle
     
@@ -186,7 +212,6 @@ class TreeTest < Test::Unit::TestCase
     assert @tree_1.children.include?(@tree_2)
     assert @tree_1.children.include?(@tree_4)
   end
-  
 
 end
 
@@ -229,7 +254,6 @@ class TouchTest < Test::Unit::TestCase
 
   end
 
-  
   def test_create_turned_off
     Mixin.record_timestamps = false
 

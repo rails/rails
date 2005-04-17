@@ -71,6 +71,10 @@ module ActiveRecord
       # lower in the list of all chapters. Likewise, <tt>chapter.first?</tt> would return true if that chapter is
       # the first in the list of all chapters.
       module InstanceMethods
+        def insert_at(position = 1)
+          position == 1 ? add_to_list_top : insert_at_position(position)
+        end
+
         def move_lower
           return unless lower_item
 
@@ -106,7 +110,6 @@ module ActiveRecord
         def remove_from_list
           decrement_positions_on_lower_items
         end
-
 
         def increment_position
           update_attribute position_column, self.send(position_column).to_i + 1
@@ -168,23 +171,44 @@ module ActiveRecord
             update_attribute(position_column, 1)
           end
 
+          # This has the effect of moving all the higher items up one.
+          def decrement_positions_on_higher_items(position)
+            self.class.update_all(
+              "#{position_column} = (#{position_column} - 1)", "#{scope_condition} AND #{position_column} <= #{position}"
+            )
+	       end
+
           # This has the effect of moving all the lower items up one.
           def decrement_positions_on_lower_items
             self.class.update_all(
-              "#{position_column} = (#{position_column} - 1)",  "#{scope_condition} AND #{position_column} > #{send(position_column).to_i}"
+              "#{position_column} = (#{position_column} - 1)", "#{scope_condition} AND #{position_column} > #{send(position_column).to_i}"
             )
           end
-  
+
+          # This has the effect of moving all the higher items down one.
           def increment_positions_on_higher_items
             self.class.update_all(
-              "#{position_column} = (#{position_column} + 1)",  "#{scope_condition} AND #{position_column} < #{send(position_column).to_i}"
+              "#{position_column} = (#{position_column} + 1)", "#{scope_condition} AND #{position_column} < #{send(position_column).to_i}"
             )
           end
+
+          # This has the effect of moving all the lower items down one.
+          def increment_positions_on_lower_items(position)
+	         self.class.update_all(
+	           "#{position_column} = (#{position_column} + 1)", "#{scope_condition} AND #{position_column} >= #{position}"
+	         )
+	       end
 
           def increment_positions_on_all_items
             self.class.update_all(
               "#{position_column} = (#{position_column} + 1)",  "#{scope_condition}"
             )
+          end
+
+          def insert_at_position(position)
+            remove_from_list
+	         increment_positions_on_lower_items(position)
+            self.update_attribute(position_column, position)
           end
       end     
     end

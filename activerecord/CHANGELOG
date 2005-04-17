@@ -1,5 +1,7 @@
 *SVN*
 
+* Added insert_at(position) to acts_as_list #1083 [DeLynnB]
+
 * Removed the default order by id on has_and_belongs_to_many queries as it could kill performance on large sets (you can still specify by hand with :order)
 
 * Fixed that Base.silence should restore the old logger level when done, not just set it to DEBUG #1084 [yon@milliped.com]
