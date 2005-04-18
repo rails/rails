@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that deliver_* will now return the email that was sent
+
 * Fixed quoting for all address headers, not just to #955 [Jamis Buck]
 
 * Added that quoting to UTF-8 only happens if the characters used are in that range #955 [Jamis Buck] 

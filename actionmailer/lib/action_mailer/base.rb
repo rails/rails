@@ -111,15 +111,11 @@ module ActionMailer #:nodoc:
         end
       end
 
-      def mail(to, subject, body, from, timestamp = nil, headers = {},
-               charset = @@default_charset
-      ) #:nodoc:
+      def mail(to, subject, body, from, timestamp = nil, headers = {}, charset = @@default_charset) #:nodoc:
         deliver(create(to, subject, body, from, timestamp, headers, charset))
       end
 
-      def create(to, subject, body, from, timestamp = nil, headers = {},
-                 charset = @@default_charset
-      ) #:nodoc:
+      def create(to, subject, body, from, timestamp = nil, headers = {}, charset = @@default_charset) #:nodoc:
         m = TMail::Mail.new
         m.body = body
         m.subject, = quote_any_if_necessary(charset, subject)
@@ -139,6 +135,7 @@ module ActionMailer #:nodoc:
       def deliver(mail) #:nodoc:
         logger.info "Sent mail:\n #{mail.encoded}" unless logger.nil?
         send("perform_delivery_#{delivery_method}", mail) if perform_deliveries
+        return mail
       end
 
       def quoted_printable(text, charset)#:nodoc:
