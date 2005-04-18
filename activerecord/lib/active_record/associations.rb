@@ -193,10 +193,7 @@ module ActiveRecord
       # * <tt>collection.clear</tt> - removes every object from the collection. This does not destroy the objects.
       # * <tt>collection.empty?</tt> - returns true if there are no associated objects.
       # * <tt>collection.size</tt> - returns the number of associated objects.
-      # * <tt>collection.find(id)</tt> - finds an associated object responding to the +id+ and that
-      #   meets the condition that it has to be associated with this object.
-      # * <tt>collection.find_all(conditions = nil, orderings = nil, limit = nil, joins = nil)</tt> - finds all associated objects responding 
-      #   criteria mentioned (like in the standard find_all) and that meets the condition that it has to be associated with this object.
+      # * <tt>collection.find</tt> - finds an associated object according to the same rules as Base.find.
       # * <tt>collection.build(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key but has not yet been saved. *Note:* This only works if an 
       #   associated object already exists, not if its nil!
@@ -205,14 +202,13 @@ module ActiveRecord
       #   *Note:* This only works if an associated object already exists, not if its nil!
       #
       # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
-      # * <tt>Firm#clients</tt> (similar to <tt>Clients.find_all "firm_id = #{id}"</tt>)
+      # * <tt>Firm#clients</tt> (similar to <tt>Clients.find :all, :conditions => "firm_id = #{id}"</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
       # * <tt>Firm#clients.clear</tt>
       # * <tt>Firm#clients.empty?</tt> (similar to <tt>firm.clients.size == 0</tt>)
       # * <tt>Firm#clients.size</tt> (similar to <tt>Client.count "firm_id = #{id}"</tt>)
-      # * <tt>Firm#clients.find</tt> (similar to <tt>Client.find_on_conditions(id, "firm_id = #{id}")</tt>)
-      # * <tt>Firm#clients.find_all</tt> (similar to <tt>Client.find_all "firm_id = #{id}"</tt>)
+      # * <tt>Firm#clients.find</tt> (similar to <tt>Client.find(id, :conditions => "firm_id = #{id}")</tt>)
       # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
       # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("client_id" => id); c.save; c</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.

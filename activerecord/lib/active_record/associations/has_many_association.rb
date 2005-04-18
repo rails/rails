@@ -20,6 +20,7 @@ module ActiveRecord
         end
       end
 
+      # DEPRECATED.
       def find_all(runtime_conditions = nil, orderings = nil, limit = nil, joins = nil)
         if @options[:finder_sql]
           records = @association_class.find_by_sql(@finder_sql)
@@ -29,6 +30,11 @@ module ActiveRecord
           orderings ||= @options[:order]
           records = @association_class.find_all(sql, orderings, limit, joins)
         end
+      end
+
+      # DEPRECATED. Find the first associated record.  All arguments are optional.
+      def find_first(conditions = nil, orderings = nil)
+        find_all(conditions, orderings, 1).first
       end
 
       # Count the number of associated records. All arguments are optional.
@@ -42,11 +48,6 @@ module ActiveRecord
           sql += " AND #{sanitize_sql(runtime_conditions)}" if runtime_conditions
           @association_class.count(sql)
         end
-      end
-      
-      # Find the first associated record.  All arguments are optional.
-      def find_first(conditions = nil, orderings = nil)
-        find_all(conditions, orderings, 1).first
       end
 
       def find(*args)

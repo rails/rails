@@ -317,8 +317,8 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   def test_find_all
     firm = Firm.find_first
     assert_equal firm.clients, firm.clients.find_all
-    assert_equal 2, firm.clients.find_all("type = 'Client'").length
-    assert_equal 1, firm.clients.find_all("name = 'Summit'").length
+    assert_equal 2, firm.clients.find(:all, :conditions => "type = 'Client'").length
+    assert_equal 1, firm.clients.find(:all, :conditions => "name = 'Summit'").length
   end
 
   def test_find_all_sanitized
@@ -682,7 +682,7 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
 
   def test_field_name_same_as_foreign_key
     computer = Computer.find 1
-    assert_not_nil computer.developer, ":foreign key == attribute didn't lock up"
+    assert_not_nil computer.developer, ":foreign key == attribute didn't lock up" # '
   end
 
   def xtest_counter_cache
@@ -705,12 +705,7 @@ end
 
 
 class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
-  def setup
-    @accounts, @companies, @developers, @projects, @developers_projects = 
-      create_fixtures "accounts", "companies", "developers", "projects", "developers_projects"
-
-    @signals37 = Firm.find(1)
-  end
+  fixtures :accounts, :companies, :developers, :projects, :developers_projects
   
   def test_has_and_belongs_to_many
     david = Developer.find(1)
@@ -913,5 +908,13 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     @active_record = @projects["active_record"].find
     @active_record.developers.reload
     assert_equal @developers["david"].find, @active_record.developers.find(@developers["david"]["id"]), "Ruby find"
+  end
+
+  def xtest_find_in_association_with_options
+    developers = @active_record.developers.find(:all)
+    assert_equal 2, developers.size
+    
+    assert_equal @david, @active_record.developers.find(:first, :conditions => "salary < 10000")
+    assert_equal @jamis, @active_record.developers.find(:first, :order => "salary DESC")
   end
 end
