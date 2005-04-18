@@ -709,7 +709,7 @@ module ActiveRecord
           habtm_associations = reflections.find_all { |r| r.macro == :has_and_belongs_to_many }
 
           sql = "SELECT #{column_aliases(schema_abbreviations)} FROM #{table_name} "
-          add_association_joins!(reflections, sql)
+          sql << reflections.collect { |reflection| association_join(reflection) }.to_s
           sql << "#{options[:joins]} " if options[:joins]
           add_conditions!(sql, options[:conditions])
           sql << "ORDER BY #{options[:order]} " if options[:order]
@@ -721,10 +721,6 @@ module ActiveRecord
           schema_abbreviations.collect { |cn, tc| "#{tc.join(".")} AS #{cn}" }.join(", ")
         end
 
-        def add_association_joins!(reflections, sql)
-          reflections.each { |reflection| sql << association_join(reflection) }
-        end
-        
         def association_join(reflection)
           case reflection.macro
             when :has_and_belongs_to_many
