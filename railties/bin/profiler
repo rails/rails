@@ -8,6 +8,9 @@ end
 require File.dirname(__FILE__) + '/../config/environment'
 require "profiler"
 
+# Don't include compilation in the profile
+eval(ARGV.first)
+
 Profiler__::start_profile
 (ARGV[1] || 1).to_i.times { eval(ARGV.first) }
 Profiler__::stop_profile
