@@ -10,7 +10,7 @@ module Kernel
   #
   #   foo # => ['bar', 'baz']
   #
-  def returning(value) #:nodoc:
+  def returning(value)
     yield
     value
   end
