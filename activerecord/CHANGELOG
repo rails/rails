@@ -1,6 +1,4 @@
-*SVN*
-
-* Added Base.save! that attempts to save the record just like Base.save but will raise a InvalidRecord exception instead of returning false if the record is not valid [After much pestering from Dave Thomas]
+*1.10.0* (19th April, 2005)
 
 * Added eager loading of associations as a way to solve the N+1 problem more gracefully without piggy-back queries. Example:
 
@@ -24,6 +22,15 @@
     Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
     Person.find(:all, :offset => 10, :limit => 10)
 
+* Added acts_as_nested_set #1000 [wschenk]. Introduction:
+
+    This acts provides Nested Set functionality.  Nested Set is similiar to Tree, but with
+    the added feature that you can select the children and all of it's descendants with
+    a single query.  A good use case for this is a threaded post system, where you want
+    to display every reply to a comment without multiple selects.
+
+* Added Base.save! that attempts to save the record just like Base.save but will raise a RecordInvalid exception instead of returning false if the record is not valid [After much pestering from Dave Thomas]
+
 * Fixed PostgreSQL usage of fixtures with regards to public schemas and table names with dots #962 [gnuman1@gmail.com]
 
 * Fixed that fixtures were being deleted in the same order as inserts causing FK errors #890 [andrew.john.peters@gmail.com]
@@ -35,13 +42,6 @@
 * Fixes a problem with the SQL Adapter which was resulting in IDENTITY_INSERT not being set to ON when it should be #1104 [adelle]
 
 * Added the option to specify the acceptance string in validates_acceptance_of #1106 [caleb@aei-tech.com]
-
-* Added acts_as_nested_set #1000 [wschenk]. Introduction:
-
-    This acts provides Nested Set functionality.  Nested Set is similiar to Tree, but with
-    the added feature that you can select the children and all of it's descendants with
-    a single query.  A good use case for this is a threaded post system, where you want
-    to display every reply to a comment without multiple selects.
 
 * Added insert_at(position) to acts_as_list #1083 [DeLynnB]
 

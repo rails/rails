@@ -1,16 +1,40 @@
-*SVN*
+*1.8.0* (19th April, 2005)
+
+* Added assert_tag and assert_no_tag as a much improved alternative to the deprecated assert_template_xpath_match #1126 [Jamis Buck]
+
+* Deprecated the majority of all the testing assertions and replaced them with a much smaller core and access to all the collections the old assertions relied on. That way the regular test/unit assertions can be used against these. Added documentation about how to use it all.
+
+* Added a wide range of new Javascript effects:
+    * Effect.Puff zooms the element out and makes it smoothly transparent at the same time, giving a "puff" illusion #996 [thomas@fesch.at]
+      After the animation is completed, the display property will be set to none. 
+      This effect will work on relative and absolute positioned elements.
+      
+    * Effect.Appear as the opposite of Effect.Fade #990 [thomas@fesch.at]
+      You should return elements with style="display:none;" or a like class for this to work best and have no chance of flicker.
+      
+    * Effect.Squish for scaling down an element and making it disappear at the end #972 [thomas@fesch.at]
+    
+    * Effect.Scale for smoothly scaling images or text up and down #972 [thomas@fesch.at]
+    
+    * Effect.Fade which smoothly turns opacity from 100 to 0 and then hides the element #960 [thomas@fesch.at]
+
+* Added Request#xml_http_request? (and an alias xhr?) to that'll return true when the request came from one of the Javascript helper methods (Ajax). This can be used to give one behavior for modern browsers supporting Ajax, another to old browsers #1127 [Sam Stephenson]
+
+* Changed render_partial to take local assigns as the second parameter instead of an explicit object and then the assigns. So the API changes from:
+
+    <%= render_partial "account", person, "rules" => regulations.rules %>
+    
+  ...to:
+  
+    <%= render_partial "account", :account => person, :rules => regulations.rules %>
+  
+  The old API will still work, though, and render_partial "account" will still assume :account => @account.
 
 * Added support for web servers that use PATH_INFO instead of REQUEST_URI like IIS #1014 [BradG/Nicholas Seckar]
 
 * Added graceful handling of PUT, DELETE, and OPTIONS requests for a complete coverage of REST functionality #1136 [joshknowles@gmail.com]
 
 * Fixed that you can now pass an alternative :href option to link_to_function/remote in order to point to somewhere other than # if the javascript fails or is turned off. You can do the same with form_remote_tag by passing in :action. #1113 [Sam Stephenson]
-
-* Added Request#xml_http_request? (and an alias xhr?) to that'll return true when the request came from one of the Javascript helper methods (Ajax). This can be used to give one behavior for modern browsers supporting Ajax, another to old browsers #1127 [Sam Stephenson]
-
-* Added assert_tag and assert_no_tag as a much improved alternative to the deprecated assert_template_xpath_match #1126 [Jamis Buck]
-
-* Deprecated the majority of all the testing assertions and replaced them with a much smaller core and access to all the collections the old assertions relied on. That way the regular test/unit assertions can be used against these. Added documentation about how to use it all.
 
 * Fixed DateHelper to return values on the option tags such that they'll work properly in IE with form_remote_tag #1024 [rscottmace@gmail.com]
 
@@ -27,16 +51,6 @@
 * Fixed url_for(nil) in functional tests #1116 [Alisdair McDiarmid]
 
 * Fixed error handling of broken layouts #1115 [Michael Schubert]
-
-* Changed render_partial to take local assigns as the second parameter instead of an explicit object and then the assigns. So the API changes from:
-
-    <%= render_partial "account", person, "rules" => regulations.rules %>
-    
-  ...to:
-  
-    <%= render_partial "account", :account => person, :rules => regulations.rules %>
-  
-  The old API will still work, though, and render_partial "account" will still assume :account => @account.
 
 * Added submit_to_remote that allows you to trigger an Ajax form submition at the click of the submission button, which allows for multiple targets in a single form through the use of multiple submit buttons #930 [yrashk@gmail.com]
 
@@ -89,20 +103,6 @@
 * Improved the message display on the exception handler pages #963 [Johan Sorensen]
 
 * Fixed that on very rare occasions, webrick would raise a NoMethodError: private method 'split' called for nil #1001 [Flurin Egger]
-
-* Added a wide range of new Javascript effects:
-    * Effect.Puff zooms the element out and makes it smoothly transparent at the same time, giving a "puff" illusion #996 [thomas@fesch.at]
-      After the animation is completed, the display property will be set to none. 
-      This effect will work on relative and absolute positioned elements.
-      
-    * Effect.Appear as the opposite of Effect.Fade #990 [thomas@fesch.at]
-      You should return elements with style="display:none;" or a like class for this to work best and have no chance of flicker.
-      
-    * Effect.Squish for scaling down an element and making it disappear at the end #972 [thomas@fesch.at]
-    
-    * Effect.Scale for smoothly scaling images or text up and down #972 [thomas@fesch.at]
-    
-    * Effect.Fade which smoothly turns opacity from 100 to 0 and then hides the element #960 [thomas@fesch.at]
 
 * Fixed problem with page caching #958 [Rick Olson]
 

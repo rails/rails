@@ -134,15 +134,15 @@ module Test #:nodoc:
       #   must meet the criteria described by the hash.
       # * <tt>:children</tt>: a hash, for counting children of a node. Accepts
       #   the keys:
-      # ** <tt>:count</tt>: either a number or a range which must equal (or
-      #    include) the number of children that match.
-      # ** <tt>:less_than</tt>: the number of matching children must be less
-      #    than this number.
-      # ** <tt>:greater_than</tt>: the number of matching children must be
-      #    greater than this number.
-      # ** <tt>:only</tt>: another hash consisting of the keys to use
-      #    to match on the children, and only matching children will be
-      #    counted.
+      #   * <tt>:count</tt>: either a number or a range which must equal (or
+      #     include) the number of children that match.
+      #   * <tt>:less_than</tt>: the number of matching children must be less
+      #     than this number.
+      #   * <tt>:greater_than</tt>: the number of matching children must be
+      #     greater than this number.
+      #   * <tt>:only</tt>: another hash consisting of the keys to use
+      #     to match on the children, and only matching children will be
+      #     counted.
       # * <tt>:content</tt>: (text nodes only). The content of the node must
       #   match the given value.
       #

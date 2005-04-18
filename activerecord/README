@@ -333,7 +333,7 @@ The prefered method of installing Active Record is through its GEM file. You'll 
 RubyGems[http://rubygems.rubyforge.org/wiki/wiki.pl] installed for that, though. If you have,
 then use:
 
-  % [sudo] gem install activerecord-1.7.0.gem
+  % [sudo] gem install activerecord-1.10.0.gem
 
 You can also install Active Record the old-fashion way with the following command:
 

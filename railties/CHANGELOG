@@ -1,4 +1,4 @@
-*SVN*
+*0.12.0* (19th April, 2005)
 
 * Fixed that purge_test_database would use database settings from the development environment when recreating the test database #1122 [rails@cogentdude.com]
 
@@ -10,7 +10,6 @@
     # pits the two statements against each other with 50 runs each
     script/benchmarker 50 'Person.expensive_method(10)' 'Person.cheap_method(10)'
 
-
 * Added script/profiler to easily profile a single statement from within the environment. Examples:
 
     script/profiler 'Person.expensive_method(10)'
@@ -21,6 +20,8 @@
 * Added lazy typing for generate, such that ./script/generate cn == ./script/generate controller and the likes #1051 [k@v2studio.com]
 
 * Fixed that ownership is brought over in pg_dump during tests for PostgreSQL #1060 [pburleson@gmail.com]
+
+* Upgraded to Active Record 1.10.0, Action Pack 1.8.0, Action Mailer 0.9.0, Action Web Service 0.7.0, Active Support 1.0.4
 
 
 *0.11.1* (27th March, 2005)

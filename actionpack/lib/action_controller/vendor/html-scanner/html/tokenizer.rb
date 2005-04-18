@@ -1,6 +1,6 @@
 require 'strscan'
 
-module HTML
+module HTML#:nodoc:
   
   # A simple HTML tokenizer. It simply breaks a stream of text into tokens, where each
   # token is a string. Each string represents either "text", or an HTML element.
@@ -13,7 +13,7 @@ module HTML
   #   while token = tokenizer.next
   #     p token
   #   end
-  class Tokenizer
+  class Tokenizer#:nodoc:
     
     # The current (byte) position in the text
     attr_reader :position

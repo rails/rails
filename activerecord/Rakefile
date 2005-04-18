@@ -8,7 +8,7 @@ require 'rake/contrib/rubyforgepublisher'
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'activerecord'
-PKG_VERSION   = '1.9.1' + PKG_BUILD
+PKG_VERSION   = '1.10.0' + PKG_BUILD
 PKG_FILE_NAME = "#{PKG_NAME}-#{PKG_VERSION}"
 
 RELEASE_NAME  = "REL #{PKG_VERSION}"
@@ -76,7 +76,7 @@ spec = Gem::Specification.new do |s|
     s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   end
   
-  s.add_dependency('activesupport', '= 1.0.3' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 1.0.4' + PKG_BUILD)
 
   s.files.delete "test/fixtures/fixture_database.sqlite"
   s.files.delete "test/fixtures/fixture_database_2.sqlite"

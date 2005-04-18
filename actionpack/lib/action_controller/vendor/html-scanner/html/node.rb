@@ -1,8 +1,8 @@
 require 'strscan'
 
-module HTML
+module HTML#:nodoc:
   
-  class Conditions < Hash
+  class Conditions < Hash#:nodoc:
     def initialize(hash)
       super()
       hash = { :content => hash } unless Hash === hash
@@ -53,7 +53,7 @@ module HTML
   end
 
   # The base class of all nodes, textual and otherwise, in an HTML document.
-  class Node
+  class Node#:nodoc:
     # The array of children of this node. Not all nodes have children.
     attr_reader :children
     
@@ -167,7 +167,7 @@ module HTML
   end
 
   # A node that represents text, rather than markup.
-  class Text < Node
+  class Text < Node#:nodoc:
     
     attr_reader :content
     
@@ -223,7 +223,7 @@ module HTML
   # A Tag is any node that represents markup. It may be an opening tag, a
   # closing tag, or a self-closing tag. It has a name, and may have a hash of
   # attributes.
-  class Tag < Node
+  class Tag < Node#:nodoc:
     
     # Either +nil+, <tt>:close</tt>, or <tt>:self</tt>
     attr_reader :closing

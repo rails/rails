@@ -1,11 +1,11 @@
 require 'html/tokenizer'
 require 'html/node'
 
-module HTML
+module HTML#:nodoc:
   
   # A top-level HTMl document. You give it a body of text, and it will parse that
   # text into a tree of nodes.
-  class Document
+  class Document #:nodoc:
 
     # The root of the parsed document.
     attr_reader :root

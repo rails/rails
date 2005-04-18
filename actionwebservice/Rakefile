@@ -9,7 +9,7 @@ require 'fileutils'
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'actionwebservice'
-PKG_VERSION   = '0.6.2' + PKG_BUILD
+PKG_VERSION   = '0.7.0' + PKG_BUILD
 PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 
@@ -62,9 +62,9 @@ spec = Gem::Specification.new do |s|
   s.rubyforge_project = "aws"
   s.homepage = "http://www.rubyonrails.org"
 
-  s.add_dependency('actionpack', '= 1.7.0' + PKG_BUILD)
-  s.add_dependency('activerecord', '= 1.9.1' + PKG_BUILD)
-  s.add_dependency('activesupport', '= 1.0.3' + PKG_BUILD)
+  s.add_dependency('actionpack', '= 1.8.0' + PKG_BUILD)
+  s.add_dependency('activerecord', '= 1.10.0' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 1.0.4' + PKG_BUILD)
 
   s.has_rdoc = true
   s.requirements << 'none'

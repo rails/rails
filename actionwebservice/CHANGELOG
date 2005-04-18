@@ -1,4 +1,4 @@
-*0.7.0* (Unreleased)
+*0.7.0* (19th April, 2005)
 
 * When casting structured types, don't try to send obj.name= unless obj responds to it, causes casting to be less likely to fail for XML-RPC
 

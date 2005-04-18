@@ -1,4 +1,4 @@
-*SVN*
+*1.0.4* (19th April, 2005)
 
 * Fixed that in some circumstances controllers outside of modules may have hidden ones inside modules. For example, admin/content might have been hidden by /content. #1075 [Nicholas Seckar]
 

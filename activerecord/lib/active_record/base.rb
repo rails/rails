@@ -96,7 +96,7 @@ module ActiveRecord #:nodoc:
   # question mark is supposed to represent. In those cases, you can resort to named bind variables instead. That's done by replacing 
   # the question marks with symbols and supplying a hash with values for the matching symbol keys:
   #
-  #   Company.find_first([ 
+  #   Company.find(:first, [ 
   #     "id = :id AND name = :name AND division = :division AND created_at > :accounting_date", 
   #     { :id => 3, :name => "37signals", :division => "First", :accounting_date => '2005-01-01' }
   #   ])
@@ -295,7 +295,7 @@ module ActiveRecord #:nodoc:
       #   If no record can be found for all of the listed ids, then RecordNotFound will be raised.
       # * Find first: This will return the first record matched by the options used. These options can either be specific
       #   conditions or merely an order. If no record can matched, nil is returned.
-      # # Find all: This will return all the records matched by the options used. If no records are found, an empty array is returned.
+      # * Find all: This will return all the records matched by the options used. If no records are found, an empty array is returned.
       #
       # All approaches accepts an option hash as their last parameter. The options are:
       #
@@ -315,12 +315,12 @@ module ActiveRecord #:nodoc:
       #   Person.find(1, :conditions => "administrator = 1", :order => "created_on DESC")
       #
       # Examples for find first:
-      #   Person.find(:first)  # returns the first object fetched by SELECT * FROM people
+      #   Person.find(:first) # returns the first object fetched by SELECT * FROM people
       #   Person.find(:first, :conditions => [ "user_name = ?", user_name])
       #   Person.find(:first, :order => "created_on DESC", :offset => 5)
       #
       # Examples for find all:
-      #   Person.find(:all)    # returns an array of objects for all the rows fetched by SELECT * FROM people
+      #   Person.find(:all) # returns an array of objects for all the rows fetched by SELECT * FROM people
       #   Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
       #   Person.find(:all, :offset => 10, :limit => 10)
       #   Person.find(:all, :include => [ :account, :friends ])

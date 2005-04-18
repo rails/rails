@@ -1,5 +1,5 @@
-module HTML
-  module Version
+module HTML#:nodoc:
+  module Version#:nodoc:
 
     MAJOR = 0
     MINOR = 5
