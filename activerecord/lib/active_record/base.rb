@@ -618,6 +618,10 @@ module ActiveRecord #:nodoc:
       def columns_hash
         @columns_hash ||= columns.inject({}) { |hash, column| hash[column.name] = column; hash }
       end
+      
+      def column_names
+        @column_names ||= columns_hash.keys
+      end
 
       # Returns an array of columns objects where the primary id, all columns ending in "_id" or "_count", 
       # and columns used for single table inheritance has been removed.
@@ -640,7 +644,7 @@ module ActiveRecord #:nodoc:
       
       # Resets all the cached information about columns, which will cause they to be reloaded on the next request.
       def reset_column_information
-        @columns = @columns_hash = @content_columns = @dynamic_methods_hash = nil
+        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:

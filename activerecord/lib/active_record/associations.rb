@@ -683,34 +683,42 @@ module ActiveRecord
           schema_abbreviations = generate_schema_abbreviations(reflections)
           primary_key_table    = generate_primary_key_table(reflections, schema_abbreviations)
 
-          rows    = select_all_rows(options, schema_abbreviations, reflections)
-          records = extract_and_instantiate_records(schema_abbreviations, rows)
-
-          assign_associations_to_records(rows, records, reflections, schema_abbreviations, primary_key_table)
+          rows        = select_all_rows(options, schema_abbreviations, reflections)
+          records     = { }        
+          primary_key = primary_key_table[table_name]
           
-          return records
-        end
-
-        def assign_associations_to_records(rows, records, reflections, schema_abbreviations, primary_key_table)
-          records.each do |record|
+          for row in rows
+            id = row[primary_key]
+            records[id] ||= instantiate(extract_record(schema_abbreviations, table_name, row))
+          
             reflections.each do |reflection|
+              next unless row[primary_key_table[reflection.table_name]]
+              
               case reflection.macro
                 when :has_many, :has_and_belongs_to_many
-                  record.send(reflection.name).target = 
-                    extract_association_for_record(record, schema_abbreviations, primary_key_table, rows, reflection)
+                  records[id].send(reflection.name)
+                  records[id].instance_variable_get("@#{reflection.name}").target.push(
+                    reflection.klass.send(:instantiate, extract_record(schema_abbreviations, reflection.table_name, row))
+                  )
                 when :has_one, :belongs_to
-                  record.send(
-                    "set_#{reflection.name}_target", 
-                    extract_association_for_record(record, schema_abbreviations, primary_key_table, rows, reflection).first
+                  records[id].send(
+                    "#{reflection.name}=", 
+                    reflection.klass.send(:instantiate, extract_record(schema_abbreviations, reflection.table_name, row))
                   )
               end
             end
           end
+          
+          return records.values
         end
-        
+
+        def reflect_on_included_associations(associations)
+          [ associations ].flatten.collect { |association| reflect_on_association(association) }
+        end
+
         def generate_schema_abbreviations(reflections)
-          schema = [ [ table_name, columns.collect { |c| c.name } ] ]
-          schema += reflections.collect { |r| [ r.klass.table_name, r.klass.columns.collect { |c| c.name } ] }
+          schema = [ [ table_name, column_names ] ]
+          schema += reflections.collect { |r| [ r.table_name, r.klass.column_names ] }
 
           schema_abbreviations = {}
           schema.each_with_index do |table_and_columns, i|
@@ -736,9 +744,14 @@ module ActiveRecord
         end
 
 
-        def construct_finder_sql_with_included_associations(options, schema_abbreviations, reflections)
-          habtm_associations = reflections.find_all { |r| r.macro == :has_and_belongs_to_many }
+        def select_all_rows(options, schema_abbreviations, reflections)
+          connection.select_all(
+            construct_finder_sql_with_included_associations(options, schema_abbreviations, reflections), 
+            "#{name} Load Including Associations"
+          )
+        end
 
+        def construct_finder_sql_with_included_associations(options, schema_abbreviations, reflections)
           sql = "SELECT #{column_aliases(schema_abbreviations)} FROM #{table_name} "
           sql << reflections.collect { |reflection| association_join(reflection) }.to_s
           sql << "#{options[:joins]} " if options[:joins]
@@ -775,39 +788,14 @@ module ActiveRecord
         end
 
 
-        def extract_and_instantiate_records(schema_abbreviations, rows)
-          rows.collect { |row| instantiate(extract_record(schema_abbreviations, table_name, row)) }.uniq
-        end
-
-        def extract_association_for_record(record, schema_abbreviations, primary_key_table, rows, reflection)
-          association = rows.collect do |row|
-            if row[primary_key_table[table_name]].to_s == record.id.to_s && !row[primary_key_table[reflection.klass.table_name]].nil?
-              reflection.klass.send(:instantiate, extract_record(schema_abbreviations, reflection.klass.table_name, row))
-            end
-          end
-
-          return association.uniq.compact
-        end
-
         def extract_record(schema_abbreviations, table_name, row)
-          row.inject({}) do |record, pair|
-            prefix, column_name = schema_abbreviations[pair.first]
-            record[column_name] = pair.last if prefix == table_name
-            record
+          record = {}
+          row.each do |column, value|
+            prefix, column_name = schema_abbreviations[column]
+            record[column_name] = value if prefix == table_name
           end
-        end
-
-        
-        def reflect_on_included_associations(associations)
-          [ associations ].flatten.collect { |association| reflect_on_association(association) }
-        end
-        
-        def select_all_rows(options, schema_abbreviations, reflections)
-          connection.select_all(
-            construct_finder_sql_with_included_associations(options, schema_abbreviations, reflections), 
-            "#{name} Load Including Associations"
-          )
-        end
+          return record
+        end        
     end
   end
 end

@@ -114,7 +114,11 @@ module ActiveRecord
     # Holds all the meta-data about an association as it was specified in the Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
       def klass
-        active_record.send(:compute_type, (name_to_class_name(name.id2name)))
+        @klass ||= active_record.send(:compute_type, (name_to_class_name(name.id2name)))
+      end
+      
+      def table_name
+        @table_name ||= klass.table_name
       end
 
       private

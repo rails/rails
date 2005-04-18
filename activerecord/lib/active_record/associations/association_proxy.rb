@@ -32,6 +32,10 @@ module ActiveRecord
         @loaded
       end
       
+      def target
+        @target
+      end
+      
       def target=(t)
         @target = t
         @loaded = true
