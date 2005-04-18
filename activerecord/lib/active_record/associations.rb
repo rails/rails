@@ -708,16 +708,10 @@ module ActiveRecord
         def construct_finder_sql_with_included_associations(options, schema_abbreviations, reflections)
           habtm_associations = reflections.find_all { |r| r.macro == :has_and_belongs_to_many }
 
-          sql = "SELECT #{column_aliases(schema_abbreviations)} FROM #{table_name}"
-          add_habtm_join_tables!(habtm_associations, sql)
-          sql << " "
-
+          sql = "SELECT #{column_aliases(schema_abbreviations)} FROM #{table_name} "
           add_association_joins!(reflections, sql)
           sql << "#{options[:joins]} " if options[:joins]
-
-          add_habtm_conditions!(habtm_associations, options)
           add_conditions!(sql, options[:conditions])
-
           sql << "ORDER BY #{options[:order]} " if options[:order]
           
           return sanitize_sql(sql)
@@ -727,35 +721,25 @@ module ActiveRecord
           schema_abbreviations.collect { |cn, tc| "#{tc.join(".")} AS #{cn}" }.join(", ")
         end
 
-        def add_habtm_join_tables!(habtm_associations, sql)
-          return if habtm_associations.empty?
-          sql << ", " + habtm_associations.collect { |a| [ a.klass.table_name, a.options[:join_table] ] }.join(", ")
-        end
-        
-        def add_habtm_conditions!(habtm_associations, options)
-          return if habtm_associations.empty?
-          options[:conditions] = [
-            options[:conditions],
-            habtm_associations.collect { |r|
-              join_table = r.options[:join_table]
-              "#{join_table}.#{table_name.classify.foreign_key} = #{table_name}.#{primary_key} AND " +
-              "#{join_table}.#{r.klass.table_name.classify.foreign_key} = #{r.klass.table_name}.#{r.klass.primary_key}"
-            }
-          ].compact.join(" AND ")
-        end
-        
         def add_association_joins!(reflections, sql)
           reflections.each { |reflection| sql << association_join(reflection) }
         end
         
         def association_join(reflection)
           case reflection.macro
+            when :has_and_belongs_to_many
+              " LEFT OUTER JOIN #{reflection.options[:join_table]} ON " +
+              "#{reflection.options[:join_table]}.#{reflection.options[:foreign_key] || table_name.classify.foreign_key} = " +
+              "#{table_name}.#{primary_key} " +
+              " LEFT OUTER JOIN #{reflection.klass.table_name} ON " +
+              "#{reflection.options[:join_table]}.#{reflection.options[:associated_foreign_key] || reflection.klass.table_name.classify.foreign_key} = " +
+              "#{reflection.klass.table_name}.#{reflection.klass.primary_key} "
             when :has_many, :has_one
-              " LEFT JOIN #{reflection.klass.table_name} ON " +
+              " LEFT OUTER JOIN #{reflection.klass.table_name} ON " +
               "#{reflection.klass.table_name}.#{reflection.options[:foreign_key] || table_name.classify.foreign_key} = " +
               "#{table_name}.#{primary_key} "
             when :belongs_to
-              " LEFT JOIN #{reflection.klass.table_name} ON " +
+              " LEFT OUTER JOIN #{reflection.klass.table_name} ON " +
               "#{reflection.klass.table_name}.#{reflection.klass.primary_key} = " +
               "#{table_name}.#{reflection.options[:foreign_key] || reflection.klass.table_name.classify.foreign_key} "
             else

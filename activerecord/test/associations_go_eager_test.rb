@@ -18,10 +18,10 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
 
   def test_loading_with_multiple_associations
-    posts = Post.find(:all, :include => [ :comments, :author, :categories ])
+    posts = Post.find(:all, :include => [ :comments, :author, :categories ], :order => "posts.id")
     assert_equal 2, posts.first.comments.size
     assert_equal 2, posts.first.categories.size
-    assert_equal @greetings.body, posts.first.comments.first.body
+    assert posts.first.comments.include?(@greetings)
   end
 
   def test_loading_from_an_association
@@ -40,11 +40,12 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
 
   def test_eager_association_loading_with_habtm
-    posts = Post.find(:all, :include => :categories)
-    assert_equal 2, posts.first.categories.size
-    assert_equal 1, posts.last.categories.size
-    assert_equal @technology.name, posts.first.categories.last.name
-    assert_equal @general.name, posts.last.categories.first.name
+    posts = Post.find(:all, :include => :categories, :order => "posts.id")
+    assert_equal 2, posts[0].categories.size
+    assert_equal 1, posts[1].categories.size
+    assert_equal 0, posts[2].categories.size
+    assert posts[0].categories.include?(@technology)
+    assert posts[1].categories.include?(@general)
   end
   
   def test_eager_with_inheritance
