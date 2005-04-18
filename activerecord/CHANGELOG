@@ -1,5 +1,27 @@
 *SVN*
 
+* Added eager loading of associations as a way to solve the N+1 problem more gracefully without piggy-back queries. Example:
+
+    for post in Post.find(:all, :limit => 100)
+      puts "Post:            " + post.title
+      puts "Written by:      " + post.author.name
+      puts "Last comment on: " + post.comments.first.created_on
+    end
+  
+  This used to generate 301 database queries if all 100 posts had both author and comments. It can now be written as:
+  
+    for post in Post.find(:all, :limit => 100, :include => [ :author, :comments ])
+ 
+  ...and the number of database queries needed is now 1.
+
+* Added new unified Base.find API and deprecated the use of find_first and find_all. See the documentation for Base.find. Examples:
+
+    Person.find(1, :conditions => "administrator = 1", :order => "created_on DESC")
+    Person.find(1, 5, 6, :conditions => "administrator = 1", :order => "created_on DESC")
+    Person.find(:first, :order => "created_on DESC", :offset => 5)
+    Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
+    Person.find(:all, :offset => 10, :limit => 10)
+
 * Fixed PostgreSQL usage of fixtures with regards to public schemas and table names with dots #962 [gnuman1@gmail.com]
 
 * Fixed that fixtures were being deleted in the same order as inserts causing FK errors #890 [andrew.john.peters@gmail.com]

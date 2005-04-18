@@ -299,18 +299,31 @@ module ActiveRecord #:nodoc:
       #
       # All approaches accepts an option hash as their last parameter. The options are:
       #
-      # * <tt>:conditions</tt>: 
-      # * <tt>:order</tt>: 
-      # * <tt>:limit</tt>: 
-      # * <tt>:offset</tt>: 
-      # * <tt>:joins</tt>: 
-      # * <tt>:include</tt>: 
+      # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro.
+      # * <tt>:order</tt>: An SQL fragment like "created_at DESC, name".
+      # * <tt>:limit</tt>: An integer determining the limit on the number of rows that should be returned.
+      # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
+      # * <tt>:joins</tt>: An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
+      # * <tt>:include</tt>: Names associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
+      #   to already defined associations. See eager loading under Associations.
       #
-      # Examples:
+      # Examples for find by id:
       #   Person.find(1)       # returns the object for ID = 1
       #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
       #   Person.find([7, 17]) # returns an array for objects with IDs in (7, 17)
       #   Person.find([1])     # returns an array for objects the object with ID = 1
+      #   Person.find(1, :conditions => "administrator = 1", :order => "created_on DESC")
+      #
+      # Examples for find first:
+      #   Person.find(:first)  # returns the first object fetched by SELECT * FROM people
+      #   Person.find(:first, :conditions => [ "user_name = ?", user_name])
+      #   Person.find(:first, :order => "created_on DESC", :offset => 5)
+      #
+      # Examples for find all:
+      #   Person.find(:all)    # returns an array of objects for all the rows fetched by SELECT * FROM people
+      #   Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
+      #   Person.find(:all, :offset => 10, :limit => 10)
+      #   Person.find(:all, :include => [ :account, :friends ])
       def find(*args)
         options = extract_options_from_args!(args)
 

@@ -108,6 +108,41 @@ module ActiveRecord
     #   project.milestones(true).size  # fetches milestones from the database
     #   project.milestones             # uses the milestone cache
     #
+    # == Eager loading of associations
+    #
+    # Eager loading is a way to find objects of a certain class and a number of named associations along with it in a single SQL call. This is
+    # one of the easiest ways of to prevent the dreaded 1+N problem in which fetching 100 posts that each needs to display their author
+    # triggers 101 database queries. Through the use of eager loading, the 101 queries can be reduced to 1. Example:
+    #
+    #   class Post < ActiveRecord::Base
+    #     belongs_to :author
+    #     has_many   :comments
+    #   end
+    #
+    # Consider the following loop using the class above:
+    #
+    #   for post in Post.find(:all, :limit => 100)
+    #     puts "Post:            " + post.title
+    #     puts "Written by:      " + post.author.name
+    #     puts "Last comment on: " + post.comments.first.created_on
+    #   end 
+    #
+    # To iterate over these one hundred posts, we'll generate 201 database queries. Let's first just optimize it for retrieving the author:
+    #
+    #   for post in Post.find(:all, :limit => 100, :include => :author)
+    #
+    # This references the name of the belongs_to association that also used the :author symbol, so the find will now weave in a join something
+    # like this: LEFT OUTER JOIN authors ON authors.id = posts.author_id. Doing so will cut down the number of queries from 201 to 101.
+    #
+    # We can improve upon the situation further by referencing both associations in the finder with:
+    #
+    #   for post in Post.find(:all, :limit => 100, :include => [ :author, :comments ])
+    #
+    # That'll add another join along the lines of: LEFT OUTER JOIN comments ON comments.post_id = posts.id. And we'll be down to 1 query.
+    # But that shouldn't fool you to think that you can pull out huge amounts of data with no performance penalty just because you've reduced
+    # the number of queries. The database still needs to send all the data to Active Record and it still needs to be processed. So its no
+    # catch-all for performance problems, but its a great way to cut down on the number of queries in a situation as the one described above.
+    #
     # == Modules
     #
     # By default, associations will look for objects within the current module scope. Consider:
