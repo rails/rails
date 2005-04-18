@@ -251,6 +251,8 @@ class Fixtures < Hash
     end
   end
 
+  attr_reader :table_name
+
   def initialize(connection, table_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
     @connection, @table_name, @fixture_path, @file_filter = connection, table_name, fixture_path, file_filter
     @class_name = Inflector.classify(@table_name)
@@ -470,30 +472,35 @@ module Test #:nodoc:
       private
         def load_fixtures
           @loaded_fixtures = {}
-          fixture_table_names.each do |table_name|
-            @loaded_fixtures[table_name] = Fixtures.create_fixtures(fixture_path, table_name)
+          fixtures = Fixtures.create_fixtures(fixture_path, fixture_table_names)
+          unless fixtures.nil?
+            if fixtures.instance_of?(Fixtures)
+              @loaded_fixtures[fixtures.table_name] = fixtures
+            else
+              fixtures.each { |f| @loaded_fixtures[f.table_name] = f }
+            end
           end
         end
-        
+
         # for pre_loaded_fixtures, only require the classes once. huge speed improvement
         @@required_fixture_classes = false
-        
+
         def instantiate_fixtures
           if pre_loaded_fixtures
             raise RuntimeError, 'Load fixtures before instantiating them.' if Fixtures.all_loaded_fixtures.empty?
             unless @@required_fixture_classes
-              self.class.require_fixture_classes Fixtures.all_loaded_fixtures.keys 
+              self.class.require_fixture_classes Fixtures.all_loaded_fixtures.keys
               @@required_fixture_classes = true
             end
             Fixtures.instantiate_all_loaded_fixtures(self, load_instances?)
-          else 
+          else
             raise RuntimeError, 'Load fixtures before instantiating them.' if @loaded_fixtures.nil?
             @loaded_fixtures.each do |table_name, fixtures|
               Fixtures.instantiate_fixtures(self, table_name, fixtures, load_instances?)
             end
           end
         end
-        
+
         def load_instances?
           use_instantiated_fixtures != :no_instances
         end

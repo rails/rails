@@ -179,3 +179,27 @@ class OverlappingFixturesTest < Test::Unit::TestCase
     assert_equal([:topics, :developers, :accounts], fixture_table_names)
   end
 end
+
+
+class ForeignKeyFixturesTest < Test::Unit::TestCase
+  fixtures :fk_test_has_pk, :fk_test_has_fk
+
+  # if foreign keys are implemented and fixtures
+  # are not deleted in reverse order then this test
+  # case will raise StatementInvalid
+
+  def test_number1
+    assert true
+  end
+
+  def test_number2
+    assert true
+  end
+
+end
+
+
+
+
+
+

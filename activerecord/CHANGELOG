@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that fixtures were being deleted in the same order as inserts causing FK errors #890 [andrew.john.peters@gmail.com]
+
 * Fixed loading of fixtures in to be in the right order (or PostgreSQL would bark) #1047 [stephenh@chase3000.com]
 
 * Fixed page caching for non-vhost applications living underneath the root #1004 [Ben Schumacher]

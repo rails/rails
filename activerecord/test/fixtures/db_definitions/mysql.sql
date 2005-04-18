@@ -166,3 +166,14 @@ CREATE TABLE `categories_posts` (
   `category_id` int(11) NOT NULL,
   `post_id` int(11) NOT NULL
 );
+
+CREATE TABLE `fk_test_has_pk` (
+  `id` INTEGER NOT NULL PRIMARY KEY
+);
+
+CREATE TABLE `fk_test_has_fk` (
+  `id`    INTEGER NOT NULL PRIMARY KEY,
+  `fk_id` INTEGER NOT NULL,
+
+  FOREIGN KEY (`fk_id`) REFERENCES `fk_test_has_pk`(`id`)
+);
