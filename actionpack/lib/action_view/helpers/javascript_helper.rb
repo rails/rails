@@ -29,7 +29,7 @@ module ActionView
       def link_to_function(name, function, html_options = {})
         content_tag(
           "a", name, 
-          html_options.symbolize_keys.merge(:href => "#", :onclick => "#{function}; return false;")
+          {:href => "#", :onclick => "#{function}; return false;"}.merge(html_options.symbolize_keys)
         )
       end
 
@@ -87,13 +87,13 @@ module ActionView
       def form_remote_tag(options = {})
         options[:form] = true
 
-        options[:html] ||= { }
+        options[:html] ||= {}
         options[:html][:onsubmit] = "#{remote_function(options)}; return false;"
 
         tag("form", options[:html], true)
       end
       
-      # Returns a button input tag that will submit form using XMLHttpRequest in tghe background instead of regular
+      # Returns a button input tag that will submit form using XMLHttpRequest in the background instead of regular
       # reloading POST arrangement. <tt>options</tt> argument is the same as in <tt>form_remote_tag</tt>
       def submit_to_remote(name, value, options = {})
         options[:with] = 'Form.serialize(this.form)'
