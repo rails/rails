@@ -48,7 +48,11 @@ module ActionController #:nodoc:
 
     def query_string
       return @cgi.query_string unless @cgi.query_string.nil? || @cgi.query_string.empty?
-      parts = env['REQUEST_URI'].split('?')
+      unless env['REQUEST_URI'].nil?
+        parts = env['REQUEST_URI'].split('?')
+      else
+        return env['QUERY_STRING'] || ''
+      end      
       parts.shift
       return parts.join('?')
     end
