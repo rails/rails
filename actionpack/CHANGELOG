@@ -1,5 +1,7 @@
 *SVN*
 
+* Added graceful handling of PUT, DELETE, and OPTIONS requests for a complete coverage of REST functionality #1136 [joshknowles@gmail.com]
+
 * Fixed that you can now pass an alternative :href option to link_to_function/remote in order to point to somewhere other than # if the javascript fails or is turned off. You can do the same with form_remote_tag by passing in :action. #1113 [Sam Stephenson]
 
 * Added Request#xml_http_request? (and an alias xhr?) to that'll return true when the request came from one of the Javascript helper methods (Ajax). This can be used to give one behavior for modern browsers supporting Ajax, another to old browsers #1127 [Sam Stephenson]

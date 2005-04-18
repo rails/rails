@@ -28,7 +28,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     super
   end
 
-  def do_GET(req, res)
+  def service(req, res)
     begin
       unless handle_file(req, res)
         REQUEST_MUTEX.lock
@@ -41,12 +41,10 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     end
   end
 
-  alias :do_POST :do_GET
-
   def handle_file(req, res)
     begin
       add_dot_html(req)
-      @file_handler.send(:do_GET, req, res)
+      @file_handler.send(:service, req, res)
       remove_dot_html(req)
       return true
     rescue HTTPStatus::PartialContent, HTTPStatus::NotModified => err
