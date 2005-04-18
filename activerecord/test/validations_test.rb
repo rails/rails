@@ -64,6 +64,11 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal "is Wrong Update", r.errors.on("title"), "A reply with a bad content should contain an error"
   end
 
+  def test_invalid_record_exception
+    r = Reply.new
+    assert_raises(ActiveRecord::InvalidRecord) { r.save! }
+  end
+
   def test_single_error_per_attr_iteration
     r = Reply.new
     r.save

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Base.save! that attempts to save the record just like Base.save but will raise a InvalidRecord exception instead of returning false if the record is not valid [After much pestering from Dave Thomas]
+
 * Added eager loading of associations as a way to solve the N+1 problem more gracefully without piggy-back queries. Example:
 
     for post in Post.find(:all, :limit => 100)

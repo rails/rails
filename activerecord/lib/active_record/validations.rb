@@ -1,4 +1,7 @@
 module ActiveRecord
+  class InvalidRecord < ActiveRecordError #:nodoc:
+  end
+  
   # Active Record validation is reported to and from this object, which is used by Base#save to
   # determine whether the object in a valid state to be saved. See usage example in Validations.
   class Errors
@@ -550,6 +553,12 @@ module ActiveRecord
     # replaced with this when the validations module is mixed in, which it is by default.
     def save_with_validation(perform_validation = true)
       if perform_validation && valid? || !perform_validation then save_without_validation else false end
+    end
+
+    # Attempts to save the record just like Base.save but will raise a InvalidRecord exception instead of returning false
+    # if the record is not valid.
+    def save!
+      valid? ? save_without_validation : raise(InvalidRecord)
     end
 
     # Updates a single attribute and saves the record without going through the normal validation procedure.
