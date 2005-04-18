@@ -1,5 +1,5 @@
 module ActiveRecord
-  class Base # :nodoc:
+  class Base
     class << self
       # This method is deprecated in favor of find with the :conditions option.
       #
@@ -7,7 +7,7 @@ module ActiveRecord
       # +RecordNotFound+ is raised if no record can be found matching the +id+ or meeting the condition.
       # Example:
       #   Person.find_on_conditions 5, "first_name LIKE '%dav%' AND last_name = 'heinemeier'"
-      def find_on_conditions(ids, conditions)
+      def find_on_conditions(ids, conditions) # :nodoc:
         find(ids, :conditions => conditions)
       end
 
@@ -18,7 +18,7 @@ module ActiveRecord
       # be used to create the object. In such cases, it might be beneficial to also specify 
       # +orderings+, like "income DESC, name", to control exactly which record is to be used. Example: 
       #   Employee.find_first "income > 50000", "income DESC, name"
-      def find_first(conditions = nil, orderings = nil, joins = nil)
+      def find_first(conditions = nil, orderings = nil, joins = nil) # :nodoc:
         find(:first, :conditions => conditions, :order => orderings, :joins => joins)
       end
 
@@ -32,7 +32,7 @@ module ActiveRecord
       # the second as the offset. Examples:
       #   Project.find_all "category = 'accounts'", "last_accessed DESC", 15
       #   Project.find_all ["category = ?", category_name], "created ASC", [15, 20]
-      def find_all(conditions = nil, orderings = nil, limit = nil, joins = nil)
+      def find_all(conditions = nil, orderings = nil, limit = nil, joins = nil) # :nodoc:
         limit, offset = limit.is_a?(Array) ? limit : [ limit, nil ]
         find(:all, :conditions => conditions, :order => orderings, :joins => joins, :limit => limit, :offset => offset)
       end
