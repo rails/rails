@@ -35,7 +35,7 @@ class MixinNestedSetTest < Test::Unit::TestCase
   
   def check_method_mixins( obj )
     [:scope_condition, :left_col_name, :right_col_name, :parent_column, :root?, :add_child,
-    :children_count, :full_set, :all_children, :direct_children].each { |symbol| assert( obj.respond_to? symbol ) }
+    :children_count, :full_set, :all_children, :direct_children].each { |symbol| assert( obj.respond_to?(symbol)) }
   end
 
   def set( id )

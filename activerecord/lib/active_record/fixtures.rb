@@ -188,7 +188,7 @@ class Fixtures < Hash
     old_logger_level = ActiveRecord::Base.logger.level
     ActiveRecord::Base.logger.level = Logger::ERROR
 
-    object.instance_variable_set "@#{table_name}", fixtures
+    object.instance_variable_set "@#{table_name.to_s.gsub('.','_')}", fixtures
     if load_instances
       fixtures.each do |name, fixture|
         if model = fixture.find
@@ -243,7 +243,7 @@ class Fixtures < Hash
         pk = eval("#{table_class}::primary_key")
         if pk == 'id'
           connection.execute(
-            "SELECT setval('public.#{table.to_s}_id_seq', (SELECT MAX(id) FROM #{table.to_s}), true)", 
+            "SELECT setval('#{table.to_s}_id_seq', (SELECT MAX(id) FROM #{table.to_s}), true)", 
             'Setting Sequence'
           )
         end
