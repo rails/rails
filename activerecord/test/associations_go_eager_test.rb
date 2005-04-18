@@ -10,11 +10,11 @@ class EagerAssociationTest < Test::Unit::TestCase
   def test_loading_with_one_association
     posts = Post.find(:all, :include => :comments)
     assert_equal 2, posts.first.comments.size
-    assert_equal @greetings.body, posts.first.comments.first.body
+    assert posts.first.comments.include?(@greetings)
 
     post = Post.find(:first, :include => :comments, :conditions => "posts.title = 'Welcome to the weblog'")
     assert_equal 2, post.comments.size
-    assert_equal @greetings.body, post.comments.first.body
+    assert post.comments.include?(@greetings)
   end
 
   def test_loading_with_multiple_associations

@@ -14,7 +14,6 @@ thinking:
 
 authorless:
   id: 3
-  author_id: ""
   title: I don't have any comments
   body: I just don't want to
   type: Post

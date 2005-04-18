@@ -167,7 +167,7 @@ CREATE TABLE authors (
   name varchar(255) default NULL
 );
 
-CREATE TABLE taske (
+CREATE TABLE tasks (
   id serial,
   starting timestamp,
   ending timestamp,
@@ -181,5 +181,5 @@ CREATE TABLE categories (
 
 CREATE TABLE categories_posts (
   category_id integer NOT NULL,
-  post_id int integer NOT NULL
+  post_id integer NOT NULL
 );

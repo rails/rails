@@ -118,7 +118,7 @@ CREATE TABLE 'computers' (
 
 CREATE TABLE 'posts' (
   'id' INTEGER NOT NULL PRIMARY KEY,
-  'author_id' INTEGER NOT NULL,
+  'author_id' INTEGER,
   'title' VARCHAR(255) NOT NULL,
   'type' VARCHAR(255) NOT NULL,
   'body' TEXT NOT NULL

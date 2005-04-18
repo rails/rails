@@ -289,21 +289,28 @@ module ActiveRecord #:nodoc:
     @@default_timezone = :local
 
     class << self # Class methods
-      # Returns objects for the records responding to either a specific id (1), a list of ids (1, 5, 6) or an array of ids. 
-      # If only one ID is specified, that object is returned directly. If more than one ID is specified, an array is returned.
+      # Find operates with three different retreval approaches:
+      #
+      # * Find by id: This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
+      #   If no record can be found for all of the listed ids, then RecordNotFound will be raised.
+      # * Find first: This will return the first record matched by the options used. These options can either be specific
+      #   conditions or merely an order. If no record can matched, nil is returned.
+      # # Find all: This will return all the records matched by the options used. If no records are found, an empty array is returned.
+      #
+      # All approaches accepts an option hash as their last parameter. The options are:
+      #
+      # * <tt>:conditions</tt>: 
+      # * <tt>:order</tt>: 
+      # * <tt>:limit</tt>: 
+      # * <tt>:offset</tt>: 
+      # * <tt>:joins</tt>: 
+      # * <tt>:include</tt>: 
+      #
       # Examples:
       #   Person.find(1)       # returns the object for ID = 1
       #   Person.find(1, 2, 6) # returns an array for objects with IDs in (1, 2, 6)
       #   Person.find([7, 17]) # returns an array for objects with IDs in (7, 17)
       #   Person.find([1])     # returns an array for objects the object with ID = 1
-      #
-      # The last argument may be a Hash of find options.  Currently, +conditions+ is the only option, behaving the same as with +find_all+.
-      #   Person.find(1, :conditions => "associate_id = 5"
-      #   Person.find(1, 2, 6, :conditions => "status = 'active'"
-      #   Person.find([7, 17], :conditions => ["sanitize_me = ?", "bare'quote"]
-      #   Person.find(25, :conditions => ["name = :name AND age = :age", { :name => "Mary", :age => 22 }]
-      #
-      # +RecordNotFound+ is raised if no record can be found.
       def find(*args)
         options = extract_options_from_args!(args)
 
