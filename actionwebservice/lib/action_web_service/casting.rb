@@ -39,6 +39,7 @@ module ActionWebService # :nodoc:
 
         def cast(value, signature_type) # :nodoc:
           return value if signature_type.nil? # signature.length != params.length
+          return nil if value.nil?
           unless signature_type.array? || signature_type.structured?
             return value if canonical_type(value.class) == signature_type.type
           end

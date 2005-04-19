@@ -62,8 +62,8 @@ class TC_Casting < Test::Unit::TestCase
 
   def test_array_type_casting
     assert_equal [1, 2, 3213992, 4], cast_expects(:int_array, ['1', '2', '3213992', '4'])[0]
-    assert_equal ['one', 'two', '5.0', '200', '', 'true'], cast_expects(:str_array, [:one, 'two', 5.0, 200, nil, true])[0]
-    assert_equal [true, false, true, true, false], cast_expects(:bool_array, ['1', nil, 'y', true, 'false'])[0]
+    assert_equal ['one', 'two', '5.0', '200', nil, 'true'], cast_expects(:str_array, [:one, 'two', 5.0, 200, nil, true])[0]
+    assert_equal [true, nil, true, true, false], cast_expects(:bool_array, ['1', nil, 'y', true, 'false'])[0]
   end
 
   def test_array_type_casting_failure
