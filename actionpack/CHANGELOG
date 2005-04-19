@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed stringification on all assigned hashes. The sacrifice is that assigns[:person] won't work in testing. Instead assigns["person"] or assigns(:person) must be used. In other words, the keys of assigns stay strings but we've added a method-based accessor to appease the need for symbols.
+
 * Fixed that rendering a template would require a connection to the database #1146
 
 

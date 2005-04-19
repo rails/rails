@@ -14,9 +14,13 @@ module Test #:nodoc:
     # 
     # These collections can be used just like any other hash:
     #
-    #   assert_not_nil assigns[:person] # makes sure that a @person instance variable was set
+    #   assert_not_nil assigns(:person) # makes sure that a @person instance variable was set
     #   assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
     #   assert flash.empty? # makes sure that there's nothing in the flash
+    #
+    # For historic reasons, the assigns hash uses string-based keys. So assigns[:person] won't work, but assigns["person"] will. To
+    # appease our yearning for symbols, though, an alternative accessor has been deviced using a method call instead of index referencing.
+    # So assigns(:person) will work just like assigns["person"], but again, assigns[:person] will not work.
     #
     # On top of the collections, you have the complete url that a given action redirected to available in redirect_to_url.
     #
