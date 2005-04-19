@@ -21,9 +21,12 @@ module ActionController #:nodoc:
       else
         db_runtime = ActiveRecord::Base.connection.reset_runtime if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
         @rendering_runtime = Benchmark::measure{ render_without_benchmark(template_name, status) }.real
-        @db_rt_before_render = db_runtime
-        @db_rt_after_render = ActiveRecord::Base.connection.reset_runtime if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
-        @rendering_runtime -= @db_rt_after_render
+
+        if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
+          @db_rt_before_render = db_runtime
+          @db_rt_after_render = ActiveRecord::Base.connection.reset_runtime
+          @rendering_runtime -= @db_rt_after_render
+        end
       end
     end    
 
