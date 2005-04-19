@@ -1,4 +1,10 @@
-*SVN*
+*1.8.1* (20th April, 2005)
+
+* Added xml_http_request/xhr method for simulating XMLHttpRequest in functional tests #1151 [Sam Stephenson]. Example:
+
+    xhr :post, :index
+
+* Fixed that Ajax.Base.options.asynchronous wasn't being respected in Ajax.Request (thanks Jon Casey)
 
 * Fixed that :get, :post, and the others should take a flash array as the third argument just like process #1144 [rails@cogentdude.com]
 
@@ -47,7 +53,7 @@
 
 * Fixed that you can now pass an alternative :href option to link_to_function/remote in order to point to somewhere other than # if the javascript fails or is turned off. You can do the same with form_remote_tag by passing in :action. #1113 [Sam Stephenson]
 
-* Fixed DateHelper to return values on the option tags such that they'll work properly in IE with form_remote_tag #1024 [rscottmace@gmail.com]
+* Fixed DateHelper to return values on the option tags such that they'll work properly in IE with form_remote_tag #1024 [Scott Raymond]
 
 * Fixed FormTagHelper#check_box to respect checked #1049 [DelynnB]
 

@@ -1,3 +1,8 @@
+*0.7.1* (20th April, 2005)
+
+* Depend on Active Record 1.10.1 and Action Pack 1.8.1
+
+
 *0.7.0* (19th April, 2005)
 
 * When casting structured types, don't try to send obj.name= unless obj responds to it, causes casting to be less likely to fail for XML-RPC

@@ -265,6 +265,12 @@ module Test
           EOV
         end
 
+        def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
+          @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+          self.send(request_method, action, parameters, session, flash)
+        end
+        alias xhr :xml_http_request
+
         def follow_redirect
           if @response.redirected_to[:controller]
             raise "Can't follow redirects outside of current controller (#{@response.redirected_to[:controller]})"
