@@ -1,4 +1,6 @@
-*SVN*
+*1.10.1* (20th April, 2005)
+
+* Fixed order of loading in eager associations
 
 * Fixed stray comma when using eager loading and ordering together from has_many associations #1143
 

@@ -32,6 +32,10 @@ module ActiveRecord
         @loaded
       end
       
+      def loaded
+        @loaded = true
+      end
+      
       def target
         @target
       end

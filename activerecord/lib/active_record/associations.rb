@@ -147,7 +147,10 @@ module ActiveRecord
     # :limit property and it will be ignored if attempted.
     #
     # Also have in mind that since the eager loading is pulling from multiple tables, you'll have to disambiguate any column references
-    # in both conditions and orders. So :order => "posts.id DESC" will work while :order => "id DESC" will not.
+    # in both conditions and orders. So :order => "posts.id DESC" will work while :order => "id DESC" will not. This may require that
+    # you alter the :order and :conditions on the association definitions themselves.
+    #
+    # It's currently not possible to use eager loading on multiple associations from the same table.
     #
     # == Modules
     #
@@ -690,24 +693,26 @@ module ActiveRecord
           primary_key_table    = generate_primary_key_table(reflections, schema_abbreviations)
 
           rows        = select_all_rows(options, schema_abbreviations, reflections)
-          records     = { }        
+          records, records_in_order     = { }, []
           primary_key = primary_key_table[table_name]
           
           for row in rows
             id = row[primary_key]
-            records[id] ||= instantiate(extract_record(schema_abbreviations, table_name, row))
-          
+            records_in_order << (records[id] = instantiate(extract_record(schema_abbreviations, table_name, row))) unless records[id]
+            record = records[id]
+
             reflections.each do |reflection|
               next unless row[primary_key_table[reflection.table_name]]
               
               case reflection.macro
                 when :has_many, :has_and_belongs_to_many
-                  records[id].send(reflection.name)
-                  records[id].instance_variable_get("@#{reflection.name}").target.push(
-                    reflection.klass.send(:instantiate, extract_record(schema_abbreviations, reflection.table_name, row))
-                  )
+                  collection = record.send(reflection.name)
+                  collection.loaded
+
+                  association = reflection.klass.send(:instantiate, extract_record(schema_abbreviations, reflection.table_name, row))                  
+                  collection.target.push(association) unless collection.target.include?(association)
                 when :has_one, :belongs_to
-                  records[id].send(
+                  record.send(
                     "#{reflection.name}=", 
                     reflection.klass.send(:instantiate, extract_record(schema_abbreviations, reflection.table_name, row))
                   )
@@ -715,8 +720,9 @@ module ActiveRecord
             end
           end
           
-          return records.values
+          return records_in_order
         end
+
 
         def reflect_on_included_associations(associations)
           [ associations ].flatten.collect { |association| reflect_on_association(association) }

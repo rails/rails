@@ -17,6 +17,13 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert post.comments.include?(@greetings)
   end
 
+  def test_with_ordering
+    posts = Post.find(:all, :include => :comments, :order => "posts.id DESC")
+    assert_equal @authorless, posts[0]
+    assert_equal @thinking, posts[1]
+    assert_equal @welcome, posts[2]
+  end
+  
   def test_loading_with_multiple_associations
     posts = Post.find(:all, :include => [ :comments, :author, :categories ], :order => "posts.id")
     assert_equal 2, posts.first.comments.size
@@ -25,7 +32,7 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
 
   def test_loading_from_an_association
-    posts = @david.posts.find(:all, :include => :comments, :order => "posts.id DESC")
+    posts = @david.posts.find(:all, :include => :comments, :order => "posts.id")
     assert_equal 2, posts.first.comments.size
   end
 
