@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed that rendering a template would require a connection to the database #1146
+
+
 *1.8.0* (19th April, 2005)
 
 * Added assert_tag and assert_no_tag as a much improved alternative to the deprecated assert_template_xpath_match #1126 [Jamis Buck]
