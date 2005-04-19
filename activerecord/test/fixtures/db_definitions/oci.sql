@@ -199,8 +199,8 @@ create table categories (
 );
 
 create table categories_posts (
-  category_id integer not null references developers initially deferred disable,
-  post_id int integer not null references developers initially deferred disable
+  category_id integer not null references categories initially deferred disable,
+  post_id integer not null references posts initially deferred disable
 );
 
 create table fk_test_has_pk (
@@ -209,5 +209,5 @@ create table fk_test_has_pk (
 
 create table fk_test_has_fk (
   id integer not null primary key,
-  fk_id integer not null references fk_test_has_fk initially deferred disable,
+  fk_id integer not null references fk_test_has_fk initially deferred disable
 );
