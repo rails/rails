@@ -10,21 +10,47 @@ module ActionView
     # and <tt>time_zone_select</tt> methods take an <tt>options</tt> parameter,
     # a hash.
     #
-    # * <tt>:include_blank</tt> - set to true if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
+    # * <tt>:include_blank</tt> - set to true if the first option element of the select element is a blank. Useful if there is not a default value required for the select element. For example,
+    #
     #   select("post", "category", Post::CATEGORIES, {:include_blank => true})
     #
-    # Could become:
+    # could become:
     #
     #   <select name="post[category]">
     #     <option></option>
     #     <option>joke</option>
     #     <option>poem</option>
     #   </select>
+    #
+    # Another common case is a select tag for an <tt>belongs_to</tt>-associated object. For example,
+    #
+    #   select("post", "person_id", Person.find_all.collect {|p| [ p.name, p.id ] })
+    #
+    # could become:
+    #
+    #   <select name="post[person_id]">
+    #     <option value="1">David</option>
+    #     <option value="2">Sam</option>
+    #     <option value="3">Tobias</option>
+    #   </select>
     module FormOptionsHelper
       include ERB::Util
 
       # Create a select tag and a series of contained option tags for the provided object and method.
       # The option currently held by the object will be selected, provided that the object is available.
+      # See options_for_select for the required format of the choices parameter.
+      #
+      # Example with @post.person_id => 1:
+      #   select("post", "person_id", Person.find_all.collect {|p| [ p.name, p.id ] }, { :include_blank => true })
+      #
+      # could become:
+      #
+      #   <select name="post[person_id">
+      #     <option></option>
+      #     <option value="1" selected="selected">David</option>
+      #     <option value="2">Sam</option>
+      #     <option value="3">Tobias</option>
+      #   </select>
       #
       # This can be used to provide a default set of options in the standard way: before rendering the create form, a
       # new model instance is assigned the default options and bound to @model_name. Usually this model is not saved
