@@ -121,7 +121,7 @@ module ActiveRecord
     #
     # Consider the following loop using the class above:
     #
-    #   for post in Post.find(:all, :limit => 100)
+    #   for post in Post.find(:all)
     #     puts "Post:            " + post.title
     #     puts "Written by:      " + post.author.name
     #     puts "Last comment on: " + post.comments.first.created_on
@@ -129,19 +129,22 @@ module ActiveRecord
     #
     # To iterate over these one hundred posts, we'll generate 201 database queries. Let's first just optimize it for retrieving the author:
     #
-    #   for post in Post.find(:all, :limit => 100, :include => :author)
+    #   for post in Post.find(:all, :include => :author)
     #
     # This references the name of the belongs_to association that also used the :author symbol, so the find will now weave in a join something
     # like this: LEFT OUTER JOIN authors ON authors.id = posts.author_id. Doing so will cut down the number of queries from 201 to 101.
     #
     # We can improve upon the situation further by referencing both associations in the finder with:
     #
-    #   for post in Post.find(:all, :limit => 100, :include => [ :author, :comments ])
+    #   for post in Post.find(:all, :include => [ :author, :comments ])
     #
     # That'll add another join along the lines of: LEFT OUTER JOIN comments ON comments.post_id = posts.id. And we'll be down to 1 query.
     # But that shouldn't fool you to think that you can pull out huge amounts of data with no performance penalty just because you've reduced
     # the number of queries. The database still needs to send all the data to Active Record and it still needs to be processed. So its no
     # catch-all for performance problems, but its a great way to cut down on the number of queries in a situation as the one described above.
+    #
+    # Please note that because eager loading is fetching both models and associations in the same grab, it doesn't make sense to use the
+    # :limit property and it will be ignored if attempted.
     #
     # == Modules
     #
