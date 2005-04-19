@@ -25,7 +25,7 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
 
   def test_loading_from_an_association
-    posts = @david.posts.find(:all, :include => :comments)
+    posts = @david.posts.find(:all, :include => :comments, :order => "posts.id DESC")
     assert_equal 2, posts.first.comments.size
   end
 

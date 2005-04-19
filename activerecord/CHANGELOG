@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed stray comma when using eager loading and ordering together from has_many associations #1143
+
+
 *1.10.0* (19th April, 2005)
 
 * Added eager loading of associations as a way to solve the N+1 problem more gracefully without piggy-back queries. Example:
