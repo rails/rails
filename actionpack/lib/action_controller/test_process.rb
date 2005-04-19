@@ -258,9 +258,9 @@ module Test
         # execute the request simulating a specific http method and set/volley the response
         %w( get post put delete head ).each do |method|
           class_eval <<-EOV
-            def #{method}(action, parameters = nil, session = nil)
+            def #{method}(action, parameters = nil, session = nil, flash = nil)
               @request.env['REQUEST_METHOD'] = "#{method.upcase}"
-              process(action, parameters, session)
+              process(action, parameters, session, flash)
             end
           EOV
         end

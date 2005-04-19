@@ -146,6 +146,9 @@ module ActiveRecord
     # Please note that because eager loading is fetching both models and associations in the same grab, it doesn't make sense to use the
     # :limit property and it will be ignored if attempted.
     #
+    # Also have in mind that since the eager loading is pulling from multiple tables, you'll have to disambiguate any column references
+    # in both conditions and orders. So :order => "posts.id DESC" will work while :order => "id DESC" will not.
+    #
     # == Modules
     #
     # By default, associations will look for objects within the current module scope. Consider:
