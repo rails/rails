@@ -702,16 +702,18 @@ module ActiveRecord
             record = records[id]
 
             reflections.each do |reflection|
-              next unless row[primary_key_table[reflection.table_name]]
-              
               case reflection.macro
                 when :has_many, :has_and_belongs_to_many
                   collection = record.send(reflection.name)
                   collection.loaded
 
+                  next unless row[primary_key_table[reflection.table_name]]
+
                   association = reflection.klass.send(:instantiate, extract_record(schema_abbreviations, reflection.table_name, row))                  
                   collection.target.push(association) unless collection.target.include?(association)
                 when :has_one, :belongs_to
+                  next unless row[primary_key_table[reflection.table_name]]
+
                   record.send(
                     "#{reflection.name}=", 
                     reflection.klass.send(:instantiate, extract_record(schema_abbreviations, reflection.table_name, row))
