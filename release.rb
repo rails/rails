@@ -14,7 +14,7 @@ end
 `cd release/railties && rake template=jamis package`
 
 # Upload documentation
-`cd release/rails/doc/api && scp -r * davidhh@comox.textdrive.com:public_html/rails`
+`cd release/rails/doc/api && scp -r * davidhh@wrath.rubyonrails.com:public_html/rails`
 PACKAGES.each do |p| 
   `cd release/#{p} && echo "Publishing documentation for #{p}" && rake template=jamis pdoc`
 end
