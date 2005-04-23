@@ -92,13 +92,17 @@ module ActiveRecord
         end
 
         def count_records
-          if has_cached_counter?
+          count = if has_cached_counter?
             @owner.send(:read_attribute, cached_counter_attribute_name)
           elsif @options[:counter_sql]
             @association_class.count_by_sql(@counter_sql)
           else
             @association_class.count(@counter_sql)
           end
+          
+          @target = [] and loaded if count == 0
+          
+          return count
         end
 
         def has_cached_counter?
