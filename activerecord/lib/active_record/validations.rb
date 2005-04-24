@@ -11,6 +11,7 @@ module ActiveRecord
     
     @@default_error_messages = {
       :inclusion => "is not included in the list",
+      :exclusion => "is reserved",
       :invalid => "is invalid",
       :confirmation => "doesn't match confirmation",
       :accepted  => "must be accepted",
@@ -467,6 +468,30 @@ module ActiveRecord
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
           record.errors.add(attr_name, configuration[:message]) unless enum.include?(value)
+        end
+      end
+
+      # Validates that the value of the specified attribute is not in a particular enumerable object.
+      #
+      #   class Person < ActiveRecord::Base
+      #     validates_exclusion_of :username, :in => %w( admin superuser ), :message => "You don't belong here"
+      #     validates_exclusion_of :age, :in => 30..60, :message => "This site is only for under 30 and over 60"
+      #   end
+      #
+      # Configuration options:
+      # * <tt>in</tt> - An enumerable object of items that the value shouldn't be part of
+      # * <tt>message</tt> - Specifies a customer error message (default is: "is reserved")
+      # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
+      def validates_exclusion_of(*attr_names)
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:exclusion], :on => :save }
+        configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
+
+        enum = configuration[:in] || configuration[:within]
+
+        raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
+
+        validates_each(attr_names, configuration) do |record, attr_name, value|
+          record.errors.add(attr_name, configuration[:message]) if enum.include?(value)
         end
       end
 

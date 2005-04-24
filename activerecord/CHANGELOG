@@ -1,3 +1,10 @@
+*SVN*
+
+* Added validates_exclusion_of as a negative of validates_inclusion_of
+
+* Optimized counting of has_many associations by setting the association to empty if the count is 0 so repeated calls doesn't trigger database calls
+
+
 *1.10.1* (20th April, 2005)
 
 * Fixed frivilous database queries being triggered with eager loading on empty associations and other things

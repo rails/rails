@@ -303,6 +303,13 @@ class ValidationsTest < Test::Unit::TestCase
     assert Topic.create("title" => nil, "content" => "abc").valid?
   end
 
+  def test_validates_exclusion_of
+    Topic.validates_exclusion_of( :title, :in => %w( abe monkey ) )
+
+    assert Topic.create("title" => "something", "content" => "abc").valid?
+    assert !Topic.create("title" => "monkey", "content" => "abc").valid?
+  end
+
   def test_validates_length_of_using_minimum
     Topic.validates_length_of :title, :minimum => 5
 
