@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed acts_as_list where deleting an item that was removed from the list would ruin the positioning of other list items #1197 [Jamis Buck]
+
 * Added validates_exclusion_of as a negative of validates_inclusion_of
 
 * Optimized counting of has_many associations by setting the association to empty if the count is 0 so repeated calls doesn't trigger database calls

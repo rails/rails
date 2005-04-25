@@ -94,6 +94,7 @@ module ActiveRecord
         end
         
         def move_to_bottom
+          return unless in_list?
           self.class.transaction do
             decrement_positions_on_lower_items
             assume_bottom_position
@@ -101,6 +102,7 @@ module ActiveRecord
         end
         
         def move_to_top
+          return unless in_list?
           self.class.transaction do
             increment_positions_on_higher_items
             assume_top_position
@@ -108,35 +110,45 @@ module ActiveRecord
         end
   
         def remove_from_list
-          decrement_positions_on_lower_items
+          decrement_positions_on_lower_items if in_list?
         end
 
         def increment_position
+          return unless in_list?
           update_attribute position_column, self.send(position_column).to_i + 1
         end
   
         def decrement_position
+          return unless in_list?
           update_attribute position_column, self.send(position_column).to_i - 1
         end
   
         def first?
+          return false unless in_list?
           self.send(position_column) == 1
         end
         
         def last?
+          return false unless in_list?
           self.send(position_column) == bottom_position_in_list
         end
         
         def higher_item
+          return nil unless in_list?
           self.class.find_first(
             "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i - 1).to_s}"
           )
         end
 
         def lower_item
+          return nil unless in_list?
           self.class.find_first(
             "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i + 1).to_s}"
           )
+        end
+
+        def in_list?
+          !send(position_column).nil?
         end
 
         private
@@ -176,10 +188,11 @@ module ActiveRecord
             self.class.update_all(
               "#{position_column} = (#{position_column} - 1)", "#{scope_condition} AND #{position_column} <= #{position}"
             )
-	       end
+          end
 
           # This has the effect of moving all the lower items up one.
           def decrement_positions_on_lower_items
+            return unless in_list?
             self.class.update_all(
               "#{position_column} = (#{position_column} - 1)", "#{scope_condition} AND #{position_column} > #{send(position_column).to_i}"
             )
@@ -187,6 +200,7 @@ module ActiveRecord
 
           # This has the effect of moving all the higher items down one.
           def increment_positions_on_higher_items
+            return unless in_list?
             self.class.update_all(
               "#{position_column} = (#{position_column} + 1)", "#{scope_condition} AND #{position_column} < #{send(position_column).to_i}"
             )
@@ -194,10 +208,10 @@ module ActiveRecord
 
           # This has the effect of moving all the lower items down one.
           def increment_positions_on_lower_items(position)
-	         self.class.update_all(
-	           "#{position_column} = (#{position_column} + 1)", "#{scope_condition} AND #{position_column} >= #{position}"
-	         )
-	       end
+            self.class.update_all(
+              "#{position_column} = (#{position_column} + 1)", "#{scope_condition} AND #{position_column} >= #{position}"
+           )
+          end
 
           def increment_positions_on_all_items
             self.class.update_all(
@@ -207,7 +221,7 @@ module ActiveRecord
 
           def insert_at_position(position)
             remove_from_list
-	         increment_positions_on_lower_items(position)
+            increment_positions_on_lower_items(position)
             self.update_attribute(position_column, position)
           end
       end     
