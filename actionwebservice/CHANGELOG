@@ -1,3 +1,8 @@
+*SVN*
+
+* Fix that casting change in 0.7.0 would convert nil values to the default value for the type instead of leaving it as nil
+
+
 *0.7.1* (20th April, 2005)
 
 * Depend on Active Record 1.10.1 and Action Pack 1.8.1
