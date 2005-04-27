@@ -202,10 +202,11 @@ module ActionController #:nodoc:
       #     A#after
       #   B#after
       def append_around_filter(*filters)
+        conditions = extract_conditions!(filters) 
         for filter in filters.flatten
           ensure_filter_responds_to_before_and_after(filter)
-          append_before_filter { |c| filter.before(c) }
-          prepend_after_filter { |c| filter.after(c) }
+          append_before_filter(conditions || {}) { |c| filter.before(c) }
+          prepend_after_filter(conditions || {}) { |c| filter.after(c) }
         end
       end        
 
