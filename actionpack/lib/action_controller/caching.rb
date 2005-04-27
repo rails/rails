@@ -256,13 +256,8 @@ module ActionController #:nodoc:
         end
       end
 
-      def cache_base_url
-        @@cache_base_url ||= url_for(:controller => '')
-      end
-
       def fragment_cache_key(name)
-        key = name.is_a?(Hash) ? url_for(name) : cache_base_url + name
-        key.split("://").last
+        name.is_a?(Hash) ? url_for(name).split("://").last : name
       end
 
       # Called by CacheHelper#cache
@@ -297,16 +292,25 @@ module ActionController #:nodoc:
         end
       end
       
+      # Name can take one of three forms:
+      # * String: This would normally take the form of a path like "pages/45/notes"
+      # * Hash: Is treated as an implicit call to url_for, like { :controller => "pages", :action => "notes", :id => 45 }
+      # * Regexp: Will destroy all the matched fragments, example: %r{pages/\d*/notes}
       def expire_fragment(name, options = {})
         key = fragment_cache_key(name)
-        fragment_cache_store.delete(key, options)
-        logger.info "Expired fragment: #{key}" unless logger.nil?
+
+        if key.is_a?(Regexp)
+          fragment_cache_store.delete_matched(key, options)
+          logger.info "Expired fragments matching: #{key.source}" unless logger.nil?
+        else
+          fragment_cache_store.delete(key, options)
+          logger.info "Expired fragment: #{key}" unless logger.nil?
+        end
       end
 
-      def expire_matched_fragments(re=Regexp.new('/.*/'), options = {})
-        rp = cache_base_url.split("://").last
-        fragment_cache_store.delete_matched(re, { :root_path => rp })
-        logger.info "Expired all fragments matching: #{rp}#{re.source}" unless logger.nil?
+      # Deprecated -- just call expire_fragment with a regular expression
+      def expire_matched_fragments(matcher = /.*/, options = {}) #:nodoc:
+        expire_fragment(matcher, options)
       end
 
       class MemoryStore #:nodoc:
@@ -326,9 +330,8 @@ module ActionController #:nodoc:
           @mutex.synchronize { @data.delete(name) }
         end
 
-        def delete_matched(re, options) #:nodoc:
-          re = Regexp.new("#{Regexp.escape(options[:root_path])}#{re.source}")
-          @mutex.synchronize { @data.delete_if { |k,v| k =~ re } }
+        def delete_matched(matcher, options) #:nodoc:
+          @mutex.synchronize { @data.delete_if { |k,v| k =~ matcher } }
         end
       end
 
@@ -364,10 +367,9 @@ module ActionController #:nodoc:
           File.delete(real_file_path(name)) if File.exist?(real_file_path(name))
         end
 
-        def delete_matched(re, options) #:nodoc:
-          rootPath = real_file_path(options[:root_path])
+        def delete_matched(matcher, options) #:nodoc:
           search_dir(@cache_path).each do |f|
-            File.delete(f) if f.index(rootPath) == 0 and f =~ re and File.exist?(f)
+            File.delete(f) if f =~ matcher && File.exist?(f)
           end
         end
     
@@ -400,17 +402,14 @@ module ActionController #:nodoc:
     # Sweepers are the terminators of the caching world and responsible for expiring caches when model objects change.
     # They do this by being half-observers, half-filters and implementing callbacks for both roles. A Sweeper example:
     # 
-    #   class ListSweeper < ActiveRecord::Observer
+    #   class ListSweeper < ActionController::Caching::Sweeper
     #     observe List, Item
     #   
     #     def after_save(record)
-    #       @list = record.is_a?(List) ? record : record.list
-    #     end
-    #     
-    #     def filter(controller)
-    #       controller.expire_page(:controller => "lists", :action => %w( show public feed ), :id => @list.id)
-    #       controller.expire_action(:controller => "lists", :action => "all")
-    #       @list.shares.each { |share| controller.expire_page(:controller => "lists", :action => "show", :id => share.url_key) }
+    #       list = record.is_a?(List) ? record : record.list
+    #       expire_page(:controller => "lists", :action => %w( show public feed ), :id => list.id)
+    #       expire_action(:controller => "lists", :action => "all")
+    #       list.shares.each { |share| expire_page(:controller => "lists", :action => "show", :id => share.url_key) }
     #     end
     #   end
     #
@@ -432,11 +431,46 @@ module ActionController #:nodoc:
         def cache_sweeper(*sweepers)
           return unless perform_caching
           configuration = sweepers.last.is_a?(Hash) ? sweepers.pop : {}
-          sweepers.each do |sweeper| 
+          sweepers.each do |sweeper|
             observer(sweeper)
-            after_filter(Object.const_get(Inflector.classify(sweeper)).instance, :only => configuration[:only])
+
+            sweeper_instance = Object.const_get(Inflector.classify(sweeper)).instance
+
+            if sweeper_instance.is_a?(Sweeper)
+              around_filter(sweeper_instance, :only => configuration[:only])
+            else
+              after_filter(sweeper_instance, :only => configuration[:only])
+            end
           end
         end
+      end
+    end
+    
+    if defined?("ActiveRecord")
+      class Sweeper < ActiveRecord::Observer
+        attr_accessor :controller
+        
+        def before(controller)
+          self.controller = controller
+          callback(:before)
+        end
+
+        def after(controller)
+          callback(:after)
+        end
+        
+        private
+          def callback(timing)
+            controller_callback_method_name = "#{timing}_#{controller.controller_name.underscore}"
+            action_callback_method_name     = "#{controller_callback_method_name}_#{controller.action_name}"
+            
+            send(controller_callback_method_name) if respond_to?(controller_callback_method_name)
+            send(action_callback_method_name)     if respond_to?(action_callback_method_name)
+          end
+        
+          def method_missing(method, *arguments)
+            @controller.send(method, *arguments)
+          end
       end
     end
   end
