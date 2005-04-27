@@ -1,3 +1,49 @@
+*SVN*
+
+* Added BenchmarkHelper that can measure the execution time of a block in a template and reports the result to the log. Example:
+  
+    <% benchmark "Notes section" do %>
+      <%= expensive_notes_operation %>
+    <% end %>
+  
+   Will add something like "Notes section (0.345234)" to the log.
+
+* Added ActionController::Caching::Sweeper as an improved an easier to use sweeper. The new sweepers work on a single-step approach instead of two-steps like the old ones. Before
+
+    def after_save(record)
+      @list = record.is_a?(List) ? record : record.list
+    end
+    
+    def filter(controller)
+      controller.expire_page(:controller => "lists", :action => %w( show public feed ), :id => @list.id)
+      controller.expire_action(:controller => "lists", :action => "all")
+      @list.shares.each { |share| controller.expire_page(:controller => "lists", :action => "show", :id => share.url_key) }
+    end
+
+  ..after:
+
+    def after_save(record)
+      list = record.is_a?(List) ? record : record.list
+      expire_page(:controller => "lists", :action => %w( show public feed ), :id => list.id)
+      expire_action(:controller => "lists", :action => "all")
+      list.shares.each { |share| expire_page(:controller => "lists", :action => "show", :id => share.url_key) }
+    end
+
+  The new sweepers can also observe on the actions themselves by implementing methods according to (before|after)_$controller_$action. Example of a callback that'll be called after PagesController#update_title has been performed:
+  
+      def after_pages_update_title
+        expire_fragment(%r{pages/#{controller.assigns["page"].id}/.*})
+      end
+
+  Note that missing_method is delegated to the controller instance, which is assigned in a before filter. This means that you can call expire_fragment instead of @controller.expire_fragment.
+
+* Added that Fragments#expire_fragment now accepts as a regular expression as the name thereby deprecating expire_matched_fragments
+
+* Fixed that fragments shouldn't use the current host and the path as part of the key like pages does
+
+* Added conditions to around_filters just like before_filter and after_filter
+
+
 *1.8.1* (20th April, 2005)
 
 * Added xml_http_request/xhr method for simulating XMLHttpRequest in functional tests #1151 [Sam Stephenson]. Example:
