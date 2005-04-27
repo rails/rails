@@ -469,6 +469,7 @@ module ActionController #:nodoc:
           end
         
           def method_missing(method, *arguments)
+            return if @controller.nil?
             @controller.send(method, *arguments)
           end
       end
