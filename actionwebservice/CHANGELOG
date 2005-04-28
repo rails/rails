@@ -1,5 +1,11 @@
 *SVN*
 
+* Fix that generated WSDL was not using relative_url_root for base URI #1210 [Shugo Maeda]
+
+* Use UTF-8 encoding for SOAP responses #1211 [Shugo Maeda]
+
+* If the WSDL was retrieved over HTTPS, use HTTPS URLs in the WSDL too
+
 * Fix that casting change in 0.7.0 would convert nil values to the default value for the type instead of leaving it as nil
 
 

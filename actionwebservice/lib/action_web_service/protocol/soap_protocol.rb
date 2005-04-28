@@ -93,7 +93,7 @@ module ActionWebService # :nodoc:
             end
           end
           envelope = create_soap_envelope(response)
-          Response.new(SOAP::Processor.marshal(envelope), 'text/xml', return_value)
+          Response.new(SOAP::Processor.marshal(envelope), 'text/xml; charset=utf-8', return_value)
         end
 
         def protocol_client(api, protocol_name, endpoint_uri, options={})

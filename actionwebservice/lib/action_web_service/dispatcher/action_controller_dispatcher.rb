@@ -167,8 +167,16 @@ module ActionWebService # :nodoc:
 
         private
           def base_uri
-            host = @request ? (@request.env['HTTP_HOST'] || @request.env['SERVER_NAME']) : 'localhost'
-            'http://%s/%s/' % [host, controller_name]
+            if @request
+              host = @request.env['HTTP_HOST'] || @request.env['SERVER_NAME']
+              relative_url_root = @request.relative_url_root
+              scheme = @request.ssl? ? 'https' : 'http'
+            else
+              host = 'localhost'
+              relative_url_root = ""
+              scheme = 'http'
+            end
+            '%s://%s%s/%s/' % [scheme, host, relative_url_root, controller_name]
           end
 
           def to_wsdl
