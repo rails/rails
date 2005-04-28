@@ -1,4 +1,5 @@
 require 'action_web_service/protocol/soap_protocol/marshaler'
+require 'soap/streamHandler'
 
 module ActionWebService # :nodoc:
   module Protocol # :nodoc:
@@ -9,6 +10,8 @@ module ActionWebService # :nodoc:
       end
       
       class SoapProtocol < AbstractProtocol # :nodoc:
+        DefaultEncoding = 'utf-8'
+
         def marshaler
           @marshaler ||= SoapMarshaler.new
         end
@@ -16,7 +19,11 @@ module ActionWebService # :nodoc:
         def decode_action_pack_request(action_pack_request)
           return nil unless soap_action = has_valid_soap_action?(action_pack_request)
           service_name = action_pack_request.parameters['action']
-          protocol_options = { :soap_action => soap_action }
+          charset = parse_charset(action_pack_request.env['HTTP_CONTENT_TYPE'])
+          protocol_options = { 
+            :soap_action => soap_action,
+            :charset  => charset
+          }
           decode_request(action_pack_request.raw_post, service_name, protocol_options)
         end
 
@@ -26,8 +33,9 @@ module ActionWebService # :nodoc:
           request
         end
 
-        def decode_request(raw_request, service_name, protocol_options=nil)
-          envelope = SOAP::Processor.unmarshal(raw_request)
+        def decode_request(raw_request, service_name, protocol_options={})
+          charset = protocol_options[:charset] || DefaultEncoding
+          envelope = SOAP::Processor.unmarshal(raw_request, :charset => charset)
           unless envelope
             raise ProtocolError, "Failed to parse SOAP request message"
           end
@@ -66,7 +74,7 @@ module ActionWebService # :nodoc:
           [method_name, return_value]
         end
 
-        def encode_response(method_name, return_value, return_type)
+        def encode_response(method_name, return_value, return_type, protocol_options={})
           if return_type
             return_binding = marshaler.register_type(return_type)
             marshaler.annotate_arrays(return_binding, return_value)
@@ -93,7 +101,8 @@ module ActionWebService # :nodoc:
             end
           end
           envelope = create_soap_envelope(response)
-          Response.new(SOAP::Processor.marshal(envelope), 'text/xml; charset=utf-8', return_value)
+          charset = protocol_options[:charset] || DefaultEncoding
+          Response.new(SOAP::Processor.marshal(envelope, :charset => charset), "text/xml; charset=#{charset}", return_value)
         end
 
         def protocol_client(api, protocol_name, endpoint_uri, options={})
@@ -119,6 +128,15 @@ module ActionWebService # :nodoc:
             soap_action.strip!
             return nil if soap_action.empty?
             soap_action
+          end
+
+          def parse_charset(content_type)
+            return DefaultEncoding if content_type.nil?
+            if /^text\/xml(?:\s*;\s*charset=([^"]+|"[^"]+"))$/i =~ content_type
+              $1
+            else
+              DefaultEncoding
+            end
           end
 
           def create_soap_envelope(body)

@@ -32,7 +32,7 @@ module ActionWebService # :nodoc:
           else
             return_value = self.__send__(invocation.api_method.name)
           end
-          web_service_create_response(invocation.protocol, invocation.api, invocation.api_method, return_value)
+          web_service_create_response(invocation.protocol, invocation.protocol_options, invocation.api, invocation.api_method, return_value)
         end
 
         def web_service_delegated_invoke(invocation)
@@ -43,13 +43,14 @@ module ActionWebService # :nodoc:
           if cancellation_reason
             raise(DispatcherError, "request canceled: #{cancellation_reason}")
           end
-          web_service_create_response(invocation.protocol, invocation.api, invocation.api_method, return_value)
+          web_service_create_response(invocation.protocol, invocation.protocol_options, invocation.api, invocation.api_method, return_value)
         end
 
         def web_service_invocation(request)
           public_method_name = request.method_name
           invocation = Invocation.new
           invocation.protocol = request.protocol
+          invocation.protocol_options = request.protocol_options
           invocation.service_name = request.service_name
           if web_service_dispatching_mode == :layered
             case invocation.protocol
@@ -109,18 +110,19 @@ module ActionWebService # :nodoc:
           invocation
         end
 
-        def web_service_create_response(protocol, api, api_method, return_value)
+        def web_service_create_response(protocol, protocol_options, api, api_method, return_value)
           if api.has_api_method?(api_method.name)
             return_type = api_method.returns ? api_method.returns[0] : nil
             return_value = api_method.cast_returns(return_value)
           else
             return_type = ActionWebService::SignatureTypes.canonical_signature_entry(return_value.class, 0)
           end
-          protocol.encode_response(api_method.public_name + 'Response', return_value, return_type)
+          protocol.encode_response(api_method.public_name + 'Response', return_value, return_type, protocol_options)
         end
 
         class Invocation # :nodoc:
           attr_accessor :protocol
+          attr_accessor :protocol_options
           attr_accessor :service_name
           attr_accessor :api
           attr_accessor :api_method

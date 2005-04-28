@@ -34,7 +34,7 @@ module ActionWebService # :nodoc:
           [nil, XMLRPC::Marshal.load_response(raw_response)]
         end
 
-        def encode_response(method_name, return_value, return_type)
+        def encode_response(method_name, return_value, return_type, protocol_options={})
           return_value = true if return_value.nil?
           if return_type
             return_value = value_to_xmlrpc_wire_format(return_value, return_type)

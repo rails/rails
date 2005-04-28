@@ -68,6 +68,15 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
   end
 
   protected
+    def update_request(ap_request)
+      ap_request.env.update('HTTP_CONTENT_TYPE' => 'text/xml; charset=us-ascii')
+    end
+
+    def check_response(ap_response)
+      assert_equal 'text/xml; charset=us-ascii', ap_response.headers['Content-Type']
+      assert_match /xml.*?encoding="us-ascii"/, ap_response.body
+    end
+
     def exception_message(soap_fault_exception)
       soap_fault_exception.detail.cause.message
     end

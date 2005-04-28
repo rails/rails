@@ -85,7 +85,7 @@ module ActionWebService # :nodoc:
               api_method = request.api_method
               public_method_name = api_method ? api_method.public_name : request.method_name
               return_type = ActionWebService::SignatureTypes.canonical_signature_entry(Exception, 0)
-              response = request.protocol.encode_response(public_method_name + 'Response', exception, return_type)
+              response = request.protocol.encode_response(public_method_name + 'Response', exception, return_type, request.protocol_options)
               send_web_service_response(response)
             else
               if self.class.web_service_exception_reporting

@@ -17,7 +17,7 @@ module ActionWebService # :nodoc:
         request
       end
 
-      def decode_request(raw_request, service_name, protocol_options=nil)
+      def decode_request(raw_request, service_name, protocol_options={})
       end
 
       def encode_request(method_name, params, param_types)
@@ -26,7 +26,7 @@ module ActionWebService # :nodoc:
       def decode_response(raw_response)
       end
 
-      def encode_response(method_name, return_value, return_type)
+      def encode_response(method_name, return_value, return_type, protocol_options={})
       end
 
       def protocol_client(api, protocol_name, endpoint_uri, options)

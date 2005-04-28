@@ -2,7 +2,7 @@
 
 * Fix that generated WSDL was not using relative_url_root for base URI #1210 [Shugo Maeda]
 
-* Use UTF-8 encoding for SOAP responses #1211 [Shugo Maeda]
+* Use UTF-8 encoding by default for SOAP responses, but if an encoding is supplied by caller, use that for the response  #1211 [Shugo Maeda, NAKAMURA Hiroshi]
 
 * If the WSDL was retrieved over HTTPS, use HTTPS URLs in the WSDL too
 

@@ -379,6 +379,12 @@ module DispatcherCommonTests
       raise NotImplementedError
     end
 
+    def update_request(ap_request)
+    end
+
+    def check_response(ap_response)
+    end
+
     def do_method_call(container, public_method_name, *params)
       request_env = {}
       mode = container.web_service_dispatching_mode
@@ -416,9 +422,11 @@ module DispatcherCommonTests
       # puts body
       ap_request = @protocol.encode_action_pack_request(service_name, public_method_name, body, :request_class => ActionController::TestRequest)
       ap_request.env.update(request_env)
+      update_request(ap_request)
       ap_response = ActionController::TestResponse.new
       container.process(ap_request, ap_response)
       # puts ap_response.body
+      check_response(ap_response)
       public_method_name, return_value = @protocol.decode_response(ap_response.body)
       unless is_exception?(return_value) || virtual
         return_value = method.cast_returns(return_value)
