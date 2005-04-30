@@ -82,10 +82,10 @@ class FormHelperTest < Test::Unit::TestCase
   end
 
   def test_radio_button
-    assert_equal('<input checked="checked" id="post_title" name="post[title]" type="radio" value="Hello World" />',
+    assert_equal('<input checked="checked" id="post_title_hello_world" name="post[title]" type="radio" value="Hello World" />',
       radio_button("post", "title", "Hello World")
     )
-    assert_equal('<input id="post_title" name="post[title]" type="radio" value="Goodbye World" />',
+    assert_equal('<input id="post_title_goodbye_world" name="post[title]" type="radio" value="Goodbye World" />',
       radio_button("post", "title", "Goodbye World")
     )
   end
@@ -166,10 +166,10 @@ class FormHelperTest < Test::Unit::TestCase
       check_box("post[]", "secret")
     )
    assert_equal(
-"<input checked=\"checked\" id=\"post_#{pid}_title\" name=\"post[#{pid}][title]\" type=\"radio\" value=\"Hello World\" />",
+"<input checked=\"checked\" id=\"post_#{pid}_title_hello_world\" name=\"post[#{pid}][title]\" type=\"radio\" value=\"Hello World\" />",
       radio_button("post[]", "title", "Hello World")
     )
-    assert_equal("<input id=\"post_#{pid}_title\" name=\"post[#{pid}][title]\" type=\"radio\" value=\"Goodbye World\" />",
+    assert_equal("<input id=\"post_#{pid}_title_goodbye_world\" name=\"post[#{pid}][title]\" type=\"radio\" value=\"Goodbye World\" />",
       radio_button("post[]", "title", "Goodbye World")
     )
   end

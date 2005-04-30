@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed missing id uniqueness in FormTag#radio_button #1207 [Jarkko]
+
 * Fixed assert_redirected_to to work with :only_path => false #1204 [Alisdair McDiarmid]
 
 * Fixed render_partial_collection to output an empty string instead of nil when handed an empty array #1202 [Ryan Carver]
