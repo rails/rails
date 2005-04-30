@@ -164,7 +164,8 @@ create table binaries (
 
 create table computers (
   id integer not null primary key,
-  developer integer not null references developers initially deferred disable
+  developer integer not null references developers initially deferred disable,
+  extendedWarranty integer not null
 );
 
 create table posts (

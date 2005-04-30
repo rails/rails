@@ -144,7 +144,8 @@ CREATE TABLE binaries (
 
 CREATE TABLE computers (
   id serial,
-  developer integer NOT NULL
+  developer integer NOT NULL,
+  extendedWarranty integer NOT NULL
 );
 
 CREATE TABLE posts (

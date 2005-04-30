@@ -12,6 +12,7 @@ class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base; end
 class MasterCreditCard < ActiveRecord::Base; end
 class Post < ActiveRecord::Base; end
+class Computer < ActiveRecord::Base; end
 
 class LoosePerson < ActiveRecord::Base
   attr_protected :credit_rating, :administrator
@@ -32,7 +33,7 @@ end
 class Booleantest < ActiveRecord::Base; end
 
 class BasicsTest < Test::Unit::TestCase
-  fixtures :topics, :companies, :projects
+  fixtures :topics, :companies, :projects, :computers
 
   def test_set_attributes
     topic = Topic.find(1)

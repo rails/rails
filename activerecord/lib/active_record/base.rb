@@ -782,7 +782,7 @@ module ActiveRecord #:nodoc:
         def method_missing(method_id, *arguments)
           method_name = method_id.id2name
 
-          if method_name =~ /find_(all_by|by)_([_a-z][_a-z\d]*)/
+          if method_name =~ /find_(all_by|by)_([_a-zA-Z]\w*)/
             finder, attributes = ($1 == "all_by" ? :all : :first), $2.split("_and_")
             attributes.each { |attr_name| super unless column_methods_hash[attr_name.intern] }
 

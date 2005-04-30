@@ -113,7 +113,8 @@ CREATE TABLE binaries (
 
 CREATE TABLE computers (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
-  developer int NOT NULL
+  developer int NOT NULL,
+  extendedWarranty int NOT NULL
 );
 
 CREATE TABLE posts (
