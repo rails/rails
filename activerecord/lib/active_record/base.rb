@@ -349,7 +349,7 @@ module ActiveRecord #:nodoc:
               else
                 # Find multiple ids
                 ids_list = ids.map { |id| sanitize(id) }.join(',')
-                result   = find(:all, options.merge({ :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}", :order => primary_key }))
+                result   = find(:all, options.merge({ :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}"}))
                 if result.size == ids.size
                   return result
                 else
