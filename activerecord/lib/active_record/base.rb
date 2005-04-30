@@ -438,9 +438,8 @@ module ActiveRecord #:nodoc:
       # Returns the number of records that meets the +conditions+. Zero is returned if no records match. Example:
       #   Product.count "sales > 1"
       def count(conditions = nil, joins = nil)
-        tbl_var_name = joins ? table_name[0,1].downcase : ""
-        sql  = "SELECT COUNT(*) FROM #{table_name} #{tbl_var_name} "
-        sql << ", #{joins} " if joins
+        sql  = "SELECT COUNT(*) FROM #{table_name} " 
+        sql << " #{joins} " if joins
         add_conditions!(sql, conditions)
         count_by_sql(sql)
       end

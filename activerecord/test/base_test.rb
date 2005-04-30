@@ -11,6 +11,7 @@ class Category < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base; end
 class MasterCreditCard < ActiveRecord::Base; end
+class Post < ActiveRecord::Base; end
 
 class LoosePerson < ActiveRecord::Base
   attr_protected :credit_rating, :administrator
@@ -777,4 +778,15 @@ class BasicsTest < Test::Unit::TestCase
     k.set_inheritance_column { original_inheritance_column + "_id" }
     assert_equal "type_id", k.inheritance_column
   end
+
+  def test_count_with_join
+    res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.type = 'Post'"
+    res2 = res + 1
+    assert_nothing_raised do
+      res2 = Post.count("posts.type = 'Post'",
+                        "LEFT JOIN comments ON posts.id=comments.post_id")
+    end
+    assert_equal res, res2
+  end
+  
 end

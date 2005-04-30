@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed extraneous comma in count() function that made it not work with joins #1156 [jarkko/Dee.Zsombor]
+
 * Fixed incompatibility with Base#find with an array of ids that would fail when using eager loading #1186 [Alisdair McDiarmid]
 
 * Fixed that validate_length_of lost :on option when :within was specified #1195 [jhosteny@mac.com]
