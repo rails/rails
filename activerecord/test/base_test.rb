@@ -16,11 +16,15 @@ class LoosePerson < ActiveRecord::Base
   attr_protected :credit_rating, :administrator
 end
 
+class LooseDescendant < LoosePerson
+  attr_protected :phone_number
+end
+
 class TightPerson < ActiveRecord::Base
   attr_accessible :name, :address
 end
 
-class TightDescendent < TightPerson
+class TightDescendant < TightPerson
   attr_accessible :phone_number
 end
 
@@ -463,8 +467,17 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_mass_assignment_protection_inheritance
+    assert_nil LoosePerson.accessible_attributes
     assert_equal [ :credit_rating, :administrator ], LoosePerson.protected_attributes
+
+    assert_nil LooseDescendant.accessible_attributes
+    assert_equal [ :credit_rating, :administrator, :phone_number  ], LooseDescendant.protected_attributes
+
     assert_nil TightPerson.protected_attributes
+    assert_equal [ :name, :address ], TightPerson.accessible_attributes
+
+    assert_nil TightDescendant.protected_attributes
+    assert_equal [ :name, :address, :phone_number  ], TightDescendant.accessible_attributes
   end
 
   def test_multiparameter_attributes_on_date
