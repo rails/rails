@@ -1,5 +1,7 @@
 *SVN*
 
+* Improved the speed of regular expression expirations for caching by a factor of 10 #1221 [Jamis Buck]
+
 * Removed dumping of template assigns on the rescue page as it would very easily include a ton of data making page loads take seconds (and the information was rarely helpful) #1222
 
 * Added BenchmarkHelper that can measure the execution time of a block in a template and reports the result to the log. Example:

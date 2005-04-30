@@ -368,8 +368,8 @@ module ActionController #:nodoc:
         end
 
         def delete_matched(matcher, options) #:nodoc:
-          search_dir(@cache_path).each do |f|
-            File.delete(f) if f =~ matcher && File.exist?(f)
+          search_dir(@cache_path) do |f|
+            File.delete(f) rescue nil if f =~ matcher
           end
         end
     
@@ -382,19 +382,16 @@ module ActionController #:nodoc:
             FileUtils.makedirs(path) unless File.exists?(path)
           end
 
-          def search_dir(dir)
-            require 'pathname'
-            files = []
-            dir = Dir.new(dir)
-            dir.each do |d|
-              unless d == '.' or d == '..'
-                d = File.join(dir.path, d)
-                p = Pathname.new(d)
-                files << p.to_s if p.file?
-                files += search_dir(d) if p.directory?
+          def search_dir(dir, &callback)
+            Dir.foreach(dir) do |d|
+              next if d == "." || d == ".."
+              name = File.join(dir, d)
+              if File.directory?(name)
+                search_dir(name, &callback)
+              else
+                callback.call name
               end
             end
-            files
           end
       end
     end
