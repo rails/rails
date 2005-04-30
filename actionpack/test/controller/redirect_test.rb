@@ -9,6 +9,10 @@ class RedirectController < ActionController::Base
     redirect_to :dashbord_url, 1, "hello"
   end
   
+  def host_redirect
+    redirect_to :action => "other_host", :only_path => false, :host => 'other.test.host'
+  end
+
   def rescue_errors(e) raise e end
   
   protected
@@ -32,5 +36,10 @@ class RedirectTest < Test::Unit::TestCase
   def test_redirect_with_method_reference_and_parameters
     get :method_redirect
     assert_redirect_url "http://test.host/redirect/dashboard/1?message=hello"
+  end
+
+  def test_simple_redirect_using_options
+    get :host_redirect
+    assert_redirected_to :action => "other_host", :only_path => false, :host => 'other.test.host'
   end
 end

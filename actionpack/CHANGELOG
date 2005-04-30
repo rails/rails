@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed assert_redirected_to to work with :only_path => false #1204 [Alisdair McDiarmid]
+
 * Fixed render_partial_collection to output an empty string instead of nil when handed an empty array #1202 [Ryan Carver]
 
 * Improved the speed of regular expression expirations for caching by a factor of 10 #1221 [Jamis Buck]

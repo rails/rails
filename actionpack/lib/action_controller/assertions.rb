@@ -57,7 +57,7 @@ module Test #:nodoc:
             @response.redirected_to == options
           else
             options.keys.all? do |k| 
-              options[k] == (@response.redirected_to[k].respond_to?(:to_param) ? @response.redirected_to[k].to_param : @response.redirected_to[k] if @response.redirected_to[k])
+              options[k] == (@response.redirected_to[k].respond_to?(:to_param) ? @response.redirected_to[k].to_param : @response.redirected_to[k] unless @response.redirected_to[k].nil?)
             end
           end
         end
