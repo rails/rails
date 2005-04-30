@@ -60,6 +60,12 @@ Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_files.include('dev-utils/*.rb')
 }
 
+# Enhance rdoc task to copy referenced images also
+task :rdoc do
+  FileUtils.mkdir_p "doc/files/examples/"
+  FileUtils.copy "examples/associations.png", "doc/files/examples/associations.png"
+end
+
 
 # Create compressed packages
 

@@ -43,7 +43,7 @@ module ActiveRecord
     #
     # == Example
     #
-    # link:../../examples/associations.png
+    # link:files/examples/associations.png
     #
     # == Is it belongs_to or has_one?
     #
