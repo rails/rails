@@ -443,7 +443,7 @@ module ActionController #:nodoc:
       end
     end
     
-    if defined?("ActiveRecord")
+    if defined?(ActiveRecord::Observer)
       class Sweeper < ActiveRecord::Observer
         attr_accessor :controller
         
