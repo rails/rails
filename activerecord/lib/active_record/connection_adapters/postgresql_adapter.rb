@@ -25,6 +25,8 @@ module ActiveRecord
       password = config[:password].to_s
 
       schema_order = config[:schema_order]
+      encoding = config[:encoding]
+      min_messages = config[:min_messages]
 
       if config.has_key?(:database)
         database = config[:database]
@@ -37,6 +39,8 @@ module ActiveRecord
       )
 
       pga.execute("SET search_path TO #{schema_order}") if schema_order
+      pga.execute("SET client_encoding TO '#{encoding}'") if encoding
+      pga.execute("SET client_min_messages TO '#{min_messages}'") if min_messages
 
       pga
     end
@@ -54,6 +58,8 @@ module ActiveRecord
     # * <tt>:password</tt> -- Defaults to nothing
     # * <tt>:database</tt> -- The name of the database. No default, must be provided.
     # * <tt>:schema_order</tt> -- An optional schema order string that is using in a SET search_path TO <schema_order> call on connection.
+    # * <tt>:encoding</tt> -- An optional client encoding that is using in a SET client_encoding TO <encoding> call on connection.
+    # * <tt>:min_messages</tt> -- An optional client min messages that is using in a SET client_min_messages TO <min_messages> call on connection.
     class PostgreSQLAdapter < AbstractAdapter
       def select_all(sql, name = nil)
         select(sql, name)
