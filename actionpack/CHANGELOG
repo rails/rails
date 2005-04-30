@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed render_partial_collection to output an empty string instead of nil when handed an empty array #1202 [Ryan Carver]
+
 * Improved the speed of regular expression expirations for caching by a factor of 10 #1221 [Jamis Buck]
 
 * Removed dumping of template assigns on the rescue page as it would very easily include a ton of data making page loads take seconds (and the information was rarely helpful) #1222

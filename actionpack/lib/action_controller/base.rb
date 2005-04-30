@@ -504,7 +504,7 @@ module ActionController #:nodoc:
       # Renders a collection of partials using <tt>partial_name</tt> to iterate over the +collection+.
       def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {})#:doc:
         add_variables_to_assigns
-        render_text(@template.render_collection_of_partials(partial_name, collection, partial_spacer_template, local_assigns))
+        render_text(@template.render_collection_of_partials(partial_name, collection, partial_spacer_template, local_assigns) || '')
       end
 
       # Sends the file by streaming it 4096 bytes at a time. This way the
