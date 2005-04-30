@@ -51,9 +51,9 @@ module ActionView
       # The +number+ can contain a level of precision using the +precision+ key; default is 3
       # The unit separator can be set using the +separator+ key; default is "."
       # Examples:
-      #   number_to_precision(100)    => 100.000%
-      #   number_to_precision(100, {:precision => 0}) => 100%
-      #   number_to_precision(302.0574, {:precision => 2})  => 302.06%
+      #   number_to_percentage(100)    => 100.000%
+      #   number_to_percentage(100, {:precision => 0}) => 100%
+      #   number_to_percentage(302.0574, {:precision => 2})  => 302.06%
       def number_to_percentage(number, options = {})
         options = options.stringify_keys
         precision, separator = options.delete("precision") { 3 }, options.delete("separator") { "." }
