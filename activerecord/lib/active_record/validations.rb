@@ -373,15 +373,17 @@ module ActiveRecord
         option_value = options[range_options.first]
 
         # Declare different validations per option.
-        
         validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
         message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
 
         case option
         when :within, :in
           raise ArgumentError, ':within must be a Range' unless option_value.is_a?(Range) # '
-          validates_length_of attrs, :minimum => option_value.begin, :allow_nil => options[:allow_nil]
-          validates_length_of attrs, :maximum => option_value.end, :allow_nil => options[:allow_nil]
+          (options_without_range = options.dup).delete(option)
+          (options_with_minimum = options_without_range.dup).store(:minimum, option_value.begin)
+          validates_length_of attrs, options_with_minimum
+          (options_with_maximum = options_without_range.dup).store(:maximum, option_value.end)
+          validates_length_of attrs, options_with_maximum
         when :is, :minimum, :maximum
           raise ArgumentError, ":#{option} must be a nonnegative Integer" unless option_value.is_a?(Integer) and option_value >= 0 # '
           message = options[:message] || options[message_options[option]]

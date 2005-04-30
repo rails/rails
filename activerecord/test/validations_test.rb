@@ -394,6 +394,48 @@ class ValidationsTest < Test::Unit::TestCase
     assert t.valid?
   end
 
+  def test_optionally_validates_length_of_using_within_on_create
+    Topic.validates_length_of :title, :content, :within => 5..10, :on => :create, :too_long => "my string is too long: %d"
+
+    t = Topic.create("title" => "thisisnotvalid", "content" => "whatever")
+    assert !t.save
+    assert t.errors.on(:title)
+    assert_equal "my string is too long: 10", t.errors[:title]
+
+    t.title = "butthisis"
+    assert t.save
+
+    t.title = "few"
+    assert t.save
+
+    t.content = "andthisislong"
+    assert t.save
+
+    t.content = t.title = "iamfine"
+    assert t.save
+  end
+
+  def test_optionally_validates_length_of_using_within_on_update
+    Topic.validates_length_of :title, :content, :within => 5..10, :on => :update, :too_short => "my string is too short: %d"
+
+    t = Topic.create("title" => "vali", "content" => "whatever")
+    assert !t.save
+    assert t.errors.on(:title)
+
+    t.title = "not"
+    assert !t.save
+    assert t.errors.on(:title)
+    assert_equal "my string is too short: 5", t.errors[:title]
+
+    t.title = "valid"
+    t.content = "andthisistoolong"
+    assert !t.save
+    assert t.errors.on(:content)
+
+    t.content = "iamfine"
+    assert t.save
+  end
+
   def test_validates_length_of_using_is
     Topic.validates_length_of :title, :is => 5
 
