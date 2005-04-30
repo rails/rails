@@ -375,7 +375,7 @@ module ActionController #:nodoc:
     
         private
           def real_file_path(name)
-            '%s/%s' % [@cache_path, name.gsub('?', '.').gsub(':', '.')]
+            '%s/%s.cache' % [@cache_path, name.gsub('?', '.').gsub(':', '.')]
           end
         
           def ensure_cache_path(path)

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed action/fragment caching using the filestore when a directory and a file wanted to to use the same name. Now there's a .cache prefix that sidesteps the conflict #1188 [imbcmdth@hotmail.com]
+
 * Fixed missing id uniqueness in FormTag#radio_button #1207 [Jarkko]
 
 * Fixed assert_redirected_to to work with :only_path => false #1204 [Alisdair McDiarmid]
