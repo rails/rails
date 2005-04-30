@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed that email address like "Jamis Buck, M.D." <wild.medicine@example.net> would cause the quoter to generate emails resulting in "bad address" errors from the mail server #1220 [Jamis Buck]
+
+
 *0.9.1* (20th April, 2005)
 
 * Depend on Action Pack 1.8.1

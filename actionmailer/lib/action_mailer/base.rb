@@ -168,7 +168,7 @@ module ActionMailer #:nodoc:
         elsif address =~ /^(\S.*)\s+(<.*>)$/
           address = $2
           phrase = quote_if_necessary($1.gsub(/^['"](.*)['"]$/, '\1'), charset)
-          "#{phrase} #{address}"
+          "\"#{phrase}\" #{address}"
         else
           address
         end
