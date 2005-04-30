@@ -177,4 +177,16 @@ class InflectorTest < Test::Unit::TestCase
     assert_equal InflectorTest, Inflector.constantize("InflectorTest")
     assert_raises(NameError) { Inflector.constantize("UnknownClass") }
   end
+  
+  # def test_staying_singular
+  #   for term in SingularToPlural.keys
+  #     assert_equal term, Inflector.singularize(term)
+  #   end
+  # end
+  # 
+  # def test_staying_plural
+  #   for term in SingularToPlural.values
+  #     assert_equal term, Inflector.singularize(term)
+  #   end
+  # end
 end
