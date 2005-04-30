@@ -1,3 +1,10 @@
+*SVN*
+
+* Added console --profile for profiling an IRB session #1154 [bitsweat]
+
+* Changed console_sandbox into console --sandbox #1154 [bitsweat]
+
+
 *0.12.1* (20th April, 2005)
 
 * Upgraded to Active Record 1.10.1, Action Pack 1.8.1, Action Mailer 0.9.1, Action Web Service 0.7.1

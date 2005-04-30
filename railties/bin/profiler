@@ -1,17 +1,28 @@
 #!/usr/local/bin/ruby
 
 if ARGV.empty?
-  puts "Usage: profiler 'Person.expensive_method(10)' [times]"
+  $stderr.puts "Usage: profiler 'Person.expensive_method(10)' [times]"
   exit
 end
 
+# Keep the expensive require out of the profile.
+puts 'Loading Rails...'
 require File.dirname(__FILE__) + '/../config/environment'
-require "profiler"
 
-# Don't include compilation in the profile
-eval(ARGV.first)
+# Default to a single execution.
+N = (ARGV[1] || 1).to_i
 
-Profiler__::start_profile
-(ARGV[1] || 1).to_i.times { eval(ARGV.first) }
-Profiler__::stop_profile
-Profiler__::print_profile($stdout)
+# Define a method to profile.
+eval <<end_eval
+def profile_me
+  for i in 1..#{N}
+    #{ARGV[0]}
+  end
+end
+end_eval
+
+# Require the profiler at_exit wrapper from railties/lib.
+require 'console_profile'
+
+# Blast off!
+profile_me

@@ -43,7 +43,7 @@ class AppGenerator < Rails::Generator::Base
       m.file "environments/test.rb", "config/environments/test.rb"
 
       # Scripts
-      %w(console console_sandbox destroy generate server runner benchmarker profiler).each do |file|
+      %w(console destroy generate server runner benchmarker profiler).each do |file|
         m.file "bin/#{file}", "script/#{file}", script_options
       end
       if options[:gem]
