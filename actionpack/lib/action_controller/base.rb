@@ -377,7 +377,7 @@ module ActionController #:nodoc:
       # from this page.
       #
       # * <tt>url_for :action => 'bio'</tt> -- During the generation of this URL, default values will be used for the first and
-      # last components, and the action shall change. The generated URL will be, "people/david/hh/bio".
+      # last components, and the action shall change. The generated URL will be, "people/hh/david/bio".
       # * <tt>url_for :first => 'davids-little-brother'</tt> This generates the URL 'people/hh/davids-little-brother' -- note
       #   that this URL leaves out the assumed action of 'bio'.
       #
