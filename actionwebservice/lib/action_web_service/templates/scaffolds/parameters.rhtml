@@ -10,13 +10,15 @@
 </p>
 
 <% if @scaffold_method.expects %>
+<% i = 0 %>
 
 <strong>Method Parameters:</strong><br />
 <% @scaffold_method.expects.each do |type| %>
   <p>
-  <label for="method_params[]"><%= type.name.to_s.camelize %></label><br />
-  <%= method_parameter_input_fields(@scaffold_method, type) %>
+  <label for="method_params[<%= i %>]"><%= method_parameter_label(type.name, type) %> </label><br />
+  <%= method_parameter_input_fields(@scaffold_method, type, "method_params[#{i}]") %>
   </p>
+  <% i += 1 %>
 <% end %>
 
 <% end %>

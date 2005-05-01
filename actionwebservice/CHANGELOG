@@ -1,5 +1,7 @@
 *SVN*
 
+* Add support for structured types as input parameters to scaffolding, this should let one test the blogging APIs using scaffolding as well
+
 * Fix that generated WSDL was not using relative_url_root for base URI #1210 [Shugo Maeda]
 
 * Use UTF-8 encoding by default for SOAP responses, but if an encoding is supplied by caller, use that for the response  #1211 [Shugo Maeda, NAKAMURA Hiroshi]

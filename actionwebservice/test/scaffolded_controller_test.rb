@@ -53,7 +53,7 @@ class ScaffoldedControllerTest < Test::Unit::TestCase
   end
 
   def test_scaffold_invoke_submit_hello
-    post :scaffold_invoke_submit, :service => 'scaffolded', :method => 'Hello', :method_params => ['5', 'hello world']
+    post :scaffold_invoke_submit, :service => 'scaffolded', :method => 'Hello', :method_params => {'0' => '5', '1' => 'hello world'}
     assert_rendered_file 'result.rhtml'
     assert_equal false, @controller.instance_eval{ @method_return_value }
   end

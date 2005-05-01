@@ -1,5 +1,3 @@
-require 'ostruct'
-require 'uri'
 require 'benchmark'
 require 'pathname'
 
@@ -70,7 +68,13 @@ module ActionWebService
               @invocation_cgi = @request.respond_to?(:cgi) ? @request.cgi : nil
               bm = Benchmark.measure do
                 @protocol.register_api(@scaffold_service.api)
-                params = @params['method_params'] ? @params['method_params'].dup : nil
+                post_params = @params['method_params'] ? @params['method_params'].dup : nil
+                params = []
+                if @scaffold_method.expects
+                  @scaffold_method.expects.length.times do |i|
+                    params << post_params[i.to_s]
+                  end
+                end
                 params = @scaffold_method.cast_expects(params)
                 method_name = public_method_name(@scaffold_service.name, @scaffold_method.public_name)
                 @method_request_xml = @protocol.encode_request(method_name, params, @scaffold_method.expects)
@@ -156,28 +160,47 @@ module ActionWebService
     end
 
     module Helpers # :nodoc:
-      def method_parameter_input_fields(method, type)
-        name = type.name.to_s
-        type_name = type.type
-        unless type_name.is_a?(Symbol)
-          raise "Parameter #{name}: Structured/array types not supported in scaffolding input fields yet"
+      def method_parameter_input_fields(method, type, field_name_base)
+        if type.array?
+          return content_tag('em', "Typed array input fields not supported yet (#{type.name})")
         end
-        field_name = "method_params[]"
-        case type_name
-        when :int
-          text_field_tag field_name
-        when :string
-          text_field_tag field_name
-        when :bool
-          radio_button_tag field_name, "True"
-          radio_button_tag field_name, "False"
-        when :float
-          text_field_tag field_name
-        when :time
-          select_datetime Time.now, 'name' => field_name
-        when :date
-          select_date Date.today, 'name' => field_name
+        if type.structured?
+          parameters = ""
+          type.each_member do |member_name, member_type|
+            label = method_parameter_label(member_name, member_type)
+            nested_content = method_parameter_input_fields(
+              method,
+              member_type,
+              field_name_base + '[' + member_name.to_s + ']')
+            if member_type.custom?
+              parameters << content_tag('li', label)
+              parameters << content_tag('ul', nested_content)
+            else
+              parameters << content_tag('li', label + ' ' + nested_content)
+            end
+          end
+          content_tag('ul', parameters)
+        else
+          case type.type
+          when :int
+            text_field_tag field_name_base
+          when :string
+            text_field_tag field_name_base
+          when :bool
+            radio_button_tag field_name_base, "True"
+            radio_button_tag field_name_base, "False"
+          when :float
+            text_field_tag field_name_base
+          when :time
+            select_datetime Time.now, 'name' => field_name_base
+          when :date
+            select_date Date.today, 'name' => field_name_base
+          end
         end
+      end
+
+      def method_parameter_label(name, type)
+        name.to_s.capitalize + ' (' + type.human_name(false) + ')'
       end
 
       def service_method_list(service)

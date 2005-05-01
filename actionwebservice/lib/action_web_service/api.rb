@@ -217,9 +217,9 @@ module ActionWebService # :nodoc:
       # String representation of this method
       def to_s
         fqn = ""
-        fqn << (@returns ? (friendly_param(@returns[0], false) + " ") : "void ")
+        fqn << (@returns ? (@returns[0].human_name(false) + " ") : "void ")
         fqn << "#{@public_name}("
-        fqn << @expects.map{ |p| friendly_param(p) }.join(", ") if @expects
+        fqn << @expects.map{ |p| p.human_name }.join(", ") if @expects
         fqn << ")"
         fqn
       end
@@ -235,13 +235,6 @@ module ActionWebService # :nodoc:
               entry.type_class
             end
           end
-        end
-
-        def friendly_param(type, show_name=true)
-          name = type.name.to_s
-          type_type = type.array?? type.element_type.type.to_s : type.type.to_s
-          str = type.array?? (type_type + '[]') : type_type
-          show_name ? (str + " " + name) : str
         end
     end
   end

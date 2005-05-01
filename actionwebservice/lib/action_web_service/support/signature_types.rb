@@ -150,6 +150,12 @@ module ActionWebService # :nodoc:
     def structured?
       false
     end
+
+    def human_name(show_name=true)
+      type_type = array? ? element_type.type.to_s : self.type.to_s
+      str = array? ? (type_type + '[]') : type_type
+      show_name ? (str + " " + name.to_s) : str
+    end
   end
 
   class ArrayType < BaseType # :nodoc:
