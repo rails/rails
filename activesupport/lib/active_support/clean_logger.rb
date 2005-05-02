@@ -2,13 +2,11 @@ require 'logger'
 
 class Logger #:nodoc:
   # Silences the logger for the duration of the block.
-  def silence
-    result = nil
-    old_logger_level = level
-    self.level = Logger::ERROR
-    result = yield
+  def silence(temporary_level = Logger::ERROR)
+    old_logger_level, self.level = level, temporary_level
+    yield
+  ensure
     self.level = old_logger_level
-    return result
   end
 
   private
