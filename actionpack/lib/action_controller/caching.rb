@@ -276,6 +276,8 @@ module ActionController #:nodoc:
       end
       
       def write_fragment(name, content, options = {})
+        return unless perform_caching
+
         key = fragment_cache_key(name)
         fragment_cache_store.write(key, content, options)
         logger.info "Cached fragment: #{key}" unless logger.nil?
@@ -283,6 +285,8 @@ module ActionController #:nodoc:
       end
       
       def read_fragment(name, options = {})
+        return unless perform_caching
+
         key = fragment_cache_key(name)
         if cache = fragment_cache_store.read(key, options)
           logger.info "Fragment hit: #{key}" unless logger.nil?
@@ -297,6 +301,8 @@ module ActionController #:nodoc:
       # * Hash: Is treated as an implicit call to url_for, like { :controller => "pages", :action => "notes", :id => 45 }
       # * Regexp: Will destroy all the matched fragments, example: %r{pages/\d*/notes}
       def expire_fragment(name, options = {})
+        return unless perform_caching
+
         key = fragment_cache_key(name)
 
         if key.is_a?(Regexp)
