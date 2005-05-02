@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed the callbacks such that observers are notified before the in-object callbacks are triggered. Without this change, it wasn't possible to act on the whole object in something like a before_destroy observer without having the objects own callbacks (like deleting associations) called first.
+
 * Added option for passing an array to the find_all version of the dynamic finders and have it evaluated as an IN fragment. Example:
 
     # SELECT * FROM topics WHERE title IN ('First', 'Second')

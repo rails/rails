@@ -200,7 +200,6 @@ class BasicsTest < Test::Unit::TestCase
     topic.written_on = "2003-12-12 23:23:00"
     topic.save
     topic.destroy
-    assert_raise(TypeError) { topic.save }
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
   
@@ -432,6 +431,14 @@ class BasicsTest < Test::Unit::TestCase
     client = Client.new
     client.destroy
     assert client.frozen?
+  end
+  
+  def test_destroy_record_with_associations
+    client = Client.find(3)
+    client.destroy
+    assert client.frozen?
+    assert_kind_of Firm, client.firm
+    assert_raises(TypeError) { client.name = "something else" }
   end
   
   def test_update_attribute

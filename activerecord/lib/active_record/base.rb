@@ -1128,6 +1128,15 @@ module ActiveRecord #:nodoc:
         self.class.column_methods_hash[method.to_sym] || respond_to_without_attributes?(method, include_priv)
       end
       
+      # Just freeze the attributes hash, such that associations are still accessible even on destroyed records.
+      def freeze
+        @attributes.freeze
+      end
+      
+      def frozen?
+        @attributes.frozen?
+      end
+      
     private
       def create_or_update
         if new_record? then create else update end

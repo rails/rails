@@ -328,6 +328,8 @@ module ActiveRecord
 
     private
       def callback(method)
+        notify(method)
+
         callbacks_for(method).each do |callback|
           result = case callback
             when Symbol
@@ -345,9 +347,10 @@ module ActiveRecord
           end
           return false if result == false
         end
-
-        invoke_and_notify(method)
-        true
+        
+        send(method) if respond_to_without_attributes?(method)
+        
+        return true
       end
 
       def callbacks_for(method)
@@ -355,8 +358,8 @@ module ActiveRecord
       end
 
       def invoke_and_notify(method)
-        send(method) if respond_to_without_attributes?(method)
         notify(method)
+        send(method) if respond_to_without_attributes?(method)
       end
 
       def notify(method) #:nodoc:
