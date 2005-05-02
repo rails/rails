@@ -51,7 +51,6 @@ class Dispatcher
           Dependencies.remove_subclasses_for(ActiveRecord::Base, ActiveRecord::Observer, ActionController::Base)
         end
 
-        ActiveRecord::Base.connection.clear_query_cache
         Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
       end
   end
