@@ -181,7 +181,9 @@ module ActionMailer #:nodoc:
 
       def receive(raw_email)
         logger.info "Received mail:\n #{raw_email}" unless logger.nil?
-        new.receive(TMail::Mail.parse(raw_email))
+        mail = TMail::Mail.parse(raw_email)
+        mail.base64_decode
+        new.receive(mail)
       end
 
       private

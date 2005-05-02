@@ -73,6 +73,14 @@ class TestMailer < ActionMailer::Base
     @body       = "åœö blah"
     @charset    = "utf-8"
   end
+
+  class <<self
+    attr_accessor :received_body
+  end
+
+  def receive(mail)
+    self.class.received_body = mail.body
+  end
 end
 
 TestMailer.template_root = File.dirname(__FILE__) + "/fixtures"
@@ -305,6 +313,12 @@ EOF
     created = TestMailer.create_utf8_body @recipient
     assert_match(/\nFrom: =\?utf-8\?Q\?Foo_.*?\?= <extended@example.net>\r/, created.encoded)
     assert_match(/\nTo: =\?utf-8\?Q\?Foo_.*?\?= <extended@example.net>, Example Recipient <me/, created.encoded)
+  end
+
+  def test_receive_decodes_base64_encoded_mail
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email")
+    TestMailer.receive(fixture)
+    assert_match(/Jamis/, TestMailer.received_body)
   end
 
 end
