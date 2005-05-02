@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that delivery errors are caught in a way so the mail is still returned whether the delivery was successful or not
+
 * Fixed that email address like "Jamis Buck, M.D." <wild.medicine@example.net> would cause the quoter to generate emails resulting in "bad address" errors from the mail server #1220 [Jamis Buck]
 
 

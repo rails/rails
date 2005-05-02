@@ -100,14 +100,8 @@ module ActionMailer #:nodoc:
     class << self
       def method_missing(method_symbol, *parameters)#:nodoc:
         case method_symbol.id2name
-          when /^create_([_a-z]\w*)/
-            create_from_action($1, *parameters)
-          when /^deliver_([_a-z]\w*)/
-            begin
-              deliver(send("create_" + $1, *parameters))
-            rescue Object => e
-              raise e if raise_delivery_errors
-            end
+          when /^create_([_a-z]\w*)/  then create_from_action($1, *parameters)
+          when /^deliver_([_a-z]\w*)/ then deliver(send("create_" + $1, *parameters))
         end
       end
 
@@ -134,7 +128,13 @@ module ActionMailer #:nodoc:
 
       def deliver(mail) #:nodoc:
         logger.info "Sent mail:\n #{mail.encoded}" unless logger.nil?
-        send("perform_delivery_#{delivery_method}", mail) if perform_deliveries
+
+        begin
+          send("perform_delivery_#{delivery_method}", mail) if perform_deliveries
+        rescue Object => e
+          raise e if raise_delivery_errors
+        end
+
         return mail
       end
 
