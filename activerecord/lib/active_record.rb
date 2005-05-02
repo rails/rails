@@ -67,3 +67,5 @@ require 'active_record/connection_adapters/sqlite_adapter'
 require 'active_record/connection_adapters/sqlserver_adapter'
 require 'active_record/connection_adapters/db2_adapter'
 require 'active_record/connection_adapters/oci_adapter'
+
+require 'active_record/query_cache'
