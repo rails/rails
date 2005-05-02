@@ -11,6 +11,8 @@ module ActionView
       #
       # Will add something like "Notes section (0.345234)" to the log.
       def benchmark(message = "Benchmarking", &block)
+        return if @logger.nil?
+
         bm = Benchmark.measure do
           block.call
         end
