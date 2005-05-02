@@ -787,7 +787,7 @@ module ActiveRecord #:nodoc:
             attributes.each { |attr_name| super unless column_methods_hash[attr_name.intern] }
 
             attr_index = -1
-            conditions = attributes.collect { |attr_name| attr_index += 1; "#{attr_name} #{arguments[attr_index].nil? ? "IS" : "="} ? " }.join(" AND ")
+            conditions = attributes.collect { |attr_name| attr_index += 1; "#{attr_name} #{attribute_condition(arguments[attr_index])} " }.join(" AND ")
             
             if arguments[attributes.length].is_a?(Hash)
               find(finder, { :conditions => [conditions, *arguments[0...attributes.length]]}.merge(arguments[attributes.length]))
@@ -797,6 +797,14 @@ module ActiveRecord #:nodoc:
             end
           else
             super
+          end
+        end
+
+        def attribute_condition(argument)
+          case argument
+            when nil   then "IS ?"
+            when Array then "IN (?)"
+            else            "= ?"
           end
         end
 

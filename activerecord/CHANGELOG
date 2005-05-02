@@ -1,5 +1,10 @@
 *SVN*
 
+* Added option for passing an array to the find_all version of the dynamic finders and have it evaluated as an IN fragment. Example:
+
+    # SELECT * FROM topics WHERE title IN ('First', 'Second')
+    Topic.find_all_by_title(["First", "Second"])
+
 * Added compatibility with camelCase column names for dynamic finders #533 [Dee.Zsombor]
 
 * Fixed extraneous comma in count() function that made it not work with joins #1156 [jarkko/Dee.Zsombor]

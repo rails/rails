@@ -211,6 +211,10 @@ class FinderTest < Test::Unit::TestCase
     assert @topics["first"].find, topics.first
   end
 
+  def test_find_all_by_array_attribute
+    assert_equal 2, Topic.find_all_by_title(["The First Topic", "The Second Topic's of the day"]).size
+  end
+
   def test_find_all_by_boolean_attribute
     topics = Topic.find_all_by_approved(false)
     assert_equal 1, topics.size
