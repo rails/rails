@@ -104,8 +104,8 @@ module ActionView
         def compute_public_path(source, dir, ext)
           source = "/#{dir}/#{source}" unless source.include?("/")
           source = "#{source}.#{ext}" unless source.include?(".")
-          source = "#{@request.relative_url_root}#{source}" 
-          source
+          source = "#{@request.relative_url_root}#{source}"
+          defined?(RAILS_ASSET_HOST) ? RAILS_ASSET_HOST + source : source
         end
     end
   end

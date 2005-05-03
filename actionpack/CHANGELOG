@@ -1,5 +1,7 @@
 *SVN*
 
+* Added the option of specifying a RAILS_ASSET_HOST that will then be used by all the asset helpers. This enables you to easily offload static content like javascripts and images to a separate server tuned just for that.
+
 * Fixed action/fragment caching using the filestore when a directory and a file wanted to to use the same name. Now there's a .cache prefix that sidesteps the conflict #1188 [imbcmdth@hotmail.com]
 
 * Fixed missing id uniqueness in FormTag#radio_button #1207 [Jarkko]
