@@ -39,9 +39,10 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/common.javascript"></script>
       #     <script type="text/javascript" src="/elsewhere/cools.js"></script>
       def javascript_include_tag(*sources)
+        options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
         sources.collect { |source|
           source = javascript_path(source)        
-          content_tag("script", "", "type" => "text/javascript", "src" => source)
+          content_tag("script", "", { "type" => "text/javascript", "src" => source }.merge(options))
         }.join("\n")
       end
 
@@ -57,13 +58,17 @@ module ActionView
       #   stylesheet_link_tag "style" # =>
       #     <link href="/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />
       #
+      #   stylesheet_link_tag "style", :media => "all" # =>
+      #     <link href="/stylesheets/style.css" media="all" rel="Stylesheet" type="text/css" />
+      #
       #   stylesheet_link_tag "random.styles", "/css/stylish" # =>
       #     <link href="/stylesheets/random.styles" media="screen" rel="Stylesheet" type="text/css" />
       #     <link href="/css/stylish.css" media="screen" rel="Stylesheet" type="text/css" />
       def stylesheet_link_tag(*sources)
+        options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
         sources.collect { |source|
           source = stylesheet_path(source)
-          tag("link", "rel" => "Stylesheet", "type" => "text/css", "media" => "screen", "href" => source)
+          tag("link", { "rel" => "Stylesheet", "type" => "text/css", "media" => "screen", "href" => source }.merge(options))
         }.join("\n")
       end
 
