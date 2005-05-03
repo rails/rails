@@ -79,6 +79,10 @@ module ActionView
         tag("input", { "type" => "submit", "name" => "submit", "value" => value }.update(convert_options(options)))
       end
       
+      def image_submit_tag(source, options = {})
+        tag("input", { "type" => "image", "src" => image_path(source) }.update(convert_options(options)))
+      end
+      
       private
         def convert_options(options)
           options = options.stringify_keys
