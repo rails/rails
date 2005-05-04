@@ -28,14 +28,14 @@ class CGI #:nodoc:
 
       def read_query_params
         case env_table['REQUEST_METHOD']
-          when 'GET', 'HEAD', 'DELETE', 'OPTIONS'
-            (defined?(MOD_RUBY) ? Apache::request.args : env_table['QUERY_STRING']) || ''
+          when 'CMD'
+            read_from_cmdline
           when 'POST', 'PUT'
             stdinput.binmode if stdinput.respond_to?(:binmode)
             content = stdinput.read(Integer(env_table['CONTENT_LENGTH'])) || ''
             env_table['RAW_POST_DATA'] = content.split("&_").first.to_s.freeze # &_ is a fix for Safari Ajax postings that always append \000
-          else
-            read_from_cmdline
+          else # when 'GET', 'HEAD', 'DELETE', 'OPTIONS'
+            (defined?(MOD_RUBY) ? Apache::request.args : env_table['QUERY_STRING']) || ''
           end
       end
   end # module QueryExtension
