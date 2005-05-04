@@ -27,7 +27,7 @@ class CGI #:nodoc:
       end
 
       def read_query_params
-        case env_table['REQUEST_METHOD']
+        case env_table['REQUEST_METHOD'].to_s.upcase
           when 'CMD'
             read_from_cmdline
           when 'POST', 'PUT'
@@ -36,7 +36,7 @@ class CGI #:nodoc:
             env_table['RAW_POST_DATA'] = content.split("&_").first.to_s.freeze # &_ is a fix for Safari Ajax postings that always append \000
           else # when 'GET', 'HEAD', 'DELETE', 'OPTIONS'
             (defined?(MOD_RUBY) ? Apache::request.args : env_table['QUERY_STRING']) || ''
-          end
+        end
       end
   end # module QueryExtension
 end
