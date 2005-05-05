@@ -81,6 +81,9 @@ module ActionWebService
                 new_request = @protocol.encode_action_pack_request(@scaffold_service.name, @scaffold_method.public_name, @method_request_xml)
                 prepare_request(new_request, @scaffold_service.name, @scaffold_method.public_name)
                 @request = new_request
+                if @scaffold_container.dispatching_mode != :direct
+                  @request.parameters['action'] = @scaffold_service.name
+                end
                 dispatch_web_service_request
                 @method_response_xml = @response.body
                 method_name, obj = @protocol.decode_response(@method_response_xml)
@@ -215,11 +218,13 @@ module ActionWebService
     module WebServiceModel # :nodoc:
       class Container # :nodoc:
         attr :services
+        attr :dispatching_mode
 
         def initialize(real_container)
           @real_container = real_container
+          @dispatching_mode = @real_container.class.web_service_dispatching_mode
           @services = []
-          if @real_container.class.web_service_dispatching_mode == :direct
+          if @dispatching_mode == :direct
             @services << Service.new(@real_container.controller_name, @real_container)
           else
             @real_container.class.web_services.each do |name, obj|

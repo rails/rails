@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix that scaffolding was not working for :delegated dispatching
+
 * Add support for structured types as input parameters to scaffolding, this should let one test the blogging APIs using scaffolding as well
 
 * Fix that generated WSDL was not using relative_url_root for base URI #1210 [Shugo Maeda]
