@@ -42,33 +42,33 @@ module ActionWebService
         add_template_helper(Helpers)
         module_eval <<-END, __FILE__, __LINE__
           def #{action_name}
-            if @request.method == :get
+            if request.method == :get
               setup_invocation_assigns
               render_invocation_scaffold 'methods'
             end
           end
 
           def #{action_name}_method_params
-            if @request.method == :get
+            if request.method == :get
               setup_invocation_assigns
               render_invocation_scaffold 'parameters'
             end
           end
 
           def #{action_name}_submit
-            if @request.method == :post
+            if request.method == :post
               setup_invocation_assigns
-              protocol_name = @params['protocol'] ? @params['protocol'].to_sym : :soap
+              protocol_name = params['protocol'] ? params['protocol'].to_sym : :soap
               case protocol_name
               when :soap
                 @protocol = Protocol::Soap::SoapProtocol.new
               when :xmlrpc
                 @protocol = Protocol::XmlRpc::XmlRpcProtocol.new
               end
-              @invocation_cgi = @request.respond_to?(:cgi) ? @request.cgi : nil
+              @invocation_cgi = request.respond_to?(:cgi) ? request.cgi : nil
               bm = Benchmark.measure do
                 @protocol.register_api(@scaffold_service.api)
-                post_params = @params['method_params'] ? @params['method_params'].dup : nil
+                post_params = params['method_params'] ? params['method_params'].dup : nil
                 params = []
                 if @scaffold_method.expects
                   @scaffold_method.expects.length.times do |i|
@@ -82,7 +82,7 @@ module ActionWebService
                 prepare_request(new_request, @scaffold_service.name, @scaffold_method.public_name)
                 @request = new_request
                 if @scaffold_container.dispatching_mode != :direct
-                  @request.parameters['action'] = @scaffold_service.name
+                  request.parameters['action'] = @scaffold_service.name
                 end
                 dispatch_web_service_request
                 @method_response_xml = @response.body
@@ -102,9 +102,9 @@ module ActionWebService
               @scaffold_class = self.class
               @scaffold_action_name = "#{action_name}"
               @scaffold_container = WebServiceModel::Container.new(self)
-              if @params['service'] && @params['method']
-                @scaffold_service = @scaffold_container.services.find{ |x| x.name == @params['service'] }
-                @scaffold_method = @scaffold_service.api_methods[@params['method']]
+              if params['service'] && params['method']
+                @scaffold_service = @scaffold_container.services.find{ |x| x.name == params['service'] }
+                @scaffold_method = @scaffold_service.api_methods[params['method']]
               end
               add_instance_variables_to_assigns
             end
@@ -121,13 +121,13 @@ module ActionWebService
             end
 
             def reset_invocation_response
-              template = @response.template
+              template = response.template
               if @invocation_cgi
                 @response = ::ActionController::CgiResponse.new(@invocation_cgi)
               else
                 @response = ::ActionController::TestResponse.new
               end
-              @response.template = template
+              response.template = template
               @performed_render = false
             end
 
@@ -139,10 +139,10 @@ module ActionWebService
               end
             end
 
-            def prepare_request(request, service_name, method_name)
-              request.parameters.update(@request.parameters)
+            def prepare_request(new_request, service_name, method_name)
+              new_request.parameters.update(request.parameters)
               if web_service_dispatching_mode == :layered && @protocol.is_a?(ActionWebService::Protocol::Soap::SoapProtocol)
-                request.env['HTTP_SOAPACTION'] = "/\#{controller_name()}/\#{service_name}/\#{method_name}"
+                new_request.env['HTTP_SOAPACTION'] = "/\#{controller_name()}/\#{service_name}/\#{method_name}"
               end
             end
 

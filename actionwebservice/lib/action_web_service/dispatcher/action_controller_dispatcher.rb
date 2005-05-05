@@ -40,53 +40,53 @@ module ActionWebService # :nodoc:
           def dispatch_web_service_request
             exception = nil
             begin
-              request = discover_web_service_request(@request)
+              ws_request = discover_web_service_request(request)
             rescue Exception => e
               exception = e
             end
-            if request
-              response = nil
+            if ws_request
+              ws_response = nil
               exception = nil
               bm = Benchmark.measure do
                 begin
-                  response = invoke_web_service_request(request)
+                  ws_response = invoke_web_service_request(ws_request)
                 rescue Exception => e
                   exception = e
                 end
               end
-              log_request(request, @request.raw_post)
+              log_request(ws_request, request.raw_post)
               if exception
                 log_error(exception) unless logger.nil?
-                send_web_service_error_response(request, exception)
+                send_web_service_error_response(ws_request, exception)
               else
-                send_web_service_response(response, bm.real)
+                send_web_service_response(ws_response, bm.real)
               end
             else
               exception ||= DispatcherError.new("Malformed SOAP or XML-RPC protocol message")
               log_error(exception) unless logger.nil?
-              send_web_service_error_response(request, exception)
+              send_web_service_error_response(ws_request, exception)
             end
           rescue Exception => e
             log_error(e) unless logger.nil?
-            send_web_service_error_response(request, e)
+            send_web_service_error_response(ws_request, e)
           end
 
-          def send_web_service_response(response, elapsed=nil)
-            log_response(response, elapsed)
-            options = { :type => response.content_type, :disposition => 'inline' }
-            send_data(response.body, options)
+          def send_web_service_response(ws_response, elapsed=nil)
+            log_response(ws_response, elapsed)
+            options = { :type => ws_response.content_type, :disposition => 'inline' }
+            send_data(ws_response.body, options)
           end
 
-          def send_web_service_error_response(request, exception)
-            if request
+          def send_web_service_error_response(ws_request, exception)
+            if ws_request
               unless self.class.web_service_exception_reporting
                 exception = DispatcherError.new("Internal server error (exception raised)")
               end
-              api_method = request.api_method
-              public_method_name = api_method ? api_method.public_name : request.method_name
+              api_method = ws_request.api_method
+              public_method_name = api_method ? api_method.public_name : ws_request.method_name
               return_type = ActionWebService::SignatureTypes.canonical_signature_entry(Exception, 0)
-              response = request.protocol.encode_response(public_method_name + 'Response', exception, return_type, request.protocol_options)
-              send_web_service_response(response)
+              ws_response = ws_request.protocol.encode_response(public_method_name + 'Response', exception, return_type, ws_request.protocol_options)
+              send_web_service_response(ws_response)
             else
               if self.class.web_service_exception_reporting
                 message = exception.message
@@ -100,13 +100,10 @@ module ActionWebService # :nodoc:
           end
 
           def web_service_direct_invoke(invocation)
-            @params ||= {}
             invocation.method_named_params.each do |name, value|
-              @params[name] = value
+              params[name] = value
             end
-            @session ||= {}
-            @assigns ||= {}
-            @params['action'] = invocation.api_method.name.to_s
+            params['action'] = invocation.api_method.name.to_s
             if before_action == false
               raise(DispatcherError, "Method filtered")
             end
@@ -115,27 +112,27 @@ module ActionWebService # :nodoc:
             return_value
           end
 
-          def log_request(request, body)
+          def log_request(ws_request, body)
             unless logger.nil?
-              name = request.method_name
-              api_method = request.api_method
-              params = request.method_params
+              name = ws_request.method_name
+              api_method = ws_request.api_method
+              params = ws_request.method_params
               if api_method && api_method.expects
                 params = api_method.expects.zip(params).map{ |type, param| "#{type.name}=>#{param.inspect}" }
               else
                 params = params.map{ |param| param.inspect }
               end
-              service = request.service_name
+              service = ws_request.service_name
               logger.debug("\nWeb Service Request: #{name}(#{params.join(", ")}) Entrypoint: #{service}")
               logger.debug(indent(body))
             end
           end
 
-          def log_response(response, elapsed=nil)
+          def log_response(ws_response, elapsed=nil)
             unless logger.nil?
               elapsed = (elapsed ? " (%f):" % elapsed : ":")
-              logger.debug("\nWeb Service Response" + elapsed + " => #{response.return_value.inspect}")
-              logger.debug(indent(response.body))
+              logger.debug("\nWeb Service Response" + elapsed + " => #{ws_response.return_value.inspect}")
+              logger.debug(indent(ws_response.body))
             end
           end
 
@@ -152,7 +149,7 @@ module ActionWebService # :nodoc:
         SoapHttpTransport = 'http://schemas.xmlsoap.org/soap/http'
 
         def wsdl
-          case @request.method
+          case request.method
           when :get
             begin
               options = { :type => 'text/xml', :disposition => 'inline' }
@@ -167,15 +164,9 @@ module ActionWebService # :nodoc:
 
         private
           def base_uri
-            if @request
-              host = @request.env['HTTP_HOST'] || @request.env['SERVER_NAME']
-              relative_url_root = @request.relative_url_root
-              scheme = @request.ssl? ? 'https' : 'http'
-            else
-              host = 'localhost'
-              relative_url_root = ""
-              scheme = 'http'
-            end
+            host = request.env['HTTP_HOST'] || request.env['SERVER_NAME'] || 'localhost'
+            relative_url_root = request.relative_url_root
+            scheme = request.ssl? ? 'https' : 'http'
             '%s://%s%s/%s/' % [scheme, host, relative_url_root, controller_name]
           end
 

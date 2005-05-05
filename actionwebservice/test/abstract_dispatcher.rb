@@ -126,6 +126,7 @@ module DispatcherTest
 
   class AbstractController < ActionController::Base
     def generate_wsdl
+      @request ||= ::ActionController::TestRequest.new
       to_wsdl
     end
   end

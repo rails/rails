@@ -35,7 +35,7 @@ module ActionWebService # :nodoc:
         #   class ApiController < ApplicationController
         #     web_service_dispatching_mode :delegated
         #
-        #     web_service(:person) { PersonService.new(@request.env) }
+        #     web_service(:person) { PersonService.new(request.env) }
         #   end
         def web_service(name, object=nil, &block)
           if (object && block_given?) || (object.nil? && block.nil?)
