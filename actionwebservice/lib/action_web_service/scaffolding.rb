@@ -190,8 +190,8 @@ module ActionWebService
           when :string
             text_field_tag field_name_base
           when :bool
-            radio_button_tag field_name_base, "True"
-            radio_button_tag field_name_base, "False"
+            radio_button_tag(field_name_base, "true") + " True" +
+            radio_button_tag(field_name_base, "false") + "False"
           when :float
             text_field_tag field_name_base
           when :time

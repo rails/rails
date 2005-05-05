@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix that boolean fields were not rendered correctly in scaffolding
+
 * Fix that scaffolding was not working for :delegated dispatching
 
 * Add support for structured types as input parameters to scaffolding, this should let one test the blogging APIs using scaffolding as well
