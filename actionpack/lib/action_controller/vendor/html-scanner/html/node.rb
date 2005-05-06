@@ -277,7 +277,7 @@ module HTML#:nodoc:
         "</#{@name}>"
       else
         s = "<#{@name}"
-        @attributes.each { |k,v| s << " #{k}='#{v.gsub(/'/,"\\\\'")}'" }
+        @attributes.each { |k,v| s << " #{k}='#{v.to_s.gsub(/'/,"\\\\'")}'" }
         s << " /" if @closing == :self
         s << ">"
         @children.each { |child| s << child.to_s }
