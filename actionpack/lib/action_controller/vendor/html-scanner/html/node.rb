@@ -13,7 +13,8 @@ module HTML#:nodoc:
             # keys are valid, and require no further processing
           when :attributes then
             hash[k] = keys_to_strings(v)
-          when :parent, :child, :ancestor, :descendant
+          when :parent, :child, :ancestor, :descendant, :sibling, :before,
+                  :after
             hash[k] = Conditions.new(v)
           when :children
             hash[k] = v = keys_to_symbols(v)
@@ -119,12 +120,20 @@ module HTML#:nodoc:
     end
     
     class <<self
-      def parse(parent, line, pos, content)
+      def parse(parent, line, pos, content, strict=true)
         if content !~ /^<\S/
           Text.new(parent, line, pos, content)
         else
           scanner = StringScanner.new(content)
-          scanner.skip(/</) or raise "expected <"
+
+          unless scanner.skip(/</)
+            if strict
+              raise "expected <"
+            else
+              return Text.new(parent, line, pos, content)
+            end
+          end
+
           closing = ( scanner.scan(/\//) ? :close : nil )
           return Text.new(parent, line, pos, content) unless name = scanner.scan(/[\w:]+/)
           name.downcase!
@@ -158,7 +167,14 @@ module HTML#:nodoc:
             closing = ( scanner.scan(/\//) ? :self : nil )
           end
           
-          scanner.scan(/\s*>/) or raise "expected > (got #{scanner.rest.inspect} for #{content}, #{attributes.inspect})" 
+          unless scanner.scan(/\s*>/)
+            if strict
+              raise "expected > (got #{scanner.rest.inspect} for #{content}, #{attributes.inspect})" 
+            else
+              # throw away all text until we find what we're looking for
+              scanner.skip_until(/>/) or scanner.terminate
+            end
+          end
 
           Tag.new(parent, line, pos, name, attributes, closing)
         end
@@ -296,6 +312,12 @@ module HTML#:nodoc:
     #   meet the criteria described by the hash.
     # * <tt>:descendant</tt>: a hash. At least one of the node's descendants
     #   must meet the criteria described by the hash.
+    # * <tt>:sibling</tt>: a hash. At least one of the node's siblings must
+    #   meet the criteria described by the hash.
+    # * <tt>:after</tt>: a hash. The node must be after any sibling meeting
+    #   the criteria described by the hash, and at least one sibling must match.
+    # * <tt>:before</tt>: a hash. The node must be before any sibling meeting
+    #   the criteria described by the hash, and at least one sibling must match.
     # * <tt>:children</tt>: a hash, for counting children of a node. Accepts the
     #   keys:
     # ** <tt>:count</tt>: either a number or a range which must equal (or
@@ -401,6 +423,30 @@ module HTML#:nodoc:
             when :greater_than
               return false unless matches.length > value
             else raise "unknown count condition #{key}"
+          end
+        end
+      end
+
+      # test siblings
+      if conditions[:sibling] || conditions[:before] || conditions[:after]
+        siblings = parent ? parent.children : []
+        self_index = siblings.index(self)
+
+        if conditions[:sibling]
+          return false unless siblings.detect do |s| 
+            s != self && s.match(conditions[:sibling])
+          end
+        end
+
+        if conditions[:before]
+          return false unless siblings[self_index+1..-1].detect do |s| 
+            s != self && s.match(conditions[:before])
+          end
+        end
+
+        if conditions[:after]
+          return false unless siblings[0,self_index].detect do |s| 
+            s != self && s.match(conditions[:after])
           end
         end
       end

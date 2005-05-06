@@ -136,6 +136,12 @@ module Test #:nodoc:
       #   meet the criteria described by the hash.
       # * <tt>:descendant</tt>: a hash. At least one of the node's descendants
       #   must meet the criteria described by the hash.
+      # * <tt>:sibling</tt>: a hash. At least one of the node's siblings must
+      #   meet the criteria described by the hash.
+      # * <tt>:after</tt>: a hash. The node must be after any sibling meeting
+      #   the criteria described by the hash, and at least one sibling must match.
+      # * <tt>:before</tt>: a hash. The node must be before any sibling meeting
+      #   the criteria described by the hash, and at least one sibling must match.
       # * <tt>:children</tt>: a hash, for counting children of a node. Accepts
       #   the keys:
       #   * <tt>:count</tt>: either a number or a range which must equal (or
