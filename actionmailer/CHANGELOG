@@ -1,5 +1,9 @@
 *SVN*
 
+* Fixed the TMail#body method to look at the content-transfer-encoding header and unquote the body according to the rules it specifies #1265 [Jamis Buck]
+
+* Added unquoting even if the iconv lib can't be loaded--in that case, only the charset conversion is skipped #1265 [Jamis Buck]
+
 * Added automatic decoding of base64 bodies #1214 [Jamis Buck]
 
 * Added that delivery errors are caught in a way so the mail is still returned whether the delivery was successful or not

@@ -240,20 +240,72 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_equal 1, ActionMailer::Base.deliveries.size
   end
 
-  def test_unquote_subject
+  def test_unquote_quoted_printable_subject
     msg = <<EOF
 From: me@example.com
 Subject: =?utf-8?Q?testing_testing_=D6=A4?=
 Content-Type: text/plain; charset=iso-8859-1
 
-This_is_a_test
-2 + 2 =3D 4
+The body
 EOF
     mail = TMail::Mail.parse(msg)
     assert_equal "testing testing \326\244", mail.subject
     assert_equal "=?utf-8?Q?testing_testing_=D6=A4?=", mail.quoted_subject
-    assert_equal "This is a test\n2 + 2 = 4\n", mail.body
-    assert_equal "This_is_a_test\n2 + 2 =3D 4\n", mail.quoted_body
+  end
+
+  def test_unquote_7bit_subject
+    msg = <<EOF
+From: me@example.com
+Subject: this == working?
+Content-Type: text/plain; charset=iso-8859-1
+
+The body
+EOF
+    mail = TMail::Mail.parse(msg)
+    assert_equal "this == working?", mail.subject
+    assert_equal "this == working?", mail.quoted_subject
+  end
+
+  def test_unquote_7bit_body
+    msg = <<EOF
+From: me@example.com
+Subject: subject
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 7bit
+
+The=3Dbody
+EOF
+    mail = TMail::Mail.parse(msg)
+    assert_equal "The=3Dbody", mail.body.strip
+    assert_equal "The=3Dbody", mail.quoted_body.strip
+  end
+
+  def test_unquote_quoted_printable_body
+    msg = <<EOF
+From: me@example.com
+Subject: subject
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+The=3Dbody
+EOF
+    mail = TMail::Mail.parse(msg)
+    assert_equal "The=body", mail.body.strip
+    assert_equal "The=3Dbody", mail.quoted_body.strip
+  end
+
+  def test_unquote_base64_body
+    msg = <<EOF
+From: me@example.com
+Subject: subject
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: base64
+
+VGhlIGJvZHk=
+EOF
+    mail = TMail::Mail.parse(msg)
+    assert_equal "The body", mail.body.strip
+    assert_equal "VGhlIGJvZHk=", mail.quoted_body.strip
   end
 
   def test_extended_headers
