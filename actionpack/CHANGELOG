@@ -1,10 +1,14 @@
 *SVN*
 
+* Added better error handling for regexp caching expiration
+
+* Fixed handling of requests coming from unknown HTTP methods not to kill the server
+
 * Added that both AssetHelper#stylesheet_link_tag and AssetHelper#javascript_include_tag now accept an option hash as the last parameter, so you can do stuff like: stylesheet_link_tag "style", :media => "all"
 
 * Added FormTagHelper#image_submit_tag for making submit buttons that uses images
 
-* Added the option of specifying a RAILS_ASSET_HOST that will then be used by all the asset helpers. This enables you to easily offload static content like javascripts and images to a separate server tuned just for that.
+* Added ActionController::Base.asset_host that will then be used by all the asset helpers. This enables you to easily offload static content like javascripts and images to a separate server tuned just for that.
 
 * Fixed action/fragment caching using the filestore when a directory and a file wanted to to use the same name. Now there's a .cache prefix that sidesteps the conflict #1188 [imbcmdth@hotmail.com]
 

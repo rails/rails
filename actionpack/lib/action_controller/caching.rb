@@ -375,7 +375,13 @@ module ActionController #:nodoc:
 
         def delete_matched(matcher, options) #:nodoc:
           search_dir(@cache_path) do |f|
-            File.delete(f) rescue nil if f =~ matcher
+            if f =~ matcher
+              begin 
+                File.delete(f)
+              rescue Object => e
+                Base.logger.info "Couldn't expire cache: #{f} (#{e.message})" unless Base.logger.nil?
+              end
+            end
           end
         end
     
