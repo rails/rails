@@ -110,7 +110,7 @@ module ActionView
           source = "/#{dir}/#{source}" unless source.include?("/")
           source = "#{source}.#{ext}" unless source.include?(".")
           source = "#{@request.relative_url_root}#{source}"
-          defined?(RAILS_ASSET_HOST) ? RAILS_ASSET_HOST + source : source
+          @controller.asset_host + source
         end
     end
   end

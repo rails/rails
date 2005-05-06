@@ -215,6 +215,12 @@ module ActionController #:nodoc:
     @@view_controller_internals = true
     cattr_accessor :view_controller_internals
 
+    # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets, 
+    # and images to a dedicated asset server away from the main web server. Example: 
+    #   ActionController::Base.asset_host = "http://assets.example.com"
+    @@asset_host = ""
+    cattr_accessor :asset_host
+
     # All requests are considered local by default, so everyone will be exposed to detailed debugging screens on errors.
     # When the application is ready to go public, this should be set to false, and the protected method <tt>local_request?</tt>
     # should instead be implemented in the controller to determine when debugging screens should be shown.
