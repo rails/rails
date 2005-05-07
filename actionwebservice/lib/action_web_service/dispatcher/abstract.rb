@@ -28,16 +28,20 @@ module ActionWebService # :nodoc:
           @method_params = invocation.method_ordered_params
           arity = method(invocation.api_method.name).arity rescue 0
           if arity < 0 || arity > 0
-            return_value = self.__send__(invocation.api_method.name, *@method_params)
+            params = @method_params
           else
-            return_value = self.__send__(invocation.api_method.name)
+            params = []
           end
-          web_service_create_response(invocation.protocol, invocation.protocol_options, invocation.api, invocation.api_method, return_value)
+          web_service_filtered_invoke(invocation, params)
         end
 
         def web_service_delegated_invoke(invocation)
+          web_service_filtered_invoke(invocation, invocation.method_ordered_params)
+        end
+
+        def web_service_filtered_invoke(invocation, params)
           cancellation_reason = nil
-          return_value = invocation.service.perform_invocation(invocation.api_method.name, invocation.method_ordered_params) do |x|
+          return_value = invocation.service.perform_invocation(invocation.api_method.name, params) do |x|
             cancellation_reason = x
           end
           if cancellation_reason
