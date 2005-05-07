@@ -40,8 +40,10 @@ module ActionWebService # :nodoc:
       case name
         when :int, :integer, :fixnum, :bignum
           :int
-        when :string, :base64
+        when :string
           :string
+        when :base64
+          :base64
         when :bool, :boolean
           :bool
         when :float, :double
@@ -73,6 +75,8 @@ module ActionWebService # :nodoc:
         :int
       elsif klass == String
         :string
+      elsif klass == Base64
+        :base64
       elsif klass == TrueClass || klass == FalseClass
         :bool
       elsif derived_from?(Float, klass) || derived_from?(Precision, klass) || derived_from?(Numeric, klass)
@@ -94,6 +98,8 @@ module ActionWebService # :nodoc:
         Integer
       when :string
         String
+      when :base64
+        Base64
       when :bool
         TrueClass
       when :float
@@ -196,5 +202,8 @@ module ActionWebService # :nodoc:
     def structured?
       true
     end
+  end
+
+  class Base64 < String
   end
 end

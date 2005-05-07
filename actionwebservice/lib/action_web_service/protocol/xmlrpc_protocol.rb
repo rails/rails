@@ -67,6 +67,8 @@ module ActionWebService # :nodoc:
                 struct[key.to_s] = member_value
               end
               struct
+            elsif value.is_a?(ActionWebService::Base64)
+              XMLRPC::Base64.new(value)
             elsif value.is_a?(Exception) && !value.is_a?(XMLRPC::FaultException)
               XMLRPC::FaultException.new(2, value.message)
             else

@@ -4,6 +4,7 @@ module CastingTest
   class API < ActionWebService::API::Base
     api_method :int,       :expects => [:int]
     api_method :str,       :expects => [:string]
+    api_method :base64,    :expects => [:base64]
     api_method :bool,      :expects => [:bool]
     api_method :float,     :expects => [:float]
     api_method :time,      :expects => [:time]
@@ -22,6 +23,9 @@ class TC_Casting < Test::Unit::TestCase
   def test_base_type_casting_valid
     assert_equal 10000,   cast_expects(:int, '10000')[0]
     assert_equal '10000', cast_expects(:str, 10000)[0]
+    base64 = cast_expects(:base64, 10000)[0]
+    assert_equal '10000', base64
+    assert_instance_of ActionWebService::Base64, base64
     [1, '1', 'true', 'y', 'yes'].each do |val|
       assert_equal true, cast_expects(:bool, val)[0]
     end

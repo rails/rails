@@ -1,5 +1,7 @@
 *SVN*
 
+* Add support for a :base64 signature type #1272 [Shugo Maeda]
+
 * Fix that boolean fields were not rendered correctly in scaffolding
 
 * Fix that scaffolding was not working for :delegated dispatching

@@ -7,7 +7,7 @@ module APITest
     api_method :expects,             :expects => [:int, :bool]
     api_method :returns,             :returns => [:int, [:string]]
     api_method :named_signature,     :expects => [{:appkey=>:int}, {:publish=>:bool}]
-    api_method :string_types,        :expects => ['int', 'string', 'bool']
+    api_method :string_types,        :expects => ['int', 'string', 'bool', 'base64']
     api_method :class_types,         :expects => [TrueClass, Bignum, String]
   end
 end
@@ -45,7 +45,7 @@ class TC_API < Test::Unit::TestCase
     assert_equal([Integer, [String]], API.api_methods[:returns].returns.map{|x| x.array?? [x.element_type.type_class] : x.type_class})
     assert_equal([[:appkey, Integer], [:publish, TrueClass]], API.api_methods[:named_signature].expects.map{|x| [x.name, x.type_class]})
     assert_equal(nil, API.api_methods[:named_signature].returns)
-    assert_equal([Integer, String, TrueClass], API.api_methods[:string_types].expects.map{|x| x.type_class})
+    assert_equal([Integer, String, TrueClass, ActionWebService::Base64], API.api_methods[:string_types].expects.map{|x| x.type_class})
     assert_equal(nil, API.api_methods[:string_types].returns)
     assert_equal([TrueClass, Integer, String], API.api_methods[:class_types].expects.map{|x| x.type_class})
     assert_equal(nil, API.api_methods[:class_types].returns)

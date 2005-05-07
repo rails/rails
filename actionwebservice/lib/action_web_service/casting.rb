@@ -63,6 +63,12 @@ module ActionWebService # :nodoc:
             Integer(value)
           when :string
             value.to_s
+          when :base64
+            if value.is_a?(ActionWebService::Base64)
+              value
+            else
+              ActionWebService::Base64.new(value.to_s)
+            end
           when :bool
             return false if value.nil?
             return value if value == true || value == false

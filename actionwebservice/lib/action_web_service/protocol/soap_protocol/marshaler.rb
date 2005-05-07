@@ -11,6 +11,7 @@ module ActionWebService
           @type_namespace = type_namespace || 'urn:ActionWebService'
           @registry = SOAP::Mapping::Registry.new
           @type2binding = {}
+          register_static_factories
         end
 
         def soap_to_ruby(obj)
@@ -43,13 +44,7 @@ module ActionWebService
 
           array_binding = nil
           if type.array?
-            array_mapping = @registry.find_mapped_soap_class(Array) rescue nil
-            if (array_mapping && !array_mapping[1].is_a?(SoapTypedArrayFactory)) || array_mapping.nil?
-              @registry.set(Array,
-                            SOAP::SOAPArray,
-                            SoapTypedArrayFactory.new)
-              array_mapping = @registry.find_mapped_soap_class(Array)
-            end
+            array_mapping = @registry.find_mapped_soap_class(Array)
             qname = XSD::QName.new(@type_namespace, soap_type_name(type.element_type.type_class.name) + 'Array')
             array_binding = SoapBinding.new(self, qname, type, array_mapping, type_binding)
           end
@@ -104,6 +99,21 @@ module ActionWebService
           def soap_type_name(type_name)
             type_name.gsub(/::/, '..')
           end
+
+          def register_static_factories
+            @registry.add(ActionWebService::Base64,
+                          SOAP::SOAPBase64,
+                          SoapBase64Factory.new,
+                          nil)
+            mapping = @registry.find_mapped_soap_class(ActionWebService::Base64)
+            @type2binding[ActionWebService::Base64] =
+              SoapBinding.new(self, SOAP::SOAPBase64::Type,
+                              ActionWebService::Base64, mapping)
+            @registry.add(Array,
+                          SOAP::SOAPArray,
+                          SoapTypedArrayFactory.new,
+                          nil)
+          end
       end
 
       class SoapBinding
@@ -130,6 +140,7 @@ module ActionWebService
           else
             ns = XSD::NS.new
             ns.assign(XSD::Namespace, SOAP::XSDNamespaceTag)
+            ns.assign(SOAP::EncodingNamespace, "soapenc")
             xsd_klass = mapping[0].ancestors.find{|c| c.const_defined?('Type')}
             return ns.name(XSD::AnyTypeName) unless xsd_klass
             ns.name(xsd_klass.const_get('Type'))
@@ -189,6 +200,22 @@ module ActionWebService
       
         def soap2obj(obj_class, node, info, map)
           return false
+        end
+      end
+
+      class SoapBase64Factory < SOAP::Mapping::Factory
+        def obj2soap(soap_class, obj, info, map)
+          unless obj.is_a?(ActionWebService::Base64)
+            return nil
+          end
+          return soap_class.new(obj)
+        end
+
+        def soap2obj(obj_class, node, info, map)
+          unless node.type == SOAP::SOAPBase64::Type
+            return false
+          end
+          return true, obj_class.new(node.string)
         end
       end
 

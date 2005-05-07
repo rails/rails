@@ -56,6 +56,8 @@ module DispatcherTest
     api_method :hash_struct_return, :returns => [[Person]]
     api_method :thrower
     api_method :void
+    api_method :hex, :expects => [:base64], :returns => [:string]
+    api_method :unhex, :expects => [:string], :returns => [:base64]
   end
 
   class VirtualAPI < ActionWebService::API::Base
@@ -216,6 +218,14 @@ module DispatcherTest
       @void_called = @method_params
     end
 
+    def hex(s)
+      return s.unpack("H*")[0]
+    end
+
+    def unhex(s)
+      return [s].pack("H*")
+    end
+
     protected
       def alwaysfail
         @before_filter_called = true
@@ -248,6 +258,8 @@ module DispatcherCommonTests
     result = do_method_call(@direct_controller, 'BaseStructReturn')
     assert(result[0].is_a?(DispatcherTest::Person))
     assert(result[1].is_a?(DispatcherTest::Person))
+    assert_equal("cafe", do_method_call(@direct_controller, 'Hex', "\xca\xfe"))
+    assert_equal("\xca\xfe", do_method_call(@direct_controller, 'Unhex', "cafe"))
   end
 
   def test_direct_entrypoint
