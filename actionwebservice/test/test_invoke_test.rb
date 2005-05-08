@@ -38,8 +38,8 @@ end
 
 class TestInvokeLayeredController < TestController
   web_service_dispatching_mode :layered
-  web_service :one, TestInvokeService.new
-  web_service :two, TestInvokeService.new
+  web_service(:one) { @service_one ||= TestInvokeService.new }
+  web_service(:two) { @service_two ||= TestInvokeService.new }
 end
 
 class TestInvokeTest < Test::Unit::TestCase
@@ -65,13 +65,15 @@ class TestInvokeTest < Test::Unit::TestCase
   end
 
   def test_layered_add
-    @protocol = ActionWebService::Protocol::XmlRpc::XmlRpcProtocol.new
-    @controller = TestInvokeLayeredController.new
-    [:one, :two].each do |service|
-      assert_equal nil, @controller.web_service_object(service).invoked
-      result = invoke_layered service, :add, 200, -50
-      assert_equal 150, result
-      assert_equal true, @controller.web_service_object(service).invoked
+    [:soap, :xmlrpc].each do |protocol|
+      @protocol = protocol
+      [:one, :two].each do |service|
+        @controller = TestInvokeLayeredController.new
+        assert_equal nil, @controller.web_service_object(service).invoked
+        result = invoke_layered service, :add, 200, -50
+        assert_equal 150, result
+        assert_equal true, @controller.web_service_object(service).invoked
+      end
     end
   end
 end

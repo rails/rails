@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix that functional testing of :layered controllers failed when using the SOAP protocol
+
 * Allow invocation filters in :direct controllers as well, as they have access to more information regarding the web service request than ActionPack filters
 
 * Add support for a :base64 signature type #1272 [Shugo Maeda]
