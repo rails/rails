@@ -21,9 +21,6 @@ module Test # :nodoc:
 
         # invoke the specified layered API method on the correct service
         def invoke_layered(service_name, method_name, *args)
-          if protocol.is_a?(ActionWebService::Protocol::Soap::SoapProtocol)
-            raise "SOAP protocol support for :layered dispatching mode is not available"
-          end
           prepare_request('api', service_name, method_name, *args)
           @controller.process(@request, @response)
           decode_rpc_response
@@ -66,7 +63,7 @@ module Test # :nodoc:
 
         def public_method_name(service_name, api_method_name)
           public_name = service_api(service_name).public_api_method_name(api_method_name)
-          if @controller.web_service_dispatching_mode == :layered
+          if @controller.web_service_dispatching_mode == :layered && protocol.is_a?(ActionWebService::Protocol::XmlRpc::XmlRpcProtocol)
             '%s.%s' % [service_name.to_s, public_name]
           else
             public_name
