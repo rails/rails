@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed the HTML scanner used by assert_tag where a infinite loop could be caused by a stray less-than sign in the input #1270 [Jamis Buck]
+
 * Added functionality to assert_tag, so you can now do tests on the siblings of a node, to assert that some element comes before or after the element in question, or just to assert that some element exists as a sibling #1226 [Jamis Buck]
 
 * Added better error handling for regexp caching expiration

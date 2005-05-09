@@ -63,7 +63,7 @@ module HTML#:nodoc:
 
       # Scan all text up to the next < character and return it.
       def scan_text
-        @scanner.scan(/[^<]*/)
+        @scanner.getch + (@scanner.scan(/[^<]*/) || "")
       end
       
       # Counts the number of newlines in the text and updates the current line
@@ -78,9 +78,17 @@ module HTML#:nodoc:
       def consume_quoted_regions
         text = ""
         loop do
-          match = @scanner.scan_until(/['">]/) or break
+          match = @scanner.scan_until(/['"<>]/) or break
+
+          delim = @scanner.matched
+          if delim == "<"
+            match = match.chop
+            @scanner.pos -= 1
+          end
+
           text << match
-          break if (delim = @scanner.matched) == ">"
+          break if delim == "<" || delim == ">"
+
           # consume the conqued region
           while match = @scanner.scan_until(/[\\#{delim}]/)
             text << match
