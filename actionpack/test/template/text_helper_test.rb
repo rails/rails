@@ -86,5 +86,29 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %(<p>Link #{link2_result}</p>), auto_link("<p>Link #{link2_raw}</p>")
     assert_equal %(<p>#{link2_result} Link</p>), auto_link("<p>#{link2_raw} Link</p>")
   end
+
+  def test_sanitize_form
+    raw = "<form action=\"/foo/bar\" method=\"post\"><input></form>"
+    result = sanitize(raw)
+    assert_equal "&lt;form action='/foo/bar' method='post'><input>&lt;/form>", result
+  end
+
+  def test_sanitize_script
+    raw = "<script language=\"Javascript\">blah blah blah</script>"
+    result = sanitize(raw)
+    assert_equal "&lt;script language='Javascript'>blah blah blah&lt;/script>", result
+  end
+
+  def test_sanitize_js_handlers
+    raw = %{onthis="do that" <a href="#" onclick="hello" name="foo" onbogus="remove me">hello</a>}
+    result = sanitize(raw)
+    assert_equal %{onthis="do that" <a name='foo' href='#'>hello</a>}, result
+  end
+
+  def test_sanitize_javascript_href
+    raw = %{href="javascript:bang" <a href="javascript:bang" name="hello">foo</a>, <span href="javascript:bang">bar</span>}
+    result = sanitize(raw)
+    assert_equal %{href="javascript:bang" <a name='hello'>foo</a>, <span>bar</span>}, result
+  end
   
 end

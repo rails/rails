@@ -128,6 +128,61 @@ module ActionView
       def strip_links(text)
         text.gsub(/<a.*>(.*)<\/a>/m, '\1')
       end
+
+      # Try to require the html-scanner library
+      begin
+        require 'html/tokenizer'
+        require 'html/node'
+      rescue LoadError
+        # if there isn't a copy installed, use the vendor version in
+        # action controller
+        $:.unshift File.join(File.dirname(__FILE__), "..", "..",
+                      "action_controller", "vendor", "html-scanner")
+        require 'html/tokenizer'
+        require 'html/node'
+      end
+
+      VERBOTEN_TAGS = %w(form script) unless defined?(VERBOTEN_TAGS)
+      VERBOTEN_ATTRS = /^on/i unless defined?(VERBOTEN_ATTRS)
+
+      # Sanitizes the given HTML by making form and script tags into regular
+      # text, and removing all "onxxx" attributes (so that arbitrary Javascript
+      # cannot be executed). Also removes href attributes that start with
+      # "javascript:".
+      #
+      # Returns the sanitized text.
+      def sanitize(html)
+        # only do this if absolutely necessary
+        if html.index("<")
+          tokenizer = HTML::Tokenizer.new(html)
+          new_text = ""
+
+          while token = tokenizer.next
+            node = HTML::Node.parse(nil, 0, 0, token, false)
+            new_text << case node
+              when HTML::Tag
+                if VERBOTEN_TAGS.include?(node.name)
+                  node.to_s.gsub(/</, "&lt;")
+                else
+                  if node.closing != :close
+                    node.attributes.delete_if { |attr,v| attr =~ VERBOTEN_ATTRS }
+                    if node.attributes["href"] =~ /^javascript:/i
+                      node.attributes.delete "href"
+                    end
+                  end
+                  node.to_s
+                end
+              else
+                node.to_s.gsub(/</, "&lt;")
+            end
+          end
+
+          html = new_text
+        end
+
+        html
+      end
+
       
       private
         # Returns a version of the text that's safe to use in a regular expression without triggering engine features.
