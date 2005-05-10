@@ -1,5 +1,9 @@
 *SVN*
 
+* Fix to only perform the charset conversion if a 'from' and a 'to' charset are given (make no assumptions about what the charset was) #1276 [Jamis Buck]
+
+* Fix attachments and content-type problems #1276 [Jamis Buck]
+
 * Fixed the TMail#body method to look at the content-transfer-encoding header and unquote the body according to the rules it specifies #1265 [Jamis Buck]
 
 * Added unquoting even if the iconv lib can't be loaded--in that case, only the charset conversion is skipped #1265 [Jamis Buck]

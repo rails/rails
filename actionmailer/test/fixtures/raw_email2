@@ -1,0 +1,114 @@
+From xxxxxxxxx.xxxxxxx@gmail.com Sun May  8 19:07:09 2005
+Return-Path: <xxxxxxxxx.xxxxxxx@gmail.com>
+X-Original-To: xxxxx@xxxxx.xxxxxxxxx.com
+Delivered-To: xxxxx@xxxxx.xxxxxxxxx.com
+Received: from localhost (localhost [127.0.0.1])
+	by xxxxx.xxxxxxxxx.com (Postfix) with ESMTP id 06C9DA98D
+	for <xxxxx@xxxxx.xxxxxxxxx.com>; Sun,  8 May 2005 19:09:13 +0000 (GMT)
+Received: from xxxxx.xxxxxxxxx.com ([127.0.0.1])
+ by localhost (xxxxx.xxxxxxxxx.com [127.0.0.1]) (amavisd-new, port 10024)
+ with LMTP id 88783-08 for <xxxxx@xxxxx.xxxxxxxxx.com>;
+ Sun,  8 May 2005 19:09:12 +0000 (GMT)
+Received: from xxxxxxx.xxxxxxxxx.com (xxxxxxx.xxxxxxxxx.com [69.36.39.150])
+	by xxxxx.xxxxxxxxx.com (Postfix) with ESMTP id 10D8BA960
+	for <xxxxx@xxxxxxxxx.org>; Sun,  8 May 2005 19:09:12 +0000 (GMT)
+Received: from zproxy.gmail.com (zproxy.gmail.com [64.233.162.199])
+	by xxxxxxx.xxxxxxxxx.com (Postfix) with ESMTP id 9EBC4148EAB
+	for <xxxxx@xxxxxxxxx.com>; Sun,  8 May 2005 14:09:11 -0500 (CDT)
+Received: by zproxy.gmail.com with SMTP id 13so1233405nzp
+        for <xxxxx@xxxxxxxxx.com>; Sun, 08 May 2005 12:09:11 -0700 (PDT)
+DomainKey-Signature: a=rsa-sha1; q=dns; c=nofws;
+        s=beta; d=gmail.com;
+        h=received:message-id:date:from:reply-to:to:subject:in-reply-to:mime-version:content-type:references;
+        b=cid1mzGEFa3gtRa06oSrrEYfKca2CTKu9sLMkWxjbvCsWMtp9RGEILjUz0L5RySdH5iO661LyNUoHRFQIa57bylAbXM3g2DTEIIKmuASDG3x3rIQ4sHAKpNxP7Pul+mgTaOKBv+spcH7af++QEJ36gHFXD2O/kx9RePs3JNf/K8=
+Received: by 10.36.10.16 with SMTP id 16mr1012493nzj;
+        Sun, 08 May 2005 12:09:11 -0700 (PDT)
+Received: by 10.36.5.10 with HTTP; Sun, 8 May 2005 12:09:11 -0700 (PDT)
+Message-ID: <e85734b90505081209eaaa17b@mail.gmail.com>
+Date: Sun, 8 May 2005 14:09:11 -0500
+From: xxxxxxxxx xxxxxxx <xxxxxxxxx.xxxxxxx@gmail.com>
+Reply-To: xxxxxxxxx xxxxxxx <xxxxxxxxx.xxxxxxx@gmail.com>
+To: xxxxx xxxx <xxxxx@xxxxxxxxx.com>
+Subject: Fwd: Signed email causes file attachments
+In-Reply-To: <F6E2D0B4-CC35-4A91-BA4C-C7C712B10C13@mac.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_5028_7368284.1115579351471"
+References: <F6E2D0B4-CC35-4A91-BA4C-C7C712B10C13@mac.com>
+
+------=_Part_5028_7368284.1115579351471
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+We should not include these files or vcards as attachments.
+
+---------- Forwarded message ----------
+From: xxxxx xxxxxx <xxxxxxxx@xxx.com>
+Date: May 8, 2005 1:17 PM
+Subject: Signed email causes file attachments
+To: xxxxxxx@xxxxxxxxxx.com
+
+
+Hi,
+
+Just started to use my xxxxxxxx account (to set-up a GTD system,
+natch) and noticed that when I send content via email the signature/
+certificate from my email account gets added as a file (e.g.
+"smime.p7s").
+
+Obviously I can uncheck the signature option in the Mail compose
+window but how often will I remember to do that?
+
+Is there any way these kind of files could be ignored, e.g. via some
+sort of exclusions list?
+
+------=_Part_5028_7368284.1115579351471
+Content-Type: application/pkcs7-signature; name=smime.p7s
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGFDCCAs0w
+ggI2oAMCAQICAw5c+TANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
+d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIElzc3VpbmcgQ0EwHhcNMDUwMzI5MDkzOTEwWhcNMDYwMzI5MDkzOTEwWjBCMR8wHQYDVQQD
+ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMR8wHQYJKoZIhvcNAQkBFhBzbWhhdW5jaEBtYWMuY29t
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn90dPsYS3LjfMY211OSYrDQLzwNYPlAL
+7+/0XA+kdy8/rRnyEHFGwhNCDmg0B6pxC7z3xxJD/8GfCd+IYUUNUQV5m9MkxfP9pTVXZVIYLaBw
+o8xS3A0a1LXealcmlEbJibmKkEaoXci3MhryLgpaa+Kk/sH02SNatDO1vS28bPsibZpcc6deFrla
+hSYnL+PW54mDTGHIcCN2fbx/Y6qspzqmtKaXrv75NBtuy9cB6KzU4j2xXbTkAwz3pRSghJJaAwdp
++yIivAD3vr0kJE3p+Ez34HMh33EXEpFoWcN+MCEQZD9WnmFViMrvfvMXLGVFQfAAcC060eGFSRJ1
+ZQ9UVQIDAQABoy0wKzAbBgNVHREEFDASgRBzbWhhdW5jaEBtYWMuY29tMAwGA1UdEwEB/wQCMAAw
+DQYJKoZIhvcNAQEEBQADgYEAQMrg1n2pXVWteP7BBj+Pk3UfYtbuHb42uHcLJjfjnRlH7AxnSwrd
+L3HED205w3Cq8T7tzVxIjRRLO/ljq0GedSCFBky7eYo1PrXhztGHCTSBhsiWdiyLWxKlOxGAwJc/
+lMMnwqLOdrQcoF/YgbjeaUFOQbUh94w9VDNpWZYCZwcwggM/MIICqKADAgECAgENMA0GCSqGSIb3
+DQEBBQUAMIHRMQswCQYDVQQGEwJaQTEVMBMGA1UECBMMV2VzdGVybiBDYXBlMRIwEAYDVQQHEwlD
+YXBlIFRvd24xGjAYBgNVBAoTEVRoYXd0ZSBDb25zdWx0aW5nMSgwJgYDVQQLEx9DZXJ0aWZpY2F0
+aW9uIFNlcnZpY2VzIERpdmlzaW9uMSQwIgYDVQQDExtUaGF3dGUgUGVyc29uYWwgRnJlZW1haWwg
+Q0ExKzApBgkqhkiG9w0BCQEWHHBlcnNvbmFsLWZyZWVtYWlsQHRoYXd0ZS5jb20wHhcNMDMwNzE3
+MDAwMDAwWhcNMTMwNzE2MjM1OTU5WjBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3RlIENv
+bnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWlsIElz
+c3VpbmcgQ0EwgZ8wDQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAMSmPFVzVftOucqZWh5owHUEcJ3f
+6f+jHuy9zfVb8hp2vX8MOmHyv1HOAdTlUAow1wJjWiyJFXCO3cnwK4Vaqj9xVsuvPAsH5/EfkTYk
+KhPPK9Xzgnc9A74r/rsYPge/QIACZNenprufZdHFKlSFD0gEf6e20TxhBEAeZBlyYLf7AgMBAAGj
+gZQwgZEwEgYDVR0TAQH/BAgwBgEB/wIBADBDBgNVHR8EPDA6MDigNqA0hjJodHRwOi8vY3JsLnRo
+YXd0ZS5jb20vVGhhd3RlUGVyc29uYWxGcmVlbWFpbENBLmNybDALBgNVHQ8EBAMCAQYwKQYDVR0R
+BCIwIKQeMBwxGjAYBgNVBAMTEVByaXZhdGVMYWJlbDItMTM4MA0GCSqGSIb3DQEBBQUAA4GBAEiM
+0VCD6gsuzA2jZqxnD3+vrL7CF6FDlpSdf0whuPg2H6otnzYvwPQcUCCTcDz9reFhYsPZOhl+hLGZ
+GwDFGguCdJ4lUJRix9sncVcljd2pnDmOjCBPZV+V2vf3h9bGCE6u9uo05RAaWzVNd+NWIXiC3CEZ
+Nd4ksdMdRv9dX2VPMYIC5zCCAuMCAQEwaTBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhhd3Rl
+IENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVtYWls
+IElzc3VpbmcgQ0ECAw5c+TAJBgUrDgMCGgUAoIIBUzAYBgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcB
+MBwGCSqGSIb3DQEJBTEPFw0wNTA1MDgxODE3NDZaMCMGCSqGSIb3DQEJBDEWBBQSkG9j6+hB0pKp
+fV9tCi/iP59sNTB4BgkrBgEEAYI3EAQxazBpMGIxCzAJBgNVBAYTAlpBMSUwIwYDVQQKExxUaGF3
+dGUgQ29uc3VsdGluZyAoUHR5KSBMdGQuMSwwKgYDVQQDEyNUaGF3dGUgUGVyc29uYWwgRnJlZW1h
+aWwgSXNzdWluZyBDQQIDDlz5MHoGCyqGSIb3DQEJEAILMWugaTBiMQswCQYDVQQGEwJaQTElMCMG
+A1UEChMcVGhhd3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNv
+bmFsIEZyZWVtYWlsIElzc3VpbmcgQ0ECAw5c+TANBgkqhkiG9w0BAQEFAASCAQAm1GeF7dWfMvrW
+8yMPjkhE+R8D1DsiCoWSCp+5gAQm7lcK7V3KrZh5howfpI3TmCZUbbaMxOH+7aKRKpFemxoBY5Q8
+rnCkbpg/++/+MI01T69hF/rgMmrGcrv2fIYy8EaARLG0xUVFSZHSP+NQSYz0TTmh4cAESHMzY3JA
+nHOoUkuPyl8RXrimY1zn0lceMXlweZRouiPGuPNl1hQKw8P+GhOC5oLlM71UtStnrlk3P9gqX5v7
+Tj7Hx057oVfY8FMevjxGwU3EK5TczHezHbWWgTyum9l2ZQbUQsDJxSniD3BM46C1VcbDLPaotAZ0
+fTYLZizQfm5hcWEbfYVzkSzLAAAAAAAA
+------=_Part_5028_7368284.1115579351471--
+

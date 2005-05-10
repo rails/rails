@@ -373,5 +373,26 @@ EOF
     assert_match(/Jamis/, TestMailer.received_body)
   end
 
+  def test_receive_attachments
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email2")
+    mail = TMail::Mail.parse(fixture)
+    attachment = mail.attachments.last
+    assert_equal "smime.p7s", attachment.original_filename
+    assert_equal "application/pkcs7-signature", attachment.content_type
+  end
+
+  def test_decode_attachment_without_charset
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email3")
+    mail = TMail::Mail.parse(fixture)
+    attachment = mail.attachments.last
+    assert_equal 1026, attachment.read.length
+  end
+
+  def test_decode_message_without_content_type
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email4")
+    mail = TMail::Mail.parse(fixture)
+    assert_nothing_raised { mail.body }
+  end
+
 end
 

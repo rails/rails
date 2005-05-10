@@ -1,0 +1,70 @@
+From xxxx@xxxx.com Tue May 10 11:28:07 2005
+Return-Path: <xxxx@xxxx.com>
+X-Original-To: xxxx@xxxx.com
+Delivered-To: xxxx@xxxx.com
+Received: from localhost (localhost [127.0.0.1])
+	by xxx.xxxxx.com (Postfix) with ESMTP id 50FD3A96F
+	for <xxxx@xxxx.com>; Tue, 10 May 2005 17:26:50 +0000 (GMT)
+Received: from xxx.xxxxx.com ([127.0.0.1])
+ by localhost (xxx.xxxxx.com [127.0.0.1]) (amavisd-new, port 10024)
+ with LMTP id 70060-03 for <xxxx@xxxx.com>;
+ Tue, 10 May 2005 17:26:49 +0000 (GMT)
+Received: from xxx.xxxxx.com (xxx.xxxxx.com [69.36.39.150])
+	by xxx.xxxxx.com (Postfix) with ESMTP id 8B957A94B
+	for <xxxx@xxxx.com>; Tue, 10 May 2005 17:26:48 +0000 (GMT)
+Received: from xxx.xxxxx.com (xxx.xxxxx.com [64.233.184.203])
+	by xxx.xxxxx.com (Postfix) with ESMTP id 9972514824C
+	for <xxxx@xxxx.com>; Tue, 10 May 2005 12:26:40 -0500 (CDT)
+Received: by xxx.xxxxx.com with SMTP id 68so1694448wri
+        for <xxxx@xxxx.com>; Tue, 10 May 2005 10:26:40 -0700 (PDT)
+DomainKey-Signature: a=rsa-sha1; q=dns; c=nofws;
+        s=beta; d=xxxxx.com;
+        h=received:message-id:date:from:reply-to:to:subject:mime-version:content-type;
+        b=g8ZO5ttS6GPEMAz9WxrRk9+9IXBUfQIYsZLL6T88+ECbsXqGIgfGtzJJFn6o9CE3/HMrrIGkN5AisxVFTGXWxWci5YA/7PTVWwPOhJff5BRYQDVNgRKqMl/SMttNrrRElsGJjnD1UyQ/5kQmcBxq2PuZI5Zc47u6CILcuoBcM+A=
+Received: by 10.54.96.19 with SMTP id t19mr621017wrb;
+        Tue, 10 May 2005 10:26:39 -0700 (PDT)
+Received: by 10.54.110.5 with HTTP; Tue, 10 May 2005 10:26:39 -0700 (PDT)
+Message-ID: <xxxx@xxxx.com>
+Date: Tue, 10 May 2005 11:26:39 -0600
+From: Test Tester <xxxx@xxxx.com>
+Reply-To: Test Tester <xxxx@xxxx.com>
+To: xxxx@xxxx.com, xxxx@xxxx.com
+Subject: Another PDF
+Mime-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_2192_32400445.1115745999735"
+X-Virus-Scanned: amavisd-new at textdrive.com
+
+------=_Part_2192_32400445.1115745999735
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Just attaching another PDF, here, to see what the message looks like,
+and to see if I can figure out what is going wrong here.
+
+------=_Part_2192_32400445.1115745999735
+Content-Type: application/pdf; name="broken.pdf"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="broken.pdf"
+
+JVBERi0xLjQNCiXk9tzfDQoxIDAgb2JqDQo8PCAvTGVuZ3RoIDIgMCBSDQogICAvRmlsdGVyIC9G
+bGF0ZURlY29kZQ0KPj4NCnN0cmVhbQ0KeJy9Wt2KJbkNvm/od6jrhZxYln9hWEh2p+8HBvICySaE
+ycLuTV4/1ifJ9qnq09NpSBimu76yLUuy/qzqcPz7+em3Ixx/CDc6CsXxs3b5+fvfjr/8cPz6/BRu
+rbfAx/n3739/fuJylJ5u5fjX81OuDr4deK4Bz3z/aDP+8fz0yw8g0Ofq7ktr1Mn+u28rvhy/jVeD
+QSa+9YNKHP/pxjvDNfVAx/m3MFz54FhvTbaseaxiDoN2LeMVMw+yA7RbHSCDzxZuaYB2E1Yay7QU
+x89vz0+tyFDKMlAHK5yqLmnjF+c4RjEiQIUeKwblXMe+AsZjN1J5yGQL5DHpDHksurM81rF6PKab
+gK6zAarIDzIiUY23rJsN9iorAE816aIu6lsgAdQFsuhhkHOUFgVjp2GjMqSewITXNQ27jrMeamkg
+1rPI3iLWG2CIaSBB+V1245YVRICGbbpYKHc2USFDl6M09acQVQYhlwIrkBNLISvXhGlF1wi5FHCw
+wxZkoGNJlVeJCEsqKA+3YAV5AMb6KkeaqEJQmFKKQU8T1pRi2ihE1Y4CDrqoYFFXYjJJOatsyzuI
+8SIlykuxKTMibWK8H1PgEvqYgs4GmQSrEjJAalgGirIhik+p4ZQN9E3ETFPAHE1b8pp1l/0Rc1gl
+fQs0ABWvyoZZzU8VnPXwVVcO9BEsyjEJaO6eBoZRyKGlrKoYoOygA8BGIzgwN3RQ15ouigG5idZQ
+fx2U4Db2CqiLO0WHAZoylGiCAqhniNQjFjQPSkmjwfNTgQ6M1Ih+eWo36wFmjIxDJZiGUBiWsAyR
+xX3EekGOizkGI96Ol9zVZTAivikURhRsHh2E3JhWMpSTZCnnonrLhMCodgrNcgo4uyJUJc6qnVss
+nrGd1Ptr0YwisCOYyIbUwVjV4xBUNLbguSO2YHujonAMJkMdSI7bIw91Akq2AUlMUWGFTMAOamjU
+OvZQCxIkY2pCpMFo/IwLdVLHs6nddwTRrgoVbvLU9eB0G4EMndV0TNoxHbt3JBWwK6hhv3iHfDtF
+yokB302IpEBTnWICde4uYc/1khDbSIkQopO6lcqamGBu1OSE3N5IPSsZX00CkSHRiiyx6HQIShsS
+HSVNswdVsaOUSAWq9aYhDtGDaoG5a3lBGkYt/lFlBFt1UqrYnzVtUpUQnLiZeouKgf1KhRBViRRk
+ExepJCzTwEmFDalIRbLEGtw0gfpESOpIAF/NnpPzcVCG86s0g2DuSyd41uhNGbEgaSrWEXORErbw
+------=_Part_2192_32400445.1115745999735--
+

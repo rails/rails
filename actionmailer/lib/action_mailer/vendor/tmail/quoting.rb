@@ -1,5 +1,3 @@
-require 'base64'
-
 module TMail
   class Mail
     def subject(to_charset = 'utf-8')
@@ -29,9 +27,10 @@ module TMail
     
       if multipart?
         parts.collect { |part| 
-          part.header["content-type"].main_type == "text" ? 
+          header = part.header["content-type"]
+          header && header.main_type == "text" ?
             part.unquoted_body(to_charset) :
-            attachment_presenter.call(part.header["content-type"].params["name"])
+            (header ? attachment_presenter.call(header.params["name"]) : "") 
         }.join
       else
         unquoted_body(to_charset)
@@ -65,13 +64,14 @@ module TMail
       end
  
       def unquote_base64_and_convert_to(text, to, from)
-        convert_to(Base64.decode64(text), to, from)
+        convert_to(Base64.decode(text).first, to, from)
       end
 
       begin
         require 'iconv'
         def convert_to(text, to, from)
-          text ? Iconv.iconv(to, from || "ISO-8859-1", text).first : ""
+          return text unless to && from
+          text ? Iconv.iconv(to, from, text).first : ""
         end
       rescue LoadError
         # Not providing quoting support
