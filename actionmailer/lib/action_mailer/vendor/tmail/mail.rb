@@ -145,6 +145,10 @@ module TMail
       @header[key.downcase]
     end
 
+    def sub_header(key, param)
+      (hdr = self[key]) ? hdr[param] : nil
+    end
+
     alias fetch []
 
     def []=( key, val )

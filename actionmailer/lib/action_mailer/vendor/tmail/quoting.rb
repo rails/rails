@@ -5,7 +5,7 @@ module TMail
     end
 
     def unquoted_body(to_charset = 'utf-8')
-      from_charset = header['content-type']['charset'] rescue 'us-ascii'
+      from_charset = sub_header("content-type", "charset")
       case (content_transfer_encoding || "7bit").downcase
         when "quoted-printable"
           Unquoter.unquote_quoted_printable_and_convert_to(quoted_body,
@@ -27,7 +27,7 @@ module TMail
     
       if multipart?
         parts.collect { |part| 
-          header = part.header["content-type"]
+          header = part["content-type"]
           header && header.main_type == "text" ?
             part.unquoted_body(to_charset) :
             (header ? attachment_presenter.call(header.params["name"]) : "") 

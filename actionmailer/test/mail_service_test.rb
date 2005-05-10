@@ -388,8 +388,14 @@ EOF
     assert_equal 1026, attachment.read.length
   end
 
-  def test_decode_message_without_content_type
+  def test_decode_part_without_content_type
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email4")
+    mail = TMail::Mail.parse(fixture)
+    assert_nothing_raised { mail.body }
+  end
+
+  def test_decode_message_without_content_type
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email5")
     mail = TMail::Mail.parse(fixture)
     assert_nothing_raised { mail.body }
   end
