@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that render_partial_collection should always return a string (and not sometimes an array, despite <%= %> not caring)
+
 * Added TextHelper#sanitize that can will remove any Javascript handlers, blocks, and forms from an input of HTML.  This allows for use of HTML on public sites, but still be free of XSS issues. #1277 [Jamis Buck]
 
 * Fixed the HTML scanner used by assert_tag where a infinite loop could be caused by a stray less-than sign in the input #1270 [Jamis Buck]
