@@ -25,7 +25,7 @@ class CGI #:nodoc:
   end
 
   def request_parameters
-    CGIMethods.parse_request_parameters(params)
+    CGIMethods.parse_request_parameters(params, env_table)
   end
 
   def redirect(where)

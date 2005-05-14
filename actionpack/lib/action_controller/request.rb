@@ -30,6 +30,27 @@ module ActionController
     def head?
       method == :head
     end
+
+
+    def post_format
+      if env['POST_DATA_FORMAT']
+        env['POST_DATA_FORMAT'].downcase.intern
+      else
+        :query_string
+      end
+    end
+
+    def formatted_post?
+      [ :xml, :yaml ].include?(post_format) && post?
+    end
+
+    def xml_post?
+      post_format == :xml && post?
+    end
+
+    def yaml_post?
+      post_format == :yaml && post?
+    end
     
     
     # Determine originating IP address.  REMOTE_ADDR is the standard
