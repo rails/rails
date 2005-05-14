@@ -218,7 +218,7 @@ module ActionView #:nodoc:
       if @@template_handlers[template_extension]
         "delegate_render"
       else
-        (template_extension == "rxml" ? "rxml" : "rhtml") + "_render"
+        (template_extension.to_s == "rxml" ? "rxml" : "rhtml") + "_render"
       end
     end
 

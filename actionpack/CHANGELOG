@@ -1,5 +1,35 @@
 *SVN*
 
+* Added support for POST data in form of YAML or XML, which is controller through the POST_DATA_MARSHAL header. Example request:
+
+    POST_DATA_MARSHAL: xml
+    <request><item><content>HelloWorld</content></item></request>
+  
+  ...is the same as:
+
+    POST_DATA_MARSHAL: yaml
+    ---
+    item:
+      content: HelloWorld
+
+  ...is the same as:
+  
+    item[content]=HelloWorld
+  
+  Which in the end turns into { "item" => { "content" => "HelloWorld" } }. This makes it a lot easier to publish REST web services on top of your regular actions (as they won't care).
+  
+  Example Curl call:
+
+    curl -H 'POST_DATA_MARSHAL: xml' -d '<request><item><content>KillMeMore</content></item></request>' http://www.example.com/service
+
+  You can query to find out whether a given request came through as one of these types with:
+    - request.post_format? (:query_string, :xml or :yaml)
+    - request.formatted_post? (for either xml or yaml)
+    - request.xml_post?
+    - request.yaml_post?
+
+* Added bundling of XmlSimple by Maik Schmidt
+
 * Fixed that render_partial_collection should always return a string (and not sometimes an array, despite <%= %> not caring)
 
 * Added TextHelper#sanitize that can will remove any Javascript handlers, blocks, and forms from an input of HTML.  This allows for use of HTML on public sites, but still be free of XSS issues. #1277 [Jamis Buck]
