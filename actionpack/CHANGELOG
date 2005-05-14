@@ -1,13 +1,13 @@
 *SVN*
 
-* Added support for POST data in form of YAML or XML, which is controller through the POST_DATA_MARSHAL header. Example request:
+* Added support for POST data in form of YAML or XML, which is controller through the X-POST_DATA_MARSHAL header. Example request:
 
-    POST_DATA_MARSHAL: xml
+    X-POST_DATA_MARSHAL: xml
     <request><item><content>HelloWorld</content></item></request>
   
   ...is the same as:
 
-    POST_DATA_MARSHAL: yaml
+    X-POST_DATA_MARSHAL: yaml
     ---
     item:
       content: HelloWorld
@@ -20,7 +20,7 @@
   
   Example Curl call:
 
-    curl -H 'POST_DATA_MARSHAL: xml' -d '<request><item><content>KillMeMore</content></item></request>' http://www.example.com/service
+    curl -H 'X-POST_DATA_MARSHAL: xml' -d '<request><item><content>KillMeMore</content></item></request>' http://www.example.com/service
 
   You can query to find out whether a given request came through as one of these types with:
     - request.post_format? (:query_string, :xml or :yaml)
