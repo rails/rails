@@ -33,8 +33,8 @@ module ActionController
 
 
     def post_format
-      if env['POST_DATA_FORMAT']
-        env['POST_DATA_FORMAT'].downcase.intern
+      if env['HTTP_X_POST_DATA_FORMAT']
+        env['HTTP_X_POST_DATA_FORMAT'].downcase.intern
       else
         :query_string
       end

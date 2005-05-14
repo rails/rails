@@ -63,8 +63,8 @@ module ActionController #:nodoc:
     end
 
     def request_parameters
-      if env['HTTP_POST_DATA_FORMAT']
-        CGIMethods.parse_formatted_request_parameters(env['HTTP_POST_DATA_FORMAT'].downcase.intern, env['RAW_POST_DATA'])
+      if env['HTTP_X_POST_DATA_FORMAT']
+        CGIMethods.parse_formatted_request_parameters(env['HTTP_X_POST_DATA_FORMAT'].downcase.intern, env['RAW_POST_DATA'])
       else
         CGIMethods.parse_request_parameters(@cgi.params)
       end
