@@ -69,7 +69,7 @@ module ActionController #:nodoc:
     # Or just as a quick test. It works like this:
     #
     #   class WeblogController < ActionController::Base
-    #     before_filter { |controller| return false if controller.params["stop_action"] }
+    #     before_filter { |controller| false if controller.params["stop_action"] }
     #   end
     #
     # As you can see, the block expects to be passed the controller after it has assigned the request to the internal variables.
