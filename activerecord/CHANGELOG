@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that :delete_sql in has_and_belongs_to_many associations couldn't access record properties #1299 [Rick Olson]
+
 * Fixed that clone would break when an aggregate had the same name as one of its attributes #1307 [bitsweat]
 
 * Changed that destroying an object will only freeze the attributes hash, which keeps the object from having attributes changed (as that wouldn't make sense), but allows for the querying of associations after it has been destroyed.

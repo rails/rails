@@ -506,6 +506,8 @@ module ActiveRecord
       #   has_and_belongs_to_many :projects
       #   has_and_belongs_to_many :nations, :class_name => "Country"
       #   has_and_belongs_to_many :categories, :join_table => "prods_cats"
+      #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql => 
+      #   'DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}'
       def has_and_belongs_to_many(association_id, options = {})
         validate_options([ :class_name, :table_name, :foreign_key, :association_foreign_key, :conditions,
                            :join_table, :finder_sql, :delete_sql, :insert_sql, :order, :uniq ], options.keys)

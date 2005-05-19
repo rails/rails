@@ -136,7 +136,7 @@ module ActiveRecord
         
         def delete_records(records)
           if sql = @options[:delete_sql]
-            records.each { |record| @owner.connection.execute(sql) }
+            records.each { |record| @owner.connection.execute(interpolate_sql(sql, record)) }
           else
             ids = quoted_record_ids(records)
             sql = "DELETE FROM #{@join_table} WHERE #{@association_class_primary_key_name} = #{@owner.quoted_id} AND #{@association_foreign_key} IN (#{ids})"
@@ -145,7 +145,7 @@ module ActiveRecord
         end
 
         def construct_sql
-          interpolate_sql_options!(@options, :finder_sql, :delete_sql)
+          interpolate_sql_options!(@options, :finder_sql)
           
           if @options[:finder_sql]
             @finder_sql = @options[:finder_sql]
