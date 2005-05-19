@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed use of construct_finder_sql when using :join #1288 [dwlt@dwlt.net]
+
 * Fixed that :delete_sql in has_and_belongs_to_many associations couldn't access record properties #1299 [Rick Olson]
 
 * Fixed that clone would break when an aggregate had the same name as one of its attributes #1307 [bitsweat]

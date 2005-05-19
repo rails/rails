@@ -736,7 +736,7 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_sql(options)
           sql  = "SELECT * FROM #{table_name} " 
-          sql << "#{options[:joins]} " if options[:joins]
+          sql << ", #{options[:joins]} " if options[:joins]
           add_conditions!(sql, options[:conditions])
           sql << "ORDER BY #{options[:order]} " if options[:order]
           add_limit!(sql, options)
