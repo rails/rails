@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed the Inflector to underscore strings containing numbers, so Area51Controller becomes area51_controller #1176 [Nicholas Seckar]
+
 * Fixed that HashWithIndifferentAccess stringified all keys including symbols, ints, objects, and arrays #1162 [Nicholas Seckar]
 
 * Fixed Time#last_year to go back in time, not forward #1278 [fabien@odilat.com]

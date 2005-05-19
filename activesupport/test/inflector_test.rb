@@ -66,7 +66,8 @@ class InflectorTest < Test::Unit::TestCase
   CamelToUnderscore = {
     "Product"               => "product",
     "SpecialGuest"          => "special_guest",
-    "ApplicationController" => "application_controller"
+    "ApplicationController" => "application_controller",
+    "Area51Controller"      => "area51_controller"
   }
   
   CamelWithModuleToUnderscoreWithSlash = {

@@ -92,6 +92,11 @@ class LoadingModuleTests < Test::Unit::TestCase
     assert_equal :outer, @loading_module::ContentController.new.identifier
     assert @loading_module::ContentController.object_id != @loading_module::Admin::ContentController.object_id
   end
+
+  def test_access_to_controller_with_numbers
+    assert @loading_module.const_available?(:Area51Controller)
+    assert_not_nil @loading_module::Area51Controller
+  end
 end
 
 class LoadingModuleMultiPathTests < Test::Unit::TestCase
