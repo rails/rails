@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Time#last_year to go back in time, not forward #1278 [fabien@odilat.com]
+
 * Fixed the pluralization of analysis to analyses #1295 [seattle@rootimage.msu.edu]
 
 * Fixed that Time.local(2005,12).months_since(1) would raise "ArgumentError: argument out of range" #1311 [jhahn@niveon.com]

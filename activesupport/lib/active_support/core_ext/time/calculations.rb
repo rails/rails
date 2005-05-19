@@ -64,12 +64,12 @@ module ActiveSupport #:nodoc:
           change(:year => self.year + years)
         end
 
-        # Short-hand for months_ago(1)
+        # Short-hand for years_ago(1)
         def last_year
-          years_since(1)
+          years_ago(1)
         end
         
-        # Short-hand for months_since(1)
+        # Short-hand for years_since(1)
         def next_year
           years_since(1)
         end

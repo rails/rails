@@ -56,6 +56,10 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     # Failure because of size limitations of numeric?
     # assert_equal Time.local(2182,6,5,10),  Time.local(2005,6,5,10,0,0).years_since(177) 
   end
+
+  def test_last_year
+    assert_equal Time.local(2004,6,5,10),  Time.local(2005,6,5,10,0,0).last_year
+  end
   
 
   def test_ago
