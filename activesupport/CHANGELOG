@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Dependencies so all modules are able to load missing constants #1173 [Nicholas Seckar]
+
 * Fixed the Inflector to underscore strings containing numbers, so Area51Controller becomes area51_controller #1176 [Nicholas Seckar]
 
 * Fixed that HashWithIndifferentAccess stringified all keys including symbols, ints, objects, and arrays #1162 [Nicholas Seckar]

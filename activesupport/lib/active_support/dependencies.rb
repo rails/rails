@@ -167,24 +167,24 @@ Object.send(:define_method, :require_or_load)     { |file_name| Dependencies.req
 Object.send(:define_method, :require_dependency)  { |file_name| Dependencies.depend_on(file_name) } unless Object.respond_to?(:require_dependency)
 Object.send(:define_method, :require_association) { |file_name| Dependencies.associate_with(file_name) } unless Object.respond_to?(:require_association)
 
-class Object #:nodoc:
-  class << self
-    # Use const_missing to autoload associations so we don't have to
-    # require_association when using single-table inheritance.
-    def const_missing(class_id)
-      if Object.const_defined?(:Controllers) and Object::Controllers.const_available?(class_id)
-        return Object::Controllers.const_get(class_id)
-      end
-
-      begin
-        require_dependency(class_id.to_s.demodulize.underscore)
-        if Object.const_defined?(class_id) then return Object.const_get(class_id) else raise LoadError end
-      rescue LoadError => e
-        raise NameError.new("uninitialized constant #{class_id}").copy_blame!(e)
-      end
+class Module #:nodoc:
+  # Use const_missing to autoload associations so we don't have to
+  # require_association when using single-table inheritance.
+  def const_missing(class_id)
+    if Object.const_defined?(:Controllers) and Object::Controllers.const_available?(class_id)
+      return Object::Controllers.const_get(class_id)
+    end
+    
+    begin
+      require_dependency(class_id.to_s.demodulize.underscore)
+      if Object.const_defined?(class_id) then return Object.const_get(class_id) else raise LoadError end
+    rescue LoadError => e
+      raise NameError.new("uninitialized constant #{class_id}").copy_blame!(e)
     end
   end
+end
 
+class Object #:nodoc:
   def load(file, *extras)
     begin super(file, *extras)
     rescue Object => exception
