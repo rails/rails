@@ -48,7 +48,8 @@ module ActiveSupport #:nodoc:
 
         def months_since(months)
           if months + self.month > 12
-            change(:year => self.year + 1, :month => 1).months_since(months - (self.month == 1 ? 12 : (self.month + 1)))
+            old_time = self
+            change(:year => self.year + 1, :month => 1).months_since(months + old_time.month - 12 - 1)
           else
             change(:year => self.year, :month => self.month + months)
           end
