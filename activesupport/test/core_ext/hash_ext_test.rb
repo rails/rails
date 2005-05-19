@@ -110,4 +110,10 @@ class HashExtTest < Test::Unit::TestCase
     h = {:user => {:id => 5}}.with_indifferent_access
     ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
   end
+
+  def test_assorted_keys_not_stringified
+    original = {Object.new => 2, 1 => 2, [] => true}
+    indiff = original.with_indifferent_access
+    assert(!indiff.keys.any? {|k| k.kind_of? String}, "A key was converted to a string!")
+  end
 end

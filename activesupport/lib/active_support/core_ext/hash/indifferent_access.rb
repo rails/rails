@@ -3,7 +3,7 @@ class HashWithIndifferentAccess < Hash
   def initialize(constructor = {})
     if constructor.is_a?(Hash)
       super()
-      update(constructor.stringify_keys)
+      update(constructor)
     else
       super(constructor)
     end

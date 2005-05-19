@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that HashWithIndifferentAccess stringified all keys including symbols, ints, objects, and arrays #1162 [Nicholas Seckar]
+
 * Fixed Time#last_year to go back in time, not forward #1278 [fabien@odilat.com]
 
 * Fixed the pluralization of analysis to analyses #1295 [seattle@rootimage.msu.edu]
