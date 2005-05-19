@@ -51,13 +51,29 @@ module Test #:nodoc:
       def assert_redirected_to(options = {}, message=nil)
         assert_redirect(message)
 
-        msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>)", @response.redirected_to)
-        assert_block(msg) do
-          if options.is_a?(Symbol)
-            @response.redirected_to == options
-          else
-            options.keys.all? do |k| 
-              options[k] == (@response.redirected_to[k].respond_to?(:to_param) ? @response.redirected_to[k].to_param : @response.redirected_to[k] unless @response.redirected_to[k].nil?)
+        if options.is_a?(String)
+          msg = build_message(message, "expected a redirect to <?>, found one to <?>", options, @response.redirect_url)
+          
+          url_regexp = %r{^(\w+://.*?(/|$|\?))(.*)$}
+          eurl, epath, url, path = [options, @response.redirect_url].collect do |url|
+            u, p = (url_regexp =~ url) ? [$1, $3] : [nil, url]
+            [u, (p[0..0] == '/') ? p : '/' + p]
+          end.flatten
+
+          if eurl && url then assert_equal(eurl, url, msg)
+          else assert_equal(epath, path, msg)
+          end
+        else
+          msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>)",
+                              @response.redirected_to || @response.redirect_url)
+
+          assert_block(msg) do
+            if options.is_a?(Symbol)
+              @response.redirected_to == options
+            else
+              options.keys.all? do |k| 
+                options[k] == (@response.redirected_to[k].respond_to?(:to_param) ? @response.redirected_to[k].to_param : @response.redirected_to[k] unless @response.redirected_to[k].nil?)
+              end
             end
           end
         end

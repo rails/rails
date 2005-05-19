@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed assert_redirect_to to work with redirect_to_path #869 [Nicholas Seckar]
+
 * Fixed escaping of :method option in remote_form_tag #1218 [Rick Olson]
 
 * Added Serbia and Montenegro to the country_select #1239 [todd@robotcoop.com]

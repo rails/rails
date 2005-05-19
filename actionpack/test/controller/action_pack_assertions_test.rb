@@ -19,6 +19,8 @@ class ActionPackAssertionsController < ActionController::Base
 
   def redirect_to_controller() redirect_to :controller => "elsewhere", :action => "flash_me"; end
 
+  def redirect_to_path() redirect_to '/some/path' end
+  
   # a redirect to an external location
   def redirect_external() redirect_to_url "http://www.rubyonrails.org"; end
   
@@ -367,6 +369,19 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     assert_redirected_to :controller => "elsewhere", :action => "flash_me"
 
     assert_raises(RuntimeError, "Can't follow redirects outside of current controller (elsewhere)") { follow_redirect }
+  end
+
+  def test_redirected_to_url_leadling_slash
+    process :redirect_to_path
+    assert_redirected_to '/some/path'
+  end
+  def test_redirected_to_url_no_leadling_slash
+    process :redirect_to_path
+    assert_redirected_to 'some/path'
+  end
+  def test_redirected_to_url_full_url
+    process :redirect_to_path
+    assert_redirected_to 'http://test.host/some/path'
   end
 end
 
