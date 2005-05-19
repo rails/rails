@@ -190,16 +190,20 @@ module ActionView
       end
 
       # Returns a select tag with options for each of the five years on each side of the current, which is selected. The five year radius
-      # can be changed using the <tt>:start_year</tt> and <tt>:end_year</tt> keys in the +options+. The <tt>date</tt> can also be substituted
-      # for a year given as a number. Example:
+      # can be changed using the <tt>:start_year</tt> and <tt>:end_year</tt> keys in the +options+. Both ascending and descending year
+      # lists are supported by making <tt>:start_year</tt> less than or greater than <tt>:end_year</tt>. The <tt>date</tt> can also be
+      # substituted for a year given as a number. Example:
       #
-      #   select_year(Date.today, :start_year => 1992, :end_year => 2007)
+      #   select_year(Date.today, :start_year => 1992, :end_year => 2007)  # ascending year values
+      #   select_year(Date.today, :start_year => 2005, :end_year => 1900)  # descending year values
       def select_year(date, options = {})
         year_options = []
         y = date ? (date.kind_of?(Fixnum) ? (y = (date == 0) ? Date.today.year : date) : date.year) : Date.today.year
-        default_start_year, default_end_year = y-5, y+5
 
-        (options[:start_year] || default_start_year).upto(options[:end_year] || default_end_year) do |year|
+        start_year, end_year = (options[:start_year] || y-5), (options[:end_year] || y+5)
+        step_val = start_year < end_year ? 1 : -1
+
+        start_year.step(end_year, step_val) do |year|
           year_options << ((date && (date.kind_of?(Fixnum) ? date : date.year) == year) ?
             "<option value=\"#{year}\" selected=\"selected\">#{year}</option>\n" :
             "<option value=\"#{year}\">#{year}</option>\n"

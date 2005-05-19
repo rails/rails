@@ -124,6 +124,15 @@ class DateHelperTest < Test::Unit::TestCase
       2003, :prefix => "date_year", :discard_type => true, :start_year => 2003, :end_year => 2005)
   end
 
+  def test_select_year_descending
+    expected = %(<select name="date[year]">\n)
+    expected << %(<option value="2005" selected="selected">2005</option>\n<option value="2004">2004</option>\n<option value="2003">2003</option>\n)
+    expected << "</select>\n"
+    
+    assert_equal expected, select_year(Time.mktime(2005, 8, 16), :start_year => 2005, :end_year => 2003)
+    assert_equal expected, select_year(2005, :start_year => 2005, :end_year => 2003)
+  end
+
   def test_select_hour
     expected = %(<select name="date[hour]">\n)
     expected << %(<option value="00">00</option>\n<option value="01">01</option>\n<option value="02">02</option>\n<option value="03">03</option>\n<option value="04">04</option>\n<option value="05">05</option>\n<option value="06">06</option>\n<option value="07">07</option>\n<option value="08" selected="selected">08</option>\n<option value="09">09</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n)

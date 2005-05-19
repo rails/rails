@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for descending year values in DateHelper#select_year, like select_year(Date.today, :start_year => 2005, :end_year => 1900), which would count down from 2005 to 1900 instead of the other way #1274 [nwoods@mail.com]
+
 * Fixed that FormHelper#checkbox should return a checked checkbox if the value is the same as checked_value #1286 [Florian Weber]
 
 * Fixed Form.disable in Prototype #1317 [Wintermute]
