@@ -32,7 +32,7 @@ module ActionController #:nodoc:
   class TestRequest < AbstractRequest #:nodoc:
     attr_accessor :cookies
     attr_accessor :query_parameters, :request_parameters, :path, :session, :env
-    attr_accessor :host, :remote_addr
+    attr_accessor :host
 
     def initialize(query_parameters = nil, request_parameters = nil, session = nil)
       @query_parameters   = query_parameters || {}
@@ -71,6 +71,10 @@ module ActionController #:nodoc:
       @path = uri.split("?").first
     end
 
+    def remote_addr=(addr)
+      @env['REMOTE_ADDR'] = addr
+    end
+
     def request_uri
       @request_uri || super()
     end
@@ -88,7 +92,7 @@ module ActionController #:nodoc:
       def initialize_default_values
         @host                    = "test.host"
         @request_uri             = "/"
-        @remote_addr, @remote_ip = "127.0.0.1"        
+        self.remote_addr         = "127.0.0.1"        
         @env["SERVER_PORT"]      = 80
       end
   end

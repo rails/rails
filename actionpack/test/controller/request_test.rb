@@ -5,6 +5,39 @@ class RequestTest < Test::Unit::TestCase
     @request = ActionController::TestRequest.new
   end
 
+  def test_remote_ip
+    assert_equal '127.0.0.1', @request.remote_ip
+
+    @request.remote_addr = '1.2.3.4'
+    assert_equal '1.2.3.4', @request.remote_ip
+
+    @request.env['HTTP_CLIENT_IP'] = '2.3.4.5'
+    assert_equal '2.3.4.5', @request.remote_ip
+    @request.env.delete 'HTTP_CLIENT_IP'
+
+    @request.env['HTTP_X_FORWARDED_FOR'] = '3.4.5.6'
+    assert_equal '3.4.5.6', @request.remote_ip
+
+    @request.env['HTTP_X_FORWARDED_FOR'] = 'unknown,3.4.5.6'
+    assert_equal '3.4.5.6', @request.remote_ip
+
+    @request.env['HTTP_X_FORWARDED_FOR'] = '172.16.0.1,3.4.5.6'
+    assert_equal '3.4.5.6', @request.remote_ip
+
+    @request.env['HTTP_X_FORWARDED_FOR'] = '192.168.0.1,3.4.5.6'
+    assert_equal '3.4.5.6', @request.remote_ip
+
+    @request.env['HTTP_X_FORWARDED_FOR'] = '10.0.0.1,3.4.5.6'
+    assert_equal '3.4.5.6', @request.remote_ip
+
+    @request.env['HTTP_X_FORWARDED_FOR'] = '127.0.0.1,3.4.5.6'
+    assert_equal '127.0.0.1', @request.remote_ip
+
+    @request.env['HTTP_X_FORWARDED_FOR'] = 'unknown,192.168.0.1'
+    assert_equal '1.2.3.4', @request.remote_ip
+    @request.env.delete 'HTTP_X_FORWARDED_FOR'
+  end
+
   def test_domains
     @request.host = "www.rubyonrails.org"
     assert_equal "rubyonrails.org", @request.domain
