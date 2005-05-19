@@ -117,7 +117,8 @@ module ActionController
     # returns the interpreted path to requested resource after
     # all the installation directory of this application was taken into account
     def path
-      path = request_uri ? request_uri.split('?').first : ''
+      uri = request_uri
+      path = uri ? uri.split('?').first : ''
 
       # cut off the part of the url which leads to the installation directory of this app
       path[relative_url_root.length..-1]
@@ -126,7 +127,7 @@ module ActionController
     # returns the path minus the web server relative 
     # installation directory
     def relative_url_root
-      File.dirname(env["SCRIPT_NAME"].to_s).gsub /(^\.$|^\/$)/, ''
+      @@relative_url_root ||= File.dirname(env["SCRIPT_NAME"].to_s).gsub /(^\.$|^\/$)/, ''
     end
 
     def port
