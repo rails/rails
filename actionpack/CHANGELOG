@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Form.disable in Prototype #1317 [Wintermute]
+
 * Added accessors to logger, params, response, session, and headers from the view, so you can write <% logger.info "stuff" %> instead of <% @logger.info "others" %> -- more consistent with the preferred way of accessing these attributes and collections from the controller
 
 * Added support for POST data in form of YAML or XML, which is controller through the X-POST_DATA_MARSHAL header. Example request:

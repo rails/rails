@@ -312,7 +312,7 @@ var Form = {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
       element.blur();
-      element.disable = 'true';
+      element.disabled = 'true';
     }
   },
 
