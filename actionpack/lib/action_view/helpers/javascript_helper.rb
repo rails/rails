@@ -67,6 +67,19 @@ module ActionView
       # If you for some reason or another need synchronous processing (that'll
       # block the browser while the request is happening), you can specify 
       # <tt>options[:type] = :synchronous</tt>.
+      #
+      # You can customize further browser side call logic by passing
+      # in Javascript code snippets via some optional parameters. In
+      # their order of use these are:
+      #
+      # <tt>:confirm</tt>::      Adds confirmation dialog.
+      # <tt>:condition</tt>::    Perform remote request conditionally
+      #                          by this expression. Use this to
+      #                          describe browser-side conditions when
+      #                          request should not be initiated.
+      # <tt>:before</tt>::       Called before request is initiated.
+      # <tt>:after</tt>::        Called immediately after request was
+      #                          initiated and before <tt>:loading</tt>.
       def link_to_remote(name, options = {}, html_options = {})  
         link_to_function(name, remote_function(options), html_options)
       end
