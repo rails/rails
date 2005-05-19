@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Serbia and Montenegro to the country_select #1239 [todd@robotcoop.com]
+
 * Fixed Request#remote_ip in testing #1251 [bitsweat]
 
 * Fixed that compute_public_path should recognize external URLs, so image_tag("http://www.example.com/images/icon.gif") is not prefixed with the relative url path #1254 [victor-ronr-trac@carotena.net]

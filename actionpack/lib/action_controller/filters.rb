@@ -339,10 +339,10 @@ module ActionController #:nodoc:
 
         def action_exempted?(filter)
           case
-            when self.class.included_actions[filter]
-              !self.class.included_actions[filter].include?(action_name)
-            when self.class.excluded_actions[filter] 
-              self.class.excluded_actions[filter].include?(action_name)
+            when ia = self.class.included_actions[filter]
+              !ia.include?(action_name)
+            when ea = self.class.excluded_actions[filter] 
+              ea.include?(action_name)
           end
         end
     end
