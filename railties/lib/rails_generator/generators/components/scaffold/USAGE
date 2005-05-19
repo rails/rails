@@ -25,7 +25,7 @@ Example:
     database and browse to http://localhost/bank/ -- voila, you're on Rails!
 
 Modules Example:
-    ./script/generate controller 'admin/credit_card' suspend late_fee
+    ./script/generate scaffold CreditCard 'admin/credit_card' suspend late_fee
 
     This will generate a CreditCard model and CreditCardController controller
     in the admin module.

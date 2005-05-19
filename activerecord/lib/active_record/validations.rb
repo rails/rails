@@ -297,8 +297,6 @@ module ActiveRecord
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
       # * <tt>accept</tt> - Specifies value that is considered accepted.  The default value is a string "1", which
       # makes it easy to relate to an HTML checkbox.
-      #
-
       def validates_acceptance_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save, :allow_nil => true, :accept => "1" }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
