@@ -180,11 +180,16 @@ module ActionController #:nodoc:
       class ActionCacheFilter #:nodoc:
         def initialize(*actions)
           @actions = actions
+          @action_urls = {}
+        end
+        
+        def action_url(controller)
+          @action_urls[controller.action_name] ||= controller.url_for.split("://").last
         end
         
         def before(controller)
           return unless @actions.include?(controller.action_name.intern)
-          if cache = controller.read_fragment(controller.url_for.split("://").last)
+          if cache = controller.read_fragment(action_url(controller))
             controller.rendered_action_cache = true
             controller.send(:render_text, cache)
             false
@@ -193,7 +198,7 @@ module ActionController #:nodoc:
         
         def after(controller)
           return if !@actions.include?(controller.action_name.intern) || controller.rendered_action_cache
-          controller.write_fragment(controller.url_for.split("://").last, controller.response.body)
+          controller.write_fragment(action_url(controller), controller.response.body)
         end
       end
     end
