@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that FormHelper#checkbox should return a checked checkbox if the value is the same as checked_value #1286 [Florian Weber]
+
 * Fixed Form.disable in Prototype #1317 [Wintermute]
 
 * Added accessors to logger, params, response, session, and headers from the view, so you can write <% logger.info "stuff" %> instead of <% @logger.info "others" %> -- more consistent with the preferred way of accessing these attributes and collections from the controller

@@ -80,6 +80,14 @@ class FormHelperTest < Test::Unit::TestCase
       check_box("post", "secret")
     )
   end
+  
+  def test_check_box_with_explicit_checked_and_unchecked_values
+    @post.secret = "on"
+    assert_equal(
+      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="on" /><input name="post[secret]" type="hidden" value="off" />',
+      check_box("post", "secret", {}, "on", "off")
+    )
+  end
 
   def test_radio_button
     assert_equal('<input checked="checked" id="post_title_hello_world" name="post[title]" type="radio" value="Hello World" />',

@@ -200,6 +200,8 @@ module ActionView
             false
           when Integer
             value != 0
+          when String
+            value == checked_value
           else
             value.to_i != 0
           end
