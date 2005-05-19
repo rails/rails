@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed the pluralization of analysis to analyses #1295 [seattle@rootimage.msu.edu]
+
 * Fixed that Time.local(2005,12).months_since(1) would raise "ArgumentError: argument out of range" #1311 [jhahn@niveon.com]
 
 * Added silencing to the default Logger class

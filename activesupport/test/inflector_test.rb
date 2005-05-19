@@ -43,6 +43,7 @@ class InflectorTest < Test::Unit::TestCase
 
     "datum"       => "data",
     "medium"      => "media",
+    "analysis"    => "analyses",
 
     "node_child"  => "node_children",
     "child"       => "children",
