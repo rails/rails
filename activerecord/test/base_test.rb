@@ -2,6 +2,7 @@ require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/company'
+require 'fixtures/developer'
 require 'fixtures/project'
 require 'fixtures/default'
 require 'fixtures/auto_id'
@@ -33,7 +34,7 @@ end
 class Booleantest < ActiveRecord::Base; end
 
 class BasicsTest < Test::Unit::TestCase
-  fixtures :topics, :companies, :projects, :computers
+  fixtures :topics, :companies, :developers, :projects, :computers
 
   def test_set_attributes
     topic = Topic.find(1)
@@ -568,7 +569,8 @@ class BasicsTest < Test::Unit::TestCase
   
   def test_clone
     topic = Topic.find(1)
-    cloned_topic = topic.clone
+    cloned_topic = nil
+    assert_nothing_raised { cloned_topic = topic.clone }
     assert_equal topic.title, cloned_topic.title
     assert cloned_topic.new_record?
 
@@ -588,7 +590,33 @@ class BasicsTest < Test::Unit::TestCase
     assert !cloned_topic.new_record?
     assert cloned_topic.id != topic.id
   end
-  
+
+  def test_clone_with_aggregate_of_same_name_as_attribute
+    dev = DeveloperWithAggregate.find(1)
+    assert_kind_of DeveloperSalary, dev.salary
+
+    clone = nil
+    assert_nothing_raised { clone = dev.clone }
+    assert_kind_of DeveloperSalary, clone.salary
+    assert_equal dev.salary.amount, clone.salary.amount
+    assert clone.new_record?
+
+    # test if the attributes have been cloned
+    original_amount = clone.salary.amount
+    dev.salary.amount = 1
+    assert_equal original_amount, clone.salary.amount
+
+    assert clone.save
+    assert !clone.new_record?
+    assert clone.id != dev.id
+  end
+
+  def test_clone_preserves_subtype
+    clone = nil
+    assert_nothing_raised { clone = Company.find(3).clone }
+    assert_kind_of Client, clone
+  end
+
   def test_bignum
     company = Company.find(1)
     company.rating = 2147483647

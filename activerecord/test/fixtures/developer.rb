@@ -4,3 +4,9 @@ class Developer < ActiveRecord::Base
   validates_inclusion_of :salary, :in => 50000..200000
   validates_length_of    :name, :within => 3..20
 end
+
+DeveloperSalary = Struct.new(:amount)
+class DeveloperWithAggregate < ActiveRecord::Base
+  self.table_name = 'developers'
+  composed_of :salary, :class_name => 'DeveloperSalary', :mapping => [%w(salary amount)]
+end

@@ -982,12 +982,13 @@ module ActiveRecord #:nodoc:
 
       # Returns a clone of the record that hasn't been assigned an id yet and is treated as a new record.
       def clone
-        attrs = self.attributes
+        attrs = self.attributes_before_type_cast
         attrs.delete(self.class.primary_key)
-        cloned_record = self.class.new(attrs)
-        cloned_record
+        self.class.new do |record|
+          record.send :instance_variable_set, '@attributes', attrs
+        end
       end
-            
+
       # Updates a single attribute and saves the record. This is especially useful for boolean flags on existing records.
       # Note: This method is overwritten by the Validation module that'll make sure that updates made with this method
       # doesn't get subjected to validation checks. Hence, attributes can be updated even if the full object isn't valid.
@@ -1076,14 +1077,12 @@ module ActiveRecord #:nodoc:
 
       # Returns a hash of all the attributes with their names as keys and clones of their objects as values.
       def attributes
-        self.attribute_names.inject({}) do |attributes, name|
-          begin
-            attributes[name] = read_attribute(name).clone
-          rescue TypeError, NoMethodError
-            attributes[name] = read_attribute(name)
-          end
-          attributes
-        end
+        clone_attributes :read_attribute
+      end
+
+      # Returns a hash of cloned attributes before typecasting and deserialization.
+      def attributes_before_type_cast
+        clone_attributes :read_attribute_before_type_cast
       end
 
       # Returns true if the specified +attribute+ has been set by the user or by a database load and is neither
@@ -1419,6 +1418,20 @@ module ActiveRecord #:nodoc:
 
       def has_yaml_encoding_header?(string)
         string[0..3] == "--- "
+      end
+
+      def clone_attributes(reader_method = :read_attribute, attributes = {})
+        self.attribute_names.inject(attributes) do |attributes, name|
+          attributes[name] = clone_attribute_value(reader_method, name)
+          attributes
+        end
+      end
+
+      def clone_attribute_value(reader_method, attribute_name)
+        value = send(reader_method, attribute_name)
+        value.clone
+      rescue TypeError, NoMethodError
+        value
       end
   end
 end
