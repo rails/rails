@@ -122,6 +122,8 @@ module ActionView #:nodoc:
     attr_reader   :first_render
     attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller
+    
+    attr_reader :logger, :params, :response, :session, :headers
 
     # Turn on to cache the reading of templates from the file system. Doing so means that you have to restart the server
     # when changing templates, but that rendering will be faster.

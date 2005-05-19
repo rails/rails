@@ -67,6 +67,10 @@ class TestController < ActionController::Base
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render_text "How's there? #{render_to_string("test/list")}"
   end
+  
+  def accessing_params_in_template
+    render_template "Hello: <%= params[:name] %>"
+  end
 
   def rescue_action(e) raise end
     
@@ -198,6 +202,12 @@ class RenderTest < Test::Unit::TestCase
   def test_nested_rendering
     @request.action = "hello_world"
     assert_equal "Living in a nested world", Fun::GamesController.process(@request, @response).body
+  end
+
+  def test_accessing_params_in_template
+    @request.action = "accessing_params_in_template"
+    @request.query_parameters[:name] = "David"
+    assert_equal "Hello: David", process_request.body
   end
 
   private
