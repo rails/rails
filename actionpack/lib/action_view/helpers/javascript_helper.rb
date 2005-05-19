@@ -193,7 +193,7 @@ module ActionView
         js_options = build_callbacks(options)
         
         js_options['asynchronous'] = options[:type] != :synchronous
-        js_options['method']       = options[:method] if options[:method]
+        js_options['method']       = method_option_to_s(options[:method]) if options[:method]
         js_options['insertion']    = "Insertion.#{options[:position].to_s.camelize}" if options[:position]
 	
         if options[:form]
@@ -203,6 +203,10 @@ module ActionView
         end
         
         '{' + js_options.map {|k, v| "#{k}:#{v}"}.join(', ') + '}'
+      end
+      
+      def method_option_to_s(method) 
+        (method.is_a?(String) and !method.index("'").nil?) ? method : "'#{method}'"
       end
       
       def build_observer(klass, name, options = {})
