@@ -143,6 +143,7 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
     %(image_tag("xml")) => %(<img alt="Xml" src="/calloboration/hieraki/images/xml.png" />),
     %(image_tag("rss", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/calloboration/hieraki/images/rss.png" />),
     %(image_tag("gold", :size => "45x70")) => %(<img alt="Gold" height="70" src="/calloboration/hieraki/images/gold.png" width="45" />),
+    %(image_tag("http://www.example.com/images/icon.gif")) => %(<img alt="Icon" src="http://www.example.com/images/icon.gif" />),
   }
 
   def test_auto_discovery
