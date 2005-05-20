@@ -35,7 +35,7 @@ module ActionController
       if env['HTTP_X_POST_DATA_FORMAT']
         env['HTTP_X_POST_DATA_FORMAT'].downcase.intern
       else
-        case env['HTTP_CONTENT_TYPE']
+        case env['CONTENT_TYPE']
           when 'application/xml', 'text/xml'
             :xml
           when 'application/x-yaml', 'text/x-yaml'
