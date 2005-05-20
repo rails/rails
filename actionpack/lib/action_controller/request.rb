@@ -3,7 +3,6 @@ module ActionController
   class AbstractRequest
     # Returns both GET and POST parameters in a single hash.
     def parameters
-      # puts "#{request_parameters.inspect} | #{query_parameters.inspect} | #{path_parameters.inspect}"
       @parameters ||= request_parameters.merge(query_parameters).merge(path_parameters).with_indifferent_access
     end
 
@@ -36,7 +35,14 @@ module ActionController
       if env['HTTP_X_POST_DATA_FORMAT']
         env['HTTP_X_POST_DATA_FORMAT'].downcase.intern
       else
-        :query_string
+        case env['HTTP_CONTENT_TYPE']
+          when 'application/xml', 'text/xml'
+            :xml
+          when 'application/x-yaml', 'text/x-yaml'
+            :yaml
+          else
+            :url_encoded
+        end
       end
     end
 

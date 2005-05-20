@@ -18,14 +18,14 @@
 
 * Added accessors to logger, params, response, session, flash, and headers from the view, so you can write <% logger.info "stuff" %> instead of <% @logger.info "others" %> -- more consistent with the preferred way of accessing these attributes and collections from the controller
 
-* Added support for POST data in form of YAML or XML, which is controller through the X-POST_DATA_MARSHAL header. Example request:
+* Added support for POST data in form of YAML or XML, which is controller through the Content-Type header. Example request:
 
-    X-POST_DATA_MARSHAL: xml
+    Content-Type: application/xml
     <request><item><content>HelloWorld</content></item></request>
   
   ...is the same as:
 
-    X-POST_DATA_MARSHAL: yaml
+    Content-Type: application/x-yaml
     ---
     item:
       content: HelloWorld
@@ -38,10 +38,10 @@
   
   Example Curl call:
 
-    curl -H 'X-POST_DATA_MARSHAL: xml' -d '<request><item><content>KillMeMore</content></item></request>' http://www.example.com/service
+    curl -H 'Content-Type: application/xml' -d '<request><item><content>KillMeMore</content></item></request>' http://www.example.com/service
 
   You can query to find out whether a given request came through as one of these types with:
-    - request.post_format? (:query_string, :xml or :yaml)
+    - request.post_format? (:url_encoded, :xml or :yaml)
     - request.formatted_post? (for either xml or yaml)
     - request.xml_post?
     - request.yaml_post?
