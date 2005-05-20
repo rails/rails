@@ -1,10 +1,13 @@
-= 0.8.0
-  - Allow locking down a controller to only accept messages for a particular protocol.
-    This will allow us to generate fully conformant error messages in cases where we
-    currently fudge it if we don't know the protocol.
+= Post-1.0
+  - Add :rest dispatching mode, a.l.a. Backpack API. Clean up dispatching
+    in general. Support vanilla XML-format as a "Rails" protocol?
 
-  - Allow AWS user to participate in typecasting, so they can centralize workarounds
-    for buggy input in one place
+  - Allow locking down a controller to only accept messages for a particular
+    protocol.  This will allow us to generate fully conformant error messages
+    in cases where we currently fudge it if we don't know the protocol.
+
+  - Allow AWS user to participate in typecasting, so they can centralize
+    workarounds for buggy input in one place
   
 = Refactoring
   - Don't have clean way to go from SOAP Class object to the xsd:NAME type
