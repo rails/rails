@@ -24,6 +24,8 @@ module ActionController #:nodoc:
   end
   class MissingFile < ActionControllerError #:nodoc:
   end
+  class DoubleRenderError < ActionControllerError #:nodoc:
+  end
 
   # Action Controllers are made up of one or more actions that performs its purpose and then either renders a template or
   # redirects to another action. An action is defined as a public method on the controller, which will automatically be 
@@ -476,7 +478,7 @@ module ActionController #:nodoc:
       # considerably faster than rendering through the template engine.
       # Use block for response body if provided (useful for deferred rendering or streaming output).
       def render_text(text = nil, status = nil, &block) #:doc:
-        return if performed?
+        raise DoubleRenderError, "Can only render or redirect once per action" if performed?
         add_variables_to_assigns
         @response.headers["Status"] = status.to_s || DEFAULT_RENDER_STATUS_CODE
         @response.body = block_given? ? block : text
@@ -493,6 +495,12 @@ module ActionController #:nodoc:
       def render_to_string(template_name = default_template_name) #:doc:
         add_variables_to_assigns
         @template.render_file(template_name)
+      end
+
+      # Clears the rendered results, allowing for another render or redirect to be performed.
+      def erase_render_results #:nodoc:
+        @response.body = nil
+        @performed_render = false
       end
       
       # Renders the partial specified by <tt>partial_path</tt>, which by default is the name of the action itself. Example:
@@ -659,7 +667,7 @@ module ActionController #:nodoc:
       # <tt>redirect_to_url "http://www.rubyonrails.org"</tt>. If the resource has moved permanently, it's possible to pass true as the
       # second parameter and the browser will get "301 Moved Permanently" instead of "302 Found".
       def redirect_to_url(url, permanently = false) #:doc:
-        return if performed?
+        raise DoubleRenderError, "Can only render or redirect once per action" if performed?
         logger.info("Redirected to #{url}") unless logger.nil?
         @response.redirect(url, permanently)
         @performed_redirect = true

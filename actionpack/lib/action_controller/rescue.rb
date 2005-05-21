@@ -25,6 +25,7 @@ module ActionController #:nodoc:
       # Exception handler called when the performance of an action raises an exception.
       def rescue_action(exception)
         log_error(exception) unless logger.nil?
+        erase_render_results if performed?
 
         if consider_all_requests_local || local_request?
           rescue_action_locally(exception)
