@@ -1,5 +1,9 @@
 *SVN*
 
+* CHANGED: validates_presence_of now uses Errors#add_on_blank, which will make "  " fail the validation where it didn't before #1309
+
+* Added Errors#add_on_blank which works like Errors#add_on_empty, but uses Object#blank? instead
+
 * Added the :if option to all validations that can either use a block or a method pointer to determine whether the validation should be run or not. #1324 [Duane Johnson/jhosteny]. Examples:
 
   Conditional validations such as the following are made possible:

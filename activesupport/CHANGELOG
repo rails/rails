@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that "   " is now also blank? (using strip if available)
+
 * Fixed Dependencies so all modules are able to load missing constants #1173 [Nicholas Seckar]
 
 * Fixed the Inflector to underscore strings containing numbers, so Area51Controller becomes area51_controller #1176 [Nicholas Seckar]

@@ -221,11 +221,16 @@ class ValidationsTest < Test::Unit::TestCase
 
     t = Topic.create
     assert !t.save
-    assert_equal "can't be empty", t.errors.on(:title)
-    assert_equal "can't be empty", t.errors.on(:content)
+    assert_equal "can't be blank", t.errors.on(:title)
+    assert_equal "can't be blank", t.errors.on(:content)
 
     t.title = "something"
-    t.content  = "another"
+    t.content  = "   "
+
+    assert !t.save
+    assert_equal "can't be blank", t.errors.on(:content)
+
+    t.content = "like stuff"
 
     assert t.save
   end

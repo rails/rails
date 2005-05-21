@@ -12,8 +12,11 @@ class Object #:nodoc:
     subclasses
   end
 
+  # "", "   ", nil, and 0 are all blank
   def blank?
-    if respond_to? :empty?
+    if respond_to?(:empty?) && respond_to?(:strip)
+      strip.empty?
+    elsif respond_to? :empty?
       empty?
     elsif respond_to? :zero?
       zero?

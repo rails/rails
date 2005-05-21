@@ -16,6 +16,7 @@ module ActiveRecord
       :confirmation => "doesn't match confirmation",
       :accepted  => "must be accepted",
       :empty => "can't be empty",
+      :blank => "can't be blank",
       :too_long => "is too long (max is %d characters)", 
       :too_short => "is too short (min is %d characters)", 
       :wrong_length => "is the wrong length (should be %d characters)", 
@@ -44,12 +45,20 @@ module ActiveRecord
       @errors[attribute.to_s] << msg
     end
 
-    # Will add an error message to each of the attributes in +attributes+ that is empty (defined by <tt>attribute_present?</tt>).
+    # Will add an error message to each of the attributes in +attributes+ that is empty.
     def add_on_empty(attributes, msg = @@default_error_messages[:empty])
       for attr in [attributes].flatten
         value = @base.respond_to?(attr.to_s) ? @base.send(attr.to_s) : @base[attr.to_s]
         is_empty = value.respond_to?("empty?") ? value.empty? : false
         add(attr, msg) unless !value.nil? && !is_empty
+      end
+    end
+    
+    # Will add an error message to each of the attributes in +attributes+ that is blank (using Object#blank?).
+    def add_on_blank(attributes, msg = @@default_error_messages[:blank])
+      for attr in [attributes].flatten
+        value = @base.respond_to?(attr.to_s) ? @base.send(attr.to_s) : @base[attr.to_s]
+        add(attr, msg) if value.blank?
       end
     end
 
@@ -325,7 +334,7 @@ module ActiveRecord
       # terms_of_service is not nil and by default on save.
       #
       # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "can't be empty")
+      # * <tt>message</tt> - A custom error message (default is: "must be accepted")
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
       # * <tt>accept</tt> - Specifies value that is considered accepted.  The default value is a string "1", which
       # makes it easy to relate to an HTML checkbox.
@@ -343,16 +352,16 @@ module ActiveRecord
         end
       end
 
-      # Validates that the specified attributes are neither nil nor empty. Happens by default on save.
+      # Validates that the specified attributes are not blank (as defined by Object#blank?). Happens by default on save.
       #
       # Configuration options:
-      # * <tt>message</tt> - A custom error message (default is: "has already been taken")
+      # * <tt>message</tt> - A custom error message (default is: "can't be blank")
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
       def validates_presence_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:empty], :on => :save }
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:blank], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         # can't use validates_each here, because it cannot cope with non-existant attributes,
@@ -360,7 +369,7 @@ module ActiveRecord
         attr_names.each do |attr_name|
           send(validation_method(configuration[:on])) do |record|
             unless configuration[:if] and not evaluate_condition(configuration[:if], record)
-              record.errors.add_on_empty(attr_name,configuration[:message])
+              record.errors.add_on_blank(attr_name,configuration[:message])
             end
           end
         end
