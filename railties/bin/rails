@@ -1,5 +1,7 @@
 abort "Rails requires Ruby 1.8.2" if RUBY_VERSION < "1.8.2"
 
+Signal.trap("INT") { puts; exit }
+
 require File.dirname(__FILE__) + '/../lib/rails_generator'
 require 'rails_generator/scripts/generate'
 Rails::Generator::Base.use_application_sources!
