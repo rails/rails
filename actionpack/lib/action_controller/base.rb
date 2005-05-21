@@ -478,7 +478,7 @@ module ActionController #:nodoc:
       def render_text(text = nil, status = nil, &block) #:doc:
         return if performed?
         add_variables_to_assigns
-        @response.headers["Status"] = status || DEFAULT_RENDER_STATUS_CODE
+        @response.headers["Status"] = status.to_s || DEFAULT_RENDER_STATUS_CODE
         @response.body = block_given? ? block : text
         @performed_render = true
       end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed use of an integer as return code for renders, so render_text "hello world", 404 now works #1327
+
 * Fixed assert_redirect_to to work with redirect_to_path #869 [Nicholas Seckar]
 
 * Fixed escaping of :method option in remote_form_tag #1218 [Rick Olson]
