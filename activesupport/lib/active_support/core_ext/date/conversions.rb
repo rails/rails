@@ -3,6 +3,11 @@ module ActiveSupport #:nodoc:
     module Date #:nodoc:
       # Getting dates in different convenient string representations and other objects
       module Conversions
+        DATE_FORMATS = {
+          :short => "%e %b",
+          :long  => "%B %e, %Y"
+        }
+        
         def self.append_features(klass) #:nodoc:
           super
           klass.send(:alias_method, :to_default_s, :to_s)
@@ -10,11 +15,7 @@ module ActiveSupport #:nodoc:
         end
         
         def to_formatted_s(format = :default)
-          case format
-            when :default then to_default_s
-            when :short   then strftime("%e %b").strip
-            when :long    then strftime("%B %e, %Y").strip
-          end
+          DATE_FORMATS[format] ? strftime(DATE_FORMATS[format]).strip : to_default_s   
         end
 
         # To be able to keep Dates and Times interchangeable on conversions

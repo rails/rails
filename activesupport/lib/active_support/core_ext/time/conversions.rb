@@ -5,6 +5,12 @@ module ActiveSupport #:nodoc:
     module Time #:nodoc:
       # Getting times in different convenient string representations and other objects
       module Conversions
+        DATE_FORMATS = {
+          :db    => "%Y-%m-%d %H:%M:%S",
+          :short => "%e %b %H:%M",
+          :long  => "%B %e, %Y %H:%M"
+        }
+
         def self.append_features(klass)
           super
           klass.send(:alias_method, :to_default_s, :to_s)
@@ -12,12 +18,7 @@ module ActiveSupport #:nodoc:
         end
         
         def to_formatted_s(format = :default)
-          case format
-            when :default then to_default_s
-            when :db      then strftime("%Y-%m-%d %H:%M:%S")
-            when :short   then strftime("%e %b %H:%M").strip
-            when :long    then strftime("%B %e, %Y %H:%M").strip
-          end
+          DATE_FORMATS[format] ? strftime(DATE_FORMATS[format]).strip : to_default_s          
         end
 
         def to_date
