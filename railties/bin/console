@@ -2,10 +2,9 @@
 irb = RUBY_PLATFORM =~ /mswin32/ ? 'irb.bat' : 'irb'
 
 require 'optparse'
-options = { :sandbox => false, :profile => false, :irb => irb }
+options = { :sandbox => false, :irb => irb }
 OptionParser.new do |opt|
   opt.on('-s', '--sandbox', 'Rollback database modifications on exit.') { |options[:sandbox]| }
-  opt.on('--profile', 'Profile the session and print results on exit.') { |options[:profile]| }
   opt.on("--irb=[#{irb}]", 'Invoke a different irb.') { |options[:irb]| }
   opt.parse!(ARGV)
 end
@@ -13,7 +12,6 @@ end
 libs =  " -r irb/completion"
 libs << " -r #{File.dirname(__FILE__)}/../config/environment"
 libs << " -r console_sandbox" if options[:sandbox]
-libs << " -r console_profile" if options[:profile]
 
 ENV['RAILS_ENV'] = ARGV.first || 'development'
 if options[:sandbox]

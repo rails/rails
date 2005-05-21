@@ -1,28 +1,34 @@
 #!/usr/local/bin/ruby
-
 if ARGV.empty?
   $stderr.puts "Usage: profiler 'Person.expensive_method(10)' [times]"
-  exit
+  exit(1)
 end
 
 # Keep the expensive require out of the profile.
-puts 'Loading Rails...'
+$stderr.puts 'Loading Rails...'
 require File.dirname(__FILE__) + '/../config/environment'
 
-# Default to a single execution.
-N = (ARGV[1] || 1).to_i
-
 # Define a method to profile.
-eval <<end_eval
-def profile_me
-  for i in 1..#{N}
-    #{ARGV[0]}
-  end
+if ARGV[1] and ARGV[1].to_i > 1
+  eval "def profile_me() #{ARGV[1]}.times { #{ARGV[0]} } end"
+else
+  eval "def profile_me() #{ARGV[0]} end"
 end
-end_eval
 
-# Require the profiler at_exit wrapper from railties/lib.
-require 'console_profile'
-
-# Blast off!
-profile_me
+# Use the ruby-prof extension if available.  Fall back to stdlib profiler.
+begin
+  require 'prof'
+  $stderr.puts 'Using the ruby-prof extension.'
+  Prof.clock_mode = Prof::GETTIMEOFDAY
+  Prof.start
+  profile_me
+  results = Prof.stop
+  require 'rubyprof_ext'
+  Prof.print_profile(results, $stderr)
+rescue LoadError
+  $stderr.puts 'Using the standard Ruby profiler.'
+  Profiler__.start_profile
+  profile_me
+  Profiler__.stop_profile
+  Profiler__.print_profile($stderr)
+end
