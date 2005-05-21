@@ -3,6 +3,17 @@ require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/developer'
 
+# The following methods in Topic are used in test_conditional_validation_*
+class Topic
+  def condition_is_true
+    return true
+  end
+
+  def condition_is_true_but_its_not
+    return false
+  end
+end
+
 class ValidationsTest < Test::Unit::TestCase
   fixtures :topics, :developers
 
@@ -688,7 +699,7 @@ class ValidationsTest < Test::Unit::TestCase
         #assert_in_delta v.to_f, t.approved, 0.0000001
     end
   end
-  
+
   def test_validates_numericality_of_int_with_string
     Topic.validates_numericality_of( :approved, :only_integer => true )
     ["not a number","42 not a number","0xdeadbeef","0-1","--3","+-3","+3-1",nil].each do |v|
@@ -697,7 +708,7 @@ class ValidationsTest < Test::Unit::TestCase
         assert t.errors.on(:approved)
     end
   end
-  
+
   def test_validates_numericality_of_int
     Topic.validates_numericality_of( :approved, :only_integer => true, :allow_nil => true )
     ["42", "+42", "-42", "042", "0042", "-042", 42, nil,""].each do |v|
@@ -707,4 +718,56 @@ class ValidationsTest < Test::Unit::TestCase
     end
   end
 
+  def test_conditional_validation_using_method_true
+    # When the method returns true
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :if => :condition_is_true )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "hoo 5", t.errors["title"]
+  end
+
+  def test_conditional_validation_using_method_false
+    # When the method returns false
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :if => :condition_is_true_but_its_not )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert t.valid?
+    assert !t.errors.on(:title)      
+  end
+
+  def test_conditional_validation_using_string_true
+    # When the evaluated string returns true
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :if => "a = 1; a == 1" )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "hoo 5", t.errors["title"]
+  end
+
+  def test_conditional_validation_using_string_false
+    # When the evaluated string returns false
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :if => "false")
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert t.valid?
+    assert !t.errors.on(:title)
+  end
+
+  def test_conditional_validation_using_block_true
+    # When the block returns true
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d",
+      :if => Proc.new { |r| r.content.size > 4 } )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert !t.valid?
+    assert t.errors.on(:title)
+    assert_equal "hoo 5", t.errors["title"]
+  end
+
+  def test_conditional_validation_using_block_false
+    # When the block returns false
+    Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d",
+      :if => Proc.new { |r| r.title != "uhohuhoh"} )
+    t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
+    assert t.valid?
+    assert !t.errors.on(:title)
+  end
 end

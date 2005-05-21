@@ -227,6 +227,29 @@ module ActiveRecord
         write_inheritable_set(:validate_on_update, methods)
       end
 
+      def condition_block?(condition)
+        condition.respond_to?("call") && (condition.arity == 1 || condition.arity == -1)
+      end
+
+      # Determine from the given condition (whether a block, procedure, method or string)
+      # whether or not to validate the record.  See #validates_each.
+      def evaluate_condition(condition, record)
+        case condition
+          when Symbol: record.send(condition)
+          when String: eval(condition, binding)
+          else
+            if condition_block?(condition)
+              condition.call(record)
+            else
+              raise(
+                ActiveRecordError,
+                "Validations need to be either a symbol, string (to be eval'ed), proc/method, or " +
+                "class implementing a static validation method"
+              )
+            end
+          end
+      end
+
       # Validates each attribute against a block.
       #
       #   class Person < ActiveRecord::Base
@@ -238,16 +261,22 @@ module ActiveRecord
       # Options:
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
       # * <tt>allow_nil</tt> - Skip validation if attribute is nil.
+      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_each(*attrs)
         options = attrs.last.is_a?(Hash) ? attrs.pop.symbolize_keys : {}
         attrs = attrs.flatten
 
         # Declare the validation.
         send(validation_method(options[:on] || :save)) do |record|
-          attrs.each do |attr|
-            value = record.send(attr)
-            next if value.nil? && options[:allow_nil]
-            yield record, attr, value
+          # Don't validate when there is an :if condition and that condition is false
+          unless options[:if] && !evaluate_condition(options[:if], record)
+            attrs.each do |attr|
+              value = record.send(attr)
+              next if value.nil? && options[:allow_nil]
+              yield record, attr, value
+            end
           end
         end
       end
@@ -271,6 +300,9 @@ module ActiveRecord
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "doesn't match confirmation")
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_confirmation_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:confirmation], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -297,6 +329,9 @@ module ActiveRecord
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
       # * <tt>accept</tt> - Specifies value that is considered accepted.  The default value is a string "1", which
       # makes it easy to relate to an HTML checkbox.
+      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_acceptance_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:accepted], :on => :save, :allow_nil => true, :accept => "1" }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -313,6 +348,9 @@ module ActiveRecord
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "has already been taken")
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_presence_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:empty], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -321,7 +359,9 @@ module ActiveRecord
         # while errors.add_on_empty can	
         attr_names.each do |attr_name|
           send(validation_method(configuration[:on])) do |record|
-            record.errors.add_on_empty(attr_name,configuration[:message])
+            unless configuration[:if] and not evaluate_condition(configuration[:if], record)
+              record.errors.add_on_empty(attr_name,configuration[:message])
+            end
           end
         end
       end
@@ -350,6 +390,9 @@ module ActiveRecord
       # * <tt>wrong_length</tt> - The error message if using the :is method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)")
       # * <tt>message</tt> - The error message to use for a :minimum, :maximum, or :is violation.  An alias of the appropriate too_long/too_short/wrong_length message
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_length_of(*attrs)
         # Merge given options with defaults.
         options = DEFAULT_SIZE_VALIDATION_OPTIONS.dup
@@ -408,6 +451,9 @@ module ActiveRecord
       # Configuration options:
       # * <tt>message</tt> - Specifies a custom error message (default is: "has already been taken")
       # * <tt>scope</tt> - Ensures that the uniqueness is restricted to a condition of "scope = record.scope"
+      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_uniqueness_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken] }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -436,6 +482,9 @@ module ActiveRecord
       # * <tt>message</tt> - A custom error message (default is: "is invalid")
       # * <tt>with</tt> - The regular expression used to validate the format with (note: must be supplied!)
       # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_format_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save, :with => nil }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -458,6 +507,9 @@ module ActiveRecord
       # * <tt>in</tt> - An enumerable object of available items
       # * <tt>message</tt> - Specifies a customer error message (default is: "is not included in the list")
       # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
+      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_inclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -482,6 +534,9 @@ module ActiveRecord
       # * <tt>in</tt> - An enumerable object of items that the value shouldn't be part of
       # * <tt>message</tt> - Specifies a customer error message (default is: "is reserved")
       # * <tt>allow_nil</tt> - If set to true, skips this validation if the attribute is null (default is: false)
+      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_exclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:exclusion], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -516,6 +571,9 @@ module ActiveRecord
       #
       # Configuration options:
       # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
+      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_associated(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:invalid], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -539,6 +597,9 @@ module ActiveRecord
       # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
       # * <tt>only_integer</tt> Specifies whether the value has to be an integer, e.g. an integral value (default is false)
       # * <tt>allow_nil</tt> Skip validation if attribute is nil (default is false). Notice that for fixnum and float columsn empty strings are converted to nil
+      # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
+      # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
+      # method, proc or string should return or evaluate to a true or false value.
       def validates_numericality_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:not_a_number], :on => :save,
                            :only_integer => false, :allow_nil => false }

@@ -1,5 +1,16 @@
 *SVN*
 
+* Added the :if option to all validations that can either use a block or a method pointer to determine whether the validation should be run or not. #1324 [Duane Johnson/jhosteny]. Examples:
+
+  Conditional validations such as the following are made possible:
+    validates_numericality_of :income, :if => :employed?
+
+  Conditional validations can also solve the salted login generator problem:
+    validates_confirmation_of :password, :if => :new_password?
+  
+  Using blocks:
+    validates_presence_of :username, :if => Proc.new { |user| user.signup_step > 1 }
+
 * Fixed use of construct_finder_sql when using :join #1288 [dwlt@dwlt.net]
 
 * Fixed that :delete_sql in has_and_belongs_to_many associations couldn't access record properties #1299 [Rick Olson]
