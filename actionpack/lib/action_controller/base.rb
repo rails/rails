@@ -540,7 +540,8 @@ module ActionController #:nodoc:
           when %r{^\w+://.*}
             raise DoubleRenderError, "Can only render or redirect once per action" if performed?
             logger.info("Redirected to #{options}") unless logger.nil?
-            @response.redirect(options)
+            response.redirect(options)
+            response.redirected_to = options
             @performed_redirect = true
 
           when String
@@ -548,11 +549,11 @@ module ActionController #:nodoc:
 
           else
             if parameters_for_method_reference.empty?
-              response.redirected_to = options
               redirect_to(url_for(options))
+              response.redirected_to = options
             else
-              response.redirected_to, response.redirected_to_method_params = options, parameters_for_method_reference
               redirect_to(url_for(options, *parameters_for_method_reference))
+              response.redirected_to, response.redirected_to_method_params = options, parameters_for_method_reference
             end
         end
       end
