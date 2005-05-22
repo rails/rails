@@ -218,7 +218,7 @@ module ActionController #:nodoc:
 
     private
       def pick_layout(options = {}, deprecated_layout = nil)
-        return deprecated_layout unless deprecated_layout.nil?
+        return deprecated_layout if !deprecated_layout.nil? || (options.is_a?(Hash) && options[:nothing])
 
         if options.is_a?(Hash)
           case options[:layout]
