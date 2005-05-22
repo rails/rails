@@ -116,6 +116,7 @@ end
 
 class RenderTest < Test::Unit::TestCase
   def setup
+    @controller = TestController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
 
@@ -123,120 +124,114 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_simple_show
-    @request.action = "hello_world"
-    response = process_request
-    assert_equal "200 OK", response.headers["Status"]
-    assert_equal "test/hello_world", response.template.first_render
+    get :hello_world
+    assert_response :success
+    assert_template "test/hello_world"
   end
 
   def test_do_with_render
-    @request.action = "render_hello_world"
-    assert_equal "test/hello_world", process_request.template.first_render
+    get :render_hello_world
+    assert_template "test/hello_world"
   end
 
   def test_do_with_render_from_variable
-    @request.action = "render_hello_world_from_variable"
-    assert_equal "hello david", process_request.body
+    get :render_hello_world_from_variable
+    assert_equal "hello david", @response.body
   end
 
   def test_do_with_render_action
-    @request.action = "render_action_hello_world"
-    assert_equal "test/hello_world", process_request.template.first_render
+    get :render_action_hello_world
+    assert_template "test/hello_world"
   end
 
   def test_do_with_render_text
-    @request.action = "render_text_hello_world"
-    assert_equal "hello world", process_request.body
+    get :render_text_hello_world
+    assert_equal "hello world", @response.body
   end
 
   def test_do_with_render_custom_code
-    @request.action = "render_custom_code"
-    assert_equal "404 Moved", process_request.headers["Status"]
+    get :render_custom_code
+    assert_response :missing
   end
 
   def test_attempt_to_access_object_method
-    @request.action = "clone"
-    assert_raises(ActionController::UnknownAction, "No action responded to [clone]") { process_request }
+    assert_raises(ActionController::UnknownAction, "No action responded to [clone]") { get :clone }
   end
 
   def test_private_methods
-    @request.action = "determine_layout"
-    assert_raises(ActionController::UnknownAction, "No action responded to [determine_layout]") { process_request }
+    assert_raises(ActionController::UnknownAction, "No action responded to [determine_layout]") { get :determine_layout }
   end
 
   def test_access_to_request_in_view
     ActionController::Base.view_controller_internals = false
 
-    @request.action = "hello_world"
-    response = process_request
-    assert_nil response.template.assigns["request"]
+    get :hello_world
+    assert_nil(assigns["request"])
 
     ActionController::Base.view_controller_internals = true
 
-    @request.action = "hello_world"
-    response = process_request
-    assert_kind_of ActionController::AbstractRequest, response.template.assigns["request"]
+    get :hello_world
+    assert_kind_of ActionController::AbstractRequest, assigns["request"]
   end
   
   def test_render_xml
-    @request.action = "render_xml_hello"
-    assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", process_request.body
+    get :render_xml_hello
+    assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
   end
 
   def test_render_xml_with_default
-    @request.action = "greeting"
-    assert_equal "<p>This is grand!</p>\n", process_request.body
+    get :greeting
+    assert_equal "<p>This is grand!</p>\n", @response.body
   end
 
   def test_layout_rendering
-    @request.action = "layout_test"
-    assert_equal "<html>Hello world!</html>", process_request.body
+    get :layout_test
+    assert_equal "<html>Hello world!</html>", @response.body
   end
 
   def test_layout_test_with_different_layout
-    @request.action = "layout_test_with_different_layout"
-    assert_equal "<html>Hello world!</html>", process_request.body
+    get :layout_test_with_different_layout
+    assert_equal "<html>Hello world!</html>", @response.body
   end
 
   def test_rendering_without_layout
-    @request.action = "rendering_without_layout"
-    assert_equal "Hello world!", process_request.body
+    get :rendering_without_layout
+    assert_equal "Hello world!", @response.body
   end
 
   def test_rendering_nothing_on_layout
-    @request.action = "rendering_nothing_on_layout"
-    assert_equal "", process_request.body
+    get :rendering_nothing_on_layout
+    assert_equal "", @response.body
   end
 
   def test_render_xml_with_layouts
-    @request.action = "builder_layout_test"
-    assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", process_request.body
+    get :builder_layout_test
+    assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
   end
 
   def test_partials_list
-    @request.action = "partials_list"
-    assert_equal "Hello: davidHello: mary", process_request.body
+    get :partials_list
+    assert_equal "Hello: davidHello: mary", @response.body
   end
 
   def test_partial_only
-    @request.action = "partial_only"
-    assert_equal "only partial", process_request.body
+    get :partial_only
+    assert_equal "only partial", @response.body
   end
 
   def test_render_to_string
-    @request.action = "hello_in_a_string"
-    assert_equal "How's there? Hello: davidHello: mary", process_request.body
+    get :hello_in_a_string
+    assert_equal "How's there? Hello: davidHello: mary", @response.body
   end
 
   def test_nested_rendering
-    @request.action = "hello_world"
+    get :hello_world
     assert_equal "Living in a nested world", Fun::GamesController.process(@request, @response).body
   end
 
   def test_accessing_params_in_template
-    @request.action = "accessing_params_in_template"
-    @request.query_parameters[:name] = "David"
-    assert_equal "Hello: David", process_request.body
+    get :accessing_params_in_template, :name => "David"
+    assert_equal "Hello: David", @response.body
   end
 
   private
