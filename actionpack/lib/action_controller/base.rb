@@ -440,6 +440,7 @@ module ActionController #:nodoc:
 
       # A unified replacement for the individual renders (work-in-progress).
       def render(options = {}, deprecated_status = nil)
+        # puts "Rendering: #{options.inspect}"
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
         # Backwards compatibility
@@ -489,7 +490,7 @@ module ActionController #:nodoc:
       end
 
       # Returns the result of the render as a string.
-      def render_to_string(options) #:doc:
+      def render_to_string(options = {}) #:doc:
         result = render(options)
         erase_render_results
         return result
@@ -538,7 +539,7 @@ module ActionController #:nodoc:
         case options
           when %r{^\w+://.*}
             raise DoubleRenderError, "Can only render or redirect once per action" if performed?
-            logger.info("Redirected to #{url}") unless logger.nil?
+            logger.info("Redirected to #{options}") unless logger.nil?
             @response.redirect(options)
             @performed_redirect = true
 

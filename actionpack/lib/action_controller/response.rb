@@ -8,7 +8,7 @@ module ActionController
     end
 
     def redirect(to_url, permanently = false)
-      @headers["Status"]   ||= "302 Found"
+      @headers["Status"]   = "302 Found" unless @headers["Status"] == "301 Moved Permanently"
       @headers["location"] = to_url
 
       @body = "<html><body>You are being <a href=\"#{to_url}\">redirected</a>.</body></html>"

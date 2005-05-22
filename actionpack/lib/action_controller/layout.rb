@@ -3,8 +3,8 @@ module ActionController #:nodoc:
     def self.append_features(base)
       super
       base.class_eval do
-        alias_method :render_without_layout, :render
-        alias_method :render, :render_with_layout
+        alias_method :render_with_no_layout, :render
+        alias_method :render, :render_with_a_layout
 
         class << self
           alias_method :inherited_without_layout, :inherited
@@ -202,43 +202,35 @@ module ActionController #:nodoc:
       active_layout.include?("/") ? active_layout : "layouts/#{active_layout}" if active_layout
     end
 
-    def xrender_with_layout(template_name = default_template_name, status = nil, layout = nil) #:nodoc:
-      if layout ||= active_layout and action_has_layout?
-        add_variables_to_assigns
-        logger.info("Rendering #{template_name} within #{layout}") unless logger.nil?
-        @content_for_layout = @template.render_file(template_name, true)
-        render_without_layout(layout, status)
-      else
-        render_without_layout(template_name, status)
-      end
-    end
+    def render_with_a_layout(options = {}, deprecated_status = nil, deprecated_layout = nil) #:nodoc:
+      if (layout = pick_layout(options, deprecated_layout)) && options.is_a?(Hash) && options[:text]
+        logger.info("Rendering #{options[:template]} within #{layout}") unless logger.nil?
 
-    def render_with_layout(options = {}, deprecated_status = nil, deprecated_layout = nil)
-      if (layout = active_layout_for_r(options, deprecated_layout)) && options[:text]
-        add_variables_to_assigns
-        logger.info("Rendering #{template_name} within #{layout}") unless logger.nil?
-
-        @content_for_layout = render_without_layout(options)
-        add_variables_to_assigns
-
+        @content_for_layout = render_with_no_layout(options.merge(:layout => false))
         erase_render_results
-        render_without_layout(options.merge({ :text => @template.render_file(layout, true), :status => options[:status] || deprecated_status }))
+
+        add_variables_to_assigns
+        render_with_no_layout(options.merge({ :text => @template.render_file(layout, true), :status => options[:status] || deprecated_status }))
       else
-        render_without_layout(options, deprecated_status)
+        render_with_no_layout(options, deprecated_status)
       end
     end
 
     private
-      def active_layout_for_r(options = {}, deprecated_layout = nil)
+      def pick_layout(options = {}, deprecated_layout = nil)
         return deprecated_layout unless deprecated_layout.nil?
 
-        case options[:layout]
-          when FalseClass
-            nil
-          when NilClass
-            active_layout if action_has_layout?
-          else
-            active_layout(options[:layout])
+        if options.is_a?(Hash)
+          case options[:layout]
+            when FalseClass
+              nil
+            when NilClass
+              active_layout if action_has_layout?
+            else
+              active_layout(options[:layout])
+          end
+        else
+          (deprecated_layout || active_layout) if action_has_layout?
         end
       end
     

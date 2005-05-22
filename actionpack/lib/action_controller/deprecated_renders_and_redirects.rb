@@ -26,7 +26,7 @@ module ActionController
       # considerably faster than rendering through the template engine.
       # Use block for response body if provided (useful for deferred rendering or streaming output).
       def render_text(text = nil, status = nil) #:doc:
-        render(:text => text, :status => status) { yield }
+        render :text => text, :status => status
       end
 
       # Renders an empty response that can be used when the request is only interested in triggering an effect. Do note that good
@@ -49,6 +49,14 @@ module ActionController
       # Renders a collection of partials using <tt>partial_name</tt> to iterate over the +collection+.
       def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {})#:doc:
         render :partial => partial_name, :collection => collection, :spacer_template => partial_spacer_template, :locals => local_assigns
+      end
+
+      def render_with_layout(template_name = default_template_name, status = nil, layout = nil) #:nodoc:
+        render :template => template_name, :status => status, :layout => layout
+      end
+
+      def render_without_layout(template_name = default_template_name, status = nil) #:nodoc:
+        render :template => template_name, :status => status, :layout => false
       end
 
 
