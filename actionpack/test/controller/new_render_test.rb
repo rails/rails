@@ -17,29 +17,29 @@ class TestController < ActionController::Base
   end
 
   def render_hello_world
-    r :template => "test/hello_world"
+    render :template => "test/hello_world"
   end
 
   def render_hello_world_from_variable
     @person = "david"
-    r :text => "hello #{@person}"
+    render :text => "hello #{@person}"
   end
 
   def render_action_hello_world
-    r :action => "hello_world"
+    render :action => "hello_world"
   end
   
   def render_text_hello_world
-    r :text => "hello world"
+    render :text => "hello world"
   end
 
   def render_custom_code
-    r :text => "hello world", :status => "404 Moved"
+    render :text => "hello world", :status => "404 Moved"
   end
   
   def render_xml_hello
     @name = "David"
-    r :template => "test/hello"
+    render :template => "test/hello"
   end
 
   def greeting
@@ -47,24 +47,24 @@ class TestController < ActionController::Base
   end
 
   def layout_test
-    r :action => "hello_world"
+    render :action => "hello_world"
   end
 
   def layout_test_with_different_layout
-    r :action => "hello_world", :layout => "standard"
+    render :action => "hello_world", :layout => "standard"
   end
   
   def rendering_without_layout
-    r :action => "hello_world", :layout => false
+    render :action => "hello_world", :layout => false
   end
   
   def builder_layout_test
-    r :action => "hello"
+    render :action => "hello"
   end
 
   def partials_list
     @customers = [ Customer.new("david"), Customer.new("mary") ]
-    r :action => "list"
+    render :action => "list"
   end
 
   def partial_only
@@ -73,11 +73,11 @@ class TestController < ActionController::Base
 
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
-    r :text =>  "How's there? #{render_to_string("test/list")}"
+    render :text =>  "How's there? #{render_to_string("test/list")}"
   end
   
   def accessing_params_in_template
-    r :inline =>  "Hello: <%= params[:name] %>"
+    render :inline =>  "Hello: <%= params[:name] %>"
   end
 
   def rescue_action(e) raise end

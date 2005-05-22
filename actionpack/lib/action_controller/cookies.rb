@@ -3,17 +3,17 @@ module ActionController #:nodoc:
   # the cookies being written is what will be sent out will the response. Cookies are read by value (so you won't get the cookie object
   # itself back -- just the value it holds). Examples for writing:
   #
-  #   cookies["user_name"] = "david" # => Will set a simple session cookie
-  #   cookies["login"] = { :value => "XJ-122", :expires => Time.now + 360} # => Will set a cookie that expires in 1 hour
+  #   cookies[:user_name] = "david" # => Will set a simple session cookie
+  #   cookies[:login] = { :value => "XJ-122", :expires => Time.now + 360} # => Will set a cookie that expires in 1 hour
   #   
   # Examples for reading:
   #
-  #   cookies["user_name"] # => "david"
+  #   cookies[:user_name] # => "david"
   #   cookies.size         # => 2
   # 
   # Example for deleting:
   #
-  #   cookies.delete "user_name"
+  #   cookies.delete :user_name
   #
   # All the option symbols for setting cookies are:
   #
@@ -24,10 +24,16 @@ module ActionController #:nodoc:
   # * <tt>secure</tt> - whether this cookie is a secure cookie or not (default to false).
   #   Secure cookies are only transmitted to HTTPS servers.
   module Cookies
-    # Returns the cookie container, which operates as described above.
-    def cookies
-      CookieJar.new(self)
-    end
+    protected
+      # Returns the cookie container, which operates as described above.
+      def cookies
+        CookieJar.new(self)
+      end
+
+      # Deprecated cookie writer method
+      def cookie(*options)
+        @response.headers["cookie"] << CGI::Cookie.new(*options)
+      end
   end
   
   class CookieJar < Hash #:nodoc:

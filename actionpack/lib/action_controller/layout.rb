@@ -6,9 +6,6 @@ module ActionController #:nodoc:
         alias_method :render_without_layout, :render
         alias_method :render, :render_with_layout
 
-        alias_method :r_without_layout, :r
-        alias_method :r, :r_with_layout
-
         class << self
           alias_method :inherited_without_layout, :inherited
         end
@@ -205,7 +202,7 @@ module ActionController #:nodoc:
       active_layout.include?("/") ? active_layout : "layouts/#{active_layout}" if active_layout
     end
 
-    def render_with_layout(template_name = default_template_name, status = nil, layout = nil) #:nodoc:
+    def xrender_with_layout(template_name = default_template_name, status = nil, layout = nil) #:nodoc:
       if layout ||= active_layout and action_has_layout?
         add_variables_to_assigns
         logger.info("Rendering #{template_name} within #{layout}") unless logger.nil?
@@ -216,23 +213,25 @@ module ActionController #:nodoc:
       end
     end
 
-    def r_with_layout(options = {})
-      if (layout = active_layout_for_r(options)) && options[:text]
+    def render_with_layout(options = {}, deprecated_status = nil, deprecated_layout = nil)
+      if (layout = active_layout_for_r(options, deprecated_layout)) && options[:text]
         add_variables_to_assigns
         logger.info("Rendering #{template_name} within #{layout}") unless logger.nil?
 
-        @content_for_layout = r_without_layout(options)
+        @content_for_layout = render_without_layout(options)
         add_variables_to_assigns
 
         erase_render_results
-        r_without_layout(options.merge({ :text => @template.render_file(layout, true)}))
+        render_without_layout(options.merge({ :text => @template.render_file(layout, true), :status => options[:status] || deprecated_status }))
       else
-        r_without_layout(options)
+        render_without_layout(options, deprecated_status)
       end
     end
 
     private
-      def active_layout_for_r(options = {})
+      def active_layout_for_r(options = {}, deprecated_layout = nil)
+        return deprecated_layout unless deprecated_layout.nil?
+
         case options[:layout]
           when FalseClass
             nil
@@ -244,7 +243,7 @@ module ActionController #:nodoc:
       end
     
       def action_has_layout?
-        conditions = self.class.layout_conditions
+        conditions = self.class.layout_conditions || {}
         case
           when conditions[:only]
             conditions[:only].include?(action_name)

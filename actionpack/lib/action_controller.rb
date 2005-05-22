@@ -32,6 +32,7 @@ rescue LoadError
 end
 
 require 'action_controller/base'
+require 'action_controller/deprecated_renders_and_redirects'
 require 'action_controller/rescue'
 require 'action_controller/benchmarking'
 require 'action_controller/filters'
@@ -47,6 +48,7 @@ require 'action_controller/cgi_process'
 require 'action_controller/caching'
 require 'action_controller/components'
 require 'action_controller/verification'
+require 'action_controller/streaming'
 
 require 'action_view'
 ActionController::Base.template_class = ActionView::Base
@@ -66,4 +68,5 @@ ActionController::Base.class_eval do
   include ActionController::Caching
   include ActionController::Components
   include ActionController::Verification
+  include ActionController::Streaming
 end

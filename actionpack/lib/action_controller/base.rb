@@ -205,13 +205,6 @@ module ActionController #:nodoc:
   
     DEFAULT_RENDER_STATUS_CODE = "200 OK"
   
-    DEFAULT_SEND_FILE_OPTIONS = {
-      :type         => 'application/octet-stream'.freeze,
-      :disposition  => 'attachment'.freeze,
-      :stream       => true, 
-      :buffer_size  => 4096
-    }.freeze
-
     # Determines whether the view has access to controller internals @request, @response, @session, and @template.
     # By default, it does.
     @@view_controller_internals = true
@@ -439,235 +432,73 @@ module ActionController #:nodoc:
       end
 
     protected
+      # Renders the template specified by <tt>template_name</tt>, which defaults to the name of the current controller and action.
+      # So calling +render+ in WeblogController#show will attempt to render "#{template_root}/weblog/show.rhtml" or 
+      # "#{template_root}/weblog/show.rxml" (in that order). The template_root is set on the ActionController::Base class and is 
+      # shared by all controllers. It's also possible to pass a status code using the second parameter. This defaults to "200 OK", 
+      # but can be changed, such as by calling <tt>render("weblog/error", "500 Error")</tt>.
+
       # A unified replacement for the individual renders (work-in-progress).
-      def r(options = {}, &block)
+      def render(options = {}, deprecated_status = nil)
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
+
+        # Backwards compatibility
+        return render({ :template => options || default_template_name, :status => deprecated_status }) if !options.is_a?(Hash)
+
         add_variables_to_assigns
         options[:status] = (options[:status] || DEFAULT_RENDER_STATUS_CODE).to_s
 
         if options[:text]
           @response.headers["Status"] = options[:status]
-          @response.body = block_given? ? block : options[:text]
+          @response.body = options[:text]
           @performed_render = true
           return options[:text]
 
         elsif options[:file]
           assert_existance_of_template_file(options[:file]) if options[:use_full_path]
           logger.info("Rendering #{options[:file]} (#{options[:status]})") unless logger.nil?
-          r(options.merge({ :text => @template.render_file(options[:file], options[:use_full_path])}))
+          render(options.merge({ :text => @template.render_file(options[:file], options[:use_full_path])}))
 
         elsif options[:template]
-          r(options.merge({ :file => options[:template], :use_full_path => true }))
+          render(options.merge({ :file => options[:template], :use_full_path => true }))
 
         elsif options[:inline]
-          r(options.merge({ :text => @template.render_template(options[:type] || :rhtml, options[:inline]) }))
+          render(options.merge({ :text => @template.render_template(options[:type] || :rhtml, options[:inline]) }))
 
         elsif options[:action]
-          r(options.merge({ :template => default_template_name(options[:action]) }))
+          render(options.merge({ :template => default_template_name(options[:action]) }))
 
         elsif options[:partial] && options[:collection]
-          r(options.merge({ 
+          render(options.merge({ 
             :text => (
               @template.render_partial_collection(
-                options[:partial], options[:collection], options[:spacer_template], options[:local_assigns]
+                options[:partial], options[:collection], options[:spacer_template], options[:locals]
               ) || ''
             )
           }))
 
         elsif options[:partial]
-          r(options.merge({ :text => @template.render_partial(options[:partial], options[:object], options[:local_assigns]) }))
+          render(options.merge({ :text => @template.render_partial(options[:partial], options[:object], options[:locals]) }))
           
         elsif options[:nothing]
-          r(options.merge({ :text => "" }))
+          render(options.merge({ :text => "" }))
 
         else
-          r(options.merge({ :template => default_template_name }))
+          render(options.merge({ :template => default_template_name }))
         end
-      end
-    
-      # Renders the template specified by <tt>template_name</tt>, which defaults to the name of the current controller and action.
-      # So calling +render+ in WeblogController#show will attempt to render "#{template_root}/weblog/show.rhtml" or 
-      # "#{template_root}/weblog/show.rxml" (in that order). The template_root is set on the ActionController::Base class and is 
-      # shared by all controllers. It's also possible to pass a status code using the second parameter. This defaults to "200 OK", 
-      # but can be changed, such as by calling <tt>render("weblog/error", "500 Error")</tt>.
-      def render(template_name = nil, status = nil) #:doc:
-        render_file(template_name || default_template_name, status, true)
-      end
-      
-      # Works like render, but instead of requiring a full template name, you can get by with specifying the action name. So calling
-      # <tt>render_action "show_many"</tt> in WeblogController#display will render "#{template_root}/weblog/show_many.rhtml" or 
-      # "#{template_root}/weblog/show_many.rxml".
-      def render_action(action_name, status = nil) #:doc:
-        render(default_template_name(action_name), status)
-      end
-      
-      # Works like render, but disregards the template_root and requires a full path to the template that needs to be rendered. Can be
-      # used like <tt>render_file "/Users/david/Code/Ruby/template"</tt> to render "/Users/david/Code/Ruby/template.rhtml" or
-      # "/Users/david/Code/Ruby/template.rxml".
-      def render_file(template_path, status = nil, use_full_path = false) #:doc:
-        assert_existance_of_template_file(template_path) if use_full_path
-        logger.info("Rendering #{template_path} (#{status || DEFAULT_RENDER_STATUS_CODE})") unless logger.nil?
-
-        add_variables_to_assigns
-        render_text(@template.render_file(template_path, use_full_path), status)
-      end
-      
-      # Renders the +template+ string, which is useful for rendering short templates you don't want to bother having a file for. So
-      # you'd call <tt>render_template "Hello, <%= @user.name %>"</tt> to greet the current user. Or if you want to render as Builder
-      # template, you could do <tt>render_template "xml.h1 @user.name", nil, "rxml"</tt>.
-      def render_template(template, status = nil, type = "rhtml") #:doc:
-        add_variables_to_assigns
-        render_text(@template.render_template(type, template), status)
-      end
-
-      # Renders the +text+ string without parsing it through any template engine. Useful for rendering static information as it's
-      # considerably faster than rendering through the template engine.
-      # Use block for response body if provided (useful for deferred rendering or streaming output).
-      def render_text(text = nil, status = nil, &block) #:doc:
-        raise DoubleRenderError, "Can only render or redirect once per action" if performed?
-        add_variables_to_assigns
-        @response.headers["Status"] = (status || DEFAULT_RENDER_STATUS_CODE).to_s
-        @response.body = block_given? ? block : text
-        @performed_render = true
-      end
-      
-      # Renders an empty response that can be used when the request is only interested in triggering an effect. Do note that good
-      # HTTP manners mandate that you don't use GET requests to trigger data changes.
-      def render_nothing(status = nil) #:doc:
-        render_text "", status
       end
 
       # Returns the result of the render as a string.
-      def render_to_string(template_name = default_template_name) #:doc:
-        add_variables_to_assigns
-        @template.render_file(template_name)
+      def render_to_string(options) #:doc:
+        result = render(options)
+        erase_render_results
+        return result
       end
-
+      
       # Clears the rendered results, allowing for another render or redirect to be performed.
       def erase_render_results #:nodoc:
         @response.body = nil
         @performed_render = false
-      end
-      
-      # Renders the partial specified by <tt>partial_path</tt>, which by default is the name of the action itself. Example:
-      #
-      #   class WeblogController < ActionController::Base
-      #     def show
-      #       render_partial # renders "weblog/_show.r(xml|html)"
-      #     end
-      #   end
-      def render_partial(partial_path = default_template_name, object = nil, local_assigns = {}) #:doc:
-        add_variables_to_assigns
-        render_text(@template.render_partial(partial_path, object, local_assigns))
-      end
-
-      # Renders a collection of partials using <tt>partial_name</tt> to iterate over the +collection+.
-      def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {})#:doc:
-        add_variables_to_assigns
-        render_text(@template.render_collection_of_partials(partial_name, collection, partial_spacer_template, local_assigns) || '')
-      end
-
-      # Sends the file by streaming it 4096 bytes at a time. This way the
-      # whole file doesn't need to be read into memory at once.  This makes
-      # it feasible to send even large files.
-      #
-      # Be careful to sanitize the path parameter if it coming from a web
-      # page.  send_file(@params['path']) allows a malicious user to
-      # download any file on your server.
-      #
-      # Options:
-      # * <tt>:filename</tt> - suggests a filename for the browser to use.
-      #   Defaults to File.basename(path).
-      # * <tt>:type</tt> - specifies an HTTP content type.
-      #   Defaults to 'application/octet-stream'.
-      # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
-      #   Valid values are 'inline' and 'attachment' (default).
-      # * <tt>:streaming</tt> - whether to send the file to the user agent as it is read (true)
-      #   or to read the entire file before sending (false). Defaults to true.
-      # * <tt>:buffer_size</tt> - specifies size (in bytes) of the buffer used to stream the file.
-      #   Defaults to 4096.
-      #
-      # The default Content-Type and Content-Disposition headers are
-      # set to download arbitrary binary files in as many browsers as
-      # possible.  IE versions 4, 5, 5.5, and 6 are all known to have
-      # a variety of quirks (especially when downloading over SSL).
-      #
-      # Simple download:
-      #   send_file '/path/to.zip'
-      #
-      # Show a JPEG in browser:
-      #   send_file '/path/to.jpeg', :type => 'image/jpeg', :disposition => 'inline'
-      #
-      # Read about the other Content-* HTTP headers if you'd like to
-      # provide the user with more information (such as Content-Description).
-      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.11
-      #
-      # Also be aware that the document may be cached by proxies and browsers.
-      # The Pragma and Cache-Control headers declare how the file may be cached
-      # by intermediaries.  They default to require clients to validate with
-      # the server before releasing cached responses.  See
-      # http://www.mnot.net/cache_docs/ for an overview of web caching and
-      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9
-      # for the Cache-Control header spec.
-      def send_file(path, options = {}) #:doc:
-        raise MissingFile, "Cannot read file #{path}" unless File.file?(path) and File.readable?(path)
-
-        options[:length]   ||= File.size(path)
-        options[:filename] ||= File.basename(path)
-        send_file_headers! options
-
-        @performed_render = false
-
-        if options[:stream]
-          render_text do
-            logger.info "Streaming file #{path}" unless logger.nil?
-            len = options[:buffer_size] || 4096
-            File.open(path, 'rb') do |file|
-              if $stdout.respond_to?(:syswrite)
-                begin
-                  while true
-                    $stdout.syswrite file.sysread(len)
-                  end
-                rescue EOFError
-                end
-              else
-                while buf = file.read(len)
-                  $stdout.write buf
-                end
-              end
-            end
-          end
-        else
-          logger.info "Sending file #{path}" unless logger.nil?
-          File.open(path, 'rb') { |file| render_text file.read }
-        end
-      end
-
-      # Send binary data to the user as a file download.  May set content type, apparent file name,
-      # and specify whether to show data inline or download as an attachment.
-      #
-      # Options:
-      # * <tt>:filename</tt> - Suggests a filename for the browser to use.
-      # * <tt>:type</tt> - specifies an HTTP content type.
-      #   Defaults to 'application/octet-stream'.
-      # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
-      #   Valid values are 'inline' and 'attachment' (default).
-      #
-      # Generic data download:
-      #   send_data buffer
-      #
-      # Download a dynamically-generated tarball:
-      #   send_data generate_tgz('dir'), :filename => 'dir.tgz'
-      #
-      # Display an image Active Record in the browser:
-      #   send_data image.data, :type => image.content_type, :disposition => 'inline'
-      #
-      # See +send_file+ for more information on HTTP Content-* headers and caching.
-      def send_data(data, options = {}) #:doc:
-        logger.info "Sending data #{options[:filename]}" unless logger.nil?
-        send_file_headers! options.merge(:length => data.size)
-        @performed_render = false
-        render_text data
       end
 
       def rewrite_options(options)
@@ -724,19 +555,6 @@ module ActionController #:nodoc:
             end
         end
       end
-      
-      # Deprecated in favor of calling redirect_to directly with the path.
-      def redirect_to_path(path) #:doc:
-        redirect_to(path)
-      end
-
-      # Deprecated in favor of calling redirect_to directly with the url. If the resource has moved permanently, it's possible to pass
-      # true as the second parameter and the browser will get "301 Moved Permanently" instead of "302 Found". This can also be done through
-      # just setting the headers["Status"] to "301 Moved Permanently" before using the redirect_to.
-      def redirect_to_url(url, permanently = false) #:doc:
-        headers["Status"] = "301 Moved Permanently" if permanently
-        redirect_to(url)
-      end
 
       # Resets the session by clearing out all the objects stored within and initializing a new session object.
       def reset_session #:doc:
@@ -745,11 +563,6 @@ module ActionController #:nodoc:
         @response.session = @session
       end
     
-      # Deprecated cookie writer method
-      def cookie(*options)
-        @response.headers["cookie"] << CGI::Cookie.new(*options)
-      end
-
     private
       def initialize_template_class(response)
         begin
@@ -800,7 +613,8 @@ module ActionController #:nodoc:
       def action_methods
         @action_methods ||= (self.class.public_instance_methods - self.class.hidden_actions)
       end
-      
+
+
       def add_variables_to_assigns
         add_instance_variables_to_assigns
         add_class_variables_to_assigns if view_controller_internals
@@ -828,6 +642,7 @@ module ActionController #:nodoc:
         end
       end
 
+
       def request_origin
         "#{@request.remote_ip} at #{Time.now.to_s}"
       end
@@ -835,6 +650,7 @@ module ActionController #:nodoc:
       def close_session
         @session.close unless @session.nil? || Hash === @session
       end
+
       
       def template_exists?(template_name = default_template_name)
         @template.file_exists?(template_name)
@@ -850,23 +666,6 @@ module ActionController #:nodoc:
           template_type = (template_name =~ /layouts/i) ? 'layout' : 'template'
           raise(MissingTemplate, "Missing #{template_type} #{full_template_path}")
         end
-      end
-
-      def send_file_headers!(options)
-        options.update(DEFAULT_SEND_FILE_OPTIONS.merge(options))
-        [:length, :type, :disposition].each do |arg|
-          raise ArgumentError, ":#{arg} option required" if options[arg].nil?
-        end
-
-        disposition = options[:disposition].dup || 'attachment'
-        disposition <<= %(; filename="#{options[:filename]}") if options[:filename]
-
-        @headers.update(
-          'Content-Length'            => options[:length],
-          'Content-Type'              => options[:type].strip,  # fixes a problem with extra '\r' with some browsers
-          'Content-Disposition'       => disposition,
-          'Content-Transfer-Encoding' => 'binary'
-        );
       end
 
       def default_template_name(default_action_name = action_name)

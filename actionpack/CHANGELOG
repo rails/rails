@@ -1,5 +1,19 @@
 *SVN*
 
+* Deprecated all render_* methods in favor of consolidating all rendering behavior in Base#render(options). This enables more natural use of combining options, such as layouts. Examples:
+
+    +---------------------------------------------------------------+-------------------------------------------------------+
+    | BEFORE                                                        | AFTER                                                 |
+    +---------------------------------------------------------------+-------------------------------------------------------+
+    | render_with_layout "weblog/show", "200 OK", "layouts/dialog"  | render :action => "show", :layout => "dialog"         |
+    | render_without_layout "weblog/show"                           | render :action => "show", :layout => false            |
+    | render_action "error", "404 Not Found"                        | render :action => "error", :status => "404 Not Found" |
+    | render_template "xml.div('stuff')", "200 OK", :rxml           | render :inline => "xml.div('stuff')", :type => :rxml  |
+    | render_text "hello world!"                                    | render :text => "hello world!"                        |
+    | render_partial_collection "person", @people, nil, :a => 1     | render :partial => "person", :collection => @people,  |
+    |                                                               |        :locals => { :a => 1 }                         |
+    +---------------------------------------------------------------+-------------------------------------------------------+      
+
 * Deprecated redirect_to_path and redirect_to_url in favor of letting redirect_to do the right thing when passed either a path or url.
 
 * Fixed use of an integer as return code for renders, so render_text "hello world", 404 now works #1327
