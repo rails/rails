@@ -1,6 +1,8 @@
 module ActionController
   # These methods are available in both the production and test Request objects.
   class AbstractRequest
+    cattr_accessor :relative_url_root
+    
     # Returns both GET and POST parameters in a single hash.
     def parameters
       @parameters ||= request_parameters.merge(query_parameters).merge(path_parameters).with_indifferent_access
@@ -57,6 +59,16 @@ module ActionController
     def yaml_post?
       post_format == :yaml && post?
     end
+
+
+    # Returns true if the request's "X-Requested-With" header contains
+    # "XMLHttpRequest". (The Prototype Javascript library sends this header with
+    # every Ajax request.)
+    def xml_http_request?
+      env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i
+    end
+    alias xhr? :xml_http_request?
+
     
     
     # Determine originating IP address.  REMOTE_ADDR is the standard
@@ -120,20 +132,15 @@ module ActionController
       protocol == 'https://'
     end
   
-    # returns the interpreted path to requested resource after
-    # all the installation directory of this application was taken into account
+    # Returns the interpreted path to requested resource after all the installation directory of this application was taken into account
     def path
-      uri = request_uri
-      path = uri ? uri.split('?').first : ''
-
-      # cut off the part of the url which leads to the installation directory of this app
-      path[relative_url_root.length..-1]
+      path = (uri = request_uri) ? uri.split('?').first : ''
+      path[relative_url_root.length..-1] # cut off the part of the url which leads to the installation directory of this app
     end    
     
-    # returns the path minus the web server relative 
-    # installation directory
-    def relative_url_root
-      @@relative_url_root ||= File.dirname(env["SCRIPT_NAME"].to_s).gsub /(^\.$|^\/$)/, ''
+    # Returns the path minus the web server relative installation directory
+    def relative_url_root(force_reload = false)
+      @@relative_url_root ||= File.dirname(env["SCRIPT_NAME"].to_s).gsub(/(^\.$|^\/$)/, '')
     end
 
     def port
@@ -157,14 +164,6 @@ module ActionController
     def path_parameters
       @path_parameters ||= {}
     end
-    
-    # Returns true if the request's "X-Requested-With" header contains
-    # "XMLHttpRequest". (The Prototype Javascript library sends this header with
-    # every Ajax request.)
-    def xml_http_request?
-      env['HTTP_X_REQUESTED_WITH'] =~ /XMLHttpRequest/i
-    end
-    alias xhr? :xml_http_request?
     
     #--
     # Must be implemented in the concrete request

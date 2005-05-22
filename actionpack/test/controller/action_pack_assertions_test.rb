@@ -13,7 +13,7 @@ class ActionPackAssertionsController < ActionController::Base
   def hello_xml_world() render "test/hello_xml_world"; end
  
   # a redirect to an internal location
-  def redirect_internal() redirect_to "nothing"; end
+  def redirect_internal() redirect_to "/nothing"; end
 
   def redirect_to_action() redirect_to :action => "flash_me", :id => 1, :params => { "panda" => "fun" }; end
 
@@ -270,7 +270,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # check the redirection location
   def test_redirection_location
     process :redirect_internal
-    assert_equal 'nothing', @response.redirect_url
+    assert_equal 'http://test.host/nothing', @response.redirect_url
 
     process :redirect_external
     assert_equal 'http://www.rubyonrails.org', @response.redirect_url

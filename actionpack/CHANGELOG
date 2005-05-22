@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecated redirect_to_path and redirect_to_url in favor of letting redirect_to do the right thing when passed either a path or url.
+
 * Fixed use of an integer as return code for renders, so render_text "hello world", 404 now works #1327
 
 * Fixed assert_redirect_to to work with redirect_to_path #869 [Nicholas Seckar]

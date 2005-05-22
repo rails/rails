@@ -5,6 +5,10 @@ module ActionController #:nodoc:
       base.class_eval do
         alias_method :render_without_layout, :render
         alias_method :render, :render_with_layout
+
+        alias_method :r_without_layout, :r
+        alias_method :r, :r_with_layout
+
         class << self
           alias_method :inherited_without_layout, :inherited
         end
@@ -212,8 +216,33 @@ module ActionController #:nodoc:
       end
     end
 
+    def r_with_layout(options = {})
+      if (layout = active_layout_for_r(options)) && options[:text]
+        add_variables_to_assigns
+        logger.info("Rendering #{template_name} within #{layout}") unless logger.nil?
+
+        @content_for_layout = r_without_layout(options)
+        add_variables_to_assigns
+
+        erase_render_results
+        r_without_layout(options.merge({ :text => @template.render_file(layout, true)}))
+      else
+        r_without_layout(options)
+      end
+    end
+
     private
-      
+      def active_layout_for_r(options = {})
+        case options[:layout]
+          when FalseClass
+            nil
+          when NilClass
+            active_layout if action_has_layout?
+          else
+            active_layout(options[:layout])
+        end
+      end
+    
       def action_has_layout?
         conditions = self.class.layout_conditions
         case
@@ -225,6 +254,5 @@ module ActionController #:nodoc:
             true
         end
       end
-
   end
 end
