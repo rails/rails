@@ -58,6 +58,10 @@ class TestController < ActionController::Base
     render :action => "hello_world", :layout => false
   end
   
+  def rendering_nothing_on_layout
+    render :nothing => true
+  end
+  
   def builder_layout_test
     render :action => "hello"
   end
@@ -85,7 +89,7 @@ class TestController < ActionController::Base
   private
     def determine_layout
       case action_name 
-        when "layout_test", "rendering_without_layout"
+        when "layout_test", "rendering_without_layout", "rendering_nothing_on_layout"
           "layouts/standard"
         when "builder_layout_test"
           "layouts/builder"
@@ -197,6 +201,11 @@ class RenderTest < Test::Unit::TestCase
   def test_rendering_without_layout
     @request.action = "rendering_without_layout"
     assert_equal "Hello world!", process_request.body
+  end
+
+  def test_rendering_nothing_on_layout
+    @request.action = "rendering_nothing_on_layout"
+    assert_equal "", process_request.body
   end
 
   def test_render_xml_with_layouts
