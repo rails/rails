@@ -14,21 +14,21 @@ class TestMailer < ActionMailer::Base
   end
 
   def cancelled_account(recipient)
-    @recipients = recipient
-    @subject    = "[Cancelled] Goodbye #{recipient}"
-    @from       = "system@loudthinking.com"
-    @sent_on    = Time.local(2004, 12, 12)
-    @body       = "Goodbye, Mr. #{recipient}"
+    self.recipients = recipient
+    self.subject    = "[Cancelled] Goodbye #{recipient}"
+    self.from       = "system@loudthinking.com"
+    self.sent_on    = Time.local(2004, 12, 12)
+    self.body       = "Goodbye, Mr. #{recipient}"
   end
 
   def cc_bcc(recipient)
-    @recipients = recipient
-    @subject    = "testing bcc/cc"
-    @from       = "system@loudthinking.com"
-    @sent_on    = Time.local 2004, 12, 12
-    @cc         = "nobody@loudthinking.com"
-    @bcc        = "root@loudthinking.com"
-    @body       = "Nothing to see here."
+    recipients recipient
+    subject    "testing bcc/cc"
+    from       "system@loudthinking.com"
+    sent_on    Time.local(2004, 12, 12)
+    cc         "nobody@loudthinking.com"
+    bcc        "root@loudthinking.com"
+    body       "Nothing to see here."
   end
 
   def iso_charset(recipient)
@@ -74,6 +74,30 @@ class TestMailer < ActionMailer::Base
     @charset    = "utf-8"
   end
 
+  def explicitly_multipart_example(recipient)
+    @recipients = recipient
+    @subject    = "multipart example"
+    @from       = "test@example.com"
+    @sent_on    = Time.local 2004, 12, 12
+    @body       = "plain text default"
+
+    part "text/html" do |p|
+      p.charset = "iso-8859-1"
+      p.body = "blah"
+    end
+
+    attachment :content_type => "image/jpeg", :filename => "foo.jpg",
+      :body => "123456789"
+  end
+
+  def implicitly_multipart_example(recipient)
+    @recipients = recipient
+    @subject    = "multipart example"
+    @from       = "test@example.com"
+    @sent_on    = Time.local 2004, 12, 12
+    @body       = { "recipient" => recipient }
+  end
+
   class <<self
     attr_accessor :received_body
   end
@@ -86,9 +110,10 @@ end
 TestMailer.template_root = File.dirname(__FILE__) + "/fixtures"
 
 class ActionMailerTest < Test::Unit::TestCase
+  include ActionMailer::Quoting
 
   def encode( text, charset="utf-8" )
-    ActionMailer::Base.quoted_printable( text, charset )
+    quoted_printable( text, charset )
   end
 
   def new_mail( charset="utf-8" )
@@ -312,12 +337,12 @@ EOF
     @recipient = "Grytøyr <test@localhost>"
 
     expected = new_mail "iso-8859-1"
-    expected.to      = TestMailer.quote_address_if_necessary @recipient, "iso-8859-1"
+    expected.to      = quote_address_if_necessary @recipient, "iso-8859-1"
     expected.subject = "testing extended headers"
     expected.body    = "Nothing to see here."
-    expected.from    = TestMailer.quote_address_if_necessary "Grytøyr <stian1@example.net>", "iso-8859-1"
-    expected.cc      = TestMailer.quote_address_if_necessary "Grytøyr <stian2@example.net>", "iso-8859-1"
-    expected.bcc     = TestMailer.quote_address_if_necessary "Grytøyr <stian3@example.net>", "iso-8859-1"
+    expected.from    = quote_address_if_necessary "Grytøyr <stian1@example.net>", "iso-8859-1"
+    expected.cc      = quote_address_if_necessary "Grytøyr <stian2@example.net>", "iso-8859-1"
+    expected.bcc     = quote_address_if_necessary "Grytøyr <stian3@example.net>", "iso-8859-1"
     expected.date    = Time.local 2004, 12, 12
 
     created = nil
@@ -339,12 +364,12 @@ EOF
   def test_utf8_body_is_not_quoted
     @recipient = "Foo áëô îü <extended@example.net>"
     expected = new_mail "utf-8"
-    expected.to      = TestMailer.quote_address_if_necessary @recipient, "utf-8"
+    expected.to      = quote_address_if_necessary @recipient, "utf-8"
     expected.subject = "testing utf-8 body"
     expected.body    = "åœö blah"
-    expected.from    = TestMailer.quote_address_if_necessary @recipient, "utf-8"
-    expected.cc      = TestMailer.quote_address_if_necessary @recipient, "utf-8"
-    expected.bcc     = TestMailer.quote_address_if_necessary @recipient, "utf-8"
+    expected.from    = quote_address_if_necessary @recipient, "utf-8"
+    expected.cc      = quote_address_if_necessary @recipient, "utf-8"
+    expected.bcc     = quote_address_if_necessary @recipient, "utf-8"
     expected.date    = Time.local 2004, 12, 12
 
     created = TestMailer.create_utf8_body @recipient
@@ -354,12 +379,12 @@ EOF
   def test_multiple_utf8_recipients
     @recipient = ["\"Foo áëô îü\" <extended@example.net>", "\"Example Recipient\" <me@example.com>"]
     expected = new_mail "utf-8"
-    expected.to      = TestMailer.quote_address_if_necessary @recipient, "utf-8"
+    expected.to      = quote_address_if_necessary @recipient, "utf-8"
     expected.subject = "testing utf-8 body"
     expected.body    = "åœö blah"
-    expected.from    = TestMailer.quote_address_if_necessary @recipient.first, "utf-8"
-    expected.cc      = TestMailer.quote_address_if_necessary @recipient, "utf-8"
-    expected.bcc     = TestMailer.quote_address_if_necessary @recipient, "utf-8"
+    expected.from    = quote_address_if_necessary @recipient.first, "utf-8"
+    expected.cc      = quote_address_if_necessary @recipient, "utf-8"
+    expected.bcc     = quote_address_if_necessary @recipient, "utf-8"
     expected.date    = Time.local 2004, 12, 12
 
     created = TestMailer.create_utf8_body @recipient
@@ -398,6 +423,27 @@ EOF
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email5")
     mail = TMail::Mail.parse(fixture)
     assert_nothing_raised { mail.body }
+  end
+
+  def test_explicitly_multipart_messages
+    mail = TestMailer.create_explicitly_multipart_example(@recipient)
+    assert_equal 3, mail.parts.length
+    assert_equal "text/plain", mail.parts[0].content_type
+
+    assert_equal "text/html", mail.parts[1].content_type
+    assert_equal "inline", mail.parts[1].content_disposition
+
+    assert_equal "image/jpeg", mail.parts[2].content_type
+    assert_equal "attachment", mail.parts[2].content_disposition
+    assert_equal "foo.jpg", mail.parts[2].sub_header("content-disposition", "filename")
+    assert_equal "foo.jpg", mail.parts[2].sub_header("content-type", "name")
+  end
+
+  def test_implicitly_multipart_messages
+    mail = TestMailer.create_implicitly_multipart_example(@recipient)
+    assert_equal 2, mail.parts.length
+    assert_equal "text/html", mail.parts[0].content_type
+    assert_equal "text/plain", mail.parts[1].content_type
   end
 
 end

@@ -1,23 +1,70 @@
+require 'action_mailer/adv_attr_accessor'
+require 'action_mailer/part'
+
 module ActionMailer #:nodoc:
   # Usage:
   #
   #   class ApplicationMailer < ActionMailer::Base
-  #     def post_notification(recipients, post)
-  #       @recipients          = recipients
-  #       @from                = post.author.email_address_with_name
-  #       @headers["bcc"]      = SYSTEM_ADMINISTRATOR_EMAIL
-  #       @headers["reply-to"] = "notifications@example.com"
-  #       @subject             = "[#{post.account.name} #{post.title}]"
-  #       @body["post"]        = post
+  #     # Set up properties
+  #     # (Properties can also be specified via accessor methods
+  #     # i.e. self.subject = "foo") and instance variables (@subject = "foo").
+  #     def signup_notification(recipient)
+  #       recipients recipient.email_address_with_name
+  #       subject    "New account information"
+  #       body       Hash.new("account" => recipient)
+  #       from       "system@example.com"
   #     end
-  #     
-  #     def comment_notification(recipient, comment)
-  #       @recipients      = recipient.email_address_with_name
-  #       @subject         = "[#{comment.post.project.client.firm.account.name}]" +
-  #                          " Re: #{comment.post.title}"
-  #       @body["comment"] = comment
-  #       @from            = comment.author.email_address_with_name
-  #       @sent_on         = comment.posted_on
+  #
+  #     # explicitly specify multipart messages
+  #     def signup_notification(recipient)
+  #       recipients      recipient.email_address_with_name
+  #       subject         "New account information"
+  #       from            "system@example.com"
+  #
+  #       part :content_type => "text/html",
+  #         :body => render_message("signup-as-html", :account => recipient)
+  #
+  #       part "text/plain" do |p|
+  #         p.body = render_message("signup-as-plain", :account => recipient)
+  #         p.transfer_encoding = "base64"
+  #       end
+  #     end
+  #
+  #     # attachments
+  #     def signup_notification(recipient)
+  #       recipients      recipient.email_address_with_name
+  #       subject         "New account information"
+  #       from            "system@example.com"
+  #
+  #       attachment :content_type => "image/jpeg",
+  #         :body => File.read("an-image.jpg")
+  #
+  #       attachment "application/pdf" do |a|
+  #         a.body = generate_your_pdf_here()
+  #       end
+  #     end
+  #
+  #     # implicitly multipart messages
+  #     def signup_notification(recipient)
+  #       recipients      recipient.email_address_with_name
+  #       subject         "New account information"
+  #       from            "system@example.com"
+  #       body(:account => "recipient")
+  #
+  #       # ActionMailer will automatically detect and use multipart templates,
+  #       # where each template is named after the name of the action, followed
+  #       # by the content type. Each such detected template will be added as
+  #       # a separate part to the message.
+  #       #
+  #       # for example, if the following templates existed:
+  #       #   * signup_notification.text.plain.rhtml
+  #       #   * signup_notification.text.html.rhtml
+  #       #   * signup_notification.text.xml.rxml
+  #       #   * signup_notification.text.x-yaml.rhtml
+  #       #
+  #       # Each would be rendered and added as a separate part to the message,
+  #       # with the corresponding content type. The same body hash is passed to
+  #       # each template.
   #     end
   #   end
   #
@@ -57,8 +104,10 @@ module ActionMailer #:nodoc:
   #   for unit and functional testing.
   #
   # * <tt>default_charset</tt> - The default charset used for the body and to encode the subject. Defaults to UTF-8. You can also 
-  #    pick a different charset from inside a method with <tt>@encoding</tt>.
+  #    pick a different charset from inside a method with <tt>@charset</tt>.
   class Base
+    include ActionMailer::AdvAttrAccessor
+
     private_class_method :new #:nodoc:
 
     cattr_accessor :template_root
@@ -89,94 +138,167 @@ module ActionMailer #:nodoc:
     @@default_charset = "utf-8"
     cattr_accessor :default_charset
 
-    attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers, :bcc, :cc, :charset
+    adv_attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers,
+                      :bcc, :cc, :charset
 
-    def initialize
-      @bcc = @cc = @from = @recipients = @sent_on = @subject = @body = nil
-      @charset = @@default_charset.dup
-      @headers = {}
+    attr_reader       :mail
+
+    # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
+    # will be initialized according to the named method. If not, the mailer will
+    # remain uninitialized (useful when you only need to invoke the "receive"
+    # method, for instance).
+    def initialize(method_name=nil, *parameters)
+      create!(method_name, *parameters) if method_name 
     end
+
+    # Initialize the mailer via the given +method_name+. The body will be
+    # rendered and a new TMail::Mail object created.
+    def create!(method_name, *parameters)
+      @bcc = @cc = @from = @recipients = @sent_on = @subject = nil
+      @charset = @@default_charset.dup
+      @parts = []
+      @headers = {}
+      @body = {}
+
+      send(method_name, *parameters)
+
+      # If an explicit, textual body has not been set, we check assumptions.
+      unless String === @body
+        # First, we look to see if there are any likely templates that match,
+        # which include the content-type in their file name (i.e.,
+        # "the_template_file.text.html.rhtml", etc.).
+        if @parts.empty?
+          templates = Dir.glob("#{template_path}/#{method_name}.*")
+          templates.each do |path|
+            type = (File.basename(path).split(".")[1..-2] || []).join("/")
+            next if type.empty?
+            @parts << Part.new(:content_type => type,
+              :disposition => "inline", :charset => "charset",
+              :body => render_message(File.basename(path).split(".")[0..-2].join('.'), @body))
+          end
+        end
+
+        # Then, if there were such templates, we check to see if we ought to
+        # also render a "normal" template (without the content type). If a
+        # normal template exists (or if there were no implicit parts) we render
+        # it.
+        template_exists = @parts.empty?
+        template_exists ||= Dir.glob("#{template_path}/#{method_name}.*").any? { |i| i.split(".").length == 2 }
+        @body = render_message(method_name, @body) if template_exists
+
+        # Finally, if there are other message parts and a textual body exists,
+        # we shift it onto the front of the parts and set the body to nil (so
+        # that create_mail doesn't try to render it in addition to the parts).
+        if !@parts.empty? && String === @body
+          @parts.unshift Part.new(:charset => charset, :body => @body)
+          @body = nil
+        end
+      end
+
+      # build the mail object itself
+      @mail = create_mail
+    end
+
+    # Delivers the cached TMail::Mail object. If no TMail::Mail object has been
+    # created (via the #create! method, for instance) this will fail.
+    def deliver!
+      raise "no mail object available for delivery!" unless @mail
+      logger.info "Sent mail:\n #{mail.encoded}" unless logger.nil?
+
+      begin
+        send("perform_delivery_#{delivery_method}", @mail) if perform_deliveries
+      rescue Object => e
+        raise e if raise_delivery_errors
+      end
+
+      return @mail
+    end
+
+    # Add a part to a multipart message, with the given content-type. The
+    # part itself is yielded to the block, so that other properties (charset,
+    # body, headers, etc.) can be set on it.
+    def part(params)
+      params = {:content_type => params} if String === params
+      part = Part.new(params)
+      yield part if block_given?
+      @parts << part
+    end
+
+    # Add an attachment to a multipart message. This is simply a part with the
+    # content-disposition set to "attachment".
+    def attachment(params, &block)
+      params = { :content_type => params } if String === params
+      params = { :disposition => "attachment",
+                 :transfer_encoding => "base64" }.merge(params)
+      part(params, &block)
+    end
+
+    private
+  
+      def render_message(method_name, body)
+        ActionView::Base.new(template_path, body).render_file(method_name)
+      end
+        
+      def template_path
+        template_root + "/" + Inflector.underscore(self.class.name)
+      end
+
+      def create_mail
+        m = TMail::Mail.new
+
+        m.subject, = quote_any_if_necessary(charset, subject)
+        m.to, m.from = quote_any_address_if_necessary(charset, recipients, from)
+        m.bcc = quote_address_if_necessary(bcc, charset) unless bcc.nil?
+        m.cc  = quote_address_if_necessary(cc, charset) unless cc.nil?
+
+        m.date = sent_on.to_time rescue sent_on if sent_on
+        headers.each { |k, v| m[k] = v }
+
+        if @parts.empty?
+          m.set_content_type "text", "plain", { "charset" => charset }
+          m.body = body
+        else
+          if String === body
+            part = TMail::Mail.new
+            part.body = body
+            part.set_content_type "text", "plain", { "charset" => charset }
+            part.set_content_disposition "inline"
+            m.parts << part
+          end
+
+          @parts.each do |p|
+            part = (TMail::Mail === p ? p : p.to_mail(self))
+            m.parts << part
+          end
+        end
+
+        @mail = m
+      end
+
+      def perform_delivery_smtp(mail)
+        Net::SMTP.start(server_settings[:address], server_settings[:port], server_settings[:domain], 
+            server_settings[:user_name], server_settings[:password], server_settings[:authentication]) do |smtp|
+          smtp.sendmail(mail.encoded, mail.from, mail.destinations)
+        end
+      end
+
+      def perform_delivery_sendmail(mail)
+        IO.popen("/usr/sbin/sendmail -i -t","w+") do |sm|
+          sm.print(mail.encoded)
+          sm.flush
+        end
+      end
+
+      def perform_delivery_test(mail)
+        deliveries << mail
+      end
 
     class << self
       def method_missing(method_symbol, *parameters)#:nodoc:
         case method_symbol.id2name
-          when /^create_([_a-z]\w*)/  then create_from_action($1, *parameters)
-          when /^deliver_([_a-z]\w*)/ then deliver(send("create_" + $1, *parameters))
+          when /^create_([_a-z]\w*)/  then new($1, *parameters).mail
+          when /^deliver_([_a-z]\w*)/ then new($1, *parameters).deliver!
         end
-      end
-
-      def mail(to, subject, body, from, timestamp = nil, headers = {}, charset = @@default_charset) #:nodoc:
-        deliver(create(to, subject, body, from, timestamp, headers, charset))
-      end
-
-      def create(to, subject, body, from, timestamp = nil, headers = {}, charset = @@default_charset) #:nodoc:
-        m = TMail::Mail.new
-        m.body = body
-        m.subject, = quote_any_if_necessary(charset, subject)
-        m.to, m.from = quote_any_address_if_necessary(charset, to, from)
-
-        m.date = timestamp.respond_to?("to_time") ? timestamp.to_time : (timestamp || Time.now)    
-
-        m.set_content_type "text", "plain", { "charset" => charset }
-
-        headers.each do |k, v|
-          m[k] = v
-        end
-
-        return m
-      end
-
-      def deliver(mail) #:nodoc:
-        logger.info "Sent mail:\n #{mail.encoded}" unless logger.nil?
-
-        begin
-          send("perform_delivery_#{delivery_method}", mail) if perform_deliveries
-        rescue Object => e
-          raise e if raise_delivery_errors
-        end
-
-        return mail
-      end
-
-      def quoted_printable(text, charset)#:nodoc:
-        text = text.gsub( /[^a-z ]/i ) { "=%02x" % $&[0] }.gsub( / /, "_" )
-        "=?#{charset}?Q?#{text}?="
-      end
-
-      CHARS_NEEDING_QUOTING = /[\000-\011\013\014\016-\037\177-\377]/
-
-      # Quote the given text if it contains any "illegal" characters
-      def quote_if_necessary(text, charset)
-        (text =~ CHARS_NEEDING_QUOTING) ?
-          quoted_printable(text, charset) :
-          text
-      end
-
-      # Quote any of the given strings if they contain any "illegal" characters
-      def quote_any_if_necessary(charset, *args)
-        args.map { |v| quote_if_necessary(v, charset) }
-      end
-
-      # Quote the given address if it needs to be. The address may be a
-      # regular email address, or it can be a phrase followed by an address in
-      # brackets. The phrase is the only part that will be quoted, and only if
-      # it needs to be. This allows extended characters to be used in the
-      # "to", "from", "cc", and "bcc" headers.
-      def quote_address_if_necessary(address, charset)
-        if Array === address
-          address.map { |a| quote_address_if_necessary(a, charset) }
-        elsif address =~ /^(\S.*)\s+(<.*>)$/
-          address = $2
-          phrase = quote_if_necessary($1.gsub(/^['"](.*)['"]$/, '\1'), charset)
-          "\"#{phrase}\" #{address}"
-        else
-          address
-        end
-      end
-
-      # Quote any of the given addresses, if they need to be.
-      def quote_any_address_if_necessary(charset, *args)
-        args.map { |v| quote_address_if_necessary(v, charset) }
       end
 
       def receive(raw_email)
@@ -186,51 +308,6 @@ module ActionMailer #:nodoc:
         new.receive(mail)
       end
 
-      private
-        def perform_delivery_smtp(mail)
-          Net::SMTP.start(server_settings[:address], server_settings[:port], server_settings[:domain], 
-              server_settings[:user_name], server_settings[:password], server_settings[:authentication]) do |smtp|
-            smtp.sendmail(mail.encoded, mail.from, mail.destinations)
-          end
-        end
-
-        def perform_delivery_sendmail(mail)
-          IO.popen("/usr/sbin/sendmail -i -t","w+") do |sm|
-            sm.print(mail.encoded)
-            sm.flush
-          end
-        end
-
-        def perform_delivery_test(mail)
-          deliveries << mail
-        end
-
-        def create_from_action(method_name, *parameters)
-          mailer = new
-          mailer.body = {}
-          mailer.send(method_name, *parameters)
-
-          unless String === mailer.body then
-            mailer.body = render_body mailer, method_name
-          end
-
-          mail = create(mailer.recipients, mailer.subject, mailer.body,
-                        mailer.from, mailer.sent_on, mailer.headers,
-                        mailer.charset)
-
-          mail.bcc = quote_address_if_necessary(mailer.bcc, mailer.charset) unless mailer.bcc.nil?
-          mail.cc  = quote_address_if_necessary(mailer.cc, mailer.charset)  unless mailer.cc.nil?
-
-          return mail
-        end
-  
-        def render_body(mailer, method_name)
-          ActionView::Base.new(template_path, mailer.body).render_file(method_name)
-        end
-        
-        def template_path
-          template_root + "/" + Inflector.underscore(self.to_s)
-        end
     end
   end
 end

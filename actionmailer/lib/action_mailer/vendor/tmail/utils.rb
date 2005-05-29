@@ -27,7 +27,7 @@ module TMail
     t = Time.now
     sprintf('%x%x_%x%x%d%x',
             t.to_i, t.tv_usec,
-            $$, Thread.current.id, @uniq, rand(255))
+            $$, Thread.current.object_id, @uniq, rand(255))
   end
   private_class_method :random_tag
 

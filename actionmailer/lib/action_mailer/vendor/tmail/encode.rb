@@ -253,6 +253,7 @@ module TMail
     # FIXME: implement line folding
     #
     def kv_pair( k, v )
+      return if v.nil?
       v = normalize_encoding(v)
       if token_safe?(v)
         add_text k + '=' + v

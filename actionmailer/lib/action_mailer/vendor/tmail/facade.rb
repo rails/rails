@@ -442,7 +442,8 @@ module TMail
         h.disposition = str
         h.params.clear
       else
-        h = store('Content-Disposition', str)
+        store('Content-Disposition', str)
+        h = @header['content-disposition']
       end
       h.params.replace params if params
     end

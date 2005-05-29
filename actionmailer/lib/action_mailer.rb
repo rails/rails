@@ -36,10 +36,12 @@ $:.unshift(File.dirname(__FILE__) + "/action_mailer/vendor/")
 
 require 'action_mailer/base'
 require 'action_mailer/mail_helper'
+require 'action_mailer/quoting'
 require 'action_mailer/vendor/tmail'
 require 'net/smtp'
 
 ActionView::Base.class_eval { include MailHelper }
+ActionMailer::Base.class_eval { include ActionMailer::Quoting }
 
 old_verbose, $VERBOSE = $VERBOSE, nil
 TMail::Encoder.const_set("MAX_LINE_LEN", 200)

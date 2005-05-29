@@ -1,5 +1,9 @@
 *SVN*
 
+* Support attachments and multipart messages.
+
+* Added new accessors for the various mail properties.
+
 * Fix to only perform the charset conversion if a 'from' and a 'to' charset are given (make no assumptions about what the charset was) #1276 [Jamis Buck]
 
 * Fix attachments and content-type problems #1276 [Jamis Buck]
