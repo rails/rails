@@ -77,7 +77,7 @@ module ActionController #:nodoc:
 
       if prereqs_invalid
         flash.update(options[:add_flash]) if options[:add_flash]
-        redirect_to(options[:redirect_to]) if options[:redirect_to]
+        redirect_to(options[:redirect_to]) if options[:redirect_to] unless performed?
         return false
       end
 

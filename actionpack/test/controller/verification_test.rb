@@ -21,39 +21,52 @@ class VerificationTest < Test::Unit::TestCase
     verify :only => :guarded_by_method, :method => :post,
            :redirect_to => { :action => "unguarded" }
 
+    before_filter :unconditional_redirect, :only => :two_redirects
+    verify :only => :two_redirects, :method => :post,
+           :redirect_to => { :action => "unguarded" }
+
     def guarded_one
-      render_text "#{@params["one"]}"
+      render :text => "#{@params["one"]}"
     end
 
     def guarded_with_flash
-      render_text "#{@params["one"]}"
+      render :text => "#{@params["one"]}"
     end
 
     def guarded_two
-      render_text "#{@params["one"]}:#{@params["two"]}"
+      render :text => "#{@params["one"]}:#{@params["two"]}"
     end
 
     def guarded_in_session
-      render_text "#{@session["one"]}"
+      render :text => "#{@session["one"]}"
     end
 
     def multi_one
-      render_text "#{@session["one"]}:#{@session["two"]}"
+      render :text => "#{@session["one"]}:#{@session["two"]}"
     end
 
     def multi_two
-      render_text "#{@session["two"]}:#{@session["one"]}"
+      render :text => "#{@session["two"]}:#{@session["one"]}"
     end
 
     def guarded_by_method
-      render_text "#{@request.method}"
+      render :text => "#{@request.method}"
     end
 
     def unguarded
-      render_text "#{@params["one"]}"
+      render :text => "#{@params["one"]}"
     end
 
-    def rescue_action(e) raise end
+    def two_redirects
+      render :nothing => true
+    end
+
+    protected
+      def rescue_action(e) raise end
+
+      def unconditional_redirect
+        redirect_to :action => "unguarded"
+      end
   end
 
   def setup
@@ -63,96 +76,98 @@ class VerificationTest < Test::Unit::TestCase
   end
 
   def test_guarded_one_with_prereqs
-    process "guarded_one", "one" => "here"
+    get :guarded_one, :one => "here"
     assert_equal "here", @response.body
   end
 
   def test_guarded_one_without_prereqs
-    process "guarded_one"
+    get :guarded_one
     assert_redirected_to :action => "unguarded"
   end
 
   def test_guarded_with_flash_with_prereqs
-    process "guarded_with_flash", "one" => "here"
+    get :guarded_with_flash, :one => "here"
     assert_equal "here", @response.body
     assert_flash_empty
   end
 
   def test_guarded_with_flash_without_prereqs
-    process "guarded_with_flash"
+    get :guarded_with_flash
     assert_redirected_to :action => "unguarded"
     assert_flash_equal "prereqs failed", "notice"
   end
 
   def test_guarded_two_with_prereqs
-    process "guarded_two", "one" => "here", "two" => "there"
+    get :guarded_two, :one => "here", :two => "there"
     assert_equal "here:there", @response.body
   end
 
   def test_guarded_two_without_prereqs_one
-    process "guarded_two", "two" => "there"
+    get :guarded_two, :two => "there"
     assert_redirected_to :action => "unguarded"
   end
 
   def test_guarded_two_without_prereqs_two
-    process "guarded_two", "one" => "here"
+    get :guarded_two, :one => "here"
     assert_redirected_to :action => "unguarded"
   end
 
   def test_guarded_two_without_prereqs_both
-    process "guarded_two"
+    get :guarded_two
     assert_redirected_to :action => "unguarded"
   end
 
   def test_unguarded_with_params
-    process "unguarded", "one" => "here"
+    get :unguarded, :one => "here"
     assert_equal "here", @response.body
   end
 
   def test_unguarded_without_params
-    process "unguarded"
+    get :unguarded
     assert_equal "", @response.body
   end
 
   def test_guarded_in_session_with_prereqs
-    process "guarded_in_session", {}, "one" => "here"
+    get :guarded_in_session, {}, "one" => "here"
     assert_equal "here", @response.body
   end
 
   def test_guarded_in_session_without_prereqs
-    process "guarded_in_session"
+    get :guarded_in_session
     assert_redirected_to :action => "unguarded"
   end
 
   def test_multi_one_with_prereqs
-    process "multi_one", {}, "one" => "here", "two" => "there"
+    get :multi_one, {}, "one" => "here", "two" => "there"
     assert_equal "here:there", @response.body
   end
 
   def test_multi_one_without_prereqs
-    process "multi_one"
+    get :multi_one
     assert_redirected_to :action => "unguarded"
   end
 
   def test_multi_two_with_prereqs
-    process "multi_two", {}, "one" => "here", "two" => "there"
+    get :multi_two, {}, "one" => "here", "two" => "there"
     assert_equal "there:here", @response.body
   end
 
   def test_multi_two_without_prereqs
-    process "multi_two"
+    get :multi_two
     assert_redirected_to :action => "unguarded"
   end
 
   def test_guarded_by_method_with_prereqs
-    @request.env["REQUEST_METHOD"] = "POST"
-    process "guarded_by_method"
+    post :guarded_by_method
     assert_equal "post", @response.body
   end
 
   def test_guarded_by_method_without_prereqs
-    @request.env["REQUEST_METHOD"] = "GET"
-    process "guarded_by_method"
+    get :guarded_by_method
     assert_redirected_to :action => "unguarded"
+  end
+
+  def test_second_redirect
+    assert_nothing_raised { get :two_redirects }
   end
 end

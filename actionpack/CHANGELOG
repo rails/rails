@@ -1,5 +1,7 @@
 *SVN*
 
+* verify with :redirect_to won't redirect if a redirect or render has already been performed #1350
+
 * render(:partial => true) is identical to the behavior of the deprecated render_partial()
 
 * Fixed render(:partial => "...") to use an empty Hash for the local assigns #1365
