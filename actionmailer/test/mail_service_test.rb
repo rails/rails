@@ -425,6 +425,12 @@ EOF
     assert_nothing_raised { mail.body }
   end
 
+  def test_decode_message_with_incorrect_charset
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email6")
+    mail = TMail::Mail.parse(fixture)
+    assert_nothing_raised { mail.body }
+  end
+
   def test_explicitly_multipart_messages
     mail = TestMailer.create_explicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length

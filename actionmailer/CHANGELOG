@@ -1,5 +1,7 @@
 *SVN*
 
+* Silently ignore Iconv::IllegalSequence errors when converting text #1341 [lon@speedymac.com]
+
 * Support attachments and multipart messages.
 
 * Added new accessors for the various mail properties.

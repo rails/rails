@@ -72,6 +72,11 @@ module TMail
         def convert_to(text, to, from)
           return text unless to && from
           text ? Iconv.iconv(to, from, text).first : ""
+        rescue Iconv::IllegalSequence
+          # the 'from' parameter specifies a charset other than what the text
+          # actually is...not much we can do in this case but just return the
+          # unconverted text.
+          text
         end
       rescue LoadError
         # Not providing quoting support
