@@ -375,7 +375,9 @@ module ActionController #:nodoc:
         end
 
         def delete(name, options) #:nodoc:
-          File.delete(real_file_path(name)) if File.exist?(real_file_path(name))
+          File.delete(real_file_path(name))
+        rescue SystemCallError => e
+          Base.logger.info "Couldn't expire cache #{name} (#{e.message})" unless Base.logger.nil?
         end
 
         def delete_matched(matcher, options) #:nodoc:
