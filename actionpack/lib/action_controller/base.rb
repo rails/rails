@@ -473,13 +473,18 @@ module ActionController #:nodoc:
           render(options.merge({ 
             :text => (
               @template.render_partial_collection(
-                options[:partial], options[:collection], options[:spacer_template], options[:locals]
+                options[:partial] == true ? default_template_name : options[:partial],
+                options[:collection], options[:spacer_template],
+                options[:locals] || {}
               ) || ''
             )
           }))
 
         elsif options[:partial]
-          render(options.merge({ :text => @template.render_partial(options[:partial], options[:object], options[:locals]) }))
+          render(options.merge({ :text => @template.render_partial(
+            options[:partial] == true ? default_template_name : options[:partial],
+            options[:object], options[:locals] || {}
+          ) }))
           
         elsif options[:nothing]
           render(options.merge({ :text => "" }))

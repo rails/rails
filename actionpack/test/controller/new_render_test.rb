@@ -72,7 +72,7 @@ class TestController < ActionController::Base
   end
 
   def partial_only
-    render_partial
+    render :partial => true
   end
 
   def hello_in_a_string

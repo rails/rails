@@ -1,5 +1,11 @@
 *SVN*
 
+* render(:partial => true) is identical to the behavior of the deprecated render_partial()
+
+* Fixed render(:partial => "...") to use an empty Hash for the local assigns #1365
+
+* Fixed Caching::Fragments::FileStore.delete to not raise an exception if the delete fails.
+
 * Deprecated all render_* methods in favor of consolidating all rendering behavior in Base#render(options). This enables more natural use of combining options, such as layouts. Examples:
 
     +---------------------------------------------------------------+-------------------------------------------------------+
