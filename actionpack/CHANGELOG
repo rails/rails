@@ -1,5 +1,7 @@
 *SVN*
 
+* render(:inline) always defaults to :layout => false.
+
 * Make sure the benchmarking render method always returns the output of the render.
 
 * render(:text), render(:partial), and render(:nothing) always default to :layout => false. This also fixes send_file, which was applying a layout if one existed for the current action.
