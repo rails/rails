@@ -9,9 +9,11 @@ module Fun
   end
 end
 
-
-class TestController < ActionController::Base
+class NewRenderTestController < ActionController::Base
   layout :determine_layout
+
+  def self.controller_name; "test"; end
+  def self.controller_path; "test"; end
 
   def hello_world
   end
@@ -103,26 +105,17 @@ class TestController < ActionController::Base
     end
 end
 
-TestController.template_root = File.dirname(__FILE__) + "/../fixtures/"
+NewRenderTestController.template_root = File.dirname(__FILE__) + "/../fixtures/"
 Fun::GamesController.template_root = File.dirname(__FILE__) + "/../fixtures/"
 
-class TestLayoutController < ActionController::Base
-  layout "layouts/standard"
-  
-  def hello_world
-  end
-  
-  def hello_world_outside_layout
-  end
-
-  def rescue_action(e)
-    raise unless ActionController::MissingTemplate === e
-  end
-end
-
-class RenderTest < Test::Unit::TestCase
+class NewRenderTest < Test::Unit::TestCase
   def setup
-    @controller = TestController.new
+    @controller = NewRenderTestController.new
+
+    # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
+    # a more accurate simulation of what happens in "real life".
+    @controller.logger = Logger.new(nil)
+
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
 
@@ -244,9 +237,4 @@ class RenderTest < Test::Unit::TestCase
     get :accessing_params_in_template, :name => "David"
     assert_equal "Hello: David", @response.body
   end
-
-  private
-    def process_request
-      TestController.process(@request, @response)
-    end
 end

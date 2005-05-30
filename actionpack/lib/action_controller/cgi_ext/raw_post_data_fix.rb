@@ -18,7 +18,9 @@ class CGI #:nodoc:
     end
 
     private
-      MULTIPART_FORM_BOUNDARY_RE = %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n #"
+      unless defined?(MULTIPART_FORM_BOUNDARY_RE)
+        MULTIPART_FORM_BOUNDARY_RE = %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n #"
+      end
 
       def multipart_form_boundary        
         if env_table['REQUEST_METHOD'] == 'POST'
