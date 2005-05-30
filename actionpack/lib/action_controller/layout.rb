@@ -144,12 +144,12 @@ module ActionController #:nodoc:
     # 
     # If most of your actions use the same layout, it makes perfect sense to define a controller-wide layout as described above.
     # Some times you'll have exceptions, though, where one action wants to use a different layout than the rest of the controller.
-    # This is possible using <tt>render_with_layout</tt> method. It's just a bit more manual work as you'll have to supply fully
+    # This is possible using the <tt>render</tt> method. It's just a bit more manual work as you'll have to supply fully
     # qualified template and layout names as this example shows:
     #
     #   class WeblogController < ActionController::Base
     #     def help
-    #       render_with_layout "help/index", "200", "layouts/help"
+    #       render :file => "help/index", :layout => "layouts/help"
     #     end
     #   end
     #
@@ -203,7 +203,8 @@ module ActionController #:nodoc:
     end
 
     def render_with_a_layout(options = {}, deprecated_status = nil, deprecated_layout = nil) #:nodoc:
-      if (layout = pick_layout(options, deprecated_layout)) && options.is_a?(Hash) && options[:text]
+      options = render_with_a_layout_options(options)
+      if (layout = pick_layout(options, deprecated_layout))
         logger.info("Rendering #{options[:template]} within #{layout}") unless logger.nil?
 
         @content_for_layout = render_with_no_layout(options.merge(:layout => false))
@@ -217,8 +218,19 @@ module ActionController #:nodoc:
     end
 
     private
+      def render_with_a_layout_options(options)
+        return options unless options.is_a?(Hash)
+        case
+        when options[:text], options[:partial], options[:nothing]
+          # by default, :text, :partial, and :nothing never use a layout
+          { :layout => false }.merge(options)
+        else
+          options
+        end
+      end
+
       def pick_layout(options = {}, deprecated_layout = nil)
-        return deprecated_layout if !deprecated_layout.nil? || (options.is_a?(Hash) && options[:nothing])
+        return deprecated_layout if !deprecated_layout.nil?
 
         if options.is_a?(Hash)
           case options[:layout]

@@ -1,5 +1,7 @@
 *SVN*
 
+* render(:text), render(:partial), and render(:nothing) always default to :layout => false. This also fixes send_file, which was applying a layout if one existed for the current action.
+
 * verify with :redirect_to won't redirect if a redirect or render has already been performed #1350
 
 * render(:partial => true) is identical to the behavior of the deprecated render_partial()

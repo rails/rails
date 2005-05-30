@@ -75,6 +75,10 @@ class TestController < ActionController::Base
     render :partial => true
   end
 
+  def partial_only_with_layout
+    render :partial => "partial_only", :layout => nil
+  end
+
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render :text =>  "How's there? #{render_to_string("test/list")}"
@@ -89,7 +93,9 @@ class TestController < ActionController::Base
   private
     def determine_layout
       case action_name 
-        when "layout_test", "rendering_without_layout", "rendering_nothing_on_layout"
+        when "layout_test", "rendering_without_layout",
+             "rendering_nothing_on_layout", "render_text_hello_world",
+             "partial_only", "partial_only_with_layout"
           "layouts/standard"
         when "builder_layout_test"
           "layouts/builder"
@@ -217,6 +223,11 @@ class RenderTest < Test::Unit::TestCase
   def test_partial_only
     get :partial_only
     assert_equal "only partial", @response.body
+  end
+
+  def test_partial_only_with_layout
+    get :partial_only_with_layout
+    assert_equal "<html>only partial</html>", @response.body
   end
 
   def test_render_to_string

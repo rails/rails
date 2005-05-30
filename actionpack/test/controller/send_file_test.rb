@@ -10,6 +10,7 @@ end
 
 class SendFileController < ActionController::Base
   include TestFileUtils
+  layout "layouts/standard" # to make sure layouts don't interfere
 
   attr_writer :options
   def options() @options ||= {} end
@@ -20,6 +21,7 @@ class SendFileController < ActionController::Base
   def rescue_action(e) raise end
 end
 
+SendFileController.template_root = File.dirname(__FILE__) + "/../fixtures/"
 
 class SendFileTest < Test::Unit::TestCase
   include TestFileUtils
