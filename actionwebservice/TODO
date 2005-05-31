@@ -1,6 +1,24 @@
 = Post-1.0
+  - Document/Literal SOAP support
+    - URL-based dispatching, URL identifies method
+
   - Add :rest dispatching mode, a.l.a. Backpack API. Clean up dispatching
     in general. Support vanilla XML-format as a "Rails" protocol?
+    XML::Simple deserialization into params?
+
+      web_service_dispatching_mode :rest
+
+      def method1(params)
+      end
+
+      def method2(params)
+      end
+
+
+      /ws/method1
+        <xml>
+      /ws/method2
+        <yaml>
 
   - Allow locking down a controller to only accept messages for a particular
     protocol.  This will allow us to generate fully conformant error messages

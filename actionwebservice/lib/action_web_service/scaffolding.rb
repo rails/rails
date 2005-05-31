@@ -117,7 +117,7 @@ module ActionWebService
             end
 
             def scaffold_path(template_name)
-              Pathname.new(File.dirname(__FILE__) + "/templates/scaffolds/" + template_name + ".rhtml").realpath.to_s
+              File.dirname(__FILE__) + "/templates/scaffolds/" + template_name + ".rhtml"
             end
 
             def reset_invocation_response
