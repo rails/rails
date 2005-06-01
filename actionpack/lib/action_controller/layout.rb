@@ -220,12 +220,10 @@ module ActionController #:nodoc:
     private
       def render_with_a_layout_options(options)
         return options unless options.is_a?(Hash)
-        case
-        when options[:text], options[:partial], options[:nothing], options[:inline]
-          # by default, :text, :partial, :inline, and :nothing never use a layout
-          { :layout => false }.merge(options)
-        else
+        if options.values_at(:text, :file, :template, :inline, :partial, :nothing).compact.empty?
           options
+        else
+          { :layout => false }.merge(options)
         end
       end
 
@@ -236,7 +234,7 @@ module ActionController #:nodoc:
           case options[:layout]
             when FalseClass
               nil
-            when NilClass
+            when NilClass, TrueClass
               active_layout if action_has_layout?
             else
               active_layout(options[:layout])

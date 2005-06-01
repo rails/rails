@@ -78,7 +78,7 @@ class NewRenderTestController < ActionController::Base
   end
 
   def partial_only_with_layout
-    render :partial => "partial_only", :layout => nil
+    render :partial => "partial_only", :layout => true
   end
 
   def hello_in_a_string
@@ -99,7 +99,7 @@ class NewRenderTestController < ActionController::Base
   private
     def determine_layout
       case action_name 
-        when "layout_test", "rendering_without_layout",
+        when "hello_world", "layout_test", "rendering_without_layout",
              "rendering_nothing_on_layout", "render_text_hello_world",
              "partial_only", "partial_only_with_layout",
              "accessing_params_in_template",
@@ -132,6 +132,7 @@ class NewRenderTest < Test::Unit::TestCase
     get :hello_world
     assert_response :success
     assert_template "test/hello_world"
+    assert_equal "<html>Hello world!</html>", @response.body
   end
 
   def test_do_with_render

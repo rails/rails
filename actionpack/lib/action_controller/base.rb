@@ -490,7 +490,7 @@ module ActionController #:nodoc:
           render(options.merge({ :text => "" }))
 
         else
-          render(options.merge({ :template => default_template_name }))
+          render(options.merge({ :action => action_name }))
         end
       end
 
