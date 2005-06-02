@@ -2,9 +2,9 @@
 
 <table>
   <tr>
-<%% for column in <%= model_name %>.content_columns %>
+  <%% for column in <%= model_name %>.content_columns %>
     <th><%%= column.human_name %></th>
-<%% end %>
+  <%% end %>
   </tr>
   
 <%% for <%= singular_name %> in @<%= plural_name %> %>
@@ -14,13 +14,13 @@
   <%% end %>
     <td><%%= link_to 'Show', :action => 'show<%= suffix %>', :id => <%= singular_name %> %></td>
     <td><%%= link_to 'Edit', :action => 'edit<%= suffix %>', :id => <%= singular_name %> %></td>
-    <td><%%= link_to 'Destroy', {:action => 'destroy<%= suffix %>', :id => <%= singular_name %>}, :confirm => "Are you sure?" %></td>
+    <td><%%= link_to 'Destroy', {:action => 'destroy<%= suffix %>', :id => <%= singular_name %>}, :confirm => 'Are you sure?' %></td>
   </tr>
 <%% end %>
 </table>
 
-<%%= link_to "Previous page", { :page => @<%= singular_name %>_pages.current.previous } if @<%= singular_name %>_pages.current.previous %>
-<%%= link_to "Next page", { :page => @<%= singular_name %>_pages.current.next } if @<%= singular_name %>_pages.current.next %> 
+<%%= link_to 'Previous page', { :page => @<%= singular_name %>_pages.current.previous } if @<%= singular_name %>_pages.current.previous %>
+<%%= link_to 'Next page', { :page => @<%= singular_name %>_pages.current.next } if @<%= singular_name %>_pages.current.next %> 
 
 <br />
 
