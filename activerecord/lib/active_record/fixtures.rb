@@ -129,6 +129,16 @@ require 'csv'
 #   - to keep the fixture instance (@web_sites) available, but do not automatically 'find' each instance:
 #       self.use_instantiated_fixtures = :no_instances 
 #
+# Even if auto-instantiated fixtures are disabled, you can still access them
+# by name via special dynamic methods. Each method has the same name as the
+# model, and accepts the name of the fixture to instantiate:
+#
+#   fixtures :web_sites
+#
+#   def test_find
+#     assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
+#   end
+#
 # = Dynamic fixtures with ERb
 #
 # Some times you don't care about the content of the fixtures as much as you care about the volume. In these cases, you can
@@ -401,8 +411,10 @@ module Test #:nodoc:
       self.pre_loaded_fixtures = false
 
       def self.fixtures(*table_names)
-        self.fixture_table_names |= table_names.flatten
-        require_fixture_classes
+        table_names = table_names.flatten
+        self.fixture_table_names |= table_names
+        require_fixture_classes(table_names)
+        setup_fixture_accessors(table_names)
       end
 
       def self.require_fixture_classes(table_names=nil)
@@ -415,10 +427,24 @@ module Test #:nodoc:
         end
       end
 
+      def self.setup_fixture_accessors(table_names=nil)
+        (table_names || fixture_table_names).each do |table_name|
+          table_name = table_name.to_s.tr('.','_')
+          define_method(table_name) do |fixture, *optionals|
+            force_reload = optionals.shift
+            @fixture_cache[table_name] ||= Hash.new
+            @fixture_cache[table_name][fixture] = nil if force_reload
+            @fixture_cache[table_name][fixture] ||= @loaded_fixtures[table_name][fixture.to_s].find
+          end
+        end
+      end
+
       def setup_with_fixtures
         if pre_loaded_fixtures && !use_transactional_fixtures
           raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures' 
         end
+
+        @fixture_cache = Hash.new
 
         # Load fixtures once and begin transaction.
         if use_transactional_fixtures

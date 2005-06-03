@@ -3,6 +3,7 @@ require 'fixtures/topic'
 require 'fixtures/developer'
 require 'fixtures/company'
 require 'fixtures/task'
+require 'fixtures/reply'
 
 class FixturesTest < Test::Unit::TestCase
   fixtures :topics, :developers, :accounts, :tasks
@@ -129,6 +130,12 @@ class FixturesWithoutInstantiationTest < Test::Unit::TestCase
 
   def test_fixtures_from_root_yml_without_instantiation
     assert_nil @unknown
+  end
+
+  def test_accessor_methods
+    assert_equal "The First Topic", topics(:first).title
+    assert_equal "Jamis", developers(:jamis).name
+    assert_equal 50, accounts(:signals37).credit_limit
   end
 end
 

@@ -1,5 +1,13 @@
 *SVN*
 
+* Added fixture accessor methods that can be used when instantiated fixtures are disabled.
+
+    fixtures :web_sites
+
+    def test_something
+      assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
+    end
+
 * Added DoubleRenderError exception that'll be raised if render* is called twice #518 [Nicholas Seckar]
 
 * Fixed exceptions occuring after render has been called #1096 [Nicholas Seckar]
