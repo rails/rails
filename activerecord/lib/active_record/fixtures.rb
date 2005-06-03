@@ -410,6 +410,8 @@ module Test #:nodoc:
       self.use_instantiated_fixtures = true
       self.pre_loaded_fixtures = false
 
+      @@already_loaded_fixtures = {}
+
       def self.fixtures(*table_names)
         table_names = table_names.flatten
         self.fixture_table_names |= table_names
@@ -448,8 +450,12 @@ module Test #:nodoc:
 
         # Load fixtures once and begin transaction.
         if use_transactional_fixtures
-          load_fixtures unless @already_loaded_fixtures
-          @already_loaded_fixtures = true
+          if @@already_loaded_fixtures[self.class]
+            @loaded_fixtures = @@already_loaded_fixtures[self.class]
+          else
+            load_fixtures
+            @@already_loaded_fixtures[self.class] = @loaded_fixtures
+          end
           ActiveRecord::Base.lock_mutex
           ActiveRecord::Base.connection.begin_db_transaction
 

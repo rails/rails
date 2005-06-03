@@ -1,5 +1,7 @@
 *SVN*
 
+* Using transactional fixtures now causes the data to be loaded only once.
+
 * Added fixture accessor methods that can be used when instantiated fixtures are disabled.
 
     fixtures :web_sites
