@@ -98,6 +98,14 @@ class TestMailer < ActionMailer::Base
     @body       = { "recipient" => recipient }
   end
 
+  def html_mail(recipient)
+    recipients   recipient
+    subject      "html mail"
+    from         "test@example.com"
+    body         "<em>Emphasize</em> <strong>this</strong>"
+    content_type "text/html"
+  end
+
   class <<self
     attr_accessor :received_body
   end
@@ -452,6 +460,11 @@ EOF
     assert_equal 2, mail.parts.length
     assert_equal "text/html", mail.parts[0].content_type
     assert_equal "text/plain", mail.parts[1].content_type
+  end
+
+  def test_html_mail
+    mail = TestMailer.create_html_mail(@recipient)
+    assert_equal "text/html", mail.content_type
   end
 
 end

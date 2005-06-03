@@ -9,7 +9,7 @@ module ActionMailer
     adv_attr_accessor :filename, :transfer_encoding, :headers
 
     def initialize(params)
-      @content_type = params[:content_type] || "text/plain"
+      @content_type = params[:content_type]
       @content_disposition = params[:disposition] || "inline"
       @charset = params[:charset]
       @body = params[:body]
@@ -20,7 +20,7 @@ module ActionMailer
 
     def to_mail(defaults)
       part = TMail::Mail.new
-      part.set_content_type(content_type, nil,
+      part.set_content_type(content_type || defaults.content_type, nil,
         "charset" => (content_disposition == "attachment" ?
                         nil : (charset || defaults.charset)),
         "name" => filename)

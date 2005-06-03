@@ -138,8 +138,11 @@ module ActionMailer #:nodoc:
     @@default_charset = "utf-8"
     cattr_accessor :default_charset
 
+    @@default_content_type = "text/plain"
+    cattr_accessor :default_content_type
+
     adv_attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers,
-                      :bcc, :cc, :charset
+                      :bcc, :cc, :charset, :content_type
 
     attr_reader       :mail
 
@@ -156,6 +159,7 @@ module ActionMailer #:nodoc:
     def create!(method_name, *parameters)
       @bcc = @cc = @from = @recipients = @sent_on = @subject = nil
       @charset = @@default_charset.dup
+      @content_type = @@default_content_type.dup
       @parts = []
       @headers = {}
       @body = {}
@@ -255,13 +259,13 @@ module ActionMailer #:nodoc:
         headers.each { |k, v| m[k] = v }
 
         if @parts.empty?
-          m.set_content_type "text", "plain", { "charset" => charset }
+          m.set_content_type content_type, nil, { "charset" => charset }
           m.body = body
         else
           if String === body
             part = TMail::Mail.new
             part.body = body
-            part.set_content_type "text", "plain", { "charset" => charset }
+            part.set_content_type content_type, nil, { "charset" => charset }
             part.set_content_disposition "inline"
             m.parts << part
           end
