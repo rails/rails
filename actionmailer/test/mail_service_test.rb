@@ -437,12 +437,14 @@ EOF
     assert_equal "text/plain", mail.parts[0].content_type
 
     assert_equal "text/html", mail.parts[1].content_type
+    assert_equal "iso-8859-1", mail.parts[1].sub_header("content-type", "charset")
     assert_equal "inline", mail.parts[1].content_disposition
 
     assert_equal "image/jpeg", mail.parts[2].content_type
     assert_equal "attachment", mail.parts[2].content_disposition
     assert_equal "foo.jpg", mail.parts[2].sub_header("content-disposition", "filename")
     assert_equal "foo.jpg", mail.parts[2].sub_header("content-type", "name")
+    assert_nil mail.parts[2].sub_header("content-type", "charset")
   end
 
   def test_implicitly_multipart_messages
