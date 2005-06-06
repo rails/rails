@@ -206,8 +206,12 @@ module TMail
 
     def decode_RFC2231( str )
       m = RFC2231_ENCODED.match(str) or return str
-      NKF.nkf(NKF_FLAGS[$KCODE],
-              m.post_match.gsub(/%[\da-f]{2}/in) {|s| s[1,2].hex.chr })
+      begin
+        NKF.nkf(NKF_FLAGS[$KCODE],
+        m.post_match.gsub(/%[\da-f]{2}/in) {|s| s[1,2].hex.chr })
+      rescue
+        m.post_match.gsub(/%[\da-f]{2}/in, "")
+      end
     end
 
   end

@@ -503,5 +503,12 @@ EOF
     mail = TMail::Mail.parse(fixture)
     assert_equal "This is the first part.\n\nAttachment: test.pdf\n\n\nAttachment: smime.p7s\n", mail.body
   end
+
+  def test_decode_encoded_attachment_filename
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email8")
+    mail = TMail::Mail.parse(fixture)
+    attachment = mail.attachments.last
+    assert_equal "01QuienTeDijat.Pitbull.mp3", attachment.original_filename
+  end
 end
 

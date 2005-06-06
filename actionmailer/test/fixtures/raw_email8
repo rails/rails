@@ -1,0 +1,47 @@
+From xxxxxxxxx.xxxxxxx@gmail.com Sun May  8 19:07:09 2005
+Return-Path: <xxxxxxxxx.xxxxxxx@gmail.com>
+Message-ID: <e85734b90505081209eaaa17b@mail.gmail.com>
+Date: Sun, 8 May 2005 14:09:11 -0500
+From: xxxxxxxxx xxxxxxx <xxxxxxxxx.xxxxxxx@gmail.com>
+Reply-To: xxxxxxxxx xxxxxxx <xxxxxxxxx.xxxxxxx@gmail.com>
+To: xxxxx xxxx <xxxxx@xxxxxxxxx.com>
+Subject: Fwd: Signed email causes file attachments
+In-Reply-To: <F6E2D0B4-CC35-4A91-BA4C-C7C712B10C13@mac.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; 
+	boundary="----=_Part_5028_7368284.1115579351471"
+References: <F6E2D0B4-CC35-4A91-BA4C-C7C712B10C13@mac.com>
+
+------=_Part_5028_7368284.1115579351471
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+We should not include these files or vcards as attachments.
+
+---------- Forwarded message ----------
+From: xxxxx xxxxxx <xxxxxxxx@xxx.com>
+Date: May 8, 2005 1:17 PM
+Subject: Signed email causes file attachments
+To: xxxxxxx@xxxxxxxxxx.com
+
+
+Hi,
+
+Test attachments oddly encoded with japanese charset.
+
+
+------=_Part_5028_7368284.1115579351471
+Content-Type: application/octet-stream; name*=iso-2022-jp'ja'01%20Quien%20Te%20Dij%8aat.%20Pitbull.mp3
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIGFDCCAs0w
+ggI2oAMCAQICAw5c+TANBgkqhkiG9w0BAQQFADBiMQswCQYDVQQGEwJaQTElMCMGA1UEChMcVGhh
+d3RlIENvbnN1bHRpbmcgKFB0eSkgTHRkLjEsMCoGA1UEAxMjVGhhd3RlIFBlcnNvbmFsIEZyZWVt
+YWlsIElzc3VpbmcgQ0EwHhcNMDUwMzI5MDkzOTEwWhcNMDYwMzI5MDkzOTEwWjBCMR8wHQYDVQQD
+ExZUaGF3dGUgRnJlZW1haWwgTWVtYmVyMR8wHQYJKoZIhvcNAQkBFhBzbWhhdW5jaEBtYWMuY29t
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn90dPsYS3LjfMY211OSYrDQLzwNYPlAL
+7+/0XA+kdy8/rRnyEHFGwhNCDmg0B6pxC7z3xxJD/8GfCd+IYUUNUQV5m9MkxfP9pTVXZVIYLaBw
+------=_Part_5028_7368284.1115579351471--
+

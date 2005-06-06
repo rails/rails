@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't cause an error when parsing an encoded attachment name #1340 [lon@speedymac.com]
+
 * Nested multipart message parts are correctly processed in TMail::Mail#body
 
 * BCC headers are removed when sending via SMTP #1402
