@@ -3,6 +3,26 @@ $:.unshift(File.dirname(__FILE__) + "/../lib/")
 require 'test/unit'
 require 'action_mailer'
 
+class MockSMTP
+  def self.deliveries
+    @@deliveries
+  end
+
+  def initialize
+    @@deliveries = []
+  end
+
+  def sendmail(mail, from, to)
+    @@deliveries << [mail, from, to]
+  end
+end
+
+class Net::SMTP
+  def self.start(*args)
+    yield MockSMTP.new
+  end
+end
+
 class TestMailer < ActionMailer::Base
 
   def signed_up(recipient)
@@ -467,5 +487,15 @@ EOF
     assert_equal "text/html", mail.content_type
   end
 
+  def test_headers_removed_on_smtp_delivery
+    ActionMailer::Base.delivery_method = :smtp
+    TestMailer.deliver_cc_bcc(@recipient)
+    assert MockSMTP.deliveries[0][2].include?("root@loudthinking.com")
+    assert MockSMTP.deliveries[0][2].include?("nobody@loudthinking.com")
+    assert MockSMTP.deliveries[0][2].include?(@recipient)
+    assert_match %r{^Cc: nobody@loudthinking.com}, MockSMTP.deliveries[0][0]
+    assert_match %r{^To: #{@recipient}}, MockSMTP.deliveries[0][0]
+    assert_no_match %r{^Bcc: root@loudthinking.com}, MockSMTP.deliveries[0][0]
+  end
 end
 

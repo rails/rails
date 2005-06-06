@@ -1,5 +1,6 @@
 require 'action_mailer/adv_attr_accessor'
 require 'action_mailer/part'
+require 'tmail/net'
 
 module ActionMailer #:nodoc:
   # Usage:
@@ -280,9 +281,12 @@ module ActionMailer #:nodoc:
       end
 
       def perform_delivery_smtp(mail)
+        destinations = mail.destinations
+        mail.ready_to_send
+
         Net::SMTP.start(server_settings[:address], server_settings[:port], server_settings[:domain], 
             server_settings[:user_name], server_settings[:password], server_settings[:authentication]) do |smtp|
-          smtp.sendmail(mail.encoded, mail.from, mail.destinations)
+          smtp.sendmail(mail.encoded, mail.from, destinations)
         end
       end
 
