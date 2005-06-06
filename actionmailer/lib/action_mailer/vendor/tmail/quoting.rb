@@ -28,9 +28,16 @@ module TMail
       if multipart?
         parts.collect { |part| 
           header = part["content-type"]
-          header && header.main_type == "text" ?
-            part.unquoted_body(to_charset) :
-            (header ? attachment_presenter.call(header.params["name"]) : "") 
+
+          if part.multipart?
+            part.body(to_charset, &attachment_presenter)
+          elsif header.nil?
+            ""
+          elsif header.main_type == "text"
+            part.unquoted_body(to_charset)
+          else
+            attachment_presenter.call(header["name"] || "(unnamed)")
+          end
         }.join
       else
         unquoted_body(to_charset)

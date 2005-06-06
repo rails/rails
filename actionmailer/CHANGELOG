@@ -1,5 +1,7 @@
 *SVN*
 
+* Nested multipart message parts are correctly processed in TMail::Mail#body
+
 * BCC headers are removed when sending via SMTP #1402
 
 * Added 'content_type' accessor, to allow content type to be set on a per-message basis. content_type defaults to "text/plain".

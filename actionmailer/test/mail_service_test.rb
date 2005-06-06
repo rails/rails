@@ -497,5 +497,11 @@ EOF
     assert_match %r{^To: #{@recipient}}, MockSMTP.deliveries[0][0]
     assert_no_match %r{^Bcc: root@loudthinking.com}, MockSMTP.deliveries[0][0]
   end
+
+  def test_recursive_multipart_processing
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email7")
+    mail = TMail::Mail.parse(fixture)
+    assert_equal "This is the first part.\n\nAttachment: test.pdf\n\n\nAttachment: smime.p7s\n", mail.body
+  end
 end
 
