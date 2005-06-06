@@ -510,5 +510,10 @@ EOF
     attachment = mail.attachments.last
     assert_equal "01QuienTeDijat.Pitbull.mp3", attachment.original_filename
   end
+
+  def test_wrong_mail_header
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email9")
+    assert_raise(TMail::SyntaxError) { TMail::Mail.parse(fixture) }
+  end
 end
 
