@@ -1,5 +1,7 @@
 *SVN*
 
+* Added a second parameter to the build and create method for has_one that controls whether the existing association should be replaced (which means nullifying its foreign key as well). By default this is true, but false can be passed to prevent it.
+
 * Using transactional fixtures now causes the data to be loaded only once.
 
 * Added fixture accessor methods that can be used when instantiated fixtures are disabled.

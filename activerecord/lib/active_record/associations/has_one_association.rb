@@ -7,6 +7,24 @@ module ActiveRecord
         construct_sql
       end
 
+      def create(attributes = {}, replace_existing = true)
+        record = build(attributes, replace_existing)
+        record.save
+        record
+      end
+
+      def build(attributes = {}, replace_existing = true)
+        record = @association_class.new(attributes)
+
+        if replace_existing
+          replace(record, true) 
+        else
+          record[@association_class_primary_key_name] = @owner.id unless @owner.new_record?
+        end
+
+        record
+      end
+
       def replace(obj, dont_save = false)
         load_target
         unless @target.nil?

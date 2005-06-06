@@ -97,6 +97,35 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     # account is dependent, therefore is destroyed when reference to owner is lost
     assert_raises(ActiveRecord::RecordNotFound) { Account.find(old_account_id) } 
   end
+  
+  def test_assignment_without_replacement
+    apple = Firm.create("name" => "Apple")
+    citibank = Account.create("credit_limit" => 10)
+    apple.account = citibank
+    assert_equal apple.id, citibank.firm_id
+    
+    hsbc = apple.build_account({ :credit_limit => 20}, false)
+    assert_equal apple.id, hsbc.firm_id
+    hsbc.save
+    assert_equal apple.id, citibank.firm_id
+
+    nykredit = apple.create_account({ :credit_limit => 30}, false)
+    assert_equal apple.id, nykredit.firm_id
+    assert_equal apple.id, citibank.firm_id
+    assert_equal apple.id, hsbc.firm_id
+  end
+
+  def test_assignment_without_replacement_on_create
+    apple = Firm.create("name" => "Apple")
+    citibank = Account.create("credit_limit" => 10)
+    apple.account = citibank
+    assert_equal apple.id, citibank.firm_id
+    
+    hsbc = apple.create_account({ :name => "HSBC", :credit_limit => 10}, false)
+    assert_equal apple.id, hsbc.firm_id
+    hsbc.save
+    assert_equal apple.id, citibank.firm_id
+  end
 
   def test_dependence
     firm = Firm.find(1)

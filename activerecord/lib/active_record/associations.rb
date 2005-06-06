@@ -676,8 +676,9 @@ module ActiveRecord
 
         def association_constructor_method(constructor, association_name, association_class_name, association_class_primary_key_name, options, association_proxy_class)
           define_method("#{constructor}_#{association_name}") do |*params|
-            attributees = params.first unless params.empty?
-            association = instance_variable_get("@#{association_name}")
+            attributees      = params.first unless params.empty?
+            replace_existing = params[1].nil? ? true : params[1]
+            association      = instance_variable_get("@#{association_name}")
 
             if association.nil?
               association = association_proxy_class.new(self,
@@ -686,7 +687,7 @@ module ActiveRecord
               instance_variable_set("@#{association_name}", association)
             end
 
-            association.send(constructor, attributees)
+            association.send(constructor, attributees, replace_existing)
           end
         end
 
