@@ -20,6 +20,7 @@ module ActiveRecord
           replace(record, true) 
         else
           record[@association_class_primary_key_name] = @owner.id unless @owner.new_record?
+          self.target = record
         end
 
         record
