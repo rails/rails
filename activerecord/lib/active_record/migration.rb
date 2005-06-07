@@ -59,7 +59,7 @@ module ActiveRecord
       end
     
       def migration_files
-        files = Dir["#{@migrations_path}/[0-9]*_*.rb"]
+        files = Dir["#{@migrations_path}/[0-9]*_*.rb"].sort
         down? ? files.reverse : files
       end
       
