@@ -1,5 +1,7 @@
 *SVN*
 
+* Silently ignore Errno::EINVAL errors when converting text.
+
 * Don't cause an error when parsing an encoded attachment name #1340 [lon@speedymac.com]
 
 * Nested multipart message parts are correctly processed in TMail::Mail#body

@@ -515,5 +515,11 @@ EOF
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email9")
     assert_raise(TMail::SyntaxError) { TMail::Mail.parse(fixture) }
   end
+
+  def test_decode_message_with_unknown_charset
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email10")
+    mail = TMail::Mail.parse(fixture)
+    assert_nothing_raised { mail.body }
+  end
 end
 
