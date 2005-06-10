@@ -6,6 +6,9 @@ require 'fixtures/task'
 require 'fixtures/reply'
 
 class FixturesTest < Test::Unit::TestCase
+  self.use_instantiated_fixtures = true
+  self.use_transactional_fixtures = false
+
   fixtures :topics, :developers, :accounts, :tasks
 
   FIXTURES = %w( accounts companies customers
@@ -141,7 +144,9 @@ end
 
 
 class FixturesWithoutInstanceInstantiationTest < Test::Unit::TestCase
+  self.use_instantiated_fixtures = true
   self.use_instantiated_fixtures = :no_instances
+
   fixtures :topics, :developers, :accounts
 
   def test_without_instance_instantiation
@@ -154,7 +159,9 @@ end
 
 
 class TransactionalFixturesTest < Test::Unit::TestCase
+  self.use_instantiated_fixtures = true
   self.use_transactional_fixtures = true
+
   fixtures :topics
 
   def test_destroy

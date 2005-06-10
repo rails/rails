@@ -2,12 +2,7 @@ require 'abstract_unit'
 require 'fixtures/company_in_module'
 
 class ModulesTest < Test::Unit::TestCase
-  def setup
-    create_fixtures "accounts"
-    create_fixtures "companies"
-    create_fixtures "projects"
-    create_fixtures "developers"
-  end
+  fixtures :accounts, :companies, :projects, :developers
 
   def test_module_spanning_associations
     assert MyApplication::Business::Firm.find_first.has_clients?, "Firm should have clients"

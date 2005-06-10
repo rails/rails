@@ -2,8 +2,11 @@ require 'abstract_unit'
 require 'fixtures/topic'
 
 class ThreadSafetyTest < Test::Unit::TestCase
+  self.use_transactional_fixtures = false
+
+  fixtures :topics
+
   def setup
-    @topics  = create_fixtures "topics"
     @threads = []
   end
   

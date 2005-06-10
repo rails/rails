@@ -11,7 +11,7 @@ class FinderTest < Test::Unit::TestCase
     entrants = Entrant.find_all nil, "id ASC", 2
     
     assert_equal(2, entrants.size)
-    assert_equal(@entrants["first"]["name"], entrants.first.name)
+    assert_equal(entrants(:first).name, entrants.first.name)
   end
 
   def test_find_all_with_prepared_limit_and_offset
@@ -23,13 +23,13 @@ class FinderTest < Test::Unit::TestCase
       entrants = Entrant.find_all nil, "id ASC", [2, 1]
 
       assert_equal(2, entrants.size)
-      assert_equal(@entrants["second"]["name"], entrants.first.name)
+      assert_equal(entrants(:second).name, entrants.first.name)
     end
   end
 
   def test_find_first
     first = Topic.find_first "title = 'The First Topic'"
-    assert_equal(@topics["first"]["title"], first.title)
+    assert_equal(topics(:first).title, first.title)
   end
   
   def test_find_first_failing
@@ -129,10 +129,10 @@ class FinderTest < Test::Unit::TestCase
 
   def test_find_all_by_one_attribute_with_options
     topics = Topic.find_all_by_content("Have a nice day", nil, "id DESC")
-    assert @topics["first"].find, topics.last
+    assert topics(:first), topics.last
 
     topics = Topic.find_all_by_content("Have a nice day", nil, "id DESC")
-    assert @topics["first"].find, topics.first
+    assert topics(:first), topics.first
   end
 
 

@@ -155,26 +155,26 @@ CREATE TABLE `tasks` (
   `starting` datetime NOT NULL default '0000-00-00 00:00:00',
   `ending` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `categories` (
   `id` int(11) NOT NULL auto_increment,
   `name` VARCHAR(255) NOT NULL,
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `categories_posts` (
   `category_id` int(11) NOT NULL,
   `post_id` int(11) NOT NULL
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `fk_test_has_pk` (
   `id` INTEGER NOT NULL PRIMARY KEY
-);
+) TYPE=InnoDB;
 
 CREATE TABLE `fk_test_has_fk` (
   `id`    INTEGER NOT NULL PRIMARY KEY,
   `fk_id` INTEGER NOT NULL,
 
   FOREIGN KEY (`fk_id`) REFERENCES `fk_test_has_pk`(`id`)
-);
+) TYPE=InnoDB;

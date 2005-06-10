@@ -8,7 +8,7 @@ class FinderTest < Test::Unit::TestCase
   fixtures :companies, :topics, :entrants, :developers
 
   def test_find
-    assert_equal(@topics["first"]["title"], Topic.find(1).title)
+    assert_equal(topics(:first).title, Topic.find(1).title)
   end
   
   def test_exists
@@ -25,7 +25,7 @@ class FinderTest < Test::Unit::TestCase
   
   def test_find_by_ids
     assert_equal(2, Topic.find(1, 2).length)
-    assert_equal(@topics["second"]["title"], Topic.find([ 2 ]).first.title)
+    assert_equal(topics(:second).title, Topic.find([ 2 ]).first.title)
   end
 
   def test_find_by_ids_missing_one
@@ -38,7 +38,7 @@ class FinderTest < Test::Unit::TestCase
     entrants = Entrant.find(:all, :order => "id ASC", :limit => 2)
     
     assert_equal(2, entrants.size)
-    assert_equal(@entrants["first"]["name"], entrants.first.name)
+    assert_equal(entrants(:first).name, entrants.first.name)
   end
 
   def test_find_all_with_prepared_limit_and_offset
@@ -50,7 +50,7 @@ class FinderTest < Test::Unit::TestCase
       entrants = Entrant.find(:all, :order => "id ASC", :limit => 2, :offset => 1)
 
       assert_equal(2, entrants.size)
-      assert_equal(@entrants["second"]["name"], entrants.first.name)
+      assert_equal(entrants(:second).name, entrants.first.name)
     end
   end
 
@@ -58,19 +58,19 @@ class FinderTest < Test::Unit::TestCase
     topics = Topic.find_by_sql "SELECT * FROM topics WHERE author_name = 'Mary'"
     
     assert_equal(1, topics.size)
-    assert_equal(@topics["second"]["title"], topics.first.title)
+    assert_equal(topics(:second).title, topics.first.title)
   end
   
   def test_find_with_prepared_select_statement
     topics = Topic.find_by_sql ["SELECT * FROM topics WHERE author_name = ?", "Mary"]
     
     assert_equal(1, topics.size)
-    assert_equal(@topics["second"]["title"], topics.first.title)
+    assert_equal(topics(:second).title, topics.first.title)
   end
   
   def test_find_first
     first = Topic.find(:first, :conditions => "title = 'The First Topic'")
-    assert_equal(@topics["first"]["title"], first.title)
+    assert_equal(topics(:first).title, first.title)
   end
   
   def test_find_first_failing
@@ -182,7 +182,7 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_by_one_attribute
-    assert_equal @topics["first"].find, Topic.find_by_title("The First Topic")
+    assert_equal topics(:first), Topic.find_by_title("The First Topic")
     assert_nil Topic.find_by_title("The First Topic!")
   end
 
@@ -191,24 +191,24 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_by_two_attributes
-    assert_equal @topics["first"].find, Topic.find_by_title_and_author_name("The First Topic", "David")
+    assert_equal topics(:first), Topic.find_by_title_and_author_name("The First Topic", "David")
     assert_nil Topic.find_by_title_and_author_name("The First Topic", "Mary")
   end
 
   def test_find_all_by_one_attribute
     topics = Topic.find_all_by_content("Have a nice day")
     assert_equal 2, topics.size
-    assert topics.include?(@topics["first"].find)
+    assert topics.include?(topics(:first))
 
     assert_equal [], Topic.find_all_by_title("The First Topic!!")
   end
   
   def test_find_all_by_one_attribute_with_options
     topics = Topic.find_all_by_content("Have a nice day", :order => "id DESC")
-    assert @topics["first"].find, topics.last
+    assert topics(:first), topics.last
 
     topics = Topic.find_all_by_content("Have a nice day", :order => "id")
-    assert @topics["first"].find, topics.first
+    assert topics(:first), topics.first
   end
 
   def test_find_all_by_array_attribute
@@ -218,11 +218,11 @@ class FinderTest < Test::Unit::TestCase
   def test_find_all_by_boolean_attribute
     topics = Topic.find_all_by_approved(false)
     assert_equal 1, topics.size
-    assert topics.include?(@topics["first"].find)
+    assert topics.include?(topics(:first))
 
     topics = Topic.find_all_by_approved(true)
     assert_equal 1, topics.size
-    assert topics.include?(@topics["second"].find)
+    assert topics.include?(topics(:second))
   end
   
   def test_find_by_nil_attribute

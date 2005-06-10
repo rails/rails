@@ -147,37 +147,37 @@ class MixinNestedSetTest < Test::Unit::TestCase
   end            
                                
   def test_common_usage
-    @set_1.add_child( @set_2 )
-    assert_equal( 1, @set_1.direct_children.length )
+    mixins(:set_1).add_child( mixins(:set_2) )
+    assert_equal( 1, mixins(:set_1).direct_children.length )
 
-    @set_2.add_child( @set_3 )                      
-    assert_equal( 1, @set_1.direct_children.length )     
+    mixins(:set_2).add_child( mixins(:set_3) )                      
+    assert_equal( 1, mixins(:set_1).direct_children.length )     
     
     # Local cache is now out of date!
     # Problem: the update_alls update all objects up the tree
-    @set_1.reload
-    assert_equal( 2, @set_1.all_children.length )              
+    mixins(:set_1).reload
+    assert_equal( 2, mixins(:set_1).all_children.length )              
     
-    assert_equal( 1, @set_1.lft )
-    assert_equal( 2, @set_2.lft )
-    assert_equal( 3, @set_3.lft )
-    assert_equal( 4, @set_3.rgt )
-    assert_equal( 5, @set_2.rgt )
-    assert_equal( 6, @set_1.rgt )
+    assert_equal( 1, mixins(:set_1).lft )
+    assert_equal( 2, mixins(:set_2).lft )
+    assert_equal( 3, mixins(:set_3).lft )
+    assert_equal( 4, mixins(:set_3).rgt )
+    assert_equal( 5, mixins(:set_2).rgt )
+    assert_equal( 6, mixins(:set_1).rgt )
           
-    assert( @set_1.root? )
+    assert( mixins(:set_1).root? )
                   
     begin
-      @set_4.add_child( @set_1 )
+      mixins(:set_4).add_child( mixins(:set_1) )
       fail
     rescue
     end
     
-    assert_equal( 2, @set_1.all_children.length )
+    assert_equal( 2, mixins(:set_1).all_children.length )
     
-    @set_1.add_child @set_4
+    mixins(:set_1).add_child mixins(:set_4)
 
-    assert_equal( 3, @set_1.all_children.length )
+    assert_equal( 3, mixins(:set_1).all_children.length )
 
 
   end

@@ -51,9 +51,7 @@ end
 
 
 class CallbacksTest < Test::Unit::TestCase
-  def setup
-    @developers = create_fixtures('developers')
-  end
+  fixtures :developers
 
   def test_initialize
     david = CallbackDeveloper.new

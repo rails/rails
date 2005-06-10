@@ -16,10 +16,8 @@ raise "ActiveRecord should have barked on bad collection keys" unless bad_collec
 
 
 class DeprecatedAssociationsTest < Test::Unit::TestCase
-  def setup
-    create_fixtures "accounts", "companies", "developers", "projects", "developers_projects", "topics"
-    @signals37 = Firm.find(1)
-  end
+  fixtures :accounts, :companies, :developers, :projects, :topics,
+           :developers_projects
 
   def test_has_many_find
     assert_equal 2, Firm.find_first.clients.length
@@ -67,6 +65,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     assert_equal 0, Client.find_all.length
   end
 
+  uses_transaction :test_has_many_dependence_with_transaction_support_on_failure
   def test_has_many_dependence_with_transaction_support_on_failure
     assert_equal 2, Client.find_all.length
 
@@ -94,7 +93,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   end
 
   def test_belongs_to
-    assert_equal @signals37.name, Client.find(3).firm.name
+    assert_equal companies(:first_firm).name, Client.find(3).firm.name
     assert Client.find(3).has_firm?, "Microsoft should have a firm"
     # assert !Company.find(1).has_firm?, "37signals shouldn't have a firm"
   end
@@ -115,25 +114,25 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   end
 
   def test_has_one
-    assert @signals37.account?(Account.find(1))
-    assert_equal Account.find(1).credit_limit, @signals37.account.credit_limit
-    assert @signals37.has_account?, "37signals should have an account"
-    assert Account.find(1).firm?(@signals37), "37signals account should be able to backtrack"
+    assert companies(:first_firm).account?(Account.find(1))
+    assert_equal Account.find(1).credit_limit, companies(:first_firm).account.credit_limit
+    assert companies(:first_firm).has_account?, "37signals should have an account"
+    assert Account.find(1).firm?(companies(:first_firm)), "37signals account should be able to backtrack"
     assert Account.find(1).has_firm?, "37signals account should be able to backtrack"
 
     assert !Account.find(2).has_firm?, "Unknown isn't linked"
-    assert !Account.find(2).firm?(@signals37), "Unknown isn't linked"
+    assert !Account.find(2).firm?(companies(:first_firm)), "Unknown isn't linked"
   end
 
   def test_has_many_dependence_on_account
     assert_equal 2, Account.find_all.length
-    @signals37.destroy
+    companies(:first_firm).destroy
     assert_equal 1, Account.find_all.length
   end
 
   def test_find_in
-    assert_equal Client.find(2).name, @signals37.find_in_clients(2).name
-    assert_raises(ActiveRecord::RecordNotFound) { @signals37.find_in_clients(6) }
+    assert_equal Client.find(2).name, companies(:first_firm).find_in_clients(2).name
+    assert_raises(ActiveRecord::RecordNotFound) { companies(:first_firm).find_in_clients(6) }
   end
 
   def test_force_reload
@@ -157,21 +156,21 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   end
 
   def test_included_in_collection
-    assert @signals37.clients.include?(Client.find(2))
+    assert companies(:first_firm).clients.include?(Client.find(2))
   end
 
   def test_build_to_collection
-    assert_equal 1, @signals37.clients_of_firm_count
-    new_client = @signals37.build_to_clients_of_firm("name" => "Another Client")
+    assert_equal 1, companies(:first_firm).clients_of_firm_count
+    new_client = companies(:first_firm).build_to_clients_of_firm("name" => "Another Client")
     assert_equal "Another Client", new_client.name
     assert new_client.save
 
-    assert new_client.firm?(@signals37)
-    assert_equal 2, @signals37.clients_of_firm_count(true)
+    assert new_client.firm?(companies(:first_firm))
+    assert_equal 2, companies(:first_firm).clients_of_firm_count(true)
   end
 
   def test_create_in_collection
-    assert_equal @signals37.create_in_clients_of_firm("name" => "Another Client"), @signals37.clients_of_firm(true).last
+    assert_equal companies(:first_firm).create_in_clients_of_firm("name" => "Another Client"), companies(:first_firm).clients_of_firm(true).last
   end
 
   def test_has_and_belongs_to_many
@@ -317,13 +316,13 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   end
 
   def test_has_one
-    assert @signals37.account?(Account.find(1))
-    assert @signals37.has_account?, "37signals should have an account"
-    assert Account.find(1).firm?(@signals37), "37signals account should be able to backtrack"
+    assert companies(:first_firm).account?(Account.find(1))
+    assert companies(:first_firm).has_account?, "37signals should have an account"
+    assert Account.find(1).firm?(companies(:first_firm)), "37signals account should be able to backtrack"
     assert Account.find(1).has_firm?, "37signals account should be able to backtrack"
 
     assert !Account.find(2).has_firm?, "Unknown isn't linked"
-    assert !Account.find(2).firm?(@signals37), "Unknown isn't linked"
+    assert !Account.find(2).firm?(companies(:first_firm)), "Unknown isn't linked"
   end
 
   def test_has_one_build

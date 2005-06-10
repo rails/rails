@@ -441,6 +441,20 @@ module Test #:nodoc:
         end
       end
 
+      def self.uses_transaction(*methods)
+        @uses_transaction ||= []
+        @uses_transaction.concat methods.map { |m| m.to_s }
+      end
+
+      def self.uses_transaction?(method)
+        @uses_transaction && @uses_transaction.include?(method.to_s)
+      end
+
+      def use_transactional_fixtures?
+        use_transactional_fixtures &&
+          !self.class.uses_transaction?(method_name)
+      end
+
       def setup_with_fixtures
         if pre_loaded_fixtures && !use_transactional_fixtures
           raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures' 
@@ -449,7 +463,7 @@ module Test #:nodoc:
         @fixture_cache = Hash.new
 
         # Load fixtures once and begin transaction.
-        if use_transactional_fixtures
+        if use_transactional_fixtures?
           if @@already_loaded_fixtures[self.class]
             @loaded_fixtures = @@already_loaded_fixtures[self.class]
           else
@@ -461,6 +475,7 @@ module Test #:nodoc:
 
         # Load fixtures for every test.
         else
+          @@already_loaded_fixtures[self.class] = nil
           load_fixtures
         end
 
@@ -472,7 +487,7 @@ module Test #:nodoc:
 
       def teardown_with_fixtures
         # Rollback changes.
-        if use_transactional_fixtures
+        if use_transactional_fixtures?
           ActiveRecord::Base.connection.rollback_db_transaction
           ActiveRecord::Base.unlock_mutex
         end

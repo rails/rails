@@ -3,6 +3,8 @@ require 'fixtures/course'
 require 'fixtures/entrant'
 
 class MultipleDbTest < Test::Unit::TestCase
+  self.use_transactional_fixtures = false
+
   def setup
     @courses  = create_fixtures("courses") { Course.retrieve_connection }
     @entrants = create_fixtures("entrants")

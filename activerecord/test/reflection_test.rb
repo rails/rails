@@ -5,10 +5,9 @@ require 'fixtures/company'
 require 'fixtures/company_in_module'
 
 class ReflectionTest < Test::Unit::TestCase
+  fixtures :topics, :customers, :companies
+
   def setup
-    @topics = create_fixtures "topics"
-    @customers = create_fixtures "customers"
-    @companies = create_fixtures "companies"
     @first = Topic.find(1)
   end
 

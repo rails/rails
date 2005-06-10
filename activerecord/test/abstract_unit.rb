@@ -19,6 +19,6 @@ class Test::Unit::TestCase #:nodoc:
 end
 
 Test::Unit::TestCase.fixture_path = File.dirname(__FILE__) + "/fixtures/"
-#Test::Unit::TestCase.use_instantiated_fixtures = false
-#Test::Unit::TestCase.use_transactional_fixtures = (ENV['AR_TX_FIXTURES'] == "yes")
+Test::Unit::TestCase.use_instantiated_fixtures = false
+Test::Unit::TestCase.use_transactional_fixtures = (ENV['AR_TX_FIXTURES'] == "yes")
 

@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/developer'
+require 'fixtures/reply'
 
 class Topic; def after_find() end end
 class Developer; def after_find() end end
@@ -54,9 +55,7 @@ class MultiObserver < ActiveRecord::Observer
 end
 
 class LifecycleTest < Test::Unit::TestCase
-  def setup
-    @topics, @developers = create_fixtures("topics", "developers")
-  end
+  fixtures :topics, :developers
 
   def test_before_destroy
     assert_equal 2, Topic.count

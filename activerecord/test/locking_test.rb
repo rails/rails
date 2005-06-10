@@ -2,9 +2,7 @@ require 'abstract_unit'
 require 'fixtures/person'
 
 class LockingTest < Test::Unit::TestCase
-  def setup
-    @people = create_fixtures('people')
-  end
+  fixtures :people
 
   def test_lock_existing
     p1 = Person.find(1)

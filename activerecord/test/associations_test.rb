@@ -556,6 +556,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_nothing_raised { topic.destroy }
   end
 
+  uses_transaction :test_dependence_with_transaction_support_on_failure
   def test_dependence_with_transaction_support_on_failure
     assert_equal 2, Client.find_all.length
     firm = Firm.find_first
@@ -851,7 +852,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_uniq_before_the_fact
     projects(:active_record).developers << developers(:jamis)
     projects(:active_record).developers << developers(:david)
-    assert_equal 2, projects(:active_record).developers.size
+    assert_equal 2, projects(:active_record, :reload).developers.size
   end
   
   def test_deleting
@@ -933,7 +934,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal 1, projects(:active_record).developers_named_david.size
     
     projects(:active_record).developers_named_david.clear
-    assert_equal 1, projects(:active_record).developers.size
+    assert_equal 1, projects(:active_record, :reload).developers.size
   end
   
   def test_find_in_association

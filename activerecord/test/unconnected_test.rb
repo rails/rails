@@ -4,6 +4,7 @@ class TestRecord < ActiveRecord::Base
 end
 
 class TestUnconnectedAdaptor < Test::Unit::TestCase
+  self.use_transactional_fixtures = false
 
   def setup
     @connection = ActiveRecord::Base.remove_connection

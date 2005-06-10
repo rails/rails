@@ -3,9 +3,14 @@ require 'fixtures/topic'
 
 
 class TransactionTest < Test::Unit::TestCase
+  self.use_transactional_fixtures = false
+
+  fixtures :topics
+
   def setup
-    @topics         = create_fixtures "topics"
-    @first, @second = Topic.find(1, 2)
+    # sqlite does not seem to return these in the right order, so we sort them
+    # explicitly for sqlite's sake. sqlite3 does fine.
+    @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
   end
 
   def test_successful
@@ -53,6 +58,8 @@ class TransactionTest < Test::Unit::TestCase
   end
   
   def test_failing_with_object_rollback
+    assert !@first.approved?, "First should be unapproved initially"
+
     begin
       Topic.transaction(@first, @second) do
         @first.approved  = true
