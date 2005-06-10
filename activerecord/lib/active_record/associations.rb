@@ -719,7 +719,7 @@ module ActiveRecord
                   next unless row[primary_key_table[reflection.table_name]]
 
                   record.send(
-                    "#{reflection.name}=", 
+                    "set_#{reflection.name}_target", 
                     reflection.klass.send(:instantiate, extract_record(schema_abbreviations, reflection.table_name, row))
                   )
               end

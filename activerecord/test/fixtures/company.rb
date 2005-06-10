@@ -21,7 +21,7 @@ class Firm < Company
            :finder_sql  => 'SELECT * FROM companies WHERE client_of = 1000',
            :counter_sql => 'SELECT COUNT(*) FROM companies WHERE client_of = 1000'
 
-  has_one :account, :dependent => true
+  has_one :account, :foreign_key => "firm_id", :dependent => true
 end
 
 class Client < Company

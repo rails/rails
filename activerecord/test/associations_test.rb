@@ -17,10 +17,8 @@ raise "ActiveRecord should have barked on bad collection keys" unless bad_collec
 
 
 class AssociationsTest < Test::Unit::TestCase
-  def setup
-    create_fixtures "accounts", "companies", "developers", "projects", "developers_projects", "computers"
-    @signals37 = Firm.find(1)
-  end
+  fixtures :accounts, :companies, :developers, :projects, :developers_projects,
+           :computers
   
   def test_force_reload
     firm = Firm.new("name" => "A New Firm, Inc")
@@ -63,23 +61,20 @@ class AssociationsTest < Test::Unit::TestCase
 end
 
 class HasOneAssociationsTest < Test::Unit::TestCase
-  def setup
-    create_fixtures "accounts", "companies", "developers", "projects", "developers_projects"
-    @signals37 = Firm.find(1)
-  end
+  fixtures :accounts, :companies, :developers, :projects, :developers_projects
   
   def test_has_one
-    assert_equal @signals37.account, Account.find(1)
-    assert_equal Account.find(1).credit_limit, @signals37.account.credit_limit
+    assert_equal companies(:first_firm).account, Account.find(1)
+    assert_equal Account.find(1).credit_limit, companies(:first_firm).account.credit_limit
   end
 
   def test_triple_equality
-    assert Account === @signals37.account
+    assert Account === companies(:first_firm).account
   end
 
   def test_type_mismatch
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { @signals37.account = 1 }
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { @signals37.account = Project.find(1) }
+    assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).account = 1 }
+    assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).account = Project.find(1) }
   end
 
   def test_natural_assignment
@@ -90,10 +85,10 @@ class HasOneAssociationsTest < Test::Unit::TestCase
   end
   
   def test_natural_assignment_to_nil
-    old_account_id = @signals37.account.id
-    @signals37.account = nil
-    @signals37.save
-    assert_nil @signals37.account
+    old_account_id = companies(:first_firm).account.id
+    companies(:first_firm).account = nil
+    companies(:first_firm).save
+    assert_nil companies(:first_firm).account
     # account is dependent, therefore is destroyed when reference to owner is lost
     assert_raises(ActiveRecord::RecordNotFound) { Account.find(old_account_id) } 
   end
@@ -121,7 +116,7 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     apple.account = citibank
     assert_equal apple.id, citibank.firm_id
     
-    hsbc = apple.create_account({ :name => "HSBC", :credit_limit => 10}, false)
+    hsbc = apple.create_account({:credit_limit => 10}, false)
     assert_equal apple.id, hsbc.firm_id
     hsbc.save
     assert_equal apple.id, citibank.firm_id
@@ -256,14 +251,11 @@ end
 
 
 class HasManyAssociationsTest < Test::Unit::TestCase
-  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :topics
-  
-  def setup
-    @signals37 = Firm.find(1)
-  end
+  fixtures :accounts, :companies, :developers, :projects,
+           :developers_projects, :topics
   
   def force_signal37_to_load_all_clients_of_firm
-    @signals37.clients_of_firm.each {|f| }
+    companies(:first_firm).clients_of_firm.each {|f| }
   end
   
   def test_counting
@@ -366,30 +358,30 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_find_in_collection
-    assert_equal Client.find(2).name, @signals37.clients.find(2).name
-    assert_raises(ActiveRecord::RecordNotFound) { @signals37.clients.find(6) }
+    assert_equal Client.find(2).name, companies(:first_firm).clients.find(2).name
+    assert_raises(ActiveRecord::RecordNotFound) { companies(:first_firm).clients.find(6) }
   end
 
   def test_adding
     force_signal37_to_load_all_clients_of_firm
     natural = Client.new("name" => "Natural Company")
-    @signals37.clients_of_firm << natural
-    assert_equal 2, @signals37.clients_of_firm.size # checking via the collection
-    assert_equal 2, @signals37.clients_of_firm(true).size # checking using the db
-    assert_equal natural, @signals37.clients_of_firm.last
+    companies(:first_firm).clients_of_firm << natural
+    assert_equal 2, companies(:first_firm).clients_of_firm.size # checking via the collection
+    assert_equal 2, companies(:first_firm).clients_of_firm(true).size # checking using the db
+    assert_equal natural, companies(:first_firm).clients_of_firm.last
   end
   
   def test_adding_a_mismatch_class
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { @signals37.clients_of_firm << nil }
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { @signals37.clients_of_firm << 1 }
-    assert_raises(ActiveRecord::AssociationTypeMismatch) { @signals37.clients_of_firm << Topic.find(1) }
+    assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << nil }
+    assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << 1 }
+    assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << Topic.find(1) }
   end
   
   def test_adding_a_collection
     force_signal37_to_load_all_clients_of_firm
-    @signals37.clients_of_firm.concat([Client.new("name" => "Natural Company"), Client.new("name" => "Apple")])
-    assert_equal 3, @signals37.clients_of_firm.size
-    assert_equal 3, @signals37.clients_of_firm(true).size
+    companies(:first_firm).clients_of_firm.concat([Client.new("name" => "Natural Company"), Client.new("name" => "Apple")])
+    assert_equal 3, companies(:first_firm).clients_of_firm.size
+    assert_equal 3, companies(:first_firm).clients_of_firm(true).size
   end
 
   def test_adding_before_save
@@ -435,51 +427,51 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_build
-    new_client = @signals37.clients_of_firm.build("name" => "Another Client")
+    new_client = companies(:first_firm).clients_of_firm.build("name" => "Another Client")
     assert_equal "Another Client", new_client.name
     assert new_client.new_record?
-    assert_equal new_client, @signals37.clients_of_firm.last
-    assert @signals37.save
+    assert_equal new_client, companies(:first_firm).clients_of_firm.last
+    assert companies(:first_firm).save
     assert !new_client.new_record?
-    assert_equal 2, @signals37.clients_of_firm(true).size
+    assert_equal 2, companies(:first_firm).clients_of_firm(true).size
   end
 
   def test_build_many
-    new_clients = @signals37.clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}])
+    new_clients = companies(:first_firm).clients_of_firm.build([{"name" => "Another Client"}, {"name" => "Another Client II"}])
     assert_equal 2, new_clients.size
 
-    assert @signals37.save
-    assert_equal 3, @signals37.clients_of_firm(true).size
+    assert companies(:first_firm).save
+    assert_equal 3, companies(:first_firm).clients_of_firm(true).size
   end
 
   def test_invalid_build
-    new_client = @signals37.clients_of_firm.build
+    new_client = companies(:first_firm).clients_of_firm.build
     assert new_client.new_record?
     assert !new_client.valid?
-    assert_equal new_client, @signals37.clients_of_firm.last
-    assert !@signals37.save
+    assert_equal new_client, companies(:first_firm).clients_of_firm.last
+    assert !companies(:first_firm).save
     assert new_client.new_record?
-    assert_equal 1, @signals37.clients_of_firm(true).size
+    assert_equal 1, companies(:first_firm).clients_of_firm(true).size
   end
   
   def test_create
     force_signal37_to_load_all_clients_of_firm
-    new_client = @signals37.clients_of_firm.create("name" => "Another Client")
+    new_client = companies(:first_firm).clients_of_firm.create("name" => "Another Client")
     assert !new_client.new_record?
-    assert_equal new_client, @signals37.clients_of_firm.last
-    assert_equal new_client, @signals37.clients_of_firm(true).last
+    assert_equal new_client, companies(:first_firm).clients_of_firm.last
+    assert_equal new_client, companies(:first_firm).clients_of_firm(true).last
   end
   
   def test_create_many
-    @signals37.clients_of_firm.create([{"name" => "Another Client"}, {"name" => "Another Client II"}])
-    assert_equal 3, @signals37.clients_of_firm(true).size
+    companies(:first_firm).clients_of_firm.create([{"name" => "Another Client"}, {"name" => "Another Client II"}])
+    assert_equal 3, companies(:first_firm).clients_of_firm(true).size
   end
 
   def test_deleting
     force_signal37_to_load_all_clients_of_firm
-    @signals37.clients_of_firm.delete(@signals37.clients_of_firm.first)
-    assert_equal 0, @signals37.clients_of_firm.size
-    assert_equal 0, @signals37.clients_of_firm(true).size
+    companies(:first_firm).clients_of_firm.delete(companies(:first_firm).clients_of_firm.first)
+    assert_equal 0, companies(:first_firm).clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
   end
 
   def test_deleting_before_save
@@ -492,29 +484,29 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
   def test_deleting_a_collection
     force_signal37_to_load_all_clients_of_firm
-    @signals37.clients_of_firm.create("name" => "Another Client")
-    assert_equal 2, @signals37.clients_of_firm.size
-    #@signals37.clients_of_firm.clear
-    @signals37.clients_of_firm.delete([@signals37.clients_of_firm[0], @signals37.clients_of_firm[1]])
-    assert_equal 0, @signals37.clients_of_firm.size
-    assert_equal 0, @signals37.clients_of_firm(true).size
+    companies(:first_firm).clients_of_firm.create("name" => "Another Client")
+    assert_equal 2, companies(:first_firm).clients_of_firm.size
+    #companies(:first_firm).clients_of_firm.clear
+    companies(:first_firm).clients_of_firm.delete([companies(:first_firm).clients_of_firm[0], companies(:first_firm).clients_of_firm[1]])
+    assert_equal 0, companies(:first_firm).clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
   end
 
   def test_deleting_a_association_collection
     force_signal37_to_load_all_clients_of_firm
-    @signals37.clients_of_firm.create("name" => "Another Client")
-    assert_equal 2, @signals37.clients_of_firm.size
-    @signals37.clients_of_firm.clear
-    assert_equal 0, @signals37.clients_of_firm.size
-    assert_equal 0, @signals37.clients_of_firm(true).size
+    companies(:first_firm).clients_of_firm.create("name" => "Another Client")
+    assert_equal 2, companies(:first_firm).clients_of_firm.size
+    companies(:first_firm).clients_of_firm.clear
+    assert_equal 0, companies(:first_firm).clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
   end
 
   def test_deleting_a_item_which_is_not_in_the_collection
     force_signal37_to_load_all_clients_of_firm
     summit = Client.find_first("name = 'Summit'")
-    @signals37.clients_of_firm.delete(summit)
-    assert_equal 1, @signals37.clients_of_firm.size
-    assert_equal 1, @signals37.clients_of_firm(true).size
+    companies(:first_firm).clients_of_firm.delete(summit)
+    assert_equal 1, companies(:first_firm).clients_of_firm.size
+    assert_equal 1, companies(:first_firm).clients_of_firm(true).size
     assert_equal 2, summit.client_of
   end
 
@@ -532,10 +524,10 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
   def test_destroy_all
     force_signal37_to_load_all_clients_of_firm
-    assert !@signals37.clients_of_firm.empty?, "37signals has clients after load"
-    @signals37.clients_of_firm.destroy_all
-    assert @signals37.clients_of_firm.empty?, "37signals has no clients after destroy all"
-    assert @signals37.clients_of_firm(true).empty?, "37signals has no clients after destroy all and refresh"
+    assert !companies(:first_firm).clients_of_firm.empty?, "37signals has clients after load"
+    companies(:first_firm).clients_of_firm.destroy_all
+    assert companies(:first_firm).clients_of_firm.empty?, "37signals has no clients after destroy all"
+    assert companies(:first_firm).clients_of_firm(true).empty?, "37signals has no clients after destroy all and refresh"
   end
 
   def test_dependence
@@ -577,12 +569,12 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
   def test_dependence_on_account
     assert_equal 2, Account.find_all.length
-    @signals37.destroy
+    companies(:first_firm).destroy
     assert_equal 1, Account.find_all.length
   end
 
   def test_included_in_collection
-    assert @signals37.clients.include?(Client.find(2))
+    assert companies(:first_firm).clients.include?(Client.find(2))
   end
 
   def test_adding_array_and_collection
@@ -591,16 +583,12 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 end
 
 class BelongsToAssociationsTest < Test::Unit::TestCase
-  fixtures :accounts, :companies, :developers, :projects, :topics
+  fixtures :accounts, :companies, :developers, :projects, :topics,
+           :developers_projects
   
-  def setup
-    create_fixtures "developers_projects"
-    @signals37 = Firm.find(1)
-  end
-
   def test_belongs_to
     Client.find(3).firm.name
-    assert_equal @signals37.name, Client.find(3).firm.name
+    assert_equal companies(:first_firm).name, Client.find(3).firm.name
     assert !Client.find(3).firm.nil?, "Microsoft should have a firm"   
   end
 
@@ -854,16 +842,16 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
   
   def test_uniq_after_the_fact
-    @developers["jamis"].find.projects << @projects["active_record"].find
-    @developers["jamis"].find.projects << @projects["active_record"].find
-    assert_equal 3, @developers["jamis"].find.projects.size
-    assert_equal 1, @developers["jamis"].find.projects.uniq.size
+    developers(:jamis).projects << projects(:active_record)
+    developers(:jamis).projects << projects(:active_record)
+    assert_equal 3, developers(:jamis).projects.size
+    assert_equal 1, developers(:jamis).projects.uniq.size
   end
 
   def test_uniq_before_the_fact
-    @projects["active_record"].find.developers << @developers["jamis"].find
-    @projects["active_record"].find.developers << @developers["david"].find
-    assert_equal 2, @projects["active_record"].find.developers.size
+    projects(:active_record).developers << developers(:jamis)
+    projects(:active_record).developers << developers(:david)
+    assert_equal 2, projects(:active_record).developers.size
   end
   
   def test_deleting
@@ -934,35 +922,35 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_rich_association
-    @jamis = @developers["jamis"].find
-    @jamis.projects.push_with_attributes(@projects["action_controller"].find, :joined_on => Date.today)
-    assert_equal Date.today.to_s, @jamis.projects.select { |p| p.name == @projects["action_controller"]["name"] }.first.joined_on.to_s
-    assert_equal Date.today.to_s, @developers["jamis"].find.projects.select { |p| p.name == @projects["action_controller"]["name"] }.first.joined_on.to_s
+    jamis = developers(:jamis)
+    jamis.projects.push_with_attributes(projects(:action_controller), :joined_on => Date.today)
+    assert_equal Date.today.to_s, jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
+    assert_equal Date.today.to_s, developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
   end
 
   def test_associations_with_conditions
-    assert_equal 2, @projects["active_record"].find.developers.size
-    assert_equal 1, @projects["active_record"].find.developers_named_david.size
+    assert_equal 2, projects(:active_record).developers.size
+    assert_equal 1, projects(:active_record).developers_named_david.size
     
-    @projects["active_record"].find.developers_named_david.clear
-    assert_equal 1, @projects["active_record"].find.developers.size
+    projects(:active_record).developers_named_david.clear
+    assert_equal 1, projects(:active_record).developers.size
   end
   
   def test_find_in_association
     # Using sql
-    assert_equal @developers["david"].find, @projects["active_record"].find.developers.find(@developers["david"]["id"]), "SQL find"
+    assert_equal developers(:david), projects(:active_record).developers.find(developers(:david).id), "SQL find"
     
     # Using ruby
-    @active_record = @projects["active_record"].find
-    @active_record.developers.reload
-    assert_equal @developers["david"].find, @active_record.developers.find(@developers["david"]["id"]), "Ruby find"
+    active_record = projects(:active_record)
+    active_record.developers.reload
+    assert_equal developers(:david), active_record.developers.find(developers(:david).id), "Ruby find"
   end
 
   def xtest_find_in_association_with_options
-    developers = @active_record.developers.find(:all)
+    developers = projects(:active_record).developers.find(:all)
     assert_equal 2, developers.size
     
-    assert_equal @david, @active_record.developers.find(:first, :conditions => "salary < 10000")
-    assert_equal @jamis, @active_record.developers.find(:first, :order => "salary DESC")
+    assert_equal developers(:david), projects(:active_record).developers.find(:first, :conditions => "salary < 10000")
+    assert_equal developers(:jamis), projects(:active_record).developers.find(:first, :order => "salary DESC")
   end
 end
