@@ -1,5 +1,7 @@
 *SVN*
 
+* Arrays sent via multipart posts are converted to strings #1032 [dj@omelia.org]
+
 * render(:layout => true) is a synonym for render(:layout => nil)
 
 * Make sure the benchmarking render method always returns the output of the render.

@@ -69,7 +69,7 @@ class CGIMethods #:nodoc:
         # Value as part of a multipart request
         value.read
       elsif value.class == Array
-          value
+        value.collect { | e | e.respond_to?(:read) ? e.read : e }
       else
         # Standard value (not a multipart request)
         value.to_s

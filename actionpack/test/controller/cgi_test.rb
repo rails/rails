@@ -94,12 +94,16 @@ class CGITest < Test::Unit::TestCase
   
     input = {
       "something" => [ StringIO.new("") ],
+      "array_of_stringios" => [[ StringIO.new("One"), StringIO.new("Two") ]],
+      "mixed_types_array" => [[ StringIO.new("Three"), "NotStringIO" ]],
       "products[string]" => [ StringIO.new("Apple Computer") ],
       "products[file]" => [ mock_file ]
     }
     
     expected_output =  {
       "something" => "",
+      "array_of_stringios" => ["One", "Two"],
+      "mixed_types_array" => [ "Three", "NotStringIO" ],
       "products"  => {
         "string"  => "Apple Computer",
         "file"    => mock_file
@@ -169,3 +173,4 @@ class CGITest < Test::Unit::TestCase
     assert_equal expected, CGIMethods.parse_request_parameters(input)
   end
 end
+
