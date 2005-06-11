@@ -44,8 +44,9 @@ class EagerAssociationTest < Test::Unit::TestCase
 
   def test_eager_association_loading_with_belongs_to
     comments = Comment.find(:all, :include => :post)
-    assert_equal posts(:welcome).title, comments.first.post.title
-    assert_equal posts(:thinking).title, comments.last.post.title
+    titles = comments.map { |c| c.post.title }
+    assert titles.include?(posts(:welcome).title)
+    assert titles.include?(posts(:thinking).title)
   end
 
   def test_eager_association_loading_with_habtm

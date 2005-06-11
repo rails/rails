@@ -181,7 +181,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     active_record = Project.find(1)
     assert active_record.has_developers?
     assert_equal 2, active_record.developers_count
-    assert_equal david.name, active_record.developers.first.name
+    assert active_record.developers.include?(david)
   end
 
   def test_has_and_belongs_to_many_removing
