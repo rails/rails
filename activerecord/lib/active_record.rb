@@ -49,8 +49,8 @@ require 'active_record/migration'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
-  include ActiveRecord::Callbacks
   include ActiveRecord::Locking
+  include ActiveRecord::Callbacks
   include ActiveRecord::Timestamp
   include ActiveRecord::Associations
   include ActiveRecord::Aggregations

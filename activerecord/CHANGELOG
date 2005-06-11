@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow before/after update hooks to work on models using optimistic locking 
+
 * Eager loading of dependent has_one associations won't delete the association #1212
 
 * Added a second parameter to the build and create method for has_one that controls whether the existing association should be replaced (which means nullifying its foreign key as well). By default this is true, but false can be passed to prevent it.
