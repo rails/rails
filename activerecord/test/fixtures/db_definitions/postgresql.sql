@@ -50,10 +50,10 @@ CREATE TABLE topics (
     bonus_time time,
     last_read date,
     content text,
+    approved smallint DEFAULT 1,
     replies_count integer default 0,
     parent_id integer,
     "type" character varying(50),
-    approved smallint DEFAULT 1,
     PRIMARY KEY (id)
 );
 SELECT setval('topics_id_seq', 100);

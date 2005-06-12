@@ -617,9 +617,9 @@ module ActiveRecord #:nodoc:
       def columns_hash
         @columns_hash ||= columns.inject({}) { |hash, column| hash[column.name] = column; hash }
       end
-      
+
       def column_names
-        @column_names ||= columns_hash.keys
+        @column_names ||= columns.map { |column| column.name }
       end
 
       # Returns an array of columns objects where the primary id, all columns ending in "_id" or "_count", 
@@ -632,7 +632,7 @@ module ActiveRecord #:nodoc:
       # and true as the value. This makes it possible to do O(1) lookups in respond_to? to check if a given method for attribute
       # is available. 
       def column_methods_hash
-        @dynamic_methods_hash ||= columns_hash.keys.inject(Hash.new(false)) do |methods, attr|
+        @dynamic_methods_hash ||= column_names.inject(Hash.new(false)) do |methods, attr|
           methods[attr.to_sym]       = true
           methods["#{attr}=".to_sym] = true
           methods["#{attr}?".to_sym] = true
@@ -1293,16 +1293,14 @@ module ActiveRecord #:nodoc:
       # Returns copy of the attributes hash where all the values have been safely quoted for use in
       # an SQL statement. 
       def attributes_with_quotes(include_primary_key = true)
-        columns_hash = self.class.columns_hash
-
-        attrs_quoted = attributes.inject({}) do |attrs_quoted, pair| 
-          attrs_quoted[pair.first] = quote(pair.last, columns_hash[pair.first]) unless !include_primary_key && pair.first == self.class.primary_key
-          attrs_quoted
+        attributes.inject({}) do |quoted, (name, value)| 
+          if column = column_for_attribute(name)
+            quoted[name] = quote(value, column) unless !include_primary_key && name == self.class.primary_key
+          end
+          quoted
         end
-
-        attrs_quoted.delete_if { |key, value| !self.class.columns_hash.keys.include?(key) }
       end
-      
+
       # Quote strings appropriately for SQL statements.
       def quote(value, column = nil)
         connection.quote(value, column)

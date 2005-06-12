@@ -78,19 +78,21 @@ module ActiveRecord
       end
 
       def insert(sql, name = nil, pk = nil, id_value = nil)
-        execute(sql, name = nil)
+        execute(sql, name)
         table = sql.split(" ", 4)[2]
         return id_value || last_insert_id(table, pk)
       end
 
+      def query(sql, name = nil)
+        log(sql, name) { @connection.query(sql) }
+      end
+
       def execute(sql, name = nil)
-        log(sql, name, @connection) { |connection| connection.query(sql) }
+        log(sql, name) { @connection.exec(sql) }
       end
 
       def update(sql, name = nil)
-        result = nil
-        log(sql, name, @connection) { |connection| result = connection.exec(sql) }
-        result.cmdtuples
+        execute(sql, name).cmdtuples
       end
 
       alias_method :delete, :update
@@ -122,9 +124,7 @@ module ActiveRecord
         end
 
         def select(sql, name = nil)
-          res = nil
-          log(sql, name, @connection) { |connection| res = connection.exec(sql) }
-  
+          res = execute(sql, name)
           results = res.result           
           rows = []
           if results.length > 0
@@ -169,23 +169,22 @@ module ActiveRecord
         def table_structure(table_name)
           database_name = @connection.db
           schema_name, table_name = split_table_schema(table_name)
-          
+
           # Grab a list of all the default values for the columns.
           sql =  "SELECT column_name, column_default, character_maximum_length, data_type "
           sql << "  FROM information_schema.columns "
           sql << " WHERE table_catalog = '#{database_name}' "
           sql << "   AND table_schema = '#{schema_name}' "
-          sql << "   AND table_name = '#{table_name}';"
+          sql << "   AND table_name = '#{table_name}'"
+          sql << " ORDER BY ordinal_position"
 
-          column_defaults = nil
-          log(sql, nil, @connection) { |connection| column_defaults = connection.query(sql) }
-          column_defaults.collect do |row|
-              field   = row[0]
-              type    = type_as_string(row[3], row[2])
-              default = default_value(row[1])
-              length  = row[2]
+          query(sql).collect do |row|
+            field   = row[0]
+            type    = type_as_string(row[3], row[2])
+            default = default_value(row[1])
+            length  = row[2]
 
-              [field, type, default, length]
+            [field, type, default, length]
           end
         end
 
