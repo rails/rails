@@ -249,10 +249,10 @@ module ActiveRecord #:nodoc:
     end
 
     @@subclasses = {}
-    
+
     cattr_accessor :configurations
-    @@primary_key_prefix_type = {}
-    
+    @@configurations = {}
+
     # Accessor for the prefix type that will be prepended to every primary key column name. The options are :table_name and 
     # :table_name_with_underscore. If the first is specified, the Product class will look for "productid" instead of "id" as
     # the primary column. If the latter is specified, the Product class will look for "product_id" instead of "id". Remember

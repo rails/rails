@@ -1,5 +1,7 @@
 *SVN*
 
+* Corrected @@configurations typo #1410 [david@ruppconsulting.com]
+
 * Return PostgreSQL columns in the order they were declared #1374 [perlguy@gmail.com]
 
 * Allow before/after update hooks to work on models using optimistic locking 
