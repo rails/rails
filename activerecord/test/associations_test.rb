@@ -734,9 +734,9 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     active_record = Project.find(1)
     assert !active_record.developers.empty?
     assert_equal 2, active_record.developers.size
-    assert_equal david.name, active_record.developers.first.name
+    assert active_record.developers.include?(david)
   end
-  
+
   def test_adding_single
     jamis = Developer.find(2)
     jamis.projects.reload # causing the collection to load 

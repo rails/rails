@@ -278,10 +278,11 @@ class FinderTest < Test::Unit::TestCase
 
   def test_find_all_with_join
     developers_on_project_one = Developer.find :all, :joins => 'developers_projects', :conditions => 'id=developer_id AND project_id=1'
-    
+
     assert_equal 2, developers_on_project_one.length
-    assert_equal 'David', developers_on_project_one.first.name
-    assert_equal 'Jamis', developers_on_project_one.last.name
+    developer_names = developers_on_project_one.map { |d| d.name }
+    assert developer_names.include?('David')
+    assert developer_names.include?('Jamis')
   end
 
   protected
