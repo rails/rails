@@ -1,5 +1,3 @@
-SET search_path = public, pg_catalog;
-
 CREATE TABLE accounts (
     id serial,
     firm_id integer,

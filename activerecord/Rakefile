@@ -28,20 +28,20 @@ task :default => [ :test_ruby_mysql, :test_mysql_ruby, :test_sqlite, :test_sqlit
 
 Rake::TestTask.new("test_ruby_mysql") { |t|
   t.libs << "test" << "test/connections/native_mysql"
-  t.pattern = 'test/*_test.rb'
+  t.pattern = 'test/*_test{,_mysql}.rb'
   t.verbose = true
 }
 
 Rake::TestTask.new("test_mysql_ruby") { |t|
   t.libs << "test" << "test/connections/native_mysql"
-  t.pattern = 'test/*_test.rb'
+  t.pattern = 'test/*_test{,_mysql}.rb'
   t.verbose = true
 }
 
 for adapter in %w( postgresql sqlite sqlite3 sqlserver db2 oci )
   Rake::TestTask.new("test_#{adapter}") { |t|
     t.libs << "test" << "test/connections/native_#{adapter}"
-    t.pattern = 'test/*_test.rb'
+    t.pattern = "test/*_test{,_#{adapter}}.rb"
     t.verbose = true
   }
 end
