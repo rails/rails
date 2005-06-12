@@ -27,12 +27,12 @@ module ActionController
     #    end
     #  
     #    def show
-    #      @entry = Entry.find(@params["id"])
+    #      @entry = Entry.find(params[:id])
     #      render_scaffold
     #    end
     #    
     #    def destroy
-    #      Entry.find(@params["id"]).destroy
+    #      Entry.find(params[:id]).destroy
     #      redirect_to :action => "list"
     #    end
     #    
@@ -42,9 +42,9 @@ module ActionController
     #    end
     #    
     #    def create
-    #      @entry = Entry.new(@params["entry"])
+    #      @entry = Entry.new(params[:entry])
     #      if @entry.save
-    #        flash["notice"] = "Entry was successfully created"
+    #        flash[:notice] = "Entry was successfully created"
     #        redirect_to :action => "list"
     #      else
     #        render_scaffold('new')
@@ -52,17 +52,17 @@ module ActionController
     #    end
     #    
     #    def edit
-    #      @entry = Entry.find(@params["id"])
+    #      @entry = Entry.find(params[:id])
     #      render_scaffold
     #    end
     #    
     #    def update
-    #      @entry = Entry.find(@params["entry"]["id"])
-    #      @entry.attributes = @params["entry"]
+    #      @entry = Entry.find(params[:id])
+    #      @entry.attributes = params[:entry]
     #  
     #      if @entry.save
-    #        flash["notice"] = "Entry was successfully updated"
-    #        redirect_to :action => "show/" + @entry.id.to_s
+    #        flash[:notice] = "Entry was successfully updated"
+    #        redirect_to :action => "show", :id => @entry
     #      else
     #        render_scaffold('edit')
     #      end
@@ -84,9 +84,9 @@ module ActionController
       def scaffold(model_id, options = {})
         validate_options([ :class_name, :suffix ], options.keys)
 
-        singular_name = model_id.id2name
-        class_name    = options[:class_name] || Inflector.camelize(singular_name)
-        plural_name   = Inflector.pluralize(singular_name)
+        singular_name = model_id.to_s
+        class_name    = options[:class_name] || singular_name.camelize
+        plural_name   = singular_name.pluralize
         suffix        = options[:suffix] ? "_#{singular_name}" : ""
 
         unless options[:suffix]
@@ -104,12 +104,12 @@ module ActionController
           end
 
           def show#{suffix}
-            @#{singular_name} = #{class_name}.find(@params["id"])
+            @#{singular_name} = #{class_name}.find(params[:id])
             render#{suffix}_scaffold
           end
           
           def destroy#{suffix}
-            #{class_name}.find(@params["id"]).destroy
+            #{class_name}.find(params[:id]).destroy
             redirect_to :action => "list#{suffix}"
           end
           
@@ -119,9 +119,9 @@ module ActionController
           end
           
           def create#{suffix}
-            @#{singular_name} = #{class_name}.new(@params["#{singular_name}"])
+            @#{singular_name} = #{class_name}.new(params[:#{singular_name}])
             if @#{singular_name}.save
-              flash["notice"] = "#{class_name} was successfully created"
+              flash[:notice] = "#{class_name} was successfully created"
               redirect_to :action => "list#{suffix}"
             else
               render#{suffix}_scaffold('new')
@@ -129,17 +129,17 @@ module ActionController
           end
           
           def edit#{suffix}
-            @#{singular_name} = #{class_name}.find(@params["id"])
+            @#{singular_name} = #{class_name}.find(params[:id])
             render#{suffix}_scaffold
           end
           
           def update#{suffix}
-            @#{singular_name} = #{class_name}.find(@params["#{singular_name}"]["id"])
-            @#{singular_name}.attributes = @params["#{singular_name}"]
+            @#{singular_name} = #{class_name}.find(params[:id])
+            @#{singular_name}.attributes = params[:#{singular_name}]
 
             if @#{singular_name}.save
-              flash["notice"] = "#{class_name} was successfully updated"
-              redirect_to :action => "show#{suffix}", :id => @#{singular_name}.id.to_s
+              flash[:notice] = "#{class_name} was successfully updated"
+              redirect_to :action => "show#{suffix}", :id => @#{singular_name}
             else
               render#{suffix}_scaffold('edit')
             end
@@ -148,7 +148,7 @@ module ActionController
           private
             def render#{suffix}_scaffold(action = caller_method_name(caller))
               if template_exists?("\#{self.class.controller_path}/\#{action}")
-                render_action(action)
+                render(:action => action)
               else
                 @scaffold_class = #{class_name}
                 @scaffold_singular_name, @scaffold_plural_name = "#{singular_name}", "#{plural_name}"
@@ -156,10 +156,15 @@ module ActionController
                 add_instance_variables_to_assigns
 
                 @content_for_layout = @template.render_file(scaffold_path(action.sub(/#{suffix}$/, "")), false)
-                self.active_layout ? render_file(self.active_layout, "200 OK", true) : render_file(scaffold_path("layout"))
+
+                if active_layout?
+                  render :file => active_layout, :use_full_path => true
+                else
+                  render :file => scaffold_path("layout")
+                end
               end
             end
-            
+
             def scaffold_path(template_name)
               File.dirname(__FILE__) + "/templates/scaffolds/" + template_name + ".rhtml"
             end

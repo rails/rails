@@ -247,6 +247,11 @@ module Test
       private  
         # execute the request and set/volley the response
         def process(action, parameters = nil, session = nil, flash = nil)
+          # Sanity check for required instance variables so we can give an understandable error message.
+          %w(controller request response).each do |iv_name|
+            assert_not_nil instance_variable_get("@#{iv_name}"), "@#{iv_name} is nil: make sure you set it in your test's setup method."
+          end
+
           @html_document = nil
           @request.env['REQUEST_METHOD'] ||= "GET"
           @request.action = action.to_s

@@ -16,65 +16,83 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
 <% for action in unscaffolded_actions -%>
   def test_<%= action %>
     get :<%= action %>
-    assert_rendered_file '<%= action %>'
+    assert_response :success
+    assert_template '<%= action %>'
   end
 
 <% end -%>
 <% unless suffix -%>
   def test_index
     get :index
-    assert_rendered_file 'list'
+    assert_response :success
+    assert_template 'list'
   end
 
 <% end -%>
   def test_list<%= suffix %>
     get :list<%= suffix %>
-    assert_rendered_file 'list<%= suffix %>'
-    assert_template_has '<%= plural_name %>'
+
+    assert_response :success
+    assert_template 'list<%= suffix %>'
+
+    assert_not_nil assigns(:<%= plural_name %>)
   end
 
   def test_show<%= suffix %>
-    get :show<%= suffix %>, 'id' => 1
-    assert_rendered_file 'show'
-    assert_template_has '<%= singular_name %>'
-    assert_valid_record '<%= singular_name %>'
+    get :show<%= suffix %>, :id => 1
+
+    assert_response :success
+    assert_template 'show'
+
+    assert_not_nil assigns(:<%= singular_name %>)
+    assert assigns(:<%= singular_name %>).valid?
   end
 
   def test_new<%= suffix %>
     get :new<%= suffix %>
-    assert_rendered_file 'new<%= suffix %>'
-    assert_template_has '<%= singular_name %>'
+
+    assert_response :success
+    assert_template 'new<%= suffix %>'
+
+    assert_not_nil assigns(:<%= singular_name %>)
   end
 
   def test_create
-    num_<%= plural_name %> = <%= model_name %>.find_all.size
+    num_<%= plural_name %> = <%= model_name %>.count
 
-    post :create<%= suffix %>, '<%= singular_name %>' => { }
+    post :create<%= suffix %>, :<%= singular_name %> => {}
+
+    assert_response :redirect
     assert_redirected_to :action => 'list<%= suffix %>'
 
-    assert_equal num_<%= plural_name %> + 1, <%= model_name %>.find_all.size
+    assert_equal num_<%= plural_name %> + 1, <%= model_name %>.count
   end
 
   def test_edit<%= suffix %>
-    get :edit<%= suffix %>, 'id' => 1
-    assert_rendered_file 'edit<%= suffix %>'
-    assert_template_has '<%= singular_name %>'
-    assert_valid_record '<%= singular_name %>'
+    get :edit<%= suffix %>, :id => 1
+
+    assert_response :success
+    assert_template 'edit<%= suffix %>'
+
+    assert_not_nil assigns(:<%= singular_name %>)
+    assert assigns(:<%= singular_name %>).valid?
   end
 
   def test_update<%= suffix %>
-    post :update<%= suffix %>, 'id' => 1
+    post :update<%= suffix %>, :id => 1
+    assert_response :redirect
     assert_redirected_to :action => 'show<%= suffix %>', :id => 1
   end
 
   def test_destroy<%= suffix %>
     assert_not_nil <%= model_name %>.find(1)
 
-    post :destroy, 'id' => 1
+    post :destroy, :id => 1
+    assert_response :redirect
     assert_redirected_to :action => 'list<%= suffix %>'
 
     assert_raise(ActiveRecord::RecordNotFound) {
-      <%= singular_name %> = <%= model_name %>.find(1)
+      <%= model_name %>.find(1)
     }
   end
 end

@@ -56,20 +56,22 @@ module ActionView
       #     form << content_tag("b", "Department")
       #     form << collection_select("department", "id", @departments, "id", "name")
       #   end
-      def form(record_name, options = nil)
-        options = (options || {}).symbolize_keys
-        record = instance_eval("@#{record_name}")
+      def form(record_name, options = {})
+        record = instance_variable_get("@#{record_name}")
 
+        options = options.symbolize_keys
         options[:action] ||= record.new_record? ? "create" : "update"
-        action = url_for(:action => options[:action])
+        action = url_for(:action => options[:action], :id => record)
 
         submit_value = options[:submit_value] || options[:action].gsub(/[^\w]/, '').capitalize
 
-        id_field = record.new_record? ? "" : InstanceTag.new(record_name, "id", self).to_input_field_tag("hidden")
+        contents = ''
+        contents << hidden_field(record_name, :id) unless record.new_record?
+        contents << all_input_tags(record, record_name, options)
+        yield contents if block_given?
+        contents << submit_tag(submit_value)
 
-        formtag = %(<form action="#{action}" method="post">#{id_field}) + all_input_tags(record, record_name, options)
-        yield formtag if block_given?
-        formtag +  %(<input type="submit" value="#{submit_value}" /></form>)
+        content_tag('form', contents, :action => action, :method => 'post')
       end
 
       # Returns a string containing the error message attached to the +method+ on the +object+, if one exists.
@@ -83,8 +85,8 @@ module ActionView
       #   <%= error_message_on "post", "title", "Title simply ", " (or it won't work)", "inputError" %> =>
       #     <div class="inputError">Title simply can't be empty (or it won't work)</div>
       def error_message_on(object, method, prepend_text = "", append_text = "", css_class = "formError")
-        if errors = instance_eval("@#{object}").errors.on(method)
-          "<div class=\"#{css_class}\">#{prepend_text + (errors.is_a?(Array) ? errors.first : errors) + append_text}</div>"
+        if errors = instance_variable_get("@#{object}").errors.on(method)
+          content_tag("div", "#{prepend_text}#{errors.is_a?(Array) ? errors.first : errors}#{append_text}", :class => css_class)
         end
       end
 
@@ -96,7 +98,7 @@ module ActionView
       # * <tt>class</tt> - The class of the error div (default: errorExplanation)
       def error_messages_for(object_name, options = {})
         options = options.symbolize_keys
-        object = instance_eval "@#{object_name}"
+        object = instance_variable_get("@#{object_name}")
         unless object.errors.empty?
           content_tag("div",
             content_tag(
@@ -117,7 +119,7 @@ module ActionView
         end
 
         def default_input_block
-          Proc.new { |record, column| "<p><label for=\"#{record}_#{column.name}\">#{column.human_name}</label><br />#{input(record, column.name)}</p>" }
+          Proc.new { |record, column| %(<p><label for="#{record}_#{column.name}">#{column.human_name}</label><br />#{input(record, column.name)}</p>) }
         end
     end
 

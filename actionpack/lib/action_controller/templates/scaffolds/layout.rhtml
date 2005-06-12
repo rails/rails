@@ -28,38 +28,38 @@
 
     #ErrorExplanation {
       width: 400px;
-    	border: 2px solid 'red';
-    	padding: 7px;
-    	padding-bottom: 12px;
-    	margin-bottom: 20px;
-    	background-color: #f0f0f0;
+      border: 2px solid 'red';
+      padding: 7px;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+      background-color: #f0f0f0;
     }
 
     #ErrorExplanation h2 {
-    	text-align: left;
-    	font-weight: bold;
-    	padding: 5px 5px 5px 15px;
-    	font-size: 12px;
-    	margin: -7px;
-    	background-color: #c00;
-    	color: #fff;
+      text-align: left;
+      font-weight: bold;
+      padding: 5px 5px 5px 15px;
+      font-size: 12px;
+      margin: -7px;
+      background-color: #c00;
+      color: #fff;
     }
 
     #ErrorExplanation p {
-    	color: #333;
-    	margin-bottom: 0;
-    	padding: 5px;
+      color: #333;
+      margin-bottom: 0;
+      padding: 5px;
     }
 
     #ErrorExplanation ul li {
-    	font-size: 12px;
-    	list-style: square;
+      font-size: 12px;
+      list-style: square;
     }
   </style>
 </head>
 <body>
 
-<p style="color: green"><%= flash['notice'] %></p>
+<p style="color: green"><%= flash[:notice] %></p>
 
 <%= @content_for_layout %>
 
