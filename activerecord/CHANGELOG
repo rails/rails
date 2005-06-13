@@ -1,5 +1,7 @@
 *SVN*
 
+* Corrected typo in find SQL for has_and_belongs_to_many.  #1312 [ben@bensinclair.com]
+
 * Added ActiveRecord::Recursion for guarding against recursive saves
 
 * Fixed sanitized conditions for has_many finder method.  #1281 [jackc@hylesanderson.com, pragdave, Tobias Luetke]

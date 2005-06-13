@@ -787,7 +787,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_adding_multiple
-    aredridel = Developer.new("name" => "Aridridel")
+    aredridel = Developer.new("name" => "Aredridel")
     aredridel.save
     aredridel.projects.reload
     aredridel.projects.push(Project.find(1), Project.find(2))
@@ -796,7 +796,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_adding_a_collection
-    aredridel = Developer.new("name" => "Aridridel")
+    aredridel = Developer.new("name" => "Aredridel")
     aredridel.save
     aredridel.projects.reload
     aredridel.projects.concat([Project.find(1), Project.find(2)])
@@ -807,7 +807,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_habtm_adding_before_save
     no_of_devels = Developer.count
     no_of_projects = Project.count
-    aredridel = Developer.new("name" => "Aridridel")
+    aredridel = Developer.new("name" => "Aredridel")
     aredridel.projects.concat([Project.find(1), p = Project.new("name" => "Projekt")])
     assert aredridel.new_record?
     assert p.new_record?
@@ -947,7 +947,10 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_associations_with_conditions
     assert_equal 2, projects(:active_record).developers.size
     assert_equal 1, projects(:active_record).developers_named_david.size
-    
+
+    assert_equal developers(:david), projects(:active_record).developers_named_david.find(developers(:david).id)
+    assert_equal developers(:david), projects(:active_record).salaried_developers.find(developers(:david).id)
+
     projects(:active_record).developers_named_david.clear
     assert_equal 1, projects(:active_record, :reload).developers.size
   end

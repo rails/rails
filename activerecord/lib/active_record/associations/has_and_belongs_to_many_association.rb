@@ -66,7 +66,7 @@ module ActiveRecord
         # Otherwise, construct a query.
         else
           ids_list = ids.map { |id| @owner.send(:quote, id) }.join(',')
-          records = find_target(@finder_sql.sub(/(ORDER BY|$)/, "AND j.#{@association_foreign_key} IN (#{ids_list}) \\1"))
+          records = find_target(@finder_sql.sub(/(ORDER BY|$)/, " AND j.#{@association_foreign_key} IN (#{ids_list}) \\1"))
           if records.size == ids.size
             if ids.size == 1 and !expects_array
               records.first
