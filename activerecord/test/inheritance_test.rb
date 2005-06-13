@@ -48,9 +48,9 @@ class InheritanceTest < Test::Unit::TestCase
   end
 
   def test_inheritance_condition
-    assert_equal 3, Company.find_all.length
-    assert_equal 1, Firm.find_all.length
-    assert_equal 2, Client.find_all.length
+    assert_equal 5, Company.find_all.length
+    assert_equal 2, Firm.find_all.length
+    assert_equal 3, Client.find_all.length
   end
   
   def test_alt_inheritance_condition
@@ -82,7 +82,7 @@ class InheritanceTest < Test::Unit::TestCase
   def test_destroy_all_within_inheritance
     Client.destroy_all
     assert_equal 0, Client.find_all.length
-    assert_equal 1, Firm.find_all.length
+    assert_equal 2, Firm.find_all.length
   end
   
   def test_alt_destroy_all_within_inheritance

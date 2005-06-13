@@ -60,14 +60,14 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   end
 
   def test_has_many_dependence
-    assert_equal 2, Client.find_all.length
+    assert_equal 3, Client.find_all.length
     Firm.find_first.destroy
-    assert_equal 0, Client.find_all.length
+    assert_equal 1, Client.find_all.length
   end
 
   uses_transaction :test_has_many_dependence_with_transaction_support_on_failure
   def test_has_many_dependence_with_transaction_support_on_failure
-    assert_equal 2, Client.find_all.length
+    assert_equal 3, Client.find_all.length
 
     firm = Firm.find_first
     clients = firm.clients
@@ -75,7 +75,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
 
     firm.destroy rescue "do nothing"
 
-    assert_equal 2, Client.find_all.length
+    assert_equal 3, Client.find_all.length
   end
 
   def test_has_one_dependence

@@ -283,8 +283,9 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_destroy_many
+    assert_equal 3, Client.count
     Client.destroy([2, 3])
-    assert_equal 0, Client.count
+    assert_equal 1, Client.count
   end
 
   def test_delete_many

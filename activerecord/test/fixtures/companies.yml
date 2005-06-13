@@ -19,3 +19,17 @@ second_client:
   client_of: 1
   name: Microsoft
   ruby_type: Client
+
+another_firm:
+  id: 4
+  type: Firm
+  name: Flamboyant Software
+  ruby_type: Firm
+
+another_client:
+  id: 5
+  type: Client
+  firm_id: 4
+  client_of: 4
+  name: Ex Nihilo
+  ruby_type: Client

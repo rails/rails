@@ -540,9 +540,10 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_dependence
-    assert_equal 2, Client.find_all.size
-    Firm.find_first.destroy
-    assert Client.find_all.empty?
+    firm = companies(:first_firm)
+    assert_equal 2, firm.clients.size
+    firm.destroy
+    assert Client.find(:all, :conditions => "firm_id=#{firm.id}").empty?
   end
 
   def test_destroy_dependent_when_deleted_from_association
@@ -567,14 +568,14 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
   uses_transaction :test_dependence_with_transaction_support_on_failure
   def test_dependence_with_transaction_support_on_failure
-    assert_equal 2, Client.find_all.length
-    firm = Firm.find_first
+    firm = companies(:first_firm)
     clients = firm.clients
+    assert_equal 2, clients.length
     clients.last.instance_eval { def before_destroy() raise "Trigger rollback" end }
 
     firm.destroy rescue "do nothing"
 
-    assert_equal 2, Client.find_all.length
+    assert_equal 2, Client.find(:all, :conditions => "firm_id=#{firm.id}").size
   end
 
   def test_dependence_on_account
@@ -589,6 +590,11 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
   def test_adding_array_and_collection
     assert_nothing_raised { Firm.find_first.clients + Firm.find_all.last.clients }
+  end
+
+  def test_find_all_without_conditions
+    firm = companies(:first_firm)
+    assert_equal 2, firm.clients.find(:all).length
   end
 end
 

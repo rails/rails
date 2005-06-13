@@ -66,9 +66,11 @@ module ActiveRecord
             load_target.select { |record| ids.include?(record.id) }
           end
         else
-          if options[:conditions] = sanitize_sql(options[:conditions])
-            options[:conditions] = "#{@finder_sql} AND #{options[:conditions]}"
+          conditions = "#{@finder_sql}"
+          if sanitized_conditions = sanitize_sql(options[:conditions])
+            conditions << " AND #{sanitized_conditions}"
           end
+          options[:conditions] = conditions
 
           if options[:order] && @options[:order]
             options[:order] = "#{options[:order]}, #{@options[:order]}"
