@@ -92,10 +92,10 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
 
     def ensure_valid_wsdl_generation(controller)
       wsdl = controller.generate_wsdl
-      ensure_valid_wsdl(wsdl)
+      ensure_valid_wsdl(controller, wsdl)
     end
 
-    def ensure_valid_wsdl(wsdl)
+    def ensure_valid_wsdl(controller, wsdl)
       definitions = WSDL::Parser.new.parse(wsdl)
       assert(definitions.is_a?(WSDL::Definitions))
       definitions.bindings.each do |binding|
@@ -110,15 +110,21 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
       types.each do |type|
         assert(type.namespace == 'urn:ActionWebService')
       end
+      location = definitions.services[0].ports[0].soap_address.location
+      if controller.is_a?(DelegatedController)
+        assert_match %r{http://localhost/dispatcher_test/delegated/test_service$}, location
+      elsif controller.is_a?(DirectController)
+        assert_match %r{http://localhost/dispatcher_test/direct/api$}, location
+      end
       definitions.collect_complextypes
     end
 
     def ensure_valid_wsdl_action(controller)
       test_request = ActionController::TestRequest.new({ 'action' => 'wsdl' })
       test_request.env['REQUEST_METHOD'] = 'GET'
-      test_request.env['HTTP_HOST'] = 'localhost:3000'
+      test_request.env['HTTP_HOST'] = 'localhost'
       test_response = ActionController::TestResponse.new
       wsdl = controller.process(test_request, test_response).body
-      ensure_valid_wsdl(wsdl)
+      ensure_valid_wsdl(controller, wsdl)
     end
 end

@@ -167,7 +167,7 @@ module ActionWebService # :nodoc:
             host = request.env['HTTP_HOST'] || request.env['SERVER_NAME'] || 'localhost'
             relative_url_root = request.relative_url_root
             scheme = request.ssl? ? 'https' : 'http'
-            '%s://%s%s/%s/' % [scheme, host, relative_url_root, controller_name]
+            '%s://%s%s/%s/' % [scheme, host, relative_url_root, self.class.controller_path]
           end
 
           def to_wsdl

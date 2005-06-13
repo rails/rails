@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix moduled controller URLs in WSDL, and add unit test to verify the generated URL #1428
+
 * Fix scaffolding template paths, it was broken on Win32
 
 * Fix that functional testing of :layered controllers failed when using the SOAP protocol
