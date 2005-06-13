@@ -1,5 +1,7 @@
 *SVN*
 
+* Increased the speed of indifferent hash access by using Hash#default.  #1436 [Nicholas Seckar]
+
 * Added that "   " is now also blank? (using strip if available)
 
 * Fixed Dependencies so all modules are able to load missing constants #1173 [Nicholas Seckar]

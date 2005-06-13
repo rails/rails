@@ -8,16 +8,10 @@ class HashWithIndifferentAccess < Hash
       super(constructor)
     end
   end
-  
-  alias_method :regular_reader, :[] unless method_defined?(:regular_reader)
-  
-  def [](key)
-    case key
-      when Symbol: regular_reader(key.to_s) || regular_reader(key)
-      when String: regular_reader(key) || regular_reader(key.to_sym)
-      else regular_reader(key)
-    end
-  end
+ 
+  def default(key)
+    self[key.to_s] if key.is_a?(Symbol)
+  end  
 
   alias_method :regular_writer, :[]= unless method_defined?(:regular_writer)
   
