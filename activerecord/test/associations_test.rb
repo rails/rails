@@ -345,16 +345,25 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   def test_find_all_sanitized
     firm = Firm.find_first
     assert_equal firm.clients.find_all("name = 'Summit'"), firm.clients.find_all(["name = '%s'", "Summit"])
+    summit = firm.clients.find(:all, :conditions => "name = 'Summit'")
+    assert_equal summit, firm.clients.find(:all, :conditions => ["name = ?", "Summit"])
+    assert_equal summit, firm.clients.find(:all, :conditions => ["name = :name", { :name => "Summit" }])
   end
 
   def test_find_first
     firm = Firm.find_first
+    client2 = Client.find(2)
     assert_equal firm.clients.first, firm.clients.find_first
-    assert_equal Client.find(2), firm.clients.find_first("type = 'Client'")
+    assert_equal client2, firm.clients.find_first("type = 'Client'")
+    assert_equal client2, firm.clients.find(:first, :conditions => "type = 'Client'")
   end
 
   def test_find_first_sanitized
-    assert_equal Client.find(2), Firm.find_first.clients.find_first(["type = ?", "Client"])
+    firm = Firm.find_first
+    client2 = Client.find(2)
+    assert_equal client2, firm.clients.find_first(["type = ?", "Client"])
+    assert_equal client2, firm.clients.find(:first, :conditions => ['type = ?', 'Client'])
+    assert_equal client2, firm.clients.find(:first, :conditions => ['type = :type', { :type => 'Client' }])
   end
 
   def test_find_in_collection

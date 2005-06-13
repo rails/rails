@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed sanitized conditions for has_many finder method.  #1281 [jackc@hylesanderson.com, pragdave, Tobias Luetke]
+
 * Comprehensive PostgreSQL schema support.  Use the optional schema_search_path directive in database.yml to give a comma-separated list of schemas to search for your tables.  This allows you, for example, to have tables in a shared schema without having to use a custom table name.  See http://www.postgresql.org/docs/8.0/interactive/ddl-schemas.html to learn more.  #827 [dave@cherryville.org]
 
 * Corrected @@configurations typo #1410 [david@ruppconsulting.com]
