@@ -3,13 +3,26 @@ require 'soap/mapping'
 module ActionWebService
   module Protocol
     module Soap
+      # Workaround for SOAP4R return values changing
+      class Registry < SOAP::Mapping::Registry
+        if SOAP::Version >= "1.5.4"
+          def find_mapped_soap_class(obj_class)
+            return @map.instance_eval { @obj2soap[obj_class][0] }
+          end
+
+          def find_mapped_obj_class(soap_class)
+            return @map.instance_eval { @soap2obj[soap_class][0] }
+          end
+        end
+      end
+
       class SoapMarshaler
         attr :type_namespace
         attr :registry
 
         def initialize(type_namespace=nil)
           @type_namespace = type_namespace || 'urn:ActionWebService'
-          @registry = SOAP::Mapping::Registry.new
+          @registry = Registry.new
           @type2binding = {}
           register_static_factories
         end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Add workaround for Ruby 1.8.3's SOAP4R changing the return value of SOAP::Mapping::Registry#find_mapped_soap_class #1414 [Shugo Maeda]
+
 * Fix moduled controller URLs in WSDL, and add unit test to verify the generated URL #1428
 
 * Fix scaffolding template paths, it was broken on Win32
