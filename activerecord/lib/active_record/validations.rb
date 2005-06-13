@@ -653,7 +653,7 @@ module ActiveRecord
     # Attempts to save the record just like Base.save but will raise a RecordInvalid exception instead of returning false
     # if the record is not valid.
     def save!
-      valid? ? save_without_validation : raise(RecordInvalid)
+      valid? ? save(false) : raise(RecordInvalid)
     end
 
     # Updates a single attribute and saves the record without going through the normal validation procedure.

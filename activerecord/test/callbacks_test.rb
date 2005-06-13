@@ -1,9 +1,9 @@
 require 'abstract_unit'
 
 class CallbackDeveloper < ActiveRecord::Base
-  class << self
-    def table_name; 'developers' end
+  set_table_name 'developers'
 
+  class << self
     def callback_string(callback_method)
       "history << [#{callback_method.to_sym.inspect}, :string]"
     end
@@ -46,6 +46,27 @@ class CallbackDeveloper < ActiveRecord::Base
   end
 
   def after_find
+  end
+end
+
+class RecursiveCallbackDeveloper < ActiveRecord::Base
+  set_table_name 'developers'
+
+  before_save :on_before_save
+  after_save :on_after_save
+
+  attr_reader :on_before_save_called, :on_after_save_called
+
+  def on_before_save
+    @on_before_save_called ||= 0
+    @on_before_save_called += 1
+    save unless @on_before_save_called > 1
+  end
+
+  def on_after_save
+    @on_after_save_called ||= 0
+    @on_after_save_called += 1
+    save unless @on_after_save_called > 1
   end
 end
 
@@ -282,5 +303,19 @@ class CallbacksTest < Test::Unit::TestCase
       [ :before_validation,           :block  ],
       [ :before_validation, :returning_false  ]
     ], david.history
+  end
+
+  def test_save_not_called_recursively
+    david = RecursiveCallbackDeveloper.find(1)
+    david.save
+    assert_equal 1, david.on_before_save_called
+    assert_equal 1, david.on_after_save_called
+  end
+
+  def test_save_bang_not_called_recursively
+    david = RecursiveCallbackDeveloper.find(1)
+    david.save!
+    assert_equal 1, david.on_before_save_called
+    assert_equal 1, david.on_after_save_called
   end
 end
