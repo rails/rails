@@ -1,7 +1,7 @@
 require 'html/tokenizer'
 require 'html/node'
 
-module HTML#:nodoc:
+module HTML #:nodoc:
   
   # A top-level HTMl document. You give it a body of text, and it will parse that
   # text into a tree of nodes.
@@ -11,7 +11,7 @@ module HTML#:nodoc:
     attr_reader :root
 
     # Create a new Document from the given text.
-    def initialize(text)
+    def initialize(text, strict=false)
       tokenizer = Tokenizer.new(text)
       @root = Node.new(nil)
       node_stack = [ @root ]
@@ -28,7 +28,7 @@ module HTML#:nodoc:
               open_start = 0 if open_start < 0
               close_start = node.position - 20
               close_start = 0 if close_start < 0
-              warn <<EOF.strip
+              msg = <<EOF.strip
 ignoring attempt to close #{node_stack.last.name} with #{node.name}
   opened at byte #{node_stack.last.position}, line #{node_stack.last.line}
   closed at byte #{node.position}, line #{node.line}
@@ -36,6 +36,7 @@ ignoring attempt to close #{node_stack.last.name} with #{node.name}
   text around open: #{text[open_start,40].inspect}
   text around close: #{text[close_start,40].inspect}
 EOF
+              strict ? raise(msg) : warn(msg)
             end
           elsif node.closing != :close
             node_stack.push node

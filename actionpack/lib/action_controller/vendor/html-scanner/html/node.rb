@@ -1,8 +1,8 @@
 require 'strscan'
 
-module HTML#:nodoc:
+module HTML #:nodoc:
   
-  class Conditions < Hash#:nodoc:
+  class Conditions < Hash #:nodoc:
     def initialize(hash)
       super()
       hash = { :content => hash } unless Hash === hash
@@ -54,7 +54,7 @@ module HTML#:nodoc:
   end
 
   # The base class of all nodes, textual and otherwise, in an HTML document.
-  class Node#:nodoc:
+  class Node #:nodoc:
     # The array of children of this node. Not all nodes have children.
     attr_reader :children
     
@@ -91,6 +91,8 @@ module HTML#:nodoc:
     # Search the children of this node for the first node for which #find
     # returns non +nil+. Returns the result of the #find call that succeeded.
     def find(conditions)
+      conditions = validate_conditions(conditions)
+
       @children.each do |child|        
         node = child.find(conditions)
         return node if node
@@ -101,6 +103,8 @@ module HTML#:nodoc:
     # Search for all nodes that match the given conditions, and return them
     # as an array.
     def find_all(conditions)
+      conditions = validate_conditions(conditions)
+
       matches = []
       matches << self if match(conditions)
       @children.each do |child|
@@ -183,7 +187,7 @@ module HTML#:nodoc:
   end
 
   # A node that represents text, rather than markup.
-  class Text < Node#:nodoc:
+  class Text < Node #:nodoc:
     
     attr_reader :content
     
@@ -239,7 +243,7 @@ module HTML#:nodoc:
   # A Tag is any node that represents markup. It may be an opening tag, a
   # closing tag, or a self-closing tag. It has a name, and may have a hash of
   # attributes.
-  class Tag < Node#:nodoc:
+  class Tag < Node #:nodoc:
     
     # Either +nil+, <tt>:close</tt>, or <tt>:self</tt>
     attr_reader :closing
@@ -268,7 +272,9 @@ module HTML#:nodoc:
 
     # Returns non-+nil+ if this tag can contain child nodes.
     def childless?
-      @name =~ /^(img|br|hr|link|meta|area|base|basefont|col|frame|input|isindex|param)$/o
+      !@closing.nil? ||
+        @name =~ /^(img|br|hr|link|meta|area|base|basefont|
+                    col|frame|input|isindex|param)$/ox
     end
 
     # Returns a textual representation of the node
@@ -284,6 +290,7 @@ module HTML#:nodoc:
         s << " /" if @closing == :self
         s << ">"
         @children.each { |child| s << child.to_s }
+        s << "</#{@name}>" if @closing != :self && !@children.empty?
         s
       end
     end

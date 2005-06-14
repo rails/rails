@@ -1,6 +1,6 @@
 require 'strscan'
 
-module HTML#:nodoc:
+module HTML #:nodoc:
   
   # A simple HTML tokenizer. It simply breaks a stream of text into tokens, where each
   # token is a string. Each string represents either "text", or an HTML element.
@@ -13,7 +13,7 @@ module HTML#:nodoc:
   #   while token = tokenizer.next
   #     p token
   #   end
-  class Tokenizer#:nodoc:
+  class Tokenizer #:nodoc:
     
     # The current (byte) position in the text
     attr_reader :position
@@ -51,7 +51,7 @@ module HTML#:nodoc:
         tag = @scanner.getch
         if @scanner.scan(/!--/) # comment
           tag << @scanner.matched
-          tag << @scanner.scan_until(/--\s*>/)
+          tag << (@scanner.scan_until(/--\s*>/) || @scanner.scan_until(/\Z/))
         elsif @scanner.scan(/!/) # doctype
           tag << @scanner.matched
           tag << consume_quoted_regions
@@ -63,14 +63,13 @@ module HTML#:nodoc:
 
       # Scan all text up to the next < character and return it.
       def scan_text
-        @scanner.getch + (@scanner.scan(/[^<]*/) || "")
+        "#{@scanner.getch}#{@scanner.scan(/[^<]*/)}"
       end
       
       # Counts the number of newlines in the text and updates the current line
       # accordingly.
       def update_current_line(text)
-        @current_line += text.scan(/\r\n|\r|\n/).length
-        text
+        text.scan(/\r?\n/) { @current_line += 1 }
       end
       
       # Skips over quoted strings, so that less-than and greater-than characters
@@ -89,7 +88,7 @@ module HTML#:nodoc:
           text << match
           break if delim == "<" || delim == ">"
 
-          # consume the conqued region
+          # consume the quoted region
           while match = @scanner.scan_until(/[\\#{delim}]/)
             text << match
             break if @scanner.matched == delim

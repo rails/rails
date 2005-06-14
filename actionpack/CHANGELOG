@@ -1,5 +1,7 @@
 *SVN*
 
+* Updated vendor copy of html-scanner lib to 0.5.1, for bug fixes and optimizations
+
 * Changed test requests to come from 0.0.0.0 instead of 127.0.0.1 such that they don't trigger debugging screens on exceptions, but instead call rescue_action_in_public
 
 * Modernize scaffolding to match the generator: use the new render method and change style from the warty @params["id"] to the sleek params[:id].  #1367
