@@ -92,7 +92,7 @@ module ActionController #:nodoc:
       def initialize_default_values
         @host                    = "test.host"
         @request_uri             = "/"
-        self.remote_addr         = "127.0.0.1"        
+        self.remote_addr         = "0.0.0.0"        
         @env["SERVER_PORT"]      = 80
       end
   end

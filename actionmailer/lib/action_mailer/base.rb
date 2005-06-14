@@ -239,7 +239,6 @@ module ActionMailer #:nodoc:
     end
 
     private
-  
       def render_message(method_name, body)
         ActionView::Base.new(template_path, body).render_file(method_name)
       end
