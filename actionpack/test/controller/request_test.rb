@@ -6,7 +6,7 @@ class RequestTest < Test::Unit::TestCase
   end
 
   def test_remote_ip
-    assert_equal '127.0.0.1', @request.remote_ip
+    assert_equal '0.0.0.0', @request.remote_ip
 
     @request.remote_addr = '1.2.3.4'
     assert_equal '1.2.3.4', @request.remote_ip
