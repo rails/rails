@@ -25,6 +25,8 @@ class VerificationTest < Test::Unit::TestCase
     verify :only => :two_redirects, :method => :post,
            :redirect_to => { :action => "unguarded" }
 
+    verify :only => :must_be_post, :method => :post, :render => { :status => 500, :text => "Must be post"}
+
     def guarded_one
       render :text => "#{@params["one"]}"
     end
@@ -60,7 +62,11 @@ class VerificationTest < Test::Unit::TestCase
     def two_redirects
       render :nothing => true
     end
-
+    
+    def must_be_post
+      render :text => "Was a post!"
+    end
+    
     protected
       def rescue_action(e) raise end
 
@@ -166,6 +172,16 @@ class VerificationTest < Test::Unit::TestCase
     get :guarded_by_method
     assert_redirected_to :action => "unguarded"
   end
+  
+  def test_guarded_post_and_calls_render    
+    post :must_be_post
+    assert_equal "Was a post!", @response.body
+    
+    get :must_be_post
+    assert_response 500
+    assert_equal "Must be post", @response.body
+  end
+  
 
   def test_second_redirect
     assert_nothing_raised { get :two_redirects }
