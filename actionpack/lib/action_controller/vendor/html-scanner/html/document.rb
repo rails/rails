@@ -19,7 +19,7 @@ module HTML #:nodoc:
         node = Node.parse(node_stack.last, tokenizer.line, tokenizer.position, token)
 
         node_stack.last.children << node unless node.tag? && node.closing == :close
-        if node.tag? && !node.childless?
+        if node.tag?
           if node_stack.length > 1 && node.closing == :close
             if node_stack.last.name == node.name
               node_stack.pop
@@ -38,7 +38,7 @@ ignoring attempt to close #{node_stack.last.name} with #{node.name}
 EOF
               strict ? raise(msg) : warn(msg)
             end
-          elsif node.closing != :close
+          elsif !node.childless? && node.closing != :close
             node_stack.push node
           end
         end
