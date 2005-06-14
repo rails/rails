@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow distance_of_time_in_words to work with any value that responds to #to_time (like dates) #969
+
 * Support :render option for :verify #1440 [TobiasLuetke]
 
 * Updated vendor copy of html-scanner lib to 0.5.1, for bug fixes and optimizations

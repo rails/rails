@@ -17,6 +17,8 @@ module ActionView
       # "about 1 hour". See the source for the complete wording list.
       #Set <tt>include_seconds</tt> to true if you want more detailed approximations if distance < 1 minute
       def distance_of_time_in_words(from_time, to_time, include_seconds = false)
+        from_time = from_time.to_time
+        to_time = to_time.to_time
         distance_in_minutes = ((to_time - from_time) / 60).round.abs
         distance_in_seconds = ((to_time - from_time)).round.abs
 

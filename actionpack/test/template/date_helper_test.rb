@@ -1,5 +1,6 @@
 require 'test/unit'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/date_helper'
+require File.dirname(__FILE__) + "/../abstract_unit"
 
 class DateHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::DateHelper
@@ -29,6 +30,13 @@ class DateHelperTest < Test::Unit::TestCase
     # test to < from
     assert_equal "about 4 hours", distance_of_time_in_words(Time.mktime(2004, 3, 7, 1, 20), from)
     assert_equal "less than 20 seconds", distance_of_time_in_words(Time.mktime(2004, 3, 6, 21, 41, 38), from, true)
+  end
+
+  def test_distance_in_words_date
+    start_date = Date.new 1904, 1, 31
+    end_date = Date.new 1906, 4, 17
+    assert_not_equal("13 minutes",
+                     distance_of_time_in_words(start_date, end_date))
   end
 
   def test_select_day
