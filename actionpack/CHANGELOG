@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed the require hack used by functional testing to work around an earlier bug in rake.
+
 * Allow distance_of_time_in_words to work with any value that responds to #to_time (like dates) #969
 
 * Support :render option for :verify #1440 [TobiasLuetke]
