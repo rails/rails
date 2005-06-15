@@ -88,20 +88,6 @@ end
 TestController.template_root = File.dirname(__FILE__) + "/../fixtures/"
 Fun::GamesController.template_root = File.dirname(__FILE__) + "/../fixtures/"
 
-class TestLayoutController < ActionController::Base
-  layout "layouts/standard"
-  
-  def hello_world
-  end
-  
-  def hello_world_outside_layout
-  end
-
-  def rescue_action(e)
-    raise unless ActionController::MissingTemplate === e
-  end
-end
-
 class RenderTest < Test::Unit::TestCase
   def setup
     @request    = ActionController::TestRequest.new

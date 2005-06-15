@@ -94,6 +94,10 @@ class NewRenderTestController < ActionController::Base
     render :inline =>  "Hello: <%= params[:name] %>", :layout => nil
   end
 
+  def render_with_explicit_template
+    render "test/hello_world"
+  end
+
   def rescue_action(e) raise end
     
   private
@@ -103,7 +107,8 @@ class NewRenderTestController < ActionController::Base
              "rendering_nothing_on_layout", "render_text_hello_world",
              "partial_only", "partial_only_with_layout",
              "accessing_params_in_template",
-             "accessing_params_in_template_with_layout"
+             "accessing_params_in_template_with_layout",
+             "render_with_explicit_template"
           "layouts/standard"
         when "builder_layout_test"
           "layouts/builder"
@@ -248,5 +253,10 @@ class NewRenderTest < Test::Unit::TestCase
   def test_accessing_params_in_template_with_layout
     get :accessing_params_in_template_with_layout, :name => "David"
     assert_equal "<html>Hello: David</html>", @response.body
+  end
+
+  def test_render_with_explicit_template
+    get :render_with_explicit_template
+    assert_response :success
   end
 end

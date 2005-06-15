@@ -1,5 +1,7 @@
 *SVN*
 
+* render("foo/bar") works with a layout again 
+
 * Fixed double-singularization on scaffolded pagination call (Address would be turned into Addres) #1216, #1404 [nilsga]
 
 * Removed the require hack used by functional testing to work around an earlier bug in rake.
@@ -24,7 +26,7 @@
 
 * Make sure the benchmarking render method always returns the output of the render.
 
-* render(:action) and render() are the only two calls that default to using a layout. All other render calls assume :layout => false. This also fixes send_file, which was applying a layout if one existed for the current action.
+* render(:action), render(:template) and render() are the only three calls that default to using a layout. All other render calls assume :layout => false. This also fixes send_file, which was applying a layout if one existed for the current action.
 
 * verify with :redirect_to won't redirect if a redirect or render has already been performed #1350
 

@@ -219,8 +219,8 @@ module ActionController #:nodoc:
 
     private
       def render_with_a_layout_options(options)
-        return options unless options.is_a?(Hash)
-        if options.values_at(:text, :file, :template, :inline, :partial, :nothing).compact.empty?
+        return { :template => options } unless options.is_a?(Hash)
+        if options.values_at(:text, :file, :inline, :partial, :nothing).compact.empty?
           options
         else
           { :layout => false }.merge(options)
