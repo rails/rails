@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that helpers are only available to the controllers where they are defined and their subclasses.  #1394 [kdole@tamu.edu]
+
 * render("foo/bar") works with a layout again 
 
 * Fixed double-singularization on scaffolded pagination call (Address would be turned into Addres) #1216, #1404 [nilsga]

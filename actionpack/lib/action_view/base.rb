@@ -144,16 +144,6 @@ module ActionView #:nodoc:
       end
     end
 
-    def self.controller_delegate(*methods)#:nodoc:
-      methods.flatten.each do |method|
-        class_eval <<-end_eval
-          def #{method}(*args, &block)
-            controller.send(%(#{method}), *args, &block)
-          end
-        end_eval
-      end
-    end
-
     def self.register_template_handler(extension, klass)
       @@template_handlers[extension] = klass
     end

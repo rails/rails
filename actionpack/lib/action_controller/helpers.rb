@@ -2,8 +2,26 @@ module ActionController #:nodoc:
   module Helpers #:nodoc:
     def self.append_features(base)
       super
-      base.class_eval { class << self; alias_method :inherited_without_helper, :inherited; end }
+
+      # Initialize the base module to aggregate its helpers.
+      base.class_inheritable_accessor :master_helper_module
+      base.master_helper_module = Module.new
+
+      # Extend base with class methods to declare helpers.
       base.extend(ClassMethods)
+
+      base.class_eval do
+        # Wrap inherited to create a new master helper module for subclasses.
+        class << self
+          alias_method :inherited_without_helper, :inherited
+          alias_method :inherited, :inherited_with_helper
+        end
+
+        # Wrap initialize_template_class to extend new template class
+        # instances with the master helper module.
+        alias_method :initialize_template_class_without_helper, :initialize_template_class
+        alias_method :initialize_template_class, :initialize_template_class_with_helper
+      end
     end
 
     # The template helpers serves to relieve the templates from including the same inline code again and again. It's a
@@ -32,7 +50,7 @@ module ActionController #:nodoc:
       # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules 
       # available to the templates.
       def add_template_helper(helper_module) #:nodoc:
-        template_class.class_eval "include #{helper_module}"
+        master_helper_module.module_eval "include #{helper_module}"
       end
 
       # Declare a helper:
@@ -68,7 +86,7 @@ module ActionController #:nodoc:
         end
 
         # Evaluate block in template class if given.
-        template_class.module_eval(&block) if block_given?
+        master_helper_module.module_eval(&block) if block_given?
       end
 
       # Declare a controller method as a helper.  For example,
@@ -76,7 +94,13 @@ module ActionController #:nodoc:
       #   def link_to(name, options) ... end
       # makes the link_to controller method available in the view.
       def helper_method(*methods)
-        template_class.controller_delegate(*methods)
+        methods.flatten.each do |method|
+          master_helper_module.module_eval <<-end_eval
+            def #{method}(*args, &block)
+              controller.send(%(#{method}), *args, &block)
+            end
+          end_eval
+        end
       end
 
       # Declare a controller attribute as a helper.  For example,
@@ -89,13 +113,24 @@ module ActionController #:nodoc:
       end
 
       private 
-        def inherited(child)
+        def inherited_with_helper(child)
           inherited_without_helper(child)
-          begin child.helper(child.controller_path)
+          begin
+            child.master_helper_module = Module.new
+            child.master_helper_module.send :include, master_helper_module
+            child.helper child.controller_path
           rescue MissingSourceFile => e
             raise unless e.is_missing?("helpers/#{child.controller_path}_helper")
           end
         end        
     end
+
+    private
+      # Extend the template class instance with our controller's helper module.
+      def initialize_template_class_with_helper(response)
+        returning(initialize_template_class_without_helper(response)) do
+          response.template.extend self.class.master_helper_module
+        end
+      end
   end
 end

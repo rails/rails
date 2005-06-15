@@ -9,7 +9,7 @@ end
 module Fun
   class GamesController < ActionController::Base
     def render_hello_world
-      render_template "hello: <%= stratego %>"
+      render :inline => "hello: <%= stratego %>"
     end
 
     def rescue_action(e) raise end
@@ -23,7 +23,6 @@ module LocalAbcHelper
 end
 
 class HelperTest < Test::Unit::TestCase
-
   def setup
     # Increment symbol counter.
     @symbol = (@@counter ||= 'A0').succ!.dup
@@ -50,7 +49,7 @@ class HelperTest < Test::Unit::TestCase
 
 
   def test_deprecated_helper
-    assert_equal helper_methods, missing_methods
+    assert_equal expected_helper_methods, missing_methods
     assert_nothing_raised { @controller_class.helper TestHelper }
     assert_equal [], missing_methods
   end
@@ -58,13 +57,13 @@ class HelperTest < Test::Unit::TestCase
   def test_declare_helper
     require 'abc_helper'
     self.test_helper = AbcHelper
-    assert_equal helper_methods, missing_methods
+    assert_equal expected_helper_methods, missing_methods
     assert_nothing_raised { @controller_class.helper :abc }
     assert_equal [], missing_methods
   end
 
   def test_declare_missing_helper
-    assert_equal helper_methods, missing_methods
+    assert_equal expected_helper_methods, missing_methods
     assert_raise(MissingSourceFile) { @controller_class.helper :missing }
   end
 
@@ -78,11 +77,11 @@ class HelperTest < Test::Unit::TestCase
     assert_nothing_raised {
       @controller_class.helper { def block_helper_method; end }
     }
-    assert template_methods.include?('block_helper_method')
+    assert master_helper_methods.include?('block_helper_method')
   end
 
   def test_helper_block_include
-    assert_equal helper_methods, missing_methods
+    assert_equal expected_helper_methods, missing_methods
     assert_nothing_raised {
       @controller_class.helper { include TestHelper }
     }
@@ -91,13 +90,13 @@ class HelperTest < Test::Unit::TestCase
 
   def test_helper_method
     assert_nothing_raised { @controller_class.helper_method :delegate_method }
-    assert template_methods.include?('delegate_method')
+    assert master_helper_methods.include?('delegate_method')
   end
 
   def test_helper_attr
     assert_nothing_raised { @controller_class.helper_attr :delegate_attr }
-    assert template_methods.include?('delegate_attr')
-    assert template_methods.include?('delegate_attr=')
+    assert master_helper_methods.include?('delegate_attr')
+    assert master_helper_methods.include?('delegate_attr=')
   end
 
   def test_helper_for_nested_controller
@@ -109,13 +108,66 @@ class HelperTest < Test::Unit::TestCase
   end
 
   private
-    def helper_methods;   TestHelper.instance_methods      end
-    def template_methods; @template_class.instance_methods  end
-    def missing_methods;  helper_methods - template_methods end
+    def expected_helper_methods
+      TestHelper.instance_methods
+    end
+
+    def master_helper_methods
+      @controller_class.master_helper_module.instance_methods
+    end
+
+    def missing_methods
+      expected_helper_methods - master_helper_methods
+    end
 
     def test_helper=(helper_module)
       old_verbose, $VERBOSE = $VERBOSE, nil
       self.class.const_set('TestHelper', helper_module)
       $VERBOSE = old_verbose
     end
+end
+
+
+class IsolatedHelpersTest < Test::Unit::TestCase
+  class A < ActionController::Base
+    def index
+      render :inline => '<%= shout %>'
+    end
+
+    def rescue_action(e) raise end
+  end
+
+  class B < A
+    helper { def shout; 'B' end }
+
+    def index
+      render :inline => '<%= shout %>'
+    end
+  end
+
+  class C < A
+    helper { def shout; 'C' end }
+
+    def index
+      render :inline => '<%= shout %>'
+    end
+  end
+
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @request.action = 'index'
+  end
+
+  def test_helper_in_a
+    assert_raise(NameError) { A.process(@request, @response) }
+  end
+
+  def test_helper_in_b
+    assert_equal 'B', B.process(@request, @response).body
+  end
+
+  def test_helper_in_c
+    assert_equal 'C', C.process(@request, @response).body
+  end
 end
