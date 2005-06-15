@@ -99,7 +99,7 @@ module ActionController
         
         module_eval <<-"end_eval", __FILE__, __LINE__
           def list#{suffix}
-            @#{singular_name}_pages, @#{plural_name} = paginate :#{singular_name}, :per_page => 10
+            @#{singular_name}_pages, @#{plural_name} = paginate :#{plural_name}, :per_page => 10
             render#{suffix}_scaffold "list#{suffix}"
           end
 
