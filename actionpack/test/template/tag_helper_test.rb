@@ -12,6 +12,10 @@ class TagHelperTest < Test::Unit::TestCase
     assert_equal tag("p", "class" => "show"), tag("p", :class => "show")
   end
 
+  def test_tag_options
+    assert_equal "<p class=\"elsewhere\" />", tag("p", "class" => "show", :class => "elsewhere")
+  end
+
   def test_content_tag
     assert_equal "<a href=\"create\">Create</a>", content_tag("a", "Create", "href" => "create")
     assert_equal content_tag("a", "Create", "href" => "create"),

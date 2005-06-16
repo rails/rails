@@ -25,8 +25,7 @@ module ActionView
       private
         def tag_options(options)
           unless options.empty?
-            options.symbolize_keys
-            " " + options.map { |key, value|
+            " " + options.symbolize_keys.map { |key, value|
               %(#{key}="#{html_escape(value.to_s)}")
             }.sort.join(" ")
           end

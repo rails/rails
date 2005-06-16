@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed TagHelper such that :name and 'name' keys in the options doesn't result in two attributes #1455 [take_tk]
+
 * Ensure that helpers are only available to the controllers where they are defined and their subclasses.  #1394 [kdole@tamu.edu]
 
 * render("foo/bar") works with a layout again 
