@@ -95,7 +95,7 @@ module ActionView
         options.symbolize_keys
                 
         options[:src] = image_path(source)
-        options[:alt] ||= source.split("/").last.split(".").first.capitalize
+        options[:alt] ||= File.basename(options[:src], '.*').split('.').first.capitalize
         
         if options[:size]
           options[:width], options[:height] = options[:size].split("x")

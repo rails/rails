@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed image_tag so an exception is not thrown just because the image is missing and alt value can't be generated #1395 [Marcel]
+
 * Added a third parameter to TextHelper#auto_link called href_options for specifying additional tag options on the links generated #1401 [tyler.kovacs@gmail.com]. Example: auto_link(text, :all, { :target => "_blank" }) to have all the generated links open in a new window.
 
 * Fixed TextHelper#highlight to return the text, not nil, if the phrase is blank #1409 [patrick@lenz.sh]

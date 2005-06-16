@@ -166,16 +166,14 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
     StyleLinkToTag.each { |method, tag| assert_equal(tag, eval(method)) }
   end
 
-  def test_image_tag
-    assert_equal %(<img alt="Gold" height="70" src="/calloboration/hieraki/images/gold.png" width="45" />), image_tag("gold", :size => "45x70")
-  end
-
   def test_image_path
     ImagePathToTag.each { |method, tag| assert_equal(tag, eval(method)) }
   end
   
   def test_image_tag
     ImageLinkToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    # Assigning a default alt tag should not cause an exception to be raised
+    assert_nothing_raised { image_tag('') }
   end
   
 end
