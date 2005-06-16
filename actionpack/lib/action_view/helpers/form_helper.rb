@@ -175,7 +175,7 @@ module ActionView
         options["type"]     = "radio"
         options["value"]    = tag_value
         options["checked"]  = "checked" if value == tag_value
-        pretty_tag_value    = tag_value.gsub(/\s/, "_").gsub(/\W/, "").downcase
+        pretty_tag_value    = tag_value.to_s.gsub(/\s/, "_").gsub(/\W/, "").downcase
         options["id"]       = @auto_index ?             
           "#{@object_name}_#{@auto_index}_#{@method_name}_#{pretty_tag_value}" :
           "#{@object_name}_#{@method_name}_#{pretty_tag_value}"
