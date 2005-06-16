@@ -16,7 +16,7 @@ task :environment do
   end
 end
 
-desc "Generate API documentatio, show coding stats"
+desc "Generate API documentation, show coding stats"
 task :doc => [ :appdoc, :stats ]
 
 
