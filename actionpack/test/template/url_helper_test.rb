@@ -21,6 +21,28 @@ class UrlHelperTest < Test::Unit::TestCase
   end
 
   # todo: missing test cases
+  def test_button_to_with_straight_url
+    assert_equal "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com")
+  end
+
+  def test_button_to_with_javascript_confirm
+    assert_equal(
+      "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input onclick=\"return confirm('Are you sure?');\" type=\"submit\" value=\"Hello\" /></div></form>",
+      button_to("Hello", "http://www.example.com", :confirm => "Are you sure?")
+    )
+  end
+
+  def test_button_to_enabled_disabled
+    assert_equal(
+      "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>",
+      button_to("Hello", "http://www.example.com", :disabled => false)
+    )
+    assert_equal(
+      "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input disabled=\"disabled\" type=\"submit\" value=\"Hello\" /></div></form>",
+      button_to("Hello", "http://www.example.com", :disabled => true)
+    )
+  end
+
   def test_link_tag_with_straight_url
     assert_equal "<a href=\"http://www.example.com\">Hello</a>", link_to("Hello", "http://www.example.com")
   end

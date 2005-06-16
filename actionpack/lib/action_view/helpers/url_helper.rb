@@ -33,6 +33,67 @@ module ActionView
         end
       end
 
+      # Generates a form containing a sole button that submits to the
+      # URL given by _options_.  Use this method instead of +link_to+
+      # for actions that do not have the safe HTTP GET semantics
+      # implied by using a hypertext link.
+      #
+      # The parameters are the same as for +link_to+.  Any _html_options_
+      # that you pass will be applied to the inner +input+ element.
+      # In particular, pass
+      # 
+      #   :disabled => true/false
+      #
+      # as part of _html_options_ to control whether the button is
+      # disabled.  The generated form element is given the class
+      # 'button-to', to which you can attach CSS styles for display
+      # purposes.
+      #
+      # Example 1:
+      #
+      #   # inside of controller for "feeds"
+      #   button_to "Edit", :action => 'edit', :id => 3
+      #
+      # Generates the following HTML (sans formatting):
+      #
+      #   <form method="post" action="/feeds/edit/3" class="button-to">
+      #     <div><input value="Edit" type="submit" /></div>
+      #   </form>
+      #
+      # Example 2:
+      #
+      #   button_to "Destroy", { :action => 'destroy', :id => 3 },
+      #             :confirm => "Are you sure?"
+      #
+      # Generates the following HTML (sans formatting):
+      #
+      #   <form method="post" action="/feeds/destroy/3" class="button-to">
+      #     <div><input onclick="return confirm('Are you sure?');"
+      #                 value="Destroy" type="submit" />
+      #     </div>
+      #   </form>
+      #
+      # *NOTE*: This method generates HTML code that represents a form.
+      # Forms are "block" content, which means that you should not try to
+      # insert them into your HTML where only inline content is expected.
+      # For example, you can legally insert a form inside of a +div+ or
+      # +td+ element or in between +p+ elements, but not in the middle of
+      # a run of text, nor can you place a form within another form.
+      # (Bottom line: Always validate your HTML before going public.)
+
+      def button_to(name, options = {}, html_options = nil)
+        html_options = (html_options || {}).stringify_keys
+        convert_boolean_attributes!(html_options, %w( disabled ))
+        convert_confirm_option_to_javascript!(html_options)
+        url, name = options.is_a?(String) ? 
+          [ options,  name || options ] :
+          [ url_for(options), name || url_for(options) ]
+        html_options.merge!("type" => "submit", "value" => name)
+        "<form method=\"post\" action=\"#{h url}\" class=\"button-to\"><div>" +
+          tag("input", html_options) + "</div></form>"
+      end
+
+
       # This tag is deprecated. Combine the link_to and AssetTagHelper::image_tag yourself instead, like:
       #   link_to(image_tag("rss", :size => "30x45", :border => 0), "http://www.example.com")
       def link_image_to(src, options = {}, html_options = {}, *parameters_for_method_reference)
@@ -157,6 +218,36 @@ module ActionView
             html_options["onclick"] = "return confirm('#{confirm.gsub(/'/, '\\\\\'')}');"
           end
         end
+
+        # Processes the _html_options_ hash, converting the boolean
+        # attributes from true/false form into the form required by
+        # HTML/XHTML.  (An attribute is considered to be boolean if
+        # its name is listed in the given _bool_attrs_ array.)
+        #
+        # More specifically, for each boolean attribute in _html_options_
+        # given as:
+        #
+        #     "attr" => bool_value
+        #
+        # if the the associated _bool_value_ evaluates to true, it is
+        # replaced with the attribute's name; otherwise the attribute is
+        # removed from the _html_options_ hash.  (See the XHTML 1.0 spec,
+        # section 4.5 "Attribute Minimization" for more:
+        # http://www.w3.org/TR/xhtml1/#h-4.5)
+        #
+        # Returns the updated _html_options_ hash, which is also modified
+        # in place.
+        #
+        # Example:
+        #
+        #   convert_boolean_attributes!( html_options,
+        #                                %w( checked disabled readonly ) )
+
+        def convert_boolean_attributes!(html_options, bool_attrs)
+          bool_attrs.each { |x| html_options[x] = x if html_options.delete(x) }
+          html_options
+        end
+
     end
   end
 end
