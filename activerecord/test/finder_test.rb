@@ -171,6 +171,10 @@ class FinderTest < Test::Unit::TestCase
     assert_equal %('a','b','c'), bind(':a', :a => Set.new(%w(a b c))) # '
   end
 
+  def test_bind_string
+    assert_equal "''", bind('?', '')
+  end
+
   def test_string_sanitation
     assert_not_equal "'something ' 1=1'", ActiveRecord::Base.sanitize("something ' 1=1")
     assert_equal "'something; select table'", ActiveRecord::Base.sanitize("something; select table")

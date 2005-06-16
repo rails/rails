@@ -895,11 +895,10 @@ module ActiveRecord #:nodoc:
         end
 
         def quote_bound_value(value)
-          case value
-            when Enumerable
-              value.map { |v| connection.quote(v) }.join(',')
-            else
-              connection.quote(value)
+          if (value.respond_to?(:map) && !value.is_a?(String))
+            value.map { |v| connection.quote(v) }.join(',')
+          else
+            connection.quote(value)
           end
         end
 
