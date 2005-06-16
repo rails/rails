@@ -1,3 +1,5 @@
+require 'set'
+
 module ActiveRecord
   module Associations
     class AssociationCollection < AssociationProxy #:nodoc:
@@ -83,11 +85,19 @@ module ActiveRecord
         collection.inject([]) { |uniq_records, record| uniq_records << record unless uniq_records.include?(record); uniq_records }
       end
 
+      # Replace this collection with +other_array+
+      # This will perform a diff and delete/add only records that have changed.
       def replace(other_array)
-        other_array.each{ |val| raise_on_type_mismatch(val) }
+        other_array.each { |val| raise_on_type_mismatch(val) }
 
-        @target = other_array
-        @loaded = true
+        load_target
+        other   = other_array.size < 100 ? other_array : other_array.to_set
+        current = @target.size < 100 ? @target : @target.to_set
+
+        @owner.transaction do
+          delete(@target.select { |v| !other.include?(v) })
+          concat(other_array.select { |v| !current.include?(v) })
+        end
       end
 
       private

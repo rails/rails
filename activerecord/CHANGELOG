@@ -1,5 +1,18 @@
 *SVN*
 
+* Added actual database-changing behavior to collection assigment for has_many and has_and_belongs_to_many #1425 [Sebastian Kanthak].
+  Example:
+
+    david.projects = [Project.find(1), Project.new("name" => "ActionWebSearch")]
+    david.save
+  
+  If david.projects already contain the project with ID 1, this is left unchanged. Any other projects are dropped. And the new
+  project is saved when david.save is called.
+  
+  Also included is a way to do assignments through IDs, which is perfect for checkbox updating, so you get to do:
+  
+    david.project_ids = [1, 5, 7]
+
 * Corrected typo in find SQL for has_and_belongs_to_many.  #1312 [ben@bensinclair.com]
 
 * Added ActiveRecord::Recursion for guarding against recursive saves

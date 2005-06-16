@@ -596,6 +596,42 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     firm = companies(:first_firm)
     assert_equal 2, firm.clients.find(:all).length
   end
+
+  def test_replace_with_less
+    firm = Firm.find_first
+    firm.clients = [companies(:first_client)]
+    assert firm.save, "Could not save firm"
+    firm.reload
+    assert_equal 1, firm.clients.length
+  end
+  
+  def test_replace_with_new
+    firm = Firm.find_first
+    new_client = Client.new("name" => "New Client")
+    firm.clients = [companies(:second_client),new_client]
+    firm.save
+    firm.reload
+    assert_equal 2, firm.clients.length
+    assert !firm.clients.include?(:first_client)
+  end
+  
+  def test_replace_on_new_object
+    firm = Firm.new("name" => "New Firm")
+    firm.clients = [companies(:second_client), Client.new("name" => "New Client")]
+    assert firm.save
+    firm.reload
+    assert_equal 2, firm.clients.length
+    assert firm.clients.include?(Client.find_by_name("New Client"))
+  end
+  
+  def test_assign_ids
+    firm = Firm.new("name" => "Apple")
+    firm.client_ids = [companies(:first_client).id, companies(:second_client).id]
+    firm.save
+    firm.reload
+    assert_equal 2, firm.clients.length
+    assert firm.clients.include?(companies(:second_client))
+  end
 end
 
 class BelongsToAssociationsTest < Test::Unit::TestCase
@@ -734,6 +770,7 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     apple.clients.to_s 
     assert_equal 1, apple.clients.size, "Should not use the cached number, but go to the database"
   end
+  
 end
 
 
@@ -971,5 +1008,27 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     
     assert_equal developers(:david), projects(:active_record).developers.find(:first, :conditions => "salary < 10000")
     assert_equal developers(:jamis), projects(:active_record).developers.find(:first, :order => "salary DESC")
+  end
+  
+  def test_replace_with_less
+    david = developers(:david)
+    david.projects = [projects(:action_controller)]
+    assert david.save
+    assert_equal 1, david.projects.length
+  end
+
+  def test_replace_with_new
+    david = developers(:david)
+    david.projects = [projects(:action_controller), Project.new("name" => "ActionWebSearch")]
+    david.save
+    assert_equal 2, david.projects.length
+    assert !david.projects.include?(projects(:active_record))
+  end
+  
+  def test_replace_on_new_object
+    new_developer = Developer.new("name" => "Matz")
+    new_developer.projects = [projects(:action_controller), Project.new("name" => "ActionWebSearch")]
+    new_developer.save
+    assert_equal 2, new_developer.projects.length
   end
 end

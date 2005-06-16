@@ -200,6 +200,8 @@ module ActiveRecord
       # * <tt>collection<<(object, ...)</tt> - adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
       # * <tt>collection.delete(object, ...)</tt> - removes one or more objects from the collection by setting their foreign keys to NULL.  
       #   This will also destroy the objects if they're declared as belongs_to and dependent on this model.
+      # * <tt>collection=objects</tt> - replaces the collections content by deleting and adding objects as appropriate.
+      # * <tt>collection_singular_ids=ids</tt> - replace the collection by the objects identified by the primary keys in +ids+
       # * <tt>collection.clear</tt> - removes every object from the collection. This does not destroy the objects.
       # * <tt>collection.empty?</tt> - returns true if there are no associated objects.
       # * <tt>collection.size</tt> - returns the number of associated objects.
@@ -215,6 +217,8 @@ module ActiveRecord
       # * <tt>Firm#clients</tt> (similar to <tt>Clients.find :all, :conditions => "firm_id = #{id}"</tt>)
       # * <tt>Firm#clients<<</tt>
       # * <tt>Firm#clients.delete</tt>
+      # * <tt>Firm#clients=</tt>
+      # * <tt>Firm#client_ids=</tt>
       # * <tt>Firm#clients.clear</tt>
       # * <tt>Firm#clients.empty?</tt> (similar to <tt>firm.clients.size == 0</tt>)
       # * <tt>Firm#clients.size</tt> (similar to <tt>Client.count "firm_id = #{id}"</tt>)
@@ -463,6 +467,8 @@ module ActiveRecord
       #   (collection.concat_with_attributes is an alias to this method).
       # * <tt>collection.delete(object, ...)</tt> - removes one or more objects from the collection by removing their associations from the join table.  
       #   This does not destroy the objects.
+      # * <tt>collection=objects</tt> - replaces the collections content by deleting and adding objects as appropriate.
+      # * <tt>collection_singular_ids=ids</tt> - replace the collection by the objects identified by the primary keys in +ids+
       # * <tt>collection.clear</tt> - removes every object from the collection. This does not destroy the objects.
       # * <tt>collection.empty?</tt> - returns true if there are no associated objects.
       # * <tt>collection.size</tt> - returns the number of associated objects.
@@ -474,6 +480,8 @@ module ActiveRecord
       # * <tt>Developer#projects<<</tt>
       # * <tt>Developer#projects.push_with_attributes</tt>
       # * <tt>Developer#projects.delete</tt>
+      # * <tt>Developer#projects=</tt>
+      # * <tt>Developer#project_ids=</tt>
       # * <tt>Developer#projects.clear</tt>
       # * <tt>Developer#projects.empty?</tt>
       # * <tt>Developer#projects.size</tt>
@@ -634,6 +642,10 @@ module ActiveRecord
             association.replace(new_value)
             association
           end
+
+          define_method("#{Inflector.singularize(association_name)}_ids=") do |new_value|
+            send("#{association_name}=", association_class_name.constantize.find(new_value))
+          end
         end
 
         def require_association_class(class_name)
@@ -687,7 +699,11 @@ module ActiveRecord
               instance_variable_set("@#{association_name}", association)
             end
 
-            association.send(constructor, attributees, replace_existing)
+            if association_proxy_class == HasOneAssociation
+              association.send(constructor, attributees, replace_existing)
+            else
+              association.send(constructor, attributees)
+            end
           end
         end
 
