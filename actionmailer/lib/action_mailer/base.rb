@@ -240,11 +240,15 @@ module ActionMailer #:nodoc:
 
     private
       def render_message(method_name, body)
-        ActionView::Base.new(template_path, body).render_file(method_name)
+        initialize_template_class(body).render_file(method_name)
       end
         
       def template_path
         template_root + "/" + Inflector.underscore(self.class.name)
+      end
+
+      def initialize_template_class(assigns)
+        ActionView::Base.new(template_path, assigns, self)
       end
 
       def create_mail
@@ -305,6 +309,8 @@ module ActionMailer #:nodoc:
         case method_symbol.id2name
           when /^create_([_a-z]\w*)/  then new($1, *parameters).mail
           when /^deliver_([_a-z]\w*)/ then new($1, *parameters).deliver!
+          when "new" then nil
+          else super
         end
       end
 
