@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Time#at_beginning_of_week returned the next Monday instead of the previous one when called on a Sunday #1403 [jean.helou@gmail.com]
+
 * Increased the speed of indifferent hash access by using Hash#default.  #1436 [Nicholas Seckar]
 
 * Added that "   " is now also blank? (using strip if available)

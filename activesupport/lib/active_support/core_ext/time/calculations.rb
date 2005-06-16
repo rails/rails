@@ -87,7 +87,8 @@ module ActiveSupport #:nodoc:
         
         # Returns a new Time representing the "start" of this week (Monday, 0:00)
         def beginning_of_week
-          (self - self.wday.days).midnight + 1.day
+          days_to_monday = self.wday!=0 ? self.wday-1 : 6
+          (self - days_to_monday.days).midnight
         end
         alias :monday :beginning_of_week
         alias :at_beginning_of_week :beginning_of_week

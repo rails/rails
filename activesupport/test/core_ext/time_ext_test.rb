@@ -13,6 +13,13 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
 
   def test_begining_of_week
     assert_equal Time.local(2005,1,31), Time.local(2005,2,4,10,10,10).beginning_of_week
+    assert_equal Time.local(2005,11,28), Time.local(2005,11,28,0,0,0).beginning_of_week #monday
+    assert_equal Time.local(2005,11,28), Time.local(2005,11,29,0,0,0).beginning_of_week #tuesday
+    assert_equal Time.local(2005,11,28), Time.local(2005,11,30,0,0,0).beginning_of_week #wednesday
+    assert_equal Time.local(2005,11,28), Time.local(2005,12,01,0,0,0).beginning_of_week #thursday
+    assert_equal Time.local(2005,11,28), Time.local(2005,12,02,0,0,0).beginning_of_week #friday
+    assert_equal Time.local(2005,11,28), Time.local(2005,12,03,0,0,0).beginning_of_week #saturday
+    assert_equal Time.local(2005,11,28), Time.local(2005,12,04,0,0,0).beginning_of_week #sunday    
   end
   
   def test_beginning_of_day
