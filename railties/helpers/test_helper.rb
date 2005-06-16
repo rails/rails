@@ -1,5 +1,8 @@
 ENV["RAILS_ENV"] = "test"
-require File.dirname(__FILE__) + "/../config/environment"
+
+# Expand the path to environment so that Ruby does not load it multiple times
+# File.expand_path can be removed if Ruby 1.9 is in use.
+require File.expand_path(File.dirname(__FILE__) + "/../config/environment")
 require 'application'
 
 require 'test/unit'

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed the test_helper.rb to be safe for requiring controllers from multiple spots, like app/controllers/article_controller.rb and app/controllers/admin/article_controller.rb, without reloading the environment twice #1390 [Nicholas Seckar]
+
 * Fixed Webrick to escape + characters in URL's the same way that lighttpd and apache do #1397 [Nicholas Seckar]
 
 * Added -e/--environment option to script/runner #1408 [fbeausoleil@ftml.net]
