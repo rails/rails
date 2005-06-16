@@ -1,5 +1,7 @@
 *SVN*
 
+* Added -e/--environment option to script/runner #1408 [fbeausoleil@ftml.net]
+
 * Modernize the scaffold generator to use the simplified render and test methods and to change style from @params["id"] to params[:id].  #1367
 
 * Added graceful exit from pressing CTRL-C during the run of the rails command #1150 [Caleb Tennis]
