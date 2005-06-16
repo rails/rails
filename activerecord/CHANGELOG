@@ -1,6 +1,6 @@
 *SVN*
 
-* Allow any Enumerable, not just Array, to work as bind variables #1344 [bitsweat]
+* Allow any Enumerable, not just Array, to work as bind variables #1344 [Jeremy Kemper]
 
 * Added actual database-changing behavior to collection assigment for has_many and has_and_belongs_to_many #1425 [Sebastian Kanthak].
   Example:
@@ -66,7 +66,7 @@
 
 * Fixed that :delete_sql in has_and_belongs_to_many associations couldn't access record properties #1299 [Rick Olson]
 
-* Fixed that clone would break when an aggregate had the same name as one of its attributes #1307 [bitsweat]
+* Fixed that clone would break when an aggregate had the same name as one of its attributes #1307 [Jeremy Kemper]
 
 * Changed that destroying an object will only freeze the attributes hash, which keeps the object from having attributes changed (as that wouldn't make sense), but allows for the querying of associations after it has been destroyed.
 
@@ -177,7 +177,7 @@
 
 * Fixed boolean queries for t/f fields in PostgreSQL #995 [dave@cherryville.org]
 
-* Added that model.items.delete(child) will delete the child, not just set the foreign key to nil, if the child is dependent on the model #978 [bitsweat]
+* Added that model.items.delete(child) will delete the child, not just set the foreign key to nil, if the child is dependent on the model #978 [Jeremy Kemper]
 
 * Fixed auto-stamping of dates (created_on/updated_on) for PostgreSQL #985 [dave@cherryville.org]
 
@@ -253,7 +253,7 @@
 
 * Fixed that postgresql adapter would fails when reading bytea fields with null value #771 [rodrigo k]
 
-* Added transactional fixtures that uses rollback to undo changes to fixtures instead of DELETE/INSERT -- it's much faster. See documentation under Fixtures #760 [bitsweat]
+* Added transactional fixtures that uses rollback to undo changes to fixtures instead of DELETE/INSERT -- it's much faster. See documentation under Fixtures #760 [Jeremy Kemper]
 
 * Added destruction of dependent objects in has_one associations when a new assignment happens #742 [mindel]. Example:
 
@@ -341,7 +341,7 @@
 
 * Fixed that the dynamic finder like find_all_by_something_boolean(false) didn't work #649 [lmarlow@yahoo.com]
 
-* Added validates_each that validates each specified attribute against a block #610 [bitsweat]. Example:
+* Added validates_each that validates each specified attribute against a block #610 [Jeremy Kemper]. Example:
     
     class Person < ActiveRecord::Base
       validates_each :first_name, :last_name do |record, attr|
@@ -349,7 +349,7 @@
       end
     end
 
-* Added :allow_nil as an explicit option for validates_length_of, so unless that's set to true having the attribute as nil will also return an error if a range is specified as :within #610 [bitsweat]
+* Added :allow_nil as an explicit option for validates_length_of, so unless that's set to true having the attribute as nil will also return an error if a range is specified as :within #610 [Jeremy Kemper]
 
 * Added that validates_* now accept blocks to perform validations #618 [Tim Bates]. Example:
 
@@ -389,7 +389,7 @@
 
 * Fixed that the dynamic finders didn't treat nil as a "IS NULL" but rather "= NULL" case #515 [Demetrius]
 
-* Added bind-named arrays for interpolating a group of ids or strings in conditions #528 [bitsweat]
+* Added bind-named arrays for interpolating a group of ids or strings in conditions #528 [Jeremy Kemper]
 
 * Added that has_and_belongs_to_many associations with additional attributes also can be created between unsaved objects and only committed to the database when Base#save is called on the associator #524 [Eric Anderson]
 
@@ -472,7 +472,7 @@
 
 * Added Base#reload that reloads the attributes of an object from the database #422 [Andreas Schwarz]
 
-* Added SQLite3 compatibility through the sqlite3-ruby adapter by Jamis Buck #381 [bitsweat]
+* Added SQLite3 compatibility through the sqlite3-ruby adapter by Jamis Buck #381 [Jeremy Kemper]
 
 * Added support for the new protocol spoken by MySQL 4.1.1+ servers for the Ruby/MySQL adapter that ships with Rails #440 [Matt Mower] 
 
@@ -543,7 +543,7 @@
   <tt>Payment.find_all_by_amount(50)</tt> that is turned into <tt>Payment.find_all(["amount = ?", 50])</tt>. This is something not as equally useful,
   though, as it's not possible to specify the order in which the objects are returned.
 
-* Added block-style for callbacks #332 [bitsweat].
+* Added block-style for callbacks #332 [Jeremy Kemper].
 
     Before:
       before_destroy(Proc.new{ |record| Person.destroy_all "firm_id = #{record.id}" })
@@ -564,7 +564,7 @@
 
 * Added the final touches to the Microsoft SQL Server adapter by Joey Gibson that makes it suitable for actual use #394 [DeLynn Barry]
 
-* Added that Base#find takes an optional options hash, including :conditions. Base#find_on_conditions deprecated in favor of #find with :conditions #407 [bitsweat]
+* Added that Base#find takes an optional options hash, including :conditions. Base#find_on_conditions deprecated in favor of #find with :conditions #407 [Jeremy Kemper]
 
 * Added HasManyAssociation#count that works like Base#count #413 [intinig]
 
@@ -573,7 +573,7 @@
 * Fixed a bug in the Ruby/MySQL that caused binary content to be escaped badly and come back mangled #405 [Tobias Luetke]
 
 * Fixed that the const_missing autoload assumes the requested constant is set by require_association and calls const_get to retrieve it. 
-  If require_association did not set the constant then const_get will call const_missing, resulting in an infinite loop #380 [bitsweat]
+  If require_association did not set the constant then const_get will call const_missing, resulting in an infinite loop #380 [Jeremy Kemper]
 
 * Fixed broken transactions that were actually only running object-level and not db level transactions [andreas]
 
@@ -613,7 +613,7 @@
 
 * Added Base#clear_association_cache to empty all the cached associations #347 [Tobias Luetke]
 
-* Added more informative exceptions in establish_connection #356 [bitsweat]
+* Added more informative exceptions in establish_connection #356 [Jeremy Kemper]
 
 * Added Base#update_attributes that'll accept a hash of attributes and save the record (returning true if it passed validation, false otherwise). 
 
@@ -630,7 +630,7 @@
 
 * Added higher_item and lower_item as public methods for acts_as_list #342 [Tobias Luetke]
 
-* Fixed that options[:counter_sql] was overwritten with interpolated sql rather than original sql #355 [bitsweat]
+* Fixed that options[:counter_sql] was overwritten with interpolated sql rather than original sql #355 [Jeremy Kemper]
 
 * Fixed that overriding an attribute's accessor would be disregarded by add_on_empty and add_on_boundary_breaking because they simply used 
   the attributes[] hash instead of checking for @base.respond_to?(attr.to_s). [Marten]
@@ -794,12 +794,12 @@
 * Fixed has_and_belongs_to_many guessing of foreign key so that keys are generated correctly for models like SomeVerySpecialClient 
   [Florian Weber]
 
-* Added counter_sql option for has_many associations [bitsweat]. Documentation:
+* Added counter_sql option for has_many associations [Jeremy Kemper]. Documentation:
 
     <tt>:counter_sql</tt> - specify a complete SQL statement to fetch the size of the association. If +:finder_sql+ is
     specified but +:counter_sql+, +:counter_sql+ will be generated by replacing SELECT ... FROM with SELECT COUNT(*) FROM.
 
-* Fixed that methods wrapped in callbacks still return their original result #260 [bitsweat]
+* Fixed that methods wrapped in callbacks still return their original result #260 [Jeremy Kemper]
 
 * Fixed the Inflector to handle the movie/movies pair correctly #261 [Scott Baron]
 
@@ -825,7 +825,7 @@
 
 * Added reverse order of deleting fixtures, so referential keys can be maintained #247 [Tim Bates]
 
-* Added relative path search for sqlite dbfiles in database.yml (if RAILS_ROOT is defined) #233 [bitsweat]
+* Added relative path search for sqlite dbfiles in database.yml (if RAILS_ROOT is defined) #233 [Jeremy Kemper]
 
 * Added option to establish_connection where you'll be able to leave out the parameter to have it use the RAILS_ENV environment variable
 
@@ -924,17 +924,17 @@
     
   NOTE: The categories table doesn't have a added_on column, it's the categories_post join table that does!
 
-* Fixed that :exclusively_dependent and :dependent can't be activated at the same time on has_many associations [bitsweat]
+* Fixed that :exclusively_dependent and :dependent can't be activated at the same time on has_many associations [Jeremy Kemper]
 
-* Fixed that database passwords couldn't be all numeric [bitsweat]
+* Fixed that database passwords couldn't be all numeric [Jeremy Kemper]
 
-* Fixed that calling id would create the instance variable for new_records preventing them from being saved correctly [bitsweat]
+* Fixed that calling id would create the instance variable for new_records preventing them from being saved correctly [Jeremy Kemper]
 
 * Added sanitization feature to HasManyAssociation#find_all so it works just like Base.find_all [Sam Stephenson/bitsweat]
 
-* Added that you can pass overlapping ids to find without getting duplicated records back [bitsweat]
+* Added that you can pass overlapping ids to find without getting duplicated records back [Jeremy Kemper]
 
-* Added that Base.benchmark returns the result of the block [bitsweat]
+* Added that Base.benchmark returns the result of the block [Jeremy Kemper]
 
 * Fixed problem with unit tests on Windows with SQLite [paterno]
 

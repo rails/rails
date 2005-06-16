@@ -34,7 +34,7 @@
 
 *1.0.3* (27th March, 2005)
 
-* Fixed Inflector.pluralize to handle capitalized words #932 [bitsweat]
+* Fixed Inflector.pluralize to handle capitalized words #932 [Jeremy Kemper]
 
 * Added Object#suppress which allows you to make a saner choice around with exceptions to swallow #980. Example:
 
@@ -113,7 +113,7 @@
 
 * Added Inflector.humanize to turn attribute names like employee_salary into "Employee salary". Used by automated error reporting in AR.
 
-* Added availability of class inheritable attributes to the masses #477 [bitsweat]
+* Added availability of class inheritable attributes to the masses #477 [Jeremy Kemper]
 
     class Foo
       class_inheritable_reader :read_me
@@ -131,13 +131,13 @@
     Bar.read_and_write_me = 'bar'
     Bar.read_and_write_me != Foo.read_and_write_me
 
-* Added Inflections as an extension on String, so Inflector.pluralize(Inflector.classify(name)) becomes name.classify.pluralize #476 [bitsweat]
+* Added Inflections as an extension on String, so Inflector.pluralize(Inflector.classify(name)) becomes name.classify.pluralize #476 [Jeremy Kemper]
 
 * Added Byte operations to Numeric, so 5.5.megabytes + 200.kilobytes #461 [Marcel Molina]
 
 * Fixed that Dependencies.reload can't load the same file twice #420 [Kent Sibilev]
 
-* Added Fixnum#ago/until, Fixnum#since/from_now #450 [bitsweat]
+* Added Fixnum#ago/until, Fixnum#since/from_now #450 [Jeremy Kemper]
 
 * Added that Inflector now accepts Symbols and Classes by calling .to_s on the word supplied
 

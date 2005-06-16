@@ -81,7 +81,7 @@
 
 * Added Serbia and Montenegro to the country_select #1239 [todd@robotcoop.com]
 
-* Fixed Request#remote_ip in testing #1251 [bitsweat]
+* Fixed Request#remote_ip in testing #1251 [Jeremy Kemper]
 
 * Fixed that compute_public_path should recognize external URLs, so image_tag("http://www.example.com/images/icon.gif") is not prefixed with the relative url path #1254 [victor-ronr-trac@carotena.net]
 
@@ -306,7 +306,7 @@
 
 * Added pagination for scaffolding (10 items per page) #964 [mortonda@dgrmm.net]
 
-* Added assert_no_cookie and fixed assert_cookie_equal to deal with non-existing cookies #979 [bitsweat]
+* Added assert_no_cookie and fixed assert_cookie_equal to deal with non-existing cookies #979 [Jeremy Kemper]
 
 * Fixed :overwrite_param so it doesn't delete but reject elements from @request.parameters #982 [raphinou@yahoo.com]
 
@@ -433,7 +433,7 @@
 
 * Removed the reliance on PATH_INFO as it was causing problems for caching and inhibited the new non-vhost support #822 [Nicholas Seckar]
 
-* Added assigns shortcut for @response.template.assigns to controller test cases [bitsweat]. Example:
+* Added assigns shortcut for @response.template.assigns to controller test cases [Jeremy Kemper]. Example:
 
   Before:
 
@@ -472,7 +472,7 @@
 
 * Removed the default border on link_image_to (it broke xhtml strict) -- can be specified with :border => 0 #517 [?/caleb]
 
-* Fixed that form helpers would treat string and symbol keys differently in html_options (and possibly create duplicate entries) #112 [bitsweat]
+* Fixed that form helpers would treat string and symbol keys differently in html_options (and possibly create duplicate entries) #112 [Jeremy Kemper]
 
 * Fixed that broken pipe errors (clients disconnecting in mid-request) could bring down a fcgi process
 
@@ -589,7 +589,7 @@
 
 * Added TestResponse#binary_content that'll return as a string the data sent through send_data/send_file for testing #500 [Alexey]
 
-* Added @request.env['RAW_POST_DATA'] for people who need access to the data before Ruby's CGI has parsed it #505 [bitsweat]
+* Added @request.env['RAW_POST_DATA'] for people who need access to the data before Ruby's CGI has parsed it #505 [Jeremy Kemper]
 
 * Fixed that a default fragment store wan't being set to MemoryStore as intended.
 
@@ -649,7 +649,7 @@
 
 * Fixed that controller tests can now assert on the use of cookies #466 [Alexey]
 
-* Fixed that send_file would "remember" all the files sent by adding to the headers again and again #458 [bitsweat]
+* Fixed that send_file would "remember" all the files sent by adding to the headers again and again #458 [Jeremy Kemper]
 
 * Fixed url rewriter confusion when the controller or action name was a substring of the controller_prefix or action_prefix
 
@@ -819,7 +819,7 @@
   and partials that make use of a counter can be called without problems from both render_collection_of_partials as well as
   render_partial #295 [marcel]
 
-* Fixed CgiRequest#out to fall back to #write if $stdout doesn't have #syswrite [bitsweat]
+* Fixed CgiRequest#out to fall back to #write if $stdout doesn't have #syswrite [Jeremy Kemper]
 
 * Fixed all helpers so that they use XHTML compliant double quotes for values instead of single quotes [htonl/bitsweat]
 
@@ -869,7 +869,7 @@
 
 * Added options to tailor header tag, div id, and div class on ActiveRecordHelper#error_messages_for [josh]
 
-* Added graceful handling of non-alphanumeric names and misplaced brackets in input parameters [bitsweat]
+* Added graceful handling of non-alphanumeric names and misplaced brackets in input parameters [Jeremy Kemper]
 
 * Added a new container for cookies that makes them more intuative to use. The old methods of cookie and @cookies have been deprecated.
 
@@ -893,7 +893,7 @@
 
 * Added Request#ssl? which is shorthand for @request.protocol == "https://"
 
-* Added the choice to call form_tag with no arguments (resulting in a form posting to current action) [bitsweat]
+* Added the choice to call form_tag with no arguments (resulting in a form posting to current action) [Jeremy Kemper]
 
 * Upgraded to Builder 1.2.1
 
@@ -942,7 +942,7 @@
 
 *0.9.5* (28)
 
-* Added helper_method to designate that a given private or protected method you should available as a helper in the view. [bitsweat]
+* Added helper_method to designate that a given private or protected method you should available as a helper in the view. [Jeremy Kemper]
 
 * Fixed assert_rendered_file so it actually verifies if that was the rendered file [htonl]
 
@@ -950,19 +950,19 @@
 
 * Fixed that Russia was named twice in country_select [alexey]
 
-* Fixed request_origin to use remote_ip instead of remote_addr [bitsweat]
+* Fixed request_origin to use remote_ip instead of remote_addr [Jeremy Kemper]
 
 * Fixed link_to breakage when nil was passed for html_options [alexey]
 
 * Fixed redirect_to on a virtual server setup with apache with a port other than the default where it would forget the port number [seanohalpin]
 
-* Fixed that auto-loading webrick on Windows would cause file uploads to fail [bitsweat]
+* Fixed that auto-loading webrick on Windows would cause file uploads to fail [Jeremy Kemper]
 
-* Fixed issues with sending files on WEBrick by setting the proper binmode [bitsweat]
+* Fixed issues with sending files on WEBrick by setting the proper binmode [Jeremy Kemper]
 
-* Added send_data as an alternative to send_file when the stream is not read off the filesystem but from a database or generated live [bitsweat]
+* Added send_data as an alternative to send_file when the stream is not read off the filesystem but from a database or generated live [Jeremy Kemper]
 
-* Added a new way to include helpers that doesn't require the include hack and can go without the explicit require. [bitsweat]
+* Added a new way to include helpers that doesn't require the include hack and can go without the explicit require. [Jeremy Kemper]
 
   Before:
 
