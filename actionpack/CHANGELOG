@@ -501,7 +501,7 @@
 
 * Added FormTagHelper that provides a number of methods for creating form tags that doesn't rely on conventions with an object assigned to the template like FormHelper does. With the FormTagHelper, you provide the names and values yourself.
 
-* Added Afghanistan, Iran, and Irak to the countries list used by FormOptions#country_select and FormOptions#country_options_for_select
+* Added Afghanistan, Iran, and Iraq to the countries list used by FormOptions#country_select and FormOptions#country_options_for_select
 
 * Renamed link_to_image to link_image_to (since thats what it actually does) -- kept alias for the old method name
 

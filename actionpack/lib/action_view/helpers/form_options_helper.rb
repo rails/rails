@@ -259,7 +259,7 @@ module ActionView
             "Georgia", "Germany", "Ghana", "Gibraltar", "Great Britain", "Greece", "Greenland", 
             "Grenada", "Guadeloupe", "Guam", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", 
             "Haiti", "Heard and Mc Donald Islands", "Honduras", "Hong Kong", "Hungary", "Iceland", 
-            "India", "Indonesia", "Ireland", "Israel", "Italy", "Iran", "Irak", "Jamaica", "Japan", "Jordan", 
+            "India", "Indonesia", "Ireland", "Israel", "Italy", "Iran", "Iraq", "Jamaica", "Japan", "Jordan", 
             "Kazakhstan", "Kenya", "Kiribati", "Korea, Republic of", "Korea (South)", "Kuwait", 
             "Kyrgyzstan", "Lao People's Democratic Republic", "Latvia", "Lebanon", "Lesotho", 
             "Liberia", "Liechtenstein", "Lithuania", "Luxembourg", "Macau", "Macedonia", 
