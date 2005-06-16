@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Webrick to escape + characters in URL's the same way that lighttpd and apache do #1397 [Nicholas Seckar]
+
 * Added -e/--environment option to script/runner #1408 [fbeausoleil@ftml.net]
 
 * Modernize the scaffold generator to use the simplified render and test methods and to change style from @params["id"] to params[:id].  #1367

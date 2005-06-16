@@ -43,26 +43,24 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
 
   def handle_file(req, res)
     begin
-      add_dot_html(req)
+      req = req.dup
+
+      path = req.path.dup
+
+      # Add .html if the last path piece has no . in it
+      path << '.html' if path != '/' && (%r{(^|/)[^./]+$} =~ path) 
+      path.gsub!('+', ' ') # Unescape + since FileHandler doesn't do so.
+
+      req.instance_variable_set(:@path_info, path) # Set the modified path...
+      
       @file_handler.send(:service, req, res)
-      remove_dot_html(req)
       return true
     rescue HTTPStatus::PartialContent, HTTPStatus::NotModified => err
       res.set_error(err)
       return true
     rescue => err
       return false
-    ensure
-      remove_dot_html(req)
     end
-  end
-
-  def add_dot_html(req)
-    if /^([^.]+)$/ =~ req.path && req.path != "/" then req.instance_variable_set(:@path_info, "#{$1}.html") end
-  end
-  
-  def remove_dot_html(req)
-    if /^([^.]+).html$/ =~ req.path && req.path != "/" then req.instance_variable_set(:@path_info, $1) end
   end
 
   def handle_dispatch(req, res, origin = nil)
