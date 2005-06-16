@@ -26,7 +26,7 @@ module ActionView
       # passing +highlighter+ as single-quoted string with \1 where the phrase is supposed to be inserted.
       # N.B.: The +phrase+ is sanitized to include only letters, digits, and spaces before use.
       def highlight(text, phrase, highlighter = '<strong class="highlight">\1</strong>')
-        if text.nil? || phrase.nil? then return end
+        if phrase.blank? then return text end
         text.gsub(/(#{escape_regexp(phrase)})/i, highlighter) unless text.nil?
       end
 

@@ -35,6 +35,11 @@ class TextHelperTest < Test::Unit::TestCase
       "This is a <b>beautiful</b> morning, but also a <b>beautiful</b> day",
       highlight("This is a beautiful morning, but also a beautiful day", "beautiful", '<b>\1</b>')
     )
+    
+    assert_equal(
+      "This text is not changed because we supplied an empty phrase",
+      highlight("This text is not changed because we supplied an empty phrase", nil)
+    )
   end
 
   def test_highlighter_with_regexp
