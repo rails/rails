@@ -4,6 +4,7 @@ require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/cor
 
 class TextHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TextHelper
+  include ActionView::Helpers::TagHelper
   
   def test_simple_format
     assert_equal "<p>crazy\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("crazy\r\n cross\r platform linebreaks")
@@ -77,6 +78,7 @@ class TextHelperTest < Test::Unit::TestCase
     email_result = %{<a href="mailto:#{email_raw}">#{email_raw}</a>}
     link_raw     = 'http://www.rubyonrails.com'
     link_result  = %{<a href="#{link_raw}">#{link_raw}</a>}
+    link_result_with_options  = %{<a href="#{link_raw}" target="_blank">#{link_raw}</a>}
     link2_raw    = 'www.rubyonrails.com'
     link2_result = %{<a href="http://#{link2_raw}">#{link2_raw}</a>}
 
@@ -90,6 +92,7 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %(Go to #{link2_raw}), auto_link("Go to #{link2_raw}", :email_addresses)
     assert_equal %(<p>Link #{link2_result}</p>), auto_link("<p>Link #{link2_raw}</p>")
     assert_equal %(<p>#{link2_result} Link</p>), auto_link("<p>#{link2_raw} Link</p>")
+    assert_equal %(<p>Link #{link_result_with_options}</p>), auto_link("<p>Link #{link_raw}</p>", :all, {:target => "_blank"})
   end
 
   def test_sanitize_form

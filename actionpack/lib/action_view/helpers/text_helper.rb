@@ -1,3 +1,5 @@
+require File.dirname(__FILE__) + '/tag_helper'
+
 module ActionView
   module Helpers #:nodoc:
     # Provides a set of methods for working with text strings that can help unburden the level of inline Ruby code in the
@@ -116,11 +118,11 @@ module ActionView
       #   auto_link("Go to http://www.rubyonrails.com and say hello to david@loudthinking.com") =>
       #     Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a> and
       #     say hello to <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>
-      def auto_link(text, link = :all)
+      def auto_link(text, link = :all, href_options = {})
         case link
-          when :all             then auto_link_urls(auto_link_email_addresses(text))
+          when :all             then auto_link_urls(auto_link_email_addresses(text), href_options)
           when :email_addresses then auto_link_email_addresses(text)
-          when :urls            then auto_link_urls(text)
+          when :urls            then auto_link_urls(text, href_options)
         end
       end
 
@@ -191,13 +193,14 @@ module ActionView
         end
 
         # Turns all urls into clickable links.
-        def auto_link_urls(text)
+        def auto_link_urls(text, href_options = {})
           text.gsub(/(<\w+.*?>|[^=!:'"\/]|^)((?:http[s]?:\/\/)|(?:www\.))([^\s<]+\/?)([[:punct:]]|\s|<|$)/) do
             all, a, b, c, d = $&, $1, $2, $3, $4
             if a =~ /<a\s/i # don't replace URL's that are already linked
               all
             else
-              %(#{a}<a href="#{b=="www."?"http://www.":b}#{c}">#{b}#{c}</a>#{d})
+              extra_options = tag_options(href_options.stringify_keys) || ""
+              %(#{a}<a href="#{b=="www."?"http://www.":b}#{c}"#{extra_options}>#{b}#{c}</a>#{d})
             end
           end
         end

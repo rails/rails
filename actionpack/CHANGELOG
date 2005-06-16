@@ -1,5 +1,7 @@
 *SVN*
 
+* Added a third parameter to TextHelper#auto_link called href_options for specifying additional tag options on the links generated #1401 [tyler.kovacs@gmail.com]. Example: auto_link(text, :all, { :target => "_blank" }) to have all the generated links open in a new window.
+
 * Fixed TextHelper#highlight to return the text, not nil, if the phrase is blank #1409 [patrick@lenz.sh]
 
 * Fixed TagHelper such that :name and 'name' keys in the options doesn't result in two attributes #1455 [take_tk]
