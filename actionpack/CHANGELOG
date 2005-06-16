@@ -1,6 +1,9 @@
 *SVN*
 
-* Added cuba to country list #1351 [todd]
+* Fixed query parser to deal gracefully with equal signs inside keys and values #1345 [gorou]. 
+  Example: /?sig=abcdef=:foobar=&x=y will pass now. 
+
+* Added Cuba to country list #1351 [todd]
 
 * Fixed radio_button to work with numeric values #1352 [demetrius]
 

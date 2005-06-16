@@ -11,7 +11,8 @@ class CGIMethods #:nodoc:
       parsed_params = {}
   
       query_string.split(/[&;]/).each { |p| 
-        k, v = p.split('=')
+        k, v = p.split('=',2)
+        v = nil if (!v.nil? && v.empty?)
 
         k = CGI.unescape(k) unless k.nil?
         v = CGI.unescape(v) unless v.nil?

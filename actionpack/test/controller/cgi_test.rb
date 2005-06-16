@@ -21,6 +21,8 @@ class CGITest < Test::Unit::TestCase
     @query_string_with_amps  = "action=create_customer&name=Don%27t+%26+Does"
     @query_string_with_multiple_of_same_name = 
       "action=update_order&full_name=Lau%20Taarnskov&products=4&products=2&products=3"
+    @query_string_with_many_equal = "action=create_customer&full_name=abc=def=ghi"
+    @query_string_without_equal = "action"
   end
 
   def test_query_string
@@ -48,6 +50,20 @@ class CGITest < Test::Unit::TestCase
     assert_equal(
       { "action" => "create_customer", "name" => "Don't & Does"},
       CGIMethods.parse_query_parameters(@query_string_with_amps)
+    )    
+  end
+  
+  def test_query_string_with_many_equal
+    assert_equal(
+      { "action" => "create_customer", "full_name" => "abc=def=ghi"},
+      CGIMethods.parse_query_parameters(@query_string_with_many_equal)
+    )    
+  end
+  
+  def test_query_string_without_equal
+    assert_equal(
+      { "action" => nil },
+      CGIMethods.parse_query_parameters(@query_string_without_equal)
     )    
   end
   
