@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :extension option to NumberHelper#number_to_phone #1361 [delynnb]
+
 * Added button_to as a form-based solution to deal with harmful actions that should be hidden behind POSTs. This makes it just as easy as link_to to create a safe trigger for actions like destroy, although it's limited by being a block element, the fixed look, and a no-no inside other forms. #1371 [tom@moertel.com]
 
 * Fixed image_tag so an exception is not thrown just because the image is missing and alt value can't be generated #1395 [Marcel]

@@ -11,6 +11,8 @@ class NumberHelperTest < Test::Unit::TestCase
     assert_equal("123-555-1234", number_to_phone(1235551234))
     assert_equal("(123) 555-1234", number_to_phone(1235551234, {:area_code => true}))
     assert_equal("123 555 1234", number_to_phone(1235551234, {:delimiter => " "}))
+    assert_equal("(123) 555-1234 x 555", number_to_phone(1235551234, {:area_code => true, :extension => 555}))
+    assert_equal("123-555-1234", number_to_phone(1235551234, :extension => "   "))
   end
 
   def test_number_to_currency

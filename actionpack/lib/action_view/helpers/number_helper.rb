@@ -8,20 +8,18 @@ module ActionView
       # The area code can be surrounded by parenthesis by setting +:area_code+ to true; default is false
       # The delimiter can be set using +:delimiter+; default is "-"
       # Examples:
-      #   number_to_phone(1235551234)                       => 123-555-1234
-      #   number_to_phone(1235551234, {:area_code => true}) => (123) 555-1234
-      #   number_to_phone(1235551234, {:delimiter => " "})   => 123 555 1234
+      #   number_to_phone(1235551234)   => 123-555-1234
+      #   number_to_phone(1235551234, {:area_code => true})   => (123) 555-1234
+      #   number_to_phone(1235551234, {:delimiter => " "})    => 123 555 1234
+      #   number_to_phone(1235551234, {:area_code => true, :extension => 555})  => (123) 555-1234 x 555
       def number_to_phone(number, options = {})
-        options = options.stringify_keys
+        options   = options.stringify_keys
         area_code = options.delete("area_code") { false }
         delimiter = options.delete("delimiter") { "-" }
+        extension = options.delete("extension") { "" }
         begin
-          str = number.to_s
-          if area_code == true
-            str.gsub!(/([0-9]{3})([0-9]{3})([0-9]{4})/,"(\\1) \\2#{delimiter}\\3")
-          else
-            str.gsub!(/([0-9]{3})([0-9]{3})([0-9]{4})/,"\\1#{delimiter}\\2#{delimiter}\\3")
-          end
+          str = area_code == true ? number.to_s.gsub(/([0-9]{3})([0-9]{3})([0-9]{4})/,"(\\1) \\2#{delimiter}\\3") : number.to_s.gsub(/([0-9]{3})([0-9]{3})([0-9]{4})/,"\\1#{delimiter}\\2#{delimiter}\\3")
+          extension.to_s.strip.empty? ? str : "#{str} x #{extension.to_s.strip}"
         rescue
           number
         end
