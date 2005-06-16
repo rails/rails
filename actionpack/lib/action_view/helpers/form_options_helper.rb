@@ -251,7 +251,7 @@ module ActionView
             "Cameroon", "Canada", "Cape Verde", "Cayman Islands", "Central African Republic", 
             "Chad", "Chile", "China", "Christmas Island", "Cocos (Keeling) Islands", "Colombia", 
             "Comoros", "Congo", "Congo, the Democratic Republic of the", "Cook Islands", 
-            "Costa Rica", "Cote d'Ivoire", "Croatia", "Cyprus", "Czech Republic", "Denmark", 
+            "Costa Rica", "Cote d'Ivoire", "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", 
             "Djibouti", "Dominica", "Dominican Republic", "East Timor", "Ecuador", "Egypt", 
             "El Salvador", "England", "Equatorial Guinea", "Eritrea", "Espana", "Estonia", 
             "Ethiopia", "Falkland Islands", "Faroe Islands", "Fiji", "Finland", "France", 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added cuba to country list #1351 [todd]
+
 * Fixed radio_button to work with numeric values #1352 [demetrius]
 
 * Added :extension option to NumberHelper#number_to_phone #1361 [delynnb]
