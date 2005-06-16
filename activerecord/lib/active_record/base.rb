@@ -896,7 +896,7 @@ module ActiveRecord #:nodoc:
 
         def quote_bound_value(value)
           case value
-            when Array
+            when Enumerable
               value.map { |v| connection.quote(v) }.join(',')
             else
               connection.quote(value)

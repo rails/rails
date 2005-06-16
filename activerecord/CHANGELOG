@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow any Enumerable, not just Array, to work as bind variables #1344 [bitsweat]
+
 * Added actual database-changing behavior to collection assigment for has_many and has_and_belongs_to_many #1425 [Sebastian Kanthak].
   Example:
 

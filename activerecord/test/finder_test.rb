@@ -156,12 +156,19 @@ class FinderTest < Test::Unit::TestCase
     assert_raises(ActiveRecord::PreparedStatementInvalid) { bind ':a :a', :a => 1, :b => 2 } # ' ruby-mode
   end
 
-  def test_bind_array
+  def test_bind_enumerable
     assert_equal '1,2,3', bind('?', [1, 2, 3])
     assert_equal %('a','b','c'), bind('?', %w(a b c))
 
     assert_equal '1,2,3', bind(':a', :a => [1, 2, 3])
     assert_equal %('a','b','c'), bind(':a', :a => %w(a b c)) # '
+
+    require 'set'
+    assert_equal '1,2,3', bind('?', Set.new([1, 2, 3]))
+    assert_equal %('a','b','c'), bind('?', Set.new(%w(a b c)))
+
+    assert_equal '1,2,3', bind(':a', :a => Set.new([1, 2, 3]))
+    assert_equal %('a','b','c'), bind(':a', :a => Set.new(%w(a b c))) # '
   end
 
   def test_string_sanitation
