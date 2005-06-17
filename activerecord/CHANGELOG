@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed saving of in-memory association structures to happen as a after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice
+
 * Allow any Enumerable, not just Array, to work as bind variables #1344 [Jeremy Kemper]
 
 * Added actual database-changing behavior to collection assigment for has_many and has_and_belongs_to_many #1425 [Sebastian Kanthak].

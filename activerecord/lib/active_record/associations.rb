@@ -671,7 +671,7 @@ module ActiveRecord
           end
 
           module_eval do
-            after_save <<-end_eval
+            after_callback = <<-end_eval
               association = instance_variable_get("@#{association_name}")
               if association.respond_to?(:loaded?)
                 if @new_record_before_save
@@ -683,6 +683,10 @@ module ActiveRecord
                 association.send(:construct_sql)   # reconstruct the SQL queries now that we know the owner's id
               end
             end_eval
+
+            # Doesn't use after_save as that would save associations added in after_create/after_update twice
+            after_create(after_callback)
+            after_update(after_callback)
           end
         end
 
