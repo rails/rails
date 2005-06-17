@@ -30,6 +30,15 @@ class DateHelperTest < Test::Unit::TestCase
     # test to < from
     assert_equal "about 4 hours", distance_of_time_in_words(Time.mktime(2004, 3, 7, 1, 20), from)
     assert_equal "less than 20 seconds", distance_of_time_in_words(Time.mktime(2004, 3, 6, 21, 41, 38), from, true)
+    
+    # test with integers
+    assert_equal "less than a minute", distance_of_time_in_words(50)
+    assert_equal "about 1 hour", distance_of_time_in_words(60*60)
+    
+    # more cumbersome test with integers
+    assert_equal "less than a minute", distance_of_time_in_words(0, 50)
+    assert_equal "about 1 hour", distance_of_time_in_words(60*60, 0)
+    
   end
 
   def test_distance_in_words_date

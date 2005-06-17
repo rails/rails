@@ -1,5 +1,9 @@
 *SVN*
 
+* Correct distance_of_time_in_words for integer arguments and make the second ar
+g optional, treating the first arg as a duration in seconds.  #1458 [madrobby <t
+homas@fesch.at>]
+
 * Fixed query parser to deal gracefully with equal signs inside keys and values #1345 [gorou]. 
   Example: /?sig=abcdef=:foobar=&x=y will pass now. 
 
