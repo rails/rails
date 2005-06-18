@@ -135,12 +135,17 @@ module ActionController
     # Returns the interpreted path to requested resource after all the installation directory of this application was taken into account
     def path
       path = (uri = request_uri) ? uri.split('?').first : ''
-      path[relative_url_root.length..-1] # cut off the part of the url which leads to the installation directory of this app
+      
+      # Cut off the path to the installation directory if given
+      if (root = relative_url_root) then path[root.length..-1]
+      else path
+      end
     end    
     
-    # Returns the path minus the web server relative installation directory
-    def relative_url_root(force_reload = false)
-      @@relative_url_root ||= File.dirname(env["SCRIPT_NAME"].to_s).gsub(/(^\.$|^\/$)/, '')
+    # Returns the path minus the web server relative installation directory.
+    # This method returns nil unless the web server is apache.
+    def relative_url_root
+      @@relative_url_root ||= File.dirname(env["SCRIPT_NAME"].to_s).gsub(/(^\.$|^\/$)/, '') if server_software == 'apache'
     end
 
     def port
@@ -163,6 +168,10 @@ module ActionController
 
     def path_parameters
       @path_parameters ||= {}
+    end
+    
+    def server_software
+      (env['SERVER_SOFTWARE'] && /^([a-zA-Z]+)/ =~ env['SERVER_SOFTWARE']) ? $1.downcase : nil
     end
     
     #--

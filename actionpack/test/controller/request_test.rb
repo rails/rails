@@ -66,6 +66,11 @@ class RequestTest < Test::Unit::TestCase
   end
   
   def test_relative_url_root
+    @request.env['SERVER_SOFTWARE'] = 'lighttpd/1.2.3'
+    assert_nil @request.relative_url_root, "relative_url_root should be disabled on lighttpd"
+
+    @request.env['SERVER_SOFTWARE'] = 'apache/1.2.3 some random text'
+      
     @request.env['SCRIPT_NAME'] = nil
     assert_equal "", @request.relative_url_root
 
@@ -85,6 +90,8 @@ class RequestTest < Test::Unit::TestCase
   end
   
   def test_request_uri
+    @request.env['SERVER_SOFTWARE'] = 'Apache 42.342.3432'
+  
     @request.relative_url_root = nil
     @request.set_REQUEST_URI "http://www.rubyonrails.org/path/of/some/uri?mapped=1"
     assert_equal "/path/of/some/uri?mapped=1", @request.request_uri
@@ -192,5 +199,15 @@ class RequestTest < Test::Unit::TestCase
     @request.host = "rubyonrails.org"
     @request.port = 81
     assert_equal "rubyonrails.org:81", @request.host_with_port
+  end
+  
+  def test_server_software
+    assert_equal nil, @request.server_software
+  
+    @request.env['SERVER_SOFTWARE'] = 'Apache3.422'
+    assert_equal 'apache', @request.server_software
+    
+    @request.env['SERVER_SOFTWARE'] = 'lighttpd(1.1.4)'
+    assert_equal 'lighttpd', @request.server_software
   end
 end
