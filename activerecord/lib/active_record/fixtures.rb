@@ -101,8 +101,8 @@ require 'csv'
 #   ...
 #
 # By adding a "fixtures" method to the test case and passing it a list of symbols (only one is shown here tho), we trigger
-# the testing environment to automatically load the appropriate fixtures into the database before each test, and
-# automatically delete them after each test.
+# the testing environment to automatically load the appropriate fixtures into the database before each test.  
+# To ensure consistent data, the environment deletes the fixtures before running the load.
 #
 # In addition to being available in the database, the fixtures are also loaded into a hash stored in an instance variable
 # of the test case.  It is named after the symbol... so, in our example, there would be a hash available called
