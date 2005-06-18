@@ -28,6 +28,8 @@ CREATE TABLE developers (
     id serial,
     name character varying(100),
     salary integer DEFAULT 70000,
+    created_at timestamp,
+    updated_at timestamp,
     PRIMARY KEY (id)
 );
 SELECT setval('developers_id_seq', 100);

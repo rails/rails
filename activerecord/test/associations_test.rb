@@ -823,6 +823,22 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal 2, action_controller.developers(true).size
   end
 
+  def test_adding_from_the_project_fixed_timestamp
+    jamis = Developer.find(2)
+    action_controller = Project.find(2)
+    action_controller.developers.reload
+    assert_equal 1, jamis.projects.size
+    assert_equal 1, action_controller.developers.size
+    updated_at = jamis.updated_at
+
+    action_controller.developers << jamis
+
+    assert_equal updated_at, jamis.updated_at
+    assert_equal 2, jamis.projects(true).size
+    assert_equal 2, action_controller.developers.size
+    assert_equal 2, action_controller.developers(true).size
+  end
+
   def test_adding_multiple
     aredridel = Developer.new("name" => "Aredridel")
     aredridel.save

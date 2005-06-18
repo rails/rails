@@ -33,7 +33,9 @@ CREATE TABLE 'topics' (
 CREATE TABLE 'developers' (
   'id' INTEGER PRIMARY KEY NOT NULL,
   'name' TEXT DEFAULT NULL,
-  'salary' INTEGER DEFAULT 70000
+  'salary' INTEGER DEFAULT 70000,
+  'created_at' DATETIME DEFAULT NULL,
+  'updated_at' DATETIME DEFAULT NULL
 );
 
 CREATE TABLE 'projects' (

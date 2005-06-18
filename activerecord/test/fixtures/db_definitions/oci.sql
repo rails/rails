@@ -55,6 +55,8 @@ create table developers (
     id integer not null,
     name varchar(100) default null,
     salary integer default 70000,
+    created_at timestamp default null,
+    updated_at timestamp default null,
     primary key (id)
 );
 

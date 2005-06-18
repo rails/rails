@@ -104,7 +104,9 @@ module ActiveRecord
         end
 
         def insert_record(record)
-          return false unless record.save
+          if record.new_record?
+            return false unless record.save
+          end
 
           if @options[:insert_sql]
             @owner.connection.execute(interpolate_sql(@options[:insert_sql], record))

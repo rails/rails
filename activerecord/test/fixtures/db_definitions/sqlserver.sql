@@ -32,7 +32,9 @@ CREATE TABLE topics (
 CREATE TABLE developers (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
   name varchar(100) default NULL,
-  salary int default 70000
+  salary int default 70000,
+  created_at datetime default NULL,
+  updated_at datetime default NULL
 );
 
 CREATE TABLE projects (
