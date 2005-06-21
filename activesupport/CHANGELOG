@@ -1,5 +1,9 @@
 *SVN*
 
+* Added Fix/Bignum#multiple_of? which returns true on 14.multiple_of?(7) and false on 16.multiple_of?(7) #1464 [Thomas Fuchs]
+
+* Added even? and odd? to work with Bignums in addition to Fixnums #1464 [Thomas Fuchs]
+
 * Fixed Time#at_beginning_of_week returned the next Monday instead of the previous one when called on a Sunday #1403 [jean.helou@gmail.com]
 
 * Increased the speed of indifferent hash access by using Hash#default.  #1436 [Nicholas Seckar]
