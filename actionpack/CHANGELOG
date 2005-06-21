@@ -1,5 +1,9 @@
 *SVN*
 
+* Added a fall-through action for form_remote_tag that'll be used in case Javascript is unavailable #1459 [Scott Barron]. Example:
+
+    form_remote_tag :html => { :action => url_for(:controller => "some", :action => "place") }
+
 * Added :xhr => true/false option to verify so you can ensure that a request is coming from an Ajax call or not #1464 [Thomas Fuchs]
 
 * Added tag_options as a third parameter to AssetHelper#auto_discovery_link_tag to control options like the title of the link #1430 [kevin.clark@gmail.com]

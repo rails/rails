@@ -97,11 +97,19 @@ module ActionView
       # reloading POST arrangement. Even though it's using Javascript to serialize the form elements, the form submission 
       # will work just like a regular submission as viewed by the receiving side (all elements available in @params).
       # The options for specifying the target with :url and defining callbacks is the same as link_to_remote.
+      #
+      # A "fall-through" target for browsers that doesn't do Javascript can be specified with the :action/:method options on :html
+      #
+      #   form_remote_tag :html => { :action => url_for(:controller => "some", :action => "place") }
+      #
+      # By default the fall-through action is the same as the one specified in the :url (and the default method is :post).
       def form_remote_tag(options = {})
         options[:form] = true
 
         options[:html] ||= {}
         options[:html][:onsubmit] = "#{remote_function(options)}; return false;"
+        options[:html][:action] = options[:html][:action] || url_for(options[:url])
+        options[:html][:method] = options[:html][:method] || "post"
 
         tag("form", options[:html], true)
       end
