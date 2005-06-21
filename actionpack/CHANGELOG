@@ -1,5 +1,7 @@
 *SVN*
 
+* Added TextHelper#word_wrap(text, line_length = 80) #1449 [tuxie@dekadance.se]
+
 * Added a fall-through action for form_remote_tag that'll be used in case Javascript is unavailable #1459 [Scott Barron]. Example:
 
     form_remote_tag :html => { :action => url_for(:controller => "some", :action => "place") }

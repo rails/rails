@@ -65,6 +65,11 @@ module ActionView
         end
       end
 
+      # Word wrap long lines to line_width.
+      def word_wrap(text, line_width = 80)
+        text.gsub(/\n/, "\n\n").gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1\n").strip
+      end
+
       begin
         require "redcloth"
 
