@@ -90,16 +90,16 @@ module ActiveRecord
       def native_database_types
         {
           :primary_key => "INTEGER PRIMARY KEY NOT NULL",
-          :string      => "VARCHAR(255)",
-          :text        => "TEXT",
-          :integer     => "INTEGER",
-          :float       => "float",
-          :datetime    => "DATETIME",
-          :timestamp   => "DATETIME",
-          :time        => "DATETIME",
-          :date        => "DATE",
-          :binary      => "BLOB",
-          :boolean     => "INTEGER"
+          :string      => { :name => "varchar", :limit => 255 },
+          :text        => { :name => "text" },
+          :integer     => { :name => "integer" },
+          :float       => { :name => "float" },
+          :datetime    => { :name => "datetime" },
+          :timestamp   => { :name => "datetime" },
+          :time        => { :name => "datetime" },
+          :date        => { :name => "date" },
+          :binary      => { :name => "blob" },
+          :boolean     => { :name => "integer" }
         }
       end
 
