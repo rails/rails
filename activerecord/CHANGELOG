@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that calling Model.find([]) returns [] and doesn't throw an exception #1379
+
 * Fixed that adding a record to a has_and_belongs_to collection would always save it -- now it only saves if its a new record #1203 [Alisdair McDiarmid]
 
 * Fixed saving of in-memory association structures to happen as a after_create/after_update callback instead of after_save -- that way you can add new associations in after_create/after_update callbacks without getting them saved twice

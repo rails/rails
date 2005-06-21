@@ -333,6 +333,7 @@ module ActiveRecord #:nodoc:
           when :all
             options[:include] ? find_with_associations(options) : find_by_sql(construct_finder_sql(options))
           else
+            return args.first if args.first.kind_of?(Array) && args.first.empty?
             expects_array = args.first.kind_of?(Array)
             conditions = " AND #{sanitize_sql(options[:conditions])}" if options[:conditions]
 

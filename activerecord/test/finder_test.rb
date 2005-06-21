@@ -28,6 +28,10 @@ class FinderTest < Test::Unit::TestCase
     assert_equal(topics(:second).title, Topic.find([ 2 ]).first.title)
   end
 
+  def test_find_an_empty_array
+    assert_equal [], Topic.find([])
+  end
+
   def test_find_by_ids_missing_one
     assert_raises(ActiveRecord::RecordNotFound) {
       Topic.find(1, 2, 45)
