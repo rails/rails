@@ -20,6 +20,12 @@ class VerificationTest < Test::Unit::TestCase
 
     verify :only => :guarded_by_method, :method => :post,
            :redirect_to => { :action => "unguarded" }
+           
+    verify :only => :guarded_by_xhr, :xhr => true,
+           :redirect_to => { :action => "unguarded" }
+           
+    verify :only => :guarded_by_not_xhr, :xhr => false,
+           :redirect_to => { :action => "unguarded" }
 
     before_filter :unconditional_redirect, :only => :two_redirects
     verify :only => :two_redirects, :method => :post,
@@ -53,6 +59,14 @@ class VerificationTest < Test::Unit::TestCase
 
     def guarded_by_method
       render :text => "#{@request.method}"
+    end
+    
+    def guarded_by_xhr
+      render :text => "#{@request.xhr?}"
+    end
+    
+    def guarded_by_not_xhr
+      render :text => "#{@request.xhr?}"
     end
 
     def unguarded
@@ -170,6 +184,26 @@ class VerificationTest < Test::Unit::TestCase
 
   def test_guarded_by_method_without_prereqs
     get :guarded_by_method
+    assert_redirected_to :action => "unguarded"
+  end
+  
+  def test_guarded_by_xhr_with_prereqs
+    xhr :post, :guarded_by_xhr
+    assert_equal "true", @response.body
+  end
+    
+  def test_guarded_by_xhr_without_prereqs
+    get :guarded_by_xhr
+    assert_redirected_to :action => "unguarded"
+  end
+  
+  def test_guarded_by_not_xhr_with_prereqs
+    get :guarded_by_not_xhr
+    assert_equal "false", @response.body
+  end
+    
+  def test_guarded_by_not_xhr_without_prereqs
+    xhr :post, :guarded_by_not_xhr
     assert_redirected_to :action => "unguarded"
   end
   

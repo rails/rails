@@ -210,4 +210,18 @@ class RequestTest < Test::Unit::TestCase
     @request.env['SERVER_SOFTWARE'] = 'lighttpd(1.1.4)'
     assert_equal 'lighttpd', @request.server_software
   end
+  
+  def test_xml_http_request
+    assert !@request.xml_http_request?
+    assert !@request.xhr?
+    
+    @request.env['HTTP_X_REQUESTED_WITH'] = "DefinitelyNotAjax1.0"
+    assert !@request.xml_http_request?
+    assert !@request.xhr?
+    
+    @request.env['HTTP_X_REQUESTED_WITH'] = "XMLHttpRequest"
+    assert @request.xml_http_request?
+    assert @request.xhr?
+  end
+  
 end

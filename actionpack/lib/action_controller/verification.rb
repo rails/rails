@@ -76,7 +76,9 @@ module ActionController #:nodoc:
         prereqs_invalid ||= 
           [*options[:method]].all? { |v| @request.method != v.to_sym }
       end
-
+      
+      prereqs_invalid ||= (request.xhr? != options[:xhr]) unless options[:xhr].nil?
+      
       if prereqs_invalid
         flash.update(options[:add_flash]) if options[:add_flash]
         unless performed?
