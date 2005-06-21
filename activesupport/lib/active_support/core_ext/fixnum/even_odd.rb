@@ -7,8 +7,12 @@ module ActiveSupport #:nodoc:
       # * 2.even? # => true
       # * 2.odd? # => false
       module EvenOdd
+        def multiple_of?(number)
+          self % number == 0
+        end
+        
         def even?
-          self % 2 == 0
+          multiple_of? 2
         end
         
         def odd?
