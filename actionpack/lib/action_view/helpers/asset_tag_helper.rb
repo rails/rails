@@ -14,11 +14,16 @@ module ActionView
       #     <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.curenthost.com/controller/action" />
       #   auto_discovery_link_tag(:atom) # =>
       #     <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.curenthost.com/controller/action" />
-      #   auto_discovery_link_tag(:rss, :action => "feed") # =>
-      #     <link rel="alternate" type="application/atom+xml" title="ATOM" href="http://www.curenthost.com/controller/feed" />
-      def auto_discovery_link_tag(type = :rss, options = {})
+      #   auto_discovery_link_tag(:rss, {:action => "feed"}) # =>
+      #     <link rel="alternate" type="application/rss+xml" title="RSS" href="http://www.curenthost.com/controller/feed" />
+      #   auto_discovery_link_tag(:rss, {:action => "feed"}, {:title => "My RSS"}) # =>
+      #     <link rel="alternate" type="application/rss+xml" title="My RSS" href="http://www.curenthost.com/controller/feed" />
+      def auto_discovery_link_tag(type = :rss, options = {}, tag_options = {})
         tag(
-          "link", "rel" => "alternate", "type" => "application/#{type}+xml", "title" => type.to_s.upcase,
+          "link", 
+          "rel" => tag_options[:rel] || "alternate",
+          "type" => tag_options[:type] || "application/#{type}+xml",
+          "title" => tag_options[:title] || type.to_s.upcase,
           "href" => url_for(options.merge(:only_path => false))
         )
       end

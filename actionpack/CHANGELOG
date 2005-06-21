@@ -1,5 +1,7 @@
 *SVN*
 
+* Added tag_options as a third parameter to AssetHelper#auto_discovery_link_tag to control options like the title of the link #1430 [kevin.clark@gmail.com]
+
 * Added option to pass in parameters to CaptureHelper#capture, so you can create more advanced view helper methods #1466 [duane.johnson@gmail.com]. Example:
 
     <% show_calendar(:year => 2005, :month => 6) do |day, options| %>
