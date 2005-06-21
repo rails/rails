@@ -224,7 +224,7 @@ module ActiveRecord
       # * <tt>Firm#clients.size</tt> (similar to <tt>Client.count "firm_id = #{id}"</tt>)
       # * <tt>Firm#clients.find</tt> (similar to <tt>Client.find(id, :conditions => "firm_id = #{id}")</tt>)
       # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
-      # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("client_id" => id); c.save; c</tt>)
+      # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save; c</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
       # 
       # Options are:
@@ -376,8 +376,8 @@ module ActiveRecord
       # * <tt>Post#author=(author)</tt> (similar to <tt>post.author_id = author.id</tt>)
       # * <tt>Post#author?</tt> (similar to <tt>post.author == some_author</tt>)
       # * <tt>Post#author.nil?</tt>
-      # * <tt>Post#build_author</tt> (similar to <tt>Author.new("post_id" => id)</tt>)
-      # * <tt>Post#create_author</tt> (similar to <tt>b = Author.new("post_id" => id); b.save; b</tt>)
+      # * <tt>Post#build_author</tt> (similar to <tt>post.author = Author.new</tt>)
+      # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
       # The declaration can also include an options hash to specialize the behavior of the association.
       # 
       # Options are:
@@ -452,7 +452,6 @@ module ActiveRecord
       # that you want available on retrieval. Note that any fields in the join table will override matching field names
       # in the two joined tables. As a consequence, having an "id" field in the join table usually has the undesirable
       # result of clobbering the "id" fields in either of the other two tables.
-      # 
       #
       # Adds the following methods for retrieval and query.
       # +collection+ is replaced with the symbol passed as the first argument, so 
