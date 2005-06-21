@@ -48,11 +48,11 @@ module ActionView
       #   <% @greeting = capture do %>
       #     Welcome To my shiny new web page!
       #   <% end %>      
-      def capture(&block)
+      def capture(*args, &block)
         # execute the block
         buffer = eval("_erbout", block.binding)
         pos = buffer.length
-        block.call
+        block.call(*args)
         
         # extract the block 
         data = buffer[pos..-1]
@@ -77,7 +77,10 @@ module ActionView
       #     alert('hello world')
       #   <% end %>
       #
-      # You can use @content_for_header anywhere in your templates
+      # You can use @content_for_header anywhere in your templates.
+      #
+      # NOTE: Beware that content_for is ignored in caches. So you shouldn't use it
+      # for elements that are going to be fragment cached. 
       def content_for(name, &block)                      
         base = controller.instance_variable_get(instance_var_name(name)) || ""
         data = capture(&block)
@@ -85,8 +88,7 @@ module ActionView
         data
       end
       
-      private
-      
+      private      
         def instance_var_name(name) #:nodoc#
           "@content_for_#{name}"
         end
