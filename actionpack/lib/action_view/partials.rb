@@ -5,17 +5,17 @@ module ActionView
   #
   # In a template for Advertiser#account:
   #
-  #  <%= render_partial "account" %>
+  #  <%= render :partial => "account" %>
   #
   # This would render "advertiser/_account.rhtml" and pass the instance variable @account in as a local variable +account+ to 
   # the template for display.
   #
   # In another template for Advertiser#buy, we could have:
   #
-  #   <%= render_partial "account", :account => @buyer %>
+  #   <%= render :partial => "account", :locals => { :account => @buyer } %>
   #
   #   <% for ad in @advertisements %>
-  #     <%= render_partial "ad", :ad => ad %>
+  #     <%= render :partial => "ad", :locals => { :ad => ad } %>
   #   <% end %>
   #
   # This would first render "advertiser/_account.rhtml" with @buyer passed in as the local variable +account+, then render 
@@ -28,7 +28,7 @@ module ActionView
   # a partial by the same name as the elements contained within. So the three-lined example in "Using partials" can be rewritten
   # with a single line:
   #
-  #   <%= render_partial_collection "ad", @advertisements %>
+  #   <%= render :partial => "ad", :collection => @advertisements %>
   #
   # This will render "advertiser/_ad.rhtml" and pass the local variable +ad+ to the template for display. An iteration counter
   # will automatically be made available to the template with a name of the form +partial_name_counter+. In the case of the 
@@ -38,11 +38,12 @@ module ActionView
   #
   # Two controllers can share a set of partials and render them like this:
   #
-  #   <%= render_partial "advertisement/ad", :ad => @advertisement %>
+  #   <%= render :partial => "advertisement/ad", :locals => { :ad => @advertisement } %>
   #
   # This will render the partial "advertisement/_ad.rhtml" regardless of which controller this is being called from.
   module Partials
-    def render_partial(partial_path, local_assigns = {}, deprecated_local_assigns = {})
+    # Deprecated, use render :partial
+    def render_partial(partial_path, local_assigns = {}, deprecated_local_assigns = {}) #:nodoc:
       path, partial_name = partial_pieces(partial_path)
       object = extracting_object(partial_name, local_assigns, deprecated_local_assigns)
       local_assigns = extract_local_assigns(local_assigns, deprecated_local_assigns)
@@ -51,7 +52,8 @@ module ActionView
       render("#{path}/_#{partial_name}", { partial_name => object }.merge(local_assigns))
     end
 
-    def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {})
+    # Deprecated, use render :partial, :collection
+    def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {}) #:nodoc:
       collection_of_partials = Array.new
       counter_name = partial_counter_name(partial_name)
       collection.each_with_index do |element, counter|
