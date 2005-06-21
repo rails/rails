@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that mailer generator generated fixtures/plural while units expected fixtures/singular #1457 [Scott Barron]
+
 * Added a 'whiny nil' that's aim to ensure that when users pass nil to methods where that isn't appropriate, instead of NoMethodError? and the name of some method used by the framework users will see a message explaining what type of object was expected. Only active in test and development environments by default #1209 [Michael Koziarski]
 
 * Fixed the test_helper.rb to be safe for requiring controllers from multiple spots, like app/controllers/article_controller.rb and app/controllers/admin/article_controller.rb, without reloading the environment twice #1390 [Nicholas Seckar]

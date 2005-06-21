@@ -8,7 +8,7 @@ class MailerGenerator < Rails::Generator::NamedBase
       m.directory File.join('app/models', class_path)
       m.directory File.join('app/views', class_path, file_name)
       m.directory File.join('test/unit', class_path)
-      m.directory File.join('test/fixtures', class_path, table_name)
+      m.directory File.join('test/fixtures', class_path, file_name)
 
       # Mailer class and unit test.
       m.template "mailer.rb",    File.join('app/models',
@@ -24,7 +24,7 @@ class MailerGenerator < Rails::Generator::NamedBase
                    File.join('app/views', class_path, file_name, "#{action}.rhtml"),
                    :assigns => { :action => action }
         m.template "fixture.rhtml",
-                   File.join('test/fixtures', class_path, table_name, action),
+                   File.join('test/fixtures', class_path, file_name, action),
                    :assigns => { :action => action }
       end
     end
