@@ -76,7 +76,7 @@ module ActionView
       end
 
       def submit_tag(value = "Save changes", options = {})
-        tag("input", { "type" => "submit", "name" => "submit", "value" => value }.update(convert_options(options)))
+        tag("input", { "type" => "submit", "name" => "commit", "value" => value }.update(convert_options(options)))
       end
       
       def image_submit_tag(source, options = {})
