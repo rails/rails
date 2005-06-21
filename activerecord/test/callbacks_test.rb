@@ -304,18 +304,4 @@ class CallbacksTest < Test::Unit::TestCase
       [ :before_validation, :returning_false  ]
     ], david.history
   end
-
-  def test_save_not_called_recursively
-    david = RecursiveCallbackDeveloper.find(1)
-    david.save
-    assert_equal 1, david.on_before_save_called
-    assert_equal 1, david.on_after_save_called
-  end
-
-  def test_save_bang_not_called_recursively
-    david = RecursiveCallbackDeveloper.find(1)
-    david.save!
-    assert_equal 1, david.on_before_save_called
-    assert_equal 1, david.on_after_save_called
-  end
 end

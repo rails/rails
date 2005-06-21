@@ -46,7 +46,6 @@ require 'active_record/acts/tree'
 require 'active_record/acts/nested_set'
 require 'active_record/locking'
 require 'active_record/migration'
-require 'active_record/recursion'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
@@ -60,7 +59,6 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Acts::Tree
   include ActiveRecord::Acts::List
   include ActiveRecord::Acts::NestedSet
-  include ActiveRecord::Recursion # must go last!
 end
 
 require 'active_record/connection_adapters/mysql_adapter'

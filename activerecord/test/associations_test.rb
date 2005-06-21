@@ -774,6 +774,32 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
 end
 
 
+class ProjectWithAfterCreateHook < ActiveRecord::Base
+  set_table_name 'projects'
+  has_and_belongs_to_many :developers,
+    :class_name => "DeveloperForProjectWithAfterCreateHook",
+    :join_table => "developers_projects",
+    :foreign_key => "project_id",
+    :association_foreign_key => "developer_id"
+
+  after_create :add_david
+
+  def add_david
+    david = DeveloperForProjectWithAfterCreateHook.find_by_name('David')
+    david.projects << self
+  end
+end
+
+class DeveloperForProjectWithAfterCreateHook < ActiveRecord::Base
+  set_table_name 'developers'
+  has_and_belongs_to_many :projects,
+    :class_name => "ProjectWithAfterCreateHook",
+    :join_table => "developers_projects",
+    :association_foreign_key => "project_id",
+    :foreign_key => "developer_id"
+end
+
+
 class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects
   
@@ -1016,6 +1042,18 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     active_record = projects(:active_record)
     active_record.developers.reload
     assert_equal developers(:david), active_record.developers.find(developers(:david).id), "Ruby find"
+  end
+
+  def test_new_with_values_in_collection
+    jamis = DeveloperForProjectWithAfterCreateHook.find_by_name('Jamis')
+    david = DeveloperForProjectWithAfterCreateHook.find_by_name('David')
+    project = ProjectWithAfterCreateHook.new(:name => "Cooking with Bertie")
+    project.developers << jamis
+    project.save!
+    project.reload
+
+    assert project.developers.include?(jamis)
+    assert project.developers.include?(david)
   end
 
   def xtest_find_in_association_with_options
