@@ -18,6 +18,10 @@ class NilClass
       @@method_class_map[method.to_sym] = klass
     end
   end
+  
+  def id
+    raise "Called id for nil, which would mistakenly be 4 -- if you really wanted the id of nil, use object_id"
+  end
 
   private
     def method_missing(method, *args, &block)
