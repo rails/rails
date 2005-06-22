@@ -23,7 +23,7 @@ class RailsFCGIHandler
   end
 
   def send_signal(which)
-    @signal_handlers[which].call
+    @signal_handlers[which].call(which)
   end
 end
 

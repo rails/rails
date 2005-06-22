@@ -71,7 +71,7 @@ class RailsFCGIHandler
       dispatcher_log(:error, error_message)
     end
 
-    def trap_handler
+    def trap_handler(signal)
       if i_am_currently_processing_a_request
         dispatcher_log(:info, "asking #{$$} to terminate ASAP")
         @please_exit_at_your_earliest_convenience = true
