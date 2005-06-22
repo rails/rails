@@ -14,7 +14,7 @@
 
 * Added graceful exit from pressing CTRL-C during the run of the rails command #1150 [Caleb Tennis]
 
-* Allow graceful exits for dispatch.fcgi processes by sending a SIGUSR1. If the process is currently handling a request, the request will be allowed to complete and then will terminate itself. If a request is not being handled, the process is terminated immediately (via #exit). This basically works like restart graceful on Apache. [Jamis Buck]
+* Allow graceful exits for dispatch.fcgi processes by sending a SIGUSR1 or SIGHUP. If the process is currently handling a request, the request will be allowed to complete and then will terminate itself. If a request is not being handled, the process is terminated immediately (via #exit). This basically works like restart graceful on Apache. [Jamis Buck]
 
 * Made dispatch.fcgi more robust by catching fluke errors and retrying unless its a permanent condition. [Jamis Buck]
 
