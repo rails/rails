@@ -479,7 +479,9 @@ EOF
     mail = TestMailer.create_implicitly_multipart_example(@recipient)
     assert_equal 2, mail.parts.length
     assert_equal "text/html", mail.parts[0].content_type
+    assert_equal "utf-8", mail.parts[0].sub_header("content-type", "charset")
     assert_equal "text/plain", mail.parts[1].content_type
+    assert_equal "utf-8", mail.parts[1].sub_header("content-type", "charset")
   end
 
   def test_html_mail

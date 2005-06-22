@@ -178,7 +178,7 @@ module ActionMailer #:nodoc:
             type = (File.basename(path).split(".")[1..-2] || []).join("/")
             next if type.empty?
             @parts << Part.new(:content_type => type,
-              :disposition => "inline", :charset => "charset",
+              :disposition => "inline", :charset => charset,
               :body => render_message(File.basename(path).split(".")[0..-2].join('.'), @body))
           end
         end
