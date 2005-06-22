@@ -13,16 +13,28 @@ class CGI
     @stdin || $stdin
   end
   
-  def stdinput=(input)
-    @stdin = input
-  end
-
   def env_table
     @env_table || ENV
   end
+  
+  def initialize(type = "query", table = nil, stdin = nil)
+    @env_table, @stdin = table, stdin
 
-  def env_table=(table)
-    @env_table = table
+    if defined?(MOD_RUBY) && !ENV.key?("GATEWAY_INTERFACE")
+      Apache.request.setup_cgi_env
+    end
+
+    extend QueryExtension
+    @multipart = false
+    if defined?(CGI_PARAMS)
+      warn "do not use CGI_PARAMS and CGI_COOKIES"
+      @params = CGI_PARAMS.dup
+      @cookies = CGI_COOKIES.dup
+    else
+      initialize_query()  # set @params, @cookies
+    end
+    @output_cookies = nil
+    @output_hidden = nil
   end
 end
 
@@ -88,7 +100,11 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
 
   def handle_dispatch(req, res, origin = nil)    
     data = StringIO.new
-    Dispatcher.dispatch(create_cgi(req, origin), ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, data)
+    Dispatcher.dispatch(
+      CGI.new("query", create_env_table(req, origin), StringIO.new(req.body || "")), 
+      ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, 
+      data
+    )
 
     header, body = extract_header_and_body(data)
     assign_status(res, header)
@@ -103,13 +119,6 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   end
   
   private
-    def create_cgi(req, origin)
-      cgi = CGI.new
-      cgi.env_table = create_env_table(req, origin)
-      cgi.stdinput  = req.body || ""
-      return cgi
-    end
-
     def create_env_table(req, origin)
       env = req.meta_vars.clone
       env.delete "SCRIPT_NAME"
