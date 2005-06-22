@@ -521,5 +521,11 @@ EOF
     mail = TMail::Mail.parse(fixture)
     assert_nothing_raised { mail.body }
   end
+
+  def test_decode_message_with_unquoted_atchar_in_header
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email11")
+    mail = TMail::Mail.parse(fixture)
+    assert_not_nil mail.from
+  end
 end
 

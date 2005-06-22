@@ -36,8 +36,8 @@ module TMail
 
   module TextUtils
 
-    aspecial     = '()<>[]:;.@\\,"'
-    tspecial     = '()<>[];:@\\,"/?='
+    aspecial     = '()<>[]:;.\\,"'
+    tspecial     = '()<>[];:\\,"/?='
     lwsp         = " \t\r\n"
     control      = '\x00-\x1f\x7f-\xff'
 
