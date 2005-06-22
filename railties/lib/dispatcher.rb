@@ -25,13 +25,13 @@ require 'breakpoint'
 
 class Dispatcher
   class << self
-    def dispatch(cgi = CGI.new, session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS)
+    def dispatch(cgi = CGI.new, session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, output = $stdout)
       begin
         request, response = ActionController::CgiRequest.new(cgi, session_options), ActionController::CgiResponse.new(cgi)
         prepare_application
-        ActionController::Routing::Routes.recognize!(request).process(request, response).out
+        ActionController::Routing::Routes.recognize!(request).process(request, response).out(output)
       rescue Object => exception
-        ActionController::Base.process_with_exception(request, response, exception).out
+        ActionController::Base.process_with_exception(request, response, exception).out(output)
       ensure
         reset_application
       end

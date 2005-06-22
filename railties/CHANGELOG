@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed the mutex from the WEBrick adapter under the production environment so concurrent requests can be served
+
 * Fixed that mailer generator generated fixtures/plural while units expected fixtures/singular #1457 [Scott Barron]
 
 * Added a 'whiny nil' that's aim to ensure that when users pass nil to methods where that isn't appropriate, instead of NoMethodError? and the name of some method used by the framework users will see a message explaining what type of object was expected. Only active in test and development environments by default #1209 [Michael Koziarski]
