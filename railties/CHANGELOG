@@ -1,6 +1,6 @@
 *SVN*
 
-* Removed the mutex from the WEBrick adapter under the production environment so concurrent requests can be served
+* Made the WEBrick adapter not use a mutex around action performance if ActionController::Base.allow_concurrency is true (default is false)
 
 * Fixed that mailer generator generated fixtures/plural while units expected fixtures/singular #1457 [Scott Barron]
 

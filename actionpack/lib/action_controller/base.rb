@@ -228,6 +228,12 @@ module ActionController #:nodoc:
     @@debug_routes = true
     cattr_accessor :debug_routes
 
+    # Controls whether the application is thread-safe, so multi-threaded servers like WEBrick knows whether to apply a mutex
+    # around the performance of each action. Action Pack and Active Record are by default thread-safe, but many applications
+    # may not be. Turned off by default.
+    @@allow_concurrency = false
+    cattr_accessor :allow_concurrency
+
     # Template root determines the base from which template references will be made. So a call to render("test/template")
     # will be converted to "#{template_root}/test/template.rhtml".
     class_inheritable_accessor :template_root

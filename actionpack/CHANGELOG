@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActionController::Base.allow_concurrency to control whether the application is thread-safe, so multi-threaded servers like WEBrick knows whether to apply a mutex around the performance of each action. Action Pack and Active Record are by default thread-safe, but many applications may not be. Turned off by default.
+
 * Added TextHelper#word_wrap(text, line_length = 80) #1449 [tuxie@dekadance.se]
 
 * Added a fall-through action for form_remote_tag that'll be used in case Javascript is unavailable #1459 [Scott Barron]. Example:
