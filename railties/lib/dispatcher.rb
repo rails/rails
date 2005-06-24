@@ -49,6 +49,7 @@ class Dispatcher
           Controllers.clear!
           Dependencies.clear
           Dependencies.remove_subclasses_for(ActiveRecord::Base, ActiveRecord::Observer, ActionController::Base)
+          Dependencies.remove_subclasses_for(ActionMailer::Base) if defined?(ActionMailer::Base)
         end
 
         Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)

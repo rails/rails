@@ -1,5 +1,7 @@
 *SVN*
 
+* ActionMailer::Base subclasses are reloaded with the other rails components #1262
+
 * Made the WEBrick adapter not use a mutex around action performance if ActionController::Base.allow_concurrency is true (default is false)
 
 * Fixed that mailer generator generated fixtures/plural while units expected fixtures/singular #1457 [Scott Barron]
