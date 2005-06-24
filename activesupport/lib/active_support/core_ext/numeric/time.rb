@@ -32,9 +32,9 @@ module ActiveSupport #:nodoc:
           self * 30.days
         end
         alias :month :months
-        
+
         def years
-          self * 365.days
+          (self * 365.25.days).to_i
         end
         alias :year :years
 

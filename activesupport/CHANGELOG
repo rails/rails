@@ -1,5 +1,7 @@
 *SVN*
 
+* Made 1.year == 365.25.days to account for leap years.  This allows you to do User.find(:all, :conditions => ['birthday > ?', 50.years.ago]) without losing a lot of days.  #1488 [tuxie@dekadance.se]
+
 * Added an exception if calling id on nil to WhinyNil #584 [kevin-temp@writesoon.com]
 
 * Added Fix/Bignum#multiple_of? which returns true on 14.multiple_of?(7) and false on 16.multiple_of?(7) #1464 [Thomas Fuchs]

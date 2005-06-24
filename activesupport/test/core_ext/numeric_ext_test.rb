@@ -9,7 +9,7 @@ class NumericExtTimeTest < Test::Unit::TestCase
       10.minutes => 600,
       1.hour + 15.minutes => 4500,
       2.days + 4.hours + 30.minutes => 189000,
-      5.years + 1.month + 1.fortnight => 161481600
+      5.years + 1.month + 1.fortnight => 161589600
     }
   end
 
