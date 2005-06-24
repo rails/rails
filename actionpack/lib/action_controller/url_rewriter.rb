@@ -12,7 +12,7 @@ module ActionController
     end
 
     def to_str
-  		"#{@request.protocol}, #{@request.host_with_port}, #{@request.path}, #{@parameters[:controller]}, #{@parameters[:action]}, #{@request.parameters.inspect}"
+      "#{@request.protocol}, #{@request.host_with_port}, #{@request.path}, #{@parameters[:controller]}, #{@parameters[:action]}, #{@request.parameters.inspect}"
     end
 
     alias_method :to_s, :to_str
@@ -28,7 +28,7 @@ module ActionController
         rewritten_url << '/' if options[:trailing_slash]
         rewritten_url << "##{options[:anchor]}" if options[:anchor]
 
-        return rewritten_url
+        rewritten_url
       end
 
       def rewrite_path(options)
@@ -38,17 +38,16 @@ module ActionController
         path, extras = Routing::Routes.generate(options, @request)
 
         if extras[:overwrite_params]
-          params_copy = @request.parameters.reject { |k,v| ["controller","action"].include? k }
+          params_copy = @request.parameters.reject { |k,v| %w(controller action).include? k }
           params_copy.update extras[:overwrite_params]
           extras.delete(:overwrite_params)
           extras.update(params_copy)
         end
 
-        path = "/#{path.join('/')}".chomp '/'
-        path = '/' if path.empty?
-        path += build_query_string(extras)
+        path  = "/#{path}"
+        path <<  build_query_string(extras) unless extras.empty?
         
-        return path
+        path
       end
 
       # Returns a query string with escaped keys and values from the passed hash. If the passed hash contains an "id" it'll
@@ -58,15 +57,14 @@ module ActionController
         query_string = ""
         
         hash.each do |key, value|
-          key = key.to_s
-          key = CGI.escape key
-          key += '[]' if value.class == Array
+          key = CGI.escape key.to_s
+          key <<  '[]' if value.class == Array
           value = [ value ] unless value.class == Array
           value.each { |val| elements << "#{key}=#{Routing.extract_parameter_value(val)}" }
         end
         
         query_string << ("?" + elements.join("&")) unless elements.empty?
-        return query_string
+        query_string
       end
   end
 end

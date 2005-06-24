@@ -14,7 +14,7 @@ module Dependencies
   end
   
   def depend_on(file_name, swallow_load_errors = false)
-    if !loaded.include?(file_name)
+    unless loaded.include?(file_name)
       loaded << file_name
 
       begin
@@ -34,7 +34,7 @@ module Dependencies
   end
   
   def require_or_load(file_name)
-    file_name = "#{file_name}.rb" unless ! load? || /\.rb$/ =~ file_name
+    file_name = "#{file_name}.rb" unless ! load? || file_name[-3..-1] == '.rb'
     load? ? load(file_name) : require(file_name)
   end
   
@@ -52,8 +52,10 @@ module Dependencies
     attr_reader :path
     attr_reader :root
     
-    def self.root(*load_paths)
-      RootLoadingModule.new(*load_paths)
+    class << self
+      def root(*load_paths)
+        RootLoadingModule.new(*load_paths)
+      end
     end
     
     def initialize(root, path=[])
@@ -61,7 +63,7 @@ module Dependencies
       @root = root
     end
     
-    def root?() self.root == self end
+    def root?()      self.root == self    end
     def load_paths() self.root.load_paths end
     
     # Load missing constants if possible.
@@ -71,13 +73,15 @@ module Dependencies
   
     # Load the controller class or a parent module.
     def const_load!(name, file_name = nil)
+      file_name ||= 'application' if root? && name.to_s == 'ApplicationController'
       path = self.path + [file_name || name]
 
       load_paths.each do |load_path|
         fs_path = load_path.filesystem_path(path)
         next unless fs_path
 
-        if File.directory?(fs_path)
+        case 
+        when File.directory?(fs_path)
           new_module = LoadingModule.new(self.root, self.path + [name])
           self.const_set name, new_module
           if self.root?
@@ -88,7 +92,7 @@ module Dependencies
             Object.const_set(name, new_module)
           end
           break
-        elsif File.file?(fs_path)
+        when File.file?(fs_path)
           self.root.load_file!(fs_path)
           
           # Import the loaded constant from Object provided we are the root node.
@@ -97,7 +101,7 @@ module Dependencies
         end
       end
       
-      return self.const_defined?(name)
+      self.const_defined?(name)
     end
     
     # Is this name present or loadable?
@@ -141,7 +145,7 @@ module Dependencies
     # if the path leads to a module, or the path to a file if it leads to an object.
     def filesystem_path(path, allow_module=true)
       fs_path = [@root]
-      fs_path += path[0..-2].collect {|name| const_name_to_module_name name}
+      fs_path += path[0..-2].map {|name| const_name_to_module_name name}
 
       if allow_module
         result = File.join(fs_path, const_name_to_module_name(path.last))
@@ -150,7 +154,7 @@ module Dependencies
 
       result = File.join(fs_path, const_name_to_file_name(path.last))
 
-      return File.file?(result) ? result : nil
+      File.file?(result) ? result : nil
     end
     
     def const_name_to_file_name(name)
@@ -164,8 +168,8 @@ module Dependencies
 end
 
 Object.send(:define_method, :require_or_load)     { |file_name| Dependencies.require_or_load(file_name) } unless Object.respond_to?(:require_or_load)
-Object.send(:define_method, :require_dependency)  { |file_name| Dependencies.depend_on(file_name) } unless Object.respond_to?(:require_dependency)
-Object.send(:define_method, :require_association) { |file_name| Dependencies.associate_with(file_name) } unless Object.respond_to?(:require_association)
+Object.send(:define_method, :require_dependency)  { |file_name| Dependencies.depend_on(file_name) }       unless Object.respond_to?(:require_dependency)
+Object.send(:define_method, :require_association) { |file_name| Dependencies.associate_with(file_name) }  unless Object.respond_to?(:require_association)
 
 class Module #:nodoc:
   # Use const_missing to autoload associations so we don't have to
@@ -186,19 +190,17 @@ end
 
 class Object #:nodoc:
   def load(file, *extras)
-    begin super(file, *extras)
-    rescue Object => exception
-      exception.blame_file! file
-      raise
-    end
+    super(file, *extras)
+  rescue Object => exception
+    exception.blame_file! file
+    raise
   end
 
   def require(file, *extras)
-    begin super(file, *extras)
-    rescue Object => exception
-      exception.blame_file! file
-      raise
-    end
+    super(file, *extras)
+  rescue Object => exception
+    exception.blame_file! file
+    raise
   end
 end
 

@@ -38,7 +38,6 @@ module ActionController
       method == :head
     end
 
-
     # Determine whether the body of a POST request is URL-encoded (default),
     # XML, or YAML by checking the Content-Type HTTP header:
     #
@@ -78,9 +77,9 @@ module ActionController
       post_format == :yaml && post?
     end
 
-    # Is the X-Requested-With HTTP header present and does it contain the
-    # string "XMLHttpRequest"?.  The Prototype Javascript library sends this
-    # header with every Ajax request.
+    # Returns true if the request's "X-Requested-With" header contains
+    # "XMLHttpRequest". (The Prototype Javascript library sends this header with
+    # every Ajax request.)
     def xml_http_request?
       not /XMLHttpRequest/i.match(env['HTTP_X_REQUESTED_WITH']).nil?
     end
@@ -186,7 +185,11 @@ module ActionController
   
     def path_parameters=(parameters)
       @path_parameters = parameters
-      @parameters = nil
+      @symbolized_path_parameters = @parameters = nil
+    end
+    
+    def symbolized_path_parameters
+      @symbolized_path_parameters ||= path_parameters.symbolize_keys
     end
 
     def path_parameters

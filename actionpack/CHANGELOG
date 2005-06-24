@@ -1,8 +1,12 @@
 *SVN*
 
-* Improved AbstractRequest documentation.  #1483 [court3nay@gmail.com]
+* Improved performance of Routes generation by a factor of 5 #1434 [Nicholas Seckar] 
 
-* Added ActionController::Base.allow_concurrency to control whether the application is thread-safe, so multi-threaded servers like WEBrick knows whether to apply a mutex around the performance of each action. Action Pack and Active Record are by default thread-safe, but many applications may not be. Turned off by default.
+* Added named routes (NEEDS BETTER DESCRIPTION) #1434 [Nicholas Seckar]
+
+* Improved AbstractRequest documentation #1483 [court3nay@gmail.com]
+
+* Added ActionController::Base.allow_concurrency to control whether the application is thread-safe, so multi-threaded servers like WEBrick knows whether to apply a mutex around the performance of each action. Turned off by default. EXPERIMENTAL FEATURE.
 
 * Added TextHelper#word_wrap(text, line_length = 80) #1449 [tuxie@dekadance.se]
 

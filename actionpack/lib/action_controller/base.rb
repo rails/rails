@@ -1,6 +1,7 @@
 require 'action_controller/request'
 require 'action_controller/response'
 require 'action_controller/routing'
+require 'action_controller/code_generation'
 require 'action_controller/url_rewriter'
 require 'drb'
 
@@ -11,7 +12,7 @@ module ActionController #:nodoc:
   end
   class MissingTemplate < ActionControllerError #:nodoc:
   end
-  class RoutingError < ActionControllerError#:nodoc:
+  class RoutingError < ActionControllerError #:nodoc:
     attr_reader :failures
     def initialize(message, failures=[])
       super(message)

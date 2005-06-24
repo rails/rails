@@ -1,342 +1,578 @@
 module ActionController
-  # See http://manuals.rubyonrails.com/read/chapter/65
   module Routing
-    class Route #:nodoc:
-      attr_reader :defaults # The defaults hash
-      
-      def initialize(path, hash={})
-        raise ArgumentError, "Second argument must be a hash!" unless hash.kind_of?(Hash)
-        @defaults = hash[:defaults].kind_of?(Hash) ? hash.delete(:defaults) : {}
-        @requirements = hash[:requirements].kind_of?(Hash) ? hash.delete(:requirements) : {}
-        self.items = path
+    class << self
+
+      def expiry_hash(options, recall)
+        k = v = nil
+        expire_on = {}
+        options.each {|k, v| expire_on[k] = ((rcv = recall[k]) && (rcv != v))}
+        expire_on
+      end
+
+      def extract_parameter_value(parameter) #:nodoc:
+        CGI.escape((parameter.respond_to?(:to_param) ? parameter.to_param : parameter).to_s) 
+      end
+      def controller_relative_to(controller, previous)
+        if controller.nil?           then previous
+        elsif controller[0] == ?/    then controller[1..-1]
+        elsif %r{^(.*)/} =~ previous then "#{$1}/#{controller}"
+        else controller
+        end
+      end
+
+      def treat_hash(hash)
+        k = v = nil
         hash.each do |k, v|
-          raise TypeError, "Hash keys must be symbols!" unless k.kind_of? Symbol
-          if v.kind_of? Regexp
-            raise ArgumentError, "Regexp requirement on #{k}, but #{k} is not in this route's path!" unless @items.include? k
-            @requirements[k] = v
+          hash[k] = (v.respond_to? :to_param) ? v.to_param.to_s : v.to_s 
+        end
+        hash
+      end
+    end
+
+    class RoutingError < StandardError
+    end
+
+    class << self
+      def test_condition(expression, condition)
+        case condition
+          when String then "(#{expression} == #{condition.inspect})"
+          when Regexp then
+            condition = Regexp.new("^#{condition.source}$") unless /^\^.*\$$/ =~ condition.source 
+            "(#{condition.inspect} =~ #{expression})"
+          when true then expression
+          when nil then "! #{expression}"
           else
-            (@items.include?(k) ? @defaults : @requirements)[k] = (v.nil? ? nil : v.to_s)
-          end
-        end
-        
-        @defaults.each do |k, v|
-          raise ArgumentError, "A default has been specified for #{k}, but #{k} is not in the path!" unless @items.include? k
-          @defaults[k] = v.to_s unless v.kind_of?(String) || v.nil?
-        end
-        @requirements.each {|k, v| raise ArgumentError, "A Regexp requirement has been specified for #{k}, but #{k} is not in the path!" if v.kind_of?(Regexp) && ! @items.include?(k)}
-        
-        # Add in defaults for :action and :id.
-        [[:action, 'index'], [:id, nil]].each do |name, default|
-          @defaults[name] = default if @items.include?(name) && ! (@requirements.key?(name) || @defaults.key?(name))
+            raise ArgumentError, "Valid criteria are strings, regular expressions, true, or nil"
         end
       end
-      
-      # Generate a URL given the provided options.
-      # All values in options should be symbols.
-      # Returns the path and the unused names in a 2 element array.
-      # If generation fails, [nil, nil] is returned
-      # Generation can fail because of a missing value, or because an equality check fails.
-      #
-      # Generate urls will be as short as possible. If the last component of a url is equal to the default value,
-      # then that component is removed. This is applied as many times as possible. So, your index controller's
-      # index action will generate []
-      def generate(options, defaults={})
-        non_matching = @requirements.keys.select {|name| ! passes_requirements?(name, options[name] || defaults[name])}
-        non_matching.collect! {|name| requirements_for(name)}
-        return nil, "Mismatching option#{'s' if non_matching.length > 1}:\n   #{non_matching.join '\n   '}" unless non_matching.empty?
-        
-        used_names = @requirements.inject({}) {|hash, (k, v)| hash[k] = true; hash} # Mark requirements as used so they don't get put in the query params
-        components = @items.collect do |item|
+    end
 
-          if item.kind_of? Symbol
-            collection = false
+    class Component #:nodoc
+      def dynamic?()  false end
+      def optional?() false end
 
-            if /^\*/ =~ item.to_s
-              collection = true
-              item = item.to_s.sub(/^\*/,"").intern
-            end
+      def key() nil end
+  
+      def self.new(string, *args)
+        return super(string, *args) unless self == Component
+        case string
+          when ':controller' then ControllerComponent.new(:controller, *args)
+          when /^:(\w+)$/    then DynamicComponent.new($1, *args)
+          when /^\*(\w+)$/   then PathComponent.new($1, *args)
+          else StaticComponent.new(string, *args)
+        end
+      end 
+    end
 
-            used_names[item] = true
-            value = options[item] || defaults[item] || @defaults[item]
-            return nil, requirements_for(item) unless passes_requirements?(item, value)
+    class StaticComponent < Component #:nodoc
+      attr_reader :value
+  
+      def initialize(value)
+        @value = value
+      end
 
-            defaults = {} unless defaults == {} || value == defaults[item] # Stop using defaults if this component isn't the same as the default.
+      def write_recognition(g)
+        g.if_next_matches(value) do |gp|
+          gp.move_forward {|gpp| gpp.continue}
+        end
+      end
 
-      	    if value.nil? || item == :controller
-              value
-            elsif collection
-              if value.kind_of?(Array)
-                value = value.collect {|v| Routing.extract_parameter_value(v)}.join('/')
-              else
-                value = Routing.extract_parameter_value(value).gsub(/%2F/, "/")
-              end
-              value
-            else
-              Routing.extract_parameter_value(value)
-            end
-          else
-            item
+      def write_generation(g)
+        g.add_segment(value) {|gp| gp.continue }
+      end
+    end
+
+    class DynamicComponent < Component #:nodoc
+      attr_reader :key, :default
+      attr_accessor :condition
+  
+      def dynamic?()  true      end
+      def optional?() @optional end
+
+      def default=(default)
+        @optional = true
+        @default = default
+      end
+    
+      def initialize(key, options = {})
+        @key = key.to_sym
+        @default, @condition = options[:default], options[:condition]
+        @optional = options.key?(:default)
+      end
+
+      def default_check(g)
+        presence = "#{g.hash_value(key, !! default)}"
+        if default
+           "!(#{presence} && #{g.hash_value(key, false)} != #{default.inspect})"
+        else
+          "! #{presence}"
+        end
+      end
+  
+      def write_generation(g)
+        wrote_dropout = write_dropout_generation(g)
+        write_continue_generation(g, wrote_dropout)
+      end
+
+      def write_dropout_generation(g)
+        return false unless optional? && g.after.all? {|c| c.optional?}
+    
+        check = [default_check(g)]
+        gp = g.dup # Use another generator to write the conditions after the first &&
+        # We do this to ensure that the generator will not assume x_value is set. It will
+        # not be set if it follows a false condition -- for example, false && (x = 2)
+    
+        gp.after.map {|c| c.default_check gp}
+        gp.if(check.join(' && ')) { gp.finish } # If this condition is met, we stop here
+        true 
+      end
+
+      def write_continue_generation(g, use_else)
+        test  = Routing.test_condition(g.hash_value(key, true, default), condition || true)
+        check = (use_else && condition.nil? && default) ? [:else] : [use_else ? :elsif : :if, test]
+    
+        g.send(*check) do |gp|
+          gp.expire_for_keys(key) unless gp.after.empty?
+          add_segments_to(gp) {|gpp| gpp.continue}
+        end
+      end
+
+      def add_segments_to(g)
+        g.add_segment(%(\#{CGI.escape(#{g.hash_value(key, true, default)})})) {|gp| yield gp}
+      end
+  
+      def recognition_check(g)
+        test_type = [true, nil].include?(condition) ? :presence : :constraint
+    
+        prefix = condition.is_a?(Regexp) ? "#{g.next_segment(true)} && " : ''
+        check = prefix + Routing.test_condition(g.next_segment(true), condition || true)
+    
+        g.if(check) {|gp| yield gp, test_type}
+      end
+  
+      def write_recognition(g)
+        test_type = nil
+        recognition_check(g) do |gp, test_type|
+          assign_result(gp) {|gpp| gpp.continue}
+        end
+    
+        if optional? && g.after.all? {|c| c.optional?}
+          call = (test_type == :presence) ? [:else] : [:elsif, "! #{g.next_segment(true)}"]
+       
+          g.send(*call) do |gp|
+            assign_default(gp)
+            gp.after.each {|c| c.assign_default(gp)}
+            gp.finish(false)
           end
         end
-        
-        @items.reverse_each do |item| # Remove default components from the end of the generated url.
-          break unless item.kind_of?(Symbol) && @defaults[item] == components.last
-          components.pop
-        end
-        
-        # If we have any nil components then we can't proceed.
-        # This might need to be changed. In some cases we may be able to return all componets after nil as extras.
-        missing = []; components.each_with_index {|c, i| missing << @items[i] if c.nil?}
-        return nil, "No values provided for component#{'s' if missing.length > 1} #{missing.join ', '} but values are required due to use of later components" unless missing.empty? # how wide is your screen?
-        
-        unused = (options.keys - used_names.keys).inject({}) do |unused, key|
-          unused[key] = options[key] if options[key] != @defaults[key]
-          unused
-        end
-        
-        components.collect! {|c| c.to_s}
-        return components, unused
       end
+
+      def assign_result(g, with_default = false)
+        g.result key, "CGI.unescape(#{g.next_segment(true, with_default ? default : nil)})"
+        g.move_forward {|gp| yield gp}
+      end
+
+      def assign_default(g)
+        g.constant_result key, default unless default.nil?
+      end
+    end
+
+    class ControllerComponent < DynamicComponent #:nodoc
+      def key() :controller end
+
+      def add_segments_to(g)
+        g.add_segment(%(\#{#{g.hash_value(key, true, default)}})) {|gp| yield gp}
+      end
+    
+      def recognition_check(g)
+        g << "controller_result = ::ActionController::Routing::ControllerComponent.traverse_to_controller(#{g.path_name}, #{g.index_name})" 
+        g.if('controller_result') do |gp|
+          gp << 'controller_value, segments_to_controller = controller_result'
+          gp.move_forward('segments_to_controller') {|gpp| yield gpp, :constraint}
+        end
+      end
+
+      def assign_result(g)
+        g.result key, 'controller_value'
+        yield g
+      end
+
+      def assign_default(g)
+        ControllerComponent.assign_controller(g, default)
+      end
+  
+      class << self
+        def assign_controller(g, controller)
+          expr = "::Controllers::#{controller.split('/').collect {|c| c.camelize}.join('::')}Controller"
+          g.result :controller, expr, true
+        end
+
+        def traverse_to_controller(segments, start_at = 0)
+          mod = ::Controllers
+          length = segments.length
+          index = start_at
+          mod_name = controller_name = segment = nil
       
-      # Recognize the provided path, returning a hash of recognized values, or [nil, reason] if the path isn't recognized.
-      # The path should be a list of component strings.
-      # Options is a hash of the ?k=v pairs
-      def recognize(components, options={})
-        options = options.clone
-        components = components.clone
-        controller_class = nil
+          while index < length
+            return nil unless /^[a-z][a-z\d_]*$/ =~ (segment = segments[index])
+            index += 1
         
-        @items.each do |item|
-          if item == :controller # Special case for controller
-            if components.empty? && @defaults[:controller]
-              controller_class, leftover = eat_path_to_controller(@defaults[:controller].split('/'))
-              raise RoutingError, "Default controller does not exist: #{@defaults[:controller]}" if controller_class.nil? || leftover.empty? == false
-            else
-              controller_class, remaining_components = eat_path_to_controller(components)
-              return nil, "No controller found at subpath #{components.join('/')}" if controller_class.nil?
-              components = remaining_components
-            end
-            options[:controller] = controller_class.controller_path
-            return nil, requirements_for(:controller) unless passes_requirements?(:controller, options[:controller])
-          elsif /^\*/ =~ item.to_s
-            if components.empty?
-              value = @defaults.has_key?(item) ? @defaults[item].clone : []
-            else
-              value = components.clone
-            end
-            value.collect! {|c| CGI.unescape c}
-            components = []
-            def value.to_s() self.join('/') end
-            options[item.to_s.sub(/^\*/,"").intern] = value
-          elsif item.kind_of? Symbol
-            value = components.shift || @defaults[item]
-            return nil, requirements_for(item) unless passes_requirements?(item, value)
-            options[item] = value.nil? ? value : CGI.unescape(value)
-          else
-            return nil, "No value available for component #{item.inspect}" if components.empty?
-            component = components.shift
-            return nil, "Value for component #{item.inspect} doesn't match #{component}" if component != item
+            mod_name = segment.camelize
+            controller_name = "#{mod_name}Controller"
+        
+            return eval("mod::#{controller_name}"), (index - start_at) if mod.const_available?(controller_name)
+            return nil unless mod.const_available?(mod_name)
+            mod = eval("mod::#{mod_name}")
           end
         end
-        
-        if controller_class.nil? && @requirements[:controller] # Load a default controller
-          controller_class, extras = eat_path_to_controller(@requirements[:controller].split('/'))
-          raise RoutingError, "Illegal controller path for route default: #{@requirements[:controller]}" unless controller_class && extras.empty?
-          options[:controller] = controller_class.controller_path
-        end
-        @requirements.each {|k,v| options[k] ||= v unless v.kind_of?(Regexp)}
-
-        return nil, "Route recognition didn't find a controller class!" unless controller_class
-        return nil, "Unused components were left: #{components.join '/'}" unless components.empty?
-        options.delete_if {|k, v| v.nil?} # Remove nil values.
-        return controller_class, options
       end
-      
+    end
+
+    class PathComponent < DynamicComponent #:nodoc 
+      def optional?() true end
+      def default()   ''   end
+      def condition() nil  end
+  
+      def write_generation(g)
+        raise RoutingError, 'Path components must occur last' unless g.after.empty?
+        g.if("#{g.hash_value(key, true)} && ! #{g.hash_value(key, true)}.empty?") do
+          g << "#{g.hash_value(key, true)} = #{g.hash_value(key, true)}.join('/') unless #{g.hash_value(key, true)}.is_a?(String)"
+          g.add_segment("\#{CGI.escape_skipping_slashes(#{g.hash_value(key, true)})}") {|gp| gp.finish }
+        end
+        g.else { g.finish }
+      end
+  
+      def write_recognition(g)
+        raise RoutingError, "Path components must occur last" unless g.after.empty?
+    
+        start = g.index_name
+        start = "(#{start})" unless /^\w+$/ =~ start
+    
+        value_expr = "#{g.path_name}[#{start}..-1] || []"
+        g.result key, "ActionController::Routing::PathComponent::Result.new(#{value_expr})"
+        g.finish(false)
+      end
+  
+      class Result < ::Array
+        def to_s() join '/' end
+      end
+    end
+
+    class Route
+      attr_accessor :components, :known
+      attr_reader :path, :options, :keys
+  
+      def initialize(path, options = {})
+        @path, @options = path, options
+    
+        initialize_components path
+        defaults, conditions = initialize_hashes options.dup
+        configure_components(defaults, conditions)
+        initialize_keys
+      end
+  
       def inspect
-        when_str = @requirements.empty? ? "" : " when #{@requirements.inspect}"
-        default_str = @defaults.empty? ? "" : " || #{@defaults.inspect}"
-        "<#{self.class.to_s} #{@items.collect{|c| c.kind_of?(String) ? c : c.inspect}.join('/').inspect}#{default_str}#{when_str}>"
+        "<#{self.class} #{path.inspect}, #{options.inspect[1..-1]}>"
       end
-      
+  
+      def write_generation(generator = CodeGeneration::GenerationGenerator.new)
+        generator.before, generator.current, generator.after = [], components.first, (components[1..-1] || [])
+
+        if known.empty? then generator.go
+        else generator.if(generator.check_conditions(known)) {|gp| gp.go }
+        end
+    
+        generator
+      end
+  
+      def write_recognition(generator = CodeGeneration::RecognitionGenerator.new)
+        g = generator.dup
+        g.share_locals_with generator
+        g.before, g.current, g.after = [], components.first, (components[1..-1] || [])
+    
+        known.each do |key, value|
+          if key == :controller then ControllerComponent.assign_controller(g, value)
+          else g.constant_result(key, value)
+          end
+        end
+    
+        g.go
+    
+        generator
+      end
+
+      def initialize_keys
+        @keys = (components.collect {|c| c.key} + known.keys).compact
+        @keys.freeze
+      end
+  
+      def extra_keys(options)
+        options.keys - @keys
+      end
+    
+      def matches_controller?(controller)
+        if known[:controller] then known[:controller] == controller
+        else
+          c = components.find {|c| c.key == :controller}
+          return false unless c
+          return c.condition.nil? || eval(Routing.test_condition('controller', c.condition))
+        end
+      end
+  
       protected
-        # Find the controller given a list of path components.
-        # Return the controller class and the unused path components.
-        def eat_path_to_controller(path)
-          path.inject([Controllers, 1]) do |(mod, length), name|
-            name = name.camelize
-            return nil, nil unless /^[A-Z][_a-zA-Z\d]*$/ =~ name
-            controller_name = name + "Controller"
-            return eval("mod::#{controller_name}"), path[length..-1] if mod.const_available? controller_name
-            return nil, nil unless mod.const_available? name
-            [mod.const_get(name), length + 1]
-          end
-          return nil, nil # Path ended, but no controller found.
+  
+        def initialize_components(path)
+          path = path.split('/') if path.is_a? String
+          self.components = path.collect {|str| Component.new str}
         end
+    
+        def initialize_hashes(options)
+          path_keys = components.collect {|c| c.key }.compact 
+          self.known = {}
+          defaults = options.delete(:defaults) || {}
+          conditions = options.delete(:require) || {}
+          conditions.update(options.delete(:requirements) || {})
       
-        def items=(path)
-          items = path.split('/').collect {|c| (/^(:|\*)(\w+)$/ =~ c) ? (($1 == ':' ) ? $2.intern : "*#{$2}".intern) : c} if path.kind_of?(String) # split and convert ':xyz' to symbols
-          items.shift if items.first == ""
-          items.pop if items.last == ""
-          @items = items
-          
-          # Verify uniqueness of each component.
-          @items.inject({}) do |seen, item|
-            if item.kind_of? Symbol
-              raise ArgumentError, "Illegal route path -- duplicate item #{item}\n   #{path.inspect}" if seen.key? item
-              seen[item] = true
+          options.each do |k, v|
+            if path_keys.include?(k) then (v.is_a?(Regexp) ? conditions : defaults)[k] = v
+            else known[k] = v
             end
-            seen
           end
+          [defaults, conditions]
         end
+    
+        def configure_components(defaults, conditions)
+          components.each do |component|
+            if defaults.key?(component.key) then component.default = defaults[component.key]
+            elsif component.key == :action  then component.default = 'index'
+            elsif component.key == :id      then component.default = nil
+            end
         
-        # Verify that the given value passes this route's requirements
-        def passes_requirements?(name, value)
-          return @defaults.key?(name) && @defaults[name].nil? if value.nil? # Make sure it's there if it should be
-          
-          case @requirements[name]
-            when nil then true
-            when Regexp then
-              value = value.to_s
-              match = @requirements[name].match(value)
-              match && match[0].length == value.length
-            else
-              @requirements[name] == value.to_s
-          end
-        end
-        def requirements_for(name)
-          name = name.to_s.sub(/^\*/,"").intern if (/^\*/ =~ name.inspect)
-          presence = (@defaults.key?(name) && @defaults[name].nil?)
-          requirement = case @requirements[name]
-            when nil then nil
-            when Regexp then "match #{@requirements[name].inspect}"
-            else "be equal to #{@requirements[name].inspect}"
-          end
-          if presence && requirement then "#{name} must be present and #{requirement}"
-          elsif presence || requirement then "#{name} must #{requirement || 'be present'}"
-          else "#{name} has no requirements"
+            component.condition = conditions[component.key] if conditions.key?(component.key)
           end
         end
     end
-    
-    class RouteSet#:nodoc:
+
+    class RouteSet
+      attr_reader :routes, :categories, :controller_to_selector
       def initialize
         @routes = []
+        @generation_methods = Hash.new(:generate_default_path)
       end
       
-      def add_route(route)
-        raise TypeError, "#{route.inspect} is not a Route instance!" unless route.kind_of?(Route)
-        @routes << route
-      end
-      def empty?
-        @routes.empty?
-      end
-      def each
-        @routes.each {|route| yield route}
-      end
-      
-      # Generate a path for the provided options
-      # Returns the path as an array of components and a hash of unused names
-      # Raises RoutingError if not route can handle the provided components.
-      #
-      # Note that we don't return the first generated path. We do this so that when a route
-      # generates a path from a subset of the available options we can keep looking for a 
-      # route which can generate a path that uses more options.
-      # Note that we *do* return immediately if 
-      def generate(options, request)
-        raise RoutingError, "There are no routes defined!" if @routes.empty?
-
-        options = options.symbolize_keys
-        defaults = request.path_parameters.symbolize_keys
-        if options.empty? then options = defaults.clone # Get back the current url if no options was passed
-        else expand_controller_path!(options, defaults) # Expand the supplied controller path.
+      def generate(options, request_or_recall_hash = {})
+        recall = request_or_recall_hash.is_a?(Hash) ? request_or_recall_hash : request_or_recall_hash.symbolized_path_parameters
+        
+        if ((rc_c = recall[:controller]) && rc_c.include?(?/)) || ((c = options[:controller]) && c.include?(?/))  
+          options[:controller] = Routing.controller_relative_to(c, rc_c)
         end
-        defaults.delete_if {|k, v| options.key?(k) && options[k].nil?} # Remove defaults that have been manually cleared using :name => nil
+        options = recall.dup if options.empty? # XXX move to url_rewriter?
+        Routing.treat_hash(options) # XXX Move inwards (to generated code) or inline?
+        merged = recall.merge(options)
+        expire_on = Routing.expiry_hash(options, recall)
+    
+        path, keys = generate_path(merged, options, expire_on)
+    
+        # Factor out?
+        extras = {}
+        k = nil
+        keys.each {|k| extras[k] = options[k]} 
+        [path, extras]
+      end
+      
+      def generate_path(merged, options, expire_on)
+        send @generation_methods[merged[:controller]], merged, options, expire_on
+      end
+  
+      def write_generation
+        @generation_methods = Hash.new(:generate_default_path)
+        categorize_routes.each do |controller, routes|
+          next unless routes.length < @routes.length
+      
+          ivar = controller.gsub('/', '__')
+          method_name = "generate_path_for_#{ivar}".to_sym
+          instance_variable_set "@#{ivar}", routes
+          code = generation_code_for(ivar, method_name).to_s
+          eval(code)
+      
+          @generation_methods[controller.to_s]   = method_name
+          @generation_methods[controller.to_sym] = method_name
+        end
+        
+        eval(generation_code_for('routes', 'generate_default_path').to_s)
+      end
 
-        failures = []
-        selected = nil
-        self.each do |route|
-          path, unused = route.generate(options, defaults)
-          if path.nil?
-            failures << [route, unused] if ActionController::Base.debug_routes
-          else 
-            return path, unused if unused.empty? # Found a perfect route -- we're finished.
-            if selected.nil? || unused.length < selected.last.length
-              failures << [selected.first, "A better url than #{selected[1]} was found."] if selected
-              selected = [route, path, unused]
+      def recognize(request)
+        string_path = request.path
+        string_path.chomp! if string_path[0] == ?/
+        path = string_path.split '/'
+        path.shift
+    
+        hash = recognize_path(path)
+        raise RoutingError, "No route matches path #{path.inspect}" unless hash
+    
+        controller = hash['controller']
+        hash['controller'] = controller.controller_path
+        request.path_parameters = hash
+        controller.new
+      end
+      alias :recognize! :recognize
+  
+      def write_recognition
+        g = generator = CodeGeneration::RecognitionGenerator.new
+        g.finish_statement = Proc.new {|hash_expr| "return #{hash_expr}"}
+    
+        g.def "self.recognize_path(path)" do
+          each do |route|
+            g << 'index = 0'
+            route.write_recognition(g)
+          end
+        end
+    
+        eval g.to_s 
+      end
+        
+      def generation_code_for(ivar = 'routes', method_name = nil)
+        routes = instance_variable_get('@' + ivar)
+        key_ivar = "@keys_for_#{ivar}"
+        instance_variable_set(key_ivar, routes.collect {|route| route.keys})
+    
+        g = generator = CodeGeneration::GenerationGenerator.new
+        g.def "self.#{method_name}(merged, options, expire_on)" do
+          g << 'unused_count = options.length + 1'
+          g << "unused_keys = keys = options.keys"
+          g << 'path = nil'
+      
+          routes.each_with_index do |route, index|
+            g << "new_unused_keys = keys - #{key_ivar}[#{index}]"
+            g << 'new_path = ('
+            g.source.indent do
+              if index.zero?
+                g << "new_unused_count = new_unused_keys.length"
+                g << "hash = merged; not_expired = true"
+                route.write_generation(g.dup)
+              else
+                g.if "(new_unused_count = new_unused_keys.length) < unused_count" do |gp|
+                  gp << "hash = merged; not_expired = true"
+                  route.write_generation(gp)
+                end
+              end
+            end
+            g.source.lines.last << ' )' # Add the closing brace to the end line
+            g.if 'new_path' do
+              g << 'return new_path, [] if new_unused_count.zero?'
+              g << 'path = new_path; unused_keys = new_unused_keys; unused_count = new_unused_count'
+            end
+          end
+        
+          g << "raise RoutingError, \"No url can be generated for the hash \#{options.inspect}\" unless path"
+          g << "return path, unused_keys"
+        end
+        
+        return g
+      end
+      
+      def categorize_routes
+        @categorized_routes = by_controller = Hash.new(self)
+      
+        known_controllers.each do |name|
+          set = by_controller[name] = []
+          each do |route|
+            set << route if route.matches_controller? name
+          end
+        end
+    
+        @categorized_routes
+      end
+      
+      def known_controllers
+        @routes.inject([]) do |known, route|
+          if (controller = route.known[:controller])
+            if controller.is_a?(Regexp)
+              known << controller.source.scan(%r{[\w\d/]+}).select {|word| controller =~ word} 
+            else known << controller
+            end
+          end
+          known
+        end.uniq
+      end
+
+      def reload
+        NamedRoutes.clear
+        load(File.join(RAILS_ROOT, 'config', 'routes.rb'))
+        NamedRoutes.install
+      end
+
+      def connect(*args)
+        new_route = Route.new(*args)
+        @routes << new_route
+        return new_route
+      end
+
+      def draw
+        old_routes = @routes
+        @routes = []
+        
+        begin yield self
+        rescue
+          @routes = old_routes
+          raise
+        end
+        write_generation
+        write_recognition
+      end
+      
+      def empty?() @routes.empty? end
+  
+      def each(&block) @routes.each(&block) end
+      
+      def method_missing(name, *args)
+        return super(name, *args) unless args.length == 2
+      
+        route = connect(*args)
+        NamedRoutes.name_route(route, name)
+        route
+      end
+    end
+
+    module NamedRoutes
+      Helpers = []
+      class << self
+        def clear() Helpers.clear end
+  
+        def hash_access_name(name)
+          "hash_for_#{name}_url"
+        end
+
+        def url_helper_name(name)
+          "#{name}_url"
+        end
+
+        def name_route(route, name)
+          hash = route.known.symbolize_keys
+      
+          define_method(hash_access_name(name)) { hash }
+          module_eval(%{def #{url_helper_name name}(options = {})
+            url_for(#{hash_access_name(name)}.merge(options))
+          end})
+      
+          protected url_helper_name(name), hash_access_name(name)
+      
+          Helpers << url_helper_name(name)
+          Helpers.uniq!
+        end
+    
+        def install(cls = ActionController::Base)
+          cls.send :include, self
+          if cls.respond_to? :helper_method
+            Helpers.each do |helper_name|
+              cls.send :helper_method, helper_name
             end
           end
         end
-        
-        return selected[1..-1] unless selected.nil?
-        raise RoutingError.new("Generation failure: No route for url_options #{options.inspect}, defaults: #{defaults.inspect}", failures)
       end
-      
-      # Recognize the provided path.
-      # Raise RoutingError if the path can't be recognized.
-      def recognize!(request)
-        path = ((%r{^/?(.*)/?$} =~ request.path) ? $1 : request.path).split('/')
-        raise RoutingError, "There are no routes defined!" if @routes.empty?
-        
-        failures = []
-        self.each do |route|
-          controller, options = route.recognize(path)
-          if controller.nil?
-            failures << [route, options] if ActionController::Base.debug_routes
-          else
-            request.path_parameters = options
-            return controller
-          end
-        end
-        
-        raise RoutingError.new("No route for path: #{path.join('/').inspect}", failures)
-      end
-      
-      def expand_controller_path!(options, defaults)
-        if options[:controller]
-          if /^\// =~ options[:controller]
-            options[:controller] = options[:controller][1..-1]
-            defaults.clear # Sending to absolute controller implies fresh defaults
-          else
-            relative_to = defaults[:controller] ? defaults[:controller].split('/')[0..-2].join('/') : ''
-            options[:controller] = relative_to.empty? ? options[:controller] : "#{relative_to}/#{options[:controller]}"
-            defaults.delete(:action) if options.key?(:controller)
-          end
-        else
-          options[:controller] = defaults[:controller]
-        end
-      end
-      
-      def route(*args)
-        add_route(Route.new(*args))
-      end
-      alias :connect :route
-      
-      def reload
-        begin
-          route_file = defined?(RAILS_ROOT) ? File.join(RAILS_ROOT, 'config', 'routes') : nil
-          require_dependency(route_file) if route_file
-        rescue LoadError, ScriptError => e
-          raise RoutingError.new("Cannot load config/routes.rb:\n    #{e.message}").copy_blame!(e)
-        ensure # Ensure that there is at least one route:
-          connect(':controller/:action/:id', :action => 'index', :id => nil) if @routes.empty?
-        end
-      end
-      
-      def draw
-        @routes.clear
-        yield self
-      end
-    end
-    
-    def self.extract_parameter_value(parameter) #:nodoc:
-      value = (parameter.respond_to?(:to_param) ? parameter.to_param : parameter).to_s
-      CGI.escape(value)
     end
 
-    def self.draw(*args, &block) #:nodoc:
-      Routes.draw(*args) {|*args| block.call(*args)}
-    end
-    
     Routes = RouteSet.new
   end
 end
