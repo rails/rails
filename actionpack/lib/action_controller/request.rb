@@ -8,69 +8,84 @@ module ActionController
       @parameters ||= request_parameters.merge(query_parameters).merge(path_parameters).with_indifferent_access
     end
 
+    # Returns the HTTP request method as a lowercase symbol (:get, for example)
     def method
-      env['REQUEST_METHOD'].downcase.intern
+      env['REQUEST_METHOD'].downcase.to_sym
     end
 
+    # Is this a GET request?  Equivalent to request.method == :get
     def get?
       method == :get
     end
 
+    # Is this a POST request?  Equivalent to request.method == :post
     def post?
       method == :post
     end
 
+    # Is this a PUT request?  Equivalent to request.method == :put
     def put?
       method == :put
     end
 
+    # Is this a DELETE request?  Equivalent to request.method == :delete
     def delete?
       method == :delete
     end
 
+    # Is this a HEAD request?  Equivalent to request.method == :head
     def head?
       method == :head
     end
 
 
+    # Determine whether the body of a POST request is URL-encoded (default),
+    # XML, or YAML by checking the Content-Type HTTP header:
+    #
+    #   Content-Type        Post Format
+    #   application/xml     :xml
+    #   text/xml            :xml
+    #   application/x-yaml  :yaml
+    #   text/x-yaml         :yaml
+    #   *                   :url_encoded
+    #
+    # For backward compatibility, the post format is extracted from the
+    # X-Post-Data-Format HTTP header if present.
     def post_format
       if env['HTTP_X_POST_DATA_FORMAT']
-        env['HTTP_X_POST_DATA_FORMAT'].downcase.intern
+        env['HTTP_X_POST_DATA_FORMAT'].downcase.to_sym
       else
-        case env['CONTENT_TYPE']
-          when 'application/xml', 'text/xml'
-            :xml
-          when 'application/x-yaml', 'text/x-yaml'
-            :yaml
-          else
-            :url_encoded
+        case env['CONTENT_TYPE'].to_s.downcase
+          when 'application/xml', 'text/xml'        then :xml
+          when 'application/x-yaml', 'text/x-yaml'  then :yaml
+          else :url_encoded
         end
       end
     end
 
+    # Is this a POST request formatted as XML or YAML?
     def formatted_post?
       [ :xml, :yaml ].include?(post_format) && post?
     end
 
+    # Is this a POST request formatted as XML?
     def xml_post?
       post_format == :xml && post?
     end
 
+    # Is this a POST request formatted as YAML?
     def yaml_post?
       post_format == :yaml && post?
     end
 
-
-    # Returns true if the request's "X-Requested-With" header contains
-    # "XMLHttpRequest". (The Prototype Javascript library sends this header with
-    # every Ajax request.)
+    # Is the X-Requested-With HTTP header present and does it contain the
+    # string "XMLHttpRequest"?.  The Prototype Javascript library sends this
+    # header with every Ajax request.
     def xml_http_request?
-      !((env['HTTP_X_REQUESTED_WITH'] || "") =~ /XMLHttpRequest/i).nil?
+      not /XMLHttpRequest/i.match(env['HTTP_X_REQUESTED_WITH']).nil?
     end
     alias xhr? :xml_http_request?
 
-    
-    
     # Determine originating IP address.  REMOTE_ADDR is the standard
     # but will fail if the user is behind a proxy.  HTTP_CLIENT_IP and/or
     # HTTP_X_FORWARDED_FOR are set by proxies so check for these before
@@ -122,12 +137,14 @@ module ActionController
         request_uri += '?' + env["QUERY_STRING"] unless env["QUERY_STRING"].nil? || env["QUERY_STRING"].empty?
         return request_uri
       end
-     end
+    end
 
+    # Return 'https://' if this is an SSL request and 'http://' otherwise.
     def protocol
       env["HTTPS"] == "on" ? 'https://' : 'http://'
     end
 
+    # Is this an SSL request?
     def ssl?
       protocol == 'https://'
     end
@@ -135,10 +152,12 @@ module ActionController
     # Returns the interpreted path to requested resource after all the installation directory of this application was taken into account
     def path
       path = (uri = request_uri) ? uri.split('?').first : ''
-      
+
       # Cut off the path to the installation directory if given
-      if (root = relative_url_root) then path[root.length..-1]
-      else path
+      if root = relative_url_root
+        path[root.length..-1]
+      else
+        path
       end
     end    
     
@@ -148,15 +167,19 @@ module ActionController
       @@relative_url_root ||= File.dirname(env["SCRIPT_NAME"].to_s).gsub(/(^\.$|^\/$)/, '') if server_software == 'apache'
     end
 
+    # Returns the port number of this request as an integer.
     def port
       env['SERVER_PORT'].to_i
     end
 
-    # Returns a string like ":8080" if the port is not 80 or 443 while on https.
+    # Returns a port suffix like ":8080" if the port number of this request
+    # is not the default HTTP port 80 or HTTPS port 443.
     def port_string
       (protocol == 'http://' && port == 80) || (protocol == 'https://' && port == 443) ? '' : ":#{port}"
     end
 
+    # Returns a host:port string for this request, such as example.com or
+    # example.com:8080.
     def host_with_port
       env['HTTP_HOST'] || host + port_string
     end
@@ -169,11 +192,12 @@ module ActionController
     def path_parameters
       @path_parameters ||= {}
     end
-    
+
+    # Returns the lowercase name of the HTTP server software.
     def server_software
       (env['SERVER_SOFTWARE'] && /^([a-zA-Z]+)/ =~ env['SERVER_SOFTWARE']) ? $1.downcase : nil
     end
-    
+
     #--
     # Must be implemented in the concrete request
     #++
