@@ -115,7 +115,7 @@ module ActionController
         end
         code = "(#{code} || #{default.inspect})" if default 
       
-        return code
+        return code.to_s
       end
     
       def segment_name() "segment#{depth}".to_sym end

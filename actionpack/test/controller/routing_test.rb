@@ -622,6 +622,13 @@ class RouteSetTests < Test::Unit::TestCase
     end
   end
 
+  def test_route_with_colon_first
+    rs.draw do |map|
+      map.connect '/:controller/:action/:id', :action => 'index', :id => nil
+      map.connect ':url', :controller => 'tiny_url', :action => 'translate'
+    end
+  end
+
   def test_basic_named_route
     rs.home '', :controller => 'content', :action => 'list' 
     x = setup_for_named_route
