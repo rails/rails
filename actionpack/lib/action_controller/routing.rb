@@ -383,6 +383,10 @@ module ActionController
       def generate_path(merged, options, expire_on)
         send @generation_methods[merged[:controller]], merged, options, expire_on
       end
+      def generate_default_path(*args)
+        write_generation
+        generate_default_path(*args)
+      end
   
       def write_generation
         @generation_methods = Hash.new(:generate_default_path)
@@ -499,7 +503,11 @@ module ActionController
 
       def reload
         NamedRoutes.clear
-        load(File.join(RAILS_ROOT, 'config', 'routes.rb'))
+        
+        if defined?(RAILS_ROOT) then load(File.join(RAILS_ROOT, 'config', 'routes.rb'))
+        else connect(':controller/:action/:id', :action => 'index', :id => nil)
+        end
+
         NamedRoutes.install
       end
 
