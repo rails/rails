@@ -78,7 +78,9 @@ module ActiveRecord
             options[:order] = @options[:order]
           end
 
-          @association_class.find(args.size == 1 ? args.first : args, options)
+          # Pass through args exactly as we received them.
+          args << options
+          @association_class.find(*args)
         end
       end
 

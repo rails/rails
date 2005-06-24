@@ -316,7 +316,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_find_ids
-    firm = Firm.find_first
+    firm = Firm.find(:first)
 
     assert_raises(ActiveRecord::RecordNotFound) { firm.clients.find }
 
