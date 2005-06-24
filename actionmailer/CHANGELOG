@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow specific "multipart/xxx" content-type to be set on multipart messages #1412 [Flurin Egger]
+
 * Unquoted @ characters in headers are now accepted in spite of RFC 822 #1206
 
 * Helper support (borrowed from ActionPack)

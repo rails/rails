@@ -278,6 +278,8 @@ module ActionMailer #:nodoc:
             part = (TMail::Mail === p ? p : p.to_mail(self))
             m.parts << part
           end
+          
+          m.set_content_type(content_type, nil, { "charset" => charset }) if content_type =~ /multipart/
         end
 
         @mail = m

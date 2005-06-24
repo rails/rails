@@ -94,12 +94,13 @@ class TestMailer < ActionMailer::Base
     @charset    = "utf-8"
   end
 
-  def explicitly_multipart_example(recipient)
-    @recipients = recipient
-    @subject    = "multipart example"
-    @from       = "test@example.com"
-    @sent_on    = Time.local 2004, 12, 12
-    @body       = "plain text default"
+  def explicitly_multipart_example(recipient, ct=nil)
+    recipients   recipient
+    subject      "multipart example"
+    from         "test@example.com"
+    sent_on      Time.local(2004, 12, 12)
+    body         "plain text default"
+    content_type ct if ct
 
     part "text/html" do |p|
       p.charset = "iso-8859-1"
@@ -462,6 +463,7 @@ EOF
   def test_explicitly_multipart_messages
     mail = TestMailer.create_explicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length
+    assert_nil mail.content_type
     assert_equal "text/plain", mail.parts[0].content_type
 
     assert_equal "text/html", mail.parts[1].content_type
@@ -473,6 +475,19 @@ EOF
     assert_equal "foo.jpg", mail.parts[2].sub_header("content-disposition", "filename")
     assert_equal "foo.jpg", mail.parts[2].sub_header("content-type", "name")
     assert_nil mail.parts[2].sub_header("content-type", "charset")
+  end
+
+  def test_explicitly_multipart_with_content_type
+    mail = TestMailer.create_explicitly_multipart_example(@recipient,
+      "multipart/alternative")
+    assert_equal 3, mail.parts.length
+    assert_equal "multipart/alternative", mail.content_type
+  end
+
+  def test_explicitly_multipart_with_invalid_content_type
+    mail = TestMailer.create_explicitly_multipart_example(@recipient, "text/xml")
+    assert_equal 3, mail.parts.length
+    assert_nil mail.content_type
   end
 
   def test_implicitly_multipart_messages
