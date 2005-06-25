@@ -5,6 +5,8 @@ class <%= class_name %>Test < Test::Unit::TestCase
   FIXTURES_PATH = File.dirname(__FILE__) + '/../fixtures'
   CHARSET = "utf-8"
 
+  include ActionMailer::Quoting
+
   def setup
     ActionMailer::Base.delivery_method = :test
     ActionMailer::Base.perform_deliveries = true
@@ -30,6 +32,6 @@ class <%= class_name %>Test < Test::Unit::TestCase
     end
 
     def encode(subject)
-      ActionMailer::Base.quoted_printable(subject, CHARSET)
+      quoted_printable(subject, CHARSET)
     end
 end
