@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed prototype to consider all fields it doesn't know as text (such as Safari's search) just like the browser in its serialization #1497 [Sean Treadway]
+
 * Improved performance of Routes generation by a factor of 5 #1434 [Nicholas Seckar] 
 
 * Added named routes (NEEDS BETTER DESCRIPTION) #1434 [Nicholas Seckar]

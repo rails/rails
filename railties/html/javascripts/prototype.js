@@ -357,13 +357,11 @@ Form.Element = {
 Form.Element.Serializers = {
   input: function(element) {
     switch (element.type.toLowerCase()) {
-      case 'hidden':
-      case 'password':
-      case 'text':
-        return Form.Element.Serializers.textarea(element);
       case 'checkbox':  
       case 'radio':
         return Form.Element.Serializers.inputSelector(element);
+      default:
+        return Form.Element.Serializers.textarea(element);
     }
     return false;
   },
