@@ -1,5 +1,9 @@
 *SVN*
 
+* Fix WSDL generation by aliasing #inherited instead of trying to overwrite it, or the WSDL action may end up not being defined in the controller
+
+* Add ActionController::Base.wsdl_namespace option, to allow overriding of the namespace used in generated WSDL and SOAP messages. This is equivalent to the [WebService(Namespace = "Value")] attribute in .NET.
+
 * Add workaround for Ruby 1.8.3's SOAP4R changing the return value of SOAP::Mapping::Registry#find_mapped_soap_class #1414 [Shugo Maeda]
 
 * Fix moduled controller URLs in WSDL, and add unit test to verify the generated URL #1428

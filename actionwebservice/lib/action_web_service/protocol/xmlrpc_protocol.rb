@@ -12,6 +12,10 @@ module ActionWebService # :nodoc:
       end
       
       class XmlRpcProtocol < AbstractProtocol # :nodoc:
+        def self.create(controller)
+          XmlRpcProtocol.new
+        end
+
         def decode_action_pack_request(action_pack_request)
           service_name = action_pack_request.parameters['action']
           decode_request(action_pack_request.raw_post, service_name)

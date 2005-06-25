@@ -81,13 +81,13 @@ module Test # :nodoc:
 
         def protocol
           if @protocol.nil?
-            @protocol ||= ActionWebService::Protocol::Soap::SoapProtocol.new
+            @protocol ||= ActionWebService::Protocol::Soap::SoapProtocol.new(@controller)
           else
             case @protocol
             when :xmlrpc
-              @protocol = ActionWebService::Protocol::XmlRpc::XmlRpcProtocol.new
+              @protocol = ActionWebService::Protocol::XmlRpc::XmlRpcProtocol.create(@controller)
             when :soap
-              @protocol = ActionWebService::Protocol::Soap::SoapProtocol.new
+              @protocol = ActionWebService::Protocol::Soap::SoapProtocol.create(@controller)
             else
               @protocol
             end

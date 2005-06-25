@@ -27,12 +27,12 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
     @delegated_controller = DelegatedController.new
     @virtual_controller = VirtualController.new
     @layered_controller = LayeredController.new
-    @protocol = ActionWebService::Protocol::Soap::SoapProtocol.new
+    @protocol = ActionWebService::Protocol::Soap::SoapProtocol.create(@direct_controller)
   end
 
   def test_wsdl_generation
-    ensure_valid_wsdl_generation DelegatedController.new
-    ensure_valid_wsdl_generation DirectController.new
+    ensure_valid_wsdl_generation DelegatedController.new, DispatcherTest::WsdlNamespace
+    ensure_valid_wsdl_generation DirectController.new, DispatcherTest::WsdlNamespace
   end
 
   def test_wsdl_action
@@ -90,12 +90,12 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
       container.is_a?(DelegatedController) ? 'test_service' : 'api'
     end
 
-    def ensure_valid_wsdl_generation(controller)
+    def ensure_valid_wsdl_generation(controller, expected_namespace)
       wsdl = controller.generate_wsdl
-      ensure_valid_wsdl(controller, wsdl)
+      ensure_valid_wsdl(controller, wsdl, expected_namespace)
     end
 
-    def ensure_valid_wsdl(controller, wsdl)
+    def ensure_valid_wsdl(controller, wsdl, expected_namespace)
       definitions = WSDL::Parser.new.parse(wsdl)
       assert(definitions.is_a?(WSDL::Definitions))
       definitions.bindings.each do |binding|
@@ -108,7 +108,7 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
       end
       types = definitions.collect_complextypes.map{|x| x.name}
       types.each do |type|
-        assert(type.namespace == 'urn:ActionWebService')
+        assert(type.namespace == expected_namespace)
       end
       location = definitions.services[0].ports[0].soap_address.location
       if controller.is_a?(DelegatedController)
@@ -125,6 +125,6 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
       test_request.env['HTTP_HOST'] = 'localhost'
       test_response = ActionController::TestResponse.new
       wsdl = controller.process(test_request, test_response).body
-      ensure_valid_wsdl(controller, wsdl)
+      ensure_valid_wsdl(controller, wsdl, DispatcherTest::WsdlNamespace)
     end
 end

@@ -4,6 +4,8 @@ require 'stringio'
 class ActionController::Base; def rescue_action(e) raise e end; end
 
 module DispatcherTest
+  WsdlNamespace = 'http://rubyonrails.com/some/namespace'
+
   class Node < ActiveRecord::Base
     def initialize(*args)
       super(*args)
@@ -135,12 +137,14 @@ module DispatcherTest
  
   class DelegatedController < AbstractController
     web_service_dispatching_mode :delegated
+    wsdl_namespace WsdlNamespace
   
     web_service(:test_service) { @service ||= Service.new; @service }
   end
 
   class LayeredController < AbstractController
     web_service_dispatching_mode :layered
+    wsdl_namespace WsdlNamespace
 
     web_service(:mt) { @mt_service ||= MTService.new; @mt_service }
     web_service(:blogger) { @blogger_service ||= BloggerService.new; @blogger_service }
@@ -149,6 +153,7 @@ module DispatcherTest
   class DirectController < AbstractController
     web_service_api DirectAPI
     web_service_dispatching_mode :direct
+    wsdl_namespace WsdlNamespace
 
     before_filter :alwaysfail, :only => [:before_filtered]
     after_filter :alwaysok, :only => [:after_filtered]
@@ -239,6 +244,7 @@ module DispatcherTest
 
   class VirtualController < AbstractController
     web_service_api VirtualAPI
+    wsdl_namespace WsdlNamespace
 
     def fallback
       "fallback!"
@@ -307,7 +313,7 @@ module DispatcherCommonTests
       controller.class.web_service_exception_reporting = true
       send_garbage_request = lambda do
         service_name = service_name(controller)
-        request = @protocol.encode_action_pack_request(service_name, 'broken, method, name!', 'broken request body', :request_class => ActionController::TestRequest)
+        request = protocol.encode_action_pack_request(service_name, 'broken, method, name!', 'broken request body', :request_class => ActionController::TestRequest)
         response = ActionController::TestResponse.new
         controller.process(request, response)
         # puts response.body
@@ -348,21 +354,21 @@ module DispatcherCommonTests
     assert_equal person, @direct_controller.struct_pass_value
     assert !person.equal?(@direct_controller.struct_pass_value)
     result = do_method_call(@direct_controller, 'StructPass', {'id' => '1', 'name' => 'test'})
-    case @protocol
-    when ActionWebService::Protocol::Soap::SoapProtocol
+    case
+    when soap?
       assert_equal(person, @direct_controller.struct_pass_value)
       assert !person.equal?(@direct_controller.struct_pass_value)
-    when ActionWebService::Protocol::XmlRpc::XmlRpcProtocol
+    when xmlrpc?
       assert_equal(person, @direct_controller.struct_pass_value)
       assert !person.equal?(@direct_controller.struct_pass_value)
     end
     assert_equal person, do_method_call(@direct_controller, 'HashStructReturn')[0]
     result = do_method_call(@direct_controller, 'StructPass', {'id' => '1', 'name' => 'test', 'nonexistent_attribute' => 'value'})
-    case @protocol
-    when ActionWebService::Protocol::Soap::SoapProtocol
+    case
+    when soap?
       assert_equal(person, @direct_controller.struct_pass_value)
       assert !person.equal?(@direct_controller.struct_pass_value)
-    when ActionWebService::Protocol::XmlRpc::XmlRpcProtocol
+    when xmlrpc?
       assert_equal(person, @direct_controller.struct_pass_value)
       assert !person.equal?(@direct_controller.struct_pass_value)
     end
@@ -398,6 +404,18 @@ module DispatcherCommonTests
     def check_response(ap_response)
     end
 
+    def protocol
+      @protocol
+    end
+
+    def soap?
+      protocol.is_a? ActionWebService::Protocol::Soap::SoapProtocol
+    end
+
+    def xmlrpc?
+      protocol.is_a? ActionWebService::Protocol::XmlRpc::XmlRpcProtocol
+    end
+
     def do_method_call(container, public_method_name, *params)
       request_env = {}
       mode = container.web_service_dispatching_mode
@@ -417,7 +435,7 @@ module DispatcherCommonTests
           service_name = $1
           real_method_name = $2
         end
-        if @protocol.is_a? ActionWebService::Protocol::Soap::SoapProtocol
+        if soap?
           public_method_name = real_method_name
           request_env['HTTP_SOAPACTION'] = "/soap/#{service_name}/#{real_method_name}"
         end
@@ -425,26 +443,26 @@ module DispatcherCommonTests
         method = api.public_api_method_instance(real_method_name)
         service_name = self.service_name(container)
       end
-      @protocol.register_api(api)
+      protocol.register_api(api)
       virtual = false
       unless method
         virtual = true
         method ||= ActionWebService::API::Method.new(public_method_name.underscore.to_sym, public_method_name, nil, nil)
       end
-      body = @protocol.encode_request(public_method_name, params.dup, method.expects)
+      body = protocol.encode_request(public_method_name, params.dup, method.expects)
       # puts body
-      ap_request = @protocol.encode_action_pack_request(service_name, public_method_name, body, :request_class => ActionController::TestRequest)
+      ap_request = protocol.encode_action_pack_request(service_name, public_method_name, body, :request_class => ActionController::TestRequest)
       ap_request.env.update(request_env)
       update_request(ap_request)
       ap_response = ActionController::TestResponse.new
       container.process(ap_request, ap_response)
       # puts ap_response.body
       check_response(ap_response)
-      public_method_name, return_value = @protocol.decode_response(ap_response.body)
+      public_method_name, return_value = protocol.decode_response(ap_response.body)
       unless is_exception?(return_value) || virtual
         return_value = method.cast_returns(return_value)
       end
-      if @protocol.is_a?(ActionWebService::Protocol::Soap::SoapProtocol)
+      if soap?
         # http://dev.rubyonrails.com/changeset/920
         assert_match(/Response$/, public_method_name) unless public_method_name == "fault"
       end

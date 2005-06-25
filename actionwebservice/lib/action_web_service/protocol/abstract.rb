@@ -4,6 +4,9 @@ module ActionWebService # :nodoc:
     end
 
     class AbstractProtocol # :nodoc:
+      def setup(controller)
+      end
+
       def decode_action_pack_request(action_pack_request)
       end
 

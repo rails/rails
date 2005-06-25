@@ -24,10 +24,10 @@ module ActionWebService # :nodoc:
       # will be sent with HTTP POST.
       #
       # Valid options:
-      # [<tt>:type_namespace</tt>]    If the remote server has used a custom namespace to
-      #                               declare its custom types, you can specify it here
-      # [<tt>:method_namespace</tt>]  If the remote server has used a custom namespace to
-      #                               declare its methods, you can specify it here
+      # [<tt>:namespace</tt>]    If the remote server has used a custom namespace to
+      #                          declare its custom types, you can specify it here. This would
+      #                          be the namespace declared with a [WebService(Namespace = "http://namespace")] attribute
+      #                          in .NET, for example.
       # [<tt>:driver_options</tt>]    If you want to supply any custom SOAP RPC driver
       #                               options, you can provide them as a Hash here
       #
@@ -43,10 +43,9 @@ module ActionWebService # :nodoc:
       #   client = ActionWebService::Client::Soap.new(api, 'https://some/service', :driver_options => opts)
       def initialize(api, endpoint_uri, options={})
         super(api, endpoint_uri)
-        @type_namespace = options[:type_namespace] || 'urn:ActionWebService'
-        @method_namespace = options[:method_namespace] || 'urn:ActionWebService'
+        @namespace = options[:namespace] || 'urn:ActionWebService'
         @driver_options = options[:driver_options] || {}
-        @protocol = ActionWebService::Protocol::Soap::SoapProtocol.new
+        @protocol = ActionWebService::Protocol::Soap::SoapProtocol.new @namespace
         @soap_action_base = options[:soap_action_base]
         @soap_action_base ||= URI.parse(endpoint_uri).path
         @driver = create_soap_rpc_driver(api, endpoint_uri)
@@ -73,7 +72,7 @@ module ActionWebService # :nodoc:
           driver = SoapDriver.new(endpoint_uri, nil)
           driver.mapping_registry = @protocol.marshaler.registry
           api.api_methods.each do |name, method|
-            qname = XSD::QName.new(@method_namespace, method.public_name)
+            qname = XSD::QName.new(@namespace, method.public_name)
             action = soap_action(method.public_name)
             expects = method.expects
             returns = method.returns

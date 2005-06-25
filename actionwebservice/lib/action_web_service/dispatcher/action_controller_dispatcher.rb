@@ -6,9 +6,11 @@ module ActionWebService # :nodoc:
     module ActionController # :nodoc:
       def self.append_features(base) # :nodoc:
         super
+        base.extend(ClassMethods)
         base.class_eval do
           class << self
             alias_method :inherited_without_action_controller, :inherited
+            alias_method :inherited, :inherited_with_action_controller
           end
           alias_method :web_service_direct_invoke_without_controller, :web_service_direct_invoke
         end
@@ -24,12 +26,11 @@ module ActionWebService # :nodoc:
             klass.class_eval 'def api; dispatch_web_service_request; end'
           end
         end
-        base.extend(ClassMethods)
         base.send(:include, ActionWebService::Dispatcher::ActionController::InstanceMethods)
       end
 
       module ClassMethods # :nodoc:
-        def inherited(child)
+        def inherited_with_action_controller(child)
           inherited_without_action_controller(child)
           child.send(:include, ActionWebService::Dispatcher::ActionController::WsdlAction)
         end
@@ -174,7 +175,7 @@ module ActionWebService # :nodoc:
             xml = ''
             dispatching_mode = web_service_dispatching_mode
             global_service_name = wsdl_service_name
-            namespace = 'urn:ActionWebService'
+            namespace = wsdl_namespace || 'urn:ActionWebService'
             soap_action_base = "/#{controller_name}"
 
             marshaler = ActionWebService::Protocol::Soap::SoapMarshaler.new(namespace)

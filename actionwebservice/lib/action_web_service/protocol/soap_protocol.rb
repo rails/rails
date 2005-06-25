@@ -7,13 +7,21 @@ module ActionWebService # :nodoc:
       def self.included(base)
         base.register_protocol(SoapProtocol)
         base.class_inheritable_option(:wsdl_service_name)
+        base.class_inheritable_option(:wsdl_namespace)
       end
       
       class SoapProtocol < AbstractProtocol # :nodoc:
         DefaultEncoding = 'utf-8'
 
-        def marshaler
-          @marshaler ||= SoapMarshaler.new
+        attr :marshaler
+
+        def initialize(namespace=nil)
+          namespace ||= 'urn:ActionWebService'
+          @marshaler = SoapMarshaler.new namespace
+        end
+
+        def self.create(controller)
+          SoapProtocol.new(controller.wsdl_namespace)
         end
 
         def decode_action_pack_request(action_pack_request)
@@ -47,7 +55,7 @@ module ActionWebService # :nodoc:
 
         def encode_request(method_name, params, param_types)
           param_types.each{ |type| marshaler.register_type(type) } if param_types
-          qname = XSD::QName.new(marshaler.type_namespace, method_name)
+          qname = XSD::QName.new(marshaler.namespace, method_name)
           param_def = []
           if param_types
             params = param_types.zip(params).map do |type, param|
@@ -79,7 +87,7 @@ module ActionWebService # :nodoc:
             return_binding = marshaler.register_type(return_type)
             marshaler.annotate_arrays(return_binding, return_value)
           end
-          qname = XSD::QName.new(marshaler.type_namespace, method_name)
+          qname = XSD::QName.new(marshaler.namespace, method_name)
           if return_value.nil?
             response = SOAP::RPC::SOAPMethodResponse.new(qname, nil)
           else

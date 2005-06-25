@@ -78,15 +78,15 @@ modes of dispatching protocol requests, _Direct_, and _Delegated_.
 
 === Direct dispatching
 
-This is the default mode. In this mode, controller actions implement the API
-methods, and parameters for incoming method calls will be placed in
-<tt>@params</tt> (keyed by name), and <tt>@method_params</tt> (ordered list).
+This is the default mode. In this mode, public controller instance methods
+implement the API methods, and parameters are passed through to the methods in
+accordance with the API specification.
 
-The return value of the action is sent back as the return value to the
+The return value of the method is sent back as the return value to the
 caller.
 
 In this mode, a special <tt>api</tt> action is generated in the target
-controller to unwrap the protocol request, forward it on to the relevant action
+controller to unwrap the protocol request, forward it on to the relevant method
 and send back the wrapped return value. <em>This action must not be
 overridden.</em>
 
@@ -108,7 +108,7 @@ overridden.</em>
 
 
 For this example, protocol requests for +Add+ and +Remove+ methods sent to
-<tt>/person/api</tt> will be routed to the actions +add+ and +remove+.
+<tt>/person/api</tt> will be routed to the controller methods +add+ and +remove+.
 
 
 === Delegated dispatching
@@ -195,6 +195,25 @@ For this example, an XML-RPC call for a method with a name like
 <tt>mt.getCategories</tt> will be sent to the <tt>getCategories</tt>
 method on the <tt>:mt</tt> service.
 
+
+== Customizing WSDL generation
+
+You can customize the names used for the SOAP bindings in the generated
+WSDL by using the wsdl_service_name option in a controller:
+
+  class WsController < ApplicationController
+    wsdl_service_name 'MyApp'
+  end
+
+You can also customize the namespace used in the generated WSDL for
+custom types and message definition types:
+
+  class WsController < ApplicationController
+    wsdl_namespace 'http://my.company.com/app/wsapi'
+  end
+
+The default namespace used is 'urn:ActionWebService', if you don't supply
+one.
 
 == Testing your APIs
 

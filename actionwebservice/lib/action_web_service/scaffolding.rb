@@ -61,9 +61,9 @@ module ActionWebService
               protocol_name = params['protocol'] ? params['protocol'].to_sym : :soap
               case protocol_name
               when :soap
-                @protocol = Protocol::Soap::SoapProtocol.new
+                @protocol = Protocol::Soap::SoapProtocol.create(self)
               when :xmlrpc
-                @protocol = Protocol::XmlRpc::XmlRpcProtocol.new
+                @protocol = Protocol::XmlRpc::XmlRpcProtocol.create(self)
               end
               @invocation_cgi = request.respond_to?(:cgi) ? request.cgi : nil
               bm = Benchmark.measure do

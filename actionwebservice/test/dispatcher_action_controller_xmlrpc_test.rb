@@ -5,11 +5,11 @@ class TC_DispatcherActionControllerXmlRpc < Test::Unit::TestCase
   include DispatcherCommonTests
 
   def setup
-    @protocol = ActionWebService::Protocol::XmlRpc::XmlRpcProtocol.new
     @direct_controller = DirectController.new
     @delegated_controller = DelegatedController.new
     @layered_controller = LayeredController.new
     @virtual_controller = VirtualController.new
+    @protocol = ActionWebService::Protocol::XmlRpc::XmlRpcProtocol.create(@direct_controller)
   end
 
   def test_layered_dispatching

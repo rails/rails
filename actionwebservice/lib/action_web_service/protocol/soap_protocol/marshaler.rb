@@ -17,11 +17,11 @@ module ActionWebService
       end
 
       class SoapMarshaler
-        attr :type_namespace
+        attr :namespace
         attr :registry
 
-        def initialize(type_namespace=nil)
-          @type_namespace = type_namespace || 'urn:ActionWebService'
+        def initialize(namespace=nil)
+          @namespace = namespace || 'urn:ActionWebService'
           @registry = Registry.new
           @type2binding = {}
           register_static_factories
@@ -46,7 +46,7 @@ module ActionWebService
             qname ||= soap_base_type_name(mapping[0])
             type_binding = SoapBinding.new(self, qname, type_type, mapping)
           else
-            qname = XSD::QName.new(@type_namespace, soap_type_name(type_class.name))
+            qname = XSD::QName.new(@namespace, soap_type_name(type_class.name))
             @registry.add(type_class,
                           SOAP::SOAPStruct,
                           typed_struct_factory(type_class),
@@ -58,7 +58,7 @@ module ActionWebService
           array_binding = nil
           if type.array?
             array_mapping = @registry.find_mapped_soap_class(Array)
-            qname = XSD::QName.new(@type_namespace, soap_type_name(type.element_type.type_class.name) + 'Array')
+            qname = XSD::QName.new(@namespace, soap_type_name(type.element_type.type_class.name) + 'Array')
             array_binding = SoapBinding.new(self, qname, type, array_mapping, type_binding)
           end
 
@@ -88,7 +88,7 @@ module ActionWebService
           def typed_struct_factory(type_class)
             if Object.const_defined?('ActiveRecord')
               if type_class.ancestors.include?(ActiveRecord::Base)
-                qname =  XSD::QName.new(@type_namespace, soap_type_name(type_class.name))
+                qname =  XSD::QName.new(@namespace, soap_type_name(type_class.name))
                 type_class.instance_variable_set('@qname', qname)
                 return SoapActiveRecordStructFactory.new
               end
