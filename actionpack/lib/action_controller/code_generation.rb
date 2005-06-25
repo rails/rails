@@ -187,7 +187,7 @@ module ActionController
             locals << local_name(key)
           end
         end
-        code = "(#{code} || #{default.inspect})" if default
+        code = "(#{code} || (#{default.inspect}))" if default
         return code
       end 
     

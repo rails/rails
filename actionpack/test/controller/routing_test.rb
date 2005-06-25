@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 require 'test/unit'
+require 'stringio'
 
 RunTimeTests = ARGV.include? 'time'
 
@@ -627,6 +628,17 @@ class RouteSetTests < Test::Unit::TestCase
       map.connect '/:controller/:action/:id', :action => 'index', :id => nil
       map.connect ':url', :controller => 'tiny_url', :action => 'translate'
     end
+  end
+
+  def test_route_generating_string_literal_in_comparison_warning
+    old_stderr = $stderr
+    $stderr = StringIO.new
+    rs.draw do |map|
+      map.connect 'subscriptions/:action/:subscription_type', :controller => "subscriptions"
+    end
+    assert_equal "", $stderr.string
+  ensure
+    $stderr = old_stderr
   end
 
   def test_basic_named_route
