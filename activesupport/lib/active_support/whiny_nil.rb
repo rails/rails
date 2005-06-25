@@ -6,9 +6,8 @@
 # by the framework users will see a message explaining what type of object 
 # was expected.
 
-
 class NilClass
-  WHINERS = [ ActiveRecord::Base, Array ]
+  WHINERS = [ ::ActiveRecord::Base, ::Array ]
   
   @@method_class_map = Hash.new
   
