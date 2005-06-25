@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed rakefile actions against PostgreSQL when the password is all numeric #1462 [michael@schubert.cx]
+
 * ActionMailer::Base subclasses are reloaded with the other rails components #1262
 
 * Made the WEBrick adapter not use a mutex around action performance if ActionController::Base.allow_concurrency is true (default is false)
