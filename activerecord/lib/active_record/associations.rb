@@ -17,7 +17,7 @@ module ActiveRecord
     def clear_association_cache #:nodoc:
       self.class.reflect_on_all_associations.to_a.each do |assoc|
         instance_variable_set "@#{assoc.name}", nil
-      end
+      end unless self.new_record?
     end
     
     # Associations are a set of macro-like class methods for tying objects together through foreign keys. They express relationships like 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that clear_association_cache doesn't delete new associations on new records (so you can safely place new records in the session with Action Pack without having new associations wiped) #1494 [cluon]
+
 * Fixed that calling Model.find([]) returns [] and doesn't throw an exception #1379
 
 * Fixed that adding a record to a has_and_belongs_to collection would always save it -- now it only saves if its a new record #1203 [Alisdair McDiarmid]

@@ -826,4 +826,25 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal res, res2
   end
   
+  def test_clear_association_cache_stored     
+    firm = Firm.find(1)
+    assert_kind_of Firm, firm
+
+    firm.clear_association_cache
+    assert_equal Firm.find(1).clients.collect{ |x| x.name }.sort, firm.clients.collect{ |x| x.name }.sort
+  end
+  
+  def test_clear_association_cache_new_record
+     firm            = Firm.new
+     client_stored   = Client.find(3)
+     client_new      = Client.new
+     client_new.name = "The Joneses"
+     clients         = [ client_stored, client_new ]
+     
+     firm.clients    << clients
+
+     firm.clear_association_cache
+
+     assert_equal    firm.clients.collect{ |x| x.name }.sort, clients.collect{ |x| x.name }.sort
+  end
 end
