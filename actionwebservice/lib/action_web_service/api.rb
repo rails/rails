@@ -8,7 +8,11 @@ module ActionWebService # :nodoc:
     #
     # It is attached to web service implementation classes like
     # ActionWebService::Base and ActionController::Base derivatives by using
-    # ClassMethods#web_service_api.
+    # <tt>container.web_service_api</tt>, where <tt>container</tt> is an
+    # ActionController::Base or a ActionWebService::Base.
+    #
+    # See ActionWebService::Container::Direct::ClassMethods for an example
+    # of use.
     class Base
       # Whether to transform the public API method names into camel-cased names 
       class_inheritable_option :inflect_names, true
@@ -40,7 +44,7 @@ module ActionWebService # :nodoc:
         # A parameter specifier can be one of the following:
         #
         # * A symbol or string of representing one of the Action Web Service base types.
-        #   See ActionWebService::Signature for a canonical list of the base types.
+        #   See ActionWebService::SignatureTypes for a canonical list of the base types.
         # * The Class object of the parameter type
         # * A single-element Array containing one of the two preceding items. This
         #   will cause Action Web Service to treat the parameter at that position

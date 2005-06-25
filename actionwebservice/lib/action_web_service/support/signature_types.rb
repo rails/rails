@@ -1,6 +1,19 @@
 module ActionWebService # :nodoc:
-  module SignatureTypes # :nodoc:
-    def canonical_signature(signature)
+  # Action Web Service supports the following base types in a signature:
+  #
+  # [<tt>:int</tt>]      Represents an integer value, will be cast to an integer using <tt>Integer(value)</tt>
+  # [<tt>:string</tt>]   Represents a string value, will be cast to an string using the <tt>to_s</tt> method on an object
+  # [<tt>:base64</tt>]   Represents a Base 64 value, will contain the binary bytes of a Base 64 value sent by the caller
+  # [<tt>:bool</tt>]     Represents a boolean value, whatever is passed will be cast to boolean (<tt>true</tt>, '1', 'true', 'y', 'yes' are taken to represent true; <tt>false</tt>, '0', 'false', 'n', 'no' and <tt>nil</tt> represent false)
+  # [<tt>:float</tt>]    Represents a floating point value, will be cast to a float using <tt>Float(value)</tt>
+  # [<tt>:time</tt>]     Represents a timestamp, will be cast to a <tt>Time</tt> object
+  # [<tt>:datetime</tt>] Represents a timestamp, will be cast to a <tt>DateTime</tt> object
+  # [<tt>:date</tt>]     Represents a date, will be cast to a <tt>Date</tt> object
+  #
+  # For structured types, you'll need to pass in the Class objects of
+  # ActionWebService::Struct and ActiveRecord::Base derivatives.
+  module SignatureTypes
+    def canonical_signature(signature) # :nodoc:
       return nil if signature.nil?
       unless signature.is_a?(Array)
         raise(ActionWebServiceError, "Expected signature to be an Array")
@@ -9,7 +22,7 @@ module ActionWebService # :nodoc:
       signature.map{ |spec| canonical_signature_entry(spec, i += 1) }
     end
 
-    def canonical_signature_entry(spec, i)
+    def canonical_signature_entry(spec, i) # :nodoc:
       orig_spec = spec
       name = "param#{i}"
       if spec.is_a?(Hash)
@@ -28,14 +41,14 @@ module ActionWebService # :nodoc:
       end
     end
 
-    def canonical_type(type)
+    def canonical_type(type) # :nodoc:
       type_name = symbol_name(type) || class_to_type_name(type)
       type = type_name || type
       return canonical_type_name(type) if type.is_a?(Symbol)
       type
     end
 
-    def canonical_type_name(name)
+    def canonical_type_name(name) # :nodoc:
       name = name.to_sym
       case name
         when :int, :integer, :fixnum, :bignum
@@ -59,17 +72,17 @@ module ActionWebService # :nodoc:
       end
     end
 
-    def canonical_type_class(type)
+    def canonical_type_class(type) # :nodoc:
       type = canonical_type(type)
       type.is_a?(Symbol) ? type_name_to_class(type) : type
     end
 
-    def symbol_name(name)
+    def symbol_name(name) # :nodoc:
       return name.to_sym if name.is_a?(Symbol) || name.is_a?(String)
       nil
     end
 
-    def class_to_type_name(klass)
+    def class_to_type_name(klass) # :nodoc:
       klass = klass.class unless klass.is_a?(Class)
       if derived_from?(Integer, klass) || derived_from?(Fixnum, klass) || derived_from?(Bignum, klass)
         :int
@@ -92,7 +105,7 @@ module ActionWebService # :nodoc:
       end
     end
 
-    def type_name_to_class(name)
+    def type_name_to_class(name) # :nodoc:
       case canonical_type_name(name)
       when :int
         Integer
@@ -115,7 +128,7 @@ module ActionWebService # :nodoc:
       end
     end
 
-    def derived_from?(ancestor, child)
+    def derived_from?(ancestor, child) # :nodoc:
       child.ancestors.include?(ancestor)
     end
 
@@ -204,6 +217,6 @@ module ActionWebService # :nodoc:
     end
   end
 
-  class Base64 < String
+  class Base64 < String # :nodoc:
   end
 end
