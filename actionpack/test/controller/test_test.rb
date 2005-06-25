@@ -84,4 +84,8 @@ HTML
                     :children => { :greater_than => 2,
                                    :only => { :tag => "li" } } }
   end
+
+  def test_assert_routing
+    assert_generates 'controller/action/5', :controller => 'controller', :action => 'action', :id => '5'
+  end
 end

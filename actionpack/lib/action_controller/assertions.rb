@@ -94,6 +94,7 @@ module Test #:nodoc:
 
       # Asserts that the routing of the given path is handled correctly and that the parsed options match.
       def assert_recognizes(expected_options, path, extras={}, message=nil)
+        path = "/#{path}" unless path[0..0] == '/'
         # Load routes.rb if it hasn't been loaded.
         ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
       
@@ -105,6 +106,7 @@ module Test #:nodoc:
         expected_options = expected_options.clone
         extras.each_key { |key| expected_options.delete key } unless extras.nil?
       
+        expected_options.stringify_keys!
         msg = build_message(message, "The recognized options <?> did not match <?>", 
             request.path_parameters, expected_options)
         assert_block(msg) { request.path_parameters == expected_options }
@@ -121,7 +123,6 @@ module Test #:nodoc:
         request.path_parameters[:controller] ||= options[:controller]
       
         generated_path, found_extras = ActionController::Routing::Routes.generate(options, request)
-        generated_path = generated_path.join('/')
         msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
         assert_block(msg) { found_extras == extras }
       
