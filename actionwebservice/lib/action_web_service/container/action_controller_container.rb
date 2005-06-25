@@ -2,13 +2,13 @@ module ActionWebService # :nodoc:
   module Container # :nodoc:
     module ActionController # :nodoc:
       def self.append_features(base) # :nodoc:
-        base.class_eval do 
-          class << self
-            alias_method :inherited_without_api, :inherited
-            alias_method :web_service_api_without_require, :web_service_api
-          end
+        class << base
+          include ClassMethods
+          alias_method :inherited_without_api, :inherited
+          alias_method :inherited, :inherited_with_api
+          alias_method :web_service_api_without_require, :web_service_api
+          alias_method :web_service_api, :web_service_api_with_require
         end
-        base.extend(ClassMethods)
       end
 
       module ClassMethods
@@ -43,7 +43,7 @@ module ActionWebService # :nodoc:
           end
         end
 
-        def web_service_api(definition=nil) # :nodoc:
+        def web_service_api_with_require(definition=nil) # :nodoc:
           return web_service_api_without_require if definition.nil?
           case definition
           when String, Symbol
@@ -82,7 +82,7 @@ module ActionWebService # :nodoc:
         end
 
         private
-          def inherited(child)
+          def inherited_with_api(child)
             inherited_without_api(child)
             begin child.web_service_api(child.controller_path)
             rescue MissingSourceFile => e

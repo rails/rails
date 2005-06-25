@@ -6,12 +6,12 @@ module ActionWebService # :nodoc:
     module ActionController # :nodoc:
       def self.append_features(base) # :nodoc:
         super
-        base.extend(ClassMethods)
+        class << base
+          include ClassMethods
+          alias_method :inherited_without_action_controller, :inherited
+          alias_method :inherited, :inherited_with_action_controller
+        end
         base.class_eval do
-          class << self
-            alias_method :inherited_without_action_controller, :inherited
-            alias_method :inherited, :inherited_with_action_controller
-          end
           alias_method :web_service_direct_invoke_without_controller, :web_service_direct_invoke
         end
         base.add_web_service_api_callback do |klass, api|
