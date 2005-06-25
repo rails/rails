@@ -493,6 +493,15 @@ class ValidationsTest < Test::Unit::TestCase
     end
   end
 
+  def test_validates_length_with_globaly_modified_error_message
+    ActiveRecord::Errors.default_error_messages[:too_short] = 'tu est trops petit hombre %d'
+    Topic.validates_length_of :title, :minimum => 10
+    t = Topic.create(:title => 'too short')
+    assert !t.valid?
+
+    assert_equal 'tu est trops petit hombre 10', t.errors['title']
+  end
+
   def test_validates_size_of_association
     assert_nothing_raised { Topic.validates_size_of :replies, :minimum => 1 }
     t = Topic.new('title' => 'noreplies', 'content' => 'whatever')

@@ -213,12 +213,6 @@ module ActiveRecord
         :message => nil
       }.freeze
 
-      DEFAULT_SIZE_VALIDATION_OPTIONS = DEFAULT_VALIDATION_OPTIONS.merge(
-        :too_long => ActiveRecord::Errors.default_error_messages[:too_long],
-        :too_short => ActiveRecord::Errors.default_error_messages[:too_short],
-        :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length]
-      ).freeze
-
       ALL_RANGE_OPTIONS = [ :is, :within, :in, :minimum, :maximum ].freeze
 
       def validate(*methods, &block)
@@ -404,7 +398,9 @@ module ActiveRecord
       # method, proc or string should return or evaluate to a true or false value.
       def validates_length_of(*attrs)
         # Merge given options with defaults.
-        options = DEFAULT_SIZE_VALIDATION_OPTIONS.dup
+        options = {:too_long     => ActiveRecord::Errors.default_error_messages[:too_long],
+                   :too_short    => ActiveRecord::Errors.default_error_messages[:too_short],
+                   :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length]}.merge(DEFAULT_VALIDATION_OPTIONS)
         options.update(attrs.pop.symbolize_keys) if attrs.last.is_a?(Hash)
 
         # Ensure that one and only one range option is specified.
