@@ -1,5 +1,17 @@
 *SVN*
 
+* Fixed Base#find to honor the documentation on how :joins work and make them consistent with Base#count #1405 [pritchie@gmail.com]. What used to be:
+
+    Developer.find :all, :joins => 'developers_projects', :conditions => 'id=developer_id AND project_id=1'
+  
+  ...should instead be:
+  
+    Developer.find(
+      :all, 
+      :joins => 'LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id', 
+      :conditions => 'project_id=1'
+    )    
+
 * Fixed that validations didn't respecting custom setting for too_short, too_long messages #1437 [Marcel Molina]
 
 * Fixed that clear_association_cache doesn't delete new associations on new records (so you can safely place new records in the session with Action Pack without having new associations wiped) #1494 [cluon]

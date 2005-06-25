@@ -135,9 +135,11 @@ module ActiveRecord #:nodoc:
   #
   # == Dynamic attribute-based finders
   #
-  # Dynamic attribute-based finders are a cleaner way of getting objects by simple queries without turning to SQL. They work by
-  # appending the name of an attribute to <tt>find_by_</tt>, so you get finders like <tt>Person.find_by_user_name, Payment.find_by_transaction_id</tt>.
-  # So instead of writing <tt>Person.find(:first, ["user_name = ?", user_name])</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
+  # Dynamic attribute-based finders are a cleaner way of getting objects by simple queries without turning to SQL. They work by 
+  # appending the name of an attribute to <tt>find_by_</tt> or <tt>find_all_by_</tt>, so you get finders like Person.find_by_user_name,
+  # Person.find_all_by_last_name, Payment.find_by_transaction_id. So instead of writing 
+  # <tt>Person.find(:first, ["user_name = ?", user_name])</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>. 
+  # And instead of writing <tt>Person.find(:all, ["last_name = ?", last_name])</tt>, you just do <tt>Person.find_all_by_last_name(last_name)</tt>.
   # 
   # It's also possible to use multiple attributes in the same find by separating them with "_and_", so you get finders like
   # <tt>Person.find_by_user_name_and_password</tt> or even <tt>Payment.find_by_purchaser_and_state_and_country</tt>. So instead of writing
@@ -737,7 +739,7 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_sql(options)
           sql  = "SELECT * FROM #{table_name} " 
-          sql << ", #{options[:joins]} " if options[:joins]
+          sql << " #{options[:joins]} " if options[:joins]
           add_conditions!(sql, options[:conditions])
           sql << "ORDER BY #{options[:order]} " if options[:order]
           add_limit!(sql, options)
