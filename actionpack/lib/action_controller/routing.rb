@@ -29,9 +29,6 @@ module ActionController
       end
     end
 
-    class RoutingError < StandardError
-    end
-
     class << self
       def test_condition(expression, condition)
         case condition
@@ -413,7 +410,7 @@ module ActionController
         path.shift
     
         hash = recognize_path(path)
-        raise RoutingError, "No route matches path #{path.inspect}" unless hash
+        recognition_failed(request) unless hash && hash['controller']
     
         controller = hash['controller']
         hash['controller'] = controller.controller_path
@@ -422,6 +419,10 @@ module ActionController
       end
       alias :recognize! :recognize
   
+      def recognition_failed(request)
+        raise ActionController::RoutingError, "Recognition failed for #{request.path.inspect}"
+      end
+
       def write_recognition
         g = generator = CodeGeneration::RecognitionGenerator.new
         g.finish_statement = Proc.new {|hash_expr| "return #{hash_expr}"}
