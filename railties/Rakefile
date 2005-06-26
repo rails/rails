@@ -25,7 +25,7 @@ PUBLIC_DIRS = %w( images javascripts stylesheets )
 TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/test )
 
 LOG_FILES    = %w( server.log development.log test.log production.log )
-HTML_FILES   = %w( 404.html 500.html index.html favicon.ico javascripts/prototype.js )
+HTML_FILES   = %w( 404.html 500.html index.html favicon.ico javascripts/prototype.js javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js )
 BIN_FILES    = %w( generate destroy breakpointer console server update runner profiler benchmarker )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )

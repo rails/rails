@@ -23,24 +23,24 @@ class AppGenerator < Rails::Generator::Base
 
       # Root
       m.file "fresh_rakefile", "Rakefile"
-      m.file "README", "README"
-      m.file "CHANGELOG", "CHANGELOG"
+      m.file "README",         "README"
+      m.file "CHANGELOG",      "CHANGELOG"
 
       # Application
-      m.template "helpers/application.rb", "app/controllers/application.rb"
+      m.template "helpers/application.rb",        "app/controllers/application.rb"
       m.template "helpers/application_helper.rb", "app/helpers/application_helper.rb"
-      m.template "helpers/test_helper.rb", "test/test_helper.rb"
+      m.template "helpers/test_helper.rb",        "test/test_helper.rb"
 
       # database.yml and .htaccess
       m.template "configs/database.yml", "config/database.yml"
-      m.template "configs/routes.rb", "config/routes.rb"
-      m.template "configs/apache.conf", "public/.htaccess"
+      m.template "configs/routes.rb",    "config/routes.rb"
+      m.template "configs/apache.conf",  "public/.htaccess"
 
       # Environments
       m.file "environments/environment.rb", "config/environment.rb"
-      m.file "environments/production.rb", "config/environments/production.rb"
+      m.file "environments/production.rb",  "config/environments/production.rb"
       m.file "environments/development.rb", "config/environments/development.rb"
-      m.file "environments/test.rb", "config/environments/test.rb"
+      m.file "environments/test.rb",        "config/environments/test.rb"
 
       # Scripts
       %w(console destroy generate server runner benchmarker profiler).each do |file|
@@ -53,8 +53,8 @@ class AppGenerator < Rails::Generator::Base
       end
 
       # Dispatches
-      m.file "dispatches/dispatch.rb", "public/dispatch.rb", script_options
-      m.file "dispatches/dispatch.rb", "public/dispatch.cgi", script_options
+      m.file "dispatches/dispatch.rb",   "public/dispatch.rb", script_options
+      m.file "dispatches/dispatch.rb",   "public/dispatch.cgi", script_options
       m.file "dispatches/dispatch.fcgi", "public/dispatch.fcgi", script_options
 
       # HTML files
@@ -66,6 +66,9 @@ class AppGenerator < Rails::Generator::Base
 
       # Javascripts
       m.file "html/javascripts/prototype.js", "public/javascripts/prototype.js"
+      m.file "html/javascripts/effects.js",   "public/javascripts/effects.js"
+      m.file "html/javascripts/dragdrop.js",  "public/javascripts/dragdrop.js"
+      m.file "html/javascripts/controls.js",  "public/javascripts/controls.js"
 
       # Docs
       m.file "doc/README_FOR_APP", "doc/README_FOR_APP"
