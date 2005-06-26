@@ -79,11 +79,11 @@ module ActiveRecord #:nodoc:
   # 
   #   User < ActiveRecord::Base
   #     def self.authenticate_unsafely(user_name, password)
-  #       find_first("user_name = '#{user_name}' AND password = '#{password}'")
+  #       find(:first, :conditions => "user_name = '#{user_name}' AND password = '#{password}'")
   #     end
   # 
   #     def self.authenticate_safely(user_name, password)
-  #       find_first([ "user_name = ? AND password = ?", user_name, password ])
+  #       find(:first, :conditions => [ "user_name = ? AND password = ?", user_name, password ])
   #     end
   #   end
   # 
@@ -362,7 +362,7 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Works like find_all, but requires a complete SQL string. Examples:
+      # Works like find(:all), but requires a complete SQL string. Examples:
       #   Post.find_by_sql "SELECT p.*, c.author FROM posts p, comments c WHERE p.id = c.post_id"
       #   Post.find_by_sql ["SELECT * FROM posts WHERE author = ? AND created > ?", author_id, start_date]
       def find_by_sql(sql)
@@ -426,7 +426,7 @@ module ActiveRecord #:nodoc:
       # the destroy method. Example:
       #   Person.destroy_all "last_login < '2004-04-04'"
       def destroy_all(conditions = nil)
-        find_all(conditions).each { |object| object.destroy }
+        find(:all, :conditions => conditions).each { |object| object.destroy }
       end
     
       # Deletes all the records that matches the +condition+ without instantiating the objects first (and hence not 
@@ -679,7 +679,7 @@ module ActiveRecord #:nodoc:
       #   Project.benchmark("Creating project") do
       #     project = Project.create("name" => "stuff")
       #     project.create_manager("name" => "David")
-      #     project.milestones << Milestone.find_all
+      #     project.milestones << Milestone.find(:all)
       #   end
       def benchmark(title)
         result = nil
@@ -777,8 +777,8 @@ module ActiveRecord #:nodoc:
         end
 
         # Enables dynamic finders like find_by_user_name(user_name) and find_by_user_name_and_password(user_name, password) that are turned into 
-        # find_first(["user_name = ?", user_name]) and find_first(["user_name = ? AND password = ?", user_name, password]) respectively. Also works
-        # for find_all, but using find_all_by_amount(50) that are turned into find_all(["amount = ?", 50]).
+        # find(:first, :conditions => ["user_name = ?", user_name]) and  find(:first, :conditions => ["user_name = ? AND password = ?", user_name, password]) 
+        # respectively. Also works for find(:all), but using find_all_by_amount(50) that are turned into find(:all, :conditions => ["amount = ?", 50]).
         # 
         # It's even possible to use all the additional parameters to find. For example, the full interface for find_all_by_amount
         # is actually find_all_by_amount(amount, options).

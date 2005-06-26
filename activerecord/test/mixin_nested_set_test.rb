@@ -143,7 +143,7 @@ class MixinNestedSetTest < Test::Unit::TestCase
   def test_deleting_root
     NestedSetWithStringScope.find(4001).destroy
     
-    assert( NestedSetWithStringScope.find_all.length == 0 )
+    assert( NestedSetWithStringScope.count == 0 )
   end            
                                
   def test_common_usage

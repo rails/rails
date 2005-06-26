@@ -40,10 +40,10 @@ class MigrationTest < Test::Unit::TestCase
     WeNeedReminders.up
     
     assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert "hello world", Reminder.find_first
+    assert "hello world", Reminder.find(:first)
     
     WeNeedReminders.down
-    assert_raises(ActiveRecord::StatementInvalid) { Reminder.find_first }
+    assert_raises(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
   end
 
   def test_migrator
@@ -56,7 +56,7 @@ class MigrationTest < Test::Unit::TestCase
     Person.reset_column_information
     assert Person.column_methods_hash.include?(:last_name)
     assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert "hello world", Reminder.find_first
+    assert "hello world", Reminder.find(:first)
 
 
     ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/')
@@ -64,7 +64,7 @@ class MigrationTest < Test::Unit::TestCase
     assert_equal 0, ActiveRecord::Migrator.current_version
     Person.reset_column_information
     assert !Person.column_methods_hash.include?(:last_name)
-    assert_raises(ActiveRecord::StatementInvalid) { Reminder.find_first }
+    assert_raises(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
   end
 
   def test_migrator_one_up
@@ -81,7 +81,7 @@ class MigrationTest < Test::Unit::TestCase
     ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 2)
 
     assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
-    assert "hello world", Reminder.find_first
+    assert "hello world", Reminder.find(:first)
   end
   
   def test_migrator_one_down

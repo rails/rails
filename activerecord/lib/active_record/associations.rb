@@ -304,7 +304,7 @@ module ActiveRecord
       #   with +attributes+ and linked to this object through a foreign key and that has already been saved (if it passed the validation).
       #
       # Example: An Account class declares <tt>has_one :beneficiary</tt>, which will add:
-      # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.find_first "account_id = #{id}"</tt>)
+      # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.find(:first, :conditions => "account_id = #{id}")</tt>)
       # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
       # * <tt>Account#beneficiary.nil?</tt>
       # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)

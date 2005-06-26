@@ -153,7 +153,7 @@ module ActiveRecord
   #
   # == The after_find and after_initialize exceptions
   #
-  # Because after_find and after_initialize is called for each object instantiated found by a finder, such as Base.find_all, we've had
+  # Because after_find and after_initialize is called for each object instantiated found by a finder, such as Base.find(:all), we've had
   # to implement a simple performance constraint (50% more speed on a simple test case). Unlike all the other callbacks, after_find and
   # after_initialize will only be run if an explicit implementation is defined (<tt>def after_find</tt>). In that case, all of the
   # callback types will be called.

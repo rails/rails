@@ -465,11 +465,11 @@ module ActiveRecord
 
         if scope = configuration[:scope]
           validates_each(attr_names,configuration) do |record, attr_name, value|
-            record.errors.add(attr_name, configuration[:message]) if record.class.find_first(record.new_record? ? ["#{attr_name} = ? AND #{scope} = ?", record.send(attr_name), record.send(scope)] : ["#{attr_name} = ? AND #{record.class.primary_key} <> ? AND #{scope} = ?", record.send(attr_name), record.send(:id), record.send(scope)])
+            record.errors.add(attr_name, configuration[:message]) if record.class.find(:first, :conditions => (record.new_record? ? ["#{attr_name} = ? AND #{scope} = ?", record.send(attr_name), record.send(scope)] : ["#{attr_name} = ? AND #{record.class.primary_key} <> ? AND #{scope} = ?", record.send(attr_name), record.send(:id), record.send(scope)]))
           end
         else
           validates_each(attr_names,configuration) do |record, attr_name, value|
-            record.errors.add(attr_name, configuration[:message]) if record.class.find_first(record.new_record? ? ["#{attr_name} = ?", record.send(attr_name)] : ["#{attr_name} = ? AND #{record.class.primary_key} <> ?", record.send(attr_name), record.send(:id) ] )
+            record.errors.add(attr_name, configuration[:message]) if record.class.find(:first, :conditions => (record.new_record? ? ["#{attr_name} = ?", record.send(attr_name)] : ["#{attr_name} = ? AND #{record.class.primary_key} <> ?", record.send(attr_name), record.send(:id) ] ))
           end
         end
       end

@@ -5,14 +5,14 @@ class ModulesTest < Test::Unit::TestCase
   fixtures :accounts, :companies, :projects, :developers
 
   def test_module_spanning_associations
-    assert MyApplication::Business::Firm.find_first.has_clients?, "Firm should have clients"
-    firm = MyApplication::Business::Firm.find_first
+    assert MyApplication::Business::Firm.find(:first).has_clients?, "Firm should have clients"
+    firm = MyApplication::Business::Firm.find(:first)
     assert_nil firm.class.table_name.match('::'), "Firm shouldn't have the module appear in its table name"
     assert_equal 2, firm.clients_count, "Firm should have two clients"
   end
 
   def test_module_spanning_has_and_belongs_to_many_associations
-    project = MyApplication::Business::Project.find_first
+    project = MyApplication::Business::Project.find(:first)
     project.developers << MyApplication::Business::Developer.create("name" => "John")
     assert "John", project.developers.last.name
   end

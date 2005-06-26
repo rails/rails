@@ -126,7 +126,7 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     firm = Firm.find(1)
     assert !firm.account.nil?
     firm.destroy
-    assert_equal 1, Account.find_all.length
+    assert_equal 1, Account.count
   end
 
   def test_succesful_build_association
@@ -259,45 +259,45 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
   
   def test_counting
-    assert_equal 2, Firm.find_first.clients.count
+    assert_equal 2, Firm.find(:first).clients.count
   end
   
   def test_finding
-    assert_equal 2, Firm.find_first.clients.length
+    assert_equal 2, Firm.find(:first).clients.length
   end
 
   def test_finding_default_orders
-    assert_equal "Summit", Firm.find_first.clients.first.name
+    assert_equal "Summit", Firm.find(:first).clients.first.name
   end
 
   def test_finding_with_different_class_name_and_order
-    assert_equal "Microsoft", Firm.find_first.clients_sorted_desc.first.name
+    assert_equal "Microsoft", Firm.find(:first).clients_sorted_desc.first.name
   end
 
   def test_finding_with_foreign_key
-    assert_equal "Microsoft", Firm.find_first.clients_of_firm.first.name
+    assert_equal "Microsoft", Firm.find(:first).clients_of_firm.first.name
   end
 
   def test_finding_with_condition
-    assert_equal "Microsoft", Firm.find_first.clients_like_ms.first.name
+    assert_equal "Microsoft", Firm.find(:first).clients_like_ms.first.name
   end
 
   def test_finding_using_sql
-    firm = Firm.find_first
+    firm = Firm.find(:first)
     first_client = firm.clients_using_sql.first
     assert_not_nil first_client
     assert_equal "Microsoft", first_client.name
     assert_equal 1, firm.clients_using_sql.size
-    assert_equal 1, Firm.find_first.clients_using_sql.size
+    assert_equal 1, Firm.find(:first).clients_using_sql.size
   end
 
   def test_counting_using_sql
-    assert_equal 1, Firm.find_first.clients_using_counter_sql.size
-    assert_equal 0, Firm.find_first.clients_using_zero_counter_sql.size
+    assert_equal 1, Firm.find(:first).clients_using_counter_sql.size
+    assert_equal 0, Firm.find(:first).clients_using_zero_counter_sql.size
   end
 
   def test_counting_non_existant_items_using_sql
-    assert_equal 0, Firm.find_first.no_clients_using_counter_sql.size
+    assert_equal 0, Firm.find(:first).no_clients_using_counter_sql.size
   end
   
   def test_belongs_to_sanity
@@ -547,7 +547,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_destroy_dependent_when_deleted_from_association
-    firm = Firm.find_first
+    firm = Firm.find(:first)
     assert_equal 2, firm.clients.size
 
     client = firm.clients.first
@@ -579,9 +579,9 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_dependence_on_account
-    assert_equal 2, Account.find_all.length
+    assert_equal 2, Account.count
     companies(:first_firm).destroy
-    assert_equal 1, Account.find_all.length
+    assert_equal 1, Account.count
   end
 
   def test_included_in_collection
@@ -589,7 +589,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_adding_array_and_collection
-    assert_nothing_raised { Firm.find_first.clients + Firm.find_all.last.clients }
+    assert_nothing_raised { Firm.find(:first).clients + Firm.find(:all).last.clients }
   end
 
   def test_find_all_without_conditions
@@ -598,7 +598,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_replace_with_less
-    firm = Firm.find_first
+    firm = Firm.find(:first)
     firm.clients = [companies(:first_client)]
     assert firm.save, "Could not save firm"
     firm.reload
@@ -606,7 +606,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
   
   def test_replace_with_new
-    firm = Firm.find_first
+    firm = Firm.find(:first)
     new_client = Client.new("name" => "New Client")
     firm.clients = [companies(:second_client),new_client]
     firm.save
@@ -699,7 +699,7 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
   end
 
   def test_assignment_before_parent_saved
-    client = Client.find_first
+    client = Client.find(:first)
     apple = Firm.new("name" => "Apple")
     client.firm = apple
     assert_equal apple, client.firm
@@ -738,7 +738,7 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
 
   def test_new_record_with_foreign_key_but_no_object
     c = Client.new("firm_id" => 1)
-    assert_equal Firm.find_first, c.firm_with_basic_id
+    assert_equal Firm.find(:first), c.firm_with_basic_id
   end
 
   def test_forgetting_the_load_when_foreign_key_enters_late
@@ -746,7 +746,7 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert_nil c.firm_with_basic_id
 
     c.firm_id = 1
-    assert_equal Firm.find_first, c.firm_with_basic_id
+    assert_equal Firm.find(:first), c.firm_with_basic_id
   end
 
   def test_field_name_same_as_foreign_key
@@ -764,7 +764,7 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     apple.companies_count = 2
     apple.save
 
-    apple = Firm.find_first("name = 'Apple'")
+    apple = Firm.find(:first, :conditions => "name = 'Apple'")
     assert_equal 2, apple.clients.size, "Should use the new cached number"
 
     apple.clients.to_s 
@@ -966,7 +966,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_deleting_array
     david = Developer.find(1)
     david.projects.reload
-    david.projects.delete(Project.find_all)
+    david.projects.delete(Project.find(:all))
     assert_equal 0, david.projects.size
     assert_equal 0, david.projects(true).size
   end
@@ -986,7 +986,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     active_record.developers.reload
     assert_equal 2, active_record.developers_by_sql.size
     
-    active_record.developers_by_sql.delete(Developer.find_all)
+    active_record.developers_by_sql.delete(Developer.find(:all))
     assert_equal 0, active_record.developers_by_sql(true).size
   end
 

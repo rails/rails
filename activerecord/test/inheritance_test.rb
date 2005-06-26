@@ -23,7 +23,7 @@ class InheritanceTest < Test::Unit::TestCase
   end
 
   def test_inheritance_find_all
-    companies = Company.find_all(nil, "id")
+    companies = Company.find(:all, :order => 'id')
     assert companies[0].kind_of?(Firm), "37signals should be a firm"
     assert companies[1].kind_of?(Client), "Summit should be a client"
   end
@@ -48,9 +48,9 @@ class InheritanceTest < Test::Unit::TestCase
   end
 
   def test_inheritance_condition
-    assert_equal 5, Company.find_all.length
-    assert_equal 2, Firm.find_all.length
-    assert_equal 3, Client.find_all.length
+    assert_equal 5, Company.count
+    assert_equal 2, Firm.count
+    assert_equal 3, Client.count
   end
   
   def test_alt_inheritance_condition
@@ -70,8 +70,8 @@ class InheritanceTest < Test::Unit::TestCase
 
   def test_update_all_within_inheritance
     Client.update_all "name = 'I am a client'"
-    assert_equal "I am a client", Client.find_all.first.name
-    assert_equal "37signals", Firm.find_all.first.name
+    assert_equal "I am a client", Client.find(:all).first.name
+    assert_equal "37signals", Firm.find(:all).first.name
   end
   
   def test_alt_update_all_within_inheritance
@@ -81,8 +81,8 @@ class InheritanceTest < Test::Unit::TestCase
 
   def test_destroy_all_within_inheritance
     Client.destroy_all
-    assert_equal 0, Client.find_all.length
-    assert_equal 2, Firm.find_all.length
+    assert_equal 0, Client.count
+    assert_equal 2, Firm.count
   end
   
   def test_alt_destroy_all_within_inheritance
@@ -91,9 +91,9 @@ class InheritanceTest < Test::Unit::TestCase
   end
 
   def test_find_first_within_inheritance
-    assert_kind_of Firm, Company.find_first("name = '37signals'")
-    assert_kind_of Firm, Firm.find_first("name = '37signals'")
-    assert_nil Client.find_first("name = '37signals'")
+    assert_kind_of Firm, Company.find(:first, :conditions => "name = '37signals'")
+    assert_kind_of Firm, Firm.find(:first, :conditions => "name = '37signals'")
+    assert_nil Client.find(:first, :conditions => "name = '37signals'")
   end
   
   def test_alt_find_first_within_inheritance
@@ -103,11 +103,11 @@ class InheritanceTest < Test::Unit::TestCase
 
   def test_complex_inheritance
     very_special_client = VerySpecialClient.create("name" => "veryspecial")
-    assert_equal very_special_client, VerySpecialClient.find_first("name = 'veryspecial'")
-    assert_equal very_special_client, SpecialClient.find_first("name = 'veryspecial'")
-    assert_equal very_special_client, Company.find_first("name = 'veryspecial'")
-    assert_equal very_special_client, Client.find_first("name = 'veryspecial'")
-    assert_equal 1, Client.find_all("name = 'Summit'").size
+    assert_equal very_special_client, VerySpecialClient.find(:first, :conditions => "name = 'veryspecial'")
+    assert_equal very_special_client, SpecialClient.find(:first, :conditions => "name = 'veryspecial'")
+    assert_equal very_special_client, Company.find(:first, :conditions => "name = 'veryspecial'")
+    assert_equal very_special_client, Client.find(:first, :conditions => "name = 'veryspecial'")
+    assert_equal 1, Client.find(:all, :conditions => "name = 'Summit'").size
     assert_equal very_special_client, Client.find(very_special_client.id)
   end
 
@@ -125,7 +125,7 @@ class InheritanceTest < Test::Unit::TestCase
   private
     def switch_to_alt_inheritance_column
       # we don't want misleading test results, so get rid of the values in the type column
-      Company.find_all(nil, "id").each do |c|
+      Company.find(:all, :order => 'id').each do |c|
         c['type'] = nil
         c.save
       end

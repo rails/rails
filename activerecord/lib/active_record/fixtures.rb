@@ -169,13 +169,13 @@ require 'csv'
 #     fixtures :foos
 #   
 #     def test_godzilla
-#       assert !Foo.find_all.emtpy?
+#       assert !Foo.find(:all).empty?
 #       Foo.destroy_all
-#       assert Foo.find_all.emtpy?
+#       assert Foo.find(:all).empty?
 #     end
 #   
 #     def test_godzilla_aftermath
-#       assert !Foo.find_all.emtpy?
+#       assert !Foo.find(:all).empty?
 #     end
 #   end
 #   

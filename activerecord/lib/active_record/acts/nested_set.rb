@@ -181,17 +181,17 @@ module ActiveRecord
                                                                
         # Returns a set of itself and all of it's nested children
         def full_set
-          self.class.find_all( "#{scope_condition} AND (#{left_col_name} BETWEEN #{self[left_col_name]} and #{self[right_col_name]})" )
+          self.class.find(:all, :conditions => "#{scope_condition} AND (#{left_col_name} BETWEEN #{self[left_col_name]} and #{self[right_col_name]})" )
         end
                   
         # Returns a set of all of it's children and nested children
         def all_children
-          self.class.find_all( "#{scope_condition} AND (#{left_col_name} > #{self[left_col_name]}) and (#{right_col_name} < #{self[right_col_name]})" )
+          self.class.find(:all, :conditions => "#{scope_condition} AND (#{left_col_name} > #{self[left_col_name]}) and (#{right_col_name} < #{self[right_col_name]})" )
         end
                                   
         # Returns a set of only this entries immediate children
         def direct_children
-          self.class.find_all( "#{scope_condition} and #{parent_column} = #{self.id}")
+          self.class.find(:all, :conditions => "#{scope_condition} and #{parent_column} = #{self.id}")
         end
                                       
         # Prunes a branch off of the tree, shifting all of the elements on the right

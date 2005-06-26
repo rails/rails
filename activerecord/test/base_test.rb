@@ -110,7 +110,7 @@ class BasicsTest < Test::Unit::TestCase
   end
  
   def test_attributes_hash
-    assert_equal @loaded_fixtures['projects']['active_record'].to_hash, Project.find_first.attributes
+    assert_equal @loaded_fixtures['projects']['active_record'].to_hash, Project.find(:first).attributes
   end
 
   def test_create
@@ -227,13 +227,13 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_load
-    topics = Topic.find_all nil, "id"    
+    topics = Topic.find(:all, :order => 'id')    
     assert_equal(2, topics.size)
     assert_equal(topics(:first).title, topics.first.title)
   end
   
   def test_load_with_condition
-    topics = Topic.find_all "author_name = 'Mary'"
+    topics = Topic.find(:all, :conditions => "author_name = 'Mary'")
     
     assert_equal(1, topics.size)
     assert_equal(topics(:second).title, topics.first.title)
@@ -276,10 +276,10 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_destroy_all
-    assert_equal 2, Topic.find_all.size
+    assert_equal 2, Topic.count
 
     Topic.destroy_all "author_name = 'Mary'"
-    assert_equal 1, Topic.find_all.size
+    assert_equal 1, Topic.count
   end
 
   def test_destroy_many

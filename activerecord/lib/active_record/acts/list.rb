@@ -135,14 +135,14 @@ module ActiveRecord
         
         def higher_item
           return nil unless in_list?
-          self.class.find_first(
+          self.class.find(:first, :conditions =>
             "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i - 1).to_s}"
           )
         end
 
         def lower_item
           return nil unless in_list?
-          self.class.find_first(
+          self.class.find(:first, :conditions =>
             "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i + 1).to_s}"
           )
         end
@@ -169,10 +169,7 @@ module ActiveRecord
           end
 
           def bottom_item
-            self.class.find_first(
-              "#{scope_condition} ",
-              "#{position_column} DESC"
-            )
+            self.class.find(:first, :conditions => scope_condition, :order => "#{position_column} DESC")
           end
 
           def assume_bottom_position

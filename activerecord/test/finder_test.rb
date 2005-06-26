@@ -48,7 +48,7 @@ class FinderTest < Test::Unit::TestCase
   def test_find_all_with_prepared_limit_and_offset
     if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
       if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
-        assert_raises(ArgumentError) { Entrant.find_all nil, "id ASC", [2, 1] }
+        assert_raises(ArgumentError) { Entrant.find(:all, :order => 'id ASC', :limit => 2, :offset => 1) }
       end
     else
       entrants = Entrant.find(:all, :order => "id ASC", :limit => 2, :offset => 1)

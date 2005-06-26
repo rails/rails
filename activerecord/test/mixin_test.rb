@@ -13,7 +13,7 @@ class ListTest < Test::Unit::TestCase
                   mixins(:list_2), 
                   mixins(:list_3), 
                   mixins(:list_4)], 
-                  ListMixin.find_all("parent_id=5", "pos")
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
                   
     mixins(:list_2).move_lower
                   
@@ -21,7 +21,7 @@ class ListTest < Test::Unit::TestCase
                   mixins(:list_3), 
                   mixins(:list_2), 
                   mixins(:list_4)], 
-                  ListMixin.find_all("parent_id=5", "pos")                      
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
                   
     mixins(:list_2).move_higher
 
@@ -29,7 +29,7 @@ class ListTest < Test::Unit::TestCase
                   mixins(:list_2), 
                   mixins(:list_3), 
                   mixins(:list_4)], 
-                  ListMixin.find_all("parent_id=5", "pos")
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
     
     mixins(:list_1).move_to_bottom
 
@@ -37,7 +37,7 @@ class ListTest < Test::Unit::TestCase
                   mixins(:list_3), 
                   mixins(:list_4), 
                   mixins(:list_1)], 
-                  ListMixin.find_all("parent_id=5", "pos")
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
 
     mixins(:list_1).move_to_top
 
@@ -45,7 +45,7 @@ class ListTest < Test::Unit::TestCase
                   mixins(:list_2), 
                   mixins(:list_3), 
                   mixins(:list_4)],
-                  ListMixin.find_all("parent_id=5", "pos")
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
                   
                   
     mixins(:list_2).move_to_bottom
@@ -54,7 +54,7 @@ class ListTest < Test::Unit::TestCase
                   mixins(:list_3), 
                   mixins(:list_4), 
                   mixins(:list_2)],
-                  ListMixin.find_all("parent_id=5", "pos")                  
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
 
     mixins(:list_4).move_to_top
 
@@ -62,7 +62,7 @@ class ListTest < Test::Unit::TestCase
                   mixins(:list_1), 
                   mixins(:list_3), 
                   mixins(:list_2)],
-                  ListMixin.find_all("parent_id=5", "pos")                  
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
         
   end
   
@@ -134,14 +134,14 @@ class ListTest < Test::Unit::TestCase
                   mixins(:list_2), 
                   mixins(:list_3), 
                   mixins(:list_4)], 
-                  ListMixin.find_all("parent_id=5", "pos")
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
               
     mixins(:list_2).destroy
     
     assert_equal [mixins(:list_1, :reload), 
                   mixins(:list_3, :reload), 
                   mixins(:list_4, :reload)], 
-                  ListMixin.find_all("parent_id=5", "pos")
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
                   
     assert_equal 1, mixins(:list_1).pos
     assert_equal 2, mixins(:list_3).pos
@@ -151,7 +151,7 @@ class ListTest < Test::Unit::TestCase
 
     assert_equal [mixins(:list_3, :reload), 
                   mixins(:list_4, :reload)], 
-                  ListMixin.find_all("parent_id=5", "pos")
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
                   
     assert_equal 1, mixins(:list_3).pos
     assert_equal 2, mixins(:list_4).pos
@@ -168,7 +168,7 @@ class ListTest < Test::Unit::TestCase
   def test_nil_scope
     new1, new2, new3 = ListMixin.create, ListMixin.create, ListMixin.create
     new2.move_higher
-    assert_equal [new2, new1, new3], ListMixin.find_all("parent_id IS NULL", "pos")
+    assert_equal [new2, new1, new3], ListMixin.find(:all, :conditions => 'parent_id IS NULL', :order => 'pos')
   end
 end
 
