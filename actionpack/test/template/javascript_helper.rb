@@ -16,6 +16,11 @@ class JavascriptHelperTest < Test::Unit::TestCase
     end
     @controller = @controller.new
   end
+  
+  def test_define_javascript_functions
+    # check if prototype.js is included first
+    assert_not_nil define_javascript_functions.split("\n")[1].match(/Prototype: an object-oriented Javascript library/)
+  end
 
   def test_escape_javascript
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))
@@ -39,7 +44,7 @@ class JavascriptHelperTest < Test::Unit::TestCase
   end
   
   def test_form_remote_tag
-    assert_equal %(<form onsubmit="new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {parameters:Form.serialize(this), asynchronous:true}); return false;">),
+    assert_equal %(<form action="http://www.example.com/fast" method="post" onsubmit="new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {parameters:Form.serialize(this), asynchronous:true}); return false;">),
       form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  })
   end
   
@@ -56,6 +61,23 @@ class JavascriptHelperTest < Test::Unit::TestCase
   def test_observe_form
     assert_equal %(<script type="text/javascript">new Form.Observer('cart', 2, function(element, value) {new Ajax.Request('http://www.example.com/cart_changed', {asynchronous:true})})</script>),
       observe_form("cart", :frequency => 2, :url => { :action => "cart_changed" })
+  end
+  
+  def test_remote_autocomplete
+    assert_equal %(<script type="text/javascript">new Ajax.Autocompleter('some_input', 'some_input_autocomplete', 'http://www.example.com/autocomplete', {})</script>),
+      remote_autocomplete("some_input", :url => { :action => "autocomplete" });    
+  end 
+  
+  def test_effect
+    assert_equal "new Effect.Highlight('posts',{});", visual_effect(:highlight, "posts")
+    assert_equal "new Effect.Highlight('posts',{});", visual_effect("highlight", :posts)
+    assert_equal "new Effect.Highlight('posts',{});", visual_effect(:highlight, :posts)    
+    assert_equal "new Effect.Fade('fademe',{duration:4.0});", visual_effect(:fade, "fademe", :duration => 4.0)
+  end
+  
+  def test_remote_sortable
+    assert_equal %(<script type="text/javascript">Sortable.create('mylist',{onUpdate:function(){new Ajax.Request('http://www.example.com/order', {parameters:Sortable.serialize('mylist'), asynchronous:true})}})</script>), 
+      remote_sortable("mylist", :url => { :action => "order" })
   end
   
 end

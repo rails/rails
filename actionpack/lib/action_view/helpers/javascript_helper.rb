@@ -16,7 +16,8 @@ module ActionView
     # the use of form_remote_tag.
     module JavascriptHelper      
       unless const_defined? :CALLBACKS
-        CALLBACKS = [:uninitialized, :loading, :loaded, :interactive, :complete]
+        CALLBACKS       = [ :uninitialized, :loading, :loaded, :interactive, :complete ]
+        AJAX_OPTIONS    = [ :url, :asynchronous, :method, :insertion, :form, :with ].concat(CALLBACKS)
         JAVASCRIPT_PATH = File.join(File.dirname(__FILE__), 'javascripts')
       end
       
@@ -146,8 +147,10 @@ module ActionView
         return function
       end
 
-      # Includes the Action Pack Javascript library inside a single <script> 
-      # tag.
+      # Includes the Action Pack Javascript libraries inside a single <script> 
+      # tag. The function first includes prototype.js and then its core extensions,
+      # (determined by filenames starting with "prototype").
+      # Afterwards, any additional scripts will be included in random order.
       #
       # Note: The recommended approach is to copy the contents of
       # lib/action_view/helpers/javascripts/ into your application's
@@ -155,12 +158,22 @@ module ActionView
       # create remote <script> links.
       def define_javascript_functions
         javascript = '<script type="text/javascript">'
-        Dir.glob(File.join(JAVASCRIPT_PATH, '*')).each { |filename| javascript << "\n" << IO.read(filename) }
+        
+        # load prototype.js and its extensions first 
+        prototype_libs = Dir.glob(File.join(JAVASCRIPT_PATH, 'prototype*')).sort.reverse
+        prototype_libs.each do |filename| 
+          javascript << "\n" << IO.read(filename)
+        end
+        
+        # load other librairies
+        (Dir.glob(File.join(JAVASCRIPT_PATH, '*')) - prototype_libs).each do |filename| 
+          javascript << "\n" << IO.read(filename)
+        end
         javascript << '</script>'
       end
 
       # Observes the field with the DOM ID specified by +field_id+ and makes
-      # an Ajax when its contents have changed.
+      # an Ajax call when its contents have changed.
       # 
       # Required +options+ are:
       # <tt>:frequency</tt>:: The frequency (in seconds) at which changes to
@@ -190,13 +203,111 @@ module ActionView
       def observe_form(form_id, options = {})
         build_observer('Form.Observer', form_id, options)
       end
+      
+           
+      # Adds Ajax autocomplete functionality to the text input field with the 
+      # DOM ID specified by +field_id+.
+      #
+      # This function expects that the called action returns a HTML <ul> list,
+      # or nothing if no entries should be displayed for autocompletion.
+      # 
+      # Required +options+ are:
+      # <tt>:url</tt>::       Specifies the DOM ID of the element whose
+      #                       innerHTML should be updated with the autocomplete
+      #                       entries returned by XMLHttpRequest.
+      # 
+      # Addtional +options+ are:
+      # <tt>:update</tt>::    Specifies the DOM ID of the element whose 
+      #                       innerHTML should be updated with the autocomplete
+      #                       entries returned by the Ajax request. 
+      #                       Defaults to field_id + '_autocomplete'
+      # <tt>:with</tt>::      A Javascript expression specifying the
+      #                       parameters for the XMLHttpRequest. This defaults
+      #                       to 'value', which in the evaluated context 
+      #                       refers to the new field value.
+      # <tt>:indicator</tt>:: Specifies the DOM ID of an elment which will be
+      #                       displayed while autocomplete is running. 
+      #
+      def remote_autocomplete(field_id, options = {})
+        function =  "new Ajax.Autocompleter("
+        function << "'#{field_id}', "
+        function << "'" + (options[:update] || "#{field_id}_autocomplete") + "', "
+        function << "'#{url_for(options[:url])}'"
+
+        js_options = {}
+        js_options[:callback] = "function(element, value) {return #{options[:with]}}" if options[:with]
+        js_options[:indicator] = "'#{options[:indicator]}'" if options[:indicator]
+        function << (', ' + options_for_javascript(js_options) + ')')
+        
+        javascript_tag(function)
+      end
+      
+      # Use this method in your view to generate a return for the Ajax automplete requests.
+      #
+      # Example Action:
+      #   @items = Item.find(:all, :conditions => [ 'LOWER(description) LIKE ?', 
+      #     '%' + params[:for].downcase + '%' ], 'description ASC')
+      #   render :layout => false
+      #   
+      # Example View:
+      #   <%= autocomplete_responder @items, 'description' %>
+      def autocomplete_responder(entries, field, phrase = nil)
+        "<ul>#{entries.map { |entry| '<li>' + (phrase ? highlight(entry[field],phrase) : h(entry[field])) + '</li>' }.join}</ul>" if entries
+      end
+      
+      # Returns a JavaScript snippet to be used on the Ajax callbacks for starting
+      # visual effects.
+      #
+      # Example:
+      #   <%= link_to_remote "Reload", :update => "posts", 
+      #         :url => { :action => "reload" }, 
+      #         :complete => visual_effect(:highlight, "posts", :duration => 0.5 )
+      #
+      # You can change the behaviour with various options, see
+      # http://script.aculo.us for more documentation.
+      def visual_effect(name, element_id, js_options = {})
+        "new Effect.#{name.to_s.capitalize}('#{element_id}',#{options_for_javascript(js_options)});"
+      end
+      
+      # Makes the element with the DOM ID specified by +element_id+ sortable
+      # by drag-and-drop and make an Ajax call whenever the sort order has
+      # changed. By default, the action called gets the serialized sortable
+      # element as parameters.
+      #
+      # Example:
+      #   <%= remote_sortable("my_list", :url => { :action => "order" }) %>
+      #
+      # In the example, the action gets a "my_list" array parameter 
+      # containing the values of the ids of elements the sortable consists 
+      # of, in the current order.
+      #
+      # You can change the behaviour with various options, see
+      # http://script.aculo.us for more documentation.
+      #
+      def remote_sortable(element_id, options = {})
+        options[:with]     ||= "Sortable.serialize('#{element_id}')"
+        options[:onUpdate] ||= "function(){" + remote_function(options) + "}"
+        options.delete_if { |key, value| AJAX_OPTIONS.include?(key) }
+        
+        javascript_tag("Sortable.create('#{element_id}', #{options_for_javascript(options)})")
+      end
 
       # Escape carrier returns and single and double quotes for Javascript segments.
       def escape_javascript(javascript)
         (javascript || '').gsub(/\r\n|\n|\r/, "\\n").gsub(/["']/) { |m| "\\#{m}" }
       end
 
+      # Returns a Javascript tag with the +content+ inside. Example:
+      #   javascript_tag "alert('All is good')" # => <script type="text/javascript">alert('All is good')</script>
+      def javascript_tag(content)
+        content_tag("script", content, :type => "text/javascript")
+      end
+
     private
+      def options_for_javascript(options)
+        '{' + options.map {|k, v| "#{k}:#{v}"}.join(', ') + '}'
+      end
+      
       def options_for_ajax(options)
         js_options = build_callbacks(options)
         
@@ -210,7 +321,7 @@ module ActionView
           js_options['parameters'] = options[:with]
         end
         
-        '{' + js_options.map {|k, v| "#{k}:#{v}"}.join(', ') + '}'
+        options_for_javascript(js_options)
       end
       
       def method_option_to_s(method) 
