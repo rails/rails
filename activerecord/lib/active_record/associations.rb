@@ -809,7 +809,7 @@ module ActiveRecord
               "#{reflection.options[:join_table]}.#{reflection.options[:foreign_key] || table_name.classify.foreign_key} = " +
               "#{table_name}.#{primary_key} " +
               " LEFT OUTER JOIN #{reflection.klass.table_name} ON " +
-              "#{reflection.options[:join_table]}.#{reflection.options[:associated_foreign_key] || reflection.klass.table_name.classify.foreign_key} = " +
+              "#{reflection.options[:join_table]}.#{reflection.options[:association_foreign_key] || reflection.klass.table_name.classify.foreign_key} = " +
               "#{reflection.klass.table_name}.#{reflection.klass.primary_key} "
             when :has_many, :has_one
               " LEFT OUTER JOIN #{reflection.klass.table_name} ON " +
