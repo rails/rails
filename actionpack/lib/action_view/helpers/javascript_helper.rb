@@ -294,8 +294,7 @@ module ActionView
       #
       # You can change the behaviour with various options, see
       # http://script.aculo.us for more documentation.
-      #
-      def remote_sortable(element_id, options = {})
+      def sortable_element(element_id, options = {})
         options[:with]     ||= "Sortable.serialize('#{element_id}')"
         options[:onUpdate] ||= "function(){" + remote_function(options) + "}"
         options.delete_if { |key, value| AJAX_OPTIONS.include?(key) }
