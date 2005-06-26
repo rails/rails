@@ -93,6 +93,7 @@ Ajax.Autocompleter.prototype = (new Ajax.Base()).extend({
   onComplete: function(request) {
     if(!this.changed) {
       this.update.innerHTML = request.responseText;
+      Element.cleanWhitespace(this.update.firstChild);
 
       if(this.update.firstChild && this.update.firstChild.childNodes) {
         this.entry_count = 
@@ -131,10 +132,12 @@ Ajax.Autocompleter.prototype = (new Ajax.Base()).extend({
        case Event.KEY_UP:
          this.mark_previous();
          this.render();
+         if(navigator.appVersion.indexOf('AppleWebKit')>0) Event.stop(event);
          return;
        case Event.KEY_DOWN:
          this.mark_next();
          this.render();
+         if(navigator.appVersion.indexOf('AppleWebKit')>0) Event.stop(event);
          return;
       }
      else 

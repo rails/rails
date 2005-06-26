@@ -791,41 +791,49 @@ var Position = {
     return [valueL, valueT];
   },
   
+  cumulative_offset: function(element) {
+    var valueT = 0; var valueL = 0;
+    do {
+      valueT += element.offsetTop || 0;
+      valueL += element.offsetLeft || 0;
+      element = element.offsetParent;
+    } while(element);
+    return [valueL, valueT];
+  },
+  
   // caches x/y coordinate pair to use with overlap
   within: function(element, x, y) {
     if(this.include_scroll_offsets)
-      return within_including_scrolloffsets(element, x, y);
+      return this.within_including_scrolloffsets(element, x, y);
     this.xcomp = x;
     this.ycomp = y;
-    var offsettop = element.offsetTop;
-    var offsetleft = element.offsetLeft;
-    return (y>=offsettop &&
-            y<offsettop+element.offsetHeight &&
-            x>=offsetleft && 
-            x<offsetleft+element.offsetWidth);
+    this.offset = this.cumulative_offset(element);
+
+    return (y>=this.offset[1] &&
+            y<this.offset[1]+element.offsetHeight &&
+            x>=this.offset[0] && 
+            x<this.offset[0]+element.offsetWidth);
   },
   
   within_including_scrolloffsets: function(element, x, y) {
     var offsetcache = this.real_offset(element);
-    this.xcomp = x + offsetcache[0] - this.deltaX;
-    this.ycomp = y + offsetcache[1] - this.deltaY;
-    this.xcomp = x;
-    this.ycomp = y;
-    var offsettop = element.offsetTop;
-    var offsetleft = element.offsetLeft;
-    return (y>=offsettop &&
-            y<offsettop+element.offsetHeight &&
-            x>=offsetleft && 
-            x<offsetleft+element.offsetWidth);
+    this.offset = this.cumulative_offset(element);
+    this.xcomp = x + offsetcache[0] - this.deltaX + this.offset[0];
+    this.ycomp = y + offsetcache[1] - this.deltaY + this.offset[1];
+    
+    return (this.ycomp>=this.offset[1] &&
+            this.ycomp<this.offset[1]+element.offsetHeight &&
+            this.xcomp>=this.offset[0] && 
+            this.xcomp<this.offset[0]+element.offsetWidth);
   },
   
   // within must be called directly before
   overlap: function(mode, element) {  
     if(!mode) return 0;  
     if(mode == 'vertical') 
-      return ((element.offsetTop+element.offsetHeight)-this.ycomp) / element.offsetHeight;
+      return ((this.offset[1]+element.offsetHeight)-this.ycomp) / element.offsetHeight;
     if(mode == 'horizontal')
-      return ((element.offsetLeft+element.offsetWidth)-this.xcomp) / element.offsetWidth;
+      return ((this.offset[0]+element.offsetWidth)-this.xcomp) / element.offsetWidth;
   },
   
   clone: function(source, target) {
