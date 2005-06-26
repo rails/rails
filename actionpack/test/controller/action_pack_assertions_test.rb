@@ -55,6 +55,10 @@ class ActionPackAssertionsController < ActionController::Base
     render_text "Mr. #{@params["name"]}"
   end
 
+  def render_url
+    render_text "<div>#{url_for(:action => 'flash_me', :only_path => true)}</div>"
+  end
+
   # puts something in the session
   def session_stuffing
     session['xmas'] = 'turkey'
@@ -96,6 +100,11 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   end
  
   # -- assertion-based testing ------------------------------------------------
+
+  def test_assert_tag_and_url_for
+    get :render_url
+    assert_tag :content => "/action_pack_assertions/flash_me"
+  end
 
   # test the session assertion to make sure something is there.
   def test_assert_session_has
@@ -359,7 +368,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     assert_redirected_to :action => "flash_me"
     
     follow_redirect
-    assert_equal 1, @request.parameters["id"]
+    assert_equal 1, @request.parameters["id"].to_i
 
     assert "Inconceivable!", @response.body
   end

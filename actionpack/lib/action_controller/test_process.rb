@@ -67,6 +67,13 @@ module ActionController #:nodoc:
       @path || super()
     end
     
+    def assign_parameters(parameters)
+      path, extras = ActionController::Routing::Routes.generate(parameters.symbolize_keys)
+      non_path_parameters = (get? ? query_parameters : request_parameters)
+      parameters.each do |key, value|
+        (extras.key?(key.to_sym) ? non_path_parameters : path_parameters)[key] = value
+      end
+    end
 
     private
       def initialize_containers
@@ -239,9 +246,12 @@ module Test
           @html_document = nil
           @request.env['REQUEST_METHOD'] ||= "GET"
           @request.action = action.to_s
-          @request.path_parameters = { :controller => @controller.class.controller_path,
-                                       :action => action.to_s }
-          @request.parameters.update(parameters) unless parameters.nil?
+
+          parameters ||= {}
+          parameters[:controller] = @controller.class.controller_path
+          parameters[:action] = action.to_s
+          @request.assign_parameters(parameters)
+
           @request.session = ActionController::TestSession.new(session) unless session.nil?
           @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
           build_request_uri(action, parameters)
