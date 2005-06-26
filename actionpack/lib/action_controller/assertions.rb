@@ -26,6 +26,13 @@ module Test #:nodoc:
     #
     # For redirects within the same controller, you can even call follow_redirect and the redirect will be follow triggering another
     # action call which can then be asserted against.
+    #
+    # == Testing named routes
+    #
+    # If you're using named routes, they can be easily tested using the original named routes methods straight in the test case.
+    # Example: 
+    #
+    #  assert_redirected_to page_url(:title => 'foo')
     module Assertions
       # Asserts that the response is one of the following types:
       # 

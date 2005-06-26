@@ -567,7 +567,7 @@ module ActionController
       
           protected url_helper_name(name), hash_access_name(name)
       
-          Helpers << url_helper_name(name)
+          Helpers << url_helper_name(name).to_sym
           Helpers.uniq!
         end
     

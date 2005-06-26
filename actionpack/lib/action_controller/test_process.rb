@@ -324,6 +324,11 @@ module Test
           $:.unshift File.dirname(__FILE__) + "/vendor/html-scanner"
           require 'html/document'
         end
-      end
+        
+        def method_missing(selector, *args)
+          return @controller.send(selector, *args) if ActionController::Routing::NamedRoutes::Helpers.include?(selector)
+          return super
+        end
+    end
   end
 end
