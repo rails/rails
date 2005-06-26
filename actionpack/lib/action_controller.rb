@@ -49,6 +49,7 @@ require 'action_controller/caching'
 require 'action_controller/components'
 require 'action_controller/verification'
 require 'action_controller/streaming'
+require 'action_controller/auto_complete'
 
 require 'action_view'
 ActionController::Base.template_class = ActionView::Base
@@ -69,4 +70,5 @@ ActionController::Base.class_eval do
   include ActionController::Components
   include ActionController::Verification
   include ActionController::Streaming
+  include ActionController::AutoComplete
 end

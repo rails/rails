@@ -17,7 +17,7 @@ module ActionView
     module JavascriptHelper      
       unless const_defined? :CALLBACKS
         CALLBACKS       = [ :uninitialized, :loading, :loaded, :interactive, :complete ]
-        AJAX_OPTIONS    = [ :url, :asynchronous, :method, :insertion, :form, :with ].concat(CALLBACKS)
+        AJAX_OPTIONS    = [ :url, :asynchronous, :method, :insertion, :form, :with, :update ].concat(CALLBACKS)
         JAVASCRIPT_PATH = File.join(File.dirname(__FILE__), 'javascripts')
       end
       
@@ -220,39 +220,50 @@ module ActionView
       # <tt>:update</tt>::    Specifies the DOM ID of the element whose 
       #                       innerHTML should be updated with the autocomplete
       #                       entries returned by the Ajax request. 
-      #                       Defaults to field_id + '_autocomplete'
+      #                       Defaults to field_id + '_auto_complete'
       # <tt>:with</tt>::      A Javascript expression specifying the
       #                       parameters for the XMLHttpRequest. This defaults
       #                       to 'value', which in the evaluated context 
       #                       refers to the new field value.
       # <tt>:indicator</tt>:: Specifies the DOM ID of an elment which will be
       #                       displayed while autocomplete is running. 
-      #
-      def remote_autocomplete(field_id, options = {})
+      def auto_complete_field(field_id, options = {})
         function =  "new Ajax.Autocompleter("
         function << "'#{field_id}', "
-        function << "'" + (options[:update] || "#{field_id}_autocomplete") + "', "
+        function << "'" + (options[:update] || "#{field_id}_auto_complete") + "', "
         function << "'#{url_for(options[:url])}'"
 
         js_options = {}
-        js_options[:callback] = "function(element, value) {return #{options[:with]}}" if options[:with]
+        js_options[:callback] = "function(element, value) { return #{options[:with]} }" if options[:with]
         js_options[:indicator] = "'#{options[:indicator]}'" if options[:indicator]
         function << (', ' + options_for_javascript(js_options) + ')')
-        
+
         javascript_tag(function)
       end
       
       # Use this method in your view to generate a return for the Ajax automplete requests.
       #
-      # Example Action:
-      #   @items = Item.find(:all, :conditions => [ 'LOWER(description) LIKE ?', 
-      #     '%' + params[:for].downcase + '%' ], 'description ASC')
-      #   render :layout => false
-      #   
-      # Example View:
-      #   <%= autocomplete_responder @items, 'description' %>
-      def autocomplete_responder(entries, field, phrase = nil)
-        "<ul>#{entries.map { |entry| '<li>' + (phrase ? highlight(entry[field],phrase) : h(entry[field])) + '</li>' }.join}</ul>" if entries
+      # Example action:
+      #
+      #   def auto_complete_for_item_title
+      #     @items = Item.find(:all, :conditions => [ 'LOWER(description) LIKE ?', 
+      #       '%' + params[:for].downcase + '%' ], 'description ASC')
+      #     render :inline => '<%= auto_complete_result(@items, 'description') %>'
+      #   end
+      #
+      # The auto_complete_result can of course also be called from a view belonging to the 
+      # auto_complete action if you need to decorate it further.
+      def auto_complete_result(entries, field, phrase = nil)
+        return unless entries
+        items = entries.map { |entry| content_tag("li", phrase ? highlight(entry[field], phrase) : h(entry[field])) }
+        content_tag("ul", items)
+      end
+      
+      def text_field_with_auto_complete(object, method, tag_options = {}, completion_options = {})
+        (completion_options[:skip_style] ? "" : auto_complete_stylesheet) +
+        text_field(object, method, tag_options) +
+        content_tag("div", "", :id => "#{object}_#{method}_auto_complete", :class => "auto_complete") +
+        auto_complete_field("#{object}_#{method}", { :url => { :action => "auto_complete_for_#{object}_#{method}" } }.update(completion_options))
       end
       
       # Returns a JavaScript snippet to be used on the Ajax callbacks for starting
@@ -346,6 +357,34 @@ module ActionView
           end
           callbacks
         end
+      end
+      
+      def auto_complete_stylesheet
+        content_tag("style", <<-EOT
+          div.auto_complete {
+            width: 350px;
+          }
+          div.auto_complete ul {
+            border:1px solid #888;
+            margin:0;
+            padding:0;
+            width:100%;
+            list-style-type:none;
+          }
+          div.auto_complete ul li {
+            margin:0;
+            padding:3px;
+          }
+          div.auto_complete ul li.selected { 
+            background-color: #ffb; 
+          }
+          div.auto_complete ul strong.highlight { 
+            color: #800; 
+            margin:0;
+            padding:0;
+          }
+        EOT
+        )
       end
     end
   end
