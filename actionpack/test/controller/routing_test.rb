@@ -661,6 +661,12 @@ class RouteSetTests < Test::Unit::TestCase
     x.send :include, ::ActionController::Routing::NamedRoutes
     x
   end
+
+  def test_named_route_without_hash
+    rs.draw do |map|
+      rs.normal ':controller/:action/:id'
+    end
+  end
 end
 
 end

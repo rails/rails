@@ -538,7 +538,7 @@ module ActionController
       def each(&block) @routes.each(&block) end
       
       def method_missing(name, *args)
-        return super(name, *args) unless args.length == 2
+        return super(name, *args) unless (1..2).include?(args.length)
       
         route = connect(*args)
         NamedRoutes.name_route(route, name)
