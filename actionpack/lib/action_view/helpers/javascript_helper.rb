@@ -16,7 +16,8 @@ module ActionView
     # the use of form_remote_tag.
     module JavascriptHelper      
       unless const_defined? :CALLBACKS
-        CALLBACKS       = [ :uninitialized, :loading, :loaded, :interactive, :complete ]
+        CALLBACKS       = 
+          [:uninitialized, :loading, :loaded, :interactive, :complete, :failure].push((100..599).to_a).flatten
         AJAX_OPTIONS    = [ :url, :asynchronous, :method, :insertion, :form, :with, :update ].concat(CALLBACKS)
         JAVASCRIPT_PATH = File.join(File.dirname(__FILE__), 'javascripts')
       end
@@ -45,9 +46,25 @@ module ActionView
       #  link_to_remote "Delete this post", :update => "posts", :url => { :action => "destroy", :id => post.id }
       #  link_to_remote(image_tag("refresh"), :update => "emails", :url => { :action => "list_emails" })
       #
+      # You can also specify a hash for <tt>options[:update]</tt> to allow for
+      # easy redirection of output to an other DOM element if a server-side error occurs:
+      #
+      # Example:
+      #  link_to_remote "Delete this post",
+      #      :url => { :action => "destroy", :id => post.id },
+      #      :update => { :success => "posts", :failure => "error" }
+      #
+      # Optionally, you can use the <tt>options[:position]</tt> parameter to influence
+      # how the target DOM element is updated. It must be one of 
+      # <tt>:before</tt>, <tt>:top</tt>, <tt>:bottom</tt>, or <tt>:after</tt>.
+      #
       # By default, these remote requests are processed asynchronous during 
-      # which various callbacks can be triggered (for progress indicators and
-      # the likes).
+      # which various JavaScript callbacks can be triggered (for progress indicators and
+      # the likes). All callbacks get access to the <tt>request</tt> object,
+      # which holds the underlying XMLHttpRequest. 
+      #
+      # To access the server response, use <tt>request.responseText</tt>, to
+      # find out the HTTP status, use <tt>request.status</tt>.
       #
       # Example:
       #   link_to_remote word,
@@ -63,7 +80,21 @@ module ActionView
       # <tt>:interactive</tt>::   Called when the user can interact with the 
       #                           remote document, even though it has not 
       #                           finished loading.
-      # <tt>:complete</tt>::      Called when the XMLHttpRequest is complete.
+      # <tt>:complete</tt>::      Called when the XMLHttpRequest is complete,
+      #                           and the HTTP status code is 200 OK.
+      # <tt>:failure</tt>::       Called when the XMLHttpRequest is complete,
+      #                           and the HTTP status code is anything other than
+      #                           200 OK.
+      #
+      # You can further refine <tt>:failure</tt> by adding additional 
+      # callbacks for specific status codes:
+      #
+      # Example:
+      #   link_to_remote word,
+      #       :url => { :action => "action" },
+      #       404 => "alert('Not found...? Wrong URL...?')",
+      #       :failure => "alert('HTTP Error ' + request.status + '!')"
+      #
       #
       # If you for some reason or another need synchronous processing (that'll
       # block the browser while the request is happening), you can specify 
@@ -132,18 +163,26 @@ module ActionView
       def remote_function(options) #:nodoc: for now
         javascript_options = options_for_ajax(options)
 
-        function = options[:update] ? 
-          "new Ajax.Updater('#{options[:update]}', " :
-          "new Ajax.Request("
+        update = []
+        if options[:update] and options[:update].is_a?Hash
+          update << "success:'#{options[:update][:success]}'" if options[:update][:success]
+          update << "failure:'#{options[:update][:failure]}'" if options[:update][:failure]
+        elsif options[:update]
+          update << "success:'#{options[:update]}'" 
+        end
+
+        function = update.empty? ? 
+          "new Ajax.Request(" :
+          "new Ajax.Updater({#{update.join(',')}}, "
 
         function << "'#{url_for(options[:url])}'"
         function << ", #{javascript_options})"
-        
+
         function = "#{options[:before]}; #{function}" if options[:before]
         function = "#{function}; #{options[:after]}"  if options[:after]
         function = "if (#{options[:condition]}) { #{function}; }" if options[:condition]
         function = "if (confirm('#{escape_javascript(options[:confirm])}')) { #{function}; }" if options[:confirm]
-	
+
         return function
       end
 
@@ -359,14 +398,14 @@ module ActionView
       end
             
       def build_callbacks(options)
-        CALLBACKS.inject({}) do |callbacks, callback|
-          if options[callback]
+        callbacks = {}
+        options.each do |callback, code|
+          if CALLBACKS.include?(callback)
             name = 'on' + callback.to_s.capitalize
-            code = options[callback]
             callbacks[name] = "function(request){#{code}}"
           end
-          callbacks
         end
+        callbacks
       end
       
       def auto_complete_stylesheet

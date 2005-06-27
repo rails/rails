@@ -1,5 +1,15 @@
 *SVN*
 
+* Added support for graceful error handling of Ajax calls #1217 [Jamis Buck/Thomas Fuchs]. Example:
+
+    link_to_remote(
+      "test", 
+      :url => { :action => "faulty" }, 
+      :update => { :success => "good", :failure => "bad" },
+      403 => "alert('Forbidden- got ya!')",
+      404 => "alert('Nothing there...?')", 
+      :failure => "alert('Unkown error ' + request.status)")
+  
 * Attempt to explicitly flush the output at the end of CgiProcess#out
 
 * Fixed assert_redirected_to to handle absolute controller paths properly #1472 [Rick Olson/Nicholas Seckar]

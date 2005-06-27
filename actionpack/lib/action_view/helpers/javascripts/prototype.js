@@ -236,14 +236,24 @@ Ajax.Request.prototype = (new Ajax.Base()).extend({
   
   respondToReadyState: function(readyState) {
     var event = Ajax.Request.Events[readyState];
-    (this.options['on' + event] || Prototype.emptyFunction)(this.transport);
+    
+    if (event == 'Complete' && this.transport.status != 200)
+      (this.options['on' + this.transport.status] ||
+       this.options.onFailure ||
+       Prototype.emptyFunction)(this.transport);
+    
+    (this.options['on' + event] || Prototype.emptyFunction)(this.transport);    
   }
 });
 
 Ajax.Updater = Class.create();
 Ajax.Updater.prototype = (new Ajax.Base()).extend({
   initialize: function(container, url, options) {
-    this.container = $(container);
+    this.containers = {
+      success: container.success ? $(container.success) : $(container),
+      failure: container.failure ? $(container.failure) : null
+    }
+
     this.setOptions(options);
   
     if (this.options.asynchronous) {
@@ -258,16 +268,20 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
   },
   
   updateContent: function() {
-    if (this.request.transport.status == 200) {
+    var receiver = 
+      (this.request.transport.status == 200) ?
+      this.containers.success : this.containers.failure;
+    
+    if (receiver) {
       if (this.options.insertion) {
-        new this.options.insertion(this.container,
-        this.request.transport.responseText);
+        new this.options.insertion(receiver,
+            this.request.transport.responseText);
       } else {
-        this.container.innerHTML = this.request.transport.responseText;
+          receiver.innerHTML = this.request.transport.responseText;
       }
-    }  
-
-    if (this.onComplete) {
+    }
+    
+    if (this.request.transport.status == 200 && this.onComplete) {
       setTimeout((function() {this.onComplete(
         this.request.transport)}).bind(this), 10);
     }
