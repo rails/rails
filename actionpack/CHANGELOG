@@ -1,5 +1,7 @@
 *SVN*
 
+* Added event-based observations when frequency is not set on observe_field/form #1474 [flash@vanklinkenbergsoftware.nl]
+
 * Added script.aculo.us Javascripts (controls.js, dragdrop.js, effects.js) (NEEDS MORE DESCRIPTION) #1509 [Thomas Fuchs]
 
 * Fixed prototype to consider all fields it doesn't know as text (such as Safari's search) just like the browser in its serialization #1497 [Sean Treadway]

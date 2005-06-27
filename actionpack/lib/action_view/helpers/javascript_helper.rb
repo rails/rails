@@ -176,12 +176,14 @@ module ActionView
       # an Ajax call when its contents have changed.
       # 
       # Required +options+ are:
-      # <tt>:frequency</tt>:: The frequency (in seconds) at which changes to
-      #                       this field will be detected.
       # <tt>:url</tt>::       +url_for+-style options for the action to call
       #                       when the field has changed.
       # 
       # Additional options are:
+      # <tt>:frequency</tt>:: The frequency (in seconds) at which changes to
+      #                       this field will be detected. Set this to a value
+      #                       greater than zero to use time based observation
+      #                       instead of event based observation.
       # <tt>:update</tt>::    Specifies the DOM ID of the element whose 
       #                       innerHTML should be updated with the
       #                       XMLHttpRequest response text.
@@ -193,7 +195,11 @@ module ActionView
       # Additionally, you may specify any of the options documented in
       # +link_to_remote.
       def observe_field(field_id, options = {})
-        build_observer('Form.Element.Observer', field_id, options)
+        if options[:frequency]
+          build_observer('Form.Element.Observer', field_id, options)
+        else
+          build_observer('Form.Element.EventObserver', form_id, options)
+        end
       end
       
       # Like +observe_field+, but operates on an entire form identified by the
@@ -201,7 +207,11 @@ module ActionView
       # the default value of the <tt>:with</tt> option evaluates to the
       # serialized (request string) value of the form.
       def observe_form(form_id, options = {})
-        build_observer('Form.Observer', form_id, options)
+        if options[:frequency]
+          build_observer('Form.Observer', form_id, options)
+        else
+          build_observer('Form.EventObserver', form_id, options)
+        end
       end
       
            
@@ -343,7 +353,8 @@ module ActionView
         callback = remote_function(options)
         javascript = '<script type="text/javascript">'
         javascript << "new #{klass}('#{name}', "
-        javascript << "#{options[:frequency]}, function(element, value) {"
+        javascript << "#{options[:frequency]}, " if options[:frequency]
+        javascript << "function(element, value) {"
         javascript << "#{callback}})</script>"
       end
             
