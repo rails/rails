@@ -360,8 +360,10 @@ module ActionController
       def generate(options, request_or_recall_hash = {})
         recall = request_or_recall_hash.is_a?(Hash) ? request_or_recall_hash : request_or_recall_hash.symbolized_path_parameters
         
-        if ((rc_c = recall[:controller]) && rc_c.include?(?/)) || ((c = options[:controller]) && c.include?(?/))  
-          options[:controller] = Routing.controller_relative_to(c, rc_c)
+        controller = options[:controller]
+        recall_controller = recall[:controller]
+        if (recall_controller && recall_controller.include?(?/)) || (controller && controller.include?(?/)) 
+          options[:controller] = Routing.controller_relative_to(controller, recall_controller)
         end
         options = recall.dup if options.empty? # XXX move to url_rewriter?
         Routing.treat_hash(options) # XXX Move inwards (to generated code) or inline?

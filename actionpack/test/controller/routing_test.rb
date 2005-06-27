@@ -667,6 +667,13 @@ class RouteSetTests < Test::Unit::TestCase
       rs.normal ':controller/:action/:id'
     end
   end
+
+  def test_changing_controller
+    assert_equal ['admin/stuff/show/10', {}], rs.generate(
+      {:controller => 'stuff', :action => 'show', :id => 10},
+      {:controller => 'admin/user', :action => 'index'}
+    )
+  end  
 end
 
 end
