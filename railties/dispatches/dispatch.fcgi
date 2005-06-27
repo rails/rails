@@ -88,7 +88,6 @@ class RailsFCGIHandler
       raise if SignalException === e
       dispatcher_error(e)
     ensure
-      $stdout.flush
       @i_am_currently_processing_a_request = false
     end
 end
