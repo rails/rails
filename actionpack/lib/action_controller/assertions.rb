@@ -78,8 +78,10 @@ module Test #:nodoc:
             if options.is_a?(Symbol)
               @response.redirected_to == options
             else
-              options.keys.all? do |k| 
-                options[k] == (@response.redirected_to[k].respond_to?(:to_param) ? @response.redirected_to[k].to_param : @response.redirected_to[k] unless @response.redirected_to[k].nil?)
+              options.keys.all? do |k|
+                if k == :controller then options[k] == ActionController::Routing.controller_relative_to(@response.redirected_to[k], @controller.class.controller_path)
+                else options[k] == (@response.redirected_to[k].respond_to?(:to_param) ? @response.redirected_to[k].to_param : @response.redirected_to[k] unless @response.redirected_to[k].nil?)
+                end
               end
             end
           end

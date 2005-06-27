@@ -79,7 +79,17 @@ class ActionPackAssertionsController < ActionController::Base
 
   # 911
   def rescue_action(e) raise; end
-    
+end
+
+module Admin
+  class InnerModuleController < ActionController::Base
+    def redirect_to_absolute_controller
+      redirect_to :controller => '/content'
+    end
+    def redirect_to_fellow_controller
+      redirect_to :controller => 'user'
+    end
+  end
 end
 
 # ---------------------------------------------------------------------------
@@ -392,6 +402,15 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     process :redirect_to_path
     assert_redirected_to 'http://test.host/some/path'
   end
+
+  def test_redirected_to_with_nested_controller
+    @controller = Admin::InnerModuleController.new
+    get :redirect_to_absolute_controller
+    assert_redirected_to :controller => 'content'
+    
+    get :redirect_to_fellow_controller
+    assert_redirected_to :controller => 'admin/user'
+  end
 end
 
 class ActionPackHeaderTest < Test::Unit::TestCase  
@@ -404,8 +423,8 @@ class ActionPackHeaderTest < Test::Unit::TestCase
     assert_equal('text/xml', @controller.headers['Content-Type'])
   end
   def test_rendering_xml_respects_content_type
-	  @response.headers['Content-Type'] = 'application/pdf'
-	  process :hello_xml_world
-	  assert_equal('application/pdf', @controller.headers['Content-Type'])
+    @response.headers['Content-Type'] = 'application/pdf'
+    process :hello_xml_world
+    assert_equal('application/pdf', @controller.headers['Content-Type'])
   end
 end
