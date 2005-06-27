@@ -22,7 +22,7 @@ class RailsFCGIHandler
     trap("USR1", trap_handler)
 
     # initialize to 11 seconds from now to minimize special cases
-    @last_error_on = Time.now + 11
+    @last_error_on = Time.now - 11
 
     @log_file_path = log_file_path
     dispatcher_log(:info, "fcgi #{$$} starting")
@@ -42,7 +42,7 @@ class RailsFCGIHandler
   rescue Object => fcgi_error
     # retry on errors that would otherwise have terminated the FCGI process,
     # but only if they occur more than 10 seconds apart.
-    if !(SignalException === fcgi_error) && @last_error_on - Time.now > 10
+    if !(SignalException === fcgi_error) && Time.now - @last_error_on > 10
       @last_error_on = Time.now
       dispatcher_error(fcgi_error,
         "FCGI process #{$$} almost killed by this error\n")
