@@ -139,6 +139,8 @@ module ActionController #:nodoc:
         else
           output.write(@body)
         end
+
+        output.flush if output.respond_to?(:flush)
       rescue Errno::EPIPE => e
         # lost connection to the FCGI process -- ignore the output, then
       end

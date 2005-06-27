@@ -1,5 +1,7 @@
 *SVN*
 
+* Attempt to explicitly flush the output at the end of CgiProcess#out
+
 * Fixed assert_redirected_to to handle absolute controller paths properly #1472 [Rick Olson/Nicholas Seckar]
 
 * Added event-based observations when frequency is not set on observe_field/form #1474 [flash@vanklinkenbergsoftware.nl]
