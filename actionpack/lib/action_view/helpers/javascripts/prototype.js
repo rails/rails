@@ -32,8 +32,8 @@ Object.extend = function(destination, source) {
   return destination;
 }
 
-Object.prototype.extend = function() {
-  return Object.extend.apply(this, arguments);
+Object.prototype.extend = function(object) {
+  return Object.extend.apply(this, [this, object]);
 }
 
 Function.prototype.bind = function(object) {
