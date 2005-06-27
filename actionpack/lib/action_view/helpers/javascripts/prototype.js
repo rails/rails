@@ -25,11 +25,15 @@ var Class = {
 
 var Abstract = new Object();
 
-Object.prototype.extend = function(object) {
-  for (property in object) {
-    this[property] = object[property];
+Object.extend = function(destination, source) {
+  for (property in source) {
+    destination[property] = source[property];
   }
-  return this;
+  return destination;
+}
+
+Object.prototype.extend = function() {
+  return Object.extend.apply(this, arguments);
 }
 
 Function.prototype.bind = function(object) {
@@ -294,7 +298,7 @@ if (!window.Element) {
   var Element = new Object();
 }
 
-Element.extend({
+Object.extend(Element, {
   toggle: function() {
     for (var i = 0; i < arguments.length; i++) {
       var element = $(arguments[i]);
@@ -733,11 +737,11 @@ Form.EventObserver.prototype = (new Abstract.EventObserver()).extend({
 });
 
 
-//if (!window.Event) {
+if (!window.Event) {
   var Event = new Object();
-//}
+}
 
-Event.extend({
+Object.extend(Event, {
   KEY_BACKSPACE: 8,
   KEY_TAB:       9,
   KEY_RETURN:   13,
