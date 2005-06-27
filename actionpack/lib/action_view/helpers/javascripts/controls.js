@@ -19,6 +19,24 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+
+Element.collectTextNodesIgnoreClass = function(element, ignoreclass) {
+  var children = $(element).childNodes;
+  var text     = "";
+  var classtest = new RegExp("^([^ ]+ )*" + ignoreclass+ "( [^ ]+)*$","i");
+  
+  for (var i = 0; i < children.length; i++) {
+    if(children[i].nodeType==3) {
+      text+=children[i].nodeValue;
+    } else {
+      if((!children[i].className.match(classtest)) && children[i].hasChildNodes())
+        text += Element.collectTextNodesIgnoreClass(children[i], ignoreclass);
+    }
+  }
+  
+  return text;
+}
+
 Ajax.Autocompleter = Class.create();
 Ajax.Autocompleter.prototype = (new Ajax.Base()).extend({
   initialize: function(element, update, url, options) {
@@ -214,7 +232,7 @@ Ajax.Autocompleter.prototype = (new Ajax.Base()).extend({
   select_entry: function() {
     this.hide();
     this.active = false;
-    value = Text.decodeHTML(Element.collectTextNodesIgnoreClass(this.get_current_entry(), 'informal'));
+    value = Element.collectTextNodesIgnoreClass(this.get_current_entry(), 'informal').unescapeHTML();
     this.element.value = value;
     this.element.focus();
   }

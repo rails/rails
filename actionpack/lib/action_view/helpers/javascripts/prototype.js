@@ -733,9 +733,9 @@ Form.EventObserver.prototype = (new Abstract.EventObserver()).extend({
 });
 
 
-if (!window.Event) {
+//if (!window.Event) {
   var Event = new Object();
-}
+//}
 
 Event.extend({
   KEY_BACKSPACE: 8,

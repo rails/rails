@@ -21,6 +21,92 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+Element.Class = {
+    // Element.toggleClass(element, className) toggles the class being on/off
+    // Element.toggleClass(element, className1, className2) toggles between both classes,
+    //   defaulting to className1 if neither exist
+    toggle: function(element, className) {
+      if(Element.Class.has(element, className)) {
+        Element.Class.remove(element, className);
+        if(arguments.length == 3) Element.Class.add(element, arguments[2]);
+      } else {
+        Element.Class.add(element, className);
+        if(arguments.length == 3) Element.Class.remove(element, arguments[2]);
+      }
+    },
+
+    // gets space-delimited classnames of an element as an array
+    get: function(element) {
+      element = $(element);
+      return element.className.split(' ');
+    },
+
+    // functions adapted from original functions by Gavin Kistner
+    remove: function(element) {
+      element = $(element);
+      var regEx;
+      for(var i = 1; i < arguments.length; i++) {
+        regEx = new RegExp("^" + arguments[i] + "\\b\\s*|\\s*\\b" + arguments[i] + "\\b", 'g');
+        element.className = element.className.replace(regEx, '')
+      }
+    },
+
+    add: function(element) {
+      element = $(element);
+      for(var i = 1; i < arguments.length; i++) {
+        Element.Class.remove(element, arguments[i]);
+        element.className += (element.className.length > 0 ? ' ' : '') + arguments[i];
+      }
+    },
+
+    // returns true if all given classes exist in said element
+    has: function(element) {
+      element = $(element);
+      if(!element || !element.className) return false;
+      var regEx;
+      for(var i = 1; i < arguments.length; i++) {
+        regEx = new RegExp("\\b" + arguments[i] + "\\b");
+        if(!regEx.test(element.className)) return false;
+      }
+      return true;
+    },
+    
+    // expects arrays of strings and/or strings as optional paramters
+    // Element.Class.has_any(element, ['classA','classB','classC'], 'classD')
+    has_any: function(element) {
+      element = $(element);
+      if(!element || !element.className) return false;
+      var regEx;
+      for(var i = 1; i < arguments.length; i++) {
+        if((typeof arguments[i] == 'object') && 
+          (arguments[i].constructor == Array)) {
+          for(var j = 0; j < arguments[i].length; j++) {
+            regEx = new RegExp("\\b" + arguments[i][j] + "\\b");
+            if(regEx.test(element.className)) return true;
+          }
+        } else {
+          regEx = new RegExp("\\b" + arguments[i] + "\\b");
+          if(regEx.test(element.className)) return true;
+        }
+      }
+      return false;
+    },
+    
+    childrenWith: function(element, className) {
+      var children = $(element).getElementsByTagName('*');
+      var elements = new Array();
+      
+      for (var i = 0; i < children.length; i++) {
+        if (Element.Class.has(children[i], className)) {
+          elements.push(children[i]);
+          break;
+        }
+      }
+      
+      return elements;
+    }
+}
+
 /*--------------------------------------------------------------------------*/
 
 var Droppables = {
