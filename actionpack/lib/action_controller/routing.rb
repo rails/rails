@@ -217,9 +217,9 @@ module ActionController
             mod_name = segment.camelize
             controller_name = "#{mod_name}Controller"
         
-            return eval("mod::#{controller_name}"), (index - start_at) if mod.const_available?(controller_name)
+            return eval("mod::#{controller_name}", nil, 'routing.rb', __LINE__), (index - start_at) if mod.const_available?(controller_name)
             return nil unless mod.const_available?(mod_name)
-            mod = eval("mod::#{mod_name}")
+            mod = eval("mod::#{mod_name}", nil, 'routing.rb', __LINE__)
           end
         end
       end
@@ -394,13 +394,15 @@ module ActionController
           method_name = "generate_path_for_#{ivar}".to_sym
           instance_variable_set "@#{ivar}", routes
           code = generation_code_for(ivar, method_name).to_s
-          eval(code)
+          
+          filename = "generated_code/routing/generation_for_controller_#{controller}.rb"
+          eval(code, nil, filename)
       
           @generation_methods[controller.to_s]   = method_name
           @generation_methods[controller.to_sym] = method_name
         end
         
-        eval(generation_code_for('routes', 'generate_default_path').to_s)
+        eval(generation_code_for('routes', 'generate_default_path').to_s, nil, 'generated_code/routing/generation.rb')
       end
 
       def recognize(request)
@@ -434,7 +436,7 @@ module ActionController
           end
         end
     
-        eval g.to_s 
+        eval g.to_s, nil, 'generated/routing/recognition.rb'
       end
         
       def generation_code_for(ivar = 'routes', method_name = nil)
@@ -563,7 +565,7 @@ module ActionController
           define_method(hash_access_name(name)) { hash }
           module_eval(%{def #{url_helper_name name}(options = {})
             url_for(#{hash_access_name(name)}.merge(options))
-          end})
+          end}, nil, "generated/routing/named_routes/#{name}.rb")
       
           protected url_helper_name(name), hash_access_name(name)
       
