@@ -184,27 +184,27 @@ Ajax.Request.prototype = (new Ajax.Base()).extend({
   initialize: function(url, options) {
     this.transport = Ajax.getTransport();
     this.setOptions(options);
-  
+
+    var parameters = this.options.parameters || '';
+    if (parameters.length > 0) parameters += '&_=';
+
     try {
       if (this.options.method == 'get')
-        url += '?' + this.options.parameters + '&_=';
-    
+        url += '?' + parameters;
+
       this.transport.open(this.options.method, url,
         this.options.asynchronous);
-      
+
       if (this.options.asynchronous) {
         this.transport.onreadystatechange = this.onStateChange.bind(this);
         setTimeout((function() {this.respondToReadyState(1)}).bind(this), 10);
       }
-      
+
       this.setRequestHeaders();
 
-      var sendData = this.options.postBody   ? this.options.postBody
-                   : this.options.parameters ? this.options.parameters + '&_='
-                   : null;
+      var body = this.options.postBody ? this.options.postBody : parameters;
+      this.transport.send(this.options.method == 'post' ? body : null);
 
-      this.transport.send(this.options.method == 'post' ? sendData : null);
-                      
     } catch (e) {
     }    
   },
@@ -221,7 +221,7 @@ Ajax.Request.prototype = (new Ajax.Base()).extend({
       requestHeaders.push.apply(requestHeaders, this.options.requestHeaders);
     
     for (var i = 0; i < requestHeaders.length; i += 2)
-      this.transport.setRequestHeader(requestHeader[i], requestHeader[i+1]);
+      this.transport.setRequestHeader(requestHeaders[i], requestHeaders[i+1]);
   },
       
   onStateChange: function() {
