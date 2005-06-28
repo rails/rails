@@ -797,9 +797,9 @@ Object.extend(Event, {
   // find the first node with the given tagName, starting from the
   // node the event was triggered on; traverses the DOM upwards
   findElement: function(event, tagName) {
-    element = Event.element(event);
-    while (element.tagName.toUpperCase() != tagName.toUpperCase() 
-        && element.parentNode)
+    var element = Event.element(event);
+    while (element.parentNode && (!element.tagName || 
+      (element.tagName.toUpperCase() != tagName.toUpperCase())))
       element = element.parentNode;
     return element;
   },
