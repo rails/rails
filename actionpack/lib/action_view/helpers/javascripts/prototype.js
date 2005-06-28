@@ -254,6 +254,7 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
       failure: container.failure ? $(container.failure) : null
     }
 
+    this.script_re = /<script.*?>((?:\n|.)*?)<\/script>/im;
     this.setOptions(options);
   
     if (this.options.asynchronous) {
@@ -271,22 +272,78 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
     var receiver = 
       (this.request.transport.status == 200) ?
       this.containers.success : this.containers.failure;
+
+    var response = this.request.transport.responseText.replace(
+      this.script_re, '');
+
+    var scripts = this.request.transport.responseText.match(
+      this.script_re);
     
     if (receiver) {
       if (this.options.insertion) {
-        new this.options.insertion(receiver,
-            this.request.transport.responseText);
+        new this.options.insertion(receiver, response);
       } else {
-          receiver.innerHTML = this.request.transport.responseText;
+        receiver.innerHTML = response;
       }
     }
-    
-    if (this.request.transport.status == 200 && this.onComplete) {
-      setTimeout((function() {this.onComplete(
-        this.request.transport)}).bind(this), 10);
+
+    if (this.request.transport.status == 200) {
+      if (this.onComplete) {
+        setTimeout((function() {this.onComplete(
+          this.request.transport)}).bind(this), 10);
+      }
+      if (this.options.script && scripts) {
+        setTimeout((function() { eval(scripts[1]) }).bind(this), 10);
+      }
     }
   }
 });
+
+Ajax.PeriodicalUpdater = Class.create();
+Ajax.PeriodicalUpdater.prototype = (new Ajax.Base()).extend({
+  initialize: function(container, url, options) {
+    this.setOptions(options);
+    this.onComplete = this.options.onComplete;
+
+    this.frequency = (this.options.frequency || 2);
+    this.decay = 1;
+
+    this.updater = {};
+    this.container = container;
+    this.url = url;
+
+    this.start();
+  },
+
+  start: function() {
+    this.options.onComplete = this.updateComplete.bind(this);
+    this.onTimerEvent();
+  },
+
+  stop: function() {
+    this.updater.onComplete = undefined;
+    clearTimeout(this.timer);
+    (this.onComplete || Ajax.emptyFunction).apply(this, arguments);
+  },
+
+  updateComplete: function(request) {
+    if (this.options.decay) {
+      this.decay = (request.responseText == this.lastText ? 
+        this.decay * this.options.decay : 1);
+
+      this.lastText = request.responseText;
+    }
+    this.timer = setTimeout(this.onTimerEvent.bind(this), 
+      this.decay * this.frequency * 1000);
+  },
+
+  onTimerEvent: function() {
+    this.updater = new Ajax.Updater(this.container, this.url, this.options);
+  }
+
+});
+
+/*--------------------------------------------------------------------------*/
 
 document.getElementsByClassName = function(className) {
   var children = document.getElementsByTagName('*') || document.all;

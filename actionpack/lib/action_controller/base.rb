@@ -508,10 +508,22 @@ module ActionController #:nodoc:
         return result
       end
       
-      # Clears the rendered results, allowing for another render or redirect to be performed.
+      # Clears the rendered results, allowing for another render to be performed.
       def erase_render_results #:nodoc:
         @response.body = nil
         @performed_render = false
+      end
+
+      # Clears the redirected results from the headers, resetting the status to 200 and returns 
+      # the URL that was used to redirect or nil if there was no redirected URL
+      # Note that +redirect_to+ will change the body of the response to indicate a redirection.
+      # The response body is not reset here, see +erase_render_results+
+      def erase_redirect_results #:nodoc:
+        @performed_redirect = false
+        response.redirected_to = nil
+        response.redirected_to_method_params = nil
+        response.headers['Status'] = DEFAULT_RENDER_STATUS_CODE
+        response.headers.delete('location')
       end
 
       def rewrite_options(options)

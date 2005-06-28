@@ -124,7 +124,7 @@ module ActionView
          code = "new PeriodicalExecuter(function() {#{remote_function(options)}}, #{frequency})"
          content_tag("script", code, options[:html_options] || {})
       end
-      
+
       # Returns a form tag that will submit using XMLHttpRequest in the background instead of the regular 
       # reloading POST arrangement. Even though it's using Javascript to serialize the form elements, the form submission 
       # will work just like a regular submission as viewed by the receiving side (all elements available in @params).
@@ -373,6 +373,7 @@ module ActionView
         js_options['asynchronous'] = options[:type] != :synchronous
         js_options['method']       = method_option_to_s(options[:method]) if options[:method]
         js_options['insertion']    = "Insertion.#{options[:position].to_s.camelize}" if options[:position]
+        js_options['script']       = options[:script] == true if options[:script]
 	
         if options[:form]
           js_options['parameters'] = 'Form.serialize(this)'
@@ -382,7 +383,7 @@ module ActionView
         
         options_for_javascript(js_options)
       end
-      
+
       def method_option_to_s(method) 
         (method.is_a?(String) and !method.index("'").nil?) ? method : "'#{method}'"
       end
