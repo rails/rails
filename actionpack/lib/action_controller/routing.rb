@@ -388,6 +388,7 @@ module ActionController
       end
   
       def write_generation
+        method_sources = []
         @generation_methods = Hash.new(:generate_default_path)
         categorize_routes.each do |controller, routes|
           next unless routes.length < @routes.length
@@ -396,6 +397,7 @@ module ActionController
           method_name = "generate_path_for_#{ivar}".to_sym
           instance_variable_set "@#{ivar}", routes
           code = generation_code_for(ivar, method_name).to_s
+          method_sources &lt;&lt; code
           
           filename = "generated_code/routing/generation_for_controller_#{controller}.rb"
           eval(code, nil, filename)
@@ -404,7 +406,11 @@ module ActionController
           @generation_methods[controller.to_sym] = method_name
         end
         
-        eval(generation_code_for('routes', 'generate_default_path').to_s, nil, 'generated_code/routing/generation.rb')
+        
+        code = generation_code_for('routes', 'generate_default_path').to_s
+        eval(code, nil, 'generated_code/routing/generation.rb')
+        
+        return (method_sources &lt;&lt; code)
       end
 
       def recognize(request)
@@ -439,6 +445,7 @@ module ActionController
         end
     
         eval g.to_s, nil, 'generated/routing/recognition.rb'
+        return g.to_s
       end
         
       def generation_code_for(ivar = 'routes', method_name = nil)
