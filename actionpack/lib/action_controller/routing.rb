@@ -397,7 +397,7 @@ module ActionController
           method_name = "generate_path_for_#{ivar}".to_sym
           instance_variable_set "@#{ivar}", routes
           code = generation_code_for(ivar, method_name).to_s
-          method_sources &lt;&lt; code
+          method_sources << code
           
           filename = "generated_code/routing/generation_for_controller_#{controller}.rb"
           eval(code, nil, filename)
@@ -410,7 +410,7 @@ module ActionController
         code = generation_code_for('routes', 'generate_default_path').to_s
         eval(code, nil, 'generated_code/routing/generation.rb')
         
-        return (method_sources &lt;&lt; code)
+        return (method_sources << code)
       end
 
       def recognize(request)
