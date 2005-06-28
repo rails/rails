@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that multiparameter posts ignored attr_protected #1532 [alec+rails@veryclever.net]
+
 * Fixed problem with eager loading when using a has_and_belongs_to_many association using :association_foreign_key #1504 [flash@vanklinkenbergsoftware.nl]
 
 * Fixed Base#find to honor the documentation on how :joins work and make them consistent with Base#count #1405 [pritchie@gmail.com]. What used to be:

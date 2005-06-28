@@ -33,6 +33,10 @@ end
 
 class Booleantest < ActiveRecord::Base; end
 
+class Task < ActiveRecord::Base
+  attr_protected :starting
+end
+
 class BasicsTest < Test::Unit::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers
 
@@ -540,6 +544,15 @@ class BasicsTest < Test::Unit::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
+  end
+
+  def test_multiparameter_mass_assignment_protector
+    task = Task.new
+    time = Time.mktime(0)
+    task.starting = time 
+    attributes = { "starting(1i)" => "2004", "starting(2i)" => "6", "starting(3i)" => "24" }
+    task.attributes = attributes
+    assert_equal time, task.starting
   end
 
   def test_attributes_on_dummy_time
