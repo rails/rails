@@ -1,5 +1,7 @@
 *SVN*
 
+* Routes fail with leading slash #1540 [Nicholas Seckar]
+
 * Added support for upload progress indicators in Apache and lighttpd 1.4.x (won't work in WEBrick or lighttpd 1.3.x) #1475 [Sean Treadway]
   See http://sean.treadway.info/files/howto-upload-progress-2.mov for example.
 

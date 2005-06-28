@@ -320,6 +320,7 @@ module ActionController
   
         def initialize_components(path)
           path = path.split('/') if path.is_a? String
+          path.shift if path.first.blank?
           self.components = path.collect {|str| Component.new str}
         end
     
