@@ -2,19 +2,19 @@ require File.dirname(__FILE__) + '/tag_helper'
 
 module ActionView
   module Helpers
-    # Provides a set of helpers for calling Javascript functions and, most importantly, to call remote methods using what has 
+    # Provides a set of helpers for calling JavaScript functions and, most importantly, to call remote methods using what has 
     # been labelled Ajax[http://www.adaptivepath.com/publications/essays/archives/000385.php]. This means that you can call 
     # actions in your controllers without reloading the page, but still update certain parts of it using injections into the 
     # DOM. The common use case is having a form that adds a new element to a list without reloading the page.
     #
-    # To be able to use the Javascript helpers, you must either call <tt><%= define_javascript_functions %></tt> (which returns all
-    # the Javascript support functions in a <script> block) or reference the Javascript library using 
+    # To be able to use the JavaScript helpers, you must either call <tt><%= define_javascript_functions %></tt> (which returns all
+    # the JavaScript support functions in a <script> block) or reference the JavaScript library using 
     # <tt><%= javascript_include_tag "prototype" %></tt> (which looks for the library in /javascripts/prototype.js). The latter is
     # recommended as the browser can then cache the library instead of fetching all the functions anew on every request.
     #
     # If you're the visual type, there's an Ajax movie[http://www.rubyonrails.com/media/video/rails-ajax.mov] demonstrating
     # the use of form_remote_tag.
-    module JavascriptHelper      
+    module JavaScriptHelper      
       unless const_defined? :CALLBACKS
         CALLBACKS       = 
           [:uninitialized, :loading, :loaded, :interactive, :complete, :failure].push((100..599).to_a).flatten
@@ -101,7 +101,7 @@ module ActionView
       # <tt>options[:type] = :synchronous</tt>.
       #
       # You can customize further browser side call logic by passing
-      # in Javascript code snippets via some optional parameters. In
+      # in JavaScript code snippets via some optional parameters. In
       # their order of use these are:
       #
       # <tt>:confirm</tt>::      Adds confirmation dialog.
@@ -126,11 +126,11 @@ module ActionView
       end
 
       # Returns a form tag that will submit using XMLHttpRequest in the background instead of the regular 
-      # reloading POST arrangement. Even though it's using Javascript to serialize the form elements, the form submission 
+      # reloading POST arrangement. Even though it's using JavaScript to serialize the form elements, the form submission 
       # will work just like a regular submission as viewed by the receiving side (all elements available in @params).
       # The options for specifying the target with :url and defining callbacks is the same as link_to_remote.
       #
-      # A "fall-through" target for browsers that doesn't do Javascript can be specified with the :action/:method options on :html
+      # A "fall-through" target for browsers that doesn't do JavaScript can be specified with the :action/:method options on :html
       #
       #   form_remote_tag :html => { :action => url_for(:controller => "some", :action => "place") }
       #
@@ -186,7 +186,7 @@ module ActionView
         return function
       end
 
-      # Includes the Action Pack Javascript libraries inside a single <script> 
+      # Includes the Action Pack JavaScript libraries inside a single <script> 
       # tag. The function first includes prototype.js and then its core extensions,
       # (determined by filenames starting with "prototype").
       # Afterwards, any additional scripts will be included in random order.
@@ -226,7 +226,7 @@ module ActionView
       # <tt>:update</tt>::    Specifies the DOM ID of the element whose 
       #                       innerHTML should be updated with the
       #                       XMLHttpRequest response text.
-      # <tt>:with</tt>::      A Javascript expression specifying the
+      # <tt>:with</tt>::      A JavaScript expression specifying the
       #                       parameters for the XMLHttpRequest. This defaults
       #                       to 'value', which in the evaluated context 
       #                       refers to the new field value.
@@ -270,7 +270,7 @@ module ActionView
       #                       innerHTML should be updated with the autocomplete
       #                       entries returned by the Ajax request. 
       #                       Defaults to field_id + '_auto_complete'
-      # <tt>:with</tt>::      A Javascript expression specifying the
+      # <tt>:with</tt>::      A JavaScript expression specifying the
       #                       parameters for the XMLHttpRequest. This defaults
       #                       to 'value', which in the evaluated context 
       #                       refers to the new field value.
@@ -351,12 +351,12 @@ module ActionView
         javascript_tag("Sortable.create('#{element_id}', #{options_for_javascript(options)})")
       end
 
-      # Escape carrier returns and single and double quotes for Javascript segments.
+      # Escape carrier returns and single and double quotes for JavaScript segments.
       def escape_javascript(javascript)
         (javascript || '').gsub(/\r\n|\n|\r/, "\\n").gsub(/["']/) { |m| "\\#{m}" }
       end
 
-      # Returns a Javascript tag with the +content+ inside. Example:
+      # Returns a JavaScript tag with the +content+ inside. Example:
       #   javascript_tag "alert('All is good')" # => <script type="text/javascript">alert('All is good')</script>
       def javascript_tag(content)
         content_tag("script", content, :type => "text/javascript")
@@ -373,7 +373,7 @@ module ActionView
         js_options['asynchronous'] = options[:type] != :synchronous
         js_options['method']       = method_option_to_s(options[:method]) if options[:method]
         js_options['insertion']    = "Insertion.#{options[:position].to_s.camelize}" if options[:position]
-        js_options['script']       = options[:script] == true if options[:script]
+        js_options['evalScripts']  = options[:script] == true if options[:script]
 	
         if options[:form]
           js_options['parameters'] = 'Form.serialize(this)'
@@ -437,5 +437,7 @@ module ActionView
         )
       end
     end
+    
+    JavascriptHelper = JavaScriptHelper unless const_defined? :JavascriptHelper
   end
 end

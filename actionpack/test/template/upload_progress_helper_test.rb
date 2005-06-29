@@ -39,7 +39,7 @@ class UploadProgressHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::FormTagHelper
   include ActionView::Helpers::TagHelper
   include ActionView::Helpers::UrlHelper
-  include ActionView::Helpers::JavascriptHelper
+  include ActionView::Helpers::JavaScriptHelper
   include ActionView::Helpers::UploadProgressHelper
 
   def next_upload_id; @upload_id = last_upload_id.succ; end
@@ -175,7 +175,7 @@ class UploadProgressHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::FormTagHelper
   include ActionView::Helpers::TagHelper
   include ActionView::Helpers::UrlHelper
-  include ActionView::Helpers::JavascriptHelper
+  include ActionView::Helpers::JavaScriptHelper
   include ActionView::Helpers::UploadProgressHelper
 
   def next_upload_id; @upload_id = last_upload_id.succ; end
@@ -258,14 +258,14 @@ class UploadProgressHelperTest < Test::Unit::TestCase
 
   def test_form_tag_with_upload_progress
     assert_equal(
-      "<form action=\"http://www.example.com\" enctype=\"multipart/form-data\" method=\"post\" onsubmit=\"if (this.action.indexOf('upload_id') &lt; 0){ this.action += '?upload_id=1'; }this.target = 'UploadTarget1';$('UploadStatus1').innerHTML='Upload starting...'; $('UploadProgressBar1').firstChild.firstChild.style.width='0%'; if (document.uploadStatus1) { document.uploadStatus1.stop(); }document.uploadStatus1 = new Ajax.PeriodicalUpdater('UploadStatus1','http://www.example.com', {script:true, onComplete:function(request){$('UploadStatus1').innerHTML='A message';$('UploadProgressBar1').firstChild.firstChild.style.width='100%';document.uploadStatus1 = null}, asynchronous:true}.extend({decay:1.8,freqency:2.0})); return true\"><iframe id=\"UploadTarget1\" name=\"UploadTarget1\" src=\"\" style=\"width:0px;height:0px;border:0\"></iframe>",
+      "<form action=\"http://www.example.com\" enctype=\"multipart/form-data\" method=\"post\" onsubmit=\"if (this.action.indexOf('upload_id') &lt; 0){ this.action += '?upload_id=1'; }this.target = 'UploadTarget1';$('UploadStatus1').innerHTML='Upload starting...'; $('UploadProgressBar1').firstChild.firstChild.style.width='0%'; if (document.uploadStatus1) { document.uploadStatus1.stop(); }document.uploadStatus1 = new Ajax.PeriodicalUpdater('UploadStatus1','http://www.example.com', {onComplete:function(request){$('UploadStatus1').innerHTML='A message';$('UploadProgressBar1').firstChild.firstChild.style.width='100%';document.uploadStatus1 = null}, evalScripts:true, asynchronous:true}.extend({decay:1.8,freqency:2.0})); return true\"><iframe id=\"UploadTarget1\" name=\"UploadTarget1\" src=\"\" style=\"width:0px;height:0px;border:0\"></iframe>",
       form_tag_with_upload_progress
     )
   end
 
   def test_form_tag_with_upload_progress_custom
     assert_equal(
-      "<form action=\"http://www.example.com\" enctype=\"multipart/form-data\" method=\"post\" onsubmit=\"if (this.action.indexOf('upload_id') &lt; 0){ this.action += '?upload_id=5'; }this.target = 'awindow';$('UploadStatus0').innerHTML='Upload starting...'; $('UploadProgressBar0').firstChild.firstChild.style.width='0%'; alert('foo'); if (document.uploadStatus0) { document.uploadStatus0.stop(); }document.uploadStatus0 = new Ajax.PeriodicalUpdater('UploadStatus0','http://www.example.com', {script:true, onComplete:function(request){$('UploadStatus0').innerHTML='A message';$('UploadProgressBar0').firstChild.firstChild.style.width='100%';document.uploadStatus0 = null; alert('bar')}, asynchronous:true}.extend({decay:7,freqency:6})); return true\" target=\"awindow\">",
+      "<form action=\"http://www.example.com\" enctype=\"multipart/form-data\" method=\"post\" onsubmit=\"if (this.action.indexOf('upload_id') &lt; 0){ this.action += '?upload_id=5'; }this.target = 'awindow';$('UploadStatus0').innerHTML='Upload starting...'; $('UploadProgressBar0').firstChild.firstChild.style.width='0%'; alert('foo'); if (document.uploadStatus0) { document.uploadStatus0.stop(); }document.uploadStatus0 = new Ajax.PeriodicalUpdater('UploadStatus0','http://www.example.com', {onComplete:function(request){$('UploadStatus0').innerHTML='A message';$('UploadProgressBar0').firstChild.firstChild.style.width='100%';document.uploadStatus0 = null; alert('bar')}, evalScripts:true, asynchronous:true}.extend({decay:7,freqency:6})); return true\" target=\"awindow\">",
       form_tag_with_upload_progress({:upload_id => 5}, {:begin => "alert('foo')", :finish => "alert('bar')", :frequency => 6, :decay => 7, :target => 'awindow'}) 
     )
   end

@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
-class JavascriptHelperTest < Test::Unit::TestCase
-  include ActionView::Helpers::JavascriptHelper
+class JavaScriptHelperTest < Test::Unit::TestCase
+  include ActionView::Helpers::JavaScriptHelper
   
   include ActionView::Helpers::UrlHelper
   include ActionView::Helpers::TagHelper
@@ -19,7 +19,7 @@ class JavascriptHelperTest < Test::Unit::TestCase
   
   def test_define_javascript_functions
     # check if prototype.js is included first
-    assert_not_nil define_javascript_functions.split("\n")[1].match(/Prototype: an object-oriented Javascript library/)
+    assert_not_nil define_javascript_functions.split("\n")[1].match(/Prototype JavaScript framework/)
   end
 
   def test_escape_javascript
