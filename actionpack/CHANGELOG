@@ -1,5 +1,9 @@
 *SVN*
 
+* Directly generate paths with a leading slash instead of tacking it on later.  #1543 [Nicholas Seckar]
+
+* Fixed errant parameter modification in functional tests.  #1542 [Nicholas Seckar]
+
 * Routes fail with leading slash #1540 [Nicholas Seckar]
 
 * Added support for upload progress indicators in Apache and lighttpd 1.4.x (won't work in WEBrick or lighttpd 1.3.x) #1475 [Sean Treadway]

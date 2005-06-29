@@ -66,10 +66,11 @@ module ActionController #:nodoc:
     def path
       @path || super()
     end
-    
-    def assign_parameters(parameters)
-      path, extras = ActionController::Routing::Routes.generate(parameters.symbolize_keys)
-      non_path_parameters = (get? ? query_parameters : request_parameters)
+
+    def generate_route_and_assign_parameters(controller_path, action, parameters)
+      parameters = parameters.symbolize_keys.merge(:controller => controller_path, :action => action)
+      path, extras = ActionController::Routing::Routes.generate(parameters)
+      non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
         (extras.key?(key.to_sym) ? non_path_parameters : path_parameters)[key] = value
       end
@@ -248,9 +249,7 @@ module Test
           @request.action = action.to_s
 
           parameters ||= {}
-          parameters[:controller] = @controller.class.controller_path
-          parameters[:action] = action.to_s
-          @request.assign_parameters(parameters)
+          @request.generate_route_and_assign_parameters(@controller.class.controller_path, action.to_s, parameters)
 
           @request.session = ActionController::TestSession.new(session) unless session.nil?
           @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
@@ -307,11 +306,13 @@ module Test
         end
 
         def build_request_uri(action, parameters)
-          return if @request.env['REQUEST_URI']
-          url = ActionController::UrlRewriter.new(@request, parameters)
-          @request.set_REQUEST_URI(
-            url.rewrite(@controller.send(:rewrite_options,
-              (parameters||{}).update(:only_path => true, :action=>action))))
+          unless @request.env['REQUEST_URI']
+            options = @controller.send(:rewrite_options, parameters)
+            options.update(:only_path => true, :action => action)
+
+            url = ActionController::UrlRewriter.new(@request, parameters)
+            @request.set_REQUEST_URI(url.rewrite(options))
+          end
         end
 
         def html_document

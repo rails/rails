@@ -123,6 +123,7 @@ module Test #:nodoc:
 
       # Asserts that the provided options can be used to generate the provided path.
       def assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)
+        expected_path = "/#{expected_path}" unless expected_path[0] == ?/
         # Load routes.rb if it hasn't been loaded.
         ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
       

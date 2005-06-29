@@ -217,7 +217,7 @@ module ActionController
       end
     
       def finish
-        line %("#{segments.join('/')}")
+        line %("/#{segments.join('/')}")
       end
 
       def check_conditions(conditions)

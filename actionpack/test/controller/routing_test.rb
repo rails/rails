@@ -354,16 +354,16 @@ not_expired = true
     c = [Static.new("hello"), Static.new("world")]
     go c
     
-    assert_equal "hello/world", execute({}, {})
+    assert_equal "/hello/world", execute({}, {})
   end
   
   def test_basic_dynamic
     c = [Static.new("hi"), Dynamic.new(:action)]
     go c
     
-    assert_equal 'hi/index', execute({:action => 'index'}, {:action => 'index'})
-    assert_equal 'hi/show', execute({:action => 'show'}, {:action => 'index'})
-    assert_equal 'hi/list+people', execute({}, {:action => 'list people'})
+    assert_equal '/hi/index', execute({:action => 'index'}, {:action => 'index'})
+    assert_equal '/hi/show', execute({:action => 'show'}, {:action => 'index'})
+    assert_equal '/hi/list+people', execute({}, {:action => 'list people'})
     assert_nil execute({},{})
   end
   
@@ -371,21 +371,21 @@ not_expired = true
     c = [Static.new("hi"), Dynamic.new(:action, :default => 'index')]
     go c
     
-    assert_equal 'hi', execute({:action => 'index'}, {:action => 'index'})
-    assert_equal 'hi/show', execute({:action => 'show'}, {:action => 'index'})
-    assert_equal 'hi/list+people', execute({}, {:action => 'list people'})
-    assert_equal 'hi', execute({}, {})
+    assert_equal '/hi', execute({:action => 'index'}, {:action => 'index'})
+    assert_equal '/hi/show', execute({:action => 'show'}, {:action => 'index'})
+    assert_equal '/hi/list+people', execute({}, {:action => 'list people'})
+    assert_equal '/hi', execute({}, {})
   end
   
   def test_dynamic_with_regexp_condition
     c = [Static.new("hi"), Dynamic.new(:action, :condition => /^[a-z]+$/)]
     go c
     
-    assert_equal 'hi/index', execute({:action => 'index'}, {:action => 'index'})
+    assert_equal '/hi/index', execute({:action => 'index'}, {:action => 'index'})
     assert_nil execute({:action => 'fox5'}, {:action => 'index'})
     assert_nil execute({:action => 'something_is_up'}, {:action => 'index'})
     assert_nil execute({}, {:action => 'list people'})
-    assert_equal 'hi/abunchofcharacter', execute({:action => 'abunchofcharacter'}, {})
+    assert_equal '/hi/abunchofcharacter', execute({:action => 'abunchofcharacter'}, {})
     assert_nil execute({}, {})
   end
   
@@ -393,25 +393,25 @@ not_expired = true
     c = [Static.new("hi"), Dynamic.new(:action, :default => 'index', :condition => /^[a-z]+$/)]
     go c
     
-    assert_equal 'hi', execute({:action => 'index'}, {:action => 'index'})
+    assert_equal '/hi', execute({:action => 'index'}, {:action => 'index'})
     assert_nil execute({:action => 'fox5'}, {:action => 'index'})
     assert_nil execute({:action => 'something_is_up'}, {:action => 'index'})
     assert_nil execute({}, {:action => 'list people'})
-    assert_equal 'hi/abunchofcharacter', execute({:action => 'abunchofcharacter'}, {})
-    assert_equal 'hi', execute({}, {})
+    assert_equal '/hi/abunchofcharacter', execute({:action => 'abunchofcharacter'}, {})
+    assert_equal '/hi', execute({}, {})
   end
 
   def test_path
     c = [Static.new("hi"), Path.new(:file)]
     go c
     
-    assert_equal 'hi', execute({:file => []}, {})
-    assert_equal 'hi/books/agile_rails_dev.pdf', execute({:file => %w(books agile_rails_dev.pdf)}, {})
-    assert_equal 'hi/books/development%26whatever/agile_rails_dev.pdf', execute({:file => %w(books development&whatever agile_rails_dev.pdf)}, {})
+    assert_equal '/hi', execute({:file => []}, {})
+    assert_equal '/hi/books/agile_rails_dev.pdf', execute({:file => %w(books agile_rails_dev.pdf)}, {})
+    assert_equal '/hi/books/development%26whatever/agile_rails_dev.pdf', execute({:file => %w(books development&whatever agile_rails_dev.pdf)}, {})
     
-    assert_equal 'hi', execute({:file => ''}, {})
-    assert_equal 'hi/books/agile_rails_dev.pdf', execute({:file => 'books/agile_rails_dev.pdf'}, {})
-    assert_equal 'hi/books/development%26whatever/agile_rails_dev.pdf', execute({:file => 'books/development&whatever/agile_rails_dev.pdf'}, {})
+    assert_equal '/hi', execute({:file => ''}, {})
+    assert_equal '/hi/books/agile_rails_dev.pdf', execute({:file => 'books/agile_rails_dev.pdf'}, {})
+    assert_equal '/hi/books/development%26whatever/agile_rails_dev.pdf', execute({:file => 'books/development&whatever/agile_rails_dev.pdf'}, {})
   end
   
   def test_controller
@@ -419,10 +419,10 @@ not_expired = true
     go c
     
     assert_nil execute({}, {})
-    assert_equal 'hi/content', execute({:controller => 'content'}, {})
-    assert_equal 'hi/admin/user', execute({:controller => 'admin/user'}, {})
-    assert_equal 'hi/content', execute({}, {:controller => 'content'}) 
-    assert_equal 'hi/admin/user', execute({}, {:controller => 'admin/user'})
+    assert_equal '/hi/content', execute({:controller => 'content'}, {})
+    assert_equal '/hi/admin/user', execute({:controller => 'admin/user'}, {})
+    assert_equal '/hi/content', execute({}, {:controller => 'content'}) 
+    assert_equal '/hi/admin/user', execute({}, {:controller => 'admin/user'})
   end
   
   def test_standard_route(time = ::RunTimeTests)
@@ -430,13 +430,13 @@ not_expired = true
     go c
     
     # Make sure we get the right answers
-    assert_equal('content', execute({:action => 'index'}, {:controller => 'content', :action => 'list'}))
-    assert_equal('content/list', execute({:action => 'list'}, {:controller => 'content', :action => 'index'}))
-    assert_equal('content/show/10', execute({:action => 'show', :id => '10'}, {:controller => 'content', :action => 'list'}))
+    assert_equal('/content', execute({:action => 'index'}, {:controller => 'content', :action => 'list'}))
+    assert_equal('/content/list', execute({:action => 'list'}, {:controller => 'content', :action => 'index'}))
+    assert_equal('/content/show/10', execute({:action => 'show', :id => '10'}, {:controller => 'content', :action => 'list'}))
 
-    assert_equal('admin/user', execute({:action => 'index'}, {:controller => 'admin/user', :action => 'list'}))
-    assert_equal('admin/user/list', execute({:action => 'list'}, {:controller => 'admin/user', :action => 'index'}))
-    assert_equal('admin/user/show/10', execute({:action => 'show', :id => '10'}, {:controller => 'admin/user', :action => 'list'}))
+    assert_equal('/admin/user', execute({:action => 'index'}, {:controller => 'admin/user', :action => 'list'}))
+    assert_equal('/admin/user/list', execute({:action => 'list'}, {:controller => 'admin/user', :action => 'index'}))
+    assert_equal('/admin/user/show/10', execute({:action => 'show', :id => '10'}, {:controller => 'admin/user', :action => 'list'}))
 
     if time
       GC.start
@@ -467,9 +467,9 @@ not_expired = true
     assert_nil execute({:controller => 'content', :action => 'elcome'}, {})
     assert_nil execute({:action => 'elcome'}, {:controller => 'content'})
 
-    assert_equal '', execute({:controller => 'content', :action => 'welcome'}, {})
-    assert_equal '', execute({:action => 'welcome'}, {:controller => 'content'})
-    assert_equal '', execute({:action => 'welcome', :id => '10'}, {:controller => 'content'})
+    assert_equal '/', execute({:controller => 'content', :action => 'welcome'}, {})
+    assert_equal '/', execute({:action => 'welcome'}, {:controller => 'content'})
+    assert_equal '/', execute({:action => 'welcome', :id => '10'}, {:controller => 'content'})
   end
 end
 
@@ -509,8 +509,8 @@ class RouteTests < Test::Unit::TestCase
     
     assert_nil gen(:known => 'foo')
     assert_nil gen({})
-    assert_equal 'hello/world', gen(:known => 'known_value')
-    assert_equal 'hello/world', gen(:known => 'known_value', :extra => 'hi')
+    assert_equal '/hello/world', gen(:known => 'known_value')
+    assert_equal '/hello/world', gen(:known => 'known_value', :extra => 'hi')
     assert_equal [:extra], route.extra_keys(:known => 'known_value', :extra => 'hi')
   end
   
@@ -525,8 +525,8 @@ class RouteTests < Test::Unit::TestCase
     assert_nil gen(:controller => 'content', :action => 'show_dude', :name => 'rails')
     assert_nil gen(:controller => 'content', :action => 'show_person')
     assert_nil gen(:controller => 'admin/user', :action => 'show_person', :name => 'rails')
-    assert_equal 'hello/rails', gen(:controller => 'content', :action => 'show_person', :name => 'rails')
-    assert_equal 'hello/Nicholas+Seckar', gen(:controller => 'content', :action => 'show_person', :name => 'Nicholas Seckar')
+    assert_equal '/hello/rails', gen(:controller => 'content', :action => 'show_person', :name => 'rails')
+    assert_equal '/hello/Nicholas+Seckar', gen(:controller => 'content', :action => 'show_person', :name => 'Nicholas Seckar')
   end
   
   def test_typical
@@ -544,14 +544,14 @@ class RouteTests < Test::Unit::TestCase
     assert_equal({:controller => ::Controllers::ContentController, :action => 'show', :id => '10'}, rec('content/show/10'))
     
     
-    assert_equal 'content', gen(:controller => 'content', :action => 'index')
-    assert_equal 'content/list', gen(:controller => 'content', :action => 'list')
-    assert_equal 'content/show/10', gen(:controller => 'content', :action => 'show', :id => '10')
+    assert_equal '/content', gen(:controller => 'content', :action => 'index')
+    assert_equal '/content/list', gen(:controller => 'content', :action => 'list')
+    assert_equal '/content/show/10', gen(:controller => 'content', :action => 'show', :id => '10')
     
-    assert_equal 'admin/user', gen(:controller => 'admin/user', :action => 'index')
-    assert_equal 'admin/user', gen(:controller => 'admin/user')
-    assert_equal 'admin/user', gen({:controller => 'admin/user'}, {:controller => 'content', :action => 'list', :id => '10'})
-    assert_equal 'admin/user/show/10', gen(:controller => 'admin/user', :action => 'show', :id => '10')
+    assert_equal '/admin/user', gen(:controller => 'admin/user', :action => 'index')
+    assert_equal '/admin/user', gen(:controller => 'admin/user')
+    assert_equal '/admin/user', gen({:controller => 'admin/user'}, {:controller => 'content', :action => 'list', :id => '10'})
+    assert_equal '/admin/user/show/10', gen(:controller => 'admin/user', :action => 'show', :id => '10')
   end
 end
 
@@ -569,10 +569,10 @@ class RouteSetTests < Test::Unit::TestCase
     
     assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'show', :id => '10'}.stringify_keys, rs.recognize_path(%w(admin user show 10)))
     
-    assert_equal ['admin/user/show/10', {}], rs.generate({:controller => 'admin/user', :action => 'show', :id => 10})
+    assert_equal ['/admin/user/show/10', {}], rs.generate({:controller => 'admin/user', :action => 'show', :id => 10})
     
-    assert_equal ['admin/user/show', {}], rs.generate({:action => 'show'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
-    assert_equal ['admin/user/list/10', {}], rs.generate({}, {:controller => 'admin/user', :action => 'list', :id => '10'})
+    assert_equal ['/admin/user/show', {}], rs.generate({:action => 'show'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
+    assert_equal ['/admin/user/list/10', {}], rs.generate({}, {:controller => 'admin/user', :action => 'list', :id => '10'})
   end
 
   def test_ignores_leading_slash
@@ -674,7 +674,7 @@ class RouteSetTests < Test::Unit::TestCase
   end
 
   def test_changing_controller
-    assert_equal ['admin/stuff/show/10', {}], rs.generate(
+    assert_equal ['/admin/stuff/show/10', {}], rs.generate(
       {:controller => 'stuff', :action => 'show', :id => 10},
       {:controller => 'admin/user', :action => 'index'}
     )

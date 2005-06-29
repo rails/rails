@@ -44,7 +44,6 @@ module ActionController
           extras.update(params_copy)
         end
 
-        path  = "/#{path}"
         path <<  build_query_string(extras) unless extras.empty?
         
         path

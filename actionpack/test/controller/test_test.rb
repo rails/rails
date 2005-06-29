@@ -7,11 +7,11 @@ class TestTest < Test::Unit::TestCase
     end
 
     def test_uri
-      render_text @request.request_uri
+      render :text => request.request_uri
     end
 
     def test_html_output
-      render_text <<HTML
+      render :text => <<HTML
 <html>
   <body>
     <div id="foo">
@@ -54,18 +54,18 @@ HTML
 
   def test_process_with_request_uri_with_no_params
     process :test_uri
-    assert_equal @response.body, "/test_test/test/test_uri"
+    assert_equal "/test_test/test/test_uri", @response.body
   end
 
   def test_process_with_request_uri_with_params
     process :test_uri, :id => 7
-    assert_equal @response.body, "/test_test/test/test_uri/7"
+    assert_equal "/test_test/test/test_uri/7", @response.body
   end
 
   def test_process_with_request_uri_with_params_with_explicit_uri
     @request.set_REQUEST_URI "/explicit/uri"
     process :test_uri, :id => 7
-    assert_equal @response.body, "/explicit/uri"
+    assert_equal "/explicit/uri", @response.body
   end
 
   def test_assert_tag
