@@ -67,12 +67,12 @@ module ActionController #:nodoc:
       @path || super()
     end
 
-    def generate_route_and_assign_parameters(controller_path, action, parameters)
+    def assign_parameters(controller_path, action, parameters)
       parameters = parameters.symbolize_keys.merge(:controller => controller_path, :action => action)
-      path, extras = ActionController::Routing::Routes.generate(parameters.dup)
+      extra_keys = ActionController::Routing::Routes.extra_keys(parameters)
       non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
-        if extras.key?(key.to_sym) then non_path_parameters[key] = value
+        if extra_keys.include?(key.to_sym) then non_path_parameters[key] = value
         else path_parameters[key] = value.to_s
         end
       end
@@ -251,7 +251,7 @@ module Test
           @request.action = action.to_s
 
           parameters ||= {}
-          @request.generate_route_and_assign_parameters(@controller.class.controller_path, action.to_s, parameters)
+          @request.assign_parameters(@controller.class.controller_path, action.to_s, parameters)
 
           @request.session = ActionController::TestSession.new(session) unless session.nil?
           @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash

@@ -554,6 +554,10 @@ module ActionController
         NamedRoutes.name_route(route, name)
         route
       end
+
+      def extra_keys(options, recall = {})
+        generate(options.dup, recall).last.keys
+      end
     end
 
     module NamedRoutes
