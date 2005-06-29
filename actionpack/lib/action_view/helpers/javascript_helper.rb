@@ -259,6 +259,10 @@ module ActionView
       #
       # This function expects that the called action returns a HTML <ul> list,
       # or nothing if no entries should be displayed for autocompletion.
+      #
+      # You'll probably want to turn the browser's built-in autocompletion off,
+      # su be sure to include a autocomplete="off" attribute with your text
+      # input field.
       # 
       # Required +options+ are:
       # <tt>:url</tt>::       Specifies the DOM ID of the element whose
@@ -310,7 +314,7 @@ module ActionView
       
       def text_field_with_auto_complete(object, method, tag_options = {}, completion_options = {})
         (completion_options[:skip_style] ? "" : auto_complete_stylesheet) +
-        text_field(object, method, tag_options) +
+        text_field(object, method, { :autocomplete => "off" }.merge!(tag_options)) +
         content_tag("div", "", :id => "#{object}_#{method}_auto_complete", :class => "auto_complete") +
         auto_complete_field("#{object}_#{method}", { :url => { :action => "auto_complete_for_#{object}_#{method}" } }.update(completion_options))
       end
