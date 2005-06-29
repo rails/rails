@@ -61,6 +61,7 @@ Ajax.Autocompleter.prototype = (new Ajax.Base()).extend({
        
     this.observer = null;
     
+    Event.observe(this.element, "blur", this.onBlur.bindAsEventListener(this));
     Event.observe(this.element, "keypress", this.onKeyPress.bindAsEventListener(this));
     Event.observe(document, "click", this.onBlur.bindAsEventListener(this));
   },
@@ -108,9 +109,15 @@ Ajax.Autocompleter.prototype = (new Ajax.Base()).extend({
     }
   },
   
+  addObservers: function(element) {
+    Event.observe(element, "mouseover", this.onHover.bindAsEventListener(this));
+    Event.observe(element, "click", this.onClick.bindAsEventListener(this));
+  },
+  
   onComplete: function(request) {
-    if(!this.changed) {
+    if(!this.changed && this.has_focus) {
       this.update.innerHTML = request.responseText;
+      Element.cleanWhitespace(this.update);
       Element.cleanWhitespace(this.update.firstChild);
 
       if(this.update.firstChild && this.update.firstChild.childNodes) {
@@ -119,8 +126,7 @@ Ajax.Autocompleter.prototype = (new Ajax.Base()).extend({
         for (var i = 0; i < this.entry_count; i++) {
           entry = this.get_entry(i);
           entry.autocompleteIndex = i;
-          Event.observe(entry, "mouseover", this.onHover.bindAsEventListener(this));
-          Event.observe(entry, "click", this.onClick.bindAsEventListener(this));
+          this.addObservers(entry);
         }
       } else { 
         this.entry_count = 0;
@@ -171,26 +177,29 @@ Ajax.Autocompleter.prototype = (new Ajax.Base()).extend({
   },
   
   onHover: function(event) {
-    element = Event.findElement(event, 'LI');
+    var element = Event.findElement(event, 'LI');
     if(this.index != element.autocompleteIndex) 
     {
         this.index = element.autocompleteIndex;
         this.render();
     }
+    Event.stop(event);
   },
   
   onClick: function(event) {
-    element = Event.findElement(event, 'LI');
+    var element = Event.findElement(event, 'LI');
     this.index = element.autocompleteIndex;
     this.select_entry();
+    Event.stop(event);
   },
   
   onBlur: function(event) {
-    element = Event.element(event);
+    var element = Event.element(event);
     if(element==this.update) return;
     while(element.parentNode) 
       { element = element.parentNode; if(element==this.update) return; }
     this.hide();
+    this.has_focus = false;
     this.active = false;
   }, 
   

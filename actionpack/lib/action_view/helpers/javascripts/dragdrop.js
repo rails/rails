@@ -235,13 +235,13 @@ Draggable.prototype = {
     var options = {
       handle: false,
       starteffect: function(element) { 
-        new Effect2.Opacity(element, {duration:0.2, from:1.0, to:0.7}); 
+        new Effect.Opacity(element, {duration:0.2, from:1.0, to:0.7}); 
       },
       reverteffect: function(element, top_offset, left_offset) {
-        new Effect2.MoveBy(element, -top_offset, -left_offset, {duration:0.4});
+        new Effect.MoveBy(element, -top_offset, -left_offset, {duration:0.4});
       },
       endeffect: function(element) { 
-         new Effect2.Opacity(element, {duration:0.2, from:0.7, to:1.0}); 
+         new Effect.Opacity(element, {duration:0.2, from:0.7, to:1.0}); 
       },
       zindex: 1000
     }.extend(arguments[1] || {});
@@ -467,5 +467,3 @@ Sortable = {
     return queryComponents.join("&");
   }
 } 
-
-/*--------------------------------------------------------------------------*/

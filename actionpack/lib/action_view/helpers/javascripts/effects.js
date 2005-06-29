@@ -529,7 +529,7 @@ Effect.Pulsate = function(element) {
 
 Effect.Fold = function(element) {
  $(element).style.overflow = 'hidden';
- new Effect2.Scale(element, 5, {   
+ new Effect.Scale(element, 5, {   
    scaleContent: false,
    scaleTo: 100,
    scaleX: false,
@@ -547,11 +547,6 @@ Effect.Fold = function(element) {
 
 Element.setContentZoom = function(element, percent) {
   var element = $(element);
-  
-  var sizeEm = 1.0;
-  if (element.style.fontSize.indexOf("em")>0)
-    sizeEm = parseFloat(element.style.fontSize);
-    
-  element.style.fontSize = sizeEm*(percent/100) + "em";  
+  element.style.fontSize = (percent/100) + "em";  
   if(navigator.appVersion.indexOf('AppleWebKit')>0) window.scrollBy(0,0);
 }
