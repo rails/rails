@@ -1,15 +1,15 @@
+$:.unshift File.dirname(__FILE__) + "/../lib"
 $:.unshift File.dirname(__FILE__) + "/mocks"
 
 require 'test/unit'
 require 'stringio'
+require 'fcgi_handler'
 
-if !defined?(RailsFCGIHandler)
-  RAILS_ROOT = File.dirname(__FILE__)
-  load File.dirname(__FILE__) + "/../dispatches/dispatch.fcgi"
-end
+RAILS_ROOT = File.dirname(__FILE__) if !defined?(RAILS_ROOT)
 
 class RailsFCGIHandler
   attr_reader :exit_code
+  attr_reader :restarted
   attr_accessor :thread
 
   def trap(signal, handler, &block)
@@ -24,6 +24,10 @@ class RailsFCGIHandler
 
   def send_signal(which)
     @signal_handlers[which].call(which)
+  end
+
+  def restore!
+    @restarted = true
   end
 end
 
@@ -40,32 +44,53 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
   def test_uninterrupted_processing
     @handler.process!
     assert_nil @handler.exit_code
-    assert !@handler.please_exit_at_your_earliest_convenience
-    assert !@handler.i_am_currently_processing_a_request
+    assert_nil @handler.when_ready
+    assert !@handler.processing
   end
 
-  %w(HUP USR1).each do |signal|
-    define_method("test_interrupted_via_#{signal}_when_not_in_request") do
-      FCGI.time_to_sleep = 1
-      @handler.thread = Thread.new { @handler.process! }
-      sleep 0.1 # let the thread get started
-      @handler.send_signal(signal)
-      @handler.thread.join
-      assert_equal 0, @handler.exit_code
-      assert !@handler.please_exit_at_your_earliest_convenience
-      assert !@handler.i_am_currently_processing_a_request
-    end
+  def test_interrupted_via_HUP_when_not_in_request
+    FCGI.time_to_sleep = 1
+    @handler.thread = Thread.new { @handler.process! }
+    sleep 0.1 # let the thread get started
+    @handler.send_signal("HUP")
+    @handler.thread.join
+    assert_nil @handler.exit_code
+    assert_nil @handler.when_ready
+    assert !@handler.processing
+    assert @handler.restarted
+  end
 
-    define_method("test_interrupted_via_#{signal}_when_in_request") do
-      Dispatcher.time_to_sleep = 1
-      @handler.thread = Thread.new { @handler.process! }
-      sleep 0.1 # let the thread get started
-      @handler.send_signal(signal)
-      @handler.thread.join
-      assert_nil @handler.exit_code
-      assert @handler.please_exit_at_your_earliest_convenience
-      assert !@handler.i_am_currently_processing_a_request
-    end
+  def test_interrupted_via_HUP_when_in_request
+    Dispatcher.time_to_sleep = 1
+    @handler.thread = Thread.new { @handler.process! }
+    sleep 0.1 # let the thread get started
+    @handler.send_signal("HUP")
+    @handler.thread.join
+    assert_nil @handler.exit_code
+    assert_equal :restart, @handler.when_ready
+    assert !@handler.processing
+  end
+
+  def test_interrupted_via_USR1_when_not_in_request
+    FCGI.time_to_sleep = 1
+    @handler.thread = Thread.new { @handler.process! }
+    sleep 0.1 # let the thread get started
+    @handler.send_signal("USR1")
+    @handler.thread.join
+    assert_equal 0, @handler.exit_code
+    assert_nil @handler.when_ready
+    assert !@handler.processing
+  end
+
+  def test_interrupted_via_USR1_when_in_request
+    Dispatcher.time_to_sleep = 1
+    @handler.thread = Thread.new { @handler.process! }
+    sleep 0.1 # let the thread get started
+    @handler.send_signal("USR1")
+    @handler.thread.join
+    assert_nil @handler.exit_code
+    assert @handler.when_ready
+    assert !@handler.processing
   end
 
   %w(RuntimeError SignalException).each do |exception|
@@ -77,7 +102,7 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
         when "RuntimeError"
           assert_match %r{almost killed}, @log.string
         when "SignalException"
-          assert_match %r{\d killed}, @log.string
+          assert_match %r{^killed}, @log.string
       end
     end
 
@@ -89,7 +114,7 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
         when "RuntimeError"
           assert_no_match %r{killed}, @log.string
         when "SignalException"
-          assert_match %r{\d killed}, @log.string
+          assert_match %r{^killed}, @log.string
       end
     end
   end

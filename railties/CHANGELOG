@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow dynamic application reloading for dispatch.fcgi processes by sending a SIGHUP. If the process is currently handling a request, the request will be allowed to complete first. This allows production fcgi's to be reloaded without having to restart them.
+
 * RailsFCGIHandler (dispatch.fcgi) no longer tries to explicitly flush $stdout (CgiProcess#out always calls flush)
 
 * Fixed rakefile actions against PostgreSQL when the password is all numeric #1462 [michael@schubert.cx]
@@ -22,7 +24,7 @@
 
 * Added graceful exit from pressing CTRL-C during the run of the rails command #1150 [Caleb Tennis]
 
-* Allow graceful exits for dispatch.fcgi processes by sending a SIGUSR1 or SIGHUP. If the process is currently handling a request, the request will be allowed to complete and then will terminate itself. If a request is not being handled, the process is terminated immediately (via #exit). This basically works like restart graceful on Apache. [Jamis Buck]
+* Allow graceful exits for dispatch.fcgi processes by sending a SIGUSR1. If the process is currently handling a request, the request will be allowed to complete and then will terminate itself. If a request is not being handled, the process is terminated immediately (via #exit). This basically works like restart graceful on Apache. [Jamis Buck]
 
 * Made dispatch.fcgi more robust by catching fluke errors and retrying unless its a permanent condition. [Jamis Buck]
 

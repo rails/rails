@@ -33,8 +33,15 @@ class Dispatcher
       rescue Object => exception
         ActionController::Base.process_with_exception(request, response, exception).out(output)
       ensure
-        reset_application
+        reset_after_dispatch
       end
+    end
+
+    def reset_application!
+      Controllers.clear!
+      Dependencies.clear
+      Dependencies.remove_subclasses_for(ActiveRecord::Base, ActiveRecord::Observer, ActionController::Base)
+      Dependencies.remove_subclasses_for(ActionMailer::Base) if defined?(ActionMailer::Base)
     end
     
     private
@@ -44,14 +51,8 @@ class Dispatcher
         Controllers.const_load!(:ApplicationController, "application") unless Controllers.const_defined?(:ApplicationController)
       end
     
-      def reset_application
-        if Dependencies.load?
-          Controllers.clear!
-          Dependencies.clear
-          Dependencies.remove_subclasses_for(ActiveRecord::Base, ActiveRecord::Observer, ActionController::Base)
-          Dependencies.remove_subclasses_for(ActionMailer::Base) if defined?(ActionMailer::Base)
-        end
-
+      def reset_after_dispatch
+        reset_application! if Dependencies.load?
         Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
       end
   end
