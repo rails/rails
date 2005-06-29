@@ -5,6 +5,10 @@ class TestTest < Test::Unit::TestCase
     def set_flash
       flash["test"] = ">#{flash["test"]}<"
     end
+    
+    def test_params
+      render :text => params.inspect
+    end
 
     def test_uri
       render :text => request.request_uri
@@ -87,5 +91,22 @@ HTML
 
   def test_assert_routing
     assert_generates 'controller/action/5', :controller => 'controller', :action => 'action', :id => '5'
+  end
+
+  def test_params_passing
+    get :test_params, :page => {:name => "Page name", :month => '4', :year => '2004', :day => '6'}
+    parsed_params = eval(@response.body)
+    assert_equal(
+      {'controller' => 'test_test/test', 'action' => 'test_params',
+       'page' => {'name' => "Page name", 'month' => '4', 'year' => '2004', 'day' => '6'}},
+      parsed_params
+    )
+  end
+
+  def test_path_params_are_strings
+    get :test_params, :id => 20, :foo => Object.new
+    @request.path_parameters.each do |key, value|
+      assert_kind_of String, value
+    end
   end
 end

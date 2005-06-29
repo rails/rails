@@ -7,7 +7,7 @@ module ActionController #:nodoc:
     def self.process_test(request)
       new.process_test(request)
     end
-  
+
     def process_test(request) #:nodoc:
       process(request, TestResponse.new)
     end
@@ -22,7 +22,7 @@ module ActionController #:nodoc:
       @query_parameters   = query_parameters || {}
       @request_parameters = request_parameters || {}
       @session            = session || TestSession.new
-      
+
       initialize_containers
       initialize_default_values
 
@@ -41,7 +41,7 @@ module ActionController #:nodoc:
       @query_parameters.update({ "action" => action_name })
       @parameters = nil
     end
-    
+
     # Used to check AbstractRequest's request_uri functionality.
     # Disables the use of @path and @request_uri so superclass can handle those.
     def set_REQUEST_URI(value)
@@ -66,12 +66,15 @@ module ActionController #:nodoc:
     def path
       @path || super()
     end
-    
-    def assign_parameters(parameters)
-      path, extras = ActionController::Routing::Routes.generate(parameters.symbolize_keys)
-      non_path_parameters = (get? ? query_parameters : request_parameters)
+
+    def generate_route_and_assign_parameters(controller_path, action, parameters)
+      parameters = parameters.symbolize_keys.merge(:controller => controller_path, :action => action)
+      path, extras = ActionController::Routing::Routes.generate(parameters.dup)
+      non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
-        (extras.key?(key.to_sym) ? non_path_parameters : path_parameters)[key] = value
+        if extras.key?(key.to_sym) then non_path_parameters[key] = value
+        else path_parameters[key] = value.to_s
+        end
       end
     end
 
@@ -79,7 +82,7 @@ module ActionController #:nodoc:
       def initialize_containers
         @env, @cookies = {}, {}
       end
-    
+
       def initialize_default_values
         @host                    = "test.host"
         @request_uri             = "/"
@@ -87,13 +90,13 @@ module ActionController #:nodoc:
         @env["SERVER_PORT"]      = 80
       end
   end
-  
+
   class TestResponse < AbstractResponse #:nodoc:
     # the response code of the request
     def response_code
       headers['Status'][0,3].to_i rescue 0
     end
-   
+
     # was the response successful?
     def success?
       response_code == 200
@@ -108,7 +111,7 @@ module ActionController #:nodoc:
     def redirect?
       (300..399).include?(response_code)
     end
-    
+
     # was there a server-side error?
     def error?
       (500..599).include?(response_code)
@@ -120,7 +123,7 @@ module ActionController #:nodoc:
     def redirect_url
       redirect? ? headers['location'] : nil
     end
-    
+
     # does the redirect location match this regexp pattern?
     def redirect_url_match?( pattern )
       return false if redirect_url.nil?
@@ -129,7 +132,7 @@ module ActionController #:nodoc:
       return false if p.nil?
       p.match(redirect_url) != nil
     end
-   
+
     # returns the template path of the file which was used to
     # render this response (or nil) 
     def rendered_file(with_controller=false)
@@ -151,7 +154,7 @@ module ActionController #:nodoc:
     def flash
       session['flash'] || {}
     end
-    
+
     # do we have a flash? 
     def has_flash?
       !session['flash'].empty?
@@ -176,12 +179,12 @@ module ActionController #:nodoc:
     def template_objects
       template.assigns || {}
     end
-   
+
     # does the specified template object exist? 
     def has_template_object?(name=nil)
       !template_objects[name].nil?      
     end
-    
+
     # Returns the response cookies, converted to a Hash of (name => CGI::Cookie) pairs
     # Example:
     # 
@@ -221,11 +224,11 @@ end
     def []=(key, value)
       @attributes[key] = value
     end
-    
+
     def session_id
       ""
     end
-    
+
     def update() end
     def close() end
     def delete() @attributes = {} end
@@ -248,16 +251,14 @@ module Test
           @request.action = action.to_s
 
           parameters ||= {}
-          parameters[:controller] = @controller.class.controller_path
-          parameters[:action] = action.to_s
-          @request.assign_parameters(parameters)
+          @request.generate_route_and_assign_parameters(@controller.class.controller_path, action.to_s, parameters)
 
           @request.session = ActionController::TestSession.new(session) unless session.nil?
           @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
           build_request_uri(action, parameters)
           @controller.process(@request, @response)
         end
-    
+
         # execute the request simulating a specific http method and set/volley the response
         %w( get post put delete head ).each do |method|
           class_eval <<-EOV
@@ -278,7 +279,7 @@ module Test
           if @response.redirected_to[:controller]
             raise "Can't follow redirects outside of current controller (#{@response.redirected_to[:controller]})"
           end
-          
+
           get(@response.redirected_to.delete(:action), @response.redirected_to.stringify_keys)
         end
 
@@ -289,7 +290,7 @@ module Test
             @response.template.assigns[key.to_s]
           end
         end
-        
+
         def session
           @response.session
         end
@@ -307,18 +308,20 @@ module Test
         end
 
         def build_request_uri(action, parameters)
-          return if @request.env['REQUEST_URI']
-          url = ActionController::UrlRewriter.new(@request, parameters)
-          @request.set_REQUEST_URI(
-            url.rewrite(@controller.send(:rewrite_options,
-              (parameters||{}).update(:only_path => true, :action=>action))))
+          unless @request.env['REQUEST_URI']
+            options = @controller.send(:rewrite_options, parameters)
+            options.update(:only_path => true, :action => action)
+
+            url = ActionController::UrlRewriter.new(@request, parameters)
+            @request.set_REQUEST_URI(url.rewrite(options))
+          end
         end
 
         def html_document
           require_html_scanner
           @html_document ||= HTML::Document.new(@response.body)
         end
-        
+
         def find_tag(conditions)
           html_document.find(conditions)
         end
@@ -334,7 +337,7 @@ module Test
           $:.unshift File.dirname(__FILE__) + "/vendor/html-scanner"
           require 'html/document'
         end
-        
+
         def method_missing(selector, *args)
           return @controller.send(selector, *args) if ActionController::Routing::NamedRoutes::Helpers.include?(selector)
           return super
