@@ -249,6 +249,8 @@ module Test
       private  
         # execute the request and set/volley the response
         def process(action, parameters = nil, session = nil, flash = nil)
+          @request.recycle!
+
           # Sanity check for required instance variables so we can give an understandable error message.
           %w(controller request response).each do |iv_name|
             assert_not_nil instance_variable_get("@#{iv_name}"), "@#{iv_name} is nil: make sure you set it in your test's setup method."
@@ -265,7 +267,6 @@ module Test
           @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
           build_request_uri(action, parameters)
           @controller.process(@request, @response)
-          # @request.recycle!
         end
 
         # execute the request simulating a specific http method and set/volley the response
