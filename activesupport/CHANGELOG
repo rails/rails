@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed memory leak with Object#remove_subclasses_of, which inflicted a Rails application running in development mode with a ~20KB leak per request #1289 [c.r.mcgrath@gmail.com]
+
 * Made 1.year == 365.25.days to account for leap years.  This allows you to do User.find(:all, :conditions => ['birthday > ?', 50.years.ago]) without losing a lot of days.  #1488 [tuxie@dekadance.se]
 
 * Added an exception if calling id on nil to WhinyNil #584 [kevin-temp@writesoon.com]
