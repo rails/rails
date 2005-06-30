@@ -31,8 +31,8 @@ module ActionController #:nodoc:
 
     def reset_session
       @session = {}
-    end    
-
+    end              
+    
     def port=(number)
       @env["SERVER_PORT"] = number.to_i
     end
@@ -72,11 +72,19 @@ module ActionController #:nodoc:
       extra_keys = ActionController::Routing::Routes.extra_keys(parameters)
       non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
-        if extra_keys.include?(key.to_sym) then non_path_parameters[key] = value
-        else path_parameters[key] = value.to_s
+        if extra_keys.include?(key.to_sym)
+          non_path_parameters[key] = value
+        else
+          path_parameters[key] = value.to_s
         end
       end
-    end
+    end                        
+    
+    def recycle!
+      self.request_parameters = {}
+      self.query_parameters   = {}         
+      self.path_parameters    = {}     
+    end    
 
     private
       def initialize_containers
@@ -257,6 +265,7 @@ module Test
           @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
           build_request_uri(action, parameters)
           @controller.process(@request, @response)
+          # @request.recycle!
         end
 
         # execute the request simulating a specific http method and set/volley the response

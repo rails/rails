@@ -8,8 +8,8 @@ class TestTest < Test::Unit::TestCase
     
     def test_params
       render :text => params.inspect
-    end
-
+    end                         
+    
     def test_uri
       render :text => request.request_uri
     end
@@ -33,6 +33,10 @@ class TestTest < Test::Unit::TestCase
 </html>
 HTML
     end
+    
+    def test_only_one_param
+      render :text => (@params[:left] && @params[:right]) ? "EEP, Both here!" : "OK"
+    end
   end
 
   def setup
@@ -49,8 +53,8 @@ HTML
   def test_process_without_flash
     process :set_flash
     assert_flash_equal "><", "test"
-  end
-
+  end          
+  
   def test_process_with_flash
     process :set_flash, nil, nil, { "test" => "value" }
     assert_flash_equal ">value<", "test"
@@ -70,6 +74,13 @@ HTML
     @request.set_REQUEST_URI "/explicit/uri"
     process :test_uri, :id => 7
     assert_equal "/explicit/uri", @response.body
+  end                     
+  
+  def test_multiple_calls         
+    process :test_only_one_param, :left => true
+    assert_equal "OK", @response.body
+    process :test_only_one_param, :right => true  
+    assert_equal "OK", @response.body
   end
 
   def test_assert_tag
