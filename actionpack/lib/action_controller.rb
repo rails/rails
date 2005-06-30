@@ -48,7 +48,6 @@ require 'action_controller/cgi_process'
 require 'action_controller/caching'
 require 'action_controller/components'
 require 'action_controller/verification'
-require 'action_controller/upload_progress'
 require 'action_controller/streaming'
 require 'action_controller/auto_complete'
 
@@ -70,7 +69,6 @@ ActionController::Base.class_eval do
   include ActionController::Caching
   include ActionController::Components
   include ActionController::Verification
-  include ActionController::UploadProgress
   include ActionController::Streaming
   include ActionController::AutoComplete
 end
