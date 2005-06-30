@@ -51,7 +51,7 @@ module ActionView
     #
     # Default styling is included with the scaffolding CSS.
     #
-    module UploadProgressHelper 
+    module UploadProgressHelper #:nodoc:
       unless const_defined? :FREQUENCY
         # Default number of seconds between client updates
         FREQUENCY = 2.0 

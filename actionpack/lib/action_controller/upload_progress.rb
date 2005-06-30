@@ -126,15 +126,14 @@ module ActionController #:nodoc:
   #   end
   #
   #
-  module UploadProgress
-
+  module UploadProgress #:nodoc:
     def self.append_features(base) #:nodoc:
       super
       base.extend(ClassMethods)
       base.helper_method :upload_progress, :next_upload_id, :last_upload_id, :current_upload_id
     end
 
-    module ClassMethods
+    module ClassMethods #:nodoc:
       # Creates an +after_filter+ which will call +finish_upload_status+
       # creating the document that will be loaded into the hidden IFRAME, terminating
       # the status polling forms created with +form_with_upload_progress+.
