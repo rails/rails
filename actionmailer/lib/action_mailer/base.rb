@@ -143,7 +143,7 @@ module ActionMailer #:nodoc:
     cattr_accessor :default_content_type
 
     adv_attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers,
-                      :bcc, :cc, :charset, :content_type
+                      :bcc, :cc, :charset, :content_type, :template
 
     attr_reader       :mail
 
@@ -161,6 +161,7 @@ module ActionMailer #:nodoc:
       @bcc = @cc = @from = @recipients = @sent_on = @subject = nil
       @charset = @@default_charset.dup
       @content_type = @@default_content_type.dup
+      @template = method_name
       @parts = []
       @headers = {}
       @body = {}
@@ -173,7 +174,7 @@ module ActionMailer #:nodoc:
         # which include the content-type in their file name (i.e.,
         # "the_template_file.text.html.rhtml", etc.).
         if @parts.empty?
-          templates = Dir.glob("#{template_path}/#{method_name}.*")
+          templates = Dir.glob("#{template_path}/#{@template}.*")
           templates.each do |path|
             type = (File.basename(path).split(".")[1..-2] || []).join("/")
             next if type.empty?
@@ -188,8 +189,8 @@ module ActionMailer #:nodoc:
         # normal template exists (or if there were no implicit parts) we render
         # it.
         template_exists = @parts.empty?
-        template_exists ||= Dir.glob("#{template_path}/#{method_name}.*").any? { |i| i.split(".").length == 2 }
-        @body = render_message(method_name, @body) if template_exists
+        template_exists ||= Dir.glob("#{template_path}/#{@template}.*").any? { |i| i.split(".").length == 2 }
+        @body = render_message(@template, @body) if template_exists
 
         # Finally, if there are other message parts and a textual body exists,
         # we shift it onto the front of the parts and set the body to nil (so

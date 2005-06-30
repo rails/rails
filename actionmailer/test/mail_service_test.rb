@@ -127,6 +127,16 @@ class TestMailer < ActionMailer::Base
     content_type "text/html"
   end
 
+  def custom_template(recipient)
+    recipients recipient
+    subject    "[Signed up] Welcome #{recipient}"
+    from       "system@loudthinking.com"
+    sent_on    Time.local(2004, 12, 12)
+    template   "signed_up"
+
+    body["recipient"] = recipient
+  end
+
   class <<self
     attr_accessor :received_body
   end
@@ -177,6 +187,20 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_nothing_raised { TestMailer.deliver_signed_up(@recipient) }
     assert_not_nil ActionMailer::Base.deliveries.first
     assert_equal expected.encoded, ActionMailer::Base.deliveries.first.encoded
+  end
+  
+  def test_custom_template
+    expected = new_mail
+    expected.to      = @recipient
+    expected.subject = "[Signed up] Welcome #{@recipient}"
+    expected.body    = "Hello there, \n\nMr. #{@recipient}"
+    expected.from    = "system@loudthinking.com"
+    expected.date    = Time.local(2004, 12, 12)
+
+    created = nil
+    assert_nothing_raised { created = TestMailer.create_custom_template(@recipient) }
+    assert_not_nil created
+    assert_equal expected.encoded, created.encoded
   end
   
   def test_cancelled_account
