@@ -237,7 +237,7 @@ module ActionView
         if options[:frequency]
           build_observer('Form.Element.Observer', field_id, options)
         else
-          build_observer('Form.Element.EventObserver', form_id, options)
+          build_observer('Form.Element.EventObserver', field_id, options)
         end
       end
       
