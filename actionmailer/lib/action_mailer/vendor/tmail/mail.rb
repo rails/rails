@@ -335,9 +335,13 @@ module TMail
       }
     end
 
+    def normalize_line_endings(text)
+      text.to_s.gsub(/\r\n?/, "\n")
+    end
+
     def body=( str )
       parse_body
-      @body_port.wopen {|f| f.write str }
+      @body_port.wopen {|f| f.write normalize_line_endings(str) }
       str
     end
 

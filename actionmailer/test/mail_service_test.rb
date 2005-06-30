@@ -137,6 +137,14 @@ class TestMailer < ActionMailer::Base
     body["recipient"] = recipient
   end
 
+  def various_newlines(recipient)
+    recipients   recipient
+    subject      "various newlines"
+    from         "test@example.com"
+    body         "line #1\nline #2\rline #3\r\nline #4\r\r" +
+                 "line #5\n\nline#6\r\n\r\nline #7"
+  end
+
   class <<self
     attr_accessor :received_body
   end
@@ -526,6 +534,12 @@ EOF
   def test_html_mail
     mail = TestMailer.create_html_mail(@recipient)
     assert_equal "text/html", mail.content_type
+  end
+
+  def test_various_newlines
+    mail = TestMailer.create_various_newlines(@recipient)
+    assert_equal("line #1\nline #2\nline #3\nline #4\n\n" +
+                 "line #5\n\nline#6\n\nline #7", mail.body)
   end
 
   def test_headers_removed_on_smtp_delivery
