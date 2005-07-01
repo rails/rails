@@ -35,9 +35,26 @@ module ActiveRecord
         def acts_as_tree(options = {})
           configuration = { :foreign_key => "parent_id", :order => nil, :counter_cache => nil }
           configuration.update(options) if options.is_a?(Hash)
-          
+
           belongs_to :parent, :class_name => name, :foreign_key => configuration[:foreign_key], :counter_cache => configuration[:counter_cache]
           has_many :children, :class_name => name, :foreign_key => configuration[:foreign_key], :order => configuration[:order], :dependent => true
+
+          module_eval <<-END
+            def self.roots
+              self.find(:all, :conditions => "#{configuration[:foreign_key]} IS NULL", :order => "#{configuration[:order]}")
+            end
+            def self.root
+              self.find(:first, :conditions => "#{configuration[:foreign_key]} IS NULL", :order => "#{configuration[:order]}")
+            end
+          END
+
+          define_method(:siblings) do
+            if parent
+              self.class.find(:all, :conditions => [ "#{configuration[:foreign_key]} = ?", parent.id ], :order => configuration[:order])
+            else
+              self.class.roots
+            end
+          end
         end
       end
     end
