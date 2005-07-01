@@ -145,6 +145,20 @@ class TestMailer < ActionMailer::Base
                  "line #5\n\nline#6\r\n\r\nline #7"
   end
 
+  def nested_multipart(recipient)
+    recipients   recipient
+    subject      "nested multipart"
+    from         "test@example.com"
+    content_type "multipart/mixed"
+    part :content_type => "multipart/alternative", :content_disposition => "inline" do |p|
+      p.part :content_type => "text/plain", :body => "test text\nline #2"
+      p.part :content_type => "text/html", :body => "<b>test</b> HTML<br/>\nline #2"
+    end
+    attachment :content_type => "application/octet-stream",:filename => "test.txt", :body => "test abcdefghijklmnopqstuvwxyz"
+    
+  end
+  
+
   class <<self
     attr_accessor :received_body
   end
@@ -177,6 +191,19 @@ class ActionMailerTest < Test::Unit::TestCase
     ActionMailer::Base.deliveries = []
 
     @recipient = 'test@localhost'
+  end
+
+  def test_nested_parts
+    created = nil
+    assert_nothing_raised { created = TestMailer.create_nested_multipart(@recipient)}
+    assert_equal 2,created.parts.size
+    assert_equal 2,created.parts.first.parts.size
+    
+    assert_equal "multipart/mixed", created.content_type
+    assert_equal "multipart/alternative", created.parts.first.content_type
+    assert_equal "text/plain", created.parts.first.parts.first.content_type
+    assert_equal "text/html", created.parts.first.parts[1].content_type
+    assert_equal "application/octet-stream", created.parts[1].content_type
   end
 
   def test_signed_up

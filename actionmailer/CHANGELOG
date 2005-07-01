@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow for nested parts in multipart mails #1570 [Flurin Egger]
+
 * Normalize line endings in outgoing mail bodies to "\n" #1536 [John Long]
 
 * Allow template to be explicitly specified #1448 [tuxie@dekadance.se]

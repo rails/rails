@@ -1,5 +1,6 @@
 require 'action_mailer/adv_attr_accessor'
 require 'action_mailer/part'
+require 'action_mailer/part_container'
 require 'tmail/net'
 
 module ActionMailer #:nodoc:
@@ -108,6 +109,7 @@ module ActionMailer #:nodoc:
   #    pick a different charset from inside a method with <tt>@charset</tt>.
   class Base
     include ActionMailer::AdvAttrAccessor
+    include ActionMailer::PartContainer
 
     private_class_method :new #:nodoc:
 
@@ -218,25 +220,6 @@ module ActionMailer #:nodoc:
       end
 
       return @mail
-    end
-
-    # Add a part to a multipart message, with the given content-type. The
-    # part itself is yielded to the block, so that other properties (charset,
-    # body, headers, etc.) can be set on it.
-    def part(params)
-      params = {:content_type => params} if String === params
-      part = Part.new(params)
-      yield part if block_given?
-      @parts << part
-    end
-
-    # Add an attachment to a multipart message. This is simply a part with the
-    # content-disposition set to "attachment".
-    def attachment(params, &block)
-      params = { :content_type => params } if String === params
-      params = { :disposition => "attachment",
-                 :transfer_encoding => "base64" }.merge(params)
-      part(params, &block)
     end
 
     private
