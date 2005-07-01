@@ -111,12 +111,13 @@ class TestMailer < ActionMailer::Base
       :body => "123456789"
   end
 
-  def implicitly_multipart_example(recipient)
+  def implicitly_multipart_example(recipient, order = nil)
     @recipients = recipient
     @subject    = "multipart example"
     @from       = "test@example.com"
     @sent_on    = Time.local 2004, 12, 12
     @body       = { "recipient" => recipient }
+    @implicit_parts_order = order unless order.nil?
   end
 
   def html_mail(recipient)
@@ -551,11 +552,22 @@ EOF
 
   def test_implicitly_multipart_messages
     mail = TestMailer.create_implicitly_multipart_example(@recipient)
-    assert_equal 2, mail.parts.length
-    assert_equal "text/html", mail.parts[0].content_type
+    assert_equal 3, mail.parts.length
+    assert_equal "multipart/alternative", mail.content_type
+    assert_equal "text/yaml", mail.parts[0].content_type
     assert_equal "utf-8", mail.parts[0].sub_header("content-type", "charset")
     assert_equal "text/plain", mail.parts[1].content_type
     assert_equal "utf-8", mail.parts[1].sub_header("content-type", "charset")
+    assert_equal "text/html", mail.parts[2].content_type
+    assert_equal "utf-8", mail.parts[2].sub_header("content-type", "charset")
+  end
+
+  def test_implicitly_multipart_messages_with_custom_order
+    mail = TestMailer.create_implicitly_multipart_example(@recipient, ["text/yaml", "text/plain"])
+    assert_equal 3, mail.parts.length
+    assert_equal "text/html", mail.parts[0].content_type
+    assert_equal "text/plain", mail.parts[1].content_type
+    assert_equal "text/yaml", mail.parts[2].content_type
   end
 
   def test_html_mail

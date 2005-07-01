@@ -106,7 +106,14 @@ module ActionMailer #:nodoc:
   #   for unit and functional testing.
   #
   # * <tt>default_charset</tt> - The default charset used for the body and to encode the subject. Defaults to UTF-8. You can also 
-  #    pick a different charset from inside a method with <tt>@charset</tt>.
+  #   pick a different charset from inside a method with <tt>@charset</tt>.
+  # * <tt>default_content_type</tt> - The default content type used for main part of the message. Defaults to "text/plain". You
+  #   can also pick a different content type from inside a method with <tt>@content_type</tt>. 
+  # * <tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assemble from templates
+  #   which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
+  #   ["text/html", "text/enriched", "text/plain"]. Items that appear first in the array have higher priority in the mail client
+  #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
+  #   <tt>@implicit_parts_order</tt>.
   class Base
     include ActionMailer::AdvAttrAccessor
     include ActionMailer::PartContainer
@@ -144,8 +151,12 @@ module ActionMailer #:nodoc:
     @@default_content_type = "text/plain"
     cattr_accessor :default_content_type
 
+    @@default_implicit_parts_order = [ "text/html", "text/enriched", "text/plain" ]
+    cattr_accessor :default_implicit_parts_order
+
     adv_attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers,
-                      :bcc, :cc, :charset, :content_type, :template
+                      :bcc, :cc, :charset, :content_type, :implicit_parts_order,
+                      :template
 
     attr_reader       :mail
 
@@ -163,6 +174,7 @@ module ActionMailer #:nodoc:
       @bcc = @cc = @from = @recipients = @sent_on = @subject = nil
       @charset = @@default_charset.dup
       @content_type = @@default_content_type.dup
+      @implicit_parts_order = @@default_implicit_parts_order.dup
       @template = method_name
       @parts = []
       @headers = {}
@@ -183,6 +195,10 @@ module ActionMailer #:nodoc:
             @parts << Part.new(:content_type => type,
               :disposition => "inline", :charset => charset,
               :body => render_message(File.basename(path).split(".")[0..-2].join('.'), @body))
+          end
+          unless @parts.empty?
+            @content_type = "multipart/alternative"
+            @parts = sort_parts(@parts, @implicit_parts_order)
           end
         end
 
@@ -233,6 +249,35 @@ module ActionMailer #:nodoc:
 
       def initialize_template_class(assigns)
         ActionView::Base.new(template_path, assigns, self)
+      end
+
+      def sort_parts(parts, order = [])
+        order = order.collect { |s| s.downcase }
+
+        parts = parts.sort do |a, b|
+          a_ct = a.content_type.downcase
+          b_ct = b.content_type.downcase
+
+          a_in = order.include? a_ct
+          b_in = order.include? b_ct
+
+          s = case
+          when a_in && b_in
+            order.index(a_ct) <=> order.index(b_ct)
+          when a_in
+            -1
+          when b_in
+            1
+          else
+            a_ct <=> b_ct
+          end
+
+          # reverse the ordering because parts that come last are displayed
+          # first in mail clients
+          (s * -1)
+        end
+
+        parts
       end
 
       def create_mail

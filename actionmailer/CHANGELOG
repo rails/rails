@@ -1,5 +1,7 @@
 *SVN*
 
+* Better multipart support with implicit multipart/alternative and sorting of subparts [John Long]
+
 * Allow for nested parts in multipart mails #1570 [Flurin Egger]
 
 * Normalize line endings in outgoing mail bodies to "\n" #1536 [John Long]
