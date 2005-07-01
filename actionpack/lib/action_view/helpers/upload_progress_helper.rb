@@ -170,7 +170,7 @@ module ActionView
 
         js_options = {
           :decay => options[:decay] || FREQUENCY_DECAY,
-          :freqency => options[:frequency] || FREQUENCY,
+          :frequency => options[:frequency] || FREQUENCY,
         }
 
         updater_options = '{' + js_options.map {|k, v| "#{k}:#{v}"}.sort.join(',') + '}'

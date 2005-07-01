@@ -125,7 +125,9 @@ class CGI #:nodoc:
 
           options = options.stringify_keys
        
-          #Controllers.const_load!(:ApplicationController, "application") unless Controllers.const_defined?(:ApplicationController)
+          # Pull in the application controller to satisfy any dependencies on class definitions
+          # of instances stored in the session.
+          Controllers.const_load!(:ApplicationController, "application") unless Controllers.const_defined?(:ApplicationController)
 
           # Assumes that @cookies has already been setup
           # Raises nomethod if upload_id is not defined
