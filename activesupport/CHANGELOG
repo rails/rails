@@ -1,5 +1,7 @@
 *SVN*
 
+* Added new rules to the Inflector to deal with more unusual plurals mouse/louse => mice/lice, information => information, ox => oxen #1571 [foamdino@gmail.com]
+
 * Fixed memory leak with Object#remove_subclasses_of, which inflicted a Rails application running in development mode with a ~20KB leak per request #1289 [c.r.mcgrath@gmail.com]
 
 * Made 1.year == 365.25.days to account for leap years.  This allows you to do User.find(:all, :conditions => ['birthday > ?', 50.years.ago]) without losing a lot of days.  #1488 [tuxie@dekadance.se]

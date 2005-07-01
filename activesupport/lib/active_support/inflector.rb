@@ -58,6 +58,9 @@ module Inflector
     def plural_rules #:doc:
       [
         [/(fish)$/i, '\1\2'],                 # fish
+	[/(information)$/i, '\1'],	# information (plural noun)
+	[/^(ox)$/i, '\1\2en'],		# ox
+	[/([m|l])ouse/i, '\1ice'],		# mouse, louse
         [/(x|ch|ss|sh)$/i, '\1es'],           # search, switch, fix, box, process, address
         [/(series)$/i, '\1\2'],
         [/([^aeiouy]|qu)ies$/i, '\1y'],
@@ -68,6 +71,8 @@ module Inflector
         [/(p)erson$/i, '\1\2eople'],          # person, salesperson
         [/(m)an$/i, '\1\2en'],                # man, woman, spokesman
         [/(c)hild$/i, '\1\2hildren'],         # child
+	[/(o)$/i, '\1\2es'],		# buffalo, tomato
+	[/(bu)s$/i, '\1\2ses'],	# bus
         [/s$/i, 's'],                         # no change (compatibility)
         [/$/, 's']
       ]
@@ -76,6 +81,10 @@ module Inflector
     def singular_rules #:doc:
       [
         [/(f)ish$/i, '\1\2ish'],
+	[/^(ox)en/i, '\1'],
+	[/(o)es/i, '\1'],
+	[/(bus)es$/i, '\1'],
+	[/([m|l])ice/i, '\1ouse'],
         [/(x|ch|ss|sh)es$/i, '\1'],
         [/(m)ovies$/i, '\1\2ovie'],
         [/(s)eries$/i, '\1\2eries'],
