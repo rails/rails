@@ -3,7 +3,7 @@ require File.dirname(__FILE__) + '/tag_helper'
 module ActionView
   module Helpers
     # Provides a set of helpers for calling JavaScript functions and, most importantly, to call remote methods using what has 
-    # been labelled Ajax[http://www.adaptivepath.com/publications/essays/archives/000385.php]. This means that you can call 
+    # been labelled AJAX[http://www.adaptivepath.com/publications/essays/archives/000385.php]. This means that you can call 
     # actions in your controllers without reloading the page, but still update certain parts of it using injections into the 
     # DOM. The common use case is having a form that adds a new element to a list without reloading the page.
     #
@@ -12,7 +12,7 @@ module ActionView
     # <tt><%= javascript_include_tag "prototype" %></tt> (which looks for the library in /javascripts/prototype.js). The latter is
     # recommended as the browser can then cache the library instead of fetching all the functions anew on every request.
     #
-    # If you're the visual type, there's an Ajax movie[http://www.rubyonrails.com/media/video/rails-ajax.mov] demonstrating
+    # If you're the visual type, there's an AJAX movie[http://www.rubyonrails.com/media/video/rails-ajax.mov] demonstrating
     # the use of form_remote_tag.
     module JavaScriptHelper      
       unless const_defined? :CALLBACKS
@@ -212,7 +212,7 @@ module ActionView
       end
 
       # Observes the field with the DOM ID specified by +field_id+ and makes
-      # an Ajax call when its contents have changed.
+      # an AJAX call when its contents have changed.
       # 
       # Required +options+ are:
       # <tt>:url</tt>::       +url_for+-style options for the action to call
@@ -254,7 +254,7 @@ module ActionView
       end
       
            
-      # Adds Ajax autocomplete functionality to the text input field with the 
+      # Adds AJAX autocomplete functionality to the text input field with the 
       # DOM ID specified by +field_id+.
       #
       # This function expects that the called action returns a HTML <ul> list,
@@ -272,7 +272,7 @@ module ActionView
       # Addtional +options+ are:
       # <tt>:update</tt>::    Specifies the DOM ID of the element whose 
       #                       innerHTML should be updated with the autocomplete
-      #                       entries returned by the Ajax request. 
+      #                       entries returned by the AJAX request. 
       #                       Defaults to field_id + '_auto_complete'
       # <tt>:with</tt>::      A JavaScript expression specifying the
       #                       parameters for the XMLHttpRequest. This defaults
@@ -294,13 +294,14 @@ module ActionView
         javascript_tag(function)
       end
       
-      # Use this method in your view to generate a return for the Ajax automplete requests.
+      # Use this method in your view to generate a return for the AJAX automplete requests.
       #
       # Example action:
       #
       #   def auto_complete_for_item_title
-      #     @items = Item.find(:all, :conditions => [ 'LOWER(description) LIKE ?', 
-      #       '%' + params[:for].downcase + '%' ], 'description ASC')
+      #     @items = Item.find(:all, 
+      #       :conditions => [ 'LOWER(description) LIKE ?', 
+      #       '%' + request.raw_post.downcase + '%' ])
       #     render :inline => '<%= auto_complete_result(@items, 'description') %>'
       #   end
       #
@@ -312,6 +313,12 @@ module ActionView
         content_tag("ul", items)
       end
       
+      # Wrapper for text_field with added AJAX autocompletion functionality.
+      #
+      # In your controller, you'll need to define an action called
+      # auto_complete_for_object_method to respond the AJAX calls,
+      # 
+      # See the RDoc on ActionController::AutoComplete to learn more about this.
       def text_field_with_auto_complete(object, method, tag_options = {}, completion_options = {})
         (completion_options[:skip_style] ? "" : auto_complete_stylesheet) +
         text_field(object, method, { :autocomplete => "off" }.merge!(tag_options)) +
@@ -319,7 +326,7 @@ module ActionView
         auto_complete_field("#{object}_#{method}", { :url => { :action => "auto_complete_for_#{object}_#{method}" } }.update(completion_options))
       end
       
-      # Returns a JavaScript snippet to be used on the Ajax callbacks for starting
+      # Returns a JavaScript snippet to be used on the AJAX callbacks for starting
       # visual effects.
       #
       # Example:
@@ -334,12 +341,12 @@ module ActionView
       end
       
       # Makes the element with the DOM ID specified by +element_id+ sortable
-      # by drag-and-drop and make an Ajax call whenever the sort order has
+      # by drag-and-drop and make an AJAX call whenever the sort order has
       # changed. By default, the action called gets the serialized sortable
       # element as parameters.
       #
       # Example:
-      #   <%= remote_sortable("my_list", :url => { :action => "order" }) %>
+      #   <%= sortable_element("my_list", :url => { :action => "order" }) %>
       #
       # In the example, the action gets a "my_list" array parameter 
       # containing the values of the ids of elements the sortable consists 
@@ -378,7 +385,7 @@ module ActionView
         js_options['method']       = method_option_to_s(options[:method]) if options[:method]
         js_options['insertion']    = "Insertion.#{options[:position].to_s.camelize}" if options[:position]
         js_options['evalScripts']  = options[:script] == true if options[:script]
-	
+
         if options[:form]
           js_options['parameters'] = 'Form.serialize(this)'
         elsif options[:with]

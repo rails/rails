@@ -221,9 +221,9 @@ Draggables = {
   addObserver: function(observer) {
     this.observers.push(observer);    
   },
-  notify: function(eventName) {  // 'onStart', 'onEnd'
+  notify: function(eventName, draggable) {  // 'onStart', 'onEnd'
     for(var i = 0; i < this.observers.length; i++)
-      this.observers[i][eventName]();
+      this.observers[i][eventName](draggable);
   }
 }
 
@@ -243,7 +243,8 @@ Draggable.prototype = {
       endeffect: function(element) { 
          new Effect.Opacity(element, {duration:0.2, from:0.7, to:1.0}); 
       },
-      zindex: 1000
+      zindex: 1000,
+      revert: false
     }.extend(arguments[1] || {});
     
     this.element      = $(element);
@@ -278,8 +279,8 @@ Draggable.prototype = {
       this.active = true;
       
       var style = this.element.style;
-      this.originalY = this.element.offsetTop  - this.currentTop();  - this.originalTop;
-      this.originalX = this.element.offsetLeft - this.currentLeft(); - this.originalLeft;
+      this.originalY = this.element.offsetTop  - this.currentTop()  - this.originalTop;
+      this.originalX = this.element.offsetLeft - this.currentLeft() - this.originalLeft;
       this.offsetY =  event.clientY - this.originalY - this.originalTop;
       this.offsetX =  event.clientX - this.originalX - this.originalLeft;
       
@@ -292,9 +293,12 @@ Draggable.prototype = {
       this.dragging = false;
       
       Droppables.fire(event, this.element);
-      Draggables.notify('onEnd');
+      Draggables.notify('onEnd', this);
       
-      if(this.options.revert && this.options.reverteffect) {
+      var revert = this.options.revert;
+      if(revert && typeof revert == 'function') revert = revert(this.element);
+      
+      if(revert && this.options.reverteffect) {
         this.options.reverteffect(this.element, 
           this.currentTop()-this.originalTop,
           this.currentLeft()-this.originalLeft);
@@ -330,7 +334,7 @@ Draggable.prototype = {
         this.dragging = true;
         if(style.position=="") style.position = "relative";
         style.zIndex = this.options.zindex;
-        Draggables.notify('onStart');
+        Draggables.notify('onStart', this);
         if(this.options.starteffect) this.options.starteffect(this.element);
       }
       

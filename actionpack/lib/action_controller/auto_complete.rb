@@ -8,6 +8,17 @@ module ActionController
   #
   #   # View
   #   <%= text_field_with_auto_complete :post, title %>
+  #
+  # By default, auto_complete_for limits the results to 10 entries,
+  # and sorts by the given field.
+  # 
+  # auto_complete_for takes a third parameter, an options hash to
+  # the find method used to search for the records:
+  #
+  #   auto_complete_for :post, :title, :limit => 15, :order => 'created_at DESC'
+  #
+  # For help on defining text input fields with autocompletion, 
+  # see ActionView::Helpers::JavascriptHelper.
   module AutoComplete
     def self.append_features(base) #:nodoc:
       super

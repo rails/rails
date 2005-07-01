@@ -221,11 +221,12 @@ Ajax.Request.prototype = (new Ajax.Base()).extend({
   },
   
   setRequestHeaders: function() {
-    var requestHeaders = ['X-Requested-With', 'XMLHttpRequest',
+    var requestHeaders = [
+      'X-Requested-With', 'XMLHttpRequest',
       'X-Prototype-Version', Prototype.Version];
     
     if (this.options.method == 'post')
-      requestHeaders.push('Connection', 'close',
+      requestHeaders.push(//'Connection', 'close',
         'Content-type', 'application/x-www-form-urlencoded');
 
     if (this.options.requestHeaders)
@@ -987,8 +988,10 @@ var Position = {
   clone: function(source, target) {
     source = $(source);
     target = $(target);
-    target.style.top    = source.style.top;
-    target.style.left   = source.style.left;
+    target.style.position = 'absolute';
+    var offsets = this.cumulativeOffset(source);
+    target.style.top    = offsets[1] + 'px';
+    target.style.left   = offsets[0] + 'px';
     target.style.width  = source.offsetWidth + 'px';
     target.style.height = source.offsetHeight + 'px';
   }

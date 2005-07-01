@@ -307,25 +307,33 @@ Effect.Puff = function(element) {
 }
 
 Effect.BlindUp = function(element) {
+  $(element)._overflow = $(element).style.overflow || 'visible';
   $(element).style.overflow = 'hidden';
   new Effect.Scale(element, 0, 
     { scaleContent: false, 
       scaleX: false, 
       afterFinish: function(effect) 
-        { Element.hide(effect.element) } 
+        { 
+          Element.hide(effect.element);
+          effect.element.style.overflow = effect.element._overflow;
+        } 
     }.extend(arguments[1] || {})
   );
 }
 
 Effect.BlindDown = function(element) {
   $(element).style.height   = '0px';
+  $(element)._overflow = $(element).style.overflow || 'visible';
   $(element).style.overflow = 'hidden';
   Element.show(element);
   new Effect.Scale(element, 100, 
     { scaleContent: false, 
       scaleX: false, 
       scaleMode: 'contents',
-      scaleFrom: 0
+      scaleFrom: 0,
+      afterFinish: function(effect) {
+        effect.element.style.overflow = effect.element._overflow;
+      }
     }.extend(arguments[1] || {})
   );
 }
@@ -375,6 +383,7 @@ Effect.Shake = function(element) {
 }
 
 Effect.SlideDown = function(element) {
+  $(element)._overflow = $(element).style.overflow || 'visible';
   $(element).style.height   = '0px';
   $(element).style.overflow = 'hidden';
   $(element).firstChild.style.position = 'relative';
@@ -386,12 +395,15 @@ Effect.SlideDown = function(element) {
     scaleFrom: 0,
     afterUpdate: function(effect) 
       { effect.element.firstChild.style.bottom = 
-          (effect.originalHeight - effect.element.clientHeight) + 'px'; }
+          (effect.originalHeight - effect.element.clientHeight) + 'px'; },
+    afterFinish: function(effect) 
+      {  effect.element.style.overflow = effect.element._overflow; }
     }.extend(arguments[1] || {})
   );
 }
   
 Effect.SlideUp = function(element) {
+  $(element)._overflow = $(element).style.overflow || 'visible';
   $(element).style.overflow = 'hidden';
   $(element).firstChild.style.position = 'relative';
   Element.show(element);
@@ -402,7 +414,10 @@ Effect.SlideUp = function(element) {
       { effect.element.firstChild.style.bottom = 
           (effect.originalHeight - effect.element.clientHeight) + 'px'; },
     afterFinish: function(effect)
-      { Element.hide(effect.element); }
+      { 
+        Element.hide(effect.element);
+        effect.element.style.overflow = effect.element._overflow; 
+      }
    }.extend(arguments[1] || {})
   );
 }
