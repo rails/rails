@@ -194,8 +194,10 @@ module ActionView #:nodoc:
           render_file(options[:file], options[:use_full_path], options[:locals])
         elsif options[:partial] && options[:collection]
           render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals])
-        elsif options.is_a?(Hash) && options[:partial]
+        elsif options[:partial]
           render_partial(options[:partial], options[:object], options[:locals])
+        elsif options[:inline]
+          render_template(options[:type] || :rhtml, options[:inline], options[:locals] || {})
         end
       end
     end

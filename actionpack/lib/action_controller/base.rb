@@ -471,7 +471,14 @@ module ActionController #:nodoc:
           render(options.merge({ :file => options[:template], :use_full_path => true }))
 
         elsif options[:inline]
-          render(options.merge({ :text => @template.render_template(options[:type] || :rhtml, options[:inline]) }))
+          render(options.merge({
+            :text =>
+              @template.render_template(
+                options[:type] || :rhtml,
+                options[:inline],
+                options[:locals] || {}
+              )
+          }))
 
         elsif options[:action]
           render(options.merge({ :template => default_template_name(options[:action]) }))
