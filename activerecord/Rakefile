@@ -38,7 +38,7 @@ Rake::TestTask.new("test_mysql_ruby") { |t|
   t.verbose = true
 }
 
-for adapter in %w( postgresql sqlite sqlite3 sqlserver db2 oci )
+for adapter in %w( postgresql sqlite sqlite3 sqlserver sqlserver_odbc db2 oci )
   Rake::TestTask.new("test_#{adapter}") { |t|
     t.libs << "test" << "test/connections/native_#{adapter}"
     t.pattern = "test/*_test{,_#{adapter}}.rb"

@@ -2,7 +2,7 @@ CREATE TABLE accounts (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
   firm_id int default NULL,
   credit_limit int default NULL
-)
+);
 
 CREATE TABLE companies (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
@@ -12,7 +12,7 @@ CREATE TABLE companies (
   name varchar(50) default NULL,
   client_of int default NULL,
   rating int default 1
-)
+);
 
 CREATE TABLE topics (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
@@ -27,7 +27,7 @@ CREATE TABLE topics (
   replies_count int default 0,
   parent_id int default NULL,
   type varchar(50) default NULL
-)
+);
 
 CREATE TABLE developers (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,

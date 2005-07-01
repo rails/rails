@@ -8,26 +8,49 @@ require 'active_record/connection_adapters/abstract_adapter'
 # Modifications: DeLynn Berry <delynnb@megastarfinancial.com>
 # Date: 3/22/2005
 #
-# This adapter will ONLY work on Windows systems, since it relies on Win32OLE, which,
-# to my knowledge, is only available on Window.
+# Modifications (ODBC): Mark Imbriaco <mark.imbriaco@pobox.com>
+# Date: 6/26/2005
 #
-# It relies on the ADO support in the DBI module. If you are using the
+# In ADO mode, this adapter will ONLY work on Windows systems, 
+# since it relies on Win32OLE, which, to my knowledge, is only 
+# available on Windows.
+#
+# This mode also relies on the ADO support in the DBI module. If you are using the
 # one-click installer of Ruby, then you already have DBI installed, but
 # the ADO module is *NOT* installed. You will need to get the latest
 # source distribution of Ruby-DBI from http://ruby-dbi.sourceforge.net/
-# unzip it, and copy the file <tt>src/lib/dbd_ado/ADO.rb</tt> to
-# <tt>X:/Ruby/lib/ruby/site_ruby/1.8/DBD/ADO/ADO.rb</tt> (you will need to create
-# the ADO directory). Once you've installed that file, you are ready to go.
+# unzip it, and copy the file 
+# <tt>src/lib/dbd_ado/ADO.rb</tt> 
+# to
+# <tt>X:/Ruby/lib/ruby/site_ruby/1.8/DBD/ADO/ADO.rb</tt> 
+# (you will more than likely need to create the ADO directory).
+# Once you've installed that file, you are ready to go.
+#
+# In ODBC mode, the adapter requires the ODBC support in the DBI module which requires
+# the Ruby ODBC module.  Ruby ODBC 0.996 was used in development and testing,
+# and it is available at http://www.ch-werner.de/rubyodbc/
 #
 # Options:
 #
-# * <tt>:host</tt> -- Defaults to localhost
-# * <tt>:username</tt> -- Defaults to sa
-# * <tt>:password</tt> -- Defaults to nothing
-# * <tt>:database</tt> -- The name of the database. No default, must be provided.
+# * <tt>:mode</tt>      -- ADO or ODBC. Defaults to ADO.
+# * <tt>:username</tt>  -- Defaults to sa.
+# * <tt>:password</tt>  -- Defaults to empty string.
 #
-# I have tested this code on a WindowsXP Pro SP1 system,
-# ruby 1.8.2 (2004-07-29) [i386-mswin32], SQL Server 2000.
+# ADO specific options:
+#
+# * <tt>:host</tt>      -- Defaults to localhost.
+# * <tt>:database</tt>  -- The name of the database. No default, must be provided.
+#
+# ODBC specific options:                   
+#
+# * <tt>:dsn</tt>       -- Defaults to nothing.
+#
+# ADO code tested on Windows 2000 and higher systems,
+# running ruby 1.8.2 (2004-07-29) [i386-mswin32], and SQL Server 2000 SP3.
+#
+# ODBC code tested on a Fedora Core 4 system, running FreeTDS 0.63, 
+# unixODBC 2.2.11, Ruby ODBC 0.996, Ruby DBI 0.0.23 and Ruby 1.8.2.
+# [Linux strongmad 2.6.11-1.1369_FC4 #1 Thu Jun 2 22:55:56 EDT 2005 i686 i686 i386 GNU/Linux]
 #
 module ActiveRecord
   class Base
@@ -36,44 +59,47 @@ module ActiveRecord
       
       symbolize_strings_in_hash(config)
 
-      host     = config[:host]
-      username = config[:username] ? config[:username].to_s : 'sa'
-      password = config[:password].to_s
-
-      if config.has_key?(:database)
-        database = config[:database]
+      mode        = config[:mode] ? config[:mode].to_s.upcase : 'ADO'
+      username    = config[:username] ? config[:username].to_s : 'sa'
+      password    = config[:password] ? config[:password].to_s : ''
+      if mode == "ODBC"
+        raise ArgumentError, "Missing DSN. Argument ':dsn' must be set in order for this adapter to work." unless config.has_key?(:dsn)
+        dsn       = config[:dsn]
+        conn      = DBI.connect("DBI:ODBC:#{dsn}", username, password)
       else
-        raise ArgumentError, "No database specified. Missing argument: database."
+        raise ArgumentError, "Missing Database. Argument ':database' must be set in order for this adapter to work." unless config.has_key?(:database)
+        database  = config[:database]
+        host      = config[:host] ? config[:host].to_s : 'localhost'
+        conn      = DBI.connect("DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User Id=#{username};Password=#{password};")
       end
 
-      conn = DBI.connect("DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User Id=#{username};Password=#{password};")
       conn["AutoCommit"] = true
-
       ConnectionAdapters::SQLServerAdapter.new(conn, logger)
     end
-  end
+  end # class Base
 
   module ConnectionAdapters
     class ColumnWithIdentity < Column# :nodoc:
-      attr_reader :identity, :scale
+      attr_reader :identity, :is_special, :scale
 
       def initialize(name, default, sql_type = nil, is_identity = false, scale_value = 0)
         super(name, default, sql_type)
-        @scale = scale_value
         @identity = is_identity
+        @is_special = sql_type =~ /text|ntext|image/i ? true : false
+        @scale = scale_value
       end
 
       def simplified_type(field_type)
         case field_type
-          when /int|bigint|smallint|tinyint/i                        : :integer
-          when /float|double|decimal|money|numeric|real|smallmoney/i : @scale == 0 ? :integer : :float
-          when /datetime|smalldatetime/i                             : :datetime
-          when /timestamp/i                                          : :timestamp
-          when /time/i                                               : :time
-          when /text|ntext/i                                         : :text
-          when /binary|image|varbinary/i                             : :binary
-          when /char|nchar|nvarchar|string|varchar/i                 : :string
-          when /bit/i                                                : :boolean
+          when /int|bigint|smallint|tinyint/i                        then :integer
+          when /float|double|decimal|money|numeric|real|smallmoney/i then @scale == 0 ? :integer : :float
+          when /datetime|smalldatetime/i                             then :datetime
+          when /timestamp/i                                          then :timestamp
+          when /time/i                                               then :time
+          when /text|ntext/i                                         then :text
+          when /binary|image|varbinary/i                             then :binary
+          when /char|nchar|nvarchar|string|varchar/i                 then :string
+          when /bit/i                                                then :boolean
         end
       end
 
@@ -83,28 +109,32 @@ module ActiveRecord
         when :string    then value
         when :integer   then value == true || value == false ? value == true ? '1' : '0' : value.to_i
         when :float     then value.to_f
-        when :datetime  then cast_to_date_or_time(value)
+        when :datetime  then cast_to_datetime(value)
         when :timestamp then cast_to_time(value)
         when :time      then cast_to_time(value)
         else value
         end
       end
 
-      def cast_to_date_or_time(value)
-        return value if value.is_a?(Date)
-        guess_date_or_time (value.is_a?(Time)) ? value : cast_to_time(value)
-      end
-
       def cast_to_time(value)
         return value if value.is_a?(Time)
-        time_array = ParseDate.parsedate value
-        time_array[0] ||= 2000; time_array[1] ||= 1; time_array[2] ||= 1;
-        Time.send Base.default_timezone, *time_array
+        time_array = ParseDate.parsedate(value)
+        time_array[0] ||= 2000
+        time_array[1] ||= 1
+        time_array[2] ||= 1
+        Time.send(Base.default_timezone, *time_array) rescue nil
       end
 
-      def guess_date_or_time(value)
-        (value.hour == 0 and value.min == 0 and value.sec == 0) ?
-          Date.new(value.year, value.month, value.day) : value
+      def cast_to_datetime(value)
+        if value.is_a?(Time)
+          if value.year != 0 and value.month != 0 and value.day != 0
+            return value
+          else
+            return Time.mktime(2000, 1, 1, value.hour, value.min, value.sec) rescue nil
+          end
+        end
+        return cast_to_time(value) if value.is_a?(Date) or value.is_a?(String) rescue nil
+        value
       end
 
       # These methods will only allow the adapter to insert binary data with a length of 7K or less
@@ -112,14 +142,10 @@ module ActiveRecord
       def string_to_binary(value)
         value.gsub(/(\r|\n|\0|\x1a)/) do
           case $1
-            when "\r"
-              "%00"
-            when "\n"
-              "%01"
-            when "\0"
-              "%02"
-            when "\x1a"
-              "%03"
+            when "\r"   then  "%00"
+            when "\n"   then  "%01"
+            when "\0"   then  "%02"
+            when "\x1a" then  "%03"
           end
         end
       end
@@ -127,22 +153,17 @@ module ActiveRecord
       def binary_to_string(value)
         value.gsub(/(%00|%01|%02|%03)/) do
           case $1
-            when "%00"
-              "\r"
-            when "%01"
-              "\n"
-            when "%02\0"
-              "\0"
-            when "%03"
-              "\x1a"
+            when "%00"    then  "\r"
+            when "%01"    then  "\n"
+            when "%02\0"  then  "\0"
+            when "%03"    then  "\x1a"
           end
         end
       end
 
-    end
+    end #class ColumnWithIdentity < Column
 
     class SQLServerAdapter < AbstractAdapter
-
       def native_database_types
         {
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
@@ -164,7 +185,6 @@ module ActiveRecord
       end
 
       def select_all(sql, name = nil)
-        add_limit!(sql, nil)
         select(sql, name)
       end
 
@@ -177,9 +197,9 @@ module ActiveRecord
       def columns(table_name, name = nil)
         sql = "SELECT COLUMN_NAME as ColName, COLUMN_DEFAULT as DefaultValue, DATA_TYPE as ColType, COL_LENGTH('#{table_name}', COLUMN_NAME) as Length, COLUMNPROPERTY(OBJECT_ID('#{table_name}'), COLUMN_NAME, 'IsIdentity') as IsIdentity, NUMERIC_SCALE as Scale FROM INFORMATION_SCHEMA.columns WHERE TABLE_NAME = '#{table_name}'"
         result = nil
-        # Uncomment if you want to have the Columns select statment logged.
+        # Comment out if you want to have the Columns select statment logged.
         # Personnally, I think it adds unneccessary bloat to the log. 
-        # If you do uncomment, make sure to comment the "result" line that follows
+        # If you do comment it out, make sure to un-comment the "result" line that follows
         log(sql, name, @connection) { |conn| result = conn.select_all(sql) }
         #result = @connection.select_all(sql)
         columns = []
@@ -199,7 +219,7 @@ module ActiveRecord
                 execute enable_identity_insert(table_name, true)
                 ii_enabled = true
               rescue Exception => e
-                # Coulnd't turn on IDENTITY_INSERT
+                raise ActiveRecordError, "IDENTITY_INSERT could not be turned ON"
               end
             end
           end
@@ -212,7 +232,7 @@ module ActiveRecord
             begin
               execute enable_identity_insert(table_name, false)
             rescue Exception => e
-              # Couldn't turn off IDENTITY_INSERT
+              raise ActiveRecordError, "IDENTITY_INSERT could not be turned OFF"
             end
           end
         end
@@ -288,13 +308,13 @@ module ActiveRecord
         "[#{name}]"
       end
 
-      def add_limit_with_offset!(sql, limit, offset)
-        order_by = sql.include?("ORDER BY") ? get_order_by(sql.sub(/.*ORDER\sBY./, "")) : nil
-        sql.gsub!(/SELECT/i, "SELECT * FROM ( SELECT TOP #{limit} * FROM ( SELECT TOP #{limit + offset}")<<" ) AS tmp1 ORDER BY #{order_by[1]} ) AS tmp2 ORDER BY #{order_by[0]}"
-      end
-
-      def add_limit_without_offset!(sql, limit)
-        limit.nil? ? sql : sql.gsub!(/SELECT/i, "SELECT TOP #{limit}")
+      def add_limit_offset!(sql, options)
+        if options.has_key?(:limit) and options.has_key?(:offset) and !options[:limit].nil? and !options[:offset].nil?
+          options[:order] ||= "id ASC"
+          sql.gsub!(/SELECT/i, "SELECT * FROM ( SELECT TOP #{options[:limit]} * FROM ( SELECT TOP #{options[:limit] + options[:offset]}")<<" ) AS tmp1 ORDER BY #{change_order_direction(options[:order])} ) AS tmp2 ORDER BY #{options[:order]}"
+        else
+          sql.gsub!(/SELECT/i, "SELECT TOP #{options[:limit]}") unless options[:limit].nil?
+        end
       end
 
       def recreate_database(name)
@@ -313,6 +333,7 @@ module ActiveRecord
       private
         def select(sql, name = nil)
           rows = []
+          repair_special_columns(sql)
           log(sql, name, @connection) do |conn|
             conn.select_all(sql) do |row|
               record = {}
@@ -332,8 +353,9 @@ module ActiveRecord
         end
 
         def get_table_name(sql)
-          if sql =~ /into\s*([^\s]+)\s*/i or
-              sql =~ /update\s*([^\s]+)\s*/i
+          if sql =~ /into\s*([^\s]+)\s*|update\s*([^\s]+)\s*/i
+            $1
+          elsif sql =~ /from\s*([^\s]+)\s*/i
             $1
           else
             nil
@@ -345,14 +367,8 @@ module ActiveRecord
         end
 
         def get_identity_column(table_name)
-          if not @table_columns
-            @table_columns = {}
-          end
-
-          if @table_columns[table_name] == nil
-            @table_columns[table_name] = columns(table_name)
-          end
-
+          @table_columns = {} unless @table_columns
+          @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
           @table_columns[table_name].each do |col|
             return col.name if col.identity
           end
@@ -361,17 +377,35 @@ module ActiveRecord
         end
 
         def query_contains_identity_column(sql, col)
-          return sql =~ /[\[.,]\s*#{col}/
+          return sql =~ /\[#{col}\]/
         end
 
-        def get_order_by(sql)
-          return sql, sql.gsub(/\s*DESC\s*/, "").gsub(/\s*ASC\s*/, " DESC")
+        def change_order_direction(order)
+          case order
+            when  /DESC/i     then order.gsub(/DESC/i, "ASC")
+            when  /ASC/i      then order.gsub(/ASC/i, "DESC")
+            else                   String.new(order).insert(-1, " DESC")
+          end
         end
 
-        def get_offset_amount(limit)
-          limit = limit.gsub!(/.OFFSET./i, ",").split(',')
-          return limit[0].to_i, limit[0].to_i+limit[1].to_i
+        def get_special_columns(table_name)
+          special = []
+          @table_columns = {} unless @table_columns
+          @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
+          @table_columns[table_name].each do |col|
+            special << col.name if col.is_special
+          end
+          special
         end
-    end
-  end
-end
+
+        def repair_special_columns(sql)
+          special_cols = get_special_columns(get_table_name(sql))
+          for col in special_cols.to_a
+            sql.gsub!(Regexp.new(" #{col.to_s} = "), " #{col.to_s} LIKE ")
+          end
+          sql
+        end
+
+    end #class SQLServerAdapter < AbstractAdapter
+  end #module ConnectionAdapters
+end #module ActiveRecord

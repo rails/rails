@@ -319,6 +319,10 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_update_all
+    # The ADO library doesn't support the number of affected rows
+    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter
+      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
+    end
     assert_equal 2, Topic.update_all("content = 'bulk updated!'")
     assert_equal "bulk updated!", Topic.find(1).content
     assert_equal "bulk updated!", Topic.find(2).content
@@ -337,6 +341,10 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_delete_all
+    # The ADO library doesn't support the number of affected rows
+    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter
+      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
+    end
     assert_equal 2, Topic.delete_all
   end
 

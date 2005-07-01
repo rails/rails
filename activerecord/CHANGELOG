@@ -1,5 +1,9 @@
 *SVN*
 
+* Added support for limit/offset with the MS SQL Server driver so that pagination will now work #1569 [DeLynn Berry]
+
+* Added support for ODBC connections to MS SQL Server so you can connect from a non-Windows machine #1569 [Mark Imbriaco/DeLynn Berry]
+
 * Fixed that multiparameter posts ignored attr_protected #1532 [alec+rails@veryclever.net]
 
 * Fixed problem with eager loading when using a has_and_belongs_to_many association using :association_foreign_key #1504 [flash@vanklinkenbergsoftware.nl]

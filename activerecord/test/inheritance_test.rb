@@ -6,7 +6,15 @@ class InheritanceTest < Test::Unit::TestCase
   fixtures :companies, :projects
 
   def test_a_bad_type_column
+    #SQLServer need to turn Identity Insert On before manually inserting into the Identity column
+    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter and ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
+      Company.connection.execute "SET IDENTITY_INSERT companies ON"
+    end
     Company.connection.insert "INSERT INTO companies (id, type, name) VALUES(100, 'bad_class!', 'Not happening')"
+    #We then need to turn it back Off before continuing.
+    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter and ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
+      Company.connection.execute "SET IDENTITY_INSERT companies OFF"
+    end
     assert_raises(ActiveRecord::SubclassNotFound) { Company.find(100) }
   end
 

@@ -112,7 +112,7 @@ class FinderTest < Test::Unit::TestCase
     assert_equal first_five_developers, Developer.find_all(nil, 'id ASC', [5])
     assert_equal no_developers, Developer.find_all(nil, 'id ASC', [0])
   end
- 
+
   def test_find_all_with_limit_and_offset
     first_three_developers = Developer.find_all nil, 'id ASC', [3, 0]
     second_three_developers = Developer.find_all nil, 'id ASC', [3, 3]
@@ -128,13 +128,12 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_all_by_one_attribute_with_options
-    topics = Topic.find_all_by_content("Have a nice day", nil, "id DESC")
+    topics = Topic.find_all_by_content("Have a nice day", "id DESC")
     assert topics(:first), topics.last
 
-    topics = Topic.find_all_by_content("Have a nice day", nil, "id DESC")
+    topics = Topic.find_all_by_content("Have a nice day", "id DESC")
     assert topics(:first), topics.first
   end
-
 
   protected
     def bind(statement, *vars)

@@ -707,7 +707,7 @@ class ValidationsTest < Test::Unit::TestCase
   def test_validates_numericality_of
     Topic.validates_numericality_of( :approved, :allow_nil => true )
     ["10", "10.0", "10.5", "-10.5", "-0.0001","0090","-090","-090.1",nil,""].each do |v|
-        t = Topic.create("title" => "numeric test", "content" => "whatever", "approved" => v)
+        t = Topic.new("title" => "numeric test", "content" => "whatever", "approved" => v)
         assert t.valid?, "#{v} not recognized as a number"
         # we cannot check this as approved is actually an integer field
         #assert_in_delta v.to_f, t.approved, 0.0000001
@@ -726,7 +726,7 @@ class ValidationsTest < Test::Unit::TestCase
   def test_validates_numericality_of_int
     Topic.validates_numericality_of( :approved, :only_integer => true, :allow_nil => true )
     ["42", "+42", "-42", "042", "0042", "-042", 42, nil,""].each do |v|
-        t = Topic.create("title" => "numeric test", "content" => "whatever", "approved" => v)
+        t = Topic.new("title" => "numeric test", "content" => "whatever", "approved" => v)
         assert t.valid?, "#{v} not recognized as integer"
         assert_equal((v.nil? or v == "")? nil : v.to_i, t.approved)
     end

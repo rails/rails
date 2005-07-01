@@ -902,6 +902,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     no_of_devels = Developer.count
     no_of_projects = Project.count
     now = Date.today
+    sqlnow = Time.now.strftime("%Y/%m/%d 00:00:00")
     ken = Developer.new("name" => "Ken")
     ken.projects.push_with_attributes( Project.find(1), :joined_on => now )
     p = Project.new("name" => "Foomatic")
@@ -916,7 +917,13 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal 2, ken.projects(true).size
 
     kenReloaded = Developer.find_by_name 'Ken'
-    kenReloaded.projects.each { |prj| assert_equal(now.to_s, prj.joined_on.to_s) }
+    # SQL Server doesn't have a separate column type just for dates, 
+    # so the time is in the string and incorrectly formatted
+    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter and ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
+      kenReloaded.projects.each { |prj| assert_equal(sqlnow, prj.joined_on.to_s) }
+    else
+      kenReloaded.projects.each { |prj| assert_equal(now.to_s, prj.joined_on.to_s) }
+    end
   end
 
   def test_build
@@ -1004,7 +1011,13 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
   
   def test_additional_columns_from_join_table
-    assert_equal Date.new(2004, 10, 10).to_s, Developer.find(1).projects.first.joined_on.to_s
+    # SQL Server doesn't have a separate column type just for dates, 
+    # so the time is in the string and incorrectly formatted
+    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter and ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
+      assert_equal Time.mktime(2004, 10, 10).strftime("%Y/%m/%d 00:00:00"), Developer.find(1).projects.first.joined_on.to_s
+    else
+      assert_equal Date.new(2004, 10, 10).to_s, Developer.find(1).projects.first.joined_on.to_s
+    end
   end
   
   def test_destroy_all
@@ -1019,8 +1032,15 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_rich_association
     jamis = developers(:jamis)
     jamis.projects.push_with_attributes(projects(:action_controller), :joined_on => Date.today)
-    assert_equal Date.today.to_s, jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
-    assert_equal Date.today.to_s, developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
+    # SQL Server doesn't have a separate column type just for dates, 
+    # so the time is in the string and incorrectly formatted
+    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter and ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
+      assert_equal Time.now.strftime("%Y/%m/%d 00:00:00"), jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
+      assert_equal Time.now.strftime("%Y/%m/%d 00:00:00"), developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
+    else
+      assert_equal Date.today.to_s, jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
+      assert_equal Date.today.to_s, developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
+    end
   end
 
   def test_associations_with_conditions

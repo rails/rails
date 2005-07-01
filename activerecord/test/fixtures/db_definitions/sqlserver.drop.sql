@@ -21,3 +21,5 @@ DROP TABLE authors;
 DROP TABLE tasks;
 DROP TABLE categories;
 DROP TABLE categories_posts;
+DROP TABLE fk_test_has_pd;
+DROP TABLE fk_test_has_fk;

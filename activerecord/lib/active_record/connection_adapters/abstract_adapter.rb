@@ -352,21 +352,15 @@ module ActiveRecord
       # Returns a string of the CREATE TABLE SQL statements for recreating the entire structure of the database.
       def structure_dump() end
 
-      def add_limit!(sql, limit)
-        if limit.is_a? Array
-          limit, offset = *limit
-          add_limit_with_offset!(sql, limit.to_i, offset.to_i)
-        else
-          add_limit_without_offset!(sql, limit)
-        end
+      def add_limit!(sql, options)
+        return unless options
+        add_limit_offset!(sql, options)
       end
         
-      def add_limit_with_offset!(sql, limit, offset)
-        sql << " LIMIT #{limit} OFFSET #{offset}"
-      end
-      
-      def add_limit_without_offset!(sql, limit)
-        sql << " LIMIT #{limit}"
+      def add_limit_offset!(sql, options)
+        return if options[:limit].nil?
+        sql << " LIMIT #{options[:limit]}"
+        sql << " OFFSET #{options[:offset]}" if options.has_key?(:offset) and !options[:offset].nil?
       end
 
       def initialize_schema_information
