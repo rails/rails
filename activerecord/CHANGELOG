@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed validates_numericality_of to work with overrided getter-method when :allow_nil is on #1316 [raidel@onemail.at]
+
 * Added roots, root, and siblings to the batch of methods added by acts_as_tree #1541 [michael@schuerig.de]
 
 * Added support for limit/offset with the MS SQL Server driver so that pagination will now work #1569 [DeLynn Berry]

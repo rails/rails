@@ -619,6 +619,7 @@ module ActiveRecord
           end
         else
           validates_each(attr_names,configuration) do |record, attr_name,value|
+           next if configuration[:allow_nil] and record.send("#{attr_name}_before_type_cast").nil?
             begin
               Kernel.Float(record.send("#{attr_name}_before_type_cast").to_s)
             rescue ArgumentError, TypeError

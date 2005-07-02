@@ -319,6 +319,13 @@ class ValidationsTest < Test::Unit::TestCase
     assert Topic.create("title" => nil, "content" => "abc").valid?
   end
 
+  def test_numericality_with_allow_nil_and_getter_method
+    Developer.validates_numericality_of( :salary, :allow_nil => true)
+    developer = Developer.new("name" => "michael", "salary" => nil)
+    developer.instance_eval("def salary; read_attribute('salary') ? read_attribute('salary') : 100000; end")
+    assert developer.valid?
+  end
+
   def test_validates_exclusion_of
     Topic.validates_exclusion_of( :title, :in => %w( abe monkey ) )
 
