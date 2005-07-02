@@ -1,5 +1,9 @@
 *SVN*
 
+* Adds the ability to include XML CDATA tags using Builder #1563 [Josh Knowles]. Example:
+
+    xml.cdata! "some text" # => <![CDATA[some text]]>
+
 * Added evaluation of <SCRIPT> blocks in content returned to Ajax calls #1577 [Thomas Fuchs/court3nay]
 
 * Directly generate paths with a leading slash instead of tacking it on later.  #1543 [Nicholas Seckar]

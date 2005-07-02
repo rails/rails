@@ -239,6 +239,17 @@ module Builder
 	[:version, :encoding, :standalone])
     end
 
+    # Surrounds the given text with a CDATA tag
+    #
+    # For example:
+    #
+    #   xml.cdata! "blah blah blah"
+    #       # => <![CDATA[blah blah blah]]>
+    def cdata!(text)
+      _ensure_no_block block_given?
+      _special("<![CDATA[", "]]>", text, nil)
+    end
+    
     private
 
     # NOTE: All private methods of a builder object are prefixed when
