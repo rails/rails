@@ -1,5 +1,9 @@
 *SVN*
 
+* SIGTERM also gracefully exits dispatch.fcgi.  Ignore SIGUSR1 on Windows.
+
+* Add the option to manually manage garbage collection in the FastCGI dispatcher.  Set the number of requests between GC runs in your public/dispatch.fcgi.  [skaes@web.de]
+
 * Allow dynamic application reloading for dispatch.fcgi processes by sending a SIGHUP. If the process is currently handling a request, the request will be allowed to complete first. This allows production fcgi's to be reloaded without having to restart them.
 
 * RailsFCGIHandler (dispatch.fcgi) no longer tries to explicitly flush $stdout (CgiProcess#out always calls flush)

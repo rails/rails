@@ -9,8 +9,9 @@ RAILS_ROOT = File.dirname(__FILE__) if !defined?(RAILS_ROOT)
 
 class RailsFCGIHandler
   attr_reader :exit_code
-  attr_reader :restarted
+  attr_reader :reloaded
   attr_accessor :thread
+  attr_reader :gc_runs
 
   def trap(signal, handler, &block)
     handler ||= block
@@ -27,7 +28,14 @@ class RailsFCGIHandler
   end
 
   def restore!
-    @restarted = true
+    @reloaded = true
+  end
+
+  alias_method :old_run_gc!, :run_gc!
+  def run_gc!
+    @gc_runs ||= 0
+    @gc_runs += 1
+    old_run_gc!
   end
 end
 
@@ -57,7 +65,7 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     assert_nil @handler.exit_code
     assert_nil @handler.when_ready
     assert !@handler.processing
-    assert @handler.restarted
+    assert @handler.reloaded
   end
 
   def test_interrupted_via_HUP_when_in_request
@@ -67,7 +75,7 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     @handler.send_signal("HUP")
     @handler.thread.join
     assert_nil @handler.exit_code
-    assert_equal :restart, @handler.when_ready
+    assert_equal :reload, @handler.when_ready
     assert !@handler.processing
   end
 
@@ -117,5 +125,57 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
           assert_match %r{^killed}, @log.string
       end
     end
+  end
+end
+
+class RailsFCGIHandlerPeriodicGCTest < Test::Unit::TestCase
+  def setup
+    @log = StringIO.new
+    FCGI.time_to_sleep = nil
+    FCGI.raise_exception = nil
+    FCGI.each_cgi_count = nil
+    Dispatcher.time_to_sleep = nil
+    Dispatcher.raise_exception = nil
+    Dispatcher.dispatch_hook = nil
+  end
+
+  def teardown
+    FCGI.each_cgi_count = nil
+    Dispatcher.dispatch_hook = nil
+    GC.enable
+  end
+
+  def test_normal_gc
+    @handler = RailsFCGIHandler.new(@log)
+    assert_nil @handler.gc_request_period
+
+    # When GC is enabled, GC.disable disables and returns false.
+    assert_equal false, GC.disable
+  end
+
+  def test_periodic_gc
+    Dispatcher.dispatch_hook = lambda do |cgi|
+      # When GC is disabled, GC.enable enables and returns true.
+      assert_equal true, GC.enable
+      GC.disable
+    end
+
+    @handler = RailsFCGIHandler.new(@log, 10)
+    assert_equal 10, @handler.gc_request_period
+    FCGI.each_cgi_count = 1
+    @handler.process!
+    assert_equal 1, @handler.gc_runs
+
+    FCGI.each_cgi_count = 10
+    @handler.process!
+    assert_equal 3, @handler.gc_runs
+
+    FCGI.each_cgi_count = 25
+    @handler.process!
+    assert_equal 6, @handler.gc_runs
+
+    assert_nil @handler.exit_code
+    assert_nil @handler.when_ready
+    assert !@handler.processing
   end
 end
