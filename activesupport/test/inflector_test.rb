@@ -63,6 +63,7 @@ class InflectorTest < Test::Unit::TestCase
     "perspective" => "perspectives",
     
     "ox" => "oxen",
+    "photo" => "photos",
     "buffalo" => "buffaloes",
     "tomato" => "tomatoes",
     "dwarf" => "dwarves",

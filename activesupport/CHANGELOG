@@ -1,6 +1,6 @@
 *SVN*
 
-* Added new rules to the Inflector to deal with more unusual plurals mouse/louse => mice/lice, information => information, ox => oxen #1571 [foamdino@gmail.com]
+* Added new rules to the Inflector to deal with more unusual plurals mouse/louse => mice/lice, information => information, ox => oxen, photo => photos #1571, #1583 [foamdino@gmail.com]
 
 * Fixed memory leak with Object#remove_subclasses_of, which inflicted a Rails application running in development mode with a ~20KB leak per request #1289 [c.r.mcgrath@gmail.com]
 
