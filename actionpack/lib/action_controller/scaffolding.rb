@@ -157,7 +157,7 @@ module ActionController
 
                 @content_for_layout = @template.render_file(scaffold_path(action.sub(/#{suffix}$/, "")), false)
 
-                if active_layout?
+                if !active_layout.nil?
                   render :file => active_layout, :use_full_path => true
                 else
                   render :file => scaffold_path("layout")
