@@ -111,7 +111,6 @@ Element.Class = {
 
 var Droppables = {
   drops: false,
-  include_scroll_offsets: false,
   
   add: function(element) {
     var element = $(element);
@@ -180,7 +179,7 @@ var Droppables = {
     if(!this.drops) return;
     var pX = Event.pointerX(event);
     var pY = Event.pointerY(event);
-    if(this.include_scroll_offsets) Position.prepare();
+    Position.prepare();
     
     var i = this.drops.length-1; do {
       var drop = this.drops[i];
@@ -200,7 +199,7 @@ var Droppables = {
     if(!this.drops) return;
     var pX = Event.pointerX(event);
     var pY = Event.pointerY(event);
-    if(this.include_scroll_offsets) Position.prepare();
+    Position.prepare();
     
     var i = this.drops.length-1; do {
       var drop = this.drops[i];
@@ -250,6 +249,10 @@ Draggable.prototype = {
     this.element      = $(element);
     this.element.drag = this;
     this.handle       = options.handle ? $(options.handle) : this.element;
+    
+    // fix IE
+    if(!this.element.style.position)
+      this.element.style.position = 'relative';
     
     this.offsetX      = 0;
     this.offsetY      = 0;

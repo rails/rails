@@ -124,6 +124,9 @@ Effect.Parallel = Class.create();
     }
   });
 
+// Internet Explorer caveat: works only on elements the have
+// a 'layout', meaning having a given width or height. 
+// There is no way to safely set this automatically.
 Effect.Opacity = Class.create();
 Effect.Opacity.prototype = (new Effect.Base()).extend({
   initialize: function(element) {

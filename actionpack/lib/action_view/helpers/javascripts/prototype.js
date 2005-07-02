@@ -225,9 +225,13 @@ Ajax.Request.prototype = (new Ajax.Base()).extend({
       'X-Requested-With', 'XMLHttpRequest',
       'X-Prototype-Version', Prototype.Version];
     
-    if (this.options.method == 'post')
-      requestHeaders.push(//'Connection', 'close',
+    if (this.options.method == 'post') {
+      requestHeaders.push(
         'Content-type', 'application/x-www-form-urlencoded');
+      if(navigator.userAgent.indexOf('Gecko')>0)
+        requestHeaders.push(
+          'Connection', 'close');
+    }
 
     if (this.options.requestHeaders)
       requestHeaders.push.apply(requestHeaders, this.options.requestHeaders);
@@ -255,13 +259,13 @@ Ajax.Request.prototype = (new Ajax.Base()).extend({
 });
 
 Ajax.Updater = Class.create();
-Ajax.Updater.ScriptFragmentMatch = /<script.*?>((?:\n|.)*?)<\/script>/im;
+Ajax.Updater.ScriptFragmentMatch = /<script.*?>((?:\n|.)*?)<\/script>/img;
 
 Ajax.Updater.prototype = (new Ajax.Base()).extend({
   initialize: function(container, url, options) {
     this.containers = {
       success: container.success ? $(container.success) : $(container),
-      failure: container.failure ? $(container.failure) : null
+      failure: container.failure ? $(container.failure) : $(container)
     }
     
     this.setOptions(options);
@@ -296,14 +300,17 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
       }
     }
 
-    if (this.request.transport.status == 200) {
+    if (this.request.transport.status == 200)
       if (this.onComplete)
         setTimeout((function() {this.onComplete(
           this.request.transport)}).bind(this), 10);
-      
-      if (this.options.evalScripts && scripts)
-        setTimeout((function() {eval(scripts[1])}).bind(this), 10);
-    }
+    
+    if (this.options.evalScripts && scripts)
+      setTimeout( (function() { 
+        for(var i=0;i<scripts.length;i++) 
+          eval(scripts[i].replace(/^<script.*?>/,'').replace(/<\/script>$/,'')); 
+        } ).bind(this), 10);
+        
   }
 });
 
@@ -914,6 +921,12 @@ Object.extend(Event, {
 });
 
 var Position = {
+  
+  // set to true if needed, warning: firefox performance problems
+  // NOT neeeded for page scrolling, only if draggable contained in
+  // scrollable elements
+  includeScrollOffsets: false, 
+
   // must be called before calling withinIncludingScrolloffset, every time the
   // page is scrolled
   prepare: function() {
@@ -925,7 +938,6 @@ var Position = {
                 || document.documentElement.scrollTop 
                 || document.body.scrollTop 
                 || 0;
-    this.includeScrollOffsets = true;
   },
 
   realOffset: function(element) {
@@ -964,9 +976,10 @@ var Position = {
 
   withinIncludingScrolloffsets: function(element, x, y) {
     var offsetcache = this.realOffset(element);
+    
+    this.xcomp = x + offsetcache[0] - this.deltaX;
+    this.ycomp = y + offsetcache[1] - this.deltaY;
     this.offset = this.cumulativeOffset(element);
-    this.xcomp = x + offsetcache[0] - this.deltaX + this.offset[0];
-    this.ycomp = y + offsetcache[1] - this.deltaY + this.offset[1];
 
     return (this.ycomp >= this.offset[1] &&
             this.ycomp <  this.offset[1] + element.offsetHeight &&

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added evaluation of <SCRIPT> blocks in content returned to Ajax calls #1577 [Thomas Fuchs/court3nay]
+
 * Directly generate paths with a leading slash instead of tacking it on later.  #1543 [Nicholas Seckar]
 
 * Fixed errant parameter modification in functional tests.  #1542 [Nicholas Seckar]
