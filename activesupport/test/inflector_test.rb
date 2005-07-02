@@ -27,6 +27,8 @@ class InflectorTest < Test::Unit::TestCase
     "agency"      => "agencies",
     "movie"       => "movies",
 
+    "archive"     => "archives",
+
     "wife"        => "wives",
     "safe"        => "saves",
     "half"        => "halves",

@@ -65,6 +65,7 @@ module Inflector
         [/(series)$/i, '\1\2'],
         [/([^aeiouy]|qu)ies$/i, '\1y'],
         [/([^aeiouy]|qu)y$/i, '\1ies'],       # query, ability, agency
+        [/(hive)$/i, '\1s'],                  # archive, hive
         [/(?:([^f])fe|([lr])f)$/i, '\1\2ves'], # half, safe, wife
         [/sis$/i, 'ses'],                     # basis, diagnosis
         [/([ti])um$/i, '\1a'],                # datum, medium
@@ -93,6 +94,7 @@ module Inflector
         [/([^aeiouy]|qu)ies$/i, '\1y'],
         [/([lr])ves$/i, '\1f'],
         [/(tive)s$/i, '\1'],
+        [/(hive)s$/i, '\1'],
         [/([^f])ves$/i, '\1fe'],
         [/(^analy)ses$/i, '\1sis'],
         [/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$/i, '\1\2sis'],
