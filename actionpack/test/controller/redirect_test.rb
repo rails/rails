@@ -13,6 +13,10 @@ class RedirectController < ActionController::Base
     redirect_to :action => "other_host", :only_path => false, :host => 'other.test.host'
   end
 
+  def module_redirect
+    redirect_to :controller => 'module_test/module_redirect', :action => "hello_world"
+  end
+
   def rescue_errors(e) raise e end
   
   protected
@@ -41,5 +45,56 @@ class RedirectTest < Test::Unit::TestCase
   def test_simple_redirect_using_options
     get :host_redirect
     assert_redirected_to :action => "other_host", :only_path => false, :host => 'other.test.host'
+  end
+
+  def test_module_redirect
+    get :module_redirect
+    assert_redirect_url "http://test.host/module_test/module_redirect/hello_world"
+  end
+
+  def test_module_redirect_using_options
+    get :module_redirect
+    assert_redirected_to :controller => 'module_test/module_redirect', :action => 'hello_world'
+  end
+end
+
+module ModuleTest
+  class ModuleRedirectController < ::RedirectController
+    def module_redirect
+      redirect_to :controller => '/redirect', :action => "hello_world"
+    end
+  end
+
+  class ModuleRedirectTest < Test::Unit::TestCase
+    def setup
+      @controller = ModuleRedirectController.new
+      @request    = ActionController::TestRequest.new
+      @response   = ActionController::TestResponse.new
+    end
+  
+    def test_simple_redirect
+      get :simple_redirect
+      assert_redirect_url "http://test.host/module_test/module_redirect/hello_world"
+    end
+  
+    def test_redirect_with_method_reference_and_parameters
+      get :method_redirect
+      assert_redirect_url "http://test.host/module_test/module_redirect/dashboard/1?message=hello"
+    end
+    
+    def test_simple_redirect_using_options
+      get :host_redirect
+      assert_redirected_to :action => "other_host", :only_path => false, :host => 'other.test.host'
+    end
+
+    def test_module_redirect
+      get :module_redirect
+      assert_redirect_url "http://test.host/redirect/hello_world"
+    end
+
+    def test_module_redirect_using_options
+      get :module_redirect
+      assert_redirected_to :controller => 'redirect', :action => "hello_world"
+    end
   end
 end

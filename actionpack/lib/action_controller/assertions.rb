@@ -56,11 +56,10 @@ module Test #:nodoc:
       # such at assert_redirected_to(:controller => "weblog") will also match the redirection of 
       # redirect_to(:controller => "weblog", :action => "show") and so on.
       def assert_redirected_to(options = {}, message=nil)
-        assert_redirect(message)
+        assert_response(:redirect, message)
 
         if options.is_a?(String)
           msg = build_message(message, "expected a redirect to <?>, found one to <?>", options, @response.redirect_url)
-          
           url_regexp = %r{^(\w+://.*?(/|$|\?))(.*)$}
           eurl, epath, url, path = [options, @response.redirect_url].collect do |url|
             u, p = (url_regexp =~ url) ? [$1, $3] : [nil, url]
