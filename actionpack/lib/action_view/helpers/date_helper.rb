@@ -11,7 +11,7 @@ module ActionView
     # * <tt>:discard_type</tt> - set to true if you want to discard the type part of the select name. If set to true, the select_month
     #   method would use simply "date" (which can be overwritten using <tt>:prefix</tt>) instead of "date[month]".
     module DateHelper
-      DEFAULT_PREFIX = "date" unless const_defined?("DEFAULT_PREFIX")
+      DEFAULT_PREFIX = 'date' unless const_defined?('DEFAULT_PREFIX')
 
       # Reports the approximate distance in time between to Time objects or integers. 
       # For example, if the distance is 47 minutes, it'll return
@@ -29,20 +29,20 @@ module ActionView
 
         case distance_in_minutes
           when 0..1
-            return (distance_in_minutes==0) ? "less than a minute" : "1 minute" unless include_seconds
+            return (distance_in_minutes==0) ? 'less than a minute' : '1 minute' unless include_seconds
             case distance_in_seconds
-              when 0..5   then "less than 5 seconds"
-              when 6..10  then "less than 10 seconds"
-              when 11..20 then "less than 20 seconds"
-              when 21..40 then "half a minute"
-              when 41..59 then "less than a minute"
-              else             "1 minute"
+              when 0..5   then 'less than 5 seconds'
+              when 6..10  then 'less than 10 seconds'
+              when 11..20 then 'less than 20 seconds'
+              when 21..40 then 'half a minute'
+              when 41..59 then 'less than a minute'
+              else             '1 minute'
             end
                                 
           when 2..45      then "#{distance_in_minutes} minutes"
-          when 46..90     then "about 1 hour"
+          when 46..90     then 'about 1 hour'
           when 90..1440   then "about #{(distance_in_minutes.to_f / 60.0).round} hours"
-          when 1441..2880 then "1 day"
+          when 1441..2880 then '1 day'
           else                 "#{(distance_in_minutes / 1440).round} days"
         end
       end
@@ -107,63 +107,67 @@ module ActionView
 
       # Returns a select tag with options for each of the seconds 0 through 59 with the current second selected.
       # The <tt>second</tt> can also be substituted for a second number.
+      # Override the field name using the <tt>:field_name</tt> option, 'second' by default.
       def select_second(datetime, options = {})
         second_options = []
 
         0.upto(59) do |second|
           second_options << ((datetime && (datetime.kind_of?(Fixnum) ? datetime : datetime.sec) == second) ?
-            "<option value=\"#{leading_zero_on_single_digits(second)}\" selected=\"selected\">#{leading_zero_on_single_digits(second)}</option>\n" :
-            "<option value=\"#{leading_zero_on_single_digits(second)}\">#{leading_zero_on_single_digits(second)}</option>\n"
+            %(<option value="#{leading_zero_on_single_digits(second)}" selected="selected">#{leading_zero_on_single_digits(second)}</option>\n) :
+            %(<option value="#{leading_zero_on_single_digits(second)}">#{leading_zero_on_single_digits(second)}</option>\n)
           )
         end
 
-        select_html("second", second_options, options[:prefix], options[:include_blank], options[:discard_type])
+        select_html(options[:field_name] || 'second', second_options, options[:prefix], options[:include_blank], options[:discard_type])
       end
 
       # Returns a select tag with options for each of the minutes 0 through 59 with the current minute selected.
       # Also can return a select tag with options by <tt>minute_step</tt> from 0 through 59 with the 00 minute selected
       # The <tt>minute</tt> can also be substituted for a minute number.
+      # Override the field name using the <tt>:field_name</tt> option, 'minute' by default.
       def select_minute(datetime, options = {})
         minute_options = []
 
         0.step(59, options[:minute_step] || 1) do |minute|
           minute_options << ((datetime && (datetime.kind_of?(Fixnum) ? datetime : datetime.min) == minute) ?
-            "<option value=\"#{leading_zero_on_single_digits(minute)}\" selected=\"selected\">#{leading_zero_on_single_digits(minute)}</option>\n" :
-            "<option value=\"#{leading_zero_on_single_digits(minute)}\">#{leading_zero_on_single_digits(minute)}</option>\n"
+            %(<option value="#{leading_zero_on_single_digits(minute)}" selected="selected">#{leading_zero_on_single_digits(minute)}</option>\n) :
+            %(<option value="#{leading_zero_on_single_digits(minute)}">#{leading_zero_on_single_digits(minute)}</option>\n)
           )
         end
 
-        select_html("minute", minute_options, options[:prefix], options[:include_blank], options[:discard_type])
+        select_html(options[:field_name] || 'minute', minute_options, options[:prefix], options[:include_blank], options[:discard_type])
       end
 
       # Returns a select tag with options for each of the hours 0 through 23 with the current hour selected.
       # The <tt>hour</tt> can also be substituted for a hour number.
+      # Override the field name using the <tt>:field_name</tt> option, 'hour' by default.
       def select_hour(datetime, options = {})
         hour_options = []
 
         0.upto(23) do |hour|
           hour_options << ((datetime && (datetime.kind_of?(Fixnum) ? datetime : datetime.hour) == hour) ?
-            "<option value=\"#{leading_zero_on_single_digits(hour)}\" selected=\"selected\">#{leading_zero_on_single_digits(hour)}</option>\n" :
-            "<option value=\"#{leading_zero_on_single_digits(hour)}\">#{leading_zero_on_single_digits(hour)}</option>\n"
+            %(<option value="#{leading_zero_on_single_digits(hour)}" selected="selected">#{leading_zero_on_single_digits(hour)}</option>\n) :
+            %(<option value="#{leading_zero_on_single_digits(hour)}">#{leading_zero_on_single_digits(hour)}</option>\n)
           )
         end
 
-        select_html("hour", hour_options, options[:prefix], options[:include_blank], options[:discard_type])
+        select_html(options[:field_name] || 'hour', hour_options, options[:prefix], options[:include_blank], options[:discard_type])
       end
 
       # Returns a select tag with options for each of the days 1 through 31 with the current day selected.
       # The <tt>date</tt> can also be substituted for a hour number.
+      # Override the field name using the <tt>:field_name</tt> option, 'day' by default.
       def select_day(date, options = {})
         day_options = []
 
         1.upto(31) do |day|
           day_options << ((date && (date.kind_of?(Fixnum) ? date : date.day) == day) ?
-            "<option value=\"#{day}\" selected=\"selected\">#{day}</option>\n" :
-            "<option value=\"#{day}\">#{day}</option>\n"
+            %(<option value="#{day}" selected="selected">#{day}</option>\n) :
+            %(<option value="#{day}">#{day}</option>\n)
           )
         end
 
-        select_html("day", day_options, options[:prefix], options[:include_blank], options[:discard_type])
+        select_html(options[:field_name] || 'day', day_options, options[:prefix], options[:include_blank], options[:discard_type])
       end
 
       # Returns a select tag with options for each of the months January through December with the current month selected.
@@ -175,6 +179,8 @@ module ActionView
       #   select_month(Date.today)                             # Will use keys like "January", "March"
       #   select_month(Date.today, :use_month_numbers => true) # Will use keys like "1", "3"
       #   select_month(Date.today, :add_month_numbers => true) # Will use keys like "1 - January", "3 - March"
+      #
+      # Override the field name using the <tt>:field_name</tt> option, 'month' by default.
       def select_month(date, options = {})
         month_options = []
 
@@ -182,7 +188,7 @@ module ActionView
           month_name = if options[:use_month_numbers]
             month_number
           elsif options[:add_month_numbers]
-            month_number.to_s + " - " + Date::MONTHNAMES[month_number]
+            month_number.to_s + ' - ' + Date::MONTHNAMES[month_number]
           else
             Date::MONTHNAMES[month_number]
           end
@@ -193,7 +199,7 @@ module ActionView
           )
         end
 
-        select_html("month", month_options, options[:prefix], options[:include_blank], options[:discard_type])
+        select_html(options[:field_name] || 'month', month_options, options[:prefix], options[:include_blank], options[:discard_type])
       end
 
       # Returns a select tag with options for each of the five years on each side of the current, which is selected. The five year radius
@@ -203,6 +209,8 @@ module ActionView
       #
       #   select_year(Date.today, :start_year => 1992, :end_year => 2007)  # ascending year values
       #   select_year(Date.today, :start_year => 2005, :end_year => 1900)  # descending year values
+      #
+      # Override the field name using the <tt>:field_name</tt> option, 'year' by default.
       def select_year(date, options = {})
         year_options = []
         y = date ? (date.kind_of?(Fixnum) ? (y = (date == 0) ? Date.today.year : date) : date.year) : Date.today.year
@@ -212,12 +220,12 @@ module ActionView
 
         start_year.step(end_year, step_val) do |year|
           year_options << ((date && (date.kind_of?(Fixnum) ? date : date.year) == year) ?
-            "<option value=\"#{year}\" selected=\"selected\">#{year}</option>\n" :
-            "<option value=\"#{year}\">#{year}</option>\n"
+            %(<option value="#{year}" selected="selected">#{year}</option>\n) :
+            %(<option value="#{year}">#{year}</option>\n)
           )
         end
 
-        select_html("year", year_options, options[:prefix], options[:include_blank], options[:discard_type])
+        select_html(options[:field_name] || 'year', year_options, options[:prefix], options[:include_blank], options[:discard_type])
       end
 
       private
@@ -225,11 +233,9 @@ module ActionView
           select_html  = %(<select name="#{prefix || DEFAULT_PREFIX})
           select_html << "[#{type}]" unless discard_type
           select_html << %(">\n)
-          select_html << "<option value=\"\"></option>\n" if include_blank
+          select_html << %(<option value=""></option>\n) if include_blank
           select_html << options.to_s
           select_html << "</select>\n"
-
-          return select_html
         end
 
         def leading_zero_on_single_digits(number)
@@ -246,7 +252,7 @@ module ActionView
         options_with_prefix = Proc.new { |position| options.merge(:prefix => "#{@object_name}[#{@method_name}(#{position}i)]") }
         date     = options[:include_blank] ? (value || 0) : (value || Date.today)
 
-        date_select = ""
+        date_select = ''
         options[:order]   = [:month, :year, :day] if options[:month_before_year] # For backwards compatibility
         options[:order] ||= [:year, :month, :day]
 
@@ -261,7 +267,7 @@ module ActionView
           date_select << self.send("select_#{param}", date, options_with_prefix.call(position[param])) unless discard[param]
         end
 
-        return date_select
+        date_select
       end
 
       def to_datetime_select_tag(options = {})
@@ -273,10 +279,10 @@ module ActionView
         datetime_select  = select_year(datetime, options_with_prefix.call(1))
         datetime_select << select_month(datetime, options_with_prefix.call(2)) unless options[:discard_month]
         datetime_select << select_day(datetime, options_with_prefix.call(3)) unless options[:discard_day] || options[:discard_month]
-        datetime_select << " &mdash; " + select_hour(datetime, options_with_prefix.call(4)) unless options[:discard_hour]
-        datetime_select << " : " + select_minute(datetime, options_with_prefix.call(5)) unless options[:discard_minute] || options[:discard_hour]
+        datetime_select << ' &mdash; ' + select_hour(datetime, options_with_prefix.call(4)) unless options[:discard_hour]
+        datetime_select << ' : ' + select_minute(datetime, options_with_prefix.call(5)) unless options[:discard_minute] || options[:discard_hour]
 
-        return datetime_select
+        datetime_select
       end
     end
   end

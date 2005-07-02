@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :field_name option to DateHelper#select_(year|month|day) to deviate from the year/month/day defaults #1266 [Marcel Molina]
+
 * Added JavascriptHelper#draggable_element and JavascriptHelper#drop_receiving_element to facilitate easy dragging and dropping through the script.aculo.us libraries #1578 [Thomas Fuchs]
 
 * Added that UrlHelper#mail_to will now also encode the default link title #749 [f.svehla@gmail.com]
