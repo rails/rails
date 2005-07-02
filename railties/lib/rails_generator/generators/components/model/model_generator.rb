@@ -12,7 +12,7 @@ class ModelGenerator < Rails::Generator::NamedBase
       # Model class, unit test, and fixtures.
       m.template 'model.rb',      File.join('app/models', class_path, "#{file_name}.rb")
       m.template 'unit_test.rb',  File.join('test/unit', class_path, "#{file_name}_test.rb")
-      m.template 'fixtures.yml',  File.join('test/fixtures', class_path, "#{table_name}.yml")
+      m.template 'fixtures.yml',  File.join('test/fixtures', class_path, "#{ActiveRecord::Base.pluralize_table_names ? plural_name : singular_name}.yml")
     end
   end
 end
