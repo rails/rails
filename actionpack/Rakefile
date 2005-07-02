@@ -104,6 +104,14 @@ task :lines do
   puts "Total: Lines #{total_lines}, LOC #{total_codelines}"
 end
 
+# Publishing ------------------------------------------------------
+
+task :update_scriptaculous do
+  system("svn export --force http://dev.rubyonrails.org/svn/rails/spinoffs/scriptaculous/src/ #{File.dirname(__FILE__)}/lib/action_view/helpers/javascripts/")
+end
+
+desc "Updates actionpack to the latest version of the javascript spinoffs"
+task :update_js => [:update_scriptaculous]
 
 # Publishing ------------------------------------------------------
 
