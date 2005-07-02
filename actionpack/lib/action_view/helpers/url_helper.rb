@@ -187,6 +187,10 @@ module ActionView
         extras << "subject=#{CGI.escape(subject).gsub("+", "%20")}&" unless subject.nil?
         extras = "?" << extras.gsub!(/&?$/,"") unless extras.empty?
 
+        email_address_obfuscated = email_address.dup
+        email_address_obfuscated.gsub!(/@/, html_options.delete("replace_at")) if html_options.has_key?("replace_at")
+        email_address_obfuscated.gsub!(/\./, html_options.delete("replace_dot")) if html_options.has_key?("replace_dot")
+
         if encode == 'javascript'
           tmp = "document.write('#{content_tag("a", name || email_address, html_options.merge({ "href" => "mailto:"+email_address.to_s+extras }))}');"
           for i in 0...tmp.length
@@ -201,9 +205,9 @@ module ActionView
               string << email_address[i,1]
             end
           end
-          content_tag "a", name || email_address, html_options.merge({ "href" => "mailto:#{string}#{extras}" })
+          content_tag "a", name || email_address_obfuscated, html_options.merge({ "href" => "mailto:#{string}#{extras}" })
         else
-          content_tag "a", name || email_address, html_options.merge({ "href" => "mailto:#{email_address}#{extras}" })
+          content_tag "a", name || email_address_obfuscated, html_options.merge({ "href" => "mailto:#{email_address}#{extras}" })
         end
       end
 

@@ -31,7 +31,7 @@ module ActionView
       #       </p>
       #       <p>
       #         <label for="post_body">Body</label><br />
-      #         <textarea cols="40" id="post_body" name="post[body]" rows="20" wrap="virtual">
+      #         <textarea cols="40" id="post_body" name="post[body]" rows="20">
       #           Back to the hill and over it again!
       #         </textarea>
       #       </p>

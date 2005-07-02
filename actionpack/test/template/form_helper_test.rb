@@ -100,7 +100,7 @@ class FormHelperTest < Test::Unit::TestCase
 
   def test_text_area
     assert_equal(
-      '<textarea cols="40" id="post_body" name="post[body]" rows="20" wrap="virtual">Back to the hill and over it again!</textarea>',
+      '<textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea>',
       text_area("post", "body")
     )
   end
@@ -108,14 +108,14 @@ class FormHelperTest < Test::Unit::TestCase
   def test_text_area_with_escapes
     @post.body        = "Back to <i>the</i> hill and over it again!"
     assert_equal(
-      '<textarea cols="40" id="post_body" name="post[body]" rows="20" wrap="virtual">Back to &lt;i&gt;the&lt;/i&gt; hill and over it again!</textarea>',
+      '<textarea cols="40" id="post_body" name="post[body]" rows="20">Back to &lt;i&gt;the&lt;/i&gt; hill and over it again!</textarea>',
       text_area("post", "body")
     )
   end
 
   def test_date_selects
     assert_equal(
-      '<textarea cols="40" id="post_body" name="post[body]" rows="20" wrap="virtual">Back to the hill and over it again!</textarea>',
+      '<textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea>',
       text_area("post", "body")
     )
   end
@@ -125,7 +125,7 @@ class FormHelperTest < Test::Unit::TestCase
       '<input id="post_title" name="dont guess" size="30" type="text" value="Hello World" />', text_field("post", "title", "name" => "dont guess")
     )
     assert_equal(
-      '<textarea cols="40" id="post_body" name="really!" rows="20" wrap="virtual">Back to the hill and over it again!</textarea>',
+      '<textarea cols="40" id="post_body" name="really!" rows="20">Back to the hill and over it again!</textarea>',
       text_area("post", "body", "name" => "really!")
     )
     assert_equal(
@@ -145,7 +145,7 @@ class FormHelperTest < Test::Unit::TestCase
       '<input id="dont guess" name="post[title]" size="30" type="text" value="Hello World" />', text_field("post", "title", "id" => "dont guess")
     )
     assert_equal(
-      '<textarea cols="40" id="really!" name="post[body]" rows="20" wrap="virtual">Back to the hill and over it again!</textarea>',
+      '<textarea cols="40" id="really!" name="post[body]" rows="20">Back to the hill and over it again!</textarea>',
       text_area("post", "body", "id" => "really!")
     )
     assert_equal(
@@ -166,7 +166,7 @@ class FormHelperTest < Test::Unit::TestCase
       "<input id=\"post_#{pid}_title\" name=\"post[#{pid}][title]\" size=\"30\" type=\"text\" value=\"Hello World\" />", text_field("post[]","title")
     )
     assert_equal(
-      "<textarea cols=\"40\" id=\"post_#{pid}_body\" name=\"post[#{pid}][body]\" rows=\"20\" wrap=\"virtual\">Back to the hill and over it again!</textarea>",
+      "<textarea cols=\"40\" id=\"post_#{pid}_body\" name=\"post[#{pid}][body]\" rows=\"20\">Back to the hill and over it again!</textarea>",
       text_area("post[]", "body")
     )
     assert_equal(

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that UrlHelper#mail_to will now also encode the default link title #749 [f.svehla@gmail.com]
+
 * Removed the default option of wrap=virtual on FormHelper#text_area to ensure XHTML compatibility #1300 [thomas@columbus.rr.com]
 
 * Adds the ability to include XML CDATA tags using Builder #1563 [Josh Knowles]. Example:
