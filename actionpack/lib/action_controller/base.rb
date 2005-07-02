@@ -325,6 +325,12 @@ module ActionController #:nodoc:
         path_of_controller_root    = path_of_calling_controller.sub(/#{controller_path.split("/")[0..-2]}$/, "")
         self.template_root = path_of_controller_root
       end
+
+      # Temporary method for enabling upload progress until it's ready to leave experimental mode
+      def enable_upload_progress # :nodoc:
+        require 'action_controller/upload_progress'
+        include ActionController::UploadProgress
+      end
     end
 
     public
