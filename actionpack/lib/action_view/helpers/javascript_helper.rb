@@ -18,7 +18,8 @@ module ActionView
       unless const_defined? :CALLBACKS
         CALLBACKS       = 
           [:uninitialized, :loading, :loaded, :interactive, :complete, :failure].push((100..599).to_a).flatten
-        AJAX_OPTIONS    = [ :url, :asynchronous, :method, :insertion, :form, :with, :update ].concat(CALLBACKS)
+        AJAX_OPTIONS    = [ :before, :after, :condition, :url, :asynchronous, :method, 
+          :insertion, :position, :form, :with, :update, :script ].concat(CALLBACKS)
         JAVASCRIPT_PATH = File.join(File.dirname(__FILE__), 'javascripts')
       end
       
@@ -276,8 +277,7 @@ module ActionView
       #                       Defaults to field_id + '_auto_complete'
       # <tt>:with</tt>::      A JavaScript expression specifying the
       #                       parameters for the XMLHttpRequest. This defaults
-      #                       to 'value', which in the evaluated context 
-      #                       refers to the new field value.
+      #                       to 'fieldname=value'.
       # <tt>:indicator</tt>:: Specifies the DOM ID of an elment which will be
       #                       displayed while autocomplete is running. 
       def auto_complete_field(field_id, options = {})
@@ -287,8 +287,8 @@ module ActionView
         function << "'#{url_for(options[:url])}'"
 
         js_options = {}
-        js_options[:callback] = "function(element, value) { return #{options[:with]} }" if options[:with]
-        js_options[:indicator] = "'#{options[:indicator]}'" if options[:indicator]
+        js_options[:callback]   = "function(element, value) { return #{options[:with]} }" if options[:with]
+        js_options[:indicator]  = "'#{options[:indicator]}'" if options[:indicator]
         function << (', ' + options_for_javascript(js_options) + ')')
 
         javascript_tag(function)
@@ -334,10 +334,19 @@ module ActionView
       #         :url => { :action => "reload" }, 
       #         :complete => visual_effect(:highlight, "posts", :duration => 0.5 )
       #
+      # If no element_id is given, it assumes "element" which should be a local
+      # variable in the generated JavaScript execution context. This can be used
+      # for example with drop_receiving_element:
+      #
+      #   <%= drop_receving_element (...), :loading => visual_effect(:fade) %>
+      #
+      # This would fade the element that was dropped on the drop receiving element.
+      #
       # You can change the behaviour with various options, see
       # http://script.aculo.us for more documentation.
-      def visual_effect(name, element_id, js_options = {})
-        "new Effect.#{name.to_s.capitalize}('#{element_id}',#{options_for_javascript(js_options)});"
+      def visual_effect(name, element_id = false, js_options = {})
+        element = element_id ? "'#{element_id}'" : "element"
+        "new Effect.#{name.to_s.capitalize}(#{element},#{options_for_javascript(js_options)});"
       end
       
       # Makes the element with the DOM ID specified by +element_id+ sortable
@@ -360,6 +369,38 @@ module ActionView
         options.delete_if { |key, value| AJAX_OPTIONS.include?(key) }
         
         javascript_tag("Sortable.create('#{element_id}', #{options_for_javascript(options)})")
+      end
+      
+      # Makes the element with the DOM ID specified by +element_id+ draggable.
+      #
+      # Example:
+      #   <%= draggable_element("my_image", :revert => true)
+      # 
+      # You can change the behaviour with various options, see
+      # http://script.aculo.us for more documentation. 
+      def draggable_element(element_id, options = {})
+        javascript_tag("new Draggable('#{element_id}', #{options_for_javascript(options)})")
+      end
+      
+      # Makes the element with the DOM ID specified by +element_id+ receive
+      # dropped draggable elements (created by draggable_element).
+      # and make an AJAX call  By default, the action called gets the DOM ID of the
+      # element as parameter.
+      #
+      # Example:
+      #   <%= drop_receiving_element("my_cart", :url => { :controller => "cart", :action => "add" }) %>
+      #
+      # You can change the behaviour with various options, see
+      # http://script.aculo.us for more documentation.
+      def drop_receiving_element(element_id, options = {})
+        options[:with]     ||= "'id=' + encodeURIComponent(element.id)"
+        options[:onDrop]   ||= "function(element){" + remote_function(options) + "}"
+        options.delete_if { |key, value| AJAX_OPTIONS.include?(key) }
+        
+        options[:accept]     = "'#{options[:accept]}'" if options[:accept]
+        options[:hoverclass] = "'#{options[:hoverclass]}'" if options[:hoverclass]
+        
+        javascript_tag("Droppables.add('#{element_id}', #{options_for_javascript(options)})")
       end
 
       # Escape carrier returns and single and double quotes for JavaScript segments.
@@ -384,7 +425,7 @@ module ActionView
         js_options['asynchronous'] = options[:type] != :synchronous
         js_options['method']       = method_option_to_s(options[:method]) if options[:method]
         js_options['insertion']    = "Insertion.#{options[:position].to_s.camelize}" if options[:position]
-        js_options['evalScripts']  = options[:script] == true if options[:script]
+        js_options['evalScripts']  = options[:script].nil? || options[:script]
 
         if options[:form]
           js_options['parameters'] = 'Form.serialize(this)'
