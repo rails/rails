@@ -784,4 +784,14 @@ class ValidationsTest < Test::Unit::TestCase
     assert t.valid?
     assert !t.errors.on(:title)
   end
+
+  def test_validates_associated_missing
+    Reply.validates_presence_of(:topic)
+    r = Reply.create("title" => "A reply", "content" => "with content!")
+    assert !r.valid?
+    assert r.errors.on(:topic)
+    
+    r.topic = Topic.find :first
+    assert r.valid?
+  end
 end
