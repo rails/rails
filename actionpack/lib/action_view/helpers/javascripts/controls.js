@@ -76,6 +76,8 @@ Ajax.Autocompleter.prototype = (new Ajax.Base()).extend({
        
     this.observer = null;
     
+    Element.hide(this.update);
+    
     Event.observe(this.element, "blur", this.onBlur.bindAsEventListener(this));
     Event.observe(this.element, "keypress", this.onKeyPress.bindAsEventListener(this));
   },
