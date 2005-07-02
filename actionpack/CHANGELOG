@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed the default option of wrap=virtual on FormHelper#text_area to ensure XHTML compatibility #1300 [thomas@columbus.rr.com]
+
 * Adds the ability to include XML CDATA tags using Builder #1563 [Josh Knowles]. Example:
 
     xml.cdata! "some text" # => <![CDATA[some text]]>
