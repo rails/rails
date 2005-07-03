@@ -196,11 +196,10 @@ module ActiveRecord
 
       def columns(table_name, name = nil)
         sql = "SELECT COLUMN_NAME as ColName, COLUMN_DEFAULT as DefaultValue, DATA_TYPE as ColType, COL_LENGTH('#{table_name}', COLUMN_NAME) as Length, COLUMNPROPERTY(OBJECT_ID('#{table_name}'), COLUMN_NAME, 'IsIdentity') as IsIdentity, NUMERIC_SCALE as Scale FROM INFORMATION_SCHEMA.columns WHERE TABLE_NAME = '#{table_name}'"
-        result = nil
         # Comment out if you want to have the Columns select statment logged.
         # Personnally, I think it adds unneccessary bloat to the log. 
         # If you do comment it out, make sure to un-comment the "result" line that follows
-        log(sql, name, @connection) { |conn| result = conn.select_all(sql) }
+        result = log(sql, name) { @connection.select_all(sql) }
         #result = @connection.select_all(sql)
         columns = []
         result.each { |field| columns << ColumnWithIdentity.new(field[:ColName], field[:DefaultValue].to_s.gsub!(/[()\']/,"") =~ /null/ ? nil : field[:DefaultValue], "#{field[:ColType]}(#{field[:Length]})", field[:IsIdentity] == 1 ? true : false, field[:Scale]) }
@@ -223,8 +222,8 @@ module ActiveRecord
               end
             end
           end
-          log(sql, name, @connection) do |conn|
-            conn.execute(sql)
+          log(sql, name) do
+            @connection.execute(sql)
             select_one("SELECT @@IDENTITY AS Ident")["Ident"]
           end
         ensure
@@ -242,14 +241,12 @@ module ActiveRecord
         if sql =~ /^INSERT/i
           insert(sql, name)
         elsif sql =~ /^UPDATE|DELETE/i
-          log(sql, name, @connection) do |conn|
-            conn.execute(sql)
+          log(sql, name) do
+            @connection.execute(sql)
             retVal = select_one("SELECT @@ROWCOUNT AS AffectedRows")["AffectedRows"]
           end
         else
-          log(sql, name, @connection) do |conn|
-            conn.execute(sql)
-          end
+          log(sql, name) { @connection.execute(sql) }
         end
       end
 
@@ -259,27 +256,21 @@ module ActiveRecord
       alias_method :delete, :update
 
       def begin_db_transaction
-        begin
-          @connection["AutoCommit"] = false
-        rescue Exception => e
-          @connection["AutoCommit"] = true
-        end
+        @connection["AutoCommit"] = false
+      rescue Exception => e
+        @connection["AutoCommit"] = true
       end
 
       def commit_db_transaction
-        begin
-          @connection.commit
-        ensure
-          @connection["AutoCommit"] = true
-        end
+        @connection.commit
+      ensure
+        @connection["AutoCommit"] = true
       end
 
       def rollback_db_transaction
-        begin
-          @connection.rollback
-        ensure
-          @connection["AutoCommit"] = true
-        end
+        @connection.rollback
+      ensure
+        @connection["AutoCommit"] = true
       end
 
       def quote(value, column = nil)
@@ -334,8 +325,8 @@ module ActiveRecord
         def select(sql, name = nil)
           rows = []
           repair_special_columns(sql)
-          log(sql, name, @connection) do |conn|
-            conn.select_all(sql) do |row|
+          log(sql, name) do
+            @connection.select_all(sql) do |row|
               record = {}
               row.column_names.each do |col|
                 record[col] = row[col]

@@ -392,17 +392,18 @@ module ActiveRecord
 
 
       protected
-        def log(sql, name, connection = nil)
-          connection ||= @connection
+        def log(sql, name)
           begin
-            if !@logger || @logger.level > Logger::INFO
-              yield connection
-            elsif block_given?
-              result = nil
-              bm = measure { result = yield connection }
-              @runtime += bm.real
-              log_info(sql, name, bm.real)
-              result
+            if block_given?
+              if @logger and @logger.level <= Logger::INFO
+                result = nil
+                bm = measure { result = yield }
+                @runtime += bm.real
+                log_info(sql, name, bm.real)
+                result
+              else
+                yield
+              end
             else
               log_info(sql, name, 0)
               nil

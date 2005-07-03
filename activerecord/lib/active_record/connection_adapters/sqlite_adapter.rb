@@ -104,6 +104,7 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil)
+        #log(sql, name, @connection) { |connection| connection.execute(sql) }
         log(sql, name) { @connection.execute(sql) }
       end
 
@@ -127,7 +128,9 @@ module ActiveRecord
         execute(sql, name).map do |row|
           record = {}
           row.each_key do |key|
-            record[key.sub(/\w+\./, '')] = row[key] unless key.is_a?(Fixnum)
+            if key.is_a?(String)
+              record[key.sub(/^\w+\./, '')] = row[key]
+            end
           end
           record
         end

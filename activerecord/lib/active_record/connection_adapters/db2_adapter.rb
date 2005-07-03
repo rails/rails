@@ -52,8 +52,8 @@ begin
         def execute(sql, name = nil)
           rows_affected = 0
 
-          log(sql, name, @connection) do |connection| 
-            stmt = DB2::Statement.new(connection)
+          log(sql, name) do
+            stmt = DB2::Statement.new(@connection)
             stmt.exec_direct(sql)
             rows_affected = stmt.row_count
             stmt.free
@@ -126,9 +126,9 @@ begin
 
         def select(sql, name = nil)
           stmt = nil
-          log(sql, name, @connection) do |connection|
-            stmt = DB2::Statement.new(connection)
-            stmt.exec_direct(sql + " with ur")
+          log(sql, name) do
+            stmt = DB2::Statement.new(@connection)
+            stmt.exec_direct("#{sql} with ur")
           end
 
           rows = []

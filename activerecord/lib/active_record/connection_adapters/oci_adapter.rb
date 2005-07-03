@@ -125,7 +125,7 @@ begin
           elsif offset > 0
             sql = "select * from (select raw_sql_.*, rownum raw_rnum_ from (#{sql}) raw_sql_) where raw_rnum_ > #{offset}"
           end
-          cursor = log(sql, name, @connection) { @connection.exec sql }
+          cursor = log(sql, name) { @connection.exec sql }
           cols = cursor.get_col_names.map { |x| x.downcase }
           rows = []
           while row = cursor.fetch
@@ -167,16 +167,16 @@ begin
           if pk.nil? # Who called us? What does the sql look like? No idea!
             execute sql, name
           elsif id_value # Pre-assigned id
-            log(sql, name, @connection) { @connection.exec sql }
+            log(sql, name) { @connection.exec sql }
           else # Assume the sql contains a bind-variable for the id
             id_value = select_one("select rails_sequence.nextval id from dual")['id']
-            log(sql, name, @connection) { @connection.exec sql, id_value }
+            log(sql, name) { @connection.exec sql, id_value }
           end
           id_value
         end
 
         def execute(sql, name = nil)
-          log(sql, name, @connection) { @connection.exec sql }
+          log(sql, name) { @connection.exec sql }
         end
 
         alias :update :execute
