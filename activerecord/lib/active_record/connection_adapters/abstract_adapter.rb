@@ -147,7 +147,6 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     class Column # :nodoc:
       attr_reader :name, :default, :type, :limit
-      attr_accessor :primary
       # The name should contain the name of the column, such as "name" in "name varchar(250)"
       # The default should contain the type-casted default of the column, such as 1 in "count int(11) DEFAULT 1"
       # The type parameter should either contain :integer, :float, :datetime, :date, :text, or :string
@@ -155,7 +154,6 @@ module ActiveRecord
       def initialize(name, default, sql_type = nil)
         @name, @default, @type = name, type_cast(default), simplified_type(sql_type)
         @limit = extract_limit(sql_type) unless sql_type.nil?
-        @primary = nil
       end
 
       def klass
