@@ -606,9 +606,9 @@ module ActiveRecord #:nodoc:
       # Turns the +table_name+ back into a class name following the reverse rules of +table_name+.
       def class_name(table_name = table_name) # :nodoc:
         # remove any prefix and/or suffix from the table name
-        class_name = Inflector.camelize(table_name[table_name_prefix.length..-(table_name_suffix.length + 1)])
-        class_name = Inflector.singularize(class_name) if pluralize_table_names
-        return class_name
+        class_name = table_name[table_name_prefix.length..-(table_name_suffix.length + 1)].camelize
+        class_name = class_name.singularize if pluralize_table_names
+        class_name
       end
 
       # Returns an array of column objects for the table associated with this class.
@@ -661,7 +661,7 @@ module ActiveRecord #:nodoc:
       end
       
       def descends_from_active_record? # :nodoc:
-        superclass == Base || !columns_hash.has_key?(inheritance_column)
+        superclass == Base || !columns_hash.include?(inheritance_column)
       end
 
       def quote(object) #:nodoc:
@@ -673,7 +673,7 @@ module ActiveRecord #:nodoc:
         connection.quote(object)
       end
 
-      # Used to aggregate logging and benchmark, so you can measure and represent multiple statements in a single block.
+      # Log and benchmark multiple statements in a single block.
       # Usage (hides all the SQL calls for the individual actions and calculates total runtime for them all):
       #
       #   Project.benchmark("Creating project") do
@@ -683,19 +683,17 @@ module ActiveRecord #:nodoc:
       #   end
       def benchmark(title)
         result = nil
-        bm = Benchmark.measure { result = silence { yield } }
-        logger.info "#{title} (#{sprintf("%f", bm.real)})" if logger
+        seconds = Benchmark.realtime { result = silence { yield } }
+        logger.info "#{title} (#{sprintf("%f", seconds)})" if logger
         return result
       end
-      
+
       # Silences the logger for the duration of the block.
       def silence
-        result = nil
-        old_logger_level = logger.level if logger
-        logger.level = Logger::ERROR if logger
-        result = yield
+        old_logger_level, logger.level = logger.level, Logger::ERROR if logger
+        yield
+      ensure
         logger.level = old_logger_level if logger
-        return result
       end
 
       # Overwrite the default class equality method to provide support for association proxies.
@@ -707,30 +705,27 @@ module ActiveRecord #:nodoc:
         # Finder methods must instantiate through this method to work with the single-table inheritance model
         # that makes it possible to create objects of different types from the same table.
         def instantiate(record)
-          require_association_class(record[inheritance_column])
+          subclass_name = record[inheritance_column]
+          require_association_class(subclass_name)
 
-          begin
-            object = record_with_type?(record) ? compute_type(record[inheritance_column]).allocate : allocate
-          rescue NameError
-            raise(
-              SubclassNotFound, 
-              "The single-table inheritance mechanism failed to locate the subclass: '#{record[inheritance_column]}'. " +
-              "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
-              "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
-              "or overwrite #{self.to_s}.inheritance_column to use another column for that information."
-            )
+          object = if subclass_name.blank?
+            allocate
+          else
+            begin
+              compute_type(subclass_name).allocate
+            rescue NameError
+              raise SubclassNotFound, 
+                "The single-table inheritance mechanism failed to locate the subclass: '#{record[inheritance_column]}'. " +
+                "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
+                "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
+                "or overwrite #{self.to_s}.inheritance_column to use another column for that information."
+            end
           end
 
           object.instance_variable_set("@attributes", record)
-          return object
+          object
         end
-        
-        # Returns true if the +record+ has a single table inheritance column and is using it.
-        def record_with_type?(record)
-          record.include?(inheritance_column) && !record[inheritance_column].nil? && 
-            !record[inheritance_column].empty?
-        end
-        
+
         # Returns the name of the type of the record using the current module as a prefix. So descendents of
         # MyApp::Business::Account would be appear as "MyApp::Business::AccountSubclass".
         def type_name_with_module(type_name)
@@ -781,15 +776,16 @@ module ActiveRecord #:nodoc:
         def method_missing(method_id, *arguments)
           method_name = method_id.id2name
 
-          if method_name =~ /find_(all_by|by)_([_a-zA-Z]\w*)/
-            finder, attributes = ($1 == "all_by" ? :all : :first), $2.split("_and_")
-            attributes.each { |attr_name| super unless column_methods_hash[attr_name.intern] }
+          if md = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
+            finder = md.captures.first == 'all_by' ? :all : :first
+            attributes = md.captures.last.split('_and_')
+            attributes.each { |attr_name| super unless column_methods_hash.include?(attr_name.to_sym) }
 
             attr_index = -1
             conditions = attributes.collect { |attr_name| attr_index += 1; "#{attr_name} #{attribute_condition(arguments[attr_index])} " }.join(" AND ")
-            
+
             if arguments[attributes.length].is_a?(Hash)
-              find(finder, { :conditions => [conditions, *arguments[0...attributes.length]]}.merge(arguments[attributes.length]))
+              find(finder, { :conditions => [conditions, *arguments[0...attributes.length]] }.update(arguments[attributes.length]))
             else
               # deprecated API
               send("find_#{finder}", [conditions, *arguments[0...attributes.length]], *arguments[attributes.length..-1])
@@ -885,7 +881,7 @@ module ActiveRecord #:nodoc:
           raise_if_bind_arity_mismatch(statement, statement.scan(/:(\w+)/).uniq.size, bind_vars.size)
           statement.gsub(/:(\w+)/) do
             match = $1.to_sym
-            if bind_vars.has_key?(match)
+            if bind_vars.include?(match)
               quote_bound_value(bind_vars[match])
             else
               raise PreparedStatementInvalid, "missing value for :#{match} in #{statement}"
@@ -945,9 +941,9 @@ module ActiveRecord #:nodoc:
       end
 
       def quoted_id #:nodoc:
-        quote(id, self.class.columns_hash[self.class.primary_key])
+        quote(id, column_for_attribute(self.class.primary_key))
       end
-      
+
       # Sets the primary ID.
       def id=(value)
         write_attribute(self.class.primary_key, value)
@@ -1181,39 +1177,41 @@ module ActiveRecord #:nodoc:
       #
       # It's also possible to instantiate related objects, so a Client class belonging to the clients
       # table with a master_id foreign key can instantiate master through Client#master.
-      def method_missing(method_id, *arguments)
-        method_name = method_id.id2name
-
-        if method_name =~ read_method? && @attributes.include?($1)
-          return read_attribute($1)
-        elsif method_name =~ read_untyped_method? && @attributes.include?($1)
-          return read_attribute_before_type_cast($1)
-        elsif method_name =~ write_method? && @attributes.include?($1)
-          write_attribute($1, arguments[0])
-        elsif method_name =~ query_method? && @attributes.include?($1)
-          return query_attribute($1)
+      def method_missing(method_id, *args, &block)
+        method_name = method_id.to_s
+        if @attributes.include?(method_name)
+          read_attribute(method_name)
+        elsif md = /(=|\?|_before_type_cast)$/.match(method_name)
+          attribute_name, method_type = md.pre_match, md.to_s
+          if @attributes.include?(attribute_name)
+            case method_type
+              when '='
+                write_attribute(attribute_name, args.first)
+              when '?'
+                query_attribute(attribute_name)
+              when '_before_type_cast'
+                read_attribute_before_type_cast(attribute_name)
+            end
+          else
+            super
+          end
         else
           super
         end
       end
 
-      def read_method?()         /^([a-zA-Z][-_\w]*)[^=?]*$/ end
-      def read_untyped_method?() /^([a-zA-Z][-_\w]*)_before_type_cast$/ end
-      def write_method?()        /^([a-zA-Z][-_\w]*)=.*$/    end
-      def query_method?()        /^([a-zA-Z][-_\w]*)\?$/     end
-
       # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
-        if @attributes.keys.include? attr_name
+        if value = @attributes[attr_name]
           if column = column_for_attribute(attr_name)
             if unserializable_attribute?(attr_name, column)
               unserialize_attribute(attr_name)
             else
-              column.type_cast(@attributes[attr_name])
+              column.type_cast(value)
             end
           else
-            @attributes[attr_name]
+            value
           end
         else
           nil
@@ -1238,11 +1236,8 @@ module ActiveRecord #:nodoc:
         if unserialized_object.is_a?(self.class.serialized_attributes[attr_name])
           @attributes[attr_name] = unserialized_object
         else
-          raise(
-            SerializationTypeMismatch, 
-            "#{attr_name} was supposed to be a #{self.class.serialized_attributes[attr_name]}, " +
-            "but was a #{unserialized_object.class.to_s}"
-          )
+          raise SerializationTypeMismatch, 
+            "#{attr_name} was supposed to be a #{self.class.serialized_attributes[attr_name]}, but was a #{unserialized_object.class.to_s}"
         end
       end
 
