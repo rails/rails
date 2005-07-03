@@ -258,8 +258,6 @@ module ActiveRecord
     class AbstractAdapter
       @@row_even = true
 
-      include Benchmark
-
       def initialize(connection, logger = nil) # :nodoc:
         @connection, @logger = connection, logger
         @runtime = 0
@@ -397,9 +395,9 @@ module ActiveRecord
             if block_given?
               if @logger and @logger.level <= Logger::INFO
                 result = nil
-                bm = measure { result = yield }
-                @runtime += bm.real
-                log_info(sql, name, bm.real)
+                seconds = Benchmark.realtime { result = yield }
+                @runtime += seconds
+                log_info(sql, name, seconds)
                 result
               else
                 yield
