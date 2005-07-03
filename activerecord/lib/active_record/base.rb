@@ -1207,8 +1207,11 @@ module ActiveRecord #:nodoc:
       def read_attribute(attr_name)
         if @attributes.keys.include? attr_name
           if column = column_for_attribute(attr_name)
-            unserializable_attribute?(attr_name, column) ?
-              unserialize_attribute(attr_name) : column.type_cast(@attributes[attr_name])
+            if unserializable_attribute?(attr_name, column)
+              unserialize_attribute(attr_name)
+            else
+              column.type_cast(@attributes[attr_name])
+            end
           else
             @attributes[attr_name]
           end
@@ -1223,7 +1226,9 @@ module ActiveRecord #:nodoc:
 
       # Returns true if the attribute is of a text column and marked for serialization.
       def unserializable_attribute?(attr_name, column)
-        @attributes[attr_name] && [:text, :string].include?(column.send(:type)) && @attributes[attr_name].is_a?(String) && self.class.serialized_attributes[attr_name]
+        if value = @attributes[attr_name]
+          [:text, :string].include?(column.send(:type)) && value.is_a?(String) && self.class.serialized_attributes[attr_name]
+        end
       end
 
       # Returns the unserialized object of the attribute.
@@ -1301,7 +1306,7 @@ module ActiveRecord #:nodoc:
 
       # Quote strings appropriately for SQL statements.
       def quote(value, column = nil)
-        connection.quote(value, column)
+        self.class.connection.quote(value, column)
       end
 
       # Interpolate custom sql string in instance context.
