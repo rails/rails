@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Base#write_attribute to work with both symbols and strings #1190 [Paul Legato]
+
 * Fixed that has_and_belongs_to_many didn't respect single table inheritance types #1081 [Florian Weber]
 
 * Speed up ActiveRecord#method_missing for the common case (read_attribute).

@@ -1241,7 +1241,7 @@ module ActiveRecord #:nodoc:
       # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+. Empty strings for fixnum and float
       # columns are turned into nil.
       def write_attribute(attr_name, value)
-        @attributes[attr_name] = empty_string_for_number_column?(attr_name, value) ? nil : value
+        @attributes[attr_name.to_s] = empty_string_for_number_column?(attr_name.to_s, value) ? nil : value
       end
 
       def empty_string_for_number_column?(attr_name, value)

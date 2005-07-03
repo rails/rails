@@ -170,6 +170,15 @@ class BasicsTest < Test::Unit::TestCase
     topicReloaded.send :write_attribute, 'does_not_exist', 'test'
     assert_nothing_raised { topicReloaded.save }
   end
+  
+  def test_write_attribute
+    topic = Topic.new
+    topic.send(:write_attribute, :title, "Still another topic")
+    assert_equal "Still another topic", topic.title
+
+    topic.send(:write_attribute, "title", "Still another topic: part 2")
+    assert_equal "Still another topic: part 2", topic.title
+  end
 
   def test_preserving_date_objects
     # SQL Server doesn't have a separate column type just for dates, so all are returned as time
