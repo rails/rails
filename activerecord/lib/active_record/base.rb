@@ -962,11 +962,10 @@ module ActiveRecord #:nodoc:
       # be made (since they can't be persisted).
       def destroy
         unless new_record?
-          connection.delete(
-            "DELETE
-            "WHERE #{self.class.primary_key} = #{quote(id)}",
-            "#{self.class.name} Destroy"
-          )
+          connection.delete <<-end_sql, "#{self.class.name} Destroy"
+            DELETE FROM #{self.class.table_name}
+            WHERE #{self.class.primary_key} = #{quoted_id}
+          end_sql
         end
 
         freeze
