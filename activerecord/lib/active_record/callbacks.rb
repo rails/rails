@@ -213,32 +213,29 @@ module ActiveRecord
     module ClassMethods #:nodoc:
       def instantiate_with_callbacks(record)
         object = instantiate_without_callbacks(record)
-        
-        if object.send(:respond_to_without_attributes?, :after_find)
+
+        if object.respond_to_without_attributes?(:after_find)
           object.send(:callback, :after_find)
-        else
-          object.send(:invoke_and_notify, :after_find)
         end
 
-        if object.send(:respond_to_without_attributes?, :after_initialize)
+        if object.respond_to_without_attributes?(:after_initialize)
           object.send(:callback, :after_initialize)
-        else
-          object.send(:invoke_and_notify, :after_initialize)
         end
-
+        
         object
       end
     end
 
     # Is called when the object was instantiated by one of the finders, like Base.find.
-    # def after_find() end
+    #def after_find() end
 
     # Is called after the object has been instantiated by a call to Base.new.
-    # def after_initialize() end
+    #def after_initialize() end
+
     def initialize_with_callbacks(attributes = nil) #:nodoc:
       initialize_without_callbacks(attributes)
       result = yield self if block_given?
-      respond_to_without_attributes?(:after_initialize) ? callback(:after_initialize) : invoke_and_notify(:after_initialize)
+      callback(:after_initialize) if respond_to_without_attributes?(:after_initialize)
       result
     end
 
