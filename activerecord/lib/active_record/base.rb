@@ -1384,18 +1384,20 @@ module ActiveRecord #:nodoc:
       end
 
       def quoted_column_names(attributes = attributes_with_quotes)
-        attributes.keys.collect { |column_name| connection.quote_column_name(column_name) }
-      end
-
-      def quote_columns(column_quoter, hash)
-        hash.inject({}) do |list, pair|
-          list[column_quoter.quote_column_name(pair.first)] = pair.last
-          list
+        attributes.keys.collect do |column_name|
+          self.class.connection.quote_column_name(column_name)
         end
       end
 
-      def quoted_comma_pair_list(column_quoter, hash)
-        comma_pair_list(quote_columns(column_quoter, hash))
+      def quote_columns(quoter, hash)
+        hash.inject({}) do |quoted, (name, value)|
+          quoted[quoter.quote_column_name(name)] = value
+          quoted
+        end
+      end
+
+      def quoted_comma_pair_list(quoter, hash)
+        comma_pair_list(quote_columns(quoter, hash))
       end
 
       def object_from_yaml(string)
