@@ -33,6 +33,9 @@ module ActionView
   # This will render "advertiser/_ad.rhtml" and pass the local variable +ad+ to the template for display. An iteration counter
   # will automatically be made available to the template with a name of the form +partial_name_counter+. In the case of the 
   # example above, the template would be fed +ad_counter+.
+  #
+  # NOTE: Due to backwards compatibility concerns, the collection can't be one of hashes. Normally you'd also just keep domain objects,
+  # like Active Records, in there.
   # 
   # == Rendering shared partials
   #
