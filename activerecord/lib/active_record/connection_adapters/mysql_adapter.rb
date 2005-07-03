@@ -174,11 +174,11 @@ module ActiveRecord
       end
 
       def add_limit_offset!(sql, options)
-        unless options[:limit].blank?
-          unless options[:offset].blank?
-            sql << " LIMIT #{options[:offset]}, #{options[:limit]}"
-          else
+        if options[:limit]
+          if options[:offset].blank?
             sql << " LIMIT #{options[:limit]}"
+          else
+            sql << " LIMIT #{options[:offset]}, #{options[:limit]}"
           end
         end
       end
@@ -206,9 +206,9 @@ module ActiveRecord
           @connection.query_with_result = true
           result = execute(sql, name)
           rows = []
-          #all_fields_initialized = result.fetch_fields.inject({}) { |all_fields, f| all_fields[f.name] = nil; all_fields }
-          #result.each_hash { |row| rows << all_fields_initialized.dup.update(row) }
-          result.each_hash { |row| rows << row }
+          all_fields_initialized = result.fetch_fields.inject({}) { |all_fields, f| all_fields[f.name] = nil; all_fields }
+          result.each_hash { |row| rows << all_fields_initialized.merge(row) }
+          #result.each_hash { |row| rows << row }
           result.free
           rows
         end
