@@ -32,14 +32,15 @@ module ActiveRecord
         previous_value    = self.lock_version
         self.lock_version = previous_value + 1
         
-        affected_rows = connection.update(
-          "UPDATE #{self.class.table_name} "+
-          "SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))} " +
-          "WHERE #{self.class.primary_key} = #{quote(id)} AND lock_version = #{quote(previous_value)}",
-          "#{self.class.name} Update with optimistic locking"
-        )
-        
-        raise(ActiveRecord::StaleObjectError, "Attempted to update a stale object") unless affected_rows == 1
+        affected_rows = connection.update(<<-end_sql, "#{self.class.name} Update with optimistic locking")
+          UPDATE #{self.class.table_name}
+          SET #{quoted_comma_pair_list(attributes_with_quotes(false))}
+          WHERE #{self.class.primary_key} = #{quote(id)} AND lock_version = #{quote(previous_value)}
+        end_sql
+
+        unless affected_rows == 1
+          raise ActiveRecord::StaleObjectError, "Attempted to update a stale object"
+        end
       else
         update_without_lock
       end
