@@ -147,7 +147,8 @@ CREATE TABLE 'tasks' (
 
 CREATE TABLE 'categories' (
   'id' INTEGER NOT NULL PRIMARY KEY,
-  'name' VARCHAR(255) NOT NULL
+  'name' VARCHAR(255) NOT NULL,
+  'type' VARCHAR(255) DEFAULT NULL
 );
 
 CREATE TABLE 'categories_posts' (

@@ -3,3 +3,5 @@ class Comment < ActiveRecord::Base
 end
 
 class SpecialComment < Comment; end;
+
+class VerySpecialComment < Comment; end;

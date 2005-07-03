@@ -177,7 +177,8 @@ CREATE TABLE tasks (
 
 CREATE TABLE categories (
   id serial,
-  name varchar(255)
+  name varchar(255),
+  type varchar(255)
 );
 
 CREATE TABLE categories_posts (

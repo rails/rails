@@ -198,7 +198,8 @@ create table tasks (
 
 create table categories (
   id integer not null primary key,
-  name varchar(255) default null
+  name varchar(255) default null,
+  type varchar(255) default null
 );
 
 create table categories_posts (

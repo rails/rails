@@ -793,9 +793,19 @@ module ActiveRecord
           sql << reflections.collect { |reflection| association_join(reflection) }.to_s
           sql << "#{options[:joins]} " if options[:joins]
           add_conditions!(sql, options[:conditions])
+          add_sti_conditions!(sql, reflections)
           sql << "ORDER BY #{options[:order]} " if options[:order]
           
           return sanitize_sql(sql)
+        end
+
+        def add_sti_conditions!(sql, reflections)
+          sti_sql = ""
+          reflections.each do |reflection|
+            sti_sql << " AND #{reflection.klass.send(:type_condition)}" unless reflection.klass.descends_from_active_record?
+          end
+          sti_sql.sub!(/AND/, "WHERE") unless sql =~ /where/i
+          sql << sti_sql
         end
 
         def column_aliases(schema_abbreviations)

@@ -21,9 +21,12 @@ class EagerAssociationTest < Test::Unit::TestCase
 
   def test_with_ordering
     posts = Post.find(:all, :include => :comments, :order => "posts.id DESC")
-    assert_equal posts(:authorless), posts[0]
-    assert_equal posts(:thinking), posts[1]
-    assert_equal posts(:welcome), posts[2]
+    assert_equal posts(:sti_habtm), posts[0]
+    assert_equal posts(:sti_post_and_comments), posts[1]
+    assert_equal posts(:sti_comments), posts[2]
+    assert_equal posts(:authorless), posts[3]
+    assert_equal posts(:thinking), posts[4]
+    assert_equal posts(:welcome), posts[5]
   end
   
   def test_loading_with_multiple_associations
@@ -46,7 +49,7 @@ class EagerAssociationTest < Test::Unit::TestCase
     comments = Comment.find(:all, :include => :post)
     titles = comments.map { |c| c.post.title }
     assert titles.include?(posts(:welcome).title)
-    assert titles.include?(posts(:thinking).title)
+    assert titles.include?(posts(:sti_post_and_comments).title)
   end
 
   def test_eager_association_loading_with_habtm
@@ -61,6 +64,26 @@ class EagerAssociationTest < Test::Unit::TestCase
   def test_eager_with_inheritance
     posts = SpecialPost.find(:all, :include => [ :comments ])
   end  
+
+  def test_eager_has_one_with_association_inheritance
+    post = Post.find(4, :include => [ :very_special_comment ])
+    assert_equal "VerySpecialComment", post.very_special_comment.class.to_s
+  end  
+  
+  def test_eager_has_many_with_association_inheritance
+    post = Post.find(4, :include => [ :special_comments ])
+    post.special_comments.each do |special_comment|
+      assert_equal "SpecialComment", special_comment.class.to_s
+    end
+  end  
+  
+  def test_eager_habtm_with_association_inheritance
+    post = Post.find(6, :include => [ :special_categories ])
+    assert_equal 1, post.special_categories.size
+    post.special_categories.each do |special_category|
+      assert_equal "SpecialCategory", special_category.class.to_s
+    end
+  end
 
   def test_eager_with_has_one_dependent_does_not_destroy_dependent
     assert_not_nil companies(:first_firm).account
