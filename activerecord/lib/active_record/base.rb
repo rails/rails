@@ -1079,8 +1079,8 @@ module ActiveRecord #:nodoc:
       # Returns true if the specified +attribute+ has been set by the user or by a database load and is neither
       # nil nor empty? (the latter only applies to objects that responds to empty?, most notably Strings).
       def attribute_present?(attribute)
-        is_empty = read_attribute(attribute).respond_to?("empty?") ? read_attribute(attribute).empty? : false
-        @attributes.include?(attribute) && !@attributes[attribute].nil? && !is_empty
+        value = read_attribute(attribute)
+        !value.blank? or value == 0
       end
 
       # Returns an array of names for the attributes available on this object sorted alphabetically.
