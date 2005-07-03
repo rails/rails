@@ -573,6 +573,9 @@ class RouteSetTests < Test::Unit::TestCase
     
     assert_equal ['/admin/user/show', {}], rs.generate({:action => 'show'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
     assert_equal ['/admin/user/list/10', {}], rs.generate({}, {:controller => 'admin/user', :action => 'list', :id => '10'})
+
+    assert_equal ['/admin/stuff', {}], rs.generate({:controller => 'stuff'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
+    assert_equal ['/stuff', {}], rs.generate({:controller => '/stuff'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
   end
 
   def test_ignores_leading_slash
