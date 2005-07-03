@@ -93,7 +93,7 @@ module Test #:nodoc:
         msg = build_message(message, "expecting <?> but rendering with <?>", expected, rendered)
         assert_block(msg) do
           if expected.nil?
-            @response.rendered_with_file?
+            !@response.rendered_with_file?
           else
             expected == rendered
           end

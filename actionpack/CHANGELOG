@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed assert_template nil will be true when no template was rendered #1565 [maceywj@telus.net]
+
 * Added :prompt option to FormOptions#select (and the users of it, like FormOptions#select_country etc) to create "Please select" style descriptors #1181 [Michael Schuerig]
 
 * Added JavascriptHelper#update_element_function, which returns a Javascript function (or expression) that'll update a DOM element according to the options passed #933 [mortonda@dgrmm.net]. Examples:
