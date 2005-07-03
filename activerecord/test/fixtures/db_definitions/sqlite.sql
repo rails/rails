@@ -40,7 +40,8 @@ CREATE TABLE 'developers' (
 
 CREATE TABLE 'projects' (
   'id' INTEGER PRIMARY KEY NOT NULL,
-  'name' TEXT DEFAULT NULL
+  'name' TEXT DEFAULT NULL,
+  'type' VARCHAR(255) DEFAULT NULL
 );
 
 CREATE TABLE 'developers_projects' (

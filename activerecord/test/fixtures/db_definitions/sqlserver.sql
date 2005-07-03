@@ -39,7 +39,8 @@ CREATE TABLE developers (
 
 CREATE TABLE projects (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
-  name varchar(100) default NULL
+  name varchar(100) default NULL,
+  type varchar(255) default NULL
 );
 
 CREATE TABLE developers_projects (

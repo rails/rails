@@ -45,6 +45,7 @@ CREATE TABLE `developers` (
 CREATE TABLE `projects` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(100) default NULL,
+  `type` VARCHAR(255) NOT NULL,
   PRIMARY KEY  (`id`)
 ) TYPE=InnoDB;
 

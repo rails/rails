@@ -37,6 +37,7 @@ SELECT setval('developers_id_seq', 100);
 CREATE TABLE projects (
     id serial,
     name character varying(100),
+    type varchar(255),
     PRIMARY KEY (id)
 );
 SELECT setval('projects_id_seq', 100);

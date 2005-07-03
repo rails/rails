@@ -3,3 +3,6 @@ class Subscriber < ActiveRecord::Base
     "nick"
   end
 end
+
+class SpecialSubscriber < Subscriber
+end

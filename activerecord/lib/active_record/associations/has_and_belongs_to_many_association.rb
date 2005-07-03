@@ -158,6 +158,15 @@ module ActiveRecord
               "j.#{@association_class_primary_key_name} = #{@owner.quoted_id} "
             
             @finder_sql << " AND #{interpolate_sql(@options[:conditions])}" if @options[:conditions]
+
+            unless @association_class.descends_from_active_record?
+              type_condition = @association_class.send(:subclasses).inject("t.#{@association_class.inheritance_column} = '#{@association_class.name.demodulize}' ") do |condition, subclass| 
+                condition << "OR t.#{@association_class.inheritance_column} = '#{subclass.name.demodulize}' "
+              end
+
+              @finder_sql << " AND (#{type_condition})"
+            end
+	
             @finder_sql << " ORDER BY #{@order}" if @order
           end
         end

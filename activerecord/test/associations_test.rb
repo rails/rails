@@ -1105,4 +1105,18 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     new_developer.save
     assert_equal 2, new_developer.projects.length
   end
+
+  def test_consider_type
+    developer = Developer.find(:first)
+    special_project = SpecialProject.create("name" => "Special Project")
+  
+    other_project = developer.projects.first
+    developer.special_projects << special_project
+    developer.reload
+  
+    assert developer.projects.include?(special_project)
+    assert developer.special_projects.include?(special_project)
+    assert !developer.special_projects.include?(other_project)
+  end
+
 end

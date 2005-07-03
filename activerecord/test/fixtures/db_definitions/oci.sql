@@ -63,6 +63,7 @@ create table developers (
 create table projects (
     id integer not null,
     name varchar(100) default null,
+    type varchar(255) default null,
     primary key (id)
 );
 

@@ -1,9 +1,10 @@
 require 'abstract_unit'
 require 'fixtures/company'
 require 'fixtures/project'
+require 'fixtures/subscriber'
 
 class InheritanceTest < Test::Unit::TestCase
-  fixtures :companies, :projects
+  fixtures :companies, :projects, :subscribers
 
   def test_a_bad_type_column
     #SQLServer need to turn Identity Insert On before manually inserting into the Identity column
@@ -125,9 +126,8 @@ class InheritanceTest < Test::Unit::TestCase
   end
 
   def test_inheritance_without_mapping
-    assert_kind_of SpecialProject, SpecialProject.find(1)
-    assert_nothing_raised { SpecialProject.create("name" => "And breaaaaathe!") }
-    
+    assert_kind_of SpecialSubscriber, SpecialSubscriber.find("webster132")
+    assert_nothing_raised { SpecialSubscriber.create("name" => "And breaaaaathe!", "id" => "smartass") }
   end
 
   private

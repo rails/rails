@@ -114,7 +114,7 @@ class BasicsTest < Test::Unit::TestCase
   end
  
   def test_attributes_hash
-    assert_equal @loaded_fixtures['projects']['active_record'].to_hash, Project.find(:first).attributes
+    assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.find(:first).attributes
   end
 
   def test_create
