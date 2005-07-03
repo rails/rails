@@ -55,6 +55,10 @@ class FinderTest < Test::Unit::TestCase
 
       assert_equal(2, entrants.size)
       assert_equal(entrants(:second).name, entrants.first.name)
+
+      entrants = Entrant.find(:all, :order => "id ASC", :limit => 2, :offset => 2)
+      assert_equal(1, entrants.size)
+      assert_equal(entrants(:third).name, entrants.first.name)
     end
   end
 
@@ -276,7 +280,7 @@ class FinderTest < Test::Unit::TestCase
     no_developers = Developer.find :all, :order => 'id ASC', :limit => 0
     assert_equal 0, no_developers.length
   end
- 
+
   def test_find_all_with_limit_and_offset
     first_three_developers = Developer.find :all, :order => 'id ASC', :limit => 3, :offset => 0
     second_three_developers = Developer.find :all, :order => 'id ASC', :limit => 3, :offset => 3

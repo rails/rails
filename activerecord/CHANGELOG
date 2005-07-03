@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Base.content_columns call for SQL Server adapter #1450 [DeLynn Berry]
+
 * Fixed Base#write_attribute to work with both symbols and strings #1190 [Paul Legato]
 
 * Fixed that has_and_belongs_to_many didn't respect single table inheritance types #1081 [Florian Weber]

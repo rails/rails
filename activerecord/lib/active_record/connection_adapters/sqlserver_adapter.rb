@@ -195,7 +195,7 @@ module ActiveRecord
       end
 
       def columns(table_name, name = nil)
-        sql = "SELECT COLUMN_NAME as ColName, COLUMN_DEFAULT as DefaultValue, DATA_TYPE as ColType, COL_LENGTH('#{table_name}', COLUMN_NAME) as Length, COLUMNPROPERTY(OBJECT_ID('#{table_name}'), COLUMN_NAME, 'IsIdentity') as IsIdentity, NUMERIC_SCALE as Scale FROM INFORMATION_SCHEMA.columns WHERE TABLE_NAME = '#{table_name}'"
+        sql = "SELECT COLUMN_NAME as ColName, COLUMN_DEFAULT as DefaultValue, DATA_TYPE as ColType, COL_LENGTH('#{table_name}', COLUMN_NAME) as Length, COLUMNPROPERTY(OBJECT_ID('#{table_name}'), COLUMN_NAME, 'IsIdentity') as IsIdentity, NUMERIC_SCALE as Scale FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '#{table_name}'"
         # Comment out if you want to have the Columns select statment logged.
         # Personnally, I think it adds unneccessary bloat to the log. 
         # If you do comment it out, make sure to un-comment the "result" line that follows
@@ -302,6 +302,10 @@ module ActiveRecord
       def add_limit_offset!(sql, options)
         if options.has_key?(:limit) and options.has_key?(:offset) and !options[:limit].nil? and !options[:offset].nil?
           options[:order] ||= "id ASC"
+          total_rows = @connection.select_all("SELECT count(*) as TotalRows from #{get_table_name(sql)}")[0][:TotalRows].to_i
+          if (options[:limit] + options[:offset]) > total_rows
+            options[:limit] = (total_rows - options[:offset] > 0) ? (total_rows - options[:offset]) : 1
+          end
           sql.gsub!(/SELECT/i, "SELECT * FROM ( SELECT TOP #{options[:limit]} * FROM ( SELECT TOP #{options[:limit] + options[:offset]}")<<" ) AS tmp1 ORDER BY #{change_order_direction(options[:order])} ) AS tmp2 ORDER BY #{options[:order]}"
         else
           sql.gsub!(/SELECT/i, "SELECT TOP #{options[:limit]}") unless options[:limit].nil?
