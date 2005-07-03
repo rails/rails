@@ -1,5 +1,14 @@
 *SVN*
 
+* Added JavascriptHelper#update_element_function, which returns a Javascript function (or expression) that'll update a DOM element according to the options passed #933 [mortonda@dgrmm.net]. Examples:
+
+    <%= update_element_function("products", :action => :insert, :position => :bottom, :content => "<p>New product!</p>") %>
+
+    <% update_element_function("products", :action => :replace, :binding => binding) do %>
+      <p>Product 1</p>
+      <p>Product 2</p>
+    <% end %>
+
 * Added :field_name option to DateHelper#select_(year|month|day) to deviate from the year/month/day defaults #1266 [Marcel Molina]
 
 * Added JavascriptHelper#draggable_element and JavascriptHelper#drop_receiving_element to facilitate easy dragging and dropping through the script.aculo.us libraries #1578 [Thomas Fuchs]
