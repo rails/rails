@@ -34,7 +34,7 @@ module ActiveRecord
         
         affected_rows = connection.update(
           "UPDATE #{self.class.table_name} "+
-          "SET #{quoted_comma_pair_list(attributes_with_quotes(false))} " +
+          "SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))} " +
           "WHERE #{self.class.primary_key} = #{quote(id)} AND lock_version = #{quote(previous_value)}",
           "#{self.class.name} Update with optimistic locking"
         )
