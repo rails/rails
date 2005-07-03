@@ -120,10 +120,10 @@ module ActiveRecord
       rescue ActiveRecord::StatementInvalid => exception
         if LOST_CONNECTION_ERROR_MESSAGES.any? { |msg| exception.message.split(":").first =~ /^#{msg}/ }
           @connection.real_connect(*@connection_options)
-          @logger.info("Retrying invalid statement with reopened connection") if @logger
           unless @logger
             @connection.query(sql)
           else
+            @logger.info "Retrying invalid statement with reopened connection"
             log(sql, name) { @connection.query(sql) }
           end
         else
