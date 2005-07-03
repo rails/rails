@@ -41,17 +41,23 @@ class JavaScriptHelperTest < Test::Unit::TestCase
   end
   
   def test_periodically_call_remote
-    assert_equal %(<script>new PeriodicalExecuter(function() {new Ajax.Updater({success:'schremser_bier'}, 'http://www.example.com/mehr_bier', {evalScripts:true, asynchronous:true})}, 10)</script>),
+    assert_equal %(<script>new PeriodicalExecuter(function() {new Ajax.Updater('schremser_bier', 'http://www.example.com/mehr_bier', {evalScripts:true, asynchronous:true})}, 10)</script>),
       periodically_call_remote(:update => "schremser_bier", :url => { :action => "mehr_bier" })
   end
   
   def test_form_remote_tag
-    assert_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater({success:'glass_of_beer'}, 'http://www.example.com/fast', {parameters:Form.serialize(this), evalScripts:true, asynchronous:true}); return false;\">),
+    assert_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {parameters:Form.serialize(this), evalScripts:true, asynchronous:true}); return false;\">),
       form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  })
+    assert_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater({success:'glass_of_beer'}, 'http://www.example.com/fast', {parameters:Form.serialize(this), evalScripts:true, asynchronous:true}); return false;\">),
+      form_remote_tag(:update => { :success => "glass_of_beer" }, :url => { :action => :fast  })
+    assert_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater({failure:'glass_of_water'}, 'http://www.example.com/fast', {parameters:Form.serialize(this), evalScripts:true, asynchronous:true}); return false;\">),
+      form_remote_tag(:update => { :failure => "glass_of_water" }, :url => { :action => :fast  })
+    assert_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater({success:'glass_of_beer',failure:'glass_of_water'}, 'http://www.example.com/fast', {parameters:Form.serialize(this), evalScripts:true, asynchronous:true}); return false;\">),
+      form_remote_tag(:update => { :success => 'glass_of_beer', :failure => "glass_of_water" }, :url => { :action => :fast  })
   end
   
   def test_submit_to_remote
-    assert_equal %(<input name=\"More beer!\" onclick=\"new Ajax.Updater({success:'empty_bottle'}, 'http://www.example.com/', {parameters:Form.serialize(this.form), evalScripts:true, asynchronous:true}); return false;\" type=\"button\" value=\"1000000\" />),
+    assert_equal %(<input name=\"More beer!\" onclick=\"new Ajax.Updater('empty_bottle', 'http://www.example.com/', {parameters:Form.serialize(this.form), evalScripts:true, asynchronous:true}); return false;\" type=\"button\" value=\"1000000\" />),
       submit_to_remote("More beer!", 1_000_000, :update => "empty_bottle")
   end
   
@@ -110,7 +116,7 @@ class JavaScriptHelperTest < Test::Unit::TestCase
       drop_receiving_element('droptarget1')
     assert_equal %(<script type=\"text/javascript\">Droppables.add('droptarget1', {onDrop:function(element){new Ajax.Request('http://www.example.com/', {parameters:'id=' + encodeURIComponent(element.id), evalScripts:true, asynchronous:true})}, accept:'products'})</script>),
       drop_receiving_element('droptarget1', :accept => 'products')
-    assert_equal %(<script type=\"text/javascript\">Droppables.add('droptarget1', {onDrop:function(element){new Ajax.Updater({success:'infobox'}, 'http://www.example.com/', {parameters:'id=' + encodeURIComponent(element.id), evalScripts:true, asynchronous:true})}, accept:'products'})</script>),
+    assert_equal %(<script type=\"text/javascript\">Droppables.add('droptarget1', {onDrop:function(element){new Ajax.Updater('infobox', 'http://www.example.com/', {parameters:'id=' + encodeURIComponent(element.id), evalScripts:true, asynchronous:true})}, accept:'products'})</script>),
       drop_receiving_element('droptarget1', :accept => 'products', :update => 'infobox')
   end
   

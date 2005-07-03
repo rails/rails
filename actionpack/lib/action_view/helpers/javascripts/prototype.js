@@ -265,7 +265,8 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
   initialize: function(container, url, options) {
     this.containers = {
       success: container.success ? $(container.success) : $(container),
-      failure: container.failure ? $(container.failure) : $(container)
+      failure: container.failure ? $(container.failure) : 
+        (container.success ? null : $(container))
     }
     
     this.setOptions(options);
@@ -836,7 +837,7 @@ Object.extend(Event, {
   KEY_DELETE:   46,
 
   element: function(event) {
-    return event.srcElement || event.currentTarget;
+    return event.target || event.srcElement;
   },
 
   isLeftClick: function(event) {

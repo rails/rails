@@ -164,17 +164,19 @@ module ActionView
       def remote_function(options) #:nodoc: for now
         javascript_options = options_for_ajax(options)
 
-        update = []
+        update = ''
         if options[:update] and options[:update].is_a?Hash
+          update  = []
           update << "success:'#{options[:update][:success]}'" if options[:update][:success]
           update << "failure:'#{options[:update][:failure]}'" if options[:update][:failure]
+          update  = '{' + update.join(',') + '}'
         elsif options[:update]
-          update << "success:'#{options[:update]}'" 
+          update << "'#{options[:update]}'"
         end
 
         function = update.empty? ? 
           "new Ajax.Request(" :
-          "new Ajax.Updater({#{update.join(',')}}, "
+          "new Ajax.Updater(#{update}, "
 
         function << "'#{url_for(options[:url])}'"
         function << ", #{javascript_options})"
