@@ -79,14 +79,16 @@ begin
           @connection.set_auto_commit_on
         end
 
-        def quote_column_name(name) name; end
+        def quote_column_name(column_name)
+          column_name
+        end
 
         def adapter_name()
           'DB2'
         end
 
-        def quote_string(s)
-          s.gsub(/'/, "''") # ' (for ruby-mode)
+        def quote_string(string)
+          string.gsub(/'/, "''") # ' (for ruby-mode)
         end
 
         def add_limit_with_offset!(sql, limit, offset)

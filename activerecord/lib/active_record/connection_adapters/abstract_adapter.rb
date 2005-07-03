@@ -16,7 +16,7 @@ def require_library_or_gem(library_name)
       raise cannot_require
     end
     # 2. Rubygems is installed and loaded. Try to load the library again
-    begin 
+    begin
       require library_name
     rescue LoadError => gem_not_installed
       raise cannot_require
@@ -32,7 +32,7 @@ module ActiveRecord
         @config, @adapter_method = config, adapter_method
       end
     end
-    
+
     # The class -> [adapter_method, config] map
     @@defined_connections = {}
 
@@ -92,32 +92,32 @@ module ActiveRecord
     # for (not necessarily the current class).
     def self.retrieve_connection #:nodoc:
       klass = self
-      until klass == ActiveRecord::Base.superclass
-        Thread.current['active_connections'] ||= {}
-        if Thread.current['active_connections'][klass]
-          return Thread.current['active_connections'][klass]
-        elsif @@defined_connections[klass]
-          klass.connection = @@defined_connections[klass]
+      ar_super = ActiveRecord::Base.superclass
+      until klass == ar_super
+        if conn = (Thread.current['active_connections'] ||= {})[klass]
+          return conn
+        elsif conn = @@defined_connections[klass]
+          klass.connection = conn
           return self.connection
         end
         klass = klass.superclass
       end
       raise ConnectionNotEstablished
     end
-    
+
     # Returns true if a connection that's accessible to this class have already been opened.
     def self.connected?
       klass = self
       until klass == ActiveRecord::Base.superclass
         if Thread.current['active_connections'].is_a?(Hash) && Thread.current['active_connections'][klass]
-          return true 
+          return true
         else
           klass = klass.superclass
         end
       end
       return false
     end
-    
+
     # Remove the connection for this class. This will close the active
     # connection and the defined connection (if they exist). The result
     # can be used as argument for establish_connection, for easy
@@ -129,7 +129,7 @@ module ActiveRecord
       Thread.current['active_connections'][klass] = nil
       conn.config if conn
     end
-    
+
     # Set the connection for the class.
     def self.connection=(spec)
       raise ConnectionNotEstablished unless spec
@@ -147,17 +147,15 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     class Column # :nodoc:
       attr_reader :name, :default, :type, :limit
+      attr_accessor :primary
       # The name should contain the name of the column, such as "name" in "name varchar(250)"
       # The default should contain the type-casted default of the column, such as 1 in "count int(11) DEFAULT 1"
       # The type parameter should either contain :integer, :float, :datetime, :date, :text, or :string
       # The sql_type is just used for extracting the limit, such as 10 in "varchar(10)"
       def initialize(name, default, sql_type = nil)
-        @name, @default, @type = name, default, simplified_type(sql_type)
+        @name, @default, @type = name, type_cast(default), simplified_type(sql_type)
         @limit = extract_limit(sql_type) unless sql_type.nil?
-      end
-
-      def default
-        type_cast(@default)
+        @primary = nil
       end
 
       def klass
@@ -173,7 +171,7 @@ module ActiveRecord
           when :boolean       then Object
         end
       end
-      
+
       def type_cast(value)
         if value.nil? then return nil end
         case type
@@ -190,18 +188,18 @@ module ActiveRecord
           else value
         end
       end
-      
+
       def human_name
         Base.human_attribute_name(@name)
       end
-      
+
       def string_to_binary(value)
         value
-      end     
+      end
 
       def binary_to_string(value)
         value
-      end     
+      end
 
       private
         def string_to_date(string)
@@ -210,7 +208,7 @@ module ActiveRecord
           # treat 0000-00-00 as nil
           Date.new(date_array[0], date_array[1], date_array[2]) rescue nil
         end
-        
+
         def string_to_time(string)
           return string unless string.is_a?(String)
           time_array = ParseDate.parsedate(string.to_s).compact
@@ -224,12 +222,12 @@ module ActiveRecord
           # pad the resulting array with dummy date information
           time_array[0] = 2000; time_array[1] = 1; time_array[2] = 1;
           Time.send(Base.default_timezone, *time_array) rescue nil
-        end 
-        
+        end
+
         def extract_limit(sql_type)
           $1.to_i if sql_type =~ /\((.*)\)/
         end
-        
+
         def simplified_type(field_type)
           case field_type
             when /int/i
@@ -271,7 +269,7 @@ module ActiveRecord
 
       # Returns an array of record hashes with the column names as a keys and fields as values.
       def select_all(sql, name = nil) end
-      
+
       # Returns a record hash with the column names as a keys and fields as values.
       def select_one(sql, name = nil) end
 
@@ -310,8 +308,8 @@ module ActiveRecord
 
       # Begins the transaction (and turns off auto-committing).
       def begin_db_transaction()    end
-      
-      # Commits the transaction (and turns on auto-committing). 
+
+      # Commits the transaction (and turns on auto-committing).
       def commit_db_transaction()   end
 
       # Rolls back the transaction (and turns on auto-committing). Must be done if the transaction block
@@ -320,7 +318,7 @@ module ActiveRecord
 
       def quote(value, column = nil)
         case value
-          when String                
+          when String
             if column && column.type == :binary
               "'#{quote_string(column.string_to_binary(value))}'" # ' (for ruby-mode)
             else
@@ -330,7 +328,7 @@ module ActiveRecord
           when TrueClass             then (column && column.type == :boolean ? "'t'" : "1")
           when FalseClass            then (column && column.type == :boolean ? "'f'" : "0")
           when Float, Fixnum, Bignum then value.to_s
-          when Date                  then "'#{value.to_s}'" 
+          when Date                  then "'#{value.to_s}'"
           when Time, DateTime        then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
           else                            "'#{quote_string(value.to_yaml)}'"
         end
@@ -356,7 +354,7 @@ module ActiveRecord
         return unless options
         add_limit_offset!(sql, options)
       end
-        
+
       def add_limit_offset!(sql, options)
         return if options[:limit].nil?
         sql << " LIMIT #{options[:limit]}"
@@ -399,7 +397,7 @@ module ActiveRecord
         def log(sql, name, connection = nil)
           connection ||= @connection
           begin
-            if @logger.nil? || @logger.level > Logger::INFO
+            if !@logger || @logger.level > Logger::INFO
               yield connection
             elsif block_given?
               result = nil
@@ -418,11 +416,11 @@ module ActiveRecord
         end
 
         def log_info(sql, name, runtime)
-          if @logger.nil? then return end
+          return unless @logger
 
           @logger.info(
             format_log_entry(
-              "#{name.nil? ? "SQL" : name} (#{sprintf("%f", runtime)})", 
+              "#{name.nil? ? "SQL" : name} (#{sprintf("%f", runtime)})",
               sql.gsub(/ +/, " ")
             )
           )
@@ -435,7 +433,7 @@ module ActiveRecord
             else
               @@row_even = true; caller_color = "1;36"; message_color = "4;35"; dump_color = "0;37"
             end
-          
+
             log_entry = "  \e[#{message_color}m#{message}\e[m"
             log_entry << "   \e[#{dump_color}m%s\e[m" % dump if dump.kind_of?(String) && !dump.nil?
             log_entry << "   \e[#{dump_color}m%p\e[m" % dump if !dump.kind_of?(String) && !dump.nil?
@@ -448,7 +446,7 @@ module ActiveRecord
 
     class TableDefinition
       attr_accessor :columns
-      
+
       def initialize
         @columns = []
       end

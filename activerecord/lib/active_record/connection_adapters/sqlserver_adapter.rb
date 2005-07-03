@@ -300,8 +300,8 @@ module ActiveRecord
         end
       end
 
-      def quote_string(s)
-        s.gsub(/\'/, "''")
+      def quote_string(string)
+        string.gsub(/\'/, "''")
       end
 
       def quote_column_name(name)
@@ -363,7 +363,7 @@ module ActiveRecord
         end
 
         def has_identity_column(table_name)
-          return get_identity_column(table_name) != nil
+          !get_identity_column(table_name).nil?
         end
 
         def get_identity_column(table_name)
@@ -377,7 +377,7 @@ module ActiveRecord
         end
 
         def query_contains_identity_column(sql, col)
-          return sql =~ /\[#{col}\]/
+          sql =~ /\[#{col}\]/
         end
 
         def change_order_direction(order)

@@ -108,20 +108,26 @@ module ActiveRecord
  
       def insert(sql, name = nil, pk = nil, id_value = nil)
         execute(sql, name = nil)
-        return id_value || @connection.insert_id
+        id_value || @connection.insert_id
       end
  
-      def execute(sql, name = nil)
-        begin
-          return log(sql, name, @connection) { |connection| connection.query(sql) }
-        rescue ActiveRecord::StatementInvalid => exception
-          if LOST_CONNECTION_ERROR_MESSAGES.any? { |msg| exception.message.split(":").first =~ /^#{msg}/ }
-            @connection.real_connect(*@connection_options)
-            @logger.info("Retrying invalid statement with reopened connection") if @logger
-            return log(sql, name, @connection) { |connection| connection.query(sql) }
+      def execute(sql, name = nil, retries = 2)
+        unless @logger
+          @connection.query(sql)
+        else
+          log(sql, name) { @connection.query(sql) }
+        end
+      rescue ActiveRecord::StatementInvalid => exception
+        if LOST_CONNECTION_ERROR_MESSAGES.any? { |msg| exception.message.split(":").first =~ /^#{msg}/ }
+          @connection.real_connect(*@connection_options)
+          @logger.info("Retrying invalid statement with reopened connection") if @logger
+          unless @logger
+            @connection.query(sql)
           else
-            raise
+            log(sql, name) { @connection.query(sql) }
           end
+        else
+          raise
         end
       end
  
@@ -134,36 +140,30 @@ module ActiveRecord
  
  
       def begin_db_transaction
-        begin
-          execute "BEGIN"
-        rescue Exception
-          # Transactions aren't supported
-        end
+        execute "BEGIN"
+      rescue Exception
+        # Transactions aren't supported
       end
  
       def commit_db_transaction
-        begin
-          execute "COMMIT"
-        rescue Exception
-          # Transactions aren't supported
-        end
+        execute "COMMIT"
+      rescue Exception
+        # Transactions aren't supported
       end
  
       def rollback_db_transaction
-        begin
-          execute "ROLLBACK"
-        rescue Exception
-          # Transactions aren't supported
-        end
+        execute "ROLLBACK"
+      rescue Exception
+        # Transactions aren't supported
       end
 
  
       def quote_column_name(name)
-        return "`#{name}`"
+        "`#{name}`"
       end
  
-      def quote_string(s)
-        Mysql::quote(s)
+      def quote_string(string)
+        Mysql::quote(string)
       end
 
 
@@ -174,12 +174,12 @@ module ActiveRecord
       end
 
       def add_limit_offset!(sql, options)
-        return if options[:limit].nil?
-
-        if options[:offset].blank?
-          sql << " LIMIT #{options[:limit]}"
-        else
-          sql << " LIMIT #{options[:offset]}, #{options[:limit]}"
+        unless options[:limit].blank?
+          unless options[:offset].blank?
+            sql << " LIMIT #{options[:offset]}, #{options[:limit]}"
+          else
+            sql << " LIMIT #{options[:limit]}"
+          end
         end
       end
 
@@ -203,12 +203,13 @@ module ActiveRecord
 
       private
         def select(sql, name = nil)
-          result = nil
           @connection.query_with_result = true
           result = execute(sql, name)
           rows = []
-          all_fields_initialized = result.fetch_fields.inject({}) { |all_fields, f| all_fields[f.name] = nil; all_fields }
-          result.each_hash { |row| rows << all_fields_initialized.dup.update(row) }
+          #all_fields_initialized = result.fetch_fields.inject({}) { |all_fields, f| all_fields[f.name] = nil; all_fields }
+          #result.each_hash { |row| rows << all_fields_initialized.dup.update(row) }
+          result.each_hash { |row| rows << row }
+          result.free
           rows
         end
     end

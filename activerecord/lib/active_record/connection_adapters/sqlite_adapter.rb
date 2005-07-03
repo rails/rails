@@ -159,7 +159,7 @@ module ActiveRecord
       end
 
       def quote_column_name(name)
-        return "'#{name}'"
+        "'#{name}'"
       end
 
       def adapter_name()

@@ -99,8 +99,8 @@ begin
       # * <tt>:password</tt> -- Defaults to nothing
       # * <tt>:host</tt> -- Defaults to localhost
       class OCIAdapter < AbstractAdapter
-        def quote_string(s)
-          s.gsub /'/, "''"
+        def quote_string(string)
+          string.gsub(/'/, "''")
         end
 
         def quote(value, column = nil)
