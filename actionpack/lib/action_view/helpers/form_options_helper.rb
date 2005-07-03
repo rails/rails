@@ -22,6 +22,8 @@ module ActionView
     #     <option>poem</option>
     #   </select>
     #
+    # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
+    #
     # Another common case is a select tag for an <tt>belongs_to</tt>-associated object. For example,
     #
     #   select("post", "person_id", Person.find_all.collect {|p| [ p.name, p.id ] })
@@ -294,37 +296,43 @@ module ActionView
       def to_select_tag(choices, options, html_options)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
-        content_tag("select", add_blank_option(options_for_select(choices, value), options[:include_blank]), html_options)
+        content_tag("select", add_options(options_for_select(choices, value), options, value), html_options)
       end
 
       def to_collection_select_tag(collection, value_method, text_method, options, html_options)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
         content_tag(
-          "select", add_blank_option(options_from_collection_for_select(collection, value_method, text_method, value), options[:include_blank]), html_options
+          "select", add_options(options_from_collection_for_select(collection, value_method, text_method, value), options, value), html_options
         )
       end
 
       def to_country_select_tag(priority_countries, options, html_options)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
-        content_tag("select", add_blank_option(country_options_for_select(value, priority_countries), options[:include_blank]), html_options)
+        content_tag("select", add_options(country_options_for_select(value, priority_countries), options, value), html_options)
       end
 
       def to_time_zone_select_tag(priority_zones, options, html_options)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
         content_tag("select",
-          add_blank_option(
+          add_options(
             time_zone_options_for_select(value, priority_zones, options[:model] || TimeZone),
-            options[:include_blank]
+            options, value
           ), html_options
         )
       end
 
       private
-        def add_blank_option(option_tags, add_blank)
-          add_blank ? "<option value=\"\"></option>\n" + option_tags : option_tags
+        def add_options(option_tags, options, value = nil)
+          option_tags = "<option value=\"\"></option>\n" + option_tags if options[:include_blank]
+
+          if value.blank? && options[:prompt]
+            ("<option value=\"\">#{options[:prompt].kind_of?(String) ? options[:prompt] : 'Please select'}</option>\n") + option_tags
+          else
+            option_tags
+          end
         end
     end
   end

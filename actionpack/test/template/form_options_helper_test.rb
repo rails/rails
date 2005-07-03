@@ -221,6 +221,42 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     )
   end
 
+  def test_select_with_default_prompt
+    @post = Post.new
+    @post.category = ""
+    assert_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), :prompt => true)
+    )
+  end
+
+  def test_select_no_prompt_when_select_has_value
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), :prompt => true)
+    )
+  end
+
+  def test_select_with_given_prompt
+    @post = Post.new
+    @post.category = ""
+    assert_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">The prompt</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), :prompt => 'The prompt')
+    )
+  end
+
+  def test_select_with_prompt_and_blank
+    @post = Post.new
+    @post.category = ""
+    assert_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"\">Please select</option>\n<option value=\"\"></option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest), :prompt => true, :include_blank => true)
+    )
+  end
+
   def test_collection_select
     @posts = [
       Post.new("<Abe> went home", "<Abe>", "To a little house", "shh!"),
