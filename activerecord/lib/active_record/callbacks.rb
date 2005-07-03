@@ -221,7 +221,7 @@ module ActiveRecord
         if object.respond_to_without_attributes?(:after_initialize)
           object.send(:callback, :after_initialize)
         end
-        
+
         object
       end
     end
@@ -344,9 +344,9 @@ module ActiveRecord
           end
           return false if result == false
         end
-        
+
         send(method) if respond_to_without_attributes?(method)
-        
+
         return true
       end
 

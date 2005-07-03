@@ -4,7 +4,7 @@
 
 * Speed up ActiveRecord#method_missing for the common case (read_attribute).
 
-* Only notify observers on after_find and after_initialize if these methods are defined on the model.  [skaes@web.de]
+* Only notify observers on after_find and after_initialize if these methods are defined on the model.  #1235 [skaes@web.de]
 
 * Fixed that single-table inheritance sub-classes couldn't be used to limit the result set with eager loading #1215 [Chris McGrath]
 
