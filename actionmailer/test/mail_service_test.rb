@@ -162,11 +162,19 @@ class TestMailer < ActionMailer::Base
     recipients   recipient
     subject      "nested multipart"
     from         "test@example.com"
-    body         "multipart/mixed"
+    content_type "multipart/mixed"
     part :content_type => "text/plain", :body => "hullo"
     attachment :content_type => "application/octet-stream", :body => "test abcdefghijklmnopqstuvwxyz"
   end
-  
+
+  def headers_with_nonalpha_chars(recipient)
+    recipients   recipient
+    subject      "nonalpha chars"
+    from         "One: Two <test@example.com>"
+    cc           "Three: Four <test@example.com>"
+    bcc          "Five: Six <test@example.com>"
+    body         "testing"
+  end
 
   class <<self
     attr_accessor :received_body
@@ -634,6 +642,16 @@ EOF
     result = TestMailer.create_unnamed_attachment(@recipient).encoded
     assert_match %r{Content-Type: application/octet-stream[^;]}, result
     assert_match %r{Content-Disposition: attachment[^;]}, result
+  end
+
+  def test_headers_with_nonalpha_chars
+    mail = TestMailer.create_headers_with_nonalpha_chars(@recipient)
+    assert !mail.from_addrs.empty?
+    assert !mail.cc_addrs.empty?
+    assert !mail.bcc_addrs.empty?
+    assert_match(/:/, mail.from_addrs.to_s)
+    assert_match(/:/, mail.cc_addrs.to_s)
+    assert_match(/:/, mail.bcc_addrs.to_s)
   end
 end
 
