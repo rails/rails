@@ -4,10 +4,10 @@ if Object.const_defined?(:ActiveRecord) or File.exist?(path_to_ar)
   begin
 
 # These tests exercise CGI::Session::ActiveRecordStore, so you're going to
-# need AR in a sibling directory to AP and have SQLite3 installed.
+# need AR in a sibling directory to AP and have SQLite installed.
 
 unless Object.const_defined?(:ActiveRecord)
-  require "#{File.dirname(__FILE__)}/../../../activerecord/lib/active_record"
+  require File.join(path_to_ar, 'lib', 'active_record')
 end
 
 require File.dirname(__FILE__) + '/../abstract_unit'
