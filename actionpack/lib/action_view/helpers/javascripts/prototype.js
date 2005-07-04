@@ -282,8 +282,8 @@ Ajax.Updater.prototype.extend(Ajax.Request.prototype).extend({
   initialize: function(container, url, options) {
     this.containers = {
       success: container.success ? $(container.success) : $(container),
-      failure: container.failure ? 
-        (container.success ? null : $(container)) : null
+      failure: container.failure ? $(container.failure) :
+        (container.success ? null : $(container))
     }
 
     this.transport = Ajax.getTransport();
