@@ -2,7 +2,102 @@ module ActiveRecord
   class IrreversibleMigration < ActiveRecordError#:nodoc:
   end
   
-  class Migration #:nodoc:
+  # Migrations can manage the evolution of a schema used by several physical databases. It's a solution
+  # to the common problem of adding a field to make a new feature work in your local database, but being unsure of how to
+  # push that change to other developers and to the production server. With migrations, you can describe the transformations
+  # in self-contained classes that can be checked into version control systems and executed against another database that
+  # might be one, two, or five versions behind.
+  #
+  # Example of a simple migration:
+  #
+  #   class AddSsl < ActiveRecord::Migration
+  #     def self.up
+  #       add_column :accounts, :ssl_enabled, :boolean, :default => 1
+  #     end
+  #   
+  #     def self.down
+  #       remove_column :accounts, :ssl_enabled
+  #     end
+  #   end
+  #
+  # This migration will add a boolean flag to the accounts table and remove it again, if you're backing out of the migration.
+  # It shows how all migrations have two class methods +up+ and +down+ that describes the transformations required to implement
+  # or remove the migration. These methods can consist of both the migration specific methods, like add_column and remove_column, 
+  # but may also contain regular Ruby code for generating data needed for the transformations.
+  #
+  # Example of a more complex migration that also needs to initialize data:
+  #
+  #   class AddSystemSettings < ActiveRecord::Migration
+  #     def self.up
+  #       create_table :system_settings do |t|
+  #         t.column :name,     :string
+  #         t.column :label,    :string
+  #         t.column :value,    :text
+  #         t.column :type,     :string
+  #         t.column :position, :integer
+  #       end
+  #   
+  #       SystemSetting.create :name => "notice", :label => "Use notice?", :value => 1
+  #     end
+  #   
+  #     def self.down
+  #       drop_table :system_settings
+  #     end
+  #   end
+  #
+  # This migration first adds the system_settings table, then creates the very first row in it using the Active Record model
+  # that relies on the table. It also uses the more advanced create_table syntax where you can specify a complete table schema
+  # in one block call.
+  #
+  # == Available transformations
+  #
+  # * <tt>create_table(name, options = "")</tt> Creates a table called +name+ and makes the table object available to a block
+  #   that can then add columns to it, following the same format as add_column. See example above. The options string is for
+  #   fragments like "DEFAULT CHARSET=UTF-8" that are appended to the create table definition.
+  # * <tt>drop_table(name)</tt>: Drops the table called +name+.
+  # * <tt>add_column(table_name, column_name, type, options = {})</tt>: Adds a new column to the table called +table_name+
+  #   named +column_name+ specified to be one of the following types:
+  #   :string, :text, :integer, :float, :datetime, :timestamp, :time, :date, :binary, :boolean. A default value can be specified
+  #   by passing an +options+ hash like { :default => 11 }.
+  # * <tt>remove_column(table_name, column_name)</tt>: Removes the column named +column_name+ from the table called +table_name+.
+  #
+  # == Irreversible transformations
+  #
+  # Some transformations are destructive in a manner that cannot be reversed. Migrations of that kind should raise
+  # an <tt>IrreversibleMigration</tt> exception in their +down+ method.
+  #
+  # == Database support
+  #
+  # Migrations are currently only supported in MySQL and PostgreSQL.
+  #
+  # == More examples
+  #
+  # Not all migrations change the schema. Some just fix the data:
+  #
+  #   class RemoveEmptyTags < ActiveRecord::Migration
+  #     def self.up
+  #       Tag.find(:all).each { |tag| tag.destroy if tag.pages.empty? }
+  #     end
+  #   
+  #     def self.down
+  #       # not much we can do to restore deleted data
+  #     end
+  #   end
+  #
+  # Others remove columns when they migrate up instead of down:
+  #
+  #   class RemoveUnnecessaryItemAttributes < ActiveRecord::Migration
+  #     def self.up
+  #       remove_column :items, :incomplete_items_count
+  #       remove_column :items, :completed_items_count
+  #     end
+  #
+  #     def self.down
+  #       add_column :items, :incomplete_items_count
+  #       add_column :items, :completed_items_count
+  #     end
+  #   end
+  class Migration
     class << self
       def up() end
       def down() end
@@ -17,11 +112,11 @@ module ActiveRecord
   class Migrator#:nodoc:
     class << self
       def up(migrations_path, target_version = nil)
-        new(:up, migrations_path, target_version).migrate
+        self.new(:up, migrations_path, target_version).migrate
       end
       
       def down(migrations_path, target_version = nil)
-        new(:down, migrations_path, target_version).migrate
+        self.new(:down, migrations_path, target_version).migrate
       end
       
       def current_version
@@ -30,6 +125,7 @@ module ActiveRecord
     end
     
     def initialize(direction, migrations_path, target_version = nil)
+      raise StandardError.new("This database does not yet support migrations") unless Base.connection.supports_migrations?
       @direction, @migrations_path, @target_version = direction, migrations_path, target_version
       Base.connection.initialize_schema_information
     end

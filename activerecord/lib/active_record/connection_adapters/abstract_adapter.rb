@@ -357,9 +357,10 @@ module ActiveRecord
         sql << " OFFSET #{options[:offset]}" if options.has_key?(:offset) and !options[:offset].nil?
       end
 
+
       def initialize_schema_information
         begin
-          execute "CREATE TABLE schema_info (version #{native_database_types[:integer][:name]}(#{native_database_types[:integer][:limit]}))"
+          execute "CREATE TABLE schema_info (version #{type_to_sql(:integer)})"
           insert "INSERT INTO schema_info (version) VALUES(0)"
         rescue ActiveRecord::StatementInvalid
           # Schema has been intialized
@@ -378,8 +379,7 @@ module ActiveRecord
 
       def add_column(table_name, column_name, type, options = {})
         native_type = native_database_types[type]
-        add_column_sql = "ALTER TABLE #{table_name} ADD #{column_name} #{native_type[:name]}"
-        add_column_sql << "(#{options[:limit] || native_type[:limit]})" if options[:limit] || native_type[:limit]
+        add_column_sql = "ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type)}"
         add_column_sql << " DEFAULT '#{options[:default]}'" if options[:default]
         execute(add_column_sql)
       end
@@ -387,9 +387,20 @@ module ActiveRecord
       def remove_column(table_name, column_name)
         execute "ALTER TABLE #{table_name} DROP #{column_name}"
       end
+      
+      def supports_migrations?
+        false
+      end      
 
 
       protected
+        def type_to_sql(type)
+          native = native_database_types[type]
+          column_type_sql = native[:name]
+          column_type_sql << "(#{native[:limit]})" if native[:limit]
+          column_type_sql
+        end            
+              
         def log(sql, name)
           begin
             if block_given?
@@ -439,7 +450,7 @@ module ActiveRecord
             "%s  %s" % [message, dump]
           end
         end
-    end
+      end
 
     class TableDefinition
       attr_accessor :columns

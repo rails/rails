@@ -63,6 +63,10 @@ module ActiveRecord
         "Lost connection to MySQL server during query",
         "MySQL server has gone away"
       ]
+      
+      def supports_migrations?
+        true
+      end
 
       def native_database_types
         {
@@ -88,7 +92,6 @@ module ActiveRecord
       def adapter_name
         'MySQL'
       end
-
 
       def select_all(sql, name = nil)
         select(sql, name)

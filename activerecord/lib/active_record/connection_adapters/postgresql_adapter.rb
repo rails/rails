@@ -60,6 +60,27 @@ module ActiveRecord
     # * <tt>:encoding</tt> -- An optional client encoding that is using in a SET client_encoding TO <encoding> call on connection.
     # * <tt>:min_messages</tt> -- An optional client min messages that is using in a SET client_min_messages TO <min_messages> call on connection.
     class PostgreSQLAdapter < AbstractAdapter
+      
+      def native_database_types
+        {
+          :primary_key => "serial primary key",
+          :string      => { :name => "character varying", :limit => 255 },
+          :text        => { :name => "text" },
+          :integer     => { :name => "integer" },
+          :float       => { :name => "float" },
+          :datetime    => { :name => "timestamp" },
+          :timestamp   => { :name => "timestamp" },
+          :time        => { :name => "timestamp" },
+          :date        => { :name => "date" },
+          :binary      => { :name => "bytea" },
+          :boolean     => { :name => "boolean"}
+        }
+      end
+      
+      def supports_migrations?
+        true
+      end      
+      
       def select_all(sql, name = nil)
         select(sql, name)
       end
