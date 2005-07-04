@@ -11,10 +11,6 @@ require 'action_controller/test_process'
 require 'action_web_service/test_invoke'
 require 'breakpoint'
 
-def create_fixtures(*table_names)
-  Fixtures.create_fixtures(File.dirname(__FILE__) + "/fixtures", table_names)
-end
-
 Test::Unit::TestCase.fixture_path = File.dirname(__FILE__) + "/fixtures/"
 
 class Test::Unit::TestCase
@@ -22,5 +18,9 @@ class Test::Unit::TestCase
   # self.use_transactional_fixtures = true
   # self.use_instantiated_fixtures  = false
 
-  # Add helper methods to be used by all tests here
+  def create_fixtures(*table_names)
+    Fixtures.create_fixtures(File.dirname(__FILE__) + "/fixtures", table_names)
+  end
+
+  # Add more helper methods to be used by all tests here...
 end
