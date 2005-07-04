@@ -85,12 +85,18 @@ class CGI
           end
         end
 
-        # Lazy-unmarshal session state.
+        # Lazy-unmarshal session state.  Take a fingerprint so we can detect
+        # whether to save changes later.
         def data
           unless @data
-            marshaled_data = read_attribute('data')
-            @fingerprint = self.class.fingerprint(marshaled_data)
-            @data = self.class.unmarshal(marshaled_data)
+            case @data = read_attribute('data')
+              when String
+                @fingerprint = self.class.fingerprint(@data)
+                @data = self.class.unmarshal(@data)
+              when nil
+                @data = {}
+                @fingerprint = nil
+            end
           end
           @data
         end
@@ -172,15 +178,24 @@ class CGI
         # We need to handle a normal data attribute in case of a new record.
         def initialize(attributes)
           @session_id, @data, @marshaled_data = attributes[:session_id], attributes[:data], attributes[:marshaled_data]
-          @new_record = !@marshaled_data.nil?
+          @new_record = @marshaled_data.nil?
+        end
+
+        def new_record?
+          @new_record
         end
 
         # Lazy-unmarshal session state.  Take a fingerprint so we can detect
         # whether to save changes later.
         def data
-          if @marshaled_data
-            @fingerprint = self.class.fingerprint(@marshaled_data)
-            @data, @marshaled_data = self.class.unmarshal(@marshaled_data), nil
+          unless @data
+            if @marshaled_data
+              @fingerprint = self.class.fingerprint(@marshaled_data)
+              @data, @marshaled_data = self.class.unmarshal(@marshaled_data), nil
+            else
+              @data = {}
+              @fingerprint = nil
+            end
           end
           @data
         end
