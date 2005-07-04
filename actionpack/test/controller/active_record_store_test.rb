@@ -13,6 +13,7 @@ end
 require File.dirname(__FILE__) + '/../abstract_unit'
 require 'action_controller/session/active_record_store'
 
+#ActiveRecord::Base.logger = Logger.new($stdout)
 CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite3', :dbfile => ':memory:')
 
 
@@ -60,13 +61,14 @@ class SqlBypassActiveRecordStoreTest < Test::Unit::TestCase
   end
 
   def setup
-    session_class.connection = CGI::Session::ActiveRecordStore::SqlBypass.connection
+    session_class.connection = CGI::Session::ActiveRecordStore::Session.connection
     session_class.create_table!
 
     ENV['REQUEST_METHOD'] = 'GET'
     CGI::Session::ActiveRecordStore.session_class = session_class
 
     @new_session = CGI::Session.new(CGI.new, 'database_manager' => CGI::Session::ActiveRecordStore, 'new_session' => true)
+    @new_session['foo'] = 'bar'
   end
 
   def teardown
