@@ -58,7 +58,7 @@ module Inflector
     def plural_rules #:doc:
       [
         [/(fish)$/i, '\1\2'],                 # fish
-      	[/(information)$/i, '\1'],	# information (plural noun)
+      	[/(information|equipment|money)$/i, '\1'],	# plural nouns
       	[/^(ox)$/i, '\1\2en'],		# ox
       	[/([m|l])ouse/i, '\1ice'],		# mouse, louse
         [/(x|ch|ss|sh)$/i, '\1es'],           # search, switch, fix, box, process, address
@@ -73,8 +73,10 @@ module Inflector
         [/(m)an$/i, '\1\2en'],                # man, woman, spokesman
         [/(c)hild$/i, '\1\2hildren'],         # child
         [/(photo)$/i, '\1s'],
-      	[/(o)$/i, '\1\2es'],		# buffalo, tomato
+      	[/(buffal|tomat)o$/i, '\1\2oes'],             # buffalo, tomato
       	[/(bu)s$/i, '\1\2ses'],	# bus
+      	[/(alias)/i, '\1es'],        # alias
+      	[/([octop|vir])us$/i, '\1i'], # octopus, virus - virus has no defined plural (according to Latin/dictionary.com), but viri is better than viruses/viruss
         [/s$/i, 's'],                         # no change (compatibility)
         [/$/, 's']
       ]
@@ -84,7 +86,8 @@ module Inflector
       [
         [/(f)ish$/i, '\1\2ish'],
       	[/^(ox)en/i, '\1'],
-      	[/(photo)s$/i, '\1'],
+      	[/(alias)es$/i, '\1'],
+      	[/([octop|vir])i$/i, '\1us'],
       	[/(o)es/i, '\1'],
       	[/(bus)es$/i, '\1'],
       	[/([m|l])ice/i, '\1ouse'],

@@ -71,9 +71,15 @@ class InflectorTest < Test::Unit::TestCase
     "dwarf" => "dwarves",
     "elf" => "elves",
     "information" => "information",
+    "equipment" => "equipment",
     "bus" => "buses",
     "mouse" => "mice",
-    "louse" => "lice"
+    "louse" => "lice",
+    "house" => "houses",
+    "octopus" => "octopi",
+    "virus" => "viri",
+    "alias" => "aliases",
+    "portfolio" => "portfolios"
   }
 
   CamelToUnderscore = {
