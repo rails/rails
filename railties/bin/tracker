@@ -1,0 +1,106 @@
+require "drb"
+
+VERBOSE = false
+
+class Tracker
+  include DRbUndumped
+  
+  def initialize(timeout = 90, uri = nil)
+    @timeout = timeout
+    @waiting = []
+    @working = []
+    
+    @waiting_mutex = Mutex.new
+    
+    DRb.start_service(uri, self)
+    @uri = DRb.uri
+  end
+  def run
+    start_listener 3
+    sleep 3
+    
+    background
+  end
+  
+  def register_listener(listener)
+    @waiting.push listener
+    nil
+  end
+  def remove_listener(listener)
+    @waiting.delete listener
+    @working.delete listener
+    nil
+  end
+  
+  def with_listener
+    listener = @waiting.shift
+    unless listener
+      start_listener(2) unless @waiting.length + @working.length > 6
+      @waiting_mutex.synchronize do
+	10.times do
+          sleep 0.5
+          listener = @waiting.shift
+          break if listener
+        end
+        unless listener
+          ($stderr.puts "Dropping request due to lack of listeners!!!" unless listener) if VERBOSE
+          return
+        end
+      end
+    end
+    
+    @working << listener
+    yield listener
+  ensure
+    if listener
+      @working.delete listener
+      @waiting << listener
+    end
+  end
+  
+  def background
+    loop do
+      @timeout ? sleep(@timeout) : sleep
+      unless @processed
+        $stderr.puts "Idle for #{@timeout} -- shutting down tracker." if VERBOSE
+        Kernel.exit 0 
+      end
+      @processed = false
+    end
+  end
+    
+  def process(input)
+    output = nil
+    $stderr.puts "tracker: received request.. obtaining listener" if VERBOSE
+    with_listener do |listener|
+      $stderr.puts "tracker: obtained -- forwarding request to listener.." if VERBOSE
+      @processed = true
+      output = listener.process(input)
+      $stderr.puts "tracker: listener released control." if VERBOSE
+    end
+    return output
+  end
+  
+  def start_listener(n = 1)
+    tracker_uri = @uri
+    listener_path = File.join(File.dirname(__FILE__), 'listener')
+    fork do
+      exec 'ruby', listener_path, 'start-listeners', tracker_uri, n.to_s 
+    end
+  end
+  
+  def ping
+    true
+  end
+end
+
+if ARGV.first == "start"
+  tracker = Tracker.new(90, ARGV[1])
+  socket = (/druby:([^?]*)\?/ =~ ARGV[1]) ? $1 : nil
+  require 'fileutils' if socket
+
+  begin tracker.run
+  ensure 
+    FileUtils.rm_f(socket) if socket
+  end
+end

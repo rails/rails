@@ -1,0 +1,99 @@
+require "drb"
+ENV["RAILS_ENV"] = 'production'
+require "#{File.dirname(__FILE__)}/../config/environment.rb"
+require 'fcgi_handler'
+
+VERBOSE = false
+
+class Listener
+  include DRbUndumped
+  attr_accessor :tracker
+  
+  def initialize(timeout = nil)
+    @timeout = timeout
+    @mutex = Mutex.new
+    @active = false
+    
+    @handler = RailsFCGIHandler.new
+    @handler.extend DRbUndumped
+    @output = FakeOut.new
+    $stdout = @output
+  end
+  
+  def inform_up(tracker_uri)
+    return unless tracker_uri
+    tracker = DRbObject.new_with_uri(tracker_uri)
+    tracker.register_listener self
+    @tracker = tracker
+  end
+  def inform_down
+    @tracker.remove_listener(self) if @tracker
+  end
+
+  def run(on_uri, tracker_uri)
+    on_uri ||= "drbunix:"
+    DRb.start_service(on_uri, self) # Start a server for us
+    inform_up tracker_uri
+    @handler.process!(self)
+  end
+  
+  def die!
+    inform_down
+    Kernel.exit 0
+  end 
+  
+  def process(input)
+    $stderr.puts "listener: received request -- obtaining lock" if VERBOSE 
+    @mutex.synchronize do
+      @active = true
+      
+      $stderr.puts "listener: obtained -- swaping stdin" if VERBOSE
+      $stdin = input
+      cgi = CGI.new
+      
+      $stderr.puts "listener: yielding to FCGI handler..." if VERBOSE
+      @cgi_block.call cgi
+      $stderr.puts "listener: handler finished, releasing control" if VERBOSE
+      
+      return @output.read!
+    end
+  end
+  
+  def each_cgi(&block)
+    @cgi_block = block
+    loop do
+      @timeout ? sleep(@timeout) : sleep
+      die! unless @active
+      @active = false
+    end
+  end
+end
+
+class FakeOut < Struct.new(:contents)
+  def initialize
+    super("")
+  end
+  def write(str)
+    contents << str
+  end
+  def read!
+    c = contents
+    self.contents = ''
+    return c
+  end
+end
+
+if ARGV.shift == 'start-listeners'
+  tracker = ARGV.shift
+  number = (ARGV.shift || '1').to_i
+  exit(0) if number.zero?
+  
+  if number > 1
+    fork do
+      exec 'ruby', __FILE__, 'start-listeners', tracker, (number - 1).to_s
+    end
+  end
+  
+  l = Listener.new(90)
+  l.run(nil, tracker)
+end
