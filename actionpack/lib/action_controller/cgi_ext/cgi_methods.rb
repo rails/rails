@@ -17,20 +17,19 @@ class CGIMethods #:nodoc:
         k = CGI.unescape(k) unless k.nil?
         v = CGI.unescape(v) unless v.nil?
 
-        if k =~ /(.*)\[\]$/
-          if parsed_params.has_key? $1
-            parsed_params[$1] << v
-          else
-            parsed_params[$1] = [v]
-          end
-        else
-          parsed_params[k] = v.nil? ? nil : v
+        keys = split_key(k)
+        last_key = keys.pop
+        last_key = keys.pop if (use_array = last_key.empty?)
+        parent = keys.inject(parsed_params) {|h, k| h[k] ||= {}}
+        
+        if use_array then (parent[last_key] ||= []) << v
+        else parent[last_key] = v
         end
       }
   
       return parsed_params
     end
-  
+
     # Returns the request (POST/GET) parameters in a parsed form where pairs such as "customer[address][street]" / 
     # "Somewhere cool!" are translated into a full hash hierarchy, like
     # { "customer" => { "address" => { "street" => "Somewhere cool!" } } }
@@ -62,6 +61,23 @@ class CGIMethods #:nodoc:
     end
 
   private
+
+    # Splits the given key into several pieces. Example keys are 'name', 'person[name]',
+    # 'person[name][first]', and 'people[]'. In each instance, an Array instance is returned.
+    # 'person[name][first]' produces ['person', 'name', 'first']; 'people[]' produces ['people', '']
+    def CGIMethods.split_key(key)
+      if /^([^\[]+)((?:\[[^\]]*\])+)$/ =~ key
+        keys = [$1]
+        
+        keys.concat($2[1..-2].split(']['))
+        keys << '' if key[-2..-1] == '[]' # Have to add it since split will drop empty strings
+        
+        return keys
+      else
+        return [key]
+      end
+    end
+    
     def CGIMethods.get_typed_value(value)
       if value.respond_to?(:content_type) && !value.content_type.empty?
         # Uploaded file

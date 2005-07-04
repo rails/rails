@@ -32,7 +32,16 @@ class CGITest < Test::Unit::TestCase
       CGIMethods.parse_query_parameters(@query_string)
     )
   end
-
+  
+  def test_deep_query_string
+    assert_equal({'x' => {'y' => {'z' => '10'}}}, CGIMethods.parse_query_parameters('x[y][z]=10'))
+  end
+  
+  def test_deep_query_string_with_array
+    assert_equal({'x' => {'y' => {'z' => ['10']}}}, CGIMethods.parse_query_parameters('x[y][z][]=10'))
+    assert_equal({'x' => {'y' => {'z' => ['10', '5']}}}, CGIMethods.parse_query_parameters('x[y][z][]=10&x[y][z][]=5'))
+  end
+  
   def test_query_string_with_nil
     assert_equal(
       { "action" => "create_customer", "full_name" => nil},
@@ -41,10 +50,10 @@ class CGITest < Test::Unit::TestCase
   end
 
   def test_query_string_with_array
-      assert_equal(
+    assert_equal(
       { "action" => "create_customer", "selected" => ["1", "2", "3"]},
       CGIMethods.parse_query_parameters(@query_string_with_array)
-      )
+    )
   end
 
   def test_query_string_with_amps

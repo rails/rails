@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that hashes was not working properly when passed by GET to lighttpd #849 [Nicholas Seckar]
+
 * Fixed assert_template nil will be true when no template was rendered #1565 [maceywj@telus.net]
 
 * Added :prompt option to FormOptions#select (and the users of it, like FormOptions#select_country etc) to create "Please select" style descriptors #1181 [Michael Schuerig]
