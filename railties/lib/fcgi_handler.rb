@@ -45,14 +45,14 @@ class RailsFCGIHandler
     dispatcher_log(:info, "starting")
   end
 
-  def process!
+  def process!(provider = FCGI)
     # Make a note of $" so we can safely reload this instance.
     mark!
 
     # Begin countdown to garbage collection.
     run_gc! if gc_request_period
 
-    FCGI.each_cgi do |cgi| 
+    provider.each_cgi do |cgi| 
       # Safely reload this instance if requested.
       if when_ready == :reload
         run_gc! if gc_request_period
@@ -90,7 +90,8 @@ class RailsFCGIHandler
       dispatcher_error(fcgi_error, "killed by this error")
     end
   end
-
+  
+  
   private
     def logger
       @logger ||= Logger.new(@log_file_path)
