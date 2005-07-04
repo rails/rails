@@ -47,9 +47,8 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
   end
 
   def test_reload_same_session
-    session_id = @new_session.session_id
     @new_session.update
-    reloaded = CGI::Session.new(CGI.new, 'session_id' => session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
+    reloaded = CGI::Session.new(CGI.new, 'session_id' => @new_session.session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
     assert_equal 'bar', reloaded['foo']
   end
 end
@@ -61,13 +60,13 @@ class SqlBypassActiveRecordStoreTest < Test::Unit::TestCase
   end
 
   def setup
-    session_class.connection = CGI::Session::ActiveRecordStore::Session.connection
+    session_class.connection = CGI::Session::ActiveRecordStore::SqlBypass.connection
     session_class.create_table!
 
     ENV['REQUEST_METHOD'] = 'GET'
     CGI::Session::ActiveRecordStore.session_class = session_class
 
-    @new_session = CGI::Session.new(CGI.new, :database_manager => CGI::Session::ActiveRecordStore, :new_session => true)
+    @new_session = CGI::Session.new(CGI.new, 'database_manager' => CGI::Session::ActiveRecordStore, 'new_session' => true)
   end
 
   def teardown
@@ -86,9 +85,8 @@ class SqlBypassActiveRecordStoreTest < Test::Unit::TestCase
   end
 
   def test_reload_same_session
-    session_id = @new_session.session_id
     @new_session.update
-    reloaded = CGI::Session.new(CGI.new, 'session_id' => session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
+    reloaded = CGI::Session.new(CGI.new, 'session_id' => @new_session.session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
     assert_equal 'bar', reloaded['foo']
   end
 end
