@@ -1,3 +1,4 @@
+$:.unshift File.dirname(__FILE__) + "/../../lib"
 
 require 'test/unit'
 require 'action_controller/cgi_ext/cgi_methods'
@@ -112,6 +113,7 @@ class CGITest < Test::Unit::TestCase
       "something" => [ StringIO.new("") ],
       "array_of_stringios" => [[ StringIO.new("One"), StringIO.new("Two") ]],
       "mixed_types_array" => [[ StringIO.new("Three"), "NotStringIO" ]],
+      "mixed_types_as_checkboxes[strings][nested]" => [[ mock_file, "String", StringIO.new("StringIO")]],
       "products[string]" => [ StringIO.new("Apple Computer") ],
       "products[file]" => [ mock_file ]
     }
@@ -120,6 +122,11 @@ class CGITest < Test::Unit::TestCase
       "something" => "",
       "array_of_stringios" => ["One", "Two"],
       "mixed_types_array" => [ "Three", "NotStringIO" ],
+      "mixed_types_as_checkboxes" => {
+         "strings"=> {
+            "nested"=>[ mock_file, "String", "StringIO" ]
+         },
+      },
       "products"  => {
         "string"  => "Apple Computer",
         "file"    => mock_file

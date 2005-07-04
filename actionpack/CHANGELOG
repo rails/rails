@@ -125,7 +125,7 @@
 
 * Add assertions with friendly messages to TestCase#process to ensure that @controller, @request, and @response are set.  #1367
 
-* Arrays sent via multipart posts are converted to strings #1032 [dj@omelia.org]
+* Arrays, hashes sent via multipart posts are converted to strings #1032 [dj@omelia.org, me@julik.nl]
 
 * render(:layout => true) is a synonym for render(:layout => nil)
 
