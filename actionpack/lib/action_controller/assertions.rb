@@ -191,8 +191,9 @@ module Test #:nodoc:
       #   * <tt>:only</tt>: another hash consisting of the keys to use
       #     to match on the children, and only matching children will be
       #     counted.
-      # * <tt>:content</tt>: (text nodes only). The content of the node must
-      #   match the given value.
+      # * <tt>:content</tt>: the textual content of the node must match the
+      #     given value. This will not match HTML tags in the body of a
+      #     tag--only text.
       #
       # Conditions are matched using the following algorithm:
       #

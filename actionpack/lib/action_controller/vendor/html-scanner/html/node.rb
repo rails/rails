@@ -379,9 +379,9 @@ module HTML #:nodoc:
     #                               :child => /hello world/ }
     def match(conditions)
       conditions = validate_conditions(conditions)
-  
-      # only Text nodes have content
-      return false if conditions[:content]
+
+      # check content of child nodes
+      return false unless children.find { |child| child.match(conditions[:content]) } if conditions[:content]
 
       # test the name
       return false unless match_condition(@name, conditions[:tag]) if conditions[:tag]
