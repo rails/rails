@@ -15,15 +15,6 @@ require 'action_controller/session/active_record_store'
 
 CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite3', :dbfile => ':memory:')
 
-def setup_session_schema(connection, table_name = 'sessions', session_id_column_name = 'sessid', data_column_name = 'data')
-  connection.execute <<-end_sql
-    create table #{table_name} (
-      id integer primary key,
-      #{connection.quote_column_name(session_id_column_name)} text unique,
-      #{connection.quote_column_name(data_column_name)} text
-    )
-  end_sql
-end
 
 class ActiveRecordStoreTest < Test::Unit::TestCase
   def session_class
@@ -36,7 +27,7 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
     ENV['REQUEST_METHOD'] = 'GET'
     CGI::Session::ActiveRecordStore.session_class = session_class
 
-    @new_session = CGI::Session.new(CGI.new, :database_manager => CGI::Session::ActiveRecordStore, :new_session => true)
+    @new_session = CGI::Session.new(CGI.new, 'database_manager' => CGI::Session::ActiveRecordStore, 'new_session' => true)
     @new_session['foo'] = 'bar'
   end
 
@@ -45,11 +36,21 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
   end
 
   def test_basics
+    s = session_class.new(:session_id => '1234', :data => { 'foo' => 'bar' })
+    assert_equal 'bar', s.data['foo']
+    assert s.save!
+    assert_equal 'bar', s.data['foo']
+
+    assert_not_nil t = session_class.find_by_session_id('1234')
+    assert_not_nil t.data
+    assert_equal 'bar', t.data['foo']
+  end
+
+  def test_reload_same_session
     session_id = @new_session.session_id
-    @new_session.close
-    found = session_class.find_by_session_id(session_id)
-    assert_not_nil found
-    assert_equal 'bar', found.data['foo']
+    @new_session.update
+    reloaded = CGI::Session.new(CGI.new, 'session_id' => session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
+    assert_equal 'bar', reloaded['foo']
   end
 end
 
@@ -74,11 +75,21 @@ class SqlBypassActiveRecordStoreTest < Test::Unit::TestCase
   end
 
   def test_basics
+    s = session_class.new(:session_id => '1234', :data => { 'foo' => 'bar' })
+    assert_equal 'bar', s.data['foo']
+    assert s.save!
+    assert_equal 'bar', s.data['foo']
+
+    assert_not_nil t = session_class.find_by_session_id('1234')
+    assert_not_nil t.data
+    assert_equal 'bar', t.data['foo']
+  end
+
+  def test_reload_same_session
     session_id = @new_session.session_id
-    @new_session.close
-    found = session_class.find_by_session_id(session_id)
-    assert_not_nil found
-    assert_equal 'bar', found.data['foo']
+    @new_session.update
+    reloaded = CGI::Session.new(CGI.new, 'session_id' => session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
+    assert_equal 'bar', reloaded['foo']
   end
 end
 
