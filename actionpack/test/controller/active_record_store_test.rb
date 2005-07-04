@@ -14,7 +14,13 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 require 'action_controller/session/active_record_store'
 
 #ActiveRecord::Base.logger = Logger.new($stdout)
-CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite3', :dbfile => ':memory:')
+begin
+  CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite3', :dbfile => ':memory:')
+  CGI::Session::ActiveRecordStore::Session.connection
+rescue Object
+  $stderr.puts 'SQLite 3 unavailable; falling to SQLite 2.'
+  CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite', :dbfile => ':memory:')
+end
 
 
 class ActiveRecordStoreTest < Test::Unit::TestCase

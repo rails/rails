@@ -1,5 +1,7 @@
 *SVN*
 
+* The session class backing CGI::Session::ActiveRecordStore may be replaced with any class that duck-types with a subset of Active Record.  See docs for details.  #1238 [skaes@web.de]
+
 * Fixed that hashes was not working properly when passed by GET to lighttpd #849 [Nicholas Seckar]
 
 * Fixed assert_template nil will be true when no template was rendered #1565 [maceywj@telus.net]
