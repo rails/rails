@@ -186,3 +186,8 @@ task :clear_logs => :environment do
     f.close
   end
 end
+
+desc "Migrate the database according to the migrate scripts in db/migrate"
+task :migrate => :environment do
+  ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/db/migrate/')
+end
