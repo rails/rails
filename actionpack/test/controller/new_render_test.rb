@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
-Customer = Struct.new("Customer", :name)
+silence_warnings { Customer = Struct.new("Customer", :name) }
 
 module Fun
   class GamesController < ActionController::Base
