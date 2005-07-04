@@ -40,9 +40,9 @@ module ActionMailer
         # non-attachment parts)
         if content_disposition == "attachment"
           part.set_content_type(content_type || defaults.content_type, nil,
-            "charset" => nil,
-            "name" => filename)
-          part.set_content_disposition(content_disposition, "filename" => filename) 
+            squish("charset" => nil, "name" => filename))
+          part.set_content_disposition(content_disposition,
+            squish("filename" => filename))
         else
           part.set_content_type(content_type || defaults.content_type, nil,
             "charset" => (charset || defaults.charset))      
@@ -65,9 +65,14 @@ module ActionMailer
         part.set_content_type(content_type, nil, { "charset" => charset }) if content_type =~ /multipart/
       end
     
-        
       part
     end
+
+    private
+
+      def squish(values={})
+        values.delete_if { |k,v| v.nil? }
+      end
   end
 
 end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Avoid adding nil header values #1392
+
 * Better multipart support with implicit multipart/alternative and sorting of subparts [John Long]
 
 * Allow for nested parts in multipart mails #1570 [Flurin Egger]

@@ -156,7 +156,15 @@ class TestMailer < ActionMailer::Base
       p.part :content_type => "text/html", :body => "<b>test</b> HTML<br/>\nline #2"
     end
     attachment :content_type => "application/octet-stream",:filename => "test.txt", :body => "test abcdefghijklmnopqstuvwxyz"
-    
+  end
+
+  def unnamed_attachment(recipient)
+    recipients   recipient
+    subject      "nested multipart"
+    from         "test@example.com"
+    body         "multipart/mixed"
+    part :content_type => "text/plain", :body => "hullo"
+    attachment :content_type => "application/octet-stream", :body => "test abcdefghijklmnopqstuvwxyz"
   end
   
 
@@ -620,6 +628,12 @@ EOF
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email11")
     mail = TMail::Mail.parse(fixture)
     assert_not_nil mail.from
+  end
+
+  def test_empty_header_values_omitted
+    result = TestMailer.create_unnamed_attachment(@recipient).encoded
+    assert_match %r{Content-Type: application/octet-stream[^;]}, result
+    assert_match %r{Content-Disposition: attachment[^;]}, result
   end
 end
 
