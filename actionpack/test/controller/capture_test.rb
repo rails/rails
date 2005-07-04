@@ -31,8 +31,8 @@ class CaptureTest < Test::Unit::TestCase
   def test_update_element_with_capture
     get :update_element_with_capture
     assert_equal(
-      "<script type=\"text/javascript\">$('products').innerHTML = '\\n  <p>Product 1</p>\\n  <p>Product 2</p>\\n'</script>" +
-        "\n\n$('status').innerHTML = '\\n  <b>You bought something!</b>\\n'", 
+      "<script type=\"text/javascript\">$('products').innerHTML = '\\n  <p>Product 1</p>\\n  <p>Product 2</p>\\n';\n</script>" +
+        "\n\n$('status').innerHTML = '\\n  <b>You bought something!</b>\\n';", 
       @response.body.strip
     )
   end
