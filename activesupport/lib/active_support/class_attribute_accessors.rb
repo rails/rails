@@ -2,7 +2,7 @@
 # just like the native attr* accessors for instance attributes.
 class Class # :nodoc:
   def cattr_reader(*syms)
-    syms.each do |sym|
+    syms.select { |sym| sym.respond_to?(:id2name) }.each do |sym|
       class_eval <<-EOS
         if ! defined? @@#{sym.id2name}
           @@#{sym.id2name} = nil
@@ -29,7 +29,7 @@ class Class # :nodoc:
   end
   
   def cattr_writer(*syms)
-    syms.each do |sym|
+    syms.select { |sym| sym.respond_to?(:id2name) }.each do |sym|
       class_eval <<-EOS
         if ! defined? @@#{sym.id2name}
           @@#{sym.id2name} = nil

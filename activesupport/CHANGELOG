@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed conflict with Glue gem #1606 [Rick Olson]
+
 * Added new rules to the Inflector to deal with more unusual plurals mouse/louse => mice/lice, information => information, ox => oxen, virus => viri, archive => archives #1571, #1583, #1490, #1599 [foamdino@gmail.com/others]
 
 * Fixed memory leak with Object#remove_subclasses_of, which inflicted a Rails application running in development mode with a ~20KB leak per request #1289 [c.r.mcgrath@gmail.com]
