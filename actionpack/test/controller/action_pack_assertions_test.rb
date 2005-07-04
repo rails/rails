@@ -209,13 +209,13 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     process :hello_world
     assert_rendered_file 'test/hello_world'
     assert_rendered_file 'hello_world'
-    assert_rendered_file
   end
   
   # test the assert_success assertion
   def test_assert_success
     process :nothing
     assert_success
+    assert_rendered_file
   end
   
   # -- standard request/response object testing --------------------------------
