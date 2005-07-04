@@ -1,5 +1,18 @@
 *SVN*
 
+* Added callback hooks to association collections #1549 [Florian Weber]. Example:
+
+    class Project
+      has_and_belongs_to_many :developers, :before_add => :evaluate_velocity
+    
+      def evaluate_velocity(developer)
+        ...
+      end
+    end 
+  
+  ..raising an exception will cause the object not to be added (or removed, with before_remove).
+    
+
 * Fixed Base.content_columns call for SQL Server adapter #1450 [DeLynn Berry]
 
 * Fixed Base#write_attribute to work with both symbols and strings #1190 [Paul Legato]

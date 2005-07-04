@@ -96,6 +96,30 @@ module ActiveRecord
     # * You can add an object to a collection without automatically saving it by using the #collection.build method (documented below).
     # * All unsaved (new_record? == true) members of the collection are automatically saved when the parent is saved.
     #
+    # === Callbacks
+    #
+    # Similiar to the normal callbacks that hook into the lifecycle of an Active Record object, you can also define callbacks that get
+    # trigged when you add an object to or removing an object from a association collection. Example:
+    #
+    #   class Project
+    #     has_and_belongs_to_many :developers, :after_add => :evaluate_velocity
+    #
+    #     def evaluate_velocity(developer)
+    #       ...
+    #     end
+    #   end 
+    #
+    # It's possible to stack callbacks by passing them as an array. Example:
+    # 
+    #   class Project
+    #     has_and_belongs_to_many :developers, :after_add => [:evaluate_velocity, Proc.new {|project, developer| project.shipping_date = Time.now}]
+    #   end
+    #
+    # Possible callbacks are: before_add, after_add, before_remove and after_remove.
+    #
+    # Should any of the before_add callbacks throw an exception, the object does not get added to the collection. Same with
+    # the before_remove callbacks, if an exception is thrown the object doesn't get removed.
+    #
     # == Caching
     #
     # All of the methods are built on a simple caching principle that will keep the result of the last query around unless specifically
@@ -259,7 +283,8 @@ module ActiveRecord
       #       'WHERE ps.post_id = #{id} AND ps.person_id = p.id ' +
       #       'ORDER BY p.first_name'
       def has_many(association_id, options = {})
-        validate_options([ :foreign_key, :class_name, :exclusively_dependent, :dependent, :conditions, :order, :finder_sql, :counter_sql ], options.keys)
+        validate_options([ :foreign_key, :class_name, :exclusively_dependent, :dependent, :conditions, :order, :finder_sql, :counter_sql, 
+													 :before_add, :after_add, :before_remove, :after_remove ], options.keys)
         association_name, association_class_name, association_class_primary_key_name =
               associate_identification(association_id, options[:class_name], options[:foreign_key])
  
@@ -276,7 +301,8 @@ module ActiveRecord
         end
 
         add_multiple_associated_save_callbacks(association_name)
-
+				add_association_callbacks(association_name, options)
+				
         collection_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasManyAssociation)
         
         # deprecated api
@@ -518,7 +544,8 @@ module ActiveRecord
       #   'DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}'
       def has_and_belongs_to_many(association_id, options = {})
         validate_options([ :class_name, :table_name, :foreign_key, :association_foreign_key, :conditions,
-                           :join_table, :finder_sql, :delete_sql, :insert_sql, :order, :uniq ], options.keys)
+                           :join_table, :finder_sql, :delete_sql, :insert_sql, :order, :uniq, :before_add, :after_add, 
+                           :before_remove, :after_remove ], options.keys)
         association_name, association_class_name, association_class_primary_key_name =
               associate_identification(association_id, options[:class_name], options[:foreign_key])
 
@@ -532,6 +559,7 @@ module ActiveRecord
 
         before_destroy_sql = "DELETE FROM #{options[:join_table]} WHERE #{association_class_primary_key_name} = \\\#{self.quoted_id}"
         module_eval(%{before_destroy "self.connection.delete(%{#{before_destroy_sql}})"}) # "
+        add_association_callbacks(association_name, options)
         
         # deprecated api
         deprecated_collection_count_method(association_name)
@@ -834,6 +862,18 @@ module ActiveRecord
           end          
         end
 
+        def add_association_callbacks(association_name, options)
+        	callbacks = %w(before_add after_add before_remove after_remove)
+        	callbacks.each do |callback_name|
+        	  full_callback_name = "#{callback_name.to_s}_for_#{association_name.to_s}"
+        	  defined_callbacks = options[callback_name.to_sym]
+        	  if options.has_key?(callback_name.to_sym)
+        	    callback_array = defined_callbacks.kind_of?(Array) ? defined_callbacks : [defined_callbacks]
+        	    class_inheritable_reader full_callback_name.to_sym
+              write_inheritable_array(full_callback_name.to_sym, callback_array)
+        	  end
+        	end
+        end
 
         def extract_record(schema_abbreviations, table_name, row)
           record = {}

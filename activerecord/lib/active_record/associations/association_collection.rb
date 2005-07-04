@@ -21,11 +21,13 @@ module ActiveRecord
         @owner.transaction do
           flatten_deeper(records).each do |record|
             raise_on_type_mismatch(record)
+            callback(:before_add, record)
             result &&= insert_record(record) unless @owner.new_record?
             @target << record
+            callback(:after_add, record)
           end
         end
-
+				
         result and self
       end
 
@@ -40,8 +42,12 @@ module ActiveRecord
         return if records.empty?
         
         @owner.transaction do
+          records.each { |record| callback(:before_remove, record) }
           delete_records(records)
-          records.each { |record| @target.delete(record) }
+          records.each do |record|
+            @target.delete(record)
+            callback(:after_remove, record)
+          end
         end
       end
       
@@ -113,6 +119,29 @@ module ActiveRecord
         def flatten_deeper(array)
           array.collect { |element| element.respond_to?(:flatten) ? element.flatten : element }.flatten
         end
+        
+        def callback(method, record)
+          callbacks_for(method).each do |callback|
+            case callback
+              when Symbol
+                @owner.send(callback, record)
+              when Proc, Method
+                callback.call(@owner, record)
+              else
+                if callback.respond_to?(method)
+                  callback.send(method, @owner, record)
+                else
+                  raise ActiveRecordError, "Callbacks must be a symbol denoting the method to call, a string to be evaluated, a block to be invoked, or an object responding to the callback method."
+                end
+            end
+          end
+        end
+        
+        def callbacks_for(callback_name)
+          full_callback_name = "#{callback_name.to_s}_for_#{@association_name.to_s}"
+          @owner.class.read_inheritable_attribute(full_callback_name.to_sym) or []
+        end
+        
     end
   end
 end
