@@ -1,6 +1,6 @@
 path_to_ar = File.dirname(__FILE__) + '/../../../activerecord'
 
-if Object.const_defined?("ActiveRecord") || File.exist?(path_to_ar)
+if Object.const_defined?(:ActiveRecord) || File.exist?(path_to_ar)
   
   # This test is very different than the others.  It requires ActiveRecord to 
   # run.  There's a bunch of stuff we are assuming here:
@@ -12,11 +12,12 @@ if Object.const_defined?("ActiveRecord") || File.exist?(path_to_ar)
 
   begin
 
-    driver_to_use = 'native_sqlite'
+    driver_to_use = 'native_sqlite3'
 
-    $: << path_to_ar + '/lib/'
+    unless Object.const_defined?("ActiveRecord")
+      require File.join(path_to_ar, 'lib', 'active_record') unless Object.const_defined?(:ActiveRecord)
+    end
     $: << path_to_ar + '/test/'
-    require 'active_record' unless Object.const_defined?("ActiveRecord")
     require "connections/#{driver_to_use}/connection"
     require 'fixtures/company'
 
