@@ -136,7 +136,7 @@ if (!Function.prototype.apply) {
     if (!parameters) parameters = new Array();
     
     for (var i = 0; i < parameters.length; i++)
-      parameterStrings[i] = 'x[' + i + ']';
+      parameterStrings[i] = 'parameters[' + i + ']';
     
     object.__apply__ = this;
     var result = eval('object.__apply__(' + 
@@ -184,6 +184,16 @@ Ajax.Base.prototype = {
       asynchronous: true,
       parameters:   ''
     }.extend(options || {});
+  },
+
+  responseIsSuccess: function() {
+    return this.transport.status == undefined
+        || this.transport.status == 0 
+        || (this.transport.status >= 200 && this.transport.status < 300);
+  },
+
+  responseIsFailure: function() {
+    return !this.responseIsSuccess();
   }
 }
 
@@ -195,7 +205,10 @@ Ajax.Request.prototype = (new Ajax.Base()).extend({
   initialize: function(url, options) {
     this.transport = Ajax.getTransport();
     this.setOptions(options);
+    this.request(url);
+  },
 
+  request: function(url) {
     var parameters = this.options.parameters || '';
     if (parameters.length > 0) parameters += '&_=';
 
@@ -217,82 +230,82 @@ Ajax.Request.prototype = (new Ajax.Base()).extend({
       this.transport.send(this.options.method == 'post' ? body : null);
 
     } catch (e) {
-    }    
+    }
   },
-  
+
   setRequestHeaders: function() {
-    var requestHeaders = [
-      'X-Requested-With', 'XMLHttpRequest',
-      'X-Prototype-Version', Prototype.Version];
-    
+    var requestHeaders = 
+      ['X-Requested-With', 'XMLHttpRequest',
+       'X-Prototype-Version', Prototype.Version];
+
     if (this.options.method == 'post') {
-      requestHeaders.push(
-        'Content-type', 'application/x-www-form-urlencoded');
-      if(navigator.userAgent.indexOf('Gecko')>0)
-        requestHeaders.push(
-          'Connection', 'close');
+      requestHeaders.push('Content-type', 
+        'application/x-www-form-urlencoded');
+
+      /* Force "Connection: close" for Mozilla browsers to work around
+       * a bug where XMLHttpReqeuest sends an incorrect Content-length
+       * header. See Mozilla Bugzilla #246651. 
+       */
+      if (this.transport.overrideMimeType)
+        requestHeaders.push('Connection', 'close');
     }
 
     if (this.options.requestHeaders)
       requestHeaders.push.apply(requestHeaders, this.options.requestHeaders);
-    
+
     for (var i = 0; i < requestHeaders.length; i += 2)
       this.transport.setRequestHeader(requestHeaders[i], requestHeaders[i+1]);
   },
-      
+
   onStateChange: function() {
     var readyState = this.transport.readyState;
     if (readyState != 1)
       this.respondToReadyState(this.transport.readyState);
   },
-  
+
   respondToReadyState: function(readyState) {
     var event = Ajax.Request.Events[readyState];
-    
-    if (event == 'Complete' && this.transport.status != 200)
+
+    if (event == 'Complete' && this.responseIsFailure())
       (this.options['on' + this.transport.status]
        || this.options.onFailure
        || Prototype.emptyFunction)(this.transport);
-    
+
     (this.options['on' + event] || Prototype.emptyFunction)(this.transport);    
   }
 });
 
 Ajax.Updater = Class.create();
-Ajax.Updater.ScriptFragmentMatch = /<script.*?>((?:\n|.)*?)<\/script>/img;
+Ajax.Updater.ScriptFragment = '(?:<script.*?>)((\n|.)*?)(?:<\/script>)';
 
-Ajax.Updater.prototype = (new Ajax.Base()).extend({
+Ajax.Updater.prototype.extend(Ajax.Request.prototype).extend({
   initialize: function(container, url, options) {
     this.containers = {
       success: container.success ? $(container.success) : $(container),
-      failure: container.failure ? $(container.failure) : 
-        (container.success ? null : $(container))
+      failure: container.failure ? 
+        (container.success ? null : $(container)) : null
     }
-    
+
+    this.transport = Ajax.getTransport();
     this.setOptions(options);
-  
-    if (this.options.asynchronous) {
-      this.onComplete = this.options.onComplete;
-      this.options.onComplete = this.updateContent.bind(this);
-    }
-    
-    this.request = new Ajax.Request(url, this.options);
-    
-    if (!this.options.asynchronous)
+
+    var onComplete = this.options.onComplete || Prototype.emptyFunction;
+    this.options.onComplete = (function() {
+      onComplete(this.transport);
       this.updateContent();
+    }).bind(this);
+
+    this.request(url);
   },
-  
+
   updateContent: function() {
-    var receiver = 
-      (this.request.transport.status == 200) ?
+    var receiver = this.responseIsSuccess() ?
       this.containers.success : this.containers.failure;
-    
-    var response = this.request.transport.responseText.
-      replace(Ajax.Updater.ScriptFragmentMatch, '');
-    
-    var scripts = this.request.transport.responseText.
-      match(Ajax.Updater.ScriptFragmentMatch);
-    
+
+    var match    = new RegExp(Ajax.Updater.ScriptFragment, 'img');
+    var response = this.transport.responseText.replace(match, '');
+    var scripts  = this.transport.responseText.match(match);
+
     if (receiver) {
       if (this.options.insertion) {
         new this.options.insertion(receiver, response);
@@ -301,17 +314,19 @@ Ajax.Updater.prototype = (new Ajax.Base()).extend({
       }
     }
 
-    if (this.request.transport.status == 200)
+    if (this.responseIsSuccess()) {
       if (this.onComplete)
         setTimeout((function() {this.onComplete(
-          this.request.transport)}).bind(this), 10);
-    
-    if (this.options.evalScripts && scripts)
-      setTimeout( (function() { 
-        for(var i=0;i<scripts.length;i++) 
-          eval(scripts[i].replace(/^<script.*?>/,'').replace(/<\/script>$/,'')); 
-        } ).bind(this), 10);
-        
+          this.transport)}).bind(this), 10);
+    }
+
+    if (this.options.evalScripts && scripts) {
+      match = new RegExp(Ajax.Updater.ScriptFragment, 'im');
+      setTimeout((function() {
+        for (var i = 0; i < scripts.length; i++)
+          eval(scripts[i].match(match)[1]);
+      }).bind(this), 10);
+    }
   }
 });
 
@@ -922,7 +937,7 @@ Object.extend(Event, {
 });
 
 var Position = {
-  
+
   // set to true if needed, warning: firefox performance problems
   // NOT neeeded for page scrolling, only if draggable contained in
   // scrollable elements
@@ -977,7 +992,7 @@ var Position = {
 
   withinIncludingScrolloffsets: function(element, x, y) {
     var offsetcache = this.realOffset(element);
-    
+
     this.xcomp = x + offsetcache[0] - this.deltaX;
     this.ycomp = y + offsetcache[1] - this.deltaY;
     this.offset = this.cumulativeOffset(element);
