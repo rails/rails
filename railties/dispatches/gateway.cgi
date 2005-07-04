@@ -2,8 +2,9 @@
 
 # This is an experimental feature for getting high-speed CGI by using a long-running, DRb-backed server in the background
 
-require File.join(File.dirname(__FILE__), 'drb')
+require 'drb'
 require 'cgi'
+require 'rbconfig'
 
 VERBOSE = false
 
@@ -19,7 +20,7 @@ def start_tracker
     STDIN.reopen "/dev/null"
     STDOUT.reopen "/dev/null", "a"
     
-    exec 'ruby', tracker_path, 'start', ConnectionUri
+    exec(File.join(Config::CONFIG['bin_dir'], Config::CONFIG['RUBY_SO_NAME']), tracker_path, 'start', ConnectionUri)
   end
   
   $stderr.puts "dispatch: waiting for tracker to start..." if VERBOSE

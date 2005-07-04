@@ -2,6 +2,7 @@ require "drb"
 ENV["RAILS_ENV"] = 'production'
 require "#{File.dirname(__FILE__)}/../config/environment.rb"
 require 'fcgi_handler'
+require 'rbconfig'
 
 VERBOSE = false
 
@@ -90,7 +91,10 @@ if ARGV.shift == 'start-listeners'
   
   if number > 1
     fork do
-      exec 'ruby', __FILE__, 'start-listeners', tracker, (number - 1).to_s
+      exec(
+        File.join(Config::CONFIG['bin_dir'], Config::CONFIG['RUBY_SO_NAME']), 
+        __FILE__, 'start-listeners', tracker, (number - 1).to_s
+      )
     end
   end
   

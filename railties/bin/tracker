@@ -1,4 +1,5 @@
 require "drb"
+require "rbconfig"
 
 VERBOSE = false
 
@@ -85,7 +86,10 @@ class Tracker
     tracker_uri = @uri
     listener_path = File.join(File.dirname(__FILE__), 'listener')
     fork do
-      exec 'ruby', listener_path, 'start-listeners', tracker_uri, n.to_s 
+      exec(
+        File.join(Config::CONFIG['bin_dir'], Config::CONFIG['RUBY_SO_NAME']), 
+        listener_path, 'start-listeners', tracker_uri, n.to_s
+      )
     end
   end
   
