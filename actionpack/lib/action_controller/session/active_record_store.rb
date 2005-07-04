@@ -36,9 +36,8 @@ class CGI
       # The default Active Record class.
       class Session < ActiveRecord::Base
         self.table_name = 'sessions'
-        before_create :marshal_data!
-        before_update :marshal_data_if_changed!
-        after_save    :clear_data_cache!
+        before_save   :marshal_data!
+        before_update :data_changed?
 
         class << self
           # Hook to set up sessid compatibility.
@@ -89,8 +88,9 @@ class CGI
         # Lazy-unmarshal session state.
         def data
           unless @data
-            @data = self.class.unmarshal(read_attribute('data'))
-            @fingerprint = self.class.fingerprint(@data)
+            marshaled_data = read_attribute('data')
+            @fingerprint = self.class.fingerprint(marshaled_data)
+            @data = self.class.unmarshal(marshaled_data)
           end
           @data
         end
@@ -100,14 +100,9 @@ class CGI
             write_attribute('data', self.class.marshal(@data || {}))
           end
 
-          def marshal_data_if_changed!
-            if @data and @fingerprint != self.class.fingerprint(@data)
-              marshal_data!
-            end
-          end
-
-          def clear_data_cache!
-            @data = @fingerprint = nil
+          def data_changed?
+            old_fingerprint, @fingerprint = @fingerprint, self.class.fingerprint(read_attribute('data'))
+            old_fingerprint != @fingerprint
           end
       end
 
@@ -157,7 +152,8 @@ class CGI
           def create_table!
             @@connection.execute <<-end_sql
               CREATE TABLE #{table_name} (
-                #{@@connection.quote_column_name(session_id_column)} TEXT PRIMARY KEY,
+                id INTEGER PRIMARY KEY,
+                #{@@connection.quote_column_name(session_id_column)} TEXT UNIQUE,
                 #{@@connection.quote_column_name(data_column)} TEXT
               )
             end_sql
@@ -183,13 +179,14 @@ class CGI
         # whether to save changes later.
         def data
           if @marshaled_data
+            @fingerprint = self.class.fingerprint(@marshaled_data)
             @data, @marshaled_data = self.class.unmarshal(@marshaled_data), nil
-            @fingerprint = self.class.fingerprint(@data)
           end
           @data
         end
 
         def save!
+          marshaled_data = self.class.marshal(data)
           if @new_record
             @new_record = false
             @@connection.update <<-end_sql, 'Create session'
@@ -198,14 +195,17 @@ class CGI
                 #{@@connection.quote_column_name(@@data_column)} )
               VALUES (
                 #{@@connection.quote(session_id)},
-                #{@@connection.quote(self.class.marshal(data))} )
+                #{@@connection.quote(marshaled_data)} )
             end_sql
-          elsif self.class.fingerprint(data) != @fingerprint
-            @@connection.update <<-end_sql, 'Update session'
-              UPDATE #{@@table_name}
-              SET #{@@connection.quote_column_name(@@data_column)}=#{@@connection.quote(self.class.marshal(data))}
-              WHERE #{@@connection.quote_column_name(@@session_id_column)}=#{@@connection.quote(session_id)}
-            end_sql
+          else
+            old_fingerprint, @fingerprint = @fingerprint, self.class.fingerprint(marshaled_data)
+            if old_fingerprint != @fingerprint
+              @@connection.update <<-end_sql, 'Update session'
+                UPDATE #{@@table_name}
+                SET #{@@connection.quote_column_name(@@data_column)}=#{@@connection.quote(marshaled_data)}
+                WHERE #{@@connection.quote_column_name(@@session_id_column)}=#{@@connection.quote(session_id)}
+              end_sql
+            end
           end
         end
 
