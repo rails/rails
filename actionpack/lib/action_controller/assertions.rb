@@ -27,6 +27,18 @@ module Test #:nodoc:
     # For redirects within the same controller, you can even call follow_redirect and the redirect will be follow triggering another
     # action call which can then be asserted against.
     #
+    # == Manipulating the request collections
+    #
+    # The collections described above link to the response, so you can test if what the actions were expected to do happen. But
+    # some times you also want to manipulate these collections in the request coming in. This is really only relevant for sessions
+    # and cookies, though. For sessions, you just do:
+    #
+    #   @request.session[:key] = "value"
+    #
+    # For cookies, you need to manually create the cookie, like this:
+    #
+    #   @request.cookies["key"] = CGI::Cookie.new("key", "value")
+    #
     # == Testing named routes
     #
     # If you're using named routes, they can be easily tested using the original named routes methods straight in the test case.
