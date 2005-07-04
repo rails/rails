@@ -164,14 +164,14 @@ module ActionView
       # Returns a Javascript function (or expression) that'll update a DOM element according to the options passed.
       #
       # * <tt>:content</tt>: The content to use for updating. Can be left out if using block, see example.
-      # * <tt>:action</tt>: Valid options are :insert, :replace, :delete, :empty
-      # * <tt>:position</tt> If the :action is :insert, you can specify the following positions :before, :top, :bottom, :after.
+      # * <tt>:action</tt>: Valid options are :update (assumed by default), :empty, :remove
+      # * <tt>:position</tt> If the :action is :update, you can optionally specify one of the following positions: :before, :top, :bottom, :after.
       #
       # Examples:
       #   <%= javascript_tag(update_element_function(
-      #         "products", :action => :insert, :position => :bottom, :content => "<p>New product!</p>")) %>
+      #         "products", :position => :bottom, :content => "<p>New product!</p>")) %>
       #
-      #   <% replacement_function = update_element_function("products", :action => :replace) do %>
+      #   <% replacement_function = update_element_function("products") do %>
       #     <p>Product 1</p>
       #     <p>Product 2</p>
       #   <% end %>
@@ -191,52 +191,45 @@ module ActionView
       #
       #   # Returning view
       #   <%= update_element_function(
-      #         "cart", :action => :insert, :position => :bottom, 
+      #         "cart", :action => :update, :position => :bottom, 
       #         :content => "<p>New Product: #{@product.name}</p>")) %>
-      #   <% update_element_function("status", :action => :replace, :binding => binding) %>
+      #   <% update_element_function("status", :binding => binding) do %>
       #     You've bought a new product!
       #   <% end %>
       #
       # Notice how the second call doesn't need to be in an ERb output block since it uses a block and passes in the binding
       # to render directly. This trick will however only work in ERb (not Builder or other template forms).
-      def update_element_function(element_id, options, &block)
-        options[:content] = escape_javascript(options[:content] || capture(&block))
-          
-        javascript_function = case options[:action]
-          when :insert
-            case options[:position]
-              when :before
-                "new Insertion.Before('#{element_id}', '#{options[:content]}')"
-              when :top
-                "new Insertion.Top('#{element_id}', '#{options[:content]}')"
-              when :bottom
-                "new Insertion.Bottom('#{element_id}', '#{options[:content]}')"
-              when :after
-                "new Insertion.After('#{element_id}', '#{options[:content]}')"
-              else
-                raise ArgumentError, "Invalid position, choose one of :before, :top, :bottom, :after"
+      def update_element_function(element_id, options = {}, &block)
+        
+        content = escape_javascript(options[:content] || '')
+        content = escape_javascript(capture(&block)) if block
+        
+        javascript_function = case (options[:action] || :update)
+          when :update
+            if options[:position]
+              "new Insertion.#{options[:position].to_s.camelize}('#{element_id}','#{content}')"
+            else
+              "$('#{element_id}').innerHTML = '#{content}'"
             end
-
-          when :replace
-            "$('#{element_id}').innerHTML = '#{options[:content]}'"
-
+          
           when :empty
             "$('#{element_id}').innerHTML = ''"
-
-          when :delete
-            "$('#{element_id}').parentNode.removeChild($('#{options[:target]}'))"
-
+          
+          when :remove
+            "Element.remove('#{element_id}')"
+          
           else
-            raise ArgumentError, "Invalid action, choose one of :insert, :replace, :delete, :empty, :formfill"
+            raise ArgumentError, "Invalid action, choose one of :update, :remove, :empty"
         end
         
+        javascript_function << ";\n"
         options[:binding] ? concat(javascript_function, options[:binding]) : javascript_function
       end
       
       # Returns 'eval(request.responseText)' which is the Javascript function that form_remote_tag can call in :complete to
       # evaluate a multiple update return document using update_element_function calls.
       def evaluate_remote_response
-        "'eval(request.responseText)'"
+        "eval(request.responseText)"
       end
 
       def remote_function(options) #:nodoc: for now

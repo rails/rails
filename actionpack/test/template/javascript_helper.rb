@@ -7,6 +7,7 @@ class JavaScriptHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TagHelper
   include ActionView::Helpers::TextHelper
   include ActionView::Helpers::FormHelper
+  include ActionView::Helpers::CaptureHelper
   
   def setup
     @controller = Class.new do
@@ -118,6 +119,30 @@ class JavaScriptHelperTest < Test::Unit::TestCase
       drop_receiving_element('droptarget1', :accept => 'products')
     assert_equal %(<script type=\"text/javascript\">Droppables.add('droptarget1', {onDrop:function(element){new Ajax.Updater('infobox', 'http://www.example.com/', {parameters:'id=' + encodeURIComponent(element.id), evalScripts:true, asynchronous:true})}, accept:'products'})</script>),
       drop_receiving_element('droptarget1', :accept => 'products', :update => 'infobox')
+  end
+  
+  def test_update_element_function
+    assert_equal %($('myelement').innerHTML = 'blub';\n),
+      update_element_function('myelement', :content => 'blub')
+    assert_equal %($('myelement').innerHTML = 'blub';\n),
+      update_element_function('myelement', :action => :update, :content => 'blub')
+    assert_equal %($('myelement').innerHTML = '';\n),
+      update_element_function('myelement', :action => :empty)
+    assert_equal %(Element.remove('myelement');\n),
+      update_element_function('myelement', :action => :remove)
+      
+    assert_equal %(new Insertion.Bottom('myelement','blub');\n),
+      update_element_function('myelement', :position => 'bottom', :content => 'blub')
+    assert_equal %(new Insertion.Bottom('myelement','blub');\n),
+      update_element_function('myelement', :action => :update, :position => :bottom, :content => 'blub')
+      
+    _erbout = ""
+    assert_equal %($('myelement').innerHTML = 'test';\n),
+      update_element_function('myelement') { _erbout << "test" }
+      
+    _erbout = ""
+    assert_equal %($('myelement').innerHTML = 'blockstuff';\n),
+      update_element_function('myelement', :content => 'paramstuff') { _erbout << "blockstuff" }
   end
   
 end
