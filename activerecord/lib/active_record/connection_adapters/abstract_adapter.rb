@@ -359,7 +359,7 @@ module ActiveRecord
 
       def initialize_schema_information
         begin
-          execute "CREATE TABLE schema_info (version #{native_database_types[:integer][:name]}#{native_database_types[:integer][:limit]})"
+          execute "CREATE TABLE schema_info (version #{native_database_types[:integer][:name]}(#{native_database_types[:integer][:limit]}))"
           insert "INSERT INTO schema_info (version) VALUES(0)"
         rescue ActiveRecord::StatementInvalid
           # Schema has been intialized
