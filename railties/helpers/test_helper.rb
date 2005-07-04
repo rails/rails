@@ -16,3 +16,11 @@ def create_fixtures(*table_names)
 end
 
 Test::Unit::TestCase.fixture_path = File.dirname(__FILE__) + "/fixtures/"
+
+class Test::Unit::TestCase
+  # Turn these on to use transactional fixtures with table_name(:fixture_name) instantiation of fixtures
+  # self.use_transactional_fixtures = true
+  # self.use_instantiated_fixtures  = false
+
+  # Add helper methods to be used by all tests here
+end
