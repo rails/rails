@@ -19,20 +19,20 @@ class NilClass
   end
   
   def id
-    raise "Called id for nil, which would mistakenly be 4 -- if you really wanted the id of nil, use object_id"
+    raise RuntimeError, "Called id for nil, which would mistakenly be 4 -- if you really wanted the id of nil, use object_id", caller
   end
 
   private
     def method_missing(method, *args, &block)
       if @@method_class_map.include?(method)
-        raise_nil_warning_for @@method_class_map[method]
+        raise_nil_warning_for @@method_class_map[method], caller
       else
         super
       end
     end
 
-    def raise_nil_warning_for(klass)
-      raise NoMethodError, NIL_WARNING_MESSAGE % klass
+    def raise_nil_warning_for(klass, with_caller = nil)
+      raise NoMethodError, NIL_WARNING_MESSAGE % klass, with_caller || caller
     end
 
     NIL_WARNING_MESSAGE = <<-end_message unless const_defined?(:NIL_WARNING_MESSAGE)
