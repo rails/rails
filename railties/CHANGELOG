@@ -1,5 +1,7 @@
 *SVN*
 
+* Added create_db and destroy_db tasks in the Rakefile to make it easier to load the dumped structure into the database #1587 [Sam Stephenson]
+
 * Added an EXPERIMENTAL gateway.cgi for getting high-speed performance through vanilla CGI using a long-running, DRb-backed server in the background (using script/listener and script/tracker) #1603 [Nicholas Seckar]
 
 * Added migration generator: ./script/generate migration add_system_settings

@@ -30,8 +30,33 @@ def recent_tests(source_pattern, test_path, touched_since = 10.minutes.ago)
   end.compact
 end
 
+def with_database(environment = RAILS_ENV)
+  config = ActiveRecord::Base.configurations[environment]
+  case config['adapter']
+    when /mysql/
+      ActiveRecord::Base.establish_connection(config)
+      ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
+      db = :mysql
+    when /postgresql/
+      ENV['PGHOST']     = config['host'].to_s     if config['host']
+      ENV['PGPORT']     = config['port'].to_s     if config['port']
+      ENV['PGPASSWORD'] = config['password'].to_s if config['password']
+      db = :postgresql
+    when /sqlite/
+      db = :sqlite
+    else 
+      raise "Unknown database adapter '#{config['adapter']}'"
+  end
+  schema = "db/schema-#{db}.sql"
+  yield(config, schema)[db].call
+end
+
+task :test_environment do
+  ENV['RAILS_ENV'] = 'test'
+end
+
 desc 'Test recent changes.'
-Rake::TestTask.new(:recent => [ :clone_structure_to_test ]) do |t|
+Rake::TestTask.new(:recent) do |t|
   since = TEST_CHANGES_SINCE
   touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
     recent_tests('app/models/*.rb', 'test/unit', since) +
@@ -41,26 +66,26 @@ Rake::TestTask.new(:recent => [ :clone_structure_to_test ]) do |t|
   t.verbose = true
   t.test_files = touched.uniq
 end
-task :test_recent => [ :clone_structure_to_test ]
+task :test_recent => [:test_environment, :create_db]
 
 desc "Run the unit tests in test/unit"
-Rake::TestTask.new("test_units") { |t|
+Rake::TestTask.new(:test_units) { |t|
   t.libs << "test"
   t.pattern = 'test/unit/**/*_test.rb'
   t.verbose = true
 }
-task :test_units => [ :clone_structure_to_test ]
+task :test_units => [:test_environment, :create_db]
 
 desc "Run the functional tests in test/functional"
-Rake::TestTask.new("test_functional") { |t|
+Rake::TestTask.new(:test_functional) { |t|
   t.libs << "test"
   t.pattern = 'test/functional/**/*_test.rb'
   t.verbose = true
 }
-task :test_functional => [ :clone_structure_to_test ]
+task :test_functional => [:test_environment, :create_db]
 
 desc "Generate documentation for the application"
-Rake::RDocTask.new("appdoc") { |rdoc|
+Rake::RDocTask.new(:appdoc) { |rdoc|
   rdoc.rdoc_dir = 'doc/app'
   rdoc.title    = "Rails Application Documentation"
   rdoc.options << '--line-numbers --inline-source'
@@ -69,7 +94,7 @@ Rake::RDocTask.new("appdoc") { |rdoc|
 }
 
 desc "Generate documentation for the Rails framework"
-Rake::RDocTask.new("apidoc") { |rdoc|
+Rake::RDocTask.new(:apidoc) { |rdoc|
   rdoc.rdoc_dir = 'doc/api'
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.title    = "Rails Framework Documentation"
@@ -118,64 +143,59 @@ task :stats => [ :environment ] do
   ).to_s
 end
 
-desc "Recreate the test databases from the development structure"
-task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
-  abcs = ActiveRecord::Base.configurations
-  case abcs["test"]["adapter"]
-    when  "mysql"
-      ActiveRecord::Base.establish_connection(:test)
-      ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
-      IO.readlines("db/#{RAILS_ENV}_structure.sql").join.split("\n\n").each do |table|
+desc "Create the database for the current environment from the schema SQL"
+task :create_db => :destroy_db do
+  with_database do |config, schema|
+    {:mysql => lambda do
+      IO.read(schema).split("\n\n").each do |table|
         ActiveRecord::Base.connection.execute(table)
       end
-    when "postgresql"
-      ENV['PGHOST']     = abcs["test"]["host"] if abcs["test"]["host"]
-      ENV['PGPORT']     = abcs["test"]["port"].to_s if abcs["test"]["port"]
-      ENV['PGPASSWORD'] = abcs["test"]["password"].to_s if abcs["test"]["password"]
-      `psql -U "#{abcs["test"]["username"]}" -f db/#{RAILS_ENV}_structure.sql #{abcs["test"]["database"]}`
-    when "sqlite", "sqlite3"
-      `#{abcs[RAILS_ENV]["adapter"]} #{abcs["test"]["dbfile"]} < db/#{RAILS_ENV}_structure.sql`
-    else 
-      raise "Unknown database adapter '#{abcs["test"]["adapter"]}'"
+    end,
+    
+    :postgresql => lambda do
+      `createdb -T template0 -U "#{config['username']}" #{config['database']}`
+      `psql -U "#{config['username']}" -f #{schema} #{config['database']}`
+    end,
+    
+    :sqlite => lambda do
+      `#{config['adapter']} #{config['dbfile']} < #{schema}`
+    end}
   end
 end
 
-desc "Dump the database structure to a SQL file"
-task :db_structure_dump => :environment do
-  abcs = ActiveRecord::Base.configurations
-  case abcs[RAILS_ENV]["adapter"] 
-    when "mysql"
-      ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
-      File.open("db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
-    when "postgresql"
-      ENV['PGHOST']     = abcs[RAILS_ENV]["host"] if abcs[RAILS_ENV]["host"]
-      ENV['PGPORT']     = abcs[RAILS_ENV]["port"].to_s if abcs[RAILS_ENV]["port"]
-      ENV['PGPASSWORD'] = abcs[RAILS_ENV]["password"].to_s if abcs[RAILS_ENV]["password"]
-      `pg_dump -U "#{abcs[RAILS_ENV]["username"]}" -s -x -O -f db/#{RAILS_ENV}_structure.sql #{abcs[RAILS_ENV]["database"]}`
-    when "sqlite", "sqlite3"
-      `#{abcs[RAILS_ENV]["adapter"]} #{abcs[RAILS_ENV]["dbfile"]} .schema > db/#{RAILS_ENV}_structure.sql`
-    else 
-      raise "Unknown database adapter '#{abcs["test"]["adapter"]}'"
+desc "Destroy the database for the current environment"
+task :destroy_db => :environment do
+  with_database do |config, schema|
+    {:mysql => lambda do
+      ActiveRecord::Base.connection.execute("DROP DATABASE IF EXISTS #{config['database']}")
+    end,
+    
+    :postgresql => lambda do
+      `dropdb -U "#{config['username']}" #{config['database']}`      
+    end,
+    
+    :sqlite => lambda do
+      rm_f config['dbfile']
+    end}
   end
 end
 
-desc "Empty the test database"
-task :purge_test_database => :environment do
-  abcs = ActiveRecord::Base.configurations
-  case abcs["test"]["adapter"]
-    when "mysql"
-      ActiveRecord::Base.establish_connection(:test)
-      ActiveRecord::Base.connection.recreate_database(abcs["test"]["database"])
-    when "postgresql"
-      ENV['PGHOST']     = abcs["test"]["host"] if abcs["test"]["host"]
-      ENV['PGPORT']     = abcs["test"]["port"].to_s if abcs["test"]["port"]
-      ENV['PGPASSWORD'] = abcs["test"]["password"].to_s if abcs["test"]["password"]
-      `dropdb -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
-      `createdb -T template0 -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
-    when "sqlite","sqlite3"
-      File.delete(abcs["test"]["dbfile"]) if File.exist?(abcs["test"]["dbfile"])
-    else 
-      raise "Unknown database adapter '#{abcs["test"]["adapter"]}'"
+desc "Extract the current environment's database structure into schema SQL"
+task :extract_db_structure => :environment do
+  with_database do |config, schema|
+    {:mysql => lambda do
+      File.open(schema, 'w+') do |sql|
+        sql << ActiveRecord::Base.connection.structure_dump
+      end
+    end,
+    
+    :postgresql => lambda do
+      `pg_dump -U "#{config['username']}" -s -x -O -f #{schema} #{config['database']}`
+    end,
+    
+    :sqlite => lambda do
+      `#{config['adapter']} #{config['dbfile']} .schema > #{schema}`
+    end}
   end
 end
 
