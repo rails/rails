@@ -682,6 +682,17 @@ class RouteSetTests < Test::Unit::TestCase
       {:controller => 'admin/user', :action => 'index'}
     )
   end  
+
+  def test_backwards
+    rs.draw do |map|
+      rs.connect 'page/:id/:action', :controller => 'pages', :action => 'show'
+      rs.connect ':controller/:action/:id'
+    end
+
+    assert_equal ['/page/20', {}], rs.generate(:controller => 'pages', :id => 20)
+    assert_equal ['/page/20', {}], rs.generate(:controller => 'pages', :id => 20, :action => 'show')
+    assert_equal ['/pages/boo', {}], rs.generate(:controller => 'pages', :action => 'boo')
+  end
 end
 
 end

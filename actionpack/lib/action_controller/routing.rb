@@ -118,8 +118,8 @@ module ActionController
         gp = g.dup # Use another generator to write the conditions after the first &&
         # We do this to ensure that the generator will not assume x_value is set. It will
         # not be set if it follows a false condition -- for example, false && (x = 2)
-    
-        gp.after.map {|c| c.default_check gp}
+        
+        check += gp.after.map {|c| c.default_check gp}
         gp.if(check.join(' && ')) { gp.finish } # If this condition is met, we stop here
         true 
       end
