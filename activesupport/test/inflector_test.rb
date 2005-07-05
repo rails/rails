@@ -61,6 +61,7 @@ class InflectorTest < Test::Unit::TestCase
     "news"        => "news",
     
     "series"      => "series",
+    "species"     => "species",
 
     "perspective" => "perspectives",
     
@@ -74,12 +75,27 @@ class InflectorTest < Test::Unit::TestCase
     "equipment" => "equipment",
     "bus" => "buses",
     "mouse" => "mice",
+
     "louse" => "lice",
     "house" => "houses",
     "octopus" => "octopi",
     "virus" => "viri",
     "alias" => "aliases",
-    "portfolio" => "portfolios"
+    "portfolio" => "portfolios",
+    
+    "vertex" => "vertices",
+    "matrix" => "matrices",
+    
+    "axis" => "axes",
+    "testis" => "testes",
+    "crisis" => "crises",
+    
+    "rice" => "rice",
+    "shoe" => "shoes",
+    
+    "horse" => "horses",
+    "prize" => "prizes",
+    "edge" => "edges"
   }
 
   CamelToUnderscore = {
@@ -198,16 +214,4 @@ class InflectorTest < Test::Unit::TestCase
     assert_equal InflectorTest, Inflector.constantize("InflectorTest")
     assert_raises(NameError) { Inflector.constantize("UnknownClass") }
   end
-  
-  # def test_staying_singular
-  #   for term in SingularToPlural.keys
-  #     assert_equal term, Inflector.singularize(term)
-  #   end
-  # end
-  # 
-  # def test_staying_plural
-  #   for term in SingularToPlural.values
-  #     assert_equal term, Inflector.singularize(term)
-  #   end
-  # end
 end

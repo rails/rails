@@ -5,18 +5,24 @@ module Inflector
 
   def pluralize(word)
     result = word.to_s.dup
-    plural_rules.each do |(rule, replacement)|
-      break if result.gsub!(rule, replacement)
+
+    if uncountable_words.include?(result.downcase)
+      result
+    else
+      plural_rules.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+      result
     end
-    return result
   end
 
   def singularize(word)
     result = word.to_s.dup
-    singular_rules.each do |(rule, replacement)|
-      break if result.gsub!(rule, replacement)
+
+    if uncountable_words.include?(result.downcase)
+      result
+    else
+      singular_rules.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+      result
     end
-    return result
   end
 
   def camelize(lower_case_and_underscored_word)
@@ -55,42 +61,47 @@ module Inflector
   end
 
   private
+    def uncountable_words #:doc
+      %w( equipment information rice money species series fish )
+    end
+  
     def plural_rules #:doc:
       [
-        [/(fish)$/i, '\1\2'],                 # fish
-      	[/(information|equipment|money)$/i, '\1'],	# plural nouns
-      	[/^(ox)$/i, '\1\2en'],		# ox
-      	[/([m|l])ouse/i, '\1ice'],		# mouse, louse
-        [/(x|ch|ss|sh)$/i, '\1es'],           # search, switch, fix, box, process, address
-        [/(series)$/i, '\1\2'],
+      	[/^(ox)$/i, '\1\2en'],		             # ox
+      	[/([m|l])ouse$/i, '\1ice'],	           # mouse, louse
+      	[/(matr|vert)ix|ex$/i, '\1ices'],      # matrix, vertex, index
+        [/(x|ch|ss|sh)$/i, '\1es'],            # search, switch, fix, box, process, address
         [/([^aeiouy]|qu)ies$/i, '\1y'],
-        [/([^aeiouy]|qu)y$/i, '\1ies'],       # query, ability, agency
-        [/(hive)$/i, '\1s'],                  # archive, hive
+        [/([^aeiouy]|qu)y$/i, '\1ies'],        # query, ability, agency
+        [/(hive)$/i, '\1s'],                   # archive, hive
         [/(?:([^f])fe|([lr])f)$/i, '\1\2ves'], # half, safe, wife
-        [/sis$/i, 'ses'],                     # basis, diagnosis
-        [/([ti])um$/i, '\1a'],                # datum, medium
-        [/(p)erson$/i, '\1\2eople'],          # person, salesperson
-        [/(m)an$/i, '\1\2en'],                # man, woman, spokesman
-        [/(c)hild$/i, '\1\2hildren'],         # child
-        [/(photo)$/i, '\1s'],
-      	[/(buffal|tomat)o$/i, '\1\2oes'],             # buffalo, tomato
-      	[/(bu)s$/i, '\1\2ses'],	# bus
-      	[/(alias)/i, '\1es'],        # alias
-      	[/([octop|vir])us$/i, '\1i'], # octopus, virus - virus has no defined plural (according to Latin/dictionary.com), but viri is better than viruses/viruss
-        [/s$/i, 's'],                         # no change (compatibility)
+        [/sis$/i, 'ses'],                      # basis, diagnosis
+        [/([ti])um$/i, '\1a'],                 # datum, medium
+        [/(p)erson$/i, '\1eople'],             # person, salesperson
+        [/(m)an$/i, '\1en'],                   # man, woman, spokesman
+        [/(c)hild$/i, '\1hildren'],            # child
+      	[/(buffal|tomat)o$/i, '\1\2oes'],		   # buffalo, tomato
+      	[/(bu)s$/i, '\1\2ses'],	               # bus
+        [/(alias)/i, '\1es'],                  # alias
+      	[/(octop|vir)us$/i, '\1i'],            # octopus, virus - virus has no defined plural (according to Latin/dictionary.com), but viri is better than viruses/viruss
+      	[/(ax|cri|test)is$/i, '\1es'],         # axis, crisis  
+        [/s$/i, 's'],                          # no change (compatibility)
         [/$/, 's']
       ]
     end
 
     def singular_rules #:doc:
       [
-        [/(f)ish$/i, '\1\2ish'],
+        [/(matr)ices$/i, '\1ix'],
+      	[/(vert)ices$/i, '\1ex'],
       	[/^(ox)en/i, '\1'],
       	[/(alias)es$/i, '\1'],
       	[/([octop|vir])i$/i, '\1us'],
-      	[/(o)es/i, '\1'],
+      	[/(cris|ax|test)es$/i, '\1is'],
+      	[/(shoe)s$/i, '\1'],
+      	[/(o)es$/i, '\1'],
       	[/(bus)es$/i, '\1'],
-      	[/([m|l])ice/i, '\1ouse'],
+      	[/([m|l])ice$/i, '\1ouse'],
         [/(x|ch|ss|sh)es$/i, '\1'],
         [/(m)ovies$/i, '\1\2ovie'],
         [/(s)eries$/i, '\1\2eries'],
@@ -103,7 +114,7 @@ module Inflector
         [/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$/i, '\1\2sis'],
         [/([ti])a$/i, '\1um'],
         [/(p)eople$/i, '\1\2erson'],
-        [/(m)en$/i, '\1\2an'],
+        [/(m)en$/i, '\1an'],
         [/(s)tatus$/i, '\1\2tatus'],
         [/(c)hildren$/i, '\1\2hild'],
         [/(n)ews$/i, '\1\2ews'],
