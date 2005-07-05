@@ -421,7 +421,7 @@ module ActionController
         if recognized = @@recognized_route_cache[request.path]
           controller, options = recognized
           request.path_parameters = options
-          controller
+          controller.new
         else
           string_path = request.path
           string_path.chomp! if string_path[0] == ?/
