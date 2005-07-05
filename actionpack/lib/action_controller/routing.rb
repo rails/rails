@@ -363,6 +363,7 @@ module ActionController
         use_recall = true
         
         controller = options[:controller]
+        options[:action] ||= 'index' if controller
         recall_controller = recall[:controller]
         if (recall_controller && recall_controller.include?(?/)) || (controller && controller.include?(?/)) 
           recall = {} if controller && controller[0] == ?/

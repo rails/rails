@@ -689,9 +689,13 @@ class RouteSetTests < Test::Unit::TestCase
       rs.connect ':controller/:action/:id'
     end
 
-    assert_equal ['/page/20', {}], rs.generate(:controller => 'pages', :id => 20)
+    assert_equal ['/page/20', {}], rs.generate({:id => 20}, {:controller => 'pages'})
     assert_equal ['/page/20', {}], rs.generate(:controller => 'pages', :id => 20, :action => 'show')
     assert_equal ['/pages/boo', {}], rs.generate(:controller => 'pages', :action => 'boo')
+  end
+
+  def test_action_expiry
+    assert_equal ['/content', {}], rs.generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
   end
 end
 
