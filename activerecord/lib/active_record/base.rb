@@ -1200,7 +1200,7 @@ module ActiveRecord #:nodoc:
       # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
-        if value = @attributes[attr_name]
+        if !(value = @attributes[attr_name]).nil?
           if column = column_for_attribute(attr_name)
             if unserializable_attribute?(attr_name, column)
               unserialize_attribute(attr_name)

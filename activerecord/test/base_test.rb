@@ -180,6 +180,12 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal "Still another topic: part 2", topic.title
   end
 
+  def test_read_attribute_when_false
+    topic = topics(:first)
+    topic.approved = false
+    assert_equal 0, topic.approved, "approved should be 0"
+  end
+
   def test_preserving_date_objects
     # SQL Server doesn't have a separate column type just for dates, so all are returned as time
     if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter
