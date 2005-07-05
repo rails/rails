@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed the default logging level in config/environment.rb to INFO for production (so SQL statements won't be logged)
+
 * Added an EXPERIMENTAL gateway.cgi for getting high-speed performance through vanilla CGI using a long-running, DRb-backed server in the background (using script/listener and script/tracker) #1603 [Nicholas Seckar]
 
 * Added migration generator: ./script/generate migration add_system_settings

@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed logging of SQL statements to use the DEBUG level instead of INFO
+
 * Added new Migrations framework for describing schema transformations in a way that can be easily applied across multiple databases #1604 [Tobias Luetke] See documentation under ActiveRecord::Migration and the additional support in the Rails rakefile/generator.
 
 * Added callback hooks to association collections #1549 [Florian Weber]. Example:

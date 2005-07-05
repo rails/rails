@@ -1,5 +1,7 @@
 *SVN*
 
+* Added logging of the request URI in the benchmark statement (makes it easy to grep for slow actions)
+
 * Added javascript_include_tag :defaults shortcut that'll include all the default javascripts included with Action Pack (prototype, effects, controls, dragdrop)
 
 * Cache several controller variables that are expensive to calculate #1229 [skaes@web.de]

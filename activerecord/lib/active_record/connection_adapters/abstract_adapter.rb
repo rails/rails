@@ -460,7 +460,7 @@ module ActiveRecord
         def log_info(sql, name, runtime)
           return unless @logger
 
-          @logger.info(
+          @logger.debug(
             format_log_entry(
               "#{name.nil? ? "SQL" : name} (#{sprintf("%f", runtime)})",
               sql.gsub(/ +/, " ")

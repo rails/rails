@@ -689,6 +689,10 @@ module ActionController #:nodoc:
         "#{@request.remote_ip} at #{Time.now.to_s}"
       end
       
+      def complete_request_uri
+        request.protocol + request.host + request.request_uri
+      end
+
       def close_session
         @session.close unless @session.nil? || Hash === @session
       end
