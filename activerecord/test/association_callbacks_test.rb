@@ -10,10 +10,10 @@ class AssociationCallbacksTest < Test::Unit::TestCase
   fixtures :posts, :authors, :projects, :developers
 
   def setup
-   @david = authors(:david)
-   @thinking = posts(:thinking)
-   @authorless = posts(:authorless)
-   assert @david.post_log.empty?
+    @david = authors(:david)
+    @thinking = posts(:thinking)
+    @authorless = posts(:authorless)
+    assert @david.post_log.empty?
   end
   
   def test_adding_macro_callbacks
@@ -74,14 +74,14 @@ class AssociationCallbacksTest < Test::Unit::TestCase
   def test_has_and_belongs_to_many_remove_callback
     david = developers(:david)
     jamis = developers(:jamis)
-    ar = projects(:active_record)
-    assert ar.developers_log.empty?
-    ar.developers_with_callbacks.delete(david)
-    assert_equal ["before_removing#{david.id}", "after_removing#{david.id}"], ar.developers_log
+    activerecord = projects(:active_record)
+    assert activerecord.developers_log.empty?
+    activerecord.developers_with_callbacks.delete(david)
+    assert_equal ["before_removing#{david.id}", "after_removing#{david.id}"], activerecord.developers_log
     
-    ar.developers_with_callbacks.delete(jamis)
+    activerecord.developers_with_callbacks.delete(jamis)
     assert_equal ["before_removing#{david.id}", "after_removing#{david.id}", "before_removing#{jamis.id}", 
-                  "after_removing#{jamis.id}"], ar.developers_log
+                  "after_removing#{jamis.id}"], activerecord.developers_log
   end
   
   def test_dont_add_if_before_callback_raises_exception
@@ -95,6 +95,16 @@ class AssociationCallbacksTest < Test::Unit::TestCase
     @david.reload
     assert !@david.unchangable_posts.include?(@authorless)
   end
-
+  
+  def test_push_with_attributes
+    david = developers(:david)
+    activerecord = projects(:active_record)
+    assert activerecord.developers_log.empty?
+    activerecord.developers_with_callbacks.push_with_attributes(david, {})
+    assert_equal ["before_adding#{david.id}", "after_adding#{david.id}"], activerecord.developers_log
+    activerecord.developers_with_callbacks.push_with_attributes(david, {})
+    assert_equal ["before_adding#{david.id}", "after_adding#{david.id}", "before_adding#{david.id}", 
+                  "after_adding#{david.id}"], activerecord.developers_log
+  end
 end
 

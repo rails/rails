@@ -82,8 +82,10 @@ module ActiveRecord
       def push_with_attributes(record, join_attributes = {})
         raise_on_type_mismatch(record)
         join_attributes.each { |key, value| record[key.to_s] = value }
+        callback(:before_add, record)
         insert_record(record) unless @owner.new_record?
         @target << record
+        callback(:after_add, record)
         self
       end
       
