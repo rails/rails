@@ -43,8 +43,15 @@ module ActionView
       #   javascript_include_tag "common.javascript", "/elsewhere/cools" # =>
       #     <script type="text/javascript" src="/javascripts/common.javascript"></script>
       #     <script type="text/javascript" src="/elsewhere/cools.js"></script>
+      #
+      #   javascript_include_tag :defaults # =>
+      #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
+      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
+      #     <script type="text/javascript" src="/javascripts/controls.js"></script>
+      #     <script type="text/javascript" src="/javascripts/dragdrop.js"></script>      
       def javascript_include_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
+        sources = ['prototype', 'effects', 'controls', 'dragdrop'] if sources.first == :defaults
         sources.collect { |source|
           source = javascript_path(source)        
           content_tag("script", "", { "type" => "text/javascript", "src" => source }.merge(options))
