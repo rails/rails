@@ -9,15 +9,15 @@ module ActionView
       #    <%= expensive_notes_operation %>
       #  <% end %>
       #
-      # Will add something like "Notes section (0.345234)" to the log.
-      def benchmark(message = "Benchmarking", &block)
-        return if @logger.nil?
-
-        bm = Benchmark.measure do
-          block.call
+      # Will add something like "Notes section (0.34523)" to the log.
+      #
+      # You may give an optional logger level as the second argument
+      # (:debug, :info, :warn, :error).  The default is :info.
+      def benchmark(message = "Benchmarking", level = :info)
+        if @logger
+          real = Benchmark.realtime { yield }
+          @logger.send level, "#{message} (#{'%.5f' % real})"
         end
-        
-        @logger.info("#{message} (#{sprintf("%.5f", bm.real)})")
       end
     end
   end
