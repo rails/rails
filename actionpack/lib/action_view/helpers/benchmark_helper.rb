@@ -17,7 +17,7 @@ module ActionView
           block.call
         end
         
-        @logger.info("#{message} (#{sprintf("%.5f", bm.real})")
+        @logger.info("#{message} (#{sprintf("%.5f", bm.real)})")
       end
     end
   end
