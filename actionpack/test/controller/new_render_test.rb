@@ -69,6 +69,7 @@ class NewRenderTestController < ActionController::Base
   end
 
   def partials_list
+    @test_unchanged = 'hello'
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render :action => "list"
   end
@@ -222,7 +223,7 @@ class NewRenderTest < Test::Unit::TestCase
 
   def test_partials_list
     get :partials_list
-    assert_equal "Hello: davidHello: mary", @response.body
+    assert_equal "goodbyeHello: davidHello: marygoodbye\n", @response.body
   end
 
   def test_partial_only
@@ -237,7 +238,7 @@ class NewRenderTest < Test::Unit::TestCase
 
   def test_render_to_string
     get :hello_in_a_string
-    assert_equal "How's there? Hello: davidHello: mary", @response.body
+    assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", @response.body
   end
 
   def test_nested_rendering

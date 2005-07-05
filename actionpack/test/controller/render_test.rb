@@ -174,7 +174,7 @@ class RenderTest < Test::Unit::TestCase
 
   def test_partials_list
     @request.action = "partials_list"
-    assert_equal "Hello: davidHello: mary", process_request.body
+    assert_equal "goodbyeHello: davidHello: marygoodbye\n", process_request.body
   end
 
   def test_partial_only
@@ -184,7 +184,7 @@ class RenderTest < Test::Unit::TestCase
 
   def test_render_to_string
     @request.action = "hello_in_a_string"
-    assert_equal "How's there? Hello: davidHello: mary", process_request.body
+    assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", process_request.body
   end
 
   def test_nested_rendering
