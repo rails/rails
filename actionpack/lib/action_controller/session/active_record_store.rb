@@ -251,24 +251,28 @@ class CGI
 
       # Restore session state.  The session model handles unmarshaling.
       def restore
-        @session.data
+        @session.data if @session
       end
 
       # Save session store.
       def update
-        @session.save!
+        @session.save! if @session
       end
 
       # Save and close the session store.
       def close
-        update
-        @session = nil
+        if @session
+          update
+          @session = nil
+        end
       end
 
       # Delete and close the session store.
       def delete
-        @session.destroy rescue nil
-        @session = nil
+        if @session
+          @session.destroy rescue nil
+          @session = nil
+        end
       end
     end
 

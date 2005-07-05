@@ -40,6 +40,13 @@ module CommonActiveRecordStoreTests
     reloaded = CGI::Session.new(CGI.new, 'session_id' => @new_session.session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
     assert_equal 'bar', reloaded['foo']
   end
+
+  def test_tolerates_close_close
+    assert_nothing_raised do
+      @new_session.close
+      @new_session.close
+    end
+  end
 end
 
 class ActiveRecordStoreTest < Test::Unit::TestCase
