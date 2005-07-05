@@ -57,6 +57,7 @@ class TestController < ActionController::Base
   end
 
   def partials_list
+    @test_unchanged = 'hello'
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render_action "list"
   end
