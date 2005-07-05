@@ -46,26 +46,6 @@ class CGI
             find_by_session_id(session_id)
           end
 
-          # Compatibility with tables using sessid instead of session_id.
-          def setup_sessid_compatibility!
-            if !@sessid_compatibility_checked
-              if columns_hash['sessid']
-                def self.find_by_session_id(*args)
-                  find_by_sessid(*args)
-                end
-
-                alias_method :session_id, :sessid
-                define_method(:session_id)  { sessid }
-                define_method(:session_id=) { |session_id| self.sessid = session_id }
-              else
-                def self.find_by_session_id(session_id)
-                  find :first, :conditions => ["session_id #{attribute_condition(session_id)}", session_id]
-                end
-              end
-              @sessid_compatibility_checked = true
-            end
-          end
-
           def marshal(data)     Base64.encode64(Marshal.dump(data)) end
           def unmarshal(data)   Marshal.load(Base64.decode64(data)) end
           def fingerprint(data) Digest::MD5.hexdigest(data)         end
@@ -83,6 +63,25 @@ class CGI
           def drop_table!
             connection.execute "DROP TABLE #{table_name}"
           end
+
+          private
+            # Compatibility with tables using sessid instead of session_id.
+            def setup_sessid_compatibility!
+              # Reset column info since it may be stale.
+              reset_column_information
+              if columns_hash['sessid']
+                def self.find_by_session_id(*args)
+                  find_by_sessid(*args)
+                end
+
+                define_method(:session_id)  { sessid }
+                define_method(:session_id=) { |session_id| self.sessid = session_id }
+              else
+                def self.find_by_session_id(session_id)
+                  find :first, :conditions => ["session_id #{attribute_condition(session_id)}", session_id]
+                end
+              end
+            end
         end
 
         # Lazy-unmarshal session state.  Take a fingerprint so we can detect
