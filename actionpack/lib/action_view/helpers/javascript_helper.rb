@@ -538,6 +538,7 @@ module ActionView
         content_tag("style", <<-EOT
           div.auto_complete {
             width: 350px;
+            background: #fff;
           }
           div.auto_complete ul {
             border:1px solid #888;
