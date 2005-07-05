@@ -416,21 +416,33 @@ module ActionController
         return (method_sources << code)
       end
 
+      @@recognized_route_cache = {}
       def recognize(request)
-        string_path = request.path
-        string_path.chomp! if string_path[0] == ?/
-        path = string_path.split '/'
-        path.shift
-    
-        hash = recognize_path(path)
-        recognition_failed(request) unless hash && hash['controller']
-    
-        controller = hash['controller']
-        hash['controller'] = controller.controller_path
-        request.path_parameters = hash
-        controller.new
+        if recognized = @@recognized_route_cache[request.path]
+          controller, options = recognized
+          request.path_parameters = options
+          controller
+        else
+          string_path = request.path
+          string_path.chomp! if string_path[0] == ?/
+          path = string_path.split '/'
+          path.shift
+      
+          hash = recognize_path(path)
+          recognition_failed(request) unless hash && hash['controller']
+      
+          controller = hash['controller']
+          hash['controller'] = controller.controller_path
+          request.path_parameters = hash
+          @@recognized_route_cache[request.path] = [controller, hash]
+          controller.new
+        end
       end
       alias :recognize! :recognize
+
+      def clear_recognized_route_cache!
+        @@recognized_route_cache.clear
+      end
   
       def recognition_failed(request)
         raise ActionController::RoutingError, "Recognition failed for #{request.path.inspect}"
