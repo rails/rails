@@ -35,7 +35,6 @@ class CGI
     class ActiveRecordStore
       # The default Active Record class.
       class Session < ActiveRecord::Base
-        self.table_name = 'sessions'
         before_save   :marshal_data!
         before_update :data_changed?
 
@@ -251,12 +250,16 @@ class CGI
 
       # Restore session state.  The session model handles unmarshaling.
       def restore
-        @session.data if @session
+        if @session
+          @session.data
+        end
       end
 
       # Save session store.
       def update
-        @session.save! if @session
+        if @session
+          ActiveRecord::Base.silence { @session.save! }
+        end
       end
 
       # Save and close the session store.
@@ -270,7 +273,7 @@ class CGI
       # Delete and close the session store.
       def delete
         if @session
-          @session.destroy rescue nil
+          ActiveRecord::Base.silence { @session.destroy }
           @session = nil
         end
       end
