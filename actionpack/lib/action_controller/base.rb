@@ -286,20 +286,24 @@ module ActionController #:nodoc:
       
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "NeatController".
       def controller_class_name
-        Inflector.demodulize(name)
+        @controller_class_name ||= name.demodulize
       end
 
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "neat".
       def controller_name
-        Inflector.underscore(controller_class_name.sub(/Controller/, ""))
+        @controller_name ||= controller_class_name.sub(/Controller$/, '').underscore
       end
       
       # Convert the class name from something like "OneModule::TwoModule::NeatController" to "one_module/two_module/neat".
       def controller_path
-        components = self.name.to_s.split('::').collect { |name| name.underscore }
-        components[-1] = $1 if /^(.*)_controller$/ =~ components[-1]
-        components.shift if components.first == 'controllers' # Transitional conditional to accomodate root Controllers module
-        components.join('/')
+        unless @controller_path
+          components = self.name.to_s.split('::')
+          components[-1] = $1 if /^(.*)Controller$/ =~ components.last
+          # Accomodate the root Controllers module.
+          components.shift if components.first == 'Controllers'
+          @controller_path = components.map { |name| name.underscore }.join('/')
+        end
+        @controller_path
       end
 
       # Return an array containing the names of public methods that have been marked hidden from the action processor.
