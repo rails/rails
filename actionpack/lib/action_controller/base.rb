@@ -329,7 +329,7 @@ module ActionController #:nodoc:
       #     and find templates in /code/weblog/components/admin/parties/users/
       def uses_component_template_root
         path_of_calling_controller = File.dirname(caller[0].split(/:\d+:/).first)
-        path_of_controller_root    = path_of_calling_controller.sub(/#{controller_path.split("/")[0..-2]}$/, "")
+        path_of_controller_root    = path_of_calling_controller.sub(/#{controller_path.split("/")[0..-2]}$/, "") # " (for ruby-mode)
         self.template_root = path_of_controller_root
       end
 
@@ -663,9 +663,9 @@ module ActionController #:nodoc:
       end
 
       def add_instance_variables_to_assigns
-        protected_variables_cache = protected_instance_variables
+        @@protected_variables_cache = protected_instance_variables.inject({}) { |h, k| h[k] = true; h }
         instance_variables.each do |var|
-          next if protected_variables_cache.include?(var)
+          next if @@protected_variables_cache.include?(var)
           @assigns[var[1..-1]] = instance_variable_get(var)
         end
       end
