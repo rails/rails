@@ -23,25 +23,7 @@ rescue Object
 end
 
 
-class ActiveRecordStoreTest < Test::Unit::TestCase
-  def session_class
-    CGI::Session::ActiveRecordStore::Session
-  end
-
-  def setup
-    session_class.create_table!
-
-    ENV['REQUEST_METHOD'] = 'GET'
-    CGI::Session::ActiveRecordStore.session_class = session_class
-
-    @new_session = CGI::Session.new(CGI.new, 'database_manager' => CGI::Session::ActiveRecordStore, 'new_session' => true)
-    @new_session['foo'] = 'bar'
-  end
-
-  def teardown
-    session_class.drop_table!
-  end
-
+module CommonActiveRecordStoreTests
   def test_basics
     s = session_class.new(:session_id => '1234', :data => { 'foo' => 'bar' })
     assert_equal 'bar', s.data['foo']
@@ -60,14 +42,14 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
   end
 end
 
+class ActiveRecordStoreTest < Test::Unit::TestCase
+  include CommonActiveRecordStoreTests
 
-class SqlBypassActiveRecordStoreTest < Test::Unit::TestCase
   def session_class
-    CGI::Session::ActiveRecordStore::SqlBypass
+    CGI::Session::ActiveRecordStore::Session
   end
 
   def setup
-    session_class.connection = CGI::Session::ActiveRecordStore::Session.connection
     session_class.create_table!
 
     ENV['REQUEST_METHOD'] = 'GET'
@@ -80,22 +62,36 @@ class SqlBypassActiveRecordStoreTest < Test::Unit::TestCase
   def teardown
     session_class.drop_table!
   end
+end
 
-  def test_basics
-    s = session_class.new(:session_id => '1234', :data => { 'foo' => 'bar' })
-    assert_equal 'bar', s.data['foo']
-    assert s.save!
-    assert_equal 'bar', s.data['foo']
 
-    assert_not_nil t = session_class.find_by_session_id('1234')
-    assert_not_nil t.data
-    assert_equal 'bar', t.data['foo']
+class DeprecatedActiveRecordStoreTest < ActiveRecordStoreTest
+  def setup
+    session_class.connection.execute 'create table old_sessions (id integer primary key, sessid text unique, data text)'
+    session_class.table_name = 'old_sessions'
+    session_class.send :setup_sessid_compatibility!
+
+    ENV['REQUEST_METHOD'] = 'GET'
+    CGI::Session::ActiveRecordStore.session_class = session_class
+
+    @new_session = CGI::Session.new(CGI.new, 'database_manager' => CGI::Session::ActiveRecordStore, 'new_session' => true)
+    @new_session['foo'] = 'bar'
   end
 
-  def test_reload_same_session
-    @new_session.update
-    reloaded = CGI::Session.new(CGI.new, 'session_id' => @new_session.session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
-    assert_equal 'bar', reloaded['foo']
+  def teardown
+    session_class.connection.execute 'drop table old_sessions'
+    session_class.table_name = 'sessions'
+    session_class.send :setup_sessid_compatibility!
+  end
+end
+
+class SqlBypassActiveRecordStoreTest < ActiveRecordStoreTest
+  def session_class
+    unless @session_class
+      @session_class = CGI::Session::ActiveRecordStore::SqlBypass
+      @session_class.connection = CGI::Session::ActiveRecordStore::Session.connection
+    end
+    @session_class
   end
 end
 
