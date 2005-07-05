@@ -398,6 +398,10 @@ module ActiveRecord
         raise NotImplementedError, "change_column is not implemented"
       end
       
+      def change_column_default(table_name, column_name, default)
+        raise NotImplementedError, "change_column_default is not implemented"
+      end
+      
       def supports_migrations?
         false
       end      
@@ -482,7 +486,7 @@ module ActiveRecord
         end
       
         def add_column_options!(sql, options)
-          sql << " DEFAULT '#{options[:default]}'" if options[:default]
+          sql << " DEFAULT '#{options[:default]}'" unless options[:default].nil?
         end
     end
 

@@ -151,10 +151,13 @@ module ActiveRecord
       end
             
       def change_column(table_name, column_name, type, options = {})
-        change_column_sql = "ALTER TABLE #{table_name} ALTER COLUMN #{column_name} TYPE #{type}"
-        add_column_options!(change_column_sql, options)
-        execute(change_column_sql)
+        execute = "ALTER TABLE #{table_name} ALTER  #{column_name} TYPE #{type}"
+        change_column_default(table_name, column_name, options[:default]) unless options[:default].nil?
       end      
+
+      def change_column_default(table_name, column_name, default)
+        execute "ALTER TABLE #{table_name} ALTER COLUMN #{column_name} SET DEFAULT '#{default}'"
+      end
       
       def rename_column(table_name, column_name, new_column_name)
         execute "ALTER TABLE #{table_name} RENAME COLUMN #{column_name} TO #{new_column_name}"
@@ -163,7 +166,7 @@ module ActiveRecord
       def remove_index(table_name, column_name)
         execute "DROP INDEX #{table_name}_#{column_name}_index"
       end      
-    
+      
       private
         BYTEA_COLUMN_TYPE_OID = 17
 

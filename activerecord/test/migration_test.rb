@@ -108,9 +108,11 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_change_column_with_new_default
       Person.connection.add_column "people", "administrator", :boolean, :default => 1
+      Person.reset_column_information            
       assert Person.new.administrator?
       
       assert_nothing_raised { Person.connection.change_column "people", "administrator", :boolean, :default => 0 }
+      Person.reset_column_information            
       assert !Person.new.administrator?
     end    
 

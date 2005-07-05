@@ -198,9 +198,17 @@ module ActiveRecord
       def create_database(name)
         execute "CREATE DATABASE #{name}"
       end
+      
+      def change_column_default(table_name, column_name, default)
+        current_type = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Type"]
+
+        change_column(table_name, column_name, current_type, { :default => default })
+      end
 
       def change_column(table_name, column_name, type, options = {})
-        change_column_sql = "ALTER TABLE #{table_name} MODIFY #{column_name} #{type}"
+        options[:default] ||= select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Default"]
+        
+        change_column_sql = "ALTER TABLE #{table_name} CHANGE #{column_name} #{column_name} #{type_to_sql(type, options[:limit])}"
         add_column_options!(change_column_sql, options)
         execute(change_column_sql)
       end
