@@ -51,20 +51,31 @@ module ActiveRecord
   #
   # == Available transformations
   #
-  # * <tt>create_table(name, options = "")</tt> Creates a table called +name+ and makes the table object available to a block
-  #   that can then add columns to it, following the same format as add_column. See example above. The options string is for
+  # * <tt>create_table(name, options)</tt> Creates a table called +name+ and makes the table object available to a block
+  #   that can then add columns to it, following the same format as add_column. See example above. The options hash is for
   #   fragments like "DEFAULT CHARSET=UTF-8" that are appended to the create table definition.
   # * <tt>drop_table(name)</tt>: Drops the table called +name+.
-  # * <tt>add_column(table_name, column_name, type, options = {})</tt>: Adds a new column to the table called +table_name+
+  # * <tt>add_column(table_name, column_name, type, options)</tt>: Adds a new column to the table called +table_name+
   #   named +column_name+ specified to be one of the following types:
   #   :string, :text, :integer, :float, :datetime, :timestamp, :time, :date, :binary, :boolean. A default value can be specified
   #   by passing an +options+ hash like { :default => 11 }.
+  # * <tt>rename_column(table_name, column_name, new_column_name)</tt>: Renames a column but keeps the type and content.
+  # * <tt>change_column(table_name, column_name, type, options)</tt>:  Changes the column to a different type using the same
+  #   parameters as add_column.
   # * <tt>remove_column(table_name, column_name)</tt>: Removes the column named +column_name+ from the table called +table_name+.
+  # * <tt>add_index(table_name, column_name)</tt>: Add a new index with the name of the column on the column.
+  # * <tt>remove_index(table_name, column_name)</tt>: Remove the index called the same as the column.
   #
   # == Irreversible transformations
   #
   # Some transformations are destructive in a manner that cannot be reversed. Migrations of that kind should raise
   # an <tt>IrreversibleMigration</tt> exception in their +down+ method.
+  #
+  # == Running migrations from within Rails
+  #
+  # The Rails package has support for migrations with the <tt>script/generate migration my_new_migration</tt> command and
+  # with the <tt>rake migrate</tt> command that'll run all the pending migrations. It'll even create the needed schema_info
+  # table automatically if it's missing.
   #
   # == Database support
   #

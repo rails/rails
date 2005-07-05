@@ -60,7 +60,6 @@ module ActiveRecord
     # * <tt>:encoding</tt> -- An optional client encoding that is using in a SET client_encoding TO <encoding> call on connection.
     # * <tt>:min_messages</tt> -- An optional client min messages that is using in a SET client_min_messages TO <min_messages> call on connection.
     class PostgreSQLAdapter < AbstractAdapter
-      
       def native_database_types
         {
           :primary_key => "serial primary key",
@@ -132,7 +131,7 @@ module ActiveRecord
         %("#{name}")
       end
 
-      def adapter_name()
+      def adapter_name
         'PostgreSQL'
       end
 
@@ -150,8 +149,21 @@ module ActiveRecord
       def schema_search_path
         @schema_search_path ||= query('SHOW search_path')[0][0]
       end
+            
+      def change_column(table_name, column_name, type, options = {})
+        change_column_sql = "ALTER TABLE #{table_name} ALTER COLUMN #{column_name} TYPE #{type}"
+        add_column_options!(change_column_sql, options)
+        execute(change_column_sql)
+      end      
+      
+      def rename_column(table_name, column_name, new_column_name)
+        execute "ALTER TABLE #{table_name} RENAME COLUMN #{column_name} TO #{new_column_name}"
+      end
 
-
+      def remove_index(table_name, column_name)
+        execute "DROP INDEX #{table_name}_#{column_name}_index"
+      end      
+    
       private
         BYTEA_COLUMN_TYPE_OID = 17
 

@@ -366,11 +366,17 @@ module ActiveRecord
           # Schema has been intialized
         end
       end
+      
+      def create_table(name, options = {})
+        table_definition = TableDefinition.new(self)
+        table_definition.primary_key(options[:primary_key] || "id") unless options[:id] == false
 
-      def create_table(name, options = "")
-        execute "CREATE TABLE #{name} (id #{native_database_types[:primary_key]}) #{options}"
-        table_definition = yield TableDefinition.new
-        table_definition.columns.each { |column_name, type, options| add_column(name, column_name, type, options) }
+        yield table_definition
+        create_sql = "CREATE TABLE #{name} ("
+        create_sql << table_definition.to_sql
+        create_sql << ") #{options[:options]}"
+                
+        execute create_sql
       end
 
       def drop_table(name)
@@ -379,28 +385,52 @@ module ActiveRecord
 
       def add_column(table_name, column_name, type, options = {})
         native_type = native_database_types[type]
-        add_column_sql = "ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type)}"
-        add_column_sql << " DEFAULT '#{options[:default]}'" if options[:default]
+        add_column_sql = "ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type, options[:limit])}"
+        add_column_options!(add_column_sql, options)
         execute(add_column_sql)
       end
-
+      
       def remove_column(table_name, column_name)
         execute "ALTER TABLE #{table_name} DROP #{column_name}"
+      end      
+
+      def change_column(table_name, column_name, type, options = {})
+        raise NotImplementedError, "change_column is not implemented"
       end
       
       def supports_migrations?
         false
       end      
 
+      def rename_column(table_name, column_name, new_column_name)
+        raise NotImplementedError, "rename_column is not implemented"
+      end
 
-      protected
-        def type_to_sql(type)
-          native = native_database_types[type]
-          column_type_sql = native[:name]
-          column_type_sql << "(#{native[:limit]})" if native[:limit]
-          column_type_sql
-        end            
-              
+      def add_index(table_name, column_name, index_type = '')
+        execute "CREATE #{index_type} INDEX #{table_name}_#{column_name.to_a.first}_index ON #{table_name} (#{column_name.to_a.join(", ")})"
+      end
+
+      def remove_index(table_name, column_name)
+        execute "DROP INDEX #{table_name}_#{column_name}_index ON #{table_name}"
+      end
+      
+      def supports_migrations?
+        false
+      end           
+
+      def native_database_types
+        {}
+      end       
+
+      def type_to_sql(type, limit = nil)
+        native = native_database_types[type]
+        limit ||= native[:limit]
+        column_type_sql = native[:name]
+        column_type_sql << "(#{limit})" if limit
+        column_type_sql
+      end            
+
+      protected  
         def log(sql, name)
           begin
             if block_given?
@@ -450,18 +480,46 @@ module ActiveRecord
             "%s  %s" % [message, dump]
           end
         end
-      end
+      
+        def add_column_options!(sql, options)
+          sql << " DEFAULT '#{options[:default]}'" if options[:default]
+        end
+    end
 
     class TableDefinition
       attr_accessor :columns
 
-      def initialize
+      def initialize(base)
         @columns = []
+        @base = base
+      end
+
+      def primary_key(name)
+        @columns << "#{name} #{native[:primary_key]}"
+        self
       end
 
       def column(name, type, options = {})
-        @columns << [ name, type, options ]
+        limit = options[:limit] || native[type.to_sym][:limit]
+        
+        column_sql = "#{name} #{type_to_sql(type.to_sym, options[:limit])}"
+        column_sql << " DEFAULT '#{options[:default]}'" if options[:default]
+        @columns << column_sql
         self
+      end
+      
+      def to_sql
+        @columns.join(", ")
+      end
+      
+      private
+      
+      def type_to_sql(name, limit)
+        @base.type_to_sql(name, limit)
+      end
+      
+      def native
+        @base.native_database_types
       end
     end
   end

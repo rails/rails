@@ -199,8 +199,19 @@ module ActiveRecord
         execute "CREATE DATABASE #{name}"
       end
 
-      def create_table(name)
-        super(name, "ENGINE=InnoDB")
+      def change_column(table_name, column_name, type, options = {})
+        change_column_sql = "ALTER TABLE #{table_name} MODIFY #{column_name} #{type}"
+        add_column_options!(change_column_sql, options)
+        execute(change_column_sql)
+      end
+
+      def rename_column(table_name, column_name, new_column_name)
+        current_type = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Type"]
+        execute "ALTER TABLE #{table_name} CHANGE #{column_name} #{new_column_name} #{current_type}"
+      end
+
+      def create_table(name, options = {})
+        super(name, {:options => "ENGINE=InnoDB"}.merge(options))
       end
 
       private
