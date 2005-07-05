@@ -291,8 +291,8 @@ Ajax.Updater.prototype.extend(Ajax.Request.prototype).extend({
 
     var onComplete = this.options.onComplete || Prototype.emptyFunction;
     this.options.onComplete = (function() {
-      onComplete(this.transport);
       this.updateContent();
+      onComplete(this.transport);      
     }).bind(this);
 
     this.request(url);
