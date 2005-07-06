@@ -61,16 +61,13 @@ end
 
 # Get external spinoffs -------------------------------------------------------------------
 
-task :update_scriptaculous do
-  system("svn export --force http://dev.rubyonrails.org/svn/rails/spinoffs/scriptaculous/src/ #{File.dirname(__FILE__)}/html/javascripts")
-end
-
-task :update_prototype do
-  system("svn export --force http://dev.rubyonrails.org/svn/rails/trunk/actionpack/lib/action_view/helpers/javascripts/prototype.js #{File.dirname(__FILE__)}/html/javascripts/prototype.js")
-end
-
 desc "Updates railties to the latest version of the javascript spinoffs"
-task :update_js => [:update_scriptaculous, :update_prototype]
+task :update_js do
+  for js in %w( prototype controls dragdrop effects )
+    rm "html/javascripts/#{js}.js"
+    cp "./../actionpack/lib/action_view/helpers/javascripts/#{js}.js", "html/javascripts"
+  end
+end
 
 # Make directory structure ----------------------------------------------------------------
 
