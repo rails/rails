@@ -288,7 +288,7 @@ class Fixtures < Hash
           yaml = YAML::load(erb_render(IO.read(yaml_file_path)))
           yaml.each { |name, data| self[name] = Fixture.new(data, @class_name) } if yaml
         rescue Exception=>boom
-          raise Fixture::FormatError, "a YAML error occured parsing #{yaml_file_path}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html"
+          raise Fixture::FormatError, "a YAML error occured parsing #{yaml_file_path}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html\nThe exact error was:\n  #{boom.class}: #{boom}"
         end
       elsif File.file?(csv_file_path)
         # CSV fixtures
