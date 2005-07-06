@@ -155,8 +155,8 @@ module DispatcherTest
     web_service_dispatching_mode :direct
     wsdl_namespace WsdlNamespace
 
-    before_filter :alwaysfail, :only => [:before_filtered]
-    after_filter :alwaysok, :only => [:after_filtered]
+    before_invocation :alwaysfail, :only => [:before_filtered]
+    after_invocation :alwaysok, :only => [:after_filtered]
 
     attr :added
     attr :added2
@@ -232,12 +232,12 @@ module DispatcherTest
     end
 
     protected
-      def alwaysfail
+      def alwaysfail(method_name, params)
         @before_filter_called = true
         false
       end
 
-      def alwaysok
+      def alwaysok(method_name, params, return_value)
         @after_filter_called = true
       end
   end
