@@ -1,5 +1,6 @@
 require 'action_mailer/adv_attr_accessor'
 require 'action_mailer/part_container'
+require 'action_mailer/utils'
 
 module ActionMailer
   class Part #:nodoc:
@@ -29,7 +30,7 @@ module ActionMailer
           when "base64" then
             part.body = TMail::Base64.folding_encode(body)
           when "quoted-printable"
-            part.body = [body].pack("M*")
+            part.body = [Utils.normalize_new_lines(body)].pack("M*")
           else
             part.body = body
         end

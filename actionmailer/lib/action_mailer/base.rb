@@ -1,6 +1,7 @@
 require 'action_mailer/adv_attr_accessor'
 require 'action_mailer/part'
 require 'action_mailer/part_container'
+require 'action_mailer/utils'
 require 'tmail/net'
 
 module ActionMailer #:nodoc:
@@ -293,11 +294,11 @@ module ActionMailer #:nodoc:
 
         if @parts.empty?
           m.set_content_type content_type, nil, { "charset" => charset }
-          m.body = body
+          m.body = Utils.normalize_new_lines(body)
         else
           if String === body
             part = TMail::Mail.new
-            part.body = body
+            part.body = Utils.normalize_new_lines(body)
             part.set_content_type content_type, nil, { "charset" => charset }
             part.set_content_disposition "inline"
             m.parts << part

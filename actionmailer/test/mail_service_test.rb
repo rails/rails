@@ -146,6 +146,15 @@ class TestMailer < ActionMailer::Base
                  "line #5\n\nline#6\r\n\r\nline #7"
   end
 
+  def various_newlines_multipart(recipient)
+    recipients   recipient
+    subject      "various newlines multipart"
+    from         "test@example.com"
+    content_type "multipart/alternative"
+    part :content_type => "text/plain", :body => "line #1\nline #2\rline #3\r\nline #4\r\r"
+    part :content_type => "text/html", :body => "<p>line #1</p>\n<p>line #2</p>\r<p>line #3</p>\r\n<p>line #4</p>\r\r"
+  end
+
   def nested_multipart(recipient)
     recipients   recipient
     subject      "nested multipart"
@@ -597,6 +606,12 @@ EOF
                  "line #5\n\nline#6\n\nline #7", mail.body)
   end
 
+  def test_various_newlines_multipart
+    mail = TestMailer.create_various_newlines_multipart(@recipient)
+    assert_equal "line #1\nline #2\nline #3\nline #4\n\n", mail.parts[0].body
+    assert_equal "<p>line #1</p>\n<p>line #2</p>\n<p>line #3</p>\n<p>line #4</p>\n\n", mail.parts[1].body
+  end
+  
   def test_headers_removed_on_smtp_delivery
     ActionMailer::Base.delivery_method = :smtp
     TestMailer.deliver_cc_bcc(@recipient)
