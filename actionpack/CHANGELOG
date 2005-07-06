@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed that a SessionRestoreError was thrown if a model object was placed in the session that wasn't available to all controllers. This means that it's no longer necessary to use the 'model :post' work-around in ApplicationController to have a Post model in your session.
+
+
 *1.9.0* (6 July, 2005)
 
 * Added logging of the request URI in the benchmark statement (makes it easy to grep for slow actions)

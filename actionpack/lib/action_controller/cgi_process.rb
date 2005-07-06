@@ -95,29 +95,22 @@ module ActionController #:nodoc:
         @session["__valid_session"]
         return @session
       rescue ArgumentError => e
-        # TODO: Uncomment this on 0.13.1
-        # if e.message =~ %r{undefined class/module (\w+)}
-        #   begin
-        #     Module.const_missing($1)
-        #   rescue LoadError, NameError => e
-        #     raise(
-        #       ActionController::SessionRestoreError, 
-        #       "Session contained objects where the class definition wasn't available. " +
-        #       "Remember to require classes for all objects kept in the session. " +
-        #       "(Original exception: #{e.message} [#{e.class}])"
-        #     )
-        #   end
-        # 
-        #   retry
-        # else
-        #   raise
-        # end
-        raise(
-          ActionController::SessionRestoreError, 
-          "Session contained objects where the class definition wasn't available. " +
-          "Remember to require classes for all objects kept in the session. " +
-          "(Original exception: #{e.message} [#{e.class}])"
-        )
+        if e.message =~ %r{undefined class/module (\w+)}
+          begin
+            Module.const_missing($1)
+          rescue LoadError, NameError => e
+            raise(
+              ActionController::SessionRestoreError, 
+              "Session contained objects where the class definition wasn't available. " +
+              "Remember to require classes for all objects kept in the session. " +
+              "(Original exception: #{e.message} [#{e.class}])"
+            )
+          end
+        
+          retry
+        else
+          raise
+        end
       end
     end
     
