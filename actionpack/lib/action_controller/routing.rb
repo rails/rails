@@ -577,6 +577,7 @@ module ActionController
 
         def name_route(route, name)
           hash = route.known.symbolize_keys
+          hash[:controller] = "/#{hash[:controller]}"
       
           define_method(hash_access_name(name)) { hash }
           module_eval(%{def #{url_helper_name name}(options = {})

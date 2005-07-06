@@ -652,14 +652,14 @@ class RouteSetTests < Test::Unit::TestCase
   def test_basic_named_route
     rs.home '', :controller => 'content', :action => 'list' 
     x = setup_for_named_route
-    assert_equal({:controller => 'content', :action => 'list'},
+    assert_equal({:controller => '/content', :action => 'list'},
                  x.new.send(:home_url))
   end
 
   def test_named_route_with_option
     rs.page 'page/:title', :controller => 'content', :action => 'show_page'
     x = setup_for_named_route
-    assert_equal({:controller => 'content', :action => 'show_page', :title => 'new stuff'},
+    assert_equal({:controller => '/content', :action => 'show_page', :title => 'new stuff'},
                  x.new.send(:page_url, :title => 'new stuff'))
   end  
 
