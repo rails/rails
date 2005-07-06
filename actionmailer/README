@@ -16,16 +16,15 @@ in methods on the service layer. Subject, recipients, sender, and timestamp
 are all set up this way. An example of such a method:
 
   def signed_up(recipient)
-    @recipients   = recipient
-    @subject      = "[Signed up] Welcome #{recipient}"
-    @from         = "system@loudthinking.com"
-    @sent_on      = Time.local(2004, 12, 12)
+    recipients recipient
+    subject    "[Signed up] Welcome #{recipient}"
+    from       "system@loudthinking.com"
 
-    @body["recipient"] = recipient
+    body(:recipient => recipient)
   end
 
 The body of the email is created by using an Action View template (regular
-ERb) that has the content of the @body hash available as instance variables. 
+ERb) that has the content of the body hash parameter available as instance variables. 
 So the corresponding body template for the method above could look like this:
 
   Hello there, 

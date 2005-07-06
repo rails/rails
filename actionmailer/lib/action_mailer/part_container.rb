@@ -1,5 +1,5 @@
 module ActionMailer
-  module PartContainer
+  module PartContainer #:nodoc:
     attr_reader :parts
 
     # Add a part to a multipart message, with the given content-type. The

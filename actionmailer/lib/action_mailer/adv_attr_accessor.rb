@@ -1,12 +1,11 @@
 module ActionMailer
-  module AdvAttrAccessor
+  module AdvAttrAccessor #:nodoc:
     def self.append_features(base)
       super
       base.extend(ClassMethods)
     end
 
-    module ClassMethods
-
+    module ClassMethods #:nodoc:
       def adv_attr_accessor(*names)
         names.each do |name|
           define_method("#{name}=") do |value|
@@ -23,19 +22,18 @@ module ActionMailer
           end
         end
       end
-
     end
   end
 end
+
 module ActionMailer
-  module AdvAttrAccessor
+  module AdvAttrAccessor #:nodoc:
     def self.append_features(base)
       super
       base.extend(ClassMethods)
     end
 
-    module ClassMethods
-
+    module ClassMethods #:nodoc:
       def adv_attr_accessor(*names)
         names.each do |name|
           define_method("#{name}=") do |value|

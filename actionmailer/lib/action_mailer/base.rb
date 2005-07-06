@@ -13,7 +13,7 @@ module ActionMailer #:nodoc:
   #     def signup_notification(recipient)
   #       recipients recipient.email_address_with_name
   #       subject    "New account information"
-  #       body       Hash.new("account" => recipient)
+  #       body       { "account" => recipient }
   #       from       "system@example.com"
   #     end
   #
@@ -164,13 +164,13 @@ module ActionMailer #:nodoc:
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
     # method, for instance).
-    def initialize(method_name=nil, *parameters)
+    def initialize(method_name=nil, *parameters) #:nodoc:
       create!(method_name, *parameters) if method_name 
     end
 
     # Initialize the mailer via the given +method_name+. The body will be
     # rendered and a new TMail::Mail object created.
-    def create!(method_name, *parameters)
+    def create!(method_name, *parameters) #:nodoc:
       @bcc = @cc = @from = @recipients = @sent_on = @subject = nil
       @charset = @@default_charset.dup
       @content_type = @@default_content_type.dup
@@ -225,7 +225,7 @@ module ActionMailer #:nodoc:
 
     # Delivers the cached TMail::Mail object. If no TMail::Mail object has been
     # created (via the #create! method, for instance) this will fail.
-    def deliver!
+    def deliver! #:nodoc:
       raise "no mail object available for delivery!" unless @mail
       logger.info "Sent mail:\n #{mail.encoded}" unless logger.nil?
 

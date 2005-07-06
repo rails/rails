@@ -2,7 +2,6 @@ require 'action_mailer/adv_attr_accessor'
 require 'action_mailer/part_container'
 
 module ActionMailer
-
   class Part #:nodoc:
     include ActionMailer::AdvAttrAccessor
     include ActionMailer::PartContainer
@@ -69,10 +68,8 @@ module ActionMailer
     end
 
     private
-
       def squish(values={})
         values.delete_if { |k,v| v.nil? }
       end
   end
-
 end

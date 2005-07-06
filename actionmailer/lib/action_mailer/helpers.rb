@@ -24,28 +24,7 @@ module ActionMailer #:nodoc:
       end
     end
 
-    # The template helpers serves to relieve the templates from including the same inline code again and again. It's a
-    # set of standardized methods for working with forms (FormHelper), dates (DateHelper), texts (TextHelper), and 
-    # Active Records (ActiveRecordHelper) that's available to all templates by default.
-    #
-    # It's also really easy to make your own helpers and it's much encouraged to keep the template files free
-    # from complicated logic. It's even encouraged to bundle common compositions of methods from other helpers 
-    # (often the common helpers) as they're used by the specific application.
-    # 
-    #   module MyHelper
-    #     def hello_world() "hello world" end
-    #   end
-    # 
-    # MyHelper can now be included in a controller, like this:
-    # 
-    #   class MyController < ActionController::Base
-    #     helper :my_helper
-    #   end
-    # 
-    # ...and, same as above, used in any template rendered from MyController, like this:
-    # 
-    # Let's hear what the helper has to say: <tt><%= hello_world %></tt>
-    module ClassMethods
+    module ClassMethods #:nodoc:
       # Makes all the (instance) methods in the helper module available to templates rendered through this controller.
       # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules 
       # available to the templates.

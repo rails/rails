@@ -1,6 +1,5 @@
 module ActionMailer
-  module Quoting
-
+  module Quoting #:nodoc:
     # Convert the given text into quoted printable format, with an instruction
     # that the text be eventually interpreted in the given charset.
     def quoted_printable(text, charset)
@@ -45,12 +44,11 @@ module ActionMailer
     def quote_any_address_if_necessary(charset, *args)
       args.map { |v| quote_address_if_necessary(v, charset) }
     end
-
   end
 end
-module ActionMailer
-  module Quoting
 
+module ActionMailer
+  module Quoting #:nodoc:
     # Convert the given text into quoted printable format, with an instruction
     # that the text be eventually interpreted in the given charset.
     def quoted_printable(text, charset)
@@ -97,6 +95,5 @@ module ActionMailer
     def quote_any_address_if_necessary(charset, *args)
       args.map { |v| quote_address_if_necessary(v, charset) }
     end
-
   end
 end
