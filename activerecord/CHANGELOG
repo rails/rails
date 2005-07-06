@@ -1,4 +1,4 @@
-*SVN*
+*1.11.0* (5th July, 2005)
 
 * Changed logging of SQL statements to use the DEBUG level instead of INFO
 

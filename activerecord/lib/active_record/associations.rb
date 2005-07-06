@@ -96,7 +96,7 @@ module ActiveRecord
     # * You can add an object to a collection without automatically saving it by using the #collection.build method (documented below).
     # * All unsaved (new_record? == true) members of the collection are automatically saved when the parent is saved.
     #
-    # === Callbacks
+    # === Association callbacks
     #
     # Similiar to the normal callbacks that hook into the lifecycle of an Active Record object, you can also define callbacks that get
     # trigged when you add an object to or removing an object from a association collection. Example:
@@ -112,7 +112,7 @@ module ActiveRecord
     # It's possible to stack callbacks by passing them as an array. Example:
     # 
     #   class Project
-    #     has_and_belongs_to_many :developers, :after_add => [:evaluate_velocity, Proc.new {|project, developer| project.shipping_date = Time.now}]
+    #     has_and_belongs_to_many :developers, :after_add => [:evaluate_velocity, Proc.new { |p, d| p.shipping_date = Time.now}]
     #   end
     #
     # Possible callbacks are: before_add, after_add, before_remove and after_remove.

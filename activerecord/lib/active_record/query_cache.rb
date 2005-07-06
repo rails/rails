@@ -1,5 +1,5 @@
 module ActiveRecord
-  class QueryCache
+  class QueryCache #:nodoc:
     def initialize(connection)
       @connection = connection
       @query_cache = {}
@@ -56,7 +56,7 @@ module ActiveRecord
     end
   end
   
-  class AbstractAdapter
+  class AbstractAdapter #:nodoc:
     # Stub method to be able to treat the connection the same whether the query cache has been turned on or not
     def clear_query_cache
     end
