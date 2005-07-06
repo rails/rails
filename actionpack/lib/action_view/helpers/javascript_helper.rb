@@ -441,6 +441,16 @@ module ActionView
         options[:onUpdate] ||= "function(){" + remote_function(options) + "}"
         options.delete_if { |key, value| AJAX_OPTIONS.include?(key) }
         
+        [:tag, :overlap, :constraint].each do |option|
+          options[option] = "'#{options[option]}'" if options[option]
+        end
+        
+        if options[:containment] and options[:containment].kind_of?(Array)
+          options[:containment] = "['#{options[:containment].join('\',\'')}']"
+        elsif options[:containment]
+          options[:containment] = "'#{options[:containment]}'" if options[:containment]
+        end
+        
         javascript_tag("Sortable.create('#{element_id}', #{options_for_javascript(options)})")
       end
       
@@ -470,7 +480,12 @@ module ActionView
         options[:onDrop]   ||= "function(element){" + remote_function(options) + "}"
         options.delete_if { |key, value| AJAX_OPTIONS.include?(key) }
         
-        options[:accept]     = "'#{options[:accept]}'" if options[:accept]
+        if options[:accept] and options[:accept].kind_of?(Array)
+          options[:accept] = "['#{options[:accept].join('\',\'')}']"
+        elsif options[:accept]
+          options[:accept] = "'#{options[:accept]}'" if options[:accept]
+        end
+        
         options[:hoverclass] = "'#{options[:hoverclass]}'" if options[:hoverclass]
         
         javascript_tag("Droppables.add('#{element_id}', #{options_for_javascript(options)})")
