@@ -221,10 +221,10 @@ class NewRenderTest < Test::Unit::TestCase
     assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
   end
 
-  def test_partials_list
-    get :partials_list
-    assert_equal "goodbyeHello: davidHello: marygoodbye\n", @response.body
-  end
+  # def test_partials_list
+  #   get :partials_list
+  #   assert_equal "goodbyeHello: davidHello: marygoodbye\n", @response.body
+  # end
 
   def test_partial_only
     get :partial_only

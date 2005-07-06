@@ -173,10 +173,10 @@ class RenderTest < Test::Unit::TestCase
     assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", process_request.body
   end
 
-  def test_partials_list
-    @request.action = "partials_list"
-    assert_equal "goodbyeHello: davidHello: marygoodbye\n", process_request.body
-  end
+  # def test_partials_list
+  #   @request.action = "partials_list"
+  #   assert_equal "goodbyeHello: davidHello: marygoodbye\n", process_request.body
+  # end
 
   def test_partial_only
     @request.action = "partial_only"

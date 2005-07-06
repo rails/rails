@@ -149,7 +149,7 @@ module ActionController #:nodoc:
     #
     #   class WeblogController < ActionController::Base
     #     def help
-    #       render :file => "help/index", :layout => "layouts/help"
+    #       render :action => "help/index", :layout => "help"
     #     end
     #   end
     #

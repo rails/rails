@@ -60,6 +60,9 @@ module ActionController #:nodoc:
   # Also note that it's the final call to <tt>process_cgi</tt> that actually initiates the action performance. It will extract
   # request and response objects from the CGI
   #
+  # When Action Pack is used inside of Rails, the template_root is automatically configured and you don't need to call process_cgi
+  # yourself.
+  #
   # == Requests
   #
   # Requests are processed by the Action Controller framework by extracting the value of the "action" key in the request parameters.
@@ -67,19 +70,19 @@ module ActionController #:nodoc:
   # request parameters, the session (if one is available), and the full request with all the http headers are made available to
   # the action through instance variables. Then the action is performed.
   #
-  # The full request object is available in @request and is primarily used to query for http headers. These queries are made by
-  # accessing the environment hash, like this:
+  # The full request object is available with the request accessor and is primarily used to query for http headers. These queries
+  # are made by accessing the environment hash, like this:
   #
   #   def hello_ip
-  #     location = @request.env["REMOTE_IP"]
+  #     location = request.env["REMOTE_IP"]
   #     render_text "Hello stranger from #{location}"
   #   end
   #
   # == Parameters
   #
-  # All request parameters whether they come from a GET or POST request, or from the URL, are available through the @params hash.
+  # All request parameters whether they come from a GET or POST request, or from the URL, are available through the params hash.
   # So an action that was performed through /weblog/list?category=All&limit=5 will include { "category" => "All", "limit" => 5 }
-  # in @params.
+  # in params.
   #
   # It's also possible to construct multi-dimensional parameter hashes by specifying keys using brackets, such as:
   #
@@ -87,7 +90,7 @@ module ActionController #:nodoc:
   #   <input type="text" name="post[address]" value="hyacintvej">
   #
   # A request stemming from a form holding these inputs will include <tt>{ "post" => { "name" => "david", "address" => "hyacintvej" } }</tt>.
-  # If the address input had been named "post[address][street]", the @params would have included 
+  # If the address input had been named "post[address][street]", the params would have included 
   # <tt>{ "post" => { "address" => { "street" => "hyacintvej" } } }</tt>. There's no limit to the depth of the nesting.
   #
   # == Sessions
@@ -97,24 +100,17 @@ module ActionController #:nodoc:
   # as a User object for a system that requires login. The session should not be used, however, as a cache for objects where it's likely 
   # they could be changed unknowingly. It's usually too much work to keep it all synchronized -- something databases already excel at.
   #
-  # You can place objects in the session by using the <tt>@session</tt> hash:
+  # You can place objects in the session by using the <tt>session</tt> hash accessor:
   #
-  #   @session[:person] = Person.authenticate(user_name, password)
+  #   session[:person] = Person.authenticate(user_name, password)
   #
   # And retrieved again through the same hash:
   #
-  #   Hello #{@session[:person]}
+  #   Hello #{session[:person]}
   #
   # Any object can be placed in the session (as long as it can be Marshalled). But remember that 1000 active sessions each storing a
   # 50kb object could lead to a 50MB memory overhead. In other words, think carefully about size and caching before resorting to the use
   # of the session.
-  # 
-  # If you store a model in the session, you must also include a line like:
-  #
-  #   model :person
-  #
-  # For that particular controller. In Rails, you can also just add it in your app/controller/application.rb file (so the model is available
-  # for all controllers). This lets Action Pack know to have the model definition loaded before retrieving the object from the session.
   #
   # For removing objects from the session, you can either assign a single key to nil, like <tt>@session[:person] = nil</tt>, or you can
   # remove the entire session with reset_session.
@@ -131,7 +127,7 @@ module ActionController #:nodoc:
   # The controller passes objects to the view by assigning instance variables:
   #
   #   def show
-  #     @post = Post.find(@params["id"])
+  #     @post = Post.find(params[:id])
   #   end
   #
   # Which are then automatically available to the view:
@@ -142,11 +138,11 @@ module ActionController #:nodoc:
   # the manual rendering methods:
   #
   #   def search
-  #     @results = Search.find(@params["query"])
+  #     @results = Search.find(params[:query])
   #     case @results
-  #       when 0 then render "weblog/no_results"
-  #       when 1 then render_action "show"
-  #       when 2..10 then render_action "show_many"
+  #       when 0 then render :action=> "no_results"
+  #       when 1 then render :action=> "show"
+  #       when 2..10 then render :action=> "show_many"
   #     end
   #   end
   #
@@ -187,7 +183,7 @@ module ActionController #:nodoc:
   #
   #   def do_something
   #     redirect_to :action => "elsewhere"
-  #     render_action "overthere"
+  #     render :action => "overthere"
   #   end
   #
   # Only the redirect happens. The rendering call is simply ignored.
@@ -448,14 +444,121 @@ module ActionController #:nodoc:
       end
 
     protected
-      # Renders the template specified by <tt>template_name</tt>, which defaults to the name of the current controller and action.
-      # So calling +render+ in WeblogController#show will attempt to render "#{template_root}/weblog/show.rhtml" or 
-      # "#{template_root}/weblog/show.rxml" (in that order). The template_root is set on the ActionController::Base class and is 
-      # shared by all controllers. It's also possible to pass a status code using the second parameter. This defaults to "200 OK", 
-      # but can be changed, such as by calling <tt>render("weblog/error", "500 Error")</tt>.
-
-      # A unified replacement for the individual renders (work-in-progress).
-      def render(options = {}, deprecated_status = nil)
+      # Renders the content that'll be returned to the browser as the response body. This can just be as regular text, but is
+      # more often the compilation of a template.
+      #
+      # === Rendering an action
+      # 
+      # Action rendering is the most common form and the type used automatically by Action Controller when nothing else is
+      # specified. By default, actions are rendered within the current layout (if one exists).
+      #
+      #   # Renders the template for the action "goal" within the current controller
+      #   render :action => "goal"
+      #
+      #   # Renders the template for the action "explosion" from the ErrorsController
+      #   render :action => "errors/explosion", :status => 500 
+      #
+      #   # Renders the template for the action "short_goal" within the current controller,
+      #   # but without the current active layout
+      #   render :action => "short_goal", :layout => false
+      #
+      #   # Renders the template for the action "long_goal" within the current controller,
+      #   # but with a custom layout
+      #   render :action => "short_goal", :layout => "spectacular"
+      #
+      # _Deprecation_ _notice_: This used to have the signatures <tt>render_action("action", status = 200)</tt>,
+      # <tt>render_without_layout("controller/action", status = 200)</tt>, and 
+      # <tt>render_with_layout("controller/action", status = 200, layout)</tt>.
+      #
+      # === Rendering partials
+      # 
+      # Partial rendering is most commonly used together with Ajax calls that only updates one or a few elements on a page
+      # without reloading. Rendering of partials from the controller makes it possible to use the same partial template in
+      # both the full-page rendering (by calling it from within the template) and when sub-page updates happen (from the
+      # controller action responding to Ajax calls). By default, the current layout is not used.
+      #
+      #   # Renders the partial located at app/views/controller/_win.r(html|xml)
+      #   render :partial => "win"
+      #
+      #   # Renders the partial with a status code of 500 (internal error)
+      #   render :partial => "broken", :status => 500
+      #
+      #   # Renders the same partial but also makes a local variable available to it
+      #   render :partial => "win", :locals => { :name => "david" }
+      #
+      #   # Renders a collection of the same partial by making each element of @wins available through 
+      #   # the local variable "win" as it builds the complete response
+      #   render :partial => "win", :collection => @wins
+      #
+      #   # Renders the same collection of partials, but also renders the win_divider partial in between
+      #   # each win partial.
+      #   render :partial => "win", :collection => @wins, :spacer_template => "win_divider"
+      #
+      # _Deprecation_ _notice_: This used to have the signatures 
+      # <tt>render_partial(partial_path = default_template_name, object = nil, local_assigns = {})</tt> and
+      # <tt>render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {})</tt>.
+      #
+      # === Rendering a file
+      # 
+      # File rendering works just like action rendering except that it takes a complete path to the template intended
+      # for rendering and that the current layout is not applied automatically.
+      #
+      #   # Renders the template located in /path/to/some/template.r(html|xml)
+      #   render :file => "/path/to/some/template"
+      #
+      #   # Renders the same template within the current layout, but with a 404 status code
+      #   render :file => "/path/to/some/template", :layout => true, :status => 404
+      #
+      # _Deprecation_ _notice_: This used to have the signature <tt>render_file(path, status = 200)</tt>
+      #
+      # === Rendering text
+      # 
+      # Rendering of text is usually used for tests or for rendering prepared content, such as a cache. By default, text
+      # rendering is not done within the active layout.
+      #
+      #   # Renders the clear text "hello world" with status code 200
+      #   render :text => "hello world!"
+      #
+      #   # Renders the clear text "Explosion!"  with status code 500
+      #   render :text => "Explosion!", :status => 500 
+      #
+      #   # Renders the clear text "Hi there!" within the current active layout (if one exists)
+      #   render :text => "Explosion!", :layout => true
+      #
+      #   # Renders the clear text "Hi there!" within the the layout 
+      #   # placed in "app/views/layouts/special.r(html|xml)"
+      #   render :text => "Explosion!", :layout => "special"
+      #
+      # _Deprecation_ _notice_: This used to have the signature <tt>render_text("text", status = 200)</tt>
+      #
+      # === Rendering an inline template
+      #
+      # Rendering of an inline template works as a cross between text and action rendering where the source for the template
+      # is supplied inline, like text, but its interpreted with ERb or Builder, like action. By default, ERb is used for rendering
+      # and the current layout is not used.
+      #
+      #   # Renders "hello, hello, hello, again"
+      #   render :inline => "<%= 'hello, ' * 3 + 'again' %>" 
+      #
+      #   # Renders "<p>Good seeing you!</p>" using Builder
+      #   render :inline => "xml.p { 'Good seeing you!' }", :type => :rxml
+      #
+      #   # Renders "hello david"
+      #   render :inline => "<%= 'hello ' + name %>", :locals => { :name => "david" }
+      #
+      # _Deprecation_ _notice_: This used to have the signature <tt>render_template(template, status = 200, type = :rhtml)</tt>
+      #
+      # === Rendering nothing
+      #
+      # Rendering nothing is often convenient in combination with Ajax calls that perform their effect client-side or
+      # when you just want to communicate a status code.
+      #
+      #   # Renders an empty response with status code 200
+      #   render :nothing => true
+      #
+      #   # Renders an empty response with status code 401 (access denied)
+      #   render :nothing => true, :status => 401
+      def render(options = {}, deprecated_status = nil) #:doc:
         # puts "Rendering: #{options.inspect}"
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
@@ -517,13 +620,15 @@ module ActionController #:nodoc:
         end
       end
 
-      # Returns the result of the render as a string.
+      # Renders according to the same rules as <tt>render</tt>, but returns the result in a string instead
+      # of sending it as the response body to the browser.
       def render_to_string(options = {}) #:doc:
         result = render(options)
         erase_render_results
         return result
       end
       
+
       # Clears the rendered results, allowing for another render to be performed.
       def erase_render_results #:nodoc:
         @response.body = nil
@@ -541,6 +646,7 @@ module ActionController #:nodoc:
         response.headers['Status'] = DEFAULT_RENDER_STATUS_CODE
         response.headers.delete('location')
       end
+
 
       def rewrite_options(options)
         if defaults = default_url_options(options)

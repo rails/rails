@@ -43,7 +43,7 @@ A short rundown of the major features:
         @customer.attributes = @params["customer"]
         @customer.save ? 
           redirect_to(:action => "display") : 
-          render("customer/edit")
+          render(:action => "edit")
       end
       
       private
@@ -168,13 +168,13 @@ A short rundown of the major features:
   {Learn more}[link:classes/ActionController/Base.html]
 
 
-* JavaScript and Ajax integration.
+* Javascript and Ajax integration.
 
     link_to_function "Greeting", "alert('Hello world!')"
     link_to_remote "Delete this post", :update => "posts", 
                    :url => { :action => "destroy", :id => post.id }
   
-  {Learn more}[link:classes/ActionView/Helpers/JavaScriptHelper.html]
+  {Learn more}[link:classes/ActionView/Helpers/JavascriptHelper.html]
 
 
 * Pagination for navigating lists of results.
