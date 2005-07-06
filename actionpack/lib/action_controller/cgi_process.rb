@@ -89,18 +89,28 @@ module ActionController #:nodoc:
     
     def session
       return @session unless @session.nil?
+
       begin
         @session = (@session_options == false ? {} : CGI::Session.new(@cgi, session_options_with_string_keys))
         @session["__valid_session"]
         return @session
       rescue ArgumentError => e
-        @session.delete if @session
-        raise(
-          ActionController::SessionRestoreError, 
-          "Session contained objects where the class definition wasn't available. " +
-          "Remember to require classes for all objects kept in the session. " +
-          "The session has been deleted. (Original exception: #{e.message} [#{e.class}])"
-        )
+        if e.message =~ %r{undefined class/module (\w+)}
+          begin
+            Module.const_missing($1)
+          rescue LoadError, NameError => e
+            raise(
+              ActionController::SessionRestoreError, 
+              "Session contained objects where the class definition wasn't available. " +
+              "Remember to require classes for all objects kept in the session. " +
+              "(Original exception: #{e.message} [#{e.class}])"
+            )
+          end
+
+          retry
+        else
+          raise
+        end
       end
     end
     
