@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/module_attribute_accessors'
 
-module Dependencies
+module Dependencies #:nodoc:
   extend self
 
   @@loaded = [ ]
@@ -48,7 +48,7 @@ module Dependencies
   # load the relavent files automatically.
   #
   # Ruby-style modules are supported, as a folder named 'submodule' will load 'submodule.rb' when available.
-  class LoadingModule < Module
+  class LoadingModule < Module #:nodoc:
     attr_reader :path
     attr_reader :root
     
@@ -111,7 +111,7 @@ module Dependencies
     end
   end
   
-  class RootLoadingModule < LoadingModule
+  class RootLoadingModule < LoadingModule #:nodoc:
     attr_reader :load_paths
 
     def initialize(*paths)
@@ -137,7 +137,7 @@ module Dependencies
   end
   
   # This object defines a path from which Constants can be loaded.
-  class ConstantLoadPath
+  class ConstantLoadPath #:nodoc:
     # Create a new load path with the filesystem path
     def initialize(root) @root = root end
     
@@ -205,7 +205,7 @@ class Object #:nodoc:
 end
 
 # Add file-blaming to exceptions
-class Exception
+class Exception #:nodoc:
   def blame_file!(file)
     (@blamed_files ||= []).unshift file
   end

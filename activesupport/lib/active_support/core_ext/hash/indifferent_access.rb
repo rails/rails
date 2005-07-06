@@ -50,7 +50,7 @@ end
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Hash #:nodoc:
-      module IndifferentAccess
+      module IndifferentAccess #:nodoc:
         def with_indifferent_access
           HashWithIndifferentAccess.new(self)
         end

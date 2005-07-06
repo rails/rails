@@ -1,4 +1,4 @@
-class MissingSourceFile < LoadError
+class MissingSourceFile < LoadError #:nodoc:
   attr_reader :path
   def initialize(message, path)
     super(message)
@@ -24,10 +24,10 @@ class MissingSourceFile < LoadError
   ]
 end
 
-module ActiveSupport
-  module CoreExtensions
-    module LoadErrorExtensions
-      module LoadErrorClassMethods
+module ActiveSupport #:nodoc:
+  module CoreExtensions #:nodoc:
+    module LoadErrorExtensions #:nodoc:
+      module LoadErrorClassMethods #:nodoc:
         def new(*args)
           (self == LoadError && MissingSourceFile.from_message(args.first)) || super
         end
