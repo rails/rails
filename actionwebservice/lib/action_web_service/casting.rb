@@ -7,7 +7,7 @@ module ActionWebService # :nodoc:
     end
 
     # Performs casting of arbitrary values into the correct types for the signature
-    class BaseCaster
+    class BaseCaster # :nodoc:
       def initialize(api_method)
         @api_method = api_method
       end

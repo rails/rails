@@ -1,4 +1,4 @@
-*SVN*
+*0.8.0* (6 July, 2005)
 
 * Fix WSDL generation by aliasing #inherited instead of trying to overwrite it, or the WSDL action may end up not being defined in the controller
 

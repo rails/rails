@@ -1,7 +1,9 @@
 require 'xmlrpc/marshal'
 
-class XMLRPC::FaultException
-  alias :message :faultString
+module XMLRPC # :nodoc:
+  class FaultException # :nodoc:
+    alias :message :faultString
+  end
 end
 
 module ActionWebService # :nodoc:
