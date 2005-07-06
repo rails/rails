@@ -26,7 +26,7 @@ TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/test )
 
 LOG_FILES    = %w( server.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html favicon.ico javascripts/prototype.js javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js )
-BIN_FILES    = %w( generate destroy breakpointer console server update runner profiler benchmarker listener tracker )
+BIN_FILES    = %w( generate destroy breakpointer console server update runner profiler benchmarker ) # listener tracker
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )
 
@@ -136,8 +136,8 @@ task :copy_dispatches do
   copy_with_rewritten_ruby_path("dispatches/dispatch.fcgi", "#{PKG_DESTINATION}/public/dispatch.fcgi")
   chmod 0755, "#{PKG_DESTINATION}/public/dispatch.fcgi"
 
-  copy_with_rewritten_ruby_path("dispatches/gateway.cgi", "#{PKG_DESTINATION}/public/gateway.cgi")
-  chmod 0755, "#{PKG_DESTINATION}/public/gateway.cgi"
+  # copy_with_rewritten_ruby_path("dispatches/gateway.cgi", "#{PKG_DESTINATION}/public/gateway.cgi")
+  # chmod 0755, "#{PKG_DESTINATION}/public/gateway.cgi"
 end
 
 task :copy_html_files do
