@@ -1,0 +1,14 @@
+Description:
+    The migration generator creates a stub for a new database migration.
+
+    The generator takes a migration name as its argument.  The migration name may be
+    given in CamelCase or under_score.
+
+    The generator creates a migration class in db/migrate prefixed by its number
+    in the queue.
+
+Example:
+    ./script/generate migration AddSslFlag
+
+    With 4 existing migrations, this will create an AddSslFlag migration in the
+    file db/migrate/5_add_ssl_flag.rb
