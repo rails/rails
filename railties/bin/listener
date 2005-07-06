@@ -1,103 +1,86 @@
-require "drb"
-ENV["RAILS_ENV"] = 'production'
-require "#{File.dirname(__FILE__)}/../config/environment.rb"
-require 'fcgi_handler'
-require 'rbconfig'
+#!/usr/local/bin/ruby
 
-VERBOSE = false
+require 'stringio'
+require 'fileutils'
+require 'fcgi_handler'
+
+def message(s)
+  $stderr.puts "listener: #{s}" if ENV && ENV["DEBUG_GATEWAY"]
+end
+
+class RemoteCGI < CGI
+  attr_accessor :stdinput, :stdoutput, :env_table
+  def initialize(env_table, input = nil, output = nil)
+    self.env_table = env_table
+    self.stdinput = input || StringIO.new
+    self.stdoutput = output || StringIO.new
+    super()
+  end
+
+  def out(stream) # Ignore the requested output stream
+    super(stdoutput)
+  end
+end
 
 class Listener
   include DRbUndumped
-  attr_accessor :tracker
-  
-  def initialize(timeout = nil)
-    @timeout = timeout
+
+  def initialize(timeout, socket_path)
+    @socket = File.expand_path(socket_path)
     @mutex = Mutex.new
     @active = false
-    
+    @timeout = timeout
+
     @handler = RailsFCGIHandler.new
     @handler.extend DRbUndumped
-    @output = FakeOut.new
-    $stdout = @output
-  end
-  
-  def inform_up(tracker_uri)
-    return unless tracker_uri
-    tracker = DRbObject.new_with_uri(tracker_uri)
-    tracker.register_listener self
-    @tracker = tracker
-  end
-  def inform_down
-    @tracker.remove_listener(self) if @tracker
+
+    message 'opening socket'
+    DRb.start_service("drbunix:#{@socket}", self)
+
+    message 'entering process loop'
+    @handler.process! self
   end
 
-  def run(on_uri, tracker_uri)
-    on_uri ||= "drbunix:"
-    DRb.start_service(on_uri, self) # Start a server for us
-    inform_up tracker_uri
-    @handler.process!(self)
-  end
-  
-  def die!
-    inform_down
-    Kernel.exit 0
-  end 
-  
-  def process(input)
-    $stderr.puts "listener: received request -- obtaining lock" if VERBOSE 
-    @mutex.synchronize do
-      @active = true
-      
-      $stderr.puts "listener: obtained -- swaping stdin" if VERBOSE
-      $stdin = input
-      cgi = CGI.new
-      
-      $stderr.puts "listener: yielding to FCGI handler..." if VERBOSE
-      @cgi_block.call cgi
-      $stderr.puts "listener: handler finished, releasing control" if VERBOSE
-      
-      return @output.read!
-    end
-  end
-  
-  def each_cgi(&block)
-    @cgi_block = block
+  def each_cgi(&cgi_block)
+    @cgi_block = cgi_block
+    message 'entering idle loop'
     loop do
-      @timeout ? sleep(@timeout) : sleep
+      sleep @timeout rescue nil
       die! unless @active
       @active = false
     end
   end
-end
 
-class FakeOut < Struct.new(:contents)
-  def initialize
-    super("")
-  end
-  def write(str)
-    contents << str
-  end
-  def read!
-    c = contents
-    self.contents = ''
-    return c
-  end
-end
+  def process(env, input)
+    message 'received request'
+    @mutex.synchronize do
+      @active = true
 
-if ARGV.shift == 'start-listeners'
-  tracker = ARGV.shift
-  number = (ARGV.shift || '1').to_i
-  exit(0) if number.zero?
-  
-  if number > 1
-    fork do
-      exec(
-        File.join(Config::CONFIG['bin_dir'], Config::CONFIG['RUBY_SO_NAME']), 
-        __FILE__, 'start-listeners', tracker, (number - 1).to_s
-      )
+      message 'creating input stream'
+      input_stream = StringIO.new(input)
+      message 'building CGI instance'
+      cgi = RemoteCGI.new(eval(env), input_stream)
+
+      message 'yielding to fcgi handler'
+      @cgi_block.call cgi
+      message 'yield finished -- sending output'
+
+      cgi.stdoutput.seek(0)
+      output = cgi.stdoutput.read
+
+      return output
     end
   end
-  
-  l = Listener.new(90)
-  l.run(nil, tracker)
+
+  def die!
+    message 'shutting down'
+    DRb.stop_service
+    FileUtils.rm_f @socket
+    Kernel.exit 0
+  end
 end
+
+socket_path = ARGV.shift
+timeout = (ARGV.shift || 90).to_i
+
+Listener.new(timeout, socket_path)

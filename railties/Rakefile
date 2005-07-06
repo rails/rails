@@ -137,7 +137,7 @@ task :copy_dispatches do
   chmod 0755, "#{PKG_DESTINATION}/public/dispatch.fcgi"
 
   copy_with_rewritten_ruby_path("dispatches/gateway.cgi", "#{PKG_DESTINATION}/public/gateway.cgi")
-  chmod 0644, "#{PKG_DESTINATION}/public/gateway.cgi"
+  chmod 0755, "#{PKG_DESTINATION}/public/gateway.cgi"
 end
 
 task :copy_html_files do

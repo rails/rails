@@ -1,58 +1,97 @@
-#!/usr/bin/ruby
-
-# This is an experimental feature for getting high-speed CGI by using a long-running, DRb-backed server in the background
+#!/usr/local/bin/ruby
 
 require 'drb'
-require 'cgi'
-require 'rbconfig'
 
-VERBOSE = false
+# This file includes an experimental gateway CGI implementation. It will work
+# only on platforms which support both fork and sockets.
+#
+# To enable it edit public/.htaccess and replace dispatch.cgi with gateway.cgi.
+#
+# Next, create the directory log/drb_gateway and grant the apache user rw access
+# to said directory.
+#
+# On the next request to your server, the gateway tracker should start up, along
+# with a few listener processes. This setup should provide you with much better
+# speeds than dispatch.cgi.
+#
+# Keep in mind that the first request made to the server will be slow, as the
+# tracker and listeners will have to load. Also, the tracker and listeners will
+# shutdown after a period if inactivity. You can set this value below -- the
+# default is 90 seconds.
 
-AppName = File.split(File.expand_path(File.join(__FILE__, '..'))).last
-SocketPath = File.expand_path(File.join(File.dirname(__FILE__), '../log/drb_gateway.sock'))
-ConnectionUri = "drbunix:#{SocketPath}"
-attempted_start = false
+TrackerSocket = File.expand_path(File.join(File.dirname(__FILE__), '../log/drb_gateway/tracker.sock'))
+DieAfter = 90 # Seconds
+Listeners = 3
 
-def start_tracker
-  tracker_path = File.join(File.dirname(__FILE__), '../script/tracker')
+def message(s)
+  $stderr.puts "gateway.cgi: #{s}" if ENV && ENV["DEBUG_GATEWAY"]
+end
+
+def listener_socket(number)
+  File.expand_path(File.join(File.dirname(__FILE__), "../log/drb_gateway/listener_#{number}.sock"))
+end
+
+unless File.exists? TrackerSocket
+  message "Starting tracker and #{Listeners} listeners"
   fork do
     Process.setsid
     STDIN.reopen "/dev/null"
     STDOUT.reopen "/dev/null", "a"
-    
-    exec(File.join(Config::CONFIG['bin_dir'], Config::CONFIG['RUBY_SO_NAME']), tracker_path, 'start', ConnectionUri)
+
+    root = File.expand_path(File.dirname(__FILE__) + '/..')
+
+    message "starting tracker"
+    fork do
+      ARGV.clear
+      ARGV << TrackerSocket << Listeners.to_s << DieAfter.to_s
+      load File.join(root, 'script', 'tracker')
+    end
+
+    message "starting listeners"
+    require File.join(root, 'config/environment.rb')
+    Listeners.times do |number|
+      fork do
+        ARGV.clear
+        ARGV << listener_socket(number) << DieAfter.to_s
+        load File.join(root, 'script', 'listener')
+      end
+    end
   end
-  
-  $stderr.puts "dispatch: waiting for tracker to start..." if VERBOSE
+
+  message "waiting for tracker and listener to arise..."
+  ready = false
   10.times do
     sleep 0.5
-    return if File.exists? SocketPath
+    break if (ready = File.exists?(TrackerSocket) && File.exists?(listener_socket(0)))
   end
-  
-  $stderr.puts "Can't start tracker!!! Dropping request!"
-  Kernel.exit 1
+
+  if ready
+    message "tracker and listener are ready"
+  else
+    message "Waited 5 seconds, listener and tracker not ready... dropping request"
+    Kernel.exit 1
+  end
 end
 
-unless File.exists?(SocketPath)
-  $stderr.puts "tracker not running: starting it..." if VERBOSE
-  start_tracker
+DRb.start_service
+
+message "connecting to tracker"
+tracker = DRbObject.new_with_uri("drbunix:#{TrackerSocket}")
+
+input = $stdin.read
+$stdin.close
+
+env = ENV.inspect
+
+output = nil
+tracker.with_listener do |number|
+  message "connecting to listener #{number}"
+  socket = listener_socket(number)
+  listener = DRbObject.new_with_uri("drbunix:#{socket}")
+  output = listener.process(env, input)
+  message "listener #{number} has finished, writing output"
 end
 
-$stderr.puts "dispatch: attempting to contact tracker..." if VERBOSE
-tracker = DRbObject.new_with_uri(ConnectionUri)
-tracker.ping # Test connection
-
-$stdout.extend DRbUndumped
-$stdin.extend DRbUndumped
-  
-DRb.start_service "drbunix:", $stdin
-$stderr.puts "dispatch: publishing stdin..." if VERBOSE
-
-$stderr.puts "dispatch: sending request to tracker" if VERBOSE
-puts tracker.process($stdin)
-
+$stdout.write output
 $stdout.flush
-[$stdin, $stdout].each {|io| io.close}
-$stderr.puts "dispatch: finished..." if VERBOSE
-
-
+$stdout.close
