@@ -24,7 +24,7 @@ module ActionController #:nodoc:
       #   Defaults to 'application/octet-stream'.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
       #   Valid values are 'inline' and 'attachment' (default).
-      # * <tt>:streaming</tt> - whether to send the file to the user agent as it is read (true)
+      # * <tt>:stream</tt> - whether to send the file to the user agent as it is read (true)
       #   or to read the entire file before sending (false). Defaults to true.
       # * <tt>:buffer_size</tt> - specifies size (in bytes) of the buffer used to stream the file.
       #   Defaults to 4096.
