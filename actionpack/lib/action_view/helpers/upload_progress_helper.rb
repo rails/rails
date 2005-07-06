@@ -1,5 +1,12 @@
 module ActionView 
   module Helpers
+    # == THIS IS AN EXPERIMENTAL FEATURE
+    #
+    # Which means that it doesn't yet work on all systems. We're still working on full
+    # compatibility. It's thus not advised to use this unless you've verified it to work
+    # fully on all the systems that is a part of your environment. Consider this an extended
+    # preview.
+    #
     # Provides a set of methods to be used in your views to help with the
     # rendering of Ajax enabled status updating during a multipart upload.
     #
@@ -50,8 +57,7 @@ module ActionView
     # of the IDs and CSS classes used.
     #
     # Default styling is included with the scaffolding CSS.
-    #
-    module UploadProgressHelper #:nodoc:
+    module UploadProgressHelper
       unless const_defined? :FREQUENCY
         # Default number of seconds between client updates
         FREQUENCY = 2.0 

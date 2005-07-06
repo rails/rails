@@ -1,9 +1,9 @@
 module ActionController
-  module CodeGeneration #:nodoc
-    class GenerationError < StandardError
+  module CodeGeneration #:nodoc:
+    class GenerationError < StandardError #:nodoc:
     end
   
-    class Source
+    class Source #:nodoc:
       attr_reader :lines, :indentation_level
       IndentationString = '  '
       def initialize
@@ -24,7 +24,7 @@ module ActionController
       def to_s() lines.join("\n") end
     end
 
-    class CodeGenerator
+    class CodeGenerator #:nodoc:
       attr_accessor :source, :locals
       def initialize(source = nil)
         @locals = []
@@ -72,7 +72,7 @@ module ActionController
       end
     end
 
-    class RecognitionGenerator < CodeGenerator
+    class RecognitionGenerator < CodeGenerator #:nodoc:
       Attributes = [:after, :before, :current, :results, :constants, :depth, :move_ahead, :finish_statement]
       attr_accessor(*Attributes)
       FieldsToDuplicate = CodeGenerator::FieldsToDuplicate + Attributes
@@ -163,7 +163,7 @@ module ActionController
       end
     end
   
-    class GenerationGenerator < CodeGenerator
+    class GenerationGenerator < CodeGenerator #:nodoc:
       Attributes = [:after, :before, :current, :segments]
       attr_accessor(*Attributes)
       FieldsToDuplicate = CodeGenerator::FieldsToDuplicate + Attributes

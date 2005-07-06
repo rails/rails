@@ -125,7 +125,7 @@ module ActionController #:nodoc:
     #
     # If you have a layout that by default is applied to all the actions of a controller, you still have the option of rendering
     # a given action or set of actions without a layout, or restricting a layout to only a single action or a set of actions. The 
-    # +:only+ and +:except+ options can be passed to the layout call. For example:
+    # <tt>:only</tt> and <tt>:except</tt> options can be passed to the layout call. For example:
     #
     #   class WeblogController < ActionController::Base
     #     layout "weblog_standard", :except => :rss
@@ -137,8 +137,8 @@ module ActionController #:nodoc:
     # This will assign "weblog_standard" as the WeblogController's layout  except for the +rss+ action, which will not wrap a layout 
     # around the rendered view.
     #
-    # Both the +:only+ and +:except+ condition can accept an arbitrary number of method references, so +:except => [ :rss, :text_only ]+ 
-    # is valid, as is # +:except => :rss+.
+    # Both the <tt>:only</tt> and <tt>:except</tt> condition can accept an arbitrary number of method references, so 
+    # #<tt>:except => [ :rss, :text_only ]</tt> is valid, as is <tt>:except => :rss</tt>.
     #
     # == Using a different layout in the action render call
     # 

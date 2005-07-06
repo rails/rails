@@ -6,6 +6,13 @@
 require 'action_controller/cgi_ext/multipart_progress'
 
 module ActionController #:nodoc:
+  # == THIS IS AN EXPERIMENTAL FEATURE
+  #
+  # Which means that it doesn't yet work on all systems. We're still working on full
+  # compatibility. It's thus not advised to use this unless you've verified it to work
+  # fully on all the systems that is a part of your environment. Consider this an extended
+  # preview.
+  #
   # == Action Pack Upload Progress for multipart uploads
   #
   # The UploadProgress module aids in the process of viewing an Ajax driven
@@ -124,9 +131,7 @@ module ActionController #:nodoc:
   #   def custom_status
   #     render :inline => '<%= upload_progress_status %> <div>Updated at <%= Time.now %></div>', :layout => false
   #   end
-  #
-  #
-  module UploadProgress #:nodoc:
+  module UploadProgress
     def self.append_features(base) #:nodoc:
       super
       base.extend(ClassMethods)
@@ -262,6 +267,13 @@ module ActionController #:nodoc:
       session[:uploads] && session[:uploads][upload_id] || UploadProgress::Progress.new(0)
     end
 
+    # == THIS IS AN EXPERIMENTAL FEATURE
+    #
+    # Which means that it doesn't yet work on all systems. We're still working on full
+    # compatibility. It's thus not advised to use this unless you've verified it to work
+    # fully on all the systems that is a part of your environment. Consider this an extended
+    # preview.
+    #
     # Upload Progress abstracts the progress of an upload.  It's used by the
     # multipart progress IO that keeps track of the upload progress and creating
     # the application depends on.  It contians methods to update the progress

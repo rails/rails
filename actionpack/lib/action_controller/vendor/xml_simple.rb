@@ -7,14 +7,14 @@
 require 'rexml/document'
 
 # Easy API to maintain XML (especially configuration files).
-class XmlSimple
+class XmlSimple #:nodoc:
   include REXML
 
   @@VERSION = '1.0.2'
 
   # A simple cache for XML documents that were already transformed
   # by xml_in.
-  class Cache
+  class Cache #:nodoc:
     # Creates and initializes a new Cache object.
     def initialize
       @mem_share_cache = {}

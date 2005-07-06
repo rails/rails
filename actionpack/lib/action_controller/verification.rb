@@ -1,37 +1,36 @@
 module ActionController #:nodoc:
-
-  # This module provides a class-level method for specifying that certain
-  # actions are guarded against being called without certain prerequisites
-  # being met. This is essentially a special kind of before_filter.
-  #
-  # An action may be guarded against being invoked without certain request
-  # parameters being set, or without certain session values existing.
-  #
-  # When a verification is violated, values may be inserted into the flash, and
-  # a specified redirection is triggered.
-  #
-  # Usage:
-  #
-  #   class GlobalController < ActionController::Base
-  #     # prevent the #update_settings action from being invoked unless
-  #     # the 'admin_privileges' request parameter exists.
-  #     verify :params => "admin_privileges", :only => :update_post,
-  #            :redirect_to => { :action => "settings" }
-  #
-  #     # disallow a post from being updated if there was no information
-  #     # submitted with the post, and if there is no active post in the
-  #     # session, and if there is no "note" key in the flash.
-  #     verify :params => "post", :session => "post", "flash" => "note",
-  #            :only => :update_post,
-  #            :add_flash => { "alert" => "Failed to create your message" },
-  #            :redirect_to => :category_url
-  #
-  module Verification
+  module Verification #:nodoc:
     def self.append_features(base) #:nodoc:
       super
       base.extend(ClassMethods)
     end
 
+    # This module provides a class-level method for specifying that certain
+    # actions are guarded against being called without certain prerequisites
+    # being met. This is essentially a special kind of before_filter.
+    #
+    # An action may be guarded against being invoked without certain request
+    # parameters being set, or without certain session values existing.
+    #
+    # When a verification is violated, values may be inserted into the flash, and
+    # a specified redirection is triggered.
+    #
+    # Usage:
+    #
+    #   class GlobalController < ActionController::Base
+    #     # prevent the #update_settings action from being invoked unless
+    #     # the 'admin_privileges' request parameter exists.
+    #     verify :params => "admin_privileges", :only => :update_post,
+    #            :redirect_to => { :action => "settings" }
+    #
+    #     # disallow a post from being updated if there was no information
+    #     # submitted with the post, and if there is no active post in the
+    #     # session, and if there is no "note" key in the flash.
+    #     verify :params => "post", :session => "post", "flash" => "note",
+    #            :only => :update_post,
+    #            :add_flash => { "alert" => "Failed to create your message" },
+    #            :redirect_to => :category_url
+    #
     module ClassMethods
       # Verify the given actions so that if certain prerequisites are not met,
       # the user is redirected to a different action. The +options+ parameter

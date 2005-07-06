@@ -1,7 +1,6 @@
 module ActionController
-  module Routing
+  module Routing #:nodoc:
     class << self
-
       def expiry_hash(options, recall)
         k = v = nil
         expire_on = {}
@@ -44,7 +43,7 @@ module ActionController
       end
     end
 
-    class Component #:nodoc
+    class Component #:nodoc:
       def dynamic?()  false end
       def optional?() false end
 
@@ -61,7 +60,7 @@ module ActionController
       end 
     end
 
-    class StaticComponent < Component #:nodoc
+    class StaticComponent < Component #:nodoc:
       attr_reader :value
   
       def initialize(value)
@@ -79,7 +78,7 @@ module ActionController
       end
     end
 
-    class DynamicComponent < Component #:nodoc
+    class DynamicComponent < Component #:nodoc:
       attr_reader :key, :default
       attr_accessor :condition
   
@@ -174,7 +173,7 @@ module ActionController
       end
     end
 
-    class ControllerComponent < DynamicComponent #:nodoc
+    class ControllerComponent < DynamicComponent #:nodoc:
       def key() :controller end
 
       def add_segments_to(g)
@@ -225,7 +224,7 @@ module ActionController
       end
     end
 
-    class PathComponent < DynamicComponent #:nodoc 
+    class PathComponent < DynamicComponent #:nodoc:
       def optional?() true end
       def default()   ''   end
       def condition() nil  end
@@ -255,7 +254,7 @@ module ActionController
       end
     end
 
-    class Route
+    class Route #:nodoc:
       attr_accessor :components, :known
       attr_reader :path, :options, :keys
   
@@ -351,7 +350,7 @@ module ActionController
         end
     end
 
-    class RouteSet
+    class RouteSet #:nodoc:
       attr_reader :routes, :categories, :controller_to_selector
       def initialize
         @routes = []
@@ -563,7 +562,7 @@ module ActionController
       end
     end
 
-    module NamedRoutes
+    module NamedRoutes #:nodoc:
       Helpers = []
       class << self
         def clear() Helpers.clear end

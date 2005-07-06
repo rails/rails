@@ -1,7 +1,5 @@
 *1.9.0* (6 July, 2005)
 
-* Fixed that a SessionRestoreError was thrown if a model object was placed in the session that wasn't available to all controllers
-
 * Added logging of the request URI in the benchmark statement (makes it easy to grep for slow actions)
 
 * Added javascript_include_tag :defaults shortcut that'll include all the default javascripts included with Action Pack (prototype, effects, controls, dragdrop)
