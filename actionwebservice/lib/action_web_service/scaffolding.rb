@@ -141,6 +141,7 @@ module ActionWebService
 
             def prepare_request(new_request, service_name, method_name)
               new_request.parameters.update(request.parameters)
+              request.env.each{ |k, v| new_request.env[k] = v unless new_request.env.has_key?(k) }
               if web_service_dispatching_mode == :layered && @protocol.is_a?(ActionWebService::Protocol::Soap::SoapProtocol)
                 new_request.env['HTTP_SOAPACTION'] = "/\#{controller_name()}/\#{service_name}/\#{method_name}"
               end
