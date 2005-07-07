@@ -109,6 +109,9 @@ module Object::Controllers
     
     class UserController
     end
+
+    class NewsFeedController
+    end
   end
 end
 
@@ -717,6 +720,15 @@ class RouteSetTests < Test::Unit::TestCase
 
   def test_action_expiry
     assert_equal ['/content', {}], rs.generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
+  end
+
+  def test_recognition_with_uppercase_controller_name
+    assert_equal({'controller' => ::Controllers::ContentController, 'action' => 'index'}, rs.recognize_path(%w(Content)))
+    assert_equal({'controller' => ::Controllers::ContentController, 'action' => 'list'}, rs.recognize_path(%w(Content list)))
+    assert_equal({'controller' => ::Controllers::ContentController, 'action' => 'show', 'id' => '10'}, rs.recognize_path(%w(Content show 10)))
+
+    assert_equal({'controller' => ::Controllers::Admin::NewsFeedController, 'action' => 'index'}, rs.recognize_path(%w(Admin NewsFeed)))
+    assert_equal({'controller' => ::Controllers::Admin::NewsFeedController, 'action' => 'index'}, rs.recognize_path(%w(Admin News_Feed)))
   end
 end
 
