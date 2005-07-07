@@ -75,7 +75,7 @@ module ActionController #:nodoc:
         if extra_keys.include?(key.to_sym)
           non_path_parameters[key] = value
         else
-          path_parameters[key] = value.to_s
+          path_parameters[key] = value.is_a?(Fixnum) ? value.to_s : value
         end
       end
     end                        

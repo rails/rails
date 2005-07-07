@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed routing to allow for testing of *path components #1650 [Nicholas Seckar]
+
 * Added :handle as an option to sortable_element to restrict the drag handle to a given class #1642 [thejohnny]
 
 * Added a bunch of script.aculo.us features: Effect.ScrollTo, to smoothly scroll the page to an element, better Firefox flickering handling on SlideUp/SlideDown, Removed a possible memory leak in IE with draggables, Added support for cancelling dragging my hitting ESC #1644 [Thomas Fuchs]
