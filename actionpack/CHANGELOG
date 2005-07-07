@@ -1,5 +1,7 @@
 *SVN*
 
+* Added a bunch of script.aculo.us features: Effect.ScrollTo, to smoothly scroll the page to an element, better Firefox flickering handling on SlideUp/SlideDown, Removed a possible memory leak in IE with draggables, Added support for cancelling dragging my hitting ESC #1644 [Thomas Fuchs]
+
 * Fixed that named routes didn't use the default values for action and possible other parameters #1534 [Nicholas Seckar]
 
 * Fixed JavascriptHelper#visual_effect to use camelize such that :blind_up will work #1639 [pelletierm@eastmedia.net]

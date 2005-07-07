@@ -196,17 +196,13 @@ var Droppables = {
   },
   
   fire: function(event, element) {
-    if(!this.drops) return;
-    var pX = Event.pointerX(event);
-    var pY = Event.pointerY(event);
+    if(!this.last_active) return;
     Position.prepare();
     
-    var i = this.drops.length-1; do {
-      var drop = this.drops[i];
-      if(this.is_affected(pX, pY, element, drop))
-        if(drop.droppable.onDrop)
-           drop.droppable.onDrop(element);
-    } while (i--);
+    if (this.is_affected(Event.pointerX(event), Event.pointerY(event), element, this.last_active))
+      if (this.last_active.droppable.onDrop) 
+        this.last_active.droppable.onDrop(element, this.last_active);
+    
   },
   
   reset: function() {
@@ -247,7 +243,6 @@ Draggable.prototype = {
     }.extend(arguments[1] || {});
     
     this.element      = $(element);
-    this.element.drag = this;
     this.handle       = options.handle ? $(options.handle) : this.element;
     
     // fix IE
@@ -270,6 +265,7 @@ Draggable.prototype = {
     Event.observe(this.handle, "mousedown", this.startDrag.bindAsEventListener(this));
     Event.observe(document, "mouseup", this.endDrag.bindAsEventListener(this));
     Event.observe(document, "mousemove", this.update.bindAsEventListener(this));
+    Event.observe(document, "keypress", this.keyPress.bindAsEventListener(this));
   },
   currentLeft: function() {
     return parseInt(this.element.style.left || '0');
@@ -290,31 +286,43 @@ Draggable.prototype = {
       Event.stop(event);
     }
   },
+  finishDrag: function(event, success) {
+    this.active = false;
+    this.dragging = false;
+    
+    if(success) Droppables.fire(event, this.element);
+    Draggables.notify('onEnd', this);
+    
+    var revert = this.options.revert;
+    if(revert && typeof revert == 'function') revert = revert(this.element);
+      
+    if(revert && this.options.reverteffect) {
+      this.options.reverteffect(this.element, 
+      this.currentTop()-this.originalTop,
+      this.currentLeft()-this.originalLeft);
+    } else {
+      this.originalLeft = this.currentLeft();
+      this.originalTop  = this.currentTop();
+    }
+    
+    this.element.style.zIndex = this.originalZ;
+      
+    if(this.options.endeffect) 
+      this.options.endeffect(this.element);
+      
+    Droppables.reset();
+  },
+  keyPress: function(event) {
+    if(this.active) {
+      if(event.keyCode==Event.KEY_ESC) {
+        this.finishDrag(event, false);
+        Event.stop(event);
+      }
+    }
+  },
   endDrag: function(event) {
     if(this.active && this.dragging) {
-      this.active = false;
-      this.dragging = false;
-      
-      Droppables.fire(event, this.element);
-      Draggables.notify('onEnd', this);
-      
-      var revert = this.options.revert;
-      if(revert && typeof revert == 'function') revert = revert(this.element);
-      
-      if(revert && this.options.reverteffect) {
-        this.options.reverteffect(this.element, 
-          this.currentTop()-this.originalTop,
-          this.currentLeft()-this.originalLeft);
-      } else {
-        this.originalLeft = this.currentLeft();
-        this.originalTop  = this.currentTop();
-      }
-      this.element.style.zIndex = this.originalZ;
-     
-      if(this.options.endeffect) 
-        this.options.endeffect(this.element);
-      
-      Droppables.reset();
+      this.finishDrag(event, true);
       Event.stop(event);
     }
     this.active = false;
