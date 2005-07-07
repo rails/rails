@@ -441,7 +441,7 @@ module ActionView
         options[:onUpdate] ||= "function(){" + remote_function(options) + "}"
         options.delete_if { |key, value| AJAX_OPTIONS.include?(key) }
         
-        [:tag, :overlap, :constraint].each do |option|
+        [:tag, :overlap, :constraint, :handle].each do |option|
           options[option] = "'#{options[option]}'" if options[option]
         end
         
