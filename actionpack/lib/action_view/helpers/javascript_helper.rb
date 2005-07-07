@@ -419,7 +419,7 @@ module ActionView
       # http://script.aculo.us for more documentation.
       def visual_effect(name, element_id = false, js_options = {})
         element = element_id ? "'#{element_id}'" : "element"
-        "new Effect.#{name.to_s.capitalize}(#{element},#{options_for_javascript(js_options)});"
+        "new Effect.#{name.to_s.camelize}(#{element},#{options_for_javascript(js_options)});"
       end
       
       # Makes the element with the DOM ID specified by +element_id+ sortable
