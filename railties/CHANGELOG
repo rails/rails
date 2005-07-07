@@ -1,4 +1,4 @@
-*SVN*
+*0.13.0*
 
 * Changed the default logging level in config/environment.rb to INFO for production (so SQL statements won't be logged)
 

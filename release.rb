@@ -8,7 +8,7 @@ unless ruby_forge_password = ARGV.first
 end
 
 # Checkout source
-`rm -rf release* && svn export http://dev.rubyonrails.org/svn/rails/trunk release`
+`rm -rf release && svn export http://dev.rubyonrails.org/svn/rails/trunk release`
 
 # Create Rails packages
 `cd release/railties && rake template=jamis package`
@@ -27,4 +27,4 @@ end
 # Upload rails tgz/zip
 
 # Create SVN tag
-
+`cd ..; svn cp trunk tags/rel_#{ARGV[1]}`
