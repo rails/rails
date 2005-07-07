@@ -693,6 +693,17 @@ class RouteSetTests < Test::Unit::TestCase
     )
   end  
 
+  def test_paths_escaped
+    rs.draw do |map|
+      rs.path 'file/*path', :controller => 'content', :action => 'show_file'
+      rs.connect ':controller/:action/:id'
+    end
+    
+    results = rs.recognize_path %w(file hello+world how+are+you%3F)
+    assert results, "Recognition should have succeeded"
+    assert_equal ['hello world', 'how are you?'], results['path']
+  end
+
   def test_backwards
     rs.draw do |map|
       rs.connect 'page/:id/:action', :controller => 'pages', :action => 'show'

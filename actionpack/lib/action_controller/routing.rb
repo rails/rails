@@ -245,12 +245,15 @@ module ActionController
         start = "(#{start})" unless /^\w+$/ =~ start
     
         value_expr = "#{g.path_name}[#{start}..-1] || []"
-        g.result key, "ActionController::Routing::PathComponent::Result.new(#{value_expr})"
+        g.result key, "ActionController::Routing::PathComponent::Result.new_escaped(#{value_expr})"
         g.finish(false)
       end
   
       class Result < ::Array
         def to_s() join '/' end
+        def self.new_escaped(strings)
+          new strings.collect {|str| CGI.unescape str}
+        end
       end
     end
 
