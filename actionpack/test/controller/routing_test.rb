@@ -661,7 +661,17 @@ class RouteSetTests < Test::Unit::TestCase
     x = setup_for_named_route
     assert_equal({:controller => '/content', :action => 'show_page', :title => 'new stuff'},
                  x.new.send(:page_url, :title => 'new stuff'))
-  end  
+  end
+
+  def test_named_route_with_default
+    rs.page 'page/:title', :controller => 'content', :action => 'show_page', :title => 'AboutPage'
+    x = setup_for_named_route
+    assert_equal({:controller => '/content', :action => 'show_page', :title => 'AboutPage'},
+                 x.new.send(:page_url))
+    assert_equal({:controller => '/content', :action => 'show_page', :title => 'AboutRails'},
+                 x.new.send(:page_url, :title => "AboutRails"))
+
+  end
 
   def setup_for_named_route
     x = Class.new

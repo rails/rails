@@ -256,13 +256,14 @@ module ActionController
 
     class Route #:nodoc:
       attr_accessor :components, :known
-      attr_reader :path, :options, :keys
+      attr_reader :path, :options, :keys, :defaults
   
       def initialize(path, options = {})
         @path, @options = path, options
     
         initialize_components path
         defaults, conditions = initialize_hashes options.dup
+        @defaults = defaults.dup
         configure_components(defaults, conditions)
         initialize_keys
       end
@@ -576,7 +577,7 @@ module ActionController
         end
 
         def name_route(route, name)
-          hash = route.known.symbolize_keys
+          hash = route.defaults.merge(route.known).symbolize_keys
           hash[:controller] = "/#{hash[:controller]}"
       
           define_method(hash_access_name(name)) { hash }
