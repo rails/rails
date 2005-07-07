@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed first run of "rake migrate" on PostgreSQL by not expecting a return value on the id #1640
+
+
 *1.11.0* (5th July, 2005)
 
 * Fixed that Yaml error message in fixtures hid the real error #1623 [Nicholas Seckar]

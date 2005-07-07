@@ -361,7 +361,7 @@ module ActiveRecord
       def initialize_schema_information
         begin
           execute "CREATE TABLE schema_info (version #{type_to_sql(:integer)})"
-          insert "INSERT INTO schema_info (version) VALUES(0)"
+          execute "INSERT INTO schema_info (version) VALUES(0)"
         rescue ActiveRecord::StatementInvalid
           # Schema has been intialized
         end
