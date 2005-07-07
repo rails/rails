@@ -1,9 +1,9 @@
 class Object #:nodoc:
-  def remove_subclasses_of(superclass)
-    subclasses_of(superclass).each do |subclass|
-      # remove_instance_variables_of(klass)
-      Object.send(:remove_const, subclass) rescue nil
-    end 
+  def remove_subclasses_of(*superclasses)
+    subclasses_of(*superclasses).each do |subclass|
+      subclass.instance_variables.each { |v| subclass.send(:remove_instance_variable, v) }
+      Object.send(:remove_const, subclass.to_s) rescue nil
+    end
   end
   
   def remove_instance_variables_of(klass)
@@ -14,11 +14,11 @@ class Object #:nodoc:
     end   
   end
 
-  def subclasses_of(superclass)
+  def subclasses_of(*superclasses)
     subclasses = []
     ObjectSpace.each_object(Class) do |k|
-      next if !k.ancestors.include?(superclass) || superclass == k || k.to_s.include?("::") || subclasses.include?(k.to_s)
-      subclasses << k.to_s
+      next if (k.ancestors & superclasses).empty? || superclasses.include?(k) || k.to_s.include?("::") || subclasses.include?(k)
+      subclasses << k
     end
     subclasses
   end
@@ -50,6 +50,6 @@ class Class #:nodoc:
   end
 
   def subclasses
-    Object.subclasses_of(self)
+    Object.subclasses_of(self).map { |o| o.to_s }
   end
 end

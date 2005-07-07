@@ -12,6 +12,20 @@ class RemoveSubsBaseClass
   end
 end
 class RemoveSubsSubClass < RemoveSubsBaseClass; end
+class RemoveSubsTestClass2; end
+class RemoveSubsBaseClass2
+  def self.add_ivar
+    @ivar = RemoveSubsTestClass2.new
+  end
+end
+class RemoveSubsSubClass2 < RemoveSubsBaseClass2; end
+class RemoveSubsTestClass3; end
+class RemoveSubsBaseClass3
+  def self.add_ivar
+    @ivar = RemoveSubsTestClass3.new
+  end
+end
+class RemoveSubsSubClass3 < RemoveSubsBaseClass3; end
 
 class ClassExtTest < Test::Unit::TestCase
   def test_methods
@@ -42,6 +56,20 @@ class ObjectTests < Test::Unit::TestCase
     r = RemoveSubsSubClass.new
     RemoveSubsSubClass.add_ivar
     RemoveSubsBaseClass.remove_subclasses
+
+    GC.start
+    ObjectSpace.each_object do |o|
+      flunk("ObjectSpace still contains RemoveSubsTestClass") if o.class == RemoveSubsTestClass
+    end
+  end
+
+  def test_remove_subclasses_of_multiple_classes_unsets_ivars
+    r2 = RemoveSubsSubClass2.new
+    RemoveSubsSubClass2.add_ivar
+    r3 = RemoveSubsSubClass3.new
+    RemoveSubsSubClass3.add_ivar
+    
+    Object.remove_subclasses_of(RemoveSubsBaseClass2, RemoveSubsBaseClass3)
 
     GC.start
     ObjectSpace.each_object do |o|

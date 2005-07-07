@@ -1,6 +1,6 @@
 *SVN*
 
-* Remove fix against memory leaks in development mode as it killed development performance on large applications (2-3s stall on Basecamp). Octopod is working on a better fix.
+* Added more efficient implementation of the development mode reset of classes #1638 [Chris McGrath]
 
 
 *1.1.0*

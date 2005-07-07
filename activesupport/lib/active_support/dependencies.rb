@@ -39,7 +39,7 @@ module Dependencies #:nodoc:
   end
   
   def remove_subclasses_for(*classes)
-    classes.each { |klass| klass.remove_subclasses }
+    Object.remove_subclasses_of(*classes)
   end
   
   # LoadingModules implement namespace-safe dynamic loading.
