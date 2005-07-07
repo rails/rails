@@ -427,7 +427,7 @@ module ActionController
         path.shift  
    
         hash = recognize_path(path)  
-        recognition_failed(request) unless hash && hash['controller']  
+        return recognition_failed(request) unless hash && hash['controller']  
    
         controller = hash['controller']  
         hash['controller'] = controller.controller_path  
