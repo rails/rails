@@ -1,5 +1,10 @@
 *SVN*
 
+* Remove fix against memory leaks in development mode as it killed development performance on large applications (2-3s stall on Basecamp). Octopod is working on a better fix.
+
+
+*1.1.0*
+
 * Fixed conflict with Glue gem #1606 [Rick Olson]
 
 * Added new rules to the Inflector to deal with more unusual plurals mouse/louse => mice/lice, information => information, ox => oxen, virus => viri, archive => archives #1571, #1583, #1490, #1599, #1608 [foamdino@gmail.com/others]

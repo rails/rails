@@ -1,13 +1,17 @@
 class Object #:nodoc:
   def remove_subclasses_of(superclass)
     subclasses_of(superclass).each do |subclass|
-      ObjectSpace.each_object(Class) do |k|
-        if k.to_s == subclass
-          k.instance_variables.each { |v| k.send(:remove_instance_variable, v) }
-        end  
-      end   
+      # remove_instance_variables_of(klass)
       Object.send(:remove_const, subclass) rescue nil
     end 
+  end
+  
+  def remove_instance_variables_of(klass)
+    ObjectSpace.each_object(Class) do |k|
+      if k.to_s == klass
+        k.instance_variables.each { |v| k.send(:remove_instance_variable, v) }
+      end  
+    end   
   end
 
   def subclasses_of(superclass)
