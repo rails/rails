@@ -114,10 +114,44 @@ HTML
     )
   end
 
-  def test_path_params_are_strings
+  def test_id_converted_to_string
     get :test_params, :id => 20, :foo => Object.new
-    @request.path_parameters.each do |key, value|
-      assert_kind_of String, value
+    assert_kind_of String, @request.path_parameters['id']
+  end
+
+  def test_array_path_parameter_handled_properly
+    with_routing do |set|
+      set.draw do 
+        set.connect 'file/*path', :controller => 'test_test/test', :action => 'test_params'
+        set.connect ':controller/:action/:id'
+      end
+      
+      get :test_params, :path => ['hello', 'world']
+      assert_equal ['hello', 'world'], @request.path_parameters['path']
+      assert_equal 'hello/world', @request.path_parameters['path'].to_s
     end
+  end
+
+  def test_assert_realistic_path_parameters
+    get :test_params, :id => 20, :foo => Object.new
+
+    # All elements of path_parameters should use string keys
+    @request.path_parameters.keys.each do |key|
+      assert_kind_of String, key
+    end
+  end
+
+  def test_with_routing_places_routes_back
+    assert ActionController::Routing::Routes
+    routes_id = ActionController::Routing::Routes.object_id
+    
+    begin
+      with_routing { raise 'fail' }
+      fail 'Should not be here.'
+    rescue RuntimeError
+    end
+    
+    assert ActionController::Routing::Routes
+    assert_equal routes_id, ActionController::Routing::Routes.object_id
   end
 end

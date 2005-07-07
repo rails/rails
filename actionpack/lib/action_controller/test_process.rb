@@ -72,10 +72,16 @@ module ActionController #:nodoc:
       extra_keys = ActionController::Routing::Routes.extra_keys(parameters)
       non_path_parameters = get? ? query_parameters : request_parameters
       parameters.each do |key, value|
+        if value.is_a? Fixnum
+          value = value.to_s
+        elsif value.is_a? Array
+          value = ActionController::Routing::PathComponent::Result.new(value)
+        end
+
         if extra_keys.include?(key.to_sym)
           non_path_parameters[key] = value
         else
-          path_parameters[key] = value.is_a?(Fixnum) ? value.to_s : value
+          path_parameters[key.to_s] = value
         end
       end
     end                        
@@ -351,6 +357,36 @@ module Test
         def method_missing(selector, *args)
           return @controller.send(selector, *args) if ActionController::Routing::NamedRoutes::Helpers.include?(selector)
           return super
+        end
+
+        # A helper to make it easier to test different route configurations.
+        # This method temporarily replaces ActionController::Routing::Routes
+        # with a new RouteSet instance. 
+        #
+        # The new instance is yielded to the passed block. Typically the block
+        # will create some routes using map.draw { map.connect ... }:
+        #
+        #   with_routing do |set|
+        #     set.draw { set.connect ':controller/:id/:action' }
+        #     assert_equal(
+        #        ['/content/10/show', {}],
+        #        set.generate(:controller => 'content', :id => 10, :action => 'show')
+        #     )
+        #   end
+        #
+        def with_routing
+          real_routes = ActionController::Routing::Routes
+          ActionController::Routing.send :remove_const, :Routes
+
+          temporary_routes = ActionController::Routing::RouteSet.new
+          ActionController::Routing.send :const_set, :Routes, temporary_routes
+          
+          yield temporary_routes
+        ensure
+          if ActionController::Routing.const_defined? :Routes
+            ActionController::Routing.send(:remove_const, :Routes) 
+          end
+          ActionController::Routing.const_set(:Routes, real_routes) if real_routes
         end
     end
   end
