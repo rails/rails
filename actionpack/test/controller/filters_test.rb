@@ -203,6 +203,18 @@ class FilterTest < Test::Unit::TestCase
       end
   end
 
+  class DynamicDispatchController < ActionController::Base
+    before_filter :choose
+
+    %w(foo bar baz).each do |action|
+      define_method(action) { render :text => action }
+    end
+
+    private
+      def choose
+        self.action_name = params[:choose]
+      end
+  end
 
   def test_added_filter_to_inheritance_graph
     assert_equal [ :fire_flash, :ensure_login ], TestController.before_filters
@@ -318,6 +330,15 @@ class FilterTest < Test::Unit::TestCase
     assert_nothing_raised do
       response = test_process(MixedSpecializationController, 'foo')
       assert_equal 'foo', response.body
+    end
+  end
+
+  def test_dynamic_dispatch
+    %w(foo bar baz).each do |action|
+      request = ActionController::TestRequest.new
+      request.query_parameters[:choose] = action
+      response = DynamicDispatchController.process(request, ActionController::TestResponse.new)
+      assert_equal action, response.body
     end
   end
 
