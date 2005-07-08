@@ -92,8 +92,8 @@ module ActionController
     
       def initialize(key, options = {})
         @key = key.to_sym
-        @default, @condition = options[:default], options[:condition]
-        @optional = options.key?(:default)
+        default, @condition = options[:default], options[:condition]
+        self.default = default if options.key?(:default)
       end
 
       def default_check(g)
@@ -226,8 +226,12 @@ module ActionController
 
     class PathComponent < DynamicComponent #:nodoc:
       def optional?() true end
-      def default()   ''   end
+      def default()   []  end
       def condition() nil  end
+
+      def default=(value)
+        raise RoutingError, "All path components have an implicit default of []" unless value == []
+      end
   
       def write_generation(g)
         raise RoutingError, 'Path components must occur last' unless g.after.empty?

@@ -711,6 +711,20 @@ class RouteSetTests < Test::Unit::TestCase
     assert_equal [], results['path']
   end
 
+  def test_paths_do_not_accept_defaults
+    assert_raises(ActionController::RoutingError) do
+      rs.draw do |map|
+        rs.path 'file/*path', :controller => 'content', :action => 'show_file', :path => %w(fake default)
+        rs.connect ':controller/:action/:id'
+      end
+    end
+    
+    rs.draw do |map|
+      rs.path 'file/*path', :controller => 'content', :action => 'show_file', :path => []
+      rs.connect ':controller/:action/:id'
+    end
+  end
+  
   def test_backwards
     rs.draw do |map|
       rs.connect 'page/:id/:action', :controller => 'pages', :action => 'show'
