@@ -1,8 +1,20 @@
-RAILS_ROOT = File.dirname(__FILE__) + "/../"
+# Load the Rails framework and configure your application.
+# You can include your own configuration at the end of this file.
+#
+# Be sure to restart your webserver when you modify this file.
+
+# The path to the root directory of your application.
+RAILS_ROOT = File.join(File.dirname(__FILE__), '..')
+
+# The environment your application is currently running.  Don't set
+# this here; put it in your webserver's configuration as the RAILS_ENV
+# environment variable instead.
+#
+# See config/environments/*.rb for environment-specific configuration.
 RAILS_ENV  = ENV['RAILS_ENV'] || 'development'
 
 
-# Mocks first.
+# Load the Rails framework.  Mock classes for testing come first.
 ADDITIONAL_LOAD_PATHS = ["#{RAILS_ROOT}/test/mocks/#{RAILS_ENV}"]
 
 # Then model subdirectories.
@@ -62,6 +74,8 @@ end
 
 [ActiveRecord, ActionController, ActionMailer].each { |mod| mod::Base.logger ||= RAILS_DEFAULT_LOGGER }
 [ActionController, ActionMailer].each { |mod| mod::Base.template_root ||= "#{RAILS_ROOT}/app/views/" }
+
+# Set up routes.
 ActionController::Routing::Routes.reload
 
 Controllers = Dependencies::LoadingModule.root(
@@ -70,3 +84,4 @@ Controllers = Dependencies::LoadingModule.root(
 )
 
 # Include your app's configuration here:
+
