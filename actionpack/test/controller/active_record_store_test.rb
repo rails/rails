@@ -27,7 +27,7 @@ module CommonActiveRecordStoreTests
   def test_basics
     s = session_class.new(:session_id => '1234', :data => { 'foo' => 'bar' })
     assert_equal 'bar', s.data['foo']
-    assert s.save!
+    assert s.save
     assert_equal 'bar', s.data['foo']
 
     assert_not_nil t = session_class.find_by_session_id('1234')
