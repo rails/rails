@@ -129,6 +129,8 @@ module ActiveRecord
             @logger.info "Retrying invalid statement with reopened connection"
             log(sql, name) { @connection.query(sql) }
           end
+        elsif exception.message.split(":").first =~ /Packets out of order/
+          raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem update mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information."
         else
           raise
         end
