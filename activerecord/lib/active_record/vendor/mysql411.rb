@@ -303,4 +303,13 @@ class Mysql
     end
     self
   end
+
+
+  # Get rid of GC.start in #free.
+  class Result
+    def free
+      @handle.skip_result
+      @handle = @fields = @data = nil
+    end
+  end
 end
