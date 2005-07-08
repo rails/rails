@@ -27,7 +27,7 @@ class CGI
     #   initialize(hash_of_session_id_and_data)
     #   attr_reader :session_id
     #   attr_accessor :data
-    #   save!
+    #   save
     #   destroy
     #
     # The fast SqlBypass class is a generic SQL session store.  You may
@@ -198,7 +198,7 @@ class CGI
           @data
         end
 
-        def save!
+        def save
           marshaled_data = self.class.marshal(data)
           if @new_record
             @new_record = false
@@ -240,7 +240,7 @@ class CGI
       # Find or instantiate a session given a CGI::Session.
       def initialize(session, option = nil)
         session_id = session.session_id
-        unless @session = @@session_class.find_by_session_id(session_id)
+        unless @session = ActiveRecord::Base.silence { @@session_class.find_by_session_id(session_id) }
           unless session.new_session
             raise CGI::Session::NoSession, 'uninitialized session'
           end
@@ -258,7 +258,7 @@ class CGI
       # Save session store.
       def update
         if @session
-          ActiveRecord::Base.silence { @session.save! }
+          ActiveRecord::Base.silence { @session.save }
         end
       end
 
