@@ -99,7 +99,7 @@ module ActionController
       def default_check(g)
         presence = "#{g.hash_value(key, !! default)}"
         if default
-           "!(#{presence} && #{g.hash_value(key, false)} != #{default.inspect})"
+           "!(#{presence} && #{g.hash_value(key, false)} != #{default.to_s.inspect})"
         else
           "! #{presence}"
         end

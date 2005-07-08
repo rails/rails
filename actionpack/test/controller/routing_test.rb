@@ -705,6 +705,10 @@ class RouteSetTests < Test::Unit::TestCase
     results = rs.recognize_path %w(file hello+world how+are+you%3F)
     assert results, "Recognition should have succeeded"
     assert_equal ['hello world', 'how are you?'], results['path']
+
+    results = rs.recognize_path %w(file)
+    assert results, "Recognition should have succeeded"
+    assert_equal [], results['path']
   end
 
   def test_backwards
@@ -716,6 +720,24 @@ class RouteSetTests < Test::Unit::TestCase
     assert_equal ['/page/20', {}], rs.generate({:id => 20}, {:controller => 'pages'})
     assert_equal ['/page/20', {}], rs.generate(:controller => 'pages', :id => 20, :action => 'show')
     assert_equal ['/pages/boo', {}], rs.generate(:controller => 'pages', :action => 'boo')
+  end
+
+  def test_route_with_fixnum_default
+    rs.draw do |map|
+      rs.connect 'page/:id', :controller => 'content', :action => 'show_page', :id => 1
+      rs.connect ':controller/:action/:id'
+    end
+
+    assert_equal ['/page', {}], rs.generate(:controller => 'content', :action => 'show_page')
+    assert_equal ['/page', {}], rs.generate(:controller => 'content', :action => 'show_page', :id => 1)
+    assert_equal ['/page', {}], rs.generate(:controller => 'content', :action => 'show_page', :id => '1')
+    assert_equal ['/page/10', {}], rs.generate(:controller => 'content', :action => 'show_page', :id => 10)
+
+    ctrl = ::Controllers::ContentController
+
+    assert_equal({'controller' => ctrl, 'action' => 'show_page', 'id' => 1}, rs.recognize_path(%w(page)))
+    assert_equal({'controller' => ctrl, 'action' => 'show_page', 'id' => '1'}, rs.recognize_path(%w(page 1)))
+    assert_equal({'controller' => ctrl, 'action' => 'show_page', 'id' => '10'}, rs.recognize_path(%w(page 10)))
   end
 
   def test_action_expiry
