@@ -105,9 +105,9 @@ class JavaScriptHelperTest < Test::Unit::TestCase
       sortable_element("mylist", :url => { :action => "order" })
     assert_equal %(<script type=\"text/javascript\">Sortable.create('mylist', {tag:'div', constraint:'horizontal', onUpdate:function(){new Ajax.Request('http://www.example.com/order', {parameters:Sortable.serialize('mylist'), evalScripts:true, asynchronous:true})}})</script>), 
       sortable_element("mylist", :tag => "div", :constraint => "horizontal", :url => { :action => "order" })
-    assert_equal %(<script type=\"text/javascript\">Sortable.create('mylist', {constraint:'horizontal', containment:['list1','list2'], onUpdate:function(){new Ajax.Request('http://www.example.com/order', {parameters:Sortable.serialize('mylist'), evalScripts:true, asynchronous:true})}})</script>), 
+    assert_equal %|<script type=\"text/javascript\">Sortable.create('mylist', {constraint:'horizontal', onUpdate:function(){new Ajax.Request('http://www.example.com/order', {parameters:Sortable.serialize('mylist'), evalScripts:true, asynchronous:true})}, containment:['list1','list2']})</script>|, 
       sortable_element("mylist", :containment => ['list1','list2'], :constraint => "horizontal", :url => { :action => "order" })
-    assert_equal %(<script type=\"text/javascript\">Sortable.create('mylist', {constraint:'horizontal', containment:'list1', onUpdate:function(){new Ajax.Request('http://www.example.com/order', {parameters:Sortable.serialize('mylist'), evalScripts:true, asynchronous:true})}})</script>), 
+    assert_equal %(<script type=\"text/javascript\">Sortable.create('mylist', {constraint:'horizontal', onUpdate:function(){new Ajax.Request('http://www.example.com/order', {parameters:Sortable.serialize('mylist'), evalScripts:true, asynchronous:true})}, containment:'list1'})</script>), 
       sortable_element("mylist", :containment => 'list1', :constraint => "horizontal", :url => { :action => "order" })
   end
   
