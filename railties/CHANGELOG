@@ -1,5 +1,7 @@
 *SVN*
 
+* Extend Ruby version check to include RUBY_RELEASE_DATE >= '2005-12-25', the final Ruby 1.8.2 release.  #1674 [court3nay@gmail.com]
+
 * Improved documentation for environment config files.  #1625 [court3nay@gmail.com]
 
 *0.13.0*

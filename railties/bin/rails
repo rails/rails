@@ -1,4 +1,13 @@
-abort "Rails requires Ruby 1.8.2" if RUBY_VERSION < "1.8.2"
+min_release  = "1.8.2 (2004-12-25)"
+ruby_release = "#{RUBY_VERSION} (#{RUBY_RELEASE_DATE})"
+if ruby_release < min_release
+  abort <<-end_message
+
+    Rails requires Ruby version #{min_release} or later.
+    You're running #{ruby_release}; please upgrade to continue.
+
+  end_message
+end
 
 Signal.trap("INT") { puts; exit }
 
