@@ -92,5 +92,17 @@ class EagerAssociationTest < Test::Unit::TestCase
             :conditions => ["companies.name = ?", "37signals"])
     assert_not_nil companies(:first_firm, :reload).account
   end
+
+  def test_eager_with_invalid_association_reference
+    assert_raises(NoMethodError, "Association was not found; perhaps you misspelled it?  You specified :include=>:monkeys") {
+      post = Post.find(6, :include=>[ :monkeys ])
+    }
+    assert_raises(NoMethodError, "Association was not found; perhaps you misspelled it?  You specified :include=>:monkeys, :elephants") {
+      post = Post.find(6, :include=>[ :monkeys, :elephants ])
+    }
+  end
+
 end
+
+
 

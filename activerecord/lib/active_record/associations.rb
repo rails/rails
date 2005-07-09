@@ -739,13 +739,20 @@ module ActiveRecord
         end
 
         def find_with_associations(options = {})
-          reflections          = reflect_on_included_associations(options[:include])
+          reflections  = reflect_on_included_associations(options[:include])
+          reflections.each do |r| 
+            raise(
+              NoMethodError, 
+              "Association was not found; perhaps you misspelled it?  You specified :include=>:#{options[:include].join(', :')}"
+            ) if r.nil? 
+          end
+          
           schema_abbreviations = generate_schema_abbreviations(reflections)
           primary_key_table    = generate_primary_key_table(reflections, schema_abbreviations)
 
-          rows        = select_all_rows(options, schema_abbreviations, reflections)
-          records, records_in_order     = { }, []
-          primary_key = primary_key_table[table_name]
+          rows                      = select_all_rows(options, schema_abbreviations, reflections)
+          records, records_in_order = { }, []
+          primary_key               = primary_key_table[table_name]
           
           for row in rows
             id = row[primary_key]
