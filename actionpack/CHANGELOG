@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that UrlHelper#link_to_unless/link_to_if used html_escape on the name if no link was to be applied. This is unnecessary and breaks its use with images #1649 [joergd@pobox.com]
+
 * Added even more goodies to script.aculo.us #1677 [Thomas Fuchs]
   * Added capability to remove draggables/droppables and redeclare sortables in dragdrop.js (this makes it possible to call sortable_element on the same element more than once, e.g. in AJAX returns that modify the sortable element. all current sortable 'stuff' on the element will be discarded and the sortable will be rebuilt)
   * Always reset background color on Effect.Highlight; this make change backwards-compatibility, to be sure include style="background-color:(target-color)" on your elements or else elements will fall back to their CSS rules (which is a good thing in most circumstances)

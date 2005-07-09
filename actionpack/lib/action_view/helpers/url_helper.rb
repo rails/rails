@@ -143,7 +143,7 @@ module ActionView
           if block_given?
             block.arity <= 1 ? yield(name) : yield(name, options, html_options, *parameters_for_method_reference)
           else
-            html_escape(name)
+            name
           end
         else
           link_to(name, options, html_options, *parameters_for_method_reference)
