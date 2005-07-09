@@ -88,7 +88,7 @@ class JavaScriptHelperTest < Test::Unit::TestCase
   def test_text_field_with_auto_complete
     assert_match "<style>",
       text_field_with_auto_complete(:message, :recipient)
-    assert_equal %(<input autocomplete=\"off\" id=\"message_recipient\" name=\"message[recipient]\" size=\"30\" type=\"text\" value=\"\" /><div class=\"auto_complete\" id=\"message_recipient_auto_complete\"></div><script type=\"text/javascript\">new Ajax.Autocompleter('message_recipient', 'message_recipient_auto_complete', 'http://www.example.com/auto_complete_for_message_recipient', {})</script>),
+    assert_equal %(<input autocomplete=\"off\" id=\"message_recipient\" name=\"message[recipient]\" size=\"30\" type=\"text\" /><div class=\"auto_complete\" id=\"message_recipient_auto_complete\"></div><script type=\"text/javascript\">new Ajax.Autocompleter('message_recipient', 'message_recipient_auto_complete', 'http://www.example.com/auto_complete_for_message_recipient', {})</script>),
       text_field_with_auto_complete(:message, :recipient, {}, :skip_style => true)
   end
   

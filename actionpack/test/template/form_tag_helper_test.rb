@@ -22,7 +22,7 @@ class FormTagHelperTest < Test::Unit::TestCase
   end
 
   def test_form_tag
-    actual = form_tag 
+    actual = form_tag
     expected = %(<form action="http://www.example.com" method="post">)
     assert_equal expected, actual
   end
@@ -41,7 +41,7 @@ class FormTagHelperTest < Test::Unit::TestCase
 
   def test_password_field_tag
     actual = password_field_tag
-    expected = %(<input id="password" name="password" type="password" value="" />)
+    expected = %(<input id="password" name="password" type="password" />)
     assert_equal expected, actual
   end
 

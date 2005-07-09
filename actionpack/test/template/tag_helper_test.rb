@@ -16,6 +16,14 @@ class TagHelperTest < Test::Unit::TestCase
     assert_equal "<p class=\"elsewhere\" />", tag("p", "class" => "show", :class => "elsewhere")
   end
 
+  def test_tag_options_rejects_nil_option
+    assert_equal "<p />", tag("p", :ignored => nil)
+  end
+
+  def test_tag_options_accepts_blank_option
+    assert_equal "<p included=\"\" />", tag("p", :included => '')
+  end
+
   def test_content_tag
     assert_equal "<a href=\"create\">Create</a>", content_tag("a", "Create", "href" => "create")
     assert_equal content_tag("a", "Create", "href" => "create"),

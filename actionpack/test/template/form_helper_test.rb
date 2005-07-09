@@ -37,7 +37,7 @@ class FormHelperTest < Test::Unit::TestCase
       '<input id="post_title" name="post[title]" size="30" type="password" value="Hello World" />', password_field("post", "title")
     )
     assert_equal(
-      '<input id="person_name" name="person[name]" size="30" type="password" value="" />', password_field("person", "name")
+      '<input id="person_name" name="person[name]" size="30" type="password" />', password_field("person", "name")
     )
   end
 
@@ -71,7 +71,7 @@ class FormHelperTest < Test::Unit::TestCase
       check_box("post", "secret")
     )
     assert_equal(
-      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />', 
+      '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
       check_box("post", "secret" ,{"checked"=>"checked"})
     )
     @post.secret = true
@@ -80,7 +80,7 @@ class FormHelperTest < Test::Unit::TestCase
       check_box("post", "secret")
     )
   end
-  
+
   def test_check_box_with_explicit_checked_and_unchecked_values
     @post.secret = "on"
     assert_equal(

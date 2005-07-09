@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that nil options are not included in tags, so tag("p", :ignore => nil) now returns <p /> not <p ignore="" />  but that tag("p", :ignore => "") still includes it #1465 [michael@schuerig.de]
+
 * Fixed that UrlHelper#link_to_unless/link_to_if used html_escape on the name if no link was to be applied. This is unnecessary and breaks its use with images #1649 [joergd@pobox.com]
 
 * Added even more goodies to script.aculo.us #1677 [Thomas Fuchs]
