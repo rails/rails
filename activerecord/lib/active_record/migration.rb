@@ -169,7 +169,7 @@ module ActiveRecord
     end
 
     def migrate
-      migration_classes do |version, migration_class|
+      migration_classes.each do |(version, migration_class)|
         Base.logger.info("Reached target version: #{@target_version}") and break if reached_target_version?(version)
         next if irrelevant_migration?(version)
 
@@ -181,11 +181,13 @@ module ActiveRecord
 
     private
       def migration_classes
-        for migration_file in migration_files
+        migrations = migration_files.collect do |migration_file|
           load(migration_file)
           version, name = migration_version_and_name(migration_file)
-          yield version, migration_class(name)
+          [ version.to_i, migration_class(name) ]
         end
+        
+        down? ? migrations.sort.reverse : migrations.sort
       end
     
       def migration_files
