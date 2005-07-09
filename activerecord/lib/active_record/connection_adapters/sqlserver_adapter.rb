@@ -66,7 +66,7 @@ module ActiveRecord
         return nil if value.nil? || value =~ /^\s*null\s*$/i
         case type
         when :string    then value
-        when :integer   then value == true || value == false ? value == true ? '1' : '0' : value.to_i
+        when :integer   then value == true || value == false ? value == true ? 1 : 0 : value.to_i
         when :float     then value.to_f
         when :datetime  then cast_to_datetime(value)
         when :timestamp then cast_to_time(value)

@@ -113,7 +113,7 @@ module ActionView
         text.gsub!(/\n\n/, '</p>\0<p>') # turn two newlines into paragraph
         text.gsub!(/([^\n])(\n)([^\n])/, '\1\2<br />\3') # turn single newline into <br />
         
-        return '<p>' + text + '</p>' # wrap the first and last line in paragraphs before we're done
+        content_tag("p", text)
       end
 
       # Turns all urls and email addresses into clickable links. The +link+ parameter can limit what should be linked.
