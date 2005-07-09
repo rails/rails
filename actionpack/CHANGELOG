@@ -1,5 +1,7 @@
 *SVN*
 
+* Improved error message for DoubleRenderError
+
 * Fixed routing to allow for testing of *path components #1650 [Nicholas Seckar]
 
 * Added :handle as an option to sortable_element to restrict the drag handle to a given class #1642 [thejohnny]

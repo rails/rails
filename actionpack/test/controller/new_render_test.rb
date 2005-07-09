@@ -99,6 +99,21 @@ class NewRenderTestController < ActionController::Base
     render "test/hello_world"
   end
 
+  def double_render
+    render :text => "hello"
+    render :text => "world"
+  end
+
+  def double_redirect
+    redirect_to :action => "double_render"
+    redirect_to :action => "double_render"
+  end
+
+  def render_and_redirect
+    render :text => "hello"
+    redirect_to :action => "double_render"
+  end
+
   def rescue_action(e) raise end
     
   private
@@ -259,5 +274,17 @@ class NewRenderTest < Test::Unit::TestCase
   def test_render_with_explicit_template
     get :render_with_explicit_template
     assert_response :success
+  end
+
+  def test_double_render
+    assert_raises(ActionController::DoubleRenderError) { get :double_render }
+  end
+
+  def test_double_redirect
+    assert_raises(ActionController::DoubleRenderError) { get :double_redirect }
+  end
+
+  def test_render_and_redirect
+    assert_raises(ActionController::DoubleRenderError) { get :render_and_redirect }
   end
 end

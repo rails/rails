@@ -26,6 +26,11 @@ module ActionController #:nodoc:
   class MissingFile < ActionControllerError #:nodoc:
   end
   class DoubleRenderError < ActionControllerError #:nodoc:
+    DEFAULT_MESSAGE = "Render and/or redirect were called multiple times in this action. Please note that you may only call render OR redirect, and only once per action. Also note that neither redirect nor render terminate execution of the action, so if you want to exit an action after redirecting, you need to do something like \"redirect_to(...) and return\". Finally, note that to cause a before filter to halt execution of the rest of the filter chain, the filter must return false, explicitly, so \"render(...) and return false\"." 
+
+    def initialize(message=nil)
+      super(message || DEFAULT_MESSAGE)
+    end
   end
 
   # Action Controllers are made up of one or more actions that performs its purpose and then either renders a template or
@@ -560,7 +565,7 @@ module ActionController #:nodoc:
       #   render :nothing => true, :status => 401
       def render(options = {}, deprecated_status = nil) #:doc:
         # puts "Rendering: #{options.inspect}"
-        raise DoubleRenderError, "Can only render or redirect once per action" if performed?
+        raise DoubleRenderError if performed?
 
         # Backwards compatibility
         return render({ :template => options || default_template_name, :status => deprecated_status }) if !options.is_a?(Hash)
@@ -684,7 +689,7 @@ module ActionController #:nodoc:
       def redirect_to(options = {}, *parameters_for_method_reference) #:doc:
         case options
           when %r{^\w+://.*}
-            raise DoubleRenderError, "Can only render or redirect once per action" if performed?
+            raise DoubleRenderError if performed?
             logger.info("Redirected to #{options}") unless logger.nil?
             response.redirect(options)
             response.redirected_to = options
