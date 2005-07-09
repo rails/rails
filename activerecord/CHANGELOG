@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActiveRecord::Migrator.migrate that can figure out whether to go up or down based on the target version and the current
+
 * Added better error message for "packets out of order" #1630 [courtenay]
 
 * Fixed first run of "rake migrate" on PostgreSQL by not expecting a return value on the id #1640

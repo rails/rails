@@ -108,6 +108,18 @@ module ActiveRecord
   #       add_column :items, :completed_items_count
   #     end
   #   end
+  #
+  # And some times you need to do something in SQL not abstracted directly by migrations:
+  #
+  #   class MakeJoinUnique < ActiveRecord::Migration
+  #     def self.up
+  #       execute "ALTER TABLE `pages_linked_pages` ADD UNIQUE `page_id_linked_page_id` (`page_id`,`linked_page_id`)"
+  #     end
+  #
+  #     def self.down
+  #       execute "ALTER TABLE `pages_linked_pages` DROP INDEX `page_id_linked_page_id`"
+  #     end
+  #   end
   class Migration
     class << self
       def up() end
@@ -122,6 +134,17 @@ module ActiveRecord
 
   class Migrator#:nodoc:
     class << self
+      def migrate(migrations_path, target_version = nil)
+        case
+          when target_version.nil?, current_version < target_version
+            up(migrations_path, target_version)
+          when current_version > target_version
+            down(migrations_path, target_version)
+          when current_version == target_version
+            return # You're on the right version
+        end
+      end
+      
       def up(migrations_path, target_version = nil)
         self.new(:up, migrations_path, target_version).migrate
       end

@@ -182,5 +182,20 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Person.column_methods_hash.include?(:last_name)
       assert_raises(ActiveRecord::StatementInvalid) { Reminder.column_methods_hash }
     end
+    
+    def test_migrator_going_down_due_to_version_target
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
+      ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
+
+      assert !Person.column_methods_hash.include?(:last_name)
+      assert_raises(ActiveRecord::StatementInvalid) { Reminder.column_methods_hash }
+
+      ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations/')
+
+      Person.reset_column_information
+      assert Person.column_methods_hash.include?(:last_name)
+      assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
+      assert_equal "hello world", Reminder.find(:first).content
+    end
   end
 end
