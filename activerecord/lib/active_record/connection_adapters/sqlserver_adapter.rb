@@ -236,9 +236,9 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil)
-        if sql =~ /^INSERT/i
+        if sql =~ /^\s*INSERT/i
           insert(sql, name)
-        elsif sql =~ /^UPDATE|DELETE/i
+        elsif sql =~ /^\s*UPDATE|^\s*DELETE/i
           log(sql, name) do
             @connection.execute(sql)
             retVal = select_one("SELECT @@ROWCOUNT AS AffectedRows")["AffectedRows"]

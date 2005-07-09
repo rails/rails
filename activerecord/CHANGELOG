@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed optimistic locking with SQL Server #1660 [tom@popdog.net]
+
 * Added ActiveRecord::Migrator.migrate that can figure out whether to go up or down based on the target version and the current
 
 * Added better error message for "packets out of order" #1630 [courtenay]
