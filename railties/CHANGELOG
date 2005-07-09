@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for SQL Server in the database rake tasks #1652 [ken.barker@gmail.com] Note: osql and scptxfr may need to be installed on your development environment. This involves getting the .exes and a .rll (scptxfr) from a production SQL Server (not developer level SQL Server). Add their location to your Environment PATH and you are all set.
+
 * Added a VERSION parameter to the migrate task that allows you to do "rake migrate VERSION=34" to migrate to the 34th version traveling up or down depending on the current version
 
 * Extend Ruby version check to include RUBY_RELEASE_DATE >= '2005-12-25', the final Ruby 1.8.2 release #1674 [court3nay@gmail.com]
