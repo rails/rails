@@ -1,5 +1,12 @@
 *SVN*
 
+* Added even more goodies to script.aculo.us #1677 [Thomas Fuchs]
+  * Added capability to remove draggables/droppables and redeclare sortables in dragdrop.js (this makes it possible to call sortable_element on the same element more than once, e.g. in AJAX returns that modify the sortable element. all current sortable 'stuff' on the element will be discarded and the sortable will be rebuilt)
+  * Always reset background color on Effect.Highlight; this make change backwards-compatibility, to be sure include style="background-color:(target-color)" on your elements or else elements will fall back to their CSS rules (which is a good thing in most circumstances)
+  * Removed circular references from element to prevent memory leaks (still not completely gone in IE)
+  * Changes to class extension in effects.js
+  * Make Effect.Highlight restore any previously set background color when finishing (makes effect work with CSS classes that set a background color)
+
 * Improved error message for DoubleRenderError
 
 * Fixed routing to allow for testing of *path components #1650 [Nicholas Seckar]

@@ -127,26 +127,26 @@ Effect.Base.prototype = {
 }
 
 Effect.Parallel = Class.create();
-  Effect.Parallel.prototype = (new Effect.Base()).extend({
-    initialize: function(effects) {
-      this.effects = effects || [];
-      this.start(arguments[1]);
-    },
-    update: function(position) {
-      for (var i = 0; i < this.effects.length; i++)
-        this.effects[i].render(position);  
-    },
-    finish: function(position) {
-      for (var i = 0; i < this.effects.length; i++)
-        if(this.effects[i].finish) this.effects[i].finish(position);
-    }
-  });
+Effect.Parallel.prototype.extend(Effect.Base.prototype).extend({
+  initialize: function(effects) {
+    this.effects = effects || [];
+    this.start(arguments[1]);
+  },
+  update: function(position) {
+    for (var i = 0; i < this.effects.length; i++)
+      this.effects[i].render(position);  
+  },
+  finish: function(position) {
+    for (var i = 0; i < this.effects.length; i++)
+      if(this.effects[i].finish) this.effects[i].finish(position);
+  }
+});
 
 // Internet Explorer caveat: works only on elements the have
 // a 'layout', meaning having a given width or height. 
 // There is no way to safely set this automatically.
 Effect.Opacity = Class.create();
-Effect.Opacity.prototype = (new Effect.Base()).extend({
+Effect.Opacity.prototype.extend(Effect.Base.prototype).extend({
   initialize: function(element) {
     this.element = $(element);
     options = {
@@ -166,29 +166,29 @@ Effect.Opacity.prototype = (new Effect.Base()).extend({
 });
 
 Effect.MoveBy = Class.create();
- Effect.MoveBy.prototype = (new Effect.Base()).extend({
-   initialize: function(element, toTop, toLeft) {
-     this.element      = $(element);
-     this.originalTop  = parseFloat(this.element.style.top || '0');
-     this.originalLeft = parseFloat(this.element.style.left || '0');
-     this.toTop        = toTop;
-     this.toLeft       = toLeft;
-     Element.makePositioned(this.element);
-     this.start(arguments[3]);
-   },
-   update: function(position) {
-     topd  = this.toTop  * position + this.originalTop;
-     leftd = this.toLeft * position + this.originalLeft;
-     this.setPosition(topd, leftd);
-   },
-   setPosition: function(topd, leftd) {
-     this.element.style.top  = topd  + "px";
-     this.element.style.left = leftd + "px";
-   }
+Effect.MoveBy.prototype.extend(Effect.Base.prototype).extend({
+  initialize: function(element, toTop, toLeft) {
+    this.element      = $(element);
+    this.originalTop  = parseFloat(this.element.style.top || '0');
+    this.originalLeft = parseFloat(this.element.style.left || '0');
+    this.toTop        = toTop;
+    this.toLeft       = toLeft;
+    Element.makePositioned(this.element);
+    this.start(arguments[3]);
+  },
+  update: function(position) {
+    topd  = this.toTop  * position + this.originalTop;
+    leftd = this.toLeft * position + this.originalLeft;
+    this.setPosition(topd, leftd);
+  },
+  setPosition: function(topd, leftd) {
+    this.element.style.top  = topd  + "px";
+    this.element.style.left = leftd + "px";
+  }
 });
 
 Effect.Scale = Class.create();
-Effect.Scale.prototype = (new Effect.Base()).extend({
+Effect.Scale.prototype.extend(Effect.Base.prototype).extend({
   initialize: function(element, percent) {
     this.element = $(element)
     options = {
@@ -246,7 +246,7 @@ Effect.Scale.prototype = (new Effect.Base()).extend({
 });
 
 Effect.Highlight = Class.create();
-Effect.Highlight.prototype = (new Effect.Base()).extend({
+Effect.Highlight.prototype.extend(Effect.Base.prototype).extend({
   initialize: function(element) {
     this.element = $(element);
     
@@ -260,8 +260,9 @@ Effect.Highlight.prototype = (new Effect.Base()).extend({
       var i=0; do { endcolor += parseInt(cols[i]).toColorPart() } while (++i<3); }
       
     var options = {
-      startcolor: "#ffff99",
-      endcolor:   endcolor
+      startcolor:   "#ffff99",
+      endcolor:     endcolor,
+      restorecolor: current 
     }.extend(arguments[1] || {});
     
     // init color calculations
@@ -283,11 +284,14 @@ Effect.Highlight.prototype = (new Effect.Base()).extend({
       Math.round(this.colors_base[2]+(this.colors_delta[2]*position)) ];
     this.element.style.backgroundColor = "#" +
       colors[0].toColorPart() + colors[1].toColorPart() + colors[2].toColorPart();
+  },
+  finish: function() {
+    this.element.style.backgroundColor = this.options.restorecolor;
   }
 });
 
 Effect.ScrollTo = Class.create();
-Effect.ScrollTo.prototype = (new Effect.Base()).extend({
+Effect.ScrollTo.prototype.extend(Effect.Base.prototype).extend({
   initialize: function(element) {
     this.element = $(element);
     Position.prepare();
@@ -310,7 +314,7 @@ Effect.ScrollTo.prototype = (new Effect.Base()).extend({
 
 /* ------------- prepackaged effects ------------- */
 
-Effect.Fade =  function(element) {
+Effect.Fade = function(element) {
   options = {
   from: 1.0,
   to:   0.0,
@@ -321,7 +325,7 @@ Effect.Fade =  function(element) {
   new Effect.Opacity(element,options);
 }
 
-Effect.Appear =  function(element) {
+Effect.Appear = function(element) {
   options = {
   from: 0.0,
   to:   1.0,

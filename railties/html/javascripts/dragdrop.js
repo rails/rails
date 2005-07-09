@@ -112,6 +112,12 @@ Element.Class = {
 var Droppables = {
   drops: false,
   
+  remove: function(element) {
+    for(var i = 0; i < this.drops.length; i++)
+      if(this.drops[i].element == element)
+        this.drops.splice(i,1);
+  },
+  
   add: function(element) {
     var element = $(element);
     var options = {
@@ -134,43 +140,42 @@ var Droppables = {
         options._containers.length-1;
     }
     
-    if(element.style.position=='') //fix IE
-      element.style.position = 'relative'; 
+    Element.makePositioned(element); // fix IE
     
-    // activate the droppable
-    element.droppable = options;
+    options.element = element;
     
+    // activate the droppable    
     if(!this.drops) this.drops = [];
-    this.drops.push(element);
+    this.drops.push(options);
   },
   
   is_contained: function(element, drop) {
-    var containers = drop.droppable._containers;
+    var containers = drop._containers;
     var parentNode = element.parentNode;
-    var i = drop.droppable._containers_length;
+    var i = drop._containers_length;
     do { if(parentNode==containers[i]) return true; } while (i--);
     return false;
   },
   
   is_affected: function(pX, pY, element, drop) {
     return (
-      (drop!=element) &&
-      ((!drop.droppable._containers) ||
+      (drop.element!=element) &&
+      ((!drop._containers) ||
         this.is_contained(element, drop)) &&
-      ((!drop.droppable.accept) ||
-        (Element.Class.has_any(element, drop.droppable.accept))) &&
-      Position.within(drop, pX, pY) );
+      ((!drop.accept) ||
+        (Element.Class.has_any(element, drop.accept))) &&
+      Position.within(drop.element, pX, pY) );
   },
   
   deactivate: function(drop) {
-    Element.Class.remove(drop, drop.droppable.hoverclass);
+    Element.Class.remove(drop.element, drop.hoverclass);
     this.last_active = null;
   },
   
   activate: function(drop) {
     if(this.last_active) this.deactivate(this.last_active);
-    if(drop.droppable.hoverclass) {
-      Element.Class.add(drop, drop.droppable.hoverclass);
+    if(drop.hoverclass) {
+      Element.Class.add(drop.element, drop.hoverclass);
       this.last_active = drop;
     }
   },
@@ -184,10 +189,9 @@ var Droppables = {
     var i = this.drops.length-1; do {
       var drop = this.drops[i];
       if(this.is_affected(pX, pY, element, drop)) {
-        if(drop.droppable.onHover)
-           drop.droppable.onHover(
-            element, drop, Position.overlap(drop.droppable.overlap, drop));
-        if(drop.droppable.greedy) { 
+        if(drop.onHover)
+           drop.onHover(element, drop.element, Position.overlap(drop.overlap, drop.element));
+        if(drop.greedy) { 
           this.activate(drop);
           return;
         }
@@ -200,8 +204,8 @@ var Droppables = {
     Position.prepare();
     
     if (this.is_affected(Event.pointerX(event), Event.pointerY(event), element, this.last_active))
-      if (this.last_active.droppable.onDrop) 
-        this.last_active.droppable.onDrop(element, this.last_active);
+      if (this.last_active.onDrop) 
+        this.last_active.onDrop(element, this.last_active);
     
   },
   
@@ -215,6 +219,11 @@ Draggables = {
   observers: new Array(),
   addObserver: function(observer) {
     this.observers.push(observer);    
+  },
+  removeObserver: function(observer) {
+    for(var i = 0; i < this.observers.length; i++)
+      if(this.observers[i] = observer)
+        this.observers.splice(i,1);
   },
   notify: function(eventName, draggable) {  // 'onStart', 'onEnd'
     for(var i = 0; i < this.observers.length; i++)
@@ -245,9 +254,7 @@ Draggable.prototype = {
     this.element      = $(element);
     this.handle       = options.handle ? $(options.handle) : this.element;
     
-    // fix IE
-    if(!this.element.style.position)
-      this.element.style.position = 'relative';
+    Element.makePositioned(this.element); // fix IE
     
     this.offsetX      = 0;
     this.offsetY      = 0;
@@ -262,10 +269,21 @@ Draggable.prototype = {
     this.active       = false;
     this.dragging     = false;   
     
-    Event.observe(this.handle, "mousedown", this.startDrag.bindAsEventListener(this));
-    Event.observe(document, "mouseup", this.endDrag.bindAsEventListener(this));
-    Event.observe(document, "mousemove", this.update.bindAsEventListener(this));
-    Event.observe(document, "keypress", this.keyPress.bindAsEventListener(this));
+    this.eventMouseDown = this.startDrag.bindAsEventListener(this);
+    this.eventMouseUp   = this.endDrag.bindAsEventListener(this);
+    this.eventMouseMove = this.update.bindAsEventListener(this);
+    this.eventKeypress  = this.keyPress.bindAsEventListener(this);
+    
+    Event.observe(this.handle, "mousedown", this.eventMouseDown);
+    Event.observe(document, "mouseup", this.eventMouseUp);
+    Event.observe(document, "mousemove", this.eventMouseMove);
+    Event.observe(document, "keypress", this.eventKeypress);
+  },
+  destroy: function() {
+    Event.stopObserving(this.handle, "mousedown", this.eventMouseDown);
+    Event.stopObserving(document, "mouseup", this.eventMouseUp);
+    Event.stopObserving(document, "mousemove", this.eventMouseMove);
+    Event.stopObserving(document, "keypress", this.eventKeypress);
   },
   currentLeft: function() {
     return parseInt(this.element.style.left || '0');
@@ -380,9 +398,32 @@ SortableObserver.prototype = {
 }
 
 Sortable = {
+  sortables: new Array(),
+  options: function(element){
+    var element = $(element);
+    for(var i=0;i<this.sortables.length;i++)
+      if(this.sortables[i].element == element)
+        return this.sortables[i];
+    return null;        
+  },
+  destroy: function(element){
+    var element = $(element);
+    for(var i=0;i<this.sortables.length;i++) {
+      if(this.sortables[i].element == element) {
+        var s = this.sortables[i];
+        Draggables.removeObserver(s.observer);
+        for(var j=0;j<s.droppables.length;j++)
+          Droppables.remove(s.droppables[j]);
+        for(var j=0;j<s.draggables.length;j++)
+          s.draggables[j].destroy();
+        this.sortables.splice(i,1);
+      }
+    }
+  },
   create: function(element) {
     var element = $(element);
     var options = { 
+      element:     element,
       tag:         'li',       // assumes li children, override with tag: 'tagname'
       overlap:     'vertical', // one of 'vertical', 'horizontal'
       constraint:  'vertical', // one of 'vertical', 'horizontal', false
@@ -393,7 +434,9 @@ Sortable = {
       onChange:    function() {},
       onUpdate:    function() {}
     }.extend(arguments[1] || {});
-    element.sortable = options;
+    
+    // clear any old sortable with same element
+    this.destroy(element);
     
     // build options for the draggables
     var options_for_draggable = {
@@ -443,8 +486,8 @@ Sortable = {
     // fix for gecko engine
     Element.cleanWhitespace(element); 
     
-    // for onupdate
-    Draggables.addObserver(new SortableObserver(element, options.onUpdate));
+    options.draggables = [];
+    options.droppables = [];
     
     // make it so 
     var elements = element.childNodes;
@@ -456,16 +499,27 @@ Sortable = {
         var handle = options.handle ? 
           Element.Class.childrenWith(elements[i], options.handle)[0] : elements[i];
         
-        new Draggable(elements[i], options_for_draggable.extend({ handle: handle }));
+        options.draggables.push(new Draggable(elements[i], options_for_draggable.extend({ handle: handle })));
+        
         Droppables.add(elements[i], options_for_droppable);
+        options.droppables.push(elements[i]);
+        
       }
       
+    // keep reference
+    this.sortables.push(options);
+    
+    // for onupdate
+    options.observer = new SortableObserver(element, options.onUpdate);
+    Draggables.addObserver(options.observer);
+
   },
   serialize: function(element) {
     var element = $(element);
+    var sortableOptions = this.options(element);
     var options = {
-      tag:  element.sortable.tag,
-      only: element.sortable.only,
+      tag:  sortableOptions.tag,
+      only: sortableOptions.only,
       name: element.id
     }.extend(arguments[1] || {});
     
