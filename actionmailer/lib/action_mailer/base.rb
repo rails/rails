@@ -116,8 +116,7 @@ module ActionMailer #:nodoc:
   #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
   #   <tt>@implicit_parts_order</tt>.
   class Base
-    include ActionMailer::AdvAttrAccessor
-    include ActionMailer::PartContainer
+    include AdvAttrAccessor, PartContainer
 
     private_class_method :new #:nodoc:
 

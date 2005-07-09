@@ -82,6 +82,17 @@ This Mailman can be the target for Postfix. In Rails, you would use the runner l
 
   ./script/runner 'Mailman.receive(STDIN.read)'
 
+== Configuration
+
+The Base class has the full list of configuration options. Here's an example:
+
+ActionMailer::Base.server_settings = {
+  :address=>'smtp.yourserver.com',    # default: localhost
+  :port=>'25',                        # default: 25
+  :user_name=>'user',
+  :password=>'pass',
+  :authentication=>:plain             # :plain, :login or :cram_md5
+}
 
 == Dependencies
 
