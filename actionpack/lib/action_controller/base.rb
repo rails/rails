@@ -184,16 +184,19 @@ module ActionController #:nodoc:
   #
   # == Calling multiple redirects or renders
   #
-  # The rule for handling calls of multiple redirects and renders is that the first call wins. So in the following example:
+  # An action should conclude by a single render or redirect. Attempting to try to do either again will result in a DoubleRenderError:
   #
   #   def do_something
   #     redirect_to :action => "elsewhere"
-  #     render :action => "overthere"
+  #     render :action => "overthere" # raises DoubleRenderError
   #   end
   #
-  # Only the redirect happens. The rendering call is simply ignored.
+  # If you need to redirect on the condition of something, then be sure to add "and return" to halt execution.
   #
-  # == Environments
+  #   def do_something
+  #     redirect_to(:action => "elsewhere") and return if monkeys.nil?
+  #     render :action => "overthere" # won't be called unless monkeys is nil
+  #   end  # == Environments
   #
   # Action Controller works out of the box with CGI, FastCGI, and mod_ruby. CGI and mod_ruby controllers are triggered just the same using:
   #
