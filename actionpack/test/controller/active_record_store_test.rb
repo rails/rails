@@ -18,8 +18,14 @@ begin
   CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite3', :dbfile => ':memory:')
   CGI::Session::ActiveRecordStore::Session.connection
 rescue Object
-  $stderr.puts 'SQLite 3 unavailable; falling to SQLite 2.'
-  CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite', :dbfile => ':memory:')
+  $stderr.puts 'SQLite 3 unavailable; falling back to SQLite 2.'
+  begin
+    CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite', :dbfile => ':memory:')
+    CGI::Session::ActiveRecordStore::Session.connection
+  rescue Object
+    $stderr.puts 'SQLite 2 unavailable; skipping ActiveRecordStore test suite.'
+    raise SystemExit
+  end
 end
 
 
