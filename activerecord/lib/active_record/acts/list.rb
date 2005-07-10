@@ -173,7 +173,7 @@ module ActiveRecord
           end
 
           def assume_bottom_position
-            update_attribute(position_column, bottom_position_in_list.to_i + 1)
+            update_attribute(position_column, bottom_position_in_list.to_i + 1) unless last?
           end
   
           def assume_top_position

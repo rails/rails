@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that assume_bottom_position (in acts_as_list) could be called on items already last in the list and they would move one position away from the list #1648 [tyler@kianta.com]
+
 * Added ActiveRecord::Base.threaded_connections flag to turn off 1-connection per thread (required for thread safety). By default it's on, but WEBrick in Rails need it off #1685 [Sam Stephenson]
 
 * Correct reflected table name for singular associations.  #1688 [court3nay@gmail.com]
