@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct reflected table name for singular associations.  #1688 [court3nay@gmail.com]
+
 * Fixed optimistic locking with SQL Server #1660 [tom@popdog.net]
 
 * Added ActiveRecord::Migrator.migrate that can figure out whether to go up or down based on the target version and the current
