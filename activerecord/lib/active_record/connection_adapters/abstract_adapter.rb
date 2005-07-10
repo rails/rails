@@ -86,6 +86,14 @@ module ActiveRecord
       end
     end
 
+    def self.active_connections #:nodoc:
+      if threaded_connections
+        Thread.current['active_connections'] ||= {}
+      else
+        @@active_connections ||= {}
+      end
+    end
+
     # Locate the connection of the nearest super class. This can be an
     # active or defined connections: if it is the latter, it will be
     # opened and set as the active connection for the class it was defined
@@ -94,7 +102,7 @@ module ActiveRecord
       klass = self
       ar_super = ActiveRecord::Base.superclass
       until klass == ar_super
-        if conn = (Thread.current['active_connections'] ||= {})[klass]
+        if conn = active_connections[klass]
           return conn
         elsif conn = @@defined_connections[klass]
           klass.connection = conn
@@ -109,7 +117,7 @@ module ActiveRecord
     def self.connected?
       klass = self
       until klass == ActiveRecord::Base.superclass
-        if Thread.current['active_connections'].is_a?(Hash) && Thread.current['active_connections'][klass]
+        if active_connections[klass]
           return true
         else
           klass = klass.superclass
@@ -125,8 +133,7 @@ module ActiveRecord
     def self.remove_connection(klass=self)
       conn = @@defined_connections[klass]
       @@defined_connections.delete(klass)
-      Thread.current['active_connections'] ||= {}
-      Thread.current['active_connections'][klass] = nil
+      active_connections[klass] = nil
       conn.config if conn
     end
 
@@ -134,8 +141,7 @@ module ActiveRecord
     def self.connection=(spec)
       raise ConnectionNotEstablished unless spec
       conn = self.send(spec.adapter_method, spec.config)
-      Thread.current['active_connections'] ||= {}
-      Thread.current['active_connections'][self] = conn
+      active_connections[self] = conn
     end
 
     # Converts all strings in a hash to symbols.

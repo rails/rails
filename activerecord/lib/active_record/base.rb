@@ -289,6 +289,11 @@ module ActiveRecord #:nodoc:
     # This is set to :local by default.
     cattr_accessor :default_timezone
     @@default_timezone = :local
+    
+    # Determines whether or not to use a connection for each thread, or a single shared connection for all threads.
+    # Defaults to true; Railties' WEBrick server sets this to false.
+    cattr_accessor :threaded_connections
+    @@threaded_connections = true
 
     class << self # Class methods
       # Find operates with three different retreval approaches:

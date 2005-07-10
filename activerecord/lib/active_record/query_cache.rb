@@ -51,8 +51,7 @@ module ActiveRecord
         QueryCache.new(self.send(spec.adapter_method, spec.config)) :
         self.send(spec.adapter_method, spec.config)
       
-      Thread.current['active_connections'] ||= {}
-      Thread.current['active_connections'][self] = conn
+      active_connections[self] = conn
     end
   end
   

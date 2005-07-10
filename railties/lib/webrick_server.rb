@@ -8,6 +8,8 @@ include WEBrick
 
 ABSOLUTE_RAILS_ROOT = File.expand_path(RAILS_ROOT)
 
+ActiveRecord::Base.threaded_connections = false
+
 class CGI
   def stdinput
     @stdin || $stdin

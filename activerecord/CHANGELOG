@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActiveRecord::Base.threaded_connections flag to turn off 1-connection per thread (required for thread safety). By default it's on, but WEBrick in Rails need it off #1685 [Sam Stephenson]
+
 * Correct reflected table name for singular associations.  #1688 [court3nay@gmail.com]
 
 * Fixed optimistic locking with SQL Server #1660 [tom@popdog.net]
