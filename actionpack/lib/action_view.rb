@@ -21,14 +21,8 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-begin
-  require 'rubygems'
-  require 'builder'
-rescue LoadError
-  # RubyGems is not available, use included Builder
-  $:.unshift(File.dirname(__FILE__) + "/action_view/vendor")
-  require 'action_view/vendor/builder'
-end
+$:.unshift(File.dirname(__FILE__) + "/action_view/vendor")
+require 'action_view/vendor/builder'
 
 require 'action_view/base'
 require 'action_view/partials'

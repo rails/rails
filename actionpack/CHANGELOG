@@ -1,15 +1,10 @@
 *SVN*
 
+* Fixed that Action View should always use the included Builder, never attempt to require the gem, to ensure compatibility
+
 * Added that nil options are not included in tags, so tag("p", :ignore => nil) now returns <p /> not <p ignore="" />  but that tag("p", :ignore => "") still includes it #1465 [michael@schuerig.de]
 
 * Fixed that UrlHelper#link_to_unless/link_to_if used html_escape on the name if no link was to be applied. This is unnecessary and breaks its use with images #1649 [joergd@pobox.com]
-
-* Added even more goodies to script.aculo.us #1677 [Thomas Fuchs]
-  * Added capability to remove draggables/droppables and redeclare sortables in dragdrop.js (this makes it possible to call sortable_element on the same element more than once, e.g. in AJAX returns that modify the sortable element. all current sortable 'stuff' on the element will be discarded and the sortable will be rebuilt)
-  * Always reset background color on Effect.Highlight; this make change backwards-compatibility, to be sure include style="background-color:(target-color)" on your elements or else elements will fall back to their CSS rules (which is a good thing in most circumstances)
-  * Removed circular references from element to prevent memory leaks (still not completely gone in IE)
-  * Changes to class extension in effects.js
-  * Make Effect.Highlight restore any previously set background color when finishing (makes effect work with CSS classes that set a background color)
 
 * Improved error message for DoubleRenderError
 
@@ -17,7 +12,16 @@
 
 * Added :handle as an option to sortable_element to restrict the drag handle to a given class #1642 [thejohnny]
 
-* Added a bunch of script.aculo.us features: Effect.ScrollTo, to smoothly scroll the page to an element, better Firefox flickering handling on SlideUp/SlideDown, Removed a possible memory leak in IE with draggables, Added support for cancelling dragging my hitting ESC #1644 [Thomas Fuchs]
+* Added a bunch of script.aculo.us features #1644, #1677 [Thomas Fuchs]
+  * Effect.ScrollTo, to smoothly scroll the page to an element
+  * Better Firefox flickering handling on SlideUp/SlideDown
+  * Removed a possible memory leak in IE with draggables
+  * Added support for cancelling dragging my hitting ESC
+  * Added capability to remove draggables/droppables and redeclare sortables in dragdrop.js (this makes it possible to call sortable_element on the same element more than once, e.g. in AJAX returns that modify the sortable element. all current sortable 'stuff' on the element will be discarded and the sortable will be rebuilt)
+  * Always reset background color on Effect.Highlight; this make change backwards-compatibility, to be sure include style="background-color:(target-color)" on your elements or else elements will fall back to their CSS rules (which is a good thing in most circumstances)
+  * Removed circular references from element to prevent memory leaks (still not completely gone in IE)
+  * Changes to class extension in effects.js
+  * Make Effect.Highlight restore any previously set background color when finishing (makes effect work with CSS classes that set a background color)
 
 * Fixed that named routes didn't use the default values for action and possible other parameters #1534 [Nicholas Seckar]
 
