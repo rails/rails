@@ -504,7 +504,7 @@ module ActionView
 
     private
       def options_for_javascript(options)
-        '{' + options.map {|k, v| "#{k}:#{v}"}.join(', ') + '}'
+        '{' + options.map {|k, v| "#{k}:#{v}"}.sort.join(', ') + '}'
       end
       
       def options_for_ajax(options)
