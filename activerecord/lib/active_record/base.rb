@@ -836,7 +836,7 @@ module ActiveRecord #:nodoc:
         # MyApp::Business::Account would be appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
           type_name_with_module(type_name).split("::").inject(Object) do |final_type, part|
-            final_type = final_type.const_get(part)
+            final_type.const_get(part)
           end
         end
 

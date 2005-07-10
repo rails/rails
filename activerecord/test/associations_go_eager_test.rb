@@ -29,7 +29,7 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_equal posts(:thinking), posts[4]
     assert_equal posts(:welcome), posts[5]
   end
-  
+
   def test_loading_with_multiple_associations
     posts = Post.find(:all, :include => [ :comments, :author, :categories ], :order => "posts.id")
     assert_equal 2, posts.first.comments.size
@@ -61,23 +61,23 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert posts[0].categories.include?(categories(:technology))
     assert posts[1].categories.include?(categories(:general))
   end
-  
+
   def test_eager_with_inheritance
     posts = SpecialPost.find(:all, :include => [ :comments ])
-  end  
+  end
 
   def test_eager_has_one_with_association_inheritance
     post = Post.find(4, :include => [ :very_special_comment ])
     assert_equal "VerySpecialComment", post.very_special_comment.class.to_s
-  end  
-  
+  end
+
   def test_eager_has_many_with_association_inheritance
     post = Post.find(4, :include => [ :special_comments ])
     post.special_comments.each do |special_comment|
       assert_equal "SpecialComment", special_comment.class.to_s
     end
-  end  
-  
+  end
+
   def test_eager_habtm_with_association_inheritance
     post = Post.find(6, :include => [ :special_categories ])
     assert_equal 1, post.special_categories.size
@@ -90,7 +90,8 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_not_nil companies(:first_firm).account
     f = Firm.find(:first, :include => :account,
             :conditions => ["companies.name = ?", "37signals"])
-    assert_not_nil companies(:first_firm, :reload).account
+    assert_not_nil f.account
+    assert_equal companies(:first_firm, :reload).account, f.account
   end
 
   def test_eager_with_invalid_association_reference
@@ -103,6 +104,3 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
 
 end
-
-
-
