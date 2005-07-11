@@ -48,9 +48,50 @@ class EagerAssociationTest < Test::Unit::TestCase
 
   def test_eager_association_loading_with_belongs_to
     comments = Comment.find(:all, :include => :post)
+    assert_equal 9, comments.length
     titles = comments.map { |c| c.post.title }
     assert titles.include?(posts(:welcome).title)
     assert titles.include?(posts(:sti_post_and_comments).title)
+  end
+  
+  def test_eager_association_loading_with_belongs_to_and_limit
+    comments = Comment.find(:all, :include => :post, :limit => 5)
+    assert_equal 5, comments.length
+    assert_equal [1,2,3,5,6], comments.collect { |c| c.id }
+  end
+
+  def test_eager_association_loading_with_belongs_to_and_limit_and_conditions
+    comments = Comment.find(:all, :include => :post, :conditions => 'post_id = 4', :limit => 3)
+    assert_equal 3, comments.length
+    assert_equal [5,6,7], comments.collect { |c| c.id }
+  end
+
+  def test_eager_association_loading_with_belongs_to_and_limit_and_offset
+    comments = Comment.find(:all, :include => :post, :limit => 3, :offset => 2)
+    assert_equal 3, comments.length
+    assert_equal [3,5,6], comments.collect { |c| c.id }
+  end
+
+  def test_eager_association_loading_with_belongs_to_and_limit_and_offset_and_conditions
+    comments = Comment.find(:all, :include => :post, :conditions => 'post_id = 4', :limit => 3, :offset => 1)
+    assert_equal 3, comments.length
+    assert_equal [6,7,8], comments.collect { |c| c.id }
+  end
+  
+  def test_eager_association_loading_with_belongs_to_and_limit_and_multiple_associations
+    posts = Post.find(:all, :include => [:author, :very_special_comment], :limit => 1)
+    assert_equal 1, posts.length
+    assert_equal [4], posts.collect { |p| p.id }
+  end
+  
+  def test_eager_association_loading_with_belongs_to_and_limit_and_offset_and_multiple_associations
+    posts = Post.find(:all, :include => [:author, :very_special_comment], :limit => 1, :offset => 1)
+    assert_equal 0, posts.length
+    assert_equal [], posts
+  end
+  
+  def test_eager_association_raise_on_limit
+    assert_raises(ActiveRecord::ConfigurationError) { Post.find(:all, :include => [:author, :comments], :limit => 1) }
   end
 
   def test_eager_association_loading_with_habtm
@@ -95,10 +136,10 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
 
   def test_eager_with_invalid_association_reference
-    assert_raises(NoMethodError, "Association was not found; perhaps you misspelled it?  You specified :include=>:monkeys") {
+    assert_raises(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
       post = Post.find(6, :include=>[ :monkeys ])
     }
-    assert_raises(NoMethodError, "Association was not found; perhaps you misspelled it?  You specified :include=>:monkeys, :elephants") {
+    assert_raises(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys, :elephants") {
       post = Post.find(6, :include=>[ :monkeys, :elephants ])
     }
   end

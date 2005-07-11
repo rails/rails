@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for limit and offset with eager loading of has_one and belongs_to associations. Using the options with has_many and has_and_belongs_to_many associations will now raise an ActiveRecord::ConfigurationError #1692 [Rick Olsen]
+
 * Fixed that assume_bottom_position (in acts_as_list) could be called on items already last in the list and they would move one position away from the list #1648 [tyler@kianta.com]
 
 * Added ActiveRecord::Base.threaded_connections flag to turn off 1-connection per thread (required for thread safety). By default it's on, but WEBrick in Rails need it off #1685 [Sam Stephenson]

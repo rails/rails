@@ -26,6 +26,8 @@ module ActiveRecord #:nodoc:
   end
   class StaleObjectError < ActiveRecordError #:nodoc:
   end
+  class ConfigurationError < StandardError #:nodoc:
+  end
 
   class AttributeAssignmentError < ActiveRecordError #:nodoc:
     attr_reader :exception, :attribute
@@ -336,7 +338,7 @@ module ActiveRecord #:nodoc:
 
         case args.first
           when :first
-            find(:all, options.merge({ :limit => 1 })).first
+            find(:all, options.merge(options[:include] ? { } : { :limit => 1 })).first
           when :all
             options[:include] ? find_with_associations(options) : find_by_sql(construct_finder_sql(options))
           else

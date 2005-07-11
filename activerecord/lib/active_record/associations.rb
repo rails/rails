@@ -168,7 +168,8 @@ module ActiveRecord
     # catch-all for performance problems, but its a great way to cut down on the number of queries in a situation as the one described above.
     #
     # Please note that because eager loading is fetching both models and associations in the same grab, it doesn't make sense to use the
-    # :limit property and it will be ignored if attempted.
+    # :limit and :offset options on has_many and has_and_belongs_to_many associations and an ConfigurationError exception will be raised 
+    # if attempted. It does, however, work just fine with has_one and belongs_to associations.
     #
     # Also have in mind that since the eager loading is pulling from multiple tables, you'll have to disambiguate any column references
     # in both conditions and orders. So :order => "posts.id DESC" will work while :order => "id DESC" will not. This may require that
@@ -740,12 +741,9 @@ module ActiveRecord
 
         def find_with_associations(options = {})
           reflections  = reflect_on_included_associations(options[:include])
-          reflections.each do |r| 
-            raise(
-              NoMethodError, 
-              "Association was not found; perhaps you misspelled it?  You specified :include=>:#{options[:include].join(', :')}"
-            ) if r.nil? 
-          end
+
+          guard_against_missing_reflections(reflections, options)
+          guard_against_unlimitable_reflections(reflections, options)
           
           schema_abbreviations = generate_schema_abbreviations(reflections)
           primary_key_table    = generate_primary_key_table(reflections, schema_abbreviations)
@@ -786,6 +784,24 @@ module ActiveRecord
 
         def reflect_on_included_associations(associations)
           [ associations ].flatten.collect { |association| reflect_on_association(association) }
+        end
+
+        def guard_against_missing_reflections(reflections, options)
+          reflections.each do |r| 
+            raise(
+              ConfigurationError, 
+              "Association was not found; perhaps you misspelled it?  You specified :include => :#{options[:include].join(', :')}"
+            ) if r.nil? 
+          end
+        end
+        
+        def guard_against_unlimitable_reflections(reflections, options)
+          if (options[:offset] || options[:limit]) && !using_limitable_reflections?(reflections)
+            raise(
+              ConfigurationError, 
+              "You can not use offset and limit together with has_many or has_and_belongs_to_many associations"
+            )
+          end
         end
 
         def generate_schema_abbreviations(reflections)
@@ -830,8 +846,12 @@ module ActiveRecord
           add_conditions!(sql, options[:conditions])
           add_sti_conditions!(sql, reflections)
           sql << "ORDER BY #{options[:order]} " if options[:order]
-          
+          add_limit!(sql, options) if using_limitable_reflections?(reflections)
           return sanitize_sql(sql)
+        end
+
+        def using_limitable_reflections?(reflections)
+          reflections.reject { |r| [ :belongs_to, :has_one ].include?(r.macro) }.length.zero?
         end
 
         def add_sti_conditions!(sql, reflections)
