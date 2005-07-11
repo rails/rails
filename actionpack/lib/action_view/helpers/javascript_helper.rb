@@ -358,8 +358,13 @@ module ActionView
         function << "'#{field_id}', "
         function << "'" + (options[:update] || "#{field_id}_auto_complete") + "', "
         function << "'#{url_for(options[:url])}'"
-
+        
         js_options = {}
+        if options[:tokens] and options[:tokens].kind_of?(Array)
+          js_options[:tokens] = "['#{options[:tokens].join('\',\'')}']"
+        elsif options[:tokens]
+          js_options[:tokens] = "'#{options[:tokens]}'" if options[:tokens]
+        end
         js_options[:callback]   = "function(element, value) { return #{options[:with]} }" if options[:with]
         js_options[:indicator]  = "'#{options[:indicator]}'" if options[:indicator]
         function << (', ' + options_for_javascript(js_options) + ')')

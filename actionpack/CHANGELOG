@@ -12,7 +12,7 @@
 
 * Added :handle as an option to sortable_element to restrict the drag handle to a given class #1642 [thejohnny]
 
-* Added a bunch of script.aculo.us features #1644, #1677 [Thomas Fuchs]
+* Added a bunch of script.aculo.us features #1644, #1677, #1695 [Thomas Fuchs]
   * Effect.ScrollTo, to smoothly scroll the page to an element
   * Better Firefox flickering handling on SlideUp/SlideDown
   * Removed a possible memory leak in IE with draggables
@@ -22,7 +22,11 @@
   * Removed circular references from element to prevent memory leaks (still not completely gone in IE)
   * Changes to class extension in effects.js
   * Make Effect.Highlight restore any previously set background color when finishing (makes effect work with CSS classes that set a background color)
-
+  * Fixed myriads of memory leaks in IE and Gecko-based browsers [David Zülke]
+  * Added incremental and local autocompleting and loads of documentation to controls.js [Ivan Krstic]
+  * Extended the auto_complete_field helper to accept tokens option
+  * Changed object extension mechanism to favor Object.extend to make script.aculo.us easily adaptable to support 3rd party libs like IE7.js [David Zülke]
+  
 * Fixed that named routes didn't use the default values for action and possible other parameters #1534 [Nicholas Seckar]
 
 * Fixed JavascriptHelper#visual_effect to use camelize such that :blind_up will work #1639 [pelletierm@eastmedia.net]

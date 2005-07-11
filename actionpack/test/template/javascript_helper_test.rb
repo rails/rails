@@ -74,7 +74,11 @@ class JavaScriptHelperTest < Test::Unit::TestCase
   
   def test_auto_complete_field
     assert_equal %(<script type=\"text/javascript\">new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {})</script>),
-      auto_complete_field("some_input", :url => { :action => "autocomplete" });    
+      auto_complete_field("some_input", :url => { :action => "autocomplete" });
+    assert_equal %(<script type=\"text/javascript\">new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {tokens:','})</script>),
+      auto_complete_field("some_input", :url => { :action => "autocomplete" }, :tokens => ',');
+    assert_equal %(<script type=\"text/javascript\">new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {tokens:[',']})</script>),
+      auto_complete_field("some_input", :url => { :action => "autocomplete" }, :tokens => [',']);  
   end
   
   def test_auto_complete_result

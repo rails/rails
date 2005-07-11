@@ -80,14 +80,14 @@ Element.undoClipping = function(element) {
 Effect.Base = function() {};
 Effect.Base.prototype = {
   setOptions: function(options) {
-    this.options = {
+    this.options = Object.extend({
       transition: Effect.Transitions.sinoidal,
       duration:   1.0,   // seconds
       fps:        25.0,  // max. 100fps
       sync:       false, // true for combining
       from:       0.0,
       to:         1.0
-    }.extend(options || {});
+    }, options || {});
   },
   start: function(options) {
     this.setOptions(options || {});
@@ -127,7 +127,7 @@ Effect.Base.prototype = {
 }
 
 Effect.Parallel = Class.create();
-Effect.Parallel.prototype.extend(Effect.Base.prototype).extend({
+Object.extend(Object.extend(Effect.Parallel.prototype, Effect.Base.prototype), {
   initialize: function(effects) {
     this.effects = effects || [];
     this.start(arguments[1]);
@@ -146,13 +146,13 @@ Effect.Parallel.prototype.extend(Effect.Base.prototype).extend({
 // a 'layout', meaning having a given width or height. 
 // There is no way to safely set this automatically.
 Effect.Opacity = Class.create();
-Effect.Opacity.prototype.extend(Effect.Base.prototype).extend({
+Object.extend(Object.extend(Effect.Opacity.prototype, Effect.Base.prototype), {
   initialize: function(element) {
     this.element = $(element);
-    options = {
+    options = Object.extend({
       from: 0.0,
       to:   1.0
-    }.extend(arguments[1] || {});
+    }, arguments[1] || {});
     this.start(options);
   },
   update: function(position) {
@@ -166,7 +166,7 @@ Effect.Opacity.prototype.extend(Effect.Base.prototype).extend({
 });
 
 Effect.MoveBy = Class.create();
-Effect.MoveBy.prototype.extend(Effect.Base.prototype).extend({
+Object.extend(Object.extend(Effect.MoveBy.prototype, Effect.Base.prototype), {
   initialize: function(element, toTop, toLeft) {
     this.element      = $(element);
     this.originalTop  = parseFloat(this.element.style.top || '0');
@@ -188,17 +188,17 @@ Effect.MoveBy.prototype.extend(Effect.Base.prototype).extend({
 });
 
 Effect.Scale = Class.create();
-Effect.Scale.prototype.extend(Effect.Base.prototype).extend({
+Object.extend(Object.extend(Effect.Scale.prototype, Effect.Base.prototype), {
   initialize: function(element, percent) {
     this.element = $(element)
-    options = {
+    options = Object.extend({
       scaleX: true,
       scaleY: true,
       scaleContent: true,
       scaleFromCenter: false,
       scaleMode: 'box',        // 'box' or 'contents' or {} with provided values
       scaleFrom: 100.0
-    }.extend(arguments[2] || {});
+    }, arguments[2] || {});
     this.originalTop    = this.element.offsetTop;
     this.originalLeft   = this.element.offsetLeft;
     if(this.element.style.fontSize=="") this.sizeEm = 1.0;
@@ -246,7 +246,7 @@ Effect.Scale.prototype.extend(Effect.Base.prototype).extend({
 });
 
 Effect.Highlight = Class.create();
-Effect.Highlight.prototype.extend(Effect.Base.prototype).extend({
+Object.extend(Object.extend(Effect.Highlight.prototype, Effect.Base.prototype), {
   initialize: function(element) {
     this.element = $(element);
     
@@ -259,11 +259,11 @@ Effect.Highlight.prototype.extend(Effect.Base.prototype).extend({
       var cols = current.slice(4,current.length-1).split(',');
       var i=0; do { endcolor += parseInt(cols[i]).toColorPart() } while (++i<3); }
       
-    var options = {
+    var options = Object.extend({
       startcolor:   "#ffff99",
       endcolor:     endcolor,
       restorecolor: current 
-    }.extend(arguments[1] || {});
+    }, arguments[1] || {});
     
     // init color calculations
     this.colors_base = [
@@ -291,7 +291,7 @@ Effect.Highlight.prototype.extend(Effect.Base.prototype).extend({
 });
 
 Effect.ScrollTo = Class.create();
-Effect.ScrollTo.prototype.extend(Effect.Base.prototype).extend({
+Object.extend(Object.extend(Effect.ScrollTo.prototype, Effect.Base.prototype), {
   initialize: function(element) {
     this.element = $(element);
     Position.prepare();
@@ -315,18 +315,18 @@ Effect.ScrollTo.prototype.extend(Effect.Base.prototype).extend({
 /* ------------- prepackaged effects ------------- */
 
 Effect.Fade = function(element) {
-  options = {
+  options = Object.extend({
   from: 1.0,
   to:   0.0,
   afterFinish: function(effect) 
     { Element.hide(effect.element);
       effect.setOpacity(1); } 
-  }.extend(arguments[1] || {});
+  }, arguments[1] || {});
   new Effect.Opacity(element,options);
 }
 
 Effect.Appear = function(element) {
-  options = {
+  options = Object.extend({
   from: 0.0,
   to:   1.0,
   beforeStart: function(effect)  
@@ -334,7 +334,7 @@ Effect.Appear = function(element) {
       Element.show(effect.element); },
   afterUpdate: function(effect)  
     { Element.show(effect.element); }
-  }.extend(arguments[1] || {});
+  }, arguments[1] || {});
   new Effect.Opacity(element,options);
 }
 
@@ -354,14 +354,14 @@ Effect.Puff = function(element) {
 Effect.BlindUp = function(element) {
   Element.makeClipping(element);
   new Effect.Scale(element, 0, 
-    { scaleContent: false, 
+    Object.extend({ scaleContent: false, 
       scaleX: false, 
       afterFinish: function(effect) 
         { 
           Element.hide(effect.element);
           Element.undoClipping(effect.element);
         } 
-    }.extend(arguments[1] || {})
+    }, arguments[1] || {})
   );
 }
 
@@ -370,14 +370,14 @@ Effect.BlindDown = function(element) {
   Element.makeClipping(element);
   Element.show(element);
   new Effect.Scale(element, 100, 
-    { scaleContent: false, 
+    Object.extend({ scaleContent: false, 
       scaleX: false, 
       scaleMode: 'contents',
       scaleFrom: 0,
       afterFinish: function(effect) {
         Element.undoClipping(effect.element);
       }
-    }.extend(arguments[1] || {})
+    }, arguments[1] || {})
   );
 }
 
@@ -433,7 +433,7 @@ Effect.SlideDown = function(element) {
   Element.makePositioned(element.firstChild);
   Element.show(element);
   new Effect.Scale(element, 100, 
-   { scaleContent: false, 
+   Object.extend({ scaleContent: false, 
     scaleX: false, 
     scaleMode: 'contents',
     scaleFrom: 0,
@@ -442,7 +442,7 @@ Effect.SlideDown = function(element) {
           (effect.originalHeight - effect.element.clientHeight) + 'px'; },
     afterFinish: function(effect) 
       {  Element.undoClipping(effect.element); }
-    }.extend(arguments[1] || {})
+    }, arguments[1] || {})
   );
 }
   
@@ -453,7 +453,7 @@ Effect.SlideUp = function(element) {
   Element.makePositioned(element.firstChild);
   Element.show(element);
   new Effect.Scale(element, 0, 
-   { scaleContent: false, 
+   Object.extend({ scaleContent: false, 
     scaleX: false, 
     afterUpdate: function(effect) 
       { effect.element.firstChild.style.bottom = 
@@ -463,7 +463,7 @@ Effect.SlideUp = function(element) {
         Element.hide(effect.element);
         Element.undoClipping(effect.element);
       }
-   }.extend(arguments[1] || {})
+   }, arguments[1] || {})
   );
 }
 
@@ -582,14 +582,14 @@ Effect.Pulsate = function(element) {
   var reverser   = function(pos){ return transition(1-Effect.Transitions.pulse(pos)) };
   reverser.bind(transition);
   new Effect.Opacity(element, 
-    {  duration: 3.0,
+    Object.extend(Object.extend({  duration: 3.0,
        afterFinish: function(effect) { Element.show(effect.element); }
-    }.extend(options).extend({transition: reverser}));
+    }, options), {transition: reverser}));
 }
 
 Effect.Fold = function(element) {
  $(element).style.overflow = 'hidden';
- new Effect.Scale(element, 5, {   
+ new Effect.Scale(element, 5, Object.extend({   
    scaleContent: false,
    scaleTo: 100,
    scaleX: false,
@@ -599,7 +599,7 @@ Effect.Fold = function(element) {
      scaleTo: 0,
      scaleY: false,
      afterFinish: function(effect) { Element.hide(effect.element) } });
- }}.extend(arguments[1] || {}));
+ }}, arguments[1] || {}));
 }
 
 // old: new Effect.ContentZoom(element, percent)
