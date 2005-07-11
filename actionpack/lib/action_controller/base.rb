@@ -463,9 +463,6 @@ module ActionController #:nodoc:
       #   # Renders the template for the action "goal" within the current controller
       #   render :action => "goal"
       #
-      #   # Renders the template for the action "explosion" from the ErrorsController
-      #   render :action => "errors/explosion", :status => 500 
-      #
       #   # Renders the template for the action "short_goal" within the current controller,
       #   # but without the current active layout
       #   render :action => "short_goal", :layout => false
@@ -508,14 +505,17 @@ module ActionController #:nodoc:
       #
       # === Rendering a file
       # 
-      # File rendering works just like action rendering except that it takes a complete path to the template intended
-      # for rendering and that the current layout is not applied automatically.
+      # File rendering works just like action rendering except that it takes a path relative to the template root or an absolute
+      # path if use_full_path is passed as true. The current layout is not applied automatically.
+      #
+      #   # Renders the template located in [TEMPLATE_ROOT]/weblog/show.r(html|xml) (in Rails, app/views/weblog/show.rhtml)
+      #   render :file => "weblog/show"
       #
       #   # Renders the template located in /path/to/some/template.r(html|xml)
-      #   render :file => "/path/to/some/template"
+      #   render :file => "/path/to/some/template", :use_full_path => false
       #
       #   # Renders the same template within the current layout, but with a 404 status code
-      #   render :file => "/path/to/some/template", :layout => true, :status => 404
+      #   render :file => "/path/to/some/template", :use_full_path => false, :layout => true, :status => 404
       #
       # _Deprecation_ _notice_: This used to have the signature <tt>render_file(path, status = 200)</tt>
       #
