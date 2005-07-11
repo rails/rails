@@ -1,4 +1,4 @@
-*SVN*
+*1.11.1* (11 July, 2005)
 
 * Added support for limit and offset with eager loading of has_one and belongs_to associations. Using the options with has_many and has_and_belongs_to_many associations will now raise an ActiveRecord::ConfigurationError #1692 [Rick Olsen]
 
@@ -17,7 +17,7 @@
 * Fixed first run of "rake migrate" on PostgreSQL by not expecting a return value on the id #1640
 
 
-*1.11.0* (5th July, 2005)
+*1.11.0* (6 July, 2005)
 
 * Fixed that Yaml error message in fixtures hid the real error #1623 [Nicholas Seckar]
 

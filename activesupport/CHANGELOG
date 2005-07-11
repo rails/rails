@@ -1,9 +1,9 @@
-*SVN*
+*1.1.1* (11 July, 2005)
 
 * Added more efficient implementation of the development mode reset of classes #1638 [Chris McGrath]
 
 
-*1.1.0*
+*1.1.0* (6 July, 2005)
 
 * Fixed conflict with Glue gem #1606 [Rick Olson]
 

@@ -28,7 +28,7 @@ rescue LoadError
     require File.dirname(__FILE__) + '/../../actionpack/lib/action_controller'
   rescue LoadError
     require 'rubygems'
-    require_gem 'actionpack', '>= 1.9.0'
+    require_gem 'actionpack', '>= 1.9.1'
   end
 end
 

@@ -9,7 +9,7 @@ require 'rbconfig'
 
 PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME        = 'rails'
-PKG_VERSION     = '0.13.0' + PKG_BUILD
+PKG_VERSION     = '0.13.1' + PKG_BUILD
 PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 
@@ -247,15 +247,15 @@ spec = Gem::Specification.new do |s|
   s.summary = "Web-application framework with template engine, control-flow layer, and ORM."
   s.description = <<-EOF
     Rails is a framework for building web-application using CGI, FCGI, mod_ruby, or WEBrick
-    on top of either MySQL, PostgreSQL, or SQLite with eRuby-based templates.
+    on top of either MySQL, PostgreSQL, SQLite, DB2, SQL Server, or Oracle with eRuby- or Builder-based templates.
   EOF
 
   s.add_dependency('rake', '>= 0.5.3')
-  s.add_dependency('activesupport',    '= 1.1.0' + PKG_BUILD)
-  s.add_dependency('activerecord',     '= 1.11.0' + PKG_BUILD)
-  s.add_dependency('actionpack',       '= 1.9.0' + PKG_BUILD)
-  s.add_dependency('actionmailer',     '= 1.0.0' + PKG_BUILD)
-  s.add_dependency('actionwebservice', '= 0.8.0' + PKG_BUILD)
+  s.add_dependency('activesupport',    '= 1.1.1' + PKG_BUILD)
+  s.add_dependency('activerecord',     '= 1.11.1' + PKG_BUILD)
+  s.add_dependency('actionpack',       '= 1.9.1' + PKG_BUILD)
+  s.add_dependency('actionmailer',     '= 1.0.1' + PKG_BUILD)
+  s.add_dependency('actionwebservice', '= 0.8.1' + PKG_BUILD)
 
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false

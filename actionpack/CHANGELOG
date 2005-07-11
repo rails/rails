@@ -1,4 +1,4 @@
-*SVN*
+*1.9.1* (11 July, 2005)
 
 * Fixed that Action View should always use the included Builder, never attempt to require the gem, to ensure compatibility
 

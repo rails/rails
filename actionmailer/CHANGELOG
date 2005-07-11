@@ -1,3 +1,8 @@
+*1.0.1* (11 July, 2005)
+
+* Bind to Action Pack 1.9.1
+
+
 *1.0.0* (6 July, 2005)
 
 * Avoid adding nil header values #1392

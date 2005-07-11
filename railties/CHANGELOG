@@ -1,4 +1,4 @@
-*SVN*
+*0.13.1* (11 July, 2005)
 
 * Fixed that each request with the WEBrick adapter would open a new database connection #1685 [Sam Stephenson]
 
@@ -11,7 +11,7 @@
 * Improved documentation for environment config files #1625 [court3nay@gmail.com]
 
 
-*0.13.0*
+*0.13.0* (6 July, 2005)
 
 * Changed the default logging level in config/environment.rb to INFO for production (so SQL statements won't be logged)
 

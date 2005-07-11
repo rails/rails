@@ -24,7 +24,7 @@ module ActionController
     #   auto_complete_for :post, :title, :limit => 15, :order => 'created_at DESC'
     #
     # For help on defining text input fields with autocompletion, 
-    # see ActionView::Helpers::JavascriptHelper.
+    # see ActionView::Helpers::JavaScriptHelper.
     #
     # For more examples, see script.aculo.us:
     # * http://script.aculo.us/demos/ajax/autocompleter
