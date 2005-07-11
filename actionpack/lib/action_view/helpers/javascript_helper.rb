@@ -72,7 +72,7 @@ module ActionView
       #       :url => { :action => "undo", :n => word_counter },
       #       :complete => "undoRequestCompleted(request)"
       #
-      # The callbacks that may be specified are:
+      # The callbacks that may be specified are (in order):
       #
       # <tt>:loading</tt>::       Called when the remote document is being 
       #                           loaded with data by the browser.
@@ -81,13 +81,15 @@ module ActionView
       # <tt>:interactive</tt>::   Called when the user can interact with the 
       #                           remote document, even though it has not 
       #                           finished loading.
-      # <tt>:complete</tt>::      Called when the XMLHttpRequest is complete,
-      #                           and the HTTP status code is 200 OK.
-      # <tt>:failure</tt>::       Called when the XMLHttpRequest is complete,
-      #                           and the HTTP status code is anything other than
-      #                           200 OK.
-      #
-      # You can further refine <tt>:failure</tt> by adding additional 
+      # <tt>:success</tt>::       Called when the XMLHttpRequest is completed,
+      #                           and the HTTP status code is in the 2XX range.
+      # <tt>:failure</tt>::       Called when the XMLHttpRequest is completed,
+      #                           and the HTTP status code is not in the 2XX
+      #                           range.
+      # <tt>:complete</tt>::      Called when the XMLHttpRequest is complete 
+      #                           (fires after success/failure if they are present).,
+      #                     
+      # You can further refine <tt>:success</tt> and <tt>:failure</tt> by adding additional 
       # callbacks for specific status codes:
       #
       # Example:
@@ -96,6 +98,7 @@ module ActionView
       #       404 => "alert('Not found...? Wrong URL...?')",
       #       :failure => "alert('HTTP Error ' + request.status + '!')"
       #
+      # A status code callback overrides the success/failure handlers if present.
       #
       # If you for some reason or another need synchronous processing (that'll
       # block the browser while the request is happening), you can specify 
