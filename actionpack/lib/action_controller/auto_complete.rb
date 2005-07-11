@@ -33,7 +33,7 @@ module ActionController
       def auto_complete_for(object, method, options = {})
         define_method("auto_complete_for_#{object}_#{method}") do
           find_options = { 
-            :conditions => [ "LOWER(#{method}) LIKE ?", '%' + params[object][method] + '%' ], 
+            :conditions => [ "LOWER(#{method}) LIKE ?", '%' + params[object][method].downcase + '%' ], 
             :order => "#{method} ASC",
             :limit => 10 }.merge!(options)
             

@@ -1,5 +1,7 @@
 *1.9.1* (11 July, 2005)
 
+* Fixed that auto_complete_for didn't force the input string to lower case even as the db comparison was
+
 * Fixed that Action View should always use the included Builder, never attempt to require the gem, to ensure compatibility
 
 * Added that nil options are not included in tags, so tag("p", :ignore => nil) now returns <p /> not <p ignore="" />  but that tag("p", :ignore => "") still includes it #1465 [michael@schuerig.de]
