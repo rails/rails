@@ -559,7 +559,7 @@ module ActionController #:nodoc:
       # === Rendering nothing
       #
       # Rendering nothing is often convenient in combination with Ajax calls that perform their effect client-side or
-      # when you just want to communicate a status code.
+      # when you just want to communicate a status code. Due to a bug in Safari, nothing actually means a single space.
       #
       #   # Renders an empty response with status code 200
       #   render :nothing => true
@@ -621,7 +621,8 @@ module ActionController #:nodoc:
           ) }))
           
         elsif options[:nothing]
-          render(options.merge({ :text => "" }))
+          # Safari doesn't pass the headers of the return if the response is zero length
+          render(options.merge({ :text => " " }))
 
         else
           render(options.merge({ :action => action_name }))
