@@ -1,3 +1,7 @@
+*SVN*
+
+* Fixed Request#subdomains to handle "foo.foo.com" correctly
+
 *1.9.1* (11 July, 2005)
 
 * Fixed that auto_complete_for didn't force the input string to lower case even as the db comparison was

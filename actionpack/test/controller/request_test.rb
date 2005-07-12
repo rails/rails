@@ -55,6 +55,9 @@ class RequestTest < Test::Unit::TestCase
 
     @request.host = "dev.www.rubyonrails.co.uk"
     assert_equal %w( dev www ), @request.subdomains(2)
+
+    @request.host = "foobar.foobar.com"
+    assert_equal %w( foobar ), @request.subdomains
   end
   
   def test_port_string

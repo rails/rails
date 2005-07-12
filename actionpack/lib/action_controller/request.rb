@@ -116,7 +116,7 @@ module ActionController
     # in "www.rubyonrails.co.uk".
     def subdomains(tld_length = 1)
       parts = host.split('.')
-      parts - parts.last(1 + tld_length)
+      parts[0..-(tld_length+2)]
     end
 
     # Receive the raw post data. 
