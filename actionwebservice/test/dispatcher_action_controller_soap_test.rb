@@ -71,6 +71,8 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
     @direct_controller.web_service_exception_reporting = true
     $KCODE = 'u'
     assert_equal(Utf8String, do_method_call(@direct_controller, 'TestUtf8'))
+    retval = SOAP::Processor.unmarshal(@response_body).body.response
+    assert retval.is_a?(SOAP::SOAPString)
 
     # If $KCODE is not set to UTF-8, any strings with non-ASCII UTF-8 data
     # will be sent back as base64 by SOAP4R. By the time we get it here though,
