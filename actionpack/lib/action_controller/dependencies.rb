@@ -2,7 +2,6 @@ module ActionController #:nodoc:
   module Dependencies #:nodoc:
     def self.append_features(base)
       super
-      base.class_eval { class << self; alias_method :inherited_without_model, :inherited; end }
       base.extend(ClassMethods)
     end
 
@@ -79,10 +78,6 @@ module ActionController #:nodoc:
             end
           end
         end
-
-        def inherited(child)
-          inherited_without_model(child)
-        end        
     end
   end
 end

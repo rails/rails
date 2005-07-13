@@ -4,7 +4,7 @@ class Object
   class << self
     # Lookup missing generators using const_missing.  This allows any
     # generator to reference another without having to know its location:
-    # RubyGems, ~/.rails/generators, and RAILS_ROOT/script/generators.
+    # RubyGems, ~/.rails/generators, and RAILS_ROOT/generators.
     def lookup_missing_generator(class_id)
       if md = /(.+)Generator$/.match(class_id.to_s)
         name = md.captures.first.demodulize.underscore
@@ -92,13 +92,13 @@ module Rails
         # Use component generators (model, controller, etc).
         # 1.  Rails application.  If RAILS_ROOT is defined we know we're
         #     generating in the context of a Rails application, so search
-        #     RAILS_ROOT/script/generators.
+        #     RAILS_ROOT/generators.
         # 2.  User home directory.  Search ~/.rails/generators.
         # 3.  RubyGems.  Search for gems named *_generator.
         # 4.  Builtins.  Model, controller, mailer, scaffold.
         def use_component_sources!
           reset_sources
-          sources << PathSource.new(:app, "#{::RAILS_ROOT}/script/generators") if defined? ::RAILS_ROOT
+          sources << PathSource.new(:app, "#{::RAILS_ROOT}/generators") if defined? ::RAILS_ROOT
           sources << PathSource.new(:user, "#{Dir.user_home}/.rails/generators")
           sources << GemSource.new if Object.const_defined?(:Gem)
           sources << PathSource.new(:builtin, "#{File.dirname(__FILE__)}/generators/components")

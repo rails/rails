@@ -35,7 +35,7 @@ class DispatcherTest < Test::Unit::TestCase
   def test_ac_subclasses_cleared_on_reset
     Object.class_eval(ACTION_CONTROLLER_DEF)
     assert_equal 1, ActionController::Base.subclasses.length
-    Dispatcher.dispatch(CGI.new, ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, @output)
+    dispatch
 
     GC.start # force the subclass to be collected
     assert_equal 0, ActionController::Base.subclasses.length
@@ -44,13 +44,16 @@ class DispatcherTest < Test::Unit::TestCase
   def test_am_subclasses_cleared_on_reset
     Object.class_eval(ACTION_MAILER_DEF)
     assert_equal 1, ActionMailer::Base.subclasses.length
-    Dispatcher.dispatch(CGI.new, ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, @output)
+    dispatch
 
     GC.start # force the subclass to be collected
     assert_equal 0, ActionMailer::Base.subclasses.length
   end
 
   private
+    def dispatch
+      Dispatcher.dispatch(CGI.new, ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, @output)
+    end
 
     def setup_minimal_environment
       value = Dependencies::LoadingModule.root

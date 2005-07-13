@@ -1,5 +1,7 @@
 *0.13.1* (11 July, 2005)
 
+* Look for app-specific generators in RAILS_ROOT/generators rather than the clunky old RAILS_ROOT/script/generators.  Nobody really uses this feature except for the unit tests, so it's a negligible-impact change.  If you want to work with third-party generators, drop them in ~/.rails/generators or simply install gems.
+
 * Fixed that each request with the WEBrick adapter would open a new database connection #1685 [Sam Stephenson]
 
 * Added support for SQL Server in the database rake tasks #1652 [ken.barker@gmail.com] Note: osql and scptxfr may need to be installed on your development environment. This involves getting the .exes and a .rll (scptxfr) from a production SQL Server (not developer level SQL Server). Add their location to your Environment PATH and you are all set.
