@@ -215,6 +215,25 @@ custom types and message definition types:
 The default namespace used is 'urn:ActionWebService', if you don't supply
 one.
 
+
+== ActionWebService and UTF-8
+
+If you're going to be sending back strings containing non-ASCII UTF-8
+characters using the <tt>:string</tt> data type, you need to make sure that
+Ruby is using UTF-8 as the default encoding for its strings.
+
+The default in Ruby to use US-ASCII encoding for strings, which causes a string
+validation check in the Ruby SOAP library to fail and your string to be sent
+back as a Base-64 value, which may confuse clients that expected strings
+because of the WSDL.
+
+Two ways of doing setting the default string encoding are:
+
+* Start Ruby using the <tt>-Ku</tt> command-line option to the Ruby executable
+* Set the <tt>$KCODE</tt> flag in <tt>config/environment.rb</tt> to the
+  string <tt>'UTF8'</tt>
+
+
 == Testing your APIs
 
 

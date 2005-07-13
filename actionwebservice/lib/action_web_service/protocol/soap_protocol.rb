@@ -11,7 +11,8 @@ module ActionWebService # :nodoc:
       end
       
       class SoapProtocol < AbstractProtocol # :nodoc:
-        DefaultEncoding = 'utf-8'
+        AWSEncoding = 'UTF-8'
+        XSDEncoding = 'UTF8'
 
         attr :marshaler
 
@@ -27,10 +28,9 @@ module ActionWebService # :nodoc:
         def decode_action_pack_request(action_pack_request)
           return nil unless soap_action = has_valid_soap_action?(action_pack_request)
           service_name = action_pack_request.parameters['action']
-          charset = parse_charset(action_pack_request.env['HTTP_CONTENT_TYPE'])
           protocol_options = { 
             :soap_action => soap_action,
-            :charset  => charset
+            :charset  => AWSEncoding
           }
           decode_request(action_pack_request.raw_post, service_name, protocol_options)
         end
@@ -42,8 +42,7 @@ module ActionWebService # :nodoc:
         end
 
         def decode_request(raw_request, service_name, protocol_options={})
-          charset = protocol_options[:charset] || DefaultEncoding
-          envelope = SOAP::Processor.unmarshal(raw_request, :charset => charset)
+          envelope = SOAP::Processor.unmarshal(raw_request, :charset => AWSEncoding)
           unless envelope
             raise ProtocolError, "Failed to parse SOAP request message"
           end
@@ -109,8 +108,17 @@ module ActionWebService # :nodoc:
             end
           end
           envelope = create_soap_envelope(response)
-          charset = protocol_options[:charset] || DefaultEncoding
-          Response.new(SOAP::Processor.marshal(envelope, :charset => charset), "text/xml; charset=#{charset}", return_value)
+
+          # FIXME: This is not thread-safe, but StringFactory_ in SOAP4R only
+          #        reads target encoding from the XSD::Charset.encoding variable.
+          #        This is required to ensure $KCODE strings are converted
+          #        correctly to UTF-8 for any values of $KCODE.
+          previous_encoding = XSD::Charset.encoding
+          XSD::Charset.encoding = XSDEncoding
+          response_body = SOAP::Processor.marshal(envelope, :charset => AWSEncoding)
+          XSD::Charset.encoding = previous_encoding
+
+          Response.new(response_body, "text/xml; charset=#{AWSEncoding}", return_value)
         end
 
         def protocol_client(api, protocol_name, endpoint_uri, options={})
@@ -136,15 +144,6 @@ module ActionWebService # :nodoc:
             soap_action.strip!
             return nil if soap_action.empty?
             soap_action
-          end
-
-          def parse_charset(content_type)
-            return DefaultEncoding if content_type.nil?
-            if /^text\/xml(?:\s*;\s*charset=([^"]+|"[^"]+"))$/i =~ content_type
-              $1
-            else
-              DefaultEncoding
-            end
           end
 
           def create_soap_envelope(body)

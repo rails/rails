@@ -4,6 +4,7 @@ require 'stringio'
 class ActionController::Base; def rescue_action(e) raise e end; end
 
 module DispatcherTest
+  Utf8String = "One World Caf\303\251"
   WsdlNamespace = 'http://rubyonrails.com/some/namespace'
 
   class Node < ActiveRecord::Base
@@ -58,6 +59,7 @@ module DispatcherTest
     api_method :hash_struct_return, :returns => [[Person]]
     api_method :thrower
     api_method :void
+    api_method :test_utf8, :returns => [:string]
     api_method :hex, :expects => [:base64], :returns => [:string]
     api_method :unhex, :expects => [:string], :returns => [:base64]
   end
@@ -221,6 +223,10 @@ module DispatcherTest
     
     def void
       @void_called = @method_params
+    end
+
+    def test_utf8
+      Utf8String
     end
 
     def hex(s)
@@ -398,12 +404,6 @@ module DispatcherCommonTests
       raise NotImplementedError
     end
 
-    def update_request(ap_request)
-    end
-
-    def check_response(ap_response)
-    end
-
     def protocol
       @protocol
     end
@@ -453,11 +453,10 @@ module DispatcherCommonTests
       # puts body
       ap_request = protocol.encode_action_pack_request(service_name, public_method_name, body, :request_class => ActionController::TestRequest)
       ap_request.env.update(request_env)
-      update_request(ap_request)
       ap_response = ActionController::TestResponse.new
       container.process(ap_request, ap_response)
       # puts ap_response.body
-      check_response(ap_response)
+      @response_body = ap_response.body
       public_method_name, return_value = protocol.decode_response(ap_response.body)
       unless is_exception?(return_value) || virtual
         return_value = method.cast_returns(return_value)
