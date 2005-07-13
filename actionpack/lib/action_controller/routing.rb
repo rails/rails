@@ -22,7 +22,7 @@ module ActionController
       def treat_hash(hash)
         k = v = nil
         hash.each do |k, v|
-          hash[k] = (v.respond_to? :to_param) ? v.to_param.to_s : v.to_s 
+          hash[k] = (v.respond_to? :to_param) ? v.to_param.to_s : v.to_s if v
         end
         hash
       end
@@ -582,12 +582,25 @@ module ActionController
         def url_helper_name(name)
           "#{name}_url"
         end
-
-        def name_route(route, name)
-          hash = route.defaults.merge(route.known).symbolize_keys
+        
+        def known_hash_for_route(route)
+          hash = route.known.symbolize_keys
+          route.defaults.each do |key, value|
+            hash[key.to_sym] ||= value if value
+          end
           hash[:controller] = "/#{hash[:controller]}"
-      
+          
+          hash
+        end
+        
+        def define_hash_access_method(route, name)
+          hash = known_hash_for_route(route)
           define_method(hash_access_name(name)) { hash }
+        end
+        
+        def name_route(route, name)
+          define_hash_access_method(route, name)
+          
           module_eval(%{def #{url_helper_name name}(options = {})
             url_for(#{hash_access_name(name)}.merge(options))
           end}, "generated/routing/named_routes/#{name}.rb")

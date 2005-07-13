@@ -689,6 +689,23 @@ class RouteSetTests < Test::Unit::TestCase
     end
   end
 
+  def test_named_route_with_regexps
+    rs.draw do |map|
+      rs.article 'page/:year/:month/:day/:title', :controller => 'page', :action => 'show',
+        :year => /^\d+$/, :month => /^\d+$/, :day => /^\d+$/
+      rs.connect ':controller/:action/:id'
+    end
+    x = setup_for_named_route
+    assert_equal(
+      {:controller => '/page', :action => 'show', :title => 'hi'},
+      x.new.send(:article_url, :title => 'hi')
+    )
+    assert_equal(
+      {:controller => '/page', :action => 'show', :title => 'hi', :day => 10, :year => 2005, :month => 6},
+      x.new.send(:article_url, :title => 'hi', :day => 10, :year => 2005, :month => 6)
+    )
+  end
+
   def test_changing_controller
     assert_equal ['/admin/stuff/show/10', {}], rs.generate(
       {:controller => 'stuff', :action => 'show', :id => 10},
@@ -766,6 +783,25 @@ class RouteSetTests < Test::Unit::TestCase
     assert_equal({'controller' => ::Controllers::Admin::NewsFeedController, 'action' => 'index'}, rs.recognize_path(%w(Admin NewsFeed)))
     assert_equal({'controller' => ::Controllers::Admin::NewsFeedController, 'action' => 'index'}, rs.recognize_path(%w(Admin News_Feed)))
   end
+
+  def test_both_requirement_and_optional
+    rs.draw do
+      rs.blog('test/:year', :controller => 'post', :action => 'show',
+        :defaults => { :year => nil },
+        :requirements => { :year => /\d{4}/ }
+      )
+      rs.connect ':controller/:action/:id'
+    end
+
+    assert_equal ['/test', {}], rs.generate(:controller => 'post', :action => 'show')
+    assert_equal ['/test', {}], rs.generate(:controller => 'post', :action => 'show', :year => nil)
+    
+    x = setup_for_named_route
+    assert_equal({:controller => '/post', :action => 'show'},
+                 x.new.send(:blog_url))
+  end
+
+
 end
 
 end
