@@ -1,3 +1,7 @@
+*SVN*
+
+* ActionWebService now always returns UTF-8 responses.
+
 *0.8.1* (11 July, 2005)
 
 * Fix scaffolding for Action Pack controller changes
