@@ -315,6 +315,8 @@ module ActiveRecord #:nodoc:
       # * <tt>:joins</tt>: An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
       # * <tt>:include</tt>: Names associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
       #   to already defined associations. See eager loading under Associations.
+      # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you for example want to do a join, but not
+      #   include the joined columns.
       #
       # Examples for find by id:
       #   Person.find(1)       # returns the object for ID = 1
@@ -739,7 +741,7 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_sql(options)
-          sql  = "SELECT * FROM #{table_name} "
+          sql  = "SELECT #{options[:select] || '*'} FROM #{table_name} "
           sql << " #{options[:joins]} " if options[:joins]
           add_conditions!(sql, options[:conditions])
           sql << "ORDER BY #{options[:order]} " if options[:order]

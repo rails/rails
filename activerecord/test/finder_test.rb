@@ -93,6 +93,10 @@ class FinderTest < Test::Unit::TestCase
     
     Topic.find(2).parent
   end
+  
+  def test_find_only_some_columns
+    assert_raises(NoMethodError) { Topic.find(1, :select => "author_name").title }
+  end
 
   def test_find_on_conditions
     assert Topic.find(1, :conditions => "approved = 0")

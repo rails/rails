@@ -1,3 +1,8 @@
+*SVN*
+
+* Added :select option to find which can specify a different value than the default *, like find(:all, :select => "first_name, last_name"), if you either only want to select part of the columns or exclude columns otherwise included from a join #1338 [Stefan Kaes]
+
+
 *1.11.1* (11 July, 2005)
 
 * Added support for limit and offset with eager loading of has_one and belongs_to associations. Using the options with has_many and has_and_belongs_to_many associations will now raise an ActiveRecord::ConfigurationError #1692 [Rick Olsen]
