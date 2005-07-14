@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed bug with :success/:failure callbacks for the JavaScriptHelper methods #1730 [court3nay/Thomas Fuchs]
+
 * Added named_route method to RouteSet instances so that RouteSet instance methods do not prevent certain names from being used. [Nicholas Seckar]
 
 * Fixed routes so that routes which do not specify :action in the path or in the requirements have a default of :action => 'index', In addition, fixed url generation so that :action => 'index' does not need to be provided for such urls. [Nicholas Seckar, Markjuh]

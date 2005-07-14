@@ -268,7 +268,7 @@ Ajax.Request.prototype = (new Ajax.Base()).extend({
 
     if (event == 'Complete')
       (this.options['on' + this.transport.status]
-       || this.options['on' + this.responseIsSuccess() ? 'Success' : 'Failure']
+       || this.options['on' + (this.responseIsSuccess() ? 'Success' : 'Failure')]
        || Prototype.emptyFunction)(this.transport);
 
     (this.options['on' + event] || Prototype.emptyFunction)(this.transport);

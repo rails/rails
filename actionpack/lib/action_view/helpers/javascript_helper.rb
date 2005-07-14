@@ -17,7 +17,7 @@ module ActionView
     module JavaScriptHelper      
       unless const_defined? :CALLBACKS
         CALLBACKS       = 
-          [:uninitialized, :loading, :loaded, :interactive, :complete, :failure].push((100..599).to_a).flatten
+          [:uninitialized, :loading, :loaded, :interactive, :complete, :failure, :success].push((100..599).to_a).flatten
         AJAX_OPTIONS    = [ :before, :after, :condition, :url, :asynchronous, :method, 
           :insertion, :position, :form, :with, :update, :script ].concat(CALLBACKS)
         JAVASCRIPT_PATH = File.join(File.dirname(__FILE__), 'javascripts')
