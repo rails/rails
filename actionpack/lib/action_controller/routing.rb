@@ -288,9 +288,16 @@ module ActionController
         generator.before, generator.current, generator.after = [], components.first, (components[1..-1] || [])
 
         if known.empty? then generator.go
-        else generator.if(generator.check_conditions(known)) {|gp| gp.go }
+        else
+          # Alter the conditions to allow :action => 'index' to also catch :action => nil
+          altered_known = known.collect do |k, v|
+            if k == :action && v== 'index' then [k, [nil, 'index']]
+            else [k, v]
+            end
+          end
+          generator.if(generator.check_conditions(altered_known)) {|gp| gp.go }
         end
-    
+        
         generator
       end
   
@@ -363,7 +370,7 @@ module ActionController
         
         def add_default_requirements
           component_keys = components.collect {|c| c.key}
-          known[:action] ||= [nil, 'index'] unless component_keys.include? :action
+          known[:action] ||= 'index' unless component_keys.include? :action
         end
     end
 

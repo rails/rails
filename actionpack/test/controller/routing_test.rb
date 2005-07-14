@@ -836,6 +836,33 @@ class RouteSetTests < Test::Unit::TestCase
     assert_equal ['/', {}], rs.generate(:controller => 'content', :action => 'index')
     assert_equal ['/', {}], rs.generate(:controller => 'content')
   end
+
+  def test_named_url_with_no_action_specified
+    rs.draw do
+      rs.root '', :controller => 'content'
+      rs.connect ':controller/:action/:id'
+    end
+    
+    assert_equal ['/', {}], rs.generate(:controller => 'content', :action => 'index')
+    assert_equal ['/', {}], rs.generate(:controller => 'content')
+    
+    x = setup_for_named_route
+    assert_equal({:controller => '/content', :action => 'index'},
+                 x.new.send(:root_url))
+  end
+  
+  def test_url_generated_when_forgetting_action
+    [{:controller => 'content', :action => 'index'}, {:controller => 'content'}].each do |hash| 
+      rs.draw do
+        rs.root '', hash
+        rs.connect ':controller/:action/:id'
+      end
+      assert_equal ['/', {}], rs.generate({:action => nil}, {:controller => 'content', :action => 'hello'})
+      assert_equal ['/', {}], rs.generate({:controller => 'content'})
+      assert_equal ['/content/hi', {}], rs.generate({:controller => 'content', :action => 'hi'})
+    end
+  end
+
 end
 
 end
