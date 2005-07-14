@@ -115,12 +115,12 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
 
       # Unscaffolded views.
       unscaffolded_actions.each do |action|
-        m.template "controller:view.rhtml",
-                   File.join('app/views',
-                             controller_class_path,
-                             controller_file_name,
-                             "#{action}.rhtml"),
-                   :assigns => { :action => action }
+        path = File.join('app/views',
+                          controller_class_path,
+                          controller_file_name,
+                          "#{action}.rhtml")
+        m.template "controller:view.rhtml", path,
+                   :assigns => { :action => action, :path => path}
       end
     end
   end
