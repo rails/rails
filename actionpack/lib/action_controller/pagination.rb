@@ -31,7 +31,7 @@ module ActionController
   # instance variable, which is an ordered collection of model objects for the
   # current page (at most 20, sorted by last name and first name), and a 
   # <tt>@person_pages</tt> Paginator instance. The current page is determined
-  # by the <tt>@params['page']</tt> variable.
+  # by the <tt>params[:page]</tt> variable.
   #
   # ==== Pagination for a single action
   #
@@ -67,6 +67,7 @@ module ActionController
         :conditions => nil,
         :order_by   => nil,
         :join       => nil,
+        :select     => nil,
         :parameter  => 'page'
       }
     end
@@ -154,11 +155,13 @@ module ActionController
       model.count(conditions,joins)
     end
   
-    # Returns a collection of items for the given +model+ and +conditions+,
-    # ordered by +order_by+, for the current page in the given +paginator+.
+    # Returns a collection of items for the given +model+ and +options[conditions]+,
+    # ordered by +options[order_by]+, for the current page in the given +paginator+.
     # Override this method to implement a custom finder.
-    def find_collection_for_pagination(model, conditions, order_by, join, paginator)
-      model.find_all(conditions, order_by, paginator.current.to_sql, join)
+    def find_collection_for_pagination(model, options, paginator)
+      model.find(:all, :conditions => options[:conditions], :order => options[:order_by],
+                 :joins => options[:join],  :select => options[:select],
+                 :limit => options[:per_page], :offset => paginator.current.offset)
     end
   
     protected :create_paginators_and_retrieve_collections,
@@ -171,9 +174,7 @@ module ActionController
       count = count_collection_for_pagination(klass, options[:conditions], options[:join])
 
       paginator = Paginator.new(self, count, options[:per_page], page)
-      
-      collection = find_collection_for_pagination(klass,
-        options[:conditions], options[:order_by], options[:join], paginator)
+      collection = find_collection_for_pagination(klass, options, paginator)
       
       return paginator, collection 
     end
@@ -196,6 +197,7 @@ module ActionController
         @controller = controller
         @item_count = item_count || 0
         @items_per_page = items_per_page
+        @pages = {}
         
         self.current_page = current_page
       end
@@ -210,44 +212,43 @@ module ActionController
             page.paginator == self
         end
         page = page.to_i
-        @current_page = has_page_number?(page) ? page : 1
+        @current_page_number = has_page_number?(page) ? page : 1
       end
 
       # Returns a Page object representing this paginator's current page.
       def current_page
-        self[@current_page]
+        @current_page ||= self[@current_page_number]
       end
       alias current :current_page
 
       # Returns a new Page representing the first page in this paginator.
       def first_page
-        self[1]
+        @first_page ||= self[1]
       end
       alias first :first_page
 
       # Returns a new Page representing the last page in this paginator.
       def last_page
-        self[page_count] 
+        @last_page ||= self[page_count] 
       end
       alias last :last_page
 
       # Returns the number of pages in this paginator.
       def page_count
-        return 1 if @item_count.zero?
-        (@item_count / @items_per_page.to_f).ceil
+        @page_count ||= @item_count.zero? ? 1 : @item_count.div(@items_per_page)
       end
+
       alias length :page_count
 
       # Returns true if this paginator contains the page of index +number+.
       def has_page_number?(number)
-        return false unless number.is_a? Fixnum
         number >= 1 and number <= page_count
       end
 
       # Returns a new Page representing the page with the given index
       # +number+.
       def [](number)
-        Page.new(self, number)
+        @pages[number] ||= Page.new(self, number)
       end
 
       # Successively yields all the paginator's pages to the given block.
@@ -318,13 +319,13 @@ module ActionController
         # Returns a new Page object representing the page just before this
         # page, or nil if this is the first page.
         def previous
-          if first? then nil else Page.new(@paginator, @number - 1) end
+          if first? then nil else @paginator[@number - 1] end
         end
 
         # Returns a new Page object representing the page just after this
         # page, or nil if this is the last page.
         def next
-          if last? then nil else Page.new(@paginator, @number + 1) end
+          if last? then nil else @paginator[@number + 1] end
         end
 
         # Returns a new Window object for this page with the specified 
@@ -368,11 +369,10 @@ module ActionController
 
         # Returns an array of Page objects in the current window.
         def pages
-          (@first.number..@last.number).to_a.map {|n| @paginator[n]}
+          (@first.number..@last.number).to_a.collect! {|n| @paginator[n]}
         end
         alias to_a :pages
       end
     end
-
   end
 end

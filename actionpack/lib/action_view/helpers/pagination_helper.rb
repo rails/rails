@@ -36,36 +36,45 @@ module ActionView
       def pagination_links(paginator, options={})
         options.merge!(DEFAULT_OPTIONS) {|key, old, new| old}
         
-        window_pages = paginator.current.window(options[:window_size]).pages
+        pagination_links_each(paginator, options[:window_size], options[:always_show_anchors], options[:link_to_current_page]) do |n|
+          link_to(n.to_s, { options[:name] => n }.update(options[:params]))
+        end
+      end
 
-        return if window_pages.length <= 1 unless
-          options[:link_to_current_page]
+      # Iterate through the pages of a given +paginator+, invoking a
+      # block for each page number that needs to be rendered as a link.
+
+      def pagination_links_each(paginator, window_size=2, always_show_anchors=true, link_to_current_page=false)
+        current_page = paginator.current_page
+        window_pages = current_page.window(window_size).pages
+        return if window_pages.length <= 1 unless link_to_current_page
         
         first, last = paginator.first, paginator.last
         
-        returning html = '' do
-          if options[:always_show_anchors] and not window_pages[0].first?
-            html << link_to(first.number, { options[:name] => first }.update( options[:params] ))
-            html << ' ... ' if window_pages[0].number - first.number > 1
+        html = ''
+        if always_show_anchors and not (wp_first = window_pages[0]).first?
+          html << yield(first.number)
+          html << ' ... ' if wp_first.number - first.number > 1
             html << ' '
           end
           
           window_pages.each do |page|
-            if paginator.current == page && !options[:link_to_current_page]
+          if current_page == page && !link_to_current_page
               html << page.number.to_s
             else
-              html << link_to(page.number, { options[:name] => page }.update( options[:params] ))
+            html << yield(page.number)
             end
             html << ' '
           end
           
-          if options[:always_show_anchors] && !window_pages.last.last?
-            html << ' ... ' if last.number - window_pages[-1].number > 1
-            html << link_to(paginator.last.number, { options[:name] => last }.update( options[:params]))
-          end
-        end
+        if always_show_anchors and not (wp_last = window_pages[-1]).last? 
+          html << ' ... ' if last.number - wp_last.number > 1
+          html << yield(last.number)
       end
       
+        html
     end
-  end
-end
+
+    end # PaginationHelper
+  end # Helpers
+end # ActionView

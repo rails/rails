@@ -9,6 +9,10 @@ class Address
   def Address.find_all(arg1, arg2, arg3, arg4)
     []
   end
+  
+  def self.find(*args)
+    []
+  end
 end
 
 class AddressesTestController < ActionController::Base
