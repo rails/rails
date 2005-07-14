@@ -1,6 +1,9 @@
 *SVN*
 
+* Worked around a Safari bug where it wouldn't pass headers through if the response was zero length by having render :nothing return ' ' instead of ''
+
 * Fixed Request#subdomains to handle "foo.foo.com" correctly
+
 
 *1.9.1* (11 July, 2005)
 
