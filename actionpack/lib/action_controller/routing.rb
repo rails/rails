@@ -573,12 +573,20 @@ module ActionController
   
       def each(&block) @routes.each(&block) end
       
-      def method_missing(name, *args)
-        return super(name, *args) unless (1..2).include?(args.length)
-      
-        route = connect(*args)
+      # Defines a new named route with the provided name and arguments.
+      # This method need only be used when you wish to use a name that a RouteSet instance
+      # method exists for, such as categories.
+      #
+      # For example, map.categories '/categories', :controller => 'categories' will not work
+      # due to RouteSet#categories.
+      def named_route(name, path, hash = {})
+        route = connect(path, hash)
         NamedRoutes.name_route(route, name)
         route
+      end
+      
+      def method_missing(name, *args)
+        (1..2).include?(args.length) ? named_route(name, *args) : super(name, *args)
       end
 
       def extra_keys(options, recall = {})

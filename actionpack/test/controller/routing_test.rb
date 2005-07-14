@@ -862,6 +862,18 @@ class RouteSetTests < Test::Unit::TestCase
       assert_equal ['/content/hi', {}], rs.generate({:controller => 'content', :action => 'hi'})
     end
   end
+  
+  def test_named_route_method
+    rs.draw do
+      assert_raises(ArgumentError) { rs.categories 'categories', :controller => 'content', :action => 'categories' }
+      
+      rs.named_route :categories, 'categories', :controller => 'content', :action => 'categories'
+      rs.connect ':controller/:action/:id'
+    end
+
+    assert_equal ['/categories', {}], rs.generate(:controller => 'content', :action => 'categories')
+    assert_equal ['/content/hi', {}], rs.generate({:controller => 'content', :action => 'hi'})
+  end
 
 end
 
