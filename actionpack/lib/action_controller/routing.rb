@@ -26,15 +26,19 @@ module ActionController
         end
         hash
       end
-    end
-
-    class << self
+      
       def test_condition(expression, condition)
         case condition
           when String then "(#{expression} == #{condition.inspect})"
           when Regexp then
             condition = Regexp.new("^#{condition.source}$") unless /^\^.*\$$/ =~ condition.source 
             "(#{condition.inspect} =~ #{expression})"
+          when Array then
+            conds = condition.collect do |condition|
+              cond = test_condition(expression, condition)
+              (cond[0, 1] == '(' && cond[-1, 1] == ')') ? cond : "(#{cond})"
+            end
+            "(#{conds.join(' || ')})"
           when true then expression
           when nil then "! #{expression}"
           else
@@ -272,6 +276,7 @@ module ActionController
         defaults, conditions = initialize_hashes options.dup
         @defaults = defaults.dup
         configure_components(defaults, conditions)
+        add_default_requirements
         initialize_keys
       end
   
@@ -324,7 +329,6 @@ module ActionController
       end
   
       protected
-  
         def initialize_components(path)
           path = path.split('/') if path.is_a? String
           path.shift if path.first.blank?
@@ -355,6 +359,11 @@ module ActionController
         
             component.condition = conditions[component.key] if conditions.key?(component.key)
           end
+        end
+        
+        def add_default_requirements
+          component_keys = components.collect {|c| c.key}
+          known[:action] ||= [nil, 'index'] unless component_keys.include? :action
         end
     end
 

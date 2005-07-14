@@ -504,16 +504,19 @@ class RouteTests < Test::Unit::TestCase
   end
   
   def test_static
-    route 'hello/world', :known => 'known_value'
+    route 'hello/world', :known => 'known_value', :controller => 'content', :action => 'index'
     
     assert_nil rec('hello/turn')
     assert_nil rec('turn/world')
-    assert_equal({:known => 'known_value'}, rec('hello/world'))
+    assert_equal(
+      {:known => 'known_value', :controller => ::Controllers::ContentController, :action => 'index'},
+      rec('hello/world')
+    )
     
     assert_nil gen(:known => 'foo')
     assert_nil gen({})
-    assert_equal '/hello/world', gen(:known => 'known_value')
-    assert_equal '/hello/world', gen(:known => 'known_value', :extra => 'hi')
+    assert_equal '/hello/world', gen(:known => 'known_value', :controller => 'content', :action => 'index')
+    assert_equal '/hello/world', gen(:known => 'known_value', :extra => 'hi', :controller => 'content', :action => 'index')
     assert_equal [:extra], route.extra_keys(:known => 'known_value', :extra => 'hi')
   end
   
@@ -800,8 +803,39 @@ class RouteSetTests < Test::Unit::TestCase
     assert_equal({:controller => '/post', :action => 'show'},
                  x.new.send(:blog_url))
   end
+  
+  def test_set_to_nil_forgets
+    rs.draw do
+      rs.connect 'pages/:year/:month/:day', :controller => 'content', :action => 'list_pages', :month => nil, :day => nil
+      rs.connect ':controller/:action/:id'
+    end
+    
+    assert_equal ['/pages/2005', {}],
+      rs.generate(:controller => 'content', :action => 'list_pages', :year => 2005)
+    assert_equal ['/pages/2005/6', {}],
+      rs.generate(:controller => 'content', :action => 'list_pages', :year => 2005, :month => 6)
+    assert_equal ['/pages/2005/6/12', {}],
+      rs.generate(:controller => 'content', :action => 'list_pages', :year => 2005, :month => 6, :day => 12)
+    
+    assert_equal ['/pages/2005/6/4', {}],
+      rs.generate({:day => 4}, {:controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12'})
 
+    assert_equal ['/pages/2005/6', {}],
+      rs.generate({:day => nil}, {:controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12'})
 
+    assert_equal ['/pages/2005', {}],
+      rs.generate({:day => nil, :month => nil}, {:controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12'})
+  end
+  
+  def test_url_with_no_action_specified
+    rs.draw do
+      rs.connect '', :controller => 'content'
+      rs.connect ':controller/:action/:id'
+    end
+    
+    assert_equal ['/', {}], rs.generate(:controller => 'content', :action => 'index')
+    assert_equal ['/', {}], rs.generate(:controller => 'content')
+  end
 end
 
 end
