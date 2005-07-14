@@ -228,7 +228,7 @@ class NewRenderTest < Test::Unit::TestCase
 
   def test_rendering_nothing_on_layout
     get :rendering_nothing_on_layout
-    assert_equal "", @response.body
+    assert_equal " ", @response.body
   end
 
   def test_render_xml_with_layouts
