@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
+require File.dirname(__FILE__) + '/fake_controllers'
 
 class TestTest < Test::Unit::TestCase
   class TestController < ActionController::Base
@@ -52,12 +53,12 @@ HTML
 
   def test_process_without_flash
     process :set_flash
-    assert_flash_equal "><", "test"
+    assert_equal '><', flash['test']
   end          
   
   def test_process_with_flash
     process :set_flash, nil, nil, { "test" => "value" }
-    assert_flash_equal ">value<", "test"
+    assert_equal '>value<', flash['test']
   end
 
   def test_process_with_request_uri_with_no_params
@@ -100,8 +101,16 @@ HTML
                                    :only => { :tag => "li" } } }
   end
 
-  def test_assert_routing
+  def test_assert_generates
     assert_generates 'controller/action/5', :controller => 'controller', :action => 'action', :id => '5'
+  end
+
+  def test_assert_routing
+    assert_routing 'content', :controller => 'content', :action => 'index'
+  end
+
+  def test_assert_routing_in_module
+    assert_routing 'admin/user', :controller => 'admin/user', :action => 'index'
   end
 
   def test_params_passing

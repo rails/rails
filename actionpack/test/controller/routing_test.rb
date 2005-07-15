@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
+require File.dirname(__FILE__) + '/fake_controllers'
 require 'test/unit'
 require 'stringio'
 
@@ -93,28 +94,6 @@ class CodeGeneratorTests < Test::Unit::TestCase
     assert_equal [:x], generator.locals
   end
 end 
-
-# XXX Extract to test/controller/fake_controllers.rb 
-module Object::Controllers
-  def self.const_available?(*args)
-    const_defined?(*args)
-  end
-  
-  class ContentController
-  end
-  module Admin
-    def self.const_available?(*args)
-      const_defined?(*args)
-    end
-    
-    class UserController
-    end
-
-    class NewsFeedController
-    end
-  end
-end
-
 
 class RecognitionTests < Test::Unit::TestCase
   attr_accessor :generator

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed assert_routing so that testing controllers in modules works as expected [Nicholas Seckar, Rick Olson]
+
 * Fixed bug with :success/:failure callbacks for the JavaScriptHelper methods #1730 [court3nay/Thomas Fuchs]
 
 * Added named_route method to RouteSet instances so that RouteSet instance methods do not prevent certain names from being used. [Nicholas Seckar]

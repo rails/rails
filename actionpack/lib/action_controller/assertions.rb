@@ -138,12 +138,7 @@ module Test #:nodoc:
         # Load routes.rb if it hasn't been loaded.
         ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
       
-        # Assume given controller
-        request = ActionController::TestRequest.new({}, {}, nil)
-        request.path_parameters = (defaults or {}).clone
-        request.path_parameters[:controller] ||= options[:controller]
-      
-        generated_path, found_extras = ActionController::Routing::Routes.generate(options, request)
+        generated_path, found_extras = ActionController::Routing::Routes.generate(options, extras)
         msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
         assert_block(msg) { found_extras == extras }
       
@@ -156,6 +151,12 @@ module Test #:nodoc:
       # options is same as path, and also that the options recognized from path are same as options
       def assert_routing(path, options, defaults={}, extras={}, message=nil)
         assert_recognizes(options, path, extras, message)
+        
+        controller, default_controller = options[:controller], defaults[:controller] 
+        if controller && controller.include?(?/) && default_controller && default_controller.include?(?/)
+          options[:controller] = "/#{controller}"
+        end
+         
         assert_generates(path, options, defaults, extras, message)
       end
 
