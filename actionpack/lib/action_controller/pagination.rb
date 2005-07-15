@@ -31,7 +31,7 @@ module ActionController
   # instance variable, which is an ordered collection of model objects for the
   # current page (at most 20, sorted by last name and first name), and a 
   # <tt>@person_pages</tt> Paginator instance. The current page is determined
-  # by the <tt>params[:page]</tt> variable.
+  # by the <tt>@params['page']</tt> variable.
   #
   # ==== Pagination for a single action
   #
@@ -235,7 +235,8 @@ module ActionController
 
       # Returns the number of pages in this paginator.
       def page_count
-        @page_count ||= @item_count.zero? ? 1 : @item_count.div(@items_per_page)
+        @page_count ||= @item_count.zero? ? 1 :
+                          (q,r=@item_count.divmod(@items_per_page); r==0? q : q+1)
       end
 
       alias length :page_count
@@ -374,5 +375,6 @@ module ActionController
         alias to_a :pages
       end
     end
+
   end
 end
