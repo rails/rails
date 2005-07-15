@@ -19,14 +19,11 @@ RUBY_FORGE_PROJECT = "rails"
 RUBY_FORGE_USER    = "webster132"
 
 
-desc "Default Task"
-task :default => :test
-
-Rake::TestTask.new do |t|
-  t.libs << 'test'
-  t.pattern = 'test/*_test.rb'
-  t.verbose = true
-end
+# Rake::TestTask.new("test") do |t|
+#   t.libs << 'test'
+#   t.pattern = 'test/*_test.rb'
+#   t.verbose = true
+# end
 
 
 BASE_DIRS   = %w( app config/environments components db doc log lib public script test vendor )
