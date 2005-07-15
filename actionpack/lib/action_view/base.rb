@@ -287,7 +287,7 @@ module ActionView #:nodoc:
 
       def rxml_render(extension, template, local_assigns)
         @controller.headers["Content-Type"] ||= 'text/xml'
-        eval(template, evaluate_locals(local_assigns))
+        eval(template, evaluate_locals(local_assigns), '(template)(eval)', 1)
       end
 
       def delegate_render(extension, template, local_assigns)

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed line number reporting for Builder template errors #1753 [piotr]
+
 * Fixed assert_routing so that testing controllers in modules works as expected [Nicholas Seckar, Rick Olson]
 
 * Fixed bug with :success/:failure callbacks for the JavaScriptHelper methods #1730 [court3nay/Thomas Fuchs]
