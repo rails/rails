@@ -28,9 +28,10 @@ module ActionWebService # :nodoc:
         def decode_action_pack_request(action_pack_request)
           return nil unless soap_action = has_valid_soap_action?(action_pack_request)
           service_name = action_pack_request.parameters['action']
+          input_encoding = parse_charset(action_pack_request.env['HTTP_CONTENT_TYPE'])
           protocol_options = { 
             :soap_action => soap_action,
-            :charset  => AWSEncoding
+            :charset  => input_encoding
           }
           decode_request(action_pack_request.raw_post, service_name, protocol_options)
         end
@@ -42,7 +43,7 @@ module ActionWebService # :nodoc:
         end
 
         def decode_request(raw_request, service_name, protocol_options={})
-          envelope = SOAP::Processor.unmarshal(raw_request, :charset => AWSEncoding)
+          envelope = SOAP::Processor.unmarshal(raw_request, :charset => protocol_options[:charset])
           unless envelope
             raise ProtocolError, "Failed to parse SOAP request message"
           end
@@ -150,6 +151,15 @@ module ActionWebService # :nodoc:
             header = SOAP::SOAPHeader.new
             body = SOAP::SOAPBody.new(body)
             SOAP::SOAPEnvelope.new(header, body)
+          end
+
+          def parse_charset(content_type)
+            return AWSEncoding if content_type.nil?
+            if /^text\/xml(?:\s*;\s*charset=([^"]+|"[^"]+"))$/i =~ content_type
+              $1
+            else
+              AWSEncoding
+            end
           end
       end
     end
