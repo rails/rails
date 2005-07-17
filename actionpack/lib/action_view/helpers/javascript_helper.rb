@@ -363,11 +363,7 @@ module ActionView
         function << "'#{url_for(options[:url])}'"
         
         js_options = {}
-        if options[:tokens] and options[:tokens].kind_of?(Array)
-          js_options[:tokens] = "['#{options[:tokens].join('\',\'')}']"
-        elsif options[:tokens]
-          js_options[:tokens] = "'#{options[:tokens]}'" if options[:tokens]
-        end
+        js_options[:tokens] = array_or_string_for_javascript(options[:tokens]) if options[:tokens]
         js_options[:callback]   = "function(element, value) { return #{options[:with]} }" if options[:with]
         js_options[:indicator]  = "'#{options[:indicator]}'" if options[:indicator]
         function << (', ' + options_for_javascript(js_options) + ')')
@@ -453,11 +449,8 @@ module ActionView
           options[option] = "'#{options[option]}'" if options[option]
         end
         
-        if options[:containment] and options[:containment].kind_of?(Array)
-          options[:containment] = "['#{options[:containment].join('\',\'')}']"
-        elsif options[:containment]
-          options[:containment] = "'#{options[:containment]}'" if options[:containment]
-        end
+        options[:containment] = array_or_string_for_javascript(options[:containment]) if options[:containment]
+        options[:only] = array_or_string_for_javascript(options[:only]) if options[:only]
         
         javascript_tag("Sortable.create('#{element_id}', #{options_for_javascript(options)})")
       end
@@ -488,12 +481,7 @@ module ActionView
         options[:onDrop]   ||= "function(element){" + remote_function(options) + "}"
         options.delete_if { |key, value| AJAX_OPTIONS.include?(key) }
         
-        if options[:accept] and options[:accept].kind_of?(Array)
-          options[:accept] = "['#{options[:accept].join('\',\'')}']"
-        elsif options[:accept]
-          options[:accept] = "'#{options[:accept]}'" if options[:accept]
-        end
-        
+        options[:accept] = array_or_string_for_javascript(options[:accept]) if options[:accept]    
         options[:hoverclass] = "'#{options[:hoverclass]}'" if options[:hoverclass]
         
         javascript_tag("Droppables.add('#{element_id}', #{options_for_javascript(options)})")
@@ -513,6 +501,15 @@ module ActionView
     private
       def options_for_javascript(options)
         '{' + options.map {|k, v| "#{k}:#{v}"}.sort.join(', ') + '}'
+      end
+      
+      def array_or_string_for_javascript(option)
+        js_option = if option.kind_of?(Array)
+          "['#{option.join('\',\'')}']"
+        elsif !option.nil?
+          "'#{option}'"
+        end
+        js_option
       end
       
       def options_for_ajax(options)
