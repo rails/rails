@@ -235,7 +235,15 @@ module ActionView
         "eval(request.responseText)"
       end
 
-      def remote_function(options) #:nodoc: for now
+      # Returns the javascript needed for a remote function.
+      # Takes the same arguments as link_to_remote
+      # 
+      # Example:
+      #   <select id="options" onchange="<%= remote_function(:update => "options", :url => { :action => :update_options }) %>">
+      #     <option value="0">Hello</option>
+      #     <option value="1">World</option>
+      #   </select>
+      def remote_function(options)
         javascript_options = options_for_ajax(options)
 
         update = ''
