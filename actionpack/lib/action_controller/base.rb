@@ -712,6 +712,29 @@ module ActionController #:nodoc:
             end
         end
       end
+      
+      # Sets a HTTP 1.1 Cache-Control header. Defaults to issuing a "private" instruction, so that
+      # intermediate caches shouldn't cache the response.
+      #
+      # Examples:
+      #   expires_in 20.minutes
+      #   expires_in 3.hours, :private => false
+      #   expires in 3.hours, 'max-stale' => 5.hours, :private => nil, :public => true
+      # 
+      # This method will overwrite an existing Cache-Control header.
+      # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
+      def expires_in(seconds, options = {})
+        cache_options = { 'max-age' => seconds, 'private' => true }.symbolize_keys.merge!(options.symbolize_keys)
+        cache_options.delete_if { |k,v| v.nil? or v == false }
+        cache_control = cache_options.map{ |k,v| v == true ? k.to_s : "#{k.to_s}=#{v.to_s}"}
+        @response.headers["Cache-Control"] = cache_control.join(', ')
+      end
+      
+      # Sets a HTTP 1.1 Cache-Control header of "no-cache" so no caching should occur by the browser or
+      # intermediate caches (like caching proxy servers).
+      def expires_now
+        @response.headers["Cache-Control"] = "no-cache"
+      end
 
       # Resets the session by clearing out all the objects stored within and initializing a new session object.
       def reset_session #:doc:
