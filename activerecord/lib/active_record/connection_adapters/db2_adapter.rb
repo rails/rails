@@ -28,7 +28,7 @@ begin
     end
 
     module ConnectionAdapters
-      # The DB2 adapter works with the C-based CLI driver (http://raa.ruby-lang.org/project/ruby-db2/).
+      # The DB2 adapter works with the C-based CLI driver (http://rubyforge.org/projects/ruby-dbi/)
       #
       # Options:
       #
@@ -91,12 +91,9 @@ begin
           string.gsub(/'/, "''") # ' (for ruby-mode)
         end
 
-        def add_limit_with_offset!(sql, limit, offset)
-          raise ArgumentError, 'add_limit_with_offset! not implemented'
-        end
-
-        def add_limit_without_offset!(sql, limit)
-          sql << " FETCH FIRST #{limit} ROWS ONLY"
+        def add_limit_offset!(sql, options)
+          sql << " FETCH FIRST #{options[:limit]} ROWS ONLY" if options[:limit] and !options[:limit].nil?
+          raise ArgumentError, 'add_limit_offset! not implemented.' if options[:offset] and !options[:offset].nil?
         end
 
         def columns(table_name, name = nil)
@@ -128,7 +125,7 @@ begin
           stmt = nil
           log(sql, name) do
             stmt = DB2::Statement.new(@connection)
-            stmt.exec_direct("#{sql} with ur")
+            stmt.exec_direct("#{sql.gsub(/=\s*null/i, 'IS NULL')} with ur")
           end
 
           rows = []

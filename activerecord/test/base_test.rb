@@ -347,7 +347,7 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_update_many
-    topic_data = { "1" => { "content" => "1 updated" }, "2" => { "content" => "2 updated" } }
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
     updated = Topic.update(topic_data.keys, topic_data.values)
 
     assert_equal 2, updated.size

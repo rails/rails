@@ -122,7 +122,7 @@ module ActiveRecord
                 when @association_foreign_key
                   attributes[column.name] = record.quoted_id
                 else
-                  value = record[column.name]
+                  value = @owner.send(:quote, record[column.name], column)
                   attributes[column.name] = value unless value.nil?
               end
               attributes
@@ -130,7 +130,7 @@ module ActiveRecord
 
             sql =
               "INSERT INTO #{@join_table} (#{@owner.send(:quoted_column_names, attributes).join(', ')}) " +
-              "VALUES (#{attributes.values.collect { |value| @owner.send(:quote, value) }.join(', ')})"
+              "VALUES (#{attributes.values.join(', ')})"
 
             @owner.connection.execute(sql)
           end
