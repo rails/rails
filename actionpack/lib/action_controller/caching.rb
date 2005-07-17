@@ -232,7 +232,7 @@ module ActionController #:nodoc:
     #   up a lot of memory since each process keeps all the caches in memory.
     # * DRbStore: Keeps the fragments in the memory of a separate, shared DRb process. This works for all environments and only keeps one cache
     #   around for all processes, but requires that you run and manage a separate DRb process.
-    # * MemCachedStore: Works like DRbStore, but uses Danga's MemCached instead.
+    # * MemCacheStore: Works like DRbStore, but uses Danga's MemCache instead.
     #
     # Configuration examples (MemoryStore is the default):
     #
@@ -246,7 +246,7 @@ module ActionController #:nodoc:
     #     ActionController::Caching::Fragments::DRbStore.new("druby://localhost:9192")
     #
     #   ActionController::Base.fragment_cache_store = 
-    #     ActionController::Caching::Fragments::FileStore.new("localhost")
+    #     ActionController::Caching::Fragments::MemCacheStore.new("localhost")
     module Fragments
       def self.append_features(base) #:nodoc:
         super
