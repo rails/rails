@@ -325,7 +325,11 @@ module ActionController #:nodoc:
                   "Filters need to be either a symbol, proc/method, or class implementing a static filter method"
                 )
             end
-            return false if filter_result == false
+
+            if filter_result == false
+              logger.info "Filter chain halted as [#{filter}] returned false"
+              return false 
+            end
           end
         end
         
