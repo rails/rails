@@ -55,25 +55,25 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
   
   def test_eager_association_loading_with_belongs_to_and_limit
-    comments = Comment.find(:all, :include => :post, :limit => 5)
+    comments = Comment.find(:all, :include => :post, :limit => 5, :order => 'comments.id')
     assert_equal 5, comments.length
     assert_equal [1,2,3,5,6], comments.collect { |c| c.id }
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_conditions
-    comments = Comment.find(:all, :include => :post, :conditions => 'post_id = 4', :limit => 3)
+    comments = Comment.find(:all, :include => :post, :conditions => 'post_id = 4', :limit => 3, :order => 'comments.id')
     assert_equal 3, comments.length
     assert_equal [5,6,7], comments.collect { |c| c.id }
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_offset
-    comments = Comment.find(:all, :include => :post, :limit => 3, :offset => 2)
+    comments = Comment.find(:all, :include => :post, :limit => 3, :offset => 2, :order => 'comments.id')
     assert_equal 3, comments.length
     assert_equal [3,5,6], comments.collect { |c| c.id }
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_offset_and_conditions
-    comments = Comment.find(:all, :include => :post, :conditions => 'post_id = 4', :limit => 3, :offset => 1)
+    comments = Comment.find(:all, :include => :post, :conditions => 'post_id = 4', :limit => 3, :offset => 1, :order => 'comments.id')
     assert_equal 3, comments.length
     assert_equal [6,7,8], comments.collect { |c| c.id }
   end
