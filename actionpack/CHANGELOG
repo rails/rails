@@ -1,5 +1,7 @@
 *SVN*
 
+* Added options hash as third argument to FormHelper#input, so you can do input('person', 'zip', :size=>10) #1719 [jeremye@bsa.ca.gov]
+
 * Added Base#expires_in(seconds)/Base#expires_now to control HTTP content cache headers #1755 [Thomas Fuchs]
 
 * Fixed line number reporting for Builder template errors #1753 [piotr]

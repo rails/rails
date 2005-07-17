@@ -17,8 +17,8 @@ module ActionView
       # (title is a VARCHAR column and holds "Hello World"):
       #   input("post", "title") =>
       #     <input id="post_title" name="post[title]" size="30" type="text" value="Hello World" />
-      def input(record_name, method)
-        InstanceTag.new(record_name, method, self).to_tag
+      def input(record_name, method, options = {})
+        InstanceTag.new(record_name, method, self).to_tag(options)
       end
 
       # Returns an entire form with input tags and everything for a specified Active Record object. Example
