@@ -32,6 +32,8 @@ module ActiveSupport #:nodoc:
           Inflector.classify(self)
         end
         
+        # Capitalizes the first word and turns underscores into spaces and strips _id, so "employee_salary" becomes "Employee salary" 
+        # and "author_id" becomes "Author".
         def humanize
           Inflector.humanize(self)
         end

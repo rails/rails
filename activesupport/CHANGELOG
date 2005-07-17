@@ -1,5 +1,7 @@
 *SVN*
 
+* Added stripping of _id to humanize, so "employee_id" becomes "Employee" #1574 [Justin French]
+
 * Added Fixnum#ordinalize to turn 1.ordinalize to "1st", 3.ordinalize to "3rd", and 10.ordinalize to "10th" and so on #1724 [paul@cnt.org]
 
 

@@ -34,7 +34,7 @@ module Inflector
   end
 
   def humanize(lower_case_and_underscored_word)
-    lower_case_and_underscored_word.to_s.gsub(/_/, " ").capitalize
+    lower_case_and_underscored_word.to_s.gsub(/_id$/, "").gsub(/_/, " ").capitalize
   end
 
   def demodulize(class_name_in_module)
