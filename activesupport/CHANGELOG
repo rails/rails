@@ -1,3 +1,8 @@
+*SVN*
+
+* Added Fixnum#ordinalize to turn 1.ordinalize to "1st", 3.ordinalize to "3rd", and 10.ordinalize to "10th" and so on #1724 [paul@cnt.org]
+
+
 *1.1.1* (11 July, 2005)
 
 * Added more efficient implementation of the development mode reset of classes #1638 [Chris McGrath]
