@@ -326,7 +326,7 @@ module ActionMailer #:nodoc:
 
       def perform_delivery_sendmail(mail)
         IO.popen("/usr/sbin/sendmail -i -t","w+") do |sm|
-          sm.print(mail.encoded)
+          sm.print(mail.encoded.gsub(/\r/, ''))
           sm.flush
         end
       end
