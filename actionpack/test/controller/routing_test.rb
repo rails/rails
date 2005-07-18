@@ -554,13 +554,13 @@ class RouteSetTests < Test::Unit::TestCase
     
     assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'show', :id => '10'}.stringify_keys, rs.recognize_path(%w(admin user show 10)))
     
-    assert_equal ['/admin/user/show/10', {}], rs.generate({:controller => 'admin/user', :action => 'show', :id => 10})
+    assert_equal ['/admin/user/show/10', []], rs.generate({:controller => 'admin/user', :action => 'show', :id => 10})
     
-    assert_equal ['/admin/user/show', {}], rs.generate({:action => 'show'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
-    assert_equal ['/admin/user/list/10', {}], rs.generate({}, {:controller => 'admin/user', :action => 'list', :id => '10'})
+    assert_equal ['/admin/user/show', []], rs.generate({:action => 'show'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
+    assert_equal ['/admin/user/list/10', []], rs.generate({}, {:controller => 'admin/user', :action => 'list', :id => '10'})
 
-    assert_equal ['/admin/stuff', {}], rs.generate({:controller => 'stuff'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
-    assert_equal ['/stuff', {}], rs.generate({:controller => '/stuff'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
+    assert_equal ['/admin/stuff', []], rs.generate({:controller => 'stuff'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
+    assert_equal ['/stuff', []], rs.generate({:controller => '/stuff'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
   end
 
   def test_ignores_leading_slash
@@ -689,7 +689,7 @@ class RouteSetTests < Test::Unit::TestCase
   end
 
   def test_changing_controller
-    assert_equal ['/admin/stuff/show/10', {}], rs.generate(
+    assert_equal ['/admin/stuff/show/10', []], rs.generate(
       {:controller => 'stuff', :action => 'show', :id => 10},
       {:controller => 'admin/user', :action => 'index'}
     )
@@ -730,9 +730,9 @@ class RouteSetTests < Test::Unit::TestCase
       rs.connect ':controller/:action/:id'
     end
 
-    assert_equal ['/page/20', {}], rs.generate({:id => 20}, {:controller => 'pages'})
-    assert_equal ['/page/20', {}], rs.generate(:controller => 'pages', :id => 20, :action => 'show')
-    assert_equal ['/pages/boo', {}], rs.generate(:controller => 'pages', :action => 'boo')
+    assert_equal ['/page/20', []], rs.generate({:id => 20}, {:controller => 'pages'})
+    assert_equal ['/page/20', []], rs.generate(:controller => 'pages', :id => 20, :action => 'show')
+    assert_equal ['/pages/boo', []], rs.generate(:controller => 'pages', :action => 'boo')
   end
 
   def test_route_with_fixnum_default
@@ -741,10 +741,10 @@ class RouteSetTests < Test::Unit::TestCase
       rs.connect ':controller/:action/:id'
     end
 
-    assert_equal ['/page', {}], rs.generate(:controller => 'content', :action => 'show_page')
-    assert_equal ['/page', {}], rs.generate(:controller => 'content', :action => 'show_page', :id => 1)
-    assert_equal ['/page', {}], rs.generate(:controller => 'content', :action => 'show_page', :id => '1')
-    assert_equal ['/page/10', {}], rs.generate(:controller => 'content', :action => 'show_page', :id => 10)
+    assert_equal ['/page', []], rs.generate(:controller => 'content', :action => 'show_page')
+    assert_equal ['/page', []], rs.generate(:controller => 'content', :action => 'show_page', :id => 1)
+    assert_equal ['/page', []], rs.generate(:controller => 'content', :action => 'show_page', :id => '1')
+    assert_equal ['/page/10', []], rs.generate(:controller => 'content', :action => 'show_page', :id => 10)
 
     ctrl = ::Controllers::ContentController
 
@@ -754,7 +754,7 @@ class RouteSetTests < Test::Unit::TestCase
   end
 
   def test_action_expiry
-    assert_equal ['/content', {}], rs.generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
+    assert_equal ['/content', []], rs.generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
   end
 
   def test_recognition_with_uppercase_controller_name
@@ -775,8 +775,8 @@ class RouteSetTests < Test::Unit::TestCase
       rs.connect ':controller/:action/:id'
     end
 
-    assert_equal ['/test', {}], rs.generate(:controller => 'post', :action => 'show')
-    assert_equal ['/test', {}], rs.generate(:controller => 'post', :action => 'show', :year => nil)
+    assert_equal ['/test', []], rs.generate(:controller => 'post', :action => 'show')
+    assert_equal ['/test', []], rs.generate(:controller => 'post', :action => 'show', :year => nil)
     
     x = setup_for_named_route
     assert_equal({:controller => '/post', :action => 'show'},
@@ -789,20 +789,20 @@ class RouteSetTests < Test::Unit::TestCase
       rs.connect ':controller/:action/:id'
     end
     
-    assert_equal ['/pages/2005', {}],
+    assert_equal ['/pages/2005', []],
       rs.generate(:controller => 'content', :action => 'list_pages', :year => 2005)
-    assert_equal ['/pages/2005/6', {}],
+    assert_equal ['/pages/2005/6', []],
       rs.generate(:controller => 'content', :action => 'list_pages', :year => 2005, :month => 6)
-    assert_equal ['/pages/2005/6/12', {}],
+    assert_equal ['/pages/2005/6/12', []],
       rs.generate(:controller => 'content', :action => 'list_pages', :year => 2005, :month => 6, :day => 12)
     
-    assert_equal ['/pages/2005/6/4', {}],
+    assert_equal ['/pages/2005/6/4', []],
       rs.generate({:day => 4}, {:controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12'})
 
-    assert_equal ['/pages/2005/6', {}],
+    assert_equal ['/pages/2005/6', []],
       rs.generate({:day => nil}, {:controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12'})
 
-    assert_equal ['/pages/2005', {}],
+    assert_equal ['/pages/2005', []],
       rs.generate({:day => nil, :month => nil}, {:controller => 'content', :action => 'list_pages', :year => '2005', :month => '6', :day => '12'})
   end
   
@@ -812,8 +812,8 @@ class RouteSetTests < Test::Unit::TestCase
       rs.connect ':controller/:action/:id'
     end
     
-    assert_equal ['/', {}], rs.generate(:controller => 'content', :action => 'index')
-    assert_equal ['/', {}], rs.generate(:controller => 'content')
+    assert_equal ['/', []], rs.generate(:controller => 'content', :action => 'index')
+    assert_equal ['/', []], rs.generate(:controller => 'content')
   end
 
   def test_named_url_with_no_action_specified
@@ -822,8 +822,8 @@ class RouteSetTests < Test::Unit::TestCase
       rs.connect ':controller/:action/:id'
     end
     
-    assert_equal ['/', {}], rs.generate(:controller => 'content', :action => 'index')
-    assert_equal ['/', {}], rs.generate(:controller => 'content')
+    assert_equal ['/', []], rs.generate(:controller => 'content', :action => 'index')
+    assert_equal ['/', []], rs.generate(:controller => 'content')
     
     x = setup_for_named_route
     assert_equal({:controller => '/content', :action => 'index'},
@@ -836,9 +836,9 @@ class RouteSetTests < Test::Unit::TestCase
         rs.root '', hash
         rs.connect ':controller/:action/:id'
       end
-      assert_equal ['/', {}], rs.generate({:action => nil}, {:controller => 'content', :action => 'hello'})
-      assert_equal ['/', {}], rs.generate({:controller => 'content'})
-      assert_equal ['/content/hi', {}], rs.generate({:controller => 'content', :action => 'hi'})
+      assert_equal ['/', []], rs.generate({:action => nil}, {:controller => 'content', :action => 'hello'})
+      assert_equal ['/', []], rs.generate({:controller => 'content'})
+      assert_equal ['/content/hi', []], rs.generate({:controller => 'content', :action => 'hi'})
     end
   end
   
@@ -850,8 +850,8 @@ class RouteSetTests < Test::Unit::TestCase
       rs.connect ':controller/:action/:id'
     end
 
-    assert_equal ['/categories', {}], rs.generate(:controller => 'content', :action => 'categories')
-    assert_equal ['/content/hi', {}], rs.generate({:controller => 'content', :action => 'hi'})
+    assert_equal ['/categories', []], rs.generate(:controller => 'content', :action => 'categories')
+    assert_equal ['/content/hi', []], rs.generate({:controller => 'content', :action => 'hi'})
   end
 
 end

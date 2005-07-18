@@ -397,13 +397,7 @@ module ActionController
         merged = recall.merge(options)
         expire_on = Routing.expiry_hash(options, recall)
     
-        path, keys = generate_path(merged, options, expire_on)
-    
-        # Factor out?
-        extras = {}
-        k = nil
-        keys.each {|k| extras[k] = options[k]} 
-        [path, extras]
+        generate_path(merged, options, expire_on)
       end
       
       def generate_path(merged, options, expire_on)
@@ -590,7 +584,7 @@ module ActionController
       end
 
       def extra_keys(options, recall = {})
-        generate(options.dup, recall).last.keys
+        generate(options.dup, recall).last
       end
     end
 

@@ -31,31 +31,27 @@ module ActionController
         rewritten_url
       end
 
-      def rewrite_path(options)
-        options = options.symbolize_keys
-        options.update((options[:params] || {}).symbolize_keys)
+      def rewrite_path(original_options)
+        options = original_options.symbolize_keys
+        options.update(params.symbolize_keys) if (params = options[:params])
         RESERVED_OPTIONS.each {|k| options.delete k}
-        path, extras = Routing::Routes.generate(options, @request)
+        path, extra_keys = Routing::Routes.generate(options, @request) # Warning: Routes will mutate and violate the options hash
 
-        if extras[:overwrite_params]
-          params_copy = @request.parameters.reject { |k,v| %w(controller action).include? k }
-          params_copy.update extras[:overwrite_params]
-          extras.delete(:overwrite_params)
-          extras.update(params_copy)
-        end
-
-        path <<  build_query_string(extras) unless extras.empty?
+        path << build_query_string(original_options.symbolize_keys, extra_keys) unless extra_keys.empty?
         
         path
       end
 
       # Returns a query string with escaped keys and values from the passed hash. If the passed hash contains an "id" it'll
       # be added as a path element instead of a regular parameter pair.
-      def build_query_string(hash)
+      def build_query_string(hash, only_keys = nil)
         elements = []
         query_string = ""
+
+        only_keys ||= hash.keys
         
-        hash.each do |key, value|
+        only_keys.each do |key|
+          value = hash[key] 
           key = CGI.escape key.to_s
           key <<  '[]' if value.class == Array
           value = [ value ] unless value.class == Array
