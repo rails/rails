@@ -26,4 +26,11 @@ class FixnumExtTest < Test::Unit::TestCase
     assert !22953686867719691230002707821868552601124472329079.multiple_of?(5)
     assert !22953686867719691230002707821868552601124472329079.multiple_of?(7)
   end
+
+  def test_ordinalize
+    # These tests are mostly just to ensure that the ordinalize method exists
+    # It's results are tested comprehensively in the inflector test cases.
+    assert_equal '1st', 1.ordinalize
+    assert_equal '8th', 8.ordinalize
+  end
 end
