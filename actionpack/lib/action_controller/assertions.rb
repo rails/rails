@@ -138,7 +138,9 @@ module Test #:nodoc:
         # Load routes.rb if it hasn't been loaded.
         ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
       
-        generated_path, found_extras = ActionController::Routing::Routes.generate(options, extras)
+        generated_path, extra_keys = ActionController::Routing::Routes.generate(options, extras)
+        found_extras = options.reject {|k, v| ! extra_keys.include? k}
+
         msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
         assert_block(msg) { found_extras == extras }
       

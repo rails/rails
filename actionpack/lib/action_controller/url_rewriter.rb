@@ -31,13 +31,13 @@ module ActionController
         rewritten_url
       end
 
-      def rewrite_path(original_options)
-        options = original_options.symbolize_keys
-        options.update(params.symbolize_keys) if (params = options[:params])
+      def rewrite_path(options)
+        options = options.symbolize_keys
+        options.update(options[:params].symbolize_keys) if options[:params]
         RESERVED_OPTIONS.each {|k| options.delete k}
-        path, extra_keys = Routing::Routes.generate(options, @request) # Warning: Routes will mutate and violate the options hash
+        path, extra_keys = Routing::Routes.generate(options.dup, @request) # Warning: Routes will mutate and violate the options hash
 
-        path << build_query_string(original_options.symbolize_keys, extra_keys) unless extra_keys.empty?
+        path << build_query_string(options, extra_keys) unless extra_keys.empty?
         
         path
       end
