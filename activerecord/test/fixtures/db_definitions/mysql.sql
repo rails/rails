@@ -52,7 +52,8 @@ CREATE TABLE `projects` (
 CREATE TABLE `developers_projects` (
   `developer_id` int(11) NOT NULL,
   `project_id` int(11) NOT NULL,
-  `joined_on` date default NULL
+  `joined_on` date default NULL,
+  `access_level` smallint default 1
 ) TYPE=InnoDB;
 
 CREATE TABLE `customers` (

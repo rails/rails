@@ -51,7 +51,8 @@ CREATE TABLE projects (
 CREATE TABLE developers_projects (
   developer_id int NOT NULL,
   project_id int NOT NULL,
-  joined_on date default NULL
+  joined_on date default NULL,
+  access_level smallint default 1
 );
 
 CREATE TABLE customers (

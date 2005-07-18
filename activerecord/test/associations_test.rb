@@ -883,6 +883,26 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal 2, aredridel.projects(true).size
   end
 
+  def test_adding_uses_default_values_on_join_table
+    ac = projects(:action_controller)
+    assert !developers(:jamis).projects.include?(ac)
+    developers(:jamis).projects << ac
+
+    assert developers(:jamis, :reload).projects.include?(ac)
+    project = developers(:jamis).projects.detect { |p| p == ac }
+    assert_equal 1, project.access_level.to_i
+  end
+
+  def test_adding_uses_explicit_values_on_join_table
+    ac = projects(:action_controller)
+    assert !developers(:jamis).projects.include?(ac)
+    developers(:jamis).projects.push_with_attributes(ac, :access_level => 3)
+
+    assert developers(:jamis, :reload).projects.include?(ac)
+    project = developers(:jamis).projects.detect { |p| p == ac }
+    assert_equal 3, project.access_level.to_i
+  end
+
   def test_habtm_adding_before_save
     no_of_devels = Developer.count
     no_of_projects = Project.count

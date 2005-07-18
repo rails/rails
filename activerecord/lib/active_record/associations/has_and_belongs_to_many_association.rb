@@ -122,8 +122,10 @@ module ActiveRecord
                 when @association_foreign_key
                   attributes[column.name] = record.quoted_id
                 else
-                  value = @owner.send(:quote, record[column.name], column)
-                  attributes[column.name] = value unless value.nil?
+                  if record.attributes.has_key?(column.name)
+                    value = @owner.send(:quote, record[column.name], column)
+                    attributes[column.name] = value unless value.nil?
+                  end
               end
               attributes
             end

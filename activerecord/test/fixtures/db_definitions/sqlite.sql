@@ -47,7 +47,8 @@ CREATE TABLE 'projects' (
 CREATE TABLE 'developers_projects' (
   'developer_id' INTEGER NOT NULL,
   'project_id' INTEGER NOT NULL,
-  'joined_on' DATE DEFAULT NULL
+  'joined_on' DATE DEFAULT NULL,
+  'access_level' INTEGER DEFAULT 1
 );
 
 CREATE TABLE 'customers' (

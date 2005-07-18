@@ -70,7 +70,8 @@ create table projects (
 create table developers_projects (
     developer_id integer not null references developers initially deferred disable,
     project_id integer not null references projects initially deferred disable,
-    joined_on timestamp default null
+    joined_on timestamp default null,
+    access_level integer default 1
 );
 -- Try again for 8i
 create table developers_projects (
