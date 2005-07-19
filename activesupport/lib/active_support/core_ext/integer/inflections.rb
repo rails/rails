@@ -1,7 +1,7 @@
 require File.dirname(__FILE__) + '/../../inflector'
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
-    module Fixnum #:nodoc:
+    module Integer #:nodoc:
       module Inflections
         # 1.ordinalize  # => "1st"
         # 3.ordinalize  # => "3rd"

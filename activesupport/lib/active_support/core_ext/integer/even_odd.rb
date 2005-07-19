@@ -1,6 +1,6 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
-    module Fixnum #:nodoc:
+    module Integer #:nodoc:
       # For checking if a fixnum is even or odd. 
       # * 1.even? # => false
       # * 1.odd?  # => true

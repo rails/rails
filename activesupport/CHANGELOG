@@ -1,5 +1,7 @@
 *SVN*
 
+* Factor Fixnum and Bignum extensions into Integer extensions [Nicholas Seckar]
+
 * Hooked #ordinalize into Fixnum and Bignum classes. [Nicholas Seckar, danp]
 
 * Added stripping of _id to humanize, so "employee_id" becomes "Employee" #1574 [Justin French]
