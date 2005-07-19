@@ -10,7 +10,6 @@ class RailsFCGIHandler
   }
 
   attr_reader :when_ready
-  attr_reader :processing
 
   attr_accessor :log_file_path
   attr_accessor :gc_request_period
@@ -28,7 +27,6 @@ class RailsFCGIHandler
   # takes this instance as an argument for further configuration.
   def initialize(log_file_path = nil, gc_request_period = nil)
     @when_ready = nil
-    @processing = false
 
     self.log_file_path = log_file_path || "#{RAILS_ROOT}/log/fastcgi.crash.log"
     self.gc_request_period = gc_request_period
@@ -125,13 +123,8 @@ class RailsFCGIHandler
     end
 
     def graceful_exit_handler(signal)
-      if processing
-        dispatcher_log :info, "asked to terminate ASAP"
-        @when_ready = :exit
-      else
-        dispatcher_log :info, "told to terminate NOW"
-        exit
-      end
+      dispatcher_log :info, "asked to terminate ASAP"
+      @when_ready = :exit
     end
 
     def reload_handler(signal)
@@ -140,13 +133,10 @@ class RailsFCGIHandler
     end
 
     def process_request(cgi)
-      @processing = true
       Dispatcher.dispatch(cgi)
     rescue Object => e
       raise if SignalException === e
       dispatcher_error(e)
-    ensure
-      @processing = false
     end
 
     def mark!
