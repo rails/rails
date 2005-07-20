@@ -163,17 +163,19 @@ module ActiveRecord
           # Overwrite this method to define the scope of the list changes
           def scope_condition() "1" end
 
-          def bottom_position_in_list
-            item = bottom_item
+          def bottom_position_in_list(except = nil)
+            item = bottom_item(except)
             item ? item.send(position_column) : 0
           end
 
-          def bottom_item
-            self.class.find(:first, :conditions => scope_condition, :order => "#{position_column} DESC")
+          def bottom_item(except = nil)
+            conditions = scope_condition
+            conditions = "#{conditions} AND id != #{except.id}" if except
+            self.class.find(:first, :conditions => conditions, :order => "#{position_column} DESC")
           end
 
           def assume_bottom_position
-            update_attribute(position_column, bottom_position_in_list.to_i + 1) unless last?
+            update_attribute(position_column, bottom_position_in_list(self).to_i + 1)
           end
   
           def assume_top_position

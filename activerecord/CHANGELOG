@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix acts_as_list so that moving next-to-last item to the bottom does not result in duplicate item positions
+
 * Fixed incompatibility in DB2 adapter with the new limit/offset approach #1718 [Maik Schmidt]
 
 * Added :select option to find which can specify a different value than the default *, like find(:all, :select => "first_name, last_name"), if you either only want to select part of the columns or exclude columns otherwise included from a join #1338 [Stefan Kaes]

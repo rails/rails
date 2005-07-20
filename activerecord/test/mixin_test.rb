@@ -65,6 +65,22 @@ class ListTest < Test::Unit::TestCase
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
         
   end
+
+  def test_move_to_bottom_with_next_to_last_item
+    assert_equal [mixins(:list_1), 
+                  mixins(:list_2), 
+                  mixins(:list_3), 
+                  mixins(:list_4)], 
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
+
+    mixins(:list_3).move_to_bottom
+
+    assert_equal [mixins(:list_1), 
+                  mixins(:list_2), 
+                  mixins(:list_4), 
+                  mixins(:list_3)], 
+                  ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
+  end
   
   def test_next_prev
     assert_equal mixins(:list_2), mixins(:list_1).lower_item
