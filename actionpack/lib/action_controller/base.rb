@@ -596,6 +596,7 @@ module ActionController #:nodoc:
               @template.render_template(
                 options[:type] || :rhtml,
                 options[:inline],
+                nil,
                 options[:locals] || {}
               )
           }))

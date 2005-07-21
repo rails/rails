@@ -5,6 +5,7 @@ class TestTest < Test::Unit::TestCase
   class TestController < ActionController::Base
     def set_flash
       flash["test"] = ">#{flash["test"]}<"
+      render :text => 'ignore me'
     end
     
     def test_params

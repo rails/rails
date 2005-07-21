@@ -114,6 +114,11 @@ class NewRenderTestController < ActionController::Base
     redirect_to :action => "double_render"
   end
 
+  def rendering_with_conflicting_local_vars
+    @name = "David"
+    render :action => "potential_conflicts"
+  end
+
   def rescue_action(e) raise end
     
   private
@@ -236,11 +241,6 @@ class NewRenderTest < Test::Unit::TestCase
     assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
   end
 
-  # def test_partials_list
-  #   get :partials_list
-  #   assert_equal "goodbyeHello: davidHello: marygoodbye\n", @response.body
-  # end
-
   def test_partial_only
     get :partial_only
     assert_equal "only partial", @response.body
@@ -287,4 +287,14 @@ class NewRenderTest < Test::Unit::TestCase
   def test_render_and_redirect
     assert_raises(ActionController::DoubleRenderError) { get :render_and_redirect }
   end
+
+  def test_rendering_with_conflicting_local_vars
+    get :rendering_with_conflicting_local_vars
+    assert_equal("First: David\nSecond: Stephan\nThird: David\nFourth: David\nFifth: ", @response.body)
+  end
+
+  # def test_partials_list
+  #   get :partials_list
+  #   assert_equal "goodbyeHello: davidHello: marygoodbye\n", @response.body
+  # end
 end
