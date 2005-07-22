@@ -204,7 +204,7 @@ module ActionView #:nodoc:
         elsif options[:partial]
           render_partial(options[:partial], options[:object], options[:locals])
         elsif options[:inline]
-          render_template(options[:type] || :rhtml, options[:inline], options[:locals] || {})
+          render_template(options[:type] || :rhtml, options[:inline], nil, options[:locals] || {})
         end
       end
     end
