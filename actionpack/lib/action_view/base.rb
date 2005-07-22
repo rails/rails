@@ -323,8 +323,8 @@ module ActionView #:nodoc:
       def rhtml_render(extension, template, file_name, local_assigns)
         render_sym = compile_erb_template(template, file_name)
         saved_locals = evaluate_assigns(local_assigns)
-        result = self.send render_sym
-        saved_locals.each{|k,v| instance_variable_set k,v }
+        result = self.send(render_sym)
+        saved_locals.each { |k,v| instance_variable_set(k, v) }
         result
       end
 
@@ -333,7 +333,7 @@ module ActionView #:nodoc:
         saved_locals = evaluate_assigns(local_assigns)
         xml = Builder::XmlMarkup.new(:indent => 2)
         result = eval(template, binding, '(template)(eval)', 1)
-        saved_locals.each{|k,v| instance_variable_set k,v }
+        saved_locals.each { |k,v| instance_variable_set(k,v) }
         result
       end
 

@@ -75,7 +75,7 @@ module ActionController #:nodoc:
         def expire_page(path)
           return unless perform_caching
           File.delete(page_cache_path(path)) if File.exists?(page_cache_path(path))
-          logger.info "Expired page: #{page_cache_file(path)}" unless logger.nil?
+          logger.debug "Expired page: #{page_cache_file(path)}" unless logger.nil?
         end
         
         # Manually cache the +content+ in the key determined by +path+. Example:
@@ -84,7 +84,7 @@ module ActionController #:nodoc:
           return unless perform_caching
           FileUtils.makedirs(File.dirname(page_cache_path(path)))
           File.open(page_cache_path(path), "w+") { |f| f.write(content) }
-          logger.info "Cached page: #{page_cache_file(path)}" unless logger.nil?
+          logger.debug "Cached page: #{page_cache_file(path)}" unless logger.nil?
         end
 
         # Caches the +actions+ using the page-caching approach that'll store the cache in a path within the page_cache_directory that
@@ -280,7 +280,7 @@ module ActionController #:nodoc:
 
         key = fragment_cache_key(name)
         fragment_cache_store.write(key, content, options)
-        logger.info "Cached fragment: #{key}" unless logger.nil?
+        logger.debug "Cached fragment: #{key}" unless logger.nil?
         content
       end
       
@@ -289,7 +289,7 @@ module ActionController #:nodoc:
 
         key = fragment_cache_key(name)
         if cache = fragment_cache_store.read(key, options)
-          logger.info "Fragment hit: #{key}" unless logger.nil?
+          logger.debug "Fragment hit: #{key}" unless logger.nil?
           cache
         else
           false
@@ -307,10 +307,10 @@ module ActionController #:nodoc:
 
         if key.is_a?(Regexp)
           fragment_cache_store.delete_matched(key, options)
-          logger.info "Expired fragments matching: #{key.source}" unless logger.nil?
+          logger.debug "Expired fragments matching: #{key.source}" unless logger.nil?
         else
           fragment_cache_store.delete(key, options)
-          logger.info "Expired fragment: #{key}" unless logger.nil?
+          logger.debug "Expired fragment: #{key}" unless logger.nil?
         end
       end
 
@@ -362,7 +362,7 @@ module ActionController #:nodoc:
           ensure_cache_path(File.dirname(real_file_path(name)))
           File.open(real_file_path(name), "w+") { |f| f.write(value) }
         rescue => e
-          Base.logger.info "Couldn't create cache directory: #{name} (#{e.message})" unless Base.logger.nil?
+          Base.logger.error "Couldn't create cache directory: #{name} (#{e.message})" unless Base.logger.nil?
         end
 
         def read(name, options = {}) #:nodoc:
@@ -372,7 +372,7 @@ module ActionController #:nodoc:
         def delete(name, options) #:nodoc:
           File.delete(real_file_path(name))
         rescue SystemCallError => e
-          Base.logger.info "Couldn't expire cache #{name} (#{e.message})" unless Base.logger.nil?
+          Base.logger.error "Couldn't expire cache #{name} (#{e.message})" unless Base.logger.nil?
         end
 
         def delete_matched(matcher, options) #:nodoc:
@@ -381,7 +381,7 @@ module ActionController #:nodoc:
               begin 
                 File.delete(f)
               rescue Object => e
-                Base.logger.info "Couldn't expire cache: #{f} (#{e.message})" unless Base.logger.nil?
+                Base.logger.error "Couldn't expire cache: #{f} (#{e.message})" unless Base.logger.nil?
               end
             end
           end
