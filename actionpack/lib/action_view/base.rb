@@ -304,8 +304,9 @@ module ActionView #:nodoc:
             i = file_name.index(@base_path)
             l = @base_path.length
             s_file_name = i ? file_name[i+l+1,file_name.length-l-1] : file_name
-            s_file_name.gsub!(/\/|:/, '_')
-            s_file_name.sub!(/.rhtml/,'')
+            s_file_name.sub!(/.rhtml$/,'')
+            s_file_name.tr!('/:-', '_')
+            s_file_name.gsub!(/[^a-zA-Z0-9_]/){|s| s[0].to_s}
             erb_name += s_file_name
           else
             @@erb_count += 1
