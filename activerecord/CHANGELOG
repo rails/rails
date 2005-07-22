@@ -1,5 +1,19 @@
 *SVN*
 
+* Added support for calling constrained class methods on has_many and has_and_belongs_to_many collections #1764 [Tobias Luetke]
+
+    class Comment < AR:B
+      def self.search(q)
+        find(:all, :conditions => ["body = ?", q])
+      end
+    end 
+
+    class Post < AR:B
+      has_many :comments
+    end
+
+    Post.find(1).comments.search('hi') # => SELECT * from comments WHERE post_id = 1 AND body = 'hi'
+
 * Added migration support for SQLite (using temporary tables to simulate ALTER TABLE) #1771 [Sam Stephenson]
 
 * Remove extra definition of supports_migrations? from abstract_adaptor.rb [Nicholas Seckar]

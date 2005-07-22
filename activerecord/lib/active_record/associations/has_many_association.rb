@@ -91,7 +91,7 @@ module ActiveRecord
         @target = []
         self
       end
-
+      
       protected
         def find_target
           find_all

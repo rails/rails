@@ -42,19 +42,15 @@ module ActiveRecord
       def find_first
         load_target.first
       end
-
+      
       def find(*args)
-        # Return an Array if multiple ids are given.
-        expects_array = args.first.kind_of?(Array)
-
-        ids = args.flatten.compact.uniq
-
-        # If no block is given, raise RecordNotFound.
-        if ids.empty?
-          raise RecordNotFound, "Couldn't find #{@association_class.name} without an ID"
+        options = Base.send(:extract_options_from_args!, args)
 
         # If using a custom finder_sql, scan the entire collection.
-        elsif @options[:finder_sql]
+        if @options[:finder_sql]
+          expects_array = args.first.kind_of?(Array)
+          ids = args.flatten.compact.uniq
+
           if ids.size == 1
             id = ids.first
             record = load_target.detect { |record| id == record.id }
@@ -62,22 +58,25 @@ module ActiveRecord
           else
             load_target.select { |record| ids.include?(record.id) }
           end
-
-        # Otherwise, construct a query.
         else
-          ids_list = ids.map { |id| @owner.send(:quote, id) }.join(',')
-          records = find_target(@finder_sql.sub(/(ORDER BY|$)/, " AND j.#{@association_foreign_key} IN (#{ids_list}) \\1"))
-          if records.size == ids.size
-            if ids.size == 1 and !expects_array
-              records.first
-            else
-              records
-            end
-          else
-            raise RecordNotFound, "Couldn't find #{@association_class.name} with ID in (#{ids_list})"
+          conditions = "#{@finder_sql}"
+          if sanitized_conditions = sanitize_sql(options[:conditions])
+            conditions << " AND #{sanitized_conditions}"
           end
+          options[:conditions] = conditions
+          options[:joins] = @join_sql
+
+          if options[:order] && @options[:order]
+            options[:order] = "#{options[:order]}, #{@options[:order]}"
+          elsif @options[:order]
+            options[:order] = @options[:order]
+          end
+
+          # Pass through args exactly as we received them.
+          args << options
+          @association_class.find(*args)
         end
-      end
+      end      
 
       def push_with_attributes(record, join_attributes = {})
         raise_on_type_mismatch(record)
@@ -96,11 +95,17 @@ module ActiveRecord
       end
       
       protected
-        def find_target(sql = @finder_sql)
-          records = @association_class.find_by_sql(sql)
+        def find_target(sql = nil)
+          
+          if sql
+            records = @association_class.find_by_sql(sql) if sql
+          else
+            records = find(:all)
+          end
+          
           @options[:uniq] ? uniq(records) : records
         end
-
+        
         def count_records
           load_target.size
         end
@@ -152,28 +157,17 @@ module ActiveRecord
 
         def construct_sql
           interpolate_sql_options!(@options, :finder_sql)
-          
+
           if @options[:finder_sql]
             @finder_sql = @options[:finder_sql]
           else
-            @finder_sql = 
-              "SELECT t.*, j.* FROM #{@join_table} j, #{@association_table_name} t " +
-              "WHERE t.#{@association_class.primary_key} = j.#{@association_foreign_key} AND " +
-              "j.#{@association_class_primary_key_name} = #{@owner.quoted_id} "
-            
+            @finder_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id} "
             @finder_sql << " AND #{interpolate_sql(@options[:conditions])}" if @options[:conditions]
-
-            unless @association_class.descends_from_active_record?
-              type_condition = @association_class.send(:subclasses).inject("t.#{@association_class.inheritance_column} = '#{@association_class.name.demodulize}' ") do |condition, subclass| 
-                condition << "OR t.#{@association_class.inheritance_column} = '#{subclass.name.demodulize}' "
-              end
-
-              @finder_sql << " AND (#{type_condition})"
-            end
-	
-            @finder_sql << " ORDER BY #{@order}" if @order
           end
+          
+          @join_sql = "LEFT JOIN #{@join_table} ON #{@association_class.table_name}.#{@association_class.primary_key} = #{@join_table}.#{@association_foreign_key}"
         end
+        
     end
   end
 end

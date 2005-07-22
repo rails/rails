@@ -19,11 +19,6 @@ module ActiveRecord
         load_target
       end
 
-      def method_missing(symbol, *args, &block)
-        load_target
-        @target.send(symbol, *args, &block)
-      end
-
       def respond_to?(symbol, include_priv = false)
         proxy_respond_to?(symbol, include_priv) || (load_target && @target.respond_to?(symbol, include_priv))
       end
@@ -44,7 +39,7 @@ module ActiveRecord
         @target = t
         @loaded = true
       end
-
+      
       protected
         def dependent?
           @options[:dependent] || false
@@ -69,8 +64,14 @@ module ActiveRecord
         def extract_options_from_args!(args)
           @owner.send(:extract_options_from_args!, args)
         end
-
+        
       private
+        
+        def method_missing(method, *args, &block)
+          load_target
+          @target.send(method, *args, &block)
+        end
+
         def load_target
           if !@owner.new_record? || foreign_key_present
             begin

@@ -5,6 +5,10 @@ class Post < ActiveRecord::Base
   has_many   :special_comments, :class_name => "SpecialComment"
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts"
+  
+  def self.what_are_you
+    'a post...'
+  end
 end
 
 class SpecialPost < Post; end;

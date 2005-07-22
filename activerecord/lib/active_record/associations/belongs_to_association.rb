@@ -1,6 +1,12 @@
 module ActiveRecord
   module Associations
     class BelongsToAssociation < AssociationProxy #:nodoc:
+      
+      def initialize(owner, association_name, association_class_name, association_class_primary_key_name, options)
+        super        
+        construct_sql        
+      end
+      
       def reset
         @target = nil
         @loaded = false
@@ -31,6 +37,9 @@ module ActiveRecord
 
         return (@target.nil? ? nil : self)
       end
+      
+      protected
+
 
       private
         def find_target
@@ -48,9 +57,9 @@ module ActiveRecord
         def target_obsolete?
           @owner[@association_class_primary_key_name] != @target.id
         end
-
+        
         def construct_sql
-          # no sql to construct
+          @finder_sql = "#{@association_class.table_name}.#{@association_class.primary_key} = #{@owner.id}"
         end
     end
   end

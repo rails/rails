@@ -346,6 +346,7 @@ module ActiveRecord #:nodoc:
           else
             return args.first if args.first.kind_of?(Array) && args.first.empty?
             expects_array = args.first.kind_of?(Array)
+            
             conditions = " AND #{sanitize_sql(options[:conditions])}" if options[:conditions]
 
             ids = args.flatten.compact.uniq
@@ -703,12 +704,27 @@ module ActiveRecord #:nodoc:
       ensure
         logger.level = old_logger_level if logger
       end
+      
+      # Add constrains to all queries to the same model in the given block.
+      # Currently supported constrains are <tt>:conditions</tt> and <tt>:joins</tt> 
+      #
+      #   Article.constrain(:conditions => "blog_id = 1") do
+      #     Article.find(1) # => SELECT * from articles WHERE blog_id = 1 AND id = 1
+      #   end
+      def constrain(options = {}, &block)
+        begin
+          self.scope_constrains = options
+          block.call if block_given?
+        ensure 
+          self.scope_constrains = nil
+        end
+      end
 
       # Overwrite the default class equality method to provide support for association proxies.
       def ===(object)
         object.is_a?(self)
-      end
-
+      end      
+      
       private
         # Finder methods must instantiate through this method to work with the single-table inheritance model
         # that makes it possible to create objects of different types from the same table.
@@ -742,9 +758,9 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_sql(options)
           sql  = "SELECT #{options[:select] || '*'} FROM #{table_name} "
-          sql << " #{options[:joins]} " if options[:joins]
+          add_joins!(sql, options)
           add_conditions!(sql, options[:conditions])
-          sql << "ORDER BY #{options[:order]} " if options[:order]
+          sql << " ORDER BY #{options[:order]} " if options[:order]
           add_limit!(sql, options)
           sql
         end
@@ -752,11 +768,19 @@ module ActiveRecord #:nodoc:
         def add_limit!(sql, options)
           connection.add_limit_offset!(sql, options)
         end
-
+        
+        def add_joins!(sql, options)
+          join = scope_constrains[:joins] || options[:joins]
+          sql << " #{join} " if join
+        end
+        
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that it's the passed +sql+ string is changed.
-        def add_conditions!(sql, conditions)
-          sql << "WHERE #{sanitize_sql(conditions)} " unless conditions.nil?
-          sql << (conditions.nil? ? "WHERE " : " AND ") + type_condition unless descends_from_active_record?
+        def add_conditions!(sql, conditions)          
+          condition_segments = [scope_constrains[:conditions]]
+          condition_segments << sanitize_sql(conditions) unless conditions.nil?
+          condition_segments << type_condition unless descends_from_active_record?        
+          condition_segments.compact!  
+          sql << "WHERE #{condition_segments.join(" AND ")} " unless condition_segments.empty?
         end
 
         def type_condition
@@ -789,7 +813,7 @@ module ActiveRecord #:nodoc:
             attributes.each { |attr_name| super unless column_methods_hash.include?(attr_name.to_sym) }
 
             attr_index = -1
-            conditions = attributes.collect { |attr_name| attr_index += 1; "#{attr_name} #{attribute_condition(arguments[attr_index])} " }.join(" AND ")
+            conditions = attributes.collect { |attr_name| attr_index += 1; "#{table_name}.#{attr_name} #{attribute_condition(arguments[attr_index])} " }.join(" AND ")
 
             if arguments[attributes.length].is_a?(Hash)
               find(finder, { :conditions => [conditions, *arguments[0...attributes.length]] }.update(arguments[attributes.length]))
@@ -840,8 +864,18 @@ module ActiveRecord #:nodoc:
           @@subclasses[self] ||= []
           @@subclasses[self] + extra = @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
         end
-
-        # Returns the class type of the record using the current module as a prefix. So descendents of
+        
+        def scope_constrains
+          Thread.current[:constrains] ||= {}
+          Thread.current[:constrains][self] ||= {}
+        end
+        
+        def scope_constrains=(value)
+          Thread.current[:constrains] ||= {}
+          Thread.current[:constrains][self] = value
+        end
+        
+         # Returns the class type of the record using the current module as a prefix. So descendents of
         # MyApp::Business::Account would be appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
           type_name_with_module(type_name).split("::").inject(Object) do |final_type, part|
