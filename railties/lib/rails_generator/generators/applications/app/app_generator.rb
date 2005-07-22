@@ -64,6 +64,7 @@ class AppGenerator < Rails::Generator::Base
       end
       
       m.template "html/favicon.ico", "public/favicon.ico"
+      m.template "html/robots.txt", "public/robots.txt"
 
       # Javascripts
       m.file "html/javascripts/prototype.js", "public/javascripts/prototype.js"

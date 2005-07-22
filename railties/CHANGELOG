@@ -1,5 +1,7 @@
 *SVN*
 
+* Added an empty robots.txt to public/, so that web servers asking for it won't trigger a dynamic call, like favicon.ico #1738 [michael@schubert]
+
 * Dropped the 'immediate close-down' of FCGI processes since it didn't work consistently and produced bad responses when it didn't. So now a TERM ensures exit after the next request (just as if the process is handling a request when it receives the signal). This means that you'll have to 'nudge' all FCGI processes with a request in order to ensure that they have all reloaded. This can be done by something like ./script/process/repear --nudge 'http://www.myapp.com' --instances 10, which will load the myapp site 10 times (and thus hit all of the 10 FCGI processes once, enough to shut down).
 
 
