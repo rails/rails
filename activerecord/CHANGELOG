@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove extra definition of supports_migrations? from abstract_adaptor.rb [Nicholas Seckar]
+
 * Fix acts_as_list so that moving next-to-last item to the bottom does not result in duplicate item positions
 
 * Fixed incompatibility in DB2 adapter with the new limit/offset approach #1718 [Maik Schmidt]

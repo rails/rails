@@ -410,10 +410,6 @@ module ActiveRecord
         raise NotImplementedError, "change_column_default is not implemented"
       end
       
-      def supports_migrations?
-        false
-      end      
-
       def rename_column(table_name, column_name, new_column_name)
         raise NotImplementedError, "rename_column is not implemented"
       end
