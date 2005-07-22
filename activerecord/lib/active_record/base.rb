@@ -208,7 +208,7 @@ module ActiveRecord #:nodoc:
   # * +ActiveRecordError+ -- generic error class and superclass of all other errors raised by Active Record
   # * +AdapterNotSpecified+ -- the configuration hash used in <tt>establish_connection</tt> didn't include a
   #   <tt>:adapter</tt> key.
-  # * +AdapterNotSpecified+ -- the <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified an non-existent adapter
+  # * +AdapterNotFound+ -- the <tt>:adapter</tt> key used in <tt>establish_connection</tt> specified an non-existent adapter
   #   (or a bad spelling of an existing one).
   # * +AssociationTypeMismatch+ -- the object assigned to the association wasn't of the type specified in the association definition.
   # * +SerializationTypeMismatch+ -- the object serialized wasn't of the class specified as the second parameter.

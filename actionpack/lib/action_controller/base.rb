@@ -469,7 +469,7 @@ module ActionController #:nodoc:
       #
       #   # Renders the template for the action "long_goal" within the current controller,
       #   # but with a custom layout
-      #   render :action => "short_goal", :layout => "spectacular"
+      #   render :action => "long_goal", :layout => "spectacular"
       #
       # _Deprecation_ _notice_: This used to have the signatures <tt>render_action("action", status = 200)</tt>,
       # <tt>render_without_layout("controller/action", status = 200)</tt>, and 
