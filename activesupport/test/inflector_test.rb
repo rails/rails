@@ -29,6 +29,8 @@ class InflectorTest < Test::Unit::TestCase
 
     "archive"     => "archives",
 
+    "index"       => "indices",
+
     "wife"        => "wives",
     "safe"        => "saves",
     "half"        => "halves",

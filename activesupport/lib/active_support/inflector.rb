@@ -82,7 +82,7 @@ module Inflector
       [
       	[/^(ox)$/i, '\1\2en'],		             # ox
       	[/([m|l])ouse$/i, '\1ice'],	           # mouse, louse
-      	[/(matr|vert)ix|ex$/i, '\1ices'],      # matrix, vertex, index
+      	[/(matr|vert|ind)ix|ex$/i, '\1ices'],      # matrix, vertex, index
         [/(x|ch|ss|sh)$/i, '\1es'],            # search, switch, fix, box, process, address
         [/([^aeiouy]|qu)ies$/i, '\1y'],
         [/([^aeiouy]|qu)y$/i, '\1ies'],        # query, ability, agency
@@ -106,7 +106,7 @@ module Inflector
     def singular_rules #:doc:
       [
         [/(matr)ices$/i, '\1ix'],
-      	[/(vert)ices$/i, '\1ex'],
+      	[/(vert|ind)ices$/i, '\1ex'],
       	[/^(ox)en/i, '\1'],
       	[/(alias)es$/i, '\1'],
       	[/([octop|vir])i$/i, '\1us'],

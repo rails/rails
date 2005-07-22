@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed inflections of "index/indices" #1766 [damn_pepe@gmail.com]
+
 * Added stripping of _id to String#humanize, so "employee_id" becomes "Employee" #1574 [Justin French]
 
 * Factor Fixnum and Bignum extensions into Integer extensions [Nicholas Seckar]
