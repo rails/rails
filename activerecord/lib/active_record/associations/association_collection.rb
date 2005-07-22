@@ -107,12 +107,11 @@ module ActiveRecord
       end
 
       private
-      
         def method_missing(method, *args, &block)
           if @target.respond_to?(method) or (not @association_class.respond_to?(method) and Class.respond_to?(method))
             super
           else
-            @association_class.constrain( :conditions => @finder_sql, :joins => @join_sql) { @association_class.send(method, *args, &block) }
+            @association_class.constrain(:conditions => @finder_sql, :joins => @join_sql) { @association_class.send(method, *args, &block) }
           end
         end
               

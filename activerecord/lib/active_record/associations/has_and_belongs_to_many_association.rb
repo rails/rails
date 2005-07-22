@@ -161,7 +161,7 @@ module ActiveRecord
           if @options[:finder_sql]
             @finder_sql = @options[:finder_sql]
           else
-            @finder_sql = "#{@association_class_primary_key_name} = #{@owner.quoted_id} "
+            @finder_sql = "#{@join_table}.#{@association_class_primary_key_name} = #{@owner.quoted_id} "
             @finder_sql << " AND #{interpolate_sql(@options[:conditions])}" if @options[:conditions]
           end
           
