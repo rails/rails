@@ -26,6 +26,18 @@ class SessionManagementTest < Test::Unit::TestCase
     end
   end
 
+  class SpecializedController < SessionOffController
+    session :disabled => false, :only => :something
+
+    def something
+      render_text "done"
+    end
+
+    def another
+      render_text "done"
+    end
+  end
+
   def setup
     @request, @response = ActionController::TestRequest.new,
       ActionController::TestResponse.new
@@ -46,5 +58,13 @@ class SessionManagementTest < Test::Unit::TestCase
     get :tell
     assert_instance_of Hash, @request.session_options
     assert @request.session_options[:session_secure]
+  end
+
+  def test_controller_specialization_overrides_settings
+    @controller = SpecializedController.new
+    get :something
+    assert_instance_of Hash, @request.session_options
+    get :another
+    assert_equal false, @request.session_options
   end
 end
