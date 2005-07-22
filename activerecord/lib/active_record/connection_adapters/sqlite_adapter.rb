@@ -103,6 +103,10 @@ module ActiveRecord
         }
       end
 
+      def supports_migrations?
+        true
+      end
+
       def execute(sql, name = nil)
         #log(sql, name, @connection) { |connection| connection.execute(sql) }
         log(sql, name) { @connection.execute(sql) }
@@ -157,6 +161,11 @@ module ActiveRecord
         }
       end
 
+      def primary_key(table_name)
+        column = table_structure(table_name).find {|field| field['pk'].to_i == 1}
+        column ? column['name'] : nil
+      end
+
       def quote_string(s)
         @connection.class.quote(s)
       end
@@ -169,10 +178,113 @@ module ActiveRecord
         'SQLite'
       end
 
+      def remove_index(table_name, column_name)
+        execute "DROP INDEX #{table_name}_#{column_name}_index"
+      end
+
+      def add_column(table_name, column_name, type, options = {})
+        alter_table(table_name) do |definition|
+          definition.column(column_name, type, options)
+        end
+      end
+      
+      def remove_column(table_name, column_name)
+        alter_table(table_name) do |definition|
+          definition.columns.delete(definition[column_name])
+        end
+      end
+      
+      def change_column_default(table_name, column_name, default)
+        alter_table(table_name) do |definition|
+          definition[column_name].default = default
+        end
+      end
+
+      def change_column(table_name, column_name, type, options = {})
+        alter_table(table_name) do |definition|
+          definition[column_name].instance_eval do
+            self.type    = type
+            self.limit   = options[:limit] if options[:limit]
+            self.default = options[:default] if options[:default]
+          end
+        end
+      end
+
+      def rename_column(table_name, column_name, new_column_name)
+        alter_table(table_name, :rename => {column_name => new_column_name})
+      end
+          
 
       protected
         def table_structure(table_name)
-          execute "PRAGMA table_info(#{table_name})"
+          returning structure = execute("PRAGMA table_info(#{table_name})") do
+            raise ActiveRecord::StatementInvalid if structure.empty?
+          end
+        end
+        
+        def indexes(table_name)
+          execute("PRAGMA index_list(#{table_name})").map do |index|
+            index_info = execute("PRAGMA index_info(#{index['name']})")
+            {
+              :name    => index['name'],
+              :unique  => index['unique'].to_i == 1,
+              :columns => index_info.map {|info| info['name']}
+            }
+          end
+        end
+        
+        def alter_table(table_name, options = {}) #:nodoc:
+          altered_table_name = "altered_#{table_name}"
+          caller = lambda {|definition| yield definition if block_given?}
+
+          transaction do
+            move_table(table_name, altered_table_name, 
+              options.merge(:temporary => true), &caller)
+            move_table(altered_table_name, table_name, &caller)
+          end
+        end
+        
+        def move_table(from, to, options = {}, &block) #:nodoc:
+          copy_table(from, to, options, &block)
+          drop_table(from)
+        end
+        
+        def copy_table(from, to, options = {}) #:nodoc:
+          create_table(to, options) do |@definition|
+            columns(from).each do |column|
+              column_name = options[:rename][column.name] if 
+                options[:rename][column.name] if options[:rename]
+              
+              @definition.column(column_name || column.name, column.type, 
+                :limit => column.limit, :default => column.default)
+            end
+            @definition.primary_key(primary_key(from))
+            yield @definition if block_given?
+          end
+          
+          copy_table_indexes(from, to)
+          copy_table_contents(from, to, 
+            @definition.columns.map {|column| column.name}, 
+            options[:rename] || {})
+        end
+        
+        def copy_table_indexes(from, to) #:nodoc:
+          indexes(from).each do |index|
+            type = index[:unique] ? 'UNIQUE' : ''
+            add_index(to, index[:columns], type)
+          end
+        end
+        
+        def copy_table_contents(from, to, columns, rename = {}) #:nodoc:
+          column_mappings = Hash[*columns.map {|name| [name, name]}.flatten]
+          rename.inject(column_mappings) {|map, a| map[a.last] = a.first; map}
+          
+          @connection.execute "SELECT * FROM #{from}" do |row|
+            sql = "INSERT INTO #{to} VALUES ("
+            sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
+            sql << ')'
+            @connection.execute sql
+          end
         end
     end
 

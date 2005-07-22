@@ -380,10 +380,11 @@ module ActiveRecord
         table_definition.primary_key(options[:primary_key] || "id") unless options[:id] == false
 
         yield table_definition
-        create_sql = "CREATE TABLE #{name} ("
+        create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
+        create_sql << "#{name} ("
         create_sql << table_definition.to_sql
         create_sql << ") #{options[:options]}"
-                
+
         execute create_sql
       end
 
@@ -494,6 +495,20 @@ module ActiveRecord
         end
     end
 
+    class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :default)
+      def to_sql
+        column_sql = "#{name} #{type_to_sql(type.to_sym, limit)}"
+        column_sql << " DEFAULT '#{default}'" if default
+        column_sql
+      end
+      alias to_s :to_sql
+      
+    private
+      def type_to_sql(name, limit)
+        base.type_to_sql(name, limit) rescue name
+      end   
+    end
+
     class TableDefinition
       attr_accessor :columns
 
@@ -503,29 +518,28 @@ module ActiveRecord
       end
 
       def primary_key(name)
-        @columns << "#{name} #{native[:primary_key]}"
+        return unless column = self[name]
+        column.type = native[:primary_key]
         self
+      end
+      
+      def [](name)
+        @columns.find {|column| column.name == name}
       end
 
       def column(name, type, options = {})
-        limit = options[:limit] || native[type.to_sym][:limit]
-        
-        column_sql = "#{name} #{type_to_sql(type.to_sym, options[:limit])}"
-        column_sql << " DEFAULT '#{options[:default]}'" if options[:default]
-        @columns << column_sql
+        column = self[name] || ColumnDefinition.new(@base, name, type)
+        column.limit = options[:limit] || native[type.to_sym][:limit]
+        column.default = options[:default]
+        @columns << column unless @columns.include? column
         self
       end
-      
+            
       def to_sql
-        @columns.join(", ")
+        @columns * ', '
       end
       
-      private
-      
-      def type_to_sql(name, limit)
-        @base.type_to_sql(name, limit)
-      end
-      
+    private
       def native
         @base.native_database_types
       end

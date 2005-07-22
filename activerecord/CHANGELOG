@@ -1,5 +1,7 @@
 *SVN*
 
+* Added migration support for SQLite (using temporary tables to simulate ALTER TABLE) #1771 [Sam Stephenson]
+
 * Remove extra definition of supports_migrations? from abstract_adaptor.rb [Nicholas Seckar]
 
 * Fix acts_as_list so that moving next-to-last item to the bottom does not result in duplicate item positions
