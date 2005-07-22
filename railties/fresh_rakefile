@@ -200,3 +200,12 @@ desc "Migrate the database according to the migrate scripts in db/migrate (only 
 task :migrate => :environment do
   ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/db/migrate/', ENV["VERSION"] ? ENV["VERSION"].to_i : nil)
 end
+
+desc "Load fixtures into the current environment's database"
+task :load_fixtures => :environment do
+  require 'active_record/fixtures'
+  ActiveRecord::Base.establish_connection(RAILS_ENV.to_sym)
+  Dir.glob(File.join(RAILS_ROOT, 'test', 'fixtures', '*.yml')).each do |fixture_file|
+    Fixtures.create_fixtures('test/fixtures', File.basename(fixture_file, '.*'))
+  end
+end
