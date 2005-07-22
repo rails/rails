@@ -266,8 +266,9 @@ module ActionView #:nodoc:
 
       def read_template_file(template_path, extension)
         info = @@loaded_templates[template_path]
-        read_file = info.nil?
-        read_file ||= info.is_a?(Time) && info<File.stat(template_path).mtime unless @@cache_template_loading
+        read_file = info.nil? || ( info.is_a?(Time) ?
+                                   info < File.stat(template_path).mtime :
+                                   !@@cache_template_loading )
         if read_file
           @@loaded_templates[template_path] = info = File.read(template_path)
           @@compiled_erb_templates[template_path] = nil if 'rhtml' == extension
