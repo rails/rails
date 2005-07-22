@@ -10,7 +10,7 @@ module ActiveRecord
     end
 
     def select_all(sql, name = nil)
-      @query_cache[sql] ||= @connection.select_all(sql, name)
+      (@query_cache[sql] ||= @connection.select_all(sql, name)).dup
     end
 
     def select_one(sql, name = nil)
@@ -37,8 +37,8 @@ module ActiveRecord
     end
     
     private
-      def method_missing(method, *arguments)
-        @connection.send(method, *arguments)
+      def method_missing(method, *arguments, &proc)
+        @connection.send(method, *arguments, &proc)
       end
   end
   
