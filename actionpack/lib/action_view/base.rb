@@ -287,16 +287,13 @@ module ActionView #:nodoc:
             self.class.class_eval "def #{key}=(v); #{varstr} = v; end" 
           end
         end
-        #if logger
-        #  logger.info "assigns: #{@assigns.keys.join', '}"
-        #  logger.info "local_assigns: [#{local_assigns.keys.join', '}]" if local_assigns
-        #  logger.info "saved_locals: [#{local_assigns.keys.join', '}]" if saved_locals
-        #end
+
         saved_locals
       end
 
       def compile_erb_template(template, file_name)
         cache_name = file_name || template
+
         unless @@compiled_erb_templates[cache_name]
           erb = ERB.new(template, nil, @@erb_trim_mode)
           erb_name = 'run_erb_'
@@ -317,8 +314,9 @@ module ActionView #:nodoc:
 
           @@compiled_erb_templates[cache_name] = erb_name.intern
           @@loaded_templates[cache_name] = Time.now if file_name
-          logger.info "Compiled erb template #{cache_name}\n  ==> #{erb_name}" if logger
+          logger.debug "Compiled erb template #{cache_name}\n  ==> #{erb_name}" if logger
         end
+
         @@compiled_erb_templates[cache_name]
       end
 
