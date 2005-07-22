@@ -14,7 +14,7 @@ module ActionController #:nodoc:
   end
 
   class TestRequest < AbstractRequest #:nodoc:
-    attr_accessor :cookies
+    attr_accessor :cookies, :session_options
     attr_accessor :query_parameters, :request_parameters, :path, :session, :env
     attr_accessor :host
 

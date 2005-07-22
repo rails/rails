@@ -37,7 +37,7 @@ module ActionController #:nodoc:
   end
 
   class CgiRequest < AbstractRequest #:nodoc:
-    attr_accessor :cgi
+    attr_accessor :cgi, :session_options
 
     DEFAULT_SESSION_OPTIONS = {
       :database_manager => CGI::Session::PStore,
@@ -115,7 +115,7 @@ module ActionController #:nodoc:
     end
     
     def reset_session
-      @session.delete
+      @session.delete if CGI::Session === @session
       @session = (@session_options == false ? {} : new_session)
     end
 

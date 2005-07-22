@@ -50,6 +50,7 @@ require 'action_controller/components'
 require 'action_controller/verification'
 require 'action_controller/streaming'
 require 'action_controller/auto_complete'
+require 'action_controller/session_management'
 
 require 'action_view'
 ActionController::Base.template_class = ActionView::Base
@@ -71,4 +72,5 @@ ActionController::Base.class_eval do
   include ActionController::Verification
   include ActionController::Streaming
   include ActionController::AutoComplete
+  include ActionController::SessionManagement
 end
