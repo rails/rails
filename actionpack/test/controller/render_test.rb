@@ -140,17 +140,24 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_access_to_request_in_view
+    view_internals_old_value = ActionController::Base.view_controller_internals
+
     ActionController::Base.view_controller_internals = false
+    ActionController::Base.protected_variables_cache = nil
 
     @request.action = "hello_world"
     response = process_request
     assert_nil response.template.assigns["request"]
 
     ActionController::Base.view_controller_internals = true
+    ActionController::Base.protected_variables_cache = nil
 
     @request.action = "hello_world"
     response = process_request
-    assert_kind_of ActionController::AbstractRequest, response.template.assigns["request"]
+    assert_kind_of ActionController::AbstractRequest,  response.template.assigns["request"]
+
+    ActionController::Base.view_controller_internals = view_internals_old_value
+    ActionController::Base.protected_variables_cache = nil
   end
   
   def test_render_xml

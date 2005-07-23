@@ -12,10 +12,10 @@ class CGIMethods #:nodoc:
   
       query_string.split(/[&;]/).each { |p| 
         k, v = p.split('=',2)
-        v = nil if (!v.nil? && v.empty?)
+        v = nil if (v && v.empty?)
 
-        k = CGI.unescape(k) unless k.nil?
-        v = CGI.unescape(v) unless v.nil?
+        k = CGI.unescape(k) if k
+        v = CGI.unescape(v) if v
 
         keys = split_key(k)
         last_key = keys.pop
@@ -27,7 +27,7 @@ class CGIMethods #:nodoc:
         end
       }
   
-      return parsed_params
+      parsed_params
     end
 
     # Returns the request (POST/GET) parameters in a parsed form where pairs such as "customer[address][street]" / 
@@ -38,14 +38,16 @@ class CGIMethods #:nodoc:
 
       for key, value in params
         value = [value] if key =~ /.*\[\]$/
-        CGIMethods.build_deep_hash(
-          CGIMethods.get_typed_value(value[0]),
-          parsed_params, 
-          CGIMethods.get_levels(key)
-        )
+        unless key.include?('[')
+          # much faster to test for the most common case first (GET)
+          # and avoid the call to build_deep_hash
+          parsed_params[key] = get_typed_value(value[0])
+        else
+          build_deep_hash(get_typed_value(value[0]), parsed_params, get_levels(key))
+        end
       end
     
-      return parsed_params
+      parsed_params
     end
 
     def self.parse_formatted_request_parameters(format, raw_post_data)
@@ -72,14 +74,17 @@ class CGIMethods #:nodoc:
         keys.concat($2[1..-2].split(']['))
         keys << '' if key[-2..-1] == '[]' # Have to add it since split will drop empty strings
         
-        return keys
+        keys
       else
-        return [key]
+        [key]
       end
     end
     
     def CGIMethods.get_typed_value(value)
-      if value.respond_to?(:content_type) && !value.content_type.empty?
+      # test most frequent case first
+      if value.is_a?(String)
+        value
+      elsif value.respond_to?(:content_type) && !value.content_type.empty?
         # Uploaded file
         value
       elsif value.respond_to?(:read)
@@ -88,7 +93,7 @@ class CGIMethods #:nodoc:
       elsif value.class == Array
         value.collect { |v| CGIMethods.get_typed_value(v) }
       else
-        # Standard value (not a multipart request)
+        # other value (neither string nor a multipart request)
         value.to_s
       end
     end

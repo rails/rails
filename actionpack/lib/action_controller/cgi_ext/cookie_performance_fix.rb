@@ -23,28 +23,32 @@ class CGI #:nodoc:
     #          servers.
     #
     # These keywords correspond to attributes of the cookie object.
-    def initialize(name = "", *value)
-      options = if name.kind_of?(String)
-                  { "name" => name, "value" => value }
-                else
-                  name
-                end
-      unless options.has_key?("name")
+    def initialize(name = '', *value)
+      if name.kind_of?(String)
+        @name = name
+        @value = Array(value)
+        @domain = nil
+        @expires = nil
+        @secure = false
+        @path = nil
+      else
+        @name = name['name']
+        @value = Array(name['value'])
+        @domain = name['domain']
+        @expires = name['expires']
+        @secure = name['secure'] || false
+        @path = name['path']
+      end
+      
+      unless @name
         raise ArgumentError, "`name' required"
       end
 
-      @name = options["name"]
-      @value = Array(options["value"])
       # simple support for IE
-      if options["path"]
-        @path = options["path"]
-      else
-        %r|^(.*/)|.match(ENV["SCRIPT_NAME"])
-        @path = ($1 or "")
+      unless @path
+        %r|^(.*/)|.match(ENV['SCRIPT_NAME'])
+        @path = ($1 or '')
       end
-      @domain = options["domain"]
-      @expires = options["expires"]
-      @secure = options["secure"] == true ? true : false
 
       super(@value)
     end
@@ -102,16 +106,16 @@ class CGI #:nodoc:
     #
     def self.parse(raw_cookie)
       cookies = Hash.new([])
-      return cookies unless raw_cookie
 
-      raw_cookie.split(/; /).each do |pairs|
-        name, values = pairs.split('=',2)
-        next unless name and values
-        name = CGI::unescape(name)
-        values ||= ""
-        values = values.split('&').collect{|v| CGI::unescape(v) }
-        unless cookies.has_key?(name)
-          cookies[name] = new({ "name" => name, "value" => values })
+      if raw_cookie
+        raw_cookie.split(/; /).each do |pairs|
+          name, values = pairs.split('=',2)
+          next unless name and values
+          name = CGI::unescape(name)
+          values = values.split('&').collect!{|v| CGI::unescape(v) }
+          unless cookies.has_key?(name)
+            cookies[name] = new(name, *values)
+          end
         end
       end
 

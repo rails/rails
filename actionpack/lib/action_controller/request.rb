@@ -51,30 +51,31 @@ module ActionController
     # For backward compatibility, the post format is extracted from the
     # X-Post-Data-Format HTTP header if present.
     def post_format
-      if env['HTTP_X_POST_DATA_FORMAT']
-        env['HTTP_X_POST_DATA_FORMAT'].downcase.to_sym
-      else
-        case env['CONTENT_TYPE'].to_s.downcase
-          when 'application/xml', 'text/xml'        then :xml
-          when 'application/x-yaml', 'text/x-yaml'  then :yaml
-          else :url_encoded
-        end
-      end
+      @post_format ||=
+           if env['HTTP_X_POST_DATA_FORMAT']
+             env['HTTP_X_POST_DATA_FORMAT'].downcase.to_sym
+           else
+             case env['CONTENT_TYPE'].to_s.downcase
+             when 'application/xml', 'text/xml'        then :xml
+             when 'application/x-yaml', 'text/x-yaml'  then :yaml
+             else :url_encoded
+             end
+           end
     end
 
     # Is this a POST request formatted as XML or YAML?
     def formatted_post?
-      [ :xml, :yaml ].include?(post_format) && post?
+      post? && (post_format == :xml || post_format == :yaml)
     end
 
     # Is this a POST request formatted as XML?
     def xml_post?
-      post_format == :xml && post?
+      post? && post_format == :xml
     end
 
     # Is this a POST request formatted as YAML?
     def yaml_post?
-      post_format == :yaml && post?
+      post? && post_format == :yaml
     end
 
     # Returns true if the request's "X-Requested-With" header contains
@@ -102,7 +103,7 @@ module ActionController
         return remote_ips.first.strip unless remote_ips.empty?
       end
 
-      return env['REMOTE_ADDR']
+      env['REMOTE_ADDR']
     end
 
     # Returns the domain part of a host, such as rubyonrails.org in "www.rubyonrails.org". You can specify
@@ -127,25 +128,27 @@ module ActionController
     end
     
     def request_uri
-      unless env['REQUEST_URI'].nil?
-        (%r{^\w+\://[^/]+(/.*|$)$} =~ env['REQUEST_URI']) ? $1 : env['REQUEST_URI'] # Remove domain, which webrick puts into the request_uri.
+      if uri = env['REQUEST_URI']
+        (%r{^\w+\://[^/]+(/.*|$)$} =~ uri) ? $1 : uri # Remove domain, which webrick puts into the request_uri.
       else  # REQUEST_URI is blank under IIS - get this from PATH_INFO and SCRIPT_NAME
-        script_filename = env["SCRIPT_NAME"].to_s.match(%r{[^/]+$})
-        request_uri = env["PATH_INFO"]
-        request_uri.sub!(/#{script_filename}\//, '') unless script_filename.nil?
-        request_uri += '?' + env["QUERY_STRING"] unless env["QUERY_STRING"].nil? || env["QUERY_STRING"].empty?
-        return request_uri
+        script_filename = env['SCRIPT_NAME'].to_s.match(%r{[^/]+$})
+        uri = env['PATH_INFO']
+        uri = uri.sub(/#{script_filename}\//, '') unless script_filename.nil?
+        unless (env_qs = env['QUERY_STRING']).nil? || env_qs.empty?
+          uri << '?' << env_qs
+        end
+        uri
       end
     end
 
     # Return 'https://' if this is an SSL request and 'http://' otherwise.
     def protocol
-      env["HTTPS"] == "on" ? 'https://' : 'http://'
+      ssl? ? 'https://' : 'http://'
     end
 
     # Is this an SSL request?
     def ssl?
-      protocol == 'https://'
+      env['HTTPS'] == 'on' 
     end
   
     # Returns the interpreted path to requested resource after all the installation directory of this application was taken into account
@@ -168,7 +171,7 @@ module ActionController
 
     # Returns the port number of this request as an integer.
     def port
-      env['SERVER_PORT'].to_i
+      @port_as_int ||= env['SERVER_PORT'].to_i
     end
 
     # Returns a port suffix like ":8080" if the port number of this request

@@ -35,6 +35,7 @@ module ActionController #:nodoc:
     
     def port=(number)
       @env["SERVER_PORT"] = number.to_i
+      @port_as_int = nil
     end
 
     def action=(action_name)

@@ -20,8 +20,10 @@ module ActionController
     private
       def rewrite_url(path, options)
         rewritten_url = ""
-        rewritten_url << (options[:protocol] || @request.protocol) unless options[:only_path]
-        rewritten_url << (options[:host] || @request.host_with_port) unless options[:only_path]
+        unless options[:only_path]
+          rewritten_url << (options[:protocol] || @request.protocol)
+          rewritten_url << (options[:host] || @request.host_with_port)
+        end
 
         rewritten_url << @request.relative_url_root.to_s unless options[:skip_relative_url_root]
         rewritten_url << path
@@ -53,8 +55,11 @@ module ActionController
         only_keys.each do |key|
           value = hash[key] 
           key = CGI.escape key.to_s
-          key <<  '[]' if value.class == Array
-          value = [ value ] unless value.class == Array
+          if value.class == Array
+            key <<  '[]'
+          else
+            value = [ value ]
+          end
           value.each { |val| elements << "#{key}=#{Routing.extract_parameter_value(val)}" }
         end
         

@@ -1,5 +1,7 @@
 *SVN*
 
+* Improved performance with 5-30% through a series of Action Pack optimizations #1811 [Stefan Kaes]
+
 * Changed caching/expiration/hit to report using the DEBUG log level and errors to use the ERROR log level instead of both using INFO
 
 * Added support for per-action session management #1763

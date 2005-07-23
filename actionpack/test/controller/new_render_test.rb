@@ -92,7 +92,7 @@ class NewRenderTestController < ActionController::Base
   end
 
   def accessing_params_in_template_with_layout
-    render :inline =>  "Hello: <%= params[:name] %>", :layout => nil
+    render :layout => nil, :inline =>  "Hello: <%= params[:name] %>"
   end
 
   def render_with_explicit_template
@@ -201,15 +201,22 @@ class NewRenderTest < Test::Unit::TestCase
   end
 
   def test_access_to_request_in_view
+    view_internals_old_value = ActionController::Base.view_controller_internals
+
     ActionController::Base.view_controller_internals = false
+    ActionController::Base.protected_variables_cache = nil
 
     get :hello_world
     assert_nil(assigns["request"])
 
     ActionController::Base.view_controller_internals = true
+    ActionController::Base.protected_variables_cache = nil
 
     get :hello_world
     assert_kind_of ActionController::AbstractRequest, assigns["request"]
+
+    ActionController::Base.view_controller_internals = view_internals_old_value
+    ActionController::Base.protected_variables_cache = nil
   end
   
   def test_render_xml

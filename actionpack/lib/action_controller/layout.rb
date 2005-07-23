@@ -210,7 +210,7 @@ module ActionController #:nodoc:
         @content_for_layout = render_with_no_layout(options.merge(:layout => false))
         erase_render_results
 
-        add_variables_to_assigns
+        @assigns["content_for_layout"] = @content_for_layout
         render_with_no_layout(options.merge({ :text => @template.render_file(layout, true), :status => options[:status] || deprecated_status }))
       else
         render_with_no_layout(options, deprecated_status)

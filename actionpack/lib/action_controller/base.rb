@@ -215,6 +215,10 @@ module ActionController #:nodoc:
     @@view_controller_internals = true
     cattr_accessor :view_controller_internals
 
+    # Protected instance variable cache
+    @@protected_variables_cache = nil
+    cattr_accessor :protected_variables_cache
+
     # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets, 
     # and images to a dedicated asset server away from the main web server. Example: 
     #   ActionController::Base.asset_host = "http://assets.example.com"
@@ -351,12 +355,13 @@ module ActionController #:nodoc:
         assign_shortcuts(request, response)
         initialize_current_url
         @action_name = params[:action] || 'index'
+        @variables_added = nil
 
-        log_processing unless logger.nil?
+        log_processing if logger
         send(method, *arguments)
         close_session
 
-        return @response
+        @response
       end
 
       # Returns a URL that has been rewritten according to the options hash and the defined Routes. 
@@ -765,6 +770,8 @@ module ActionController #:nodoc:
         @template = @response.template
         @assigns  = @response.template.assigns        
         @headers  = @response.headers
+
+        @variables_added = nil
       end
       
       def initialize_current_url
@@ -777,7 +784,7 @@ module ActionController #:nodoc:
       end
     
       def perform_action
-        if action_methods.include?(action_name) || action_methods.include?('method_missing')
+        if self.class.action_methods.include?(action_name) || self.class.action_methods.include?('method_missing')
           send(action_name)
           render unless performed?
         elsif template_exists? && template_public?
@@ -792,17 +799,23 @@ module ActionController #:nodoc:
       end
 
       def action_methods
-        @action_methods ||= (self.class.public_instance_methods - self.class.hidden_actions)
+        self.class.action_methods
       end
 
+      def self.action_methods
+        @action_methods ||= (public_instance_methods - hidden_actions).inject({}) { |h, k| h[k] = true; h }
+      end
 
       def add_variables_to_assigns
-        add_instance_variables_to_assigns
-        add_class_variables_to_assigns if view_controller_internals
+        unless @variables_added
+          add_instance_variables_to_assigns
+          add_class_variables_to_assigns if view_controller_internals
+          @variables_added = true
+        end
       end
 
       def add_instance_variables_to_assigns
-        @@protected_variables_cache = protected_instance_variables.inject({}) { |h, k| h[k] = true; h }
+        @@protected_variables_cache ||= protected_instance_variables.inject({}) { |h, k| h[k] = true; h }
         instance_variables.each do |var|
           next if @@protected_variables_cache.include?(var)
           @assigns[var[1..-1]] = instance_variable_get(var)

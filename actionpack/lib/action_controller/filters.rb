@@ -157,7 +157,7 @@ module ActionController #:nodoc:
         conditions = extract_conditions!(filters)
         filters << block if block_given?
         add_action_conditions(filters, conditions)
-        append_filter_to_chain("before", filters)
+        append_filter_to_chain('before', filters)
       end
 
       # The passed <tt>filters</tt> will be prepended to the array of filters that's run _before_ actions
@@ -166,7 +166,7 @@ module ActionController #:nodoc:
         conditions = extract_conditions!(filters) 
         filters << block if block_given?
         add_action_conditions(filters, conditions)
-        prepend_filter_to_chain("before", filters)
+        prepend_filter_to_chain('before', filters)
       end
 
       # Short-hand for append_before_filter since that's the most common of the two.
@@ -178,7 +178,7 @@ module ActionController #:nodoc:
         conditions = extract_conditions!(filters) 
         filters << block if block_given?
         add_action_conditions(filters, conditions)
-        append_filter_to_chain("after", filters)
+        append_filter_to_chain('after', filters)
       end
 
       # The passed <tt>filters</tt> will be prepended to the array of filters that's run _after_ actions
@@ -272,8 +272,8 @@ module ActionController #:nodoc:
         def add_action_conditions(filters, conditions)
           return unless conditions
           included, excluded = conditions[:only], conditions[:except]
-          write_inheritable_hash("included_actions", condition_hash(filters, included)) && return if included
-          write_inheritable_hash("excluded_actions", condition_hash(filters, excluded)) if excluded
+          write_inheritable_hash('included_actions', condition_hash(filters, included)) && return if included
+          write_inheritable_hash('excluded_actions', condition_hash(filters, excluded)) if excluded
         end
 
         def condition_hash(filters, *actions)
@@ -322,7 +322,7 @@ module ActionController #:nodoc:
               else
                 raise(
                   ActionControllerError, 
-                  "Filters need to be either a symbol, proc/method, or class implementing a static filter method"
+                  'Filters need to be either a symbol, proc/method, or class implementing a static filter method'
                 )
             end
 
@@ -334,11 +334,11 @@ module ActionController #:nodoc:
         end
         
         def filter_block?(filter)
-          filter.respond_to?("call") && (filter.arity == 1 || filter.arity == -1)
+          filter.respond_to?('call') && (filter.arity == 1 || filter.arity == -1)
         end
         
         def filter_class?(filter)
-          filter.respond_to?("filter")
+          filter.respond_to?('filter')
         end
 
         def action_exempted?(filter)
