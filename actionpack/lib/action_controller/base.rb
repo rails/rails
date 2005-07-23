@@ -724,7 +724,7 @@ module ActionController #:nodoc:
       # 
       # This method will overwrite an existing Cache-Control header.
       # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
-      def expires_in(seconds, options = {})
+      def expires_in(seconds, options = {}) #:doc:
         cache_options = { 'max-age' => seconds, 'private' => true }.symbolize_keys.merge!(options.symbolize_keys)
         cache_options.delete_if { |k,v| v.nil? or v == false }
         cache_control = cache_options.map{ |k,v| v == true ? k.to_s : "#{k.to_s}=#{v.to_s}"}
@@ -733,7 +733,7 @@ module ActionController #:nodoc:
       
       # Sets a HTTP 1.1 Cache-Control header of "no-cache" so no caching should occur by the browser or
       # intermediate caches (like caching proxy servers).
-      def expires_now
+      def expires_now #:doc:
         @response.headers["Cache-Control"] = "no-cache"
       end
 

@@ -119,6 +119,10 @@ class NewRenderTestController < ActionController::Base
     render :action => "potential_conflicts"
   end
 
+  def action_talk_to_layout
+    # Action template sets variable that's picked up by layout
+  end
+
   def rescue_action(e) raise end
     
   private
@@ -133,6 +137,8 @@ class NewRenderTestController < ActionController::Base
           "layouts/standard"
         when "builder_layout_test"
           "layouts/builder"
+        when "action_talk_to_layout"
+          "layouts/talk_from_action"
       end
     end
 end
@@ -291,6 +297,11 @@ class NewRenderTest < Test::Unit::TestCase
   def test_rendering_with_conflicting_local_vars
     get :rendering_with_conflicting_local_vars
     assert_equal("First: David\nSecond: Stephan\nThird: David\nFourth: David\nFifth: ", @response.body)
+  end
+
+  def test_action_talk_to_layout
+    get :action_talk_to_layout
+    assert_equal "<title>Talking to the layout</title>\nAction was here!", @response.body
   end
 
   # def test_partials_list
