@@ -275,16 +275,19 @@ module ActionView #:nodoc:
           @@loaded_templates[template_path] = info = File.read(template_path)
           @@compiled_templates[template_path] = nil
         end
+
         info
       end
 
       def evaluate_assigns(local_assigns = {})
         @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
         saved_locals = {}
+
         local_assigns.each do |key, value|
           varstr = "@_#{key}_"
           saved_locals[varstr] = instance_variable_get(varstr)
           instance_variable_set(varstr, value)
+
           unless self.respond_to?(key)
             self.class.class_eval("def #{key}; #{varstr}; end")
             self.class.class_eval("def #{key}=(v); #{varstr} = v; end")
@@ -296,8 +299,8 @@ module ActionView #:nodoc:
 
       def compile_template(extension, template, file_name)
         cache_name = file_name || template
+
         unless @@compiled_templates[cache_name]
-          t_name, t_arg, t_code = nil
           case extension
             when :rhtml
               t_name = 'run_html_'
@@ -308,6 +311,7 @@ module ActionView #:nodoc:
               t_arg  = '(xml)'
               t_code = template
           end
+
           if file_name
             i = file_name.index(@base_path)
             l = @base_path.length
@@ -320,12 +324,14 @@ module ActionView #:nodoc:
             @@template_count += 1
             t_name += @@template_count.to_s
           end
+
           t_def = "def #{t_name}#{t_arg}; #{t_code}; end"
           self.class.class_eval(t_def) rescue raise ActionViewError, "ERROR defining #{t_name}: #{t_def}"
 
           @@compiled_templates[cache_name] = t_name.intern
           @@loaded_templates[cache_name] = Time.now if file_name
-          logger.info "Compiled template #{cache_name}\n  ==> #{t_name}" if logger
+
+          logger.debug "Compiled template #{cache_name}\n  ==> #{t_name}" if logger
         end
         @@compiled_templates[cache_name]
       end
@@ -334,7 +340,7 @@ module ActionView #:nodoc:
         render_sym = compile_template(:rhtml, template, file_name)
         saved_locals = evaluate_assigns(local_assigns)
         result = self.send(render_sym)
-        saved_locals.each{ |k,v| instance_variable_set(k, v) }
+        saved_locals.each { |k,v| instance_variable_set(k, v) }
         result
       end
 
@@ -343,7 +349,7 @@ module ActionView #:nodoc:
         render_sym = compile_template(:rxml, template, file_name)
         saved_locals = evaluate_assigns(local_assigns)
         result = self.send(render_sym, Builder::XmlMarkup.new(:indent => 2))
-        saved_locals.each{ |k,v| instance_variable_set(k, v) }
+        saved_locals.each { |k,v| instance_variable_set(k, v) }
         result
       end
 
