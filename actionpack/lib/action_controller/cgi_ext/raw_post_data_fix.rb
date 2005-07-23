@@ -42,7 +42,7 @@ class CGI #:nodoc:
           # fixes CGI querystring parsing for lighttpd
           env_qs = env_table['QUERY_STRING']
           if env_qs.blank? && !(uri = env_table['REQUEST_URI']).blank?
-            uri.split('?', 2)[1] || '')
+            uri.split('?', 2)[1] || ''
           else
             env_qs
           end
