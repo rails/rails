@@ -4,7 +4,7 @@
 
 * Added support for per-action session management #1763
 
-* Improved rendering speed on complicated templates by up to 25% #1234 [Stephan Kaes]. This did necessasitate a change to the internals of ActionView#render_template that now has four parameters. Developers of custom view handlers (like Amrita) need to update for that.
+* Improved rendering speed on complicated templates by up to 100% (the more complex the templates, the higher the speedup) #1234 [Stephan Kaes]. This did necessasitate a change to the internals of ActionView#render_template that now has four parameters. Developers of custom view handlers (like Amrita) need to update for that.
 
 * Added options hash as third argument to FormHelper#input, so you can do input('person', 'zip', :size=>10) #1719 [jeremye@bsa.ca.gov]
 

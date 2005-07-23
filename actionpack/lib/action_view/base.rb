@@ -118,15 +118,17 @@ module ActionView #:nodoc:
   # More builder documentation can be found at http://builder.rubyforge.org.
   class Base
     include ERB::Util
-    
+
     attr_reader   :first_render
     attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller
-    
+
     attr_reader :logger, :params, :response, :session, :headers, :flash
 
-    # Turn on to cache the reading of templates from the file system. Doing so means that you have to restart the server
-    # when changing templates, but that rendering will be faster.
+    # Turn on to cache the reading of templates from the file system.
+    # Doing so means that you have to restart the server when changing
+    # templates, but it will save checking whether the file has changed
+    # on disk.
     @@cache_template_loading = false
     cattr_accessor :cache_template_loading
 
@@ -135,8 +137,8 @@ module ActionView #:nodoc:
     @@erb_trim_mode = '-'
     cattr_accessor :erb_trim_mode
 
-    @@compiled_erb_templates = {}
-    @@erb_count = 0
+    @@compiled_templates = {}
+    @@template_count = 0
     @@loaded_templates = {}
     @@template_handlers = {}
 
@@ -165,7 +167,7 @@ module ActionView #:nodoc:
     # is made available as local variables.
     def render_file(template_path, use_full_path = true, local_assigns = {})
       @first_render      = template_path if @first_render.nil?
-      
+
       if use_full_path
         template_extension = pick_template_extension(template_path)
         template_file_name = full_template_path(template_path, template_extension)
@@ -173,7 +175,7 @@ module ActionView #:nodoc:
         template_file_name = template_path
         template_extension = template_path.split('.').last
       end
-      
+
       template_source = read_template_file(template_file_name, template_extension)
 
       begin
@@ -187,7 +189,7 @@ module ActionView #:nodoc:
         end
       end
     end
-    
+
     # Renders the template present at <tt>template_path</tt> (relative to the template_root). 
     # The hash in <tt>local_assigns</tt> is made available as local variables.
     def render(options = {}, old_local_assigns = {})
@@ -196,7 +198,7 @@ module ActionView #:nodoc:
       elsif options.is_a?(Hash)
         options[:locals] ||= {}
         options[:use_full_path] = options[:use_full_path].nil? ? true : options[:use_full_path]
-        
+
         if options[:file]
           render_file(options[:file], options[:use_full_path], options[:locals])
         elsif options[:partial] && options[:collection]
@@ -208,7 +210,7 @@ module ActionView #:nodoc:
         end
       end
     end
-    
+
     # Renders the +template+ which is given as a string as either rhtml or rxml depending on <tt>template_extension</tt>.
     # The hash in <tt>local_assigns</tt> is made available as local variables.
     def render_template(template_extension, template, file_name = nil, local_assigns = {})
@@ -232,7 +234,7 @@ module ActionView #:nodoc:
         raise ActionViewError, "No rhtml, rxml, or delegate template found for #{template_path}"
       end
     end
- 
+
     def delegate_template_exists?(template_path)#:nodoc:
       @@template_handlers.find { |k,| template_exists?(template_path, k) }
     end
@@ -271,70 +273,77 @@ module ActionView #:nodoc:
                                    !@@cache_template_loading )
         if read_file
           @@loaded_templates[template_path] = info = File.read(template_path)
-          @@compiled_erb_templates[template_path] = nil if 'rhtml' == extension
+          @@compiled_templates[template_path] = nil
         end
         info
       end
 
       def evaluate_assigns(local_assigns = {})
-        @assigns.each { |key, value| instance_variable_set "@#{key}", value }
+        @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
         saved_locals = {}
         local_assigns.each do |key, value|
           varstr = "@_#{key}_"
-          saved_locals[varstr] = instance_variable_get varstr
-          instance_variable_set varstr, value
-          unless self.respond_to? key
-            self.class.class_eval "def #{key}; #{varstr}; end" 
-            self.class.class_eval "def #{key}=(v); #{varstr} = v; end" 
+          saved_locals[varstr] = instance_variable_get(varstr)
+          instance_variable_set(varstr, value)
+          unless self.respond_to?(key)
+            self.class.class_eval("def #{key}; #{varstr}; end")
+            self.class.class_eval("def #{key}=(v); #{varstr} = v; end")
           end
         end
 
         saved_locals
       end
 
-      def compile_erb_template(template, file_name)
+      def compile_template(extension, template, file_name)
         cache_name = file_name || template
-
-        unless @@compiled_erb_templates[cache_name]
-          erb = ERB.new(template, nil, @@erb_trim_mode)
-          erb_name = 'run_erb_'
+        unless @@compiled_templates[cache_name]
+          t_name, t_arg, t_code = nil
+          case extension
+            when :rhtml
+              t_name = 'run_html_'
+              t_arg  = ''
+              t_code = ERB.new(template, nil, @@erb_trim_mode).src
+            when :rxml
+              t_name = 'run_xml_'
+              t_arg  = '(xml)'
+              t_code = template
+          end
           if file_name
             i = file_name.index(@base_path)
             l = @base_path.length
             s_file_name = i ? file_name[i+l+1,file_name.length-l-1] : file_name
-            s_file_name.sub!(/.rhtml$/,'')
+            s_file_name.sub!(/(.rhtml|.rxml)$/,'')
             s_file_name.tr!('/:-', '_')
             s_file_name.gsub!(/[^a-zA-Z0-9_]/){|s| s[0].to_s}
-            erb_name += s_file_name
+            t_name += s_file_name
           else
-            @@erb_count += 1
-            erb_name += @@erb_count.to_s
+            @@template_count += 1
+            t_name += @@template_count.to_s
           end
-          erb_def = "def #{erb_name}; #{erb.src}; end"
-          eval erb_def rescue raise ActionViewError, "ERROR defining #{erb_name}: #{erb_def}"
+          t_def = "def #{t_name}#{t_arg}; #{t_code}; end"
+          self.class.class_eval(t_def) rescue raise ActionViewError, "ERROR defining #{t_name}: #{t_def}"
 
-          @@compiled_erb_templates[cache_name] = erb_name.intern
+          @@compiled_templates[cache_name] = t_name.intern
           @@loaded_templates[cache_name] = Time.now if file_name
-          logger.debug "Compiled erb template #{cache_name}\n  ==> #{erb_name}" if logger
+          logger.info "Compiled template #{cache_name}\n  ==> #{t_name}" if logger
         end
-
-        @@compiled_erb_templates[cache_name]
+        @@compiled_templates[cache_name]
       end
 
       def rhtml_render(extension, template, file_name, local_assigns)
-        render_sym = compile_erb_template(template, file_name)
+        render_sym = compile_template(:rhtml, template, file_name)
         saved_locals = evaluate_assigns(local_assigns)
         result = self.send(render_sym)
-        saved_locals.each { |k,v| instance_variable_set(k, v) }
+        saved_locals.each{ |k,v| instance_variable_set(k, v) }
         result
       end
 
       def rxml_render(extension, template, file_name, local_assigns)
         @controller.headers["Content-Type"] ||= 'text/xml'
+        render_sym = compile_template(:rxml, template, file_name)
         saved_locals = evaluate_assigns(local_assigns)
-        xml = Builder::XmlMarkup.new(:indent => 2)
-        result = eval(template, binding, '(template)(eval)', 1)
-        saved_locals.each { |k,v| instance_variable_set(k,v) }
+        result = self.send(render_sym, Builder::XmlMarkup.new(:indent => 2))
+        saved_locals.each{ |k,v| instance_variable_set(k, v) }
         result
       end
 
