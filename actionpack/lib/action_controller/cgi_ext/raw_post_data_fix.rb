@@ -41,8 +41,8 @@ class CGI #:nodoc:
         def read_params_from_query
           # fixes CGI querystring parsing for lighttpd
           env_qs = env_table['QUERY_STRING']
-          if env_qs.blank? && !(uri=env_table['REQUEST_URI']).blank?
-            env_qs.replace(uri.split('?', 2)[1] || '')
+          if env_qs.blank? && !(uri = env_table['REQUEST_URI']).blank?
+            uri.split('?', 2)[1] || '')
           else
             env_qs
           end
