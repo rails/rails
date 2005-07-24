@@ -1,5 +1,7 @@
 *SVN*
 
+* Added convenience controls for FCGI processes (especially when managed remotely): spinner, spawner, and reaper. They reside in script/process. More details can be had by calling them with -h/--help.
+
 * Added load_fixtures task to the Rakefile, which will load all the fixtures into the database for the current environment #1791 [Marcel Molina]
 
 * Added an empty robots.txt to public/, so that web servers asking for it won't trigger a dynamic call, like favicon.ico #1738 [michael@schubert]

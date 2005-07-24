@@ -42,8 +42,8 @@ class AppGenerator < Rails::Generator::Base
       m.file "environments/development.rb", "config/environments/development.rb"
       m.file "environments/test.rb",        "config/environments/test.rb"
 
-      # Scripts (tracker listener)
-      %w(console destroy generate server runner benchmarker profiler ).each do |file|
+      # Scripts
+      %w(console destroy generate server runner benchmarker profiler process/reaper process/spinner process/spawner ).each do |file|
         m.file "bin/#{file}", "script/#{file}", script_options
       end
       if options[:gem]
@@ -56,7 +56,6 @@ class AppGenerator < Rails::Generator::Base
       m.file "dispatches/dispatch.rb",   "public/dispatch.rb", script_options
       m.file "dispatches/dispatch.rb",   "public/dispatch.cgi", script_options
       m.file "dispatches/dispatch.fcgi", "public/dispatch.fcgi", script_options
-      # m.file "dispatches/gateway.cgi",   "public/gateway.cgi", script_options
 
       # HTML files
       %w(404 500 index).each do |file|
@@ -116,6 +115,7 @@ class AppGenerator < Rails::Generator::Base
     public/javascripts
     public/stylesheets
     script
+    script/process
     test/fixtures
     test/functional
     test/mocks/development
