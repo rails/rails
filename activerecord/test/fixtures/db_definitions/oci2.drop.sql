@@ -1,2 +1,2 @@
 drop table courses;
-drop sequence rails_sequence;
+drop sequence courses_seq;

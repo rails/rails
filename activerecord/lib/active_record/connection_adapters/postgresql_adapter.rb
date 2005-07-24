@@ -95,7 +95,7 @@ module ActiveRecord
         end
       end
 
-      def insert(sql, name = nil, pk = nil, id_value = nil)
+      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         execute(sql, name)
         table = sql.split(" ", 4)[2]
         return id_value || last_insert_id(table, pk)

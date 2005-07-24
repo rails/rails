@@ -279,7 +279,7 @@ module ActiveRecord
       def columns(table_name, name = nil) end
 
       # Returns the last auto-generated ID from the affected table.
-      def insert(sql, name = nil, pk = nil, id_value = nil) end
+      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) end
 
       # Executes the update statement and returns the number of rows affected.
       def update(sql, name = nil) end

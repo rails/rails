@@ -569,6 +569,11 @@ module ActiveRecord #:nodoc:
         "type"
       end
 
+      # Defines the sequence_name (for Oracle) -- can be overridden in subclasses.
+      def sequence_name
+        "#{table_name}_seq"
+      end
+
       # Sets the table name to use to the given value, or (if the value
       # is nil or false) to the value returned by the given block.
       #
@@ -611,6 +616,25 @@ module ActiveRecord #:nodoc:
         define_attr_method :inheritance_column, value, &block
       end
       alias :inheritance_column= :set_inheritance_column
+
+      # Sets the name of the sequence to use when generating ids to the given
+      # value, or (if the value is nil or false) to the value returned by the
+      # given block. Currently useful only when using Oracle, which requires
+      # explicit sequences.
+      #
+      # Setting the sequence name when using other dbs will have no effect.
+      # If a sequence name is not explicitly set when using Oracle, it will
+      # default to the commonly used pattern of: #{table_name}_seq
+      #
+      # Example:
+      #
+      #   class Project < ActiveRecord::Base
+      #     set_sequence_name "projectseq"   # default would have been "project_seq"
+      #   end
+      def set_sequence_name( value=nil, &block )
+        define_attr_method :sequence_name, value, &block
+      end
+      alias :sequence_name= :set_sequence_name
 
       # Turns the +table_name+ back into a class name following the reverse rules of +table_name+.
       def class_name(table_name = table_name) # :nodoc:
@@ -1193,7 +1217,7 @@ module ActiveRecord #:nodoc:
           "(#{quoted_column_names.join(', ')}) " +
           "VALUES(#{attributes_with_quotes.values.join(', ')})",
           "#{self.class.name} Create",
-          self.class.primary_key, self.id
+          self.class.primary_key, self.id, self.class.sequence_name
         )
 
         @new_record = false

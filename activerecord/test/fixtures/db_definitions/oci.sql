@@ -1,5 +1,3 @@
-create sequence rails_sequence minvalue 10000;
-
 create table companies (
     id integer not null,
     type varchar(50) default null,
@@ -12,12 +10,17 @@ create table companies (
     primary key (id)
 );
 
+-- non-standard sequence name used to test set_sequence_name
+--
+create sequence companies_nonstd_seq minvalue 10000;
+
 create table accounts (
     id integer not null,
     firm_id integer default null references companies initially deferred disable,
     credit_limit integer default null,
     primary key (id)
 );
+create sequence accounts_seq minvalue 10000;
 
 create table topics (
     id integer not null,
@@ -50,6 +53,9 @@ create table topics (
     type varchar(50) default null,
     primary key (id)
 );
+create sequence topics_seq minvalue 10000;
+
+create synonym subjects for topics;
 
 create table developers (
     id integer not null,
@@ -59,6 +65,7 @@ create table developers (
     updated_at timestamp default null,
     primary key (id)
 );
+create sequence developers_seq minvalue 10000;
 
 create table projects (
     id integer not null,
@@ -66,6 +73,7 @@ create table projects (
     type varchar(255) default null,
     primary key (id)
 );
+create sequence projects_seq minvalue 10000;
 
 create table developers_projects (
     developer_id integer not null references developers initially deferred disable,
@@ -79,6 +87,7 @@ create table developers_projects (
     project_id integer not null references projects initially deferred disable,
     joined_on date default null
 );
+create sequence developers_projects_seq minvalue 10000;
 
 create table customers (
     id integer not null,
@@ -90,42 +99,49 @@ create table customers (
     gps_location varchar(100) default null,
     primary key (id)
 );
+create sequence customers_seq minvalue 10000;
 
 create table movies (
     movieid integer not null,
     name varchar(100) default null,
     primary key (movieid)
 );
+create sequence movies_seq minvalue 10000;
 
 create table subscribers (
     nick varchar(100) not null,
     name varchar(100) default null,
     primary key (nick)
 );
+create sequence subscribers_seq minvalue 10000;
 
 create table booleantests (
     id integer not null,
     value integer default null,
     primary key (id)
 );
+create sequence booleantests_seq minvalue 10000;
 
 create table auto_id_tests (
     auto_id integer not null,
     value integer default null,
     primary key (auto_id)
 );
+create sequence auto_id_tests_seq minvalue 10000;
 
 create table entrants (
     id integer not null primary key,
     name varchar(255) not null,
     course_id integer not null
 );
+create sequence entrants_seq minvalue 10000;
 
 create table colnametests (
     id integer not null,
     references integer not null,
     primary key (id)
 );
+create sequence colnametests_seq minvalue 10000;
 
 create table mixins (
     id integer not null,
@@ -152,6 +168,7 @@ create table mixins (
     updated_at date default null,
     primary key (id)
 );
+create sequence mixins_seq minvalue 10000;
 
 create table people (
     id integer not null,
@@ -159,18 +176,21 @@ create table people (
     lock_version integer default 0,
     primary key (id)
 );
+create sequence people_seq minvalue 10000;
 
 create table binaries (
     id integer not null,
     data blob null,
     primary key (id)
 );
+create sequence binaries_seq minvalue 10000;
 
 create table computers (
   id integer not null primary key,
   developer integer not null references developers initially deferred disable,
-  extendedWarranty integer not null
+  "extendedWarranty" integer not null
 );
+create sequence computers_seq minvalue 10000;
 
 create table posts (
   id integer not null primary key,
@@ -179,6 +199,7 @@ create table posts (
   type varchar(255) default null,
   body varchar(3000) default null
 );
+create sequence posts_seq minvalue 10000;
 
 create table comments (
   id integer not null primary key,
@@ -186,34 +207,41 @@ create table comments (
   type varchar(255) default null,
   body varchar(3000) default null
 );
+create sequence comments_seq minvalue 10000;
 
 create table authors (
   id integer not null primary key,
   name varchar(255) default null
 );
+create sequence authors_seq minvalue 10000;
 
 create table tasks (
   id integer not null primary key,
   starting date default null,
   ending date default null
 );
+create sequence tasks_seq minvalue 10000;
 
 create table categories (
   id integer not null primary key,
   name varchar(255) default null,
   type varchar(255) default null
 );
+create sequence categories_seq minvalue 10000;
 
 create table categories_posts (
   category_id integer not null references categories initially deferred disable,
   post_id integer not null references posts initially deferred disable
 );
+create sequence categories_posts_seq minvalue 10000;
 
 create table fk_test_has_pk (
   id integer not null primary key
 );
+create sequence fk_test_has_pk_seq minvalue 10000;
 
 create table fk_test_has_fk (
   id integer not null primary key,
   fk_id integer not null references fk_test_has_fk initially deferred disable
 );
+create sequence fk_test_has_fk_seq minvalue 10000;

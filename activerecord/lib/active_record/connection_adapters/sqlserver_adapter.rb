@@ -204,7 +204,7 @@ module ActiveRecord
         columns
       end
 
-      def insert(sql, name = nil, pk = nil, id_value = nil)
+      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         begin
           table_name = get_table_name(sql)
           col = get_identity_column(table_name)

@@ -123,7 +123,7 @@ module ActiveRecord
         @connection.changes
       end
 
-      def insert(sql, name = nil, pk = nil, id_value = nil)
+      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
         execute(sql, name = nil)
         id_value || @connection.last_insert_row_id
       end

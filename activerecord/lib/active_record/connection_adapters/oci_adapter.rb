@@ -15,7 +15,7 @@
 # Do what you want with this code, at your own peril, but if any significant portion of my code
 # remains then please acknowledge my contribution.
 # Copyright 2005 Graham Jenkins
-# $Revision: 1.2 $
+
 require 'active_record/connection_adapters/abstract_adapter'
 
 begin
@@ -77,8 +77,8 @@ begin
       # It has also been tested against a 9i database.
       #
       # Usage notes:
-      # * Key generation uses a sequence "rails_sequence" for all tables. (I couldn't find a simple
-      #   and safe way of passing table-specific sequence information to the adapter.)
+      # * Key generation assumes a "${table_name}_seq" sequence is available for all tables; the
+      #   sequence name can be changed using ActiveRecord::Base.set_sequence_name
       # * Oracle uses DATE or TIMESTAMP datatypes for both dates and times. Consequently I have had to
       #   resort to some hacks to get data converted to Date or Time in Ruby.
       #   If the column_name ends in _time it's created as a Ruby Time. Else if the
@@ -106,31 +106,82 @@ begin
         def quote(value, column = nil)
           if column and column.type == :binary then %Q{empty_#{ column.sql_type }()}
           else case value
-            when String     then %Q{'#{quote_string(value)}'}
+            when String       then %Q{'#{quote_string(value)}'}
             when NilClass     then 'null'
             when TrueClass    then '1'
             when FalseClass   then '0'
-            when Numeric    then value.to_s
+            when Numeric      then value.to_s
             when Date, Time   then %Q{'#{value.strftime("%Y-%m-%d %H:%M:%S")}'}
-            else           %Q{'#{quote_string(value.to_yaml)}'}
+            else                   %Q{'#{quote_string(value.to_yaml)}'}
             end
+          end
+        end
+
+        # camelCase column names need to be quoted; not that anyone using Oracle
+        # would really do this, but handling this case means we pass the test...
+        def quote_column_name(name)
+          name =~ /[A-Z]/ ? "\"#{name}\"" : name
+        end
+
+        def structure_dump
+          s = select_all("select sequence_name from user_sequences").inject("") do |structure, seq|
+            structure << "create sequence #{seq.to_a.first.last};\n\n"
+          end
+
+          select_all("select table_name from user_tables").inject(s) do |structure, table|
+            ddl = "create table #{table.to_a.first.last} (\n "  
+            cols = select_all(%Q{
+              select column_name, data_type, data_length, data_precision, data_scale, data_default, nullable
+              from user_tab_columns
+              where table_name = '#{table.to_a.first.last}'
+              order by column_id
+            }).map do |row|              
+              col = "#{row['column_name'].downcase} #{row['data_type'].downcase}"      
+              if row['data_type'] =='NUMBER' and !row['data_precision'].nil?
+                col << "(#{row['data_precision'].to_i}"
+                col << ",#{row['data_scale'].to_i}" if !row['data_scale'].nil?
+                col << ')'
+              elsif row['data_type'].include?('CHAR')
+                col << "(#{row['data_length'].to_i})"  
+              end
+              col << " default #{row['data_default']}" if !row['data_default'].nil?
+              col << ' not null' if row['nullable'] == 'N'
+              col
+            end
+            ddl << cols.join(",\n ")
+            ddl << ");\n\n"
+            structure << ddl
+          end
+        end
+
+        def structure_drop
+          s = select_all("select sequence_name from user_sequences").inject("") do |drop, seq|
+            drop << "drop sequence #{seq.to_a.first.last};\n\n"
+          end
+
+          select_all("select table_name from user_tables").inject(s) do |drop, table|
+            drop << "drop table #{table.to_a.first.last} cascade constraints;\n\n"
           end
         end
 
         def select_all(sql, name = nil)
           offset = sql =~ /OFFSET (\d+)$/ ? $1.to_i : 0
           sql, limit = $1, $2.to_i if sql =~ /(.*)(?: LIMIT[= ](\d+))(\s*OFFSET \d+)?$/
+          
           if limit
             sql = "select * from (select raw_sql_.*, rownum raw_rnum_ from (#{sql}) raw_sql_ where rownum <= #{offset+limit}) where raw_rnum_ > #{offset}"
           elsif offset > 0
             sql = "select * from (select raw_sql_.*, rownum raw_rnum_ from (#{sql}) raw_sql_) where raw_rnum_ > #{offset}"
           end
+          
           cursor = log(sql, name) { @connection.exec sql }
-          cols = cursor.get_col_names.map { |x| x.downcase }
+          cols = cursor.get_col_names.map { |x| oci_downcase(x) }
           rows = []
+          
           while row = cursor.fetch
             hash = Hash.new
-            cols.each_with_index { |col, i|
+
+            cols.each_with_index do |col, i|
               hash[col] = case row[i]
                 when OCI8::LOB
                   name == 'Writable Large Object' ? row[i]: row[i].read
@@ -139,9 +190,11 @@ begin
                     row[i].to_date : row[i].to_time
                 else row[i]
                 end unless col == 'raw_rnum_'
-            }
+            end
+
             rows << hash
           end
+
           rows
         ensure
           cursor.close if cursor
@@ -153,25 +206,34 @@ begin
         end
 
         def columns(table_name, name = nil)
-          cols = select_all(%Q{
+          select_all(%Q{
               select column_name, data_type, data_default, data_length, data_scale
-              from user_tab_columns where table_name = '#{table_name.upcase}'}
-          ).map { |row|
-            OCIColumn.new row['column_name'].downcase, row['data_default'],
-              row['data_length'], row['data_type'], row['data_scale']
-          }
-          cols
+              from user_catalog cat, user_synonyms syn, all_tab_columns col
+              where cat.table_name = '#{table_name.upcase}'
+              and syn.synonym_name (+)= cat.table_name
+              and col.owner = nvl(syn.table_owner, user)
+              and col.table_name = nvl(syn.table_name, cat.table_name)}
+          ).map do |row|
+            OCIColumn.new(
+              oci_downcase(row['column_name']), 
+              row['data_default'],
+              row['data_length'], 
+              row['data_type'], 
+              row['data_scale']
+            )
+          end
         end
 
-        def insert(sql, name = nil, pk = nil, id_value = nil)
+        def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
           if pk.nil? # Who called us? What does the sql look like? No idea!
             execute sql, name
           elsif id_value # Pre-assigned id
             log(sql, name) { @connection.exec sql }
           else # Assume the sql contains a bind-variable for the id
-            id_value = select_one("select rails_sequence.nextval id from dual")['id']
+            id_value = select_one("select #{sequence_name}.nextval id from dual")['id']
             log(sql, name) { @connection.exec sql, id_value }
           end
+
           id_value
         end
 
@@ -201,18 +263,31 @@ begin
         def adapter_name()
           'OCI'
         end
+        
+        private
+          # Oracle column names by default are case-insensitive, but treated as upcase;
+          # for neatness, we'll downcase within Rails. EXCEPT that folks CAN quote
+          # their column names when creating Oracle tables, which makes then case-sensitive.
+          # I don't know anybody who does this, but we'll handle the theoretical case of a
+          # camelCase column name. I imagine other dbs handle this different, since there's a
+          # unit test that's currently failing test_oci.
+          def oci_downcase(column_name)
+            column_name =~ /[a-z]/ ? column_name : column_name.downcase
+          end
       end
     end
   end
 
   module ActiveRecord
     class Base
-      def self.oci_connection(config) #:nodoc:
-        conn = OCI8.new config[:username], config[:password], config[:host]
-        conn.exec %q{alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'}
-        conn.exec %q{alter session set nls_timestamp_format = 'YYYY-MM-DD HH24:MI:SS'}
-        conn.autocommit = true
-        ConnectionAdapters::OCIAdapter.new conn, logger
+      class << self
+        def oci_connection(config) #:nodoc:
+          conn = OCI8.new config[:username], config[:password], config[:host]
+          conn.exec %q{alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'}
+          conn.exec %q{alter session set nls_timestamp_format = 'YYYY-MM-DD HH24:MI:SS'}
+          conn.autocommit = true
+          ConnectionAdapters::OCIAdapter.new conn, logger
+        end
       end
 
       alias :attributes_with_quotes_pre_oci :attributes_with_quotes #:nodoc:
@@ -231,9 +306,10 @@ begin
 
       # After setting large objects to empty, select the OCI8::LOB and write back the data
       def write_lobs() #:nodoc:
-        if connection.class == ConnectionAdapters::OCIAdapter
+        if connection.is_a?(ConnectionAdapters::OCIAdapter)
           self.class.columns.select { |c| c.type == :binary }.each { |c|
-            break unless value = self[c.name]
+            value = self[c.name]
+            next if value.nil?  || (value == '')
             lob = connection.select_one(
               "select #{ c.name} from #{ self.class.table_name } WHERE #{ self.class.primary_key} = #{quote(id)}",
               'Writable Large Object'

@@ -1,5 +1,15 @@
 *SVN*
 
+* Default sequence names for Oracle changed to #{table_name}_seq, which is the most commonly used standard. In addition, a new method ActiveRecord::Base#set_sequence_name allows the developer to set the sequence name per model. This is a non-backwards-compatible change -- anyone using the old-style "rails_sequence" will need to either create new sequences, or set: ActiveRecord::Base.set_sequence_name = "rails_sequence" #1798
+
+* OCIAdapter now properly handles synonyms, which are commonly used to separate out the schema owner from the application user #1798
+
+* Fixed the handling of camelCase columns names in Oracle #1798
+
+* Implemented for OCI the Rakefile tasks of :clone_structure_to_test, :db_structure_dump, and :purge_test_database, which enable Oracle folks to enjoy all the agile goodness of Rails for testing. Note that the current implementation is fairly limited -- only tables and sequences are cloned, not constraints or indexes. A full clone in Oracle generally requires some manual effort, and is version-specific. Post 9i, Oracle recommends the use of the DBMS_METADATA package, though that approach requires editing of the physical characteristics generated #1798
+
+* Fixed the handling of multiple blob columns in Oracle if one or more of them are null #1798
+
 * Added support for calling constrained class methods on has_many and has_and_belongs_to_many collections #1764 [Tobias Luetke]
 
     class Comment < AR:B

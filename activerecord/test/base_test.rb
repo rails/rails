@@ -571,7 +571,7 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_multiparameter_mass_assignment_protector
     task = Task.new
-    time = Time.mktime(0)
+    time = Time.mktime(2000, 1, 1, 1)
     task.starting = time 
     attributes = { "starting(1i)" => "2004", "starting(2i)" => "6", "starting(3i)" => "24" }
     task.attributes = attributes
