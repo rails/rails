@@ -4,6 +4,10 @@ class CaptureController < ActionController::Base
   def self.controller_name; "test"; end
   def self.controller_path; "test"; end
 
+  def content_for
+    render :layout => "talk_from_action"
+  end
+
   def rescue_action(e) raise end
 end
 
@@ -26,6 +30,11 @@ class CaptureTest < Test::Unit::TestCase
   def test_simple_capture
     get :capturing
     assert_equal "Dreamy days", @response.body.strip
+  end
+  
+  def test_content_for
+    get :content_for
+    assert_equal "<title>Putting stuff in the title!</title>\n\nGreat stuff!", @response.body
   end
 
   def test_update_element_with_capture

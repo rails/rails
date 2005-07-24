@@ -82,9 +82,9 @@ module ActionView
       # NOTE: Beware that content_for is ignored in caches. So you shouldn't use it
       # for elements that are going to be fragment cached. 
       def content_for(name, &block)                      
-        base = controller.instance_variable_get(instance_var_name(name)) || ""
+        base = instance_variable_get(instance_var_name(name)) || ""
         data = capture(&block)
-        controller.instance_variable_set(instance_var_name(name), base + data)
+        instance_variable_set(instance_var_name(name), base + data)
         data
       end
       
