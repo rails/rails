@@ -81,17 +81,9 @@ module ActionView
       #
       # NOTE: Beware that content_for is ignored in caches. So you shouldn't use it
       # for elements that are going to be fragment cached. 
-      def content_for(name, &block)                      
-        base = instance_variable_get(instance_var_name(name)) || ""
-        data = capture(&block)
-        instance_variable_set(instance_var_name(name), base + data)
-        data
+      def content_for(name, &block)
+        eval "@content_for_#{name} = (@content_for_#{name} || '') + capture(&block)"
       end
-      
-      private      
-        def instance_var_name(name) #:nodoc#
-          "@content_for_#{name}"
-        end
     end
   end
 end
