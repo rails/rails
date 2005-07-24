@@ -61,7 +61,7 @@ require 'action_web_service'
 
 # Environment-specific configuration.
 require_dependency "environments/#{RAILS_ENV}"
-ActiveRecord::Base.configurations = File.open("#{RAILS_ROOT}/config/database.yml") { |f| YAML::load(f) }
+ActiveRecord::Base.configurations = YAML::load(ERB.new((IO.read("#{RAILS_ROOT}/config/database.yml"))).result)
 ActiveRecord::Base.establish_connection
 
 

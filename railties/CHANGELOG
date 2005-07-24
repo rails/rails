@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow ERb in the database.yml file (just like with fixtures), so you can pull out the database configuration in environment variables #1822 [Duane Johnson]
+
 * Added convenience controls for FCGI processes (especially when managed remotely): spinner, spawner, and reaper. They reside in script/process. More details can be had by calling them with -h/--help.
 
 * Added load_fixtures task to the Rakefile, which will load all the fixtures into the database for the current environment #1791 [Marcel Molina]
