@@ -47,7 +47,7 @@ class ActiveRecordAssertionsController < ActionController::Base
     @company = Company.new
     @company.name = "B"
     @company.rating = 2
-    render_text "snicker...."
+    render :inline => "snicker...."
   end
 
   # fail with 2 bad columns
@@ -55,7 +55,7 @@ class ActiveRecordAssertionsController < ActionController::Base
     @company = Company.new
     @company.name = ""
     @company.rating = 2
-    render_text "double snicker...."
+    render :inline => "double snicker...."
   end
 
   # this will pass validation
@@ -63,13 +63,13 @@ class ActiveRecordAssertionsController < ActionController::Base
     @company = Company.new
     @company.name = "A"
     @company.rating = 69
-    render_text "Goodness Gracious!"
+    render :inline => "Goodness Gracious!"
   end
 
   # this will fail validation
   def bad_company
     @company = Company.new 
-    render_text "Who's Bad?"
+    render :inline => "Who's Bad?"
   end
 
   # the safety dance......

@@ -5,7 +5,7 @@ class FilterTest < Test::Unit::TestCase
     before_filter :ensure_login
 
     def show
-      render_text "ran action"
+      render :inline => "ran action"
     end
 
     private
@@ -20,26 +20,26 @@ class FilterTest < Test::Unit::TestCase
 
     def show
       @ran_action = true
-      render_text "ran action"
+      render :inline => "ran action"
     end
 
     private
       def render_something_else
-        render_text "something else"
+        render :inline => "something else"
       end
   end
   
   class ConditionalFilterController < ActionController::Base
     def show
-      render_text "ran action"
+      render :inline => "ran action"
     end
 
     def another_action
-      render_text "ran action"
+      render :inline => "ran action"
     end
 
     def show_without_filter
-      render_text "ran action without filter"
+      render :inline => "ran action without filter"
     end
 
     private

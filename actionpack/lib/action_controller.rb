@@ -32,7 +32,7 @@ rescue LoadError
 end
 
 require 'action_controller/base'
-require 'action_controller/deprecated_renders_and_redirects'
+require 'action_controller/deprecated_redirects'
 require 'action_controller/rescue'
 require 'action_controller/benchmarking'
 require 'action_controller/filters'

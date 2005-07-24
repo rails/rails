@@ -571,78 +571,106 @@ module ActionController #:nodoc:
       #
       #   # Renders an empty response with status code 401 (access denied)
       #   render :nothing => true, :status => 401
-      def render(options = {}, deprecated_status = nil) #:doc:
-        # puts "Rendering: #{options.inspect}"
-        raise DoubleRenderError if performed?
+      def render(options = nil, deprecated_status = nil) #:doc:
+        raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
         # Backwards compatibility
-        return render({ :template => options || default_template_name, :status => deprecated_status }) if !options.is_a?(Hash)
+        unless options.is_a?(Hash)
+          return render_file(options || default_template_name, deprecated_status, true)
+        end
 
-        add_variables_to_assigns
-        options[:status] = (options[:status] || DEFAULT_RENDER_STATUS_CODE).to_s
-
-        if options[:text]
-          @response.headers["Status"] = options[:status]
-          @response.body = options[:text]
-          @performed_render = true
-          return options[:text]
-
-        elsif options[:file]
-          assert_existance_of_template_file(options[:file]) if options[:use_full_path]
-          logger.info("Rendering #{options[:file]} (#{options[:status]})") unless logger.nil?
-          render(options.merge({ :text => @template.render_file(options[:file], options[:use_full_path])}))
-
-        elsif options[:template]
-          render(options.merge({ :file => options[:template], :use_full_path => true }))
-
-        elsif options[:inline]
-          render(options.merge({
-            :text =>
-              @template.render_template(
-                options[:type] || :rhtml,
-                options[:inline],
-                nil,
-                options[:locals] || {}
-              )
-          }))
-
-        elsif options[:action]
-          render(options.merge({ :template => default_template_name(options[:action]) }))
-
-        elsif options[:partial] && options[:collection]
-          render(options.merge({ 
-            :text => (
-              @template.render_partial_collection(
-                options[:partial] == true ? default_template_name : options[:partial],
-                options[:collection], options[:spacer_template],
-                options[:locals] || {}
-              ) || ''
-            )
-          }))
-
-        elsif options[:partial]
-          render(options.merge({ :text => @template.render_partial(
-            options[:partial] == true ? default_template_name : options[:partial],
-            options[:object], options[:locals] || {}
-          ) }))
-          
-        elsif options[:nothing]
-          # Safari doesn't pass the headers of the return if the response is zero length
-          render(options.merge({ :text => " " }))
+        if text = options[:text]
+          render_text(text, options[:status])
 
         else
-          render(options.merge({ :action => action_name }))
+          if file = options[:file]
+            render_file(file, options[:status], options[:use_full_path])
+
+          elsif template = options[:template]
+            render_file(template, options[:status], true)
+            
+          elsif inline = options[:inline]
+            render_template(inline, options[:status], options[:type])
+            
+          elsif action_name = options[:action]
+            render_action(action_name, options[:status], options[:layout]) 
+            
+          elsif partial = options[:partial]
+            partial = default_template_name if partial == true
+            if collection = options[:collection]
+              render_partial_collection(partial, collection, options[:spacer_template], options[:locals], options[:status])
+            else
+              render_partial(partial, options[:object], options[:locals], options[:status])
+            end
+
+          elsif options[:nothing]
+            # Safari doesn't pass the headers of the return if the response is zero length
+            render_text(" ", options[:status])
+            
+          else
+            render_file(default_template_name, options[:status], true)
+            
+          end
         end
       end
 
       # Renders according to the same rules as <tt>render</tt>, but returns the result in a string instead
       # of sending it as the response body to the browser.
-      def render_to_string(options = {}) #:doc:
+      def render_to_string(options = nil) #:doc:
         result = render(options)
         erase_render_results
-        return result
+        result
+      end    
+
+      def render_action(action_name, status = nil, with_layout = true)
+        # logger.info("Rendering action #{action_name} (#{status},#{with_layout})") if logger
+        if with_layout
+          render_with_layout(default_template_name(action_name), status)
+        else
+          render_with_no_layout(default_template_name(action_name), status)
+        end
       end
-      
+
+      def render_file(template_path, status = nil, use_full_path = false)
+        add_variables_to_assigns
+        assert_existance_of_template_file(template_path) if use_full_path
+        logger.info("Rendering #{template_path} (#{status})") if logger
+        render_text(@template.render_file(template_path, use_full_path), status)
+      end
+
+      def render_template(template, status = nil, type = :rhtml)
+        add_variables_to_assigns
+        render_text(@template.render_template(type, template), status)
+      end
+
+      def render_text(text = nil, status = nil)
+        @performed_render = true
+        @response.headers['Status'] = (status || DEFAULT_RENDER_STATUS_CODE).to_s
+        @response.body = text
+      end
+
+      def render_nothing(status = nil)
+        render_text(' ', status)
+      end
+
+      def render_partial(partial_path = default_template_name, object = nil, local_assigns = nil, status = nil)
+        add_variables_to_assigns
+        render_text(@template.render_partial(partial_path, object, local_assigns), status)
+      end
+
+      def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = nil, status = nil)
+        add_variables_to_assigns
+        render_text(@template.render_partial_collection(partial_name, collection, partial_spacer_template, local_assigns), status)
+      end
+
+      def render_with_layout(template_name = default_template_name, status = nil, layout = nil)
+        render_with_a_layout(template_name, status, layout)
+      end
+
+      def render_without_layout(template_name = default_template_name, status = nil)
+        render_with_no_layout(template_name, status)
+      end
+
 
       # Clears the rendered results, allowing for another render to be performed.
       def erase_render_results #:nodoc:
@@ -770,8 +798,6 @@ module ActionController #:nodoc:
         @template = @response.template
         @assigns  = @response.template.assigns        
         @headers  = @response.headers
-
-        @variables_added = nil
       end
       
       def initialize_current_url

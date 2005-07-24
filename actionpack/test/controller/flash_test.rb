@@ -4,32 +4,32 @@ class FlashTest < Test::Unit::TestCase
   class TestController < ActionController::Base
     def set_flash
       flash["that"] = "hello"
-      render_text "hello"
+      render :inline => "hello"
     end
 
     def set_flash_now
       flash.now["that"] = "hello"
       @flash_copy = {}.update flash
-      render_text "hello"
+      render :inline => "hello"
     end
 
     def attempt_to_use_flash_now
       @flash_copy = {}.update flash
       @flashy = flash["that"]
-      render_text "hello"
+      render :inline => "hello"
     end
 
     def use_flash
       @flash_copy = {}.update flash
       @flashy = flash["that"]
-      render_text "hello"
+      render :inline => "hello"
     end
 
     def use_flash_and_keep_it
       @flash_copy = {}.update flash
       @flashy = flash["that"]
       keep_flash
-      render_text "hello"
+      render :inline => "hello"
     end
 
     def rescue_action(e)

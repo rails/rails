@@ -46,21 +46,25 @@ module ActionView
   # This will render the partial "advertisement/_ad.rhtml" regardless of which controller this is being called from.
   module Partials
     # Deprecated, use render :partial
-    def render_partial(partial_path, local_assigns = {}, deprecated_local_assigns = {}) #:nodoc:
+    def render_partial(partial_path, local_assigns = nil, deprecated_local_assigns = nil) #:nodoc:
       path, partial_name = partial_pieces(partial_path)
       object = extracting_object(partial_name, local_assigns, deprecated_local_assigns)
       local_assigns = extract_local_assigns(local_assigns, deprecated_local_assigns)
+      local_assigns = local_assigns ? local_assigns.clone : {}
       add_counter_to_local_assigns!(partial_name, local_assigns)
+      local_assigns[partial_name] = object
 
-      render("#{path}/_#{partial_name}", { partial_name => object }.merge(local_assigns))
+      render("#{path}/_#{partial_name}", local_assigns)
     end
 
     # Deprecated, use render :partial, :collection
-    def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {}) #:nodoc:
+    def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = nil) #:nodoc:
       collection_of_partials = Array.new
       counter_name = partial_counter_name(partial_name)
+      local_assigns = local_assigns ? local_assigns.clone : {}
       collection.each_with_index do |element, counter|
-        collection_of_partials.push(render_partial(partial_name, element, { counter_name => counter }.merge(local_assigns)))
+        local_assigns[counter_name] = counter
+        collection_of_partials.push(render_partial(partial_name, element, local_assigns))
       end
 
       return nil if collection_of_partials.empty?

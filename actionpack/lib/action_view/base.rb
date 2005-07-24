@@ -158,6 +158,7 @@ module ActionView #:nodoc:
 
     def initialize(base_path = nil, assigns_for_first_render = {}, controller = nil)#:nodoc:
       @base_path, @assigns = base_path, assigns_for_first_render
+      @assigns_added = nil
       @controller = controller
       @logger = controller && controller.logger 
     end
@@ -280,7 +281,10 @@ module ActionView #:nodoc:
       end
 
       def evaluate_assigns(local_assigns = {})
-        @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+        unless @assigns_added
+          @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+          @assigns_added = true
+        end
         saved_locals = {}
 
         local_assigns.each do |key, value|

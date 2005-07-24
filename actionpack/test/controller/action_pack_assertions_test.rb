@@ -48,7 +48,7 @@ class ActionPackAssertionsController < ActionController::Base
   # assign some template instance variables
   def assign_this
     @howdy = "ho"
-    render_text "Mr. Henke"
+    render :inline => "Mr. Henke"
   end
 
   def render_based_on_parameters

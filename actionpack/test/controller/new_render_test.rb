@@ -311,8 +311,8 @@ class NewRenderTest < Test::Unit::TestCase
     assert_equal "<title>Talking to the layout</title>\nAction was here!", @response.body
   end
 
-  # def test_partials_list
-  #   get :partials_list
-  #   assert_equal "goodbyeHello: davidHello: marygoodbye\n", @response.body
-  # end
+  def test_partials_list
+    get :partials_list
+    assert_equal "goodbyeHello: davidHello: marygoodbye\n", @response.body
+  end
 end

@@ -15,8 +15,8 @@ module ActionController #:nodoc:
       }
     end
 
-    def render_with_benchmark(options = {}, deprecated_status = nil)
-      if logger.nil?
+    def render_with_benchmark(options = nil, deprecated_status = nil)
+      unless logger
         render_without_benchmark(options, deprecated_status)
       else
         db_runtime = ActiveRecord::Base.connection.reset_runtime if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
@@ -35,7 +35,7 @@ module ActionController #:nodoc:
     end    
 
     def perform_action_with_benchmark
-      if logger.nil?
+      unless logger
         perform_action_without_benchmark
       else
         runtime = [Benchmark::measure{ perform_action_without_benchmark }.real, 0.0001].max

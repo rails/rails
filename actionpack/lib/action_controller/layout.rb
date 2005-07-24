@@ -194,65 +194,75 @@ module ActionController #:nodoc:
     # weblog/standard, but <tt>layout "standard"</tt> will return layouts/standard.
     def active_layout(passed_layout = nil)
       layout = passed_layout || self.class.read_inheritable_attribute("layout")
+
       active_layout = case layout
         when Symbol then send(layout)
         when Proc   then layout.call(self)
         when String then layout
       end
+
       active_layout.include?("/") ? active_layout : "layouts/#{active_layout}" if active_layout
     end
 
-    def render_with_a_layout(options = {}, deprecated_status = nil, deprecated_layout = nil) #:nodoc:
-      options = render_with_a_layout_options(options)
-      if (layout = pick_layout(options, deprecated_layout))
-        logger.info("Rendering #{options[:template]} within #{layout}") unless logger.nil?
+    def render_with_a_layout(options = nil, deprecated_status = nil, deprecated_layout = nil) #:nodoc:
+      template_with_options = options.is_a?(Hash)
 
-        @content_for_layout = render_with_no_layout(options.merge(:layout => false))
+      if apply_layout?(template_with_options, options) && (layout = pick_layout(template_with_options, options, deprecated_layout))
+        logger.info("Rendering #{options} within #{layout}") if logger
+
+        if template_with_options
+          content_for_layout = render_with_no_layout(options)
+          deprecated_status = options[:status] || deprecated_status
+        else
+          content_for_layout = render_with_no_layout(options, deprecated_status)
+        end
+
         erase_render_results
-
-        @assigns["content_for_layout"] = @content_for_layout
-        render_with_no_layout(options.merge({ :text => @template.render_file(layout, true), :status => options[:status] || deprecated_status }))
+        @template.instance_variable_set("@content_for_layout", content_for_layout)
+        render_text(@template.render_file(layout, true), deprecated_status)
       else
         render_with_no_layout(options, deprecated_status)
       end
     end
 
     private
-      def render_with_a_layout_options(options)
-        return { :template => options } unless options.is_a?(Hash)
-        if options.values_at(:text, :file, :inline, :partial, :nothing).compact.empty?
-          options
+      def apply_layout?(template_with_options, options)
+        if template_with_options
+          (options.has_key?(:layout) && options[:layout]!=false) || options.values_at(:text, :file, :inline, :partial, :nothing).compact.empty?
         else
-          { :layout => false }.merge(options)
+          true
         end
       end
 
-      def pick_layout(options = {}, deprecated_layout = nil)
-        return deprecated_layout if !deprecated_layout.nil?
-
-        if options.is_a?(Hash)
-          case options[:layout]
+      def pick_layout(template_with_options, options, deprecated_layout)
+        if deprecated_layout
+          deprecated_layout
+        elsif template_with_options
+          case layout = options[:layout]
             when FalseClass
               nil
             when NilClass, TrueClass
               active_layout if action_has_layout?
             else
-              active_layout(options[:layout])
+              active_layout(layout)
           end
         else
-          (deprecated_layout || active_layout) if action_has_layout?
+          active_layout if action_has_layout?
         end
       end
-    
+
       def action_has_layout?
-        conditions = self.class.layout_conditions || {}
-        case
-          when conditions[:only]
-            conditions[:only].include?(action_name)
-          when conditions[:except]
-            !conditions[:except].include?(action_name) 
-          else
-            true
+        if conditions = self.class.layout_conditions
+          case
+            when only = conditions[:only]
+              only.include?(action_name)
+            when except = conditions[:except]
+              !except.include?(action_name) 
+            else
+              true
+          end
+        else
+          true
         end
       end
   end
