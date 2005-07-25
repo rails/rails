@@ -673,7 +673,7 @@ module ActionController #:nodoc:
 
 
       # Clears the rendered results, allowing for another render to be performed.
-      def erase_render_results #:nodoc:
+      def erase_render_results
         @response.body = nil
         @performed_render = false
       end
@@ -682,7 +682,7 @@ module ActionController #:nodoc:
       # the URL that was used to redirect or nil if there was no redirected URL
       # Note that +redirect_to+ will change the body of the response to indicate a redirection.
       # The response body is not reset here, see +erase_render_results+
-      def erase_redirect_results #:nodoc:
+      def erase_redirect_results
         @performed_redirect = false
         response.redirected_to = nil
         response.redirected_to_method_params = nil
@@ -690,6 +690,11 @@ module ActionController #:nodoc:
         response.headers.delete('location')
       end
 
+      # Erase both render and redirect results
+      def erase_results
+        erase_render_results
+        erase_redirect_results
+      end
 
       def rewrite_options(options)
         if defaults = default_url_options(options)
