@@ -68,10 +68,9 @@ module ActionController #:nodoc:
 
       # Renders a detailed diagnostics screen on action exceptions. 
       def rescue_action_locally(exception)
-        @exception = exception
-        @rescues_path = File.dirname(__FILE__) + "/templates/rescues/"
-        add_variables_to_assigns
-        @contents = @template.render_file(template_path_for_local_rescue(exception), false)
+        @template.instance_variable_set("@exception", exception)
+        @template.instance_variable_set("@rescues_path", File.dirname(__FILE__) + "/templates/rescues/")
+        @template.instance_variable_set("@contents", @template.render_file(template_path_for_local_rescue(exception), false))
     
         @headers["Content-Type"] = "text/html"
         render_file(rescues_path("layout"), response_code_for_rescue(exception))
@@ -96,7 +95,7 @@ module ActionController #:nodoc:
                   callstack.slice!(0) if callstack.first["rescue.rb"]
                   file, line, method = *callstack.first.match(/^(.+?):(\d+)(?::in `(.*?)')?/).captures
 
-                  message = "Exception at #{file}:#{line}#{" in `#{method}'" if method}."
+                  message = "Exception at #{file}:#{line}#{" in `#{method}'" if method}." # `´ ( for ruby-mode)
 
                   Breakpoint.handle_breakpoint(context, message, file, line)
                 end
