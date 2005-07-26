@@ -269,11 +269,15 @@ module ActionView #:nodoc:
 
       def read_template_file(template_path, extension)
         info = @@loaded_templates[template_path]
-        read_file = info.nil? || ( info.is_a?(Time) ?
-                                   info < File.stat(template_path).mtime :
-                                   !@@cache_template_loading )
+        # info is either the template source code, or the its compile time, or nil
+        # if nil, we need to read it from the file system
+        # if it is a time, we need to reread it if it has changed on disk
+        # if @@cache_template_loading is true, we will never reread
+        unless read_file = info.nil?
+          read_file = !@@cache_template_loading && info.is_a?(Time) && info < File.stat(template_path).mtime
+        end
         if read_file
-          @@loaded_templates[template_path] = info = File.read(template_path)
+          info = @@loaded_templates[template_path] = File.read(template_path)
           @@compiled_templates[template_path] = nil
         end
 
