@@ -60,16 +60,22 @@ class ProgramProcess
     `kill -9 #{@pid}`
   end
 
+  def usr1
+    `kill -s USR1 #{@pid}`
+  end
+
   def to_s
     "[#{@pid}] #{@command}"
   end
 end
 
 OPTIONS = {
-  :action     => "graceful",
-  :dispatcher => File.expand_path(File.dirname(__FILE__) + '/../../public/dispatch.fcgi'),
-  :iterations => 10,
-  :nudge      => false
+  :action      => "graceful",
+  :dispatcher  => File.expand_path(File.dirname(__FILE__) + '/../../public/dispatch.fcgi'),
+  :spinner     => File.expand_path(File.dirname(__FILE__) + '/spinner'),
+  :toggle_spin => true,
+  :iterations  => 10,
+  :nudge       => false
 }
 
 ARGV.options do |opts|
@@ -97,9 +103,7 @@ ARGV.options do |opts|
     FCGI process you have running if they're setup in a round-robin. Be sure to do one nudge per FCGI process
     across all your servers. So three servers with 10 processes each should nudge 30 times to be sure all processes
     are restarted.
-    
-    NOTE: You're responsible for restarting the processes after they exit. This can be automated by using
-    the spinner.
+
   Examples:
     reaper -a reload
     reaper -n http://www.example.com -i 10 # gracefully exit, nudge 10 times
@@ -109,6 +113,8 @@ ARGV.options do |opts|
 
   opts.on("-a", "--action=name", "reload|graceful|kill (default: #{OPTIONS[:action]})", String)  { |OPTIONS[:action]| }
   opts.on("-d", "--dispatcher=path", "default: #{OPTIONS[:dispatcher]}", String)                 { |OPTIONS[:dispatcher]| }
+  opts.on("-s", "--spinner=path", "default: #{OPTIONS[:spinner]}", String)                       { |OPTIONS[:spinner]| }
+  opts.on("-t", "--toggle-spin", "Whether to send a USR1 to the spinner before and after the reaping (default: true)") { |OPTIONS[:toggle_spin]| }
   opts.on("-n", "--nudge=url", "Should point to URL that's handled by the FCGI process", String) { |OPTIONS[:nudge]| }
   opts.on("-i", "--iterations=number", "One nudge per FCGI process running (default: #{OPTIONS[:iterations]})", Integer) { |OPTIONS[:iterations]| }
 
@@ -119,5 +125,7 @@ ARGV.options do |opts|
   opts.parse!
 end
 
+ProgramProcess.process_keywords("usr1", OPTIONS[:spinner]) if OPTIONS[:toggle_spin]
 ProgramProcess.process_keywords(OPTIONS[:action], OPTIONS[:dispatcher])
 nudge(OPTIONS[:nudge], OPTIONS[:iterations]) if OPTIONS[:nudge]
+ProgramProcess.process_keywords("usr1", OPTIONS[:spinner]) if OPTIONS[:toggle_spin]
