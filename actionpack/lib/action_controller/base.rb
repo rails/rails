@@ -634,7 +634,7 @@ module ActionController #:nodoc:
       def render_file(template_path, status = nil, use_full_path = false)
         add_variables_to_assigns
         assert_existance_of_template_file(template_path) if use_full_path
-        logger.info("Rendering #{template_path}" + status ? "(#{status})" : '') if logger
+        logger.info("Rendering #{template_path}" + (status ? "(#{status})" : '')) if logger
         render_text(@template.render_file(template_path, use_full_path), status)
       end
 
