@@ -623,7 +623,6 @@ module ActionController #:nodoc:
       end    
 
       def render_action(action_name, status = nil, with_layout = true)
-        # logger.info("Rendering action #{action_name} (#{status},#{with_layout})") if logger
         if with_layout
           render_with_layout(default_template_name(action_name), status)
         else
