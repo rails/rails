@@ -91,7 +91,7 @@ class NewRenderTestController < ActionController::Base
   end
 
   def partial_collection_with_locals
-    render :partial => "customer", :collection => [ Customer.new("david"), Customer.new("mary") ], :locals => { :extra => ", fun!" }
+    render :partial => "customer_greeting", :collection => [ Customer.new("david"), Customer.new("mary") ], :locals => { :greeting => "Bonjour" }
   end
 
   def hello_in_a_string
@@ -340,6 +340,6 @@ class NewRenderTest < Test::Unit::TestCase
 
   def test_partial_collection_with_locals
     get :partial_collection_with_locals
-    assert_equal "Hello: david, fun!Hello: mary, fun!", @response.body
+    assert_equal "Bonjour: davidBonjour: mary", @response.body
   end
 end
