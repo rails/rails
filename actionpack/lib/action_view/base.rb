@@ -286,7 +286,7 @@ module ActionView #:nodoc:
 
       def evaluate_assigns(local_assigns = {})
         unless @assigns_added
-          @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+          assign_variables_from_controller
           @assigns_added = true
         end
         saved_locals = {}
@@ -333,11 +333,12 @@ module ActionView #:nodoc:
             t_name += @@template_count.to_s
           end
 
+          @@loaded_templates[cache_name] = Time.now if file_name
+
           t_def = "def #{t_name}#{t_arg}; #{t_code}; end"
           self.class.class_eval(t_def) rescue raise ActionViewError, "ERROR defining #{t_name}: #{t_def}"
 
           @@compiled_templates[cache_name] = t_name.intern
-          @@loaded_templates[cache_name] = Time.now if file_name
 
           logger.debug "Compiled template #{cache_name}\n  ==> #{t_name}" if logger
         end

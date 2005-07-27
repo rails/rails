@@ -25,10 +25,9 @@ module ActionController #:nodoc:
       # Exception handler called when the performance of an action raises an exception.
       def rescue_action(exception)
         log_error(exception) if logger
-        erase_results if perfomed?
+        erase_results if performed?
 
         if consider_all_requests_local || local_request?
-          @template.send(:assign_variables_from_controller)
           rescue_action_locally(exception)
         else
           rescue_action_in_public(exception)
@@ -68,6 +67,8 @@ module ActionController #:nodoc:
       def rescue_action_locally(exception)
         @template.instance_variable_set("@exception", exception)
         @template.instance_variable_set("@rescues_path", File.dirname(__FILE__) + "/templates/rescues/")
+        @template.send(:assign_variables_from_controller)
+
         @template.instance_variable_set("@contents", @template.render_file(template_path_for_local_rescue(exception), false))
     
         @headers["Content-Type"] = "text/html"
