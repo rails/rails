@@ -52,7 +52,7 @@ module ActionView
       local_assigns = extract_local_assigns(local_assigns, deprecated_local_assigns)
       local_assigns = local_assigns ? local_assigns.clone : {}
       add_counter_to_local_assigns!(partial_name, local_assigns)
-      local_assigns[partial_name] = object
+      local_assigns[partial_name.intern] ||= object
 
       render("#{path}/_#{partial_name}", local_assigns)
     end

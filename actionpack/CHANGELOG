@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed bug when a partial render was passing a local with the same name as the partial
+
 * Improved performance of test app req/sec with ~10% refactoring the render method #1823 [Stefan Kaes]
                                   
 * Improved performance of test app req/sec with 5-30% through a series of Action Pack optimizations #1811 [Stefan Kaes]

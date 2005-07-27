@@ -330,7 +330,7 @@ class NewRenderTest < Test::Unit::TestCase
   
   def test_partial_with_locals
     get :partial_with_locals
-    assert_equal "Hello: David", @response.body
+    assert_equal "Hello: david", @response.body
   end
 
   def test_partial_collection
