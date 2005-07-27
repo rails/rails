@@ -384,7 +384,6 @@ module ActiveRecord
         create_sql << "#{name} ("
         create_sql << table_definition.to_sql
         create_sql << ") #{options[:options]}"
-
         execute create_sql
       end
 
@@ -518,9 +517,7 @@ module ActiveRecord
       end
 
       def primary_key(name)
-        return unless column = self[name]
-        column.type = native[:primary_key]
-        self
+        column(name, native[:primary_key])
       end
       
       def [](name)
@@ -529,7 +526,7 @@ module ActiveRecord
 
       def column(name, type, options = {})
         column = self[name] || ColumnDefinition.new(@base, name, type)
-        column.limit = options[:limit] || native[type.to_sym][:limit]
+        column.limit = options[:limit] || native[type.to_sym][:limit] if options[:limit] or native[type.to_sym]
         column.default = options[:default]
         @columns << column unless @columns.include? column
         self

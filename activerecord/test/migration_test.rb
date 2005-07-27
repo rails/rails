@@ -39,6 +39,17 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
     end
+
+    def test_create_table_adds_id
+      Person.connection.create_table :testings do |t|
+        t.column :foo, :string
+      end
+
+      assert_equal %w(foo id),
+        Person.connection.columns(:testings).map { |c| c.name }.sort
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
   
     def test_native_types
       Person.delete_all
