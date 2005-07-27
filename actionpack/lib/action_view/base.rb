@@ -364,6 +364,10 @@ module ActionView #:nodoc:
       def delegate_render(handler, template, local_assigns)
         handler.new(self).render(template, local_assigns)
       end
+
+      def assign_variables_from_controller
+        @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
+      end
   end
 end
 
