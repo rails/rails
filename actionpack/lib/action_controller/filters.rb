@@ -327,7 +327,7 @@ module ActionController #:nodoc:
             end
 
             if filter_result == false
-              logger.info "Filter chain halted as [#{filter}] returned false"
+              logger.info "Filter chain halted as [#{filter}] returned false" if logger
               return false 
             end
           end
