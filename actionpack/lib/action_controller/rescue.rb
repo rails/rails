@@ -24,13 +24,11 @@ module ActionController #:nodoc:
     protected
       # Exception handler called when the performance of an action raises an exception.
       def rescue_action(exception)
-        log_error(exception) unless logger.nil?
-        if performed?
-          erase_render_results
-          erase_redirect_results
-        end
+        log_error(exception) if logger
+        erase_results if perfomed?
 
         if consider_all_requests_local || local_request?
+          @template.send(:assign_variables_from_controller)
           rescue_action_locally(exception)
         else
           rescue_action_in_public(exception)
