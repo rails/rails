@@ -146,21 +146,24 @@ module ActionController
           end
           
           private
-            def render#{suffix}_scaffold(action = caller_method_name(caller))
+            def render#{suffix}_scaffold(action=nil)
+              action ||= caller_method_name(caller)
+              # logger.info ("testing template:" + "\#{self.class.controller_path}/\#{action}") if logger
+              
               if template_exists?("\#{self.class.controller_path}/\#{action}")
-                render(:action => action)
+                render_action(action)
               else
                 @scaffold_class = #{class_name}
                 @scaffold_singular_name, @scaffold_plural_name = "#{singular_name}", "#{plural_name}"
                 @scaffold_suffix = "#{suffix}"
                 add_instance_variables_to_assigns
 
-                @content_for_layout = @template.render_file(scaffold_path(action.sub(/#{suffix}$/, "")), false)
+                @template.instance_variable_set("@content_for_layout", @template.render_file(scaffold_path(action.sub(/#{suffix}$/, "")), false))
 
                 if !active_layout.nil?
-                  render :file => active_layout, :use_full_path => true
+                  render_file(active_layout, nil, true)
                 else
-                  render :file => scaffold_path("layout")
+                  render_file(scaffold_path("layout"))
                 end
               end
             end
