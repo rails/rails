@@ -81,6 +81,18 @@ class NewRenderTestController < ActionController::Base
   def partial_only_with_layout
     render :partial => "partial_only", :layout => true
   end
+  
+  def partial_with_locals
+    render :partial => "customer", :locals => { :customer => Customer.new("david") } 
+  end
+  
+  def partial_collection
+    render :partial => "customer", :collection => [ Customer.new("david"), Customer.new("mary") ]
+  end
+
+  def partial_collection_with_locals
+    render :partial => "customer", :collection => [ Customer.new("david"), Customer.new("mary") ], :locals => { :extra => ", fun!" }
+  end
 
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
@@ -314,5 +326,20 @@ class NewRenderTest < Test::Unit::TestCase
   def test_partials_list
     get :partials_list
     assert_equal "goodbyeHello: davidHello: marygoodbye\n", @response.body
+  end
+  
+  def test_partial_with_locals
+    get :partial_with_locals
+    assert_equal "Hello: David", @response.body
+  end
+
+  def test_partial_collection
+    get :partial_collection
+    assert_equal "Hello: davidHello: mary", @response.body
+  end
+
+  def test_partial_collection_with_locals
+    get :partial_collection_with_locals
+    assert_equal "Hello: david, fun!Hello: mary, fun!", @response.body
   end
 end
