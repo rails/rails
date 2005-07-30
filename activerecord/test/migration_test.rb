@@ -50,6 +50,31 @@ if ActiveRecord::Base.connection.supports_migrations?
     ensure
       Person.connection.drop_table :testings rescue nil
     end
+
+    def test_create_table_with_not_null_column
+      Person.connection.create_table :testings do |t|
+        t.column :foo, :string, :null => false
+      end
+
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Person.connection.execute "insert into testings (foo) values (NULL)"
+      end
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
+  
+    def test_add_column_not_null
+      Person.connection.create_table :testings do |t|
+        t.column :foo, :string
+      end
+      Person.connection.add_column :testings, :bar, :string, :null => false
+
+      assert_raises(ActiveRecord::StatementInvalid) do
+        Person.connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
+      end
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
   
     def test_native_types
       Person.delete_all

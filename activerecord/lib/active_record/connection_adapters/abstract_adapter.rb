@@ -437,6 +437,11 @@ module ActiveRecord
         column_type_sql << "(#{limit})" if limit
         column_type_sql
       end            
+      
+      def add_column_options!(sql, options)
+        sql << " NOT NULL" if options[:null] == false
+        sql << " DEFAULT '#{options[:default]}'" unless options[:default].nil?
+      end
 
       protected  
         def log(sql, name)
@@ -488,16 +493,12 @@ module ActiveRecord
             "%s  %s" % [message, dump]
           end
         end
-      
-        def add_column_options!(sql, options)
-          sql << " DEFAULT '#{options[:default]}'" unless options[:default].nil?
-        end
     end
 
-    class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :default)
+    class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :default, :null)
       def to_sql
         column_sql = "#{name} #{type_to_sql(type.to_sym, limit)}"
-        column_sql << " DEFAULT '#{default}'" if default
+        add_column_options!(column_sql, :null => null, :default => default)
         column_sql
       end
       alias to_s :to_sql
@@ -506,6 +507,10 @@ module ActiveRecord
       def type_to_sql(name, limit)
         base.type_to_sql(name, limit) rescue name
       end   
+
+      def add_column_options!(sql, options)
+        base.add_column_options!(sql, options)
+      end
     end
 
     class TableDefinition
@@ -528,6 +533,7 @@ module ActiveRecord
         column = self[name] || ColumnDefinition.new(@base, name, type)
         column.limit = options[:limit] || native[type.to_sym][:limit] if options[:limit] or native[type.to_sym]
         column.default = options[:default]
+        column.null = options[:null]
         @columns << column unless @columns.include? column
         self
       end

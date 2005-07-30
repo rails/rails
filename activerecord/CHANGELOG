@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow add_column and create_table to specify NOT NULL #1712 [emptysands@gmail.com]
+
 * Fix create_table so that id column is implicitly added [Rick Olson]
 
 * Default sequence names for Oracle changed to #{table_name}_seq, which is the most commonly used standard. In addition, a new method ActiveRecord::Base#set_sequence_name allows the developer to set the sequence name per model. This is a non-backwards-compatible change -- anyone using the old-style "rails_sequence" will need to either create new sequences, or set: ActiveRecord::Base.set_sequence_name = "rails_sequence" #1798

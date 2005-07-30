@@ -239,7 +239,7 @@ module ActiveRecord
 
           transaction do
             move_table(table_name, altered_table_name, 
-              options.merge(:temporary => true), &caller)
+              options.merge(:temporary => true))
             move_table(altered_table_name, table_name, &caller)
           end
         end
