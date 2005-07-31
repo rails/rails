@@ -37,7 +37,11 @@ HTML
     end
     
     def test_only_one_param
-      render :text => (@params[:left] && @params[:right]) ? "EEP, Both here!" : "OK"
+      render :text => (params[:left] && params[:right]) ? "EEP, Both here!" : "OK"
+    end
+
+    def test_remote_addr
+      render :text => (request.remote_addr || "not specified")
     end
   end
 
@@ -163,5 +167,14 @@ HTML
     
     assert ActionController::Routing::Routes
     assert_equal routes_id, ActionController::Routing::Routes.object_id
+  end
+
+  def test_remote_addr
+    get :test_remote_addr
+    assert_equal "0.0.0.0", @response.body
+
+    @request.remote_addr = "192.0.0.1"
+    get :test_remote_addr
+    assert_equal "192.0.0.1", @response.body
   end
 end

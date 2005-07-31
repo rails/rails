@@ -60,6 +60,10 @@ module ActionController #:nodoc:
       @env['REMOTE_ADDR'] = addr
     end
 
+    def remote_addr
+      @env['REMOTE_ADDR']
+    end
+
     def request_uri
       @request_uri || super()
     end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow remote_addr to be queried on TestRequest #1668
+
 * Fixed bug when a partial render was passing a local with the same name as the partial
 
 * Improved performance of test app req/sec with ~10% refactoring the render method #1823 [Stefan Kaes]
