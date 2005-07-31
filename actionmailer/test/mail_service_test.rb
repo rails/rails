@@ -668,5 +668,11 @@ EOF
     assert_match(/:/, mail.cc_addrs.to_s)
     assert_match(/:/, mail.bcc_addrs.to_s)
   end
+
+  def test_deliver_with_mail_object
+    mail = TestMailer::create_headers_with_nonalpha_chars(@recipient)
+    assert_nothing_raised { TestMailer.deliver(mail) }
+    assert_equal 1, TestMailer.deliveries.length
+  end
 end
 

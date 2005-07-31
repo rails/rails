@@ -160,6 +160,34 @@ module ActionMailer #:nodoc:
 
     attr_reader       :mail
 
+    class << self
+      def method_missing(method_symbol, *parameters)#:nodoc:
+        case method_symbol.id2name
+          when /^create_([_a-z]\w*)/  then new($1, *parameters).mail
+          when /^deliver_([_a-z]\w*)/ then new($1, *parameters).deliver!
+          when "new" then nil
+          else super
+        end
+      end
+
+      def receive(raw_email) #:nodoc:
+        logger.info "Received mail:\n #{raw_email}" unless logger.nil?
+        mail = TMail::Mail.parse(raw_email)
+        mail.base64_decode
+        new.receive(mail)
+      end
+
+      # Deliver the given mail object directly. This can be used to deliver
+      # a preconstructed mail object, like:
+      #
+      #   email = MyMailer.create_some_mail(parameters)
+      #   email.set_some_obscure_header "frobnicate"
+      #   MyMailer.deliver(email)
+      def deliver(mail)
+        new.deliver!(mail)
+      end
+    end
+
     # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
     # will be initialized according to the named method. If not, the mailer will
     # remain uninitialized (useful when you only need to invoke the "receive"
@@ -223,19 +251,20 @@ module ActionMailer #:nodoc:
       @mail = create_mail
     end
 
-    # Delivers the cached TMail::Mail object. If no TMail::Mail object has been
-    # created (via the #create! method, for instance) this will fail.
-    def deliver! #:nodoc:
-      raise "no mail object available for delivery!" unless @mail
+    # Delivers a TMail::Mail object. By default, it delivers the cached mail
+    # object (from the #create! method). If no cached mail object exists, and
+    # no alternate has been given as the parameter, this will fail.
+    def deliver!(mail = @mail) #:nodoc:
+      raise "no mail object available for delivery!" unless mail
       logger.info "Sent mail:\n #{mail.encoded}" unless logger.nil?
 
       begin
-        send("perform_delivery_#{delivery_method}", @mail) if perform_deliveries
+        send("perform_delivery_#{delivery_method}", mail) if perform_deliveries
       rescue Object => e
         raise e if raise_delivery_errors
       end
 
-      return @mail
+      return mail
     end
 
     private
@@ -334,24 +363,5 @@ module ActionMailer #:nodoc:
       def perform_delivery_test(mail)
         deliveries << mail
       end
-
-    class << self
-      def method_missing(method_symbol, *parameters)#:nodoc:
-        case method_symbol.id2name
-          when /^create_([_a-z]\w*)/  then new($1, *parameters).mail
-          when /^deliver_([_a-z]\w*)/ then new($1, *parameters).deliver!
-          when "new" then nil
-          else super
-        end
-      end
-
-      def receive(raw_email)
-        logger.info "Received mail:\n #{raw_email}" unless logger.nil?
-        mail = TMail::Mail.parse(raw_email)
-        mail.base64_decode
-        new.receive(mail)
-      end
-
-    end
   end
 end
