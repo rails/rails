@@ -130,4 +130,11 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_to_time
     assert_equal Time.local(2005, 2, 21, 17, 44, 30), Time.local(2005, 2, 21, 17, 44, 30).to_time
   end
+
+  # NOTE: this test seems to fail (changeset 1958) only on certain platforms,
+  # like OSX, and FreeBSD 5.4.
+  def test_fp_inaccuracy_ticket_1836
+    midnight = Time.local(2005, 2, 21, 0, 0, 0)
+    assert_equal midnight.midnight, (midnight + 1.hour + 0.000001).midnight
+  end
 end
