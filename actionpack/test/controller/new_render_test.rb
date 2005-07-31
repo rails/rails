@@ -135,6 +135,11 @@ class NewRenderTestController < ActionController::Base
     # Action template sets variable that's picked up by layout
   end
 
+  def render_text_with_assigns
+    @hello = "world"
+    render :text => "foo"
+  end
+
   def rescue_action(e) raise end
     
   private
@@ -341,5 +346,10 @@ class NewRenderTest < Test::Unit::TestCase
   def test_partial_collection_with_locals
     get :partial_collection_with_locals
     assert_equal "Bonjour: davidBonjour: mary", @response.body
+  end
+
+  def test_render_text_with_assigns
+    get :render_text_with_assigns
+    assert_equal "world", assigns["hello"]
   end
 end

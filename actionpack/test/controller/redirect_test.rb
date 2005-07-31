@@ -17,6 +17,11 @@ class RedirectController < ActionController::Base
     redirect_to :controller => 'module_test/module_redirect', :action => "hello_world"
   end
 
+  def redirect_with_assigns
+    @hello = "world"
+    redirect_to :action => "hello_world"
+  end
+
   def rescue_errors(e) raise e end
   
   protected
@@ -55,6 +60,11 @@ class RedirectTest < Test::Unit::TestCase
   def test_module_redirect_using_options
     get :module_redirect
     assert_redirected_to :controller => 'module_test/module_redirect', :action => 'hello_world'
+  end
+
+  def test_redirect_with_assigns
+    get :redirect_with_assigns
+    assert_equal "world", assigns["hello"]
   end
 end
 

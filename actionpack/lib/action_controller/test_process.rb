@@ -11,6 +11,15 @@ module ActionController #:nodoc:
     def process_test(request) #:nodoc:
       process(request, TestResponse.new)
     end
+
+    def process_with_test(*args)
+      returning process_without_test(*args) do
+        add_variables_to_assigns
+      end
+    end
+
+    alias_method :process_without_test, :process
+    alias_method :process, :process_with_test
   end
 
   class TestRequest < AbstractRequest #:nodoc:
