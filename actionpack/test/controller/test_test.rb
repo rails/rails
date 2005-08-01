@@ -177,4 +177,21 @@ HTML
     get :test_remote_addr
     assert_equal "192.0.0.1", @response.body
   end
+
+  %w(controller response request).each do |variable|
+    %w(get post put delete head process).each do |method|
+      define_method("test_#{variable}_missing_for_#{method}_raises_error") do
+        remove_instance_variable "@#{variable}"
+        begin
+          send(method, :test_remote_addr)
+          assert false, "expected RuntimeError, got nothing"
+        rescue RuntimeError => error
+          assert true
+          assert_match %r{@#{variable} is nil}, error.message
+        rescue => error
+          assert false, "expected RuntimeError, got #{error.class}"
+        end
+      end
+    end
+  end
 end

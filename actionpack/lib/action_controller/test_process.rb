@@ -269,12 +269,13 @@ module Test
       private  
         # execute the request and set/volley the response
         def process(action, parameters = nil, session = nil, flash = nil)
-          @request.recycle!
-
-          # Sanity check for required instance variables so we can give an understandable error message.
+          # Sanity check for required instance variables so we can give an
+          # understandable error message.
           %w(controller request response).each do |iv_name|
-            assert_not_nil instance_variable_get("@#{iv_name}"), "@#{iv_name} is nil: make sure you set it in your test's setup method."
+            raise "@#{iv_name} is nil: make sure you set it in your test's setup method." if instance_variable_get("@#{iv_name}").nil?
           end
+
+          @request.recycle!
 
           @html_document = nil
           @request.env['REQUEST_METHOD'] ||= "GET"
@@ -293,7 +294,7 @@ module Test
         %w( get post put delete head ).each do |method|
           class_eval <<-EOV
             def #{method}(action, parameters = nil, session = nil, flash = nil)
-              @request.env['REQUEST_METHOD'] = "#{method.upcase}"
+              @request.env['REQUEST_METHOD'] = "#{method.upcase}" if @request
               process(action, parameters, session, flash)
             end
           EOV
