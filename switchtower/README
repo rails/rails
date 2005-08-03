@@ -1,0 +1,29 @@
+= SwitchTower
+
+SwitchTower is a utility and framework for executing commands in parallel on multiple remote machines, via SSH. It uses a simple DSL (borrowed in part from Rake, http://rake.rubyforge.org/) that allows you to define _tasks_, which may be applied to machines in certain roles. It also supports tunneling connections via some gateway machine to allow operations to be performed behind VPN's and firewalls.
+
+SwitchTower was originally designed to simplify and automate deployment of web applications to distributed environments, and so it comes with many tasks predefined for that ("update_code" and "deploy", for instance).
+
+== Assumptions
+
+In keeping with Rails' "convention over configuration", SwitchTower makes several assumptions about how you will use it (most, if not all, of which may be explicitly overridden):
+
+* You are writing web applications and want to use SwitchTower to deploy them.
+* You are using Ruby on Rails (http://www.rubyonrails.com) to build your apps.
+* You are using Subversion (http://subversion.tigris.org/) to manage your source code.
+* You are running your apps using FastCGI, together with Rails' spinner/reaper utilities.
+
+As with the rest of Rails, if you can abide by these assumptions, you can use SwitchTower "out of the box". If any of these assumptions do not hold, you'll need to make some adjustments to your deployment recipe files.
+
+== Usage
+
+More documentation is always pending, but you'll want to see the user manual for detailed usage instructions. In general, you'll use SwitchTower as follows:
+
+* Create a deployment recipe ("deploy.rb") for your application. You can use the sample recipe in examples/sample.rb as a starting point.
+* Use the +switchtower+ script to execute your recipe (see below).
+
+Use the +switchtower+ script as follows:
+
+    switchtower -r deploy -a someaction -vvvv
+
+The <tt>-r</tt> switch specifies the recipe to use, and the <tt>-a</tt> switch specifies which action you want to execute. You can the <tt>-v</tt> switch multiple times (as shown) to increase the verbosity of the output.
