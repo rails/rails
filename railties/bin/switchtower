@@ -1,0 +1,4 @@
+#!/usr/local/bin/ruby
+if not system "switchtower #{ARGV.join(" ")}"
+  abort "Could not execute switchtower. Is it installed?"
+end
