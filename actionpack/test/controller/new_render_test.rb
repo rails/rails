@@ -59,6 +59,10 @@ class NewRenderTestController < ActionController::Base
   def rendering_without_layout
     render :action => "hello_world", :layout => false
   end
+
+  def layout_overriding_layout
+    render :action => "hello_world", :layout => "standard"
+  end
   
   def rendering_nothing_on_layout
     render :nothing => true
@@ -154,7 +158,7 @@ class NewRenderTestController < ActionController::Base
           "layouts/standard"
         when "builder_layout_test"
           "layouts/builder"
-        when "action_talk_to_layout"
+        when "action_talk_to_layout", "layout_overriding_layout"
           "layouts/talk_from_action"
       end
     end
@@ -259,6 +263,11 @@ class NewRenderTest < Test::Unit::TestCase
   def test_rendering_without_layout
     get :rendering_without_layout
     assert_equal "Hello world!", @response.body
+  end
+
+  def test_layout_overriding_layout
+    get :layout_overriding_layout
+    assert_no_match %r{<title>}, @response.body
   end
 
   def test_rendering_nothing_on_layout

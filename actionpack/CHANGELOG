@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure :layout => false is always used when rendering inside a layout
+
 * Use raise instead of assert_not_nil in Test::Unit::TestCase#process to ensure that the test variables (controller, request, response) have been set
 
 * Make sure assigns are built for every request when testing #1866
