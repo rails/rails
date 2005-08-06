@@ -5,28 +5,24 @@ require 'test/unit'
 require 'switchtower/actor'
 require 'switchtower/logger'
 
-module SwitchTower
-  class Actor
-    attr_reader :factory
+class ActorTest < Test::Unit::TestCase
 
-    class DefaultConnectionFactory
-      def connect_to(server)
-        server
-      end
+  class TestingConnectionFactory
+    def initialize(config)
     end
 
-    class GatewayConnectionFactory
-      def connect_to(server)
-        server
-      end
-    end
-
-    def establish_gateway
-      GatewayConnectionFactory.new
+    def connect_to(server)
+      server
     end
   end
 
-  class Command
+  class GatewayConnectionFactory
+    def connect_to(server)
+      server
+    end
+  end
+
+  class TestingCommand
     def self.invoked!
       @invoked = true
     end
@@ -46,9 +42,18 @@ module SwitchTower
       self.class.invoked!
     end
   end
-end
 
-class ActorTest < Test::Unit::TestCase
+  class TestActor < SwitchTower::Actor
+    attr_reader :factory
+
+    self.connection_factory = TestingConnectionFactory
+    self.command_factory = TestingCommand
+
+    def establish_gateway
+      GatewayConnectionFactory.new
+    end
+  end
+
   class MockConfiguration
     Role = Struct.new(:host, :options)
 
@@ -79,8 +84,8 @@ class ActorTest < Test::Unit::TestCase
   end
 
   def setup
-    SwitchTower::Command.reset!
-    @actor = SwitchTower::Actor.new(MockConfiguration.new)
+    TestingCommand.reset!
+    @actor = TestActor.new(MockConfiguration.new)
   end
 
   def test_define_task_creates_method
@@ -203,7 +208,7 @@ class ActorTest < Test::Unit::TestCase
     end
 
     @actor.foo
-    assert_instance_of SwitchTower::Actor::GatewayConnectionFactory, @actor.factory
+    assert_instance_of GatewayConnectionFactory, @actor.factory
   end
 
   def test_run_when_not_pretend
@@ -213,7 +218,7 @@ class ActorTest < Test::Unit::TestCase
 
     @actor.configuration.pretend = false
     @actor.foo
-    assert SwitchTower::Command.invoked?
+    assert TestingCommand.invoked?
   end
 
   def test_run_when_pretend
@@ -223,7 +228,7 @@ class ActorTest < Test::Unit::TestCase
 
     @actor.configuration.pretend = true
     @actor.foo
-    assert !SwitchTower::Command.invoked?
+    assert !TestingCommand.invoked?
   end
 
   def test_task_before_hook

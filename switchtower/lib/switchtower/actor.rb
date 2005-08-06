@@ -12,6 +12,27 @@ module SwitchTower
   # new actor via Configuration#actor.
   class Actor
 
+    # An adaptor for making the Net::SSH interface look and act like that of the
+    # Gateway class.
+    class DefaultConnectionFactory #:nodoc:
+      def initialize(config)
+        @config= config
+      end
+
+      def connect_to(server)
+        Net::SSH.start(server, :username => @config.user,
+          :password => @config.password)
+      end
+    end
+
+    class <<self
+      attr_accessor :connection_factory
+      attr_accessor :command_factory
+    end
+
+    self.connection_factory = DefaultConnectionFactory
+    self.command_factory = Command
+
     # The configuration instance associated with this actor.
     attr_reader :configuration
 
@@ -36,19 +57,6 @@ module SwitchTower
 
     # A struct for representing a single instance of an invoked task.
     TaskCallFrame = Struct.new(:name, :rollback)
-
-    # An adaptor for making the Net::SSH interface look and act like that of the
-    # Gateway class.
-    class DefaultConnectionFactory #:nodoc:
-      def initialize(config)
-        @config= config
-      end
-
-      def connect_to(server)
-        Net::SSH.start(server, :username => @config.user,
-          :password => @config.password)
-      end
-    end
 
     # Represents the definition of a single task.
     class Task #:nodoc:
@@ -88,7 +96,7 @@ module SwitchTower
       @tasks = {}
       @task_call_frames = []
       @sessions = {}
-      @factory = DefaultConnectionFactory.new(configuration)
+      @factory = self.class.connection_factory.new(configuration)
     end
 
     # Define a new task for this actor. The block will be invoked when this
@@ -134,7 +142,7 @@ module SwitchTower
         establish_connections(servers)
 
         # execute the command on each server in parallel
-        command = Command.new(servers, cmd, block, options, self)
+        command = self.class.command_factory.new(servers, cmd, block, options, self)
         command.process! # raises an exception if command fails on any server
       end
     end

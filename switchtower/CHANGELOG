@@ -1,0 +1,3 @@
+*SVN*
+
+* When executing multiline commands, use a backslash to escape the newline
