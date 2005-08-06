@@ -4,6 +4,10 @@ SwitchTower is a utility and framework for executing commands in parallel on mul
 
 SwitchTower was originally designed to simplify and automate deployment of web applications to distributed environments, and so it comes with many tasks predefined for that ("update_code" and "deploy", for instance).
 
+== Dependencies
+
+SwitchTower depends upon the Net::SSH library by Jamis Buck (http://net-ssh.rubyforge.org). Net::SSH itself depends on the Needle library (http://needle.rubyforge.org), also by Jamis Buck.
+
 == Assumptions
 
 In keeping with Rails' "convention over configuration", SwitchTower makes several assumptions about how you will use it (most, if not all, of which may be explicitly overridden):
