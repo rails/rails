@@ -70,7 +70,7 @@ OptionParser.new do |opts|
     "Display the version info for this utility"
   ) do
     require 'switchtower/version'
-    puts "Release Manager v#{SwitchTower::Version::STRING}"
+    puts "SwitchTower v#{SwitchTower::Version::STRING}"
     exit
   end
 
