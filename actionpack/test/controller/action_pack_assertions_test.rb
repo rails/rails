@@ -20,6 +20,8 @@ class ActionPackAssertionsController < ActionController::Base
   def redirect_to_controller() redirect_to :controller => "elsewhere", :action => "flash_me"; end
 
   def redirect_to_path() redirect_to '/some/path' end
+
+  def redirect_to_named_route() redirect_to route_one_url end
   
   # a redirect to an external location
   def redirect_external() redirect_to_url "http://www.rubyonrails.org"; end
@@ -184,6 +186,14 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   def test_assert_redirect_url_match_pattern
     process :redirect_external
     assert_redirect_url_match /ruby/
+  end
+
+  # test the redirection to a named route
+  def test_assert_redirect_to_named_route
+    process :redirect_to_named_route
+    assert_raise(Test::Unit::AssertionFailedError) do
+      assert_redirected_to 'http://test.host/route_two'
+    end
   end
   
   # test the flash-based assertions with something is in the flash

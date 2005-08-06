@@ -1,5 +1,7 @@
 *SVN*
 
+* Make assert_redirected_to properly check URL's passed as strings #1910 [Scott Barron]
+
 * Make sure :layout => false is always used when rendering inside a layout
 
 * Use raise instead of assert_not_nil in Test::Unit::TestCase#process to ensure that the test variables (controller, request, response) have been set

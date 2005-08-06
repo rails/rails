@@ -78,9 +78,8 @@ module Test #:nodoc:
             [u, (p[0..0] == '/') ? p : '/' + p]
           end.flatten
 
-          if eurl && url then assert_equal(eurl, url, msg)
-          else assert_equal(epath, path, msg)
-          end
+          assert_equal(eurl, url, msg) if eurl && url
+          assert_equal(epath, path, msg) if epath && path 
         else
           msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>)",
                               @response.redirected_to || @response.redirect_url)

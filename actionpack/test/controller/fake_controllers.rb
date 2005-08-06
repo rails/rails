@@ -19,5 +19,6 @@ module Object::Controllers
 end
 
 ActionController::Routing::Routes.draw do |map|
+  map.route_one 'route_one', :controller => 'elsewhere', :action => 'flash_me'
   map.connect ':controller/:action/:id'
 end
