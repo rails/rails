@@ -47,9 +47,9 @@ module SwitchTower
 
         command = <<-CMD
           if [[ -d #{actor.release_path} ]]; then
-            #{svn} up -q -r#{latest_revision} #{actor.release_path}
+            #{svn} up -q -r#{latest_revision} #{actor.release_path};
           else
-            #{svn} co -q -r#{latest_revision} #{configuration.repository} #{actor.release_path}
+            #{svn} co -q -r#{latest_revision} #{configuration.repository} #{actor.release_path};
           fi
         CMD
         actor.run(command) do |ch, stream, out|
