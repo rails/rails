@@ -1,3 +1,5 @@
 *SVN*
 
+* Preserve +x on scripts when using darcs #1929 [Scott Barron]
+
 * When executing multiline commands, use a backslash to escape the newline

@@ -40,7 +40,7 @@ module SwitchTower
 
         command = <<-CMD
           if [[ ! -d #{actor.release_path} ]]; then
-            #{darcs} get #{configuration.repository} #{actor.release_path};
+            #{darcs} get --set-scripts-executable #{configuration.repository} #{actor.release_path};
           fi
         CMD
         actor.run(command)
