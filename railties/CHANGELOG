@@ -1,5 +1,7 @@
 *SVN*
 
+* Added -w flag to ps in process/reaper #1934 [Scott Barron]
+
 * Add integration with SwitchTower (rake tasks, default deploy.rb recipe)
 
 * Allow ERb in the database.yml file (just like with fixtures), so you can pull out the database configuration in environment variables #1822 [Duane Johnson]
