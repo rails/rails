@@ -15,7 +15,7 @@ desc "Build documentation"
 task :doc => [ :rdoc ]
 
 Rake::TestTask.new do |t|
-  t.test_files = Dir["test/*_test.rb"]
+  t.test_files = Dir["test/**/*_test.rb"]
   t.verbose = true
 end
 

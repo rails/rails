@@ -27,7 +27,8 @@ module SwitchTower
         configuration.logger.debug "querying latest revision..." unless @latest_revision
         repo = configuration.repository
         until @latest_revision
-          @latest_revision = latest_revision_at(repo)
+          match = svn_log(repo).scan(/r(\d+)/).first
+          @latest_revision = match ? match.first : nil
           if @latest_revision.nil?
             # if a revision number was not reported, move up a level in the path
             # and try again.
@@ -55,7 +56,7 @@ module SwitchTower
         actor.run(command) do |ch, stream, out|
           prefix = "#{stream} :: #{ch[:host]}"
           actor.logger.info out, prefix
-          if out =~ /^Password:/
+          if out =~ /^Password.*:/
             actor.logger.info "subversion is asking for a password", prefix
             ch.send_data "#{actor.password}\n"
           elsif out =~ %r{\(yes/no\)}
@@ -76,9 +77,8 @@ module SwitchTower
 
       private
       
-        def latest_revision_at(path)
-          match = `svn log -q -rhead #{path}`.scan(/r(\d+)/).first
-          match ? match.first : nil
+        def svn_log(path)
+          `svn log -q -rhead #{path}`
         end
     end
 
