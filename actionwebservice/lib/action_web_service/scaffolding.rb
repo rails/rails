@@ -40,7 +40,7 @@ module ActionWebService
       # can then be used as the entry point for invoking API methods from a web browser.
       def web_service_scaffold(action_name)
         add_template_helper(Helpers)
-        module_eval <<-END, __FILE__, __LINE__
+        module_eval <<-"end_eval", __FILE__, __LINE__
           def #{action_name}
             if request.method == :get
               setup_invocation_assigns
@@ -112,8 +112,17 @@ module ActionWebService
             def render_invocation_scaffold(action)
               customized_template = "\#{self.class.controller_path}/#{action_name}/\#{action}"
               default_template = scaffold_path(action)
-              @content_for_layout = template_exists?(customized_template) ? @template.render_file(customized_template) : @template.render_file(default_template, false)
-              self.active_layout ? render_file(self.active_layout, "200 OK", true) : render_file(scaffold_path("layout"))
+              if template_exists?(customized_template)
+                content = @template.render_file(customized_template)
+              else
+                content = @template.render_file(default_template, false)
+              end
+              @template.instance_variable_set("@content_for_layout", content)
+              if self.active_layout.nil?
+                render_file(scaffold_path("layout"))
+              else
+                render_file(self.active_layout, "200 OK", true)
+              end
             end
 
             def scaffold_path(template_name)
@@ -159,7 +168,7 @@ module ActionWebService
               rescue_action(exception)
               true
             end
-        END
+        end_eval
       end
     end
 
