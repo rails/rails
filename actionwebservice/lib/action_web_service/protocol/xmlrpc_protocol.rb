@@ -1,4 +1,5 @@
 require 'xmlrpc/marshal'
+require 'action_web_service/client/xmlrpc_client'
 
 module XMLRPC # :nodoc:
   class FaultException # :nodoc:
@@ -7,6 +8,14 @@ module XMLRPC # :nodoc:
 end
 
 module ActionWebService # :nodoc:
+  module API # :nodoc: 
+    class Base # :nodoc:
+      def self.xmlrpc_client(endpoint_uri, options={})
+        ActionWebService::Client::XmlRpc.new self, endpoint_uri, options
+      end
+    end
+  end
+
   module Protocol # :nodoc:
     module XmlRpc # :nodoc:
       def self.included(base)

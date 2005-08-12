@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActionWebService::API::Base.soap_client and ActionWebService::API::Base.xmlrpc_client helper methods to create the internal clients for an API, useful for testing from ./script/console
+
 * ActionWebService now always returns UTF-8 responses.
 
 *0.8.1* (11 July, 2005)

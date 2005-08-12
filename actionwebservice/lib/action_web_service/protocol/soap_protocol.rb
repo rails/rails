@@ -1,7 +1,16 @@
 require 'action_web_service/protocol/soap_protocol/marshaler'
 require 'soap/streamHandler'
+require 'action_web_service/client/soap_client'
 
 module ActionWebService # :nodoc:
+  module API # :nodoc:
+    class Base # :nodoc:
+      def self.soap_client(endpoint_uri, options={})
+        ActionWebService::Client::Soap.new self, endpoint_uri, options
+      end
+    end
+  end
+
   module Protocol # :nodoc:
     module Soap # :nodoc:
       def self.included(base)
