@@ -1,5 +1,7 @@
 *SVN*
 
+* Works with public keys now, for passwordless deployment
+
 * Subversion module recognizes the password prompt for HTTP authentication
 
 * Preserve +x on scripts when using darcs #1929 [Scott Barron]

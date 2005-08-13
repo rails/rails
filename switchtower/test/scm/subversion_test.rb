@@ -1,28 +1,10 @@
 $:.unshift File.dirname(__FILE__) + "/../../lib"
 
+require File.dirname(__FILE__) + "/../utils"
 require 'test/unit'
 require 'switchtower/scm/subversion'
 
 class ScmSubversionTest < Test::Unit::TestCase
-  class MockLogger
-    def info(msg,pfx=nil) end
-    def debug(msg,pfx=nil) end
-  end
-
-  class MockConfiguration < Hash
-    def logger
-      @logger ||= MockLogger.new
-    end
-
-    def method_missing(sym, *args)
-      if args.length == 0
-        self[sym]
-      else
-        super
-      end
-    end
-  end
-
   class SubversionTest < SwitchTower::SCM::Subversion
     attr_accessor :story
     attr_reader   :last_path

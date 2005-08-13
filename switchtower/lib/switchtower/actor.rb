@@ -1,7 +1,7 @@
 require 'erb'
-require 'net/ssh'
 require 'switchtower/command'
 require 'switchtower/gateway'
+require 'switchtower/ssh'
 
 module SwitchTower
 
@@ -12,7 +12,7 @@ module SwitchTower
   # new actor via Configuration#actor.
   class Actor
 
-    # An adaptor for making the Net::SSH interface look and act like that of the
+    # An adaptor for making the SSH interface look and act like that of the
     # Gateway class.
     class DefaultConnectionFactory #:nodoc:
       def initialize(config)
@@ -20,8 +20,7 @@ module SwitchTower
       end
 
       def connect_to(server)
-        Net::SSH.start(server, :username => @config.user,
-          :password => @config.password)
+        SSH.connect(server, @config)
       end
     end
 
@@ -40,7 +39,7 @@ module SwitchTower
     # instances of Actor::Task.
     attr_reader :tasks
 
-    # A hash of the Net::SSH sessions that are currently open and available.
+    # A hash of the SSH sessions that are currently open and available.
     # Because sessions are constructed lazily, this will only contain
     # connections to those servers that have been the targets of one or more
     # executed tasks.

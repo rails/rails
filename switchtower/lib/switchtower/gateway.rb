@@ -1,5 +1,5 @@
 require 'thread'
-require 'net/ssh'
+require 'switchtower/ssh'
 
 Thread.abort_on_exception = true
 
@@ -36,9 +36,7 @@ module SwitchTower
 
       @thread = Thread.new do
         @config.logger.trace "starting connection to gateway #{server}"
-        Net::SSH.start(server, :username => @config.user,
-          :password => @config.password
-        ) do |@session|
+        SSH.connect(server, @config) do |@session|
           @config.logger.trace "gateway connection established"
           @mutex.synchronize { waiter.signal }
           connection = @session.registry[:connection][:driver]
@@ -93,9 +91,8 @@ module SwitchTower
 
           begin
             @session.forward.local(port, key, 22)
-            @pending_forward_requests[key] =
-              Net::SSH.start('127.0.0.1', :username => @config.user,
-                :password => @config.password, :port => port)
+            @pending_forward_requests[key] = SSH.connect('127.0.0.1', @config,
+              port)
             @config.logger.trace "connection to #{key} via gateway established"
           rescue Object
             @pending_forward_requests[key] = nil
