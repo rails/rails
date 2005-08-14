@@ -29,6 +29,7 @@ module Test # :nodoc:
         # ---------------------- internal ---------------------------
 
         def prepare_request(action, service_name, api_method_name, *args)
+          @request.recycle!
           @request.request_parameters['action'] = action
           @request.env['REQUEST_METHOD'] = 'POST'
           @request.env['HTTP_CONTENT_TYPE'] = 'text/xml'
