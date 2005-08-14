@@ -72,7 +72,7 @@ module ActiveRecord
       # the first in the list of all chapters.
       module InstanceMethods
         def insert_at(position = 1)
-          position == 1 ? add_to_list_top : insert_at_position(position)
+          insert_at_position(position)
         end
 
         def move_lower

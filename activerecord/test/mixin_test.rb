@@ -142,6 +142,15 @@ class ListTest < Test::Unit::TestCase
 
     new4.reload
     assert_equal 4, new4.pos
+
+    new5 = ListMixin.create("parent_id" => 20)
+    assert_equal 5, new5.pos
+
+    new5.insert_at(1)
+    assert_equal 1, new5.pos
+
+    new4.reload
+    assert_equal 5, new4.pos
   end
   
   def test_delete_middle

@@ -1,5 +1,7 @@
 *SVN*
 
+* Make acts_as_list work for insert_at(1) #1966 [hensleyl@papermountain.org]
+
 * Fix typo in count_by_sql documentation #1969 [Alexey Verkhovsky]
 
 * Allow add_column and create_table to specify NOT NULL #1712 [emptysands@gmail.com]
