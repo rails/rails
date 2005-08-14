@@ -195,7 +195,7 @@ module ActionWebService # :nodoc:
             custom_types = []
             apis.values.each do |api, bindings|
               bindings.each do |b|
-                custom_types << b
+                custom_types << b unless custom_types.include?(b)
               end
             end
 
@@ -347,29 +347,32 @@ module ActionWebService # :nodoc:
 
           def register_api(api, marshaler)
             bindings = {}
-            traverse_custom_types(api, marshaler) do |binding|
+            traverse_custom_types(api, marshaler, bindings) do |binding|
               bindings[binding] = nil unless bindings.has_key?(binding)
               element_binding = binding.element_binding
-              bindings[binding.element_binding] = nil if element_binding && !bindings.has_key?(element_binding)
+              bindings[element_binding] = nil if element_binding && !bindings.has_key?(element_binding)
             end
             bindings.keys
           end
 
-          def traverse_custom_types(api, marshaler, &block)
+          def traverse_custom_types(api, marshaler, bindings, &block)
             api.api_methods.each do |name, method|
               expects, returns = method.expects, method.returns
-              expects.each{ |type| traverse_type(marshaler, type, &block) if type.custom? } if expects
-              returns.each{ |type| traverse_type(marshaler, type, &block) if type.custom? } if returns
+              expects.each{ |type| traverse_type(marshaler, type, bindings, &block) if type.custom? } if expects
+              returns.each{ |type| traverse_type(marshaler, type, bindings, &block) if type.custom? } if returns
             end
           end
 
-          def traverse_type(marshaler, type, &block)
-            yield marshaler.register_type(type)
+          def traverse_type(marshaler, type, bindings, &block)
+            binding = marshaler.register_type(type)
+            return if bindings.has_key?(binding)
+            bindings[binding] = nil
+            yield binding
             if type.array?
               yield marshaler.register_type(type.element_type)
               type = type.element_type
             end
-            type.each_member{ |name, type| traverse_type(marshaler, type, &block) } if type.structured?
+            type.each_member{ |name, type| traverse_type(marshaler, type, bindings, &block) } if type.structured?
           end
        end
     end
