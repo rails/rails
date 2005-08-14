@@ -223,6 +223,12 @@ class BasicsTest < Test::Unit::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
   
+  def test_destroy_returns_self
+    topic = Topic.new("title" => "Yet Another Title")
+    assert topic.save
+    assert_equal topic, topic.destroy, "destroy did not return destroyed object"
+  end
+  
   def test_record_not_found_exception
     assert_raises(ActiveRecord::RecordNotFound) { topicReloaded = Topic.find(99999) }
   end

@@ -1187,7 +1187,7 @@ module ActiveRecord #:nodoc:
 
       # Just freeze the attributes hash, such that associations are still accessible even on destroyed records.
       def freeze
-        @attributes.freeze
+        @attributes.freeze; self
       end
 
       def frozen?
