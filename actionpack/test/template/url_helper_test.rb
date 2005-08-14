@@ -56,6 +56,10 @@ class UrlHelperTest < Test::Unit::TestCase
       "<a href=\"http://www.example.com\" onclick=\"return confirm('You can\\'t possibly be sure, can you?');\">Hello</a>", 
       link_to("Hello", "http://www.example.com", :confirm => "You can't possibly be sure, can you?")
     )
+    assert_equal(
+      "<a href=\"http://www.example.com\" onclick=\"return confirm('You can\\'t possibly be sure,\\n can you?');\">Hello</a>", 
+      link_to("Hello", "http://www.example.com", :confirm => "You can't possibly be sure,\n can you?")
+    )
   end
 
   def test_link_to_unless

@@ -1,5 +1,7 @@
 *SVN*
 
+* Make link_to escape the javascript in the confirm option #1964 [nicolas.pouillard@gmail.com]
+
 * Make assert_redirected_to properly check URL's passed as strings #1910 [Scott Barron]
 
 * Make sure :layout => false is always used when rendering inside a layout
