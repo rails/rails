@@ -458,7 +458,7 @@ module ActiveRecord #:nodoc:
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
-      #   Product.count "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
+      #   Product.count_by_sql "SELECT COUNT(*) FROM sales s, customers c WHERE s.customer_id = c.id"
       def count_by_sql(sql)
         sql = sanitize_conditions(sql)
         rows = connection.select_one(sql, "#{name} Count")
