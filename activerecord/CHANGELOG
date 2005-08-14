@@ -1,5 +1,7 @@
 *SVN*
 
+* Make destroy return self #1913 [sebastian.kanthak@muehlheim.de]
+
 * Fix typo in validations documentation #1938 [court3nay]
 
 * Make acts_as_list work for insert_at(1) #1966 [hensleyl@papermountain.org]
