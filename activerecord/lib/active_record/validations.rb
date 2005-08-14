@@ -179,7 +179,8 @@ module ActiveRecord
   #   person.count                        # => 2
   #   person.errors.on "last_name"        # => "can't be empty"
   #   person.errors.on "phone_number"     # => "has invalid format"
-  #   person.each_full { |msg| puts msg } # => "Last name can't be empty\n" +
+  #   person.errors.each_full { |msg| puts msg } 
+  #                                       # => "Last name can't be empty\n" +
   #                                            "Phone number has invalid format"
   #
   #   person.attributes = { "last_name" => "Heinemeier", "phone_number" => "555-555" }
