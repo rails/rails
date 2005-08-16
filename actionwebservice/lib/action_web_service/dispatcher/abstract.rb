@@ -62,6 +62,10 @@ module ActionWebService # :nodoc:
         def xmlrpc_multicall_invoke(invocations)
           responses = []
           invocations.each do |invocation|
+            if invocation.is_a?(Hash)
+              responses << invocation
+              next
+            end
             begin
               case web_service_dispatching_mode
               when :direct
@@ -120,7 +124,11 @@ module ActionWebService # :nodoc:
                 multicall_request = request.dup
                 multicall_request.method_name = method_name
                 multicall_request.method_params = params
-                web_service_invocation(multicall_request, level + 1)
+                begin
+                  web_service_invocation(multicall_request, level + 1)
+                rescue Exception => e
+                  {'faultCode' => 4, 'faultMessage' => e.message}
+                end
               end
             end
           end
