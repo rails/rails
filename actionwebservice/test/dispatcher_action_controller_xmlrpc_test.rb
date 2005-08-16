@@ -19,6 +19,25 @@ class TC_DispatcherActionControllerXmlRpc < Test::Unit::TestCase
     assert_equal(["bloggerCat1", "bloggerCat2"], blogger_cats)
   end
 
+  def test_multicall
+    response = do_method_call(@layered_controller, 'system.multicall', [
+      {'methodName' => 'mt.getCategories'},
+      {'methodName' => 'blogger.getCategories'},
+      {'methodName' => 'mt.bool'},
+      {'methodName' => 'blogger.str', 'params' => ['2000']},
+      {'methodName' => 'mt.alwaysFail'},
+      {'methodName' => 'blogger.alwaysFail'}
+    ])
+    assert_equal [
+      [["mtCat1", "mtCat2"]],
+      [["bloggerCat1", "bloggerCat2"]],
+      [true],
+      ["2500"],
+      {"faultCode" => 3, "faultString" => "MT AlwaysFail"},
+      {"faultCode" => 3, "faultString" => "Blogger AlwaysFail"}
+    ], response
+  end
+
   protected
     def exception_message(xmlrpc_fault_exception)
       xmlrpc_fault_exception.faultString

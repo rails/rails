@@ -41,7 +41,7 @@ module ActionWebService # :nodoc:
 
     class Request # :nodoc:
       attr :protocol
-      attr :method_name
+      attr_accessor :method_name
       attr_accessor :method_params
       attr :service_name
       attr_accessor :api

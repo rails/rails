@@ -16,11 +16,10 @@ module ActionWebService # :nodoc:
       private
         def invoke_web_service_request(protocol_request)
           invocation = web_service_invocation(protocol_request)
-          case web_service_dispatching_mode
-          when :direct
-            web_service_direct_invoke(invocation)
-          when :delegated, :layered
-            web_service_delegated_invoke(invocation)
+          if invocation.is_a?(Array) && protocol_request.protocol.is_a?(Protocol::XmlRpc::XmlRpcProtocol)
+            xmlrpc_multicall_invoke(invocation)
+          else
+            web_service_invoke(invocation)
           end
         end
       
@@ -47,10 +46,43 @@ module ActionWebService # :nodoc:
           if cancellation_reason
             raise(DispatcherError, "request canceled: #{cancellation_reason}")
           end
+          return_value
+        end
+        
+        def web_service_invoke(invocation)
+          case web_service_dispatching_mode
+          when :direct
+            return_value = web_service_direct_invoke(invocation)
+          when :delegated, :layered
+            return_value = web_service_delegated_invoke(invocation)
+          end
           web_service_create_response(invocation.protocol, invocation.protocol_options, invocation.api, invocation.api_method, return_value)
         end
+        
+        def xmlrpc_multicall_invoke(invocations)
+          responses = []
+          invocations.each do |invocation|
+            begin
+              case web_service_dispatching_mode
+              when :direct
+                return_value = web_service_direct_invoke(invocation)
+              when :delegated, :layered
+                return_value = web_service_delegated_invoke(invocation)
+              end
+              api_method = invocation.api_method
+              if invocation.api.has_api_method?(api_method.name)
+                return_value = api_method.cast_returns(return_value)
+              end
+              responses << [return_value]
+            rescue Exception => e
+              responses << { 'faultCode' => 3, 'faultString' => e.message }
+            end
+          end
+          invocation = invocations[0]
+          invocation.protocol.encode_response('system.multicall', responses, nil, invocation.protocol_options)
+        end
 
-        def web_service_invocation(request)
+        def web_service_invocation(request, level = 0)
           public_method_name = request.method_name
           invocation = Invocation.new
           invocation.protocol = request.protocol
@@ -67,6 +99,28 @@ module ActionWebService # :nodoc:
               if request.method_name =~ /^([^\.]+)\.(.*)$/
                 public_method_name = $2
                 invocation.service_name = $1
+              end
+            end
+          end
+          if invocation.protocol.is_a? Protocol::XmlRpc::XmlRpcProtocol
+            if public_method_name == 'multicall' && invocation.service_name == 'system'
+              if level > 0
+                raise(DispatcherError, "Recursive system.multicall invocations not allowed")
+              end
+              multicall = request.method_params.dup
+              unless multicall.is_a?(Array) && multicall[0].is_a?(Array)
+                raise(DispatcherError, "Malformed multicall (expected array of Hash elements)")
+              end
+              multicall = multicall[0]
+              return multicall.map do |item|
+                raise(DispatcherError, "Multicall elements must be Hash") unless item.is_a?(Hash)
+                raise(DispatcherError, "Multicall elements must contain a 'methodName' key") unless item.has_key?('methodName')
+                method_name = item['methodName']
+                params = item.has_key?('params') ? item['params'] : []
+                multicall_request = request.dup
+                multicall_request.method_name = method_name
+                multicall_request.method_params = params
+                web_service_invocation(multicall_request, level + 1)
               end
             end
           end

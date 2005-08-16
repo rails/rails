@@ -107,11 +107,15 @@ module DispatcherTest
   class MTAPI < ActionWebService::API::Base
     inflect_names false
     api_method :getCategories, :returns => [[:string]]
+    api_method :bool, :returns => [:bool]
+    api_method :alwaysFail
   end
 
   class BloggerAPI < ActionWebService::API::Base
     inflect_names false
     api_method :getCategories, :returns => [[:string]]
+    api_method :str, :expects => [:int], :returns => [:string]
+    api_method :alwaysFail
   end
 
   class MTService < ActionWebService::Base
@@ -120,6 +124,14 @@ module DispatcherTest
     def getCategories
       ["mtCat1", "mtCat2"]
     end
+    
+    def bool
+      'y'
+    end
+    
+    def alwaysFail
+      raise "MT AlwaysFail"
+    end
   end
 
   class BloggerService < ActionWebService::Base
@@ -127,6 +139,17 @@ module DispatcherTest
 
     def getCategories
       ["bloggerCat1", "bloggerCat2"]
+    end
+
+    def str(int)
+      unless int.is_a?(Integer)
+        raise "Not an integer!"
+      end
+      500 + int
+    end
+
+    def alwaysFail
+      raise "Blogger AlwaysFail"
     end
   end
 
@@ -439,8 +462,8 @@ module DispatcherCommonTests
           public_method_name = real_method_name
           request_env['HTTP_SOAPACTION'] = "/soap/#{service_name}/#{real_method_name}"
         end
-        api = container.web_service_object(service_name.to_sym).class.web_service_api
-        method = api.public_api_method_instance(real_method_name)
+        api = container.web_service_object(service_name.to_sym).class.web_service_api rescue nil
+        method = api.public_api_method_instance(real_method_name) rescue nil
         service_name = self.service_name(container)
       end
       protocol.register_api(api)
