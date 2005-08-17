@@ -1,5 +1,7 @@
 *SVN*
 
+* Added CVS module (very very experimental!)
+
 * Works with public keys now, for passwordless deployment
 
 * Subversion module recognizes the password prompt for HTTP authentication
