@@ -1,4 +1,15 @@
 #!/usr/local/bin/ruby
-if not system "switchtower #{ARGV.join(" ")}"
-  abort "Could not execute switchtower. Is it installed?"
+
+VENDOR = File.dirname(__FILE__) + "/../vendor"
+
+$:.unshift "#{VENDOR}/switchtower/lib"
+
+if File.directory?("#{VENDOR}/rails/switchtower")
+  $:.unshift "#{VENDOR}/rails/switchtower/lib"
+  load "#{VENDOR}/rails/switchtower/bin/switchtower"
+elsif File.directory?("#{VENDOR}/switchtower")
+  $:.unshift "#{VENDOR}/switchtower/lib"
+  load "#{VENDOR}/switchtower/bin/switchtower"
+elsif not system "switchtower #{ARGV.join(" ")}"
+  raise "could not locate switchtower to execute it"
 end
