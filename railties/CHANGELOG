@@ -1,5 +1,7 @@
 *SVN*
 
+* Replace render_partial with render :partial in scaffold generator [Nicholas Seckar]
+
 * Make the rake tasks (like fresh_rails_without_docs_using_links) aware of switchtower
 
 * Added -w flag to ps in process/reaper #1934 [Scott Barron]
