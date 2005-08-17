@@ -32,6 +32,11 @@ module ActionController #:nodoc:
       #   # the session will only work over HTTPS, but only for the foo action
       #   session :only => :foo, :session_secure => true
       #
+      #   # the session will only be disabled for 'foo', and only if it is
+      #   # requested as a web service
+      #   session :off, :only => :foo,
+      #           :if => Proc.new { |req| req.parameters[:ws] }
+      #
       # All session options described for ActionController::Base.process_cgi
       # are valid arguments.
       def session(*args)
@@ -47,11 +52,12 @@ module ActionController #:nodoc:
         write_inheritable_array("session_options", [options])
       end
 
-      def session_options_for(action) #:nodoc:
+      def session_options_for(request, action) #:nodoc:
         options = {}
 
         action = action.to_s
         (read_inheritable_attribute("session_options") || []).each do |opts|
+          next if opts[:if] && !opts[:if].call(request)
           if opts[:only] && opts[:only].include?(action)
             options.merge!(opts)
           elsif opts[:except] && !opts[:except].include?(action)
@@ -63,6 +69,7 @@ module ActionController #:nodoc:
 
         options.delete :only
         options.delete :except
+        options.delete :if
 
         options[:disabled] ? false : options
       end
@@ -70,7 +77,7 @@ module ActionController #:nodoc:
 
     def process_with_session_management_support(request, response, method = :perform_action, *arguments) #:nodoc:
       action = request.parameters["action"] || "index"
-      request.session_options = self.class.session_options_for(action)
+      request.session_options = self.class.session_options_for(request, action)
       process_without_session_management_support(request, response, method, *arguments)
     end
   end

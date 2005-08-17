@@ -16,6 +16,8 @@ class SessionManagementTest < Test::Unit::TestCase
   class TestController < ActionController::Base
     session :off, :only => :show
     session :session_secure => true, :except => :show
+    session :off, :only => :conditional,
+            :if => Proc.new { |r| r.parameters[:ws] }
 
     def show
       render_text "done"
@@ -23,6 +25,10 @@ class SessionManagementTest < Test::Unit::TestCase
 
     def tell
       render_text "done"
+    end
+
+    def conditional
+      render_text ">>>#{params[:ws]}<<<"
     end
   end
 
@@ -65,6 +71,14 @@ class SessionManagementTest < Test::Unit::TestCase
     get :something
     assert_instance_of Hash, @request.session_options
     get :another
+    assert_equal false, @request.session_options
+  end
+
+  def test_session_off_with_if
+    @controller = TestController.new
+    get :conditional
+    assert_instance_of Hash, @request.session_options
+    get :conditional, :ws => "ws"
     assert_equal false, @request.session_options
   end
 end
