@@ -154,6 +154,13 @@ task :copy_configs do
   cp "configs/database.yml", "#{PKG_DESTINATION}/config/database.yml"
   cp "configs/routes.rb", "#{PKG_DESTINATION}/config/routes.rb"
 
+  require 'erb'
+  File.open("#{PKG_DESTINATION}/config/deploy.rb", "w") do |file|
+    template = File.read("configs/deploy.rb")
+    destination_root = PKG_DESTINATION
+    file.write ERB.new(template).result(binding)
+  end
+
   cp "configs/apache.conf", "#{PKG_DESTINATION}/public/.htaccess"
 
   cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
