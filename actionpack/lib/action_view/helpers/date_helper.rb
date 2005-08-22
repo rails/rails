@@ -181,16 +181,20 @@ module ActionView
       #   select_month(Date.today, :add_month_numbers => true) # Will use keys like "1 - January", "3 - March"
       #
       # Override the field name using the <tt>:field_name</tt> option, 'month' by default.
+      #
+      # If you would prefer to show month names as abbreviations, set the
+      # <tt>:use_short_month</tt> key in +options+ to true.
       def select_month(date, options = {})
         month_options = []
+        month_names = options[:use_short_month] ? Date::ABBR_MONTHNAMES : Date::MONTHNAMES
 
         1.upto(12) do |month_number|
           month_name = if options[:use_month_numbers]
             month_number
           elsif options[:add_month_numbers]
-            month_number.to_s + ' - ' + Date::MONTHNAMES[month_number]
+            month_number.to_s + ' - ' + month_names[month_number]
           else
-            Date::MONTHNAMES[month_number]
+            month_names[month_number]
           end
 
           month_options << ((date && (date.kind_of?(Fixnum) ? date : date.month) == month_number) ?

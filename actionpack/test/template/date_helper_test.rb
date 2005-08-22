@@ -130,6 +130,24 @@ class DateHelperTest < Test::Unit::TestCase
     assert_equal expected, select_month(8, :add_month_numbers => true)
   end
 
+  def test_select_month_with_numbers_and_names_with_abbv
+    expected = %(<select name="date[month]">\n)
+    expected << %(<option value="1">1 - Jan</option>\n<option value="2">2 - Feb</option>\n<option value="3">3 - Mar</option>\n<option value="4">4 - Apr</option>\n<option value="5">5 - May</option>\n<option value="6">6 - Jun</option>\n<option value="7">7 - Jul</option>\n<option value="8" selected="selected">8 - Aug</option>\n<option value="9">9 - Sep</option>\n<option value="10">10 - Oct</option>\n<option value="11">11 - Nov</option>\n<option value="12">12 - Dec</option>\n)
+    expected << "</select>\n"
+
+    assert_equal expected, select_month(Time.mktime(2003, 8, 16), :add_month_numbers => true, :use_short_month => true)
+    assert_equal expected, select_month(8, :add_month_numbers => true, :use_short_month => true)
+  end
+
+  def test_select_month_with_abbv
+    expected = %(<select name="date[month]">\n)
+    expected << %(<option value="1">Jan</option>\n<option value="2">Feb</option>\n<option value="3">Mar</option>\n<option value="4">Apr</option>\n<option value="5">May</option>\n<option value="6">Jun</option>\n<option value="7">Jul</option>\n<option value="8" selected="selected">Aug</option>\n<option value="9">Sep</option>\n<option value="10">Oct</option>\n<option value="11">Nov</option>\n<option value="12">Dec</option>\n)
+    expected << "</select>\n"
+
+    assert_equal expected, select_month(Time.mktime(2003, 8, 16), :use_short_month => true)
+    assert_equal expected, select_month(8, :use_short_month => true)
+  end
+
   def test_select_year
     expected = %(<select name="date[year]">\n)
     expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
