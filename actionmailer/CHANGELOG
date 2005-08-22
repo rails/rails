@@ -1,5 +1,7 @@
 *SVN*
 
+* Move mailer initialization to a separate (overridable) method, so that subclasses may alter the various defaults #1727
+
 * Look at content-location header (if available) to determine filename of attachments #1670
 
 * ActionMailer::Base.deliver(email) had been accidentally removed, but was documented in the Rails book #1849

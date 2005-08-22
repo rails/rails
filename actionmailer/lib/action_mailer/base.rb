@@ -199,15 +199,7 @@ module ActionMailer #:nodoc:
     # Initialize the mailer via the given +method_name+. The body will be
     # rendered and a new TMail::Mail object created.
     def create!(method_name, *parameters) #:nodoc:
-      @bcc = @cc = @from = @recipients = @sent_on = @subject = nil
-      @charset = @@default_charset.dup
-      @content_type = @@default_content_type.dup
-      @implicit_parts_order = @@default_implicit_parts_order.dup
-      @template = method_name
-      @parts = []
-      @headers = {}
-      @body = {}
-
+      initialize_defaults(method_name)
       send(method_name, *parameters)
 
       # If an explicit, textual body has not been set, we check assumptions.
@@ -268,6 +260,20 @@ module ActionMailer #:nodoc:
     end
 
     private
+      # Set up the default values for the various instance variables of this
+      # mailer. Subclasses may override this method to provide different
+      # defaults.
+      def initialize_defaults(method_name)
+        @bcc = @cc = @from = @recipients = @sent_on = @subject = nil
+        @charset = @@default_charset.dup
+        @content_type = @@default_content_type.dup
+        @implicit_parts_order = @@default_implicit_parts_order.dup
+        @template = method_name
+        @parts = []
+        @headers = {}
+        @body = {}
+      end
+
       def render_message(method_name, body)
         initialize_template_class(body).render_file(method_name)
       end
