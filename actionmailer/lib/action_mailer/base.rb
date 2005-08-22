@@ -156,7 +156,7 @@ module ActionMailer #:nodoc:
 
     adv_attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers,
                       :bcc, :cc, :charset, :content_type, :implicit_parts_order,
-                      :template
+                      :template, :mailer_name
 
     attr_reader       :mail
 
@@ -269,17 +269,23 @@ module ActionMailer #:nodoc:
         @content_type = @@default_content_type.dup
         @implicit_parts_order = @@default_implicit_parts_order.dup
         @template = method_name
+        @mailer_name = Inflector.underscore(self.class.name)
         @parts = []
         @headers = {}
         @body = {}
       end
 
       def render_message(method_name, body)
-        initialize_template_class(body).render_file(method_name)
+        render :file => method_name, :body => body
       end
-        
+
+      def render(opts)
+        body = opts.delete(:body)
+        initialize_template_class(body).render(opts)
+      end
+
       def template_path
-        template_root + "/" + Inflector.underscore(self.class.name)
+        "#{template_root}/#{mailer_name}"
       end
 
       def initialize_template_class(assigns)
