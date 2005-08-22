@@ -110,6 +110,9 @@ module ActionMailer #:nodoc:
   #   pick a different charset from inside a method with <tt>@charset</tt>.
   # * <tt>default_content_type</tt> - The default content type used for main part of the message. Defaults to "text/plain". You
   #   can also pick a different content type from inside a method with <tt>@content_type</tt>. 
+  # * <tt>default_mime_version</tt> - The default mime version used for the message. Defaults to nil. You
+  #   can also pick a different value from inside a method with <tt>@mime_version</tt>. When multipart messages are in
+  #   use, <tt>@mime_version</tt> will be set to "1.0" if it is not set inside a method.
   # * <tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assemble from templates
   #   which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
   #   ["text/html", "text/enriched", "text/plain"]. Items that appear first in the array have higher priority in the mail client
@@ -150,13 +153,16 @@ module ActionMailer #:nodoc:
 
     @@default_content_type = "text/plain"
     cattr_accessor :default_content_type
+    
+    @@default_mime_version = nil
+    cattr_accessor :default_mime_version
 
     @@default_implicit_parts_order = [ "text/html", "text/enriched", "text/plain" ]
     cattr_accessor :default_implicit_parts_order
 
     adv_attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers,
                       :bcc, :cc, :charset, :content_type, :implicit_parts_order,
-                      :template, :mailer_name
+                      :template, :mailer_name, :mime_version
 
     attr_reader       :mail
 
@@ -206,7 +212,8 @@ module ActionMailer #:nodoc:
       unless String === @body
         # First, we look to see if there are any likely templates that match,
         # which include the content-type in their file name (i.e.,
-        # "the_template_file.text.html.rhtml", etc.).
+        # "the_template_file.text.html.rhtml", etc.). Only do this if parts
+        # have not already been specified manually.
         if @parts.empty?
           templates = Dir.glob("#{template_path}/#{@template}.*")
           templates.each do |path|
@@ -238,6 +245,10 @@ module ActionMailer #:nodoc:
           @body = nil
         end
       end
+
+      # If this is a multipart e-mail add the mime_version if it is not
+      # already set.
+      @mime_version ||= "1.0" if !@parts.empty?
 
       # build the mail object itself
       @mail = create_mail
@@ -273,6 +284,7 @@ module ActionMailer #:nodoc:
         @parts = []
         @headers = {}
         @body = {}
+        @mime_version = @@default_mime_version.dup if @@default_mime_version
       end
 
       def render_message(method_name, body)
@@ -329,6 +341,7 @@ module ActionMailer #:nodoc:
         m.bcc = quote_address_if_necessary(bcc, charset) unless bcc.nil?
         m.cc  = quote_address_if_necessary(cc, charset) unless cc.nil?
 
+        m.mime_version = mime_version unless mime_version.nil?
         m.date = sent_on.to_time rescue sent_on if sent_on
         headers.each { |k, v| m[k] = v }
 

@@ -94,6 +94,23 @@ class TestMailer < ActionMailer::Base
     @charset    = "utf-8"
   end
 
+  def multipart_with_mime_version(recipient)
+    recipients   recipient
+    subject      "multipart with mime_version"
+    from         "test@example.com"
+    sent_on      Time.local(2004, 12, 12)
+    mime_version "1.1"
+    content_type "multipart/alternative"
+
+    part "text/plain" do |p|
+      p.body = "blah"
+    end
+
+    part "text/html" do |p|
+      p.body = "<b>blah</b>"
+    end
+  end
+
   def explicitly_multipart_example(recipient, ct=nil)
     recipients   recipient
     subject      "multipart example"
@@ -239,6 +256,7 @@ class ActionMailerTest < Test::Unit::TestCase
     expected.body    = "Hello there, \n\nMr. #{@recipient}"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
+    expected.mime_version = nil
 
     created = nil
     assert_nothing_raised { created = TestMailer.create_signed_up(@recipient) }
@@ -552,6 +570,11 @@ EOF
     assert_nothing_raised { mail.body }
   end
 
+  def test_multipart_with_mime_version
+    mail = TestMailer.create_multipart_with_mime_version(@recipient)
+    assert_equal "1.1", mail.mime_version
+  end
+
   def test_explicitly_multipart_messages
     mail = TestMailer.create_explicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length
@@ -585,6 +608,7 @@ EOF
   def test_implicitly_multipart_messages
     mail = TestMailer.create_implicitly_multipart_example(@recipient)
     assert_equal 3, mail.parts.length
+    assert_equal "1.0", mail.mime_version
     assert_equal "multipart/alternative", mail.content_type
     assert_equal "text/yaml", mail.parts[0].content_type
     assert_equal "utf-8", mail.parts[0].sub_header("content-type", "charset")

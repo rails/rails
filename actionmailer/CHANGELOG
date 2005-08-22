@@ -1,5 +1,7 @@
 *SVN*
 
+* Multipart messages specify a MIME-Version header automatically #2003 [John Long]
+
 * Add a unified render method to ActionMailer (delegates to ActionView::Base#render)
 
 * Move mailer initialization to a separate (overridable) method, so that subclasses may alter the various defaults #1727
