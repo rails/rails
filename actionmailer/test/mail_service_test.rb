@@ -527,6 +527,13 @@ EOF
     assert_equal 1026, attachment.read.length
   end
 
+  def test_attachment_using_content_location
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email12")
+    mail = TMail::Mail.parse(fixture)
+    assert_equal 1, mail.attachments.length
+    assert_equal "Photo25.jpg", mail.attachments.first.original_filename
+  end
+
   def test_decode_part_without_content_type
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email4")
     mail = TMail::Mail.parse(fixture)

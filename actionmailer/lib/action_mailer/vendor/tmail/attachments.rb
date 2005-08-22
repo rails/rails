@@ -15,7 +15,9 @@ module TMail
         parts.collect { |part| 
           if part.header["content-type"].main_type != "text"
             content   = part.body # unquoted automatically by TMail#body
-            file_name = part.sub_header("content-type", "name") ||
+            file_name = (part['content-location'] &&
+                          part['content-location'].body) ||
+                        part.sub_header("content-type", "name") ||
                         part.sub_header("content-disposition", "filename")
             
             next if file_name.blank? || content.blank?

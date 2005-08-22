@@ -1,5 +1,7 @@
 *SVN*
 
+* Look at content-location header (if available) to determine filename of attachments #1670
+
 * ActionMailer::Base.deliver(email) had been accidentally removed, but was documented in the Rails book #1849
 
 * Fix problem with sendmail delivery where headers should be delimited by \n characters instead of \r\n, which confuses some mail readers #1742 [Kent Sibilev]
