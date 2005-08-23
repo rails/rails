@@ -1,5 +1,7 @@
 *SVN*
 
+* Prevent the benchmark module from blowing up if a non-HTTP/1.1 request is processed
+
 * Added :use_short_month option to select_month helper to show month names as abbreviations
 
 * Make link_to escape the javascript in the confirm option #1964 [nicolas.pouillard@gmail.com]
