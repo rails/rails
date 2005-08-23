@@ -21,7 +21,7 @@ module ActionController
   #   class PersonController < ApplicationController   
   #     model :person
   #
-  #     paginate :people, :order_by => 'last_name, first_name',
+  #     paginate :people, :order => 'last_name, first_name',
   #              :per_page => 20
   #     
   #     # ...
@@ -37,7 +37,7 @@ module ActionController
   #
   #   def list
   #     @person_pages, @people =
-  #       paginate :people, :order_by => 'last_name, first_name'
+  #       paginate :people, :order => 'last_name, first_name'
   #   end
   #
   # Like the previous example, but explicitly creates <tt>@person_pages</tt>
@@ -48,8 +48,8 @@ module ActionController
   #
   #   def list
   #     @person_pages = Paginator.new self, Person.count, 10, @params['page']
-  #     @people = Person.find_all nil, 'last_name, first_name', 
-  #               @person_pages.current.to_sql
+  #     @people = Person.find :all, :order => 'last_name, first_name', 
+  #               :conditions => @person_pages.current.to_sql
   #   end
   # 
   # Explicitly creates the paginator from the previous example and uses 
@@ -66,7 +66,10 @@ module ActionController
         :per_page   => 10,
         :conditions => nil,
         :order_by   => nil,
+        :order      => nil,
         :join       => nil,
+        :joins      => nil,
+        :include    => nil,
         :select     => nil,
         :parameter  => 'page'
       }
@@ -102,10 +105,15 @@ module ActionController
     #                        singularizing the collection name
     # <tt>:per_page</tt>::   the maximum number of items to include in a 
     #                        single page. Defaults to 10
-    # <tt>:conditions</tt>:: optional conditions passed to Model.find_all and
+    # <tt>:conditions</tt>:: optional conditions passed to Model.find(:all, *params) and
     #                        Model.count
-    # <tt>:order_by</tt>::   optional order parameter passed to Model.find_all
-    # <tt>:join</tt>::       optional join parameter passed to Model.find_all
+    # <tt>:order</tt>::      optional order parameter passed to Model.find(:all, *params)
+    # <tt>:order_by</tt>::   (deprecated, used :order) optional order parameter passed to Model.find(:all, *params)
+    # <tt>:joins</tt>::      optional joins parameter passed to Model.find(:all, *params)
+    #                        and Model.count
+    # <tt>:join</tt>::       (deprecated, used :joins or :include) optional join parameter passed to Model.find(:all, *params)
+    #                        and Model.count
+    # <tt>:include</tt>::    optional eager loading parameter passed to Model.find(:all, *params)
     #                        and Model.count
     def paginate(collection_id, options={})
       Pagination.validate_options!(collection_id, options, true)
@@ -159,9 +167,11 @@ module ActionController
     # ordered by +options[order_by]+, for the current page in the given +paginator+.
     # Override this method to implement a custom finder.
     def find_collection_for_pagination(model, options, paginator)
-      model.find(:all, :conditions => options[:conditions], :order => options[:order_by],
-                 :joins => options[:join],  :select => options[:select],
-                 :limit => options[:per_page], :offset => paginator.current.offset)
+      model.find(:all, :conditions => options[:conditions],
+                 :order => options[:order_by] || options[:order],
+                 :joins => options[:join] || options[:joins], :include => options[:include],
+                 :select => options[:select], :limit => options[:per_page],
+                 :offset => paginator.current.offset)
     end
   
     protected :create_paginators_and_retrieve_collections,
@@ -171,7 +181,8 @@ module ActionController
     def paginator_and_collection_for(collection_id, options) #:nodoc:
       klass = options[:class_name].constantize
       page  = @params[options[:parameter]]
-      count = count_collection_for_pagination(klass, options[:conditions], options[:join])
+      count = count_collection_for_pagination(klass, options[:conditions],
+                                              options[:join] || options[:joins])
 
       paginator = Paginator.new(self, count, options[:per_page], page)
       collection = find_collection_for_pagination(klass, options, paginator)
