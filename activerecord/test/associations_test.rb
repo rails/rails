@@ -5,6 +5,8 @@ require 'fixtures/company'
 require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/computer'
+require 'fixtures/customer'
+require 'fixtures/order'
 
 # Can't declare new classes in test case methods, so tests before that
 bad_collection_keys = false
@@ -769,6 +771,45 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
 
     apple.clients.to_s 
     assert_equal 1, apple.clients.size, "Should not use the cached number, but go to the database"
+  end
+
+  def test_store_two_association_with_one_save
+    num_orders = Order.count
+    num_customers = Customer.count
+    order = Order.new 
+
+    customer1 = order.billing = Customer.new
+    customer2 = order.shipping = Customer.new 
+    assert order.save
+    assert_equal customer1, order.billing
+    assert_equal customer2, order.shipping
+
+    order.reload
+
+    assert_equal customer1, order.billing
+    assert_equal customer2, order.shipping        
+
+    assert_equal num_orders +1, Order.count
+    assert_equal num_customers +2, Customer.count
+  end
+  
+  def test_store_association_in_two_relations_with_one_save
+    num_orders = Order.count
+    num_customers = Customer.count
+    order = Order.new 
+    
+    customer = order.billing = order.shipping = Customer.new 
+    assert order.save
+    assert_equal customer, order.billing
+    assert_equal customer, order.shipping
+    
+    order.reload
+    
+    assert_equal customer, order.billing
+    assert_equal customer, order.shipping        
+    
+    assert_equal num_orders +1, Order.count
+    assert_equal num_customers +1, Customer.count
   end
   
 end

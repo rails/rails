@@ -445,10 +445,12 @@ module ActiveRecord
         module_eval do
           before_save <<-EOF
             association = instance_variable_get("@#{association_name}")
-            if not association.nil? and association.new_record?
-              association.save(true)
+            if not association.nil?               
+              if association.new_record?
+                association.save(true)
+                association.send(:construct_sql)
+              end
               self["#{association_class_primary_key_name}"] = association.id
-              association.send(:construct_sql)
             end
           EOF
         end

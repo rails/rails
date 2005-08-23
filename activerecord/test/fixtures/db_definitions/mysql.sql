@@ -56,6 +56,14 @@ CREATE TABLE `developers_projects` (
   `access_level` smallint default 1
 ) TYPE=InnoDB;
 
+CREATE TABLE `orders` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(100) default NULL,
+  `billing_customer_id` int(11) default NULL,
+  `shipping_customer_id` int(11) default NULL,
+  PRIMARY KEY  (`id`)
+) TYPE=InnoDB;
+
 CREATE TABLE `customers` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(100) default NULL,

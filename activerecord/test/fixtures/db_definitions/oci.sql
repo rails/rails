@@ -89,6 +89,15 @@ create table developers_projects (
 );
 create sequence developers_projects_seq minvalue 10000;
 
+create table orders (
+    id integer not null,
+    name varchar(100) default null,
+    billing_customer_id integer default null,
+    shipping_customer_id integer default null,
+    primary key (id)
+);
+create sequence orders_seq minvalue 10000;
+
 create table customers (
     id integer not null,
     name varchar(100) default null,

@@ -72,6 +72,15 @@ CREATE TABLE customers (
 );
 SELECT setval('customers_id_seq', 100);
 
+CREATE TABLE orders (
+    id serial,
+    name character varying,
+    billing_customer_id integer,
+    shipping_customer_id integer,
+    PRIMARY KEY (id)
+);
+SELECT setval('orders_id_seq', 100);
+
 CREATE TABLE movies (
     movieid serial,
     name text,

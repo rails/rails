@@ -51,6 +51,14 @@ CREATE TABLE 'developers_projects' (
   'access_level' INTEGER DEFAULT 1
 );
 
+
+CREATE TABLE 'orders' (
+  'id' INTEGER PRIMARY KEY NOT NULL,
+  'name' VARCHAR(255) DEFAULT NULL,
+  'billing_customer_id' INTEGER DEFAULT NULL,
+  'shipping_customer_id' INTEGER DEFAULT NULL
+);
+
 CREATE TABLE 'customers' (
   'id' INTEGER PRIMARY KEY NOT NULL,
   'name' VARCHAR(255) DEFAULT NULL,

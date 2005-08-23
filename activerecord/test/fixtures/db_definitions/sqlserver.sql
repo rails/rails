@@ -50,6 +50,14 @@ CREATE TABLE developers_projects (
   access_level int default 1
 );
 
+CREATE TABLE orders (
+  id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+  name varchar(100) default NULL,
+  billing_customer_id int default NULL,
+  shipping_customer_id int default NULL
+);
+
+
 CREATE TABLE customers (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
   name varchar(100) default NULL,
