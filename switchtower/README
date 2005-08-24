@@ -21,7 +21,9 @@ As with the rest of Rails, if you can abide by these assumptions, you can use Sw
 
 == Usage
 
-More documentation is always pending, but you'll want to see the user manual for detailed usage instructions. In general, you'll use SwitchTower as follows:
+More documentation is always pending, but you'll want to see the user manual for detailed usage instructions. (The manual is online at http://manuals.rubyonrails.com/read/book/17).
+
+In general, you'll use SwitchTower as follows:
 
 * Create a deployment recipe ("deploy.rb") for your application. You can use the sample recipe in examples/sample.rb as a starting point.
 * Use the +switchtower+ script to execute your recipe (see below).

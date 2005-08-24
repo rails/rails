@@ -18,7 +18,6 @@ class ConfigurationTest < Test::Unit::TestCase
 
   class MockSCM
     attr_reader   :configuration
-    attr_accessor :latest_revision
 
     def initialize(config)
       @configuration = config
@@ -184,8 +183,7 @@ class ConfigurationTest < Test::Unit::TestCase
 
   def test_release_path_implicit
     @config.set :deploy_to, "/start/of/path"
-    @config.source.latest_revision = 2257
-    assert_equal "/start/of/path/releases/2257", @config.release_path
+    assert_equal "/start/of/path/releases/#{@config.now.strftime("%Y%m%d%H%M%S")}", @config.release_path
   end
 
   def test_release_path_explicit

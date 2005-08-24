@@ -26,12 +26,17 @@ module SwitchTower
     # The load paths used for locating recipe files.
     attr_reader :load_paths
 
+    # The time (in UTC) at which this configuration was created, used for
+    # determining the release path.
+    attr_reader :now
+
     def initialize(actor_class=Actor) #:nodoc:
       @roles = Hash.new { |h,k| h[k] = [] }
       @actor = actor_class.new(self)
       @logger = Logger.new
       @load_paths = [".", File.join(File.dirname(__FILE__), "recipes")]
       @variables = {}
+      @now = Time.now.utc
 
       set :application, nil
       set :repository,  nil
@@ -165,10 +170,10 @@ module SwitchTower
       File.join(deploy_to, shared_dir)
     end
 
-    # Return the full path to the named revision (defaults to the most current
-    # revision in the repository).
-    def release_path(revision=source.latest_revision)
-      File.join(releases_path, revision)
+    # Return the full path to the named release. If a release is not specified,
+    # +now+ is used (the time at which the configuration was created).
+    def release_path(release=now.strftime("%Y%m%d%H%M%S"))
+      File.join(releases_path, release)
     end
 
     def respond_to?(sym) #:nodoc:

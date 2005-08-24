@@ -44,6 +44,10 @@ class ScmCvsTest < Test::Unit::TestCase
       story.each { |stream, line| yield @channels.last, stream, line }
     end
 
+    def release_path
+      (@config[:now] || Time.now.utc).strftime("%Y%m%d%H%M%S")
+    end
+
     def method_missing(sym, *args)
       @config.send(sym, *args)
     end
@@ -55,6 +59,7 @@ class ScmCvsTest < Test::Unit::TestCase
     @config[:local] = "/hello/world"
     @config[:cvs] = "/path/to/cvs"
     @config[:password] = "chocolatebrownies"
+    @config[:now] = Time.utc(2005,8,24,12,0,0)
     @scm = CvsTest.new(@config)
     @actor = MockActor.new(@config)
     @log_msg = <<MSG.strip
@@ -140,7 +145,7 @@ MSG
 
   def test_latest_revision
     @scm.story = [ @log_msg ]
-    assert_equal "2004-10-12T02:21:02", @scm.latest_revision
+    assert_equal "2004-10-12 02:21:02", @scm.latest_revision
     assert_equal "/hello/world", @scm.last_path
   end
 

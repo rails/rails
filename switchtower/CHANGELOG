@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed behavior of checkout to use the timestamp as the release name, instead of the revision number
+
 * Added CVS module (very very experimental!)
 
 * Works with public keys now, for passwordless deployment

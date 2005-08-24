@@ -248,7 +248,7 @@ module SwitchTower
           buffer << out if str == :out
           raise "could not determine releases #{out.inspect}" if str == :err
         end
-        @releases = buffer.split.map { |i| i.to_i }.sort
+        @releases = buffer.split.sort
       end
 
       @releases

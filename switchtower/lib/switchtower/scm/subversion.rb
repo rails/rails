@@ -1,3 +1,5 @@
+require 'switchtower/scm/base'
+
 module SwitchTower
   module SCM
 
@@ -12,13 +14,7 @@ module SwitchTower
     # executable on the remote machine:
     #
     #   set :svn, "/opt/local/bin/svn"
-    class Subversion
-      attr_reader :configuration
-
-      def initialize(configuration) #:nodoc:
-        @configuration = configuration
-      end
-
+    class Subversion < Base
       # Return an integer identifying the last known revision in the svn
       # repository. (This integer is currently the revision number.) If latest
       # revision does not exist in the given repository, this routine will
@@ -64,9 +60,9 @@ module SwitchTower
               prefix
             ch.send_data "yes\n"
           elsif out =~ %r{passphrase}
-            message = "subversion needs your key's passphrase and cannot proceed"
+            message = "subversion needs your key's passphrase, sending empty string"
             actor.logger.info message, prefix
-            raise message
+            ch.send_data "\n"
           elsif out =~ %r{The entry \'(\w+)\' is no longer a directory}
             message = "subversion can't update because directory '#{$1}' was replaced. Please add it to svn:ignore."
             actor.logger.info message, prefix
