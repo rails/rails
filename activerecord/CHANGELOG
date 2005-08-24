@@ -1,7 +1,5 @@
 *SVN*
 
-* Saving a record with two unsaved belongs_to associations pointing to the same object fails #2023 [Tobias Luetke]
-
 * Make destroy return self #1913 [sebastian.kanthak@muehlheim.de]
 
 * Fix typo in validations documentation #1938 [court3nay]

@@ -7,6 +7,8 @@ require 'fixtures/reply'
 require 'fixtures/computer'
 require 'fixtures/customer'
 require 'fixtures/order'
+require 'fixtures/post'
+require 'fixtures/author'
 
 # Can't declare new classes in test case methods, so tests before that
 bad_collection_keys = false
@@ -813,12 +815,21 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
   end
 
   def test_association_assignment_sticks
-    client = Client.find(:first)
-    apple = Firm.create("name" => "Apple")
-    client.firm = apple
-    client.save!
-    client.reload
-    assert_equal apple.id, client.firm_id
+    post = Post.find(:first)
+    author1, author2 = Author.find(:all, :limit => 2)
+
+    # make sure the association is loaded
+    post.author
+
+    # set the association by id, directly
+    post.author_id = author2.id
+
+    # save and reload
+    post.save!
+    post.reload
+
+    # the author id of the post should be the id we set
+    assert_equal post.author_id, author2.id
   end
   
 end
