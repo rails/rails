@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix invalid XML request generation bug in test_invoke [Ken Barker]
+
 * Add XML-RPC 'system.multicall' support #1941 [jbonnar]
 
 * Fix duplicate XSD entries for custom types shared across delegated/layered services #1729 [Tyler Kovacs]

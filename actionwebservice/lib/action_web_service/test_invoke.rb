@@ -82,7 +82,7 @@ module Test # :nodoc:
 
         def protocol
           if @protocol.nil?
-            @protocol ||= ActionWebService::Protocol::Soap::SoapProtocol.new(@controller)
+            @protocol ||= ActionWebService::Protocol::Soap::SoapProtocol.create(@controller)
           else
             case @protocol
             when :xmlrpc
