@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow the --toggle-spin switch on process/reaper to be negated
+
 * Replace render_partial with render :partial in scaffold generator [Nicholas Seckar]
 
 * Make the rake tasks (like fresh_rails_without_docs_using_links) aware of switchtower

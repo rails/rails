@@ -114,7 +114,7 @@ ARGV.options do |opts|
   opts.on("-a", "--action=name", "reload|graceful|kill (default: #{OPTIONS[:action]})", String)  { |OPTIONS[:action]| }
   opts.on("-d", "--dispatcher=path", "default: #{OPTIONS[:dispatcher]}", String)                 { |OPTIONS[:dispatcher]| }
   opts.on("-s", "--spinner=path", "default: #{OPTIONS[:spinner]}", String)                       { |OPTIONS[:spinner]| }
-  opts.on("-t", "--toggle-spin", "Whether to send a USR1 to the spinner before and after the reaping (default: true)") { |OPTIONS[:toggle_spin]| }
+  opts.on("-t", "--[no-]toggle-spin", "Whether to send a USR1 to the spinner before and after the reaping (default: true)") { |OPTIONS[:toggle_spin]| }
   opts.on("-n", "--nudge=url", "Should point to URL that's handled by the FCGI process", String) { |OPTIONS[:nudge]| }
   opts.on("-i", "--iterations=number", "One nudge per FCGI process running (default: #{OPTIONS[:iterations]})", Integer) { |OPTIONS[:iterations]| }
 
