@@ -3,7 +3,7 @@ require './lib/switchtower/version'
 Gem::Specification.new do |s|
 
   s.name = 'switchtower'
-  s.version = SwitchTower::Version::STRING
+  s.version = PKG_VERSION
   s.platform = Gem::Platform::RUBY
   s.summary = <<-DESC.strip.gsub(/\n/, " ")
     SwitchTower is a framework and utility for executing commands in parallel
