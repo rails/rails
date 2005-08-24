@@ -811,6 +811,15 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert_equal num_orders +1, Order.count
     assert_equal num_customers +1, Customer.count
   end
+
+  def test_association_assignment_sticks
+    client = Client.find(:first)
+    apple = Firm.create("name" => "Apple")
+    client.firm = apple
+    client.save!
+    client.reload
+    assert_equal apple.id, client.firm_id
+  end
   
 end
 
