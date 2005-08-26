@@ -19,10 +19,14 @@ module ActionController
         end
       end
 
-      def treat_hash(hash)
+      def treat_hash(hash, keys_to_delete = [])
         k = v = nil
         hash.each do |k, v|
-          hash[k] = (v.respond_to? :to_param) ? v.to_param.to_s : v.to_s if v
+          if v then hash[k] = (v.respond_to? :to_param) ? v.to_param.to_s : v.to_s
+          else
+            hash.delete k
+            keys_to_delete << k
+          end
         end
         hash
       end
@@ -393,8 +397,12 @@ module ActionController
           options[:controller] = Routing.controller_relative_to(controller, recall_controller)
         end
         options = recall.dup if options.empty? # XXX move to url_rewriter?
-        Routing.treat_hash(options) # XXX Move inwards (to generated code) or inline?
+        
+        keys_to_delete = []
+        Routing.treat_hash(options, keys_to_delete)
+        
         merged = recall.merge(options)
+        keys_to_delete.each {|key| merged.delete key}
         expire_on = Routing.expiry_hash(options, recall)
     
         generate_path(merged, options, expire_on)
