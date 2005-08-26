@@ -132,6 +132,7 @@ class NewRenderTestController < ActionController::Base
 
   def rendering_with_conflicting_local_vars
     @name = "David"
+    def @template.name() nil end
     render :action => "potential_conflicts"
   end
 

@@ -7,16 +7,13 @@ module ActionView
     attr_reader :original_exception
 
     def initialize(base_path, file_name, assigns, source, original_exception)
-      @base_path, @file_name, @assigns, @source, @original_exception = 
-        base_path, file_name, assigns, source, original_exception
+      @base_path, @assigns, @source, @original_exception = 
+        base_path, assigns, source, original_exception
+      @file_name = File.expand_path file_name
     end
   
     def message
-      if original_exception.message.include?("(eval):")
-        original_exception.message.scan(/\(eval\):(?:[0-9]*):in `.*'(.*)/).first.first
-      else
-        original_exception.message
-      end
+      original_exception.message
     end
   
     def sub_template_message
@@ -42,21 +39,20 @@ module ActionView
 
       extract.join
     end
-  
+
     def sub_template_of(file_name)
       @sub_templates ||= []
       @sub_templates << file_name
     end
   
     def line_number
-      trace = @original_exception.backtrace.join
-      if trace.include?("erb):")
-        trace.scan(/\((?:erb)\):([0-9]*)/).first.first.to_i
-      elsif trace.include?("eval):")
-        trace.scan(/\((?:eval)\):([0-9]*)/).first.first.to_i
-      else
-        1
+      if @file_name
+        regexp = /#{Regexp.escape @file_name}(?:\(.*?\))?:(\d+)/ # A regexp to match a line number in our file
+        [@original_exception.message, @original_exception.backtrace].flatten.each do |line|
+          return $1.to_i if regexp =~ line
+        end
       end
+      0
     end
   
     def file_name
@@ -79,12 +75,24 @@ module ActionView
 
     private
       def strip_base_path(file_name)
+        file_name = File.expand_path(file_name).gsub(/^#{Regexp.escape File.expand_path(RAILS_ROOT)}/, '')
         file_name.gsub(@base_path, "")
       end
 
+      if defined?(RAILS_ROOT)
+        RailsRootRegexp = %r((#{Regexp.escape RAILS_ROOT}|#{Regexp.escape File.expand_path(RAILS_ROOT)})/(.*)?)
+      else
+        RailsRootRegexp = /^()(.*)$/
+      end
+
       def clean_backtrace(exception)
-        base_dir = File.expand_path(File.dirname(__FILE__) + "/../../../../")
-        exception.backtrace.collect { |line| line.gsub(base_dir, "").gsub("/public/../config/environments/../../", "").gsub("/public/../", "") }
+        exception.backtrace.collect do |line|
+          line.gsub %r{^(\s*)(/[-\w\d\./]+)} do
+            leading, path = $1, $2
+            path = $2 if RailsRootRegexp =~ path
+            leading + path
+          end
+        end
       end
   end
 end

@@ -1,6 +1,7 @@
 require 'erb'
 
 module ActionView #:nodoc:
+
   class ActionViewError < StandardError #:nodoc:
   end
 
@@ -59,10 +60,8 @@ module ActionView #:nodoc:
   #
   # == Template caching
   #
-  # The parsing of ERb templates are cached by default, but the reading of them are not. This means that the application by default
-  # will reflect changes to the templates immediatly. If you'd like to sacrifice that immediacy for the speed gain given by also
-  # caching the loading of templates (reading from the file system), you can turn that on with 
-  # <tt>ActionView::Base.cache_template_loading = true</tt>.
+  # By default, Rails will compile each template to a method in order to render it. When you alter a template, Rails will
+  # check the file's modification time and recompile it.
   #
   # == Builder
   #
@@ -125,22 +124,15 @@ module ActionView #:nodoc:
 
     attr_reader :logger, :params, :response, :session, :headers, :flash
 
-    # Turn on to cache the reading of templates from the file system.
-    # Doing so means that you have to restart the server when changing
-    # templates, but it will save checking whether the file has changed
-    # on disk.
-    @@cache_template_loading = false
-    cattr_accessor :cache_template_loading
-
     # Specify trim mode for the ERB compiler. Defaults to '-'.
     # See ERB documentation for suitable values.
     @@erb_trim_mode = '-'
     cattr_accessor :erb_trim_mode
 
-    @@compiled_templates = {}
-    @@template_count = 0
-    @@loaded_templates = {}
     @@template_handlers = {}
+
+    @@compiled_templates = CompiledTemplates.new
+    include @@compiled_templates
 
     def self.load_helpers(helper_dir)#:nodoc:
       Dir.foreach(helper_dir) do |helper_file| 
@@ -177,7 +169,7 @@ module ActionView #:nodoc:
         template_extension = template_path.split('.').last
       end
 
-      template_source = read_template_file(template_file_name, template_extension)
+      template_source = nil # Don't read the source until we know that it is required
 
       begin
         render_template(template_extension, template_source, template_file_name, local_assigns)
@@ -214,14 +206,41 @@ module ActionView #:nodoc:
 
     # Renders the +template+ which is given as a string as either rhtml or rxml depending on <tt>template_extension</tt>.
     # The hash in <tt>local_assigns</tt> is made available as local variables.
-    def render_template(template_extension, template, file_name = nil, local_assigns = {})
-       if handler = @@template_handlers[template_extension]
+    def render_template(template_extension, template, file_path = nil, local_assigns = {})
+      if handler = @@template_handlers[template_extension]
+        template ||= read_template_file(file_path, template_extension) # Make sure that a lazyily-read template is loaded.
         delegate_render(handler, template, local_assigns)
-      elsif template_extension == 'rxml'
-        rxml_render(template_extension, template, file_name, local_assigns)
       else
-        rhtml_render(template_extension, template, file_name, local_assigns)
+        compile_and_render_template(template_extension, template, file_path, local_assigns)
       end
+    end
+
+    # Render the privded template with the given local assigns. If the template has not been rendered with the provided
+    # local assigns yet, or if the template has been updated on disk, then the template will be compiled to a method.
+    #
+    # Either, but not both, of template and file_path may be nil. If file_path is given but template is nil, the template
+    # will only be read if it has to be compiled.
+    #
+    def compile_and_render_template(extension, template = nil, file_path = nil, local_assigns = {})
+      file_path = File.expand_path(file_path) if file_path
+      identifier = file_path || template # either might be nil. Prefer to use the file_path as a key
+      names, params = split_locals(local_assigns)
+      
+      compile = ! @@compiled_templates.compiled?(identifier, names) # Compile the template if it hasn't been done
+      if ! compile && file_path # If the file path is given, recompile if the mtime is new.
+        compiled_at = @@compiled_templates.mtime(identifier, names)
+        compile = compiled_at.nil? || (mtime = File.mtime(file_path)).nil? || compiled_at < mtime
+      end
+      
+      if compile
+        template ||= read_template_file(file_path, extension)
+        compile_template(extension, file_path || 'inline-template', identifier, template, names)
+      end
+
+      # Get the selector for this template and names, then call the method.
+      selector = @@compiled_templates.selector(identifier, names)
+      evaluate_assigns                                    
+      send(selector, *params)
     end
 
     def pick_template_extension(template_path)#:nodoc:
@@ -263,103 +282,49 @@ module ActionView #:nodoc:
       end
 
       def template_exists?(template_path, extension)
-        fp = full_template_path(template_path, extension)
-        (@@cache_template_loading && @@loaded_templates.has_key?(fp)) || FileTest.exists?(fp)
+        File.file?(full_template_path(template_path, extension))
       end
 
+      # This method reads a template file. No, it doesn't check mtimes, look to check if the template
+      # has been compiled, or check your date of birth. It reads the template file. Crazy, I know.
       def read_template_file(template_path, extension)
-        info = @@loaded_templates[template_path]
-        # info is either the template source code, or the its compile time, or nil
-        # if nil, we need to read it from the file system
-        # if it is a time, we need to reread it if it has changed on disk
-        # if @@cache_template_loading is true, we will never reread
-        unless read_file = info.nil?
-          read_file = !@@cache_template_loading && info.is_a?(Time) && info < File.stat(template_path).mtime
-        end
-        if read_file
-          info = @@loaded_templates[template_path] = File.read(template_path)
-          @@compiled_templates[template_path] = nil
-        end
-
-        info
+        File.read(template_path)
       end
 
-      def evaluate_assigns(local_assigns = {})
+      # Split the provided hash of local assigns into two arrays, one of the names, and another of the value
+      # The arrays are guarenteed to be in matching order, and also ordered the same for different hashes.
+      def split_locals(assigns)
+        names, values = [], []
+        assigns.to_a.sort_by {|pair| pair.first.to_s}.each do |name, value|
+          names << name
+          values << value
+        end
+        return [names, values]
+      end
+
+      def evaluate_assigns
         unless @assigns_added
           assign_variables_from_controller
           @assigns_added = true
         end
-        saved_locals = {}
+      end
 
-        local_assigns.each do |key, value|
-          varstr = "@_#{key}_"
-          saved_locals[varstr] = instance_variable_get(varstr)
-          instance_variable_set(varstr, value)
+      # Compile the template to a method using a CompiledTemplates instance.
+      def compile_template(extension, file_path, identifier, template, local_names = [])
+        line_no = 0
 
-          unless self.respond_to?(key)
-            self.class.class_eval("def #{key}; #{varstr}; end")
-            self.class.class_eval("def #{key}=(v); #{varstr} = v; end")
-          end
+        case extension && extension.to_sym
+          when :rxml
+            # Initialize the xml variable to the builder instance.
+            source_code = \
+"xml = Builder::XmlMarkup.new(:indent => 2)
+@controller.headers['Content-Type'] ||= 'text/xml'\n" + template
+            line_no = -2 # offset extra line.
+          else # Assume rhtml
+            source_code = ERB.new(template, nil, @@erb_trim_mode).src
         end
 
-        saved_locals
-      end
-
-      def compile_template(extension, template, file_name)
-        cache_name = file_name || template
-
-        unless @@compiled_templates[cache_name]
-          case extension
-            when :rhtml
-              t_name = 'run_html_'
-              t_arg  = ''
-              t_code = ERB.new(template, nil, @@erb_trim_mode).src
-            when :rxml
-              t_name = 'run_xml_'
-              t_arg  = '(xml)'
-              t_code = template
-          end
-
-          if file_name
-            i = file_name.index(@base_path)
-            l = @base_path.length
-            s_file_name = i ? file_name[i+l+1,file_name.length-l-1] : file_name
-            s_file_name.sub!(/(.rhtml|.rxml)$/,'')
-            s_file_name.tr!('/:-', '_')
-            s_file_name.gsub!(/[^a-zA-Z0-9_]/){|s| s[0].to_s}
-            t_name += s_file_name
-          else
-            @@template_count += 1
-            t_name += @@template_count.to_s
-          end
-
-          @@loaded_templates[cache_name] = Time.now if file_name
-
-          t_def = "def #{t_name}#{t_arg}; #{t_code}; end"
-          self.class.class_eval(t_def) rescue raise ActionViewError, "ERROR defining #{t_name}: #{t_def}"
-
-          @@compiled_templates[cache_name] = t_name.intern
-
-          logger.debug "Compiled template #{cache_name}\n  ==> #{t_name}" if logger
-        end
-        @@compiled_templates[cache_name]
-      end
-
-      def rhtml_render(extension, template, file_name, local_assigns)
-        render_sym = compile_template(:rhtml, template, file_name)
-        saved_locals = evaluate_assigns(local_assigns)
-        result = self.send(render_sym)
-        saved_locals.each { |k,v| instance_variable_set(k, v) }
-        result
-      end
-
-      def rxml_render(extension, template, file_name, local_assigns)
-        @controller.headers["Content-Type"] ||= 'text/xml'
-        render_sym = compile_template(:rxml, template, file_name)
-        saved_locals = evaluate_assigns(local_assigns)
-        result = self.send(render_sym, Builder::XmlMarkup.new(:indent => 2))
-        saved_locals.each { |k,v| instance_variable_set(k, v) }
-        result
+        @@compiled_templates.compile_source(identifier, local_names, source_code, line_no, file_path)
       end
 
       def delegate_render(handler, template, local_assigns)

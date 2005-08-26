@@ -1,5 +1,7 @@
 *SVN*
 
+* Rewrote compiled templates to decrease code complexity. Removed template load caching in favour of compiled caching. Fixed template error messages. [Nicholas Seckar]
+
 * Fix Routing to handle :some_param => nil better. [Nicholas Seckar, Luminas]
 
 * Add support for :include with pagination (subject to existing constraints for :include with :limit and :offset) #1478 [michael@schubert.cx]
