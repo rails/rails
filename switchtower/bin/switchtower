@@ -27,7 +27,7 @@ rescue LoadError
   end
 end
 
-options = { :verbose => 0, :recipes => [], :actions => [] }
+options = { :verbose => 0, :recipes => [], :actions => [], :vars => {} }
 
 OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options]"
@@ -55,6 +55,14 @@ OptionParser.new do |opts|
     "A recipe file to load. Multiple recipes may",
     "be specified, and are loaded in the given order."
   ) { |value| options[:recipes] << value }
+
+  opts.on("-s", "--set NAME=VALUE",
+    "Specify a variable and it's value to set. This",
+    "will be set after loading all recipe files."
+  ) do |pair|
+    name, value = pair.split(/=/)
+    options[:vars][name.to_sym] = value
+  end
 
   opts.on("-v", "--verbose",
     "Specify the verbosity of the output.",
@@ -104,6 +112,7 @@ config.set :pretend, options[:pretend]
 config.load "standard" # load the standard recipe definition
 
 options[:recipes].each { |recipe| config.load(recipe) }
+options[:vars].each { |name, value| config.set(name, value) }
 
 actor = config.actor
 options[:actions].each { |action| actor.send action }

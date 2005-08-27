@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow variables to be set via the cli using the -s switch
+
 * Log checkouts to a "revisions.log" file
 
 * Changed behavior of checkout to use the timestamp as the release name, instead of the revision number
