@@ -13,6 +13,9 @@ module ActionController #:nodoc:
   # fully on all the systems that is a part of your environment. Consider this an extended
   # preview.
   #
+  # To enable this module, add <tt>ActionController::Base.enable_upload_progress</tt> to your
+  # config/environment.rb file.
+  #
   # == Action Pack Upload Progress for multipart uploads
   #
   # The UploadProgress module aids in the process of viewing an Ajax driven
@@ -131,6 +134,55 @@ module ActionController #:nodoc:
   #   def custom_status
   #     render :inline => '<%= upload_progress_status %> <div>Updated at <%= Time.now %></div>', :layout => false
   #   end
+  #
+  # ==== Environment checklist
+  #
+  # This is an experimental feature that requires a specific webserver environment.  Use the following checklist 
+  # to confirm that you have an environment that supports upload progress.
+  #
+  # ===== Ruby:
+  # 
+  # * Running the command `ruby -v` should print "ruby 1.8.2 (2004-12-25)" or older
+  # 
+  # ===== Web server:
+  # 
+  # * Apache 1.3, Apache 2.0 or Lighttpd *1.4* (need to build lighttpd from CVS)
+  # 
+  # ===== FastCGI bindings:
+  # 
+  # * > 0.8.6 and must be the compiled C version of the bindings
+  # * The command `ruby -e "p require('fcgi.so')"` should print "true"
+  # 
+  # ===== Apache/Lighttpd FastCGI directives:
+  # 
+  # * You must allow more than one FCGI server process to allow concurrent requests.
+  # * If there is only a single FCGI process you will not get the upload status updates.
+  # * You can check this by taking a look for running FCGI servers in your process list during a progress upload.
+  # * Apache directive: FastCGIConfig -minProcesses 2
+  # * Lighttpd directives taken from config/lighttpd.conf (min-procs):
+  # 
+  #     fastcgi.server = (
+  #      ".fcgi" => (
+  #       "APP_NAME" => (
+  #        "socket" => "/tmp/APP_NAME1.socket",
+  #        "bin-path" => "RAILS_ROOT/public/dispatch.fcgi",
+  #        "min-procs" => 2
+  #       )
+  #      )
+  #     )
+  # 
+  # ===== config/environment.rb:
+  # 
+  # * Add the following line to your config/environment.rb and restart your web server.
+  # * <tt>ActionController::Base.enable_upload_progress</tt>
+  # 
+  # ===== Development log:
+  # 
+  # * When the upload progress is enabled by you will find something the following lines:
+  # * "Multipart upload with progress (id: 1, size: 85464)"
+  # * "Finished processing multipart upload in 0.363729s"
+  # * If you are properly running multiple FCGI processes, then you will see multiple entries for rendering the "upload_status" action before the "Finish processing..." log entry.  This is a *good thing* :)
+  #
   module UploadProgress
     def self.append_features(base) #:nodoc:
       super

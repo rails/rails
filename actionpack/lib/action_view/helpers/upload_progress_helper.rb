@@ -196,7 +196,7 @@ module ActionView
 
         updater = "if (#{upload_update_object}) { #{upload_update_object}.stop(); }"
         updater << "#{upload_update_object} = new Ajax.PeriodicalUpdater('#{status_tag_id}',"
-        updater << "'#{status_url}', #{options_for_ajax(options)}.extend(#{updater_options}))"
+        updater << "'#{status_url}', Object.extend(#{options_for_ajax(options)},#{updater_options}))"
 
         updater = "#{options[:begin]}; #{updater}" if options[:begin]
         updater = "#{upload_progress_update_bar_js(0)}; #{updater}"
