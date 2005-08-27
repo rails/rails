@@ -42,7 +42,7 @@ module SwitchTower
       def checkout(actor)
         svn = configuration[:svn] ? configuration[:svn] : "svn"
 
-        command = "#{svn} co -q -r#{latest_revision} #{configuration.repository} #{actor.release_path};"
+        command = "#{svn} co -q -r#{configuration.revision} #{configuration.repository} #{actor.release_path};"
 
         run_checkout(actor, command) do |ch, stream, out|
           prefix = "#{stream} :: #{ch[:host]}"

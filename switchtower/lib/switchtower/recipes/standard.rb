@@ -71,7 +71,7 @@ symlinks and deleting the current release from all servers.
 DESC
 task :rollback_code do
   if releases.length < 2
-    raise "could not rollback the code because there is no previous version"
+    raise "could not rollback the code because there is no prior release"
   else
     run <<-CMD
       ln -nfs #{previous_release} #{current_path} &&

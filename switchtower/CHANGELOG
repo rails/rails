@@ -1,5 +1,7 @@
 *SVN*
 
+* Specify the revision to release via the :revision variable (defaults to latest revision)
+
 * Allow variables to be set via the cli using the -s switch
 
 * Log checkouts to a "revisions.log" file

@@ -18,7 +18,8 @@ module SwitchTower
       # revision. Uses the given actor instance to execute the command.
       def checkout(actor)
         darcs = configuration[:darcs] ? configuration[:darcs] : "darcs"
-        run_checkout(actor, "#{darcs} get -q --set-scripts-executable #{configuration.repository} #{actor.release_path};")
+        revision = configuration[:revision] ? %(--to-match "#{configuration.revision}") : ""
+        run_checkout(actor, "#{darcs} get -q --set-scripts-executable #{revision} #{configuration.repository} #{actor.release_path};")
       end
     end
 

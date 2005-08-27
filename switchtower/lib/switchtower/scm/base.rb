@@ -22,7 +22,7 @@ module SwitchTower
           command = <<-STR
             if [[ ! -d #{configuration.release_path} ]]; then
               #{guts}
-              echo `date +"%Y-%m-%d %H:%M:%S"` $USER #{latest_revision} #{directory} >> #{log};
+              echo `date +"%Y-%m-%d %H:%M:%S"` $USER #{configuration.revision} #{directory} >> #{log};
               chmod 666 #{log};
             fi
           STR

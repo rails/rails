@@ -44,12 +44,14 @@ module SwitchTower
       set :user,        nil
       set :password,    nil
 
-      set :deploy_to, Proc.new { "/u/apps/#{application}" }
+      set :deploy_to,   Proc.new { "/u/apps/#{application}" }
 
       set :version_dir, DEFAULT_VERSION_DIR_NAME
       set :current_dir, DEFAULT_CURRENT_DIR_NAME
       set :shared_dir,  DEFAULT_SHARED_DIR_NAME
       set :scm,         :subversion
+
+      set :revision,    Proc.new { source.latest_revision }
     end
 
     # Set a variable to the given value.

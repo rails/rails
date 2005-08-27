@@ -45,7 +45,7 @@ module SwitchTower
 
         command = <<-CMD
           cd #{configuration.releases_path};
-          CVS_RSH="#{cvs_rsh}" #{cvs} -d #{configuration.repository} -Q co -D "#{latest_revision}" -d #{File.basename(actor.release_path)} #{actor.application};
+          CVS_RSH="#{cvs_rsh}" #{cvs} -d #{configuration.repository} -Q co -D "#{configuration.revision}" -d #{File.basename(actor.release_path)} #{actor.application};
         CMD
 
         run_checkout(actor, command) do |ch, stream, out|
