@@ -1,5 +1,7 @@
 *SVN*
 
+* Log checkouts to a "revisions.log" file
+
 * Changed behavior of checkout to use the timestamp as the release name, instead of the revision number
 
 * Added CVS module (very very experimental!)

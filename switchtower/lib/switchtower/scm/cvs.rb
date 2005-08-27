@@ -44,12 +44,11 @@ module SwitchTower
         cvs_rsh = configuration[:cvs_rsh] || ENV['CVS_RSH'] || "ssh"
 
         command = <<-CMD
-          if [[ ! -d #{actor.release_path} ]]; then
-            cd #{configuration.releases_path};
-            CVS_RSH="#{cvs_rsh}" #{cvs} -d #{configuration.repository} -Q co -D "#{latest_revision}" -d #{File.basename(actor.release_path)} #{actor.application};
-          fi
+          cd #{configuration.releases_path};
+          CVS_RSH="#{cvs_rsh}" #{cvs} -d #{configuration.repository} -Q co -D "#{latest_revision}" -d #{File.basename(actor.release_path)} #{actor.application};
         CMD
-        actor.run(command) do |ch, stream, out|
+
+        run_checkout(actor, command) do |ch, stream, out|
           prefix = "#{stream} :: #{ch[:host]}"
           actor.logger.info out, prefix
           if out =~ %r{password:}
@@ -64,7 +63,7 @@ module SwitchTower
       end
 
       private
-      
+
         def cvs_log(path)
           `cd #{path || "."} && cvs -q log -N -rHEAD`
         end

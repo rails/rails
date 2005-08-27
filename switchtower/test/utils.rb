@@ -22,6 +22,11 @@ class MockLogger
 end
 
 class MockConfiguration < Hash
+  def initialize(*args)
+    super
+    self[:release_path] = "/path/to/releases/version"
+  end
+
   def logger
     @logger ||= MockLogger.new
   end
