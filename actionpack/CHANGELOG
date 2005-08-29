@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActionView::Base.cache_template_loading back.
+
 * Rewrote compiled templates to decrease code complexity. Removed template load caching in favour of compiled caching. Fixed template error messages. [Nicholas Seckar]
 
 * Fix Routing to handle :some_param => nil better. [Nicholas Seckar, Luminas]

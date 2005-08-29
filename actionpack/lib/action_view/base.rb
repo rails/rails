@@ -129,6 +129,9 @@ module ActionView #:nodoc:
     @@erb_trim_mode = '-'
     cattr_accessor :erb_trim_mode
 
+    @@cache_template_loading = false # Unused at the moment
+    cattr_accessor :cache_template_loading
+
     @@template_handlers = {}
 
     @@compiled_templates = CompiledTemplates.new
