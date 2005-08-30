@@ -354,7 +354,7 @@ module ActionController #:nodoc:
         initialize_template_class(response)
         assign_shortcuts(request, response)
         initialize_current_url
-        @action_name = params[:action] || 'index'
+        @action_name = params['action'] || 'index'
         @variables_added = nil
 
         log_processing if logger
