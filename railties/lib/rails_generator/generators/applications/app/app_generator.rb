@@ -34,7 +34,6 @@ class AppGenerator < Rails::Generator::Base
       # database.yml and .htaccess
       m.template "configs/database.yml", "config/database.yml"
       m.template "configs/routes.rb",    "config/routes.rb"
-      m.template "configs/deploy.rb",    "config/deploy.rb"
       m.template "configs/apache.conf",  "public/.htaccess"
 
       # Environments
@@ -49,10 +48,8 @@ class AppGenerator < Rails::Generator::Base
       end
       if options[:gem]
         m.file "bin/breakpointer_for_gem", "script/breakpointer", script_options
-        m.file "bin/switchtower_for_gem", "script/switchtower", script_options
       else
         m.file "bin/breakpointer", "script/breakpointer", script_options
-        m.file "bin/switchtower", "script/switchtower", script_options
       end
 
       # Dispatches

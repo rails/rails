@@ -1,4 +1,0 @@
-#!/usr/local/bin/ruby
-require 'rubygems'
-require_gem 'switchtower'
-load 'switchtower'

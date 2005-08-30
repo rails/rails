@@ -33,9 +33,9 @@ TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/test )
 
 LOG_FILES    = %w( server.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html robots.txt favicon.ico javascripts/prototype.js javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js )
-BIN_FILES    = %w( generate destroy breakpointer console server update runner profiler benchmarker process/reaper process/spinner process/spawner switchtower )
+BIN_FILES    = %w( generate destroy breakpointer console server update runner profiler benchmarker process/reaper process/spinner process/spawner )
 
-VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties switchtower )
+VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )
 
 
 desc "Generates a fresh Rails package with documentation"
@@ -267,7 +267,6 @@ spec = Gem::Specification.new do |s|
   s.add_dependency('actionpack',       '= 1.9.1' + PKG_BUILD)
   s.add_dependency('actionmailer',     '= 1.0.1' + PKG_BUILD)
   s.add_dependency('actionwebservice', '= 0.8.1' + PKG_BUILD)
-  s.add_dependency('switchtower',      '= 0.8.0' + PKG_BUILD)
 
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false
