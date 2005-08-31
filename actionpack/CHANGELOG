@@ -1,5 +1,7 @@
 *SVN*
 
+* Add option to specify the singular name used by pagination.
+
 * Use string key to obtain action value. Allows indifferent hashes to be disabled.
 
 * Added ActionView::Base.cache_template_loading back.

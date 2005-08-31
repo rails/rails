@@ -63,6 +63,7 @@ module ActionController
       # The default options for pagination
       DEFAULT_OPTIONS = {
         :class_name => nil,
+        :singular_name => nil,
         :per_page   => 10,
         :conditions => nil,
         :order_by   => nil,
@@ -91,7 +92,7 @@ module ActionController
             "Unknown options: #{unknown_option_keys.join(', ')}" unless
               unknown_option_keys.empty?
 
-      options[:singular_name] = Inflector.singularize(collection_id.to_s)
+      options[:singular_name] ||= Inflector.singularize(collection_id.to_s)
       options[:class_name]  ||= Inflector.camelize(options[:singular_name])
     end
 
@@ -101,8 +102,10 @@ module ActionController
     # ClassMethods#paginate.
     #
     # +options+ are:
-    # <tt>:class_name</tt>:: the class name to use, if it can't be inferred by
+    # <tt>:singular_name</tt>:: the singular name to use, if it can't be inferred by
     #                        singularizing the collection name
+    # <tt>:class_name</tt>:: the class name to use, if it can't be inferred by
+    #                        camelizing the singular name
     # <tt>:per_page</tt>::   the maximum number of items to include in a 
     #                        single page. Defaults to 10
     # <tt>:conditions</tt>:: optional conditions passed to Model.find(:all, *params) and
