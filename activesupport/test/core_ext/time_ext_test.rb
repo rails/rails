@@ -137,4 +137,28 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     midnight = Time.local(2005, 2, 21, 0, 0, 0)
     assert_equal midnight.midnight, (midnight + 1.hour + 0.000001).midnight
   end
+
+  def test_days_in_month
+    assert_equal 31, Time.days_in_month(1, 2005)
+
+    assert_equal 28, Time.days_in_month(2, 2005)
+    assert_equal 29, Time.days_in_month(2, 2004)
+    assert_equal 29, Time.days_in_month(2, 2000)
+    assert_equal 28, Time.days_in_month(2, 1900)
+
+    assert_equal 31, Time.days_in_month(3, 2005)
+    assert_equal 30, Time.days_in_month(4, 2005)
+    assert_equal 31, Time.days_in_month(5, 2005)
+    assert_equal 30, Time.days_in_month(6, 2005)
+    assert_equal 31, Time.days_in_month(7, 2005)
+    assert_equal 31, Time.days_in_month(8, 2005)
+    assert_equal 30, Time.days_in_month(9, 2005)
+    assert_equal 31, Time.days_in_month(10, 2005)
+    assert_equal 30, Time.days_in_month(11, 2005)
+    assert_equal 31, Time.days_in_month(12, 2005)
+  end
+
+  def test_next_month_on_31st
+    assert_equal Time.local(2005, 9, 30), Time.local(2005, 8, 31).next_month
+  end
 end

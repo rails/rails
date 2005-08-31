@@ -3,6 +3,23 @@ module ActiveSupport #:nodoc:
     module Time #:nodoc:
       # Enables the use of time calculations within Time itself
       module Calculations
+        def self.append_features(base) #:nodoc:
+          super
+          base.extend(ClassMethods)
+        end
+
+        module ClassMethods
+          def days_in_month(month, year=nil)
+            if month == 2
+              (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0)) ?  29 : 28
+            elsif month <= 7
+              month % 2 == 0 ? 30 : 31
+            else
+              month % 2 == 0 ? 31 : 30
+            end
+          end
+        end
+
         # Seconds since midnight: Time.now.seconds_since_midnight
         def seconds_since_midnight
           self.hour.hours + self.min.minutes + self.sec + (self.usec/1.0e+6)
@@ -47,12 +64,18 @@ module ActiveSupport #:nodoc:
         end
 
         def months_since(months)
-          if months + self.month > 12
-            old_time = self
-            change(:year => self.year + 1, :month => 1).months_since(months + old_time.month - 12 - 1)
-          else
-            change(:year => self.year, :month => self.month + months)
+          year, month, mday = self.year, self.month, self.mday
+
+          month += months
+          while month > 12
+            month -= 12
+            year += 1
           end
+
+          max = ::Time.days_in_month(month, year)
+          mday = max if mday > max
+
+          change(:year => year, :month => month, :mday => mday)
         end
 
         # Returns a new Time representing the time a number of specified years ago

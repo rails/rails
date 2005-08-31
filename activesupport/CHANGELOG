@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Time.days_in_month, and make Time#next_month work when invoked on the 31st of a month
+
 * Fixed that Time#midnight would have a non-zero usec on some platforms #1836
 
 * Fixed inflections of "index/indices" #1766 [damn_pepe@gmail.com]
