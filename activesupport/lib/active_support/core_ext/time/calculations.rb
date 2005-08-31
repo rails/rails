@@ -9,9 +9,13 @@ module ActiveSupport #:nodoc:
         end
 
         module ClassMethods
+          # Return the number of days in the given month. If a year is given,
+          # February will return the correct number of days for leap years.
+          # Otherwise, this method will always report February as having 28
+          # days.
           def days_in_month(month, year=nil)
             if month == 2
-              (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0)) ?  29 : 28
+              !year.nil? && (year % 4 == 0) && ((year % 100 != 0) || (year % 400 == 0)) ?  29 : 28
             elsif month <= 7
               month % 2 == 0 ? 30 : 31
             else
@@ -56,17 +60,21 @@ module ActiveSupport #:nodoc:
 
         # Returns a new Time representing the time a number of specified months ago
         def months_ago(months)
-          if months >= self.month 
-            change(:year => self.year - 1, :month => 12).months_ago(months - self.month)
-          else
-            change(:year => self.year, :month => self.month - months)
-          end
+          months_since(-months)
         end
 
         def months_since(months)
           year, month, mday = self.year, self.month, self.mday
 
           month += months
+
+          # in case months is negative
+          while month < 1
+            month += 12
+            year -= 1
+          end
+
+          # in case months is positive
           while month > 12
             month -= 12
             year += 1

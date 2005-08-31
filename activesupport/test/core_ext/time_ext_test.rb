@@ -161,4 +161,8 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_next_month_on_31st
     assert_equal Time.local(2005, 9, 30), Time.local(2005, 8, 31).next_month
   end
+
+  def test_last_month_on_31st
+    assert_equal Time.local(2004, 2, 29), Time.local(2004, 3, 31).last_month
+  end
 end
