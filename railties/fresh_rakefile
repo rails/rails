@@ -219,3 +219,6 @@ task :load_fixtures => :environment do
     Fixtures.create_fixtures('test/fixtures', File.basename(fixture_file, '.*'))
   end
 end
+
+# Load any custom rakefile extensions
+Dir["./config/tasks/**/*.rake"].each { |ext| load ext }

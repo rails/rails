@@ -106,6 +106,7 @@ class AppGenerator < Rails::Generator::Base
     app/models
     app/views/layouts
     config/environments
+    config/tasks
     components
     db
     doc

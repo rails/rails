@@ -1,5 +1,7 @@
 *SVN*
 
+* Make the default rakefile read *.rake files from config/tasks (for easy extension of the rakefile by e.g. generators)
+
 * Only load breakpoint in development mode and when BREAKPOINT_SERVER_PORT is defined.
 
 * Allow the --toggle-spin switch on process/reaper to be negated
