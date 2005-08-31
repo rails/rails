@@ -21,8 +21,6 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'breakpoint'
-
 class Dispatcher
   class << self
     def dispatch(cgi = CGI.new, session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, output = $stdout)
@@ -47,13 +45,22 @@ class Dispatcher
     private
       def prepare_application
         ActionController::Routing::Routes.reload if Dependencies.load?
-        Breakpoint.activate_drb("druby://localhost:#{BREAKPOINT_SERVER_PORT}", nil, !defined?(FastCGI)) if defined?(BREAKPOINT_SERVER_PORT) rescue nil
+        prepare_breakpoint
         Controllers.const_load!(:ApplicationController, "application") unless Controllers.const_defined?(:ApplicationController)
       end
     
       def reset_after_dispatch
         reset_application! if Dependencies.load?
         Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
+      end
+
+      def prepare_breakpoint
+        return unless defined?(BREAKPOINT_SERVER_PORT)
+        require 'breakpoint'
+        Breakpoint.activate_drb("druby://localhost:#{BREAKPOINT_SERVER_PORT}", nil, !defined?(FastCGI))
+        true
+      rescue
+        nil
       end
   end
 end

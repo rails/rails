@@ -1,5 +1,7 @@
 *SVN*
 
+* Only load breakpoint in development mode and when BREAKPOINT_SERVER_PORT is defined.
+
 * Allow the --toggle-spin switch on process/reaper to be negated
 
 * Replace render_partial with render :partial in scaffold generator [Nicholas Seckar]
