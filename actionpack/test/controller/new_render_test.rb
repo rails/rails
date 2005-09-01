@@ -98,6 +98,10 @@ class NewRenderTestController < ActionController::Base
     render :partial => "customer_greeting", :collection => [ Customer.new("david"), Customer.new("mary") ], :locals => { :greeting => "Bonjour" }
   end
 
+  def empty_partial_collection
+    render :partial => "customer", :collection => []
+  end
+
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render :text =>  "How's there? #{render_to_string("test/list")}"
@@ -356,6 +360,11 @@ class NewRenderTest < Test::Unit::TestCase
   def test_partial_collection_with_locals
     get :partial_collection_with_locals
     assert_equal "Bonjour: davidBonjour: mary", @response.body
+  end
+
+  def test_empty_partial_collection
+    get :empty_partial_collection
+    assert_equal " ", @response.body
   end
 
   def test_render_text_with_assigns

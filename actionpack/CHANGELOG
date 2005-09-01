@@ -1,5 +1,7 @@
 *SVN*
 
+* Make rendering an empty partial collection behave like :nothing => true #2080 [Sam Stephenson]
+
 * Add option to specify the singular name used by pagination.
 
 * Use string key to obtain action value. Allows indifferent hashes to be disabled.

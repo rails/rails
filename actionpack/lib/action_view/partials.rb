@@ -67,7 +67,7 @@ module ActionView
         collection_of_partials.push(render_partial(partial_name, element, local_assigns))
       end
 
-      return nil if collection_of_partials.empty?
+      return " " if collection_of_partials.empty?
 
       if partial_spacer_template
         spacer_path, spacer_name = partial_pieces(partial_spacer_template)
