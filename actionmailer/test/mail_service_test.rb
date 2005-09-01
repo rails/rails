@@ -145,6 +145,11 @@ class TestMailer < ActionMailer::Base
     content_type "text/html"
   end
 
+  def html_mail_with_underscores(recipient)
+    subject      "html mail with underscores"
+    body         %{<a href="http://google.com" target="_blank">_Google</a>}
+  end
+
   def custom_template(recipient)
     recipients recipient
     subject    "[Signed up] Welcome #{recipient}"
@@ -629,6 +634,11 @@ EOF
   def test_html_mail
     mail = TestMailer.create_html_mail(@recipient)
     assert_equal "text/html", mail.content_type
+  end
+
+  def test_html_mail_with_underscores
+    mail = TestMailer.create_html_mail_with_underscores(@recipient)
+    assert_equal %{<a href="http://google.com" target="_blank">_Google</a>}, mail.body
   end
 
   def test_various_newlines

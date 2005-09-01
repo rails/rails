@@ -9,7 +9,7 @@ module TMail
       case (content_transfer_encoding || "7bit").downcase
         when "quoted-printable"
           Unquoter.unquote_quoted_printable_and_convert_to(quoted_body,
-            to_charset, from_charset)
+            to_charset, from_charset, true)
         when "base64"
           Unquoter.unquote_base64_and_convert_to(quoted_body, to_charset,
             from_charset)
@@ -47,7 +47,7 @@ module TMail
 
   class Unquoter
     class << self
-      def unquote_and_convert_to(text, to_charset, from_charset = "iso-8859-1")
+      def unquote_and_convert_to(text, to_charset, from_charset = "iso-8859-1", preserve_underscores=false)
         return "" if text.nil?
         if text =~ /^=\?(.*?)\?(.)\?(.*)\?=$/
           from_charset = $1
@@ -55,7 +55,7 @@ module TMail
           text = $3
           case quoting_method.upcase
             when "Q" then
-              unquote_quoted_printable_and_convert_to(text, to_charset, from_charset)
+              unquote_quoted_printable_and_convert_to(text, to_charset, from_charset, preserve_underscores)
             when "B" then
               unquote_base64_and_convert_to(text, to_charset, from_charset)
             else
@@ -66,8 +66,9 @@ module TMail
         end
       end
  
-      def unquote_quoted_printable_and_convert_to(text, to, from)
-        convert_to(text.gsub(/_/," ").unpack("M*").first, to, from)
+      def unquote_quoted_printable_and_convert_to(text, to, from, preserve_underscores=false)
+        text = text.gsub(/_/, " ") unless preserve_underscores
+        convert_to(text.unpack("M*").first, to, from)
       end
  
       def unquote_base64_and_convert_to(text, to, from)

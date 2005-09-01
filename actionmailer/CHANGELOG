@@ -1,5 +1,7 @@
 *SVN*
 
+* Preserve underscores when unquoting message bodies #1930
+
 * Encode multibyte characters correctly #1894
 
 * Multipart messages specify a MIME-Version header automatically #2003 [John Long]
