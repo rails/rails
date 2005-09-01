@@ -117,7 +117,7 @@ module ActionController #:nodoc:
   # 50kb object could lead to a 50MB memory overhead. In other words, think carefully about size and caching before resorting to the use
   # of the session.
   #
-  # For removing objects from the session, you can either assign a single key to nil, like <tt>@session[:person] = nil</tt>, or you can
+  # For removing objects from the session, you can either assign a single key to nil, like <tt>session[:person] = nil</tt>, or you can
   # remove the entire session with reset_session.
   #
   # == Responses
@@ -196,7 +196,9 @@ module ActionController #:nodoc:
   #   def do_something
   #     redirect_to(:action => "elsewhere") and return if monkeys.nil?
   #     render :action => "overthere" # won't be called unless monkeys is nil
-  #   end  # == Environments
+  #   end
+  #
+  # == Environments
   #
   # Action Controller works out of the box with CGI, FastCGI, and mod_ruby. CGI and mod_ruby controllers are triggered just the same using:
   #
@@ -261,7 +263,7 @@ module ActionController #:nodoc:
     # <tt>request.env["REQUEST_URI"]</tt>.
     attr_accessor :request
     
-    # Holds a hash of all the GET, POST, and Url parameters passed to the action. Accessed like <tt>@params["post_id"]</tt>
+    # Holds a hash of all the GET, POST, and Url parameters passed to the action. Accessed like <tt>params["post_id"]</tt>
     # to get the post_id. No type casts are made, so all values are returned as strings.
     attr_accessor :params
     
