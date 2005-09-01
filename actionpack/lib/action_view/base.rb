@@ -243,7 +243,9 @@ module ActionView #:nodoc:
       # Get the selector for this template and names, then call the method.
       selector = @@compiled_templates.selector(identifier, names)
       evaluate_assigns                                    
-      send(selector, *params)
+      send(selector, *params) do |*name|
+        instance_variable_get "@content_for_#{name.first || 'layout'}"
+      end
     end
 
     def pick_template_extension(template_path)#:nodoc:

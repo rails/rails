@@ -149,6 +149,10 @@ class NewRenderTestController < ActionController::Base
     render :text => "foo"
   end
 
+  def yield_content_for
+    render :action => "content_for", :layout => "yield"
+  end
+
   def rescue_action(e) raise end
     
   private
@@ -370,5 +374,10 @@ class NewRenderTest < Test::Unit::TestCase
   def test_render_text_with_assigns
     get :render_text_with_assigns
     assert_equal "world", assigns["hello"]
+  end
+  
+  def test_yield_content_for
+    get :yield_content_for
+    assert_equal "<title>Putting stuff in the title!</title>\n\nGreat stuff!\n", @response.body
   end
 end

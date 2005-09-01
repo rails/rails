@@ -1,5 +1,7 @@
 *SVN*
 
+* Yield @content_for_ variables to templates #2058 [Sam Stephenson]
+
 * Make rendering an empty partial collection behave like :nothing => true #2080 [Sam Stephenson]
 
 * Add option to specify the singular name used by pagination.
