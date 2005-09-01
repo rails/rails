@@ -199,7 +199,7 @@ task :purge_test_database => :environment do
 end
 
 desc "Clears all *.log files in log/"
-task :clear_logs => :environment do
+task :clear_logs do
   FileList["log/*.log"].each do |log_file|
     f = File.open(log_file, "w")
     f.close
