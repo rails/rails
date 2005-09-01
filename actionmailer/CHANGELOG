@@ -1,5 +1,7 @@
 *SVN*
 
+* Encode multibyte characters correctly #1894
+
 * Multipart messages specify a MIME-Version header automatically #2003 [John Long]
 
 * Add a unified render method to ActionMailer (delegates to ActionView::Base#render)

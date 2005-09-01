@@ -3,8 +3,17 @@ module ActionMailer
     # Convert the given text into quoted printable format, with an instruction
     # that the text be eventually interpreted in the given charset.
     def quoted_printable(text, charset)
-      text = text.gsub( /[^a-z ]/i ) { "=%02x" % $&[0] }.gsub( / /, "_" )
+      text = text.gsub( /[^a-z ]/i ) { quoted_printable_encode($&) }.
+                  gsub( / /, "_" )
       "=?#{charset}?Q?#{text}?="
+    end
+
+    # Convert the given character to quoted printable format, taking into
+    # account multi-byte characters (if executing with $KCODE="u", for instance)
+    def quoted_printable_encode(character)
+      result = ""
+      character.each_byte { |b| result << "=%02x" % b }
+      result
     end
 
     # A quick-and-dirty regexp for determining whether a string contains any
