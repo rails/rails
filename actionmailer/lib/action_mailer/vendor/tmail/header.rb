@@ -754,9 +754,11 @@ module TMail
         strategy.meta @main
       end
       @params.each do |k,v|
-        strategy.meta ';'
-        strategy.space
-        strategy.kv_pair k, v
+        if v
+          strategy.meta ';'
+          strategy.space
+          strategy.kv_pair k, v
+        end
       end
     end
 

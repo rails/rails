@@ -225,6 +225,7 @@ module ActionMailer #:nodoc:
           end
           unless @parts.empty?
             @content_type = "multipart/alternative"
+            @charset = nil
             @parts = sort_parts(@parts, @implicit_parts_order)
           end
         end
