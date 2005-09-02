@@ -51,6 +51,44 @@ class FixturesTest < Test::Unit::TestCase
     assert_nil(secondRow["author_email_address"])
   end
 
+  def test_inserts_with_pre_and_suffix
+    ActiveRecord::Base.connection.create_table :prefix_topics_suffix do |t|
+      t.column :title, :string
+      t.column :author_name, :string
+      t.column :author_email_address, :string
+      t.column :written_on, :datetime
+      t.column :bonus_time, :time
+      t.column :last_read, :date
+      t.column :content, :text
+      t.column :approved, :boolean, :default => true
+      t.column :replies_count, :integer, :default => 0
+      t.column :parent_id, :integer
+      t.column :type, :string, :limit => 50
+    end
+
+    # Store existing prefix/suffix
+    old_prefix = ActiveRecord::Base.table_name_prefix
+    old_suffix = ActiveRecord::Base.table_name_suffix
+
+    # Set a prefix/suffix we can test against
+    ActiveRecord::Base.table_name_prefix = 'prefix_'
+    ActiveRecord::Base.table_name_suffix = '_suffix'
+
+    topics = create_fixtures("topics")
+
+    # Restore prefix/suffix to its previous values
+    ActiveRecord::Base.table_name_prefix = old_prefix 
+    ActiveRecord::Base.table_name_suffix = old_suffix 
+
+    firstRow = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'David'")
+    assert_equal("The First Topic", firstRow["title"])
+
+    secondRow = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'Mary'")
+    assert_nil(secondRow["author_email_address"])        
+  ensure
+    ActiveRecord::Base.connection.drop_table :prefix_topics_suffix rescue nil
+  end
+
   def test_insert_with_datetime
     topics = create_fixtures("tasks")
     first = Task.find(1)

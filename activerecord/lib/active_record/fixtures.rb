@@ -232,6 +232,7 @@ class Fixtures < Hash
       end               
       all_loaded_fixtures.merge! fixtures_map  
       
+      
       connection.transaction do
         fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
         fixtures.each { |fixture| fixture.insert_fixtures }
@@ -265,8 +266,9 @@ class Fixtures < Hash
 
   def initialize(connection, table_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
     @connection, @table_name, @fixture_path, @file_filter = connection, table_name, fixture_path, file_filter
-    @class_name = Inflector.classify(@table_name)
 
+    @class_name = Inflector.classify(@table_name)
+    @table_name = ActiveRecord::Base.table_name_prefix + @table_name + ActiveRecord::Base.table_name_suffix
     read_fixture_files
   end
 
