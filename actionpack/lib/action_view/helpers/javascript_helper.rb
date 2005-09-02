@@ -153,7 +153,7 @@ module ActionView
       # Returns a button input tag that will submit form using XMLHttpRequest in the background instead of regular
       # reloading POST arrangement. <tt>options</tt> argument is the same as in <tt>form_remote_tag</tt>
       def submit_to_remote(name, value, options = {})
-        options[:with] = 'Form.serialize(this.form)'
+        options[:with] ||= 'Form.serialize(this.form)'
 
         options[:html] ||= {}
         options[:html][:type] = 'button'

@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow use of the :with option for submit_to_remote #1936 [jon@instance-design.co.uk]
+
 * AbstractRequest#domain returns nil when host is an ip address #2012 [kevin.clark@gmail.com]
 
 * ActionController documentation update #2051 [fbeausoleil@ftml.net]
