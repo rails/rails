@@ -53,7 +53,7 @@ class CGI #:nodoc:
         stdinput.binmode if stdinput.respond_to?(:binmode)
         content = stdinput.read(Integer(env_table['CONTENT_LENGTH'])) || ''
         # fix for Safari Ajax postings that always append \000
-        content = content.chop if content[-1] == 0
+        content.chop! if content[-1] == 0
         env_table['RAW_POST_DATA'] = content.freeze
       end
 
