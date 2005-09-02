@@ -1,5 +1,7 @@
 *SVN*
 
+* Corrected project-local generator location in scripts.rb #2010 [Michael Schuerig]
+
 * Don't require the environment just to clear the logs #2093 [Scott Barron]
 
 * Make the default rakefile read *.rake files from config/tasks (for easy extension of the rakefile by e.g. generators)

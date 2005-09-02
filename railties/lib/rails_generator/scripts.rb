@@ -59,7 +59,7 @@ end_blurb
 
             if Object.const_defined?(:RAILS_ROOT)
               usage << <<end_blurb
-     or to #{File.expand_path(RAILS_ROOT)}/script/generators/login
+     or to #{File.expand_path(RAILS_ROOT)}/generators/login
      to use with this app only.
 end_blurb
             end
