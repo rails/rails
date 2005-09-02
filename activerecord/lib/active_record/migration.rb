@@ -135,6 +135,7 @@ module ActiveRecord
   class Migrator#:nodoc:
     class << self
       def migrate(migrations_path, target_version = nil)
+        Base.connection.initialize_schema_information
         case
           when target_version.nil?, current_version < target_version
             up(migrations_path, target_version)
