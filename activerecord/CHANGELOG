@@ -1,5 +1,7 @@
 *SVN*
 
+* Add documentation for index_type argument to add_index method for migrations #2005 [blaine@odeo.com]
+
 * Modify read_attribute to allow a symbol argument #2024 [Ken Kunz]
 
 * Make destroy return self #1913 [sebastian.kanthak@muehlheim.de]
