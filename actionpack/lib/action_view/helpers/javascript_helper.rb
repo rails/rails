@@ -305,9 +305,10 @@ module ActionView
       # 
       # Additional options are:
       # <tt>:frequency</tt>:: The frequency (in seconds) at which changes to
-      #                       this field will be detected. Set this to a value
-      #                       greater than zero to use time based observation
-      #                       instead of event based observation.
+      #                       this field will be detected. Not setting this
+      #                       option at all or to a value equal to or less than
+      #                       zero will use event based observation instead of
+      #                       time based observation.
       # <tt>:update</tt>::    Specifies the DOM ID of the element whose 
       #                       innerHTML should be updated with the
       #                       XMLHttpRequest response text.
@@ -319,7 +320,7 @@ module ActionView
       # Additionally, you may specify any of the options documented in
       # +link_to_remote.
       def observe_field(field_id, options = {})
-        if options[:frequency]
+        if options[:frequency] and options[:frequency] > 0
           build_observer('Form.Element.Observer', field_id, options)
         else
           build_observer('Form.Element.EventObserver', field_id, options)
