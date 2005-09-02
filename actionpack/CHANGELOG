@@ -1,5 +1,7 @@
 *SVN*
 
+* Drop trailing \000 if present on RAW_POST_DATA (works around bug in Safari Ajax implementation) #918
+
 * Fix observe_field to fall back to event-based observation if frequency <= 0 #1916 [michael@schubert.cx]
 
 * Allow use of the :with option for submit_to_remote #1936 [jon@instance-design.co.uk]

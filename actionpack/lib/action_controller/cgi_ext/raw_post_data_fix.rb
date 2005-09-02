@@ -52,7 +52,9 @@ class CGI #:nodoc:
       def read_params_from_post
         stdinput.binmode if stdinput.respond_to?(:binmode)
         content = stdinput.read(Integer(env_table['CONTENT_LENGTH'])) || ''
-        env_table['RAW_POST_DATA'] = content.split("&_").first.to_s.freeze # &_ is a fix for Safari Ajax postings that always append \000
+        # fix for Safari Ajax postings that always append \000
+        content = content.chop if content[-1] == 0
+        env_table['RAW_POST_DATA'] = content.freeze
       end
 
       def read_query_params(method)
