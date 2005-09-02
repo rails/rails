@@ -44,6 +44,9 @@ class RequestTest < Test::Unit::TestCase
 
     @request.host = "www.rubyonrails.co.uk"
     assert_equal "rubyonrails.co.uk", @request.domain(2)
+    
+    @request.host = "192.168.1.200"
+    assert_nil @request.domain
   end
 
   def test_subdomains

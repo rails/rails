@@ -1,5 +1,7 @@
 *SVN*
 
+* AbstractRequest#domain returns nil when host is an ip address #2012 [kevin.clark@gmail.com]
+
 * ActionController documentation update #2051 [fbeausoleil@ftml.net]
 
 * Yield @content_for_ variables to templates #2058 [Sam Stephenson]

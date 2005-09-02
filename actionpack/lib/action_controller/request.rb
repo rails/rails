@@ -109,6 +109,8 @@ module ActionController
     # Returns the domain part of a host, such as rubyonrails.org in "www.rubyonrails.org". You can specify
     # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
     def domain(tld_length = 1)
+      return nil if !/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.match(host).nil?
+        
       host.split('.').last(1 + tld_length).join('.')
     end
 
