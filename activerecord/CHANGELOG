@@ -1,5 +1,7 @@
 *SVN*
 
+* Modify read_attribute to allow a symbol argument #2024 [Ken Kunz]
+
 * Make destroy return self #1913 [sebastian.kanthak@muehlheim.de]
 
 * Fix typo in validations documentation #1938 [court3nay]

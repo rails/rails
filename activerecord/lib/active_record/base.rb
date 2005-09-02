@@ -1108,13 +1108,13 @@ module ActiveRecord #:nodoc:
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       # (Alias for the protected read_attribute method).
       def [](attr_name)
-        read_attribute(attr_name.to_s)
+        read_attribute(attr_name)
       end
 
       # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+.
       # (Alias for the protected write_attribute method).
       def []=(attr_name, value)
-        write_attribute(attr_name.to_s, value)
+        write_attribute(attr_name, value)
       end
 
       # Allows you to set all the attributes at once by passing in a hash with keys
@@ -1267,6 +1267,7 @@ module ActiveRecord #:nodoc:
       # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
+        attr_name = attr_name.to_s
         if !(value = @attributes[attr_name]).nil?
           if column = column_for_attribute(attr_name)
             if unserializable_attribute?(attr_name, column)

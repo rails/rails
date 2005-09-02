@@ -180,6 +180,16 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal "Still another topic: part 2", topic.title
   end
 
+  def test_read_attribute
+    topic = Topic.new
+    topic.title = "Don't change the topic"
+    assert_equal "Don't change the topic", topic.send(:read_attribute, "title")
+    assert_equal "Don't change the topic", topic["title"]
+
+    assert_equal "Don't change the topic", topic.send(:read_attribute, :title)
+    assert_equal "Don't change the topic", topic[:title]
+  end
+
   def test_read_attribute_when_false
     topic = topics(:first)
     topic.approved = false
