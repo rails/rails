@@ -67,4 +67,18 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:local)
     assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
   end
+  
+  def test_access
+    s = "hello"
+    assert_equal "h", s.at(0)
+    
+    assert_equal "llo", s.from(2)
+    assert_equal "hel", s.to(2)
+    
+    assert_equal "h", s.first
+    assert_equal "he", s.first(2)
+
+    assert_equal "o", s.last
+    assert_equal "llo", s.last(3)
+  end
 end

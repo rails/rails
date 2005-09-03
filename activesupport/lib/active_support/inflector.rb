@@ -1,15 +1,99 @@
+require 'singleton' 
+
 # The Inflector transforms words from singular to plural, class names to table names, modularized class names to ones without,
-# and class names to foreign keys.
+# and class names to foreign keys. The default inflections for pluralization, singularization, and uncountable words are kept
+# in inflections.rb.
 module Inflector 
+  # A singleton instance of this class is yielded by Inflector.inflections, which can then be used to specify additional
+  # inflection rules. Examples:
+  #
+  #   Inflector.inflections do |inflect|
+  #     inflect.plural /^(ox)$/i, '\1\2en'
+  #     inflect.singular /^(ox)en/i, '\1'
+  #
+  #     inflect.irregular 'octopus', 'octopi'
+  #
+  #     inflect.uncountable "equipment"
+  #   end
+  #
+  # New rules are added at the top. So in the example above, the irregular rule for octopus will now be the first of the
+  # pluralization and singularization rules that is runs. This guarantees that your rules run before any of the rules that may
+  # already have been loaded.
+  class Inflections
+    include Singleton
+    
+    attr_reader :plurals, :singulars, :uncountables
+    
+    def initialize
+      @plurals, @singulars, @uncountables = [], [], []
+    end
+    
+    # Specifies a new pluralization rule and its replacement. The rule can either be a string or a regular expression. 
+    # The replacement should always be a string that may include references to the matched data from the rule.
+    def plural(rule, replacement)
+      @plurals.insert(0, [rule, replacement])
+    end
+    
+    # Specifies a new singularization rule and its replacement. The rule can either be a string or a regular expression. 
+    # The replacement should always be a string that may include references to the matched data from the rule.
+    def singular(rule, replacement)
+      @singulars.insert(0, [rule, replacement])
+    end
+
+    # Specifies a new irregular that applies to both pluralization and singularization at the same time. This can only be used
+    # for strings, not regular expressions. You simply pass the irregular in singular and plural form.
+    # 
+    # Examples:
+    #   irregular 'octopus', 'octopi'
+    #   irregular 'person', 'people'
+    def irregular(singular, plural)
+      plural(Regexp.new("(#{singular[0,1]})#{singular[1..-1]}$", "i"), '\1' + plural[1..-1])
+      singular(Regexp.new("(#{plural[0,1]})#{plural[1..-1]}$", "i"), '\1' + singular[1..-1])
+    end
+    
+    # Add uncountable words that shouldn't be attempted inflected.
+    # 
+    # Examples:
+    #   uncountable "money"
+    #   uncountable "money", "information"
+    #   uncountable %w( money information rice )
+    def uncountable(*words)
+      (@uncountables << words).flatten!
+    end
+    
+    # Clears the loaded inflections within a given scope (default is :all). Give the scope as a symbol of the inflection type,
+    # the options are: :plurals, :singulars, :uncountables
+    #
+    # Examples:
+    #   clear :all
+    #   clear :plurals
+    def clear(scope = :all)
+      case scope
+        when :all
+          @plurals, @singulars, @uncountables = [], [], []
+        else
+          instance_variable_set "@#{scope}", []
+      end
+    end
+  end
+
   extend self
+
+  def inflections
+    if block_given?
+      yield Inflections.instance
+    else
+      Inflections.instance
+    end
+  end
 
   def pluralize(word)
     result = word.to_s.dup
 
-    if uncountable_words.include?(result.downcase)
+    if inflections.uncountables.include?(result.downcase)
       result
     else
-      plural_rules.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+      inflections.plurals.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
       result
     end
   end
@@ -17,10 +101,10 @@ module Inflector
   def singularize(word)
     result = word.to_s.dup
 
-    if uncountable_words.include?(result.downcase)
+    if inflections.uncountables.include?(result.downcase)
       result
     else
-      singular_rules.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
+      inflections.singulars.each { |(rule, replacement)| break if result.gsub!(rule, replacement) }
       result
     end
   end
@@ -72,66 +156,6 @@ module Inflector
       end
     end
   end
-
-  private
-    def uncountable_words #:doc
-      %w( equipment information rice money species series fish )
-    end
-  
-    def plural_rules #:doc:
-      [
-      	[/^(ox)$/i, '\1\2en'],		             # ox
-      	[/([m|l])ouse$/i, '\1ice'],	           # mouse, louse
-      	[/(matr|vert|ind)ix|ex$/i, '\1ices'],      # matrix, vertex, index
-        [/(x|ch|ss|sh)$/i, '\1es'],            # search, switch, fix, box, process, address
-        [/([^aeiouy]|qu)ies$/i, '\1y'],
-        [/([^aeiouy]|qu)y$/i, '\1ies'],        # query, ability, agency
-        [/(hive)$/i, '\1s'],                   # archive, hive
-        [/(?:([^f])fe|([lr])f)$/i, '\1\2ves'], # half, safe, wife
-        [/sis$/i, 'ses'],                      # basis, diagnosis
-        [/([ti])um$/i, '\1a'],                 # datum, medium
-        [/(p)erson$/i, '\1eople'],             # person, salesperson
-        [/(m)an$/i, '\1en'],                   # man, woman, spokesman
-        [/(c)hild$/i, '\1hildren'],            # child
-      	[/(buffal|tomat)o$/i, '\1\2oes'],		   # buffalo, tomato
-      	[/(bu)s$/i, '\1\2ses'],	               # bus
-        [/(alias)/i, '\1es'],                  # alias
-      	[/(octop|vir)us$/i, '\1i'],            # octopus, virus - virus has no defined plural (according to Latin/dictionary.com), but viri is better than viruses/viruss
-      	[/(ax|cri|test)is$/i, '\1es'],         # axis, crisis  
-        [/s$/i, 's'],                          # no change (compatibility)
-        [/$/, 's']
-      ]
-    end
-
-    def singular_rules #:doc:
-      [
-        [/(matr)ices$/i, '\1ix'],
-      	[/(vert|ind)ices$/i, '\1ex'],
-      	[/^(ox)en/i, '\1'],
-      	[/(alias)es$/i, '\1'],
-      	[/([octop|vir])i$/i, '\1us'],
-      	[/(cris|ax|test)es$/i, '\1is'],
-      	[/(shoe)s$/i, '\1'],
-      	[/(o)es$/i, '\1'],
-      	[/(bus)es$/i, '\1'],
-      	[/([m|l])ice$/i, '\1ouse'],
-        [/(x|ch|ss|sh)es$/i, '\1'],
-        [/(m)ovies$/i, '\1\2ovie'],
-        [/(s)eries$/i, '\1\2eries'],
-        [/([^aeiouy]|qu)ies$/i, '\1y'],
-        [/([lr])ves$/i, '\1f'],
-        [/(tive)s$/i, '\1'],
-        [/(hive)s$/i, '\1'],
-        [/([^f])ves$/i, '\1fe'],
-        [/(^analy)ses$/i, '\1sis'],
-        [/((a)naly|(b)a|(d)iagno|(p)arenthe|(p)rogno|(s)ynop|(t)he)ses$/i, '\1\2sis'],
-        [/([ti])a$/i, '\1um'],
-        [/(p)eople$/i, '\1\2erson'],
-        [/(m)en$/i, '\1an'],
-        [/(s)tatus$/i, '\1\2tatus'],
-        [/(c)hildren$/i, '\1\2hild'],
-        [/(n)ews$/i, '\1\2ews'],
-        [/s$/i, '']
-      ]
-    end
 end
+
+require File.dirname(__FILE__) + '/inflections'
