@@ -73,7 +73,9 @@ module Rails
         )
       end
       
+      old_verbose, $VERBOSE = $VERBOSE, nil
       Object.const_set "RAILS_DEFAULT_LOGGER", logger
+      $VERBOSE = old_verbose
     end
     
     def initialize_framework_logging
