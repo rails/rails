@@ -131,7 +131,7 @@ module Rails
       end
     
       def default_load_paths
-        paths = ["#{environment}/test/mocks/#{environment}"]
+        paths = ["#{RAILS_ROOT}/test/mocks/#{environment}"]
 
         # Then model subdirectories.
         # TODO: Don't include .rb models as load paths
