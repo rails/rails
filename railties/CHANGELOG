@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed the scaffold generator to fail right away if the database isn't accessible instead of in mid-air #1169 [Chad Fowler]
+
 * Corrected project-local generator location in scripts.rb #2010 [Michael Schuerig]
 
 * Don't require the environment just to clear the logs #2093 [Scott Barron]

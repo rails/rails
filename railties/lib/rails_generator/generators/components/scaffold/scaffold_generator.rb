@@ -58,9 +58,6 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
 
   def manifest
     record do |m|
-      # Depend on model generator but skip if the model exists.
-      m.dependency 'model', [singular_name], :collision => :skip
-
       # Check for class naming collisions.
       m.class_collisions controller_class_path, "#{controller_class_name}Controller", "#{controller_class_name}ControllerTest", "#{controller_class_name}Helper"
 
@@ -70,6 +67,30 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       m.directory File.join('app/views', controller_class_path, controller_file_name)
       m.directory File.join('test/functional', controller_class_path)
 
+      # Scaffolded forms.
+      m.complex_template "form.rhtml",
+        File.join('app/views',
+                  controller_class_path,
+                  controller_file_name,
+                  "_form.rhtml"),
+        :insert => 'form_scaffolding.rhtml',
+        :sandbox => lambda { create_sandbox },
+        :begin_mark => 'form',
+        :end_mark => 'eoform',
+        :mark_id => singular_name
+
+      # Depend on model generator but skip if the model exists.
+      m.dependency 'model', [singular_name], :collision => :skip
+
+      # Scaffolded views.
+      scaffold_views.each do |action|
+        m.template "view_#{action}.rhtml",
+                   File.join('app/views',
+                             controller_class_path,
+                             controller_file_name,
+                             "#{action}.rhtml"),
+                   :assigns => { :action => action }
+      end
 
       # Controller class, functional test, helper, and views.
       m.template 'controller.rb',
@@ -91,27 +112,6 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
       m.template 'layout.rhtml',  "app/views/layouts/#{controller_file_name}.rhtml"
       m.template 'style.css',     'public/stylesheets/scaffold.css'
 
-      # Scaffolded views.
-      scaffold_views.each do |action|
-        m.template "view_#{action}.rhtml",
-                   File.join('app/views',
-                             controller_class_path,
-                             controller_file_name,
-                             "#{action}.rhtml"),
-                   :assigns => { :action => action }
-      end
-
-      # Scaffolded forms.
-      m.complex_template "form.rhtml",
-        File.join('app/views',
-                  controller_class_path,
-                  controller_file_name,
-                  "_form.rhtml"),
-        :insert => 'form_scaffolding.rhtml',
-        :sandbox => lambda { create_sandbox },
-        :begin_mark => 'form',
-        :end_mark => 'eoform',
-        :mark_id => singular_name
 
       # Unscaffolded views.
       unscaffolded_actions.each do |action|
