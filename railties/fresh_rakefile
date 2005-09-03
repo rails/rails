@@ -1,8 +1,8 @@
 # Add your own tasks in files placed in config/tasks 
 # and they will automatically be available to Rake.
 
-RAILS_BOOT_PATH_ONLY = true
 require(File.join(File.dirname(__FILE__), 'config', 'boot'))
+Rails::Initializer.run(:set_load_path)
 
 require 'rake'
 require 'rake/testtask'
