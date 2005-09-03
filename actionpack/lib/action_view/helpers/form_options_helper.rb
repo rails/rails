@@ -109,7 +109,7 @@ module ActionView
         container = container.to_a if Hash === container
 
         options_for_select = container.inject([]) do |options, element|
-          if element.respond_to?(:first) && element.respond_to?(:last)
+          if element.is_a?(Array) || element.is_a?(Range)
             is_selected = ( (selected.respond_to?(:include?) ? selected.include?(element.last) : element.last == selected) )
             is_selected = ( (selected.respond_to?(:include?) && !selected.is_a?(String) ? selected.include?(element.last) : element.last == selected) )
             if is_selected
