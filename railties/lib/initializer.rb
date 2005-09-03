@@ -3,6 +3,19 @@ require 'logger'
 RAILS_ENV = ENV['RAILS_ENV'] || 'development'
 
 module Rails
+  # The Initializer is responsible for processing the Rails configuration, such as setting the $LOAD_PATH, requiring the
+  # right frameworks, initializing logging, and more. It can be run either as a single command that'll just use the 
+  # default configuration, like this:
+  #
+  #   Rails::Initializer.run
+  #
+  # But normally it's more interesting to pass in a custom configuration through the block running:
+  #
+  #   Rails::Initializer.run do |config|
+  #     config.frameworks -= [ :action_web_service ]
+  #   end
+  #
+  # This will use the default configuration options from Rails::Configuration, but allow for overwriting on select areas.
   class Initializer
     attr_reader :configuration
     
@@ -24,6 +37,7 @@ module Rails
       initialize_database
       initialize_logger
       initialize_framework_logging
+      initialize_framework_views
       initialize_routing
     end
     
@@ -77,6 +91,13 @@ module Rails
     end
   end
   
+  # The Configuration class holds all the parameters for the Initializer and ships with defaults that suites most
+  # Rails applications. But it's possible to overwrite everything. Usually, you'll create an Configuration file implicitly
+  # through the block running on the Initializer, but it's also possible to create the Configuration instance in advance and
+  # pass it in like this:
+  #
+  #   config = Rails::Configuration.new
+  #   Rails::Initializer.run(:process, config)
   class Configuration
     attr_accessor :frameworks, :load_paths, :log_level, :log_path, :database_configuration_file, :view_path, :controller_paths
     
