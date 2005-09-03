@@ -46,5 +46,5 @@ Inflector.inflections do |inflect|
   inflect.irregular 'man', 'men'
   inflect.irregular 'child', 'children'
 
-  inflect.uncountable %w( equipment information rice money species series fish )
+  inflect.uncountable %w( equipment information rice money species series fish sheep )
 end
