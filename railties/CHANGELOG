@@ -1,5 +1,9 @@
 *SVN*
 
+* Moved all the shared tasks from Rakefile into Rails, so that the Rakefile is empty and doesn't require updating.
+
+* Added Rails::Initializer and Rails::Configuration to abstract all of the common setup out of config/environment.rb (uses config/boot.rb to bootstrap the initializer and paths)
+
 * Fixed the scaffold generator to fail right away if the database isn't accessible instead of in mid-air #1169 [Chad Fowler]
 
 * Corrected project-local generator location in scripts.rb #2010 [Michael Schuerig]

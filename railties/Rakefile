@@ -156,6 +156,7 @@ task :copy_configs do
 
   cp "configs/apache.conf", "#{PKG_DESTINATION}/public/.htaccess"
 
+  cp "environments/boot.rb", "#{PKG_DESTINATION}/config/boot.rb"
   cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
   cp "environments/production.rb", "#{PKG_DESTINATION}/config/environments/production.rb"
   cp "environments/development.rb", "#{PKG_DESTINATION}/config/environments/development.rb"
