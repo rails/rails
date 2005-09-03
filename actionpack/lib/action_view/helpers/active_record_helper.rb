@@ -96,6 +96,10 @@ module ActionView
       # * <tt>header_tag</tt> - Used for the header of the error div (default: h2)
       # * <tt>id</tt> - The id of the error div (default: errorExplanation)
       # * <tt>class</tt> - The class of the error div (default: errorExplanation)
+      #
+      # NOTE: This is a pre-packaged presentation of the errors with embedded strings and a certain HTML structure. If what
+      # you need is significantly different from the default presentation, it makes plenty of sense to access the object.errors
+      # instance yourself and set it up. View the source of this method to see how easy it is.
       def error_messages_for(object_name, options = {})
         options = options.symbolize_keys
         object = instance_variable_get("@#{object_name}")
