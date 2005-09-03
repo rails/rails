@@ -77,10 +77,12 @@ module Rails
     end
     
     def initialize_framework_logging
+      # TODO: Only do logging for frameworks loaded
       [ActiveRecord, ActionController, ActionMailer].each { |mod| mod::Base.logger ||= RAILS_DEFAULT_LOGGER }        
     end
     
     def initialize_framework_views
+      # TODO: Only do view setting for frameworks loaded
       [ActionController, ActionMailer].each { |mod| mod::Base.template_root ||= configuration.view_path }        
     end
 
@@ -132,10 +134,12 @@ module Rails
         paths = ["#{environment}/test/mocks/#{environment}"]
 
         # Then model subdirectories.
+        # TODO: Don't include .rb models as load paths
         paths.concat(Dir["#{RAILS_ROOT}/app/models/[_a-z]*"])
         paths.concat(Dir["#{RAILS_ROOT}/components/[_a-z]*"])
 
         # Followed by the standard includes.
+        # TODO: Don't include dirs for frameworks that are not used
         paths.concat %w(
           app 
           app/models 
