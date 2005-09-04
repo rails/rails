@@ -62,6 +62,32 @@ class UrlHelperTest < Test::Unit::TestCase
     )
   end
 
+  def test_link_tag_with_popup
+    assert_equal(
+      "<a href=\"http://www.example.com\" onclick=\"window.open(this.href);return false;\">Hello</a>",
+      link_to("Hello", "http://www.example.com", :popup => true)
+    )
+    assert_equal(
+      "<a href=\"http://www.example.com\" onclick=\"window.open(this.href);return false;\">Hello</a>", 
+      link_to("Hello", "http://www.example.com", :popup => 'true')
+    )
+    assert_equal(
+      "<a href=\"http://www.example.com\" onclick=\"window.open(this.href,'window_name','width=300,height=300');return false;\">Hello</a>", 
+      link_to("Hello", "http://www.example.com", :popup => ['window_name', 'width=300,height=300'])
+    )
+  end
+  
+  def test_link_tag_with_popup_and_javascript_confirm
+    assert_equal(
+      "<a href=\"http://www.example.com\" onclick=\"if (confirm('Fo\\' sho\\'?')) { window.open(this.href); };return false;\">Hello</a>",
+      link_to("Hello", "http://www.example.com", { :popup => true, :confirm => "Fo' sho'?" })
+    )
+    assert_equal(
+      "<a href=\"http://www.example.com\" onclick=\"if (confirm('Are you serious?')) { window.open(this.href,'window_name','width=300,height=300'); };return false;\">Hello</a>",
+      link_to("Hello", "http://www.example.com", { :popup => ['window_name', 'width=300,height=300'], :confirm => "Are you serious?" })
+    )
+  end
+  
   def test_link_to_unless
     assert_equal "Showing", link_to_unless(true, "Showing", :action => "show", :controller => "weblog")
     assert "<a href=\"http://www.example.com\">Listing</a>", link_to_unless(false, "Listing", :action => "list", :controller => "weblog")

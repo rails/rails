@@ -19,14 +19,20 @@ module ActionView
       # Creates a link tag of the given +name+ using an URL created by the set of +options+. See the valid options in
       # link:classes/ActionController/Base.html#M000021. It's also possible to pass a string instead of an options hash to
       # get a link tag that just points without consideration. If nil is passed as a name, the link itself will become the name.
-      # The html_options have a special feature for creating javascript confirm alerts where if you pass :confirm => 'Are you sure?',
+      #
+      # The html_options has two special features. One for creating javascript confirm alerts where if you pass :confirm => 'Are you sure?',
       # the link will be guarded with a JS popup asking that question. If the user accepts, the link is processed, otherwise not.
       #
-      # Example:
+      # The other for creating a popup window, which is done by either passing :popup with true or the options of the window in 
+      # Javascript form.
+      #
+      # Examples:
       #   link_to "Delete this page", { :action => "destroy", :id => @page.id }, :confirm => "Are you sure?"
+      #   link_to "Help", { :action => "help" }, :popup => true
+      #   link_to "Busy loop", { :action => "busy" }, :popup => ['new_window', 'height=300,width=600']
       def link_to(name, options = {}, html_options = nil, *parameters_for_method_reference)
         html_options = (html_options || {}).stringify_keys
-        convert_confirm_option_to_javascript!(html_options)
+        convert_options_to_javascript!(html_options)
         if options.is_a?(String)
           content_tag "a", name || options, (html_options || {}).merge("href" => options)
         else
@@ -224,9 +230,23 @@ module ActionView
         def convert_confirm_option_to_javascript!(html_options)
           if confirm = html_options.delete("confirm")
             html_options["onclick"] = "return confirm('#{escape_javascript(confirm)}');"
+            return confirm
           end
         end
+        
+        def convert_popup_option_to_javascript!(html_options, confirm_message = false)
+          if popup = html_options.delete("popup")
+            popup_js = popup.is_a?(Array) ? "window.open(this.href,'#{popup.first}','#{popup.last}');" : "window.open(this.href);"
+            html_options["onclick"] = popup_js + 'return false;' unless confirm_message
+            html_options["onclick"] = "if (confirm('#{escape_javascript(confirm_message)}')) { #{popup_js} };return false;" if confirm_message
+          end    
+        end
 
+        def convert_options_to_javascript!(html_options)
+          confirm_message = convert_confirm_option_to_javascript!(html_options)
+          convert_popup_option_to_javascript!(html_options, confirm_message)
+        end
+        
         # Processes the _html_options_ hash, converting the boolean
         # attributes from true/false form into the form required by
         # HTML/XHTML.  (An attribute is considered to be boolean if
