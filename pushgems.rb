@@ -1,7 +1,7 @@
 #!/usr/local/bin/ruby
 
 unless ARGV.first == "no_build"
-  build_number = "1962"
+  build_number = build_number = `svn log -q -rhead http://dev.rubyonrails.org/svn/rails`.scan(/r([0-9]*)/).first.first.to_i
 end
 
 %w( actionwebservice actionmailer actionpack activerecord railties activesupport ).each do |pkg|
