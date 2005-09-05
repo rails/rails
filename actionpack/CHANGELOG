@@ -1,5 +1,7 @@
 *SVN*
 
+* Updated vendor copy of html-scanner to support better xml parsing
+
 * Added :popup option to UrlHelper#link_to #1996 [gabriel.gironda@gmail.com]. Examples:
 
     link_to "Help", { :action => "help" }, :popup => true

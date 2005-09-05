@@ -11,7 +11,7 @@ module HTML #:nodoc:
     attr_reader :root
 
     # Create a new Document from the given text.
-    def initialize(text, strict=false)
+    def initialize(text, strict=false, xml=false)
       tokenizer = Tokenizer.new(text)
       @root = Node.new(nil)
       node_stack = [ @root ]
@@ -38,7 +38,7 @@ ignoring attempt to close #{node_stack.last.name} with #{node.name}
 EOF
               strict ? raise(msg) : warn(msg)
             end
-          elsif !node.childless? && node.closing != :close
+          elsif !node.childless?(xml) && node.closing != :close
             node_stack.push node
           end
         end
