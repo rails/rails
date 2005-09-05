@@ -61,6 +61,9 @@ module Rails
     end
     
     def initialize_logger
+      # if the environment has explicitly defined a logger, use it
+      return if defined?(RAILS_DEFAULT_LOGGER)
+
       begin
         logger = Logger.new(configuration.log_path)
         logger.level = configuration.log_level

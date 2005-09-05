@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow the selected environment to define RAILS_DEFAULT_LOGGER, and have Rails::Initializer use it if it exists.
+
 * Moved all the shared tasks from Rakefile into Rails, so that the Rakefile is empty and doesn't require updating.
 
 * Added Rails::Initializer and Rails::Configuration to abstract all of the common setup out of config/environment.rb (uses config/boot.rb to bootstrap the initializer and paths)
