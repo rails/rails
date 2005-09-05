@@ -1,4 +1,4 @@
-require 'action_mailer/vendor/text/format'
+require 'text/format'
 
 module MailHelper#:nodoc:
   def block_format(text)

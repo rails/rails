@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix vendor require paths to prevent files being required twice
+
 * Don't add charset to content-type header for a part that contains subparts (for AOL compatibility) #2013 [John Long]
 
 * Preserve underscores when unquoting message bodies #1930

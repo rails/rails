@@ -38,7 +38,7 @@ require 'action_mailer/base'
 require 'action_mailer/helpers'
 require 'action_mailer/mail_helper'
 require 'action_mailer/quoting'
-require 'action_mailer/vendor/tmail'
+require 'tmail'
 require 'net/smtp'
 
 ActionMailer::Base.class_eval do
