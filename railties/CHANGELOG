@@ -1,5 +1,7 @@
 *SVN*
 
+* Make the default stats task extendable by modifying the STATS_DIRECTORIES constant
+
 * Allow the selected environment to define RAILS_DEFAULT_LOGGER, and have Rails::Initializer use it if it exists.
 
 * Moved all the shared tasks from Rakefile into Rails, so that the Rakefile is empty and doesn't require updating.
