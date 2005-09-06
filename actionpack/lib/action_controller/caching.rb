@@ -74,17 +74,21 @@ module ActionController #:nodoc:
         #   expire_page "/lists/show"
         def expire_page(path)
           return unless perform_caching
-          File.delete(page_cache_path(path)) if File.exists?(page_cache_path(path))
-          logger.debug "Expired page: #{page_cache_file(path)}" unless logger.nil?
+
+          benchmark "Expired page: #{page_cache_file(path)}" do
+            File.delete(page_cache_path(path)) if File.exists?(page_cache_path(path))
+          end
         end
         
         # Manually cache the +content+ in the key determined by +path+. Example:
         #   cache_page "I'm the cached content", "/lists/show"
         def cache_page(content, path)
           return unless perform_caching
-          FileUtils.makedirs(File.dirname(page_cache_path(path)))
-          File.open(page_cache_path(path), "w+") { |f| f.write(content) }
-          logger.debug "Cached page: #{page_cache_file(path)}" unless logger.nil?
+
+          benchmark "Cached page: #{page_cache_file(path)}" do
+            FileUtils.makedirs(File.dirname(page_cache_path(path)))
+            File.open(page_cache_path(path), "w+") { |f| f.write(content) }
+          end
         end
 
         # Caches the +actions+ using the page-caching approach that'll store the cache in a path within the page_cache_directory that
@@ -279,21 +283,22 @@ module ActionController #:nodoc:
         return unless perform_caching
 
         key = fragment_cache_key(name)
-        fragment_cache_store.write(key, content, options)
-        logger.debug "Cached fragment: #{key}" unless logger.nil?
+        benchmark "Cached fragment: #{key}" do
+          fragment_cache_store.write(key, content, options)
+        end
+
         content
       end
       
       def read_fragment(name, options = {})
         return unless perform_caching
 
-        key = fragment_cache_key(name)
-        if cache = fragment_cache_store.read(key, options)
-          logger.debug "Fragment hit: #{key}" unless logger.nil?
-          cache
-        else
-          false
+        key, cache = fragment_cache_key(name), nil
+        benchmark "Fragment hit: #{key}" do
+          cache = fragment_cache_store.read(key, options)
         end
+
+        cache || false
       end
       
       # Name can take one of three forms:
@@ -306,11 +311,13 @@ module ActionController #:nodoc:
         key = fragment_cache_key(name)
 
         if key.is_a?(Regexp)
-          fragment_cache_store.delete_matched(key, options)
-          logger.debug "Expired fragments matching: #{key.source}" unless logger.nil?
+          benchmark "Expired fragments matching: #{key.source}" do
+            fragment_cache_store.delete_matched(key, options)
+          end
         else
-          fragment_cache_store.delete(key, options)
-          logger.debug "Expired fragment: #{key}" unless logger.nil?
+          benchmark "Expired fragment: #{key}" do
+            fragment_cache_store.delete(key, options)
+          end
         end
       end
 

@@ -19,11 +19,15 @@ module ActionController #:nodoc:
     module ClassMethods
       # Log and benchmark the workings of a single block and silence whatever logging that may have happened inside it 
       # (unless <tt>use_silence</tt> is set to false).
-      def benchmark(title, use_silence = true)
-        if logger
+      #
+      # The benchmark is only recorded if the current level of the logger matches the <tt>log_level</tt>, which makes it
+      # easy to include benchmarking statements in production software that will remain inexpensive because the benchmark
+      # will only be conducted if the log level is low enough.
+      def benchmark(title, log_level = Logger::DEBUG, use_silence = true)
+        if logger && logger.level == log_level
           result = nil
           seconds = Benchmark.realtime { result = use_silence ? silence { yield } : yield }
-          logger.info "#{title} (#{sprintf("%f", seconds)})"
+          logger.add(log_level, "#{title} (#{sprintf("%f", seconds)})")
           result
         else
           yield
