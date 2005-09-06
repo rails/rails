@@ -706,8 +706,7 @@ module ActiveRecord #:nodoc:
         connection.quote(object)
       end
 
-      # Log and benchmark multiple statements in a single block.
-      # Usage (hides all the SQL calls for the individual actions and calculates total runtime for them all):
+      # Log and benchmark multiple statements in a single block. Example:
       #
       #   Project.benchmark("Creating project") do
       #     project = Project.create("name" => "stuff")
@@ -715,12 +714,16 @@ module ActiveRecord #:nodoc:
       #     project.milestones << Milestone.find(:all)
       #   end
       #
+      # The benchmark is only recorded if the current level of the logger matches the <tt>log_level</tt>, which makes it
+      # easy to include benchmarking statements in production software that will remain inexpensive because the benchmark
+      # will only be conducted if the log level is low enough.
+      #
       # The loggings of the multiple statements is turned off unless <tt>use_silence</tt> is set to false.
-      def benchmark(title, use_silence = true)
-        if logger
+      def benchmark(title, log_level = Logger::DEBUG, use_silence = true)
+        if logger && logger.level == log_level
           result = nil
           seconds = Benchmark.realtime { result = use_silence ? silence { yield } : yield }
-          logger.info "#{title} (#{'%.5f' % seconds)})"
+          logger.add(log_level, "#{title} (#{'%.5f' % seconds})")
           result
         else
           yield
