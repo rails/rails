@@ -720,7 +720,7 @@ module ActiveRecord #:nodoc:
         if logger
           result = nil
           seconds = Benchmark.realtime { result = use_silence ? silence { yield } : yield }
-          logger.info "#{title} (#{sprintf("%f", seconds)})"
+          logger.info "#{title} (#{'%.5f' % seconds)})"
           result
         else
           yield

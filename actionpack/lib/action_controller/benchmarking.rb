@@ -27,7 +27,7 @@ module ActionController #:nodoc:
         if logger && logger.level == log_level
           result = nil
           seconds = Benchmark.realtime { result = use_silence ? silence { yield } : yield }
-          logger.add(log_level, "#{title} (#{sprintf("%f", seconds)})")
+          logger.add(log_level, "#{title} (#{'%.5f' % seconds})")
           result
         else
           yield

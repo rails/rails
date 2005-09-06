@@ -283,7 +283,7 @@ module ActionController #:nodoc:
         return unless perform_caching
 
         key = fragment_cache_key(name)
-        benchmark "Cached fragment: #{key}" do
+        self.class.benchmark "Cached fragment: #{key}" do
           fragment_cache_store.write(key, content, options)
         end
 
@@ -294,7 +294,7 @@ module ActionController #:nodoc:
         return unless perform_caching
 
         key, cache = fragment_cache_key(name), nil
-        benchmark "Fragment hit: #{key}" do
+        self.class.benchmark "Fragment read: #{key}" do
           cache = fragment_cache_store.read(key, options)
         end
 
@@ -311,11 +311,11 @@ module ActionController #:nodoc:
         key = fragment_cache_key(name)
 
         if key.is_a?(Regexp)
-          benchmark "Expired fragments matching: #{key.source}" do
+          self.class.benchmark "Expired fragments matching: #{key.source}" do
             fragment_cache_store.delete_matched(key, options)
           end
         else
-          benchmark "Expired fragment: #{key}" do
+          self.class.benchmark "Expired fragment: #{key}" do
             fragment_cache_store.delete(key, options)
           end
         end
