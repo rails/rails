@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActionController::Base.benchmark and ActionController::Base.silence to allow for easy benchmarking and turning off the log
+
 * Updated vendor copy of html-scanner to support better xml parsing
 
 * Added :popup option to UrlHelper#link_to #1996 [gabriel.gironda@gmail.com]. Examples:

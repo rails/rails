@@ -6,13 +6,37 @@ module ActionController #:nodoc:
   module Benchmarking #:nodoc:
     def self.append_features(base)
       super
-      base.class_eval {
+      base.extend(ClassMethods)
+      base.class_eval do
         alias_method :perform_action_without_benchmark, :perform_action
         alias_method :perform_action, :perform_action_with_benchmark
 
         alias_method :render_without_benchmark, :render
         alias_method :render, :render_with_benchmark
-      }
+      end
+    end
+
+    module ClassMethods
+      # Log and benchmark the workings of a single block and silence whatever logging that may have happened inside it 
+      # (unless <tt>use_silence</tt> is set to false).
+      def benchmark(title, use_silence = true)
+        if logger
+          result = nil
+          seconds = Benchmark.realtime { result = use_silence ? silence { yield } : yield }
+          logger.info "#{title} (#{sprintf("%f", seconds)})"
+          result
+        else
+          yield
+        end
+      end
+
+      # Silences the logger for the duration of the block.
+      def silence
+        old_logger_level, logger.level = logger.level, Logger::ERROR if logger
+        yield
+      ensure
+        logger.level = old_logger_level if logger
+      end
     end
 
     def render_with_benchmark(options = nil, deprecated_status = nil)

@@ -714,11 +714,17 @@ module ActiveRecord #:nodoc:
       #     project.create_manager("name" => "David")
       #     project.milestones << Milestone.find(:all)
       #   end
-      def benchmark(title)
-        result = nil
-        seconds = Benchmark.realtime { result = silence { yield } }
-        logger.info "#{title} (#{sprintf("%f", seconds)})" if logger
-        return result
+      #
+      # The loggings of the multiple statements is turned off unless <tt>use_silence</tt> is set to false.
+      def benchmark(title, use_silence = true)
+        if logger
+          result = nil
+          seconds = Benchmark.realtime { result = use_silence ? silence { yield } : yield }
+          logger.info "#{title} (#{sprintf("%f", seconds)})"
+          result
+        else
+          yield
+        end
       end
 
       # Silences the logger for the duration of the block.

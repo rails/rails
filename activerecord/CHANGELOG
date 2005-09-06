@@ -1,5 +1,7 @@
 *SVN*
 
+* Added use_silence parameter to ActiveRecord::Base.benchmark that can be passed false to include all logging statements during the benchmark block
+
 * Make sure the schema_info table is created before querying the current version #1903
 
 * Fixtures ignore table name prefix and suffix #1987 [Jakob S]
