@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed overwrite_params
+
 * Added ActionController::Base.benchmark and ActionController::Base.silence to allow for easy benchmarking and turning off the log
 
 * Updated vendor copy of html-scanner to support better xml parsing

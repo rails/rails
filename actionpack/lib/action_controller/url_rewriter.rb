@@ -36,6 +36,10 @@ module ActionController
       def rewrite_path(options)
         options = options.symbolize_keys
         options.update(options[:params].symbolize_keys) if options[:params]
+        if (overwrite = options.delete(:overwrite_params))
+          options.update(@parameters)
+          options.update(overwrite)
+        end
         RESERVED_OPTIONS.each {|k| options.delete k}
         path, extra_keys = Routing::Routes.generate(options.dup, @request) # Warning: Routes will mutate and violate the options hash
 

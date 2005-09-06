@@ -23,5 +23,15 @@ class UrlRewriterTests < Test::Unit::TestCase
   def test_escape_spaces_build_query_string_selected_keys
     assert_equal '?x=hello+world', @rewriter.send(:build_query_string, {:x => 'hello world', :y => 'goodbye world'}, [:x])
   end
+
+  def test_overwrite_params
+    @params[:controller] = 'hi'
+    @params[:action] = 'bye'
+    @params[:id] = '2'
+
+    assert_equal '/hi/hi/2', @rewriter.rewrite(:only_path => true, :overwrite_params => {:action => 'hi'})
+    u = @rewriter.rewrite(:only_path => false, :overwrite_params => {:action => 'hi'})
+    assert_match %r(/hi/hi/2$), u
+  end
   
 end
