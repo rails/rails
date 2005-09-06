@@ -18,7 +18,7 @@ class <%= class_name %>Test < Test::Unit::TestCase
 
 <% for action in actions -%>
   def test_<%= action %>
-    @expected.subject = encode '<%= class_name %>#<%= action %>'
+    @expected.subject = '<%= class_name %>#<%= action %>'
     @expected.body    = read_fixture('<%= action %>')
     @expected.date    = Time.now
 
