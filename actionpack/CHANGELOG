@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :post option to UrlHelper#link_to that makes it possible to do POST requests through normal ahref links using Javascript
+
 * Fixed overwrite_params
 
 * Added ActionController::Base.benchmark and ActionController::Base.silence to allow for easy benchmarking and turning off the log

@@ -20,16 +20,22 @@ module ActionView
       # link:classes/ActionController/Base.html#M000021. It's also possible to pass a string instead of an options hash to
       # get a link tag that just points without consideration. If nil is passed as a name, the link itself will become the name.
       #
-      # The html_options has two special features. One for creating javascript confirm alerts where if you pass :confirm => 'Are you sure?',
+      # The html_options has three special features. One for creating javascript confirm alerts where if you pass :confirm => 'Are you sure?',
       # the link will be guarded with a JS popup asking that question. If the user accepts, the link is processed, otherwise not.
       #
-      # The other for creating a popup window, which is done by either passing :popup with true or the options of the window in 
+      # Another for creating a popup window, which is done by either passing :popup with true or the options of the window in 
       # Javascript form.
+      #
+      # And a third for making the link do a POST request (instead of the regular GET) through a dynamically added form element that
+      # is instantly submitted. Note that if the user has turned off Javascript, the request will fall back on the GET. So its
+      # your responsibility to determine what the action should be once it arrives at the controller. The POST form is turned on by
+      # passing :post as true. Note, it's not possible to use POST requests and popup targets at the same time (an exception will be thrown).
       #
       # Examples:
       #   link_to "Delete this page", { :action => "destroy", :id => @page.id }, :confirm => "Are you sure?"
       #   link_to "Help", { :action => "help" }, :popup => true
       #   link_to "Busy loop", { :action => "busy" }, :popup => ['new_window', 'height=300,width=600']
+      #   link_to "Destroy account", { :action => "destroy" }, :confirm => "Are you sure?", :post => true
       def link_to(name, options = {}, html_options = nil, *parameters_for_method_reference)
         html_options = (html_options || {}).stringify_keys
         convert_options_to_javascript!(html_options)
@@ -90,15 +96,20 @@ module ActionView
       # +td+ element or in between +p+ elements, but not in the middle of
       # a run of text, nor can you place a form within another form.
       # (Bottom line: Always validate your HTML before going public.)
-
       def button_to(name, options = {}, html_options = nil)
         html_options = (html_options || {}).stringify_keys
         convert_boolean_attributes!(html_options, %w( disabled ))
-        convert_confirm_option_to_javascript!(html_options)
-        url, name = options.is_a?(String) ? 
+        
+        if confirm = html_options.delete("confirm")
+          html_options["onclick"] = "return #{confirm_javascript_function(confirm)};"
+        end
+
+        url, name = options.is_a?(String) ?
           [ options,  name || options ] :
           [ url_for(options), name || url_for(options) ]
+
         html_options.merge!("type" => "submit", "value" => name)
+
         "<form method=\"post\" action=\"#{h url}\" class=\"button-to\"><div>" +
           tag("input", html_options) + "</div></form>"
       end
@@ -227,26 +238,37 @@ module ActionView
       end
 
       private
-        def convert_confirm_option_to_javascript!(html_options)
-          if confirm = html_options.delete("confirm")
-            html_options["onclick"] = "return confirm('#{escape_javascript(confirm)}');"
-            return confirm
+        def convert_options_to_javascript!(html_options)
+          confirm, popup, post = html_options.delete("confirm"), html_options.delete("popup"), html_options.delete("post")
+        
+          html_options["onclick"] = case
+            when popup && post
+              raise ActionView::ActionViewError, "You can't use :popup and :post in the same link"
+            when confirm && popup
+              "if (#{confirm_javascript_function(confirm)}) { #{popup_javascript_function(popup)} };return false;"
+            when confirm && post
+              "if (#{confirm_javascript_function(confirm)}) { #{post_javascript_function} };return false;"
+            when confirm
+              "return #{confirm_javascript_function(confirm)};"
+            when post
+              "#{post_javascript_function}return false;"
+            when popup
+              popup_javascript_function(popup) + 'return false;'
           end
         end
         
-        def convert_popup_option_to_javascript!(html_options, confirm_message = false)
-          if popup = html_options.delete("popup")
-            popup_js = popup.is_a?(Array) ? "window.open(this.href,'#{popup.first}','#{popup.last}');" : "window.open(this.href);"
-            html_options["onclick"] = popup_js + 'return false;' unless confirm_message
-            html_options["onclick"] = "if (confirm('#{escape_javascript(confirm_message)}')) { #{popup_js} };return false;" if confirm_message
-          end    
-        end
-
-        def convert_options_to_javascript!(html_options)
-          confirm_message = convert_confirm_option_to_javascript!(html_options)
-          convert_popup_option_to_javascript!(html_options, confirm_message)
+        def confirm_javascript_function(confirm)
+          "confirm('#{escape_javascript(confirm)}')"
         end
         
+        def popup_javascript_function(popup)
+          popup.is_a?(Array) ? "window.open(this.href,'#{popup.first}','#{popup.last}');" : "window.open(this.href);"
+        end
+        
+        def post_javascript_function
+          "f = document.createElement('form'); document.body.appendChild(f); f.method = 'POST'; f.action = url; f.submit();"
+        end
+
         # Processes the _html_options_ hash, converting the boolean
         # attributes from true/false form into the form required by
         # HTML/XHTML.  (An attribute is considered to be boolean if
@@ -270,12 +292,10 @@ module ActionView
         #
         #   convert_boolean_attributes!( html_options,
         #                                %w( checked disabled readonly ) )
-
         def convert_boolean_attributes!(html_options, bool_attrs)
           bool_attrs.each { |x| html_options[x] = x if html_options.delete(x) }
           html_options
         end
-
     end
   end
 end

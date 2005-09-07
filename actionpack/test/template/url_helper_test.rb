@@ -88,6 +88,24 @@ class UrlHelperTest < Test::Unit::TestCase
     )
   end
   
+  def test_link_tag_using_post_javascript
+    assert_equal(
+      "<a href=\"http://www.example.com\" onclick=\"f = document.createElement('form'); document.body.appendChild(f); f.method = 'POST'; f.action = url; f.submit();return false;\">Hello</a>",
+      link_to("Hello", "http://www.example.com", :post => true)
+    )
+  end
+  
+  def test_link_tag_using_post_javascript_and_confirm
+    assert_equal(
+      "<a href=\"http://www.example.com\" onclick=\"if (confirm('Are you serious?')) { f = document.createElement('form'); document.body.appendChild(f); f.method = 'POST'; f.action = url; f.submit(); };return false;\">Hello</a>",
+      link_to("Hello", "http://www.example.com", :post => true, :confirm => "Are you serious?")
+    )    
+  end
+  
+  def test_link_tag_using_post_javascript_and_popup
+    assert_raises(ActionView::ActionViewError) { link_to("Hello", "http://www.example.com", :popup => true, :post => true, :confirm => "Are you serious?") }
+  end
+  
   def test_link_to_unless
     assert_equal "Showing", link_to_unless(true, "Showing", :action => "show", :controller => "weblog")
     assert "<a href=\"http://www.example.com\">Listing</a>", link_to_unless(false, "Listing", :action => "list", :controller => "weblog")
