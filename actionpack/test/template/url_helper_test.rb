@@ -90,7 +90,7 @@ class UrlHelperTest < Test::Unit::TestCase
   
   def test_link_tag_using_post_javascript
     assert_equal(
-      "<a href=\"http://www.example.com\" onclick=\"f = document.createElement('form'); document.body.appendChild(f); f.method = 'POST'; f.action = url; f.submit();return false;\">Hello</a>",
+      "<a href=\"http://www.example.com\" onclick=\"f = document.createElement('form'); document.body.appendChild(f); f.method = 'POST'; f.action = this.href; f.submit();return false;\">Hello</a>",
       link_to("Hello", "http://www.example.com", :post => true)
     )
   end
