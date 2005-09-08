@@ -120,6 +120,21 @@ module ActiveRecord
   #       execute "ALTER TABLE `pages_linked_pages` DROP INDEX `page_id_linked_page_id`"
   #     end
   #   end
+  #
+  # == Using the class after changing table
+  #
+  # Some times you'll want to add a column in a migration and populate it immediately after. In that case, you'll need
+  # to make a call to Base#reset_column_information in order to ensure that the class has the latest column data from 
+  # after the new column was added. Example:
+  #
+  #   class MakeJoinUnique < ActiveRecord::Migration
+  #     def self.up
+  #       add_column :people, :salary, :integer
+  #       Person.find(:all).each do |p|
+  #         p.salary = SalaryCalculator.compute(p)
+  #       end
+  #     end
+  #   end  
   class Migration
     class << self
       def up() end
