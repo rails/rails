@@ -16,11 +16,6 @@ module ActionController #:nodoc:
           alias_method :inherited_without_helper, :inherited
           alias_method :inherited, :inherited_with_helper
         end
-
-        # Wrap initialize_template_class to extend new template class
-        # instances with the master helper module.
-        alias_method :initialize_template_class_without_helper, :initialize_template_class
-        alias_method :initialize_template_class, :initialize_template_class_with_helper
       end
     end
 
@@ -124,13 +119,5 @@ module ActionController #:nodoc:
           end
         end        
     end
-
-    private
-      # Extend the template class instance with our controller's helper module.
-      def initialize_template_class_with_helper(response)
-        returning(initialize_template_class_without_helper(response)) do
-          response.template.extend self.class.master_helper_module
-        end
-      end
   end
 end

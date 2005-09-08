@@ -784,13 +784,24 @@ module ActionController #:nodoc:
       end
     
     private
-      def initialize_template_class(response)
-        begin
-          response.template = template_class.new(template_root, {}, self)
-        rescue
-          raise "You must assign a template class through ActionController.template_class= before processing a request"
+      def self.view_class
+        unless @view_class
+          # create a new class based on the default template class and include helper methods
+          logger.debug "defining view class for #{name}" if logger
+          @view_class = Class.new(ActionView::Base)
+          @view_class.send(:include, master_helper_module)
         end
+        @view_class
+      end
+
+      def self.view_root
+        @view_root ||= template_root
+      end
+
+      def initialize_template_class(response)
+        raise "You must assign a template class through ActionController.template_class= before processing a request" unless @@template_class
         
+        response.template = self.class.view_class.new(self.class.view_root, {}, self)
         @performed_render = @performed_redirect = false
       end
     
