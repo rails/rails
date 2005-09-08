@@ -47,6 +47,10 @@ class UrlHelperTest < Test::Unit::TestCase
     assert_equal "<a href=\"http://www.example.com\">Hello</a>", link_to("Hello", "http://www.example.com")
   end
 
+  def test_link_tag_with_custom_onclick
+    assert_equal "<a href=\"http://www.example.com\" onclick=\"alert('yay!')\">Hello</a>", link_to("Hello", "http://www.example.com", :onclick => "alert('yay!')")
+  end
+
   def test_link_tag_with_javascript_confirm
     assert_equal(
       "<a href=\"http://www.example.com\" onclick=\"return confirm('Are you sure?');\">Hello</a>",

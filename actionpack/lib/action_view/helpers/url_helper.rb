@@ -254,6 +254,8 @@ module ActionView
               "#{post_javascript_function}return false;"
             when popup
               popup_javascript_function(popup) + 'return false;'
+            else
+              html_options["onclick"]
           end
         end
         
