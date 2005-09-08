@@ -17,13 +17,17 @@ class CGIMethods #:nodoc:
         k = CGI.unescape(k) if k
         v = CGI.unescape(v) if v
 
-        keys = split_key(k)
-        last_key = keys.pop
-        last_key = keys.pop if (use_array = last_key.empty?)
-        parent = keys.inject(parsed_params) {|h, k| h[k] ||= {}}
-        
-        if use_array then (parent[last_key] ||= []) << v
-        else parent[last_key] = v
+        unless k.include?(?[)
+          parsed_params[k] = v
+        else
+          keys = split_key(k)
+          last_key = keys.pop
+          last_key = keys.pop if (use_array = last_key.empty?)
+          parent = keys.inject(parsed_params) {|h, k| h[k] ||= {}}
+          
+          if use_array then (parent[last_key] ||= []) << v
+          else parent[last_key] = v
+          end
         end
       }
   

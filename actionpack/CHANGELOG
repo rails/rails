@@ -1,5 +1,7 @@
 *SVN*
 
+* Performance improvements to CGI methods. Closes #1980 [Skaes]
+
 * Added :post option to UrlHelper#link_to that makes it possible to do POST requests through normal ahref links using Javascript
 
 * Fixed overwrite_params
