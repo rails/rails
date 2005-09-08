@@ -208,8 +208,6 @@ module ActionController #:nodoc:
   #
   #   FCGI.each_cgi{ |cgi| WeblogController.process_cgi(cgi) }
   class Base
-    include ClassInheritableAttributes
-  
     DEFAULT_RENDER_STATUS_CODE = "200 OK"
   
     # Determines whether the view has access to controller internals @request, @response, @session, and @template.

@@ -226,8 +226,6 @@ module ActiveRecord #:nodoc:
   # So it's possible to assign a logger to the class through Base.logger= which will then be used by all
   # instances in the current object space.
   class Base
-    include ClassInheritableAttributes
-
     # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed
     # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
     cattr_accessor :logger
