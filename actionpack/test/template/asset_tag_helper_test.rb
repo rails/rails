@@ -37,6 +37,7 @@ class AssetTagHelperTest < Test::Unit::TestCase
 
   JavascriptPathToTag = {
     %(javascript_path("xmlhr")) => %(/javascripts/xmlhr.js),
+    %(javascript_path("super/xmlhr")) => %(/javascripts/super/xmlhr.js)
   }
 
   JavascriptIncludeToTag = {

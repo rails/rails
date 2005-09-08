@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed all AssetHelper methods to work with relative paths, such that javascript_include_tag('stdlib/standard') will look in /javascripts/stdlib/standard instead of '/stdlib/standard/' #1963
+
 * Avoid extending view instance with helper modules each request. Closes #1979
 
 * Performance improvements to CGI methods. Closes #1980 [Skaes]
