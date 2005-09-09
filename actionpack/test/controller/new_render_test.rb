@@ -101,6 +101,10 @@ class NewRenderTestController < ActionController::Base
   def empty_partial_collection
     render :partial => "customer", :collection => []
   end
+  
+  def partial_with_hash_object
+    render :partial => "hash_object", :object => {:first_name => "Sam"}
+  end
 
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
@@ -369,6 +373,11 @@ class NewRenderTest < Test::Unit::TestCase
   def test_empty_partial_collection
     get :empty_partial_collection
     assert_equal " ", @response.body
+  end
+
+  def test_partial_with_hash_object
+    get :partial_with_hash_object
+    assert_equal "Sam", @response.body
   end
 
   def test_render_text_with_assigns

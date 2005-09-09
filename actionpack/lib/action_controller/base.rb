@@ -600,7 +600,7 @@ module ActionController #:nodoc:
             if collection = options[:collection]
               render_partial_collection(partial, collection, options[:spacer_template], options[:locals], options[:status])
             else
-              render_partial(partial, options[:object], options[:locals], options[:status])
+              render_partial(partial, ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals], options[:status])
             end
 
           elsif options[:nothing]

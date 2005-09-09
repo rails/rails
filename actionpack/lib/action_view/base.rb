@@ -137,6 +137,9 @@ module ActionView #:nodoc:
     @@compiled_templates = CompiledTemplates.new
     include @@compiled_templates
 
+    class ObjectWrapper < Struct.new(:value) #:nodoc:
+    end
+    
     def self.load_helpers(helper_dir)#:nodoc:
       Dir.foreach(helper_dir) do |helper_file| 
         next unless helper_file =~ /_helper.rb$/
@@ -200,7 +203,7 @@ module ActionView #:nodoc:
         elsif options[:partial] && options[:collection]
           render_partial_collection(options[:partial], options[:collection], options[:spacer_template], options[:locals])
         elsif options[:partial]
-          render_partial(options[:partial], options[:object], options[:locals])
+          render_partial(options[:partial], ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals])
         elsif options[:inline]
           render_template(options[:type] || :rhtml, options[:inline], nil, options[:locals] || {})
         end
