@@ -134,8 +134,7 @@ module Inflector
   end
 
   def foreign_key(class_name, separate_class_name_and_id_with_underscore = true)
-    Inflector.underscore(Inflector.demodulize(class_name)) + 
-      (separate_class_name_and_id_with_underscore ? "_id" : "id")
+    underscore(demodulize(class_name)) + (separate_class_name_and_id_with_underscore ? "_id" : "id")
   end
 
   def constantize(camel_cased_word)

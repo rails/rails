@@ -425,6 +425,15 @@ module ActionController #:nodoc:
       #
       #   url_for :controller => 'posts', :action => nil
       #      
+      # If you explicitly want to create a URL that's almost the same as the current URL, you can do so using the
+      # :overwrite_params options. Say for your posts you have different views for showing and printing them.
+      # Then, in the show view, you get the URL for the print view like this
+      #
+      #   url_for :overwrite_params => { :action => 'print' }
+      #
+      # This takes the current URL as is and only exchanges the action. In contrast, <tt>url_for :action => 'print'</tt>
+      # would have slashed-off the path components are the changed action.
+      #
       # Instead of passing an options hash, you can also pass a method reference in the form of a symbol. Consider this example:
       #
       #   class WeblogController < ActionController::Base
