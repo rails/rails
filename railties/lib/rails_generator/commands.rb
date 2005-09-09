@@ -202,6 +202,9 @@ module Rails
           if file_options[:chmod]
             FileUtils.chmod(file_options[:chmod], destination)
           end
+          
+          # Optionally add file to subversion
+          system("svn add #{destination}") if options[:svn]
         end
 
         # Generate a file for a Rails application using an ERuby template.
@@ -246,6 +249,9 @@ module Rails
           else
             logger.create relative_path
             FileUtils.mkdir_p(path) unless options[:pretend]
+            
+            # Optionally add file to subversion
+            system("svn add #{path}") if options[:svn]
           end
         end
 
@@ -294,11 +300,26 @@ end_message
       # manifest and attempt to completely erase the results of each action.
       class Destroy < RewindBase
         # Remove a file if it exists and is a file.
-        def file(relative_source, relative_destination, options = {})
+        def file(relative_source, relative_destination, file_options = {})
           destination = destination_path(relative_destination)
           if File.exists?(destination)
             logger.rm relative_destination
-            FileUtils.rm(destination) unless options[:pretend]
+            unless options[:pretend]
+              if options[:svn]
+                # If the file has been marked to be added
+                # but has not yet been checked in, revert and elete
+                if options[:svn][relative_destination]
+                  system("svn revert #{destination}")
+                  FileUtils.rm(destination)
+                else
+                # If the directory is not in the status list, it
+                # has no modifications so we can simply remove it
+                  system("svn rm #{destination}")
+                end  
+              else
+                FileUtils.rm(destination)
+              end
+            end
           else
             logger.missing relative_destination
             return
@@ -319,7 +340,22 @@ end_message
             if File.exists?(path)
               if Dir[File.join(path, '*')].empty?
                 logger.rmdir partial
-                FileUtils.rmdir(path) unless options[:pretend]
+                unless options[:pretend]
+                  if options[:svn]
+                    # If the directory has been marked to be added
+                    # but has not yet been checked in, revert and elete
+                    if options[:svn][relative_path]
+                      system("svn revert #{path}")
+                      FileUtils.rmdir(path)
+                    else
+                    # If the directory is not in the status list, it
+                    # has no modifications so we can simply remove it
+                      system("svn rm #{path}")
+                    end
+                  else
+                    FileUtils.rmdir(path)
+                  end
+                end
               else
                 logger.notempty partial
               end
