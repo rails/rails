@@ -468,6 +468,10 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal Topic.find(1), Topic.find(2).parent
   end
   
+  def test_equality_of_new_records
+    assert_not_equal Topic.new, Topic.new
+  end
+  
   def test_hashing
     assert_equal [ Topic.find(1) ], [ Topic.find(2).parent ] & [ Topic.find(1) ]
   end

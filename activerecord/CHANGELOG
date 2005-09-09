@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed comparison of Active Record objects so two new objects are not equal #2099 [deberg]
+
 * Fixed that the SQL Server adapter would sometimes return DBI::Timestamp objects instead of Time #2127 [Tom Ward]
 
 * Added the instance methods #root and #ancestors on acts_as_tree and fixed siblings to not include the current node #2142, #2140 [coffee2code]
