@@ -109,6 +109,8 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     )
 
     header, body = extract_header_and_body(data)
+
+    set_charset(header)
     assign_status(res, header)
     res.cookies.concat(header.delete('set-cookie'))
     header.each { |key, val| res[key] = val.join(", ") }
@@ -137,6 +139,14 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
       header = WEBrick::HTTPUtils::parse_header(raw_header)
       
       return header, body
+    end
+    
+    def set_charset(header)
+      ct = header["content-type"]
+      if ct.any? { |x| x =~ /^text\// } && ! ct.any? { |x| x =~ /charset=/ }
+        ch = @server_options[:charset] || "UTF-8"
+        ct.find { |x| x =~ /^text\// } << ("; charset=" + ch)
+      end
     end
 
     def assign_status(res, header)

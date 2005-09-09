@@ -8,7 +8,8 @@ OPTIONS = {
   :ip          => "0.0.0.0",
   :environment => "development",
   :server_root => File.expand_path(File.dirname(__FILE__) + "/../public/"),
-  :server_type => WEBrick::SimpleServer
+  :server_type => WEBrick::SimpleServer,
+  :charset     => "UTF-8"
 }
 
 ARGV.options do |opts|
@@ -29,6 +30,10 @@ ARGV.options do |opts|
   opts.on("-d", "--daemon",
           "Make Rails run as a Daemon (only works if fork is available -- meaning on *nix)."
           ) { OPTIONS[:server_type] = WEBrick::Daemon }
+
+  opts.on("-c", "--charset=charset", String,
+          "Set default charset for output.",
+          "Default: UTF-8") { |OPTIONS[:charset]| }
 
   opts.separator ""
 

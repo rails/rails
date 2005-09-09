@@ -1,5 +1,7 @@
 *SVN*
 
+* Added -c/--charset option to WEBrick controller, so you can specify a default charset (which without changes is UTF-8) #2084 [wejn@box.cz]
+
 * Make the default stats task extendable by modifying the STATS_DIRECTORIES constant
 
 * Allow the selected environment to define RAILS_DEFAULT_LOGGER, and have Rails::Initializer use it if it exists.
