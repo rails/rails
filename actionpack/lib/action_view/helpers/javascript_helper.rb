@@ -116,6 +116,11 @@ module ActionView
       # <tt>:before</tt>::       Called before request is initiated.
       # <tt>:after</tt>::        Called immediately after request was
       #                          initiated and before <tt>:loading</tt>.
+      # <tt>:submit</tt>::       Specifies the DOM element ID that's used
+      #                          as the parent of the form elements. By 
+      #                          default this is the current form, but
+      #                          it could just as well be the ID of a
+      #                          table row or any other DOM element.
       def link_to_remote(name, options = {}, html_options = {})  
         link_to_function(name, remote_function(options), html_options)
       end
@@ -531,6 +536,8 @@ module ActionView
 
         if options[:form]
           js_options['parameters'] = 'Form.serialize(this)'
+        elsif options[:submit]
+          js_options['parameters'] = "Form.serialize(document.getElementById('#{options[:submit]}'))"
         elsif options[:with]
           js_options['parameters'] = options[:with]
         end

@@ -1,5 +1,14 @@
 *SVN*
 
+* Allow link_to_remote to use any DOM-element as the parent of the form elements to be submitted #2137 [erik@ruby-lang.nl]. Example:
+
+    <tr id="row023">
+      <td><input name="foo"/></td>
+      <td><input name="bar"/></td>
+      <td><%= link_to_remote 'Save', :update => "row023",
+            :submit => "row023", :url => {:action => 'save_row'} %></td>
+    </tr>
+
 * Fixed that render :partial would fail when :object was a Hash (due to backwards compatibility issues) #2148 [Sam Stephenson]
 
 * Fixed JavascriptHelper#auto_complete_for to only include unique items #2153 [Thomas Fuchs]
