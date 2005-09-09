@@ -315,4 +315,23 @@ class TouchTest < Test::Unit::TestCase
 
     Mixin.record_timestamps = true
   end
+
+  def test_ancestors
+    assert_equal [], mixins(:tree_1).ancestors
+    assert_equal [mixins(:tree_1)], mixins(:tree_2).ancestors
+    assert_equal [mixins(:tree_2), mixins(:tree_1)], mixins(:tree_3).ancestors
+    assert_equal [mixins(:tree_1)], mixins(:tree_4).ancestors
+    assert_equal [], mixins(:tree2_1).ancestors
+    assert_equal [], mixins(:tree3_1).ancestors
+  end
+  
+  def test_root
+    assert_equal mixins(:tree_1), TreeMixin.root
+    assert_equal mixins(:tree_1), mixins(:tree_1).root
+    assert_equal mixins(:tree_1), mixins(:tree_2).root
+    assert_equal mixins(:tree_1), mixins(:tree_3).root
+    assert_equal mixins(:tree_1), mixins(:tree_4).root
+    assert_equal mixins(:tree2_1), mixins(:tree2_1).root
+    assert_equal mixins(:tree3_1), mixins(:tree3_1).root
+  end                                                                  
 end

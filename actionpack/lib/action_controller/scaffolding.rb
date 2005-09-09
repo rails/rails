@@ -82,7 +82,7 @@ module ActionController
       # make <tt>scaffold :post, :suffix => true</tt> use method names like list_post, show_post, and create_post 
       # instead of just list, show, and post. If suffix is used, then no index method is added.
       def scaffold(model_id, options = {})
-        validate_options([ :class_name, :suffix ], options.keys)
+        options.assert_valid_keys(:class_name, :suffix)
 
         singular_name = model_id.to_s
         class_name    = options[:class_name] || singular_name.camelize
@@ -176,14 +176,7 @@ module ActionController
               caller.first.scan(/`(.*)'/).first.first # ' ruby-mode
             end
         end_eval
-      end
-
-      private
-        # Raises an exception if an invalid option has been specified to prevent misspellings from slipping through 
-        def validate_options(valid_option_keys, supplied_option_keys)
-          unknown_option_keys = supplied_option_keys - valid_option_keys
-          raise(ActionController::ActionControllerError, "Unknown options: #{unknown_option_keys}") unless unknown_option_keys.empty?
-        end        
+      end      
     end
   end
 end

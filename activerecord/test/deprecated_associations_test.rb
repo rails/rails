@@ -9,7 +9,7 @@ require 'fixtures/reply'
 bad_collection_keys = false
 begin
   class Car < ActiveRecord::Base; has_many :wheels, :name => "wheels"; end
-rescue ActiveRecord::ActiveRecordError
+rescue ArgumentError
   bad_collection_keys = true
 end
 raise "ActiveRecord should have barked on bad collection keys" unless bad_collection_keys

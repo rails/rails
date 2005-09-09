@@ -284,8 +284,12 @@ module ActiveRecord
       #       'WHERE ps.post_id = #{id} AND ps.person_id = p.id ' +
       #       'ORDER BY p.first_name'
       def has_many(association_id, options = {})
-        validate_options([ :foreign_key, :class_name, :exclusively_dependent, :dependent, :conditions, :order, :finder_sql, :counter_sql, 
-													 :before_add, :after_add, :before_remove, :after_remove ], options.keys)
+        options.assert_valid_keys(
+          :foreign_key, :class_name, :exclusively_dependent, :dependent, 
+          :conditions, :order, :finder_sql, :counter_sql, 
+					:before_add, :after_add, :before_remove, :after_remove
+				)
+
         association_name, association_class_name, association_class_primary_key_name =
               associate_identification(association_id, options[:class_name], options[:foreign_key])
  
@@ -358,7 +362,7 @@ module ActiveRecord
       #   has_one :last_comment, :class_name => "Comment", :order => "posted_on"
       #   has_one :project_manager, :class_name => "Person", :conditions => "role = 'project_manager'"
       def has_one(association_id, options = {})
-        validate_options([ :class_name, :foreign_key, :remote, :conditions, :order, :dependent, :counter_cache ], options.keys)
+        options.assert_valid_keys(:class_name, :foreign_key, :remote, :conditions, :order, :dependent, :counter_cache)
 
         association_name, association_class_name, association_class_primary_key_name =
             associate_identification(association_id, options[:class_name], options[:foreign_key], false)
@@ -429,7 +433,7 @@ module ActiveRecord
       #   belongs_to :valid_coupon, :class_name => "Coupon", :foreign_key => "coupon_id", 
       #              :conditions => 'discounts > #{payments_count}'
       def belongs_to(association_id, options = {})
-        validate_options([ :class_name, :foreign_key, :remote, :conditions, :order, :dependent, :counter_cache ], options.keys)
+        options.assert_valid_keys(:class_name, :foreign_key, :remote, :conditions, :order, :dependent, :counter_cache)
 
         association_name, association_class_name, class_primary_key_name =
             associate_identification(association_id, options[:class_name], options[:foreign_key], false)
@@ -544,9 +548,12 @@ module ActiveRecord
       #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql => 
       #   'DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}'
       def has_and_belongs_to_many(association_id, options = {})
-        validate_options([ :class_name, :table_name, :foreign_key, :association_foreign_key, :conditions,
-                           :join_table, :finder_sql, :delete_sql, :insert_sql, :order, :uniq, :before_add, :after_add, 
-                           :before_remove, :after_remove ], options.keys)
+        options.assert_valid_keys(
+          :class_name, :table_name, :foreign_key, :association_foreign_key, :conditions,
+          :join_table, :finder_sql, :delete_sql, :insert_sql, :order, :uniq, :before_add, :after_add, 
+          :before_remove, :after_remove
+        )
+
         association_name, association_class_name, association_class_primary_key_name =
               associate_identification(association_id, options[:class_name], options[:foreign_key])
 
@@ -570,12 +577,6 @@ module ActiveRecord
       end
 
       private
-        # Raises an exception if an invalid option has been specified to prevent misspellings from slipping through 
-        def validate_options(valid_option_keys, supplied_option_keys)
-          unknown_option_keys = supplied_option_keys - valid_option_keys
-          raise(ActiveRecord::ActiveRecordError, "Unknown options: #{unknown_option_keys}") unless unknown_option_keys.empty?
-        end
-        
         def join_table_name(first_table_name, second_table_name)
           if first_table_name < second_table_name
             join_table = "#{first_table_name}_#{second_table_name}"

@@ -120,7 +120,7 @@ module ActiveRecord
       #   composed_of :address, :mapping => [ %w(address_street street), %w(address_city city) ]
       #   composed_of :gps_location
       def composed_of(part_id, options = {})
-        validate_options([ :class_name, :mapping ], options.keys)
+        options.assert_valid_keys(:class_name, :mapping)
 
         name        = part_id.id2name
         class_name  = options[:class_name] || name_to_class_name(name)
@@ -131,12 +131,6 @@ module ActiveRecord
       end
 
       private
-        # Raises an exception if an invalid option has been specified to prevent misspellings from slipping through 
-        def validate_options(valid_option_keys, supplied_option_keys)
-          unknown_option_keys = supplied_option_keys - valid_option_keys
-          raise(ActiveRecordError, "Unknown options: #{unknown_option_keys}") unless unknown_option_keys.empty?
-        end
-
         def name_to_class_name(name)
           name.capitalize.gsub(/_(.)/) { |s| $1.capitalize }
         end
