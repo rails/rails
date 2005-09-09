@@ -127,6 +127,10 @@ class JavaScriptHelperTest < Test::Unit::TestCase
       auto_complete_result(result, :title)
     assert_equal %(<ul><li>t<strong class=\"highlight\">est</strong>1</li><li>t<strong class=\"highlight\">est</strong>2</li></ul>), 
       auto_complete_result(result, :title, "est")
+    
+    resultuniq = [ { :title => 'test1'  }, { :title => 'test1'  } ]
+    assert_equal %(<ul><li>t<strong class=\"highlight\">est</strong>1</li></ul>), 
+      auto_complete_result(resultuniq, :title, "est")
   end
   
   def test_text_field_with_auto_complete

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed JavascriptHelper#auto_complete_for to only include unique items #2153 [Thomas Fuchs]
+
 * Fixed all AssetHelper methods to work with relative paths, such that javascript_include_tag('stdlib/standard') will look in /javascripts/stdlib/standard instead of '/stdlib/standard/' #1963
 
 * Avoid extending view instance with helper modules each request. Closes #1979
