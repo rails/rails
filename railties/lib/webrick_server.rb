@@ -46,7 +46,11 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   def self.dispatch(options = {})
     Socket.do_not_reverse_lookup = true # patch for OS X
 
-    server = WEBrick::HTTPServer.new(:Port => options[:port].to_i, :ServerType => options[:server_type], :BindAddress => options[:ip])
+    server = WEBrick::HTTPServer.new(:Port        => options[:port].to_i,
+                                     :ServerType  => options[:server_type],
+                                     :BindAddress => options[:ip],
+                                     :MimeTypes   => options[:mime_types]
+                                    )
     server.mount('/', DispatchServlet, options)
 
     trap("INT") { server.shutdown }
@@ -89,8 +93,8 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
       path.gsub!('+', ' ') # Unescape + since FileHandler doesn't do so.
 
       req.instance_variable_set(:@path_info, path) # Set the modified path...
-      
-      @file_handler.send(:service, req, res)
+
+      @file_handler.send(:service, req, res)      
       return true
     rescue HTTPStatus::PartialContent, HTTPStatus::NotModified => err
       res.set_error(err)

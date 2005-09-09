@@ -1,8 +1,10 @@
 *SVN*
 
+* Added -m/--mime-types option to the WEBrick server, so you can specify a Apache-style mime.types file to load #2059 [ask@develooper.com]
+
 * Added -c/--svn option to the generator that'll add new files and remove destroyed files using svn add/revert/remove as appropriate #2064 [kevin.clark@gmail.com]
 
-* Added -c/--charset option to WEBrick controller, so you can specify a default charset (which without changes is UTF-8) #2084 [wejn@box.cz]
+* Added -c/--charset option to WEBrick server, so you can specify a default charset (which without changes is UTF-8) #2084 [wejn@box.cz]
 
 * Make the default stats task extendable by modifying the STATS_DIRECTORIES constant
 
