@@ -35,7 +35,7 @@ module ActionView
     #       size="20" maxsize="20" value="<%= @person.password %>" />
     #
     #     Single?:
-    #     <input type="checkbox" id="person_single" name="person[single] value="1" />
+    #     <input type="checkbox" id="person_single" name="person[single]" value="1" />
     #
     #     Description:
     #     <textarea cols="20" rows="40" id="person_description" name="person[description]">
@@ -113,12 +113,12 @@ module ActionView
       #
       # Example (call, result). Imagine that @post.validated? returns 1:
       #   check_box("post", "validated")
-      #     <input type="checkbox" id="post_validate" name="post[validated] value="1" checked="checked" />
+      #     <input type="checkbox" id="post_validate" name="post[validated]" value="1" checked="checked" />
       #     <input name="post[validated]" type="hidden" value="0" />
       #
       # Example (call, result). Imagine that @puppy.gooddog returns no:
       #   check_box("puppy", "gooddog", {}, "yes", "no")
-      #     <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog] value="yes" />
+      #     <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog]" value="yes" />
       #     <input name="puppy[gooddog]" type="hidden" value="no" />
       def check_box(object, method, options = {}, checked_value = "1", unchecked_value = "0")
         InstanceTag.new(object, method, self).to_check_box_tag(options, checked_value, unchecked_value)
@@ -131,8 +131,8 @@ module ActionView
       # Example (call, result). Imagine that @post.category returns "rails":
       #   radio_button("post", "category", "rails")
       #   radio_button("post", "category", "java")
-      #     <input type="radio" id="post_category" name="post[category] value="rails" checked="checked" />
-      #     <input type="radio" id="post_category" name="post[category] value="java" />
+      #     <input type="radio" id="post_category" name="post[category]" value="rails" checked="checked" />
+      #     <input type="radio" id="post_category" name="post[category]" value="java" />
       #
       def radio_button(object, method, tag_value, options = {})
         InstanceTag.new(object, method, self).to_radio_button_tag(tag_value, options)
