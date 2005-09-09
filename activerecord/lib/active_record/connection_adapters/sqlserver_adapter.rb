@@ -332,6 +332,7 @@ module ActiveRecord
               record = {}
               row.column_names.each do |col|
                 record[col] = row[col]
+                record[col] = record[col].to_time if record[col].is_a? DBI::Timestamp
               end
               rows << record
             end

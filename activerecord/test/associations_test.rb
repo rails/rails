@@ -1001,7 +1001,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     # SQL Server doesn't have a separate column type just for dates, 
     # so the time is in the string and incorrectly formatted
     if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter and ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
-      kenReloaded.projects.each { |prj| assert_equal(sqlnow, prj.joined_on.to_s) }
+      kenReloaded.projects.each { |prj| assert_equal(sqlnow, prj.joined_on.strftime("%Y/%m/%d 00:00:00")) }
     else
       kenReloaded.projects.each { |prj| assert_equal(now.to_s, prj.joined_on.to_s) }
     end
@@ -1095,7 +1095,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     # SQL Server doesn't have a separate column type just for dates, 
     # so the time is in the string and incorrectly formatted
     if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter and ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
-      assert_equal Time.mktime(2004, 10, 10).strftime("%Y/%m/%d 00:00:00"), Developer.find(1).projects.first.joined_on.to_s
+      assert_equal Time.mktime(2004, 10, 10).strftime("%Y/%m/%d 00:00:00"), Developer.find(1).projects.first.joined_on.strftime("%Y/%m/%d 00:00:00")
     else
       assert_equal Date.new(2004, 10, 10).to_s, Developer.find(1).projects.first.joined_on.to_s
     end
@@ -1116,8 +1116,8 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     # SQL Server doesn't have a separate column type just for dates, 
     # so the time is in the string and incorrectly formatted
     if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter and ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
-      assert_equal Time.now.strftime("%Y/%m/%d 00:00:00"), jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
-      assert_equal Time.now.strftime("%Y/%m/%d 00:00:00"), developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
+      assert_equal Time.now.strftime("%Y/%m/%d 00:00:00"), jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.strftime("%Y/%m/%d 00:00:00")
+      assert_equal Time.now.strftime("%Y/%m/%d 00:00:00"), developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.strftime("%Y/%m/%d 00:00:00")
     else
       assert_equal Date.today.to_s, jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
       assert_equal Date.today.to_s, developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
