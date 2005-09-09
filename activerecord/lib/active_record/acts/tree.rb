@@ -16,16 +16,23 @@ module ActiveRecord
       #   Example : 
       #   root
       #    \_ child1 
-      #         \_ sub-child1
+      #         \_ subchild1
+      #         \_ subchild2
       #
       #   root      = Category.create("name" => "root")
-      #   child1      = root.children.create("name" => "child1")
-      #   subchild1   = child1.children.create("name" => "subchild1")
+      #   child1    = root.children.create("name" => "child1")
+      #   subchild1 = child1.children.create("name" => "subchild1")
       #
-      #   root.parent # => nil
+      #   root.parent   # => nil
       #   child1.parent # => root
       #   root.children # => [child1]
       #   root.children.first.children.first # => subchild1
+      #
+      # In addition to the parent and children associations, the following instance methods are added to the class 
+      # after specifying the act:
+      # * siblings: Return all the children of the parent excluding the current node ([ subchild2 ] when called from subchild1)
+      # * ancestors: Returns all the ancestors of the current node ([child1, root] when called from subchild2)
+      # * root: Returns the root of the current node (root when called from subchild2)
       module ClassMethods
         # Configuration options are:
         #
@@ -48,12 +55,23 @@ module ActiveRecord
             end
           END
 
+          # Returns list of ancestors, starting from parent until root.
+          #
+          #   subchild1.ancestors # => [child1, root]
+          define_method(:ancestors) do
+            node, nodes = self, []
+            nodes << node = node.parent until not node.has_parent?
+            nodes
+          end
+
+          define_method(:root) do
+            node = self
+            node = node.parent until not node.has_parent?
+            node
+          end
+
           define_method(:siblings) do
-            if parent
-              self.class.find(:all, :conditions => [ "#{configuration[:foreign_key]} = ?", parent.id ], :order => configuration[:order])
-            else
-              self.class.roots
-            end
+            ( has_parent? ? parent.children : self.class.roots ) - [self]
           end
         end
       end

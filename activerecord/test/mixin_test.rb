@@ -214,6 +214,13 @@ class TreeTest < Test::Unit::TestCase
     assert_equal mixins(:tree_4).children, []
   end
 
+  def test_has_parent
+    assert_equal false, mixins(:tree_1).has_parent?
+    assert_equal true, mixins(:tree_2).has_parent?
+    assert_equal true, mixins(:tree_3).has_parent?
+    assert_equal true, mixins(:tree_4).has_parent?
+  end
+
   def test_parent
     assert_equal mixins(:tree_2).parent, mixins(:tree_1)
     assert_equal mixins(:tree_2).parent, mixins(:tree_4).parent
@@ -221,11 +228,14 @@ class TreeTest < Test::Unit::TestCase
   end
   
   def test_delete
-    assert_equal 4, TreeMixin.count
+    assert_equal 6, TreeMixin.count
     mixins(:tree_1).destroy
+    assert_equal 2, TreeMixin.count
+    mixins(:tree2_1).destroy
+    mixins(:tree3_1).destroy
     assert_equal 0, TreeMixin.count
   end
-  
+
   def test_insert
     @extra = mixins(:tree_1).children.create
     
@@ -239,6 +249,22 @@ class TreeTest < Test::Unit::TestCase
     assert mixins(:tree_1).children.include?(mixins(:tree_4))
   end
 
+  def test_root
+    assert_equal mixins(:tree_1), TreeMixin.root
+  end
+
+  def test_roots
+    assert_equal [mixins(:tree_1), mixins(:tree2_1), mixins(:tree3_1)], TreeMixin.roots
+  end
+
+  def test_siblings
+    assert_equal [mixins(:tree2_1), mixins(:tree3_1)], mixins(:tree_1).siblings
+    assert_equal [mixins(:tree_4)], mixins(:tree_2).siblings
+    assert_equal [], mixins(:tree_3).siblings
+    assert_equal [mixins(:tree_2)], mixins(:tree_4).siblings
+    assert_equal [mixins(:tree_1), mixins(:tree3_1)], mixins(:tree2_1).siblings
+    assert_equal [mixins(:tree_1), mixins(:tree2_1)], mixins(:tree3_1).siblings
+  end
 end
 
 class TouchTest < Test::Unit::TestCase

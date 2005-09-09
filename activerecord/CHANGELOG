@@ -1,5 +1,7 @@
 *SVN*
 
+* Added the instance methods #root and #ancestors on acts_as_tree and fixed siblings to not include the current node #2142, #2140 [coffee2code]
+
 * Fixed that Active Record would call SHOW FIELDS twice (or more) for the same model when the cached results were available #1947 [sd@notso.net]
 
 * Added log_level and use_silence parameter to ActiveRecord::Base.benchmark. The first controls at what level the benchmark statement will be logged (now as debug, instead of info) and the second that can be passed false to include all logging statements during the benchmark block/

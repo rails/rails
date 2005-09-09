@@ -2,7 +2,7 @@
 tree_1:
   id: 1001
   type: TreeMixin
-  parent_id: 0 
+  parent_id:
   
 tree_2:
   id: 1002
@@ -18,6 +18,16 @@ tree_4:
   id: 1004
   type: TreeMixin  
   parent_id: 1001
+
+tree2_1:
+  id: 1005
+  type: TreeMixin
+  parent_id:
+
+tree3_1:
+  id: 1006
+  type: TreeMixin
+  parent_id:
   
 # List mixins
 
