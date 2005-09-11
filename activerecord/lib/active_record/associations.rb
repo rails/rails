@@ -692,9 +692,7 @@ module ActiveRecord
                 else
                   records_to_save = association.select{ |record| record.new_record? }
                 end
-                records_to_save.inject(true) do |result,record|
-                  result &&= record.valid?
-                end
+                records_to_save.all? { |record| record.valid? }
               end
             end_eval
           end
