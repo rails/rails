@@ -1,5 +1,5 @@
-require File.dirname(__FILE__) + '/array/to_param'
+require File.dirname(__FILE__) + '/array/conversions'
 
 class Array #:nodoc:
-  include ActiveSupport::CoreExtensions::Array::ToParam
+  include ActiveSupport::CoreExtensions::Array::Conversions
 end

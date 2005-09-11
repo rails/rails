@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Array#to_sentence that'll turn ['one', 'two', 'three'] into "one, two, and three" #2157 [m.stienstra@fngtps.com]
+
 * Added Kernel#silence_warnings to turn off warnings temporarily for the passed block
 
 * Added String#starts_with? and String#ends_with? #2118 [thijs@vandervossen.net]
