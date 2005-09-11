@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed clone_structure_to_test task for SQLite #1864 [jon@burningbush.us]
+
 * Added -m/--mime-types option to the WEBrick server, so you can specify a Apache-style mime.types file to load #2059 [ask@develooper.com]
 
 * Added -c/--svn option to the generator that'll add new files and remove destroyed files using svn add/revert/remove as appropriate #2064 [kevin.clark@gmail.com]

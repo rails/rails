@@ -28,7 +28,7 @@ task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
       ENV['PGPASSWORD'] = abcs["test"]["password"].to_s if abcs["test"]["password"]
       `psql -U "#{abcs["test"]["username"]}" -f db/#{RAILS_ENV}_structure.sql #{abcs["test"]["database"]}`
     when "sqlite", "sqlite3"
-      `#{abcs[RAILS_ENV]["adapter"]} #{abcs["test"]["dbfile"]} < db/#{RAILS_ENV}_structure.sql`
+      `#{abcs["test"]["adapter"]} #{abcs["test"]["dbfile"]} < db/#{RAILS_ENV}_structure.sql`
     when "sqlserver"
       `osql -E -S #{abcs["test"]["host"]} -d #{abcs["test"]["database"]} -i db\\#{RAILS_ENV}_structure.sql`
     when "oci", 
