@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed "connection lost" issue with the bundled Ruby/MySQL driver (would kill the app after 8 hours of inactivity) #2163, #428 [kajism@yahoo.com]
+
 * Fixed comparison of Active Record objects so two new objects are not equal #2099 [deberg]
 
 * Fixed that the SQL Server adapter would sometimes return DBI::Timestamp objects instead of Time #2127 [Tom Ward]

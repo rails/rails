@@ -1022,6 +1022,9 @@ class Mysql
       end
       @sock.sync = true
       buf.join
+    rescue
+      errno = Error::CR_SERVER_LOST
+      raise Error::new(errno, Error::err(errno))
     end
     
     def write(data)
@@ -1039,6 +1042,9 @@ class Mysql
       @pkt_nr = @pkt_nr + 1 & 0xff
       @sock.sync = true
       @sock.flush
+    rescue
+      errno = Error::CR_SERVER_LOST
+      raise Error::new(errno, Error::err(errno))
     end
 
     def close()
