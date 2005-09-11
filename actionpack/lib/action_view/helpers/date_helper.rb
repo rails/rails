@@ -62,6 +62,8 @@ module ActionView
       # set the order of the tags using the <tt>:order</tt> option with an array of symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in
       # the desired order. Symbols may be omitted and the respective select is not included.
       #
+      # Passing :disabled => true as part of the +options+ will make elements inaccessible for change.
+      #
       # NOTE: Discarded selects will default to 1. So if no month select is available, January will be assumed.
       #
       # Examples:
@@ -118,7 +120,7 @@ module ActionView
           )
         end
 
-        select_html(options[:field_name] || 'second', second_options, options[:prefix], options[:include_blank], options[:discard_type])
+        select_html(options[:field_name] || 'second', second_options, options[:prefix], options[:include_blank], options[:discard_type], options[:disabled])
       end
 
       # Returns a select tag with options for each of the minutes 0 through 59 with the current minute selected.
@@ -135,7 +137,7 @@ module ActionView
           )
         end
 
-        select_html(options[:field_name] || 'minute', minute_options, options[:prefix], options[:include_blank], options[:discard_type])
+        select_html(options[:field_name] || 'minute', minute_options, options[:prefix], options[:include_blank], options[:discard_type], options[:disabled])
       end
 
       # Returns a select tag with options for each of the hours 0 through 23 with the current hour selected.
@@ -151,7 +153,7 @@ module ActionView
           )
         end
 
-        select_html(options[:field_name] || 'hour', hour_options, options[:prefix], options[:include_blank], options[:discard_type])
+        select_html(options[:field_name] || 'hour', hour_options, options[:prefix], options[:include_blank], options[:discard_type], options[:disabled])
       end
 
       # Returns a select tag with options for each of the days 1 through 31 with the current day selected.
@@ -167,7 +169,7 @@ module ActionView
           )
         end
 
-        select_html(options[:field_name] || 'day', day_options, options[:prefix], options[:include_blank], options[:discard_type])
+        select_html(options[:field_name] || 'day', day_options, options[:prefix], options[:include_blank], options[:discard_type], options[:disabled])
       end
 
       # Returns a select tag with options for each of the months January through December with the current month selected.
@@ -203,7 +205,7 @@ module ActionView
           )
         end
 
-        select_html(options[:field_name] || 'month', month_options, options[:prefix], options[:include_blank], options[:discard_type])
+        select_html(options[:field_name] || 'month', month_options, options[:prefix], options[:include_blank], options[:discard_type], options[:disabled])
       end
 
       # Returns a select tag with options for each of the five years on each side of the current, which is selected. The five year radius
@@ -229,14 +231,16 @@ module ActionView
           )
         end
 
-        select_html(options[:field_name] || 'year', year_options, options[:prefix], options[:include_blank], options[:discard_type])
+        select_html(options[:field_name] || 'year', year_options, options[:prefix], options[:include_blank], options[:discard_type], options[:disabled])
       end
 
       private
-        def select_html(type, options, prefix = nil, include_blank = false, discard_type = false)
+        def select_html(type, options, prefix = nil, include_blank = false, discard_type = false, disabled = false)
           select_html  = %(<select name="#{prefix || DEFAULT_PREFIX})
           select_html << "[#{type}]" unless discard_type
-          select_html << %(">\n)
+          select_html << %(")
+          select_html << %( disabled="disabled") if disabled
+          select_html << %(>\n)
           select_html << %(<option value=""></option>\n) if include_blank
           select_html << options.to_s
           select_html << "</select>\n"

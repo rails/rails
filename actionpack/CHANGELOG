@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :disabled option to all data selects that'll make the elements inaccessible for change #2167, #253 [eigentone]
+
 * Fixed that TextHelper#auto_link_urls would include punctuation in the links #2166, #1671 [eigentone]
 
 * Fixed that number_to_currency(1000, {:precision => 0})) should return "$1,000", instead of "$1,000." #2122 [sd@notso.net]
