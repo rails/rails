@@ -433,20 +433,6 @@ module ActionController #:nodoc:
       #
       # This takes the current URL as is and only exchanges the action. In contrast, <tt>url_for :action => 'print'</tt>
       # would have slashed-off the path components are the changed action.
-      #
-      # Instead of passing an options hash, you can also pass a method reference in the form of a symbol. Consider this example:
-      #
-      #   class WeblogController < ActionController::Base
-      #     def update
-      #       # do some update
-      #       redirect_to :dashboard_url
-      #     end
-      #     
-      #     protected
-      #       def dashboard_url
-      #         url_for :controller => (@project.active? ? "project" : "account"), :action => "dashboard"
-      #       end
-      #   end
       def url_for(options = {}, *parameters_for_method_reference) #:doc:
         case options
           when String then options

@@ -14,7 +14,8 @@ Rails::Initializer.run do |config|
   # Add additional load paths for your own custom dirs
   # config.load_paths += %W( #{RAILS_ROOT}/app/services #{RAILS_ROOT}/app/services )
 
-  # Force all environments to use the same logger level
+  # Force all environments to use the same logger level 
+  # (by default production uses INFO, the others DEBUG)
   # config.log_level = Logger::DEBUG
 
   # See Rails::Configuration for more options
