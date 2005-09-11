@@ -4,4 +4,4 @@ $VERBOSE = nil
 Dir["#{File.dirname(__FILE__)}/*.rake"].each { |ext| load ext }
 
 # Load any custom rakefile extensions
-Dir["./config/tasks/**/*.rake"].each { |ext| load ext }
+Dir["./lib/tasks/**/*.rake"].each { |ext| load ext }
