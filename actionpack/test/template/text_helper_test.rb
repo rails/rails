@@ -1,6 +1,8 @@
 require 'test/unit'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/text_helper'
 require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/numeric'  # for human_size
+require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/hash' # for stringify_keys
+require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/object_and_class.rb' # for blank?
 
 class TextHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TextHelper
@@ -85,6 +87,8 @@ class TextHelperTest < Test::Unit::TestCase
     link_result_with_options  = %{<a href="#{link_raw}" target="_blank">#{link_raw}</a>}
     link2_raw    = 'www.rubyonrails.com'
     link2_result = %{<a href="http://#{link2_raw}">#{link2_raw}</a>}
+    link3_raw    = 'http://manuals.ruby-on-rails.com/read/chapter.need_a-period/103#page281'
+    link3_result = %{<a href="#{link3_raw}">#{link3_raw}</a>}
 
     assert_equal %(hello #{email_result}), auto_link("hello #{email_raw}", :email_addresses)
     assert_equal %(Go to #{link_result}), auto_link("Go to #{link_raw}", :urls)
@@ -92,11 +96,21 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %(Go to #{link_result} and say hello to #{email_result}), auto_link("Go to #{link_raw} and say hello to #{email_raw}")
     assert_equal %(<p>Link #{link_result}</p>), auto_link("<p>Link #{link_raw}</p>")
     assert_equal %(<p>#{link_result} Link</p>), auto_link("<p>#{link_raw} Link</p>")
+    assert_equal %(<p>Link #{link_result_with_options}</p>), auto_link("<p>Link #{link_raw}</p>", :all, {:target => "_blank"})
+    assert_equal %(Go to #{link_result}.), auto_link(%(Go to #{link_raw}.))
+    assert_equal %(<p>Go to #{link_result}, then say hello to #{email_result}.</p>), auto_link(%(<p>Go to #{link_raw}, then say hello to #{email_raw}.</p>))
     assert_equal %(Go to #{link2_result}), auto_link("Go to #{link2_raw}", :urls)
     assert_equal %(Go to #{link2_raw}), auto_link("Go to #{link2_raw}", :email_addresses)
     assert_equal %(<p>Link #{link2_result}</p>), auto_link("<p>Link #{link2_raw}</p>")
     assert_equal %(<p>#{link2_result} Link</p>), auto_link("<p>#{link2_raw} Link</p>")
-    assert_equal %(<p>Link #{link_result_with_options}</p>), auto_link("<p>Link #{link_raw}</p>", :all, {:target => "_blank"})
+    assert_equal %(Go to #{link2_result}.), auto_link(%(Go to #{link2_raw}.))
+    assert_equal %(<p>Say hello to #{email_result}, then go to #{link2_result}.</p>), auto_link(%(<p>Say hello to #{email_raw}, then go to #{link2_raw}.</p>))
+    assert_equal %(Go to #{link3_result}), auto_link("Go to #{link3_raw}", :urls)
+    assert_equal %(Go to #{link3_raw}), auto_link("Go to #{link3_raw}", :email_addresses)
+    assert_equal %(<p>Link #{link3_result}</p>), auto_link("<p>Link #{link3_raw}</p>")
+    assert_equal %(<p>#{link3_result} Link</p>), auto_link("<p>#{link3_raw} Link</p>")
+    assert_equal %(Go to #{link3_result}.), auto_link(%(Go to #{link3_raw}.))
+    assert_equal %(<p>Go to #{link3_result}. seriously, #{link3_result}? i think I'll say hello to #{email_result}. instead.</p>), auto_link(%(<p>Go to #{link3_raw}. seriously, #{link3_raw}? i think I'll say hello to #{email_raw}. instead.</p>))
   end
 
   def test_sanitize_form

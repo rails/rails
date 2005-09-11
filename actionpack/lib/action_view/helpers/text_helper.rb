@@ -199,8 +199,8 @@ module ActionView
 
         # Turns all urls into clickable links.
         def auto_link_urls(text, href_options = {})
-          text.gsub(/(<\w+.*?>|[^=!:'"\/]|^)((?:http[s]?:\/\/)|(?:www\.))([^\s<]+\/?)([[:punct:]]|\s|<|$)/) do
-            all, a, b, c, d = $&, $1, $2, $3, $4
+          text.gsub(/(<\w+.*?>|[^=!:'"\/]|^)((?:http[s]?:\/\/)|(?:www\.))(([\w]+[[:punct:]]?)*\w+[\/]?)([[:punct:]]|\s|<|$)/) do
+            all, a, b, c, d = $&, $1, $2, $3, $5
             if a =~ /<a\s/i # don't replace URL's that are already linked
               all
             else

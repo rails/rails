@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that TextHelper#auto_link_urls would include punctuation in the links #2166, #1671 [eigentone]
+
 * Fixed that number_to_currency(1000, {:precision => 0})) should return "$1,000", instead of "$1,000." #2122 [sd@notso.net]
 
 * Allow link_to_remote to use any DOM-element as the parent of the form elements to be submitted #2137 [erik@ruby-lang.nl]. Example:
