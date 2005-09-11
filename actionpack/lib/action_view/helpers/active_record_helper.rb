@@ -71,7 +71,7 @@ module ActionView
         yield contents if block_given?
         contents << submit_tag(submit_value)
 
-        content_tag('form', contents, :action => action, :method => 'post')
+        content_tag('form', contents, :action => action, :method => 'post', :enctype => options[:multipart] ? 'multipart/form-data': nil)
       end
 
       # Returns a string containing the error message attached to the +method+ on the +object+, if one exists.

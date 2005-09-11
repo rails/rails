@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :multipart option to ActiveRecordHelper#form to make it possible to add file input fields #2034 [jstirk@oobleyboo.com]
+
 * Moved auto-completion and in-place editing into the Macros module and their helper counterparts into JavaScriptMacrosHelper
 
 * Added in-place editing support in the spirit of auto complete with ActionController::Base.in_place_edit_for, JavascriptHelper#in_place_editor_field, and Javascript support from script.aculo.us #2038 [Jon Tirsen]
