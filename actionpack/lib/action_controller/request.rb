@@ -158,12 +158,10 @@ module ActionController
       path = (uri = request_uri) ? uri.split('?').first : ''
 
       # Cut off the path to the installation directory if given
-      if root = relative_url_root
-        path[root.length..-1]
-      else
-        path
-      end
-    end    
+      root = relative_url_root
+      path[0, root.length] = '' if root
+      path || ''
+    end
     
     # Returns the path minus the web server relative installation directory.
     # This method returns nil unless the web server is apache.

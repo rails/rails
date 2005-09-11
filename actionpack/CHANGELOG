@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that request.path never returns nil. Closes #1675 [Nicholas Seckar]
+
 * Add ability to specify Route Regexps for controllers. Closes #1917. [Sebastian Kanthak]
 
 * Provide Named Route's hash methods as helper methods. Closes #1744. [Nicholas Seckar, Steve Purcell]
