@@ -45,7 +45,7 @@ module ActionController #:nodoc:
       # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules 
       # available to the templates.
       def add_template_helper(helper_module) #:nodoc:
-        master_helper_module.module_eval "include #{helper_module}"
+        master_helper_module.send(:include, helper_module)
       end
 
       # Declare a helper:
