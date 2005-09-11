@@ -1,5 +1,7 @@
 *SVN*
 
+* Added better exception error when unknown column types are used with migrations #1814 [fbeausoleil@ftml.net]
+
 * Fixed "connection lost" issue with the bundled Ruby/MySQL driver (would kill the app after 8 hours of inactivity) #2163, #428 [kajism@yahoo.com]
 
 * Fixed comparison of Active Record objects so two new objects are not equal #2099 [deberg]

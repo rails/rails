@@ -431,7 +431,14 @@ module ActiveRecord
       end       
 
       def type_to_sql(type, limit = nil)
-        native = native_database_types[type]
+        unless native = native_database_types[type]
+          raise(
+            ActiveRecord::UnknownTypeError, 
+            "Unable to convert type '#{type}' to a native type. " +
+            "Valid options: #{native_database_types.keys.to_sentence}"
+          )
+        end
+
         limit ||= native[:limit]
         column_type_sql = native[:name]
         column_type_sql << "(#{limit})" if limit
