@@ -28,8 +28,6 @@ module ActiveRecord #:nodoc:
   end
   class ConfigurationError < StandardError #:nodoc:
   end
-  class UnknownTypeError < ActiveRecordError #:nodoc:
-  end
   
   class AttributeAssignmentError < ActiveRecordError #:nodoc:
     attr_reader :exception, :attribute
@@ -224,7 +222,6 @@ module ActiveRecord #:nodoc:
   #   objects that should be inspected to determine which attributes triggered the errors.
   # * +AttributeAssignmentError+ -- an error occurred while doing a mass assignment through the +attributes=+ method.
   #   You can inspect the +attribute+ property of the exception object to determine which attribute triggered the error.
-  # * +UnknownTypeError+ -- Raised when AbstractAdapter#type_to_sql cannot map the type given to a native type.
   #
   # *Note*: The attributes listed are class-level attributes (accessible from both the class and instance level).
   # So it's possible to assign a logger to the class through Base.logger= which will then be used by all

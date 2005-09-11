@@ -392,7 +392,6 @@ module ActiveRecord
       end
 
       def add_column(table_name, column_name, type, options = {})
-        native_type = native_database_types[type]
         add_column_sql = "ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type, options[:limit])}"
         add_column_options!(add_column_sql, options)
         execute(add_column_sql)
@@ -431,14 +430,7 @@ module ActiveRecord
       end       
 
       def type_to_sql(type, limit = nil)
-        unless native = native_database_types[type]
-          raise(
-            ActiveRecord::UnknownTypeError, 
-            "Unable to convert type '#{type}' to a native type. " +
-            "Valid options: #{native_database_types.keys.to_sentence}"
-          )
-        end
-
+        native = native_database_types[type]
         limit ||= native[:limit]
         column_type_sql = native[:name]
         column_type_sql << "(#{limit})" if limit
