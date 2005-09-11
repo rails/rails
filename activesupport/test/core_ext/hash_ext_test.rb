@@ -118,4 +118,8 @@ class HashExtTest < Test::Unit::TestCase
     indiff = original.with_indifferent_access
     assert(!indiff.keys.any? {|k| k.kind_of? String}, "A key was converted to a string!")
   end
+
+  def test_reverse_merge
+    assert_equal({ :a => 1, :b => 2, :c => 10 }, { :a => 1, :b => 2 }.reverse_merge({:a => "x", :b => "y", :c => 10}) )
+  end
 end

@@ -19,7 +19,15 @@ class ArrayExtConversionTests < Test::Unit::TestCase
   end
   
   def test_to_sentence_with_connector
-    assert_equal "one, two, and also three", ['one', 'two', 'three'].to_sentence('and also')
+    assert_equal "one, two, and also three", ['one', 'two', 'three'].to_sentence(:connector => 'and also')
+  end
+  
+  def test_to_sentence_with_skip_last_comma
+    assert_equal "one, two and three", ['one', 'two', 'three'].to_sentence(:skip_last_comma => true)
+  end
+
+  def test_two_elements
+    assert_equal "one and two", ['one', 'two'].to_sentence
   end
   
   def test_one_element
