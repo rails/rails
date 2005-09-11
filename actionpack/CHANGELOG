@@ -1,5 +1,9 @@
 *SVN*
 
+* Moved auto-completion and in-place editing into the Macros module and their helper counterparts into JavaScriptMacrosHelper
+
+* Added in-place editing support in the spirit of auto complete with ActionController::Base.in_place_edit_for, JavascriptHelper#in_place_editor_field, and Javascript support from script.aculo.us #2038 [Jon Tirsen]
+
 * Added :disabled option to all data selects that'll make the elements inaccessible for change #2167, #253 [eigentone]
 
 * Fixed that TextHelper#auto_link_urls would include punctuation in the links #2166, #1671 [eigentone]

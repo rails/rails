@@ -234,7 +234,11 @@ module ActionView
         tag_text << " selected" if value
         tag_text << ">True</option></select>"
       end
-
+      
+      def to_content_tag(tag_name, options = {})
+        content_tag(tag_name, value, options)
+      end
+      
       def object
         @template_object.instance_variable_get "@#{@object_name}"
       end
