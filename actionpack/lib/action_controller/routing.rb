@@ -621,7 +621,9 @@ module ActionController
         
         def define_hash_access_method(route, name)
           hash = known_hash_for_route(route)
-          define_method(hash_access_name(name)) { hash }
+          define_method(hash_access_name(name)) do |*args|
+            args.first ? hash.merge(args.first) : hash
+          end
         end
         
         def name_route(route, name)
@@ -634,6 +636,7 @@ module ActionController
           protected url_helper_name(name), hash_access_name(name)
       
           Helpers << url_helper_name(name).to_sym
+          Helpers << hash_access_name(name).to_sym
           Helpers.uniq!
         end
     

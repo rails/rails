@@ -1,5 +1,7 @@
 *SVN*
 
+* Provide Named Route's hash methods as helper methods. Closes #1744. [Nicholas Seckar, Steve Purcell]
+
 * Added :multipart option to ActiveRecordHelper#form to make it possible to add file input fields #2034 [jstirk@oobleyboo.com]
 
 * Moved auto-completion and in-place editing into the Macros module and their helper counterparts into JavaScriptMacrosHelper

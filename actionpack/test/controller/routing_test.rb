@@ -545,6 +545,7 @@ class RouteSetTests < Test::Unit::TestCase
   def setup
     @rs = ::ActionController::Routing::RouteSet.new
     @rs.draw {|m| m.connect ':controller/:action/:id' }
+    ::ActionController::Routing::NamedRoutes.clear
   end
   
   def test_default_setup
@@ -854,6 +855,11 @@ class RouteSetTests < Test::Unit::TestCase
     assert_equal ['/content/hi', []], rs.generate({:controller => 'content', :action => 'hi'})
   end
 
+  def test_named_route_helper_array
+    test_named_route_method
+    assert_equal [:categories_url, :hash_for_categories_url], ::ActionController::Routing::NamedRoutes::Helpers
+  end
+  
 end
 
 end
