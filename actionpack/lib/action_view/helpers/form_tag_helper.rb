@@ -6,7 +6,7 @@ module ActionView
     # Provides a number of methods for creating form tags that doesn't rely on conventions with an object assigned to the template like
     # FormHelper does. With the FormTagHelper, you provide the names and values yourself.
     #
-    # NOTE: The html options disabled, readonly, and multiple can all be treated as booleans. So specifying <tt>disabled => :true</tt>
+    # NOTE: The html options disabled, readonly, and multiple can all be treated as booleans. So specifying <tt>:disabled => true</tt>
     # will give <tt>disabled="disabled"</tt>.
     module FormTagHelper
       # Starts a form tag that points the action to an url configured with <tt>url_for_options</tt> just like
