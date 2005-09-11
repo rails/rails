@@ -6,7 +6,7 @@ module ActionView
     # larger units. These macros also rely on counter parts in the controller that provides them with their backing. The in-place
     # editing relies on ActionController::Base.in_place_edit_for and the auto completion relies on 
     # ActionController::Base.auto_complete_for.
-    module JavaScriptMacroHelper
+    module JavaScriptMacrosHelper
       # Makes an HTML element specified by the DOM ID +field_id+ become an in-place
       # editor of a property.
       #
