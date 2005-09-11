@@ -238,6 +238,20 @@ class RecognitionTests < Test::Unit::TestCase
     assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'hi'}, execute('hi/admin/user'))
   end
   
+  def test_controller_with_regexp
+    c = [Static.new("hi"), Controller.new(:controller, :condition => /^admin\/.+$/)]
+    g.constant_result :action, "hi"
+    
+    go c
+    
+    assert_nil execute('hi')
+    assert_nil execute('hi/x')
+    assert_nil execute('hi/content')
+    assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'hi'}, execute('hi/admin/user'))
+    assert_equal({:controller => ::Controllers::Admin::NewsFeedController, :action => 'hi'}, execute('hi/admin/news_feed'))
+    assert_nil execute('hi/admin/user/foo')
+  end
+  
   def test_standard_route(time = ::RunTimeTests)
     c = [Controller.new(:controller), Dynamic.new(:action, :default => 'index'), Dynamic.new(:id, :default => nil)]
     go c
@@ -404,6 +418,17 @@ not_expired = true
     assert_equal '/hi/content', execute({:controller => 'content'}, {})
     assert_equal '/hi/admin/user', execute({:controller => 'admin/user'}, {})
     assert_equal '/hi/content', execute({}, {:controller => 'content'}) 
+    assert_equal '/hi/admin/user', execute({}, {:controller => 'admin/user'})
+  end
+  
+  def test_controller_with_regexp
+    c = [Static.new("hi"), Controller.new(:controller, :condition => /^admin\/.+$/)]
+    go c
+    
+    assert_nil execute({}, {})
+    assert_nil execute({:controller => 'content'}, {})
+    assert_equal '/hi/admin/user', execute({:controller => 'admin/user'}, {})
+    assert_nil execute({}, {:controller => 'content'}) 
     assert_equal '/hi/admin/user', execute({}, {:controller => 'admin/user'})
   end
   
@@ -635,6 +660,19 @@ class RouteSetTests < Test::Unit::TestCase
     $stderr = old_stderr
   end
 
+  def test_route_with_regexp_for_controller
+    rs.draw do |map|
+      map.connect ':controller/:admintoken/:action/:id', :controller => /admin\/.+/
+      map.connect ':controller/:action/:id'
+    end
+    assert_equal({:controller => ::Controllers::Admin::UserController, :admintoken => "foo", :action => "index"}.stringify_keys,
+        rs.recognize_path(%w(admin user foo)))
+    assert_equal({:controller => ::Controllers::ContentController, :action => "foo"}.stringify_keys,
+        rs.recognize_path(%w(content foo)))
+    assert_equal ['/admin/user/foo', []], rs.generate(:controller => "admin/user", :admintoken => "foo", :action => "index")
+    assert_equal ['/content/foo',[]], rs.generate(:controller => "content", :action => "foo")
+  end
+  
   def test_basic_named_route
     rs.home '', :controller => 'content', :action => 'list' 
     x = setup_for_named_route

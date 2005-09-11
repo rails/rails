@@ -192,7 +192,14 @@ module ActionController
         g << "controller_result = ::ActionController::Routing::ControllerComponent.traverse_to_controller(#{g.path_name}, #{g.index_name})" 
         g.if('controller_result') do |gp|
           gp << 'controller_value, segments_to_controller = controller_result'
-          gp.move_forward('segments_to_controller') {|gpp| yield gpp, :constraint}
+          if condition
+            gp << "controller_path = #{gp.path_name}[#{gp.index_name},segments_to_controller].join('/')"
+            gp.if(Routing.test_condition("controller_path", condition)) do |gpp|
+              gpp.move_forward('segments_to_controller') {|gppp| yield gppp, :constraint}
+            end
+          else
+            gp.move_forward('segments_to_controller') {|gpp| yield gpp, :constraint}
+          end
         end
       end
 
