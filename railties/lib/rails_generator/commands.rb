@@ -307,7 +307,7 @@ end_message
             unless options[:pretend]
               if options[:svn]
                 # If the file has been marked to be added
-                # but has not yet been checked in, revert and elete
+                # but has not yet been checked in, revert and delete
                 if options[:svn][relative_destination]
                   system("svn revert #{destination}")
                   FileUtils.rm(destination)
@@ -343,7 +343,7 @@ end_message
                 unless options[:pretend]
                   if options[:svn]
                     # If the directory has been marked to be added
-                    # but has not yet been checked in, revert and elete
+                    # but has not yet been checked in, revert and delete
                     if options[:svn][relative_path]
                       system("svn revert #{path}")
                       FileUtils.rmdir(path)
