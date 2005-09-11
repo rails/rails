@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed script/profiler for Ruby 1.8.2 #1863 [Rick Olson]
+
 * Fixed clone_structure_to_test task for SQLite #1864 [jon@burningbush.us]
 
 * Added -m/--mime-types option to the WEBrick server, so you can specify a Apache-style mime.types file to load #2059 [ask@develooper.com]

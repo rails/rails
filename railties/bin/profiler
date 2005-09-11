@@ -26,6 +26,7 @@ begin
   require 'rubyprof_ext'
   Prof.print_profile(results, $stderr)
 rescue LoadError
+  require 'profiler'
   $stderr.puts 'Using the standard Ruby profiler.'
   Profiler__.start_profile
   profile_me
