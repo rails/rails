@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Kernel#silence_warnings to turn off warnings temporarily for the passed block
+
 * Added String#starts_with? and String#ends_with? #2118 [thijs@vandervossen.net]
 
 * Added easy extendability to the inflector through Inflector.inflections (using the Inflector::Inflections singleton class). Examples:

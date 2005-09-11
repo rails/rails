@@ -48,6 +48,4 @@ ActionMailer::Base.class_eval do
   helper MailHelper
 end
 
-old_verbose, $VERBOSE = $VERBOSE, nil
-TMail::Encoder.const_set("MAX_LINE_LEN", 200)
-$VERBOSE = old_verbose
+silence_warnings { TMail::Encoder.const_set("MAX_LINE_LEN", 200) }

@@ -121,9 +121,7 @@ class HelperTest < Test::Unit::TestCase
     end
 
     def test_helper=(helper_module)
-      old_verbose, $VERBOSE = $VERBOSE, nil
-      self.class.const_set('TestHelper', helper_module)
-      $VERBOSE = old_verbose
+      silence_warnings { self.class.const_set('TestHelper', helper_module) }
     end
 end
 

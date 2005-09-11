@@ -1,7 +1,7 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../lib/active_support/misc'
+require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/kernel'
 
-class MiscTest < Test::Unit::TestCase
+class KernelTest < Test::Unit::TestCase
   def test_silence_warnings
     silence_warnings { assert_nil $VERBOSE }
     assert_equal 1234, silence_warnings { 1234 }

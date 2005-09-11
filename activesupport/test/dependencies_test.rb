@@ -1,6 +1,5 @@
 require 'test/unit'
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib/active_support/'
-require 'misc'
 require 'dependencies'
 
 class DependenciesTest < Test::Unit::TestCase

@@ -25,12 +25,12 @@ ActionView::Helpers::FormOptionsHelper::TimeZone = MockTimeZone
 class FormOptionsHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::FormOptionsHelper
 
-  old_verbose, $VERBOSE = $VERBOSE, nil
-  Post      = Struct.new('Post', :title, :author_name, :body, :secret, :written_on, :category, :origin)
-  Continent = Struct.new('Continent', :continent_name, :countries)
-  Country   = Struct.new('Country', :country_id, :country_name)
-  Firm      = Struct.new('Firm', :time_zone)
-  $VERBOSE = old_verbose
+  silence_warnings do
+    Post      = Struct.new('Post', :title, :author_name, :body, :secret, :written_on, :category, :origin)
+    Continent = Struct.new('Continent', :continent_name, :countries)
+    Country   = Struct.new('Country', :country_id, :country_name)
+    Firm      = Struct.new('Firm', :time_zone)
+  end
 
   def test_collection_options
     @posts = [
