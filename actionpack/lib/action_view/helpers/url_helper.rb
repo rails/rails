@@ -11,13 +11,15 @@ module ActionView
       
       # Returns the URL for the set of +options+ provided. This takes the same options 
       # as url_for. For a list, see the url_for documentation in link:classes/ActionController/Base.html#M000079.
+      # Note that it'll set :only_path => true so you'll get /controller/action instead of the 
+      # http://example.com/controller/action part (makes it harder to parse httpd log files)
       def url_for(options = {}, *parameters_for_method_reference)
         options = { :only_path => true }.update(options.symbolize_keys) if options.kind_of? Hash
         @controller.send(:url_for, options, *parameters_for_method_reference)
       end
 
       # Creates a link tag of the given +name+ using an URL created by the set of +options+. See the valid options in
-      # link:classes/ActionController/Base.html#M000021. It's also possible to pass a string instead of an options hash to
+      # link:classes/ActionView/Helpers/UrlHelper.html#M000304. It's also possible to pass a string instead of an options hash to
       # get a link tag that just points without consideration. If nil is passed as a name, the link itself will become the name.
       #
       # The html_options has three special features. One for creating javascript confirm alerts where if you pass :confirm => 'Are you sure?',
