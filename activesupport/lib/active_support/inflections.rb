@@ -45,6 +45,7 @@ Inflector.inflections do |inflect|
   inflect.irregular 'person', 'people'
   inflect.irregular 'man', 'men'
   inflect.irregular 'child', 'children'
+  inflect.irregular 'sex', 'sexes'
 
   inflect.uncountable %w( equipment information rice money species series fish sheep )
 end
