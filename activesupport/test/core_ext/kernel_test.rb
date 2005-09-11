@@ -16,4 +16,8 @@ class KernelTest < Test::Unit::TestCase
       assert_equal old_verbose, $VERBOSE
     end
   end
+  
+  def test_silence_warnings_with_return_value
+    assert_equal 1, silence_warnings { 1 }
+  end
 end
