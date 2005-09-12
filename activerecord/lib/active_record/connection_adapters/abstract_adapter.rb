@@ -374,7 +374,17 @@ module ActiveRecord
           # Schema has been intialized
         end
       end
-      
+
+      def dump_schema_information
+        begin
+          if (current_schema = ActiveRecord::Migrator.current_version) > 0
+            return "INSERT INTO schema_info (version) VALUES (#{current_schema});" 
+          end
+        rescue ActiveRecord::StatementInvalid 
+          # No Schema Info
+        end
+      end
+
       def create_table(name, options = {})
         table_definition = TableDefinition.new(self)
         table_definition.primary_key(options[:primary_key] || "id") unless options[:id] == false

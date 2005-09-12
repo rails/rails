@@ -61,6 +61,10 @@ task :db_structure_dump => :environment do
     else 
       raise "Unknown database adapter '#{abcs["test"]["adapter"]}'"
   end
+  
+  if ActiveRecord::Base.connection.supports_migrations?
+    File.open("db/#{RAILS_ENV}_structure.sql", "a") { |f| f << ActiveRecord::Base.connection.dump_schema_information }
+  end
 end
 
 desc "Empty the test database"

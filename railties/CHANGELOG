@@ -1,5 +1,7 @@
 *SVN*
 
+* Added dump of schema version to the db_structure_dump task for databases that support migrations #1835 [Rick Olson]
+
 * Fixed script/profiler for Ruby 1.8.2 #1863 [Rick Olson]
 
 * Fixed clone_structure_to_test task for SQLite #1864 [jon@burningbush.us]
