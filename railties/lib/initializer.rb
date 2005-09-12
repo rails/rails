@@ -40,6 +40,7 @@ module Rails
       initialize_framework_views
       initialize_routing
       initialize_session_settings
+      initialize_session_store
       initialize_fragment_store
     end
     
@@ -68,7 +69,7 @@ module Rails
 
       begin
         logger = Logger.new(configuration.log_path)
-        logger.level = configuration.log_level
+        logger.level = Logger.const_get(configuration.log_level.to_s.upcase)
       rescue StandardError
         logger = Logger.new(STDERR)
         logger.level = Logger::WARN
@@ -101,6 +102,17 @@ module Rails
       return unless configuration.frameworks.include?(:action_controller)
       ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS.merge!(configuration.session_options)
     end
+
+    def initialize_session_store
+      return if !configuration.frameworks.include?(:action_controller) || configuration.session_store.nil?
+      
+      if configuration.session_store.is_a?(Symbol)
+        ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] =
+          CGI::Session.const_get(configuration.session_store.to_s.camelize)
+      else
+        ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] = configuration.session_store
+      end
+    end
     
     def initialize_fragment_store
       return if !configuration.frameworks.include?(:action_controller) || configuration.fragment_store.nil?
@@ -125,7 +137,7 @@ module Rails
   #   Rails::Initializer.run(:process, config)
   class Configuration
     attr_accessor :frameworks, :load_paths, :log_level, :log_path, :database_configuration_file, :view_path, :controller_paths
-    attr_accessor :session_options, :fragment_store
+    attr_accessor :session_options, :session_store, :fragment_store
     
     def initialize
       self.frameworks       = default_frameworks
@@ -190,7 +202,7 @@ module Rails
       end
       
       def default_log_level
-        environment == 'production' ? Logger::INFO : Logger::DEBUG
+        environment == 'production' ? :info : :debug
       end
       
       def default_database_configuration_file

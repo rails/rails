@@ -15,12 +15,12 @@ Rails::Initializer.run do |config|
   # config.load_paths += %W( #{RAILS_ROOT}/app/services #{RAILS_ROOT}/app/services )
 
   # Force all environments to use the same logger level 
-  # (by default production uses INFO, the others DEBUG)
-  # config.log_level = Logger::DEBUG
+  # (by default production uses :info, the others :debug)
+  # config.log_level = :debug
 
   # Use the database for sessions instead of the file system
   # (create the session table with 'rake create_sessions_table')
-  # config.session_options[:database_manager] = CGI::Session::ActiveRecordStore
+  # config.session_store = :active_record_store
 
   # Enable page/fragment caching by setting a file-based store
   # (remember to create the caching directory and make it readable to the application)
