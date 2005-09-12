@@ -93,10 +93,16 @@ module Dependencies #:nodoc:
           end
           break
         when File.file?(fs_path)
-          self.root.load_file!(fs_path)
+          loaded_file = self.root.load_file!(fs_path)
           
           # Import the loaded constant from Object provided we are the root node.
           self.const_set(name, Object.const_get(name)) if self.root? && Object.const_defined?(name)
+          
+          # Throw an error if we load the file but we don't find the Object we expect
+          if loaded_file and not self.const_defined?(name)
+            msg = "Already loaded file '#{fs_path}' but '#{name.to_s}' was not set, perhaps you need to rename '#{fs_path}'?"
+            raise LoadError, msg
+          end
           break
         end
       end

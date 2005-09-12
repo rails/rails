@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed dependencies related infinite recursion bug when a controller file does not contain a controller class. Closes #1760. [rcolli2@tampabay.rr.com]
+
 * Fixed inflections for status, quiz, move #2056 [deirdre@deirdre.net]
 
 * Added Hash#reverse_merge, Hash#reverse_merge!, and Hash#reverse_update to ease the use of default options
