@@ -278,6 +278,5 @@ class CGI
         end
       end
     end
-
   end
 end

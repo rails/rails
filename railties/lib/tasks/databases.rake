@@ -101,7 +101,7 @@ task :create_sessions_table => :environment do
   raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
 
   ActiveRecord::Base.connection.create_table :sessions do |t|
-    t.column :sessid, :string
+    t.column :session_id, :string
     t.column :data, :text
     t.column :updated_at, :datetime
   end
