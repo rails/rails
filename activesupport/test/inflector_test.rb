@@ -35,6 +35,8 @@ class InflectorTest < Test::Unit::TestCase
     "safe"        => "saves",
     "half"        => "halves",
 
+    "move"        => "moves",
+
     "salesperson" => "salespeople",
     "person"      => "people",
 
@@ -65,6 +67,8 @@ class InflectorTest < Test::Unit::TestCase
     "series"      => "series",
     "species"     => "species",
 
+    "quiz"        => "quizzes",
+
     "perspective" => "perspectives",
     
     "ox" => "oxen",
@@ -75,7 +79,8 @@ class InflectorTest < Test::Unit::TestCase
     "elf" => "elves",
     "information" => "information",
     "equipment" => "equipment",
-    "bus" => "buses",
+    "bus" => "buses", 
+    "status" => "statuses",
     "mouse" => "mice",
 
     "louse" => "lice",

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed inflections for status, quiz, move #2056 [deirdre@deirdre.net]
+
 * Added Hash#reverse_merge, Hash#reverse_merge!, and Hash#reverse_update to ease the use of default options
 
 * Added Array#to_sentence that'll turn ['one', 'two', 'three'] into "one, two, and three" #2157 [m.stienstra@fngtps.com]
