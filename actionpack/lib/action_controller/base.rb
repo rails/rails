@@ -780,7 +780,6 @@ module ActionController #:nodoc:
       def self.view_class
         unless @view_class
           # create a new class based on the default template class and include helper methods
-          logger.debug "defining view class for #{name}" if logger
           @view_class = Class.new(ActionView::Base)
           @view_class.send(:include, master_helper_module)
         end
