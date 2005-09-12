@@ -1,5 +1,7 @@
 *SVN*
 
+* Added TextHelper#cycle to cycle over an array of values on each hit (useful for alternating row colors etc) #2154 [dave-ml@dribin.org]
+
 * Ensure that request.path never returns nil. Closes #1675 [Nicholas Seckar]
 
 * Add ability to specify Route Regexps for controllers. Closes #1917. [Sebastian Kanthak]

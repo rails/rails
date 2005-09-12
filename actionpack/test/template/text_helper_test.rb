@@ -8,6 +8,12 @@ class TextHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TextHelper
   include ActionView::Helpers::TagHelper
   
+  def setup
+    # This simulates the fact that instance variables are reset every time
+    # a view is rendered.  The cycle helper depends on this behavior.
+    @_cycles = nil if (defined? @_cycles)
+  end
+  
   def test_simple_format
     assert_equal "<p>crazy\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("crazy\r\n cross\r platform linebreaks")
     assert_equal "<p>A paragraph</p>\n\n<p>and another one!</p>", simple_format("A paragraph\n\nand another one!")
@@ -137,4 +143,87 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %{href="javascript:bang" <a name='hello'>foo</a>, <span>bar</span>}, result
   end
   
+  def test_cycle_class
+    value = Cycle.new("one", 2, "3")
+    assert_equal("one", value.to_s)
+    assert_equal("2", value.to_s)
+    assert_equal("3", value.to_s)
+    assert_equal("one", value.to_s)
+    value.reset
+    assert_equal("one", value.to_s)
+    assert_equal("2", value.to_s)
+    assert_equal("3", value.to_s)
+  end
+  
+  def test_cycle_class_with_no_arguments
+    assert_raise(ArgumentError) { value = Cycle.new() }
+  end
+
+  def test_cycle
+    assert_equal("one", cycle("one", 2, "3"))
+    assert_equal("2", cycle("one", 2, "3"))
+    assert_equal("3", cycle("one", 2, "3"))
+    assert_equal("one", cycle("one", 2, "3"))
+    assert_equal("2", cycle("one", 2, "3"))
+    assert_equal("3", cycle("one", 2, "3"))
+  end
+  
+  def test_cycle_with_no_arguments
+    assert_raise(ArgumentError) { value = cycle() }
+  end
+  
+  def test_cycle_resets_with_new_values
+    assert_equal("even", cycle("even", "odd"))
+    assert_equal("odd", cycle("even", "odd"))
+    assert_equal("even", cycle("even", "odd"))
+    assert_equal("1", cycle(1, 2, 3))
+    assert_equal("2", cycle(1, 2, 3))
+    assert_equal("3", cycle(1, 2, 3))
+    assert_equal("1", cycle(1, 2, 3))
+  end
+  
+  def test_named_cycles
+    assert_equal("1", cycle(1, 2, 3, :name => "numbers"))
+    assert_equal("red", cycle("red", "blue", :name => "colors"))
+    assert_equal("2", cycle(1, 2, 3, :name => "numbers"))
+    assert_equal("blue", cycle("red", "blue", :name => "colors"))
+    assert_equal("3", cycle(1, 2, 3, :name => "numbers"))
+    assert_equal("red", cycle("red", "blue", :name => "colors"))
+  end
+  
+  def test_default_named_cycle
+    assert_equal("1", cycle(1, 2, 3))
+    assert_equal("2", cycle(1, 2, 3, :name => "default"))
+    assert_equal("3", cycle(1, 2, 3))
+  end
+  
+  def test_reset_cycle
+    assert_equal("1", cycle(1, 2, 3))
+    assert_equal("2", cycle(1, 2, 3))
+    reset_cycle
+    assert_equal("1", cycle(1, 2, 3))
+  end
+  
+  def test_reset_unknown_cycle
+    reset_cycle("colors")
+  end
+  
+  def test_recet_named_cycle
+    assert_equal("1", cycle(1, 2, 3, :name => "numbers"))
+    assert_equal("red", cycle("red", "blue", :name => "colors"))
+    reset_cycle("numbers")
+    assert_equal("1", cycle(1, 2, 3, :name => "numbers"))
+    assert_equal("blue", cycle("red", "blue", :name => "colors"))
+    assert_equal("2", cycle(1, 2, 3, :name => "numbers"))
+    assert_equal("red", cycle("red", "blue", :name => "colors"))
+  end
+  
+  def test_cycle_no_instance_variable_clashes
+    @cycles = %w{Specialized Fuji Giant}
+    assert_equal("red", cycle("red", "blue"))
+    assert_equal("blue", cycle("red", "blue"))
+    assert_equal("red", cycle("red", "blue"))
+    assert_equal(%w{Specialized Fuji Giant}, @cycles)
+  end
+
 end

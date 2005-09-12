@@ -189,9 +189,91 @@ module ActionView
 
         html
       end
+      
+      # Returns a Cycle object whose to_s value cycles through items of an
+      # array every time it is called. This can be used to alternate classes
+      # for table rows:
+      #
+      # <%- for item in @items do -%>
+      #   <tr class="<%= cycle("even", "odd") %>">
+      #     ... use item ...
+      #   </tr>
+      # <%- end -%>
+      #
+      # You can use named cycles to prevent clashes in nested loops.  You'll
+      # have to reset the inner cycle, manually:
+      #
+      # <%- for item in @items do -%>
+      #   <tr class="<%= cycle("even", "odd", :name => "row_class")
+      #     <td>
+      #       <%- for value in item.values do -%>
+      #         <span style="color:'<%= cycle("red", "green", "blue"
+      #                                       :name => "colors") %>'">
+      #           item
+      #         </span>
+      #       <%- end -%>
+      #       <%- reset_cycle("colors") -%>
+      #     </td>
+      #   </tr>
+      # <%- end -%>
+      def cycle(first_value, *values)
+        if (values.last.instance_of? Hash)
+          params = values.pop
+          name = params[:name]
+        else
+          name = "default"
+        end
+        values.unshift(first_value)
+
+        cycle = get_cycle(name)
+        if (cycle.nil? || cycle.values != values)
+          cycle = set_cycle(name, Cycle.new(*values))
+        end
+        return cycle.to_s
+      end
+      
+      # Resets a cycle so that it starts from the first element in the array
+      # the next time it is used.
+      def reset_cycle(name = "default")
+        cycle = get_cycle(name)
+        return if cycle.nil?
+        cycle.reset
+      end
+
+      class Cycle
+        attr_reader :values
+        
+        def initialize(first_value, *values)
+          @values = values.unshift(first_value)
+          reset
+        end
+        
+        def reset
+          @index = 0
+        end
+
+        def to_s
+          value = @values[@index].to_s
+          @index = (@index + 1) % @values.size
+          return value
+        end
+      end
 
       
       private
+        # The cycle helpers need to store the cycles in a place that is
+        # guaranteed to be reset every time a page is rendered, so it
+        # uses an instance variable of ActionView::Base.
+        def get_cycle(name)
+          @_cycles = Hash.new if @_cycles.nil?
+          return @_cycles[name]
+        end
+        
+        def set_cycle(name, cycle_object)
+          @_cycles = Hash.new if @_cycles.nil?
+          @_cycles[name] = cycle_object
+        end
+      
         # Returns a version of the text that's safe to use in a regular expression without triggering engine features.
         def escape_regexp(text)
           text.gsub(/([\\|?+*\/\)\(])/) { |m| "\\#{$1}" }
