@@ -106,7 +106,7 @@ task :create_sessions_table => :environment do
     t.column :updated_at, :datetime
   end
   
-  ActiveRecord::Base.connection.add_index :sessions, :sessid
+  ActiveRecord::Base.connection.add_index :sessions, :session_id
 end
 
 desc "Drop the sessions table"
