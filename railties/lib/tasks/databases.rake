@@ -97,7 +97,7 @@ task :purge_test_database => :environment do
 end
 
 desc "Creates a sessions table for use with CGI::Session::ActiveRecordStore"
-task :create_session_table => :environment do
+task :create_sessions_table => :environment do
   raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
 
   ActiveRecord::Base.connection.create_table :sessions do |t|
@@ -110,12 +110,12 @@ task :create_session_table => :environment do
 end
 
 desc "Drop the sessions table"
-task :drop_session_table => :environment do
+task :drop_sessions_table => :environment do
   raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
   
   ActiveRecord::Base.connection.drop_table :sessions
 end
 
 desc "Drop and recreate the session table (much faster than 'DELETE * FROM sessions')"
-task :purge_session_table => [ :drop_session_table, :create_session_table ] do
+task :purge_sessions_table => [ :drop_sessions_table, :create_sessions_table ] do
 end
