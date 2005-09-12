@@ -1,5 +1,7 @@
 *SVN*
 
+* Added create_session_table, drop_session_table, and purge_session_table as rake tasks for databases that supports migrations (MySQL, PostgreSQL, SQLite) to get a table for use with CGI::Session::ActiveRecordStore
+
 * Added dump of schema version to the db_structure_dump task for databases that support migrations #1835 [Rick Olson]
 
 * Fixed script/profiler for Ruby 1.8.2 #1863 [Rick Olson]

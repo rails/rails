@@ -39,6 +39,7 @@ module Rails
       initialize_framework_logging
       initialize_framework_views
       initialize_routing
+      initialize_session_settings
     end
     
     def set_load_path
@@ -94,6 +95,11 @@ module Rails
       ActionController::Routing::Routes.reload
       Object.const_set "Controllers", Dependencies::LoadingModule.root(*configuration.controller_paths)
     end
+    
+    def initialize_session_settings
+      return if !configuration.frameworks.include?(:action_controller)
+      ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS.merge!(configuration.session_options)
+    end
   end
   
   # The Configuration class holds all the parameters for the Initializer and ships with defaults that suites most
@@ -105,6 +111,7 @@ module Rails
   #   Rails::Initializer.run(:process, config)
   class Configuration
     attr_accessor :frameworks, :load_paths, :log_level, :log_path, :database_configuration_file, :view_path, :controller_paths
+    attr_accessor :session_options
     
     def initialize
       self.frameworks       = default_frameworks
@@ -113,6 +120,7 @@ module Rails
       self.log_level        = default_log_level
       self.view_path        = default_view_path
       self.controller_paths = default_controller_paths
+      self.session_options  = default_session_options
       self.database_configuration_file  = default_database_configuration_file
     end
     
@@ -181,6 +189,10 @@ module Rails
       
       def default_controller_paths
         [ File.join(RAILS_ROOT, 'app', 'controllers'), File.join(RAILS_ROOT, 'components') ]
+      end
+      
+      def default_session_options
+        {}
       end
   end
 end

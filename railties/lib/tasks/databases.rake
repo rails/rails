@@ -37,7 +37,7 @@ task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
         ActiveRecord::Base.connection.execute(ddl)
       end
     else 
-      raise "Unknown database adapter '#{abcs["test"]["adapter"]}'"
+      raise "Task not supported by '#{abcs["test"]["adapter"]}'"
   end
 end
 
@@ -59,7 +59,7 @@ task :db_structure_dump => :environment do
       `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /f db\\#{RAILS_ENV}_structure.sql /q /A /r`
       `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /F db\ /q /A /r`
     else 
-      raise "Unknown database adapter '#{abcs["test"]["adapter"]}'"
+      raise "Task not supported by '#{abcs["test"]["adapter"]}'"
   end
   
   if ActiveRecord::Base.connection.supports_migrations?
@@ -92,6 +92,30 @@ task :purge_test_database => :environment do
         ActiveRecord::Base.connection.execute(ddl)
       end
     else
-      raise "Unknown database adapter '#{abcs["test"]["adapter"]}'"
+      raise "Task not supported by '#{abcs["test"]["adapter"]}'"
   end
+end
+
+desc "Creates a sessions table for use with CGI::Session::ActiveRecordStore"
+task :create_session_table => :environment do
+  raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
+
+  ActiveRecord::Base.connection.create_table :sessions do |t|
+    t.column :sessid, :string
+    t.column :data, :text
+    t.column :updated_at, :datetime
+  end
+  
+  ActiveRecord::Base.connection.add_index :sessions, :sessid
+end
+
+desc "Drop the sessions table"
+task :drop_session_table => :environment do
+  raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
+  
+  ActiveRecord::Base.connection.drop_table :sessions
+end
+
+desc "Drop and recreate the session table (much faster than 'DELETE * FROM sessions')"
+task :purge_session_table => [ :drop_session_table, :create_session_table ] do
 end

@@ -18,6 +18,10 @@ Rails::Initializer.run do |config|
   # (by default production uses INFO, the others DEBUG)
   # config.log_level = Logger::DEBUG
 
+  # Use the database for sessions instead of the file system
+  # (create the session table with 'rake create_session_table')
+  # config.session_options[:database_manager] = CGI::Session::ActiveRecordStore
+
   # See Rails::Configuration for more options
 end
 
