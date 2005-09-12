@@ -131,7 +131,7 @@ module ActionView
       def periodically_call_remote(options = {})
          frequency = options[:frequency] || 10 # every ten seconds by default
          code = "new PeriodicalExecuter(function() {#{remote_function(options)}}, #{frequency})"
-         content_tag("script", code, options[:html_options] || {})
+         javascript_tag(code)
       end
 
       # Returns a form tag that will submit using XMLHttpRequest in the background instead of the regular 
