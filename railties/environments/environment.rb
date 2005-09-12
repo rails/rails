@@ -22,6 +22,10 @@ Rails::Initializer.run do |config|
   # (create the session table with 'rake create_sessions_table')
   # config.session_options[:database_manager] = CGI::Session::ActiveRecordStore
 
+  # Enable page/fragment caching by setting a file-based store
+  # (remember to create the caching directory and make it readable to the application)
+  # config.fragment_store = :file_store, "#{RAILS_ROOT}/cache"
+
   # See Rails::Configuration for more options
 end
 

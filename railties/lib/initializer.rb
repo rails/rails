@@ -40,6 +40,7 @@ module Rails
       initialize_framework_views
       initialize_routing
       initialize_session_settings
+      initialize_fragment_store
     end
     
     def set_load_path
@@ -97,8 +98,21 @@ module Rails
     end
     
     def initialize_session_settings
-      return if !configuration.frameworks.include?(:action_controller)
+      return unless configuration.frameworks.include?(:action_controller)
       ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS.merge!(configuration.session_options)
+    end
+    
+    def initialize_fragment_store
+      return if !configuration.frameworks.include?(:action_controller) || configuration.fragment_store.nil?
+
+      configuration.fragment_store = [ configuration.fragment_store ].flatten
+      store = ActionController::Caching::Fragments.const_get(configuration.fragment_store.first.to_s.camelize)
+
+      if parameters = configuration.fragment_store[1..-1]
+        ActionController::Base.fragment_cache_store = store.new(*parameters)
+      else
+        ActionController::Base.fragment_cache_store = store.new
+      end
     end
   end
   
@@ -111,7 +125,7 @@ module Rails
   #   Rails::Initializer.run(:process, config)
   class Configuration
     attr_accessor :frameworks, :load_paths, :log_level, :log_path, :database_configuration_file, :view_path, :controller_paths
-    attr_accessor :session_options
+    attr_accessor :session_options, :fragment_store
     
     def initialize
       self.frameworks       = default_frameworks
