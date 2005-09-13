@@ -42,7 +42,7 @@ class JavaScriptHelperTest < Test::Unit::TestCase
   end
   
   def test_periodically_call_remote
-    assert_equal %(<script>new PeriodicalExecuter(function() {new Ajax.Updater('schremser_bier', 'http://www.example.com/mehr_bier', {asynchronous:true, evalScripts:true})}, 10)</script>),
+    assert_equal %(<script type="text/javascript">new PeriodicalExecuter(function() {new Ajax.Updater('schremser_bier', 'http://www.example.com/mehr_bier', {asynchronous:true, evalScripts:true})}, 10)</script>),
       periodically_call_remote(:update => "schremser_bier", :url => { :action => "mehr_bier" })
   end
   

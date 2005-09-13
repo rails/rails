@@ -1,5 +1,7 @@
 *SVN*
 
+* Added ActionController::Base.session_store=, session_store, and session_options to make it easier to tweak the session options (instead of going straight to ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS)
+
 * Added TextHelper#cycle to cycle over an array of values on each hit (useful for alternating row colors etc) #2154 [dave-ml@dribin.org]
 
 * Ensure that request.path never returns nil. Closes #1675 [Nicholas Seckar]
