@@ -119,6 +119,13 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %(<p>Go to #{link3_result}. seriously, #{link3_result}? i think I'll say hello to #{email_result}. instead.</p>), auto_link(%(<p>Go to #{link3_raw}. seriously, #{link3_raw}? i think I'll say hello to #{email_raw}. instead.</p>))
   end
 
+  def test_auto_link_at_eol
+    url1 = "http://api.rubyonrails.com/Foo.html"
+    url2 = "http://www.ruby-doc.org/core/Bar.html"
+
+    assert_equal %(<p><a href="#{url1}">#{url1}</a><br /><a href="#{url2}">#{url2}</a><br /></p>), auto_link("<p>#{url1}<br />#{url2}<br /></p>")
+  end
+
   def test_sanitize_form
     raw = "<form action=\"/foo/bar\" method=\"post\"><input></form>"
     result = sanitize(raw)

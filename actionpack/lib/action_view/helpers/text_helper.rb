@@ -279,9 +279,27 @@ module ActionView
           text.gsub(/([\\|?+*\/\)\(])/) { |m| "\\#{$1}" }
         end
 
+        AUTO_LINK_RE = /
+                        (                       # leading text
+                          <\w+.*?>|             #   leading HTML tag, or
+                          [^=!:'"\/]|           #   leading punctuation, or 
+                          ^                     #   beginning of line
+                        )
+                        (
+                          (?:http[s]?:\/\/)|    # protocol spec, or
+                          (?:www\.)             # www.*
+                        ) 
+                        (
+                          ([\w]+[\/.-]?)*       # url segment
+                          \w+[\/]?              # url tail
+                          (?:\#\w*)?            # trailing anchor
+                        )
+                        ([[:punct:]]|\s|<|$)    # trailing text
+                       /x
+
         # Turns all urls into clickable links.
         def auto_link_urls(text, href_options = {})
-          text.gsub(/(<\w+.*?>|[^=!:'"\/]|^)((?:http[s]?:\/\/)|(?:www\.))(([\w]+[[:punct:]]?)*\w+[\/]?)([[:punct:]]|\s|<|$)/) do
+          text.gsub(AUTO_LINK_RE) do
             all, a, b, c, d = $&, $1, $2, $3, $5
             if a =~ /<a\s/i # don't replace URL's that are already linked
               all
