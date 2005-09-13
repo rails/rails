@@ -20,11 +20,11 @@ Rails::Initializer.run do |config|
 
   # Use the database for sessions instead of the file system
   # (create the session table with 'rake create_sessions_table')
-  # config.session_store = :active_record_store
+  # config.action_controller.session_store = :active_record_store
 
   # Enable page/fragment caching by setting a file-based store
   # (remember to create the caching directory and make it readable to the application)
-  # config.fragment_store = :file_store, "#{RAILS_ROOT}/cache"
+  # config.action_controller.fragment_cache_store = :file_store, "#{RAILS_ROOT}/cache"
 
   # See Rails::Configuration for more options
 end
