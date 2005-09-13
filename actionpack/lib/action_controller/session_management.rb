@@ -10,6 +10,26 @@ module ActionController #:nodoc:
     end
 
     module ClassMethods
+      # Set the session store to be used for keeping the session data between requests. The default is using the
+      # file system, but you can also specify one of the other included stores (:active_record_store, :drb_store, 
+      # :mem_cache_store, or :memory_store) or use your own class.
+      def session_store=(store)
+        ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] =
+          store.is_a?(Symbol) ? CGI::Session.const_get(store.to_s.camelize) : store
+      end
+
+      # Returns the session store class currently used.
+      def session_store
+        ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager]
+      end
+
+      # Returns the hash used to configure the session. Example use:
+      #
+      #   ActionController::Base.session_options[:session_secure] = true # session only available over HTTPS
+      def session_options
+        ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS
+      end
+      
       # Specify how sessions ought to be managed for a subset of the actions on
       # the controller. Like filters, you can specify <tt>:only</tt> and
       # <tt>:except</tt> clauses to restrict the subset, otherwise options
