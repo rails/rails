@@ -6,7 +6,7 @@ STATS_DIRECTORIES = [
   %w(Functionals test/functional),
   %w(Models      app/models),
   %w(Units       test/unit)
-]
+].collect { |name, dir| [ name, "#{RAILS_ROOT}/#{dir}" ] }.select { |name, dir| File.directory?(dir) }
 
 desc "Report code statistics (KLOCs, etc) from the application"
 task :stats do
