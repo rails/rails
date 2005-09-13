@@ -52,9 +52,9 @@ module ActiveRecord
           ids = args.flatten.compact.uniq
 
           if ids.size == 1
-            id = ids.first
+            id = ids.first.to_i
             record = load_target.detect { |record| id == record.id }
-            expects_array? ? [record] : record
+            expects_array ? [record] : record
           else
             load_target.select { |record| ids.include?(record.id) }
           end
@@ -95,10 +95,9 @@ module ActiveRecord
       end
       
       protected
-        def find_target(sql = nil)
-          
-          if sql
-            records = @association_class.find_by_sql(sql) if sql
+        def find_target
+          if @options[:finder_sql]
+            records = @association_class.find_by_sql(@finder_sql)
           else
             records = find(:all)
           end

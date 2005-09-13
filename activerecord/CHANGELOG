@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed various problems with has_and_belongs_to_many when using customer finder_sql #2094 [Florian Weber]
+
 * Added better exception error when unknown column types are used with migrations #1814 [fbeausoleil@ftml.net]
 
 * Fixed "connection lost" issue with the bundled Ruby/MySQL driver (would kill the app after 8 hours of inactivity) #2163, #428 [kajism@yahoo.com]

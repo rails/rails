@@ -1145,6 +1145,19 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal developers(:david), active_record.developers.find(developers(:david).id), "Ruby find"
   end
 
+  def test_find_in_association_with_custom_finder_sql
+    assert_equal developers(:david), projects(:active_record).developers_with_finder_sql.find(developers(:david).id), "SQL find"
+   
+    active_record = projects(:active_record)
+    active_record.developers_with_finder_sql.reload
+    assert_equal developers(:david), active_record.developers_with_finder_sql.find(developers(:david).id), "Ruby find"
+  end
+
+  def test_find_in_association_with_custom_finder_sql_and_string_id
+    assert_equal developers(:david), projects(:active_record).developers_with_finder_sql.find(developers(:david).id.to_s), "SQL find"
+  end
+
+
   def test_new_with_values_in_collection
     jamis = DeveloperForProjectWithAfterCreateHook.find_by_name('Jamis')
     david = DeveloperForProjectWithAfterCreateHook.find_by_name('David')
