@@ -1,12 +1,17 @@
+require 'action_controller/session/drb_store'
+require 'action_controller/session/mem_cache_store'
+if Object.const_defined?(:ActiveRecord)
+  require 'action_controller/session/active_record_store'
+end
+
 module ActionController #:nodoc:
   module SessionManagement #:nodoc:
     def self.append_features(base)
       super
       base.extend(ClassMethods)
-      base.class_eval do
-        alias_method :process_without_session_management_support, :process
-        alias_method :process, :process_with_session_management_support
-      end
+      base.send(:alias_method, :process_without_session_management_support, :process)
+      base.send(:alias_method, :process, :process_with_session_management_support)
+      base.after_filter(:clear_persistant_model_associations)
     end
 
     module ClassMethods
@@ -15,7 +20,7 @@ module ActionController #:nodoc:
       # :mem_cache_store, or :memory_store) or use your own class.
       def session_store=(store)
         ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] =
-          store.is_a?(Symbol) ? CGI::Session.const_get(store.to_s.camelize) : store
+          store.is_a?(Symbol) ? CGI::Session.const_get(store == :drb_store ? "DRbStore" : store.to_s.camelize) : store
       end
 
       # Returns the session store class currently used.
@@ -100,5 +105,11 @@ module ActionController #:nodoc:
       request.session_options = self.class.session_options_for(request, action)
       process_without_session_management_support(request, response, method, *arguments)
     end
+  
+    private
+      def clear_persistant_model_associations #:doc:
+        session = @session.instance_variable_get("@data")
+        session.each { |key, obj| obj.clear_association_cache if obj.respond_to?(:clear_association_cache) } if session
+      end
   end
 end

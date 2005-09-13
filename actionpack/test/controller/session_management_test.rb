@@ -81,4 +81,14 @@ class SessionManagementTest < Test::Unit::TestCase
     get :conditional, :ws => "ws"
     assert_equal false, @request.session_options
   end
+  
+  def test_session_store_setting
+    ActionController::Base.session_store = :drb_store
+    assert_equal CGI::Session::DRbStore, ActionController::Base.session_store
+
+    if Object.const_defined?(:ActiveRecord)
+      ActionController::Base.session_store = :active_record_store
+      assert_equal CGI::Session::ActiveRecordStore, ActionController::Base.session_store
+    end
+  end
 end

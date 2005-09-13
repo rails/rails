@@ -240,23 +240,28 @@ module ActionController #:nodoc:
     #
     # Configuration examples (MemoryStore is the default):
     #
-    #   ActionController::Base.fragment_cache_store = 
-    #     ActionController::Caching::Fragments::MemoryStore.new
-    #
-    #   ActionController::Base.fragment_cache_store = 
-    #     ActionController::Caching::Fragments::FileStore.new("/path/to/cache/directory")
-    #
-    #   ActionController::Base.fragment_cache_store = 
-    #     ActionController::Caching::Fragments::DRbStore.new("druby://localhost:9192")
-    #
-    #   ActionController::Base.fragment_cache_store = 
-    #     ActionController::Caching::Fragments::MemCacheStore.new("localhost")
+    #   ActionController::Base.fragment_cache_store = :memory_store
+    #   ActionController::Base.fragment_cache_store = :file_store, "/path/to/cache/directory"
+    #   ActionController::Base.fragment_cache_store = :drb_store, "druby://localhost:9192"
+    #   ActionController::Base.fragment_cache_store = :mem_cache_store, "localhost"
+    #   ActionController::Base.fragment_cache_store = MyOwnStore.new("parameter")
     module Fragments
       def self.append_features(base) #:nodoc:
         super
         base.class_eval do
           @@fragment_cache_store = MemoryStore.new
-          cattr_accessor :fragment_cache_store
+          cattr_reader :fragment_cache_store
+
+          def self.fragment_cache_store=(store_option)
+            store, *parameters = *([ store_option ].flatten)
+            @@fragment_cache_store = if store.is_a?(Symbol)
+              store_class_name = (store == :drb_store ? "DRbStore" : store.to_s.camelize)
+              store_class = ActionController::Caching::Fragments.const_get(store_class_name)
+              parameters.empty? ? store.new : store_class.new(*parameters)
+            else
+              store
+            end
+          end
         end
       end
 
@@ -349,18 +354,26 @@ module ActionController #:nodoc:
       end
 
       class DRbStore < MemoryStore #:nodoc:
+        attr_reader :address
+
         def initialize(address = 'druby://localhost:9192')
+          @address = address
           @data, @mutex = DRbObject.new(nil, address), Mutex.new
         end    
       end
 
       class MemCacheStore < MemoryStore #:nodoc:
+        attr_reader :address
+
         def initialize(address = 'localhost')
+          @address = address
           @data, @mutex = MemCache.new(address), Mutex.new
         end    
       end
 
       class FileStore #:nodoc:
+        attr_reader :cache_path
+        
         def initialize(cache_path)
           @cache_path = cache_path
         end
