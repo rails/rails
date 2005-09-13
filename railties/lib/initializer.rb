@@ -142,7 +142,7 @@ module Rails
   #   Rails::Initializer.run(:process, config)
   class Configuration
     attr_accessor :frameworks, :load_paths, :logger, :log_level, :log_path, :database_configuration_file, :view_path, :controller_paths
-    attr_accessor :session_options, :session_store, :fragment_store, :cache_classes, :breakpoint_server, :whiny_nils
+    attr_accessor :cache_classes, :breakpoint_server, :whiny_nils
     attr_accessor :active_record, :action_controller, :action_view, :action_mailer, :action_web_service
     
     def initialize
@@ -152,7 +152,6 @@ module Rails
       self.log_level                    = default_log_level
       self.view_path                    = default_view_path
       self.controller_paths             = default_controller_paths
-      self.session_options              = default_session_options
       self.cache_classes                = default_cache_classes
       self.breakpoint_server            = default_breakpoint_server
       self.whiny_nils                   = default_whiny_nils
@@ -228,10 +227,6 @@ module Rails
       
       def default_controller_paths
         [ File.join(RAILS_ROOT, 'app', 'controllers'), File.join(RAILS_ROOT, 'components') ]
-      end
-      
-      def default_session_options
-        {}
       end
       
       def default_dependency_mechanism
