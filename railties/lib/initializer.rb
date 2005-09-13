@@ -32,16 +32,23 @@ module Rails
       set_load_path
 
       require_frameworks
-      require_environment
+      load_environment
 
       initialize_database
       initialize_logger
       initialize_framework_logging
       initialize_framework_views
       initialize_routing
-      initialize_session_settings
-      initialize_session_store
-      initialize_fragment_store
+      initialize_dependency_mechanism
+      initialize_breakpoints
+      initialize_whiny_nils
+      
+      intitialize_framework_settings
+      
+      # Support for legacy configuration style where the environment
+      # could overwrite anything set from the defaults/global through
+      # the individual base class configurations.
+      load_environment
     end
     
     def set_load_path
@@ -53,8 +60,11 @@ module Rails
       configuration.frameworks.each { |framework| require(framework.to_s) }
     end
     
-    def require_environment
-      require_dependency(configuration.environment_file)
+    def load_environment
+      silence_warnings do
+        config = configuration
+        eval(IO.read(configuration.environment_path), binding)
+      end
     end
     
     def initialize_database
@@ -67,16 +77,18 @@ module Rails
       # if the environment has explicitly defined a logger, use it
       return if defined?(RAILS_DEFAULT_LOGGER)
 
-      begin
-        logger = Logger.new(configuration.log_path)
-        logger.level = Logger.const_get(configuration.log_level.to_s.upcase)
-      rescue StandardError
-        logger = Logger.new(STDERR)
-        logger.level = Logger::WARN
-        logger.warn(
-          "Rails Error: Unable to access log file. Please ensure that #{configuration.log_path} exists and is chmod 0666. " +
-          "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
-        )
+      unless logger = configuration.logger
+        begin
+          logger = Logger.new(configuration.log_path)
+          logger.level = Logger.const_get(configuration.log_level.to_s.upcase)
+        rescue StandardError
+          logger = Logger.new(STDERR)
+          logger.level = Logger::WARN
+          logger.warn(
+            "Rails Error: Unable to access log file. Please ensure that #{configuration.log_path} exists and is chmod 0666. " +
+            "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
+          )
+        end
       end
       
       silence_warnings { Object.const_set "RAILS_DEFAULT_LOGGER", logger }
@@ -98,32 +110,25 @@ module Rails
       Object.const_set "Controllers", Dependencies::LoadingModule.root(*configuration.controller_paths)
     end
     
-    def initialize_session_settings
-      return unless configuration.frameworks.include?(:action_controller)
-      ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS.merge!(configuration.session_options)
-    end
-
-    def initialize_session_store
-      return if !configuration.frameworks.include?(:action_controller) || configuration.session_store.nil?
-      
-      if configuration.session_store.is_a?(Symbol)
-        ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] =
-          CGI::Session.const_get(configuration.session_store.to_s.camelize)
-      else
-        ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS[:database_manager] = configuration.session_store
-      end
+    def initialize_dependency_mechanism
+      Dependencies.mechanism = configuration.cache_classes ? :require : :load
     end
     
-    def initialize_fragment_store
-      return if !configuration.frameworks.include?(:action_controller) || configuration.fragment_store.nil?
+    def initialize_breakpoints
+      silence_warnings { Object.const_set("BREAKPOINT_SERVER_PORT", 42531) if configuration.breakpoint_server }
+    end
+    
+    def initialize_whiny_nils
+      require('active_support/whiny_nil') if configuration.whiny_nils
+    end
 
-      configuration.fragment_store = [ configuration.fragment_store ].flatten
-      store = ActionController::Caching::Fragments.const_get(configuration.fragment_store.first.to_s.camelize)
+    def intitialize_framework_settings
+      configuration.frameworks.each do |framework|
+        base_class = framework.to_s.camelize.constantize.const_get("Base")
 
-      if parameters = configuration.fragment_store[1..-1]
-        ActionController::Base.fragment_cache_store = store.new(*parameters)
-      else
-        ActionController::Base.fragment_cache_store = store.new
+        configuration.send(framework).each do |setting, value|
+          base_class.send("#{setting}=", value)
+        end
       end
     end
   end
@@ -136,35 +141,43 @@ module Rails
   #   config = Rails::Configuration.new
   #   Rails::Initializer.run(:process, config)
   class Configuration
-    attr_accessor :frameworks, :load_paths, :log_level, :log_path, :database_configuration_file, :view_path, :controller_paths
-    attr_accessor :session_options, :session_store, :fragment_store
+    attr_accessor :frameworks, :load_paths, :logger, :log_level, :log_path, :database_configuration_file, :view_path, :controller_paths
+    attr_accessor :session_options, :session_store, :fragment_store, :cache_classes, :breakpoint_server, :whiny_nils
+    attr_accessor :active_record, :action_controller, :action_view, :action_mailer, :action_web_service
     
     def initialize
-      self.frameworks       = default_frameworks
-      self.load_paths       = default_load_paths
-      self.log_path         = default_log_path
-      self.log_level        = default_log_level
-      self.view_path        = default_view_path
-      self.controller_paths = default_controller_paths
-      self.session_options  = default_session_options
+      self.frameworks                   = default_frameworks
+      self.load_paths                   = default_load_paths
+      self.log_path                     = default_log_path
+      self.log_level                    = default_log_level
+      self.view_path                    = default_view_path
+      self.controller_paths             = default_controller_paths
+      self.session_options              = default_session_options
+      self.cache_classes                = default_cache_classes
+      self.breakpoint_server            = default_breakpoint_server
+      self.whiny_nils                   = default_whiny_nils
       self.database_configuration_file  = default_database_configuration_file
+
+      for framework in default_frameworks
+        self.send("#{framework}=", new_hash_with_method_access)
+      end
     end
     
     def database_configuration
       YAML::load(ERB.new((IO.read(database_configuration_file))).result)
     end
     
-    def environment_file
-      "environments/#{environment}"
+    def environment_path
+      "#{RAILS_ROOT}/config/environments/#{environment}.rb"
     end
     
     def environment
       ::RAILS_ENV
     end
-    
+
     private
       def default_frameworks
-        [ :active_support, :active_record, :action_controller, :action_mailer, :action_web_service ]
+        [ :active_record, :action_controller, :action_mailer, :action_web_service ]
       end
     
       def default_load_paths
@@ -219,6 +232,36 @@ module Rails
       
       def default_session_options
         {}
+      end
+      
+      def default_dependency_mechanism
+        :load
+      end
+
+      def new_hash_with_method_access
+        hash = Hash.new
+
+        def hash.method_missing(name, *args)
+          if has_key?(name)
+            self[name]
+          elsif name.to_s =~ /(.*)=$/
+            self[$1.to_sym] = args.first
+          end
+        end
+
+        hash
+      end
+      
+      def default_cache_classes
+        false
+      end
+      
+      def default_breakpoint_server
+        false
+      end
+      
+      def default_whiny_nils
+        false
       end
   end
 end
