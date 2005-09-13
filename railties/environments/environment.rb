@@ -26,6 +26,9 @@ Rails::Initializer.run do |config|
   # (remember to create the caching directory and make it readable to the application)
   # config.action_controller.fragment_cache_store = :file_store, "#{RAILS_ROOT}/cache"
 
+  # Make Active Record use UTC-base instead of local time
+  # config.active_record.default_timezone = :utc
+
   # See Rails::Configuration for more options
 end
 
