@@ -109,7 +109,14 @@ class InflectorTest < Test::Unit::TestCase
     "Product"               => "product",
     "SpecialGuest"          => "special_guest",
     "ApplicationController" => "application_controller",
-    "Area51Controller"      => "area51_controller"
+    "Area51Controller"      => "area51_controller",
+  }
+  
+  CamelToUnderscoreWithoutReverse = {
+    "HTMLTidy"              => "html_tidy",
+    "HTMLTidyGenerator"     => "html_tidy_generator",
+    "FreeBSD"               => "free_bsd",
+    "HTML"                  => "html",
   }
   
   CamelWithModuleToUnderscoreWithSlash = {
@@ -199,9 +206,9 @@ class InflectorTest < Test::Unit::TestCase
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, Inflector.underscore(camel))
     end
-    
-    assert_equal "html_tidy", Inflector.underscore("HTMLTidy")
-    assert_equal "html_tidy_generator", Inflector.underscore("HTMLTidyGenerator")
+    CamelToUnderscoreWithoutReverse.each do |camel, underscore|
+      assert_equal(underscore, Inflector.underscore(camel))
+    end
   end
 
   def test_camelize_with_module
