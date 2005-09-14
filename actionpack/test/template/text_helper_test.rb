@@ -95,6 +95,8 @@ class TextHelperTest < Test::Unit::TestCase
     link2_result = %{<a href="http://#{link2_raw}">#{link2_raw}</a>}
     link3_raw    = 'http://manuals.ruby-on-rails.com/read/chapter.need_a-period/103#page281'
     link3_result = %{<a href="#{link3_raw}">#{link3_raw}</a>}
+    link4_raw    = 'http://foo.example.com/controller/action?parm=value&p2=v2#anchor123'
+    link4_result = %{<a href="#{link4_raw}">#{link4_raw}</a>}
 
     assert_equal %(hello #{email_result}), auto_link("hello #{email_raw}", :email_addresses)
     assert_equal %(Go to #{link_result}), auto_link("Go to #{link_raw}", :urls)
@@ -117,6 +119,8 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %(<p>#{link3_result} Link</p>), auto_link("<p>#{link3_raw} Link</p>")
     assert_equal %(Go to #{link3_result}.), auto_link(%(Go to #{link3_raw}.))
     assert_equal %(<p>Go to #{link3_result}. seriously, #{link3_result}? i think I'll say hello to #{email_result}. instead.</p>), auto_link(%(<p>Go to #{link3_raw}. seriously, #{link3_raw}? i think I'll say hello to #{email_raw}. instead.</p>))
+    assert_equal %(<p>Link #{link4_result}</p>), auto_link("<p>Link #{link4_raw}</p>")
+    assert_equal %(<p>#{link4_result} Link</p>), auto_link("<p>#{link4_raw} Link</p>")
   end
 
   def test_auto_link_at_eol
