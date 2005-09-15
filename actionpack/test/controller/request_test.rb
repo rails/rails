@@ -72,8 +72,9 @@ class RequestTest < Test::Unit::TestCase
   end
   
   def test_relative_url_root
+    @request.env['SCRIPT_NAME'] = "/hieraki/dispatch.cgi"
     @request.env['SERVER_SOFTWARE'] = 'lighttpd/1.2.3'
-    assert_nil @request.relative_url_root, "relative_url_root should be disabled on lighttpd"
+    assert_equal '', @request.relative_url_root, "relative_url_root should be disabled on lighttpd"
 
     @request.env['SERVER_SOFTWARE'] = 'apache/1.2.3 some random text'
       

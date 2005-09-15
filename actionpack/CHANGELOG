@@ -1,5 +1,7 @@
 *SVN*
 
+* Cache relative_url_root for all webservers, not just Apache #2193 [skae]
+
 * Speed up cookie use by decreasing string copying #2194 [skae]
 
 * Fixed access to "Host" header with requests made by crappy old HTTP/1.0 clients #2124 [Marcel Molina]
