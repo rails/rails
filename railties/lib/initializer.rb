@@ -30,6 +30,7 @@ module Rails
     
     def process
       set_load_path
+      set_connection_adapters
 
       require_frameworks
       load_environment
@@ -54,6 +55,10 @@ module Rails
     def set_load_path
       configuration.load_paths.reverse.each { |dir| $LOAD_PATH.unshift(dir) if File.directory?(dir) }
       $LOAD_PATH.uniq!
+    end
+    
+    def set_connection_adapters
+      RAILS_CONNECTION_ADAPTERS = configuration.connection_adapters
     end
     
     def require_frameworks
@@ -143,6 +148,7 @@ module Rails
   class Configuration
     attr_accessor :frameworks, :load_paths, :logger, :log_level, :log_path, :database_configuration_file, :view_path, :controller_paths
     attr_accessor :cache_classes, :breakpoint_server, :whiny_nils
+    attr_accessor :connection_adapters
     attr_accessor :active_record, :action_controller, :action_view, :action_mailer, :action_web_service
     
     def initialize
@@ -155,6 +161,7 @@ module Rails
       self.cache_classes                = default_cache_classes
       self.breakpoint_server            = default_breakpoint_server
       self.whiny_nils                   = default_whiny_nils
+      self.connection_adapters          = default_connection_adapters
       self.database_configuration_file  = default_database_configuration_file
 
       for framework in default_frameworks
@@ -257,6 +264,10 @@ module Rails
       
       def default_whiny_nils
         false
+      end
+      
+      def default_connection_adapters
+        %w(mysql postgresql sqlite sqlserver db2 oci)
       end
   end
 end

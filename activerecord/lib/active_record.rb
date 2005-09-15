@@ -63,11 +63,12 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Acts::NestedSet
 end
 
-require 'active_record/connection_adapters/mysql_adapter'
-require 'active_record/connection_adapters/postgresql_adapter'
-require 'active_record/connection_adapters/sqlite_adapter'
-require 'active_record/connection_adapters/sqlserver_adapter'
-require 'active_record/connection_adapters/db2_adapter'
-require 'active_record/connection_adapters/oci_adapter'
+unless defined?(RAILS_CONNECTION_ADAPTERS)
+  RAILS_CONNECTION_ADAPTERS = %w(mysql postgresql sqlite sqlserver db2 oci)
+end
+
+RAILS_CONNECTION_ADAPTERS.each do |adapter|
+  require "active_record/connection_adapters/#{adapter}_adapter"
+end
 
 require 'active_record/query_cache'

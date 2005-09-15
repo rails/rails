@@ -18,6 +18,9 @@ Rails::Initializer.run do |config|
   # (by default production uses :info, the others :debug)
   # config.log_level = :debug
 
+  # Only include the connection adapters you're actually going to use
+  # config.connection_adapters = %w( mysql sqlite )
+
   # Use the database for sessions instead of the file system
   # (create the session table with 'rake create_sessions_table')
   # config.action_controller.session_store = :active_record_store
