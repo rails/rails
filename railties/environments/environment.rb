@@ -19,7 +19,7 @@ Rails::Initializer.run do |config|
   # config.log_level = :debug
 
   # Only include the connection adapters you're actually going to use
-  # config.connection_adapters = %w( mysql sqlite )
+  # config.connection_adapters = %w( mysql postgresql sqlite sqlserver db2 oci )
 
   # Use the database for sessions instead of the file system
   # (create the session table with 'rake create_sessions_table')

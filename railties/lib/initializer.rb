@@ -58,8 +58,7 @@ module Rails
     end
     
     def set_connection_adapters
-      adapters = configuration.connection_adapters
-      silence_warnings { Object.const_set("RAILS_CONNECTION_ADAPTERS", adapters) if adapters }
+      Object.const_set("RAILS_CONNECTION_ADAPTERS", configuration.connection_adapters) if configuration.connection_adapters
     end
     
     def require_frameworks
