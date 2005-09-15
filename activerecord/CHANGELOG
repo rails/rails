@@ -1,6 +1,6 @@
 *SVN*
 
-* Added check for RAILS_CONNECTION_ADAPTERS on startup and only load the connection adapters specified within if its present (available in Rails through config.connection_adapters using the new config) #1958
+* Added check for RAILS_CONNECTION_ADAPTERS on startup and only load the connection adapters specified within if its present (available in Rails through config.connection_adapters using the new config) #1958 [skae]
 
 * Fixed various problems with has_and_belongs_to_many when using customer finder_sql #2094 [Florian Weber]
 

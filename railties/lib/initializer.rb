@@ -58,7 +58,8 @@ module Rails
     end
     
     def set_connection_adapters
-      RAILS_CONNECTION_ADAPTERS = configuration.connection_adapters
+      adapters = configuration.connection_adapters
+      silence_warnings { Object.const_set("RAILS_CONNECTION_ADAPTERS", adapters) if adapters }
     end
     
     def require_frameworks
@@ -161,7 +162,6 @@ module Rails
       self.cache_classes                = default_cache_classes
       self.breakpoint_server            = default_breakpoint_server
       self.whiny_nils                   = default_whiny_nils
-      self.connection_adapters          = default_connection_adapters
       self.database_configuration_file  = default_database_configuration_file
 
       for framework in default_frameworks
@@ -264,10 +264,6 @@ module Rails
       
       def default_whiny_nils
         false
-      end
-      
-      def default_connection_adapters
-        %w(mysql postgresql sqlite sqlserver db2 oci)
       end
   end
 end
