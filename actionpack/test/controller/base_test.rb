@@ -66,7 +66,7 @@ class ControllerInstanceTests < Test::Unit::TestCase
   
   end
   def test_action_methods
-    @empty_controllers.each {|c| assert_equal [], c.send(:action_methods), "#{c.class.controller_path} should be empty!"}
-    @non_empty_controllers.each {|c| assert_equal ["public_action"], c.send(:action_methods), "#{c.class.controller_path} should not be empty!"}
+    @empty_controllers.each {|c| assert_equal({}, c.send(:action_methods), "#{c.class.controller_path} should be empty!")}
+    @non_empty_controllers.each {|c| assert_equal({"public_action"=>true}, c.send(:action_methods), "#{c.class.controller_path} should not be empty!")}
   end
 end
