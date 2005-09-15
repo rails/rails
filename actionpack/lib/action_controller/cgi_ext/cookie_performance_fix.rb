@@ -71,28 +71,28 @@ class CGI #:nodoc:
     # Convert the Cookie to its string representation.
     def to_s
       buf = ""
-      buf += @name + '='
+      buf << @name << '='
 
       if @value.kind_of?(String)
-        buf += CGI::escape(@value)
+        buf << CGI::escape(@value)
       else
-        buf += @value.collect{|v| CGI::escape(v) }.join("&")
+        buf << @value.collect{|v| CGI::escape(v) }.join("&")
       end
 
       if @domain
-        buf += '; domain=' + @domain
+        buf << '; domain=' << @domain
       end
 
       if @path
-        buf += '; path=' + @path
+        buf << '; path=' << @path
       end
 
       if @expires
-        buf += '; expires=' + CGI::rfc1123_date(@expires)
+        buf << '; expires=' << CGI::rfc1123_date(@expires)
       end
 
       if @secure == true
-        buf += '; secure'
+        buf << '; secure'
       end
 
       buf

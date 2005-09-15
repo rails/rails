@@ -1,5 +1,7 @@
 *SVN*
 
+* Speed up cookie use by decreasing string copying #2194 [skae]
+
 * Fixed access to "Host" header with requests made by crappy old HTTP/1.0 clients #2124 [Marcel Molina]
 
 * Added easy assignment of fragment cache store through use of symbols for included stores (old way still works too)
