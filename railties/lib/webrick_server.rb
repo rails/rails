@@ -46,11 +46,12 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   def self.dispatch(options = {})
     Socket.do_not_reverse_lookup = true # patch for OS X
 
-    server = WEBrick::HTTPServer.new(:Port        => options[:port].to_i,
-                                     :ServerType  => options[:server_type],
-                                     :BindAddress => options[:ip],
-                                     :MimeTypes   => options[:mime_types]
-                                    )
+    params = { :Port        => options[:port].to_i,
+               :ServerType  => options[:server_type],
+               :BindAddress => options[:ip] }
+    params[:MimeTypes] = options[:mime_types] if options[:mime_types]
+
+    server = WEBrick::HTTPServer.new(params)
     server.mount('/', DispatchServlet, options)
 
     trap("INT") { server.shutdown }
