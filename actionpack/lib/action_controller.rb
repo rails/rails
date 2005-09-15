@@ -21,14 +21,17 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-$:.unshift(File.dirname(__FILE__))
-$:.unshift(File.dirname(__FILE__) + "/../../activesupport/lib")
+$:.unshift(File.dirname(__FILE__)) unless
+  $:.include?(File.dirname(__FILE__)) || $:.include?(File.expand_path(File.dirname(__FILE__)))
 
-begin
-  require 'active_support'  
-rescue LoadError
-  require 'rubygems'
-  require_gem 'activesupport'
+unless defined?(ActiveSupport)
+  begin
+    $:.unshift(File.dirname(__FILE__) + "/../../activesupport/lib")
+    require 'active_support'  
+  rescue LoadError
+    require 'rubygems'
+    require_gem 'activesupport'
+  end
 end
 
 require 'action_controller/base'
