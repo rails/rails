@@ -384,7 +384,7 @@ module ActionView
         end.to_i
 
         # TODO do animation instead of jumping
-        "$('#{progress_bar_id}').firstChild.firstChild.style.width='#{percent}%'"
+        "if($('#{progress_bar_id}')){$('#{progress_bar_id}').firstChild.firstChild.style.width='#{percent}%'}"
       end
       
       # Generates a nicely formatted string of current upload progress for
