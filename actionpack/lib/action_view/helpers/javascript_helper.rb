@@ -142,6 +142,7 @@ module ActionView
       # A "fall-through" target for browsers that doesn't do JavaScript can be specified with the :action/:method options on :html
       #
       #   form_remote_tag :html => { :action => url_for(:controller => "some", :action => "place") }
+      # The Hash passed to the :html key is equivalent to the options (2nd) argument in the FormTagHelper.form_tag method.
       #
       # By default the fall-through action is the same as the one specified in the :url (and the default method is :post).
       def form_remote_tag(options = {})
