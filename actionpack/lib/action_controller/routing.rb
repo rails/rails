@@ -268,7 +268,7 @@ module ActionController
         g.finish(false)
       end
   
-      class Result < ::Array
+      class Result < ::Array #:nodoc:
         def to_s() join '/' end
         def self.new_escaped(strings)
           new strings.collect {|str| CGI.unescape str}
