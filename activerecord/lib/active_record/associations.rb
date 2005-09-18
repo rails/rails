@@ -782,14 +782,15 @@ module ActiveRecord
 
 
         def reflect_on_included_associations(associations)
-          [ associations ].flatten.collect { |association| reflect_on_association(association) }
+          [ associations ].flatten.collect { |association| reflect_on_association(association.to_s.intern) }
         end
 
         def guard_against_missing_reflections(reflections, options)
           reflections.each do |r| 
             raise(
               ConfigurationError, 
-              "Association was not found; perhaps you misspelled it?  You specified :include => :#{options[:include].join(', :')}"
+              "Association was not found; perhaps you misspelled it?  " +
+              "You specified :include => :#{[options[:include]].flatten.join(', :')}"
             ) if r.nil? 
           end
         end

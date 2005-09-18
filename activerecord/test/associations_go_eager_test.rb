@@ -137,11 +137,21 @@ class EagerAssociationTest < Test::Unit::TestCase
 
   def test_eager_with_invalid_association_reference
     assert_raises(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
+      post = Post.find(6, :include=> :monkeys )
+    }
+    assert_raises(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
       post = Post.find(6, :include=>[ :monkeys ])
+    }
+    assert_raises(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys") {
+      post = Post.find(6, :include=>[ 'monkeys' ])
     }
     assert_raises(ActiveRecord::ConfigurationError, "Association was not found; perhaps you misspelled it?  You specified :include => :monkeys, :elephants") {
       post = Post.find(6, :include=>[ :monkeys, :elephants ])
     }
+  end
+
+  def test_eager_with_valid_association_as_string_not_symbol
+    assert_nothing_raised { Post.find(:all, :include => 'comments') }
   end
 
 end
