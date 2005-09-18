@@ -897,7 +897,18 @@ class RouteSetTests < Test::Unit::TestCase
     test_named_route_method
     assert_equal [:categories_url, :hash_for_categories_url], ::ActionController::Routing::NamedRoutes::Helpers
   end
-  
+
+  def test_nil_defaults
+    rs.draw do
+      rs.connect 'journal',
+        :controller => 'content',
+        :action => 'list_journal',
+        :date => nil, :user_id => nil
+      rs.connect ':controller/:action/:id'
+    end
+
+    assert_equal ['/journal', []], rs.generate(:controller => 'content', :action => 'list_journal', :date => nil, :user_id => nil)
+  end
 end
 
 end

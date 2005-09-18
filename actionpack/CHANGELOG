@@ -1,5 +1,7 @@
 *SVN*
 
+* Add a routing test case covering #2101 [Nicholas Seckar]
+
 * Cache relative_url_root for all webservers, not just Apache #2193 [skae]
 
 * Speed up cookie use by decreasing string copying #2194 [skae]
