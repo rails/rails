@@ -148,6 +148,19 @@ class RecognitionTests < Test::Unit::TestCase
     assert_equal({:controller => ::Controllers::ContentController, :action => 'dude'}, execute('hi/dude'))
   end 
 
+  def test_basic_dynamic_backwards
+    c = [Dynamic.new(:action), Static.new("hi")]
+    go c
+
+    assert_nil execute('')
+    assert_nil execute('boo')
+    assert_nil execute('boo/blah')
+    assert_nil execute('hi')
+    assert_equal({:action => 'index'}, execute('index/hi'))
+    assert_equal({:action => 'show'}, execute('show/hi'))
+    assert_nil execute('hi/dude')
+  end
+
   def test_dynamic_with_default
     c = [Static.new("hi"), Dynamic.new(:action, :default => 'index')]
     g.result :controller, "::Controllers::ContentController", true
@@ -165,7 +178,7 @@ class RecognitionTests < Test::Unit::TestCase
     c = [Static.new("hi"), Dynamic.new(:action, :condition => 'index')]
     g.result :controller, "::Controllers::ContentController", true
     go c
-    
+
     assert_nil execute('boo')
     assert_nil execute('boo/blah')
     assert_nil execute('hi')
@@ -173,7 +186,21 @@ class RecognitionTests < Test::Unit::TestCase
     assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, execute('hi/index'))
     assert_nil execute('hi/dude')
   end
-  
+
+  def test_dynamic_with_string_condition_backwards
+    c = [Dynamic.new(:action, :condition => 'index'), Static.new("hi")]
+    g.result :controller, "::Controllers::ContentController", true
+    go c
+
+    assert_nil execute('boo')
+    assert_nil execute('boo/blah')
+    assert_nil execute('hi')
+    assert_nil execute('dude/what/hi')
+    assert_nil execute('index/what')
+    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, execute('index/hi'))
+    assert_nil execute('dude/hi')
+  end
+
   def test_dynamic_with_regexp_condition
     c = [Static.new("hi"), Dynamic.new(:action, :condition => /^[a-z]+$/)]
     g.result :controller, "::Controllers::ContentController", true
@@ -220,6 +247,32 @@ class RecognitionTests < Test::Unit::TestCase
                  execute('hi/books/agile_rails_dev.pdf'))
     assert_equal({:controller => ::Controllers::ContentController, :action => 'download', :file => ['dude']}, execute('hi/dude'))
     assert_equal 'dude/what', execute('hi/dude/what')[:file].to_s
+  end
+
+  def test_path_with_dynamic
+    c = [Dynamic.new(:action), Path.new(:file)]
+    g.result :controller, "::Controllers::ContentController", true
+
+    go c
+
+    assert_nil execute('')
+    assert_equal({:controller => ::Controllers::ContentController, :action => 'download', :file => []}, execute('download'))
+    assert_equal({:controller => ::Controllers::ContentController, :action => 'download', :file => %w(books agile_rails_dev.pdf)},
+                 execute('download/books/agile_rails_dev.pdf'))
+    assert_equal({:controller => ::Controllers::ContentController, :action => 'download', :file => ['dude']}, execute('download/dude'))
+    assert_equal 'dude/what', execute('hi/dude/what')[:file].to_s
+  end
+
+  def test_path_with_dynamic_and_default
+    c = [Dynamic.new(:action, :default => 'index'), Path.new(:file)]
+
+    go c
+
+    assert_equal({:action => 'index', :file => []}, execute(''))
+    assert_equal({:action => 'index', :file => []}, execute('index'))
+    assert_equal({:action => 'blarg', :file => []}, execute('blarg'))
+    assert_equal({:action => 'index', :file => ['content']}, execute('index/content'))
+    assert_equal({:action => 'show', :file => ['rails_dev.pdf']}, execute('show/rails_dev.pdf'))
   end
   
   def test_controller

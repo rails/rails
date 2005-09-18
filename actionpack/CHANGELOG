@@ -1,5 +1,7 @@
 *SVN*
 
+* Add routing tests from #1945 [ben@groovie.org]
+
 * Add a routing test case covering #2101 [Nicholas Seckar]
 
 * Cache relative_url_root for all webservers, not just Apache #2193 [skae]
