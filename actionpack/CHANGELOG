@@ -1,5 +1,7 @@
 *SVN*
 
+* Make the truncate() helper multi-byte safe (assuming $KCODE has been set to something other than "NONE") #2103
+
 * Add routing tests from #1945 [ben@groovie.org]
 
 * Add a routing test case covering #2101 [Nicholas Seckar]

@@ -1,4 +1,5 @@
 require 'test/unit'
+require "#{File.dirname(__FILE__)}/../testing_sandbox"
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/text_helper'
 require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/numeric'  # for human_size
 require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/hash' # for stringify_keys
@@ -7,6 +8,7 @@ require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/cor
 class TextHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TextHelper
   include ActionView::Helpers::TagHelper
+  include TestingSandbox
   
   def setup
     # This simulates the fact that instance variables are reset every time
@@ -23,6 +25,29 @@ class TextHelperTest < Test::Unit::TestCase
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", 12)
     assert_equal "Hello Worl...", truncate("Hello World!!", 12)
+  end
+
+  def test_truncate_multibyte_without_kcode
+    result = execute_in_sandbox(<<-'CODE')
+      require "#{File.dirname(__FILE__)}/../lib/action_view/helpers/text_helper"
+      include ActionView::Helpers::TextHelper
+      truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10)
+    CODE
+
+    assert_equal "\354\225\210\353\205\225\355\225...", result
+  end
+
+  def test_truncate_multibyte_with_kcode
+    result = execute_in_sandbox(<<-'CODE')
+      $KCODE = "u"
+      require 'jcode'
+
+      require "#{File.dirname(__FILE__)}/../lib/action_view/helpers/text_helper"
+      include ActionView::Helpers::TextHelper
+      truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 \354\225\204\353\235\274\353\246\254\354\230\244", 10)
+    CODE
+
+    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 \354\225\204...", result
   end
 
   def test_strip_links
