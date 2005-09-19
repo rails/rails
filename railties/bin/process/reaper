@@ -6,7 +6,13 @@ require 'uri'
 
 def nudge(url, iterations)
   print "Nudging #{url}: "
-  iterations.times {  Net::HTTP.get_response(URI.parse(url)); print "."; STDOUT.flush }
+
+  iterations.times do
+    Net::HTTP.get_response(URI.parse(url)) rescue nil
+    print "."
+    STDOUT.flush
+  end
+
   puts
 end
 
