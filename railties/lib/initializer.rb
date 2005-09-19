@@ -182,7 +182,7 @@ module Rails
 
     private
       def default_frameworks
-        [ :active_record, :action_controller, :action_mailer, :action_web_service ]
+        [ :active_record, :action_controller, :action_view, :action_mailer, :action_web_service ]
       end
     
       def default_load_paths
