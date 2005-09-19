@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that Observers didn't observe sub-classes #627 [Florian Weber]
+
 * Fix eager loading error messages, allow :include to specify tables using strings or symbols. Closes #2222 [Marcel Molina]
 
 * Added check for RAILS_CONNECTION_ADAPTERS on startup and only load the connection adapters specified within if its present (available in Rails through config.connection_adapters using the new config) #1958 [skae]

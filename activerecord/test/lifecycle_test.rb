@@ -5,6 +5,7 @@ require 'fixtures/reply'
 
 class Topic; def after_find() end end
 class Developer; def after_find() end end
+class SpecialDeveloper < Developer; end
 
 class TopicManualObserver
   include Singleton
@@ -103,6 +104,13 @@ class LifecycleTest < Test::Unit::TestCase
     assert_equal multi_observer.record.title, topic.title
 
     developer = Developer.find(1)    
+    assert_equal multi_observer.record.name, developer.name
+  end
+  
+  def test_observing_subclasses
+    multi_observer = MultiObserver.instance
+
+    developer = SpecialDeveloper.find(1)
     assert_equal multi_observer.record.name, developer.name
   end
 end

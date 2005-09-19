@@ -58,7 +58,9 @@ module ActiveRecord
     end
 
     def initialize
-      [ observed_class ].flatten.each do |klass| 
+      observed_classes = [ observed_class ].flatten
+      observed_subclasses_class = observed_classes.collect {|c| c.send(:subclasses) }.flatten!
+      (observed_classes + observed_subclasses_class).each do |klass| 
         klass.add_observer(self)
         klass.send(:define_method, :after_find) unless klass.respond_to?(:after_find)
       end
