@@ -251,6 +251,10 @@ module ActiveRecord #:nodoc:
       super
     end
 
+    def self.reset_subclasses
+      @@subclasses.clear
+    end
+
     @@subclasses = {}
 
     cattr_accessor :configurations
