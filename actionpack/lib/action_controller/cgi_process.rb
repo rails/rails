@@ -145,7 +145,7 @@ module ActionController #:nodoc:
         if @cgi.send(:env_table)['REQUEST_METHOD'] == 'HEAD'
           return
         elsif @body.respond_to?(:call)
-          @body.call(self)
+          @body.call(self, output)
         else
           output.write(@body)
         end

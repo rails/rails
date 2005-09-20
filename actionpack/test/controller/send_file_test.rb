@@ -47,16 +47,11 @@ class SendFileTest < Test::Unit::TestCase
     assert_not_nil response
     assert_kind_of Proc, response.body
 
-    old_stdout = $stdout
-    begin
-      require 'stringio'
-      $stdout = StringIO.new
-      $stdout.binmode
-      assert_nothing_raised { response.body.call }
-      assert_equal file_data, $stdout.string
-    ensure
-      $stdout = old_stdout
-    end
+    require 'stringio'
+    output = StringIO.new
+    output.binmode
+    assert_nothing_raised { response.body.call(response, output) }
+    assert_equal file_data, output.string
   end
 
   def test_data

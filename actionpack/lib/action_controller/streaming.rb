@@ -61,20 +61,20 @@ module ActionController #:nodoc:
         @performed_render = false
 
         if options[:stream]
-          render :text => Proc.new {
+          render :text => Proc.new { |response, output|
             logger.info "Streaming file #{path}" unless logger.nil?
             len = options[:buffer_size] || 4096
             File.open(path, 'rb') do |file|
-              if $stdout.respond_to?(:syswrite)
+              if output.respond_to?(:syswrite)
                 begin
                   while true
-                    $stdout.syswrite file.sysread(len)
+                    output.syswrite(file.sysread(len))
                   end
                 rescue EOFError
                 end
               else
                 while buf = file.read(len)
-                  $stdout.write buf
+                  output.write(buf)
                 end
               end
             end
