@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed memory leak with Active Record classes when Dependencies.mechanism = :load #1704 [c.r.mcgrath@gmail.com]
+
 * Fixed Inflector.underscore for use with acronyms, so HTML becomes html instead of htm_l #2173 [k@v2studio.com]
 
 * Fixed dependencies related infinite recursion bug when a controller file does not contain a controller class. Closes #1760. [rcolli2@tampabay.rr.com]
