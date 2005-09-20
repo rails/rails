@@ -664,6 +664,9 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     citibank = Account.create("credit_limit" => 10)
     apple    = citibank.create_firm("name" => "Apple")
     assert_equal apple, citibank.firm
+    citibank.save
+    citibank.reload
+    assert_equal apple, citibank.firm
   end
 
   def test_building_the_belonging_object

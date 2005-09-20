@@ -13,8 +13,8 @@ module ActiveRecord
       end
 
       def create(attributes = {})
-        record = build(attributes)
-        record.save
+        record = @association_class.create(attributes)
+        replace(record, true)
         record
       end
 
