@@ -12,8 +12,9 @@ class CGI
     # may be used as the backing store.
     #
     # The default assumes a +sessions+ tables with columns +id+ (numeric
-    # primary key), +session_id+ (text), and +data+ (text).  Session data is
-    # marshaled to +data+.  +session_id+ should be indexed for speedy lookups.
+    # primary key), +session_id+ (text, or longtext if your session data exceeds 65K), 
+    # and +data+ (text).  Session data is marshaled to +data+.  +session_id+ should be 
+    # indexed for speedy lookups.
     #
     # Since the default class is a simple Active Record, you get timestamps
     # for free if you add +created_at+ and +updated_at+ datetime columns to
