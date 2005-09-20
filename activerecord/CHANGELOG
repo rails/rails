@@ -1,5 +1,7 @@
 *SVN*
 
+* Improved migrations' behavior when the schema_info table is empty. [Nicholas Seckar]
+
 * Fixed that Observers didn't observe sub-classes #627 [Florian Weber]
 
 * Fix eager loading error messages, allow :include to specify tables using strings or symbols. Closes #2222 [Marcel Molina]

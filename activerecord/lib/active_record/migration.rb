@@ -170,7 +170,7 @@ module ActiveRecord
       end
       
       def current_version
-        (Base.connection.select_one("SELECT version FROM schema_info") || {})["version"].to_i
+        (Base.connection.select_one("SELECT version FROM schema_info") || {"version" => 0})["version"].to_i
       end
     end
     
