@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 require 'test/unit'
+require 'pp' # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
 
 # This file currently contains a few controller UTs
 # I couldn't find where the current base tests are, so I created this file.
