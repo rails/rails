@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that Request#domain caused an exception if the domain header wasn't set in the original http request #1795 [Michael Koziarski]
+
 * Make the truncate() helper multi-byte safe (assuming $KCODE has been set to something other than "NONE") #2103
 
 * Add routing tests from #1945 [ben@groovie.org]

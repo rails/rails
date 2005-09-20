@@ -47,6 +47,9 @@ class RequestTest < Test::Unit::TestCase
     
     @request.host = "192.168.1.200"
     assert_nil @request.domain
+
+    @request.host = nil
+    assert_nil @request.domain
   end
 
   def test_subdomains
@@ -61,6 +64,9 @@ class RequestTest < Test::Unit::TestCase
 
     @request.host = "foobar.foobar.com"
     assert_equal %w( foobar ), @request.subdomains
+
+    @request.host = nil
+    assert_equal [], @request.subdomains
   end
   
   def test_port_string
