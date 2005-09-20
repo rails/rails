@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed saving a record with two unsaved belongs_to associations pointing to the same object #2023 [Tobias Luetke]
+
 * Improved migrations' behavior when the schema_info table is empty. [Nicholas Seckar]
 
 * Fixed that Observers didn't observe sub-classes #627 [Florian Weber]

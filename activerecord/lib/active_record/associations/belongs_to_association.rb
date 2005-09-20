@@ -32,10 +32,15 @@ module ActiveRecord
 
           @target = obj
           @owner[@association_class_primary_key_name] = obj.id unless obj.new_record?
+          @updated = true
         end
         @loaded = true
 
         return (@target.nil? ? nil : self)
+      end
+      
+      def updated?
+        @updated
       end
       
       protected

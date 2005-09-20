@@ -794,6 +794,7 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert_equal num_orders +1, Order.count
     assert_equal num_customers +2, Customer.count
   end
+
   
   def test_store_association_in_two_relations_with_one_save
     num_orders = Order.count
@@ -814,6 +815,50 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert_equal num_customers +1, Customer.count
   end
 
+  def test_store_association_in_two_relations_with_one_save_in_existing_object
+    num_orders = Order.count
+    num_customers = Customer.count
+    order = Order.create
+    
+    customer = order.billing = order.shipping = Customer.new 
+    assert order.save
+    assert_equal customer, order.billing
+    assert_equal customer, order.shipping
+    
+    order.reload
+    
+    assert_equal customer, order.billing
+    assert_equal customer, order.shipping        
+    
+    assert_equal num_orders +1, Order.count
+    assert_equal num_customers +1, Customer.count
+  end
+  
+  def test_store_association_in_two_relations_with_one_save_in_existing_object_with_values
+    num_orders = Order.count
+    num_customers = Customer.count
+    order = Order.create
+    
+    customer = order.billing = order.shipping = Customer.new 
+    assert order.save
+    assert_equal customer, order.billing
+    assert_equal customer, order.shipping
+    
+    order.reload
+    
+    customer = order.billing = order.shipping = Customer.new 
+    
+    assert order.save
+    order.reload    
+    
+    assert_equal customer, order.billing
+    assert_equal customer, order.shipping        
+    
+    assert_equal num_orders +1, Order.count
+    assert_equal num_customers +2, Customer.count
+  end
+  
+  
   def test_association_assignment_sticks
     post = Post.find(:first)
     author1, author2 = Author.find(:all, :limit => 2)
