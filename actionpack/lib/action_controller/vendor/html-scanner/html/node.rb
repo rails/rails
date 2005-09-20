@@ -122,6 +122,18 @@ module HTML #:nodoc:
     def validate_conditions(conditions)
       Conditions === conditions ? conditions : Conditions.new(conditions)
     end
+
+    def ==(node)
+      return false unless self.class == node.class && children.size == node.children.size
+
+      equivalent = true
+
+      children.size.times do |i|
+        equivalent &&= children[i] == node.children[i]
+      end
+
+      equivalent
+    end
     
     class <<self
       def parse(parent, line, pos, content, strict=true)
@@ -237,6 +249,11 @@ module HTML #:nodoc:
         else
           nil
       end
+    end
+
+    def ==(node)
+      return false unless super
+      content == node.content
     end
   end
 
@@ -465,8 +482,13 @@ module HTML #:nodoc:
       true
     end
 
+    def ==(node)
+      return false unless super
+      return false unless closing == node.closing && self.name == node.name
+      attributes == node.attributes
+    end
+    
     private
-
       # Match the given value to the given condition.
       def match_condition(value, condition)
         case condition

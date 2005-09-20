@@ -248,7 +248,22 @@ module Test #:nodoc:
         tag = find_tag(opts)
         assert !tag, "expected no tag, but found tag matching #{opts.inspect} in:\n#{@response.body.inspect}"
       end
-    
+
+      # test 2 html strings to be equivalent, i.e. identical up to reordering of attributes
+      def assert_dom_equal(expected, actual, message="")
+        expected_dom = HTML::Document.new(expected).root
+        actual_dom = HTML::Document.new(actual).root
+        full_message = build_message(message, "<?> expected to be == to\n<?>.", expected_dom.to_s, actual_dom.to_s)
+        assert_block(full_message) { expected_dom == actual_dom }
+      end
+      
+      # negated form of +assert_dom_equivalent+
+      def assert_dom_not_equal(expected, actual, message="")
+        expected_dom = HTML::Document.new(expected).root
+        actual_dom = HTML::Document.new(actual).root
+        full_message = build_message(message, "<?> expected to be != to\n<?>.", expected_dom.to_s, actual_dom.to_s)
+        assert_block(full_message) { expected_dom != actual_dom }
+      end
     end
   end
 end

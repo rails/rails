@@ -838,6 +838,7 @@ module ActionController #:nodoc:
       end
 
       def self.action_methods
+        #puts "action method: #{public_instance_methods.inspect}"
         @action_methods ||= (public_instance_methods - hidden_actions).inject({}) { |h, k| h[k] = true; h }
       end
 

@@ -8,6 +8,8 @@ class AssetTagHelperTest < Test::Unit::TestCase
 
   def setup
     @controller = Class.new do
+
+      attr_accessor :request
     
       def url_for(options, *parameters_for_method_reference)
         "http://www.example.com"
@@ -20,6 +22,8 @@ class AssetTagHelperTest < Test::Unit::TestCase
         ""
       end       
     end.new
+
+    @controller.request = @request
     
   end
 
@@ -67,31 +71,31 @@ class AssetTagHelperTest < Test::Unit::TestCase
   }
 
   def test_auto_discovery
-    AutoDiscoveryToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    AutoDiscoveryToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_javascript_path
-    JavascriptPathToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    JavascriptPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_javascript_include
-    JavascriptIncludeToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    JavascriptIncludeToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_style_path
-    StylePathToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_style_link
-    StyleLinkToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    StyleLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_image_path
-    ImagePathToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    ImagePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_image_tag
-    ImageLinkToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
   
 end
@@ -104,6 +108,8 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
   def setup
     @controller = Class.new do
     
+      attr_accessor :request
+
       def url_for(options, *parameters_for_method_reference)
         "http://www.example.com/calloboration/hieraki"
       end
@@ -116,6 +122,8 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
       end
     end.new
     
+    @controller.request = @request
+
   end
 
   AutoDiscoveryToTag = {
@@ -154,31 +162,31 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
   }
 
   def test_auto_discovery
-    AutoDiscoveryToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    AutoDiscoveryToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_javascript_path
-    JavascriptPathToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    JavascriptPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_javascript_include
-    JavascriptIncludeToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    JavascriptIncludeToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_style_path
-    StylePathToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    StylePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_style_link
-    StyleLinkToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    StyleLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_image_path
-    ImagePathToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    ImagePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
   
   def test_image_tag
-    ImageLinkToTag.each { |method, tag| assert_equal(tag, eval(method)) }
+    ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
     # Assigning a default alt tag should not cause an exception to be raised
     assert_nothing_raised { image_tag('') }
   end
