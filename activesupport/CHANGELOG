@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed clean logger to work with Ruby 1.8.3 Logger class #2245
+
 * Fixed memory leak with Active Record classes when Dependencies.mechanism = :load #1704 [c.r.mcgrath@gmail.com]
 
 * Fixed Inflector.underscore for use with acronyms, so HTML becomes html instead of htm_l #2173 [k@v2studio.com]
