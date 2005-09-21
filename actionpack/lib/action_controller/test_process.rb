@@ -349,7 +349,6 @@ module Test
         end
 
         def html_document
-          require_html_scanner
           @html_document ||= HTML::Document.new(@response.body)
         end
 
@@ -359,14 +358,6 @@ module Test
 
         def find_all_tag(conditions)
           html_document.find_all(conditions)
-        end
-
-        def require_html_scanner
-          return true if defined?(HTML::Document)
-          require 'html/document'
-        rescue LoadError
-          $:.unshift File.dirname(__FILE__) + "/vendor/html-scanner"
-          require 'html/document'
         end
 
         def method_missing(selector, *args)
