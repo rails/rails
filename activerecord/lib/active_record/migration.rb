@@ -207,10 +207,12 @@ module ActiveRecord
       end
     
       def migration_files
-        files = Dir["#{@migrations_path}/[0-9]*_*.rb"].sort
+        files = Dir["#{@migrations_path}/[0-9]*_*.rb"].sort_by do |f|
+          migration_version_and_name(f).first.to_i
+        end
         down? ? files.reverse : files
       end
-      
+                 
       def migration_class(migration_name)
         migration_name.camelize.constantize
       end
