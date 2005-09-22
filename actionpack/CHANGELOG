@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that auto_discovery_link_tag couldn't take a string as the URL
+
 * Fixed problem with send_file and WEBrick using stdout #1812
 
 * Optimized tag_options to not sort keys, which is no longer necessary when assert_dom_equal and friend is available #1995 [skae]
