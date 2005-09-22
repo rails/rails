@@ -100,13 +100,15 @@ module Rails
     end
     
     def initialize_framework_logging
-      # TODO: Only do logging for frameworks loaded
-      [ActiveRecord, ActionController, ActionMailer].each { |mod| mod::Base.logger ||= RAILS_DEFAULT_LOGGER }        
+      for framework in ([ :active_record, :action_controller, :action_mailer ] & configuration.frameworks)
+        framework.to_s.camelize.constantize.const_get("Base").logger ||= RAILS_DEFAULT_LOGGER
+      end
     end
     
     def initialize_framework_views
-      # TODO: Only do view setting for frameworks loaded
-      [ActionController, ActionMailer].each { |mod| mod::Base.template_root ||= configuration.view_path }        
+      for framework in ([ :action_controller, :action_mailer ] & configuration.frameworks)
+        framework.to_s.camelize.constantize.const_get("Base").template_root ||= configuration.view_path
+      end
     end
 
     def initialize_routing
