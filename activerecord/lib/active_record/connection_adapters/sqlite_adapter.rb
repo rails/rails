@@ -166,7 +166,7 @@ module ActiveRecord
         execute("PRAGMA index_list(#{table_name})", name).map do |row|
           index = IndexDefinition.new(table_name, row['name'])
           index.unique = row['unique'] != '0'
-          index.columns = execute("PRAGMA index_info(#{index.name})").map { |col| col['name'] }
+          index.columns = execute("PRAGMA index_info('#{index.name}')").map { |col| col['name'] }
           index
         end
       end
@@ -188,8 +188,14 @@ module ActiveRecord
         'SQLite'
       end
 
-      def remove_index(table_name, column_name)
-        execute "DROP INDEX #{table_name}_#{column_name}_index"
+      def remove_index(table_name, options={})
+        if Hash === options
+          index_name = options[:name]
+        else
+          index_name = "#{table_name}_#{options}_index"
+        end
+
+        execute "DROP INDEX #{index_name}"
       end
 
       def add_column(table_name, column_name, type, options = {})
