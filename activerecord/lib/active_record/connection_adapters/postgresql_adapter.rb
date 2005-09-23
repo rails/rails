@@ -89,9 +89,53 @@ module ActiveRecord
         result.nil? ? nil : result.first
       end
 
+      # Return the list of all tables in the schema search path.
+      def tables(name = nil)
+        schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
+        query(<<-SQL, name).map { |row| row[0] }
+          SELECT tablename
+            FROM pg_tables
+           WHERE schemaname IN (#{schemas})
+        SQL
+      end
+
+      def indexes(table_name, name = nil)
+        result = query(<<-SQL, name)
+          SELECT i.relname, d.indisunique, a.attname
+            FROM pg_class t, pg_class i, pg_index d, pg_attribute a
+           WHERE i.relkind = 'i'
+             AND d.indexrelid = i.oid
+             AND d.indisprimary = 'f'
+             AND t.oid = d.indrelid
+             AND t.relname = '#{table_name}'
+             AND a.attrelid = t.oid
+             AND ( d.indkey[0]=a.attnum OR d.indkey[1]=a.attnum
+                OR d.indkey[2]=a.attnum OR d.indkey[3]=a.attnum
+                OR d.indkey[4]=a.attnum OR d.indkey[5]=a.attnum
+                OR d.indkey[6]=a.attnum OR d.indkey[7]=a.attnum
+                OR d.indkey[8]=a.attnum OR d.indkey[9]=a.attnum )
+          ORDER BY i.relname
+        SQL
+
+        current_index = nil
+        indexes = []
+
+        result.each do |row|
+          if current_index != row[0]
+            indexes << IndexDefinition.new(table_name, row[0], row[1] == "t", [])
+            current_index = row[0]
+          end
+
+          indexes.last.columns << row[2]
+        end
+
+        indexes
+      end
+
       def columns(table_name, name = nil)
-        column_definitions(table_name).collect do |name, type, default|
-          Column.new(name, default_value(default), translate_field_type(type))
+        column_definitions(table_name).collect do |name, type, default, notnull|
+          Column.new(name, default_value(default), translate_field_type(type),
+            notnull == "f")
         end
       end
 
@@ -213,7 +257,7 @@ module ActiveRecord
         def unescape_bytea(s)
           s.gsub(/\\([0-9][0-9][0-9])/) { $1.oct.chr }.gsub(/\\\\/) { '\\' } unless s.nil?
         end
-
+        
         # Query a table's column names, default values, and types.
         #
         # The underlying query is roughly:
@@ -234,7 +278,7 @@ module ActiveRecord
         #  - ::regclass is a function that gives the id for a table name
         def column_definitions(table_name)
           query <<-end_sql
-            SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc
+            SELECT a.attname, format_type(a.atttypid, a.atttypmod), d.adsrc, a.attnotnull
               FROM pg_attribute a LEFT JOIN pg_attrdef d
                 ON a.attrelid = d.adrelid AND a.attnum = d.adnum
              WHERE a.attrelid = '#{table_name}'::regclass
