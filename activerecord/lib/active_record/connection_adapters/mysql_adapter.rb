@@ -102,10 +102,31 @@ module ActiveRecord
         result.nil? ? nil : result.first
       end
 
+      def tables(name = nil)
+        tables = []
+        execute("SHOW TABLES", name).each { |field| tables << field[0] }
+        tables
+      end
+
+      def indexes(table_name, name = nil)
+        indexes = []
+        current_index = nil
+        execute("SHOW KEYS FROM #{table_name}", name).each do |row|
+          if current_index != row[2]
+            next if row[2] == "PRIMARY" # skip the primary key
+            current_index = row[2]
+            indexes << IndexDefinition.new(row[0], row[2], row[1] == "0", [])
+          end
+
+          indexes.last.columns << row[4]
+        end
+        indexes
+      end
+
       def columns(table_name, name = nil)
         sql = "SHOW FIELDS FROM #{table_name}"
         columns = []
-        execute(sql, name).each { |field| columns << Column.new(field[0], field[4], field[1]) }
+        execute(sql, name).each { |field| columns << Column.new(field[0], field[4], field[1], field[2] == "YES") }
         columns
       end
 

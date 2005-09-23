@@ -150,15 +150,25 @@ module ActiveRecord
       def commit_db_transaction()   @connection.commit      end
       def rollback_db_transaction() @connection.rollback    end
 
-
-      def tables
-        execute('.table').map { |table| Table.new(table) }
+      def tables(name = nil)
+        execute("SELECT name FROM sqlite_master WHERE type = 'table'", name).map do |row|
+          row[0]
+        end
       end
 
       def columns(table_name, name = nil)
         table_structure(table_name).map { |field|
-          SQLiteColumn.new(field['name'], field['dflt_value'], field['type'])
+          SQLiteColumn.new(field['name'], field['dflt_value'], field['type'], field['notnull'] == "0")
         }
+      end
+
+      def indexes(table_name, name = nil)
+        execute("PRAGMA index_list(#{table_name})", name).map do |row|
+          index = IndexDefinition.new(table_name, row['name'])
+          index.unique = row['unique'] != '0'
+          index.columns = execute("PRAGMA index_info(#{index.name})").map { |col| col['name'] }
+          index
+        end
       end
 
       def primary_key(table_name)
@@ -219,17 +229,6 @@ module ActiveRecord
         def table_structure(table_name)
           returning structure = execute("PRAGMA table_info(#{table_name})") do
             raise ActiveRecord::StatementInvalid if structure.empty?
-          end
-        end
-        
-        def indexes(table_name)
-          execute("PRAGMA index_list(#{table_name})").map do |index|
-            index_info = execute("PRAGMA index_info(#{index['name']})")
-            {
-              :name    => index['name'],
-              :unique  => index['unique'].to_i == 1,
-              :columns => index_info.map {|info| info['name']}
-            }
           end
         end
         

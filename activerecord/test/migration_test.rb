@@ -32,12 +32,16 @@ if ActiveRecord::Base.connection.supports_migrations?
     
     def test_add_index
       Person.connection.add_column "people", "last_name", :string        
+      Person.connection.add_column "people", "administrator", :boolean
       
       assert_nothing_raised { Person.connection.add_index("people", "last_name") }
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
 
       assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
+
+      assert_nothing_raised { Person.connection.add_index("people", %w(last_name first_name administrator), :name => "named_admin") }
+      assert_nothing_raised { Person.connection.remove_index("people", :name => "named_admin") }
     end
 
     def test_create_table_adds_id

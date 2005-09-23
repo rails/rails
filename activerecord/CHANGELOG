@@ -1,5 +1,7 @@
 *SVN*
 
+* Add ActiveRecord::SchemaDumper for dumping a DB schema to a pure-ruby file, making it easier to consolidate large migration lists and port database schemas between databases.
+
 * Fixed migrations for Windows when using more than 10 [David Naseby]
 
 * Fixed that the create_x method from belongs_to wouldn't save the association properly #2042 [Florian Weber]

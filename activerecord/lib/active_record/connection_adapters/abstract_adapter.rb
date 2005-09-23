@@ -152,13 +152,13 @@ module ActiveRecord
 
   module ConnectionAdapters # :nodoc:
     class Column # :nodoc:
-      attr_reader :name, :default, :type, :limit
+      attr_reader :name, :default, :type, :limit, :null
       # The name should contain the name of the column, such as "name" in "name varchar(250)"
       # The default should contain the type-casted default of the column, such as 1 in "count int(11) DEFAULT 1"
       # The type parameter should either contain :integer, :float, :datetime, :date, :text, or :string
       # The sql_type is just used for extracting the limit, such as 10 in "varchar(10)"
-      def initialize(name, default, sql_type = nil)
-        @name, @default, @type = name, type_cast(default), simplified_type(sql_type)
+      def initialize(name, default, sql_type = nil, null = true)
+        @name, @default, @type, @null = name, type_cast(default), simplified_type(sql_type), null
         @limit = extract_limit(sql_type) unless sql_type.nil?
       end
 
@@ -274,6 +274,12 @@ module ActiveRecord
 
       # Returns a record hash with the column names as a keys and fields as values.
       def select_one(sql, name = nil) end
+
+      # Returns an array of table names for the current database.
+      def tables(name = nil) end
+
+      # Returns an array of indexes for the given table.
+      def indexes(table_name, name = nil) end
 
       # Returns an array of column objects for the table specified by +table_name+.
       def columns(table_name, name = nil) end
@@ -423,12 +429,46 @@ module ActiveRecord
         raise NotImplementedError, "rename_column is not implemented"
       end
 
-      def add_index(table_name, column_name, index_type = '')
-        execute "CREATE #{index_type} INDEX #{table_name}_#{column_name.to_a.first}_index ON #{table_name} (#{column_name.to_a.join(", ")})"
+      # Create a new index on the given table. By default, it will be named
+      # <code>"#{table_name}_#{column_name.to_a.first}_index"</code>, but you
+      # can explicitly name the index by passing <code>:name => "..."</code>
+      # as the last parameter. Unique indexes may be created by passing
+      # <code>:unique => true</code>.
+      def add_index(table_name, column_name, options = {})
+        index_name = "#{table_name}_#{column_name.to_a.first}_index"
+
+        if Hash === options # legacy support, since this param was a string
+          index_type = options[:unique] ? "UNIQUE" : ""
+          index_name = options[:name] || index_name
+        else
+          index_type = options
+        end
+
+        execute "CREATE #{index_type} INDEX #{index_name} ON #{table_name} (#{column_name.to_a.join(", ")})"
       end
 
-      def remove_index(table_name, column_name)
-        execute "DROP INDEX #{table_name}_#{column_name}_index ON #{table_name}"
+      # Remove the given index from the table.
+      #
+      #   remove_index :my_table, :column => :foo
+      #   remove_index :my_table, :name => :my_index_on_foo
+      #
+      # The first version will remove the index named
+      # <code>"#{my_table}_#{column}_index"</code> from the table. The
+      # second removes the named column from the table.
+      def remove_index(table_name, options = {})
+        if Hash === options # legacy support
+          if options[:column]
+            index_name = "#{table_name}_#{options[:column]}_index"
+          elsif options[:name]
+            index_name = options[:name]
+          else
+            raise ArgumentError, "You must specify the index name"
+          end
+        else
+          index_name = "#{table_name}_#{options}_index"
+        end
+
+        execute "DROP INDEX #{index_name} ON #{table_name}"
       end
       
       def supports_migrations?
@@ -502,6 +542,9 @@ module ActiveRecord
             "%s  %s" % [message, dump]
           end
         end
+    end
+
+    class IndexDefinition < Struct.new(:table, :name, :unique, :columns)
     end
 
     class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :default, :null)
