@@ -163,8 +163,14 @@ module ActiveRecord
         execute "ALTER TABLE #{table_name} RENAME COLUMN #{column_name} TO #{new_column_name}"
       end
 
-      def remove_index(table_name, column_name)
-        execute "DROP INDEX #{table_name}_#{column_name}_index"
+      def remove_index(table_name, options)
+        if Hash === options
+          index_name = options[:name]
+        else
+          index_name = "#{table_name}_#{options}_index"
+        end
+
+        execute "DROP INDEX #{index_name}"
       end      
       
       private

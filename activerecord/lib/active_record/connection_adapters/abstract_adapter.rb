@@ -276,10 +276,10 @@ module ActiveRecord
       def select_one(sql, name = nil) end
 
       # Returns an array of table names for the current database.
-      def tables(name = nil) end
+      # def tables(name = nil) end
 
       # Returns an array of indexes for the given table.
-      def indexes(table_name, name = nil) end
+      # def indexes(table_name, name = nil) end
 
       # Returns an array of column objects for the table specified by +table_name+.
       def columns(table_name, name = nil) end
