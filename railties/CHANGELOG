@@ -1,5 +1,7 @@
 *SVN*
 
+* Add db_schema_dump and db_schema_import rake tasks to work with the new ActiveRecord::SchemaDumper (for dumping a schema to and reading a schema from a ruby file).
+
 * Reformed all the config/environments/* files to conform to the new Rails::Configuration approach. Fully backwards compatible.
 
 * Added create_sessions_table, drop_sessions_table, and purge_sessions_table as rake tasks for databases that supports migrations (MySQL, PostgreSQL, SQLite) to get a table for use with CGI::Session::ActiveRecordStore

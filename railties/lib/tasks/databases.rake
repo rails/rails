@@ -12,6 +12,20 @@ task :load_fixtures => :environment do
   end
 end
 
+desc "Create a db/schema.rb file that can be portably used against any DB supported by AR."
+task :db_schema_dump => :environment do
+  require 'active_record/schema_dumper'
+  File.open("db/schema.rb", "w") do |file|
+    ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
+  end
+end
+
+desc "Import a schema.rb file into the database."
+task :db_schema_import => :environment do
+  file = ENV['SCHEMA'] || "db/schema.rb"
+  load file
+end
+
 desc "Recreate the test databases from the development structure"
 task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
   abcs = ActiveRecord::Base.configurations
