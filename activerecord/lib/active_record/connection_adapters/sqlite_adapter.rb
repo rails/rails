@@ -261,7 +261,8 @@ module ActiveRecord
                 options[:rename][column.name] if options[:rename]
               
               @definition.column(column_name || column.name, column.type, 
-                :limit => column.limit, :default => column.default)
+                :limit => column.limit, :default => column.default,
+                :null => column.null)
             end
             @definition.primary_key(primary_key(from))
             yield @definition if block_given?
@@ -275,8 +276,16 @@ module ActiveRecord
         
         def copy_table_indexes(from, to) #:nodoc:
           indexes(from).each do |index|
-            type = index[:unique] ? 'UNIQUE' : ''
-            add_index(to, index[:columns], type)
+            name = index.name
+            if to == "altered_#{from}"
+              name = "temp_#{name}"
+            elsif from == "altered_#{to}"
+              name = name[5..-1]
+            end
+
+            opts = { :name => name }
+            opts[:unique] = true if index.unique
+            add_index(to, index.columns, opts)
           end
         end
         
