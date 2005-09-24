@@ -1,5 +1,7 @@
 *SVN*
 
+* Added native, faster implementations of .blank? for the core types #2286 [skae]
+
 * Fixed clean logger to work with Ruby 1.8.3 Logger class #2245
 
 * Fixed memory leak with Active Record classes when Dependencies.mechanism = :load #1704 [c.r.mcgrath@gmail.com]
