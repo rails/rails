@@ -48,6 +48,7 @@ require 'active_record/acts/tree'
 require 'active_record/acts/nested_set'
 require 'active_record/locking'
 require 'active_record/migration'
+require 'active_record/schema'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations

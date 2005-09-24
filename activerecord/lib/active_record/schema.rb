@@ -1,5 +1,4 @@
 module ActiveRecord
-
   class Schema < Migration #:nodoc:
     private_class_method :new
 
@@ -19,5 +18,4 @@ module ActiveRecord
       end
     end
   end
-
 end

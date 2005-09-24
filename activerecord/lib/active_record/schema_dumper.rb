@@ -1,5 +1,4 @@
 module ActiveRecord
-
   # This class is used to dump the database schema for some connection to some
   # output format (i.e., ActiveRecord::Schema).
   class SchemaDumper
@@ -33,10 +32,7 @@ module ActiveRecord
 # migrations feature of ActiveRecord to incrementally modify your database, and
 # then regenerate this schema definition.
 
-require 'active_record/schema'
-
 ActiveRecord::Schema.define(#{define_params}) do
-
 HEADER
       end
 
@@ -83,5 +79,4 @@ HEADER
         stream.puts unless indexes.empty?
       end
   end
-
 end
