@@ -1,5 +1,7 @@
 *SVN*
 
+* Wrap :conditions in parentheses to prevent problems with OR's #1871
+
 * Allow the postgresql adapter to work with the SchemaDumper.
 
 * Add ActiveRecord::SchemaDumper for dumping a DB schema to a pure-ruby file, making it easier to consolidate large migration lists and port database schemas between databases.

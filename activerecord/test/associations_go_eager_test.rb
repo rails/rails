@@ -20,14 +20,19 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert post.comments.include?(comments(:greetings))
   end
 
+  def test_loading_conditions_with_or
+    posts = authors(:david).posts.find(:all, :include => :comments, :conditions => "comments.body like 'Normal%' OR comments.type = 'SpecialComment'")
+    assert_nil posts.detect { |p| p.author_id != authors(:david).id },
+      "expected to find only david's posts"
+  end
+
   def test_with_ordering
-    posts = Post.find(:all, :include => :comments, :order => "posts.id DESC")
-    assert_equal posts(:sti_habtm), posts[0]
-    assert_equal posts(:sti_post_and_comments), posts[1]
-    assert_equal posts(:sti_comments), posts[2]
-    assert_equal posts(:authorless), posts[3]
-    assert_equal posts(:thinking), posts[4]
-    assert_equal posts(:welcome), posts[5]
+    list = Post.find(:all, :include => :comments, :order => "posts.id DESC")
+    [:eager_other, :sti_habtm, :sti_post_and_comments, :sti_comments,
+     :authorless, :thinking, :welcome
+    ].each_with_index do |post, index|
+      assert_equal posts(post), list[index]
+    end
   end
 
   def test_loading_with_multiple_associations
@@ -48,7 +53,7 @@ class EagerAssociationTest < Test::Unit::TestCase
 
   def test_eager_association_loading_with_belongs_to
     comments = Comment.find(:all, :include => :post)
-    assert_equal 9, comments.length
+    assert_equal 10, comments.length
     titles = comments.map { |c| c.post.title }
     assert titles.include?(posts(:welcome).title)
     assert titles.include?(posts(:sti_post_and_comments).title)

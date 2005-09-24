@@ -3,9 +3,10 @@ require 'fixtures/company'
 require 'fixtures/topic'
 require 'fixtures/entrant'
 require 'fixtures/developer'
+require 'fixtures/post'
 
 class FinderTest < Test::Unit::TestCase
-  fixtures :companies, :topics, :entrants, :developers
+  fixtures :companies, :topics, :entrants, :developers, :posts
 
   def test_find
     assert_equal(topics(:first).title, Topic.find(1).title)
@@ -309,6 +310,13 @@ class FinderTest < Test::Unit::TestCase
     developer_names = developers_on_project_one.map { |d| d.name }
     assert developer_names.include?('David')
     assert developer_names.include?('Jamis')
+  end
+
+  def test_find_by_id_with_conditions_with_or
+    assert_nothing_raised do
+      Post.find([1,2,3],
+        :conditions => "posts.id <= 3 OR posts.type = 'Post'")
+    end
   end
 
   def test_select_value

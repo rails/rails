@@ -350,7 +350,7 @@ module ActiveRecord #:nodoc:
             return args.first if args.first.kind_of?(Array) && args.first.empty?
             expects_array = args.first.kind_of?(Array)
             
-            conditions = " AND #{sanitize_sql(options[:conditions])}" if options[:conditions]
+            conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
 
             ids = args.flatten.compact.uniq
             case ids.size

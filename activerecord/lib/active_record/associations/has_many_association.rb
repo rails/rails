@@ -68,7 +68,7 @@ module ActiveRecord
         else
           conditions = "#{@finder_sql}"
           if sanitized_conditions = sanitize_sql(options[:conditions])
-            conditions << " AND #{sanitized_conditions}"
+            conditions << " AND (#{sanitized_conditions})"
           end
           options[:conditions] = conditions
 

@@ -39,3 +39,10 @@ sti_habtm:
   title: habtm sti test
   body: hello
   type: Post
+
+eager_other:
+  id: 7
+  author_id: 2
+  title: eager loading with OR'd conditions
+  body: hello
+  type: Post
