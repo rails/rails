@@ -275,6 +275,19 @@ module ActiveRecord
       # Returns a record hash with the column names as a keys and fields as values.
       def select_one(sql, name = nil) end
 
+      # Returns a single value from a record
+      def select_value(sql, name = nil)
+        result = select_one(sql, name)
+        result.nil? ? nil : result.values.first
+      end
+
+      # Returns an array of the values of the first column in a select:
+      #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
+      def select_values(sql, name = nil)
+        result = select_all(sql, name)
+        result.map{ |v| v.values.first }
+      end
+
       # Returns an array of table names for the current database.
       # def tables(name = nil) end
 

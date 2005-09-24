@@ -81,9 +81,7 @@ module ActiveRecord
     # Tribute: Object-level transactions are implemented by Transaction::Simple by Austin Ziegler.
     module ClassMethods
       def transaction(*objects, &block)
-        previous_handler = trap('TERM') do
-          raise TransactionError, "Transaction aborted"
-        end
+        previous_handler = trap('TERM') { raise TransactionError, "Transaction aborted" }
         lock_mutex
         
         begin

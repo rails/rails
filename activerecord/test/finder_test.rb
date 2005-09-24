@@ -311,6 +311,19 @@ class FinderTest < Test::Unit::TestCase
     assert developer_names.include?('Jamis')
   end
 
+  def test_select_value
+    assert_equal "37signals", Company.connection.select_value("SELECT name FROM companies WHERE id = 1")
+    assert_nil Company.connection.select_value("SELECT name FROM companies WHERE id = -1")
+    # make sure we didn't break count...
+    assert_equal 0, Company.count_by_sql("SELECT COUNT(*) FROM companies WHERE name = 'Halliburton'")
+    assert_equal 1, Company.count_by_sql("SELECT COUNT(*) FROM companies WHERE name = '37signals'")
+  end
+
+  def test_select_values
+    assert_equal ["1","2","3"], Company.connection.select_values("SELECT id FROM companies ORDER BY id LIMIT 3")
+    assert_equal ["37signals","Summit","Microsoft"], Company.connection.select_values("SELECT name FROM companies ORDER BY id LIMIT 3")
+  end
+
   protected
     def bind(statement, *vars)
       if vars.first.is_a?(Hash)
