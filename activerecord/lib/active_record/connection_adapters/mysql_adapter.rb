@@ -130,10 +130,6 @@ module ActiveRecord
         "0"
       end
 
-      def quote_column_name(name)
-        "`#{name}`"
-      end
-
 
       # DATABASE STATEMENTS ======================================
 
