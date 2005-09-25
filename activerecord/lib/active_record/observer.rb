@@ -1,6 +1,36 @@
 require 'singleton'
 
 module ActiveRecord
+  module Observing # :nodoc:
+    def self.append_features(base)
+      super
+      base.extend(ClassMethods)
+    end
+
+    module ClassMethods
+      # Activates the observers assigned. Examples:
+      #
+      #   # Calls PersonObserver.instance and returns the instance of that observer
+      #   ActiveRecord::Base.observer(:person_observer)
+      #
+      #   # Calls Cacher.instance and GarbageCollector.instance 
+      #   # and returns an array with instances of both
+      #   ActiveRecord::Base.observer(:cacher, :garbage_collector)
+      #
+      #   # Same as above, just using explicit class references
+      #   ActiveRecord::Base.observer(Cacher, GarbageCollector)
+      def observer(*observers)
+        observers = [ observers ].flatten.collect do |observer| 
+          observer.is_a?(Symbol) ? 
+            observer.to_s.camelize.constantize.instance :
+            observer.instance
+        end
+        
+        observers.size > 1 ? observers : observers.first
+      end
+    end
+  end
+
   # Observer classes respond to lifecycle callbacks to implement trigger-like
   # behavior outside the original class. This is a great way to reduce the
   # clutter that normally comes when the model class is burdened with
@@ -48,7 +78,8 @@ module ActiveRecord
   # == Triggering Observers
   # 
   # In order to activate an observer, you need to call Observer.instance. In Rails, this can be done in controllers
-  # using the short-hand of for example observer :comment_observer.
+  # using the short-hand of for example observer :comment_observer. Or directly from Active Record, with
+  # ActiveRecord::Base.observer(:comment_observer).
   class Observer
     include Singleton
 

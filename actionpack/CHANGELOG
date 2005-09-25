@@ -1,8 +1,10 @@
 *SVN*
 
-* Fixed that auto_discovery_link_tag couldn't take a string as the URL
+* Fix open/save dialog in IE not opening files send with send_file/send_data, #2279 [Thomas Fuchs]
 
-* Fixed problem with send_file and WEBrick using stdout #1812
+* Fixed that auto_discovery_link_tag couldn't take a string as the URL [DHH]
+
+* Fixed problem with send_file and WEBrick using stdout #1812 [DHH]
 
 * Optimized tag_options to not sort keys, which is no longer necessary when assert_dom_equal and friend is available #1995 [skae]
 

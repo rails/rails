@@ -54,6 +54,7 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
   include ActiveRecord::Locking
   include ActiveRecord::Callbacks
+  include ActiveRecord::Observing
   include ActiveRecord::Timestamp
   include ActiveRecord::Associations
   include ActiveRecord::Aggregations

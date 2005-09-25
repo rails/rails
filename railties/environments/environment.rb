@@ -18,9 +18,6 @@ Rails::Initializer.run do |config|
   # (by default production uses :info, the others :debug)
   # config.log_level = :debug
 
-  # Only include the connection adapters you're actually going to use
-  # config.connection_adapters = %w( mysql postgresql sqlite sqlserver db2 oci )
-
   # Use the database for sessions instead of the file system
   # (create the session table with 'rake create_sessions_table')
   # config.action_controller.session_store = :active_record_store
@@ -28,6 +25,9 @@ Rails::Initializer.run do |config|
   # Enable page/fragment caching by setting a file-based store
   # (remember to create the caching directory and make it readable to the application)
   # config.action_controller.fragment_cache_store = :file_store, "#{RAILS_ROOT}/cache"
+
+  # Activate observers that should always be running
+  # config.active_record.observer :cacher, :garbage_collector
 
   # Make Active Record use UTC-base instead of local time
   # config.active_record.default_timezone = :utc

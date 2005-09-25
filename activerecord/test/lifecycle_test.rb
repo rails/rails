@@ -65,7 +65,7 @@ class LifecycleTest < Test::Unit::TestCase
   end
   
   def test_after_save
-    topic_observer = TopicManualObserver.instance
+    topic_observer = ActiveRecord::Base.observer(:topic_manual_observer)
 
     topic = Topic.find(1)
     topic.title = "hello"
@@ -76,7 +76,7 @@ class LifecycleTest < Test::Unit::TestCase
   end
   
   def test_observer_update_on_save
-    topic_observer = TopicManualObserver.instance
+    topic_observer = ActiveRecord::Base.observer(TopicManualObserver)
 
     topic = Topic.find(1)    
     assert topic_observer.has_been_notified?

@@ -1,10 +1,20 @@
 *SVN*
 
-* Wrap :conditions in parentheses to prevent problems with OR's #1871
+* Added new symbol-driven approach to activating observers with Base#observer [DHH]. Example:
 
-* Allow the postgresql adapter to work with the SchemaDumper.
+    ActiveRecord::Base.observer(:cacher, :garbage_collector)
+  
+  ...which is the same as doing:
+  
+    [ Cacher.instance, GarbageCollector.instance ]
 
-* Add ActiveRecord::SchemaDumper for dumping a DB schema to a pure-ruby file, making it easier to consolidate large migration lists and port database schemas between databases.
+* Added AbstractAdapter#select_value and AbstractAdapter#select_values as convenience methods for selecting single values, instead of hashes, of the first column in a SELECT #2283 [solo@gatelys.com]
+
+* Wrap :conditions in parentheses to prevent problems with OR's #1871 [Jamis Buck]
+
+* Allow the postgresql adapter to work with the SchemaDumper. [Jamis Buck]
+
+* Add ActiveRecord::SchemaDumper for dumping a DB schema to a pure-ruby file, making it easier to consolidate large migration lists and port database schemas between databases. [Jamis Buck]
 
 * Fixed migrations for Windows when using more than 10 [David Naseby]
 
