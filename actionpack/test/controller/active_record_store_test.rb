@@ -94,7 +94,6 @@ class DeprecatedActiveRecordStoreTest < ActiveRecordStoreTest
   def teardown
     session_class.connection.execute 'drop table old_sessions'
     session_class.table_name = 'sessions'
-    session_class.send :setup_sessid_compatibility!
   end
 end
 
