@@ -19,13 +19,11 @@ module ActiveRecord
       #   # Same as above, just using explicit class references
       #   ActiveRecord::Base.observers = Cacher, GarbageCollector
       def observers=(*observers)
-        observers = [ observers ].flatten.collect do |observer| 
+        observers = [ observers ].flatten.each do |observer| 
           observer.is_a?(Symbol) ? 
             observer.to_s.camelize.constantize.instance :
             observer.instance
         end
-        
-        observers.size > 1 ? observers : observers.first
       end
     end
   end
