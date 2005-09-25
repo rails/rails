@@ -65,22 +65,22 @@ class LifecycleTest < Test::Unit::TestCase
   end
   
   def test_after_save
-    topic_observer = ActiveRecord::Base.observer(:topic_manual_observer)
+    ActiveRecord::Base.observers = :topic_manual_observer
 
     topic = Topic.find(1)
     topic.title = "hello"
     topic.save
     
-    assert topic_observer.has_been_notified?
-    assert_equal :after_save, topic_observer.callbacks.last["callback_method"]
+    assert TopicManualObserver.instance.has_been_notified?
+    assert_equal :after_save, TopicManualObserver.instance.callbacks.last["callback_method"]
   end
   
   def test_observer_update_on_save
-    topic_observer = ActiveRecord::Base.observer(TopicManualObserver)
+    ActiveRecord::Base.observers = TopicManualObserver
 
     topic = Topic.find(1)    
-    assert topic_observer.has_been_notified?
-    assert_equal :after_find, topic_observer.callbacks.first["callback_method"]
+    assert TopicManualObserver.instance.has_been_notified?
+    assert_equal :after_find, TopicManualObserver.instance.callbacks.first["callback_method"]
   end
   
   def test_auto_observer

@@ -1,12 +1,8 @@
 *SVN*
 
-* Added new symbol-driven approach to activating observers with Base#observer [DHH]. Example:
+* Added new symbol-driven approach to activating observers with Base#observers= [DHH]. Example:
 
-    ActiveRecord::Base.observer(:cacher, :garbage_collector)
-  
-  ...which is the same as doing:
-  
-    [ Cacher.instance, GarbageCollector.instance ]
+    ActiveRecord::Base.observers = :cacher, :garbage_collector
 
 * Added AbstractAdapter#select_value and AbstractAdapter#select_values as convenience methods for selecting single values, instead of hashes, of the first column in a SELECT #2283 [solo@gatelys.com]
 

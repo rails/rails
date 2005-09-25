@@ -10,16 +10,15 @@ module ActiveRecord
     module ClassMethods
       # Activates the observers assigned. Examples:
       #
-      #   # Calls PersonObserver.instance and returns the instance of that observer
-      #   ActiveRecord::Base.observer(:person_observer)
+      #   # Calls PersonObserver.instance
+      #   ActiveRecord::Base.observers = :person_observer
       #
       #   # Calls Cacher.instance and GarbageCollector.instance 
-      #   # and returns an array with instances of both
-      #   ActiveRecord::Base.observer(:cacher, :garbage_collector)
+      #   ActiveRecord::Base.observers = :cacher, :garbage_collector
       #
       #   # Same as above, just using explicit class references
-      #   ActiveRecord::Base.observer(Cacher, GarbageCollector)
-      def observer(*observers)
+      #   ActiveRecord::Base.observers = Cacher, GarbageCollector
+      def observers=(*observers)
         observers = [ observers ].flatten.collect do |observer| 
           observer.is_a?(Symbol) ? 
             observer.to_s.camelize.constantize.instance :
