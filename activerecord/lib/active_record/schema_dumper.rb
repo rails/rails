@@ -33,6 +33,7 @@ module ActiveRecord
 # then regenerate this schema definition.
 
 ActiveRecord::Schema.define(#{define_params}) do
+
 HEADER
       end
 
