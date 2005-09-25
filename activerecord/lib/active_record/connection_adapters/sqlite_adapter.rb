@@ -99,7 +99,7 @@ module ActiveRecord
           :time        => { :name => "datetime" },
           :date        => { :name => "date" },
           :binary      => { :name => "blob" },
-          :boolean     => { :name => "integer" }
+          :boolean     => { :name => "boolean" }
         }
       end
 

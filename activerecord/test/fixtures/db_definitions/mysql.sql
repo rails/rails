@@ -26,7 +26,7 @@ CREATE TABLE `topics` (
   `bonus_time` time default NULL,
   `last_read` date default NULL,
   `content` text,
-  `approved` tinyint(1) default 1,
+  `approved` tinyint default 1,
   `replies_count` int(11) default 0,
   `parent_id` int(11) default NULL,
   `type` varchar(50) default NULL,

@@ -41,6 +41,14 @@ module ActiveRecord
   end
 
   module ConnectionAdapters
+    class MysqlColumn < Column #:nodoc:
+      private
+        def simplified_type(field_type)
+          return :boolean if MysqlAdapter.emulate_booleans && field_type.downcase == "tinyint(1)"
+          super
+        end
+    end
+
     # The MySQL adapter will work with both Ruby/MySQL, which is a Ruby-based MySQL adapter that comes bundled with Active Record, and with
     # the faster C-based MySQL/Ruby adapter (available both as a gem and from http://www.tmtm.org/en/mysql/ruby/).
     #
@@ -56,7 +64,17 @@ module ActiveRecord
     # * <tt>:sslcert</tt> -- Necessary to use MySQL with an SSL connection
     # * <tt>:sslcapath</tt> -- Necessary to use MySQL with an SSL connection
     # * <tt>:sslcipher</tt> -- Necessary to use MySQL with an SSL connection
+    #
+    # By default, the MysqlAdapter will consider all columns of type tinyint(1)
+    # as boolean. If you wish to disable this emulation (which was the default
+    # behavior in versions 0.13.1 and earlier) you can add the following line
+    # to your environment.rb file:
+    #
+    #   ActiveRecord::ConnectionAdapters::MysqlAdapter.emulate_booleans = false
     class MysqlAdapter < AbstractAdapter
+      @@emulate_booleans = true
+      cattr_accessor :emulate_booleans
+
       LOST_CONNECTION_ERROR_MESSAGES = [
         "Server shutdown in progress",
         "Broken pipe",
@@ -126,7 +144,7 @@ module ActiveRecord
       def columns(table_name, name = nil)
         sql = "SHOW FIELDS FROM #{table_name}"
         columns = []
-        execute(sql, name).each { |field| columns << Column.new(field[0], field[4], field[1], field[2] == "YES") }
+        execute(sql, name).each { |field| columns << MysqlColumn.new(field[0], field[4], field[1], field[2] == "YES") }
         columns
       end
 
@@ -183,6 +201,9 @@ module ActiveRecord
         # Transactions aren't supported
       end
 
+
+      def quoted_true() "1" end
+      def quoted_false() "0" end
 
       def quote_column_name(name)
         "`#{name}`"

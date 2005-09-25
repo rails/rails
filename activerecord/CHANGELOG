@@ -1,5 +1,7 @@
 *SVN*
 
+* Standardize the interpretation of boolean columns in the Mysql and Sqlite adapters. (Use MysqlAdapter.emulate_booleans = false to disable this behavior)
+
 * Added new symbol-driven approach to activating observers with Base#observers= [DHH]. Example:
 
     ActiveRecord::Base.observers = :cacher, :garbage_collector

@@ -158,7 +158,9 @@ module ActiveRecord
       # The type parameter should either contain :integer, :float, :datetime, :date, :text, or :string
       # The sql_type is just used for extracting the limit, such as 10 in "varchar(10)"
       def initialize(name, default, sql_type = nil, null = true)
-        @name, @default, @type, @null = name, type_cast(default), simplified_type(sql_type), null
+        @name, @type, @null = name, simplified_type(sql_type), null
+        # have to do this one separately because type_cast depends on #type
+        @default = type_cast(default)
         @limit = extract_limit(sql_type) unless sql_type.nil?
       end
 
@@ -337,6 +339,9 @@ module ActiveRecord
       # raises an exception or returns false.
       def rollback_db_transaction() end
 
+      def quoted_true() "'t'" end
+      def quoted_false() "'f'" end
+
       def quote(value, column = nil)
         case value
           when String
@@ -348,8 +353,8 @@ module ActiveRecord
               "'#{quote_string(value)}'" # ' (for ruby-mode)
             end
           when NilClass              then "NULL"
-          when TrueClass             then (column && column.type == :boolean ? "'t'" : "1")
-          when FalseClass            then (column && column.type == :boolean ? "'f'" : "0")
+          when TrueClass             then (column && column.type == :boolean ? quoted_true : "1")
+          when FalseClass            then (column && column.type == :boolean ? quoted_false : "0")
           when Float, Fixnum, Bignum then value.to_s
           when Date                  then "'#{value.to_s}'"
           when Time, DateTime        then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
@@ -502,7 +507,7 @@ module ActiveRecord
       
       def add_column_options!(sql, options)
         sql << " NOT NULL" if options[:null] == false
-        sql << " DEFAULT '#{options[:default]}'" unless options[:default].nil?
+        sql << " DEFAULT #{quote(options[:default], options[:column])}" unless options[:default].nil?
       end
 
       protected  
@@ -574,7 +579,7 @@ module ActiveRecord
       end   
 
       def add_column_options!(sql, options)
-        base.add_column_options!(sql, options)
+        base.add_column_options!(sql, options.merge(:column => self))
       end
     end
 

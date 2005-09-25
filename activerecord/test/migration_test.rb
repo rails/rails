@@ -68,6 +68,29 @@ if ActiveRecord::Base.connection.supports_migrations?
     ensure
       Person.connection.drop_table :testings rescue nil
     end
+
+    def test_create_table_with_defaults
+      Person.connection.create_table :testings do |t|
+        t.column :one, :string, :default => "hello"
+        t.column :two, :boolean, :default => true
+        t.column :three, :boolean, :default => false
+        t.column :four, :integer, :default => 1
+      end
+
+      columns = Person.connection.columns(:testings)
+      one = columns.detect { |c| c.name == "one" }
+      two = columns.detect { |c| c.name == "two" }
+      three = columns.detect { |c| c.name == "three" }
+      four = columns.detect { |c| c.name == "four" }
+
+      assert_equal "hello", one.default
+      assert_equal true, two.default
+      assert_equal false, three.default
+      assert_equal 1, four.default
+
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
   
     def test_add_column_not_null
       Person.connection.create_table :testings do |t|
