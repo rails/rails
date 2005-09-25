@@ -159,6 +159,19 @@ module ActiveRecord
 
       alias_method :delete, :update
 
+      def add_column(table_name, column_name, type, options = {})
+        native_type = native_database_types[type]
+        sql_commands = ["ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type, options[:limit])}"]
+        if options[:default]
+          sql_commands << "ALTER TABLE #{table_name} ALTER #{column_name} SET DEFAULT '#{options[:default]}'"
+        end
+        if options[:null] == false
+          sql_commands << "ALTER TABLE #{table_name} ALTER #{column_name} SET NOT NULL"
+        end
+        sql_commands.each { |cmd| execute(cmd) }
+      end
+      
+
       def begin_db_transaction()    execute "BEGIN" end
       def commit_db_transaction()   execute "COMMIT" end
       def rollback_db_transaction() execute "ROLLBACK" end
