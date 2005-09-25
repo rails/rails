@@ -1,5 +1,6 @@
 module ActiveRecord
-  class Schema < Migration #:nodoc:
+  # TODO: Document me!
+  class Schema < Migration
     private_class_method :new
 
     def self.define(info={}, &block)

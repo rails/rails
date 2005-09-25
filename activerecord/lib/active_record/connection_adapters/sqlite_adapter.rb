@@ -1,6 +1,5 @@
-# sqlite_adapter.rb
-# author: Luke Holden <lholden@cablelan.net>
-# updated for SQLite3: Jamis Buck <jamis_buck@byu.edu>
+# Author: Luke Holden <lholden@cablelan.net>
+# Updated for SQLite3: Jamis Buck <jamis_buck@byu.edu>
 
 require 'active_record/connection_adapters/abstract_adapter'
 
@@ -87,7 +86,15 @@ module ActiveRecord
     #
     # * <tt>:dbfile</tt> -- Path to the database file.
     class SQLiteAdapter < AbstractAdapter
-      def native_database_types
+      def adapter_name #:nodoc:
+        'SQLite'
+      end
+
+      def supports_migrations? #:nodoc:
+        true
+      end
+
+      def native_database_types #:nodoc:
         {
           :primary_key => "INTEGER PRIMARY KEY NOT NULL",
           :string      => { :name => "varchar", :limit => 255 },
@@ -103,32 +110,41 @@ module ActiveRecord
         }
       end
 
-      def supports_migrations?
-        true
+
+      # QUOTING ==================================================
+
+      def quote_string(s) #:nodoc:
+        @connection.class.quote(s)
       end
 
-      def execute(sql, name = nil)
-        #log(sql, name, @connection) { |connection| connection.execute(sql) }
+      def quote_column_name(name) #:nodoc:
+        "'#{name}'"
+      end
+
+
+      # DATABASE STATEMENTS ======================================
+
+      def execute(sql, name = nil) #:nodoc:
         log(sql, name) { @connection.execute(sql) }
       end
 
-      def update(sql, name = nil)
+      def update(sql, name = nil) #:nodoc:
         execute(sql, name)
         @connection.changes
       end
 
-      def delete(sql, name = nil)
+      def delete(sql, name = nil) #:nodoc:
         sql += " WHERE 1=1" unless sql =~ /WHERE/i
         execute(sql, name)
         @connection.changes
       end
 
-      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
+      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
         execute(sql, name = nil)
         id_value || @connection.last_insert_row_id
       end
 
-      def select_all(sql, name = nil)
+      def select_all(sql, name = nil) #:nodoc:
         execute(sql, name).map do |row|
           record = {}
           row.each_key do |key|
@@ -140,29 +156,40 @@ module ActiveRecord
         end
       end
 
-      def select_one(sql, name = nil)
+      def select_one(sql, name = nil) #:nodoc:
         result = select_all(sql, name)
         result.nil? ? nil : result.first
       end
 
 
-      def begin_db_transaction()    @connection.transaction end
-      def commit_db_transaction()   @connection.commit      end
-      def rollback_db_transaction() @connection.rollback    end
+      def begin_db_transaction #:nodoc:
+        @connection.transaction
+      end
+      
+      def commit_db_transaction #:nodoc:
+        @connection.commit
+      end
 
-      def tables(name = nil)
+      def rollback_db_transaction #:nodoc:
+        @connection.rollback
+      end
+
+
+      # SCHEMA STATEMENTS ========================================
+
+      def tables(name = nil) #:nodoc:
         execute("SELECT name FROM sqlite_master WHERE type = 'table'", name).map do |row|
           row[0]
         end
       end
 
-      def columns(table_name, name = nil)
+      def columns(table_name, name = nil) #:nodoc:
         table_structure(table_name).map { |field|
           SQLiteColumn.new(field['name'], field['dflt_value'], field['type'], field['notnull'] == "0")
         }
       end
 
-      def indexes(table_name, name = nil)
+      def indexes(table_name, name = nil) #:nodoc:
         execute("PRAGMA index_list(#{table_name})", name).map do |row|
           index = IndexDefinition.new(table_name, row['name'])
           index.unique = row['unique'] != '0'
@@ -171,24 +198,12 @@ module ActiveRecord
         end
       end
 
-      def primary_key(table_name)
+      def primary_key(table_name) #:nodoc:
         column = table_structure(table_name).find {|field| field['pk'].to_i == 1}
         column ? column['name'] : nil
       end
 
-      def quote_string(s)
-        @connection.class.quote(s)
-      end
-
-      def quote_column_name(name)
-        "'#{name}'"
-      end
-
-      def adapter_name()
-        'SQLite'
-      end
-
-      def remove_index(table_name, options={})
+      def remove_index(table_name, options={}) #:nodoc:
         if Hash === options
           index_name = options[:name]
         else
@@ -198,25 +213,25 @@ module ActiveRecord
         execute "DROP INDEX #{index_name}"
       end
 
-      def add_column(table_name, column_name, type, options = {})
+      def add_column(table_name, column_name, type, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
           definition.column(column_name, type, options)
         end
       end
       
-      def remove_column(table_name, column_name)
+      def remove_column(table_name, column_name) #:nodoc:
         alter_table(table_name) do |definition|
           definition.columns.delete(definition[column_name])
         end
       end
       
-      def change_column_default(table_name, column_name, default)
+      def change_column_default(table_name, column_name, default) #:nodoc:
         alter_table(table_name) do |definition|
           definition[column_name].default = default
         end
       end
 
-      def change_column(table_name, column_name, type, options = {})
+      def change_column(table_name, column_name, type, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
           definition[column_name].instance_eval do
             self.type    = type
@@ -226,7 +241,7 @@ module ActiveRecord
         end
       end
 
-      def rename_column(table_name, column_name, new_column_name)
+      def rename_column(table_name, column_name, new_column_name) #:nodoc:
         alter_table(table_name, :rename => {column_name => new_column_name})
       end
           

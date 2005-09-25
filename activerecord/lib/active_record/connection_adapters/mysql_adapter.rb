@@ -81,12 +81,21 @@ module ActiveRecord
         "Lost connection to MySQL server during query",
         "MySQL server has gone away"
       ]
-      
-      def supports_migrations?
+
+      def initialize(connection, logger, connection_options=nil)
+        super(connection, logger)
+        @connection_options = connection_options
+      end
+
+      def adapter_name #:nodoc:
+        'MySQL'
+      end
+
+      def supports_migrations? #:nodoc:
         true
       end
 
-      def native_database_types
+      def native_database_types #:nodoc
         {
           :primary_key => "int(11) DEFAULT NULL auto_increment PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255 },
@@ -102,58 +111,42 @@ module ActiveRecord
         }
       end
 
-      def initialize(connection, logger, connection_options=nil)
-        super(connection, logger)
-        @connection_options = connection_options
+
+      # QUOTING ==================================================
+
+      def quote_column_name(name) #:nodoc:
+        "`#{name}`"
       end
 
-      def adapter_name
-        'MySQL'
+      def quote_string(string) #:nodoc:
+        Mysql::quote(string)
       end
 
-      def select_all(sql, name = nil)
+      def quoted_true
+        "1"
+      end
+      
+      def quoted_false
+        "0"
+      end
+
+      def quote_column_name(name)
+        "`#{name}`"
+      end
+
+
+      # DATABASE STATEMENTS ======================================
+
+      def select_all(sql, name = nil) #:nodoc:
         select(sql, name)
       end
 
-      def select_one(sql, name = nil)
+      def select_one(sql, name = nil) #:nodoc:
         result = select(sql, name)
         result.nil? ? nil : result.first
       end
 
-      def tables(name = nil)
-        tables = []
-        execute("SHOW TABLES", name).each { |field| tables << field[0] }
-        tables
-      end
-
-      def indexes(table_name, name = nil)
-        indexes = []
-        current_index = nil
-        execute("SHOW KEYS FROM #{table_name}", name).each do |row|
-          if current_index != row[2]
-            next if row[2] == "PRIMARY" # skip the primary key
-            current_index = row[2]
-            indexes << IndexDefinition.new(row[0], row[2], row[1] == "0", [])
-          end
-
-          indexes.last.columns << row[4]
-        end
-        indexes
-      end
-
-      def columns(table_name, name = nil)
-        sql = "SHOW FIELDS FROM #{table_name}"
-        columns = []
-        execute(sql, name).each { |field| columns << MysqlColumn.new(field[0], field[4], field[1], field[2] == "YES") }
-        columns
-      end
-
-      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        execute(sql, name = nil)
-        id_value || @connection.insert_id
-      end
-
-      def execute(sql, name = nil, retries = 2)
+      def execute(sql, name = nil, retries = 2) #:nodoc:
         unless @logger
           @connection.query(sql)
         else
@@ -175,52 +168,39 @@ module ActiveRecord
         end
       end
 
-      def update(sql, name = nil)
+      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
+        execute(sql, name = nil)
+        id_value || @connection.insert_id
+      end
+
+      def update(sql, name = nil) #:nodoc:
         execute(sql, name)
         @connection.affected_rows
       end
 
-      alias_method :delete, :update
+      alias_method :delete, :update #:nodoc:
 
 
-      def begin_db_transaction
+      def begin_db_transaction #:nodoc:
         execute "BEGIN"
       rescue Exception
         # Transactions aren't supported
       end
 
-      def commit_db_transaction
+      def commit_db_transaction #:nodoc:
         execute "COMMIT"
       rescue Exception
         # Transactions aren't supported
       end
 
-      def rollback_db_transaction
+      def rollback_db_transaction #:nodoc:
         execute "ROLLBACK"
       rescue Exception
         # Transactions aren't supported
       end
 
 
-      def quoted_true() "1" end
-      def quoted_false() "0" end
-
-      def quote_column_name(name)
-        "`#{name}`"
-      end
-
-      def quote_string(string)
-        Mysql::quote(string)
-      end
-
-
-      def structure_dump
-        select_all("SHOW TABLES").inject("") do |structure, table|
-          structure += select_one("SHOW CREATE TABLE #{table.to_a.first.last}")["Create Table"] + ";\n\n"
-        end
-      end
-
-      def add_limit_offset!(sql, options)
+      def add_limit_offset!(sql, options) #:nodoc
         if options[:limit]
           if options[:offset].blank?
             sql << " LIMIT #{options[:limit]}"
@@ -230,26 +210,68 @@ module ActiveRecord
         end
       end
 
-      def recreate_database(name)
+
+      # SCHEMA STATEMENTS ========================================
+
+      def structure_dump #:nodoc:
+        select_all("SHOW TABLES").inject("") do |structure, table|
+          structure += select_one("SHOW CREATE TABLE #{table.to_a.first.last}")["Create Table"] + ";\n\n"
+        end
+      end
+
+      def recreate_database(name) #:nodoc:
         drop_database(name)
         create_database(name)
       end
 
-      def drop_database(name)
-        execute "DROP DATABASE IF EXISTS #{name}"
-      end
-
-      def create_database(name)
+      def create_database(name) #:nodoc:
         execute "CREATE DATABASE #{name}"
       end
       
-      def change_column_default(table_name, column_name, default)
+      def drop_database(name) #:nodoc:
+        execute "DROP DATABASE IF EXISTS #{name}"
+      end
+
+
+      def tables(name = nil) #:nodoc:
+        tables = []
+        execute("SHOW TABLES", name).each { |field| tables << field[0] }
+        tables
+      end
+
+      def indexes(table_name, name = nil)#:nodoc:
+        indexes = []
+        current_index = nil
+        execute("SHOW KEYS FROM #{table_name}", name).each do |row|
+          if current_index != row[2]
+            next if row[2] == "PRIMARY" # skip the primary key
+            current_index = row[2]
+            indexes << IndexDefinition.new(row[0], row[2], row[1] == "0", [])
+          end
+
+          indexes.last.columns << row[4]
+        end
+        indexes
+      end
+
+      def columns(table_name, name = nil)#:nodoc:
+        sql = "SHOW FIELDS FROM #{table_name}"
+        columns = []
+        execute(sql, name).each { |field| columns << MysqlColumn.new(field[0], field[4], field[1], field[2] == "YES") }
+        columns
+      end
+
+      def create_table(name, options = {}) #:nodoc:
+        super(name, {:options => "ENGINE=InnoDB"}.merge(options))
+      end
+
+      def change_column_default(table_name, column_name, default) #:nodoc:
         current_type = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Type"]
 
         change_column(table_name, column_name, current_type, { :default => default })
       end
 
-      def change_column(table_name, column_name, type, options = {})
+      def change_column(table_name, column_name, type, options = {}) #:nodoc:
         options[:default] ||= select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Default"]
         
         change_column_sql = "ALTER TABLE #{table_name} CHANGE #{column_name} #{column_name} #{type_to_sql(type, options[:limit])}"
@@ -257,14 +279,11 @@ module ActiveRecord
         execute(change_column_sql)
       end
 
-      def rename_column(table_name, column_name, new_column_name)
+      def rename_column(table_name, column_name, new_column_name) #:nodoc:
         current_type = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Type"]
         execute "ALTER TABLE #{table_name} CHANGE #{column_name} #{new_column_name} #{current_type}"
       end
 
-      def create_table(name, options = {})
-        super(name, {:options => "ENGINE=InnoDB"}.merge(options))
-      end
 
       private
         def select(sql, name = nil)

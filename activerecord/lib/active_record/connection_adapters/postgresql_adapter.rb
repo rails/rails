@@ -1,14 +1,4 @@
-
-# postgresql_adaptor.rb
-# author: Luke Holden <lholden@cablelan.net>
-# notes: Currently this adaptor does not pass the test_zero_date_fields
-#        and test_zero_datetime_fields unit tests in the BasicsTest test
-#        group.
-#
-#        This is due to the fact that, in postgresql you can not have a
-#        totally zero timestamp. Instead null/nil should be used to 
-#        represent no value.
-#
+# Author: Luke Holden <lholden@cablelan.net>
 
 require 'active_record/connection_adapters/abstract_adapter'
 require 'parsedate'
@@ -60,6 +50,10 @@ module ActiveRecord
     # * <tt>:encoding</tt> -- An optional client encoding that is using in a SET client_encoding TO <encoding> call on connection.
     # * <tt>:min_messages</tt> -- An optional client min messages that is using in a SET client_min_messages TO <min_messages> call on connection.
     class PostgreSQLAdapter < AbstractAdapter
+      def adapter_name
+        'PostgreSQL'
+      end
+
       def native_database_types
         {
           :primary_key => "serial primary key",
@@ -80,17 +74,71 @@ module ActiveRecord
         true
       end      
       
-      def select_all(sql, name = nil)
+
+      # QUOTING ==================================================
+
+      def quote(value, column = nil)
+        if value.class == String && column && column.type == :binary
+          quote_bytea(value)
+        else
+          super
+        end
+      end
+
+      def quote_column_name(name)
+        %("#{name}")
+      end
+
+
+      # DATABASE STATEMENTS ======================================
+
+      def select_all(sql, name = nil) #:nodoc:
         select(sql, name)
       end
 
-      def select_one(sql, name = nil)
+      def select_one(sql, name = nil) #:nodoc:
         result = select(sql, name)
         result.nil? ? nil : result.first
       end
 
+      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
+        execute(sql, name)
+        table = sql.split(" ", 4)[2]
+        return id_value || last_insert_id(table, pk)
+      end
+
+      def query(sql, name = nil) #:nodoc:
+        log(sql, name) { @connection.query(sql) }
+      end
+
+      def execute(sql, name = nil) #:nodoc:
+        log(sql, name) { @connection.exec(sql) }
+      end
+
+      def update(sql, name = nil) #:nodoc:
+        execute(sql, name).cmdtuples
+      end
+
+      alias_method :delete, :update #:nodoc:
+
+
+      def begin_db_transaction #:nodoc:
+        execute "BEGIN"
+      end
+
+      def commit_db_transaction #:nodoc:
+        execute "COMMIT"
+      end
+      
+      def rollback_db_transaction #:nodoc:
+        execute "ROLLBACK"
+      end
+
+
+      # SCHEMA STATEMENTS ========================================
+
       # Return the list of all tables in the schema search path.
-      def tables(name = nil)
+      def tables(name = nil) #:nodoc:
         schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
         query(<<-SQL, name).map { |row| row[0] }
           SELECT tablename
@@ -99,7 +147,7 @@ module ActiveRecord
         SQL
       end
 
-      def indexes(table_name, name = nil)
+      def indexes(table_name, name = nil) #:nodoc:
         result = query(<<-SQL, name)
           SELECT i.relname, d.indisunique, a.attname
             FROM pg_class t, pg_class i, pg_index d, pg_attribute a
@@ -132,33 +180,27 @@ module ActiveRecord
         indexes
       end
 
-      def columns(table_name, name = nil)
+      def columns(table_name, name = nil) #:nodoc:
         column_definitions(table_name).collect do |name, type, default, notnull|
           Column.new(name, default_value(default), translate_field_type(type),
             notnull == "f")
         end
       end
 
-      def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-        execute(sql, name)
-        table = sql.split(" ", 4)[2]
-        return id_value || last_insert_id(table, pk)
+      # Set the schema search path to a string of comma-separated schema names.
+      # Names beginning with $ are quoted (e.g. $user => '$user')
+      # See http://www.postgresql.org/docs/8.0/interactive/ddl-schemas.html
+      def schema_search_path=(schema_csv) #:nodoc:
+        if schema_csv
+          execute "SET search_path TO #{schema_csv}"
+          @schema_search_path = nil
+        end
       end
 
-      def query(sql, name = nil)
-        log(sql, name) { @connection.query(sql) }
+      def schema_search_path #:nodoc:
+        @schema_search_path ||= query('SHOW search_path')[0][0]
       end
-
-      def execute(sql, name = nil)
-        log(sql, name) { @connection.exec(sql) }
-      end
-
-      def update(sql, name = nil)
-        execute(sql, name).cmdtuples
-      end
-
-      alias_method :delete, :update
-
+            
       def add_column(table_name, column_name, type, options = {})
         native_type = native_database_types[type]
         sql_commands = ["ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type, options[:limit])}"]
@@ -170,57 +212,21 @@ module ActiveRecord
         end
         sql_commands.each { |cmd| execute(cmd) }
       end
-      
 
-      def begin_db_transaction()    execute "BEGIN" end
-      def commit_db_transaction()   execute "COMMIT" end
-      def rollback_db_transaction() execute "ROLLBACK" end
-
-      def quote(value, column = nil)
-        if value.class == String && column && column.type == :binary
-          quote_bytea(value)
-        else
-          super
-        end
-      end
-
-      def quote_column_name(name)
-        %("#{name}")
-      end
-
-      def adapter_name
-        'PostgreSQL'
-      end
-
-
-      # Set the schema search path to a string of comma-separated schema names.
-      # Names beginning with $ are quoted (e.g. $user => '$user')
-      # See http://www.postgresql.org/docs/8.0/interactive/ddl-schemas.html
-      def schema_search_path=(schema_csv)
-        if schema_csv
-          execute "SET search_path TO #{schema_csv}"
-          @schema_search_path = nil
-        end
-      end
-
-      def schema_search_path
-        @schema_search_path ||= query('SHOW search_path')[0][0]
-      end
-            
-      def change_column(table_name, column_name, type, options = {})
+      def change_column(table_name, column_name, type, options = {}) #:nodoc:
         execute = "ALTER TABLE #{table_name} ALTER  #{column_name} TYPE #{type}"
         change_column_default(table_name, column_name, options[:default]) unless options[:default].nil?
       end      
 
-      def change_column_default(table_name, column_name, default)
+      def change_column_default(table_name, column_name, default) #:nodoc:
         execute "ALTER TABLE #{table_name} ALTER COLUMN #{column_name} SET DEFAULT '#{default}'"
       end
       
-      def rename_column(table_name, column_name, new_column_name)
+      def rename_column(table_name, column_name, new_column_name) #:nodoc:
         execute "ALTER TABLE #{table_name} RENAME COLUMN #{column_name} TO #{new_column_name}"
       end
 
-      def remove_index(table_name, options)
+      def remove_index(table_name, options) #:nodoc:
         if Hash === options
           index_name = options[:name]
         else
@@ -229,6 +235,7 @@ module ActiveRecord
 
         execute "DROP INDEX #{index_name}"
       end      
+
       
       private
         BYTEA_COLUMN_TYPE_OID = 17

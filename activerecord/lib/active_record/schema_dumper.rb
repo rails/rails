@@ -1,7 +1,7 @@
 module ActiveRecord
   # This class is used to dump the database schema for some connection to some
   # output format (i.e., ActiveRecord::Schema).
-  class SchemaDumper
+  class SchemaDumper #:nodoc:
     private_class_method :new
 
     def self.dump(connection=ActiveRecord::Base.connection, stream=STDOUT)
