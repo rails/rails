@@ -85,5 +85,11 @@ class SendFileTest < Test::Unit::TestCase
     assert_equal 'type', h['Content-Type']
     assert_equal 'disposition; filename="filename"', h['Content-Disposition']
     assert_equal 'binary', h['Content-Transfer-Encoding']
+    
+    # test overriding Cache-Control: no-cache header to fix IE open/save dialog
+    @controller.headers = { 'Cache-Control' => 'no-cache' }
+    @controller.send(:send_file_headers!, options)
+    h = @controller.headers
+    assert_equal 'private', h['Cache-Control']
   end
 end
