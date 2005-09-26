@@ -5,6 +5,7 @@ DROP TABLE developers;
 DROP TABLE projects;
 DROP TABLE developers_projects;
 DROP TABLE customers;
+DROP TABLE orders;
 DROP TABLE movies;
 DROP TABLE subscribers;
 DROP TABLE booleantests;
