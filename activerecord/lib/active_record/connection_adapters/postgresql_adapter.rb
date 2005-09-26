@@ -79,7 +79,7 @@ module ActiveRecord
 
       def quote(value, column = nil)
         if value.class == String && column && column.type == :binary
-          quote_bytea(value)
+          "'#{escape_bytea(value)}'"
         else
           super
         end
@@ -266,16 +266,52 @@ module ActiveRecord
           return rows
         end
 
-        def quote_bytea(s)
-          "'#{escape_bytea(s)}'"
-        end
-
         def escape_bytea(s)
-          s.gsub(/\\/) { '\\\\\\\\' }.gsub(/[^\\]/) { |c| sprintf('\\\\%03o', c[0].to_i) } unless s.nil?
+          if PGconn.respond_to? :escape_bytea
+            self.class.send(:define_method, :escape_bytea) do |s|
+              PGconn.escape_bytea(s) if s
+            end
+          else
+            self.class.send(:define_method, :escape_bytea) do |s|
+              if s
+                result = ''
+                s.each_byte { |c| result << sprintf('\\\\%03o', c) }
+                result
+              end
+            end
+          end
+          escape_bytea(s)
         end
 
         def unescape_bytea(s)
-          s.gsub(/\\([0-9][0-9][0-9])/) { $1.oct.chr }.gsub(/\\\\/) { '\\' } unless s.nil?
+          if PGconn.respond_to? :unescape_bytea
+            self.class.send(:define_method, :unescape_bytea) do |s|
+              PGconn.unescape_bytea(s) if s
+            end
+          else
+            self.class.send(:define_method, :unescape_bytea) do |s|
+              if s
+                result = ''
+                i, max = 0, s.size
+                while i < max
+                  char = s[i]
+                  if char == ?\\
+                    if s[i+1] == ?\\
+                      char = ?\\
+                      i += 1
+                    else
+                      char = s[i+1..i+3].oct
+                      i += 3
+                    end
+                  end
+                  result << char
+                  i += 1
+                end
+                result
+              end
+            end
+          end
+          unescape_bytea(s)
         end
         
         # Query a table's column names, default values, and types.
