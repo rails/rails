@@ -661,7 +661,7 @@ module ActiveRecord
     # This is especially useful for boolean flags on existing records. The regular +update_attribute+ method
     # in Base is replaced with this when the validations module is mixed in, which it is by default.
     def update_attribute_with_validation_skipping(name, value)
-      self[name] = value
+      send(name.to_s + '=', value)
       save(false)
     end
 
