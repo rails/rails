@@ -246,15 +246,15 @@ class Fixtures < Hash
     end
   end
 
-  # Work around for PostgreSQL to have new fixtures created from id 1 and running.
+  # Start PostgreSQL fixtures at id 1.  Skip tables without models
+  # and models with nonstandard primary keys.
   def self.reset_sequences(connection, table_names)
     table_names.flatten.each do |table|
-      table_class = Inflector.classify(table.to_s)
-      if Object.const_defined?(table_class)
-        pk = eval("#{table_class}::primary_key")
-        if pk == 'id'
+      if table_class = table.to_s.classify.constantize rescue nil
+        pk = table_class.columns_hash[table_class.primary_key]
+        if pk and pk.name == 'id' and pk.type == :integer
           connection.execute(
-            "SELECT setval('#{table.to_s}_id_seq', (SELECT MAX(id) FROM #{table.to_s}), true)", 
+            "SELECT setval('#{table}_id_seq', (SELECT MAX(id) FROM #{table}), true)", 
             'Setting Sequence'
           )
         end
