@@ -21,8 +21,8 @@ module ActiveRecord
       :too_short => "is too short (min is %d characters)", 
       :wrong_length => "is the wrong length (should be %d characters)", 
       :taken => "has already been taken",
-      :not_a_number => "is not a number",
-      }
+      :not_a_number => "is not a number"
+    }
       
     # Holds a hash with all the default error messages, such that they can be replaced by your own copy or localizations.
     cattr_accessor :default_error_messages
@@ -399,9 +399,11 @@ module ActiveRecord
       # method, proc or string should return or evaluate to a true or false value.
       def validates_length_of(*attrs)
         # Merge given options with defaults.
-        options = {:too_long     => ActiveRecord::Errors.default_error_messages[:too_long],
-                   :too_short    => ActiveRecord::Errors.default_error_messages[:too_short],
-                   :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length]}.merge(DEFAULT_VALIDATION_OPTIONS)
+        options = {
+          :too_long     => ActiveRecord::Errors.default_error_messages[:too_long],
+          :too_short    => ActiveRecord::Errors.default_error_messages[:too_short],
+          :wrong_length => ActiveRecord::Errors.default_error_messages[:wrong_length]
+        }.merge(DEFAULT_VALIDATION_OPTIONS)
         options.update(attrs.pop.symbolize_keys) if attrs.last.is_a?(Hash)
 
         # Ensure that one and only one range option is specified.
@@ -419,24 +421,31 @@ module ActiveRecord
         option = range_options.first
         option_value = options[range_options.first]
 
-        # Declare different validations per option.
-        validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
-        message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
-
         case option
         when :within, :in
-          raise ArgumentError, ':within must be a Range' unless option_value.is_a?(Range) # '
-          (options_without_range = options.dup).delete(option)
-          (options_with_minimum = options_without_range.dup).store(:minimum, option_value.begin)
-          validates_length_of attrs, options_with_minimum
-          (options_with_maximum = options_without_range.dup).store(:maximum, option_value.end)
-          validates_length_of attrs, options_with_maximum
-        when :is, :minimum, :maximum
-          raise ArgumentError, ":#{option} must be a nonnegative Integer" unless option_value.is_a?(Integer) and option_value >= 0 # '
-          message = options[:message] || options[message_options[option]]
-          message = (message % option_value) rescue message
+          raise ArgumentError, ":#{option} must be a Range" unless option_value.is_a?(Range) 
+
+          too_short = options[:too_short] % option_value.begin
+          too_long  = options[:too_long]  % option_value.end
+
           validates_each(attrs, options) do |record, attr, value|
-            record.errors.add(attr, message) if value.nil? or !value.size.method(validity_checks[option])[option_value]
+            if value.nil? or value.size < option_value.begin
+              record.errors.add(attr, too_short)
+            elsif value.size > option_value.end
+              record.errors.add(attr, too_long)
+            end
+          end
+        when :is, :minimum, :maximum
+          raise ArgumentError, ":#{option} must be a nonnegative Integer" unless option_value.is_a?(Integer) and option_value >= 0
+
+          # Declare different validations per option.
+          validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
+          message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
+
+          message = (options[:message] || options[message_options[option]]) % option_value
+
+          validates_each(attrs, options) do |record, attr, value|
+            record.errors.add(attr, message) unless !value.nil? and value.size.method(validity_checks[option])[option_value]
           end
         end
       end
@@ -605,7 +614,7 @@ module ActiveRecord
       # * <tt>message</tt> - A custom error message (default is: "is not a number")
       # * <tt>on</tt> Specifies when this validation is active (default is :save, other options :create, :update)
       # * <tt>only_integer</tt> Specifies whether the value has to be an integer, e.g. an integral value (default is false)
-      # * <tt>allow_nil</tt> Skip validation if attribute is nil (default is false). Notice that for fixnum and float columsn empty strings are converted to nil
+      # * <tt>allow_nil</tt> Skip validation if attribute is nil (default is false). Notice that for fixnum and float columns empty strings are converted to nil
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
