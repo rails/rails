@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve error message when nil is assigned to an attr which validates_size_of within a range.  #2022 [Manuel Holtgrewe <purestorm@ggnore.net>]
+
 * Make update_attribute use the same writer method that update_attributes uses.
  #2237 [trevor@protocool.com]
 
