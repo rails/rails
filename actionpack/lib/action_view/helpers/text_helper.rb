@@ -301,7 +301,7 @@ module ActionView
                           (?:\#\w*)?            # trailing anchor
                         )
                         ([[:punct:]]|\s|<|$)    # trailing text
-                       /x
+                       /x unless const_defined?(:AUTO_LINK_RE)
 
         # Turns all urls into clickable links.
         def auto_link_urls(text, href_options = {})

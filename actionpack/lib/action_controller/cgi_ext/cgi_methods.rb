@@ -88,9 +88,30 @@ class CGIMethods #:nodoc:
       # test most frequent case first
       if value.is_a?(String)
         value
-      elsif value.respond_to?(:content_type) && !value.content_type.empty?
+      elsif value.respond_to?(:content_type)
         # Uploaded file
+        unless value.respond_to?(:full_original_filename)
+          class << value
+            alias_method :full_original_filename, :original_filename
+
+            # Take the basename of the upload's original filename.
+            # This handles the full Windows paths given by Internet Explorer
+            # (and perhaps other broken user agents) without affecting
+            # those which give the lone filename.
+            # The Windows regexp is adapted from Perl's File::Basename.
+            def original_filename
+              if md = /^(?:.*[:\\\/])?(.*)/m.match(full_original_filename)
+                md.captures.first
+              else
+                File.basename full_original_filename
+              end
+            end
+          end
+        end
+
+        # Return the same value after overriding original_filename.
         value
+
       elsif value.respond_to?(:read)
         # Value as part of a multipart request
         value.read

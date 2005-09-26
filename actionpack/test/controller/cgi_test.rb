@@ -4,16 +4,6 @@ require 'test/unit'
 require 'action_controller/cgi_ext/cgi_methods'
 require 'stringio'
 
-class MockUploadedFile < StringIO
-  def content_type
-    "img/jpeg"
-  end
-
-  def original_filename
-    "my_file.doc"
-  end
-end
-
 class CGITest < Test::Unit::TestCase
   def setup
     @query_string = "action=create_customer&full_name=David%20Heinemeier%20Hansson&customerId=1"
@@ -116,15 +106,20 @@ class CGITest < Test::Unit::TestCase
   end
   
   def test_parse_params_from_multipart_upload
-    mock_file = MockUploadedFile.new
+    mockup = Struct.new(:content_type, :original_filename)
+    file = mockup.new('img/jpeg', 'foo.jpg')
+    ie_file = mockup.new('img/jpeg', 'c:\\Documents and Settings\\foo\\Desktop\\bar.jpg')
   
     input = {
       "something" => [ StringIO.new("") ],
       "array_of_stringios" => [[ StringIO.new("One"), StringIO.new("Two") ]],
       "mixed_types_array" => [[ StringIO.new("Three"), "NotStringIO" ]],
-      "mixed_types_as_checkboxes[strings][nested]" => [[ mock_file, "String", StringIO.new("StringIO")]],
+      "mixed_types_as_checkboxes[strings][nested]" => [[ file, "String", StringIO.new("StringIO")]],
+      "ie_mixed_types_as_checkboxes[strings][nested]" => [[ ie_file, "String", StringIO.new("StringIO")]],
       "products[string]" => [ StringIO.new("Apple Computer") ],
-      "products[file]" => [ mock_file ]
+      "products[file]" => [ file ],
+      "ie_products[string]" => [ StringIO.new("Microsoft") ],
+      "ie_products[file]" => [ ie_file ]
     }
     
     expected_output =  {
@@ -132,17 +127,35 @@ class CGITest < Test::Unit::TestCase
       "array_of_stringios" => ["One", "Two"],
       "mixed_types_array" => [ "Three", "NotStringIO" ],
       "mixed_types_as_checkboxes" => {
-         "strings"=> {
-            "nested"=>[ mock_file, "String", "StringIO" ]
+         "strings" => {
+            "nested" => [ file, "String", "StringIO" ]
          },
       },
-      "products"  => {
-        "string"  => "Apple Computer",
-        "file"    => mock_file
+      "ie_mixed_types_as_checkboxes" => {
+         "strings" => {
+            "nested" => [ ie_file, "String", "StringIO" ]
+         },
+      },
+      "products" => {
+        "string" => "Apple Computer",
+        "file" => file
+      },
+      "ie_products" => {
+        "string" => "Microsoft",
+        "file" => ie_file
       }
     }
 
-    assert_equal expected_output, CGIMethods.parse_request_parameters(input)
+    params = CGIMethods.parse_request_parameters(input)
+    assert_equal expected_output, params
+
+    # Lone filenames are preserved.
+    assert_equal 'foo.jpg', params['mixed_types_as_checkboxes']['strings']['nested'].first.original_filename
+    assert_equal 'foo.jpg', params['products']['file'].original_filename
+
+    # But full Windows paths are reduced to their basename.
+    assert_equal 'bar.jpg', params['ie_mixed_types_as_checkboxes']['strings']['nested'].first.original_filename
+    assert_equal 'bar.jpg', params['ie_products']['file'].original_filename
   end
   
   def test_parse_params_with_file

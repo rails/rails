@@ -1,5 +1,7 @@
 *SVN*
 
+* Shorten IE file upload path to filename only to match other browsers.  #1507 [court3nay@gmail.com]
+
 * Fix open/save dialog in IE not opening files send with send_file/send_data, #2279 [Thomas Fuchs]
 
 * Fixed that auto_discovery_link_tag couldn't take a string as the URL [DHH]
