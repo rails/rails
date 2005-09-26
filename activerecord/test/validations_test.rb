@@ -396,15 +396,20 @@ class ValidationsTest < Test::Unit::TestCase
   def test_validates_length_of_using_within
     Topic.validates_length_of(:title, :content, :within => 3..5)
 
-    t = Topic.create("title" => "a!", "content" => "I'm ooooooooh so very long")
-    assert !t.save
-
+    t = Topic.new("title" => "a!", "content" => "I'm ooooooooh so very long")
+    assert !t.valid?
     assert_equal "is too short (min is 3 characters)", t.errors.on(:title)
     assert_equal "is too long (max is 5 characters)", t.errors.on(:content)
 
+    t.title = nil
+    t.content = nil
+    assert !t.valid?
+    assert_equal "is too short (min is 3 characters)", t.errors.on(:title)
+    assert_equal "is too short (min is 3 characters)", t.errors.on(:content)
+
     t.title = "abe"
     t.content  = "mad"
-    assert t.save
+    assert t.valid?
   end
 
   def test_optionally_validates_length_of_using_within
