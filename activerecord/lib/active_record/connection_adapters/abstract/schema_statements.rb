@@ -54,12 +54,12 @@ module ActiveRecord
       end
 
       # Create a new index on the given table. By default, it will be named
-      # <code>"#{table_name}_#{column_name.to_a.first}_index"</code>, but you
+      # <code>"#{table_name}_#{Array(column_name).first}_index"</code>, but you
       # can explicitly name the index by passing <code>:name => "..."</code>
       # as the last parameter. Unique indexes may be created by passing
       # <code>:unique => true</code>.
       def add_index(table_name, column_name, options = {})
-        index_name = "#{table_name}_#{column_name.to_a.first}_index"
+        index_name = "#{table_name}_#{Array(column_name).first}_index"
 
         if Hash === options # legacy support, since this param was a string
           index_type = options[:unique] ? "UNIQUE" : ""
@@ -68,7 +68,7 @@ module ActiveRecord
           index_type = options
         end
 
-        execute "CREATE #{index_type} INDEX #{index_name} ON #{table_name} (#{column_name.to_a.join(", ")})"
+        execute "CREATE #{index_type} INDEX #{index_name} ON #{table_name} (#{Array(column_name).join(", ")})"
       end
 
       # Remove the given index from the table.
