@@ -61,17 +61,17 @@ module ActiveRecord
   module ConnectionAdapters #:nodoc:
     class SQLiteColumn < Column #:nodoc:
       def string_to_binary(value)
-        value.gsub(/(\0|\%)/) do
-          case $1
+        value.gsub(/\0|\%/) do |b|
+          case b
             when "\0" then "%00"
-            when "%" then "%25"
+            when "%"  then "%25"
           end
         end                
       end
       
       def binary_to_string(value)
-        value.gsub(/(%00|%25)/) do
-          case $1
+        value.gsub(/%00|%25/) do |b|
+          case b
             when "%00" then "\0"
             when "%25" then "%"
           end
