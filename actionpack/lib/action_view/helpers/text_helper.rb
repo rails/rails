@@ -35,7 +35,7 @@ module ActionView
       # N.B.: The +phrase+ is sanitized to include only letters, digits, and spaces before use.
       def highlight(text, phrase, highlighter = '<strong class="highlight">\1</strong>')
         if phrase.blank? then return text end
-        text.gsub(/(#{escape_regexp(phrase)})/i, highlighter) unless text.nil?
+        text.gsub(/(#{Regexp.escape(phrase)})/i, highlighter) unless text.nil?
       end
 
       # Extracts an excerpt from the +text+ surrounding the +phrase+ with a number of characters on each side determined
@@ -43,7 +43,7 @@ module ActionView
       #   excerpt("hello my world", "my", 3) => "...lo my wo..."
       def excerpt(text, phrase, radius = 100, excerpt_string = "...")
         if text.nil? || phrase.nil? then return end
-        phrase = escape_regexp(phrase)
+        phrase = Regexp.escape(phrase)
 
         if found_pos = text =~ /(#{phrase})/i
           start_pos = [ found_pos - radius, 0 ].max
@@ -280,11 +280,6 @@ module ActionView
           @_cycles[name] = cycle_object
         end
       
-        # Returns a version of the text that's safe to use in a regular expression without triggering engine features.
-        def escape_regexp(text)
-          text.gsub(/([\\|?+*\/\)\(])/) { |m| "\\#{$1}" }
-        end
-
         AUTO_LINK_RE = /
                         (                       # leading text
                           <\w+.*?>|             #   leading HTML tag, or

@@ -100,7 +100,13 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal("...iful morning", excerpt("This is a beautiful morning", "morning", 5))
     assert_nil excerpt("This is a beautiful morning", "day")
   end
+
+  def test_excerpt_with_regex
+    assert_equal('...is a beautiful! morn...', excerpt('This is a beautiful! morning', 'beautiful', 5))
+    assert_equal('...is a beautiful? morn...', excerpt('This is a beautiful? morning', 'beautiful', 5))
+  end
   
+    
   def test_word_wrap
     assert_equal("my very very\nvery long\nstring", word_wrap("my very very very long string", 15))
   end
