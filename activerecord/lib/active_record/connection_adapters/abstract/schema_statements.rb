@@ -102,8 +102,8 @@ module ActiveRecord
 
       def initialize_schema_information #:nodoc:
         begin
-          execute "CREATE TABLE schema_info (version #{type_to_sql(:integer)})"
-          execute "INSERT INTO schema_info (version) VALUES(0)"
+          execute "CREATE TABLE #{ActiveRecord::Migrator.schema_info_table_name} (version #{type_to_sql(:integer)})"
+          execute "INSERT INTO #{ActiveRecord::Migrator.schema_info_table_name} (version) VALUES(0)"
         rescue ActiveRecord::StatementInvalid
           # Schema has been intialized
         end
@@ -112,7 +112,7 @@ module ActiveRecord
       def dump_schema_information #:nodoc:
         begin
           if (current_schema = ActiveRecord::Migrator.current_version) > 0
-            return "INSERT INTO schema_info (version) VALUES (#{current_schema});" 
+            return "INSERT INTO #{ActiveRecord::Migrator.schema_info_table_name} (version) VALUES (#{current_schema});" 
           end
         rescue ActiveRecord::StatementInvalid 
           # No Schema Info

@@ -142,6 +142,7 @@ module ActiveRecord
 
       private
         def method_missing(method, *arguments, &block)
+          arguments[0] = Migrator.proper_table_name(arguments.first) unless arguments.empty?
           ActiveRecord::Base.connection.send(method, *arguments, &block)
         end
     end
@@ -169,9 +170,19 @@ module ActiveRecord
         self.new(:down, migrations_path, target_version).migrate
       end
       
-      def current_version
-        (Base.connection.select_one("SELECT version FROM schema_info") || {"version" => 0})["version"].to_i
+      def schema_info_table_name
+        Base.table_name_prefix + "schema_info" + Base.table_name_suffix
       end
+
+      def current_version
+        (Base.connection.select_one("SELECT version FROM #{schema_info_table_name}") || {"version" => 0})["version"].to_i
+      end
+
+      def proper_table_name(name)
+        # Use the ActiveRecord objects own table_name, or pre/suffix from ActiveRecord::Base if name is a symbol/string
+        name.table_name rescue "#{ActiveRecord::Base.table_name_prefix}#{name}#{ActiveRecord::Base.table_name_suffix}"
+      end
+        
     end
     
     def initialize(direction, migrations_path, target_version = nil)
@@ -222,7 +233,7 @@ module ActiveRecord
       end
       
       def set_schema_version(version)
-        Base.connection.update("UPDATE schema_info SET version = #{down? ? version.to_i - 1 : version.to_i}")
+        Base.connection.update("UPDATE #{self.class.schema_info_table_name} SET version = #{down? ? version.to_i - 1 : version.to_i}")
       end
       
       def up?

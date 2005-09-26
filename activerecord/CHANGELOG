@@ -1,5 +1,7 @@
 *SVN*
 
+* Make migrations honor table name prefixes and suffixes. #2298 [Jakob S, Marcel Molina]
+
 * Correct and optimize PostgreSQL bytea escaping.  #1745, #1837 [dave@cherryville.org, ken@miriamtech.com, bellis@deepthought.org]
 
 * Fixtures should only reset a PostgreSQL sequence if it corresponds to an integer primary key named id.  #1749 [chris@chrisbrinker.com]
