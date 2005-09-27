@@ -1,5 +1,7 @@
 *SVN*
 
+* Clean logger is compatible with both 1.8.2 and 1.8.3 Logger.  #2263 [Michael Schuerig <michael@schuerig.de>]
+
 * Added native, faster implementations of .blank? for the core types #2286 [skae]
 
 * Fixed clean logger to work with Ruby 1.8.3 Logger class #2245

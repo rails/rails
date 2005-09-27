@@ -10,7 +10,14 @@ class Logger #:nodoc:
   end
 
   private
-    def format_message(severity, timestamp, msg, progname)
-      "#{msg}\n"
+    # Ruby 1.8.3 swapped the format_message params.
+    if RUBY_VERSION < '1.8.3'
+      def format_message(severity, timestamp, msg, progname)
+        "#{msg}\n"
+      end
+    else
+      def format_message(severity, timestamp, progname, msg)
+        "#{msg}\n"
+      end
     end
 end
