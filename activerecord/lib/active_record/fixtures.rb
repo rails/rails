@@ -254,7 +254,7 @@ class Fixtures < Hash
         pk = table_class.columns_hash[table_class.primary_key]
         if pk and pk.type == :integer
           connection.execute(
-            "SELECT setval('#{table}_#{pk.name}_seq', (SELECT COALESCE(0, MAX(#{pk.name}))+1 FROM #{table}), false)", 
+            "SELECT setval('#{table}_#{pk.name}_seq', (SELECT COALESCE(MAX(#{pk.name}), 0)+1 FROM #{table}), false)", 
             'Setting Sequence'
           )
         end
