@@ -1,7 +1,8 @@
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # TODO: Document me!
     module Quoting
+      # Quotes the column value to help prevent
+      # {SQL injection attacks}[http://en.wikipedia.org/wiki/SQL_injection].
       def quote(value, column = nil)
         case value
           when String
@@ -22,10 +23,14 @@ module ActiveRecord
         end
       end
 
+      # Quotes a string, escaping any ' (single quote) and \ (backslash)
+      # characters.
       def quote_string(s)
         s.gsub(/\\/, '\&\&').gsub(/'/, "''") # ' (for ruby-mode)
       end
 
+      # Returns a quoted form of the column name.  This is highly adapter
+      # specific.
       def quote_column_name(name)
         name
       end

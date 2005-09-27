@@ -35,6 +35,12 @@ module ActiveRecord
     # All the concrete database adapters follow the interface laid down in this class.
     # You can use this interface directly by borrowing the database connection from the Base with
     # Base.connection.
+    #
+    # Most of the methods in the adapter are useful during migrations.  Most
+    # notably, SchemaStatements#create_table, SchemaStatements#drop_table,
+    # SchemaStatements#add_index, SchemaStatements#remove_index,
+    # SchemaStatements#add_column, SchemaStatements#change_column and
+    # SchemaStatements#remove_column are very useful.
     class AbstractAdapter
       include Quoting, DatabaseStatements, SchemaStatements
       @@row_even = true
@@ -44,12 +50,14 @@ module ActiveRecord
         @runtime = 0
       end
 
-      # Returns the human-readable name of the adapter.  Use mixed case - one can always use downcase if needed.
+      # Returns the human-readable name of the adapter.  Use mixed case - one
+      # can always use downcase if needed.
       def adapter_name
         'Abstract'
       end
       
-      # Returns true for database adapters that has implemented the schema statements.
+      # Does this adapter support migrations ?  Backend specific, as the
+      # abstract adapter always returns +false+.
       def supports_migrations?
         false
       end

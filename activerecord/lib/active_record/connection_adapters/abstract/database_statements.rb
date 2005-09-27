@@ -1,11 +1,12 @@
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
-    # TODO: Document me!
     module DatabaseStatements
-      # Returns an array of record hashes with the column names as a keys and fields as values.
+      # Returns an array of record hashes with the column names as keys and
+      # column values as values.
       def select_all(sql, name = nil) end
 
-      # Returns a record hash with the column names as a keys and fields as values.
+      # Returns a record hash with the column names as keys and column values
+      # as values.
       def select_one(sql, name = nil) end
 
       # Returns a single value from a record
@@ -21,8 +22,11 @@ module ActiveRecord
         result.map{ |v| v.values.first }
       end
 
-      # Executes the statement
-      def execute(sql, name = nil) end
+      # Executes the SQL statement in the context of this connection.
+      # This abstract method raises a NotImplementedError.
+      def execute(sql, name = nil)
+        raise NotImplementedError, "execute is an abstract method"
+      end
 
       # Returns the last auto-generated ID from the affected table.
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) end
@@ -54,16 +58,23 @@ module ActiveRecord
       # Commits the transaction (and turns on auto-committing).
       def commit_db_transaction()   end
 
-      # Rolls back the transaction (and turns on auto-committing). Must be done if the transaction block
-      # raises an exception or returns false.
+      # Rolls back the transaction (and turns on auto-committing). Must be
+      # done if the transaction block raises an exception or returns false.
       def rollback_db_transaction() end
 
-      def add_limit!(sql, options) #:nodoc:
+      # Alias for #add_limit_offset!.
+      def add_limit!(sql, options)
         return unless options
         add_limit_offset!(sql, options)
       end
 
-      def add_limit_offset!(sql, options) #:nodoc:
+      # Appends +LIMIT+ and +OFFSET+ options to a SQL statement.
+      # This method *modifies* the +sql+ parameter.
+      # ===== Examples
+      #  add_limit_offset!('SELECT * FROM suppliers', {:limit => 10, :offset => 50})
+      # generates
+      #  SELECT * FROM suppliers LIMIT 10 OFFSET 50
+      def add_limit_offset!(sql, options)
         return if options[:limit].nil?
         sql << " LIMIT #{options[:limit]}"
         sql << " OFFSET #{options[:offset]}" if options.has_key?(:offset) and !options[:offset].nil?

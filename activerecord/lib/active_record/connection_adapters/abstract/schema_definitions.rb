@@ -1,11 +1,15 @@
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
-    class Column #:nodoc:
+    # An abstract definition of a column in a table.
+    class Column
       attr_reader :name, :default, :type, :limit, :null
-      # The name should contain the name of the column, such as "name" in "name varchar(250)"
-      # The default should contain the type-casted default of the column, such as 1 in "count int(11) DEFAULT 1"
-      # The type parameter should either contain :integer, :float, :datetime, :date, :text, or :string
-      # The sql_type is just used for extracting the limit, such as 10 in "varchar(10)"
+
+      # Instantiates a new column in the table.
+      #
+      # +name+ is the column's name, as in <tt><b>supplier_id</b> int(11)</tt>.
+      # +default+ is the type-casted default value, such as <tt>sales_stage varchar(20) default <b>'new'</b></tt>.
+      # +sql_type+ is only used to extract the column's length, if necessary.  For example, <tt>company_name varchar(<b>60</b>)</tt>.
+      # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type = nil, null = true)
         @name, @type, @null = name, simplified_type(sql_type), null
         # have to do this one separately because type_cast depends on #type
@@ -13,6 +17,7 @@ module ActiveRecord
         @limit = extract_limit(sql_type) unless sql_type.nil?
       end
 
+      # Returns the Ruby class that corresponds to the abstract data type.
       def klass
         case type
           when :integer       then Fixnum
@@ -27,6 +32,7 @@ module ActiveRecord
         end
       end
 
+      # Casts value (which is a String) to an appropriate instance.
       def type_cast(value)
         if value.nil? then return nil end
         case type
@@ -44,14 +50,20 @@ module ActiveRecord
         end
       end
 
+      # Returns the human name of the column name.
+      #
+      # ===== Examples
+      #  Column.new('sales_stage', ...).human_name #=> 'Sales stage'
       def human_name
         Base.human_attribute_name(@name)
       end
 
+      # Used to convert from Strings to BLOBs
       def string_to_binary(value)
         value
       end
 
+      # Used to convert from BLOBs to Strings
       def binary_to_string(value)
         value
       end
@@ -108,7 +120,7 @@ module ActiveRecord
           end
         end
     end
-    
+
     class IndexDefinition < Struct.new(:table, :name, :unique, :columns) #:nodoc:
     end
 
@@ -130,7 +142,9 @@ module ActiveRecord
         end
     end
 
-    class TableDefinition #:nodoc:
+    # Represents a SQL table in an abstract way.
+    # Columns are stored as ColumnDefinition in the #columns attribute.
+    class TableDefinition
       attr_accessor :columns
 
       def initialize(base)
@@ -138,14 +152,48 @@ module ActiveRecord
         @base = base
       end
 
+      # Appends a primary key definition to the table definition.
+      # Can be called multiple times, but this is probably not a good idea.
       def primary_key(name)
         column(name, native[:primary_key])
       end
-      
+
+      # Returns a ColumnDefinition for the column with name +name+.
       def [](name)
         @columns.find {|column| column.name == name}
       end
 
+      # Instantiates a new column for the table.
+      # The +type+ parameter must be one of the following values:
+      # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
+      # <tt>:integer</tt>, <tt>:float</tt>, <tt>:datetime</tt>,
+      # <tt>:timestamp</tt>, <tt>:time</tt>, <tt>:date</tt>,
+      # <tt>:binary</tt>, <tt>:boolean</tt>.
+      #
+      # Available options are (none of these exists by default):
+      # * <tt>:limit</tt>:
+      #   Requests a maximum column length (<tt>:string</tt>, <tt>:text</tt>,
+      #   <tt>:binary</tt> or <tt>:integer</tt> columns only)
+      # * <tt>:default</tt>:
+      #   The column's default value.  You cannot explicitely set the default
+      #   value to +NULL+.  Simply leave off this option if you want a +NULL+
+      #   default value.
+      # * <tt>:null</tt>:
+      #   Allows or disallows +NULL+ values in the column.  This option could
+      #   have been named <tt>:null_allowed</tt>.
+      #
+      # This method returns <tt>self</tt>.
+      #
+      # ===== Examples
+      #  # Assuming def is an instance of TableDefinition
+      #  def.column(:granted, :boolean)
+      #    #=> granted BOOLEAN
+      #
+      #  def.column(:picture, :binary, :limit => 2.megabytes)
+      #    #=> picture BLOB(2097152)
+      #
+      #  def.column(:sales_stage, :string, :limit => 20, :default => 'new', :null => false)
+      #    #=> sales_stage VARCHAR(20) DEFAULT 'new' NOT NULL
       def column(name, type, options = {})
         column = self[name] || ColumnDefinition.new(@base, name, type)
         column.limit = options[:limit] || native[type.to_sym][:limit] if options[:limit] or native[type.to_sym]
@@ -155,6 +203,9 @@ module ActiveRecord
         self
       end
             
+      # Returns a String whose contents are the column definitions
+      # concatenated together.  This string can then be pre and appended to
+      # to generate the final SQL to create the table.
       def to_sql
         @columns * ', '
       end
