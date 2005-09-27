@@ -11,6 +11,9 @@ class CGIMethods #:nodoc:
       parsed_params = {}
   
       query_string.split(/[&;]/).each { |p| 
+        # Ignore repeated delimiters.
+        next if p.empty?
+
         k, v = p.split('=',2)
         v = nil if (v && v.empty?)
 

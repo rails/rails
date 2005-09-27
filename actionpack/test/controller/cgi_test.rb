@@ -14,6 +14,8 @@ class CGITest < Test::Unit::TestCase
       "action=update_order&full_name=Lau%20Taarnskov&products=4&products=2&products=3"
     @query_string_with_many_equal = "action=create_customer&full_name=abc=def=ghi"
     @query_string_without_equal = "action"
+    @query_string_with_many_ampersands =
+      "&action=create_customer&&&full_name=David%20Heinemeier%20Hansson"
   end
 
   def test_query_string
@@ -66,7 +68,14 @@ class CGITest < Test::Unit::TestCase
       CGIMethods.parse_query_parameters(@query_string_without_equal)
     )    
   end
-  
+
+  def test_query_string_with_many_ampersands
+    assert_equal(
+      { "action" => "create_customer", "full_name" => "David Heinemeier Hansson"},
+      CGIMethods.parse_query_parameters(@query_string_with_many_ampersands)
+    )
+  end
+
   def test_parse_params
     input = {
       "customers[boston][first][name]" => [ "David" ],

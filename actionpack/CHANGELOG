@@ -1,5 +1,7 @@
 *SVN*
 
+* Tolerate consecutive delimiters in query parameters.  #2295 [darashi@gmail.com]
+
 * Streamline render process, code cleaning. Closes #2294. [skae]
 
 * Keep flash after components are rendered. #2291 [Rick Olson, Scott]
