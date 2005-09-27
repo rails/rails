@@ -91,7 +91,7 @@ class CGIMethods #:nodoc:
       # test most frequent case first
       if value.is_a?(String)
         value
-      elsif value.respond_to?(:content_type)
+      elsif value.respond_to?(:content_type) && ! value.content_type.blank?
         # Uploaded file
         unless value.respond_to?(:full_original_filename)
           class << value

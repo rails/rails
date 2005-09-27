@@ -1,5 +1,7 @@
 *SVN*
 
+* Undo condition change made in [2345] to prevent normal parameters arriving as StringIO.
+
 * Tolerate consecutive delimiters in query parameters.  #2295 [darashi@gmail.com]
 
 * Streamline render process, code cleaning. Closes #2294. [skae]
