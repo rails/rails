@@ -26,7 +26,7 @@ class CodeStatistics
       @pairs.inject({}) { |stats, pair| stats[pair.first] = calculate_directory_statistics(pair.last); stats }
     end
 
-    def calculate_directory_statistics(directory, pattern = /.*\.r(b|ake)$/)
+    def calculate_directory_statistics(directory, pattern = /.*\.rb$/)
       stats = { "lines" => 0, "codelines" => 0, "classes" => 0, "methods" => 0 }
 
       Dir.foreach(directory) do |file_name| 
