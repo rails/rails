@@ -102,8 +102,10 @@ CREATE TABLE booleantests (
 CREATE TABLE defaults (
     id serial,
     modified_date date default CURRENT_DATE,
+    modified_date_function date default now(),
     fixed_date date default '2004-01-01',
     modified_time timestamp default CURRENT_TIMESTAMP,
+    modified_time_function timestamp default now(),
     fixed_time timestamp default '2004-01-01 00:00:00.000000-00',
     char1 char(1) default 'Y',
     char2 character varying(50) default 'a varchar field',

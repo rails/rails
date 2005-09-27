@@ -369,7 +369,7 @@ module ActiveRecord
           return value if value =~ /^[0-9]+(\.[0-9]*)?/
 
           # Date / Time magic values
-          return Time.now.to_s if value =~ /^\('now'::text\)::(date|timestamp)/
+          return Time.now.to_s if value =~ /^now\(\)|^\('now'::text\)::(date|timestamp)/i
 
           # Fixed dates / times
           return $1 if value =~ /^'(.+)'::(date|timestamp)/

@@ -438,18 +438,16 @@ class BasicsTest < Test::Unit::TestCase
     assert_nil topic.last_read
   end
 
-  def test_utc_as_time_zone
-    # Oracle does not have a TIME datatype.
-    if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
-      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
+  # Oracle does not have a TIME datatype.
+  unless 'OCI' == ActiveRecord::Base.connection.adapter_name
+    def test_utc_as_time_zone
+      Topic.default_timezone = :utc
+      attributes = { "bonus_time" => "5:42:00AM" }
+      topic = Topic.find(1)
+      topic.attributes = attributes
+      assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
+      Topic.default_timezone = :local
     end
-
-    Topic.default_timezone = :utc
-    attributes = { "bonus_time" => "5:42:00AM" }
-    topic = Topic.find(1)
-    topic.attributes = attributes
-    assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
-    Topic.default_timezone = :local
   end
 
   def test_default_values_on_empty_strings
@@ -682,14 +680,21 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal 2147483647, company.rating
   end
 
-  def test_default
-    if Default.connection.class.name == 'ActiveRecord::ConnectionAdapters::PostgreSQLAdapter'
+  # TODO: extend defaults tests to other databases!
+  if 'PostgreSQL' == ActiveRecord::Base.connection.adapter_name
+    def test_default
       default = Default.new
   
-      # dates / timestamps
+      # CURRENT_TIMESTAMP and NOW() timestamps
       time_format = "%m/%d/%Y %H:%M"
-      assert_equal Time.now.strftime(time_format), default.modified_time.strftime(time_format)
-      assert_equal Date.today, default.modified_date
+      now = Time.now.strftime(time_format)
+      assert_equal now, default.modified_time.strftime(time_format)
+      assert_equal now, default.modified_time_function.strftime(time_format)
+
+      # CURRENT_DATE and NOW() dates
+      today = Date.today
+      assert_equal today, default.modified_date
+      assert_equal today, default.modified_date_function
   
       # fixed dates / times
       assert_equal Date.new(2004, 1, 1), default.fixed_date

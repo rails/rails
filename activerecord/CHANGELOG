@@ -1,5 +1,7 @@
 *SVN*
 
+* Recognize PostgreSQL NOW() default as equivalent to CURRENT_TIMESTAMP or CURRENT_DATE, depending on the column's type.  #2256 [mat <mat@absolight.fr>]
+
 * Extensive documentation for the abstract database adapter.  #2250 [François Beausoleil <fbeausoleil@ftml.net>]
 
 * Clean up Fixtures.reset_sequences for PostgreSQL.  Handle tables with no rows and models with custom primary keys.  #2174, #2183 [jay@jay.fm, Blair Zajac <blair@orcaware.com>]
