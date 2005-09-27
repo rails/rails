@@ -252,9 +252,9 @@ class Fixtures < Hash
     table_names.flatten.each do |table|
       if table_class = table.to_s.classify.constantize rescue nil
         pk = table_class.columns_hash[table_class.primary_key]
-        if pk and pk.name == 'id' and pk.type == :integer
+        if pk and pk.type == :integer
           connection.execute(
-            "SELECT setval('#{table}_id_seq', (SELECT MAX(id) FROM #{table}), true)", 
+            "SELECT setval('#{table}_#{pk.name}_seq', (SELECT COALESCE(0, MAX(#{pk.name}))+1 FROM #{table}), false)", 
             'Setting Sequence'
           )
         end
