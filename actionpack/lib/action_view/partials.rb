@@ -89,7 +89,7 @@ module ActionView
       end
 
       def partial_counter_name(partial_name)
-        "#{partial_name.split('/').last}_counter"
+        "#{partial_name.split('/').last}_counter".intern
       end
       
       def extracting_object(partial_name, local_assigns, deprecated_local_assigns)

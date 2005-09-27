@@ -1,5 +1,7 @@
 *SVN*
 
+* Streamline render process, code cleaning. Closes #2294. [skae]
+
 * Keep flash after components are rendered. #2291 [Rick Olson, Scott]
 
 * Shorten IE file upload path to filename only to match other browsers.  #1507 [court3nay@gmail.com]

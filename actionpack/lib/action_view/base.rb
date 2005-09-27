@@ -129,13 +129,25 @@ module ActionView #:nodoc:
     @@erb_trim_mode = '-'
     cattr_accessor :erb_trim_mode
 
-    @@cache_template_loading = false # Unused at the moment
+    # Specify whether file modification times should be checked to see if a template needs recompilation
+    @@cache_template_loading = false
     cattr_accessor :cache_template_loading
 
     @@template_handlers = {}
+ 
+    module CompiledTemplates
+      # holds compiled template code
+    end
+    include CompiledTemplates
 
-    @@compiled_templates = CompiledTemplates.new
-    include @@compiled_templates
+    # maps inline templates to their method names 
+    @@method_names = {}
+    # map method names to their compile time
+    @@compile_time = {}
+    # map method names to the names passed in local assigns so far
+    @@template_args = {}
+    # count the number of inline templates
+    @@inline_template_count = 0    
 
     class ObjectWrapper < Struct.new(:value) #:nodoc:
     end
@@ -221,32 +233,24 @@ module ActionView #:nodoc:
       end
     end
 
-    # Render the privded template with the given local assigns. If the template has not been rendered with the provided
+    # Render the provided template with the given local assigns. If the template has not been rendered with the provided
     # local assigns yet, or if the template has been updated on disk, then the template will be compiled to a method.
     #
-    # Either, but not both, of template and file_path may be nil. If file_path is given but template is nil, the template
+
+    # Either, but not both, of template and file_path may be nil. If file_path is given, the template
     # will only be read if it has to be compiled.
     #
     def compile_and_render_template(extension, template = nil, file_path = nil, local_assigns = {})
-      file_path = File.expand_path(file_path) if file_path
-      identifier = file_path || template # either might be nil. Prefer to use the file_path as a key
-      names, params = split_locals(local_assigns)
-      
-      compile = ! @@compiled_templates.compiled?(identifier, names) # Compile the template if it hasn't been done
-      if ! compile && file_path # If the file path is given, recompile if the mtime is new.
-        compiled_at = @@compiled_templates.mtime(identifier, names)
-        compile = compiled_at.nil? || (mtime = File.mtime(file_path)).nil? || compiled_at < mtime
-      end
-      
-      if compile
+      # compile the given template, if necessary
+      if compile_template?(template, file_path, local_assigns)
         template ||= read_template_file(file_path, extension)
-        compile_template(extension, file_path || 'inline-template', identifier, template, names)
+        compile_template(extension, template, file_path, local_assigns)
       end
 
-      # Get the selector for this template and names, then call the method.
-      selector = @@compiled_templates.selector(identifier, names)
+      # Get the method name for this template and run it
+      method_name = @@method_names[file_path || template]
       evaluate_assigns                                    
-      send(selector, *params) do |*name|
+      send(method_name, local_assigns) do |*name|
         instance_variable_get "@content_for_#{name.first || 'layout'}"
       end
     end
@@ -268,11 +272,11 @@ module ActionView #:nodoc:
     end
 
     def erb_template_exists?(template_path)#:nodoc:
-      template_exists?(template_path, 'rhtml')
+      template_exists?(template_path, :rhtml)
     end
 
     def builder_template_exists?(template_path)#:nodoc:
-      template_exists?(template_path, 'rxml')
+      template_exists?(template_path, :rxml)
     end
 
     def file_exists?(template_path)#:nodoc:
@@ -290,24 +294,13 @@ module ActionView #:nodoc:
       end
 
       def template_exists?(template_path, extension)
-        File.file?(full_template_path(template_path, extension))
+        file_path = full_template_path(template_path, extension)
+        @@method_names.has_key?(file_path) || FileTest.exists?(file_path)
       end
 
-      # This method reads a template file. No, it doesn't check mtimes, look to check if the template
-      # has been compiled, or check your date of birth. It reads the template file. Crazy, I know.
+      # This method reads a template file.
       def read_template_file(template_path, extension)
         File.read(template_path)
-      end
-
-      # Split the provided hash of local assigns into two arrays, one of the names, and another of the value
-      # The arrays are guarenteed to be in matching order, and also ordered the same for different hashes.
-      def split_locals(assigns)
-        names, values = [], []
-        assigns.to_a.sort_by {|pair| pair.first.to_s}.each do |name, value|
-          names << name
-          values << value
-        end
-        return [names, values]
       end
 
       def evaluate_assigns
@@ -317,24 +310,6 @@ module ActionView #:nodoc:
         end
       end
 
-      # Compile the template to a method using a CompiledTemplates instance.
-      def compile_template(extension, file_path, identifier, template, local_names = [])
-        line_no = 0
-
-        case extension && extension.to_sym
-          when :rxml
-            # Initialize the xml variable to the builder instance.
-            source_code = \
-"xml = Builder::XmlMarkup.new(:indent => 2)
-@controller.headers['Content-Type'] ||= 'text/xml'\n" + template
-            line_no = -2 # offset extra line.
-          else # Assume rhtml
-            source_code = ERB.new(template, nil, @@erb_trim_mode).src
-        end
-
-        @@compiled_templates.compile_source(identifier, local_names, source_code, line_no, file_path)
-      end
-
       def delegate_render(handler, template, local_assigns)
         handler.new(self).render(template, local_assigns)
       end
@@ -342,6 +317,99 @@ module ActionView #:nodoc:
       def assign_variables_from_controller
         @assigns.each { |key, value| instance_variable_set("@#{key}", value) }
       end
+
+
+      # Return true if the given template was compiled for a superset of the keys in local_assigns
+      def supports_local_assigns?(render_symbol, local_assigns)
+        local_assigns.empty? ||
+          ((args = @@template_args[render_symbol]) && local_assigns.all? { |k,_| args.has_key?(k) })
+      end
+      
+      # Check whether compilation is necessary.
+      # Compile if the inline template or file has not been compiled yet.
+      # Or if local_assigns has a new key, which isn't supported by the compiled code yet.
+      # Or if the file has changed on disk and checking file mods hasn't been disabled. 
+      def compile_template?(template, file_name, local_assigns)
+        method_key = file_name || template
+        render_symbol = @@method_names[method_key]
+        if @@compile_time[render_symbol] && supports_local_assigns?(render_symbol, local_assigns)
+          if file_name && !@@cache_template_loading 
+            @@compile_time[render_symbol] < File.mtime(file_name)
+          end
+        else
+          true
+        end
+      end
+
+      # Create source code for given template
+      def create_template_source(extension, template, render_symbol, locals)
+        # logger.debug "Creating source for :#{render_symbol}" if logger
+        if extension && (extension.to_sym == :rxml)
+          body = "xml = Builder::XmlMarkup.new(:indent => 2)\n" +
+                 "@controller.headers['Content-Type'] ||= 'text/xml'\n" +
+                 template
+        else
+          body = ERB.new(template, nil, @@erb_trim_mode).src
+        end
+        @@template_args[render_symbol] ||= {}
+        locals_keys = @@template_args[render_symbol].keys | locals
+        @@template_args[render_symbol] = locals_keys.inject({}) { |h, k| h[k] = true; h }
+        locals_code = locals_keys.inject("") do |code, key|
+          code << "#{key} = local_assigns[:#{key}] if local_assigns.has_key?(:#{key})\n"
+        end
+        "def #{render_symbol}(local_assigns)\n#{locals_code}#{body}\nend"
+      end
+
+      def assign_method_name(extension, template, file_name)
+        method_name = '_run_'
+        if extension && (extension.to_sym == :rxml)
+          method_name << 'xml_'
+        else
+          method_name << 'html_'
+        end
+        if file_name
+          file_path = File.expand_path(file_name)
+          base_path = File.expand_path(@base_path)
+          i = file_path.index(base_path)
+          l = base_path.length
+          method_name_file_part = i ? file_path[i+l+1,file_path.length-l-1] : file_path.clone
+          method_name_file_part.sub!(/\.r(ht|x)ml$/,'')
+          method_name_file_part.tr!('/:-', '_')
+          method_name_file_part.gsub!(/[^a-zA-Z0-9_]/){|s| s[0].to_s}
+          method_name += method_name_file_part
+        else
+          @@inline_template_count += 1
+          method_name << @@inline_template_count.to_s
+        end
+        @@method_names[file_name || template] = method_name.intern
+      end
+
+      def compile_template(extension, template, file_name, local_assigns)
+        method_key = file_name || template
+        render_symbol = @@method_names[method_key] || assign_method_name(extension, template, file_name)
+        render_source = create_template_source(extension, template, render_symbol, local_assigns.keys)
+        line_offset = @@template_args[render_symbol].size
+        line_offset += 2 if extension && (extension.to_sym == :rxml)
+        begin
+          if file_name
+            CompiledTemplates.module_eval(render_source, file_name, -line_offset)
+          else
+            CompiledTemplates.module_eval(render_source)
+          end
+        rescue Object => e
+          if logger
+            logger.debug "ERROR: compiling #{render_symbol} RAISED #{e}"
+            logger.debug "Function body: #{render_source}"
+            logger.debug "Backtrace: #{e.backtrace.join("\n")}"
+          end
+          raise TemplateError.new(@base_path, method_key, @assigns, template, e)
+        end
+
+        @@compile_time[render_symbol] = Time.now
+        logger.debug "Compiled template #{method_key}\n  ==> #{render_symbol}" if logger
+        # logger.debug  "CompiledTemplates methods: #{CompiledTemplates.instance_methods.sort.inspect}" if logger
+      end
+
   end
 end
 
