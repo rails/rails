@@ -1476,20 +1476,7 @@ module ActiveRecord #:nodoc:
 
       def object_from_yaml(string)
         return string unless string.is_a?(String)
-        if has_yaml_encoding_header?(string)
-          begin
-            YAML::load(string)
-          rescue Object
-            # Apparently wasn't YAML anyway
-            string
-          end
-        else
-          string
-        end
-      end
-
-      def has_yaml_encoding_header?(string)
-        string[0..3] == "--- "
+        YAML::load(string) rescue string
       end
 
       def clone_attributes(reader_method = :read_attribute, attributes = {})

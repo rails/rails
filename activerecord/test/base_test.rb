@@ -754,9 +754,9 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_quote
-    content = "\\ \001 ' \n \\n \""
-    topic = Topic.create('content' => content)
-    assert_equal content, Topic.find(topic.id).content
+    author_name = "\\ \001 ' \n \\n \""
+    topic = Topic.create('author_name' => author_name)
+    assert_equal author_name, Topic.find(topic.id).author_name
   end
   
   def test_class_level_destroy
