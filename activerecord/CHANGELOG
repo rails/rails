@@ -1,5 +1,7 @@
 *SVN*
 
+* Extensive documentation for the abstract database adapter.  #2250 [François Beausoleil <fbeausoleil@ftml.net>]
+
 * Clean up Fixtures.reset_sequences for PostgreSQL.  Handle tables with no rows and models with custom primary keys.  #2174, #2183 [jay@jay.fm, Blair Zajac <blair@orcaware.com>]
 
 * Improve error message when nil is assigned to an attr which validates_size_of within a range.  #2022 [Manuel Holtgrewe <purestorm@ggnore.net>]
