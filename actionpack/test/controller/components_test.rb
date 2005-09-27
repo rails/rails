@@ -25,6 +25,14 @@ class CallerController < ActionController::Base
     render_text "Yes, ma'am"
   end
 
+  def set_flash
+    render_component(:controller => 'callee', :action => 'set_flash')
+  end
+
+  def use_flash
+    render_component(:controller => 'callee', :action => 'use_flash')
+  end
+
   def rescue_action(e) raise end
 end
 
@@ -35,6 +43,15 @@ class CalleeController < ActionController::Base
   
   def blowing_up
     render_text "It's game over, man, just game over, man!", "500 Internal Server Error"
+  end
+  
+  def set_flash
+    flash[:notice] = 'My stoney baby'
+    render :text => 'flash is set'
+  end
+  
+  def use_flash
+    render :text => flash[:notice] || 'no flash'
   end
 
   def rescue_action(e) raise end
@@ -70,5 +87,14 @@ class ComponentsTest < Test::Unit::TestCase
   def test_internal_calling
     get :internal_caller
     assert_equal "Are you there? Yes, ma'am", @response.body
+  end
+  
+  def test_flash
+    get :set_flash
+    assert_equal 'My stoney baby', flash[:notice]
+    get :use_flash
+    assert_equal 'My stoney baby', @response.body
+    get :use_flash
+    assert_equal 'no flash', @response.body
   end
 end
