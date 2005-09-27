@@ -1,5 +1,7 @@
 *SVN*
 
+* Make the migration generator only check files ending in *.rb when calculating the next file name #2317 [Chad Fowler]
+
 * Added prevention of duplicate migrations from the generator #2240 [fbeausoleil@ftml.net]
 
 * Add db_schema_dump and db_schema_import rake tasks to work with the new ActiveRecord::SchemaDumper (for dumping a schema to and reading a schema from a ruby file).
