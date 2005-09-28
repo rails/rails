@@ -66,10 +66,10 @@ class RailsFCGIHandler
       # Break if graceful exit or restart requested.
       case when_ready
         when :exit
-          close_connection
+          close_connection(cgi)
           break 
         when :restart
-          close_connection
+          close_connection(cgi)
           restart!
       end
 
@@ -178,7 +178,7 @@ class RailsFCGIHandler
       GC.enable; GC.start; GC.disable
     end
     
-    def close_connection
+    def close_connection(cgi)
        cgi.instance_variable_get("@request").finish
     end
 end
