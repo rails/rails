@@ -160,7 +160,7 @@ module ActiveRecord
 
       # Returns a ColumnDefinition for the column with name +name+.
       def [](name)
-        @columns.find {|column| column.name == name}
+        @columns.find {|column| column.name.to_s == name.to_s}
       end
 
       # Instantiates a new column for the table.
