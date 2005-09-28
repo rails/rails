@@ -1,12 +1,14 @@
 require 'fcgi'
 require 'logger'
 require 'dispatcher'
+require 'rbconfig'
 
 class RailsFCGIHandler
   SIGNALS = {
     'HUP'  => :reload,
     'TERM' => :graceful_exit,
-    'USR1' => :graceful_exit
+    'USR1' => :graceful_exit,
+    'USR2' => :graceful_restart
   }
 
   attr_reader :when_ready
@@ -40,7 +42,7 @@ class RailsFCGIHandler
     # Start error timestamp at 11 seconds ago.
     @last_error_on = Time.now - 11
 
-    dispatcher_log(:info, "starting")
+    dispatcher_log :info, "starting"
   end
 
   def process!(provider = FCGI)
@@ -61,8 +63,8 @@ class RailsFCGIHandler
 
       process_request(cgi)
 
-      # Break if graceful exit requested.
-      break if when_ready == :exit
+      # Break if graceful exit or restart requested.
+      break if when_ready == :exit || when_ready == :restart
 
       # Garbage collection countdown.
       if gc_request_period
@@ -71,11 +73,16 @@ class RailsFCGIHandler
       end
     end
 
+    if when_ready == :restart
+      dispatcher_log :info, "restarted gracefully"
+      restart!
+    end
+
     GC.enable
-    dispatcher_log(:info, "terminated gracefully")
+    dispatcher_log :info, "terminated gracefully"
 
   rescue SystemExit => exit_error
-    dispatcher_log(:info, "terminated by explicit exit")
+    dispatcher_log :info, "terminated by explicit exit"
 
   rescue Object => fcgi_error
     # retry on errors that would otherwise have terminated the FCGI process,
@@ -103,7 +110,7 @@ class RailsFCGIHandler
       STDERR << "  #{log_error.class}: #{log_error.message}\n"
     end
 
-    def dispatcher_error(e,msg="")
+    def dispatcher_error(e, msg = "")
       error_message =
         "Dispatcher failed to catch: #{e} (#{e.class})\n" +
         "  #{e.backtrace.join("\n  ")}\n#{msg}"
@@ -112,12 +119,12 @@ class RailsFCGIHandler
 
     def install_signal_handlers
       SIGNALS.each do |signal, handler_name|
-        install_signal_handler signal, method("#{handler_name}_handler").to_proc
+        install_signal_handler(signal, method("#{handler_name}_handler").to_proc)
       end
     end
 
     def install_signal_handler(signal, handler)
-      trap signal, handler
+      trap(signal, handler)
     rescue ArgumentError
       dispatcher_log :warn, "Ignoring unsupported signal #{signal}."
     end
@@ -128,8 +135,13 @@ class RailsFCGIHandler
     end
 
     def reload_handler(signal)
-      @when_ready = :reload
       dispatcher_log :info, "asked to reload ASAP"
+      @when_ready = :reload
+    end
+
+    def graceful_restart_handler(signal)
+      dispatcher_log :info, "asked to restart ASAP"
+      @when_ready = :restart
     end
 
     def process_request(cgi)
@@ -147,6 +159,16 @@ class RailsFCGIHandler
       $".replace @features
       Dispatcher.reset_application!
       ActionController::Routing::Routes.reload
+    end
+
+    def restart!
+      config       = ::Config::CONFIG
+      ruby         = File::join(config['bindir'], config['ruby_install_name']) + config['EXEEXT']
+      command_line = [ruby, $0, ARGV].flatten.join(' ')
+      
+      dispatcher_log :info, "restarted"
+
+      exec(command_line)
     end
 
     def run_gc!
