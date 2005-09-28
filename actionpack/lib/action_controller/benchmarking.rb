@@ -70,7 +70,7 @@ module ActionController #:nodoc:
         log_message  = "Completed in #{sprintf("%.5f", runtime)} (#{(1 / runtime).floor} reqs/sec)"
         log_message << rendering_runtime(runtime) if @rendering_runtime
         log_message << active_record_runtime(runtime) if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
-        log_message << " | #{response.body.size} bytes (#{headers["Status"]})"
+        log_message << " | #{headers["Status"]}"
         log_message << " [#{complete_request_uri rescue "unknown"}]"
         logger.info(log_message)
       end
