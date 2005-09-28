@@ -1,5 +1,7 @@
 *SVN*
 
+* Returning false from before_destroy should cancel the action.  #1829 [Jeremy Huffman]
+
 * Recognize PostgreSQL NOW() default as equivalent to CURRENT_TIMESTAMP or CURRENT_DATE, depending on the column's type.  #2256 [mat <mat@absolight.fr>]
 
 * Extensive documentation for the abstract database adapter.  #2250 [François Beausoleil <fbeausoleil@ftml.net>]

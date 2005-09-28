@@ -70,6 +70,25 @@ class RecursiveCallbackDeveloper < ActiveRecord::Base
   end
 end
 
+class ImmutableDeveloper < ActiveRecord::Base
+  set_table_name 'developers'
+
+  before_destroy :cancel_destroy
+  
+  private
+  
+  def cancel_destroy
+    return false
+  end
+end
+
+class ImmutableMethodDeveloper < ActiveRecord::Base
+  set_table_name 'developers'
+
+  def before_destroy    
+    return false
+  end
+end
 
 class CallbacksTest < Test::Unit::TestCase
   fixtures :developers
@@ -282,6 +301,24 @@ class CallbacksTest < Test::Unit::TestCase
       [ :after_initialize,            :block  ],
     ], david.history
   end
+  
+  def test_before_destroy_returning_false
+    david = ImmutableDeveloper.find(1)
+    devs = ImmutableDeveloper.find(:all).size
+    assert !david.destroy
+    # cancel_destroy returns false so the destruction should
+    # be cancelled
+    assert_equal ImmutableDeveloper.find(:all).size, devs
+    
+    david = ImmutableMethodDeveloper.find(1)
+    devs = ImmutableMethodDeveloper.find(:all).size
+    assert !david.destroy
+    # before_destroy returns false so the destruction should
+    # be cancelled
+    assert_equal ImmutableMethodDeveloper.find(:all).size, devs
+  end
+  
+  
 
   def test_zzz_callback_returning_false # must be run last since we modify CallbackDeveloper
     david = CallbackDeveloper.find(1)

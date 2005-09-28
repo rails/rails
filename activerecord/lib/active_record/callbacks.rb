@@ -345,9 +345,9 @@ module ActiveRecord
           return false if result == false
         end
 
-        send(method) if respond_to_without_attributes?(method)
+        result = send(method) if respond_to_without_attributes?(method)
 
-        return true
+        return result
       end
 
       def callbacks_for(method)
