@@ -46,9 +46,13 @@ module ActionView
       #
       #   javascript_include_tag :defaults # =>
       #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
-      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
-      #     <script type="text/javascript" src="/javascripts/controls.js"></script>
-      #     <script type="text/javascript" src="/javascripts/dragdrop.js"></script>      
+      #     <script type="text/javascript" src="/javascripts/scriptaculous.js"></script>
+      #     <script type="text/javascript" src="/javascripts/application.js"></script> *see beloe
+      #   
+      # If there's a <tt>application.js</tt> file in your <tt>public/javascripts</tt> directory,
+      # <tt>javascript_include_tag :defaults</tt> will automatically include it. This file
+      # is thought for small snippets of JavaScript code, along the lines of
+      # <tt>controllers/application.rb</tt> and <tt>helpers/application_helper.rb</tt>.
       def javascript_include_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
         if sources.first == :defaults
