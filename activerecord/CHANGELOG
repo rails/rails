@@ -1,5 +1,7 @@
 *SVN*
 
+* model.association.clear should destroy associated objects if :dependent => true instead of nullifying their foreign keys.  #2221 [joergd@pobox.com, ObieFernandez <obiefernandez@gmail.com>]
+
 * Returning false from before_destroy should cancel the action.  #1829 [Jeremy Huffman]
 
 * Recognize PostgreSQL NOW() default as equivalent to CURRENT_TIMESTAMP or CURRENT_DATE, depending on the column's type.  #2256 [mat <mat@absolight.fr>]

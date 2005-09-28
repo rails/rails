@@ -227,7 +227,9 @@ module ActiveRecord
       #   This will also destroy the objects if they're declared as belongs_to and dependent on this model.
       # * <tt>collection=objects</tt> - replaces the collections content by deleting and adding objects as appropriate.
       # * <tt>collection_singular_ids=ids</tt> - replace the collection by the objects identified by the primary keys in +ids+
-      # * <tt>collection.clear</tt> - removes every object from the collection. This does not destroy the objects.
+      # * <tt>collection.clear</tt> - removes every object from the collection. This destroys the associated objects if they
+      #   are <tt>:dependent</tt>, deletes them directly from the database if they are <tt>:exclusively_dependent</tt>,
+      #   and sets their foreign keys to NULL otherwise.
       # * <tt>collection.empty?</tt> - returns true if there are no associated objects.
       # * <tt>collection.size</tt> - returns the number of associated objects.
       # * <tt>collection.find</tt> - finds an associated object according to the same rules as Base.find.

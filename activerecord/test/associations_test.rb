@@ -23,7 +23,7 @@ raise "ActiveRecord should have barked on bad collection keys" unless bad_collec
 class AssociationsTest < Test::Unit::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects,
            :computers
-  
+
   def test_force_reload
     firm = Firm.new("name" => "A New Firm, Inc")
     firm.save
@@ -257,11 +257,15 @@ end
 class HasManyAssociationsTest < Test::Unit::TestCase
   fixtures :accounts, :companies, :developers, :projects,
            :developers_projects, :topics
-  
+
+  def setup
+    Client.destroyed_client_ids.clear
+  end
+
   def force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.each {|f| }
   end
-  
+
   def test_counting
     assert_equal 2, Firm.find(:first).clients.count
   end
@@ -316,7 +320,6 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     else
       assert false,  "belongs_to failed unless check"
     end
-        
   end
 
   def test_find_ids
@@ -499,19 +502,57 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.create("name" => "Another Client")
     assert_equal 2, companies(:first_firm).clients_of_firm.size
-    #companies(:first_firm).clients_of_firm.clear
     companies(:first_firm).clients_of_firm.delete([companies(:first_firm).clients_of_firm[0], companies(:first_firm).clients_of_firm[1]])
     assert_equal 0, companies(:first_firm).clients_of_firm.size
     assert_equal 0, companies(:first_firm).clients_of_firm(true).size
   end
 
-  def test_deleting_a_association_collection
-    force_signal37_to_load_all_clients_of_firm
-    companies(:first_firm).clients_of_firm.create("name" => "Another Client")
-    assert_equal 2, companies(:first_firm).clients_of_firm.size
-    companies(:first_firm).clients_of_firm.clear
-    assert_equal 0, companies(:first_firm).clients_of_firm.size
-    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+  def test_clearing_an_association_collection
+    firm = companies(:first_firm)
+    client_id = firm.clients_of_firm.first.id
+    assert_equal 1, firm.clients_of_firm.size
+
+    firm.clients_of_firm.clear
+
+    assert_equal 0, firm.clients_of_firm.size
+    assert_equal 0, firm.clients_of_firm(true).size
+    assert_equal [], Client.destroyed_client_ids[firm.id]
+
+    # Should not be destroyed since the association is not dependent.
+    assert_not_nil Client.find_by_id(client_id)
+  end
+
+  def test_clearing_a_dependent_association_collection
+    firm = companies(:first_firm)
+    client_id = firm.dependent_clients_of_firm.first.id
+    assert_equal 1, firm.dependent_clients_of_firm.size
+
+    # :dependent means destroy is called on each client
+    firm.dependent_clients_of_firm.clear
+
+    assert_equal 0, firm.dependent_clients_of_firm.size
+    assert_equal 0, firm.dependent_clients_of_firm(true).size
+    assert_equal [client_id], Client.destroyed_client_ids[firm.id]
+
+    # Should be destroyed since the association is dependent.
+    assert Client.find_by_id(client_id).nil?
+  end
+
+  def test_clearing_an_exclusively_dependent_association_collection
+    firm = companies(:first_firm)
+    client_id = firm.exclusively_dependent_clients_of_firm.first.id
+    assert_equal 1, firm.exclusively_dependent_clients_of_firm.size
+
+    # :exclusively_dependent means each client is deleted directly from
+    # the database without looping through them calling destroy.
+    firm.exclusively_dependent_clients_of_firm.clear
+
+    assert_equal 0, firm.exclusively_dependent_clients_of_firm.size
+    assert_equal 0, firm.exclusively_dependent_clients_of_firm(true).size
+    assert_equal [], Client.destroyed_client_ids[firm.id]
+
+    # Should be destroyed since the association is exclusively dependent.
+    assert Client.find_by_id(client_id).nil?
   end
 
   def test_deleting_a_item_which_is_not_in_the_collection

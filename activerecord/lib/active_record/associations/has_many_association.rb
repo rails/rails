@@ -87,7 +87,13 @@ module ActiveRecord
       # Removes all records from this association.  Returns +self+ so
       # method calls may be chained.
       def clear
-        @association_class.update_all("#{@association_class_primary_key_name} = NULL", "#{@association_class_primary_key_name} = #{@owner.quoted_id}")
+        if @options[:dependent]
+          each { |associate| associate.destroy }
+        elsif @options[:exclusively_dependent]
+          @association_class.delete_all("#{@association_class_primary_key_name} = #{@owner.quoted_id}")
+        else
+          @association_class.update_all("#{@association_class_primary_key_name} = NULL", "#{@association_class_primary_key_name} = #{@owner.quoted_id}")
+        end
         @target = []
         self
       end
