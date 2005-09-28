@@ -442,7 +442,7 @@ module ActiveRecord
 
         require_association_class(association_class_name)
 
-        association_class_primary_key_name = options[:foreign_key] || Inflector.underscore(Inflector.demodulize(association_class_name)) + "_id"
+        association_class_primary_key_name = options[:foreign_key] || association_class_name.foreign_key
 
         association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
         association_constructor_method(:build, association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
@@ -599,7 +599,7 @@ module ActiveRecord
             )
           end
 
-          primary_key_name = foreign_key || Inflector.underscore(Inflector.demodulize(name)) + "_id"
+          primary_key_name = foreign_key || name.foreign_key
         
           return association_id.id2name, association_class_name, primary_key_name
         end
