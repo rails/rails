@@ -498,34 +498,6 @@ module ActionView
         callbacks
       end
       
-      def auto_complete_stylesheet
-        content_tag("style", <<-EOT
-          div.auto_complete {
-            width: 350px;
-            background: #fff;
-          }
-          div.auto_complete ul {
-            border:1px solid #888;
-            margin:0;
-            padding:0;
-            width:100%;
-            list-style-type:none;
-          }
-          div.auto_complete ul li {
-            margin:0;
-            padding:3px;
-          }
-          div.auto_complete ul li.selected { 
-            background-color: #ffb; 
-          }
-          div.auto_complete ul strong.highlight { 
-            color: #800; 
-            margin:0;
-            padding:0;
-          }
-        EOT
-        )
-      end
     end
     
     JavascriptHelper = JavaScriptHelper unless const_defined? :JavascriptHelper

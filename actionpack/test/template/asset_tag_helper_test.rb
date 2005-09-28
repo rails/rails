@@ -1,5 +1,4 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/asset_tag_helper'
+require File.dirname(__FILE__) + '/../abstract_unit'
 
 class AssetTagHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TagHelper
@@ -144,6 +143,7 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
   JavascriptIncludeToTag = {
     %(javascript_include_tag("xmlhr")) => %(<script src="/calloboration/hieraki/javascripts/xmlhr.js" type="text/javascript"></script>),
     %(javascript_include_tag("common.javascript", "/elsewhere/cools")) => %(<script src="/calloboration/hieraki/javascripts/common.javascript" type="text/javascript"></script>\n<script src="/calloboration/hieraki/elsewhere/cools.js" type="text/javascript"></script>),
+    %(javascript_include_tag(:defaults)) => %(<script src='/calloboration/hieraki/javascripts/prototype.js' type='text/javascript'></script>\n<script  src='/calloboration/hieraki/javascripts/scriptaculous.js' type='text/javascript'></script>),
   }
 
   StylePathToTag = {

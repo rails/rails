@@ -51,7 +51,12 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/dragdrop.js"></script>      
       def javascript_include_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
-        sources = ['prototype', 'effects', 'controls', 'dragdrop'] if sources.first == :defaults
+        if sources.first == :defaults
+          sources = ['prototype', 'scriptaculous']
+          if defined?(RAILS_ROOT) and File.exists?("#{RAILS_ROOT}/public/javascripts/application.js")
+            sources << 'application' 
+          end
+        end
         sources.collect { |source|
           source = javascript_path(source)        
           content_tag("script", "", { "type" => "text/javascript", "src" => source }.merge(options))

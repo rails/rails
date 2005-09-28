@@ -23,6 +23,9 @@ class JavaScriptHelperTest < Test::Unit::TestCase
   def test_define_javascript_functions
     # check if prototype.js is included first
     assert_not_nil define_javascript_functions.split("\n")[1].match(/Prototype JavaScript framework/)
+    
+    # check that scriptaculous.js is not in here, only needed if loaded remotely
+    assert_nil define_javascript_functions.split("\n")[1].match(/var Scriptaculous = \{/)
   end
 
   def test_escape_javascript

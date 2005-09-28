@@ -1,41 +1,12 @@
 // Copyright (c) 2005 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
 //           (c) 2005 Ivan Krstic (http://blogs.law.harvard.edu/ivan)
+//           (c) 2005 Jon Tirsen (http://www.tirsen.com)
+// Contributors:
+//  Richard Livsey
+//  Rahul Bhargava
+//  Rob Wills
 // 
-// Permission is hereby granted, free of charge, to any person obtaining
-// a copy of this software and associated documentation files (the
-// "Software"), to deal in the Software without restriction, including
-// without limitation the rights to use, copy, modify, merge, publish,
-// distribute, sublicense, and/or sell copies of the Software, and to
-// permit persons to whom the Software is furnished to do so, subject to
-// the following conditions:
-// 
-// The above copyright notice and this permission notice shall be
-// included in all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-// LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-// OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-// WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Element.collectTextNodesIgnoreClass = function(element, ignoreclass) {
-  var children = $(element).childNodes;
-  var text     = "";
-  var classtest = new RegExp("^([^ ]+ )*" + ignoreclass+ "( [^ ]+)*$","i");
-  
-  for (var i = 0; i < children.length; i++) {
-    if(children[i].nodeType==3) {
-      text+=children[i].nodeValue;
-    } else {
-      if((!children[i].className.match(classtest)) && children[i].hasChildNodes())
-        text += Element.collectTextNodesIgnoreClass(children[i], ignoreclass);
-    }
-  }
-  
-  return text;
-}
+// See scriptaculous.js for full license.
 
 // Autocompleter.Base handles all the autocompletion functionality 
 // that's independent of the data source for autocompletion. This
@@ -46,7 +17,7 @@ Element.collectTextNodesIgnoreClass = function(element, ignoreclass) {
 // a getUpdatedChoices function that will be invoked every time
 // the text inside the monitored textbox changes. This method 
 // should get the text for which to provide autocompletion by
-// invoking this.getEntry(), NOT by directly accessing
+// invoking this.getToken(), NOT by directly accessing
 // this.element.value. This is to allow incremental tokenized
 // autocompletion. Specific auto-completion logic (AJAX, etc)
 // belongs in getUpdatedChoices.
@@ -57,7 +28,7 @@ Element.collectTextNodesIgnoreClass = function(element, ignoreclass) {
 // new Ajax.Autocompleter('id','upd', '/url/', { tokens: ',' });
 // will incrementally autocomplete with a comma as the token.
 // Additionally, ',' in the above example can be replaced with
-// a token array, e.g. { tokens: new Array (',', '\n') } which
+// a token array, e.g. { tokens: [',', '\n'] } which
 // enables autocompletion on multiple tokens. This is most 
 // useful when one of the tokens is \n (a newline), as it 
 // allows smart autocompletion after linebreaks.
@@ -65,57 +36,54 @@ Element.collectTextNodesIgnoreClass = function(element, ignoreclass) {
 var Autocompleter = {}
 Autocompleter.Base = function() {};
 Autocompleter.Base.prototype = {
-  base_initialize: function(element, update, options) {
+  baseInitialize: function(element, update, options) {
     this.element     = $(element); 
     this.update      = $(update);  
-    this.has_focus   = false; 
+    this.hasFocus    = false; 
     this.changed     = false; 
     this.active      = false; 
     this.index       = 0;     
-    this.entry_count = 0;
+    this.entryCount  = 0;
 
     if (this.setOptions)
       this.setOptions(options);
     else
-      this.options = {}
-     
-    this.options.tokens       = this.options.tokens || new Array();
+      this.options = options || {};
+
+    this.options.paramName    = this.options.paramName || this.element.name;
+    this.options.tokens       = this.options.tokens || [];
     this.options.frequency    = this.options.frequency || 0.4;
-    this.options.min_chars    = this.options.min_chars || 1;
+    this.options.minChars     = this.options.minChars || 1;
     this.options.onShow       = this.options.onShow || 
     function(element, update){ 
       if(!update.style.position || update.style.position=='absolute') {
         update.style.position = 'absolute';
-          var offsets = Position.cumulativeOffset(element);
-          update.style.left = offsets[0] + 'px';
-          update.style.top  = (offsets[1] + element.offsetHeight) + 'px';
-          update.style.width = element.offsetWidth + 'px';
+        Position.clone(element, update, {setHeight: false, offsetTop: element.offsetHeight});
       }
       new Effect.Appear(update,{duration:0.15});
     };
     this.options.onHide = this.options.onHide || 
     function(element, update){ new Effect.Fade(update,{duration:0.15}) };
-    
-    if(this.options.indicator)
-      this.indicator = $(this.options.indicator);
 
     if (typeof(this.options.tokens) == 'string') 
       this.options.tokens = new Array(this.options.tokens);
-       
+
     this.observer = null;
     
+    this.element.setAttribute('autocomplete','off');
+
     Element.hide(this.update);
-    
+
     Event.observe(this.element, "blur", this.onBlur.bindAsEventListener(this));
     Event.observe(this.element, "keypress", this.onKeyPress.bindAsEventListener(this));
   },
 
   show: function() {
-    if(this.update.style.display=='none') this.options.onShow(this.element, this.update);
-    if(!this.iefix && (navigator.appVersion.indexOf('MSIE')>0) && this.update.style.position=='absolute') {
+    if(Element.getStyle(this.update, 'display')=='none') this.options.onShow(this.element, this.update);
+    if(!this.iefix && (navigator.appVersion.indexOf('MSIE')>0) && (Element.getStyle(this.update, 'position')=='absolute')) {
       new Insertion.After(this.update, 
        '<iframe id="' + this.update.id + '_iefix" '+
-       'style="display:none;filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0);" ' +
+       'style="display:none;position:absolute;filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0);" ' +
        'src="javascript:false;" frameborder="0" scrolling="no"></iframe>');
       this.iefix = $(this.update.id+'_iefix');
     }
@@ -126,18 +94,18 @@ Autocompleter.Base.prototype = {
       Element.show(this.iefix);
     }
   },
-  
+
   hide: function() {
-    if(this.update.style.display=='') this.options.onHide(this.element, this.update);
+    if(Element.getStyle(this.update, 'display')!='none') this.options.onHide(this.element, this.update);
     if(this.iefix) Element.hide(this.iefix);
   },
-  
+
   startIndicator: function() {
-    if(this.indicator) Element.show(this.indicator);
+    if(this.options.indicator) Element.show(this.options.indicator);
   },
-  
+
   stopIndicator: function() {
-    if(this.indicator) Element.hide(this.indicator);
+    if(this.options.indicator) Element.hide(this.options.indicator);
   },
 
   onKeyPress: function(event) {
@@ -145,22 +113,23 @@ Autocompleter.Base.prototype = {
       switch(event.keyCode) {
        case Event.KEY_TAB:
        case Event.KEY_RETURN:
-         this.select_entry();
+         this.selectEntry();
          Event.stop(event);
        case Event.KEY_ESC:
          this.hide();
          this.active = false;
+         Event.stop(event);
          return;
        case Event.KEY_LEFT:
        case Event.KEY_RIGHT:
          return;
        case Event.KEY_UP:
-         this.mark_previous();
+         this.markPrevious();
          this.render();
          if(navigator.appVersion.indexOf('AppleWebKit')>0) Event.stop(event);
          return;
        case Event.KEY_DOWN:
-         this.mark_next();
+         this.markNext();
          this.render();
          if(navigator.appVersion.indexOf('AppleWebKit')>0) Event.stop(event);
          return;
@@ -168,15 +137,15 @@ Autocompleter.Base.prototype = {
      else 
       if(event.keyCode==Event.KEY_TAB || event.keyCode==Event.KEY_RETURN) 
         return;
-    
+
     this.changed = true;
-    this.has_focus = true;
-    
+    this.hasFocus = true;
+
     if(this.observer) clearTimeout(this.observer);
       this.observer = 
         setTimeout(this.onObserverEvent.bind(this), this.options.frequency*1000);
   },
-  
+
   onHover: function(event) {
     var element = Event.findElement(event, 'LI');
     if(this.index != element.autocompleteIndex) 
@@ -190,92 +159,97 @@ Autocompleter.Base.prototype = {
   onClick: function(event) {
     var element = Event.findElement(event, 'LI');
     this.index = element.autocompleteIndex;
-    this.select_entry();
-    Event.stop(event);
+    this.selectEntry();
+    this.hide();
   },
   
   onBlur: function(event) {
     // needed to make click events working
     setTimeout(this.hide.bind(this), 250);
-    this.has_focus = false;
+    this.hasFocus = false;
     this.active = false;     
   }, 
   
   render: function() {
-    if(this.entry_count > 0) {
-      for (var i = 0; i < this.entry_count; i++)
+    if(this.entryCount > 0) {
+      for (var i = 0; i < this.entryCount; i++)
         this.index==i ? 
-          Element.addClassName(this.get_entry(i),"selected") : 
-          Element.removeClassName(this.get_entry(i),"selected");
+          Element.addClassName(this.getEntry(i),"selected") : 
+          Element.removeClassName(this.getEntry(i),"selected");
         
-      if(this.has_focus) { 
-        if(this.get_current_entry().scrollIntoView) 
-          this.get_current_entry().scrollIntoView(false);
-        
+      if(this.hasFocus) { 
         this.show();
         this.active = true;
       }
     } else this.hide();
   },
   
-  mark_previous: function() {
+  markPrevious: function() {
     if(this.index > 0) this.index--
-      else this.index = this.entry_count-1;
+      else this.index = this.entryCcount-1;
   },
   
-  mark_next: function() {
-    if(this.index < this.entry_count-1) this.index++
+  markNext: function() {
+    if(this.index < this.entryCount-1) this.index++
       else this.index = 0;
   },
   
-  get_entry: function(index) {
+  getEntry: function(index) {
     return this.update.firstChild.childNodes[index];
   },
   
-  get_current_entry: function() {
-    return this.get_entry(this.index);
+  getCurrentEntry: function() {
+    return this.getEntry(this.index);
   },
   
-  select_entry: function() {
+  selectEntry: function() {
     this.active = false;
-    value = Element.collectTextNodesIgnoreClass(this.get_current_entry(), 'informal').unescapeHTML();
-    this.updateElement(value);
-    this.element.focus();
+    this.updateElement(this.getCurrentEntry());
   },
 
-  updateElement: function(value) {
-    var last_token_pos = this.findLastToken();
-    if (last_token_pos != -1) {
-      var new_value = this.element.value.substr(0, last_token_pos + 1);
-      var whitespace = this.element.value.substr(last_token_pos + 1).match(/^\s+/);
+  updateElement: function(selectedElement) {
+    if (this.options.updateElement) {
+      this.options.updateElement(selectedElement);
+      return;
+    }
+
+    var value = Element.collectTextNodesIgnoreClass(selectedElement, 'informal');
+    var lastTokenPos = this.findLastToken();
+    if (lastTokenPos != -1) {
+      var newValue = this.element.value.substr(0, lastTokenPos + 1);
+      var whitespace = this.element.value.substr(lastTokenPos + 1).match(/^\s+/);
       if (whitespace)
-        new_value += whitespace[0];
-      this.element.value = new_value + value;
+        newValue += whitespace[0];
+      this.element.value = newValue + value;
     } else {
       this.element.value = value;
-    } 
+    }
+    this.element.focus();
+    
+    if (this.options.afterUpdateElement)
+      this.options.afterUpdateElement(this.element, selectedElement);
   },
-  
+
   updateChoices: function(choices) {
-    if(!this.changed && this.has_focus) {
+    if(!this.changed && this.hasFocus) {
       this.update.innerHTML = choices;
       Element.cleanWhitespace(this.update);
       Element.cleanWhitespace(this.update.firstChild);
 
       if(this.update.firstChild && this.update.firstChild.childNodes) {
-        this.entry_count = 
+        this.entryCount = 
           this.update.firstChild.childNodes.length;
-        for (var i = 0; i < this.entry_count; i++) {
-          entry = this.get_entry(i);
+        for (var i = 0; i < this.entryCount; i++) {
+          var entry = this.getEntry(i);
           entry.autocompleteIndex = i;
           this.addObservers(entry);
         }
       } else { 
-        this.entry_count = 0;
+        this.entryCount = 0;
       }
-      
+
       this.stopIndicator();
-      
+
       this.index = 0;
       this.render();
     }
@@ -288,7 +262,7 @@ Autocompleter.Base.prototype = {
 
   onObserverEvent: function() {
     this.changed = false;   
-    if(this.getEntry().length>=this.options.min_chars) {
+    if(this.getToken().length>=this.options.minChars) {
       this.startIndicator();
       this.getUpdatedChoices();
     } else {
@@ -297,58 +271,56 @@ Autocompleter.Base.prototype = {
     }
   },
 
-  getEntry: function() {
-    var token_pos = this.findLastToken();
-    if (token_pos != -1)
-      var ret = this.element.value.substr(token_pos + 1).replace(/^\s+/,'').replace(/\s+$/,'');
+  getToken: function() {
+    var tokenPos = this.findLastToken();
+    if (tokenPos != -1)
+      var ret = this.element.value.substr(tokenPos + 1).replace(/^\s+/,'').replace(/\s+$/,'');
     else
       var ret = this.element.value;
-    
+
     return /\n/.test(ret) ? '' : ret;
   },
 
   findLastToken: function() {
-    var last_token_pos = -1;
+    var lastTokenPos = -1;
 
     for (var i=0; i<this.options.tokens.length; i++) {
-      var this_token_pos = this.element.value.lastIndexOf(this.options.tokens[i]);
-      if (this_token_pos > last_token_pos)
-        last_token_pos = this_token_pos;
+      var thisTokenPos = this.element.value.lastIndexOf(this.options.tokens[i]);
+      if (thisTokenPos > lastTokenPos)
+        lastTokenPos = thisTokenPos;
     }
-    return last_token_pos;
+    return lastTokenPos;
   }
 }
 
 Ajax.Autocompleter = Class.create();
-Ajax.Autocompleter.prototype = Object.extend(new Autocompleter.Base(), 
-Object.extend(new Ajax.Base(), {
+Object.extend(Object.extend(Ajax.Autocompleter.prototype, Autocompleter.Base.prototype), {
   initialize: function(element, update, url, options) {
-	  this.base_initialize(element, update, options);
+	  this.baseInitialize(element, update, options);
     this.options.asynchronous  = true;
-    this.options.onComplete    = this.onComplete.bind(this)
-    this.options.method        = 'post';
+    this.options.onComplete    = this.onComplete.bind(this);
     this.options.defaultParams = this.options.parameters || null;
     this.url                   = url;
   },
-  
+
   getUpdatedChoices: function() {
-    entry = encodeURIComponent(this.element.name) + '=' + 
-      encodeURIComponent(this.getEntry());
-      
+    entry = encodeURIComponent(this.options.paramName) + '=' + 
+      encodeURIComponent(this.getToken());
+
     this.options.parameters = this.options.callback ?
       this.options.callback(this.element, entry) : entry;
-        
+
     if(this.options.defaultParams) 
       this.options.parameters += '&' + this.options.defaultParams;
-    
+
     new Ajax.Request(this.url, this.options);
   },
-  
+
   onComplete: function(request) {
     this.updateChoices(request.responseText);
   }
 
-}));
+});
 
 // The local array autocompleter. Used when you'd prefer to
 // inject an array of autocompletion options into the page, rather
@@ -362,22 +334,22 @@ Object.extend(new Ajax.Base(), {
 // Extra local autocompletion options:
 // - choices - How many autocompletion choices to offer
 //
-// - partial_search - If false, the autocompleter will match entered
+// - partialSearch - If false, the autocompleter will match entered
 //                    text only at the beginning of strings in the 
 //                    autocomplete array. Defaults to true, which will
 //                    match text at the beginning of any *word* in the
 //                    strings in the autocomplete array. If you want to
 //                    search anywhere in the string, additionally set
-//                    the option full_search to true (default: off).
+//                    the option fullSearch to true (default: off).
 //
-// - full_search - Search anywhere in autocomplete array strings.
+// - fullSsearch - Search anywhere in autocomplete array strings.
 //
-// - partial_chars - How many characters to enter before triggering
-//                   a partial match (unlike min_chars, which defines
+// - partialChars - How many characters to enter before triggering
+//                   a partial match (unlike minChars, which defines
 //                   how many characters are required to do any match
 //                   at all). Defaults to 2.
 //
-// - ignore_case - Whether to ignore case when autocompleting.
+// - ignoreCase - Whether to ignore case when autocompleting.
 //                 Defaults to true.
 //
 // It's possible to pass in a custom function as the 'selector' 
@@ -388,7 +360,7 @@ Object.extend(new Ajax.Base(), {
 Autocompleter.Local = Class.create();
 Autocompleter.Local.prototype = Object.extend(new Autocompleter.Base(), {
   initialize: function(element, update, array, options) {
-    this.base_initialize(element, update, options);
+    this.baseInitialize(element, update, options);
     this.options.array = array;
   },
 
@@ -399,41 +371,42 @@ Autocompleter.Local.prototype = Object.extend(new Autocompleter.Base(), {
   setOptions: function(options) {
     this.options = Object.extend({
       choices: 10,
-      partial_search: true,
-      partial_chars: 2,
-      ignore_case: true,
-      full_search: false,
+      partialSearch: true,
+      partialChars: 2,
+      ignoreCase: true,
+      fullSearch: false,
       selector: function(instance) {
-        var ret       = new Array(); // Beginning matches
-        var partial   = new Array(); // Inside matches
-        var entry     = instance.getEntry();
+        var ret       = []; // Beginning matches
+        var partial   = []; // Inside matches
+        var entry     = instance.getToken();
         var count     = 0;
-        
+
         for (var i = 0; i < instance.options.array.length &&  
-            ret.length < instance.options.choices ; i++) { 
+          ret.length < instance.options.choices ; i++) { 
+
           var elem = instance.options.array[i];
-          var found_pos = instance.options.ignore_case ? 
+          var foundPos = instance.options.ignoreCase ? 
             elem.toLowerCase().indexOf(entry.toLowerCase()) : 
             elem.indexOf(entry);
 
-          while (found_pos != -1) {
-            if (found_pos == 0 && elem.length != entry.length) { 
+          while (foundPos != -1) {
+            if (foundPos == 0 && elem.length != entry.length) { 
               ret.push("<li><strong>" + elem.substr(0, entry.length) + "</strong>" + 
                 elem.substr(entry.length) + "</li>");
               break;
-            } else if (entry.length >= instance.options.partial_chars && 
-              instance.options.partial_search && found_pos != -1) {
-              if (instance.options.full_search || /\s/.test(elem.substr(found_pos-1,1))) {
-                partial.push("<li>" + elem.substr(0, found_pos) + "<strong>" +
-                  elem.substr(found_pos, entry.length) + "</strong>" + elem.substr(
-                  found_pos + entry.length) + "</li>");
+            } else if (entry.length >= instance.options.partialChars && 
+              instance.options.partialSearch && foundPos != -1) {
+              if (instance.options.fullSearch || /\s/.test(elem.substr(foundPos-1,1))) {
+                partial.push("<li>" + elem.substr(0, foundPos) + "<strong>" +
+                  elem.substr(foundPos, entry.length) + "</strong>" + elem.substr(
+                  foundPos + entry.length) + "</li>");
                 break;
               }
             }
 
-            found_pos = instance.options.ignore_case ? 
-              elem.toLowerCase().indexOf(entry.toLowerCase(), found_pos + 1) : 
-              elem.indexOf(entry, found_pos + 1);
+            foundPos = instance.options.ignoreCase ? 
+              elem.toLowerCase().indexOf(entry.toLowerCase(), foundPos + 1) : 
+              elem.indexOf(entry, foundPos + 1);
 
           }
         }
@@ -444,3 +417,287 @@ Autocompleter.Local.prototype = Object.extend(new Autocompleter.Base(), {
     }, options || {});
   }
 });
+
+// AJAX in-place editor
+//
+// The constructor takes three parameters. The first is the element
+// that should support in-place editing. The second is the url to submit
+// the changed value to. The server should respond with the updated
+// value (the server might have post-processed it or validation might
+// have prevented it from changing). The third is a hash of options.
+//
+// Supported options are (all are optional and have sensible defaults):
+// - okText - The text of the submit button that submits the changed value
+//            to the server (default: "ok")
+// - cancelText - The text of the link that cancels editing (default: "cancel")
+// - savingText - The text being displayed as the AJAX engine communicates
+//                with the server (default: "Saving...")
+// - formId - The id given to the <form> element
+//            (default: the id of the element to edit plus '-inplaceeditor')
+
+Ajax.InPlaceEditor = Class.create();
+Ajax.InPlaceEditor.defaultHighlightColor = "#FFFF99";
+Ajax.InPlaceEditor.prototype = {
+  initialize: function(element, url, options) {
+    this.url = url;
+    this.element = $(element);
+
+    this.options = Object.extend({
+      okText: "ok",
+      cancelText: "cancel",
+      savingText: "Saving...",
+      clickToEditText: "Click to edit",
+      okText: "ok",
+      rows: 1,
+      onComplete: function(transport, element) {
+        new Effect.Highlight(element, {startcolor: this.options.highlightcolor});
+      },
+      onFailure: function(transport) {
+        alert("Error communicating with the server: " + transport.responseText.stripTags());
+      },
+      callback: function(form) {
+        return Form.serialize(form);
+      },
+      handleLineBreaks: true,
+      loadingText: 'Loading...',
+      savingClassName: 'inplaceeditor-saving',
+      formClassName: 'inplaceeditor-form',
+      highlightcolor: Ajax.InPlaceEditor.defaultHighlightColor,
+      highlightendcolor: "#FFFFFF",
+      externalControl:	null,
+      ajaxOptions: {}
+    }, options || {});
+
+    if(!this.options.formId && this.element.id) {
+      this.options.formId = this.element.id + "-inplaceeditor";
+      if ($(this.options.formId)) {
+        // there's already a form with that name, don't specify an id
+        this.options.formId = null;
+      }
+    }
+    
+    if (this.options.externalControl) {
+      this.options.externalControl = $(this.options.externalControl);
+    }
+    
+    this.originalBackground = Element.getStyle(this.element, 'background-color');
+    if (!this.originalBackground) {
+      this.originalBackground = "transparent";
+    }
+    
+    this.element.title = this.options.clickToEditText;
+    
+    this.onclickListener = this.enterEditMode.bindAsEventListener(this);
+    this.mouseoverListener = this.enterHover.bindAsEventListener(this);
+    this.mouseoutListener = this.leaveHover.bindAsEventListener(this);
+    Event.observe(this.element, 'click', this.onclickListener);
+    Event.observe(this.element, 'mouseover', this.mouseoverListener);
+    Event.observe(this.element, 'mouseout', this.mouseoutListener);
+    if (this.options.externalControl) {
+      Event.observe(this.options.externalControl, 'click', this.onclickListener);
+      Event.observe(this.options.externalControl, 'mouseover', this.mouseoverListener);
+      Event.observe(this.options.externalControl, 'mouseout', this.mouseoutListener);
+    }
+  },
+  enterEditMode: function() {
+    if (this.saving) return;
+    if (this.editing) return;
+    this.editing = true;
+    this.onEnterEditMode();
+    if (this.options.externalControl) {
+      Element.hide(this.options.externalControl);
+    }
+    Element.hide(this.element);
+    this.form = this.getForm();
+    this.element.parentNode.insertBefore(this.form, this.element);
+    Field.focus(this.editField);
+    // stop the event to avoid a page refresh in Safari
+    if (arguments.length > 1) {
+      Event.stop(arguments[0]);
+    }
+  },
+  getForm: function() {
+    form = document.createElement("form");
+    form.id = this.options.formId;
+    Element.addClassName(form, this.options.formClassName)
+    form.onsubmit = this.onSubmit.bind(this);
+
+    this.createEditField(form);
+
+    if (this.options.textarea) {
+      var br = document.createElement("br");
+      form.appendChild(br);
+    }
+
+    okButton = document.createElement("input");
+    okButton.type = "submit";
+    okButton.value = this.options.okText;
+    form.appendChild(okButton);
+
+    cancelLink = document.createElement("a");
+    cancelLink.href = "#";
+    cancelLink.appendChild(document.createTextNode(this.options.cancelText));
+    cancelLink.onclick = this.onclickCancel.bind(this);
+    form.appendChild(cancelLink);
+    return form;
+  },
+  hasHTMLLineBreaks: function(string) {
+    if (!this.options.handleLineBreaks) return false;
+    return string.match(/<br/i) || string.match(/<p>/i);
+  },
+  convertHTMLLineBreaks: function(string) {
+    return string.replace(/<br>/gi, "\n").replace(/<br\/>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<p>/gi, "");
+  },
+  createEditField: function(form) {
+    if (this.options.rows == 1 && !this.hasHTMLLineBreaks(this.getText())) {
+      this.options.textarea = false;
+      var textField = document.createElement("input");
+      textField.type = "text";
+      textField.name = "value";
+      textField.value = this.getText();
+      textField.style.backgroundColor = this.options.highlightcolor;
+      var size = this.options.size || this.options.cols || 0;
+      if (size != 0)
+        textField.size = size;
+      form.appendChild(textField);
+      this.editField = textField;
+    } else {
+      this.options.textarea = true;
+      var textArea = document.createElement("textarea");
+      textArea.name = "value";
+      textArea.value = this.convertHTMLLineBreaks(this.getText());
+      textArea.rows = this.options.rows;
+      textArea.cols = this.options.cols || 40;
+      form.appendChild(textArea);
+      this.editField = textArea;
+    }
+  },
+  getText: function() {
+    if (this.options.loadTextURL) {
+      this.loadExternalText();
+      return this.options.loadingText;
+    } else {
+      return this.element.innerHTML;
+    }
+  },
+  loadExternalText: function() {
+    new Ajax.Request(
+      this.options.loadTextURL,
+      {
+        asynchronous: true,
+        onComplete: this.onLoadedExternalText.bind(this)
+      }
+    );
+  },
+  onLoadedExternalText: function(transport) {
+    this.form.value.value = transport.responseText.stripTags();
+  },
+  onclickCancel: function() {
+    this.onComplete();
+    this.leaveEditMode();
+    return false;
+  },
+  onFailure: function(transport) {
+    this.options.onFailure(transport);
+    if (this.oldInnerHTML) {
+      this.element.innerHTML = this.oldInnerHTML;
+      this.oldInnerHTML = null;
+    }
+    return false;
+  },
+  onSubmit: function() {
+    this.saving = true;
+    new Ajax.Updater(
+      { 
+        success: this.element,
+         // don't update on failure (this could be an option)
+        failure: null
+      },
+      this.url,
+      Object.extend({
+        parameters: this.options.callback(this.form, this.editField.value),
+        onComplete: this.onComplete.bind(this),
+        onFailure: this.onFailure.bind(this)
+      }, this.options.ajaxOptions)
+    );
+    this.onLoading();
+    // stop the event to avoid a page refresh in Safari
+    if (arguments.length > 1) {
+      Event.stop(arguments[0]);
+    }
+    return false;
+  },
+  onLoading: function() {
+    this.saving = true;
+    this.removeForm();
+    this.leaveHover();
+    this.showSaving();
+  },
+  showSaving: function() {
+    this.oldInnerHTML = this.element.innerHTML;
+    this.element.innerHTML = this.options.savingText;
+    Element.addClassName(this.element, this.options.savingClassName);
+    this.element.style.backgroundColor = this.originalBackground;
+    Element.show(this.element);
+  },
+  removeForm: function() {
+    if(this.form) {
+      Element.remove(this.form);
+      this.form = null;
+    }
+  },
+  enterHover: function() {
+    if (this.saving) return;
+    this.element.style.backgroundColor = this.options.highlightcolor;
+    if (this.effect) {
+      this.effect.cancel();
+    }
+    Element.addClassName(this.element, this.options.hoverClassName)
+  },
+  leaveHover: function() {
+    if (this.options.backgroundColor) {
+      this.element.style.backgroundColor = this.oldBackground;
+    }
+    Element.removeClassName(this.element, this.options.hoverClassName)
+    if (this.saving) return;
+    this.effect = new Effect.Highlight(this.element, {
+      startcolor: this.options.highlightcolor,
+      endcolor: this.options.highlightendcolor,
+      restorecolor: this.originalBackground
+    });
+  },
+  leaveEditMode: function() {
+    Element.removeClassName(this.element, this.options.savingClassName);
+    this.removeForm();
+    this.leaveHover();
+    this.element.style.backgroundColor = this.originalBackground;
+    Element.show(this.element);
+    if (this.options.externalControl) {
+      Element.show(this.options.externalControl);
+    }
+    this.editing = false;
+    this.saving = false;
+    this.oldInnerHTML = null;
+    this.onLeaveEditMode();
+  },
+  onComplete: function(transport) {
+    this.leaveEditMode();
+    this.options.onComplete.bind(this)(transport, this.element);
+  },
+  onEnterEditMode: function() {},
+  onLeaveEditMode: function() {},
+  dispose: function() {
+    if (this.oldInnerHTML) {
+      this.element.innerHTML = this.oldInnerHTML;
+    }
+    this.leaveEditMode();
+    Event.stopObserving(this.element, 'click', this.onclickListener);
+    Event.stopObserving(this.element, 'mouseover', this.mouseoverListener);
+    Event.stopObserving(this.element, 'mouseout', this.mouseoutListener);
+    if (this.options.externalControl) {
+      Event.stopObserving(this.options.externalControl, 'click', this.onclickListener);
+      Event.stopObserving(this.options.externalControl, 'mouseover', this.mouseoverListener);
+      Event.stopObserving(this.options.externalControl, 'mouseout', this.mouseoutListener);
+    }
+  }
+};
