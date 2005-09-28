@@ -53,10 +53,14 @@ class AssetTagHelperTest < Test::Unit::TestCase
 
   StylePathToTag = {
     %(stylesheet_path("style")) => %(/stylesheets/style.css),
+    %(stylesheet_path('dir/file')) => %(/stylesheets/dir/file.css),
+    %(stylesheet_path('/dir/file')) => %(/dir/file.css)
   }
 
   StyleLinkToTag = {
     %(stylesheet_link_tag("style")) => %(<link href="/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />),
+    %(stylesheet_link_tag("/dir/file")) => %(<link href="/dir/file.css" media="screen" rel="Stylesheet" type="text/css" />),
+    %(stylesheet_link_tag("dir/file")) => %(<link href="/stylesheets/dir/file.css" media="screen" rel="Stylesheet" type="text/css" />),
     %(stylesheet_link_tag("style", :media => "all")) => %(<link href="/stylesheets/style.css" media="all" rel="Stylesheet" type="text/css" />),
     %(stylesheet_link_tag("random.styles", "/css/stylish")) => %(<link href="/stylesheets/random.styles" media="screen" rel="Stylesheet" type="text/css" />\n<link href="/css/stylish.css" media="screen" rel="Stylesheet" type="text/css" />)
   }
