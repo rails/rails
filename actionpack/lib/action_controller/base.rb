@@ -628,7 +628,7 @@ module ActionController #:nodoc:
       def render_file(template_path, status = nil, use_full_path = false)
         add_variables_to_assigns
         assert_existance_of_template_file(template_path) if use_full_path
-        logger.info("Rendering #{template_path}" + (status ? "(#{status})" : '')) if logger
+        logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
         render_text(@template.render_file(template_path, use_full_path), status)
       end
 
@@ -814,7 +814,7 @@ module ActionController #:nodoc:
       end
 
       def log_processing
-        logger.info "\n\nProcessing #{controller_class_name}\##{action_name} (for #{request_origin})"
+        logger.info "\n\nProcessing #{controller_class_name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
         logger.info "  Parameters: #{@params.inspect}"
       end
     
