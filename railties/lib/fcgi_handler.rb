@@ -73,10 +73,7 @@ class RailsFCGIHandler
       end
     end
 
-    if when_ready == :restart
-      dispatcher_log :info, "restarted gracefully"
-      restart!
-    end
+    restart! if when_ready == :restart
 
     GC.enable
     dispatcher_log :info, "terminated gracefully"
