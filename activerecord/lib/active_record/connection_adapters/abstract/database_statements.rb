@@ -39,17 +39,20 @@ module ActiveRecord
 
       # Wrap a block in a transaction.  Returns result of block.
       def transaction(start_db_transaction = true)
+        needs_commit = false
         begin
           if block_given?
             begin_db_transaction if start_db_transaction
-            result = yield
-            commit_db_transaction if start_db_transaction
-            result
+            needs_commit = start_db_transaction
+            yield
           end
         rescue Exception => database_transaction_rollback
           rollback_db_transaction if start_db_transaction
+          needs_commit = false
           raise
         end
+      ensure
+        commit_db_transaction if needs_commit
       end
 
       # Begins the transaction (and turns off auto-committing).

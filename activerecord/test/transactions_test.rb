@@ -25,6 +25,37 @@ class TransactionTest < Test::Unit::TestCase
     assert !Topic.find(2).approved?, "Second should have been unapproved"
   end
 
+  def transaction_with_return
+    Topic.transaction do
+      @first.approved  = 1
+      @second.approved = 0
+      @first.save
+      @second.save
+      return
+    end
+  end
+
+  def test_successful_with_return
+    class << Topic.connection
+      alias :real_commit_db_transaction :commit_db_transaction
+      def commit_db_transaction
+        $committed = true
+        :real_commit_db_transaction
+      end
+    end
+
+    $committed = false
+    transaction_with_return
+    assert $committed
+
+    assert Topic.find(1).approved?, "First should have been approved"
+    assert !Topic.find(2).approved?, "Second should have been unapproved"
+  ensure
+    class << Topic.connection
+      alias :commit_db_transaction :real_commit_db_transaction rescue nil
+    end
+  end
+
   def test_successful_with_instance_method
     @first.transaction do
       @first.approved  = 1
@@ -36,7 +67,7 @@ class TransactionTest < Test::Unit::TestCase
     assert Topic.find(1).approved?, "First should have been approved"
     assert !Topic.find(2).approved?, "Second should have been unapproved"
   end
- 
+
   def test_failing_on_exception
     begin
       Topic.transaction do

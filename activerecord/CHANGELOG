@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix transactions so that calling return while inside a transaction will not leave an open transaction on the connection. [Nicholas Seckar]
+
 * Use foreign_key inflection uniformly.  #2156 [Blair Zajac <blair@orcaware.com>]
 
 * model.association.clear should destroy associated objects if :dependent => true instead of nullifying their foreign keys.  #2221 [joergd@pobox.com, ObieFernandez <obiefernandez@gmail.com>]
