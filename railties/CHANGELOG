@@ -1,5 +1,7 @@
 *SVN*
 
+* Made Rakefile aware of new .js files in script.aculo.us [Thomas Fuchs]
+
 * Make table_name and controller_name in generators honor AR::Base.pluralize_table_names. #1216 #2213 [kazuhiko@fdiary.net]
 
 * Clearly label functional and unit tests in rake stats output.  #2297 [lasse.koskela@gmail.com]
