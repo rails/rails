@@ -132,15 +132,29 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal TrueClass, bob.male?.class
     end
 
-    def test_add_remove_single_field
+    def test_add_remove_single_field_using_string_arguments
       assert !Person.column_methods_hash.include?(:last_name)
 
-      PeopleHaveLastNames.up
+      ActiveRecord::Migration.add_column 'people', 'last_name', :string
 
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
     
-      PeopleHaveLastNames.down
+      ActiveRecord::Migration.remove_column 'people', 'last_name'
+
+      Person.reset_column_information
+      assert !Person.column_methods_hash.include?(:last_name)
+    end
+
+    def test_add_remove_single_field_using_symbol_arguments
+      assert !Person.column_methods_hash.include?(:last_name)
+
+      ActiveRecord::Migration.add_column :people, :last_name, :string
+
+      Person.reset_column_information
+      assert Person.column_methods_hash.include?(:last_name)
+
+      ActiveRecord::Migration.remove_column :people, :last_name
 
       Person.reset_column_information
       assert !Person.column_methods_hash.include?(:last_name)
