@@ -519,7 +519,9 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal [], Client.destroyed_client_ids[firm.id]
 
     # Should not be destroyed since the association is not dependent.
-    assert_not_nil Client.find_by_id(client_id)
+    assert_nothing_raised do
+      assert Client.find(client_id).firm.nil?
+    end
   end
 
   def test_clearing_a_dependent_association_collection
