@@ -64,7 +64,14 @@ class RailsFCGIHandler
       process_request(cgi)
 
       # Break if graceful exit or restart requested.
-      break if when_ready == :exit || when_ready == :restart
+      case when_ready
+        when :exit
+          close_connection
+          break 
+        when :restart
+          close_connection
+          restart!
+      end
 
       # Garbage collection countdown.
       if gc_request_period
@@ -72,8 +79,6 @@ class RailsFCGIHandler
         run_gc! if @gc_request_countdown <= 0
       end
     end
-
-    restart! if when_ready == :restart
 
     GC.enable
     dispatcher_log :info, "terminated gracefully"
@@ -171,5 +176,9 @@ class RailsFCGIHandler
     def run_gc!
       @gc_request_countdown = gc_request_period
       GC.enable; GC.start; GC.disable
+    end
+    
+    def close_connection
+       cgi.instance_variable_get("@request").finish
     end
 end
