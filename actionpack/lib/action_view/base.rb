@@ -250,6 +250,7 @@ module ActionView #:nodoc:
       # Get the method name for this template and run it
       method_name = @@method_names[file_path || template]
       evaluate_assigns                                    
+
       send(method_name, local_assigns) do |*name|
         instance_variable_get "@content_for_#{name.first || 'layout'}"
       end
@@ -332,6 +333,7 @@ module ActionView #:nodoc:
       def compile_template?(template, file_name, local_assigns)
         method_key = file_name || template
         render_symbol = @@method_names[method_key]
+
         if @@compile_time[render_symbol] && supports_local_assigns?(render_symbol, local_assigns)
           if file_name && !@@cache_template_loading 
             @@compile_time[render_symbol] < File.mtime(file_name)
@@ -343,7 +345,6 @@ module ActionView #:nodoc:
 
       # Create source code for given template
       def create_template_source(extension, template, render_symbol, locals)
-        # logger.debug "Creating source for :#{render_symbol}" if logger
         if extension && (extension.to_sym == :rxml)
           body = "xml = Builder::XmlMarkup.new(:indent => 2)\n" +
                  "@controller.headers['Content-Type'] ||= 'text/xml'\n" +
@@ -351,45 +352,57 @@ module ActionView #:nodoc:
         else
           body = ERB.new(template, nil, @@erb_trim_mode).src
         end
+
         @@template_args[render_symbol] ||= {}
         locals_keys = @@template_args[render_symbol].keys | locals
         @@template_args[render_symbol] = locals_keys.inject({}) { |h, k| h[k] = true; h }
+
         locals_code = locals_keys.inject("") do |code, key|
           code << "#{key} = local_assigns[:#{key}] if local_assigns.has_key?(:#{key})\n"
         end
+
         "def #{render_symbol}(local_assigns)\n#{locals_code}#{body}\nend"
       end
 
       def assign_method_name(extension, template, file_name)
         method_name = '_run_'
+
         if extension && (extension.to_sym == :rxml)
           method_name << 'xml_'
         else
           method_name << 'html_'
         end
+
         if file_name
           file_path = File.expand_path(file_name)
           base_path = File.expand_path(@base_path)
+
           i = file_path.index(base_path)
           l = base_path.length
+
           method_name_file_part = i ? file_path[i+l+1,file_path.length-l-1] : file_path.clone
           method_name_file_part.sub!(/\.r(ht|x)ml$/,'')
           method_name_file_part.tr!('/:-', '_')
           method_name_file_part.gsub!(/[^a-zA-Z0-9_]/){|s| s[0].to_s}
+
           method_name += method_name_file_part
         else
           @@inline_template_count += 1
           method_name << @@inline_template_count.to_s
         end
+
         @@method_names[file_name || template] = method_name.intern
       end
 
       def compile_template(extension, template, file_name, local_assigns)
         method_key = file_name || template
+
         render_symbol = @@method_names[method_key] || assign_method_name(extension, template, file_name)
         render_source = create_template_source(extension, template, render_symbol, local_assigns.keys)
+
         line_offset = @@template_args[render_symbol].size
         line_offset += 2 if extension && (extension.to_sym == :rxml)
+
         begin
           if file_name
             CompiledTemplates.module_eval(render_source, file_name, -line_offset)
@@ -402,14 +415,13 @@ module ActionView #:nodoc:
             logger.debug "Function body: #{render_source}"
             logger.debug "Backtrace: #{e.backtrace.join("\n")}"
           end
+
           raise TemplateError.new(@base_path, method_key, @assigns, template, e)
         end
 
         @@compile_time[render_symbol] = Time.now
-        logger.debug "Compiled template #{method_key}\n  ==> #{render_symbol}" if logger
-        # logger.debug  "CompiledTemplates methods: #{CompiledTemplates.instance_methods.sort.inspect}" if logger
+        # logger.debug "Compiled template #{method_key}\n  ==> #{render_symbol}" if logger
       end
-
   end
 end
 
