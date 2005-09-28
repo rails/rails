@@ -1,8 +1,4 @@
-$:.unshift File.dirname(__FILE__) + "/../../lib"
-
-require 'test/unit'
-require 'action_controller/cgi_ext/cgi_methods'
-require 'stringio'
+require File.dirname(__FILE__) + '/../abstract_unit'
 
 class CGITest < Test::Unit::TestCase
   def setup
@@ -228,3 +224,82 @@ class CGITest < Test::Unit::TestCase
   end
 end
 
+class MultipartCGITest < Test::Unit::TestCase
+  FIXTURE_PATH = File.dirname(__FILE__) + '/../fixtures/multipart'
+
+  def setup
+    ENV['REQUEST_METHOD'] = 'POST'
+    ENV['CONTENT_LENGTH'] = '0'
+    ENV['CONTENT_TYPE']   = 'multipart/form-data, boundary=AaB03x'
+  end
+
+  def test_single_parameter
+    params = process('single_parameter')
+    assert_equal({ 'foo' => 'bar' }, params)
+  end
+
+  def test_text_file
+    params = process('text_file')
+    assert_equal %w(file foo), params.keys.sort
+    assert_equal 'bar', params['foo']
+
+    file = params['file']
+    assert_kind_of StringIO, file
+    assert_equal 'file.txt', file.original_filename
+    assert_equal "text/plain\r", file.content_type
+    assert_equal 'contents', file.read
+  end
+
+  def test_large_text_file
+    params = process('large_text_file')
+    assert_equal %w(file foo), params.keys.sort
+    assert_equal 'bar', params['foo']
+
+    file = params['file']
+    assert_kind_of Tempfile, file
+    assert_equal 'file.txt', file.original_filename
+    assert_equal "text/plain\r", file.content_type
+    assert ('a' * 20480) == file.read
+  end
+
+  def test_binary_file
+    params = process('binary_file')
+    assert_equal %w(file flowers foo), params.keys.sort
+    assert_equal 'bar', params['foo']
+
+    file = params['file']
+    assert_kind_of StringIO, file
+    assert_equal 'file.txt', file.original_filename
+    assert_equal "text/plain\r", file.content_type
+    assert_equal 'contents', file.read
+
+    file = params['flowers']
+    assert_kind_of StringIO, file
+    assert_equal 'flowers.jpg', file.original_filename
+    assert_equal "image/jpeg\r", file.content_type
+    assert_equal 19512, file.size
+    #assert_equal File.read(File.dirname(__FILE__) + '/../../../activerecord/test/fixtures/flowers.jpg'), file.read
+  end
+
+  def test_mixed_files
+    params = process('mixed_files')
+    assert_equal %w(files foo), params.keys.sort
+    assert_equal 'bar', params['foo']
+
+    # Ruby CGI doesn't handle multipart/mixed for us.
+    assert_kind_of StringIO, params['files']
+    assert_equal 19756, params['files'].size
+  end
+
+  private
+    def process(name)
+      old_stdin = $stdin
+      File.open(File.join(FIXTURE_PATH, name), 'rb') do |file|
+        ENV['CONTENT_LENGTH'] = file.stat.size.to_s
+        $stdin = file
+        CGIMethods.parse_request_parameters CGI.new.params
+      end
+    ensure
+      $stdin = old_stdin
+    end
+end
