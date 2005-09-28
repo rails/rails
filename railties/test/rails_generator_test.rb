@@ -74,6 +74,7 @@ class RailsGeneratorTest < Test::Unit::TestCase
   end
 
   def test_named_generator_attributes
+    ActiveRecord::Base.pluralize_table_names = true
     g = Rails::Generator::Base.instance('working', %w(admin/foo bar baz))
     assert_equal 'admin/foo', g.name
     assert_equal %w(admin), g.class_path
@@ -84,5 +85,11 @@ class RailsGeneratorTest < Test::Unit::TestCase
     assert_equal g.singular_name, g.file_name
     assert_equal g.plural_name, g.table_name
     assert_equal %w(bar baz), g.args
+  end
+
+  def test_named_generator_attributes_without_pluralized
+    ActiveRecord::Base.pluralize_table_names = false
+    g = Rails::Generator::Base.instance('working', %w(admin/foo bar baz))
+    assert_equal g.singular_name, g.table_name
   end
 end
