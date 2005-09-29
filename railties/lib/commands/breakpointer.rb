@@ -1,0 +1,1 @@
+require 'breakpoint_client'

@@ -5,7 +5,7 @@ OPTIONS = {
   :port            => 3000,
   :ip              => "0.0.0.0",
   :environment     => "development",
-  :server_root     => File.expand_path(File.dirname(__FILE__) + "/../public/"),
+  :server_root     => File.expand_path(RAILS_ROOT + "/public/"),
   :server_type     => WEBrick::SimpleServer,
   :charset         => "UTF-8",
   :mime_types      => WEBrick::HTTPUtils::DefaultMimeTypes
@@ -47,7 +47,7 @@ ARGV.options do |opts|
 end
 
 ENV["RAILS_ENV"] = OPTIONS[:environment]
-require File.dirname(__FILE__) + "/../config/environment"
+require RAILS_ROOT + "/config/environment"
 require 'webrick_server'
 
 OPTIONS['working_directory'] = File.expand_path(RAILS_ROOT)
