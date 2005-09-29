@@ -57,8 +57,7 @@ module ActionController #:nodoc:
     # By default, the cache extension is .html, which makes it easy for the cached files to be picked up by the web server. If you want
     # something else, like .php or .shtml, just set Base.page_cache_extension.
     module Pages
-      def self.append_features(base) #:nodoc:
-        super
+      def self.included(base) #:nodoc:
         base.extend(ClassMethods)
         base.class_eval do
           @@page_cache_directory = defined?(RAILS_ROOT) ? "#{RAILS_ROOT}/public" : ""
@@ -270,7 +269,7 @@ module ActionController #:nodoc:
       end
 
       # Called by CacheHelper#cache
-      def cache_erb_fragment(block, name = {}, options = {})
+      def cache_erb_fragment(block, name = {}, options = nil)
         unless perform_caching then block.call; return end
         
         buffer = eval("_erbout", block.binding)
@@ -284,33 +283,30 @@ module ActionController #:nodoc:
         end
       end
       
-      def write_fragment(name, content, options = {})
+      def write_fragment(name, content, options = nil)
         return unless perform_caching
 
         key = fragment_cache_key(name)
         self.class.benchmark "Cached fragment: #{key}" do
           fragment_cache_store.write(key, content, options)
         end
-
         content
       end
       
-      def read_fragment(name, options = {})
+      def read_fragment(name, options = nil)
         return unless perform_caching
 
-        key, cache = fragment_cache_key(name), nil
+        key = fragment_cache_key(name)
         self.class.benchmark "Fragment read: #{key}" do
-          cache = fragment_cache_store.read(key, options)
+          fragment_cache_store.read(key, options)
         end
-
-        cache || false
       end
       
       # Name can take one of three forms:
       # * String: This would normally take the form of a path like "pages/45/notes"
       # * Hash: Is treated as an implicit call to url_for, like { :controller => "pages", :action => "notes", :id => 45 }
       # * Regexp: Will destroy all the matched fragments, example: %r{pages/\d*/notes}
-      def expire_fragment(name, options = {})
+      def expire_fragment(name, options = nil)
         return unless perform_caching
 
         key = fragment_cache_key(name)
@@ -327,29 +323,58 @@ module ActionController #:nodoc:
       end
 
       # Deprecated -- just call expire_fragment with a regular expression
-      def expire_matched_fragments(matcher = /.*/, options = {}) #:nodoc:
+      def expire_matched_fragments(matcher = /.*/, options = nil) #:nodoc:
         expire_fragment(matcher, options)
       end
 
-      class MemoryStore #:nodoc:
-        def initialize
-          @data, @mutex = { }, Mutex.new
+
+      class UnthreadedMemoryStore #:nodoc:
+        def initialize #:nodoc:
+          @data = {}
         end
 
-        def read(name, options = {}) #:nodoc:
-          @mutex.synchronize { @data[name] } rescue nil
+        def read(name, options=nil) #:nodoc:
+          @data[name]
         end
 
-        def write(name, value, options = {}) #:nodoc:
-          @mutex.synchronize { @data[name] = value }
+        def write(name, value, options=nil) #:nodoc:
+          @data[name] = value
         end
 
-        def delete(name, options = {}) #:nodoc:
-          @mutex.synchronize { @data.delete(name) }
+        def delete(name, options=nil) #:nodoc:
+          @data.delete(name)
         end
 
-        def delete_matched(matcher, options) #:nodoc:
-          @mutex.synchronize { @data.delete_if { |k,v| k =~ matcher } }
+        def delete_matched(matcher, options=nil) #:nodoc:
+          @data.delete_if { |k,v| k =~ matcher }
+        end
+      end
+
+      module ThreadSafety
+        def read(name, options=nil) #:nodoc:
+          @mutex.synchronize { super }
+        end
+        
+        def write(name, value, options=nil) #:nodoc:
+          @mutex.synchronize { super }
+        end
+        
+        def delete(name, options=nil) #:nodoc:
+          @mutex.synchronize { super }
+        end
+        
+        def delete_matched(matcher, options=nil) #:nodoc:
+          @mutex.synchronize { super }
+        end
+      end
+
+      class MemoryStore < UnthreadedMemoryStore #:nodoc:
+        def initialize #:nodoc:
+          super
+          if ActionController::Base.allow_concurrency
+            @mutex = Mutex.new
+            MemoryStore.send(:include, ThreadSafety)
+          end
         end
       end
 
@@ -357,8 +382,9 @@ module ActionController #:nodoc:
         attr_reader :address
 
         def initialize(address = 'druby://localhost:9192')
+          super()
           @address = address
-          @data, @mutex = DRbObject.new(nil, address), Mutex.new
+          @data = DRbObject.new(nil, address)
         end    
       end
 
@@ -366,26 +392,27 @@ module ActionController #:nodoc:
         attr_reader :address
 
         def initialize(address = 'localhost')
+          super()
           @address = address
-          @data, @mutex = MemCache.new(address), Mutex.new
+          @data = MemCache.new(address)
         end    
       end
 
-      class FileStore #:nodoc:
+      class UnthreadedFileStore #:nodoc:
         attr_reader :cache_path
         
         def initialize(cache_path)
           @cache_path = cache_path
         end
     
-        def write(name, value, options = {}) #:nodoc:
+        def write(name, value, options = nil) #:nodoc:
           ensure_cache_path(File.dirname(real_file_path(name)))
           File.open(real_file_path(name), "w+") { |f| f.write(value) }
         rescue => e
-          Base.logger.error "Couldn't create cache directory: #{name} (#{e.message})" unless Base.logger.nil?
+          Base.logger.error "Couldn't create cache directory: #{name} (#{e.message})" if Base.logger
         end
 
-        def read(name, options = {}) #:nodoc:
+        def read(name, options = nil) #:nodoc:
           IO.read(real_file_path(name)) rescue nil
         end
 
@@ -427,7 +454,17 @@ module ActionController #:nodoc:
               end
             end
           end
-      end
+        end
+
+        class FileStore < UnthreadedFileStore #:nodoc:
+          def initialize(cache_path)
+            super(cache_path)
+            if ActionController::Base.allow_concurrency
+              @mutex = Mutex.new
+              FileStore.send(:include, ThreadSafety)
+            end
+          end
+        end
     end
 
     # Sweepers are the terminators of the caching world and responsible for expiring caches when model objects change.

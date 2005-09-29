@@ -116,6 +116,7 @@ module ActionController #:nodoc:
         @request_uri             = "/"
         self.remote_addr         = "0.0.0.0"        
         @env["SERVER_PORT"]      = 80
+        @env['REQUEST_METHOD']   = "GET"
       end
   end
 

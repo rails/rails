@@ -8,7 +8,7 @@ module ActionView
     #   <% for post in @posts %>
     #     Title: <%= truncate(post.title, 20) %>
     #   <% end %>
-    module TextHelper
+    module TextHelper      
       # The regular puts and print are outlawed in eRuby. It's recommended to use the <%= "hello" %> form instead of print "hello".
       # If you absolutely must use a method-based output, you can use concat. It's use like this <% concat "hello", binding %>. Notice that
       # it doesn't have an equal sign in front. Using <%= concat "hello" %> would result in a double hello.
@@ -265,6 +265,9 @@ module ActionView
         end
       end
 
+      class << self
+        include ActionView::Helpers::TextHelper
+      end
       
       private
         # The cycle helpers need to store the cycles in a place that is
