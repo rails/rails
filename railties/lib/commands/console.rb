@@ -1,4 +1,3 @@
-#!/usr/local/bin/ruby
 irb = RUBY_PLATFORM =~ /mswin32/ ? 'irb.bat' : 'irb'
 
 require 'optparse'

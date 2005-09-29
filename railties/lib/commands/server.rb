@@ -1,5 +1,3 @@
-#!/usr/local/bin/ruby
-
 require 'webrick'
 require 'optparse'
 

@@ -22,7 +22,5 @@ end
 
 ENV["RAILS_ENV"] = options[:environment]
 
-#!/usr/local/bin/ruby
-
-require File.dirname(__FILE__) + '/../config/environment'
+require RAILS_ROOT + '/config/environment'
 eval(ARGV.first)

@@ -26,7 +26,7 @@ RUBY_FORGE_USER    = "webster132"
 # end
 
 
-BASE_DIRS   = %w( app config/environments components db doc log lib lib/tasks public script script/process test vendor )
+BASE_DIRS   = %w( app config/environments components db doc log lib lib/tasks public script test vendor )
 APP_DIRS    = %w( apis models controllers helpers views views/layouts )
 PUBLIC_DIRS = %w( images javascripts stylesheets )
 TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/test )
@@ -36,7 +36,7 @@ HTML_FILES   = %w( 404.html 500.html index.html robots.txt favicon.ico
                    javascripts/prototype.js javascripts/scriptaculous.js
                    javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js
                    javascripts/util.js javascripts/slider.js )
-BIN_FILES    = %w( generate destroy breakpointer console server update runner profiler benchmarker process/reaper process/spinner process/spawner )
+BIN_FILES    = %w( run )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )
 
@@ -230,8 +230,6 @@ end
 
 task :copy_gem_environment do
   cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
-  dest_file = File.join(PKG_DESTINATION, 'script', 'breakpointer')
-  copy_with_rewritten_ruby_path(File.join('bin', 'breakpointer_for_gem'), dest_file)
   chmod 0755, dest_file
 end
 
