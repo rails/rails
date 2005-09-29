@@ -1,5 +1,3 @@
-#!/usr/local/bin/ruby
-
 require 'optparse'
 
 def spawn(port)
@@ -10,7 +8,7 @@ end
 OPTIONS = {
   :environment => "production",
   :spawner     => '/usr/bin/env spawn-fcgi',
-  :dispatcher  => File.expand_path(File.dirname(__FILE__) + '/../../public/dispatch.fcgi'),
+  :dispatcher  => File.expand_path(RAILS_ROOT + '/public/dispatch.fcgi'),
   :port        => 8000,
   :instances   => 3
 }

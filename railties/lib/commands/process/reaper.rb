@@ -1,20 +1,6 @@
-#!/usr/local/bin/ruby
-
 require 'optparse'
 require 'net/http'
 require 'uri'
-
-def nudge(url, iterations)
-  print "Nudging #{url}: "
-
-  iterations.times do
-    Net::HTTP.get_response(URI.parse(url)) rescue nil
-    print "."
-    STDOUT.flush
-  end
-
-  puts
-end
 
 if RUBY_PLATFORM =~ /mswin32/ then abort("Reaper is only for Unix") end
 
@@ -35,7 +21,7 @@ class ProgramProcess
 
     def find_by_keyword(keyword)
       process_lines_with_keyword(keyword).split("\n").collect { |line|
-        next if line.include?("inq") || line.include?("ps -wwax") || line.include?("grep")
+        next if line.include?("inq") || line.include?("ps -ax") || line.include?("grep")
         pid, *command = line.split
         new(pid, command.join(" "))
       }.compact
@@ -43,7 +29,7 @@ class ProgramProcess
 
     private
       def process_lines_with_keyword(keyword)
-        `ps -wwax -o 'pid command' | grep #{keyword}`
+        `ps -ax -o 'pid command' | grep #{keyword}`
       end
   end
 
@@ -70,18 +56,18 @@ class ProgramProcess
     `kill -s USR1 #{@pid}`
   end
 
+  def restart
+    `kill -s USR2 #{@pid}`
+  end
+
   def to_s
     "[#{@pid}] #{@command}"
   end
 end
 
 OPTIONS = {
-  :action      => "graceful",
-  :dispatcher  => File.expand_path(File.dirname(__FILE__) + '/../../public/dispatch.fcgi'),
-  :spinner     => File.expand_path(File.dirname(__FILE__) + '/spinner'),
-  :toggle_spin => true,
-  :iterations  => 10,
-  :nudge       => false
+  :action      => "restart",
+  :dispatcher  => File.expand_path(RAILS_ROOT + '/public/dispatch.fcgi')
 }
 
 ARGV.options do |opts|
@@ -112,17 +98,12 @@ ARGV.options do |opts|
 
   Examples:
     reaper -a reload
-    reaper -n http://www.example.com -i 10 # gracefully exit, nudge 10 times
   EOF
 
   opts.on("  Options:")
 
   opts.on("-a", "--action=name", "reload|graceful|kill (default: #{OPTIONS[:action]})", String)  { |OPTIONS[:action]| }
   opts.on("-d", "--dispatcher=path", "default: #{OPTIONS[:dispatcher]}", String)                 { |OPTIONS[:dispatcher]| }
-  opts.on("-s", "--spinner=path", "default: #{OPTIONS[:spinner]}", String)                       { |OPTIONS[:spinner]| }
-  opts.on("-t", "--[no-]toggle-spin", "Whether to send a USR1 to the spinner before and after the reaping (default: true)") { |OPTIONS[:toggle_spin]| }
-  opts.on("-n", "--nudge=url", "Should point to URL that's handled by the FCGI process", String) { |OPTIONS[:nudge]| }
-  opts.on("-i", "--iterations=number", "One nudge per FCGI process running (default: #{OPTIONS[:iterations]})", Integer) { |OPTIONS[:iterations]| }
 
   opts.separator ""
 
@@ -131,7 +112,4 @@ ARGV.options do |opts|
   opts.parse!
 end
 
-ProgramProcess.process_keywords("usr1", OPTIONS[:spinner]) if OPTIONS[:toggle_spin]
 ProgramProcess.process_keywords(OPTIONS[:action], OPTIONS[:dispatcher])
-nudge(OPTIONS[:nudge], OPTIONS[:iterations]) if OPTIONS[:nudge]
-ProgramProcess.process_keywords("usr1", OPTIONS[:spinner]) if OPTIONS[:toggle_spin]
