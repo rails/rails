@@ -1,6 +1,8 @@
 require 'logger'
 
+old_verbose, $VERBOSE = $VERBOSE, nil
 RAILS_ENV = ENV['RAILS_ENV'] || 'development'
+$VERBOSE = old_verbose
 
 module Rails
   # The Initializer is responsible for processing the Rails configuration, such as setting the $LOAD_PATH, requiring the
