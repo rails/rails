@@ -40,7 +40,7 @@ class TransactionTest < Test::Unit::TestCase
       alias :real_commit_db_transaction :commit_db_transaction
       def commit_db_transaction
         $committed = true
-        :real_commit_db_transaction
+        real_commit_db_transaction
       end
     end
 
