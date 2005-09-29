@@ -707,43 +707,6 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal r.errors.on(:topic).first, "This string contains 'single' and \"double\" quotes"
   end
 
-  def test_validates_numericality_of_with_string
-    Topic.validates_numericality_of( :approved )
-    ["not a number","42 not a number","0xdeadbeef","00-1","-+019.0","12.12.13.12",nil].each do |v|
-        t = Topic.create("title" => "numeric test", "content" => "whatever", "approved" => "not a number")
-        assert !t.valid?, "#{v} not rejected as a number"
-        assert t.errors.on(:approved)
-    end
-  end
-
-  def test_validates_numericality_of
-    Topic.validates_numericality_of( :approved, :allow_nil => true )
-    ["10", "10.0", "10.5", "-10.5", "-0.0001","0090","-090","-090.1",nil,""].each do |v|
-        t = Topic.new("title" => "numeric test", "content" => "whatever", "approved" => v)
-        assert t.valid?, "#{v} not recognized as a number"
-        # we cannot check this as approved is actually an integer field
-        #assert_in_delta v.to_f, t.approved, 0.0000001
-    end
-  end
-
-  def test_validates_numericality_of_int_with_string
-    Topic.validates_numericality_of( :approved, :only_integer => true )
-    ["not a number","42 not a number","0xdeadbeef","0-1","--3","+-3","+3-1",nil].each do |v|
-        t = Topic.create("title" => "numeric test", "content" => "whatever", "approved" => v)
-        assert !t.valid?, "#{v} not rejected as integer"
-        assert t.errors.on(:approved)
-    end
-  end
-
-  def test_validates_numericality_of_int
-    Topic.validates_numericality_of( :approved, :only_integer => true, :allow_nil => true )
-    ["42", "+42", "-42", "042", "0042", "-042", 42, nil,""].each do |v|
-        t = Topic.new("title" => "numeric test", "content" => "whatever", "approved" => v)
-        assert t.valid?, "#{v} not recognized as integer"
-        assert_equal((v.nil? or v == "")? nil : v.to_i, t.approved)
-    end
-  end
-
   def test_conditional_validation_using_method_true
     # When the method returns true
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :if => :condition_is_true )
@@ -806,4 +769,64 @@ class ValidationsTest < Test::Unit::TestCase
     r.topic = Topic.find :first
     assert r.valid?
   end
+end
+
+
+class ValidatesNumericalityTest
+  NIL = [nil, "", " ", " \t \r \n"]
+  FLOAT_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 -10.5 -0.0001 -090.1)
+  INTEGER_STRINGS = %w(0 +0 -0 10 +10 -10 0090 -090)
+  FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001] + FLOAT_STRINGS
+  INTEGERS = [0, 10, -10] + INTEGER_STRINGS
+  JUNK = ["not a number", "42 not a number", "0xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12"]
+
+  def setup
+    Topic.write_inheritable_attribute(:validate, nil)
+    Topic.write_inheritable_attribute(:validate_on_create, nil)
+    Topic.write_inheritable_attribute(:validate_on_update, nil)
+  end
+
+  def test_default_validates_numericality_of
+    Topic.validates_numericality_of :approved
+
+    invalid!(NIL + JUNK)
+    valid!(FLOATS + INTEGERS)
+  end
+
+  def test_validates_numericality_of_with_nil_allowed
+    Topic.validates_numericality_of :approved, :allow_nil => true
+
+    invalid!(JUNK)
+    valid!(NIL + FLOATS + INTEGERS)
+  end
+
+  def test_validates_numericality_of_with_integer_only
+    Topic.validates_numericality_of :approved, :only_integer => true
+
+    invalid!(NIL + JUNK + FLOATS)
+    valid!(INTEGERS)
+  end
+
+  def test_validates_numericality_of_with_integer_only_and_nil_allowed
+    Topic.validates_numericality_of :approved, :only_integer => true, :allow_nil => true
+
+    invalid!(JUNK + FLOATS)
+    valid!(NIL + INTEGERS)
+  end
+
+  private
+    def invalid!(values)
+      values.each do |value|
+        topic = Topic.create("title" => "numeric test", "content" => "whatever", "approved" => value)
+        assert !topic.valid?, "#{value} not rejected as a number"
+        assert topic.errors.on(:approved)
+      end
+    end
+
+    def valid!(values)
+      values.each do |value|
+        topic = Topic.create("title" => "numeric test", "content" => "whatever", "approved" => value)
+        assert topic.valid?, "#{value} not accepted as a number"
+      end
+    end
 end
