@@ -15,6 +15,14 @@ class OrderedOptions < Array
     pair ? pair.last : nil
   end
 
+  def method_missing(name, *args)
+    if name.to_s =~ /(.*)=$/
+      self[$1.to_sym] = args.first
+    else
+      self[name]
+    end
+  end
+
   private
     def find_pair(key)
       self.each { |i| return i if i.first == key }
