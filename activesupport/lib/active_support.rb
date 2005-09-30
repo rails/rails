@@ -31,4 +31,6 @@ require 'active_support/core_ext'
 require 'active_support/clean_logger'
 require 'active_support/dependencies'
 
+require 'active_support/ordered_options'
+
 require 'active_support/values/time_zone'
