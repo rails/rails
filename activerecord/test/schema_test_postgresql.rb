@@ -1,6 +1,8 @@
 require 'abstract_unit'
 
 class SchemaTest < Test::Unit::TestCase
+  self.use_transactional_fixtures = false
+
   SCHEMA_NAME = 'test_schema'
   TABLE_NAME = 'things'
   COLUMNS = [
@@ -15,8 +17,7 @@ class SchemaTest < Test::Unit::TestCase
   end
 
   def teardown
-    @connection.execute "DROP TABLE #{SCHEMA_NAME}.#{TABLE_NAME}"
-    @connection.execute "DROP SCHEMA #{SCHEMA_NAME}"
+    @connection.execute "DROP SCHEMA #{SCHEMA_NAME} CASCADE"
   end
 
   def test_with_schema_prefixed_table_name
