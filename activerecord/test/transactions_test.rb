@@ -1,11 +1,11 @@
 require 'abstract_unit'
 require 'fixtures/topic'
-
+require 'fixtures/developer'
 
 class TransactionTest < Test::Unit::TestCase
   self.use_transactional_fixtures = false
 
-  fixtures :topics
+  fixtures :topics, :developers
 
   def setup
     # sqlite does not seem to return these in the right order, so we sort them
@@ -15,8 +15,8 @@ class TransactionTest < Test::Unit::TestCase
 
   def test_successful
     Topic.transaction do
-      @first.approved  = 1
-      @second.approved = 0
+      @first.approved  = true
+      @second.approved = false
       @first.save
       @second.save
     end
@@ -27,8 +27,8 @@ class TransactionTest < Test::Unit::TestCase
 
   def transaction_with_return
     Topic.transaction do
-      @first.approved  = 1
-      @second.approved = 0
+      @first.approved  = true
+      @second.approved = false
       @first.save
       @second.save
       return
@@ -58,8 +58,8 @@ class TransactionTest < Test::Unit::TestCase
 
   def test_successful_with_instance_method
     @first.transaction do
-      @first.approved  = 1
-      @second.approved = 0
+      @first.approved  = true
+      @second.approved = false
       @first.save
       @second.save
     end
@@ -125,8 +125,8 @@ class TransactionTest < Test::Unit::TestCase
   def test_nested_explicit_transactions
     Topic.transaction do
       Topic.transaction do
-        @first.approved  = 1
-        @second.approved = 0
+        @first.approved  = true
+        @second.approved = false
         @first.save
         @second.save
       end
@@ -135,7 +135,75 @@ class TransactionTest < Test::Unit::TestCase
     assert Topic.find(1).approved?, "First should have been approved"
     assert !Topic.find(2).approved?, "Second should have been unapproved"
   end
-    
+
+  # This will cause transactions to overlap and fail unless they are
+  # performed on separate database connections.
+  def test_transaction_per_thread
+    assert_nothing_raised do
+      threads = (1..20).map do
+        Thread.new do
+          Topic.transaction do
+            topic = Topic.find(:first)
+            topic.approved = !topic.approved?
+            topic.save!
+            topic.approved = !topic.approved?
+            topic.save!
+          end
+        end
+      end
+
+      threads.each { |t| t.join }
+    end
+  end
+
+  # Test for dirty reads among simultaneous transactions.
+  def test_transaction_isolation__read_committed
+    # Should be invariant.
+    original_salary = Developer.find(1).salary
+    temporary_salary = 200000
+
+    assert_nothing_raised do
+      threads = (1..20).map do
+        Thread.new do
+          Developer.transaction do
+            # Expect original salary.
+            dev = Developer.find(1)
+            assert_equal original_salary, dev.salary
+
+            dev.salary = temporary_salary
+            dev.save!
+
+            # Expect temporary salary.
+            dev = Developer.find(1)
+            assert_equal temporary_salary, dev.salary
+
+            dev.salary = original_salary
+            dev.save!
+
+            # Expect original salary.
+            dev = Developer.find(1)
+            assert_equal original_salary, dev.salary
+          end
+        end
+      end
+
+      # Keep our eyes peeled.
+      threads << Thread.new do
+        10.times do
+          sleep 0.05
+          Developer.transaction do
+            # Always expect original salary.
+            assert_equal original_salary, Developer.find(1).salary
+          end
+        end
+      end
+
+      threads.each { |t| t.join }
+    end
+
+    assert_equal original_salary, Developer.find(1).salary
+  end
+
 
   private
     def add_exception_raising_after_save_callback_to_topic
