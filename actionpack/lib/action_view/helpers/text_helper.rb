@@ -264,10 +264,6 @@ module ActionView
           return value
         end
       end
-
-      class << self
-        include ActionView::Helpers::TextHelper
-      end
       
       private
         # The cycle helpers need to store the cycles in a place that is
