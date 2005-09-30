@@ -1,14 +1,12 @@
-# Author: Luke Holden <lholden@cablelan.net>
-
 require 'active_record/connection_adapters/abstract_adapter'
-require 'parsedate'
 
 module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects
     def self.postgresql_connection(config) # :nodoc:
       require_library_or_gem 'postgres' unless self.class.const_defined?(:PGconn)
-      symbolize_strings_in_hash(config)
+
+      config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port]     || 5432 unless host.nil?
       username = config[:username].to_s
@@ -66,7 +64,7 @@ module ActiveRecord
           :time        => { :name => "timestamp" },
           :date        => { :name => "date" },
           :binary      => { :name => "bytea" },
-          :boolean     => { :name => "boolean"}
+          :boolean     => { :name => "boolean" }
         }
       end
       
@@ -78,7 +76,7 @@ module ActiveRecord
       # QUOTING ==================================================
 
       def quote(value, column = nil)
-        if value.class == String && column && column.type == :binary
+        if value.kind_of?(String) && column && column.type == :binary
           "'#{escape_bytea(value)}'"
         else
           super
@@ -98,13 +96,13 @@ module ActiveRecord
 
       def select_one(sql, name = nil) #:nodoc:
         result = select(sql, name)
-        result.nil? ? nil : result.first
+        result.first if result
       end
 
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
         execute(sql, name)
         table = sql.split(" ", 4)[2]
-        return id_value || last_insert_id(table, pk)
+        id_value || last_insert_id(table, pk)
       end
 
       def query(sql, name = nil) #:nodoc:
@@ -240,7 +238,7 @@ module ActiveRecord
       private
         BYTEA_COLUMN_TYPE_OID = 17
 
-        def last_insert_id(table, column = "id")
+        def last_insert_id(table, column = nil)
           sequence_name = "#{table}_#{column || 'id'}_seq"
           @connection.exec("SELECT currval('#{sequence_name}')")[0][0].to_i
         end

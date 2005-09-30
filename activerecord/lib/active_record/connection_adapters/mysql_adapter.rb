@@ -1,5 +1,4 @@
 require 'active_record/connection_adapters/abstract_adapter'
-require 'parsedate'
 
 module ActiveRecord
   class Base
@@ -20,8 +19,7 @@ module ActiveRecord
         end
       end
 
-      symbolize_strings_in_hash(config)
-
+      config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port]
       socket   = config[:socket]

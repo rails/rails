@@ -118,10 +118,5 @@ module ActiveRecord
       conn = self.send(spec.adapter_method, spec.config)
       active_connections[self] = conn
     end
-
-    # Converts all strings in a hash to symbols.
-    def self.symbolize_strings_in_hash(hash) #:nodoc:
-      hash.symbolize_keys
-    end
   end
 end
