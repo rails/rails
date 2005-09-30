@@ -1,8 +1,10 @@
-RAILS_ROOT = File.join(File.dirname(__FILE__), '..')
+RAILS_ROOT = File.join(File.dirname(__FILE__), '..') unless defined?(RAILS_ROOT)
 
-unless File.directory?("#{RAILS_ROOT}/vendor/rails")
+if File.directory?("#{RAILS_ROOT}/vendor/rails")
+  require "#{RAILS_ROOT}/vendor/rails/railties/lib/initializer"
+else
   require 'rubygems'
   require 'initializer'
-else
-  require "#{RAILS_ROOT}/vendor/rails/railties/lib/initializer"
 end
+
+Rails::Initializer.run(:set_load_path)
