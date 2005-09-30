@@ -1,4 +1,5 @@
 require 'abstract_unit'
+require 'fixtures/topic'
 
 class ThreadedConnectionsTest < Test::Unit::TestCase
   self.use_transactional_fixtures = false
