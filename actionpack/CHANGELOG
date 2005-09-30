@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't prepend the asset host if the string is already a fully-qualified URL
+
 * Updated to script.aculo.us V1.5.0_rc2 and Prototype to V1.4.0_pre7 [Thomas Fuchs]
 
 * Undo condition change made in [2345] to prevent normal parameters arriving as StringIO.

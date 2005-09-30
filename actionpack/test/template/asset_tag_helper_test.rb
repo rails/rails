@@ -196,4 +196,14 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
     assert_nothing_raised { image_tag('') }
   end
   
+  def test_stylesheet_with_asset_host_already_encoded
+    ActionController::Base.asset_host = "http://foo.example.com"
+    result = stylesheet_link_tag("http://bar.example.com/stylesheets/style.css")
+    assert_dom_equal(
+      %(<link href="http://bar.example.com/stylesheets/style.css" media="screen" rel="Stylesheet" type="text/css" />),
+      result)
+  ensure
+    ActionController::Base.asset_host = ""
+  end
+  
 end

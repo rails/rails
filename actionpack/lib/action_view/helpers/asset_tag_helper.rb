@@ -131,7 +131,8 @@ module ActionView
           source = "/#{dir}/#{source}" unless source.first == "/" || source.include?(":")
           source = "#{source}.#{ext}" unless source.include?(".")
           source = "#{@controller.request.relative_url_root}#{source}" unless %r{^[-a-z]+://} =~ source
-          ActionController::Base.asset_host + source
+          source = ActionController::Base.asset_host + source unless source.include?(":")
+          source
         end
     end
   end
