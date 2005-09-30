@@ -168,12 +168,12 @@ module Rails
       self.database_configuration_file  = default_database_configuration_file
 
       for framework in default_frameworks
-        self.send("#{framework}=", new_hash_with_method_access)
+        self.send("#{framework}=", OrderedOptions.new)
       end
     end
     
     def database_configuration
-      YAML::load(ERB.new((IO.read(database_configuration_file))).result)
+      YAML::load(ERB.new(IO.read(database_configuration_file)).result)
     end
     
     def environment_path
@@ -242,20 +242,6 @@ module Rails
       def default_dependency_mechanism
         :load
       end
-
-      def new_hash_with_method_access
-        hash = Hash.new
-
-        def hash.method_missing(name, *args)
-          if has_key?(name)
-            self[name]
-          elsif name.to_s =~ /(.*)=$/
-            self[$1.to_sym] = args.first
-          end
-        end
-
-        hash
-      end
       
       def default_cache_classes
         false
@@ -269,4 +255,37 @@ module Rails
         false
       end
   end
+end
+
+# Needs to be duplicated from Active Support since its needed before Active Support is available
+class OrderedOptions < Array # :nodoc:
+  def []=(key, value)
+    key = key.to_sym
+
+    if pair = find_pair(key)
+      pair.pop
+      pair << value
+    else
+      self << [key, value]
+    end
+  end
+
+  def [](key)
+    pair = find_pair(key.to_sym)
+    pair ? pair.last : nil
+  end
+
+  def method_missing(name, *args)
+    if name.to_s =~ /(.*)=$/
+      self[$1.to_sym] = args.first
+    else
+      self[name]
+    end
+  end
+
+  private
+    def find_pair(key)
+      self.each { |i| return i if i.first == key }
+      return false
+    end
 end
