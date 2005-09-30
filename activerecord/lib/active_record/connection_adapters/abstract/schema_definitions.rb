@@ -71,21 +71,21 @@ module ActiveRecord
       private
         def string_to_date(string)
           return string unless string.is_a?(String)
-          date_array = ParseDate.parsedate(string.to_s)
+          date_array = ParseDate.parsedate(string)
           # treat 0000-00-00 as nil
           Date.new(date_array[0], date_array[1], date_array[2]) rescue nil
         end
 
         def string_to_time(string)
           return string unless string.is_a?(String)
-          time_array = ParseDate.parsedate(string.to_s).compact
+          time_array = ParseDate.parsedate(string).compact
           # treat 0000-00-00 00:00:00 as nil
           Time.send(Base.default_timezone, *time_array) rescue nil
         end
 
         def string_to_dummy_time(string)
           return string unless string.is_a?(String)
-          time_array = ParseDate.parsedate(string.to_s)
+          time_array = ParseDate.parsedate(string)
           # pad the resulting array with dummy date information
           time_array[0] = 2000; time_array[1] = 1; time_array[2] = 1;
           Time.send(Base.default_timezone, *time_array) rescue nil
