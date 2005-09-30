@@ -9,16 +9,11 @@ require 'active_support/breakpoint'
 require 'connection'
 
 class Test::Unit::TestCase #:nodoc:
-  def create_fixtures(*table_names)
-    if block_given?
-      Fixtures.create_fixtures(File.dirname(__FILE__) + "/fixtures/", table_names) { yield }
-    else
-      Fixtures.create_fixtures(File.dirname(__FILE__) + "/fixtures/", table_names)
-    end
+  self.fixture_path = File.dirname(__FILE__) + "/fixtures/"
+  self.use_instantiated_fixtures = false
+  self.use_transactional_fixtures = (ENV['AR_NO_TX_FIXTURES'] != "yes")
+
+  def create_fixtures(*table_names, &block)
+    Fixtures.create_fixtures(File.dirname(__FILE__) + "/fixtures/", table_names, &block)
   end
 end
-
-Test::Unit::TestCase.fixture_path = File.dirname(__FILE__) + "/fixtures/"
-Test::Unit::TestCase.use_instantiated_fixtures = false
-Test::Unit::TestCase.use_transactional_fixtures = (ENV['AR_TX_FIXTURES'] == "yes")
-
