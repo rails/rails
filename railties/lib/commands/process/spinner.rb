@@ -14,8 +14,8 @@ end
 OPTIONS = {
   :high_interval => 5.0,
   :low_interval  => 0.5,
-  :command  => File.expand_path(File.dirname(__FILE__) + '/spawner'),
-  :daemon   => false
+  :command => File.expand_path(RAILS_ROOT + '/script/run process spawner'),
+  :daemon  => false
 }
 
 ARGV.options do |opts|
