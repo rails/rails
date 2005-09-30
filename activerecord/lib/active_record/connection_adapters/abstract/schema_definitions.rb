@@ -1,3 +1,5 @@
+require 'parsedate'
+
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
     # An abstract definition of a column in a table.
@@ -78,7 +80,7 @@ module ActiveRecord
 
         def string_to_time(string)
           return string unless string.is_a?(String)
-          time_array = ParseDate.parsedate(string).compact
+          time_array = ParseDate.parsedate(string)[0..5]
           # treat 0000-00-00 00:00:00 as nil
           Time.send(Base.default_timezone, *time_array) rescue nil
         end
