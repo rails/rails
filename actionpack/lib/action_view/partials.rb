@@ -54,7 +54,9 @@ module ActionView
       add_counter_to_local_assigns!(partial_name, local_assigns)
       local_assigns[partial_name.intern] ||= object.is_a?(ActionView::Base::ObjectWrapper) ? object.value : object
 
-      render("#{path}/_#{partial_name}", local_assigns)
+      ActionController::Base.benchmark("Rendered #{path}/_#{partial_name}", Logger::DEBUG, false) do
+        render("#{path}/_#{partial_name}", local_assigns)
+      end
     end
 
     # Deprecated, use render :partial, :collection
