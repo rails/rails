@@ -85,8 +85,24 @@ module ActionView
       # <tt>:with</tt>::      A JavaScript expression specifying the
       #                       parameters for the XMLHttpRequest. This defaults
       #                       to 'fieldname=value'.
-      # <tt>:indicator</tt>:: Specifies the DOM ID of an elment which will be
-      #                       displayed while autocomplete is running. 
+      # <tt>:indicator</tt>:: Specifies the DOM ID of an element which will be
+      #                       displayed while autocomplete is running.
+      # <tt>:tokens</tt>::    A string or an array of strings containing
+      #                       seperator tokens for tokenized incremental 
+      #                       autocompletion. Example: <tt>:tokens => ','</tt> would
+      #                       allow multiple autocompletion entries, seperated
+      #                       by commas.
+      # <tt>:min_chars</tt>:: The minimum number of characters that should be
+      #                       in the input field before an Ajax call is made
+      #                       to the server.
+      # <tt>:on_hide</tt>::   A Javascript expression that is called when the
+      #                       autocompletion div is hidden. The expression
+      #                       should take two variables: element and update.
+      #                       Element is a DOM element for the field, update
+      #                       is a DOM element for the div from which the
+      #                       innerHTML is replaced.
+      # <tt>:on_show</tt>::   Like on_hide, only now the expression is called
+      #                       then the div is shown.
       def auto_complete_field(field_id, options = {})
         function =  "new Ajax.Autocompleter("
         function << "'#{field_id}', "
@@ -97,6 +113,9 @@ module ActionView
         js_options[:tokens] = array_or_string_for_javascript(options[:tokens]) if options[:tokens]
         js_options[:callback]   = "function(element, value) { return #{options[:with]} }" if options[:with]
         js_options[:indicator]  = "'#{options[:indicator]}'" if options[:indicator]
+        {:on_show => :onShow, :on_hide => :onHide, :min_chars => :min_chars}.each do |k,v|
+          js_options[v] = options[k] if options[k]
+        end
         function << (', ' + options_for_javascript(js_options) + ')')
 
         javascript_tag(function)

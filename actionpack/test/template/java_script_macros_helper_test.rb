@@ -29,6 +29,10 @@ class JavaScriptMacrosHelperTest < Test::Unit::TestCase
       auto_complete_field("some_input", :url => { :action => "autocomplete" }, :tokens => ',');
     assert_dom_equal %(<script type=\"text/javascript\">new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {tokens:[',']})</script>),
       auto_complete_field("some_input", :url => { :action => "autocomplete" }, :tokens => [',']);  
+    assert_dom_equal %(<script type=\"text/javascript\">new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {min_chars:3})</script>),
+      auto_complete_field("some_input", :url => { :action => "autocomplete" }, :min_chars => 3);
+    assert_dom_equal %(<script type=\"text/javascript\">new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {onHide:function(element, update){Alert('me');}})</script>),
+      auto_complete_field("some_input", :url => { :action => "autocomplete" }, :on_hide => "function(element, update){Alert('me');}");
   end
   
   def test_auto_complete_result
