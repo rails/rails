@@ -874,7 +874,7 @@ module ActionController #:nodoc:
 
 
       def request_origin
-        "#{@request.remote_ip} at #{Time.now.to_s}"
+        "#{@request.remote_ip} at #{Time.now.to_s(:db)}"
       end
       
       def complete_request_uri
