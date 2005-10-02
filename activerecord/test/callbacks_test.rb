@@ -73,20 +73,39 @@ end
 class ImmutableDeveloper < ActiveRecord::Base
   set_table_name 'developers'
 
-  before_destroy :cancel_destroy
-  
-  private
-  
-  def cancel_destroy
-    return false
+  validates_inclusion_of :salary, :in => 50000..200000
+
+  before_save :cancel
+  before_destroy :cancel
+
+  def cancelled?
+    @cancelled == true
   end
+
+  private
+    def cancel
+      @cancelled = true
+      false
+    end
 end
 
 class ImmutableMethodDeveloper < ActiveRecord::Base
   set_table_name 'developers'
 
-  def before_destroy    
-    return false
+  validates_inclusion_of :salary, :in => 50000..200000
+
+  def cancelled?
+    @cancelled == true
+  end
+
+  def before_save
+    @cancelled = true
+    false
+  end
+
+  def before_destroy
+    @cancelled = true
+    false
   end
 end
 
@@ -301,24 +320,43 @@ class CallbacksTest < Test::Unit::TestCase
       [ :after_initialize,            :block  ],
     ], david.history
   end
-  
+
+  def test_before_save_returning_false
+    david = ImmutableDeveloper.find(1)
+    assert david.valid?
+    assert david.save
+    assert david.cancelled?
+
+    david = ImmutableDeveloper.find(1)
+    david.salary = 10_000_000
+    assert !david.valid?
+    assert !david.save
+    assert !david.cancelled?
+
+    david = ImmutableMethodDeveloper.find(1)
+    assert david.valid?
+    assert david.save
+    assert david.cancelled?
+
+    david = ImmutableMethodDeveloper.find(1)
+    david.salary = 10_000_000
+    assert !david.valid?
+    assert !david.save
+    assert !david.cancelled?
+  end
+
   def test_before_destroy_returning_false
     david = ImmutableDeveloper.find(1)
-    devs = ImmutableDeveloper.find(:all).size
-    assert !david.destroy
-    # cancel_destroy returns false so the destruction should
-    # be cancelled
-    assert_equal ImmutableDeveloper.find(:all).size, devs
-    
+    david.destroy
+    assert david.cancelled?
+    assert_not_nil ImmutableDeveloper.find_by_id(1)
+
     david = ImmutableMethodDeveloper.find(1)
-    devs = ImmutableMethodDeveloper.find(:all).size
-    assert !david.destroy
-    # before_destroy returns false so the destruction should
-    # be cancelled
-    assert_equal ImmutableMethodDeveloper.find(:all).size, devs
+    david.destroy
+    assert david.cancelled?
+    assert_not_nil ImmutableMethodDeveloper.find_by_id(1)
   end
-  
-  
+
 
   def test_zzz_callback_returning_false # must be run last since we modify CallbackDeveloper
     david = CallbackDeveloper.find(1)

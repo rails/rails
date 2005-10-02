@@ -1206,7 +1206,6 @@ module ActiveRecord #:nodoc:
     private
       def create_or_update
         if new_record? then create else update end
-        true
       end
 
       # Updates the associated record with values matching those of the instant attributes.

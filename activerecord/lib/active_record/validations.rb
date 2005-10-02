@@ -657,7 +657,12 @@ module ActiveRecord
     # The validation process on save can be skipped by passing false. The regular Base#save method is
     # replaced with this when the validations module is mixed in, which it is by default.
     def save_with_validation(perform_validation = true)
-      if perform_validation && valid? || !perform_validation then save_without_validation else false end
+      if perform_validation && valid? || !perform_validation
+        save_without_validation
+        true
+      else
+        false
+      end
     end
 
     # Attempts to save the record just like Base.save but will raise a RecordInvalid exception instead of returning false
@@ -694,8 +699,7 @@ module ActiveRecord
 
     # Returns the Errors object that holds all information about attribute error messages.
     def errors
-      @errors = Errors.new(self) if @errors.nil?
-      @errors
+      @errors ||= Errors.new(self)
     end
 
     protected

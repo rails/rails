@@ -425,6 +425,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     firm = Firm.find(1)
     assert !(firm.clients_of_firm << c = Client.new)
     assert c.new_record?
+    assert !firm.valid?
     assert !firm.save
     assert c.new_record?
   end
@@ -436,7 +437,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     new_firm.clients_of_firm.concat([c = Client.new, Client.new("name" => "Apple")])
     assert c.new_record?
     assert !c.valid?
-    assert new_firm.valid?
+    assert !new_firm.valid?
     assert !new_firm.save
     assert c.new_record?
     assert new_firm.new_record?

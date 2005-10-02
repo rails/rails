@@ -308,8 +308,8 @@ module ActiveRecord
         end
 
         add_multiple_associated_save_callbacks(association_name)
-				add_association_callbacks(association_name, options)
-				
+        add_association_callbacks(association_name, options)
+
         collection_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasManyAssociation)
         
         # deprecated api
@@ -686,39 +686,39 @@ module ActiveRecord
         end
 
         def add_multiple_associated_save_callbacks(association_name)
-          module_eval do
-            before_save <<-end_eval
-              @new_record_before_save = new_record?
-              association = instance_variable_get("@#{association_name}")
-              if association.respond_to?(:loaded?)
-                if new_record?
-                  records_to_save = association
-                else
-                  records_to_save = association.select{ |record| record.new_record? }
-                end
-                records_to_save.all? { |record| record.valid? }
+          method_name = "validate_associated_records_for_#{association_name}".to_sym
+          define_method(method_name) do
+            @new_record_before_save = new_record?
+            association = instance_variable_get("@#{association_name}")
+            if association.respond_to?(:loaded?)
+              if new_record?
+                association
+              else
+                association.select { |record| record.new_record? }
+              end.each do |record|
+                errors.add "#{association_name}" unless record.valid?
               end
-            end_eval
+            end
           end
 
-          module_eval do
-            after_callback = <<-end_eval
-              association = instance_variable_get("@#{association_name}")
-              if association.respond_to?(:loaded?)
-                if @new_record_before_save
-                  records_to_save = association
-                else
-                  records_to_save = association.select{ |record| record.new_record? }
-                end
-                records_to_save.each{ |record| association.send(:insert_record, record) }
-                association.send(:construct_sql)   # reconstruct the SQL queries now that we know the owner's id
-              end
-            end_eval
+          validate method_name
 
-            # Doesn't use after_save as that would save associations added in after_create/after_update twice
-            after_create(after_callback)
-            after_update(after_callback)
-          end
+          after_callback = <<-end_eval
+            association = instance_variable_get("@#{association_name}")
+            if association.respond_to?(:loaded?)
+              if @new_record_before_save
+                records_to_save = association
+              else
+                records_to_save = association.select { |record| record.new_record? }
+              end
+              records_to_save.each { |record| association.send(:insert_record, record) }
+              association.send(:construct_sql)   # reconstruct the SQL queries now that we know the owner's id
+            end
+          end_eval
+
+          # Doesn't use after_save as that would save associations added in after_create/after_update twice
+          after_create(after_callback)
+          after_update(after_callback)
         end
 
         def association_constructor_method(constructor, association_name, association_class_name, association_class_primary_key_name, options, association_proxy_class)
@@ -894,16 +894,15 @@ module ActiveRecord
         end
 
         def add_association_callbacks(association_name, options)
-        	callbacks = %w(before_add after_add before_remove after_remove)
-        	callbacks.each do |callback_name|
-        	  full_callback_name = "#{callback_name.to_s}_for_#{association_name.to_s}"
-        	  defined_callbacks = options[callback_name.to_sym]
-        	  if options.has_key?(callback_name.to_sym)
-        	    callback_array = defined_callbacks.kind_of?(Array) ? defined_callbacks : [defined_callbacks]
-        	    class_inheritable_reader full_callback_name.to_sym
-              write_inheritable_array(full_callback_name.to_sym, callback_array)
-        	  end
-        	end
+          callbacks = %w(before_add after_add before_remove after_remove)
+          callbacks.each do |callback_name|
+            full_callback_name = "#{callback_name.to_s}_for_#{association_name.to_s}"
+            defined_callbacks = options[callback_name.to_sym]
+            if options.has_key?(callback_name.to_sym)
+              class_inheritable_reader full_callback_name.to_sym
+              write_inheritable_array(full_callback_name.to_sym, [defined_callbacks].flatten)
+            end
+          end
         end
 
         def extract_record(schema_abbreviations, table_name, row)
@@ -915,5 +914,6 @@ module ActiveRecord
           return record
         end        
     end
+
   end
 end
