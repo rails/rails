@@ -3,11 +3,13 @@ module ActiveRecord
     module DatabaseStatements
       # Returns an array of record hashes with the column names as keys and
       # column values as values.
-      def select_all(sql, name = nil) end
+      def select_all(sql, name = nil)
+      end
 
       # Returns a record hash with the column names as keys and column values
       # as values.
-      def select_one(sql, name = nil) end
+      def select_one(sql, name = nil)
+      end
 
       # Returns a single value from a record
       def select_value(sql, name = nil)

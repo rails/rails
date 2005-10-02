@@ -1,5 +1,7 @@
 *SVN*
 
+* Forced newer versions of RedCloth to use hard breaks [DHH]
+
 * Added new scriptaculous options for auto_complete_field #2343 [m.stienstra@fngtps.com]
 
 * Don't prepend the asset host if the string is already a fully-qualified URL
