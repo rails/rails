@@ -88,6 +88,7 @@ module ActionView
             textilized = RedCloth.new(text, [ :hard_breaks ])
             textilized.hard_breaks = true if textilized.respond_to?("hard_breaks=")
             textilized.to_html
+          end
         end
 
         # Returns the text with all the Textile codes turned into HTML-tags, but without the regular bounding <p> tag.
