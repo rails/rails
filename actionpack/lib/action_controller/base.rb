@@ -503,19 +503,24 @@ module ActionController #:nodoc:
       # <tt>render_partial(partial_path = default_template_name, object = nil, local_assigns = {})</tt> and
       # <tt>render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {})</tt>.
       #
-      # === Rendering a file
+      # === Rendering a template
       # 
-      # File rendering works just like action rendering except that it takes a path relative to the template root or an absolute
-      # path if use_full_path is passed as true. The current layout is not applied automatically.
+      # Template rendering works just like action rendering except that it takes a path relative to the template root. 
+      # The current layout is automatically applied.
       #
       #   # Renders the template located in [TEMPLATE_ROOT]/weblog/show.r(html|xml) (in Rails, app/views/weblog/show.rhtml)
-      #   render :file => "weblog/show"
+      #   render :template => "weblog/show"
+      #
+      # === Rendering a file
+      # 
+      # File rendering works just like action rendering except that it takes an absolute path. 
+      # The current layout is not applied automatically.
       #
       #   # Renders the template located in /path/to/some/template.r(html|xml)
-      #   render :file => "/path/to/some/template", :use_full_path => false
+      #   render :file => "/path/to/some/template"
       #
       #   # Renders the same template within the current layout, but with a 404 status code
-      #   render :file => "/path/to/some/template", :use_full_path => false, :layout => true, :status => 404
+      #   render :file => "/path/to/some/template", :layout => true, :status => 404
       #
       # _Deprecation_ _notice_: This used to have the signature <tt>render_file(path, status = 200)</tt>
       #
