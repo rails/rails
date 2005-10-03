@@ -1,5 +1,7 @@
 *SVN*
 
+* Chain the const_missing hook to any previously existing hook so rails can play nicely with rake
+
 * Clean logger is compatible with both 1.8.2 and 1.8.3 Logger.  #2263 [Michael Schuerig <michael@schuerig.de>]
 
 * Added native, faster implementations of .blank? for the core types #2286 [skae]

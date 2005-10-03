@@ -178,6 +178,9 @@ Object.send(:define_method, :require_dependency)  { |file_name| Dependencies.dep
 Object.send(:define_method, :require_association) { |file_name| Dependencies.associate_with(file_name) }  unless Object.respond_to?(:require_association)
 
 class Module #:nodoc:
+  # Rename the original handler so we can chain it to the new one
+  alias :rails_original_const_missing :const_missing
+
   # Use const_missing to autoload associations so we don't have to
   # require_association when using single-table inheritance.
   def const_missing(class_id)
@@ -189,7 +192,11 @@ class Module #:nodoc:
       require_dependency(class_id.to_s.demodulize.underscore)
       if Object.const_defined?(class_id) then return Object.const_get(class_id) else raise LoadError end
     rescue LoadError => e
-      raise NameError.new("uninitialized constant #{class_id}").copy_blame!(e)
+      begin
+        rails_original_const_missing(class_id)
+      rescue Exception
+        raise NameError.new("uninitialized constant #{class_id}").copy_blame!(e)
+      end
     end
   end
 end
