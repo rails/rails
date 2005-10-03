@@ -6,9 +6,10 @@ module ActiveSupport #:nodoc:
       # Getting times in different convenient string representations and other objects
       module Conversions
         DATE_FORMATS = {
-          :db    => "%Y-%m-%d %H:%M:%S",
-          :short => "%e %b %H:%M",
-          :long  => "%B %e, %Y %H:%M"
+          :db     => "%Y-%m-%d %H:%M:%S",
+          :short  => "%e %b %H:%M",
+          :long   => "%B %e, %Y %H:%M",
+          :rfc822 => "%a, %d %b %Y %H:%M:%S %z"
         }
 
         def self.append_features(klass)

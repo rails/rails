@@ -118,9 +118,13 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   end
 
   def test_to_s
-    assert_equal "2005-02-21 17:44:30",     Time.local(2005, 2, 21, 17, 44, 30).to_s(:db)
-    assert_equal "21 Feb 17:44",            Time.local(2005, 2, 21, 17, 44, 30).to_s(:short)
-    assert_equal "February 21, 2005 17:44", Time.local(2005, 2, 21, 17, 44, 30).to_s(:long)
+    time = Time.local(2005, 2, 21, 17, 44, 30)
+    assert_equal "2005-02-21 17:44:30",     time.to_s(:db)
+    assert_equal "21 Feb 17:44",            time.to_s(:short)
+    assert_equal "February 21, 2005 17:44", time.to_s(:long)
+
+    time = Time.utc(2005, 2, 21, 17, 44, 30)
+    assert_equal "Mon, 21 Feb 2005 17:44:30 +0000", time.to_s(:rfc822)
   end
   
   def test_to_date
