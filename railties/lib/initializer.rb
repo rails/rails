@@ -33,7 +33,6 @@ module Rails
       set_connection_adapters
 
       require_frameworks
-      load_plugins
       load_environment
 
       initialize_database
@@ -51,6 +50,8 @@ module Rails
       # could overwrite anything set from the defaults/global through
       # the individual base class configurations.
       load_environment
+
+      load_plugins
     end
     
     def set_load_path
