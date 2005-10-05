@@ -1,6 +1,6 @@
 class CodeStatistics
 
-  TEST_TYPES = ['Unit tests', 'Functional tests']
+  TEST_TYPES = ['Units', 'Functionals', 'Unit tests', 'Functional tests']
 
   def initialize(*pairs)
     @pairs      = pairs
