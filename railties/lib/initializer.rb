@@ -33,6 +33,7 @@ module Rails
       set_connection_adapters
 
       require_frameworks
+      load_plugins
       load_environment
 
       initialize_database
@@ -65,6 +66,26 @@ module Rails
       configuration.frameworks.each { |framework| require(framework.to_s) }
     end
     
+    def load_plugins
+      config = configuration
+
+      Dir.glob("#{configuration.plugins_path}/*") do |directory|
+        next if File.basename(directory)[0] == ?. || !File.directory?(directory)
+
+        if File.exist?("#{directory}/init.rb")
+          silence_warnings do
+            eval(IO.read("#{directory}/init.rb"), binding)
+          end
+        end
+
+        if File.directory?("#{directory}/lib")
+          $LOAD_PATH.unshift "#{directory}/lib"
+        end
+      end
+
+      $LOAD_PATH.uniq!
+    end
+
     def load_environment
       silence_warnings do
         config = configuration
@@ -176,6 +197,10 @@ module Rails
     
     def environment_path
       "#{RAILS_ROOT}/config/environments/#{environment}.rb"
+    end
+
+    def plugins_path
+      "#{RAILS_ROOT}/vendor/plugins"
     end
     
     def environment

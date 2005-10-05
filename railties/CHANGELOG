@@ -1,5 +1,7 @@
 *SVN*
 
+* Add experimental plugin support #2335
+
 * Removed all the scripts in script/* and replaced it with one generic portal: script/run
 
 * Made Rakefile aware of new .js files in script.aculo.us [Thomas Fuchs]
