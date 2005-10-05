@@ -72,14 +72,14 @@ module Rails
       Dir.glob("#{configuration.plugins_path}/*") do |directory|
         next if File.basename(directory)[0] == ?. || !File.directory?(directory)
 
+        if File.directory?("#{directory}/lib")
+          $LOAD_PATH.unshift "#{directory}/lib"
+        end
+
         if File.exist?("#{directory}/init.rb")
           silence_warnings do
             eval(IO.read("#{directory}/init.rb"), binding)
           end
-        end
-
-        if File.directory?("#{directory}/lib")
-          $LOAD_PATH.unshift "#{directory}/lib"
         end
       end
 
