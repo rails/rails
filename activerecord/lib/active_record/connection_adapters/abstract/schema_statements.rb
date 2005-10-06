@@ -79,6 +79,11 @@ module ActiveRecord
         table_definition.primary_key(options[:primary_key] || "id") unless options[:id] == false
 
         yield table_definition
+
+        if options[:force]
+          drop_table(name) rescue nil
+        end
+
         create_sql = "CREATE#{' TEMPORARY' if options[:temporary]} TABLE "
         create_sql << "#{name} ("
         create_sql << table_definition.to_sql

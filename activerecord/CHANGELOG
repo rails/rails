@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :force option to create_table that'll try to drop the table if it already exists before creating
+
 * Fix transactions so that calling return while inside a transaction will not leave an open transaction on the connection. [Nicholas Seckar]
 
 * Use foreign_key inflection uniformly.  #2156 [Blair Zajac <blair@orcaware.com>]

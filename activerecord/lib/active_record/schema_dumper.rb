@@ -53,6 +53,7 @@ HEADER
 
         stream.print "  create_table #{table.inspect}"
         stream.print ", :id => false" if !columns.detect { |c| c.name == "id" }
+        stream.print ", :force => true"
         stream.puts " do |t|"
 
         columns.each do |column|
