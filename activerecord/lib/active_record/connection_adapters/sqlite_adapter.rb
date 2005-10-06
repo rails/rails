@@ -214,6 +214,10 @@ module ActiveRecord
 
         execute "DROP INDEX #{index_name}"
       end
+      
+      def rename_table(name, new_name)
+        move_table(name, new_name)
+      end
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
         alter_table(table_name) do |definition|

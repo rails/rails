@@ -180,6 +180,25 @@ if ActiveRecord::Base.connection.supports_migrations?
       
     end
     
+    def test_rename_table
+      begin
+        ActiveRecord::Base.connection.create_table :octopuses do |t|
+          t.column :url, :string
+        end          
+        ActiveRecord::Base.connection.rename_table :octopuses, :octopi
+        
+        assert_nothing_raised do
+          ActiveRecord::Base.connection.execute "INSERT INTO octopi (url) VALUES ('http://www.foreverflying.com/octopus-black7.jpg')"
+        end
+
+        assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', ActiveRecord::Base.connection.select_value("SELECT url FROM octopi WHERE id=1")
+      
+      ensure
+        ActiveRecord::Base.connection.drop_table :octopuses rescue nil
+        ActiveRecord::Base.connection.drop_table :octopi rescue nil
+      end
+    end
+    
     def test_change_column
       Person.connection.add_column "people", "bio", :string
       assert_nothing_raised { Person.connection.change_column "people", "bio", :text }

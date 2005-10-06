@@ -198,6 +198,10 @@ module ActiveRecord
       def schema_search_path #:nodoc:
         @schema_search_path ||= query('SHOW search_path')[0][0]
       end
+      
+      def rename_table(name, new_name)
+        execute "ALTER TABLE #{name} RENAME TO #{new_name}"
+      end
             
       def add_column(table_name, column_name, type, options = {})
         native_type = native_database_types[type]

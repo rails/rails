@@ -90,6 +90,13 @@ module ActiveRecord
         create_sql << ") #{options[:options]}"
         execute create_sql
       end
+      
+      # Renames a table.
+      # ===== Example
+      #  rename_table('octopuses', 'octopi')
+      def rename_table(name, new_name)
+        raise NotImplementedError, "rename_table is not implemented"
+      end
 
       # Drops a table from the database.
       def drop_table(name)
@@ -109,7 +116,7 @@ module ActiveRecord
       #  remove_column(:suppliers, :qualification)
       def remove_column(table_name, column_name)
         execute "ALTER TABLE #{table_name} DROP #{column_name}"
-      end      
+      end
 
       # Changes the column's definition according to the new options.
       # See TableDefinition#column for details of the options you can use.

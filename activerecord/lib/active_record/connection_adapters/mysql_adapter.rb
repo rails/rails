@@ -258,6 +258,10 @@ module ActiveRecord
       def create_table(name, options = {}) #:nodoc:
         super(name, {:options => "ENGINE=InnoDB"}.merge(options))
       end
+      
+      def rename_table(name, new_name)
+        execute "RENAME TABLE #{name} TO #{new_name}"
+      end  
 
       def change_column_default(table_name, column_name, default) #:nodoc:
         current_type = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Type"]
