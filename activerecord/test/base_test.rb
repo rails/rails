@@ -50,8 +50,8 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_integers_as_nil
-    Topic.update(1, "approved" => "")
-    assert_nil Topic.find(1).approved
+    test = AutoId.create('value' => '')
+    assert_nil AutoId.find(test.id).value
   end
   
   def test_set_attributes_with_block
@@ -193,7 +193,7 @@ class BasicsTest < Test::Unit::TestCase
   def test_read_attribute_when_false
     topic = topics(:first)
     topic.approved = false
-    assert_equal 0, topic.approved, "approved should be 0"
+    assert !topic.approved?, "approved should be false"
   end
 
   def test_preserving_date_objects
@@ -426,7 +426,7 @@ class BasicsTest < Test::Unit::TestCase
   
   def test_default_values
     topic = Topic.new
-    assert_equal 1, topic.approved
+    assert topic.approved?
     assert_nil topic.written_on
     assert_nil topic.bonus_time
     assert_nil topic.last_read
@@ -434,7 +434,7 @@ class BasicsTest < Test::Unit::TestCase
     topic.save
 
     topic = Topic.find(topic.id)
-    assert_equal 1, topic.approved
+    assert topic.approved?
     assert_nil topic.last_read
   end
 
@@ -511,15 +511,15 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_mass_assignment_accessible
-    reply = Reply.new("title" => "hello", "content" => "world", "approved" => 0)
-    reply.save
-    
-    assert_equal 1, reply.approved
-    
-    reply.approved = 0
+    reply = Reply.new("title" => "hello", "content" => "world", "approved" => false)
     reply.save
 
-    assert_equal 0, reply.approved
+    assert reply.approved?
+    
+    reply.approved = false
+    reply.save
+
+    assert !reply.approved?
   end
   
   def test_mass_assignment_protection_inheritance
