@@ -44,7 +44,9 @@ class AppGenerator < Rails::Generator::Base
       m.file "environments/test.rb",        "config/environments/test.rb"
 
       # Scripts
-      m.file "bin/run", "script/run", script_options
+      %w( breakpointer console destroy generate perform process run runner server ).each do |file|
+        m.file "bin/#{file}", "script/#{file}", script_options
+      end
 
       # Dispatches
       m.file "dispatches/dispatch.rb",   "public/dispatch.rb", script_options
@@ -117,5 +119,6 @@ class AppGenerator < Rails::Generator::Base
     test/mocks/test
     test/unit
     vendor
+    vendor/plugins
   )
 end

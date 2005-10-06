@@ -77,19 +77,18 @@ ARGV.options do |opts|
 
   opts.on <<-EOF
   Description:
-    The reaper is used to reload, gracefully exit, and forcefully exit FCGI processes
+    The reaper is used to restart, reload, gracefully exit, and forcefully exit FCGI processes
     running a Rails Dispatcher. This is commonly done when a new version of the application
     is available, so the existing processes can be updated to use the latest code.
 
     The reaper actions are:
 
+    * restart : Restarts the application by reloading both application and framework code
     * reload  : Only reloads the application, but not the framework (like the development environment)
     * graceful: Marks all of the processes for exit after the next request
     * kill    : Forcefully exists all processes regardless of whether they're currently serving a request
 
-    Graceful exist is the most common and default action. But since the processes won't exist until after
-    their next request, it's often necessary to ensure that such a request occurs right after they've been
-    marked. That's what nudging is for. 
+    Restart is the most common and default action.
 
     A nudge is simply a request to a URL where the dispatcher is serving. You should perform one nudge per
     FCGI process you have running if they're setup in a round-robin. Be sure to do one nudge per FCGI process
