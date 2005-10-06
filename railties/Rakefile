@@ -36,7 +36,7 @@ HTML_FILES   = %w( 404.html 500.html index.html robots.txt favicon.ico
                    javascripts/prototype.js javascripts/scriptaculous.js
                    javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js
                    javascripts/util.js javascripts/slider.js )
-BIN_FILES    = %w( breakpointer console destroy generate perform process run runner server )
+BIN_FILES    = %w( breakpointer console destroy generate perform process runner server )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )
 
