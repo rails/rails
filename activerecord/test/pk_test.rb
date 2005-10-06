@@ -44,12 +44,15 @@ class PrimaryKeysTest < Test::Unit::TestCase
   
   def test_primary_key_prefix
     ActiveRecord::Base.primary_key_prefix_type = :table_name
+    Topic.reset_primary_key
     assert_equal "topicid", Topic.primary_key
 
     ActiveRecord::Base.primary_key_prefix_type = :table_name_with_underscore
+    Topic.reset_primary_key
     assert_equal "topic_id", Topic.primary_key
 
     ActiveRecord::Base.primary_key_prefix_type = nil
+    Topic.reset_primary_key
     assert_equal "id", Topic.primary_key
   end
 end

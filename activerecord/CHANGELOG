@@ -1,5 +1,7 @@
 *SVN*
 
+* Add convenience predicate methods on Column class. In partial fullfilment of #1236. [skaes@web.de]
+
 * Raise errors when invalid hash keys are passed to ActiveRecord::Base.find. #2363  [Chad Fowler <chad@chadfowler.com>, Nicholas Seckar]
 
 * Added :force option to create_table that'll try to drop the table if it already exists before creating

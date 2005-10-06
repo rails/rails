@@ -551,14 +551,19 @@ module ActiveRecord #:nodoc:
       # Defines the primary key field -- can be overridden in subclasses. Overwriting will negate any effect of the
       # primary_key_prefix_type setting, though.
       def primary_key
+        reset_primary_key
+      end
+
+      def reset_primary_key
+        key = 'id'
         case primary_key_prefix_type
           when :table_name
-            Inflector.foreign_key(class_name_of_active_record_descendant(self), false)
+            key = Inflector.foreign_key(class_name_of_active_record_descendant(self), false)
           when :table_name_with_underscore
-            Inflector.foreign_key(class_name_of_active_record_descendant(self))
-          else
-            "id"
+            key = Inflector.foreign_key(class_name_of_active_record_descendant(self))
         end
+        set_primary_key(key)
+        key
       end
 
       # Defines the column name for use with single table inheritance -- can be overridden in subclasses.
@@ -643,7 +648,11 @@ module ActiveRecord #:nodoc:
 
       # Returns an array of column objects for the table associated with this class.
       def columns
-        @columns ||= connection.columns(table_name, "#{name} Columns")
+        unless @columns
+          @columns = connection.columns(table_name, "#{name} Columns")
+          @columns.each {|column| column.primary = column.name == primary_key}
+        end
+        @columns
       end
 
       # Returns an array of column objects for the table associated with this class.
@@ -658,7 +667,7 @@ module ActiveRecord #:nodoc:
       # Returns an array of columns objects where the primary id, all columns ending in "_id" or "_count",
       # and columns used for single table inheritance has been removed.
       def content_columns
-        @content_columns ||= columns.reject { |c| c.name == primary_key || c.name =~ /(_id|_count)$/ || c.name == inheritance_column }
+        @content_columns ||= columns.reject { |c| c.primary || c.name =~ /(_id|_count)$/ || c.name == inheritance_column }
       end
 
       # Returns a hash of all the methods added to query each of the columns in the table with the name of the method as the key
@@ -1372,7 +1381,7 @@ module ActiveRecord #:nodoc:
       def attributes_with_quotes(include_primary_key = true)
         attributes.inject({}) do |quoted, (name, value)|
           if column = column_for_attribute(name)
-            quoted[name] = quote(value, column) unless !include_primary_key && name == self.class.primary_key
+            quoted[name] = quote(value, column) unless !include_primary_key && column.primary
           end
           quoted
         end

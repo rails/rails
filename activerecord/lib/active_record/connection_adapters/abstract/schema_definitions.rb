@@ -5,6 +5,7 @@ module ActiveRecord
     # An abstract definition of a column in a table.
     class Column
       attr_reader :name, :default, :type, :limit, :null
+      attr_accessor :primary
 
       # Instantiates a new column in the table.
       #
@@ -16,7 +17,18 @@ module ActiveRecord
         @name, @type, @null = name, simplified_type(sql_type), null
         # have to do this one separately because type_cast depends on #type
         @default = type_cast(default)
-        @limit = extract_limit(sql_type) unless sql_type.nil?
+        @limit   = extract_limit(sql_type) unless sql_type.nil?
+        @primary = nil
+        @text    = [:string, :text].include? @type
+        @number  = [:float, :integer].include? @type
+      end
+
+      def text?
+        @text
+      end
+
+      def number?
+        @number
       end
 
       # Returns the Ruby class that corresponds to the abstract data type.
