@@ -975,7 +975,13 @@ module ActiveRecord #:nodoc:
         end
 
         def extract_options_from_args!(args)
-          if args.last.is_a?(Hash) then args.pop else {} end
+          options = args.last.is_a?(Hash) ? args.pop : {}
+          validate_find_options(options)
+          options
+        end
+	
+        def validate_find_options(options)
+          options.assert_valid_keys [:conditions, :include, :joins, :limit, :offset, :order, :select] 
         end
 
         def encode_quoted_value(value)

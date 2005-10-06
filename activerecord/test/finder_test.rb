@@ -276,6 +276,11 @@ class FinderTest < Test::Unit::TestCase
     assert_raises(ActiveRecord::StatementInvalid) { Topic.find_by_sql "select 1 from badtable" }
   end
 
+  def test_find_with_invalid_params
+    assert_raises(ArgumentError) { Topic.find :first, :join => "It should be `joins'" }
+    assert_raises(ArgumentError) { Topic.find :first, :conditions => '1 = 1', :join => "It should be `joins'" }
+  end
+
   def test_find_all_with_limit
     first_five_developers = Developer.find :all, :order => 'id ASC', :limit =>  5
     assert_equal 5, first_five_developers.length

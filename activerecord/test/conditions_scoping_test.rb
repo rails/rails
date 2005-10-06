@@ -28,7 +28,6 @@ class ConditionsScopingTest < Test::Unit::TestCase
   def test_scoped_find_all
     Developer.constrain(:conditions => "name = 'David'") do
       assert_equal [Developer.find(1)], Developer.find(:all)
-      assert_equal [Developer.find(1)], Developer.find(:all, :condtions => '1 = 2')
     end      
   end
   
