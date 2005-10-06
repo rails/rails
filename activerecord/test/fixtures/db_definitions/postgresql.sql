@@ -52,7 +52,7 @@ CREATE TABLE topics (
     bonus_time time,
     last_read date,
     content text,
-    approved smallint DEFAULT 1,
+    approved boolean default true,
     replies_count integer default 0,
     parent_id integer,
     "type" character varying(50),
