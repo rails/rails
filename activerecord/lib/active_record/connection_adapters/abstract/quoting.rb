@@ -14,11 +14,11 @@ module ActiveRecord
               "'#{quote_string(value)}'" # ' (for ruby-mode)
             end
           when NilClass              then "NULL"
-          when TrueClass             then (column && column.type == :boolean ? quoted_true : "1")
-          when FalseClass            then (column && column.type == :boolean ? quoted_false : "0")
+          when TrueClass             then (column && column.type == :integer ? '1' : quoted_true)
+          when FalseClass            then (column && column.type == :integer ? '0' : quoted_false)
           when Float, Fixnum, Bignum then value.to_s
           when Date                  then "'#{value.to_s}'"
-          when Time, DateTime        then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
+          when Time, DateTime        then "'#{quoted_date(value)}'"
           else                            "'#{quote_string(value.to_yaml)}'"
         end
       end
@@ -41,6 +41,10 @@ module ActiveRecord
       
       def quoted_false
         "'f'"
+      end
+      
+      def quoted_date(value)
+        value.strftime("%Y-%m-%d %H:%M:%S")
       end
     end
   end

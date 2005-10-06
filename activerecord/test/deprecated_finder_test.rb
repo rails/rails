@@ -38,8 +38,8 @@ class FinderTest < Test::Unit::TestCase
   end
   
   def test_deprecated_find_on_conditions
-    assert Topic.find_on_conditions(1, "approved = 0")
-    assert_raises(ActiveRecord::RecordNotFound) { Topic.find_on_conditions(1, "approved = 1") }
+    assert Topic.find_on_conditions(1, ["approved = ?", false])
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find_on_conditions(1, ["approved = ?", true]) }
   end
   
   def test_condition_interpolation

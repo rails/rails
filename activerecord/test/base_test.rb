@@ -380,7 +380,7 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_update_by_condition
-    Topic.update_all "content = 'bulk updated!'", "approved = 1"
+    Topic.update_all "content = 'bulk updated!'", ["approved = ?", true]
     assert_equal "Have a nice day", Topic.find(1).content
     assert_equal "bulk updated!", Topic.find(2).content
   end
@@ -812,6 +812,11 @@ class BasicsTest < Test::Unit::TestCase
     assert !topics(:first).approved?
     topics(:first).toggle!(:approved)
     assert topics(:first).approved?
+    topic = topics(:first)
+    topic.toggle(:approved)
+    assert !topic.approved?
+    topic.reload
+    assert topic.approved?
   end
 
   def test_reload

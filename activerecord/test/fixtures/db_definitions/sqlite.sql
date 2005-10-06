@@ -24,7 +24,7 @@ CREATE TABLE 'topics' (
   'bonus_time' TIME DEFAULT NULL,
   'last_read' DATE DEFAULT NULL,
   'content' TEXT,
-  'approved' INTEGER DEFAULT 1,
+  'approved' boolean DEFAULT 'f',
   'replies_count' INTEGER DEFAULT 0,
   'parent_id' INTEGER DEFAULT NULL,
   'type' VARCHAR(255) DEFAULT NULL

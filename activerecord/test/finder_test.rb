@@ -100,8 +100,8 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_on_conditions
-    assert Topic.find(1, :conditions => "approved = 0")
-    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => "approved = 1") }
+    assert Topic.find(1, :conditions => ["approved = ?", false])
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => ["approved = ?", true]) }
   end
   
   def test_condition_interpolation

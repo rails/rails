@@ -1094,7 +1094,7 @@ module ActiveRecord #:nodoc:
 
       # Turns an +attribute+ that's currently true into false and vice versa. Returns self.
       def toggle(attribute)
-        self[attribute] = quote(!send("#{attribute}?", column_for_attribute(attribute)))
+        self[attribute] = !send("#{attribute}?")
         self
       end
 
