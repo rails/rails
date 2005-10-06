@@ -112,7 +112,6 @@ class AppGenerator < Rails::Generator::Base
     public/javascripts
     public/stylesheets
     script
-    script/process
     test/fixtures
     test/functional
     test/mocks/development
