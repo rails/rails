@@ -50,8 +50,10 @@ module ActiveRecord
             raise ArgumentError, "No database file specified. Missing argument: dbfile"
           end
 
-          # Allow database path relative to RAILS_ROOT.
-          if Object.const_defined?(:RAILS_ROOT)
+          # Allow database path relative to RAILS_ROOT, but only if
+          # the database path is not the special path that tells
+          # Sqlite build a database only in memory.
+          if Object.const_defined?(:RAILS_ROOT) && ':memory:' != config[:dbfile]
             config[:dbfile] = File.expand_path(config[:dbfile], RAILS_ROOT)
           end
         end
