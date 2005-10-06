@@ -11,7 +11,7 @@ begin
       # Establishes a connection to the database that's used by
       # all Active Record objects
       def self.db2_connection(config) # :nodoc:
-        symbolize_strings_in_hash(config)
+        config = config.symbolize_keys
         usr = config[:username]
         pwd = config[:password]
 

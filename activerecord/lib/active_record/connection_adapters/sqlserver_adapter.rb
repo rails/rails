@@ -16,7 +16,7 @@ module ActiveRecord
     def self.sqlserver_connection(config) #:nodoc:
       require_library_or_gem 'dbi' unless self.class.const_defined?(:DBI)
       
-      symbolize_strings_in_hash(config)
+      config = config.symbolize_keys
 
       mode        = config[:mode] ? config[:mode].to_s.upcase : 'ADO'
       username    = config[:username] ? config[:username].to_s : 'sa'
