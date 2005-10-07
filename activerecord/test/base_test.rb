@@ -196,6 +196,19 @@ class BasicsTest < Test::Unit::TestCase
     assert !topic.approved?, "approved should be false"
   end
 
+  def test_reader_generation
+    Topic.find(:first).title
+    Firm.find(:first).name
+    Client.find(:first).name
+    if ActiveRecord::Base.generate_read_methods
+      assert_readers(Topic,  %w(type replies_count))
+      assert_readers(Firm,   %w(type))
+      assert_readers(Client, %w(type))
+    else
+      [Topic, Firm, Client].each {|klass| assert_equal klass.read_methods, {}}
+    end
+  end
+
   def test_preserving_date_objects
     # SQL Server doesn't have a separate column type just for dates, so all are returned as time
     if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter
@@ -913,4 +926,11 @@ class BasicsTest < Test::Unit::TestCase
 
      assert_equal    firm.clients.collect{ |x| x.name }.sort, clients.collect{ |x| x.name }.sort
   end
+
+  private
+
+    def assert_readers(model, exceptions)
+      expected_readers = model.column_names - (model.serialized_attributes.keys + exceptions + ['id'])
+      assert_equal expected_readers.sort, model.read_methods.keys.sort
+    end
 end

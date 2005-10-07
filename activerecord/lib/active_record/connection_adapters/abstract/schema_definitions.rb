@@ -48,19 +48,35 @@ module ActiveRecord
 
       # Casts value (which is a String) to an appropriate instance.
       def type_cast(value)
-        if value.nil? then return nil end
+        return nil if value.nil?
         case type
           when :string    then value
           when :text      then value
           when :integer   then value.to_i rescue value ? 1 : 0
           when :float     then value.to_f
-          when :datetime  then string_to_time(value)
-          when :timestamp then string_to_time(value)
-          when :time      then string_to_dummy_time(value)
-          when :date      then string_to_date(value)
-          when :binary    then binary_to_string(value)
+          when :datetime  then self.class.string_to_time(value)
+          when :timestamp then self.class.string_to_time(value)
+          when :time      then self.class.string_to_dummy_time(value)
+          when :date      then self.class.string_to_date(value)
+          when :binary    then self.class.binary_to_string(value)
           when :boolean   then value == true or (value =~ /^t(rue)?$/i) == 0 or value.to_s == '1'
           else value
+        end
+      end
+
+      def type_cast_code(var_name)
+        case type
+          when :string    then nil
+          when :text      then nil
+          when :integer   then "(#{var_name}.to_i rescue #{var_name} ? 1 : 0)"
+          when :float     then "#{var_name}.to_f"
+          when :datetime  then "#{self.class.name}.string_to_time(#{var_name})"
+          when :timestamp then "#{self.class.name}.string_to_time(#{var_name})"
+          when :time      then "#{self.class.name}.string_to_dummy_time(#{var_name})"
+          when :date      then "#{self.class.name}.string_to_date(#{var_name})"
+          when :binary    then "#{self.class.name}.binary_to_string(#{var_name})"
+          when :boolean   then "(#{var_name} == true or (#{var_name} =~ /^t(?:true)?$/i) == 0 or #{var_name}.to_s == '1')"
+          else nil
         end
       end
 
@@ -73,38 +89,38 @@ module ActiveRecord
       end
 
       # Used to convert from Strings to BLOBs
-      def string_to_binary(value)
+      def self.string_to_binary(value)
         value
       end
 
       # Used to convert from BLOBs to Strings
-      def binary_to_string(value)
+      def self.binary_to_string(value)
         value
       end
 
-      private
-        def string_to_date(string)
-          return string unless string.is_a?(String)
-          date_array = ParseDate.parsedate(string)
-          # treat 0000-00-00 as nil
-          Date.new(date_array[0], date_array[1], date_array[2]) rescue nil
-        end
+      def self.string_to_date(string)
+        return string unless string.is_a?(String)
+        date_array = ParseDate.parsedate(string)
+        # treat 0000-00-00 as nil
+        Date.new(date_array[0], date_array[1], date_array[2]) rescue nil
+      end
 
-        def string_to_time(string)
-          return string unless string.is_a?(String)
-          time_array = ParseDate.parsedate(string)[0..5]
-          # treat 0000-00-00 00:00:00 as nil
-          Time.send(Base.default_timezone, *time_array) rescue nil
-        end
+      def self.string_to_time(string)
+        return string unless string.is_a?(String)
+        time_array = ParseDate.parsedate(string)[0..5]
+        # treat 0000-00-00 00:00:00 as nil
+        Time.send(Base.default_timezone, *time_array) rescue nil
+      end
 
-        def string_to_dummy_time(string)
-          return string unless string.is_a?(String)
-          time_array = ParseDate.parsedate(string)
-          # pad the resulting array with dummy date information
-          time_array[0] = 2000; time_array[1] = 1; time_array[2] = 1;
-          Time.send(Base.default_timezone, *time_array) rescue nil
-        end
+      def self.string_to_dummy_time(string)
+        return string unless string.is_a?(String)
+        time_array = ParseDate.parsedate(string)
+        # pad the resulting array with dummy date information
+        time_array[0] = 2000; time_array[1] = 1; time_array[2] = 1;
+        Time.send(Base.default_timezone, *time_array) rescue nil
+      end
 
+    private
         def extract_limit(sql_type)
           $1.to_i if sql_type =~ /\((.*)\)/
         end

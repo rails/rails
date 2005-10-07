@@ -7,8 +7,8 @@ module ActiveRecord
         case value
           when String
             if column && column.type == :binary
-              "'#{quote_string(column.string_to_binary(value))}'" # ' (for ruby-mode)
-            elsif column && [:integer, :float].include?(column.type)
+              "'#{quote_string(column.class.string_to_binary(value))}'" # ' (for ruby-mode)
+            elsif column && [:integer, :float].include?(column.type) 
               value.to_s
             else
               "'#{quote_string(value)}'" # ' (for ruby-mode)

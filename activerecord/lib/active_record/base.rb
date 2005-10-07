@@ -300,6 +300,13 @@ module ActiveRecord #:nodoc:
     cattr_accessor :threaded_connections
     @@threaded_connections = true
 
+    # Determines whether to speed up access by generating optimized reader
+    # methods to avoid expensive calls to method_missing when accessing
+    # attributes by name. You might want to set this to false in development
+    # mode, because the methods would be regenerated on each request.
+    cattr_accessor :generate_read_methods
+    @@generate_read_methods = true
+
     class << self # Class methods
       # Find operates with three different retreval approaches:
       #
@@ -683,9 +690,16 @@ module ActiveRecord #:nodoc:
         end
       end
 
+    
+      # Contains the names of the generated reader methods.
+      def read_methods
+        @read_methods ||= {}
+      end
+      
       # Resets all the cached information about columns, which will cause they to be reloaded on the next request.
       def reset_column_information
-        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = nil
+        read_methods.each_key {|name| undef_method(name)}
+        @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @read_methods = nil
       end
 
       def reset_column_information_and_inheritable_attributes_for_all_subclasses#:nodoc:
@@ -1016,7 +1030,10 @@ module ActiveRecord #:nodoc:
       # Every Active Record class must use "id" as their primary ID. This getter overwrites the native
       # id method, which isn't being used in this context.
       def id
-        read_attribute(self.class.primary_key)
+        attr_name = self.class.primary_key
+        column    = column_for_attribute(attr_name)
+        define_read_method(:id, attr_name, column) if self.class.generate_read_methods
+        (value = @attributes[attr_name]) && column.type_cast(value)
       end
 
       # Enables Active Record objects to be used as URL parameters in Action Pack automatically.
@@ -1267,6 +1284,7 @@ module ActiveRecord #:nodoc:
       def method_missing(method_id, *args, &block)
         method_name = method_id.to_s
         if @attributes.include?(method_name)
+          define_read_methods if self.class.read_methods.empty? && self.class.generate_read_methods
           read_attribute(method_name)
         elsif md = /(=|\?|_before_type_cast)$/.match(method_name)
           attribute_name, method_type = md.pre_match, md.to_s
@@ -1310,11 +1328,37 @@ module ActiveRecord #:nodoc:
         @attributes[attr_name]
       end
 
+      # Called on first read access to any given column and generates reader
+      # methods for all columns in the columns_hash if
+      # ActiveRecord::Base.generate_read_methods is set to true.
+      def define_read_methods
+        self.class.columns_hash.each do |name, column|
+          unless column.primary || self.class.serialized_attributes[name] || respond_to_without_attributes?(name)
+            define_read_method(name.to_sym, name, column)
+          end
+        end
+      end
+
+      # Define a column type specific reader method.
+      def define_read_method(symbol, attr_name, column)
+        cast_code = column.type_cast_code('v')
+        access_code = cast_code ? "(v=@attributes['#{attr_name}']) && #{cast_code}" : "@attributes['#{attr_name}']"
+        body = access_code
+
+        # The following 3 lines behave exactly like method_missing if the
+        # attribute isn't present.
+        unless symbol == :id
+          body = body.insert(0, "raise NoMethodError, 'missing attribute: #{attr_name}', caller unless @attributes.has_key?('#{attr_name}'); ")
+        end
+        self.class.class_eval("def #{symbol}; #{body} end")
+
+        self.class.read_methods[attr_name] = true unless symbol == :id
+        logger.debug "Defined read method #{self.class.name}.#{symbol}" if logger
+      end
+
       # Returns true if the attribute is of a text column and marked for serialization.
       def unserializable_attribute?(attr_name, column)
-        if value = @attributes[attr_name]
-          [:text, :string].include?(column.send(:type)) && value.is_a?(String) && self.class.serialized_attributes[attr_name]
-        end
+        column.text? && self.class.serialized_attributes[attr_name]
       end
 
       # Returns the unserialized object of the attribute.
@@ -1332,12 +1376,21 @@ module ActiveRecord #:nodoc:
       # Updates the attribute identified by <tt>attr_name</tt> with the specified +value+. Empty strings for fixnum and float
       # columns are turned into nil.
       def write_attribute(attr_name, value)
-        @attributes[attr_name.to_s] = empty_string_for_number_column?(attr_name.to_s, value) ? nil : value
+        attr_name = attr_name.to_s
+        if (column = column_for_attribute(attr_name)) && column.number?
+          @attributes[attr_name] = convert_number_column_value(value)
+        else
+          @attributes[attr_name] = value
+        end
       end
 
-      def empty_string_for_number_column?(attr_name, value)
-        column = column_for_attribute(attr_name)
-        column && (column.klass == Fixnum || column.klass == Float) && value == ""
+      def convert_number_column_value(value)
+        case value
+          when FalseClass: 0
+          when TrueClass:  1
+          when '':         nil
+          else value
+        end
       end
 
       def query_attribute(attr_name)

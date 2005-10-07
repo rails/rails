@@ -1,5 +1,7 @@
 *SVN*
 
+* Add option (true by default) to generate reader methods for each attribute of a record to avoid the overhead of calling method missing. In partial fullfilment of #1236. [skaes@web.de]
+
 * Add convenience predicate methods on Column class. In partial fullfilment of #1236. [skaes@web.de]
 
 * Raise errors when invalid hash keys are passed to ActiveRecord::Base.find. #2363  [Chad Fowler <chad@chadfowler.com>, Nicholas Seckar]

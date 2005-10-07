@@ -98,7 +98,7 @@ module ActiveRecord
 
       # These methods will only allow the adapter to insert binary data with a length of 7K or less
       # because of a SQL Server statement length policy.
-      def string_to_binary(value)
+      def self.string_to_binary(value)
         value.gsub(/(\r|\n|\0|\x1a)/) do
           case $1
             when "\r"   then  "%00"
@@ -109,7 +109,7 @@ module ActiveRecord
         end
       end
 
-      def binary_to_string(value)
+      def self.binary_to_string(value)
         value.gsub(/(%00|%01|%02|%03)/) do
           case $1
             when "%00"    then  "\r"
@@ -275,7 +275,7 @@ module ActiveRecord
         case value
           when String                
             if column && column.type == :binary
-              "'#{quote_string(column.string_to_binary(value))}'"
+              "'#{quote_string(column.class.string_to_binary(value))}'"
             else
               "'#{quote_string(value)}'"
             end
