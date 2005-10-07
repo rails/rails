@@ -1353,7 +1353,6 @@ module ActiveRecord #:nodoc:
         self.class.class_eval("def #{symbol}; #{body} end")
 
         self.class.read_methods[attr_name] = true unless symbol == :id
-        logger.debug "Defined read method #{self.class.name}.#{symbol}" if logger
       end
 
       # Returns true if the attribute is of a text column and marked for serialization.
