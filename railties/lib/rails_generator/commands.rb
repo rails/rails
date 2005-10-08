@@ -144,12 +144,16 @@ module Rails
         # Collisions are handled by checking whether the destination file
         # exists and either skipping the file, forcing overwrite, or asking
         # the user what to do.
-        def file(relative_source, relative_destination, file_options = {})
+        def file(relative_source, relative_destination, file_options = {}, &block)
           # Determine full paths for source and destination files.
           source              = source_path(relative_source)
           destination         = destination_path(relative_destination)
           destination_exists  = File.exists?(destination)
-          return logger.identical(relative_destination) if destination_exists and identical?(source, destination)
+
+          # If source and destination are identical then we're done.
+          if destination_exists and identical?(source, destination, &block)
+            return logger.identical(relative_destination) 
+          end
 
           # Check for and resolve file collisions.
           if destination_exists
@@ -209,9 +213,13 @@ module Rails
           system("svn add #{destination}") if options[:svn]
         end
 
-        # Checks if the source and the destination file are identical.
-        def identical?(source, destination)
-          IO.read(source) == IO.read(destination)
+        # Checks if the source and the destination file are identical. If
+        # passed a block then the source file is a template that needs to first
+        # be evaluated before being compared to the destination.
+        def identical?(source, destination, &block)
+          source      = block_given? ? File.open(source) {|sf| yield(sf)} : IO.read(source)
+          destination = IO.read(destination)
+          source == destination
         end
 
         # Generate a file for a Rails application using an ERuby template.
