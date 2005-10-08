@@ -217,6 +217,7 @@ module Rails
         # passed a block then the source file is a template that needs to first
         # be evaluated before being compared to the destination.
         def identical?(source, destination, &block)
+          return false if File.directory? destination
           source      = block_given? ? File.open(source) {|sf| yield(sf)} : IO.read(source)
           destination = IO.read(destination)
           source == destination
