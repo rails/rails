@@ -1,5 +1,7 @@
 *SVN*
 
+* Make the generator skip a file if it already exists and is identical to the new file.
+
 * Add experimental plugin support #2335
 
 * Made Rakefile aware of new .js files in script.aculo.us [Thomas Fuchs]

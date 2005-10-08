@@ -146,11 +146,13 @@ module Rails
         # the user what to do.
         def file(relative_source, relative_destination, file_options = {})
           # Determine full paths for source and destination files.
-          source      = source_path(relative_source)
-          destination = destination_path(relative_destination)
+          source              = source_path(relative_source)
+          destination         = destination_path(relative_destination)
+          destination_exists  = File.exists?(destination)
+          return logger.identical(relative_destination) if destination_exists and identical?(source, destination)
 
           # Check for and resolve file collisions.
-          if File.exists?(destination)
+          if destination_exists
 
             # Make a choice whether to overwrite the file.  :force and
             # :skip already have their mind made up, but give :ask a shot.
@@ -205,6 +207,11 @@ module Rails
           
           # Optionally add file to subversion
           system("svn add #{destination}") if options[:svn]
+        end
+
+        # Checks if the source and the destination file are identical.
+        def identical?(source, destination)
+          IO.read(source) == IO.read(destination)
         end
 
         # Generate a file for a Rails application using an ERuby template.
