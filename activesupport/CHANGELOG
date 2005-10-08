@@ -1,5 +1,7 @@
 *SVN*
 
+* Moved require_library_or_gem into Kernel. #1992 [Michael Schuerig <michael@schuerig.de>]
+
 * Add :rfc822 as an option for Time#to_s (to get rfc822-formatted times)
 
 * Chain the const_missing hook to any previously existing hook so rails can play nicely with rake

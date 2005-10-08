@@ -7,29 +7,6 @@ require 'active_record/connection_adapters/abstract/database_statements'
 require 'active_record/connection_adapters/abstract/quoting'
 require 'active_record/connection_adapters/abstract/connection_specification'
 
-# Method that requires a library, ensuring that rubygems is loaded
-# This is used in the database adaptors to require DB drivers. Reasons:
-# (1) database drivers are the only third-party library that Rails depend upon
-# (2) they are often installed as gems
-def require_library_or_gem(library_name)
-  begin
-    require library_name
-  rescue LoadError => cannot_require
-    # 1. Requiring the module is unsuccessful, maybe it's a gem and nobody required rubygems yet. Try.
-    begin
-      require 'rubygems'
-    rescue LoadError => rubygems_not_installed
-      raise cannot_require
-    end
-    # 2. Rubygems is installed and loaded. Try to load the library again
-    begin
-      require library_name
-    rescue LoadError => gem_not_installed
-      raise cannot_require
-    end
-  end
-end
-
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     # All the concrete database adapters follow the interface laid down in this class.
