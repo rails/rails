@@ -1,6 +1,7 @@
 require 'delegate'
 require 'optparse'
 require 'fileutils'
+require 'digest/md5'
 require 'erb'
 
 module Rails
@@ -220,7 +221,7 @@ module Rails
           return false if File.directory? destination
           source      = block_given? ? File.open(source) {|sf| yield(sf)} : IO.read(source)
           destination = IO.read(destination)
-          source == destination
+          Digest::MD5.hexdigest(source) == Digest::MD5.hexdigest(destination)
         end
 
         # Generate a file for a Rails application using an ERuby template.
