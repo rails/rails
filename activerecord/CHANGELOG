@@ -1,5 +1,7 @@
 *SVN*
 
+* Add ability to get all siblings, including the current child, with acts_as_tree. Recloses #2140. [Michael Schuerig <michael@schuerig.de>]
+
 * Add geometric type for postgresql adapter. #2233 [akaspick@gmail.com]
 
 * Add option (true by default) to generate reader methods for each attribute of a record to avoid the overhead of calling method missing. In partial fullfilment of #1236. [skaes@web.de]

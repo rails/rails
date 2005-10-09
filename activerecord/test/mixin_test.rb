@@ -280,6 +280,15 @@ class TreeTest < Test::Unit::TestCase
     assert_equal [mixins(:tree_1), mixins(:tree3_1)], mixins(:tree2_1).siblings
     assert_equal [mixins(:tree_1), mixins(:tree2_1)], mixins(:tree3_1).siblings
   end
+
+  def test_self_and_siblings
+    assert_equal [mixins(:tree_1), mixins(:tree2_1), mixins(:tree3_1)], mixins(:tree_1).self_and_siblings
+    assert_equal [mixins(:tree_2), mixins(:tree_4)], mixins(:tree_2).self_and_siblings
+    assert_equal [mixins(:tree_3)], mixins(:tree_3).self_and_siblings
+    assert_equal [mixins(:tree_2), mixins(:tree_4)], mixins(:tree_4).self_and_siblings
+    assert_equal [mixins(:tree_1), mixins(:tree2_1), mixins(:tree3_1)], mixins(:tree2_1).self_and_siblings
+    assert_equal [mixins(:tree_1), mixins(:tree2_1), mixins(:tree3_1)], mixins(:tree3_1).self_and_siblings
+  end
 end
 
 class TouchTest < Test::Unit::TestCase

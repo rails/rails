@@ -71,8 +71,13 @@ module ActiveRecord
           end
 
           define_method(:siblings) do
-            ( has_parent? ? parent.children : self.class.roots ) - [self]
+            self_and_siblings - [self]
           end
+
+          define_method(:self_and_siblings) do
+            has_parent? ? parent.children : self.class.roots
+          end
+
         end
       end
     end
