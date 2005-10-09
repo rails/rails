@@ -435,7 +435,7 @@ module HTML #:nodoc:
       
       # count children
       if opts = conditions[:children]
-        matches = children
+        matches = children.select { |c| c.match(/./) }
         matches = matches.select { |c| c.match(opts[:only]) } if opts[:only]
         opts.each do |key, value|
           next if key == :only

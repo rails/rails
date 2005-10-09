@@ -1,5 +1,7 @@
 *SVN*
 
+* Make assert_tag :children count appropriately. Closes #2181. [jamie@bravenet.com]
+
 * Forced newer versions of RedCloth to use hard breaks [DHH]
 
 * Added new scriptaculous options for auto_complete_field #2343 [m.stienstra@fngtps.com]
