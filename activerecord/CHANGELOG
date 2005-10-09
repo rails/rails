@@ -1,5 +1,7 @@
 *SVN*
 
+* Add geometric type for postgresql adapter. #2233 [akaspick@gmail.com]
+
 * Add option (true by default) to generate reader methods for each attribute of a record to avoid the overhead of calling method missing. In partial fullfilment of #1236. [skaes@web.de]
 
 * Add convenience predicate methods on Column class. In partial fullfilment of #1236. [skaes@web.de]

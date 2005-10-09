@@ -207,3 +207,14 @@ CREATE TABLE fk_test_has_fk (
   id    INTEGER NOT NULL PRIMARY KEY,
   fk_id INTEGER NOT NULL REFERENCES fk_test_has_fk(id)
 );
+
+CREATE TABLE geometrics (
+  id serial primary key,
+  a_point point,
+  -- a_line line, (the line type is currently not implemented in postgresql)
+  a_line_segment lseg,
+  a_box box,
+  a_path path,
+  a_polygon polygon,
+  a_circle circle
+);
