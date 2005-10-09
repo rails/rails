@@ -1,6 +1,6 @@
 *SVN*
 
-* Update Prototype to V1.4.0_pre11, script.aculo.us to [2502] and fix the rails generator to include the new .js files [Thomas Fuchs]
+* Update Prototype to V1.4.0_pre11, script.aculo.us to V1.5_rc3 [2504] and fix the rails generator to include the new .js files [Thomas Fuchs]
 
 * Make the generator skip a file if it already exists and is identical to the new file.
 
