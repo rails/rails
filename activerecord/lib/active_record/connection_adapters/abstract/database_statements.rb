@@ -73,8 +73,7 @@ module ActiveRecord
 
       # Alias for #add_limit_offset!.
       def add_limit!(sql, options)
-        return unless options
-        add_limit_offset!(sql, options)
+        add_limit_offset!(sql, options) if options
       end
 
       # Appends +LIMIT+ and +OFFSET+ options to a SQL statement.
@@ -84,9 +83,12 @@ module ActiveRecord
       # generates
       #  SELECT * FROM suppliers LIMIT 10 OFFSET 50
       def add_limit_offset!(sql, options)
-        return if options[:limit].nil?
-        sql << " LIMIT #{options[:limit]}"
-        sql << " OFFSET #{options[:offset]}" if options.has_key?(:offset) and !options[:offset].nil?
+        if limit = options[:limit]
+          sql << " LIMIT #{limit}"
+          if offset = options[:offset]
+            sql << " OFFSET #{offset}"
+          end
+        end
       end
     end
   end

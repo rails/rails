@@ -195,11 +195,11 @@ module ActiveRecord
 
 
       def add_limit_offset!(sql, options) #:nodoc
-        if options[:limit]
-          if options[:offset].blank?
-            sql << " LIMIT #{options[:limit]}"
+        if limit = options[:limit]
+          unless offset = options[:offset]
+            sql << " LIMIT #{limit}"
           else
-            sql << " LIMIT #{options[:offset]}, #{options[:limit]}"
+            sql << " LIMIT #{offset}, #{limit}"
           end
         end
       end
