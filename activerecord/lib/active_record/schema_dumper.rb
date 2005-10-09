@@ -59,7 +59,7 @@ HEADER
         columns.each do |column|
           next if column.name == "id"
           stream.print "    t.column #{column.name.inspect}, #{column.type.inspect}"
-          stream.print ", :limit => #{column.limit.inspect}" if column.limit != @types[column.type][:limit]
+          stream.print ", :limit => #{column.limit.inspect}" if column.limit != @types[column.type][:limit] 
           stream.print ", :default => #{column.default.inspect}" if !column.default.nil?
           stream.print ", :null => false" if !column.null
           stream.puts

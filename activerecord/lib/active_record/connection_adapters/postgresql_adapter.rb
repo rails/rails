@@ -355,7 +355,7 @@ module ActiveRecord
             when /^real|^money/i  then 'float'
             when /^interval/i     then 'string'
             # geometric types (the line type is currently not implemented in postgresql)
-            when /^point|lseg|box|path|polygon|circle/i  then 'string' 
+            when /^(?:point|lseg|box|"?path"?|polygon|circle)/i  then 'string' 
             when /^bytea/i        then 'binary'
             else field_type       # Pass through standard types.
           end
