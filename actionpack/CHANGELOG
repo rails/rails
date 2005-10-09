@@ -1,5 +1,7 @@
 *SVN*
 
+* Update Prototype to V1.4.0_pre11, script.aculo.us to [2502] [Thomas Fuchs]
+
 * Make assert_tag :children count appropriately. Closes #2181. [jamie@bravenet.com]
 
 * Forced newer versions of RedCloth to use hard breaks [DHH]

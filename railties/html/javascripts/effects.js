@@ -120,6 +120,7 @@ Effect.Queue = {
 
 Effect.Base = function() {};
 Effect.Base.prototype = {
+  position: null,
   setOptions: function(options) {
     this.options = Object.extend({
       transition: Effect.Transitions.sinoidal,
@@ -169,6 +170,7 @@ Effect.Base.prototype = {
     if(this.options.transition) pos = this.options.transition(pos);
     pos *= (this.options.to-this.options.from);
     pos += this.options.from;
+    this.position = pos;
     this.event('beforeUpdate');
     if(this.update) this.update(pos);
     this.event('afterUpdate');
@@ -207,11 +209,9 @@ Effect.Opacity = Class.create();
 Object.extend(Object.extend(Effect.Opacity.prototype, Effect.Base.prototype), {
   initialize: function(element) {
     this.element = $(element);
-
     // make this work on IE on elements without 'layout'
     if(/MSIE/.test(navigator.userAgent) && (!this.element.hasLayout))
       this.element.style.zoom = 1;
-      
     var options = Object.extend({
       from: Element.getOpacity(this.element) || 0.0,
       to:   1.0
@@ -268,69 +268,65 @@ Object.extend(Object.extend(Effect.Scale.prototype, Effect.Base.prototype), {
     this.start(options);
   },
   setup: function() {
+    var effect = this;
+    
     this.restoreAfterFinish = this.options.restoreAfterFinish || false;
     this.elementPositioning = Element.getStyle(this.element,'position');
-    this.elementStyleTop = this.element.style.top;
-    this.elementStyleLeft = this.element.style.left;
-    this.elementStyleWidth = this.element.style.width;
-    this.elementStyleHeight = this.element.style.height;
-    this.elementStyleFontSize = this.element.style.fontSize;
-    this.originalTop    = this.element.offsetTop;
-    this.originalLeft   = this.element.offsetLeft;
+    
+    effect.originalStyle = {};
+    ['top','left','width','height','fontSize'].each( function(k) {
+      effect.originalStyle[k] = effect.element.style[k];
+    });
+      
+    this.originalTop  = this.element.offsetTop;
+    this.originalLeft = this.element.offsetLeft;
+    
     var fontSize = Element.getStyle(this.element,'font-size') || "100%";
-    if(fontSize.indexOf("em")>0) {
-      this.fontSize      = parseFloat(fontSize);
-      this.fontSizeType  = "em";
-    } else if(fontSize.indexOf("px")>0) {
-      this.fontSize      = parseFloat(fontSize);
-      this.fontSizeType  = "px";
-    } else if(fontSize.indexOf("%")>0) {
-      this.fontSize      = parseFloat(fontSize);
-      this.fontSizeType  = "%";
-    }
+    ['em','px','%'].each( function(fontSizeType) {
+      if(fontSize.indexOf(fontSizeType)>0) {
+        effect.fontSize     = parseFloat(fontSize);
+        effect.fontSizeType = fontSizeType;
+      }
+    });
+    
     this.factor = (this.options.scaleTo - this.options.scaleFrom)/100;
-    if(this.options.scaleMode=='box') {
-      this.originalHeight = this.element.clientHeight;
-      this.originalWidth  = this.element.clientWidth; 
-    } else if(this.options.scaleMode=='contents') {
-      this.originalHeight = this.element.scrollHeight;
-      this.originalWidth  = this.element.scrollWidth;
-    } else {
-      this.originalHeight = this.options.scaleMode.originalHeight;
-      this.originalWidth  = this.options.scaleMode.originalWidth;
-    }
+    
+    this.dims = null;
+    if(this.options.scaleMode=='box')
+      this.dims = [this.element.clientHeight, this.element.clientWidth];
+    if(this.options.scaleMode=='content')
+      this.dims = [this.element.scrollHeight, this.element.scrollWidth];
+    if(!this.dims)
+      this.dims = [this.options.scaleMode.originalHeight,
+                   this.options.scaleMode.originalWidth];
   },
   update: function(position) {
     var currentScale = (this.options.scaleFrom/100.0) + (this.factor * position);
     if(this.options.scaleContent && this.fontSize)
       this.element.style.fontSize = this.fontSize*currentScale + this.fontSizeType;
-    this.setDimensions(
-      this.originalWidth * currentScale, 
-      this.originalHeight * currentScale);
+    this.setDimensions(this.dims[0] * currentScale, this.dims[1] * currentScale);
   },
   finish: function(position) {
     if (this.restoreAfterFinish) {
-      var els = this.element.style;
-      els.top = this.elementStyleTop;
-      els.left = this.elementStyleLeft;
-      els.width = this.elementStyleWidth;
-      els.height = this.elementStyleHeight;
-      els.height = this.elementStyleHeight;
-      els.fontSize = this.elementStyleFontSize;
+      var effect = this;
+      ['top','left','width','height','fontSize'].each( function(k) {
+        effect.element.style[k] = effect.originalStyle[k];
+      });
     }
   },
-  setDimensions: function(width, height) {
-    if(this.options.scaleX) this.element.style.width = width + 'px';
-    if(this.options.scaleY) this.element.style.height = height + 'px';
+  setDimensions: function(height, width) {
+    var els = this.element.style;
+    if(this.options.scaleX) els.width = width + 'px';
+    if(this.options.scaleY) els.height = height + 'px';
     if(this.options.scaleFromCenter) {
-      var topd  = (height - this.originalHeight)/2;
-      var leftd = (width  - this.originalWidth)/2;
+      var topd  = (height - this.dims[0])/2;
+      var leftd = (width  - this.dims[1])/2;
       if(this.elementPositioning == 'absolute') {
-        if(this.options.scaleY) this.element.style.top = this.originalTop-topd + "px";
-        if(this.options.scaleX) this.element.style.left = this.originalLeft-leftd + "px";
+        if(this.options.scaleY) els.top = this.originalTop-topd + "px";
+        if(this.options.scaleX) els.left = this.originalLeft-leftd + "px";
       } else {
-        if(this.options.scaleY) this.element.style.top = -topd + "px";
-        if(this.options.scaleX) this.element.style.left = -leftd + "px";
+        if(this.options.scaleY) els.top = -topd + "px";
+        if(this.options.scaleX) els.left = -leftd + "px";
       }
     }
   }
@@ -364,10 +360,9 @@ Object.extend(Object.extend(Effect.Highlight.prototype, Effect.Base.prototype), 
       parseInt(this.options.endcolor.slice(5),16)-this.colors_base[2]];
   },
   update: function(position) {
-    var colors = [
-      Math.round(this.colors_base[0]+(this.colors_delta[0]*position)),
-      Math.round(this.colors_base[1]+(this.colors_delta[1]*position)),
-      Math.round(this.colors_base[2]+(this.colors_delta[2]*position)) ];
+    var effect = this; var colors = $R(0,2).map( function(i){ 
+      return Math.round(effect.colors_base[i]+(effect.colors_delta[i]*position))
+    });
     this.element.style.backgroundColor = "#" +
       colors[0].toColorPart() + colors[1].toColorPart() + colors[2].toColorPart();
   },

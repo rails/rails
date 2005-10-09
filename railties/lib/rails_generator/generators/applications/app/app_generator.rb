@@ -62,10 +62,13 @@ class AppGenerator < Rails::Generator::Base
       m.template "html/robots.txt", "public/robots.txt"
 
       # Javascripts
-      m.file "html/javascripts/prototype.js", "public/javascripts/prototype.js"
-      m.file "html/javascripts/effects.js",   "public/javascripts/effects.js"
-      m.file "html/javascripts/dragdrop.js",  "public/javascripts/dragdrop.js"
-      m.file "html/javascripts/controls.js",  "public/javascripts/controls.js"
+      m.file "html/javascripts/prototype.js",     "public/javascripts/prototype.js"
+      m.file "html/javascripts/scriptaculous.js", "public/javascripts/scriptaculous.js"
+      m.file "html/javascripts/util.js",          "public/javascripts/util.js"
+      m.file "html/javascripts/effects.js",       "public/javascripts/effects.js"
+      m.file "html/javascripts/dragdrop.js",      "public/javascripts/dragdrop.js"
+      m.file "html/javascripts/controls.js",      "public/javascripts/controls.js"
+      m.file "html/javascripts/slider.js",        "public/javascripts/slider.js"
 
       # Docs
       m.file "doc/README_FOR_APP", "doc/README_FOR_APP"

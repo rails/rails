@@ -2,7 +2,8 @@
 //
 // See scriptaculous.js for full license.
 
-Object.inspect = function(obj) {
+
+Object.debug = function(obj) {
   var info = [];
   
   if(typeof obj in ["string","number"]) {
@@ -20,32 +21,6 @@ Object.inspect = function(obj) {
     ": {" + info.join(", ") + "}");
 }
 
-// borrowed from http://www.schuerig.de/michael/javascript/stdext.js
-// Copyright (c) 2005, Michael Schuerig, michael@schuerig.de
-
-Array.flatten = function(array, excludeUndefined) {
-  if (excludeUndefined === undefined) {
-    excludeUndefined = false;
-  }
-  var result = [];
-  var len = array.length;
-  for (var i = 0; i < len; i++) {
-    var el = array[i];
-    if (el instanceof Array) {
-      var flat = el.flatten(excludeUndefined);
-      result = result.concat(flat);
-    } else if (!excludeUndefined || el != undefined) {
-      result.push(el);
-    }
-  }
-  return result;
-};
-
-if (!Array.prototype.flatten) {
-  Array.prototype.flatten = function(excludeUndefined) {
-    return Array.flatten(this, excludeUndefined);
-  }
-}
 
 String.prototype.toArray = function() {
   var results = [];
@@ -57,28 +32,70 @@ String.prototype.toArray = function() {
 /*--------------------------------------------------------------------------*/
 
 var Builder = {
+  NODEMAP: {
+    AREA: 'map',
+    CAPTION: 'table',
+    COL: 'table',
+    COLGROUP: 'table',
+    LEGEND: 'fieldset',
+    OPTGROUP: 'select',
+    OPTION: 'select',
+    PARAM: 'object',
+    TBODY: 'table',
+    TD: 'table',
+    TFOOT: 'table',
+    TH: 'table',
+    THEAD: 'table',
+    TR: 'table'
+  },
+  // note: For Firefox < 1.5, OPTION and OPTGROUP tags are currently broken,
+  //       due to a Firefox bug
   node: function(elementName) {
-    var element = document.createElement('div');
-    element.innerHTML = 
-      "<" + elementName + "></" + elementName + ">";
+    elementName = elementName.toUpperCase();
+    
+    // try innerHTML approach
+    var parentTag = this.NODEMAP[elementName] || 'div';
+    var parentElement = document.createElement(parentTag);
+    parentElement.innerHTML = "<" + elementName + "></" + elementName + ">";
+    var element = parentElement.firstChild || null;
+      
+    // see if browser added wrapping tags
+    if(element && (element.tagName != elementName))
+      element = element.getElementsByTagName(elementName)[0];
+    
+    // fallback to createElement approach
+    if(!element) element = document.createElement(elementName);
+    
+    // abort if nothing could be created
+    if(!element) return;
 
     // attributes (or text)
     if(arguments[1])
       if(this._isStringOrNumber(arguments[1]) ||
         (arguments[1] instanceof Array)) {
-          this._children(element.firstChild, arguments[1]);
+          this._children(element, arguments[1]);
         } else {
           var attrs = this._attributes(arguments[1]);
-          if(attrs.length) 
-            element.innerHTML = "<" +elementName + " " +
+          if(attrs.length) {
+            parentElement.innerHTML = "<" +elementName + " " +
               attrs + "></" + elementName + ">";
+            element = parentElement.firstChild || null;
+            // workaround firefox 1.0.X bug
+            if(!element) {
+              element = document.createElement(elementName);
+              for(attr in arguments[1]) 
+                element[attr == 'class' ? 'className' : attr] = arguments[1][attr];
+            }
+            if(element.tagName != elementName)
+              element = parentElement.getElementsByTagName(elementName)[0];
+            }
         } 
 
     // text, or array of children
     if(arguments[2])
-      this._children(element.firstChild, arguments[2]);
+      this._children(element, arguments[2]);
 
-     return element.firstChild;
+     return element;
   },
   _text: function(text) {
      return document.createTextNode(text);
@@ -229,7 +246,12 @@ Element.setContentZoom = function(element, percent) {
 }
 
 Element.getOpacity = function(element){
-  return parseFloat(Element.getStyle(element, "opacity") || '1');
+  var opacity;
+  if (opacity = Element.getStyle(element, "opacity"))
+    return parseFloat(opacity);
+  if (opacity = (Element.getStyle(element, "filter") || '').match(/alpha\(opacity=(.*)\)/))
+    if(opacity[1]) return parseFloat(opacity[1]) / 100;
+  return 1.0;
 }
 
 Element.setOpacity = function(element, value){
@@ -237,11 +259,14 @@ Element.setOpacity = function(element, value){
   var els = element.style;
   if (value == 1){
     els.opacity = '0.999999';
-    els.filter  = null;
+    if(/MSIE/.test(navigator.userAgent))
+      els.filter = Element.getStyle(element,'filter').replace(/alpha\([^\)]*\)/gi,'');
   } else {
     if(value < 0.00001) value = 0;
     els.opacity = value;
-    els.filter  = "alpha(opacity:"+value*100+")";
+    if(/MSIE/.test(navigator.userAgent))
+      els.filter = Element.getStyle(element,'filter').replace(/alpha\([^\)]*\)/gi,'') + 
+        "alpha(opacity="+value*100+")";
   }  
 }
 
@@ -261,22 +286,24 @@ Element.setInlineOpacity = function(element, value){
 
 Element.getDimensions = function(element){
   element = $(element);
-  // All *Width and *Height properties give 0 on elements with display "none", so enable the element temporarily
-  if (element.style.display == "none"){
-    var originalVisibility = element.style.visibility;
-    var originalPosition = element.style.position;
-    element.style.visibility = "hidden";
-    element.style.position = "absolute";
-    element.style.display = "";
+  // All *Width and *Height properties give 0 on elements with display "none", 
+  // so enable the element temporarily
+  if (Element.getStyle(element,'display') == "none"){
+    var els = element.style;
+    var originalVisibility = els.visibility;
+    var originalPosition = els.position;
+    els.visibility = "hidden";
+    els.position = "absolute";
+    els.display = "";
     var originalWidth = element.clientWidth;
     var originalHeight = element.clientHeight;
-    element.style.display = "none";
-    element.style.position = originalPosition;
-    element.style.visibility = originalVisibility;
+    els.display = "none";
+    els.position = originalPosition;
+    els.visibility = originalVisibility;
     return {width: originalWidth, height: originalHeight};    
-  } else {
-    return {width: element.offsetWidth, height: element.offsetHeight};
   }
+  
+  return {width: element.offsetWidth, height: element.offsetHeight};
 } 
 
 /*--------------------------------------------------------------------------*/
@@ -445,18 +472,18 @@ Element.Class = {
 
     // gets space-delimited classnames of an element as an array
     get: function(element) {
-      element = $(element);
-      return element.className.split(' ');
+      return $(element).className.split(' ');
     },
 
     // functions adapted from original functions by Gavin Kistner
     remove: function(element) {
       element = $(element);
-      var regEx;
-      for(var i = 1; i < arguments.length; i++) {
-        regEx = new RegExp("(^|\\s)" + arguments[i] + "(\\s|$)", 'g');
-        element.className = element.className.replace(regEx, '')
-      }
+      var removeClasses = arguments;
+      $R(1,arguments.length-1).each( function(index) {
+        element.className = 
+          element.className.split(' ').reject( 
+            function(klass) { return (klass == removeClasses[index]) } ).join(' ');
+      });
     },
 
     add: function(element) {

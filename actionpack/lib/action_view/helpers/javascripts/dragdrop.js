@@ -10,7 +10,7 @@ var Droppables = {
   drops: [],
 
   remove: function(element) {
-    this.drops = this.drops.reject(function(e) { return e==element });
+    this.drops = this.drops.reject(function(d) { return d.element==element });
   },
 
   add: function(element) {
@@ -93,7 +93,7 @@ var Droppables = {
 
     if (this.isAffected(Event.pointerX(event), Event.pointerY(event), element, this.last_active))
       if (this.last_active.onDrop) 
-        this.last_active.onDrop(element, this.last_active.element);
+        this.last_active.onDrop(element, this.last_active.element, event);
   },
 
   reset: function() {
@@ -137,7 +137,11 @@ Draggable.prototype = {
     }, arguments[1] || {});
 
     this.element      = $(element);
-    this.handle       = options.handle ? $(options.handle) : this.element;
+    if(options.handle && (typeof options.handle == 'string'))
+      this.handle = Element.Class.childrenWith(this.element, options.handle)[0];
+      
+    if(!this.handle) this.handle = $(options.handle);
+    if(!this.handle) this.handle = this.element;
 
     Element.makePositioned(this.element); // fix IE    
 
@@ -147,7 +151,6 @@ Draggable.prototype = {
     this.originalTop  = this.currentTop();
     this.originalX    = this.element.offsetLeft;
     this.originalY    = this.element.offsetTop;
-    this.originalZ    = parseInt(this.element.style.zIndex || "0");
 
     this.options      = options;
 
@@ -230,7 +233,8 @@ Draggable.prototype = {
       this.originalTop  = this.currentTop();
     }
 
-    this.element.style.zIndex = this.originalZ;
+    if(this.options.zindex)
+      this.element.style.zIndex = this.originalZ;
 
     if(this.options.endeffect) 
       this.options.endeffect(this.element);
@@ -271,8 +275,14 @@ Draggable.prototype = {
       if(!this.dragging) {
         var style = this.element.style;
         this.dragging = true;
-        if(style.position=="") style.position = "relative";
-        style.zIndex = this.options.zindex;
+        
+        if(Element.getStyle(this.element,'position')=='') 
+          style.position = "relative";
+        
+        if(this.options.zindex) {
+          this.options.originalZ = parseInt(Element.getStyle(this.element,'z-index') || 0);
+          style.zIndex = this.options.zindex;
+        }
 
         if(this.options.ghosting) {
           this._clone = this.element.cloneNode(true);
@@ -344,6 +354,7 @@ var Sortable = {
       only:        false,
       hoverclass:  null,
       ghosting:    false,
+      format:      null,
       onChange:    function() {},
       onUpdate:    function() {}
     }, arguments[1] || {});
@@ -494,11 +505,12 @@ var Sortable = {
     var options = Object.extend({
       tag:  sortableOptions.tag,
       only: sortableOptions.only,
-      name: element.id
+      name: element.id,
+      format: sortableOptions.format || /^[^_]*_(.*)$/
     }, arguments[1] || {});
-    return $A(element.childNodes).collect( function(item) { 
+    return $(this.findElements(element, options) || []).collect( function(item) {
       return (encodeURIComponent(options.name) + "[]=" + 
-              encodeURIComponent(item.id.split("_")[1]));
+              encodeURIComponent(item.id.match(options.format) ? item.id.match(options.format)[1] : ''));
     }).join("&");
   }
 }

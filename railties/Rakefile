@@ -70,7 +70,7 @@ end
 
 desc "Updates railties to the latest version of the javascript spinoffs"
 task :update_js do
-  for js in %w( prototype controls dragdrop effects )
+  for js in %w( prototype controls dragdrop effects util slider )
     rm "html/javascripts/#{js}.js"
     cp "./../actionpack/lib/action_view/helpers/javascripts/#{js}.js", "html/javascripts"
   end
