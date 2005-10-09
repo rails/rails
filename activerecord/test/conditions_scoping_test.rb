@@ -9,7 +9,7 @@ class ConditionsScopingTest < Test::Unit::TestCase
   
   def test_set_conditions
     Developer.constrain(:conditions => 'just a test...') do
-      assert_equal 'just a test...', Thread.current[:constrains][Developer][:conditions]
+      assert_equal 'just a test...', Thread.current[:constraints][Developer][:conditions]
     end
   end
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix typo of 'constrains' to 'contraints'. #2069. [Michael Schuerig <michael@schuerig.de>]
+
 * Optimization refactoring for add_limit_offset!. In partial fullfilment of #1236. [skaes@web.de]
 
 * Add ability to get all siblings, including the current child, with acts_as_tree. Recloses #2140. [Michael Schuerig <michael@schuerig.de>]

@@ -758,18 +758,18 @@ module ActiveRecord #:nodoc:
         logger.level = old_logger_level if logger
       end
       
-      # Add constrains to all queries to the same model in the given block.
-      # Currently supported constrains are <tt>:conditions</tt> and <tt>:joins</tt> 
+      # Add constraints to all queries to the same model in the given block.
+      # Currently supported constraints are <tt>:conditions</tt> and <tt>:joins</tt> 
       #
       #   Article.constrain(:conditions => "blog_id = 1") do
       #     Article.find(1) # => SELECT * from articles WHERE blog_id = 1 AND id = 1
       #   end
       def constrain(options = {}, &block)
         begin
-          self.scope_constrains = options
+          self.scope_constraints = options
           block.call if block_given?
         ensure 
-          self.scope_constrains = nil
+          self.scope_constraints = nil
         end
       end
 
@@ -823,13 +823,13 @@ module ActiveRecord #:nodoc:
         end
         
         def add_joins!(sql, options)
-          join = scope_constrains[:joins] || options[:joins]
+          join = scope_constraints[:joins] || options[:joins]
           sql << " #{join} " if join
         end
         
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that it's the passed +sql+ string is changed.
         def add_conditions!(sql, conditions)          
-          condition_segments = [scope_constrains[:conditions]]
+          condition_segments = [scope_constraints[:conditions]]
           condition_segments << sanitize_sql(conditions) unless conditions.nil?
           condition_segments << type_condition unless descends_from_active_record?        
           condition_segments.compact!  
@@ -918,15 +918,19 @@ module ActiveRecord #:nodoc:
           @@subclasses[self] + extra = @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
         end
         
-        def scope_constrains
-          Thread.current[:constrains] ||= {}
-          Thread.current[:constrains][self] ||= {}
+        def scope_constraints
+          Thread.current[:constraints] ||= {}
+          Thread.current[:constraints][self] ||= {}
         end
-        
-        def scope_constrains=(value)
-          Thread.current[:constrains] ||= {}
-          Thread.current[:constrains][self] = value
+        # backwards compatibility
+        alias_method :scope_constrains, :scope_constraints 
+
+        def scope_constraints=(value)
+          Thread.current[:constraints] ||= {}
+          Thread.current[:constraints][self] = value
         end
+        # backwards compatibility
+        alias_method :scope_constrains=, :scope_constraints=
         
          # Returns the class type of the record using the current module as a prefix. So descendents of
         # MyApp::Business::Account would be appear as MyApp::Business::AccountSubclass.
