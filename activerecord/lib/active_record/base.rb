@@ -782,22 +782,25 @@ module ActiveRecord #:nodoc:
         # Finder methods must instantiate through this method to work with the single-table inheritance model
         # that makes it possible to create objects of different types from the same table.
         def instantiate(record)
-          subclass_name = record[inheritance_column]
-          require_association_class(subclass_name)
-
-          object = if subclass_name.blank?
-            allocate
-          else
-            begin
-              compute_type(subclass_name).allocate
-            rescue NameError
-              raise SubclassNotFound,
-                "The single-table inheritance mechanism failed to locate the subclass: '#{record[inheritance_column]}'. " +
-                "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
-                "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
-                "or overwrite #{self.to_s}.inheritance_column to use another column for that information."
+          object = 
+            if subclass_name = record[inheritance_column]
+              if subclass_name.empty?
+                allocate
+              else
+                require_association_class(subclass_name)
+                begin
+                  compute_type(subclass_name).allocate
+                rescue NameError
+                  raise SubclassNotFound,
+                    "The single-table inheritance mechanism failed to locate the subclass: '#{record[inheritance_column]}'. " +
+                    "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
+                    "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
+                    "or overwrite #{self.to_s}.inheritance_column to use another column for that information."
+                end
+              end
+            else
+              allocate
             end
-          end
 
           object.instance_variable_set("@attributes", record)
           object
