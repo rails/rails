@@ -1,5 +1,7 @@
 *SVN*
 
+* Replace '%e' from long and short time formats as Windows does not support it. #2344. [Tom Ward <tom@popdog.net>]
+
 * Added to_s(:db) to Range, so you can get "BETWEEN '2005-12-10' AND '2005-12-12'" from Date.new(2005, 12, 10)..Date.new(2005, 12, 12) (and likewise with Times)
 
 * Moved require_library_or_gem into Kernel. #1992 [Michael Schuerig <michael@schuerig.de>]
