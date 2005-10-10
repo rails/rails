@@ -11,7 +11,7 @@ end
 
 Signal.trap("INT") { puts; exit }
 
-require File.dirname(__FILE__) + '/../lib/version'
+require File.dirname(__FILE__) + '/../lib/rails_version'
 abort "Rails #{Rails::Version::STRING}" if %w(--version -v).include? ARGV.first
 
 require File.dirname(__FILE__) + '/../lib/rails_generator'
