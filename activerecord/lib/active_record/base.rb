@@ -552,7 +552,13 @@ module ActiveRecord #:nodoc:
       #      set_table_name "mice"
       #   end
       def table_name
-        "#{table_name_prefix}#{undecorated_table_name(class_name_of_active_record_descendant(self))}#{table_name_suffix}"
+        reset_table_name
+      end
+
+      def reset_table_name
+        name = "#{table_name_prefix}#{undecorated_table_name(class_name_of_active_record_descendant(self))}#{table_name_suffix}"
+        set_table_name name
+        name
       end
 
       # Defines the primary key field -- can be overridden in subclasses. Overwriting will negate any effect of the

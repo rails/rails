@@ -1,5 +1,7 @@
 *SVN*
 
+* Speed up the setting of table_name. #2428. [skaes@web.de]
+
 * Optimize instantiation of STI subclass records. In partial fullfilment of #1236. [skaes@web.de]
 
 * Fix typo of 'constrains' to 'contraints'. #2069. [Michael Schuerig <michael@schuerig.de>]

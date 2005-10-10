@@ -299,9 +299,11 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_schema_info_table_name
       ActiveRecord::Base.table_name_prefix = "prefix_"
       ActiveRecord::Base.table_name_suffix = "_suffix"
+      Reminder.reset_table_name
       assert_equal "prefix_schema_info_suffix", ActiveRecord::Migrator.schema_info_table_name
       ActiveRecord::Base.table_name_prefix = ""
       ActiveRecord::Base.table_name_suffix = ""
+      Reminder.reset_table_name
       assert_equal "schema_info", ActiveRecord::Migrator.schema_info_table_name
     end
   
@@ -309,6 +311,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal "table", ActiveRecord::Migrator.proper_table_name('table')
       assert_equal "table", ActiveRecord::Migrator.proper_table_name(:table)
       assert_equal "reminders", ActiveRecord::Migrator.proper_table_name(Reminder)
+      Reminder.reset_table_name
       assert_equal Reminder.table_name, ActiveRecord::Migrator.proper_table_name(Reminder)
   
       # Use the model's own prefix/suffix if a model is given
@@ -316,17 +319,21 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.table_name_suffix = "_ARsuffix"
       Reminder.table_name_prefix = 'prefix_'
       Reminder.table_name_suffix = '_suffix'
+      Reminder.reset_table_name
       assert_equal "prefix_reminders_suffix", ActiveRecord::Migrator.proper_table_name(Reminder)
       Reminder.table_name_prefix = ''
       Reminder.table_name_suffix = ''
+      Reminder.reset_table_name
       
       # Use AR::Base's prefix/suffix if string or symbol is given      
       ActiveRecord::Base.table_name_prefix = "prefix_"
       ActiveRecord::Base.table_name_suffix = "_suffix"
+      Reminder.reset_table_name
       assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name('table')
       assert_equal "prefix_table_suffix", ActiveRecord::Migrator.proper_table_name(:table)
       ActiveRecord::Base.table_name_prefix = ""
       ActiveRecord::Base.table_name_suffix = ""
+      Reminder.reset_table_name
     end  
 
     def test_add_drop_table_with_prefix_and_suffix
@@ -334,6 +341,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       ActiveRecord::Base.table_name_prefix = 'prefix_'
       ActiveRecord::Base.table_name_suffix = '_suffix'
+      Reminder.reset_table_name
       WeNeedReminders.up
 
       assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
@@ -343,6 +351,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_raises(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
       ActiveRecord::Base.table_name_prefix = ''
       ActiveRecord::Base.table_name_suffix = ''
+      Reminder.reset_table_name
     end
 
   end  

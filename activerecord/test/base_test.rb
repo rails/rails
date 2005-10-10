@@ -296,31 +296,42 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal "master_credit_cards", MasterCreditCard.table_name
 
     ActiveRecord::Base.pluralize_table_names = false
+    [Category, Smarts, CreditCard, MasterCreditCard].each{|c| c.reset_table_name}
     assert_equal "category", Category.table_name
     assert_equal "smarts", Smarts.table_name
     assert_equal "credit_card", CreditCard.table_name
     assert_equal "master_credit_card", MasterCreditCard.table_name
     ActiveRecord::Base.pluralize_table_names = true
+    [Category, Smarts, CreditCard, MasterCreditCard].each{|c| c.reset_table_name}
 
     ActiveRecord::Base.table_name_prefix = "test_"
+    Category.reset_table_name
     assert_equal "test_categories", Category.table_name
     ActiveRecord::Base.table_name_suffix = "_test"
+    Category.reset_table_name
     assert_equal "test_categories_test", Category.table_name
     ActiveRecord::Base.table_name_prefix = ""
+    Category.reset_table_name
     assert_equal "categories_test", Category.table_name
     ActiveRecord::Base.table_name_suffix = ""
+    Category.reset_table_name
     assert_equal "categories", Category.table_name
 
     ActiveRecord::Base.pluralize_table_names = false
     ActiveRecord::Base.table_name_prefix = "test_"
+    Category.reset_table_name
     assert_equal "test_category", Category.table_name
     ActiveRecord::Base.table_name_suffix = "_test"
+    Category.reset_table_name
     assert_equal "test_category_test", Category.table_name
     ActiveRecord::Base.table_name_prefix = ""
+    Category.reset_table_name
     assert_equal "category_test", Category.table_name
     ActiveRecord::Base.table_name_suffix = ""
+    Category.reset_table_name
     assert_equal "category", Category.table_name
     ActiveRecord::Base.pluralize_table_names = true
+    [Category, Smarts, CreditCard, MasterCreditCard].each{|c| c.reset_table_name}
   end
   
   def test_destroy_all
