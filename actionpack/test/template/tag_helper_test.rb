@@ -24,6 +24,11 @@ class TagHelperTest < Test::Unit::TestCase
     assert_equal "<p included=\"\" />", tag("p", :included => '')
   end
 
+  def test_tag_options_converts_boolean_option
+    assert_equal '<p disabled="disabled" multiple="multiple" readonly="readonly" />',
+      tag("p", :disabled => true, :multiple => true, :readonly => true)
+  end
+
   def test_content_tag
     assert_equal "<a href=\"create\">Create</a>", content_tag("a", "Create", "href" => "create")
     assert_equal content_tag("a", "Create", "href" => "create"),

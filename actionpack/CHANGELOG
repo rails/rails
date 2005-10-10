@@ -1,5 +1,7 @@
 *SVN*
 
+* Convert boolean form options form the tag_helper. #809. [Michael Schuerig <michael@schuerig.de>]
+
 * Fixed that an instance variable with the same name as a partial should be implicitly passed as the partial :object #2269 [court3nay]
 
 * Update Prototype to V1.4.0_pre11, script.aculo.us to [2502] [Thomas Fuchs]

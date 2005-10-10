@@ -24,11 +24,17 @@ module ActionView
 
       private
         def tag_options(options)
-          if options
-            options.inject("") do |html_str, (key, value)|
-              value.nil? ? html_str : html_str << %( #{key}="#{html_escape(value)}")
-            end
-          end
+          cleaned_options = convert_booleans(options.stringify_keys.reject {|key, value| value.nil?})
+          ' ' + cleaned_options.map {|key, value| %(#{key}="#{html_escape(value.to_s)}")}.sort * ' ' unless cleaned_options.empty?
+        end
+
+        def convert_booleans(options)
+          %w( disabled readonly multiple ).each { |a| boolean_attribute(options, a) }
+          options
+        end
+
+        def boolean_attribute(options, attribute)
+          options[attribute] ? options[attribute] = attribute : options.delete(attribute)
         end
     end
   end

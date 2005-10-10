@@ -47,7 +47,7 @@ module ActionView
       # Options:
       # * <tt>:multiple</tt> - If set to true the selection will allow multiple choices.
       def select_tag(name, option_tags = nil, options = {})
-        content_tag("select", option_tags, { "name" => name, "id" => name }.update(convert_options(options)))
+        content_tag("select", option_tags, { "name" => name, "id" => name }.update(options))
       end
 
       # Creates a standard text field.
@@ -59,7 +59,7 @@ module ActionView
       # 
       # A hash of standard HTML options for the tag.
       def text_field_tag(name, value = nil, options = {})
-        tag("input", { "type" => "text", "name" => name, "id" => name, "value" => value }.update(convert_options(options)))
+        tag("input", { "type" => "text", "name" => name, "id" => name, "value" => value }.update(options))
       end
 
       # Creates a hidden field.
@@ -80,14 +80,14 @@ module ActionView
       # The specified URL will then be passed a File object containing the selected file, or if the field 
       # was left blank, a StringIO object.
       def file_field_tag(name, options = {})
-        text_field_tag(name, nil, convert_options(options).update("type" => "file"))
+        text_field_tag(name, nil, options.update("type" => "file"))
       end
 
       # Creates a password field.
       #
       # Takes the same options as text_field_tag
       def password_field_tag(name = "password", value = nil, options = {})
-        text_field_tag(name, value, convert_options(options).update("type" => "password"))
+        text_field_tag(name, value, options.update("type" => "password"))
       end
 
       # Creates a text input area.
@@ -103,49 +103,34 @@ module ActionView
           options.delete("size")
         end
 
-        content_tag("textarea", content, { "name" => name, "id" => name }.update(convert_options(options)))
+        content_tag("textarea", content, { "name" => name, "id" => name }.update(options))
       end
 
       # Creates a check box.
       def check_box_tag(name, value = "1", checked = false, options = {})
-        html_options = { "type" => "checkbox", "name" => name, "id" => name, "value" => value }.update(convert_options(options))
+        html_options = { "type" => "checkbox", "name" => name, "id" => name, "value" => value }.update(options)
         html_options["checked"] = "checked" if checked
         tag("input", html_options)
       end
 
       # Creates a radio button.
       def radio_button_tag(name, value, checked = false, options = {})
-        html_options = { "type" => "radio", "name" => name, "id" => name, "value" => value }.update(convert_options(options))
+        html_options = { "type" => "radio", "name" => name, "id" => name, "value" => value }.update(options)
         html_options["checked"] = "checked" if checked
         tag("input", html_options)
       end
 
       # Creates a submit button with the text <tt>value</tt> as the caption.
       def submit_tag(value = "Save changes", options = {})
-        tag("input", { "type" => "submit", "name" => "commit", "value" => value }.update(convert_options(options)))
+        tag("input", { "type" => "submit", "name" => "commit", "value" => value }.update(options))
       end
       
       # Displays an image which when clicked will submit the form.
       #
       # <tt>source</tt> is passed to AssetTagHelper#image_path
       def image_submit_tag(source, options = {})
-        tag("input", { "type" => "image", "src" => image_path(source) }.update(convert_options(options)))
+        tag("input", { "type" => "image", "src" => image_path(source) }.update(options))
       end
-      
-      private
-        def convert_options(options)
-          options = options.stringify_keys
-          %w( disabled readonly multiple ).each { |a| boolean_attribute(options, a) }
-          options
-        end
-        
-        def boolean_attribute(options, attribute)
-          if options[attribute]
-            options[attribute] = attribute
-          else
-            options.delete attribute
-          end
-        end
     end
   end
 end
