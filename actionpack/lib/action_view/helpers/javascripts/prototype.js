@@ -778,7 +778,7 @@ Object.extend(Element, {
   toggle: function() {
     for (var i = 0; i < arguments.length; i++) {
       var element = $(arguments[i]);
-      Element[Element.visible(element) ? 'show' : 'hide'](element);
+      Element[Element.visible(element) ? 'hide' : 'show'](element);
     }
   },
 
