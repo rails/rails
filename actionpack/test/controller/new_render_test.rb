@@ -106,6 +106,11 @@ class NewRenderTestController < ActionController::Base
     render :partial => "hash_object", :object => {:first_name => "Sam"}
   end
 
+  def partial_with_implicit_local_assignment
+    @customer = Customer.new("Marcel")
+    render :partial => "customer"
+  end
+  
   def hello_in_a_string
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render :text =>  "How's there? #{render_to_string("test/list")}"
@@ -380,6 +385,11 @@ class NewRenderTest < Test::Unit::TestCase
     assert_equal "Sam", @response.body
   end
 
+  def test_partial_with_implicit_local_assignment
+    get :partial_with_implicit_local_assignment
+    assert_equal "Hello: Marcel", @response.body
+  end
+  
   def test_render_text_with_assigns
     get :render_text_with_assigns
     assert_equal "world", assigns["hello"]
