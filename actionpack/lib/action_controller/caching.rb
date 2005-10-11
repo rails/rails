@@ -86,7 +86,7 @@ module ActionController #:nodoc:
 
           benchmark "Cached page: #{page_cache_file(path)}" do
             FileUtils.makedirs(File.dirname(page_cache_path(path)))
-            File.open(page_cache_path(path), "w+") { |f| f.write(content) }
+            File.open(page_cache_path(path), "wb+") { |f| f.write(content) }
           end
         end
 
@@ -407,7 +407,7 @@ module ActionController #:nodoc:
     
         def write(name, value, options = nil) #:nodoc:
           ensure_cache_path(File.dirname(real_file_path(name)))
-          File.open(real_file_path(name), "w+") { |f| f.write(value) }
+          File.open(real_file_path(name), "wb+") { |f| f.write(value) }
         rescue => e
           Base.logger.error "Couldn't create cache directory: #{name} (#{e.message})" if Base.logger
         end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Make cacheing binary files friendly with Windows. #1975. [Rich Olson]
+
 * Convert boolean form options form the tag_helper. #809. [Michael Schuerig <michael@schuerig.de>]
 
 * Fixed that an instance variable with the same name as a partial should be implicitly passed as the partial :object #2269 [court3nay]
