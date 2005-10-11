@@ -1,5 +1,7 @@
 *SVN*
 
+* Optimization for Mysql selects using mysql-ruby extension greater than 2.6.3.  #2426. [skaes.web.de]
+
 * Speed up the setting of table_name. #2428. [skaes@web.de]
 
 * Optimize instantiation of STI subclass records. In partial fullfilment of #1236. [skaes@web.de]

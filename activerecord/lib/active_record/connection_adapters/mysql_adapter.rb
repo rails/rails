@@ -4,20 +4,25 @@ module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects.
     def self.mysql_connection(config) # :nodoc:
+      # Only include the MySQL driver if one hasn't already been loaded
       unless self.class.const_defined?(:Mysql)
         begin
-          # Only include the MySQL driver if one hasn't already been loaded
           require_library_or_gem 'mysql'
+          # The C version of mysql returns null fields in each_hash if Mysql::VERSION is defined
+          ConnectionAdapters::MysqlAdapter.null_values_in_each_hash = Mysql.const_defined?(:VERSION)
         rescue LoadError => cannot_require_mysql
           # Only use the supplied backup Ruby/MySQL driver if no driver is already in place
           begin
             require 'active_record/vendor/mysql'
             require 'active_record/vendor/mysql411'
+            # The ruby version of mysql returns null fields in each_hash
+            ConnectionAdapters::MysqlAdapter.null_values_in_each_hash = true
           rescue LoadError
             raise cannot_require_mysql
           end
         end
       end
+      
 
       config = config.symbolize_keys
       host     = config[:host]
@@ -72,6 +77,9 @@ module ActiveRecord
     class MysqlAdapter < AbstractAdapter
       @@emulate_booleans = true
       cattr_accessor :emulate_booleans
+
+      cattr_accessor :null_values_in_each_hash
+      @@null_values_in_each_hash = false
 
       LOST_CONNECTION_ERROR_MESSAGES = [
         "Server shutdown in progress",
@@ -288,8 +296,12 @@ module ActiveRecord
           @connection.query_with_result = true
           result = execute(sql, name)
           rows = []
-          all_fields_initialized = result.fetch_fields.inject({}) { |all_fields, f| all_fields[f.name] = nil; all_fields }
-          result.each_hash { |row| rows << all_fields_initialized.dup.update(row) }
+          if @@null_values_in_each_hash
+            result.each_hash { |row| rows << row }
+          else
+            all_fields = result.fetch_fields.inject({}) { |fields, f| fields[f.name] = nil; fields }
+            result.each_hash { |row| rows << all_fields.dup.update(row) }
+          end
           result.free
           rows
         end
