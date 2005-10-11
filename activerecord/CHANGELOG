@@ -1,5 +1,7 @@
 *SVN*
 
+* Misc doc fixes (typos/grammar/etc.). #2430. [coffee2code]
+
 * Add test coverage for content_columns. #2432. [coffee2code]
 
 * Speed up for unthreaded environments. #2431. [skaes@web.de]

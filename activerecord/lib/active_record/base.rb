@@ -45,7 +45,7 @@ module ActiveRecord #:nodoc:
     end
   end
 
-  # Active Record objects doesn't specify their attributes directly, but rather infer them from the table definition with
+  # Active Record objects don't specify their attributes directly, but rather infer them from the table definition with
   # which they're linked. Adding, removing, and changing attributes and their type is done directly in the database. Any change
   # is instantly reflected in the Active Record objects. The mapping that binds a given Active Record class to a certain
   # database table will happen automatically in most common cases, but can be overwritten for the uncommon ones.
@@ -54,7 +54,7 @@ module ActiveRecord #:nodoc:
   #
   # == Creation
   #
-  # Active Records accepts constructor parameters either in a hash or as a block. The hash method is especially useful when
+  # Active Records accept constructor parameters either in a hash or as a block. The hash method is especially useful when
   # you're receiving the data from somewhere else, like a HTTP request. It works like this:
   #
   #   user = User.new(:name => "David", :occupation => "Code Artist")
@@ -77,7 +77,7 @@ module ActiveRecord #:nodoc:
   #
   # Conditions can either be specified as a string or an array representing the WHERE-part of an SQL statement.
   # The array form is to be used when the condition input is tainted and requires sanitization. The string form can
-  # be used for statements that doesn't involve tainted data. Examples:
+  # be used for statements that don't involve tainted data. Examples:
   #
   #   User < ActiveRecord::Base
   #     def self.authenticate_unsafely(user_name, password)
@@ -125,14 +125,14 @@ module ActiveRecord #:nodoc:
   # You can alternatively use self[:attribute]=(value) and self[:attribute] instead of write_attribute(:attribute, vaule) and
   # read_attribute(:attribute) as a shorter form.
   #
-  # == Accessing attributes before they have been type casted
+  # == Accessing attributes before they have been typecasted
   #
-  # Some times you want to be able to read the raw attribute data without having the column-determined type cast run its course first.
+  # Sometimes you want to be able to read the raw attribute data without having the column-determined typecast run its course first.
   # That can be done by using the <attribute>_before_type_cast accessors that all attributes have. For example, if your Account model
   # has a balance attribute, you can call account.balance_before_type_cast or account.id_before_type_cast.
   #
   # This is especially useful in validation situations where the user might supply a string for an integer field and you want to display
-  # the original string back in an error message. Accessing the attribute normally would type cast the string to 0, which isn't what you
+  # the original string back in an error message. Accessing the attribute normally would typecast the string to 0, which isn't what you
   # want.
   #
   # == Dynamic attribute-based finders
@@ -155,7 +155,7 @@ module ActiveRecord #:nodoc:
   # == Saving arrays, hashes, and other non-mappable objects in text columns
   #
   # Active Record can serialize any object in text columns using YAML. To do so, you must specify this with a call to the class method +serialize+.
-  # This makes it possible to store arrays, hashes, and other non-mappeable objects without doing any additional work. Example:
+  # This makes it possible to store arrays, hashes, and other non-mappable objects without doing any additional work. Example:
   #
   #   class User < ActiveRecord::Base
   #     serialize :preferences
@@ -164,7 +164,7 @@ module ActiveRecord #:nodoc:
   #   user = User.create(:preferences) => { "background" => "black", "display" => large })
   #   User.find(user.id).preferences # => { "background" => "black", "display" => large }
   #
-  # You can also specify an class option as the second parameter that'll raise an exception if a serialized object is retrieved as a
+  # You can also specify a class option as the second parameter that'll raise an exception if a serialized object is retrieved as a
   # descendent of a class not in the hierarchy. Example:
   #
   #   class User < ActiveRecord::Base
@@ -282,14 +282,14 @@ module ActiveRecord #:nodoc:
     cattr_accessor :table_name_suffix
     @@table_name_suffix = ""
 
-    # Indicate whether or not table names should be the pluralized versions of the corresponding class names.
-    # If true, this the default table name for a +Product+ class will be +products+. If false, it would just be +product+.
+    # Indicates whether or not table names should be the pluralized versions of the corresponding class names.
+    # If true, the default table name for a +Product+ class will be +products+. If false, it would just be +product+.
     # See table_name for the full rules on table/class naming. This is true, by default.
     cattr_accessor :pluralize_table_names
     @@pluralize_table_names = true
 
     # Determines whether or not to use ANSI codes to colorize the logging statements committed by the connection adapter. These colors
-    # makes it much easier to overview things during debugging (when used through a reader like +tail+ and on a black background), but
+    # make it much easier to overview things during debugging (when used through a reader like +tail+ and on a black background), but
     # may complicate matters if you use software like syslog. This is true, by default.
     cattr_accessor :colorize_logging
     @@colorize_logging = true
@@ -312,7 +312,7 @@ module ActiveRecord #:nodoc:
     @@generate_read_methods = true
 
     class << self # Class methods
-      # Find operates with three different retreval approaches:
+      # Find operates with three different retrieval approaches:
       #
       # * Find by id: This can either be a specific id (1), a list of ids (1, 5, 6), or an array of ids ([5, 6, 10]).
       #   If no record can be found for all of the listed ids, then RecordNotFound will be raised.
@@ -320,7 +320,7 @@ module ActiveRecord #:nodoc:
       #   conditions or merely an order. If no record can matched, nil is returned.
       # * Find all: This will return all the records matched by the options used. If no records are found, an empty array is returned.
       #
-      # All approaches accepts an option hash as their last parameter. The options are:
+      # All approaches accept an option hash as their last parameter. The options are:
       #
       # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro.
       # * <tt>:order</tt>: An SQL fragment like "created_at DESC, name".
@@ -401,7 +401,7 @@ module ActiveRecord #:nodoc:
       end
 
       # Creates an object, instantly saves it as a record (if the validation permits it), and returns it. If the save
-      # fail under validations, the unsaved object is still returned.
+      # fails under validations, the unsaved object is still returned.
       def create(attributes = nil)
         if attributes.is_a?(Array)
           attributes.collect { |attr| create(attr) }
@@ -413,7 +413,7 @@ module ActiveRecord #:nodoc:
       end
 
       # Finds the record from the passed +id+, instantly saves it with the passed +attributes+ (if the validation permits it),
-      # and returns it. If the save fail under validations, the unsaved object is still returned.
+      # and returns it. If the save fails under validations, the unsaved object is still returned.
       def update(id, attributes)
         if id.is_a?(Array)
           idx = -1
@@ -437,7 +437,7 @@ module ActiveRecord #:nodoc:
         id.is_a?(Array) ? id.each { |id| destroy(id) } : find(id).destroy
       end
 
-      # Updates all records with the SET-part of an SQL update statement in +updates+ and returns an integer with the number of rows updates.
+      # Updates all records with the SET-part of an SQL update statement in +updates+ and returns an integer with the number of rows updated.
       # A subset of the records can be selected by specifying +conditions+. Example:
       #   Billing.update_all "category = 'authorized', approved = 1", "author = 'David'"
       def update_all(updates, conditions = nil)
@@ -446,14 +446,14 @@ module ActiveRecord #:nodoc:
         connection.update(sql, "#{name} Update")
       end
 
-      # Destroys the objects for all the records that matches the +condition+ by instantiating each object and calling
+      # Destroys the objects for all the records that match the +condition+ by instantiating each object and calling
       # the destroy method. Example:
       #   Person.destroy_all "last_login < '2004-04-04'"
       def destroy_all(conditions = nil)
         find(:all, :conditions => conditions).each { |object| object.destroy }
       end
 
-      # Deletes all the records that matches the +condition+ without instantiating the objects first (and hence not
+      # Deletes all the records that match the +condition+ without instantiating the objects first (and hence not
       # calling the destroy method). Example:
       #   Post.destroy_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
       def delete_all(conditions = nil)
@@ -462,7 +462,7 @@ module ActiveRecord #:nodoc:
         connection.delete(sql, "#{name} Delete all")
       end
 
-      # Returns the number of records that meets the +conditions+. Zero is returned if no records match. Example:
+      # Returns the number of records that meet the +conditions+. Zero is returned if no records match. Example:
       #   Product.count "sales > 1"
       def count(conditions = nil, joins = nil)
         sql  = "SELECT COUNT(*) FROM #{table_name} "
@@ -480,7 +480,7 @@ module ActiveRecord #:nodoc:
 
       # Increments the specified counter by one. So <tt>DiscussionBoard.increment_counter("post_count",
       # discussion_board_id)</tt> would increment the "post_count" counter on the board responding to discussion_board_id.
-      # This is used for caching aggregate values, so that they doesn't need to be computed every time. Especially important
+      # This is used for caching aggregate values, so that they don't need to be computed every time. Especially important
       # for looping over a collection where each element require a number of aggregate values. Like the DiscussionBoard
       # that needs to list both the number of posts and comments.
       def increment_counter(counter_name, id)
@@ -494,7 +494,7 @@ module ActiveRecord #:nodoc:
 
       # Attributes named in this macro are protected from mass-assignment, such as <tt>new(attributes)</tt> and
       # <tt>attributes=(attributes)</tt>. Their assignment will simply be ignored. Instead, you can use the direct writer
-      # methods to do assignment. This is meant to protect sensitive attributes to be overwritten by URL/form hackers. Example:
+      # methods to do assignment. This is meant to protect sensitive attributes from being overwritten by URL/form hackers. Example:
       #
       #   class Customer < ActiveRecord::Base
       #     attr_protected :credit_rating
@@ -516,7 +516,7 @@ module ActiveRecord #:nodoc:
         read_inheritable_attribute("attr_protected")
       end
 
-      # If this macro is used, only those attributed named in it will be accessible for mass-assignment, such as
+      # If this macro is used, only those attributes named in it will be accessible for mass-assignment, such as
       # <tt>new(attributes)</tt> and <tt>attributes=(attributes)</tt>. This is the more conservative choice for mass-assignment
       # protection. If you'd rather start from an all-open default and restrict attributes as needed, have a look at
       # attr_protected.
@@ -681,8 +681,8 @@ module ActiveRecord #:nodoc:
         @column_names ||= columns.map { |column| column.name }
       end
 
-      # Returns an array of columns objects where the primary id, all columns ending in "_id" or "_count",
-      # and columns used for single table inheritance has been removed.
+      # Returns an array of column objects where the primary id, all columns ending in "_id" or "_count",
+      # and columns used for single table inheritance have been removed.
       def content_columns
         @content_columns ||= columns.reject { |c| c.primary || c.name =~ /(_id|_count)$/ || c.name == inheritance_column }
       end
@@ -706,7 +706,7 @@ module ActiveRecord #:nodoc:
         @read_methods ||= {}
       end
       
-      # Resets all the cached information about columns, which will cause they to be reloaded on the next request.
+      # Resets all the cached information about columns, which will cause them to be reloaded on the next request.
       def reset_column_information
         read_methods.each_key {|name| undef_method(name)}
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @read_methods = nil
@@ -748,7 +748,7 @@ module ActiveRecord #:nodoc:
       # easy to include benchmarking statements in production software that will remain inexpensive because the benchmark
       # will only be conducted if the log level is low enough.
       #
-      # The loggings of the multiple statements is turned off unless <tt>use_silence</tt> is set to false.
+      # The logging of the multiple statements is turned off unless <tt>use_silence</tt> is set to false.
       def benchmark(title, log_level = Logger::DEBUG, use_silence = true)
         if logger && logger.level == log_level
           result = nil
@@ -817,7 +817,7 @@ module ActiveRecord #:nodoc:
         end
 
         # Returns the name of the type of the record using the current module as a prefix. So descendents of
-        # MyApp::Business::Account would be appear as "MyApp::Business::AccountSubclass".
+        # MyApp::Business::Account would appear as "MyApp::Business::AccountSubclass".
         def type_name_with_module(type_name)
           self.name =~ /::/ ? self.name.scan(/(.*)::/).first.first + "::" + type_name : type_name
         end
@@ -840,7 +840,7 @@ module ActiveRecord #:nodoc:
           sql << " #{join} " if join
         end
         
-        # Adds a sanitized version of +conditions+ to the +sql+ string. Note that it's the passed +sql+ string is changed.
+        # Adds a sanitized version of +conditions+ to the +sql+ string. Note that the passed-in +sql+ string is changed.
         def add_conditions!(sql, conditions)          
           condition_segments = [scope_constraints[:conditions]]
           condition_segments << sanitize_sql(conditions) unless conditions.nil?
@@ -953,8 +953,8 @@ module ActiveRecord #:nodoc:
         # backwards compatibility
         alias_method :scope_constrains=, :scope_constraints=
         
-         # Returns the class type of the record using the current module as a prefix. So descendents of
-        # MyApp::Business::Account would be appear as MyApp::Business::AccountSubclass.
+        # Returns the class type of the record using the current module as a prefix. So descendents of
+        # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
           type_name_with_module(type_name).split("::").inject(Object) do |final_type, part|
             final_type.const_get(part)
@@ -1118,7 +1118,7 @@ module ActiveRecord #:nodoc:
         save
       end
 
-      # Updates all the attributes in from the passed hash and saves the record. If the object is invalid, the saving will
+      # Updates all the attributes from the passed-in Hash and saves the record. If the object is invalid, the saving will
       # fail and false will be returned.
       def update_attributes(attributes)
         self.attributes = attributes
@@ -1167,7 +1167,7 @@ module ActiveRecord #:nodoc:
         self
       end
 
-      # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example,
+      # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       # (Alias for the protected read_attribute method).
       def [](attr_name)
@@ -1207,7 +1207,7 @@ module ActiveRecord #:nodoc:
       end
 
       # Returns true if the specified +attribute+ has been set by the user or by a database load and is neither
-      # nil nor empty? (the latter only applies to objects that responds to empty?, most notably Strings).
+      # nil nor empty? (the latter only applies to objects that respond to empty?, most notably Strings).
       def attribute_present?(attribute)
         value = read_attribute(attribute)
         !value.blank? or value == 0
@@ -1265,7 +1265,7 @@ module ActiveRecord #:nodoc:
         if new_record? then create else update end
       end
 
-      # Updates the associated record with values matching those of the instant attributes.
+      # Updates the associated record with values matching those of the instance attributes.
       def update
         connection.update(
           "UPDATE #{self.class.table_name} " +
@@ -1275,7 +1275,7 @@ module ActiveRecord #:nodoc:
         )
       end
 
-      # Creates a new record with values matching those of the instant attributes.
+      # Creates a new record with values matching those of the instance attributes.
       def create
         self.id = connection.insert(
           "INSERT INTO #{self.class.table_name} " +
@@ -1288,7 +1288,7 @@ module ActiveRecord #:nodoc:
         @new_record = false
       end
 
-      # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord descendant.
+      # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord descendent.
       # Considering the hierarchy Reply < Message < ActiveRecord, this makes it possible to do Reply.new without having to
       # set Reply[Reply.inheritance_column] = "Reply" yourself. No such attribute would be set for objects of the
       # Message class in that example.
@@ -1330,7 +1330,7 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Returns the value of attribute identified by <tt>attr_name</tt> after it has been type cast (for example,
+      # Returns the value of the attribute identified by <tt>attr_name</tt> after it has been typecast (for example,
       # "2004-12-12" in a data column is cast to a date object, like Date.new(2004, 12, 12)).
       def read_attribute(attr_name)
         attr_name = attr_name.to_s
