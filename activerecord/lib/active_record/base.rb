@@ -235,7 +235,11 @@ module ActiveRecord #:nodoc:
     # also be used to "borrow" the connection to do database work unrelated
     # to any of the specific Active Records.
     def self.connection
-      retrieve_connection
+      if @@threaded_connections
+        retrieve_connection
+      else
+        @connection ||= retrieve_connection
+      end
     end
 
     # Returns the connection currently associated with the class. This can
@@ -928,15 +932,23 @@ module ActiveRecord #:nodoc:
         end
         
         def scope_constraints
-          Thread.current[:constraints] ||= {}
-          Thread.current[:constraints][self] ||= {}
+          if @@threaded_connections
+            Thread.current[:constraints] ||= {}
+            Thread.current[:constraints][self] ||= {}
+          else
+            @scope_constraints ||= {}
+          end
         end
         # backwards compatibility
         alias_method :scope_constrains, :scope_constraints 
 
         def scope_constraints=(value)
-          Thread.current[:constraints] ||= {}
-          Thread.current[:constraints][self] = value
+          if @@threaded_connections
+            Thread.current[:constraints] ||= {}
+            Thread.current[:constraints][self] = value
+          else
+            @scope_constraints = value
+          end
         end
         # backwards compatibility
         alias_method :scope_constrains=, :scope_constraints=

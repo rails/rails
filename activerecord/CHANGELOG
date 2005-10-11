@@ -1,6 +1,8 @@
 *SVN*
 
-* Optimization for Mysql selects using mysql-ruby extension greater than 2.6.3.  #2426. [skaes.web.de]
+# Speed up for unthreaded environments. #2431. [skaes@web.de]
+
+* Optimization for Mysql selects using mysql-ruby extension greater than 2.6.3.  #2426. [skaes@web.de]
 
 * Speed up the setting of table_name. #2428. [skaes@web.de]
 
