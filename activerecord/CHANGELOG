@@ -1,5 +1,7 @@
 *SVN*
 
+* Add test coverage for content_columns. #2432. [coffee2code]
+
 * Speed up for unthreaded environments. #2431. [skaes@web.de]
 
 * Optimization for Mysql selects using mysql-ruby extension greater than 2.6.3.  #2426. [skaes@web.de]

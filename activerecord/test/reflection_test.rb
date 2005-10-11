@@ -28,7 +28,10 @@ class ReflectionTest < Test::Unit::TestCase
   end
 
   def test_content_columns
-    assert_equal 8, Topic.content_columns.length
+    content_columns        = Topic.content_columns
+    content_column_names   = content_columns.map {|column| column.name}
+    assert_equal 8, content_columns.length
+    assert_equal %w(title author_name author_email_address written_on bonus_time last_read content approved).sort, content_column_names.sort
   end
 
   def test_column_string_type_and_limit
