@@ -77,26 +77,36 @@ module ActionController #:nodoc:
         write_inheritable_array("session_options", [options])
       end
 
-      def session_options_for(request, action) #:nodoc:
-        options = {}
+      def cached_session_options
+        @session_options ||= read_inheritable_attribute("session_options") || []
+      end
 
-        action = action.to_s
-        (read_inheritable_attribute("session_options") || []).each do |opts|
-          next if opts[:if] && !opts[:if].call(request)
-          if opts[:only] && opts[:only].include?(action)
-            options.merge!(opts)
-          elsif opts[:except] && !opts[:except].include?(action)
-            options.merge!(opts)
-          elsif !opts[:only] && !opts[:except]
-            options.merge!(opts)
+      def session_options_for(request, action) #:nodoc:
+        if (session_options = cached_session_options).empty?
+          {}
+        else
+          options = {}
+
+          action = action.to_s
+          session_options.each do |opts|
+            next if opts[:if] && !opts[:if].call(request)
+            if opts[:only] && opts[:only].include?(action)
+              options.merge!(opts)
+            elsif opts[:except] && !opts[:except].include?(action)
+              options.merge!(opts)
+            elsif !opts[:only] && !opts[:except]
+              options.merge!(opts)
+            end
+          end
+          
+          if options.empty? then options
+          else
+            options.delete :only
+            options.delete :except
+            options.delete :if
+            options[:disabled] ? false : options
           end
         end
-
-        options.delete :only
-        options.delete :except
-        options.delete :if
-
-        options[:disabled] ? false : options
       end
     end
 
@@ -108,8 +118,9 @@ module ActionController #:nodoc:
   
     private
       def clear_persistant_model_associations #:doc:
-        session = @session.instance_variable_get("@data")
-        session.each { |key, obj| obj.clear_association_cache if obj.respond_to?(:clear_association_cache) } if session
+        if session = @session.instance_variable_get("@data")
+          session.each { |key, obj| obj.clear_association_cache if obj.respond_to?(:clear_association_cache) }
+        end
       end
   end
 end

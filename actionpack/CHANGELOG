@@ -1,5 +1,7 @@
 *SVN*
 
+* Speed improvement for session_options. #2287. [skaes@web.de]
+
 * Make cacheing binary files friendly with Windows. #1975. [Rich Olson]
 
 * Convert boolean form options form the tag_helper. #809. [Michael Schuerig <michael@schuerig.de>]
