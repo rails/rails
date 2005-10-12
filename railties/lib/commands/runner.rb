@@ -20,11 +20,8 @@ ARGV.options do |opts|
   opts.parse!
 end
 
-if defined?(RAILS_ENV)
-  RAILS_ENV.replace(options[:environment])
-else
-  ENV["RAILS_ENV"] = options[:environment]
-end
+ENV["RAILS_ENV"] = options[:environment]
+RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
 
 require RAILS_ROOT + '/config/environment'
 eval(ARGV.first)
