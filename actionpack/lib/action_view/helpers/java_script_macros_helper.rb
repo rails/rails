@@ -3,8 +3,8 @@ require File.dirname(__FILE__) + '/tag_helper'
 module ActionView
   module Helpers
     # Provides a set of helpers for creating JavaScript macros that rely on and often bundle methods from JavaScriptHelper into
-    # larger units. These macros also rely on counter parts in the controller that provides them with their backing. The in-place
-    # editing relies on ActionController::Base.in_place_edit_for and the auto completion relies on 
+    # larger units. These macros also rely on counterparts in the controller that provide them with their backing. The in-place
+    # editing relies on ActionController::Base.in_place_edit_for and the autocompletion relies on 
     # ActionController::Base.auto_complete_for.
     module JavaScriptMacrosHelper
       # Makes an HTML element specified by the DOM ID +field_id+ become an in-place
@@ -52,7 +52,7 @@ module ActionView
         javascript_tag(function)
       end
       
-      # Renders the value of the specified object and method with in place editing capabilities.
+      # Renders the value of the specified object and method with in-place editing capabilities.
       #
       # See the RDoc on ActionController::InPlaceEditing to learn more about this.
       def in_place_editor_field(object, method, tag_options = {}, in_place_editor_options = {})
@@ -88,9 +88,9 @@ module ActionView
       # <tt>:indicator</tt>:: Specifies the DOM ID of an element which will be
       #                       displayed while autocomplete is running.
       # <tt>:tokens</tt>::    A string or an array of strings containing
-      #                       seperator tokens for tokenized incremental 
+      #                       separator tokens for tokenized incremental 
       #                       autocompletion. Example: <tt>:tokens => ','</tt> would
-      #                       allow multiple autocompletion entries, seperated
+      #                       allow multiple autocompletion entries, separated
       #                       by commas.
       # <tt>:min_chars</tt>:: The minimum number of characters that should be
       #                       in the input field before an Ajax call is made
@@ -121,7 +121,7 @@ module ActionView
         javascript_tag(function)
       end
       
-      # Use this method in your view to generate a return for the AJAX automplete requests.
+      # Use this method in your view to generate a return for the AJAX autocomplete requests.
       #
       # Example action:
       #

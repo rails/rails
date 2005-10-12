@@ -3,14 +3,14 @@ require File.dirname(__FILE__) + '/tag_helper'
 module ActionView
   module Helpers #:nodoc:
     # Provides a set of methods for working with text strings that can help unburden the level of inline Ruby code in the
-    # templates. In the example below we iterate over a collection of posts provided to the template and prints each title
+    # templates. In the example below we iterate over a collection of posts provided to the template and print each title
     # after making sure it doesn't run longer than 20 characters:
     #   <% for post in @posts %>
     #     Title: <%= truncate(post.title, 20) %>
     #   <% end %>
     module TextHelper      
       # The regular puts and print are outlawed in eRuby. It's recommended to use the <%= "hello" %> form instead of print "hello".
-      # If you absolutely must use a method-based output, you can use concat. It's use like this <% concat "hello", binding %>. Notice that
+      # If you absolutely must use a method-based output, you can use concat. It's used like this: <% concat "hello", binding %>. Notice that
       # it doesn't have an equal sign in front. Using <%= concat "hello" %> would result in a double hello.
       def concat(string, binding)
         eval("_erbout", binding).concat(string)
@@ -115,7 +115,7 @@ module ActionView
         # We can't really help what's not there
       end
       
-      # Returns +text+ transformed into html using very simple formatting rules
+      # Returns +text+ transformed into HTML using very simple formatting rules
       # Surrounds paragraphs with <tt>&lt;p&gt;</tt> tags, and converts line breaks into <tt>&lt;br /&gt;</tt>
       # Two consecutive newlines(<tt>\n\n</tt>) are considered as a paragraph, one newline (<tt>\n</tt>) is
       # considered a linebreak, three or more consecutive newlines are turned into two newlines 

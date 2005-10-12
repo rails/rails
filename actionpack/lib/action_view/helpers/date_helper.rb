@@ -13,7 +13,7 @@ module ActionView
     module DateHelper
       DEFAULT_PREFIX = 'date' unless const_defined?('DEFAULT_PREFIX')
 
-      # Reports the approximate distance in time between to Time objects or integers. 
+      # Reports the approximate distance in time between two Time objects or integers. 
       # For example, if the distance is 47 minutes, it'll return
       # "about 1 hour". See the source for the complete wording list.
       #
@@ -56,7 +56,7 @@ module ActionView
 
       # Returns a set of select tags (one for year, month, and day) pre-selected for accessing a specified date-based attribute (identified by
       # +method+) on an object assigned to the template (identified by +object+). It's possible to tailor the selects through the +options+ hash,
-      # which both accepts all the keys that each of the individual select builders does (like :use_month_numbers for select_month) and a range of
+      # which accepts all the keys that each of the individual select builders do (like :use_month_numbers for select_month) as well as a range of
       # discard options. The discard options are <tt>:discard_year</tt>, <tt>:discard_month</tt> and <tt>:discard_day</tt>. Set to true, they'll
       # drop the respective select. Discarding the month select will also automatically discard the day select. It's also possible to explicitly
       # set the order of the tags using the <tt>:order</tt> option with an array of symbols <tt>:year</tt>, <tt>:month</tt> and <tt>:day</tt> in
@@ -96,7 +96,7 @@ module ActionView
         select_year(date, options) + select_month(date, options) + select_day(date, options)
       end
 
-      # Returns a set of html select-tags (one for year, month, day, hour, and minute) preselected the +datetime+.
+      # Returns a set of html select-tags (one for year, month, day, hour, and minute) pre-selected with the +datetime+.
       def select_datetime(datetime = Time.now, options = {})
         select_year(datetime, options) + select_month(datetime, options) + select_day(datetime, options) +
         select_hour(datetime, options) + select_minute(datetime, options)

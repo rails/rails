@@ -4,8 +4,8 @@ module ActionView
     # one of the following forms: phone number, percentage, money, or precision level.
     module NumberHelper
 
-      # Formats a +number+ into a US phone number string. The +options+ can be hash used to customize the format of the output.
-      # The area code can be surrounded by parenthesis by setting +:area_code+ to true; default is false
+      # Formats a +number+ into a US phone number string. The +options+ can be a hash used to customize the format of the output.
+      # The area code can be surrounded by parentheses by setting +:area_code+ to true; default is false
       # The delimiter can be set using +:delimiter+; default is "-"
       # Examples:
       #   number_to_phone(1235551234)   => 123-555-1234
@@ -25,7 +25,7 @@ module ActionView
         end
       end
 
-      # Formates a +number+ into a currency string. The +options+ hash can be used to customize the format of the output.
+      # Formats a +number+ into a currency string. The +options+ hash can be used to customize the format of the output.
       # The +number+ can contain a level of precision using the +precision+ key; default is 2
       # The currency type can be set using the +unit+ key; default is "$"
       # The unit separator can be set using the +separator+ key; default is "."

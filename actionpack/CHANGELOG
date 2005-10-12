@@ -1,5 +1,7 @@
 *SVN*
 
+* Misc doc fixes (typos/grammar/etc). #2445. [coffee2code]
+
 * Speed improvement for session_options. #2287. [skaes@web.de]
 
 * Make cacheing binary files friendly with Windows. #1975. [Rich Olson]

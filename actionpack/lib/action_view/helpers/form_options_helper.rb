@@ -127,11 +127,11 @@ module ActionView
         options_for_select.join("\n")
       end
 
-      # Returns a string of option tags that has been compiled by iterating over the +collection+ and assigning the
+      # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning the
       # the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
       # If +selected_value+ is specified, the element returning a match on +value_method+ will get the selected option tag.
       #
-      # Example (call, result). Imagine a loop iterating over each +person+ in <tt>@project.people</tt> to generate a input tag:
+      # Example (call, result). Imagine a loop iterating over each +person+ in <tt>@project.people</tt> to generate an input tag:
       #   options_from_collection_for_select(@project.people, "id", "name")
       #     <option value="#{person.id}">#{person.name}</option>
       #
@@ -143,7 +143,7 @@ module ActionView
         )
       end
 
-      # Returns a string of option tags, like options_from_collection_for_select, but surrounds them by <optgroup> tags.
+      # Returns a string of option tags, like options_from_collection_for_select, but surrounds them with <optgroup> tags.
       #
       # An array of group objects are passed. Each group should return an array of options when calling group_method
       # Each group should should return its name when calling group_label_method.

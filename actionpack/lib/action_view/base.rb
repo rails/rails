@@ -38,7 +38,7 @@ module ActionView #:nodoc:
   # result of the rendering. The output embedding writes it to the current template.
   #
   # But you don't have to restrict yourself to static includes. Templates can share variables amongst themselves by using instance
-  # variables defined in using the regular embedding tags. Like this:
+  # variables defined using the regular embedding tags. Like this:
   #
   #   <% @page_title = "A Wonderful Hello" %>
   #   <%= render "shared/header" %>

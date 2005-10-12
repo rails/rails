@@ -76,17 +76,17 @@ module ActionView
         InstanceTag.new(object, method, self).to_input_field_tag("text", options)
       end
 
-      # Works just like text_field, but returns a input tag of the "password" type instead.
+      # Works just like text_field, but returns an input tag of the "password" type instead.
       def password_field(object, method, options = {})
         InstanceTag.new(object, method, self).to_input_field_tag("password", options)
       end
 
-      # Works just like text_field, but returns a input tag of the "hidden" type instead.
+      # Works just like text_field, but returns an input tag of the "hidden" type instead.
       def hidden_field(object, method, options = {})
         InstanceTag.new(object, method, self).to_input_field_tag("hidden", options)
       end
 
-      # Works just like text_field, but returns a input tag of the "file" type instead, which won't have any default value.
+      # Works just like text_field, but returns an input tag of the "file" type instead, which won't have a default value.
       def file_field(object, method, options = {})
         InstanceTag.new(object, method, self).to_input_field_tag("file", options)
       end

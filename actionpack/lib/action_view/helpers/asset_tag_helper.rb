@@ -49,9 +49,9 @@ module ActionView
       #     <script type="text/javascript" src="/javascripts/scriptaculous.js"></script>
       #     <script type="text/javascript" src="/javascripts/application.js"></script> *see beloe
       #   
-      # If there's a <tt>application.js</tt> file in your <tt>public/javascripts</tt> directory,
+      # If there's an <tt>application.js</tt> file in your <tt>public/javascripts</tt> directory,
       # <tt>javascript_include_tag :defaults</tt> will automatically include it. This file
-      # is thought for small snippets of JavaScript code, along the lines of
+      # facilitates the inclusion of small snippets of JavaScript code, along the lines of
       # <tt>controllers/application.rb</tt> and <tt>helpers/application_helper.rb</tt>.
       def javascript_include_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
@@ -103,7 +103,7 @@ module ActionView
         compute_public_path(source, 'images', 'png')
       end
 
-      # Returns an image tag converting the +options+ instead html options on the tag, but with these special cases:
+      # Returns an image tag converting the +options+ into html options on the tag, but with these special cases:
       #
       # * <tt>:alt</tt>  - If no alt text is given, the file name part of the +src+ is used (capitalized and without the extension)
       # * <tt>:size</tt> - Supplied as "XxY", so "30x45" becomes width="30" and height="45"
