@@ -165,16 +165,16 @@ module ActiveRecord
       def native_database_types
         {
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
-          :string      => { :name => "varchar(255)" },
-          :text        => { :name => "text(16)" },
-          :integer     => { :name => "int(4)", :limit => 11 },
-          :float       => { :name => "float(8)" },
-          :datetime    => { :name => "datetime(8)" },
-          :timestamp   => { :name => "datetime(8)" },
-          :time        => { :name => "datetime(8)" },
-          :date        => { :name => "datetime(8)" },
-          :binary      => { :name => "image(16)" },
-          :boolean     => { :name => "bit(1)" }
+          :string      => { :name => "varchar", :limit => 255  },
+          :text        => { :name => "text" },
+          :integer     => { :name => "int"},
+          :float       => { :name => "float", :limit => 8 },
+          :datetime    => { :name => "datetime" },
+          :timestamp   => { :name => "datetime" },
+          :time        => { :name => "datetime" },
+          :date        => { :name => "datetime" },
+          :binary      => { :name => "image"},
+          :boolean     => { :name => "bit"}
         }
       end
 
