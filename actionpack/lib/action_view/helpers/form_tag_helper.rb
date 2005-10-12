@@ -47,7 +47,7 @@ module ActionView
       # Options:
       # * <tt>:multiple</tt> - If set to true the selection will allow multiple choices.
       def select_tag(name, option_tags = nil, options = {})
-        content_tag("select", option_tags, { "name" => name, "id" => name }.update(options))
+        content_tag("select", option_tags, { "name" => name, "id" => name }.update(options.stringify_keys))
       end
 
       # Creates a standard text field.
@@ -59,7 +59,7 @@ module ActionView
       # 
       # A hash of standard HTML options for the tag.
       def text_field_tag(name, value = nil, options = {})
-        tag("input", { "type" => "text", "name" => name, "id" => name, "value" => value }.update(options))
+        tag("input", { "type" => "text", "name" => name, "id" => name, "value" => value }.update(options.stringify_keys))
       end
 
       # Creates a hidden field.
@@ -103,33 +103,33 @@ module ActionView
           options.delete("size")
         end
 
-        content_tag("textarea", content, { "name" => name, "id" => name }.update(options))
+        content_tag("textarea", content, { "name" => name, "id" => name }.update(options.stringify_keys))
       end
 
       # Creates a check box.
       def check_box_tag(name, value = "1", checked = false, options = {})
-        html_options = { "type" => "checkbox", "name" => name, "id" => name, "value" => value }.update(options)
+        html_options = { "type" => "checkbox", "name" => name, "id" => name, "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
         tag("input", html_options)
       end
 
       # Creates a radio button.
       def radio_button_tag(name, value, checked = false, options = {})
-        html_options = { "type" => "radio", "name" => name, "id" => name, "value" => value }.update(options)
+        html_options = { "type" => "radio", "name" => name, "id" => name, "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
         tag("input", html_options)
       end
 
       # Creates a submit button with the text <tt>value</tt> as the caption.
       def submit_tag(value = "Save changes", options = {})
-        tag("input", { "type" => "submit", "name" => "commit", "value" => value }.update(options))
+        tag("input", { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys))
       end
       
       # Displays an image which when clicked will submit the form.
       #
       # <tt>source</tt> is passed to AssetTagHelper#image_path
       def image_submit_tag(source, options = {})
-        tag("input", { "type" => "image", "src" => image_path(source) }.update(options))
+        tag("input", { "type" => "image", "src" => image_path(source) }.update(options.stringify_keys))
       end
     end
   end

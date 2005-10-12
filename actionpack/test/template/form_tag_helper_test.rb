@@ -87,5 +87,11 @@ class FormTagHelperTest < Test::Unit::TestCase
     assert_dom_equal %(<select id="people" multiple="multiple" name="people"><option>david</option></select>), select_tag("people", "<option>david</option>", :multiple => true)
     assert_dom_equal %(<select id="people" name="people"><option>david</option></select>), select_tag("people", "<option>david</option>", :multiple => nil)
   end
+
+  def test_stringify_symbol_keys
+    actual = text_field_tag "title", "Hello!", :id => "admin"
+    expected = %(<input id="admin" name="title" type="text" value="Hello!" />)
+    assert_dom_equal expected, actual
+  end
 end
 
