@@ -218,3 +218,8 @@ CREATE TABLE geometrics (
   a_polygon polygon,
   a_circle circle
 );
+
+CREATE TABLE keyboards (
+  key_number serial primary key,
+  "name" character varying(50)
+);

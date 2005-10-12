@@ -26,3 +26,4 @@ DROP TABLE defaults;
 DROP TABLE fk_test_has_fk;
 DROP TABLE fk_test_has_pk;
 DROP TABLE geometrics;
+DROP TABLE keyboards;

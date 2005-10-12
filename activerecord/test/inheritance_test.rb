@@ -127,7 +127,7 @@ class InheritanceTest < Test::Unit::TestCase
 
   def test_inheritance_without_mapping
     assert_kind_of SpecialSubscriber, SpecialSubscriber.find("webster132")
-    assert_nothing_raised { SpecialSubscriber.create("name" => "And breaaaaathe!", "id" => "smartass") }
+    assert_nothing_raised { s = SpecialSubscriber.new("name" => "And breaaaaathe!"); s.id = 'roger'; s.save }
   end
 
   private

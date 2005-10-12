@@ -191,3 +191,9 @@ CREATE TABLE `fk_test_has_fk` (
 
   FOREIGN KEY (`fk_id`) REFERENCES `fk_test_has_pk`(`id`)
 ) TYPE=InnoDB;
+
+
+CREATE TABLE `keyboards` (
+  `key_number` int(11) NOT NULL auto_increment primary key,
+  `name` varchar(50) default NULL
+);

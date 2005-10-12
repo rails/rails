@@ -2,6 +2,7 @@ require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/subscriber'
 require 'fixtures/movie'
+require 'fixtures/keyboard'
 
 class PrimaryKeysTest < Test::Unit::TestCase
   fixtures :topics, :subscribers, :movies
@@ -20,6 +21,26 @@ class PrimaryKeysTest < Test::Unit::TestCase
 
     topicReloaded = Topic.find(id)
     assert_equal("New Topic", topicReloaded.title)
+  end
+
+  def test_customized_primary_key_auto_assigns_on_save
+    keyboard = Keyboard.new(:name => 'HHKB')
+    assert_nothing_raised { keyboard.save }
+    assert keyboard.id
+    assert_equal keyboard.id, Keyboard.find_by_name('HHKB').id
+  end
+
+  def test_customized_primary_key_can_be_set_before_saving
+    keyboard = Keyboard.new
+    assert_respond_to(keyboard, :key_number)
+    assert_nothing_raised { keyboard.key_number = 1 }
+  end
+
+  def test_customized_string_primary_key_settable_before_save
+    subscriber = Subscriber.new
+    assert_nothing_raised { subscriber.id = 'webster123' }
+    assert_equal 'webster123', subscriber.id
+    assert_equal 'webster123', subscriber.nick
   end
 
   def test_string_key

@@ -1,7 +1,5 @@
 class Subscriber < ActiveRecord::Base
-  def self.primary_key
-    "nick"
-  end
+  set_primary_key 'nick'
 end
 
 class SpecialSubscriber < Subscriber

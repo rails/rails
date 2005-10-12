@@ -24,4 +24,4 @@ DROP TABLE categories;
 DROP TABLE categories_posts;
 DROP TABLE fk_test_has_pk;
 DROP TABLE fk_test_has_fk;
-
+DROP TABLE keyboards;

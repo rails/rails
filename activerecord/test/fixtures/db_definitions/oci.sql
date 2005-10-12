@@ -254,3 +254,8 @@ create table fk_test_has_fk (
   fk_id integer not null references fk_test_has_fk initially deferred disable
 );
 create sequence fk_test_has_fk_seq minvalue 10000;
+
+create table keyboards (
+  key_number integer not null,
+  name varchar(50) default null
+);

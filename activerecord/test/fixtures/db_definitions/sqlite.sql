@@ -176,3 +176,8 @@ CREATE TABLE 'fk_test_has_fk' (
 
   FOREIGN KEY ('fk_id') REFERENCES 'fk_test_has_pk'('id')
 );
+
+CREATE TABLE 'keyboards' (
+  'key_number' INTEGER PRIMARY KEY NOT NULL,
+  'name' VARCHAR(255) DEFAULT NULL
+);

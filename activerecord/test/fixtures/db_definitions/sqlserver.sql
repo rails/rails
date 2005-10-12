@@ -176,3 +176,8 @@ CREATE TABLE fk_test_has_fk (
 
   FOREIGN KEY (fk_id) REFERENCES fk_test_has_pk(id)
 );
+
+CREATE TABLE keyboards (
+  key_number int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+  name varchar(50) default NULL
+);
