@@ -62,7 +62,7 @@ module ActiveRecord
     end
 
     def self.active_connections #:nodoc:
-      if threaded_connections
+      if allow_concurrency
         Thread.current['active_connections'] ||= {}
       else
         @@active_connections ||= {}

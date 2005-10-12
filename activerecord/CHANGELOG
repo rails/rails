@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecated ActiveRecord::Base.threaded_connection in favor of ActiveRecord::Base.allow_concurrency.
+
 * Protect id attribute from mass assigment even when the primary key is set to something else. #2438. [Blair Zajac <blair@orcaware.com>]
 
 * Misc doc fixes (typos/grammar/etc.). #2430. [coffee2code]

@@ -12,7 +12,7 @@ class ThreadedConnectionsTest < Test::Unit::TestCase
   end
   
   def gather_connections(use_threaded_connections)
-    ActiveRecord::Base.threaded_connections = use_threaded_connections
+    ActiveRecord::Base.allow_concurrency = use_threaded_connections
     ActiveRecord::Base.establish_connection(@connection)
     
     5.times do

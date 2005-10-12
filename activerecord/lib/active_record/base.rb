@@ -235,7 +235,7 @@ module ActiveRecord #:nodoc:
     # also be used to "borrow" the connection to do database work unrelated
     # to any of the specific Active Records.
     def self.connection
-      if @@threaded_connections
+      if allow_concurrency
         retrieve_connection
       else
         @connection ||= retrieve_connection
@@ -301,9 +301,9 @@ module ActiveRecord #:nodoc:
     
     # Determines whether or not to use a connection for each thread, or a single shared connection for all threads.
     # Defaults to true; Railties' WEBrick server sets this to false.
-    cattr_accessor :threaded_connections
-    @@threaded_connections = true
-
+    cattr_accessor :allow_concurrency
+    @@allow_concurrency = true
+    
     # Determines whether to speed up access by generating optimized reader
     # methods to avoid expensive calls to method_missing when accessing
     # attributes by name. You might want to set this to false in development
@@ -787,6 +787,17 @@ module ActiveRecord #:nodoc:
       def ===(object)
         object.is_a?(self)
       end      
+
+      # Deprecated 
+      def threaded_connections
+        allow_concurrency
+      end
+
+      # Deprecated 
+      def threaded_connections=(value)
+        self.allow_concurrency = value
+      end
+
       
       private
         # Finder methods must instantiate through this method to work with the single-table inheritance model
@@ -932,7 +943,7 @@ module ActiveRecord #:nodoc:
         end
         
         def scope_constraints
-          if @@threaded_connections
+          if allow_concurrency
             Thread.current[:constraints] ||= {}
             Thread.current[:constraints][self] ||= {}
           else
@@ -943,7 +954,7 @@ module ActiveRecord #:nodoc:
         alias_method :scope_constrains, :scope_constraints 
 
         def scope_constraints=(value)
-          if @@threaded_connections
+          if allow_concurrency
             Thread.current[:constraints] ||= {}
             Thread.current[:constraints][self] = value
           else
