@@ -45,7 +45,7 @@ class JavaScriptHelperTest < Test::Unit::TestCase
   end
   
   def test_periodically_call_remote
-    assert_dom_equal %(<script type="text/javascript">new PeriodicalExecuter(function() {new Ajax.Updater('schremser_bier', 'http://www.example.com/mehr_bier', {asynchronous:true, evalScripts:true})}, 10)</script>),
+    assert_dom_equal %(<script type="text/javascript">\n//<![CDATA[\nnew PeriodicalExecuter(function() {new Ajax.Updater('schremser_bier', 'http://www.example.com/mehr_bier', {asynchronous:true, evalScripts:true})}, 10)\n//]]>\n</script>),
       periodically_call_remote(:update => "schremser_bier", :url => { :action => "mehr_bier" })
   end
   
@@ -106,12 +106,12 @@ class JavaScriptHelperTest < Test::Unit::TestCase
   end
   
   def test_observe_field
-    assert_dom_equal %(<script type=\"text/javascript\">new Form.Element.Observer('glass', 300, function(element, value) {new Ajax.Request('http://www.example.com/reorder_if_empty', {asynchronous:true, evalScripts:true})})</script>),
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Form.Element.Observer('glass', 300, function(element, value) {new Ajax.Request('http://www.example.com/reorder_if_empty', {asynchronous:true, evalScripts:true})})\n//]]>\n</script>),
       observe_field("glass", :frequency => 5.minutes, :url => { :action => "reorder_if_empty" })
   end
   
   def test_observe_form
-    assert_dom_equal %(<script type=\"text/javascript\">new Form.Observer('cart', 2, function(element, value) {new Ajax.Request('http://www.example.com/cart_changed', {asynchronous:true, evalScripts:true})})</script>),
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Form.Observer('cart', 2, function(element, value) {new Ajax.Request('http://www.example.com/cart_changed', {asynchronous:true, evalScripts:true})})\n//]]>\n</script>),
       observe_form("cart", :frequency => 2, :url => { :action => "cart_changed" })
   end
   
@@ -124,31 +124,31 @@ class JavaScriptHelperTest < Test::Unit::TestCase
   end
   
   def test_sortable_element
-    assert_dom_equal %(<script type=\"text/javascript\">Sortable.create('mylist', {onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize('mylist')})}})</script>), 
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nSortable.create('mylist', {onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize('mylist')})}})\n//]]>\n</script>), 
       sortable_element("mylist", :url => { :action => "order" })
-    assert_equal %(<script type=\"text/javascript\">Sortable.create('mylist', {constraint:'horizontal', onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize('mylist')})}, tag:'div'})</script>), 
+    assert_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nSortable.create('mylist', {constraint:'horizontal', onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize('mylist')})}, tag:'div'})\n//]]>\n</script>), 
       sortable_element("mylist", :tag => "div", :constraint => "horizontal", :url => { :action => "order" })
-    assert_dom_equal %|<script type=\"text/javascript\">Sortable.create('mylist', {constraint:'horizontal', containment:['list1','list2'], onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize('mylist')})}})</script>|, 
+    assert_dom_equal %|<script type=\"text/javascript\">\n//<![CDATA[\nSortable.create('mylist', {constraint:'horizontal', containment:['list1','list2'], onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize('mylist')})}})\n//]]>\n</script>|, 
       sortable_element("mylist", :containment => ['list1','list2'], :constraint => "horizontal", :url => { :action => "order" })
-    assert_dom_equal %(<script type=\"text/javascript\">Sortable.create('mylist', {constraint:'horizontal', containment:'list1', onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize('mylist')})}})</script>), 
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nSortable.create('mylist', {constraint:'horizontal', containment:'list1', onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize('mylist')})}})\n//]]>\n</script>), 
       sortable_element("mylist", :containment => 'list1', :constraint => "horizontal", :url => { :action => "order" })
   end
   
   def test_draggable_element
-    assert_dom_equal %(<script type=\"text/javascript\">new Draggable('product_13', {})</script>),
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Draggable('product_13', {})\n//]]>\n</script>),
       draggable_element('product_13')
-    assert_equal %(<script type=\"text/javascript\">new Draggable('product_13', {revert:true})</script>),
+    assert_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Draggable('product_13', {revert:true})\n//]]>\n</script>),
       draggable_element('product_13', :revert => true)
   end
   
   def test_drop_receiving_element
-    assert_dom_equal %(<script type=\"text/javascript\">Droppables.add('droptarget1', {onDrop:function(element){new Ajax.Request('http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}})</script>),
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nDroppables.add('droptarget1', {onDrop:function(element){new Ajax.Request('http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}})\n//]]>\n</script>),
       drop_receiving_element('droptarget1')
-    assert_dom_equal %(<script type=\"text/javascript\">Droppables.add('droptarget1', {accept:'products', onDrop:function(element){new Ajax.Request('http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}})</script>),
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nDroppables.add('droptarget1', {accept:'products', onDrop:function(element){new Ajax.Request('http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}})\n//]]>\n</script>),
       drop_receiving_element('droptarget1', :accept => 'products')
-    assert_dom_equal %(<script type=\"text/javascript\">Droppables.add('droptarget1', {accept:'products', onDrop:function(element){new Ajax.Updater('infobox', 'http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}})</script>),
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nDroppables.add('droptarget1', {accept:'products', onDrop:function(element){new Ajax.Updater('infobox', 'http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}})\n//]]>\n</script>),
       drop_receiving_element('droptarget1', :accept => 'products', :update => 'infobox')
-    assert_dom_equal %(<script type=\"text/javascript\">Droppables.add('droptarget1', {accept:['tshirts','mugs'], onDrop:function(element){new Ajax.Updater('infobox', 'http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}})</script>),
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nDroppables.add('droptarget1', {accept:['tshirts','mugs'], onDrop:function(element){new Ajax.Updater('infobox', 'http://www.example.com/', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}})\n//]]>\n</script>),
       drop_receiving_element('droptarget1', :accept => ['tshirts','mugs'], :update => 'infobox')
   end
   

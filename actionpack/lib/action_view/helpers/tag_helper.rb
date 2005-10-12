@@ -22,6 +22,15 @@ module ActionView
         "<#{name}#{tag_options(options.stringify_keys) if options}>#{content}</#{name}>"
       end
 
+      # Returns a CDATA section for the given +content+.  CDATA sections
+      # are used to escape blocks of text containing characters which would
+      # otherwise be recognized as markup. CDATA sections begin with the string
+      # <tt>&lt;![CDATA[</tt> and end with (and may not contain) the string 
+      # <tt>]]></tt>. 
+      def cdata_section(content)
+        "<![CDATA[#{content}]]>"
+      end
+
       private
         def tag_options(options)
           cleaned_options = convert_booleans(options.stringify_keys.reject {|key, value| value.nil?})

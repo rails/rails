@@ -1,5 +1,7 @@
 *SVN*
 
+* Wrap javascript_tag contents in a CDATA section and add a cdata_section method to TagHelper #1691 [Michael Schuerig, Sam Stephenson]
+
 * Misc doc fixes (typos/grammar/etc). #2445. [coffee2code]
 
 * Speed improvement for session_options. #2287. [skaes@web.de]

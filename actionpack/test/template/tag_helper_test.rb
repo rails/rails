@@ -34,4 +34,8 @@ class TagHelperTest < Test::Unit::TestCase
     assert_equal content_tag("a", "Create", "href" => "create"),
                  content_tag("a", "Create", :href => "create")
   end
+  
+  def test_cdata_section
+    assert_equal "<![CDATA[<hello world>]]>", cdata_section("<hello world>")
+  end
 end

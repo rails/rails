@@ -437,9 +437,13 @@ module ActionView
       # Returns a JavaScript tag with the +content+ inside. Example:
       #   javascript_tag "alert('All is good')" # => <script type="text/javascript">alert('All is good')</script>
       def javascript_tag(content)
-        content_tag("script", content, :type => "text/javascript")
+        content_tag("script", javascript_cdata_section(content), :type => "text/javascript")
       end
 
+      def javascript_cdata_section(content) #:nodoc:
+        "\n//#{cdata_section("\n#{content}\n//")}\n"
+      end
+      
     private
       def options_for_javascript(options)
         '{' + options.map {|k, v| "#{k}:#{v}"}.sort.join(', ') + '}'
@@ -480,11 +484,11 @@ module ActionView
       def build_observer(klass, name, options = {})
         options[:with] ||= 'value' if options[:update]
         callback = remote_function(options)
-        javascript = '<script type="text/javascript">'
-        javascript << "new #{klass}('#{name}', "
+        javascript  = "new #{klass}('#{name}', "
         javascript << "#{options[:frequency]}, " if options[:frequency]
         javascript << "function(element, value) {"
-        javascript << "#{callback}})</script>"
+        javascript << "#{callback}})"
+        javascript_tag(javascript)
       end
             
       def build_callbacks(options)

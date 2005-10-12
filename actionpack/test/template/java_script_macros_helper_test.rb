@@ -23,15 +23,15 @@ class JavaScriptMacrosHelperTest < Test::Unit::TestCase
 
 
   def test_auto_complete_field
-    assert_dom_equal %(<script type=\"text/javascript\">new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {})</script>),
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {})\n//]]>\n</script>),
       auto_complete_field("some_input", :url => { :action => "autocomplete" });
-    assert_dom_equal %(<script type=\"text/javascript\">new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {tokens:','})</script>),
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {tokens:','})\n//]]>\n</script>),
       auto_complete_field("some_input", :url => { :action => "autocomplete" }, :tokens => ',');
-    assert_dom_equal %(<script type=\"text/javascript\">new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {tokens:[',']})</script>),
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {tokens:[',']})\n//]]>\n</script>),
       auto_complete_field("some_input", :url => { :action => "autocomplete" }, :tokens => [',']);  
-    assert_dom_equal %(<script type=\"text/javascript\">new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {min_chars:3})</script>),
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {min_chars:3})\n//]]>\n</script>),
       auto_complete_field("some_input", :url => { :action => "autocomplete" }, :min_chars => 3);
-    assert_dom_equal %(<script type=\"text/javascript\">new Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {onHide:function(element, update){Alert('me');}})</script>),
+    assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nnew Ajax.Autocompleter('some_input', 'some_input_auto_complete', 'http://www.example.com/autocomplete', {onHide:function(element, update){Alert('me');}})\n//]]>\n</script>),
       auto_complete_field("some_input", :url => { :action => "autocomplete" }, :on_hide => "function(element, update){Alert('me');}");
   end
   
@@ -50,7 +50,7 @@ class JavaScriptMacrosHelperTest < Test::Unit::TestCase
   def test_text_field_with_auto_complete
     assert_match "<style>",
       text_field_with_auto_complete(:message, :recipient)
-    assert_dom_equal %(<input id=\"message_recipient\" name=\"message[recipient]\" size=\"30\" type=\"text\" /><div class=\"auto_complete\" id=\"message_recipient_auto_complete\"></div><script type=\"text/javascript\">new Ajax.Autocompleter('message_recipient', 'message_recipient_auto_complete', 'http://www.example.com/auto_complete_for_message_recipient', {})</script>),
+    assert_dom_equal %(<input id=\"message_recipient\" name=\"message[recipient]\" size=\"30\" type=\"text\" /><div class=\"auto_complete\" id=\"message_recipient_auto_complete\"></div><script type=\"text/javascript\">\n//<![CDATA[\nnew Ajax.Autocompleter('message_recipient', 'message_recipient_auto_complete', 'http://www.example.com/auto_complete_for_message_recipient', {})\n//]]>\n</script>),
       text_field_with_auto_complete(:message, :recipient, {}, :skip_style => true)
   end
 end
