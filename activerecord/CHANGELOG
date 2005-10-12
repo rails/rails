@@ -1,5 +1,7 @@
 *SVN*
 
+* Update DB2 adapter. #2206. [contact@maik-schmidt.de]
+
 * Corrections to SQLServer native data types. #2267.  [rails.20.clarry@spamgourmet.com]
 
 * Deprecated ActiveRecord::Base.threaded_connection in favor of ActiveRecord::Base.allow_concurrency.

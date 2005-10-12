@@ -4,6 +4,7 @@ DROP TABLE topics;
 DROP TABLE developers;
 DROP TABLE projects;
 DROP TABLE developers_projects;
+DROP TABLE orders;
 DROP TABLE customers;
 DROP TABLE orders;
 DROP TABLE movies;
