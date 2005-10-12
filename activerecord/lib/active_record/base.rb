@@ -508,7 +508,7 @@ module ActiveRecord #:nodoc:
       #   customer.credit_rating = "Average"
       #   customer.credit_rating # => "Average"
       def attr_protected(*attributes)
-        write_inheritable_array("attr_protected", attributes)
+        write_inheritable_array("attr_protected", attributes - (protected_attributes || []))
       end
 
       # Returns an array of all the attributes that have been protected from mass-assignment.
@@ -521,7 +521,7 @@ module ActiveRecord #:nodoc:
       # protection. If you'd rather start from an all-open default and restrict attributes as needed, have a look at
       # attr_protected.
       def attr_accessible(*attributes)
-        write_inheritable_array("attr_accessible", attributes)
+        write_inheritable_array("attr_accessible", attributes - (accessible_attributes || []))
       end
 
       # Returns an array of all the attributes that have been made accessible to mass-assignment.
@@ -1450,7 +1450,9 @@ module ActiveRecord #:nodoc:
 
       # The primary key and inheritance column can never be set by mass-assignment for security reasons.
       def attributes_protected_by_default
-        [ self.class.primary_key, self.class.inheritance_column ]
+        default = [ self.class.primary_key, self.class.inheritance_column ]
+        default << 'id' unless self.class.primary_key.eql? 'id'
+        default
       end
 
       # Returns copy of the attributes hash where all the values have been safely quoted for use in

@@ -7,6 +7,8 @@ require 'fixtures/project'
 require 'fixtures/default'
 require 'fixtures/auto_id'
 require 'fixtures/column_name'
+require 'fixtures/subscriber'
+require 'fixtures/keyboard'
 
 class Category < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
@@ -525,6 +527,22 @@ class BasicsTest < Test::Unit::TestCase
     firm = Firm.new
     firm.attributes = { "name" => "Next Angle", "rating" => 5 }
     assert_equal 1, firm.rating
+  end
+
+  def test_customized_primary_key_remains_protected
+    subscriber = Subscriber.new(:nick => 'webster123', :name => 'nice try')
+    assert_nil subscriber.id
+
+    keyboard = Keyboard.new(:key_number => 9, :name => 'nice try')
+    assert_nil keyboard.id
+  end
+
+  def test_customized_primary_key_remains_protected_when_refered_to_as_id
+    subscriber = Subscriber.new(:id => 'webster123', :name => 'nice try')
+    assert_nil subscriber.id
+
+    keyboard = Keyboard.new(:id => 9, :name => 'nice try')
+    assert_nil keyboard.id
   end
   
   def test_mass_assignment_protection_on_defaults
