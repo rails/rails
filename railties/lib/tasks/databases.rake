@@ -27,6 +27,38 @@ task :db_schema_import => :environment do
   load file
 end
 
+desc "Recreate the test database from the current environment's database schema."
+task :clone_schema_to_test => :db_schema_dump do
+  ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
+  Rake::Task[:db_schema_import].invoke
+end
+
+desc "Dump the database structure to a SQL file"
+task :db_structure_dump => :environment do
+  abcs = ActiveRecord::Base.configurations
+  case abcs[RAILS_ENV]["adapter"] 
+    when "mysql", "oci"
+      ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
+      File.open("db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
+    when "postgresql"
+      ENV['PGHOST']     = abcs[RAILS_ENV]["host"] if abcs[RAILS_ENV]["host"]
+      ENV['PGPORT']     = abcs[RAILS_ENV]["port"].to_s if abcs[RAILS_ENV]["port"]
+      ENV['PGPASSWORD'] = abcs[RAILS_ENV]["password"].to_s if abcs[RAILS_ENV]["password"]
+      `pg_dump -U "#{abcs[RAILS_ENV]["username"]}" -s -x -O -f db/#{RAILS_ENV}_structure.sql #{abcs[RAILS_ENV]["database"]}`
+    when "sqlite", "sqlite3"
+      `#{abcs[RAILS_ENV]["adapter"]} #{abcs[RAILS_ENV]["dbfile"]} .schema > db/#{RAILS_ENV}_structure.sql`
+    when "sqlserver"
+      `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /f db\\#{RAILS_ENV}_structure.sql /q /A /r`
+      `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /F db\ /q /A /r`
+    else 
+      raise "Task not supported by '#{abcs["test"]["adapter"]}'"
+  end
+  
+  if ActiveRecord::Base.connection.supports_migrations?
+    File.open("db/#{RAILS_ENV}_structure.sql", "a") { |f| f << ActiveRecord::Base.connection.dump_schema_information }
+  end
+end
+
 desc "Recreate the test databases from the development structure"
 task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
   abcs = ActiveRecord::Base.configurations
@@ -53,32 +85,6 @@ task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
       end
     else 
       raise "Task not supported by '#{abcs["test"]["adapter"]}'"
-  end
-end
-
-desc "Dump the database structure to a SQL file"
-task :db_structure_dump => :environment do
-  abcs = ActiveRecord::Base.configurations
-  case abcs[RAILS_ENV]["adapter"] 
-    when "mysql", "oci"
-      ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
-      File.open("db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
-    when "postgresql"
-      ENV['PGHOST']     = abcs[RAILS_ENV]["host"] if abcs[RAILS_ENV]["host"]
-      ENV['PGPORT']     = abcs[RAILS_ENV]["port"].to_s if abcs[RAILS_ENV]["port"]
-      ENV['PGPASSWORD'] = abcs[RAILS_ENV]["password"].to_s if abcs[RAILS_ENV]["password"]
-      `pg_dump -U "#{abcs[RAILS_ENV]["username"]}" -s -x -O -f db/#{RAILS_ENV}_structure.sql #{abcs[RAILS_ENV]["database"]}`
-    when "sqlite", "sqlite3"
-      `#{abcs[RAILS_ENV]["adapter"]} #{abcs[RAILS_ENV]["dbfile"]} .schema > db/#{RAILS_ENV}_structure.sql`
-    when "sqlserver"
-      `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /f db\\#{RAILS_ENV}_structure.sql /q /A /r`
-      `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /F db\ /q /A /r`
-    else 
-      raise "Task not supported by '#{abcs["test"]["adapter"]}'"
-  end
-  
-  if ActiveRecord::Base.connection.supports_migrations?
-    File.open("db/#{RAILS_ENV}_structure.sql", "a") { |f| f << ActiveRecord::Base.connection.dump_schema_information }
   end
 end
 
@@ -109,6 +115,16 @@ task :purge_test_database => :environment do
     else
       raise "Task not supported by '#{abcs["test"]["adapter"]}'"
   end
+end
+
+def prepare_test_database_task
+  {:sql  => :clone_structure_to_test, 
+   :ruby => :clone_schema_to_test}[ActiveRecord::Base.schema_format]
+end
+
+desc 'Prepare the test database and load the schema'
+task :prepare_test_database => :environment do
+  Rake::Task[prepare_test_database_task].invoke
 end
 
 desc "Creates a sessions table for use with CGI::Session::ActiveRecordStore"

@@ -310,6 +310,15 @@ module ActiveRecord #:nodoc:
     # mode, because the methods would be regenerated on each request.
     cattr_accessor :generate_read_methods
     @@generate_read_methods = true
+    
+    # Specifies the format to use when dumping the database schema with Rails'
+    # Rakefile.  If :sql, the schema is dumped as (potentially database-
+    # specific) SQL statements.  If :ruby, the schema is dumped as an 
+    # ActiveRecord::Schema file which can be loaded into any database that
+    # supports migrations.  Use :ruby if you want to have different database
+    # adapters for, e.g., your development and test environments.
+    cattr_accessor :schema_format 
+    @@schema_format = :sql
 
     class << self # Class methods
       # Find operates with three different retrieval approaches:

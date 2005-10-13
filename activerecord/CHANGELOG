@@ -1,5 +1,7 @@
 *SVN*
 
+* Add ActiveRecord::Base.schema_format setting which specifies how databases should be dumped [Sam Stephenson]
+
 * Optimize postgresql selects. [skaes@web.de]
 
 * Update DB2 adapter. #2206. [contact@maik-schmidt.de]

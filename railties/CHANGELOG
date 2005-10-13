@@ -1,5 +1,7 @@
 *SVN*
 
+* Support using different database adapters for development and test with ActiveRecord::Base.schema_format = :ruby [Sam Stephenson]
+
 * Make webrick work with session(:off)
 
 * Add --version, -v option to the Rails command. Closes #1840. [stancell]
