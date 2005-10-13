@@ -40,6 +40,7 @@ class CleanLogger_182_to_183_Test < Test::Unit::TestCase
   def setup
     if Logger.method_defined?(:formatter=)
       Logger.send(:alias_method, :hide_formatter=, :formatter=)
+      Logger.send(:undef_method, :formatter=)
     else
       Logger.send(:define_method, :formatter=) { }
     end
