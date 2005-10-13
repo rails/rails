@@ -10,7 +10,7 @@ def recent_tests(source_pattern, test_path, touched_since = 10.minutes.ago)
   end.compact
 end
 
-desc 'Test recent changes.'
+desc 'Test recent changes'
 Rake::TestTask.new(:recent => [ :prepare_test_database ]) do |t|
   since = TEST_CHANGES_SINCE
   touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
@@ -21,20 +21,17 @@ Rake::TestTask.new(:recent => [ :prepare_test_database ]) do |t|
   t.verbose = true
   t.test_files = touched.uniq
 end
-task :test_recent => [ :prepare_test_database ]
 
 desc "Run the unit tests in test/unit"
-Rake::TestTask.new("test_units") { |t|
+Rake::TestTask.new(:test_units => [ :prepare_test_database ]) do |t|
   t.libs << "test"
   t.pattern = 'test/unit/**/*_test.rb'
   t.verbose = true
-}
-task :test_units => [ :prepare_test_database ]
+end
 
 desc "Run the functional tests in test/functional"
-Rake::TestTask.new("test_functional") { |t|
+Rake::TestTask.new(:test_functional => [ :prepare_test_database ]) do |t|
   t.libs << "test"
   t.pattern = 'test/functional/**/*_test.rb'
   t.verbose = true
-}
-task :test_functional => [ :prepare_test_database ]
+end
