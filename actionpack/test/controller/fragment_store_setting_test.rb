@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
-MemCache = Struct.new(:MemCache, :address)
+MemCache = Struct.new(:MemCache, :address) unless Object.const_defined?(:MemCache)
 
 class FragmentCacheStoreSettingTest < Test::Unit::TestCase
   def teardown
