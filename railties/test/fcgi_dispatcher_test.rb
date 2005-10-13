@@ -53,7 +53,6 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     @handler.process!
     assert_nil @handler.exit_code
     assert_nil @handler.when_ready
-    assert !@handler.processing
   end
 
   def test_interrupted_via_HUP_when_not_in_request
@@ -64,7 +63,6 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     @handler.thread.join
     assert_nil @handler.exit_code
     assert_nil @handler.when_ready
-    assert !@handler.processing
     assert @handler.reloaded
   end
 
@@ -76,7 +74,6 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     @handler.thread.join
     assert_nil @handler.exit_code
     assert_equal :reload, @handler.when_ready
-    assert !@handler.processing
   end
 
   def test_interrupted_via_USR1_when_not_in_request
@@ -85,9 +82,8 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     sleep 0.1 # let the thread get started
     @handler.send_signal("USR1")
     @handler.thread.join
-    assert_equal 0, @handler.exit_code
-    assert_nil @handler.when_ready
-    assert !@handler.processing
+    assert_nil @handler.exit_code
+    assert_equal :exit, @handler.when_ready
   end
 
   def test_interrupted_via_USR1_when_in_request
@@ -97,8 +93,7 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     @handler.send_signal("USR1")
     @handler.thread.join
     assert_nil @handler.exit_code
-    assert @handler.when_ready
-    assert !@handler.processing
+    assert_equal :exit, @handler.when_ready
   end
 
   %w(RuntimeError SignalException).each do |exception|
@@ -176,6 +171,5 @@ class RailsFCGIHandlerPeriodicGCTest < Test::Unit::TestCase
 
     assert_nil @handler.exit_code
     assert_nil @handler.when_ready
-    assert !@handler.processing
   end
 end
