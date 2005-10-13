@@ -2,6 +2,12 @@ require 'erb'
 require 'yaml'
 require 'csv'
 
+class YAML::Omap
+  def keys;   map { |k, v| k } end
+  def values; map { |k, v| v } end
+end
+
+
 # Fixtures are a way of organizing data that you want to test against; in short, sample data. They come in 3 flavours:
 #
 #   1.  YAML fixtures
@@ -191,7 +197,7 @@ require 'csv'
 #      the results of your transaction until Active Record supports nested transactions or savepoints (in progress.) 
 #   2. Your database does not support transactions. Every Active Record database supports transactions except MySQL MyISAM. 
 #      Use InnoDB, MaxDB, or NDB instead.
-class Fixtures < Hash
+class Fixtures < YAML::Omap
   DEFAULT_FILTER_RE = /\.ya?ml$/
 
   def self.instantiate_fixtures(object, table_name, fixtures, load_instances=true)
