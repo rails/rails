@@ -47,6 +47,8 @@ ARGV.options do |opts|
 end
 
 ENV["RAILS_ENV"] = OPTIONS[:environment]
+RAILS_ENV.replace(OPTIONS[:environment]) if defined?(RAILS_ENV)
+
 require RAILS_ROOT + "/config/environment"
 require 'webrick_server'
 
