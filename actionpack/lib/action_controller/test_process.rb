@@ -303,7 +303,9 @@ module Test
 
         def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
           @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-          self.send(request_method, action, parameters, session, flash)
+          returning self.send(request_method, action, parameters, session, flash) do
+            @request.env.delete 'HTTP_X_REQUESTED_WITH'
+          end
         end
         alias xhr :xml_http_request
 

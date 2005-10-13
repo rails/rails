@@ -305,6 +305,11 @@ HTML
     assert_equal "192.0.0.1", @response.body
   end
 
+  def test_header_properly_reset_after_remote_http_request
+    xhr :get, :test_params
+    assert_nil @request.env['HTTP_X_REQUESTED_WITH']
+  end
+
   %w(controller response request).each do |variable|
     %w(get post put delete head process).each do |method|
       define_method("test_#{variable}_missing_for_#{method}_raises_error") do

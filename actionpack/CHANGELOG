@@ -1,5 +1,7 @@
 *SVN*
 
+* Unset the X-Requested-With header when using the xhr wrapper in functional tests so that future requests aren't accidentally xhr'ed #2352 [me@julik.nl, Sam Stephenson]
+
 * Unescape paths before writing cache to file system. #1877. [Damien Pollet]
 
 * Wrap javascript_tag contents in a CDATA section and add a cdata_section method to TagHelper #1691 [Michael Schuerig, Sam Stephenson]
