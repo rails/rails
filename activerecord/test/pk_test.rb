@@ -30,10 +30,10 @@ class PrimaryKeysTest < Test::Unit::TestCase
     assert_equal keyboard.id, Keyboard.find_by_name('HHKB').id
   end
 
-  def test_customized_primary_key_can_be_set_before_saving
+  def test_customized_primary_key_can_be_get_before_saving
     keyboard = Keyboard.new
     assert_respond_to(keyboard, :key_number)
-    assert_nothing_raised { keyboard.key_number = 1 }
+    assert_nothing_raised { keyboard.key_number }
   end
 
   def test_customized_string_primary_key_settable_before_save

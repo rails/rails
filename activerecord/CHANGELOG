@@ -1,5 +1,7 @@
 *SVN*
 
+* Delegate access to a customized primary key to the conventional id method. #2444. [Blair Zajac <blair@orcaware.com>]
+
 * Fix errors caused by assigning a has-one or belongs-to property to itself
 
 * Add ActiveRecord::Base.schema_format setting which specifies how databases should be dumped [Sam Stephenson]

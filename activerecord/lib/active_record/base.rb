@@ -1331,6 +1331,8 @@ module ActiveRecord #:nodoc:
         if @attributes.include?(method_name)
           define_read_methods if self.class.read_methods.empty? && self.class.generate_read_methods
           read_attribute(method_name)
+        elsif self.class.primary_key.to_s == method_name
+          id
         elsif md = /(=|\?|_before_type_cast)$/.match(method_name)
           attribute_name, method_type = md.pre_match, md.to_s
           if @attributes.include?(attribute_name)
