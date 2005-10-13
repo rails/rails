@@ -404,10 +404,10 @@ module ActionView #:nodoc:
         line_offset += 2 if extension && (extension.to_sym == :rxml)
 
         begin
-          if file_name
-            CompiledTemplates.module_eval(render_source, file_name, -line_offset)
+          unless file_name.blank?
+            CompiledTemplates.module_eval(render_source, File.expand_path(file_name), -line_offset)
           else
-            CompiledTemplates.module_eval(render_source)
+            CompiledTemplates.module_eval(render_source, 'compiled-template', -line_offset)
           end
         rescue Object => e
           if logger
