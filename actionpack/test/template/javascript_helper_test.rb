@@ -31,7 +31,7 @@ class JavaScriptHelperTest < Test::Unit::TestCase
   def test_escape_javascript
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))
   end
-  
+                                      
   def test_link_to_function
     assert_dom_equal %(<a href="#" onclick="alert('Hello world!'); return false;">Greeting</a>), 
       link_to_function("Greeting", "alert('Hello world!')")
@@ -41,7 +41,11 @@ class JavaScriptHelperTest < Test::Unit::TestCase
     assert_dom_equal %(<a class=\"fine\" href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true}); return false;\">Remote outpost</a>),
       link_to_remote("Remote outpost", { :url => { :action => "whatnot"  }}, { :class => "fine"  })
     assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onComplete:function(request){alert(request.reponseText)}}); return false;\">Remote outpost</a>),
-      link_to_remote("Remote outpost", :complete => "alert(request.reponseText)", :url => { :action => "whatnot"  })
+      link_to_remote("Remote outpost", :complete => "alert(request.reponseText)", :url => { :action => "whatnot"  })      
+    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onSuccess:function(request){alert(request.reponseText)}}); return false;\">Remote outpost</a>),
+      link_to_remote("Remote outpost", :success => "alert(request.reponseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onFailure:function(request){alert(request.reponseText)}}); return false;\">Remote outpost</a>),
+      link_to_remote("Remote outpost", :failure => "alert(request.reponseText)", :url => { :action => "whatnot"  })
   end
   
   def test_periodically_call_remote
