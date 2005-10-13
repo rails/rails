@@ -30,7 +30,7 @@ module ActiveRecord
         else
           raise_on_type_mismatch(obj) unless obj.nil?
 
-          @target = obj
+          @target = (AssociationProxy === obj ? obj.target : obj)
           @owner[@association_class_primary_key_name] = obj.id unless obj.new_record?
           @updated = true
         end

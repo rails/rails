@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix errors caused by assigning a has-one or belongs-to property to itself
+
 * Add ActiveRecord::Base.schema_format setting which specifies how databases should be dumped [Sam Stephenson]
 
 * Optimize postgresql selects. [skaes@web.de]

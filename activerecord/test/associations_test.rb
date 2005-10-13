@@ -72,6 +72,11 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     assert_equal Account.find(1).credit_limit, companies(:first_firm).account.credit_limit
   end
 
+  def test_proxy_assignment
+    company = companies(:first_firm)
+    assert_nothing_raised { company.account = company.account }
+  end
+
   def test_triple_equality
     assert Account === companies(:first_firm).account
   end
@@ -690,6 +695,11 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     Client.find(3).firm.name
     assert_equal companies(:first_firm).name, Client.find(3).firm.name
     assert !Client.find(3).firm.nil?, "Microsoft should have a firm"   
+  end
+
+  def test_proxy_assignment
+    account = Account.find(1)
+    assert_nothing_raised { account.firm = account.firm }
   end
 
   def test_type_mismatch

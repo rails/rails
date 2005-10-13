@@ -29,7 +29,7 @@ module ActiveRecord
       def replace(obj, dont_save = false)
         load_target
         unless @target.nil?
-          if dependent? && !dont_save     
+          if dependent? && !dont_save && @target != obj
             @target.destroy unless @target.new_record?
             @owner.clear_association_cache
           else
@@ -44,7 +44,7 @@ module ActiveRecord
           raise_on_type_mismatch(obj)
           
           obj[@association_class_primary_key_name] = @owner.id unless @owner.new_record?
-          @target = obj
+          @target = (AssociationProxy === obj ? obj.target : obj)
         end
 
         @loaded = true
