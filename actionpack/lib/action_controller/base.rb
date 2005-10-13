@@ -590,7 +590,7 @@ module ActionController #:nodoc:
             render_file(template, options[:status], true)
             
           elsif inline = options[:inline]
-            render_template(inline, options[:status], options[:type])
+            render_template(inline, options[:status], options[:type], options[:locals] || {})
             
           elsif action_name = options[:action]
             render_action(action_name, options[:status], options[:layout]) 
@@ -637,9 +637,9 @@ module ActionController #:nodoc:
         render_text(@template.render_file(template_path, use_full_path), status)
       end
 
-      def render_template(template, status = nil, type = :rhtml)
+      def render_template(template, status = nil, type = :rhtml, local_assigns = {})
         add_variables_to_assigns
-        render_text(@template.render_template(type, template), status)
+        render_text(@template.render_template(type, template, nil, local_assigns), status)
       end
 
       def render_text(text = nil, status = nil)

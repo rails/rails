@@ -75,6 +75,11 @@ class TestController < ActionController::Base
     render_template "Hello: <%= params[:name] %>"
   end
 
+  def accessing_local_assigns_in_inline_template
+    name = params[:local_name]
+    render :inline => "<%= 'Goodbye, ' + local_name %>", :locals => { :local_name => name }
+  end
+
   def rescue_action(e) raise end
     
   private
@@ -204,6 +209,12 @@ class RenderTest < Test::Unit::TestCase
     @request.action = "accessing_params_in_template"
     @request.query_parameters[:name] = "David"
     assert_equal "Hello: David", process_request.body
+  end
+
+  def test_accessing_local_assigns_in_inline_template
+    @request.action = "accessing_local_assigns_in_inline_template"
+    @request.query_parameters[:local_name] = "Local David"
+    assert_equal "Goodbye, Local David", process_request.body
   end
 
   private

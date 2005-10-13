@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :locals support for render :inline #2463 [mdabney@cavoksolutions.com]
+
 * Unset the X-Requested-With header when using the xhr wrapper in functional tests so that future requests aren't accidentally xhr'ed #2352 [me@julik.nl, Sam Stephenson]
 
 * Unescape paths before writing cache to file system. #1877. [Damien Pollet]
