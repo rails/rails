@@ -6,9 +6,9 @@ require 'rbconfig'
 class RailsFCGIHandler
   SIGNALS = {
     'HUP'  => :reload,
-    'TERM' => :graceful_exit,
-    'USR1' => :graceful_exit,
-    'USR2' => :graceful_restart
+    'TERM' => :exit,
+    'USR1' => :exit,
+    'USR2' => :restart
   }
 
   attr_reader :when_ready
@@ -28,8 +28,6 @@ class RailsFCGIHandler
   # (default nil for normal GC behavior.)  Optionally, pass a block which
   # takes this instance as an argument for further configuration.
   def initialize(log_file_path = nil, gc_request_period = nil)
-    @when_ready = nil
-
     self.log_file_path = log_file_path || "#{RAILS_ROOT}/log/fastcgi.crash.log"
     self.gc_request_period = gc_request_period
 
@@ -49,35 +47,23 @@ class RailsFCGIHandler
     # Make a note of $" so we can safely reload this instance.
     mark!
 
-    # Begin countdown to garbage collection.
     run_gc! if gc_request_period
 
     provider.each_cgi do |cgi| 
-      # Safely reload this instance if requested.
-      if when_ready == :reload
-        run_gc! if gc_request_period
-        restore!
-        @when_ready = nil
-        dispatcher_log(:info, "reloaded")
-      end
-
       process_request(cgi)
 
-      # Break if graceful exit or restart requested.
       case when_ready
-        when :exit
-          close_connection(cgi)
-          break 
+        when :reload
+          reload!
         when :restart
           close_connection(cgi)
           restart!
+        when :exit
+          close_connection(cgi)
+          break
       end
 
-      # Garbage collection countdown.
-      if gc_request_period
-        @gc_request_countdown -= 1
-        run_gc! if @gc_request_countdown <= 0
-      end
+      gc_countdown
     end
 
     GC.enable
@@ -131,7 +117,7 @@ class RailsFCGIHandler
       dispatcher_log :warn, "Ignoring unsupported signal #{signal}."
     end
 
-    def graceful_exit_handler(signal)
+    def exit_handler(signal)
       dispatcher_log :info, "asked to terminate ASAP"
       @when_ready = :exit
     end
@@ -141,7 +127,7 @@ class RailsFCGIHandler
       @when_ready = :reload
     end
 
-    def graceful_restart_handler(signal)
+    def restart_handler(signal)
       dispatcher_log :info, "asked to restart ASAP"
       @when_ready = :restart
     end
@@ -151,16 +137,6 @@ class RailsFCGIHandler
     rescue Object => e
       raise if SignalException === e
       dispatcher_error(e)
-    end
-
-    def mark!
-      @features = $".clone
-    end
-
-    def restore!
-      $".replace @features
-      Dispatcher.reset_application!
-      ActionController::Routing::Routes.reload
     end
 
     def restart!
@@ -173,12 +149,36 @@ class RailsFCGIHandler
       exec(command_line)
     end
 
+    def reload!
+      run_gc! if gc_request_period
+      restore!
+      @when_ready = nil
+      dispatcher_log :info, "reloaded"
+    end
+
+    def mark!
+      @features = $".clone
+    end
+
+    def restore!
+      $".replace @features
+      Dispatcher.reset_application!
+      ActionController::Routing::Routes.reload
+    end
+
     def run_gc!
       @gc_request_countdown = gc_request_period
       GC.enable; GC.start; GC.disable
     end
     
+    def gc_countdown
+      if gc_request_period
+        @gc_request_countdown -= 1
+        run_gc! if @gc_request_countdown <= 0
+      end
+    end
+    
     def close_connection(cgi)
-       cgi.instance_variable_get("@request").finish
+      cgi.instance_variable_get("@request").finish
     end
 end
