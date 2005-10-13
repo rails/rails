@@ -250,24 +250,24 @@ module ActiveRecord
         def select(sql, name = nil)
           res = execute(sql, name)
           results = res.result           
-          rows = []
-          if results.length > 0
-            fields = res.fields
-            results.each do |row|
-              hashed_row = {}
-              row.each_index do |cel_index|
-                column = row[cel_index]
-                if res.type(cel_index) == BYTEA_COLUMN_TYPE_OID
-                  column = unescape_bytea(column)
-                end
-                hashed_row[fields[cel_index]] = column
-              end
-              rows << hashed_row
-            end
-          end
-          return rows
-        end
-
+            rows = []                                                                            
+            if results.length > 0                                                                
+              fields = res.fields                                                                
+              hash_prototype = fields.inject({}){ |proto, field| proto[field] = nil; proto }     
+              results.each do |row|                                                              
+                hashed_row = hash_prototype.clone                                                
+                row.each_index do |col_num|                                                      
+                  if res.type(col_num) == BYTEA_COLUMN_TYPE_OID                                  
+                    hashed_row[fields[col_num]] = unescape_bytea(row[col_num])                   
+                 else                                                                           
+                   hashed_row[fields[col_num]] = row[col_num]                                   
+                  end                                                                            
+                end                                                                              
+                rows << hashed_row                                                               
+              end                                                                                
+            end                                                                                  
+           rows                                                                                 
+          end                                                                                    
         def escape_bytea(s)
           if PGconn.respond_to? :escape_bytea
             self.class.send(:define_method, :escape_bytea) do |s|
