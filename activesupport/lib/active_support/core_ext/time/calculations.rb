@@ -41,7 +41,7 @@ module ActiveSupport #:nodoc:
             options[:hour]  || self.hour, 
             options[:min]   || (options[:hour] ? 0 : self.min),
             options[:sec]   || ((options[:hour] || options[:min]) ? 0 : self.sec),
-            options[:usec]  || ((options[:hour] || options[:min] || options[:usec]) ? 0 : self.usec)
+            options[:usec]  || ((options[:hour] || options[:min] || options[:sec]) ? 0 : self.usec)
           )
         end
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that Time#change should also reset usec when also resetting minutes #2459 [ikeda@dream.big.or.jp]
+
 * Fix Logger compatibility for distributions that don't keep Ruby and its standard library in sync.
 
 * Replace '%e' from long and short time formats as Windows does not support it. #2344. [Tom Ward <tom@popdog.net>]
