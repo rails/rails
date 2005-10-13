@@ -1,5 +1,7 @@
 *SVN*
 
+* Make webrick work with session(:off)
+
 * Add --version, -v option to the Rails command. Closes #1840. [stancell]
 
 * Update Prototype to V1.4.0_pre11, script.aculo.us to V1.5_rc3 [2504] and fix the rails generator to include the new .js files [Thomas Fuchs]

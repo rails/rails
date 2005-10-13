@@ -117,7 +117,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
 
     set_charset(header)
     assign_status(res, header)
-    res.cookies.concat(header.delete('set-cookie'))
+    res.cookies.concat(header.delete('set-cookie') || [])
     header.each { |key, val| res[key] = val.join(", ") }
     
     res.body = body
