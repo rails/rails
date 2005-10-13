@@ -25,6 +25,14 @@ class UrlHelperTest < Test::Unit::TestCase
     assert_dom_equal "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com")
   end
 
+  def test_button_to_with_query
+    assert_dom_equal "<form method=\"post\" action=\"http://www.example.com/q1=v1&amp;q2=v2\" class=\"button-to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>", button_to("Hello", "http://www.example.com/q1=v1&q2=v2")
+  end
+
+  def test_button_to_with_query_and_no_name
+    assert_dom_equal "<form method=\"post\" action=\"http://www.example.com?q1=v1&amp;q2=v2\" class=\"button-to\"><div><input type=\"submit\" value=\"http://www.example.com?q1=v1&amp;q2=v2\" /></div></form>", button_to(nil, "http://www.example.com?q1=v1&q2=v2")
+  end
+
   def test_button_to_with_javascript_confirm
     assert_dom_equal(
       "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input onclick=\"return confirm('Are you sure?');\" type=\"submit\" value=\"Hello\" /></div></form>",
@@ -45,6 +53,14 @@ class UrlHelperTest < Test::Unit::TestCase
 
   def test_link_tag_with_straight_url
     assert_dom_equal "<a href=\"http://www.example.com\">Hello</a>", link_to("Hello", "http://www.example.com")
+  end
+
+  def test_link_tag_with_query
+    assert_dom_equal "<a href=\"http://www.example.com?q1=v1&amp;q2=v2\">Hello</a>", link_to("Hello", "http://www.example.com?q1=v1&q2=v2")
+  end
+
+  def test_link_tag_with_query_and_no_name
+    assert_dom_equal "<a href=\"http://www.example.com?q1=v1&amp;q2=v2\">http://www.example.com?q1=v1&amp;q2=v2</a>", link_to(nil, "http://www.example.com?q1=v1&q2=v2")
   end
 
   def test_link_tag_with_custom_onclick

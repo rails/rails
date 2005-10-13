@@ -46,7 +46,7 @@ module ActionView
         else
           tag_options = nil
         end
-        url = options.is_a?(String) ? options : url_for(options, *parameters_for_method_reference)
+        url = html_escape(options.is_a?(String) ? options : url_for(options, *parameters_for_method_reference))
         "<a href=\"#{url}\"#{tag_options}>#{name||url}</a>"
       end
 
@@ -107,7 +107,7 @@ module ActionView
 
         url, name = options.is_a?(String) ?
           [ options,  name || options ] :
-          [ url_for(options), name || url_for(options) ]
+          [ url_for(options), name || html_escape(url_for(options)) ]
 
         html_options.merge!("type" => "submit", "value" => name)
 

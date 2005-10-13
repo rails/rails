@@ -1,5 +1,7 @@
 *SVN*
 
+* Escape query strings in the href attribute of URLs created by url_helper.  #2333 [Michael Schuerig <michael@schuerig.de>]
+
 * Improved line number reporting for template errors [Nicholas Seckar]
 
 * Added :locals support for render :inline #2463 [mdabney@cavoksolutions.com]
