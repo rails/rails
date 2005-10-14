@@ -1501,7 +1501,9 @@ module ActiveRecord #:nodoc:
       # Interpolate custom sql string in instance context.
       # Optional record argument is meant for custom insert_sql.
       def interpolate_sql(sql, record = nil)
-        instance_eval("%(#{sql})")
+        # Parens in the sql in, e.g., subselects, cause a parse error, so
+        # escape them.
+        instance_eval("%@#{sql.gsub('@', '\@')}@")
       end
 
       # Initializes the attributes array with keys matching the columns from the linked table and

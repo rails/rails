@@ -1018,6 +1018,12 @@ class BasicsTest < Test::Unit::TestCase
      assert_equal    firm.clients.collect{ |x| x.name }.sort, clients.collect{ |x| x.name }.sort
   end
 
+  def test_interpolate_sql
+    assert_nothing_raised { Category.new.send(:interpolate_sql, 'foo@bar') }
+    assert_nothing_raised { Category.new.send(:interpolate_sql, 'foo bar) baz') }
+    assert_nothing_raised { Category.new.send(:interpolate_sql, 'foo bar} baz') }
+  end
+
   private
 
     def assert_readers(model, exceptions)
