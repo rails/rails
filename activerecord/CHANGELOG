@@ -1,4 +1,6 @@
-*SVN*                                                                                                                 
+*SVN*
+
+* Avoid memleak in dev mode when using fcgi
 
 * Simplified .clear on active record associations by using the existing delete_records method. #1906 [Caleb <me@cpb.ca>]
 

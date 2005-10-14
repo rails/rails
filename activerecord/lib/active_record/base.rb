@@ -940,9 +940,14 @@ module ActiveRecord #:nodoc:
         #   end
         def define_attr_method(name, value=nil, &block)
           sing = class << self; self; end
-          block = proc { value.to_s } if value
-          sing.send( :alias_method, "original_#{name}", name )
-          sing.send( :define_method, name, &block )
+          sing.send :alias_method, "original_#{name}", name
+          if value
+            # use eval instead of a block to work around a memory leak in dev
+            # mode in fcgi
+            sing.class_eval "def #{name}; #{value.to_s.inspect}; end"
+          else
+            sing.send :define_method, name, &block
+          end
         end
 
       protected
