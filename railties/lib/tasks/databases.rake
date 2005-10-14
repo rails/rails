@@ -1,7 +1,7 @@
 desc "Migrate the database according to the migrate scripts in db/migrate (only supported on PG/MySQL). A specific version can be targetted with VERSION=x"
 task :migrate => :environment do
   ActiveRecord::Migrator.migrate("db/migrate/", ENV["VERSION"] ? ENV["VERSION"].to_i : nil)
-  Rake::Task[:db_schema_dump].invoke
+  Rake::Task[:db_schema_dump].invoke if ActiveRecord::Base.schema_format == :ruby
 end
 
 desc "Load fixtures into the current environment's database"
