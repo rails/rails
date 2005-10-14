@@ -5,7 +5,7 @@ if ARGV.empty?
   exit 
 end
 
-require File.dirname(__FILE__) + '/../config/environment'
+require RAILS_ROOT + '/config/environment'
 require 'benchmark'
 include Benchmark
 

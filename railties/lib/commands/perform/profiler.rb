@@ -6,7 +6,7 @@ end
 
 # Keep the expensive require out of the profile.
 $stderr.puts 'Loading Rails...'
-require File.dirname(__FILE__) + '/../config/environment'
+require RAILS_ROOT + '/config/environment'
 
 # Define a method to profile.
 if ARGV[1] and ARGV[1].to_i > 1
