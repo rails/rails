@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Enumerable#first_match [Nicholas Seckar]
+
 * Fixed that Time#change should also reset usec when also resetting minutes #2459 [ikeda@dream.big.or.jp]
 
 * Fix Logger compatibility for distributions that don't keep Ruby and its standard library in sync.
