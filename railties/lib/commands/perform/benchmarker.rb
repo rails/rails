@@ -1,7 +1,7 @@
 #!/usr/local/bin/ruby
 
 if ARGV.empty?
-  puts "Usage: benchmarker times 'Person.expensive_way' 'Person.another_expensive_way' ..."
+  puts "Usage: ./script/perform benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ..."
   exit 
 end
 
