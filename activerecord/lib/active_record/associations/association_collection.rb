@@ -33,6 +33,12 @@ module ActiveRecord
 
       alias_method :push, :<<
       alias_method :concat, :<<
+                      
+      # Remove all records from this association
+      def delete_all
+        delete(@target)
+        @target = []
+      end
 
       # Remove +records+ from this association.  Does not destroy +records+.
       def delete(*records)
@@ -49,6 +55,17 @@ module ActiveRecord
             callback(:after_remove, record)
           end
         end
+      end
+
+      # Removes all records from this association.  Returns +self+ so method calls may be chained.
+      def clear
+        return self if empty? # forces load_target if hasn't happened already
+        if @options[:exclusively_dependent]
+          destroy_all
+        else          
+          delete_all
+        end
+        self
       end
       
       def destroy_all

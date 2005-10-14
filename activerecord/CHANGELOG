@@ -1,4 +1,6 @@
-*SVN*
+*SVN*                                                                                                                 
+
+* Simplified .clear on active record associations by using the existing delete_records method. #1906 [Caleb <me@cpb.ca>]
 
 * Delegate access to a customized primary key to the conventional id method. #2444. [Blair Zajac <blair@orcaware.com>]
 

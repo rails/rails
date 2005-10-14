@@ -19,26 +19,6 @@ module ActiveRecord
         record
       end
 
-      # Removes all records from this association.  Returns +self+ so method calls may be chained.
-      def clear
-        return self if size == 0 # forces load_target if hasn't happened already
-
-        if sql = @options[:delete_sql]
-          each { |record| @owner.connection.execute(sql) }
-        elsif @options[:conditions] 
-          sql = 
-            "DELETE FROM #{@join_table} WHERE #{@association_class_primary_key_name} = #{@owner.quoted_id} " +
-            "AND #{@association_foreign_key} IN (#{collect { |record| record.id }.join(", ")})"
-          @owner.connection.execute(sql)
-        else
-          sql = "DELETE FROM #{@join_table} WHERE #{@association_class_primary_key_name} = #{@owner.quoted_id}"
-          @owner.connection.execute(sql)
-        end
-
-        @target = []
-        self
-      end
-
       def find_first
         load_target.first
       end

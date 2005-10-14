@@ -83,6 +83,20 @@ class AssociationCallbacksTest < Test::Unit::TestCase
     assert_equal ["before_removing#{david.id}", "after_removing#{david.id}", "before_removing#{jamis.id}", 
                   "after_removing#{jamis.id}"], activerecord.developers_log
   end
+
+  def test_has_and_belongs_to_many_remove_callback_on_clear
+    activerecord = projects(:active_record)
+    assert activerecord.developers_log.empty?
+    if activerecord.developers_with_callbacks.size == 0
+      activerecord.developers << developers(:david)
+      activerecord.developers << developers(:jamis)
+      activerecord.reload
+      assert activerecord.developers_with_callbacks.size == 2
+    end
+    log_array = activerecord.developers_with_callbacks.collect {|d| ["before_removing#{d.id}","after_removing#{d.id}"]}.flatten.sort
+    assert activerecord.developers_with_callbacks.clear
+    assert_equal log_array, activerecord.developers_log.sort
+  end
   
   def test_dont_add_if_before_callback_raises_exception
     assert !@david.unchangable_posts.include?(@authorless)
