@@ -2,7 +2,14 @@
 
 if ARGV.empty?
   puts "Usage: ./script/perform benchmarker [times] 'Person.expensive_way' 'Person.another_expensive_way' ..."
-  exit 
+  exit 1
+end
+
+begin
+  N = Integer(ARGV.first)
+  ARGV.shift
+rescue ArgumentError
+  N = 1
 end
 
 require RAILS_ROOT + '/config/environment'
@@ -10,10 +17,10 @@ require 'benchmark'
 include Benchmark
 
 # Don't include compilation in the benchmark
-ARGV[1..-1].each { |expression| eval(expression) }
+ARGV.each { |expression| eval(expression) }
 
 bm(6) do |x|
-  ARGV[1..-1].each_with_index do |expression, idx|
-    x.report("##{idx + 1}") { ARGV[0].to_i.times { eval(expression) } }
+  ARGV.each_with_index do |expression, idx|
+    x.report("##{idx + 1}") { N.times { eval(expression) } }
   end
 end 
