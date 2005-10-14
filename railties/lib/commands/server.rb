@@ -4,7 +4,7 @@ require 'optparse'
 OPTIONS = {
   :port            => 3000,
   :ip              => "0.0.0.0",
-  :environment     => "development",
+  :environment     => (ENV['RAILS_ENV'] || "development").dup,
   :server_root     => File.expand_path(RAILS_ROOT + "/public/"),
   :server_type     => WEBrick::SimpleServer,
   :charset         => "UTF-8",

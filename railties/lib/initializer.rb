@@ -1,6 +1,6 @@
 require 'logger'
 
-RAILS_ENV = ENV['RAILS_ENV'] || 'development' unless defined?(RAILS_ENV)
+RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 
 module Rails
   # The Initializer is responsible for processing the Rails configuration, such as setting the $LOAD_PATH, requiring the

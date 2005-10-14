@@ -1,6 +1,6 @@
 require 'optparse'
 
-options = { :environment => "development" }
+options = { :environment => (ENV['RAILS_ENV'] || "development").dup }
 
 ARGV.options do |opts|
   script_name = File.basename($0)
