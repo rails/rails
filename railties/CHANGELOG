@@ -1,5 +1,7 @@
 *SVN*
 
+* Added cleaning of RAILS_ROOT to useless elements such as '../non-dot-dot/'. Provides cleaner backtraces and error messages. [Nicholas Seckar]
+
 * Made the instantiated/transactional fixtures settings be controlled through Rails::Initializer. Transactional and non-instantiated fixtures are default from now on. [Florian Weber]
 
 * Support using different database adapters for development and test with ActiveRecord::Base.schema_format = :ruby [Sam Stephenson]
