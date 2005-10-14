@@ -293,6 +293,14 @@ module ActiveRecord
         string.gsub(/\'/, "''")
       end
 
+      def quoted_true
+        "1"
+      end
+      
+      def quoted_false
+        "0"
+      end
+
       def quote_column_name(name)
         "[#{name}]"
       end
