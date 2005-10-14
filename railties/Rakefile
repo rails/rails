@@ -28,7 +28,7 @@ RUBY_FORGE_USER    = "webster132"
 # end
 
 
-BASE_DIRS   = %w( app config/environments components db doc log lib lib/tasks public script test vendor vendor/plugins )
+BASE_DIRS   = %w( app config/environments components db doc log lib lib/tasks public script script/perform script/process test vendor vendor/plugins )
 APP_DIRS    = %w( apis models controllers helpers views views/layouts )
 PUBLIC_DIRS = %w( images javascripts stylesheets )
 TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/test )
@@ -38,7 +38,7 @@ HTML_FILES   = %w( 404.html 500.html index.html robots.txt favicon.ico
                    javascripts/prototype.js javascripts/scriptaculous.js
                    javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js
                    javascripts/util.js javascripts/slider.js )
-BIN_FILES    = %w( breakpointer console destroy generate perform process runner server )
+BIN_FILES    = %w( breakpointer console destroy generate perform/benchmark perform/profile process/reaper process/spawner process/spinner runner server )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )
 
