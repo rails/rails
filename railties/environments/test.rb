@@ -15,3 +15,9 @@ config.action_controller.perform_caching             = false
 # The :test delivery method accumulates sent emails in the
 # ActionMailer::Base.deliveries array.
 config.action_mailer.delivery_method = :test
+
+# Overwrite the default settings for fixtures in tests. See Fixtures 
+# for more details about these settings.
+# config.transactional_fixtures = true
+# config.instantiated_fixtures = false
+# config.pre_loaded_fixtures = false
