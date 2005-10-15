@@ -33,13 +33,23 @@ class CGI
     #
     # The fast SqlBypass class is a generic SQL session store.  You may
     # use it as a basis for high-performance database-specific stores.
+    #
+    # If the data you are attempting to write to the +data+ column is larger
+    # than the column's size limit, ActionController::SessionOverflowError 
+    # will be raised.
     class ActiveRecordStore
       # The default Active Record class.
       class Session < ActiveRecord::Base
         before_save   :marshal_data!
+        before_save   :ensure_data_not_too_big
         before_update :data_changed?
 
         class << self
+
+          def data_column_size_limit
+            connection.columns(table_name).find {|column| column.name == 'data'}.limit
+          end
+
           # Hook to set up sessid compatibility.
           def find_by_session_id(session_id)
             setup_sessid_compatibility!
@@ -55,7 +65,7 @@ class CGI
               CREATE TABLE #{table_name} (
                 id INTEGER PRIMARY KEY,
                 #{connection.quote_column_name('session_id')} TEXT UNIQUE,
-                #{connection.quote_column_name('data')} TEXT
+                #{connection.quote_column_name('data')} TEXT(255)
               )
             end_sql
           end
@@ -109,6 +119,15 @@ class CGI
             old_fingerprint, @fingerprint = @fingerprint, self.class.fingerprint(read_attribute('data'))
             old_fingerprint != @fingerprint
           end
+
+          # Ensures that the data about to be stored in the database is not
+          # larger than the data storage column. Raises
+          # ActionController::SessionOverflowError.
+          def ensure_data_not_too_big
+            return unless limit = self.class.data_column_size_limit
+            raise ActionController::SessionOverflowError, ActionController::SessionOverflowError::DEFAULT_MESSAGE if read_attribute('data').size > limit
+          end
+
       end
 
       # A barebones session store which duck-types with the default session
@@ -126,9 +145,6 @@ class CGI
       class SqlBypass
         # Use the ActiveRecord::Base.connection by default.
         cattr_accessor :connection
-        def self.connection
-          @@connection ||= ActiveRecord::Base.connection
-        end
 
         # The table name defaults to 'sessions'.
         cattr_accessor :table_name
@@ -143,6 +159,11 @@ class CGI
         @@data_column = 'data'
 
         class << self
+
+          def connection
+            @@connection ||= ActiveRecord::Base.connection
+          end
+
           # Look up a session by id and unmarshal its data if found.
           def find_by_session_id(session_id)
             if record = @@connection.select_one("SELECT * FROM #{@@table_name} WHERE #{@@session_id_column}=#{@@connection.quote(session_id)}")
@@ -201,6 +222,7 @@ class CGI
 
         def save
           marshaled_data = self.class.marshal(data)
+
           if @new_record
             @new_record = false
             @@connection.update <<-end_sql, 'Create session'
@@ -231,6 +253,7 @@ class CGI
             end_sql
           end
         end
+
       end
 
       # The class used for session storage.  Defaults to
@@ -278,6 +301,7 @@ class CGI
           @session = nil
         end
       end
+
     end
   end
 end

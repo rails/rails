@@ -53,6 +53,7 @@ module CommonActiveRecordStoreTests
       @new_session.close
     end
   end
+
 end
 
 class ActiveRecordStoreTest < Test::Unit::TestCase
@@ -75,6 +76,28 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
   def teardown
     session_class.drop_table!
   end
+end
+
+class ColumnLimitTest < Test::Unit::TestCase
+
+  def setup
+    @session_class = CGI::Session::ActiveRecordStore::Session
+    @session_class.create_table!
+  end
+
+  def teardown
+    @session_class.drop_table!
+  end
+
+  def test_protection_from_data_larger_than_column
+    # Can't test this unless there is a limit
+    return unless limit = @session_class.data_column_size_limit
+    too_big = ':(' * limit
+    s = @session_class.new(:session_id => '666', :data => {'foo' => too_big})
+    s.data
+    assert_raises(ActionController::SessionOverflowError) { s.save }
+  end
+
 end
 
 

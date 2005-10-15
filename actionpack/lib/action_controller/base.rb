@@ -25,6 +25,9 @@ module ActionController #:nodoc:
   end
   class MissingFile < ActionControllerError #:nodoc:
   end
+  class SessionOverflowError < ActionControllerError #:nodoc:
+    DEFAULT_MESSAGE = 'Your session data is larger than the data column in which it is to be stored. You must increase the size of your data column if you intend to store large data.'
+  end
   class DoubleRenderError < ActionControllerError #:nodoc:
     DEFAULT_MESSAGE = "Render and/or redirect were called multiple times in this action. Please note that you may only call render OR redirect, and only once per action. Also note that neither redirect nor render terminate execution of the action, so if you want to exit an action after redirecting, you need to do something like \"redirect_to(...) and return\". Finally, note that to cause a before filter to halt execution of the rest of the filter chain, the filter must return false, explicitly, so \"render(...) and return false\"." 
 
