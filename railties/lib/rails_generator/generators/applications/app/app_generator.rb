@@ -114,7 +114,7 @@ class AppGenerator < Rails::Generator::Base
     public/images
     public/javascripts
     public/stylesheets
-    script/perform
+    script/performance
     script/process
     test/fixtures
     test/functional
