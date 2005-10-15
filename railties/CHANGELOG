@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Rails framework freezing tasks: freeze_gems (freeze to current gems), freeze_edge (freeze to Rails SVN trunk), unfreeze_rails (float with newest gems on system)
+
 * Added update_javascripts task which will fetch all the latest js files from your current rails install. Use after updating rails. [Tobias Luetke]
 
 * Added cleaning of RAILS_ROOT to useless elements such as '../non-dot-dot/'. Provides cleaner backtraces and error messages. [Nicholas Seckar]
