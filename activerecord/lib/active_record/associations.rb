@@ -265,7 +265,9 @@ module ActiveRecord
       # * <tt>:foreign_key</tt> - specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_many association will use "person_id"
       #   as the default foreign_key.
-      # * <tt>:dependent</tt>   - if set to true all the associated object are destroyed alongside this object.
+      # * <tt>:dependent</tt>   - if set to :destroy (or true) all the associated objects are destroyed
+      #   alongside this object. Also accepts :nullify which will set the associated objects foriegn key
+      #   field to NULL.
       #   May not be set if :exclusively_dependent is also set.
       # * <tt>:exclusively_dependent</tt>   - if set to true all the associated object are deleted in one SQL statement without having their
       #   before_destroy callback run. This should only be used on associations that depend solely on this class and don't need to do any
@@ -297,13 +299,22 @@ module ActiveRecord
  
         require_association_class(association_class_name)
 
-        if options[:dependent] and options[:exclusively_dependent]
-          raise ArgumentError, ':dependent and :exclusively_dependent are mutually exclusive options.  You may specify one or the other.' # ' ruby-mode
+        raise ArgumentError, ':dependent and :exclusively_dependent are mutually exclusive options.  You may specify one or the other.' if options[:dependent] and options[:exclusively_dependent]
+          
         # See HasManyAssociation#delete_records.  Dependent associations
         # delete children, otherwise foreign key is set to NULL.
-        elsif options[:dependent]
-          module_eval "before_destroy '#{association_name}.each { |o| o.destroy }'"
-        elsif options[:exclusively_dependent]
+        case options[:dependent]
+          when :destroy, true  
+            module_eval "before_destroy '#{association_name}.each { |o| o.destroy }'"
+          when :nullify
+            module_eval "before_destroy { |record| #{association_class_name}.update_all(%(#{association_class_primary_key_name} = NULL),  %(#{association_class_primary_key_name} = \#{record.quoted_id})) }"
+          when nil, false
+            # pass
+          else
+            raise ArgumentError, 'The :dependent option expects either true, :destroy or :nullify' 
+        end   
+        
+        if options[:exclusively_dependent]
           module_eval "before_destroy { |record| #{association_class_name}.delete_all(%(#{association_class_primary_key_name} = \#{record.quoted_id})) }"
         end
 
@@ -353,7 +364,7 @@ module ActiveRecord
       #   sql fragment, such as "rank = 5".
       # * <tt>:order</tt>       - specify the order from which the associated object will be picked at the top. Specified as
       #    an "ORDER BY" sql fragment, such as "last_name, first_name DESC"
-      # * <tt>:dependent</tt>   - if set to true, the associated object is destroyed when this object is. It's also destroyed if another
+      # * <tt>:dependent</tt>   - if set to :destroy (or true) all the associated object is destroyed when this object is. Also
       #   association is assigned.
       # * <tt>:foreign_key</tt> - specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_one association will use "person_id"
@@ -386,7 +397,16 @@ module ActiveRecord
         association_constructor_method(:build, association_name, association_class_name, association_class_primary_key_name, options, HasOneAssociation)
         association_constructor_method(:create, association_name, association_class_name, association_class_primary_key_name, options, HasOneAssociation)
         
-        module_eval "before_destroy '#{association_name}.destroy unless #{association_name}.nil?'" if options[:dependent]
+        case options[:dependent]
+          when :destroy, true
+            module_eval "before_destroy '#{association_name}.destroy unless #{association_name}.nil?'"
+          when :nullify
+            module_eval "before_destroy '#{association_name}.update_attribute(\"#{association_class_primary_key_name}\", nil)'"
+          when nil, false
+            # pass
+          else
+            raise ArgumentError, "The :dependent option expects either :destroy or :nullify."
+        end
 
         # deprecated api
         deprecated_has_association_method(association_name)

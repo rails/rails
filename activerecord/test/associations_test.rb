@@ -132,10 +132,11 @@ class HasOneAssociationsTest < Test::Unit::TestCase
   end
 
   def test_dependence
+    num_accounts = Account.count
     firm = Firm.find(1)
     assert !firm.account.nil?
-    firm.destroy
-    assert_equal 1, Account.count
+    firm.destroy                
+    assert_equal num_accounts - 1, Account.count
   end
 
   def test_succesful_build_association
@@ -563,7 +564,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
     # Should be destroyed since the association is exclusively dependent.
     assert Client.find_by_id(client_id).nil?
-  end
+  end                                                    
 
   def test_deleting_a_item_which_is_not_in_the_collection
     force_signal37_to_load_all_clients_of_firm
@@ -634,9 +635,26 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_dependence_on_account
-    assert_equal 2, Account.count
+    num_accounts = Account.count
     companies(:first_firm).destroy
-    assert_equal 1, Account.count
+    assert_equal num_accounts - 1, Account.count
+  end
+
+
+  def test_depends_and_nullify
+    num_accounts = Account.count
+    num_companies = Company.count
+    
+    core = companies(:rails_core)
+    assert_equal accounts(:rails_core_account), core.account
+    assert_equal [companies(:leetsoft), companies(:jadedpixel)], core.companies
+    core.destroy                                         
+    assert_nil accounts(:rails_core_account).reload.firm_id
+    assert_nil companies(:leetsoft).reload.client_of
+    assert_nil companies(:jadedpixel).reload.client_of
+    
+    
+    assert_equal num_accounts, Account.count
   end
 
   def test_included_in_collection
@@ -658,7 +676,8 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert firm.save, "Could not save firm"
     firm.reload
     assert_equal 1, firm.clients.length
-  end
+  end 
+  
   
   def test_replace_with_new
     firm = Firm.find(:first)

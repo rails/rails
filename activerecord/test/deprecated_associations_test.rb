@@ -79,10 +79,11 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   end
 
   def test_has_one_dependence
+    num_accounts = Account.count
     firm = Firm.find(1)
     assert firm.has_account?
-    firm.destroy
-    assert_equal 1, Account.find_all.length
+    firm.destroy            
+    assert_equal num_accounts - 1, Account.count
   end
 
   def test_has_one_dependence_with_missing_association
@@ -124,10 +125,10 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
     assert !Account.find(2).firm?(companies(:first_firm)), "Unknown isn't linked"
   end
 
-  def test_has_many_dependence_on_account
-    assert_equal 2, Account.find_all.length
+  def test_has_many_dependence_on_account    
+    num_accounts = Account.count
     companies(:first_firm).destroy
-    assert_equal 1, Account.find_all.length
+    assert_equal num_accounts - 1, Account.count
   end
 
   def test_find_in

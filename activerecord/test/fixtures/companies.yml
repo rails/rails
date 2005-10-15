@@ -33,3 +33,15 @@ another_client:
   client_of: 4
   name: Ex Nihilo
   ruby_type: Client
+
+rails_core:
+  id: 6
+  type: DependentFirm
+  
+leetsoft:
+  id: 7
+  client_of: 6
+  
+jadedpixel:
+  id: 8
+  client_of: 6
