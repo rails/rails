@@ -81,15 +81,16 @@ module ActiveRecord
 
         def format_log_entry(message, dump = nil)
           if ActiveRecord::Base.colorize_logging
-            if @@row_even then
-              @@row_even = false; caller_color = "1;32"; message_color = "4;33"; dump_color = "1;37"
+            if @@row_even
+              @@row_even = false
+              message_color, dump_color = "4;36;1", "0;1"
             else
-              @@row_even = true; caller_color = "1;36"; message_color = "4;35"; dump_color = "0;37"
+              @@row_even = true
+              message_color, dump_color = "4;35;1", "0"
             end
 
-            log_entry = "  \e[#{message_color}m#{message}\e[m"
-            log_entry << "   \e[#{dump_color}m%s\e[m" % dump if dump.kind_of?(String) && !dump.nil?
-            log_entry << "   \e[#{dump_color}m%p\e[m" % dump if !dump.kind_of?(String) && !dump.nil?
+            log_entry = "  \e[#{message_color}m#{message}\e[0m   "
+            log_entry << "\e[#{dump_color}m%#{String === dump ? 's' : 'p'}\e[0m" % dump if dump
             log_entry
           else
             "%s  %s" % [message, dump]

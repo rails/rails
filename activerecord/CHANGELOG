@@ -1,4 +1,7 @@
 *SVN*                                                                                                                   
+
+* Change default logging colors to work on both white and black backgrounds. [Sam Stephenson]
+
 * YAML fixtures support ordered hashes for fixtures with foreign key dependencies in the same table.  #1896 [purestorm@ggnore.net]
 
 * :dependent now accepts :nullify option. Sets the foreign key of the related objects to NULL instead of deleting them. #2015 [Robby Russell <robby@planetargon.com>] 
