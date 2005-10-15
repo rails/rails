@@ -24,23 +24,15 @@ class NilClass
 
   private
     def method_missing(method, *args, &block)
-      if @@method_class_map.include?(method)
-        raise_nil_warning_for @@method_class_map[method], caller
-      else
-        super
-      end
+      raise_nil_warning_for @@method_class_map[method], method, caller
     end
 
-    def raise_nil_warning_for(klass, with_caller = nil)
-      raise NoMethodError, NIL_WARNING_MESSAGE % klass, with_caller || caller
+    def raise_nil_warning_for(klass = nil, selector = nil, with_caller = nil)
+      message = "You have a nil object when you didn't expect it!"
+      message << "\nYou might have expected an instance of #{klass}." if klass
+      message << "\nThe error occured while evaluating nil.#{selector}" if selector
+      
+      raise NoMethodError, message, with_caller || caller
     end
-
-    NIL_WARNING_MESSAGE = <<-end_message unless const_defined?(:NIL_WARNING_MESSAGE)
-WARNING:  You have a nil object when you probably didn't expect it!  Odds are you
-want an instance of %s instead.
-
-Look in the callstack to see where you're working with an object that could be nil.
-Investigate your methods and make sure the object is what you expect!
-    end_message
 end
 

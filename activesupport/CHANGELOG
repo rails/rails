@@ -1,5 +1,7 @@
 *SVN*
 
+* Updated whiny nil to be more concise and useful. [Nicholas Seckar]
+
 * Added Enumerable#first_match [Nicholas Seckar]
 
 * Fixed that Time#change should also reset usec when also resetting minutes #2459 [ikeda@dream.big.or.jp]
