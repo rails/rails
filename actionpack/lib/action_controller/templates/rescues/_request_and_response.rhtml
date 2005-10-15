@@ -5,7 +5,7 @@
   <pre id="blame_trace" <%='style="display:none"' if hide %>><code><%=h @exception.describe_blame %></code></pre>
 <% end %>
 
-<% if defined?(Breakpoint) %>
+<% if false %>
   <br /><br />
   <% begin %>
     <%= form_tag(@request.request_uri, "method" => @request.method) %>
