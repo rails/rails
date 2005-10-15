@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce read-only records.  If you call object.readonly! then it will mark the object as read-only and raise ReadOnlyRecord if you call object.save.  object.readonly? reports whether the object is read-only.  Passing :readonly => true to any finder method will mark returned records as read-only.  The :joins option now implies :readonly, so if you use this option, saving the same record will now fail.  Use find_by_sql to work around.
+
 * Avoid memleak in dev mode when using fcgi
 
 * Simplified .clear on active record associations by using the existing delete_records method. #1906 [Caleb <me@cpb.ca>]
@@ -9,8 +11,6 @@
 * Fix errors caused by assigning a has-one or belongs-to property to itself
 
 * Add ActiveRecord::Base.schema_format setting which specifies how databases should be dumped [Sam Stephenson]
-
-* Optimize postgresql selects. [skaes@web.de]
 
 * Update DB2 adapter. #2206. [contact@maik-schmidt.de]
 

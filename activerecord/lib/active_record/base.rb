@@ -28,6 +28,8 @@ module ActiveRecord #:nodoc:
   end
   class ConfigurationError < StandardError #:nodoc:
   end
+  class ReadOnlyRecord < StandardError #:nodoc:
+  end
   
   class AttributeAssignmentError < ActiveRecordError #:nodoc:
     attr_reader :exception, :attribute
@@ -336,10 +338,13 @@ module ActiveRecord #:nodoc:
       # * <tt>:limit</tt>: An integer determining the limit on the number of rows that should be returned.
       # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
       # * <tt>:joins</tt>: An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
+      #   The records will be returned read-only since they will have attributes that do not correspond to the table's columns.
+      #   Use <tt>find_by_sql</tt> to circumvent this limitation.
       # * <tt>:include</tt>: Names associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
       #   to already defined associations. See eager loading under Associations.
       # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you for example want to do a join, but not
       #   include the joined columns.
+      # * <tt>:readonly</tt>: Mark the returned records read-only so they cannot be saved or updated.
       #
       # Examples for find by id:
       #   Person.find(1)       # returns the object for ID = 1
@@ -361,11 +366,16 @@ module ActiveRecord #:nodoc:
       def find(*args)
         options = extract_options_from_args!(args)
 
+        # :joins implies :readonly => true
+        options[:readonly] = true if options[:joins]
+
         case args.first
           when :first
             find(:all, options.merge(options[:include] ? { } : { :limit => 1 })).first
           when :all
-            options[:include] ? find_with_associations(options) : find_by_sql(construct_finder_sql(options))
+            records = options[:include] ? find_with_associations(options) : find_by_sql(construct_finder_sql(options))
+            records.each { |record| record.readonly! } if options[:readonly]
+            records
           else
             return args.first if args.first.kind_of?(Array) && args.first.empty?
             expects_array = args.first.kind_of?(Array)
@@ -1052,9 +1062,9 @@ module ActiveRecord #:nodoc:
           validate_find_options(options)
           options
         end
-	
+
         def validate_find_options(options)
-          options.assert_valid_keys [:conditions, :include, :joins, :limit, :offset, :order, :select] 
+          options.assert_valid_keys [:conditions, :include, :joins, :limit, :offset, :order, :select, :readonly]
         end
 
         def encode_quoted_value(value)
@@ -1110,6 +1120,7 @@ module ActiveRecord #:nodoc:
       # * No record exists: Creates a new record with values matching those of the object attributes.
       # * A record does exist: Updates the record with values matching those of the object attributes.
       def save
+        raise ActiveRecord::ReadOnlyRecord if readonly?
         create_or_update
       end
 
@@ -1283,6 +1294,14 @@ module ActiveRecord #:nodoc:
 
       def frozen?
         @attributes.frozen?
+      end
+
+      def readonly?
+        @readonly == true
+      end
+
+      def readonly!
+        @readonly = true
       end
 
     private
