@@ -56,12 +56,14 @@ module Test #:nodoc:
       #
       # You can also pass an explicit status code number as the type, like assert_response(501)
       def assert_response(type, message = nil)
-        if [ :success, :missing, :redirect, :error ].include?(type) && @response.send("#{type}?")
-          assert_block("") { true } # to count the assertion
-        elsif type.is_a?(Fixnum) && @response.response_code == type
-          assert_block("") { true } # to count the assertion
-        else
-          assert_block(build_message(message, "Expected response to be a <?>, but was <?>", type, @response.response_code)) { false }
+        clean_backtrace do
+          if [ :success, :missing, :redirect, :error ].include?(type) && @response.send("#{type}?")
+            assert_block("") { true } # to count the assertion
+          elsif type.is_a?(Fixnum) && @response.response_code == type
+            assert_block("") { true } # to count the assertion
+          else
+            assert_block(build_message(message, "Expected response to be a <?>, but was <?>", type, @response.response_code)) { false }
+          end               
         end
       end
 
@@ -69,29 +71,31 @@ module Test #:nodoc:
       # such at assert_redirected_to(:controller => "weblog") will also match the redirection of 
       # redirect_to(:controller => "weblog", :action => "show") and so on.
       def assert_redirected_to(options = {}, message=nil)
-        assert_response(:redirect, message)
+        clean_backtrace do
+          assert_response(:redirect, message)
 
-        if options.is_a?(String)
-          msg = build_message(message, "expected a redirect to <?>, found one to <?>", options, @response.redirect_url)
-          url_regexp = %r{^(\w+://.*?(/|$|\?))(.*)$}
-          eurl, epath, url, path = [options, @response.redirect_url].collect do |url|
-            u, p = (url_regexp =~ url) ? [$1, $3] : [nil, url]
-            [u, (p[0..0] == '/') ? p : '/' + p]
-          end.flatten
+          if options.is_a?(String)
+            msg = build_message(message, "expected a redirect to <?>, found one to <?>", options, @response.redirect_url)
+            url_regexp = %r{^(\w+://.*?(/|$|\?))(.*)$}
+            eurl, epath, url, path = [options, @response.redirect_url].collect do |url|
+              u, p = (url_regexp =~ url) ? [$1, $3] : [nil, url]
+              [u, (p[0..0] == '/') ? p : '/' + p]
+            end.flatten
 
-          assert_equal(eurl, url, msg) if eurl && url
-          assert_equal(epath, path, msg) if epath && path 
-        else
-          msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>)",
-                              @response.redirected_to || @response.redirect_url)
+            assert_equal(eurl, url, msg) if eurl && url
+            assert_equal(epath, path, msg) if epath && path 
+          else
+            msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>)",
+                                @response.redirected_to || @response.redirect_url)
 
-          assert_block(msg) do
-            if options.is_a?(Symbol)
-              @response.redirected_to == options
-            else
-              options.keys.all? do |k|
-                if k == :controller then options[k] == ActionController::Routing.controller_relative_to(@response.redirected_to[k], @controller.class.controller_path)
-                else options[k] == (@response.redirected_to[k].respond_to?(:to_param) ? @response.redirected_to[k].to_param : @response.redirected_to[k] unless @response.redirected_to[k].nil?)
+            assert_block(msg) do
+              if options.is_a?(Symbol)
+                @response.redirected_to == options
+              else
+                options.keys.all? do |k|
+                  if k == :controller then options[k] == ActionController::Routing.controller_relative_to(@response.redirected_to[k], @controller.class.controller_path)
+                  else options[k] == (@response.redirected_to[k].respond_to?(:to_param) ? @response.redirected_to[k].to_param : @response.redirected_to[k] unless @response.redirected_to[k].nil?)
+                  end
                 end
               end
             end
@@ -101,52 +105,58 @@ module Test #:nodoc:
 
       # Asserts that the request was rendered with the appropriate template file.
       def assert_template(expected = nil, message=nil)
-        rendered = expected ? @response.rendered_file(!expected.include?('/')) : @response.rendered_file
-        msg = build_message(message, "expecting <?> but rendering with <?>", expected, rendered)
-        assert_block(msg) do
-          if expected.nil?
-            !@response.rendered_with_file?
-          else
-            expected == rendered
-          end
+        clean_backtrace do
+          rendered = expected ? @response.rendered_file(!expected.include?('/')) : @response.rendered_file
+          msg = build_message(message, "expecting <?> but rendering with <?>", expected, rendered)
+          assert_block(msg) do
+            if expected.nil?
+              !@response.rendered_with_file?
+            else
+              expected == rendered
+            end
+          end               
         end
       end
 
       # Asserts that the routing of the given path is handled correctly and that the parsed options match.
       def assert_recognizes(expected_options, path, extras={}, message=nil)
-        path = "/#{path}" unless path[0..0] == '/'
-        # Load routes.rb if it hasn't been loaded.
-        ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
+        clean_backtrace do 
+          path = "/#{path}" unless path[0..0] == '/'
+          # Load routes.rb if it hasn't been loaded.
+          ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
       
-        # Assume given controller
-        request = ActionController::TestRequest.new({}, {}, nil)
-        request.path = path
-        ActionController::Routing::Routes.recognize!(request)
+          # Assume given controller
+          request = ActionController::TestRequest.new({}, {}, nil)
+          request.path = path
+          ActionController::Routing::Routes.recognize!(request)
       
-        expected_options = expected_options.clone
-        extras.each_key { |key| expected_options.delete key } unless extras.nil?
+          expected_options = expected_options.clone
+          extras.each_key { |key| expected_options.delete key } unless extras.nil?
       
-        expected_options.stringify_keys!
-        msg = build_message(message, "The recognized options <?> did not match <?>", 
-            request.path_parameters, expected_options)
-        assert_block(msg) { request.path_parameters == expected_options }
+          expected_options.stringify_keys!
+          msg = build_message(message, "The recognized options <?> did not match <?>", 
+              request.path_parameters, expected_options)
+          assert_block(msg) { request.path_parameters == expected_options }
+        end
       end
 
       # Asserts that the provided options can be used to generate the provided path.
       def assert_generates(expected_path, options, defaults={}, extras = {}, message=nil)
-        expected_path = "/#{expected_path}" unless expected_path[0] == ?/
-        # Load routes.rb if it hasn't been loaded.
-        ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
+        clean_backtrace do 
+          expected_path = "/#{expected_path}" unless expected_path[0] == ?/
+          # Load routes.rb if it hasn't been loaded.
+          ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
       
-        generated_path, extra_keys = ActionController::Routing::Routes.generate(options, extras)
-        found_extras = options.reject {|k, v| ! extra_keys.include? k}
+          generated_path, extra_keys = ActionController::Routing::Routes.generate(options, extras)
+          found_extras = options.reject {|k, v| ! extra_keys.include? k}
 
-        msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
-        assert_block(msg) { found_extras == extras }
+          msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
+          assert_block(msg) { found_extras == extras }
       
-        msg = build_message(message, "The generated path <?> did not match <?>", generated_path, 
-            expected_path)
-        assert_block(msg) { expected_path == generated_path }
+          msg = build_message(message, "The generated path <?> did not match <?>", generated_path, 
+              expected_path)
+          assert_block(msg) { expected_path == generated_path }
+        end
       end
 
       # asserts that path and options match both ways, in other words, the URL generated from 
@@ -239,31 +249,48 @@ module Test #:nodoc:
       #              :descendant => { :tag => "span",
       #                               :child => /hello world/ }
       def assert_tag(opts)
-        tag = find_tag(opts)
-        assert tag, "expected tag, but no tag found matching #{opts.inspect} in:\n#{@response.body.inspect}"
+        clean_backtrace do
+          tag = find_tag(opts)
+          assert tag, "expected tag, but no tag found matching #{opts.inspect} in:\n#{@response.body.inspect}"
+        end
       end
       
       # Identical to #assert_tag, but asserts that a matching tag does _not_
       # exist. (See #assert_tag for a full discussion of the syntax.)
       def assert_no_tag(opts)
-        tag = find_tag(opts)
-        assert !tag, "expected no tag, but found tag matching #{opts.inspect} in:\n#{@response.body.inspect}"
+        clean_backtrace do
+          tag = find_tag(opts)
+          assert !tag, "expected no tag, but found tag matching #{opts.inspect} in:\n#{@response.body.inspect}"
+        end
       end
 
       # test 2 html strings to be equivalent, i.e. identical up to reordering of attributes
       def assert_dom_equal(expected, actual, message="")
-        expected_dom = HTML::Document.new(expected).root
-        actual_dom = HTML::Document.new(actual).root
-        full_message = build_message(message, "<?> expected to be == to\n<?>.", expected_dom.to_s, actual_dom.to_s)
-        assert_block(full_message) { expected_dom == actual_dom }
+        clean_backtrace do
+          expected_dom = HTML::Document.new(expected).root
+          actual_dom = HTML::Document.new(actual).root
+          full_message = build_message(message, "<?> expected to be == to\n<?>.", expected_dom.to_s, actual_dom.to_s)
+          assert_block(full_message) { expected_dom == actual_dom }
+        end
       end
       
       # negated form of +assert_dom_equivalent+
       def assert_dom_not_equal(expected, actual, message="")
-        expected_dom = HTML::Document.new(expected).root
-        actual_dom = HTML::Document.new(actual).root
-        full_message = build_message(message, "<?> expected to be != to\n<?>.", expected_dom.to_s, actual_dom.to_s)
-        assert_block(full_message) { expected_dom != actual_dom }
+        clean_backtrace do
+          expected_dom = HTML::Document.new(expected).root
+          actual_dom = HTML::Document.new(actual).root
+          full_message = build_message(message, "<?> expected to be != to\n<?>.", expected_dom.to_s, actual_dom.to_s)
+          assert_block(full_message) { expected_dom != actual_dom }
+        end
+      end
+      
+      def clean_backtrace(&block)
+        begin
+          yield
+        rescue AssertionFailedError => e         
+          path = File.expand_path(__FILE__)
+          raise AssertionFailedError, e.message, e.backtrace.reject { |line| File.expand_path(line) =~ /#{path}/ }
+        end           
       end
     end
   end

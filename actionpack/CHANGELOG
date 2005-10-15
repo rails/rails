@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed references to assertions.rb from actionpack assert's backtraces. Makes error reports in functional unit tests much less noisy. [Tobias Luetke]
+
 * Updated and clarified documentation for JavaScriptHelper to be more concise about the various options for including the JavaScript libs. [Thomas Fuchs]
 
 * Hide "Retry with Breakpoint" button on error pages until feature is functional. [DHH]
