@@ -1,5 +1,7 @@
 *SVN*
 
+* Clean up error pages by providing better backtraces [Nicholas Seckar]
+
 * Raise an exception if an attempt is made to insert more session data into the ActiveRecordStore data column than the column can hold. #2234.  [justin@textdrive.com]
 
 * Removed references to assertions.rb from actionpack assert's backtraces. Makes error reports in functional unit tests much less noisy. [Tobias Luetke]

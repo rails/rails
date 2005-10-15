@@ -405,7 +405,7 @@ module ActionView #:nodoc:
 
         begin
           unless file_name.blank?
-            CompiledTemplates.module_eval(render_source, File.expand_path(file_name), -line_offset)
+            CompiledTemplates.module_eval(render_source, file_name, -line_offset)
           else
             CompiledTemplates.module_eval(render_source, 'compiled-template', -line_offset)
           end

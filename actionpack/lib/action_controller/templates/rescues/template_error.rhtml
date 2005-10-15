@@ -13,7 +13,9 @@
 
 <p><%=h @exception.sub_template_message %></p>
 
-<a href="#" onclick="document.getElementById('framework_trace').style.display='block'">Show template trace</a>
-<pre id="framework_trace" style="display:none"><code><%=h @exception.original_exception.backtrace.collect { |line| Object.const_defined?(:RAILS_ROOT) ? line.gsub(RAILS_ROOT, "") : line }.join("\n") %></code></pre>
+<% @real_exception = @exception
+   @exception = @exception.original_exception || @exception %>
+<%= render_file(@rescues_path + "/_trace.rhtml", false) %>
+<% @exception = @real_exception %>
 
 <%= render_file(@rescues_path + "/_request_and_response.rhtml", false) %>

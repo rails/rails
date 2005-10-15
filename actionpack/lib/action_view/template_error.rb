@@ -9,7 +9,7 @@ module ActionView
     def initialize(base_path, file_name, assigns, source, original_exception)
       @base_path, @assigns, @source, @original_exception = 
         base_path, assigns, source, original_exception
-      @file_name = File.expand_path file_name
+      @file_name = file_name
     end
   
     def message
@@ -46,9 +46,9 @@ module ActionView
     end
   
     def line_number
-      if @file_name
-        regexp = /#{Regexp.escape @file_name}(?:\(.*?\))?:(\d+)/ # A regexp to match a line number in our file
-        [@original_exception.message, @original_exception.backtrace].flatten.each do |line|
+      if file_name
+        regexp = /#{Regexp.escape file_name}:(\d+)\s*$/
+        [@original_exception.message, @original_exception.clean_backtrace].flatten.each do |line|
           return $1.to_i if regexp =~ line
         end
       end
@@ -56,20 +56,21 @@ module ActionView
     end
   
     def file_name
-      strip_base_path(@file_name)
+      stripped = strip_base_path(@file_name)
+      stripped[0] == ?/ ? stripped[1..-1] : stripped
     end
     
     def to_s
       "\n\n#{self.class} (#{message}) on line ##{line_number} of #{file_name}:\n" + 
       source_extract + "\n    " +
-      clean_backtrace(original_exception).join("\n    ") +
+      original_exception.clean_backtrace.join("\n    ") +
       "\n\n"
     end
 
     def backtrace
       [ 
         "On line ##{line_number} of #{file_name}\n\n#{source_extract(4)}\n    " + 
-        clean_backtrace(original_exception).join("\n    ")
+        original_exception.clean_backtrace.join("\n    ")
       ]
     end
 
@@ -78,21 +79,7 @@ module ActionView
         file_name = File.expand_path(file_name).gsub(/^#{Regexp.escape File.expand_path(RAILS_ROOT)}/, '')
         file_name.gsub(@base_path, "")
       end
-
-      if defined?(RAILS_ROOT)
-        RailsRootRegexp = %r((#{Regexp.escape RAILS_ROOT}|#{Regexp.escape File.expand_path(RAILS_ROOT)})/(.*)?)
-      else
-        RailsRootRegexp = /^()(.*)$/
-      end
-
-      def clean_backtrace(exception)
-        exception.backtrace.collect do |line|
-          line.gsub %r{^(\s*)(/[-\w\d\./]+)} do
-            leading, path = $1, $2
-            path = $2 if RailsRootRegexp =~ path
-            leading + path
-          end
-        end
-      end
   end
 end
+
+Exception::TraceSubstitutions << [/:in\s+`_run_(html|xml).*'\s*$/, ''] if defined?(Exception::TraceSubstitutions)
