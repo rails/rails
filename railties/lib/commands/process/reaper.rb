@@ -90,13 +90,10 @@ ARGV.options do |opts|
 
     Restart is the most common and default action.
 
-    A nudge is simply a request to a URL where the dispatcher is serving. You should perform one nudge per
-    FCGI process you have running if they're setup in a round-robin. Be sure to do one nudge per FCGI process
-    across all your servers. So three servers with 10 processes each should nudge 30 times to be sure all processes
-    are restarted.
-
   Examples:
+    reaper # restarts the default dispatcher
     reaper -a reload
+    reaper -a exit -d /my/special/dispatcher.fcgi
   EOF
 
   opts.on("  Options:")

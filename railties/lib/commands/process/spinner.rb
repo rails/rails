@@ -12,10 +12,9 @@ def daemonize
 end
 
 OPTIONS = {
-  :high_interval => 5.0,
-  :low_interval  => 0.5,
-  :command => File.expand_path(RAILS_ROOT + '/script/run process spawner'),
-  :daemon  => false
+  :interval => 5.0,
+  :command  => File.expand_path(RAILS_ROOT + '/script/process/spawner'),
+  :daemon   => false
 }
 
 ARGV.options do |opts|
@@ -26,7 +25,7 @@ ARGV.options do |opts|
   opts.on <<-EOF
   Description:
     The spinner is a protection loop for the spawner, which will attempt to restart any FCGI processes
-    that might have been restarted or outright crashed. It's a brute-force attempt that'll just try
+    that might have been exited or outright crashed. It's a brute-force attempt that'll just try
     to run the spawner every X number of seconds, so it does pose a light load on the server.
 
   Examples:
@@ -37,10 +36,9 @@ ARGV.options do |opts|
 
   opts.on("  Options:")
 
-  opts.on("-c", "--command=path",    String)      { |OPTIONS[:command]| }
-  opts.on("-h", "--high-interval=seconds", Float) { |OPTIONS[:high_interval]| }
-  opts.on("-l", "--low-interval=seconds", Float)  { |OPTIONS[:low_interval]| }
-  opts.on("-d", "--daemon")                       { |OPTIONS[:daemon]| }
+  opts.on("-c", "--command=path",    String) { |OPTIONS[:command]| }
+  opts.on("-i", "--interval=seconds", Float) { |OPTIONS[:interval]| }
+  opts.on("-d", "--daemon")                  { |OPTIONS[:daemon]| }
 
   opts.separator ""
 
@@ -52,14 +50,8 @@ end
 daemonize if OPTIONS[:daemon]
 
 trap(OPTIONS[:daemon] ? "TERM" : "INT") { exit }
-trap("USR1") do
-  $interval = ($interval == OPTIONS[:high_interval] ? OPTIONS[:low_interval] : OPTIONS[:high_interval])
-  puts "New interval: #{$interval}"
-end
-
-$interval = OPTIONS[:high_interval]
 
 loop do
   system(OPTIONS[:command])
-  sleep($interval)
+  sleep(OPTIONS[:interval])
 end
