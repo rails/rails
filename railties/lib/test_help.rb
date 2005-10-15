@@ -8,8 +8,6 @@ require 'breakpoint'
 
 Test::Unit::TestCase.fixture_path = RAILS_ROOT + "/fixtures/"
 
-class Test::Unit::TestCase
-  def create_fixtures(*table_names)
-    Fixtures.create_fixtures(RAILS_ROOT + "/fixtures", table_names)
-  end
+def create_fixtures(*table_names)
+  Fixtures.create_fixtures(RAILS_ROOT + "/fixtures", table_names)
 end

@@ -102,7 +102,7 @@ module Rails
     end
     
     def initialize_fixture_settings
-      return if configuration.environment == 'test' || !configuration.frameworks.include?(:active_record)
+      return if configuration.environment != 'test' || !configuration.frameworks.include?(:active_record)
 
       require 'test/unit'
       require 'active_record/fixtures'
