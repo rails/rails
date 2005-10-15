@@ -258,6 +258,10 @@ module ActiveRecord #:nodoc:
     end
 
     def self.reset_subclasses
+      subclasses.each do |klass|
+        klass.instance_variables.each { |var| klass.send(:remove_instance_variable, var) }
+        klass.instance_methods(false).each { |m| klass.send :undef_method, m }
+      end
       @@subclasses.clear
     end
 

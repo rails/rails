@@ -1024,6 +1024,25 @@ class BasicsTest < Test::Unit::TestCase
     assert_nothing_raised { Category.new.send(:interpolate_sql, 'foo bar} baz') }
   end
 
+  def test_dev_mode_memory_leak
+    counts = []
+    2.times do
+      require_dependency 'fixtures/company'
+      Firm.find(:first)
+      Dependencies.clear
+      ActiveRecord::Base.reset_subclasses
+      Dependencies.remove_subclasses_for(ActiveRecord::Base)
+  
+      GC.start
+      
+      count = 0
+      ObjectSpace.each_object(Proc) { count += 1 }
+      counts << count
+    end
+    assert counts.last <= counts.first,
+      "expected last count (#{counts.last}) to be <= first count (#{counts.first})"
+  end
+  
   private
 
     def assert_readers(model, exceptions)
