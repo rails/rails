@@ -26,11 +26,19 @@ class CallerController < ActionController::Base
   end
 
   def set_flash
-    render_component(:controller => 'callee', :action => 'set_flash')
+    render_component(:controller => "callee", :action => "set_flash")
   end
 
   def use_flash
-    render_component(:controller => 'callee', :action => 'use_flash')
+    render_component(:controller => "callee", :action => "use_flash")
+  end
+  
+  def calling_redirected
+    render_component(:controller => "callee", :action => "redirected")
+  end
+  
+  def calling_redirected_as_string
+    render_template "<%= render_component(:controller => 'callee', :action => 'redirected') %>"
   end
 
   def rescue_action(e) raise end
@@ -52,6 +60,10 @@ class CalleeController < ActionController::Base
   
   def use_flash
     render :text => flash[:notice] || 'no flash'
+  end
+  
+  def redirected
+    redirect_to :controller => "callee", :action => "being_called"
   end
 
   def rescue_action(e) raise end
@@ -96,5 +108,17 @@ class ComponentsTest < Test::Unit::TestCase
     assert_equal 'My stoney baby', @response.body
     get :use_flash
     assert_equal 'no flash', @response.body
+  end
+  
+  def test_component_redirect_redirects
+    get :calling_redirected
+    
+    assert_redirected_to :action => "being_called"
+  end
+  
+  def test_component_as_string_redirect_renders_redirecte_action
+    get :calling_redirected_as_string
+    
+    assert_equal "Lady of the House, speaking", @response.body
   end
 end

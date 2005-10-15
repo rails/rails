@@ -38,7 +38,14 @@ module ActionController #:nodoc:
 
       # Returns the component response as a string
       def render_component_as_string(options) #:doc:
-        component_logging(options) { component_response(options, false).body }
+        component_logging(options) do
+          response = component_response(options, false)
+          unless response.redirected_to.nil?
+            render_component_as_string response.redirected_to
+          else
+            response.body
+          end
+       end
       end
   
     private
