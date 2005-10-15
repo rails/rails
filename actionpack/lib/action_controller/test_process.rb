@@ -125,7 +125,8 @@ module ActionController #:nodoc:
     def response_code
       headers['Status'][0,3].to_i rescue 0
     end
-
+    
+    # returns a String to ensure compatibility with Net::HTTPResponse
     def code
       headers['Status'].to_s.split(' ')[0]
     end
