@@ -8,7 +8,7 @@ module ActiveRecord
         @owner = owner
         @options = options
         @association_name = association_name
-        @association_class = eval(association_class_name)
+        @association_class = eval(association_class_name, __FILE__, __LINE__)
         @association_class_primary_key_name = association_class_primary_key_name
 
         reset
