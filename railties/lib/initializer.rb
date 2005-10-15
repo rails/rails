@@ -36,7 +36,6 @@ module Rails
       load_environment
 
       initialize_database
-      initialize_fixture_settings
       initialize_logger
       initialize_framework_logging
       initialize_framework_views
@@ -99,17 +98,6 @@ module Rails
       return unless configuration.frameworks.include?(:active_record)
       ActiveRecord::Base.configurations = configuration.database_configuration
       ActiveRecord::Base.establish_connection
-    end
-    
-    def initialize_fixture_settings
-      return if configuration.environment != 'test' || !configuration.frameworks.include?(:active_record)
-
-      require 'test/unit'
-      require 'active_record/fixtures'
-
-      Test::Unit::TestCase.use_transactional_fixtures = configuration.transactional_fixtures
-      Test::Unit::TestCase.use_instantiated_fixtures  = configuration.instantiated_fixtures
-      Test::Unit::TestCase.pre_loaded_fixtures        = configuration.pre_loaded_fixtures
     end
     
     def initialize_logger
@@ -199,9 +187,6 @@ module Rails
       self.breakpoint_server            = default_breakpoint_server
       self.whiny_nils                   = default_whiny_nils
       self.database_configuration_file  = default_database_configuration_file
-      self.transactional_fixtures       = default_transactional_fixtures
-      self.instantiated_fixtures        = default_instantiated_fixtures
-      self.pre_loaded_fixtures          = default_pre_loaded_fixtures
       
       for framework in default_frameworks
         self.send("#{framework}=", OrderedOptions.new)
@@ -292,18 +277,6 @@ module Rails
       end
       
       def default_whiny_nils
-        false
-      end
-           
-      def default_transactional_fixtures
-        true
-      end
-      
-      def default_instantiated_fixtures
-        false
-      end
-      
-      def default_pre_loaded_fixtures
         false
       end
   end
