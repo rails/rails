@@ -256,13 +256,27 @@ module ActiveRecord #:nodoc:
       @@subclasses[self] << child
       super
     end
+    
+    # Allow all subclasses of AR::Base to be reloaded in dev mode, unless they
+    # explicitly decline the honor. USE WITH CAUTION. Only AR subclasses kept
+    # in the framework should use the flag, so #reset_subclasses and so forth
+    # leave it alone.
+    def self.reloadable? #:nodoc:
+      true
+    end
 
     def self.reset_subclasses
+      nonreloadables = []
       subclasses.each do |klass|
+        unless klass.reloadable?
+          nonreloadables << klass
+          next
+        end
         klass.instance_variables.each { |var| klass.send(:remove_instance_variable, var) }
         klass.instance_methods(false).each { |m| klass.send :undef_method, m }
       end
-      @@subclasses.clear
+      @@subclasses = {}
+      nonreloadables.each { |klass| (@@subclasses[klass.superclass] ||= []) << klass }
     end
 
     @@subclasses = {}

@@ -46,6 +46,11 @@ class CGI
 
         class << self
 
+          # Don't try to reload ARStore::Session in dev mode.
+          def reloadable? #:nodoc:
+            false
+          end
+          
           def data_column_size_limit
             connection.columns(table_name).find {|column| column.name == 'data'}.limit
           end
