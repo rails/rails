@@ -308,7 +308,7 @@ class Fixtures < YAML::Omap
         # YAML fixtures
         begin
           if yaml = YAML::load(erb_render(IO.read(yaml_file_path)))
-            yaml = yaml.value if yaml.kind_of?(YAML::Syck::PrivateType)
+            yaml = yaml.value if yaml.respond_to?(:type_id) and yaml.respond_to?(:value)
             yaml.each do |name, data|
               self[name] = Fixture.new(data, @class_name)
             end
