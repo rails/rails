@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Extension extension to provide support for clean backtraces. [Nicholas Seckar]
+
 * Updated whiny nil to be more concise and useful. [Nicholas Seckar]
 
 * Added Enumerable#first_match [Nicholas Seckar]
