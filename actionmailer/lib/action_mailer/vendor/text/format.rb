@@ -47,20 +47,39 @@
 #++
 
 module Text #:nodoc:
-    # = Introduction
-    #
-    # Text::Format provides the ability to nicely format fixed-width text with
-    # knowledge of the writeable space (number of columns), margins, and
-    # indentation settings.
-    #
-    # Copyright::   Copyright (c) 2002 - 2003 by Austin Ziegler
-    # Version::     0.63
-    # Based On::    Perl
-    #               Text::Format[http://search.cpan.org/author/GABOR/Text-Format0.52/lib/Text/Format.pm],
-    #               Copyright (c) 1998 Gábor Egressy
-    # Licence::     Ruby's, Perl Artistic, or GPL version 2 (or later)
-    #
-  class Format
+   # Text::Format for Ruby is copyright 2002 - 2005 by Austin Ziegler. It
+   # is available under Ruby's licence, the Perl Artistic licence, or the
+   # GNU GPL version 2 (or at your option, any later version). As a
+   # special exception, for use with official Rails (provided by the
+   # rubyonrails.org development team) and any project created with
+   # official Rails, the following alternative MIT-style licence may be
+   # used:
+   #
+   # == Text::Format Licence for Rails and Rails Applications
+   # Permission is hereby granted, free of charge, to any person
+   # obtaining a copy of this software and associated documentation files
+   # (the "Software"), to deal in the Software without restriction,
+   # including without limitation the rights to use, copy, modify, merge,
+   # publish, distribute, sublicense, and/or sell copies of the Software,
+   # and to permit persons to whom the Software is furnished to do so,
+   # subject to the following conditions:
+   #
+   # * The names of its contributors may not be used to endorse or
+   #   promote products derived from this software without specific prior
+   #   written permission.
+   #
+   # The above copyright notice and this permission notice shall be
+   # included in all copies or substantial portions of the Software.
+   #
+   # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+   # EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+   # MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+   # NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+   # BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+   # ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+   # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   # SOFTWARE.  
+   class Format
     VERSION = '0.63'
 
       # Local abbreviations. More can be added with Text::Format.abbreviations
