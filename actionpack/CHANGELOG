@@ -1,5 +1,7 @@
 *SVN*
 
+* Hide "Retry with Breakpoint" button on error pages until feature is functional. [DHH]
+
 * Fix Request#host_with_port to use the standard port when Rails is behind a proxy. [Nicholas Seckar]
 
 * Escape query strings in the href attribute of URLs created by url_helper.  #2333 [Michael Schuerig <michael@schuerig.de>]
