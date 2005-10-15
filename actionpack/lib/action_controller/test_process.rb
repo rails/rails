@@ -126,6 +126,14 @@ module ActionController #:nodoc:
       headers['Status'][0,3].to_i rescue 0
     end
 
+    def code
+      headers['Status'].to_s.split(' ')[0]
+    end
+
+    def message
+      headers['Status'].to_s.split(' ',2)[1]
+    end
+
     # was the response successful?
     def success?
       response_code == 200
