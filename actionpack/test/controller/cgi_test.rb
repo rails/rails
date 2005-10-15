@@ -1,4 +1,9 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
+require 'action_controller/cgi_process'
+require 'action_controller/cgi_ext/cgi_ext'
+
+
+require 'stringio'
 
 class CGITest < Test::Unit::TestCase
   def setup
@@ -302,4 +307,24 @@ class MultipartCGITest < Test::Unit::TestCase
     ensure
       $stdin = old_stdin
     end
+end
+
+
+class CGIRequestTest < Test::Unit::TestCase
+  def setup
+    @request_hash = {"HTTP_MAX_FORWARDS"=>"10", "SERVER_NAME"=>"glu.ttono.us:8007", "FCGI_ROLE"=>"RESPONDER", "HTTP_X_FORWARDED_HOST"=>"glu.ttono.us", "HTTP_ACCEPT_ENCODING"=>"gzip, deflate", "HTTP_USER_AGENT"=>"Mozilla/5.0 (Macintosh; U; PPC Mac OS X; en) AppleWebKit/312.5.1 (KHTML, like Gecko) Safari/312.3.1", "PATH_INFO"=>"", "HTTP_ACCEPT_LANGUAGE"=>"en", "HTTP_HOST"=>"glu.ttono.us:8007", "SERVER_PROTOCOL"=>"HTTP/1.1", "REDIRECT_URI"=>"/dispatch.fcgi", "SCRIPT_NAME"=>"/dispatch.fcgi", "SERVER_ADDR"=>"207.7.108.53", "REMOTE_ADDR"=>"207.7.108.53", "SERVER_SOFTWARE"=>"lighttpd/1.4.5", "HTTP_COOKIE"=>"_session_id=c84ace84796670c052c6ceb2451fb0f2; is_admin=yes", "HTTP_X_FORWARDED_SERVER"=>"glu.ttono.us", "REQUEST_URI"=>"/admin", "DOCUMENT_ROOT"=>"/home/kevinc/sites/typo/public", "SERVER_PORT"=>"8007", "QUERY_STRING"=>"", "REMOTE_PORT"=>"63137", "GATEWAY_INTERFACE"=>"CGI/1.1", "HTTP_X_FORWARDED_FOR"=>"65.88.180.234", "HTTP_ACCEPT"=>"*/*", "SCRIPT_FILENAME"=>"/home/kevinc/sites/typo/public/dispatch.fcgi", "REDIRECT_STATUS"=>"200", "REQUEST_METHOD"=>"GET"}
+    @fake_cgi = Struct.new(:env_table).new(@request_hash)
+    @request = ActionController::CgiRequest.new(@fake_cgi)
+  end
+  
+  def test_proxy_request
+    assert_equal 'glu.ttono.us', @request.host_with_port
+  end
+  
+  def test_http_host
+    @request_hash.delete "HTTP_X_FORWARDED_HOST"
+    @request_hash['HTTP_HOST'] = "rubyonrails.org:8080"
+    assert_equal "rubyonrails.org:8080", @request.host_with_port
+  end
+  
 end

@@ -174,17 +174,25 @@ module ActionController
     def port
       @port_as_int ||= env['SERVER_PORT'].to_i
     end
+    
+    # Returns the standard port number for this request's protocol
+    def standard_port
+      case protocol
+        when 'https://' then 443
+        else 80
+      end
+    end
 
     # Returns a port suffix like ":8080" if the port number of this request
     # is not the default HTTP port 80 or HTTPS port 443.
     def port_string
-      (protocol == 'http://' && port == 80) || (protocol == 'https://' && port == 443) ? '' : ":#{port}"
+      (port == standard_port) ? '' : ":#{port}"
     end
 
     # Returns a host:port string for this request, such as example.com or
     # example.com:8080.
     def host_with_port
-      env['HTTP_HOST'] || host + port_string
+      host + port_string
     end
   
     def path_parameters=(parameters)

@@ -79,7 +79,15 @@ module ActionController #:nodoc:
     end
 
     def host
-      env["HTTP_X_FORWARDED_HOST"] || @cgi.host.to_s.split(":").first || ''
+      env["HTTP_X_FORWARDED_HOST"] || ($1 if env['HTTP_HOST'] && /^(.*):\d+$/ =~ env['HTTP_HOST']) || @cgi.host.to_s.split(":").first || ''
+    end
+    
+    def port
+      env["HTTP_X_FORWARDED_HOST"] ? standard_port : (port_from_http_host || super)
+    end
+    
+    def port_from_http_host
+      $1.to_i if env['HTTP_HOST'] && /:(\d+)$/ =~ env['HTTP_HOST']
     end
     
     def session

@@ -201,10 +201,6 @@ class RequestTest < Test::Unit::TestCase
   
 
   def test_host_with_port
-    @request.env['HTTP_HOST'] = "rubyonrails.org:8080"
-    assert_equal "rubyonrails.org:8080", @request.host_with_port
-    @request.env['HTTP_HOST'] = nil
-    
     @request.host = "rubyonrails.org"
     @request.port = 80
     assert_equal "rubyonrails.org", @request.host_with_port
