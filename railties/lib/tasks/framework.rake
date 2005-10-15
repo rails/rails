@@ -4,10 +4,11 @@ task :freeze_gems do
   mkdir_p "vendor/rails"
   
   for gem in %w( actionpack activerecord actionmailer activesupport actionwebservice )
-    system "cd vendor/rails; gem unpack #{gem}; mv #{gem}* #{gem}"
+    system "cd vendor/rails; gem unpack #{gem}"
+    FileUtils.mv(Dir.glob("vendor/rails/#{gem}*").first, "vendor/rails/#{gem}")
   end
   
-  system "cd vendor/rails; gem unpack rails; mv rails* railties"
+  FileUtils.mv(Dir.glob("vendor/rails/rails*").first, "vendor/rails/railties")
 end
 
 desc "Lock this application to the Edge Rails (by exporting from Subversion)"
