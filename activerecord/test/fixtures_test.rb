@@ -155,6 +155,19 @@ class FixturesTest < Test::Unit::TestCase
   def test_empty_csv_fixtures
     assert_not_nil Fixtures.new( Account.connection, "accounts", File.dirname(__FILE__) + "/fixtures/naked/csv/accounts")
   end
+
+  def test_omap_fixtures
+    assert_nothing_raised do
+      fixtures = Fixtures.new(Account.connection, 'categories', File.dirname(__FILE__) + '/fixtures/categories_ordered')
+
+      i = 0
+      fixtures.each do |name, fixture|
+        assert_equal "fixture_no_#{i}", name
+        assert_equal "Category #{i}", fixture['name']
+        i += 1
+      end
+    end
+  end
 end
 
 

@@ -38,6 +38,20 @@ end
 # indented list of key/value pairs in the "key: value" format.  Records are separated by a blank line for your viewing
 # pleasure.
 #
+# Note that YAML fixtures are unordered. If you want ordered fixtures, use the omap YAML type.  See http://yaml.org/type/omap.html
+# for the specification.  You will need ordered fixtures when you have foreign key constraints on keys in the same table.
+# This is commonly needed for tree structures.  Example:
+#
+#    --- !omap
+#    - parent:
+#        id:         1
+#        parent_id:  NULL
+#        title:      Parent
+#    - child:
+#        id:         2
+#        parent_id:  1
+#        title:      Child
+#
 # = CSV fixtures
 #
 # Fixtures can also be kept in the Comma Separated Value format. Akin to YAML fixtures, CSV fixtures are stored
@@ -293,8 +307,12 @@ class Fixtures < YAML::Omap
       if File.file?(yaml_file_path)
         # YAML fixtures
         begin
-          yaml = YAML::load(erb_render(IO.read(yaml_file_path)))
-          yaml.each { |name, data| self[name] = Fixture.new(data, @class_name) } if yaml
+          if yaml = YAML::load(erb_render(IO.read(yaml_file_path)))
+            yaml = yaml.value if yaml.kind_of?(YAML::Syck::PrivateType)
+            yaml.each do |name, data|
+              self[name] = Fixture.new(data, @class_name)
+            end
+          end
         rescue Exception=>boom
           raise Fixture::FormatError, "a YAML error occured parsing #{yaml_file_path}. Please note that YAML must be consistently indented using spaces. Tabs are not allowed. Please have a look at http://www.yaml.org/faq.html\nThe exact error was:\n  #{boom.class}: #{boom}"
         end
@@ -350,7 +368,15 @@ class Fixture #:nodoc:
   end
 
   def initialize(fixture, class_name)
-    @fixture = fixture.is_a?(Hash) ? fixture : read_fixture_file(fixture)
+    case fixture
+      when Hash, YAML::Omap
+        @fixture = fixture
+      when String
+        @fixture = read_fixture_file(fixture)
+      else
+        raise ArgumentError, "Bad fixture argument #{fixture.inspect}"
+    end
+
     @class_name = class_name
   end
 

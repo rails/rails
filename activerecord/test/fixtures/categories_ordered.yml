@@ -1,0 +1,7 @@
+--- !omap
+<% 100.times do |i| %>
+- fixture_no_<%= i %>:
+    id: <%= i %>
+    name: <%= "Category #{i}" %>
+    type: Category
+<% end %>
