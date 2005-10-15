@@ -1,5 +1,7 @@
 *SVN*
 
+* Updated and clarified documentation for JavaScriptHelper to be more concise about the various options for including the JavaScript libs. [Thomas Fuchs]
+
 * Hide "Retry with Breakpoint" button on error pages until feature is functional. [DHH]
 
 * Fix Request#host_with_port to use the standard port when Rails is behind a proxy. [Nicholas Seckar]

@@ -7,10 +7,20 @@ module ActionView
     # actions in your controllers without reloading the page, but still update certain parts of it using injections into the 
     # DOM. The common use case is having a form that adds a new element to a list without reloading the page.
     #
-    # To be able to use the JavaScript helpers, you must either call <tt><%= define_javascript_functions %></tt> (which returns all
-    # the JavaScript support functions in a <script> block) or reference the JavaScript library using 
-    # <tt><%= javascript_include_tag "prototype" %></tt> (which looks for the library in /javascripts/prototype.js). The latter is
-    # recommended as the browser can then cache the library instead of fetching all the functions anew on every request.
+    # To be able to use the JavaScript helpers, you must include the Prototype JavaScript Framework and for some functions
+    # script.aculo.us (which both come with Rails) on your pages. Choose one of these options:
+    #
+    # * Use <tt><%= javascript_include_tag :defaults %></tt> in the HEAD section of your page (recommended):
+    #   The function will return references to the JavaScript files created by the +rails+ command in your
+    #   <tt>public/javascripts</tt> directory. Using it is recommended as the browser can then cache the libraries
+    #   instead of fetching all the functions anew on every request.
+    # * Use <tt><%= javascript_include_tag 'prototype' %></tt>: As above, but will only include the Prototype core library,
+    #   which means you are able to use all basic AJAX functionality. For the script.aculo.us-based JavaScript helpers,
+    #   like visual effects, autocompletion, drag and drop and so on, you should use the method described above.
+    # * Use <tt><%= define_javascript_functions %></tt>: this will copy all the JavaScript support functions within a single
+    #   script block.
+    #
+    # For documentation on +javascript_include_tag+ see ActionView::Helpers::AssetTagHelper.
     #
     # If you're the visual type, there's an AJAX movie[http://www.rubyonrails.com/media/video/rails-ajax.mov] demonstrating
     # the use of form_remote_tag.
@@ -242,7 +252,7 @@ module ActionView
       end
 
       # Returns the javascript needed for a remote function.
-      # Takes the same arguments as link_to_remote
+      # Takes the same arguments as link_to_remote.
       # 
       # Example:
       #   <select id="options" onchange="<%= remote_function(:update => "options", :url => { :action => :update_options }) %>">
@@ -324,7 +334,7 @@ module ActionView
       #                       refers to the new field value.
       #
       # Additionally, you may specify any of the options documented in
-      # +link_to_remote.
+      # link_to_remote.
       def observe_field(field_id, options = {})
         if options[:frequency] and options[:frequency] > 0
           build_observer('Form.Element.Observer', field_id, options)
@@ -347,6 +357,8 @@ module ActionView
       
       # Returns a JavaScript snippet to be used on the AJAX callbacks for starting
       # visual effects.
+      #
+      # This method requires the inclusion of the script.aculo.us JavaScript library.
       #
       # Example:
       #   <%= link_to_remote "Reload", :update => "posts", 
@@ -372,6 +384,8 @@ module ActionView
       # by drag-and-drop and make an AJAX call whenever the sort order has
       # changed. By default, the action called gets the serialized sortable
       # element as parameters.
+      #
+      # This method requires the inclusion of the script.aculo.us JavaScript library.
       #
       # Example:
       #   <%= sortable_element("my_list", :url => { :action => "order" }) %>
@@ -399,6 +413,8 @@ module ActionView
       
       # Makes the element with the DOM ID specified by +element_id+ draggable.
       #
+      # This method requires the inclusion of the script.aculo.us JavaScript library.
+      #
       # Example:
       #   <%= draggable_element("my_image", :revert => true)
       # 
@@ -412,6 +428,8 @@ module ActionView
       # dropped draggable elements (created by draggable_element).
       # and make an AJAX call  By default, the action called gets the DOM ID of the
       # element as parameter.
+      #
+      # This method requires the inclusion of the script.aculo.us JavaScript library.
       #
       # Example:
       #   <%= drop_receiving_element("my_cart", :url => { :controller => "cart", :action => "add" }) %>
