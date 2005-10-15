@@ -4,7 +4,7 @@ require 'fixtures/topic'
 require 'fixtures/entrant'
 require 'fixtures/developer'
 
-class FinderTest < Test::Unit::TestCase
+class DeprecatedFinderTest < Test::Unit::TestCase
   fixtures :companies, :topics, :entrants, :developers
 
   def test_find_all_with_limit
