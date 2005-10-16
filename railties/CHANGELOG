@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix rake dev and related commands [Nicholas Seckar]
+
 * The rails command tries to deduce your MySQL socket by running `mysql_config
 --socket`.  If it fails, default to /path/to/your/mysql.sock
 
