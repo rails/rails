@@ -1,4 +1,4 @@
-*SVN*
+*0.14.0* (October 16th, 2005)
 
 * Moved generator folder from RAILS_ROOT/generators to RAILS_ROOT/lib/generators [Tobias Luetke]
 

@@ -1,4 +1,4 @@
-*SVN*
+*0.9.0* (October 16th, 2005)
 
 * Fix invalid XML request generation bug in test_invoke [Ken Barker]
 
@@ -11,6 +11,7 @@
 * Added ActionWebService::API::Base.soap_client and ActionWebService::API::Base.xmlrpc_client helper methods to create the internal clients for an API, useful for testing from ./script/console
 
 * ActionWebService now always returns UTF-8 responses.
+
 
 *0.8.1* (11 July, 2005)
 

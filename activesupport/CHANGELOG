@@ -1,4 +1,4 @@
-*SVN*
+*1.2.0* (October 16th, 2005)
 
 * Update Exception extension to show the first few framework frames in an application trace. [Nicholas Seckar] 
 

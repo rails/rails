@@ -1,8 +1,8 @@
 module ActionWebService
   module Version
     MAJOR = 0
-    MINOR = 8
-    TINY  = 1
+    MINOR = 9
+    TINY  = 0
 
     STRING = [MAJOR, MINOR, TINY].join('.')
   end
