@@ -11,6 +11,8 @@ class AppGenerator < Rails::Generator::Base
     super
     usage if args.empty?
     @destination_root = args.shift
+    @socket = `mysql_config --socket`.strip
+    @socket = '/path/to/your/mysql.sock' if @socket.blank?
   end
 
   def manifest
@@ -32,7 +34,10 @@ class AppGenerator < Rails::Generator::Base
       m.template "helpers/test_helper.rb",        "test/test_helper.rb"
 
       # database.yml and .htaccess
-      m.template "configs/database.yml", "config/database.yml", :assigns => { :app_name => File.basename(File.expand_path(@destination_root)) }
+      m.template "configs/database.yml", "config/database.yml", :assigns => {
+        :app_name => File.basename(File.expand_path(@destination_root)),
+        :socket => @socket
+      }
       m.template "configs/routes.rb",    "config/routes.rb"
       m.template "configs/apache.conf",  "public/.htaccess"
 

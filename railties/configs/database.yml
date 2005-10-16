@@ -1,7 +1,7 @@
 development:
   adapter: mysql
   database: <%= app_name %>_development
-  host: localhost
+  socket: <%= socket %>
   username: root
   password:
   # With the MySQL adapter on localhost, it defaults to /tmp/mysql.sock
@@ -13,13 +13,13 @@ development:
 test:
   adapter: mysql
   database: <%= app_name %>_test
-  host: localhost
+  socket: <%= socket %>
   username: root
   password:
 
 production:
   adapter: mysql
   database: <%= app_name %>_production
-  host: localhost
+  socket: <%= socket %>
   username: root
   password: 

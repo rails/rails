@@ -1,5 +1,8 @@
 *SVN*
 
+* The rails command tries to deduce your MySQL socket by running `mysql_config
+--socket`.  If it fails, default to /path/to/your/mysql.sock
+
 * Made the rails command use the application name for database names in the tailored database.yml file. Example: "rails ~/projects/blog" will use "blog_development" instead of "rails_development". [Florian Weber]
 
 * Added Rails framework freezing tasks: freeze_gems (freeze to current gems), freeze_edge (freeze to Rails SVN trunk), unfreeze_rails (float with newest gems on system)
