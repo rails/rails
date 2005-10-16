@@ -1,5 +1,5 @@
 # Author: Luke Holden <lholden@cablelan.net>
-# Updated for SQLite3: Jamis Buck <jamis_buck@byu.edu>
+# Updated for SQLite3: Jamis Buck <jamis@37signals.com>
 
 require 'active_record/connection_adapters/abstract_adapter'
 
