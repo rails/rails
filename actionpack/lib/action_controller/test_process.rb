@@ -302,7 +302,7 @@ module Test
 
         # execute the request simulating a specific http method and set/volley the response
         %w( get post put delete head ).each do |method|
-          class_eval <<-EOV
+          class_eval <<-EOV, __FILE__, __LINE__
             def #{method}(action, parameters = nil, session = nil, flash = nil)
               @request.env['REQUEST_METHOD'] = "#{method.upcase}" if @request
               process(action, parameters, session, flash)
