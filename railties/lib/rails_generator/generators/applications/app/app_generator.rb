@@ -32,7 +32,7 @@ class AppGenerator < Rails::Generator::Base
       m.template "helpers/test_helper.rb",        "test/test_helper.rb"
 
       # database.yml and .htaccess
-      m.template "configs/database.yml", "config/database.yml"
+      m.template "configs/database.yml", "config/database.yml", :assigns => { :app_name => File.basename(@destination_root) }
       m.template "configs/routes.rb",    "config/routes.rb"
       m.template "configs/apache.conf",  "public/.htaccess"
 
