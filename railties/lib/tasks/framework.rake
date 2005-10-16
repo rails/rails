@@ -8,6 +8,7 @@ task :freeze_gems do
     FileUtils.mv(Dir.glob("vendor/rails/#{gem}*").first, "vendor/rails/#{gem}")
   end
   
+  system "cd vendor/rails; gem unpack rails"
   FileUtils.mv(Dir.glob("vendor/rails/rails*").first, "vendor/rails/railties")
 end
 
