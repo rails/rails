@@ -1,0 +1,21 @@
+
+<% if @exception %>
+<%
+  clean_backtrace = @exception.clean_backtrace
+  app_trace       = @exception.application_backtrace
+  framework_trace = clean_backtrace - app_trace
+  traces = {"Application Trace" => app_trace, "Framework Trace" => framework_trace, "Full Trace" => clean_backtrace}
+  trace_names = ["Application Trace", "Framework Trace", "Full Trace"]
+%>
+
+<div id="traces">
+  <% trace_names.each do |k| -%>
+    <div id="<%= k.gsub /\s/, '-' %>" style="display: <%= k == "Application Trace" ? 'block' : 'none' %>;">
+      <% trace_names.each do |ok| -%>
+        <a href="#" onclick="document.getElementById('<%= k.gsub /\s/, '-' %>').style.display='none'; document.getElementById('<%= ok.gsub /\s/, '-' %>').style.display='block'; return false;"><%= ok %></a> <%= '|' unless trace_names.last == ok %>
+      <% end -%>
+      <pre><code><%= traces[k].join "\n" %></code></pre>
+    </div>
+  <% end -%>
+</div>
+<% end %>
