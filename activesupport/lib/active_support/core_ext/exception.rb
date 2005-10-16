@@ -13,6 +13,12 @@ class Exception
   end
   
   def application_backtrace
-    clean_backtrace.reject { |line| line =~ /(vendor|dispatch|ruby|script\/\w+)/ }
+    before_application_frame = true
+    
+    clean_backtrace.reject do |line|
+      non_app_frame = !! (line =~ /vendor|dispatch|ruby|script\/\w+/)
+      before_application_frame = false unless non_app_frame
+      non_app_frame && ! before_application_frame
+    end
   end
 end

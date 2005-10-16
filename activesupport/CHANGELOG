@@ -1,6 +1,8 @@
 *SVN*
 
-* Added Extension extension to provide support for clean backtraces. [Nicholas Seckar]
+* Update Exception extension to show the first few framework frames in an application trace. [Nicholas Seckar] 
+
+* Added Exception extension to provide support for clean backtraces. [Nicholas Seckar]
 
 * Updated whiny nil to be more concise and useful. [Nicholas Seckar]
 
