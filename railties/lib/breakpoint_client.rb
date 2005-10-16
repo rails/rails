@@ -81,7 +81,7 @@ end
 
 Options[:ServerURI] = ARGV[0] if ARGV[0]
 
-module Handlers
+module Handlers #:nodoc:
   extend self
 
   def breakpoint_handler(workspace, message)

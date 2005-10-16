@@ -1,7 +1,9 @@
 begin
   require 'simplecc'
 rescue LoadError
-  class Continuation; end # :nodoc: # for RDoc
+  # to satisfy rdoc
+  class Continuation #:nodoc:
+  end
   def Continuation.create(*args, &block) # :nodoc:
     cc = nil; result = callcc {|c| cc = c; block.call(cc) if block and args.empty?}
     result ||= args

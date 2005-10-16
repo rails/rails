@@ -1,6 +1,6 @@
 require 'prof'
 
-module Prof
+module Prof #:nodoc:
   # Adapted from Shugo Maeda's unprof.rb
   def self.print_profile(results, io = $stderr)
     total = results.detect { |i|

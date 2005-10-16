@@ -1,4 +1,4 @@
-class CodeStatistics
+class CodeStatistics #:nodoc:
 
   TEST_TYPES = ['Units', 'Functionals', 'Unit tests', 'Functional tests']
 

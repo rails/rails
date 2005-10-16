@@ -10,7 +10,7 @@ ABSOLUTE_RAILS_ROOT = File.expand_path(RAILS_ROOT)
 
 ActiveRecord::Base.threaded_connections = false
 
-class CGI
+class CGI #:nodoc:
   def stdinput
     @stdin || $stdin
   end
@@ -40,9 +40,16 @@ class CGI
   end
 end
 
+# A custom dispatch servlet for use with WEBrick. It dispatches requests
+# (using the Rails Dispatcher) to the appropriate controller/action. By default,
+# it restricts WEBrick to a managing a single Rails request at a time, but you
+# can change this behavior by setting ActionController::Base.allow_concurrency
+# to true.
 class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   REQUEST_MUTEX = Mutex.new
 
+  # Start the WEBrick server with the given options, mounting the
+  # DispatchServlet at <tt>/</tt>.
   def self.dispatch(options = {})
     Socket.do_not_reverse_lookup = true # patch for OS X
 
@@ -62,14 +69,14 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     server.start
   end
 
-  def initialize(server, options)
+  def initialize(server, options) #:nodoc:
     @server_options = options
     @file_handler = WEBrick::HTTPServlet::FileHandler.new(server, options[:server_root])
     Dir.chdir(ABSOLUTE_RAILS_ROOT)
     super
   end
 
-  def service(req, res)
+  def service(req, res) #:nodoc:
     begin
       unless handle_file(req, res)
         REQUEST_MUTEX.lock unless ActionController::Base.allow_concurrency
@@ -84,7 +91,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     end
   end
 
-  def handle_file(req, res)
+  def handle_file(req, res) #:nodoc:
     begin
       req = req.dup
       path = req.path.dup
@@ -105,7 +112,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     end
   end
 
-  def handle_dispatch(req, res, origin = nil)    
+  def handle_dispatch(req, res, origin = nil) #:nodoc:
     data = StringIO.new
     Dispatcher.dispatch(
       CGI.new("query", create_env_table(req, origin), StringIO.new(req.body || "")), 

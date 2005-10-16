@@ -1,6 +1,6 @@
 require 'optparse'
 
-def daemonize
+def daemonize #:nodoc:
   exit if fork                   # Parent exits, child continues.
   Process.setsid                 # Become session leader.
   exit if fork                   # Zap session leader. See [1].

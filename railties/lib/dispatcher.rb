@@ -21,8 +21,14 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
+# This class provides an interface for dispatching a CGI (or CGI-like) request
+# to the appropriate controller and action. It also takes care of resetting
+# the environment (when Dependencies.load? is true) after each request.
 class Dispatcher
   class << self
+    
+    # Dispatch the given CGI request, using the given session options, and
+    # emitting the output via the given output.
     def dispatch(cgi = CGI.new, session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, output = $stdout)
       begin
         request, response = ActionController::CgiRequest.new(cgi, session_options), ActionController::CgiResponse.new(cgi)
@@ -35,6 +41,9 @@ class Dispatcher
       end
     end
 
+    # Reset the application by clearing out loaded controllers, views, actions,
+    # mailers, and so forth. This allows them to be loaded again without having
+    # to restart the server (WEBrick, FastCGI, etc.).
     def reset_application!
       Controllers.clear!
       Dependencies.clear

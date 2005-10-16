@@ -4,8 +4,16 @@ require 'uri'
 
 if RUBY_PLATFORM =~ /mswin32/ then abort("Reaper is only for Unix") end
 
+# Instances of this class represent a single running process. Processes may
+# be queried by "keyword" to find those that meet a specific set of criteria.
 class ProgramProcess
   class << self
+    
+    # Searches for all processes matching the given keywords, and then invokes
+    # a specific action on each of them. This is useful for (e.g.) reloading a
+    # set of processes:
+    #
+    #   ProgramProcess.process_keywords(:reload, "basecamp")
     def process_keywords(action, *keywords)
       processes = keywords.collect { |keyword| find_by_keyword(keyword) }.flatten
 
@@ -19,6 +27,9 @@ class ProgramProcess
       end      
     end
 
+    # Searches for all processes matching the given keyword:
+    #
+    #   ProgramProcess.find_by_keyword("basecamp")
     def find_by_keyword(keyword)
       process_lines_with_keyword(keyword).split("\n").collect { |line|
         next if line.include?("inq") || line.include?("ps -ax") || line.include?("grep")
@@ -33,34 +44,42 @@ class ProgramProcess
       end
   end
 
+  # Create a new ProgramProcess instance that represents the process with the
+  # given pid, running the given command.
   def initialize(pid, command)
     @pid, @command = pid, command
   end
 
-  def find
-  end
-
+  # Forces the (rails) application to reload by sending a +HUP+ signal to the
+  # process.
   def reload
     `kill -s HUP #{@pid}`
   end
 
+  # Forces the (rails) application to gracefully terminate by sending a
+  # +TERM+ signal to the process.
   def graceful
     `kill -s TERM #{@pid}`
   end
 
+  # Forces the (rails) application to terminate immediately by sending a -9
+  # signal to the process.
   def kill
     `kill -9 #{@pid}`
   end
 
+  # Send a +USR1+ signal to the process.
   def usr1
     `kill -s USR1 #{@pid}`
   end
 
+  # Force the (rails) application to restart by sending a +USR2+ signal to the
+  # process.
   def restart
     `kill -s USR2 #{@pid}`
   end
 
-  def to_s
+  def to_s #:nodoc:
     "[#{@pid}] #{@command}"
   end
 end

@@ -462,7 +462,7 @@ module IRB # :nodoc:
   end
   def IRB.parse_opts() end
 
-  class Context
+  class Context #:nodoc:
     alias :old_evaluate :evaluate
     def evaluate(line, line_no)
       if line.chomp == "exit" then
@@ -473,7 +473,7 @@ module IRB # :nodoc:
     end
   end
 
-  class WorkSpace
+  class WorkSpace #:nodoc:
     alias :old_evaluate :evaluate
 
     def evaluate(*args)
@@ -491,7 +491,7 @@ module IRB # :nodoc:
     end
   end
 
-  module InputCompletor
+  module InputCompletor #:nodoc:
     def self.eval(code, context, *more)
       # Big hack, this assumes that InputCompletor
       # will only call eval() when it wants code
@@ -501,8 +501,8 @@ module IRB # :nodoc:
   end
 end
 
-module DRb # :nodoc:
-  class DRbObject
+module DRb #:nodoc:
+  class DRbObject #:nodoc:
     undef :inspect if method_defined?(:inspect)
     undef :clone if method_defined?(:clone)
   end
