@@ -47,7 +47,7 @@ module ActionView
   
     def line_number
       if file_name
-        regexp = /#{Regexp.escape file_name}:(\d+)\s*$/
+        regexp = /#{Regexp.escape File.basename(file_name)}:(\d+)\s*$/
         [@original_exception.message, @original_exception.clean_backtrace].flatten.each do |line|
           return $1.to_i if regexp =~ line
         end

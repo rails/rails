@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve line number detection for template errors [Nicholas Seckar]
+
 * Update/clean up documentation (rdoc)
 
 * Upgrade to Prototype 1.4.0_rc0 [Sam Stephenson]
