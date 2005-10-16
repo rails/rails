@@ -42,8 +42,8 @@ class DateHelperTest < Test::Unit::TestCase
   end
 
   def test_distance_in_words_date
-    start_date = Date.new 1904, 1, 31
-    end_date = Date.new 1906, 4, 17
+    start_date = Date.new 1975, 1, 31
+    end_date = Date.new 1977, 4, 17
     assert_not_equal("13 minutes",
                      distance_of_time_in_words(start_date, end_date))
   end
