@@ -1,5 +1,7 @@
 *SVN*
 
+* Added assert_vaild. Reports the proper AR error messages as fail message when the passed record is invalid [Tobias Luetke]
+
 * Add temporary support for passing locals to render using string keys [Nicholas Seckar]
 
 * Clean up error pages by providing better backtraces [Nicholas Seckar]

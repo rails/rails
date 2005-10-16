@@ -283,6 +283,13 @@ module Test #:nodoc:
           assert_block(full_message) { expected_dom != actual_dom }
         end
       end
+
+      # ensures that the passed record is valid by active record standards. returns the error messages if not
+      def assert_valid(record)                                   
+        clean_backtrace do
+          assert record.valid?, record.errors.full_messages        
+        end
+      end             
       
       def clean_backtrace(&block)
         begin

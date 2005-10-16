@@ -77,6 +77,41 @@ class ActionPackAssertionsController < ActionController::Base
   def raise_on_post
     raise "post" if @request.post?
     render_text "request method: #{@request.env['REQUEST_METHOD']}"
+  end       
+  
+  def get_valid_record
+    @record = Class.new do       
+      def valid?
+        true
+      end
+
+      def errors
+        Class.new do 
+           def full_messages; '...stuff...'; end          
+        end.new
+      end    
+    
+    end.new
+        
+    render :nothing => true    
+  end
+
+
+  def get_invalid_record
+    @record = Class.new do 
+      
+      def valid?
+        false
+      end
+      
+      def errors
+        Class.new do 
+           def full_messages; '...stuff...'; end          
+        end.new
+      end
+    end.new                
+    
+    render :nothing => true    
   end
 
   # 911
@@ -420,6 +455,21 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     
     get :redirect_to_fellow_controller
     assert_redirected_to :controller => 'admin/user'
+  end                 
+  
+  def test_assert_valid
+    get :get_valid_record
+    assert_valid assigns('record')    
+  end                
+  
+  def test_assert_valid_failing
+    get :get_invalid_record
+    
+    begin
+      assert_valid assigns('record')    
+      assert false
+    rescue Test::Unit::AssertionFailedError => e             
+    end
   end
 end
 

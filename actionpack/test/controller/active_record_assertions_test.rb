@@ -75,8 +75,7 @@ class ActiveRecordAssertionsController < ActionController::Base
   # the safety dance......
   def rescue_action(e) raise; end
 end
-
-
+                    
 class ActiveRecordAssertionsControllerTest < Test::Unit::TestCase
   def setup
     @request = ActionController::TestRequest.new
