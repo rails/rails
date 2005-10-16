@@ -46,7 +46,7 @@ module ActionController #:nodoc:
   #     end
   #     
   #     def sign
-  #       Entry.create(@params["entry"])
+  #       Entry.create(params[:entry])
   #       redirect_to :action => "index"
   #     end
   #   end
@@ -83,7 +83,7 @@ module ActionController #:nodoc:
   #
   #   def hello_ip
   #     location = request.env["REMOTE_IP"]
-  #     render_text "Hello stranger from #{location}"
+  #     render :text => "Hello stranger from #{location}"
   #   end
   #
   # == Parameters

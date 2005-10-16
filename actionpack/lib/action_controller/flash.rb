@@ -1,14 +1,14 @@
 module ActionController #:nodoc:
   # The flash provides a way to pass temporary objects between actions. Anything you place in the flash will be exposed
   # to the very next action and then cleared out. This is a great way of doing notices and alerts, such as a create action
-  # that sets <tt>flash["notice"] = "Successfully created"</tt> before redirecting to a display action that can then expose 
+  # that sets <tt>flash[:notice] = "Successfully created"</tt> before redirecting to a display action that can then expose 
   # the flash to its template. Actually, that exposure is automatically done. Example:
   #
   #   class WeblogController < ActionController::Base
   #     def create
   #       # save post
-  #       flash["notice"] = "Successfully created post"
-  #       redirect_to :action => "display", :params => { "id" => post.id }
+  #       flash[:notice] = "Successfully created post"
+  #       redirect_to :action => "display", :params => { :id => post.id }
   #     end
   #
   #     def display
@@ -17,7 +17,7 @@ module ActionController #:nodoc:
   #   end
   #
   #   display.rhtml
-  #     <% if @flash["notice"] %><div class="notice"><%= @flash["notice"] %></div><% end %>
+  #     <% if @flash[:notice] %><div class="notice"><%= @flash[:notice] %></div><% end %>
   #
   # This example just places a string in the flash, but you can put any object in there. And of course, you can put as many
   # as you like at a time too. Just remember: They'll be gone by the time the next action has been performed.
@@ -67,7 +67,7 @@ module ActionController #:nodoc:
     
       # Sets a flash that will not be available to the next action, only to the current.
       #
-      #     flash.now["message"] = "Hello current action"
+      #     flash.now[:message] = "Hello current action"
       # 
       # This method enables you to use the flash as a central messaging system in your app.
       # When you need to pass an object to the next action, you use the standard flash assign (<tt>[]=</tt>).
@@ -82,7 +82,7 @@ module ActionController #:nodoc:
       # Keeps either the entire current flash or a specific flash entry available for the next action:
       #
       #    flash.keep            # keeps the entire flash
-      #    flash.keep("notice")  # keeps only the "notice" entry, the rest of the flash is discarded
+      #    flash.keep(:notice)   # keeps only the "notice" entry, the rest of the flash is discarded
       def keep(k=nil)
         use(k, false)
       end
@@ -90,7 +90,7 @@ module ActionController #:nodoc:
       # Marks the entire flash or a single flash entry to be discarded by the end of the current action
       #
       #     flash.keep                 # keep entire flash available for the next action
-      #     flash.discard('warning')   # discard the "warning" entry (it'll still be available for the current action)
+      #     flash.discard(:warning)    # discard the "warning" entry (it'll still be available for the current action)
       def discard(k=nil)
         use(k)
       end

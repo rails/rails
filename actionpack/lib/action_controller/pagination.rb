@@ -167,7 +167,7 @@ module ActionController
     end
   
     # Returns a collection of items for the given +model+ and +options[conditions]+,
-    # ordered by +options[order_by]+, for the current page in the given +paginator+.
+    # ordered by +options[order]+, for the current page in the given +paginator+.
     # Override this method to implement a custom finder.
     def find_collection_for_pagination(model, options, paginator)
       model.find(:all, :conditions => options[:conditions],

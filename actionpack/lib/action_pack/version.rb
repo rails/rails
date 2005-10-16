@@ -1,5 +1,5 @@
 module ActionPack
-  module Version
+  module Version #:nodoc:
     MAJOR = 1
     MINOR = 9
     TINY  = 1

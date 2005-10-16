@@ -350,7 +350,7 @@ module ActionController #:nodoc:
         end
       end
 
-      module ThreadSafety
+      module ThreadSafety #:nodoc:
         def read(name, options=nil) #:nodoc:
           @mutex.synchronize { super }
         end

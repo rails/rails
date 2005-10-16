@@ -252,7 +252,7 @@ module ActionView
         cycle.reset
       end
 
-      class Cycle
+      class Cycle #:nodoc:
         attr_reader :values
         
         def initialize(first_value, *values)

@@ -1,5 +1,7 @@
 *SVN*
 
+* Update/clean up documentation (rdoc)
+
 * Upgrade to Prototype 1.4.0_rc0 [Sam Stephenson]
 
 * Added assert_vaild. Reports the proper AR error messages as fail message when the passed record is invalid [Tobias Luetke]

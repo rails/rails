@@ -130,6 +130,8 @@ module ActionController
       env['RAW_POST_DATA']
     end
     
+    # Returns the request URI correctly, taking into account the idiosyncracies
+    # of the various servers.
     def request_uri
       if uri = env['REQUEST_URI']
         (%r{^\w+\://[^/]+(/.*|$)$} =~ uri) ? $1 : uri # Remove domain, which webrick puts into the request_uri.
@@ -216,25 +218,25 @@ module ActionController
     #--
     # Must be implemented in the concrete request
     #++
-    def query_parameters
+    def query_parameters #:nodoc:
     end
 
-    def request_parameters
+    def request_parameters #:nodoc:
     end
 
-    def env
+    def env #:nodoc:
     end
 
-    def host
+    def host #:nodoc:
     end
 
-    def cookies
+    def cookies #:nodoc:
     end
 
-    def session
+    def session #:nodoc:
     end
 
-    def reset_session
+    def reset_session #:nodoc:
     end    
   end
 end

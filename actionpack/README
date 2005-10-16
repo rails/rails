@@ -40,14 +40,14 @@ A short rundown of the major features:
       
       def update
         @customer = find_customer
-        @customer.attributes = @params["customer"]
+        @customer.attributes = params[:customer]
         @customer.save ? 
           redirect_to(:action => "display") : 
           render(:action => "edit")
       end
       
       private
-        def find_customer() Customer.find(@params["id"]) end
+        def find_customer() Customer.find(params[:id]) end
     end
 
   {Learn more}[link:classes/ActionController/Base.html]
@@ -182,7 +182,7 @@ A short rundown of the major features:
     # controller
     def list
       @pages, @people =
-        paginate :people, :order_by => 'last_name, first_name'
+        paginate :people, :order => 'last_name, first_name'
     end
 
     # view
@@ -202,8 +202,8 @@ A short rundown of the major features:
       end
 
       def test_failing_authenticate
-        process :authenticate, "user_name" => "nop", "password" => ""
-        assert_flash_has 'alert'
+        process :authenticate, :user_name => "nop", :password => ""
+        assert flash.has_key?(:alert)
         assert_redirected_to :action => "index"
       end
     end
@@ -252,10 +252,10 @@ A short rundown of the major features:
       end
       
       def update
-        List.update(@params["list"]["id"], @params["list"])
-        expire_page   :action => "show", :id => @params["list"]["id"]
+        List.update(params[:list][:id], params[:list])
+        expire_page   :action => "show", :id => params[:list][:id]
         expire_action :action => "account"
-        redirect_to   :action => "show", :id => @params["list"]["id"]
+        redirect_to   :action => "show", :id => params[:list][:id]
       end
     end
 
@@ -342,8 +342,8 @@ A short rundown of the major features:
     
     class WeblogController < ActionController::Base
       def save
-        post = Post.create(@params["post"])
-        redirect_to :action => "display", :path_params => { "id" => post.id }
+        post = Post.create(params[:post])
+        redirect_to :action => "display", :id => post.id
       end
     end
 
@@ -370,7 +370,7 @@ methods:
     end
     
     def display
-      @post = Post.find(@params["id"])
+      @post = Post.find(:params[:id])
     end
     
     def new
@@ -378,7 +378,7 @@ methods:
     end
     
     def create
-      @post = Post.create(@params["post"])
+      @post = Post.create(params[:post])
       redirect_to :action => "display", :id => @post.id
     end
   end

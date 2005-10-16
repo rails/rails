@@ -135,7 +135,7 @@ module ActionView #:nodoc:
 
     @@template_handlers = {}
  
-    module CompiledTemplates
+    module CompiledTemplates #:nodoc:
       # holds compiled template code
     end
     include CompiledTemplates
@@ -162,6 +162,13 @@ module ActionView #:nodoc:
       end
     end
 
+    # Register a class that knows how to handle template files with the given
+    # extension. This can be used to implement new template types.
+    # The constructor for the class must take the ActiveView::Base instance
+    # as a parameter, and the class must implement a #render method that
+    # takes the contents of the template to render as well as the Hash of
+    # local assigns available to the template. The #render method ought to
+    # return the rendered template as a string.
     def self.register_template_handler(extension, klass)
       @@template_handlers[extension] = klass
     end

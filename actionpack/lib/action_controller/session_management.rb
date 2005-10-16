@@ -77,7 +77,7 @@ module ActionController #:nodoc:
         write_inheritable_array("session_options", [options])
       end
 
-      def cached_session_options
+      def cached_session_options #:nodoc:
         @session_options ||= read_inheritable_attribute("session_options") || []
       end
 
