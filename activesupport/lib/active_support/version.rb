@@ -1,5 +1,5 @@
 module ActiveSupport
-  module Version
+  module Version #:nodoc:
     MAJOR = 1
     MINOR = 1
     TINY  = 1
