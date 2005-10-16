@@ -1,5 +1,7 @@
 *SVN*
 
+* Upgrade to Prototype 1.4.0_rc0 [Sam Stephenson]
+
 * Added assert_vaild. Reports the proper AR error messages as fail message when the passed record is invalid [Tobias Luetke]
 
 * Add temporary support for passing locals to render using string keys [Nicholas Seckar]
