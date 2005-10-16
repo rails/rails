@@ -34,7 +34,6 @@ var Scriptaculous = {
     for(var i=0;i<scriptTags.length;i++) {
       if(scriptTags[i].src && scriptTags[i].src.match(/scriptaculous\.js(\?.*)?$/)) {
         var path = scriptTags[i].src.replace(/scriptaculous\.js(\?.*)?$/,'');
-        this.require(path + 'util.js');
         this.require(path + 'effects.js');
         this.require(path + 'dragdrop.js');
         this.require(path + 'controls.js');

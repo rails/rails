@@ -37,7 +37,7 @@ LOG_FILES    = %w( server.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html robots.txt favicon.ico 
                    javascripts/prototype.js javascripts/scriptaculous.js
                    javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js
-                   javascripts/util.js javascripts/slider.js )
+                   javascripts/slider.js )
 BIN_FILES    = %w( breakpointer console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/spinner runner server )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )
@@ -72,7 +72,7 @@ end
 
 desc "Updates railties to the latest version of the javascript spinoffs"
 task :update_js do
-  for js in %w( prototype controls dragdrop effects util slider )
+  for js in %w( prototype controls dragdrop effects slider )
     rm "html/javascripts/#{js}.js"
     cp "./../actionpack/lib/action_view/helpers/javascripts/#{js}.js", "html/javascripts"
   end
