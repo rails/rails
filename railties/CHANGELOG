@@ -1,5 +1,7 @@
 *SVN*
 
+* Moved generator folder from RAILS_ROOT/generators to RAILS_ROOT/lib/generators [Tobias Luetke]
+
 * Fix rake dev and related commands [Nicholas Seckar]
 
 * The rails command tries to deduce your MySQL socket by running `mysql_config
