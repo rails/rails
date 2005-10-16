@@ -90,6 +90,15 @@ module ActiveRecord
           end
         end
       end
+
+      def default_sequence_name(table, column)
+        nil
+      end
+
+      # Set the sequence to the max value of the table's column.
+      def reset_sequence!(table, column, sequence = nil)
+        # Do nothing by default.  Implement for PostgreSQL, Oracle, ...
+      end
     end
   end
 end

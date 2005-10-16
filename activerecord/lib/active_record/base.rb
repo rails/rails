@@ -625,9 +625,9 @@ module ActiveRecord #:nodoc:
         "type"
       end
 
-      # Defines the sequence_name (for Oracle) -- can be overridden in subclasses.
+      # Default sequence_name.  Use set_sequence_name to override.
       def sequence_name
-        "#{table_name}_seq"
+        connection.default_sequence_name(table_name, primary_key)
       end
 
       # Sets the table name to use to the given value, or (if the value
@@ -675,8 +675,8 @@ module ActiveRecord #:nodoc:
 
       # Sets the name of the sequence to use when generating ids to the given
       # value, or (if the value is nil or false) to the value returned by the
-      # given block. Currently useful only when using Oracle, which requires
-      # explicit sequences.
+      # given block. This is required for Oracle and is useful for any
+      # database which relies on sequences for primary key generation.
       #
       # Setting the sequence name when using other dbs will have no effect.
       # If a sequence name is not explicitly set when using Oracle, it will

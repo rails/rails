@@ -53,7 +53,7 @@ class PrimaryKeysTest < Test::Unit::TestCase
     subscriber.id = "jdoe"
     assert_equal("jdoe", subscriber.id)
     subscriber.name = "John Doe"
-    assert_nothing_raised{ subscriber.save }
+    assert_nothing_raised { subscriber.save! }
 
     subscriberReloaded = Subscriber.find("jdoe")
     assert_equal("John Doe", subscriberReloaded.name)

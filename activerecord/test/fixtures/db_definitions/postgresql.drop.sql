@@ -1,5 +1,6 @@
 DROP TABLE accounts;
 DROP TABLE companies;
+DROP SEQUENCE companies_nonstd_seq;
 DROP TABLE topics;
 DROP TABLE developers;
 DROP TABLE projects;

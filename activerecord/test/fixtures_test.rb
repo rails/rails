@@ -168,6 +168,30 @@ class FixturesTest < Test::Unit::TestCase
       end
     end
   end
+
+  if Account.connection.respond_to?(:reset_pk_sequence!)
+    def test_resets_to_min_pk
+      Account.delete_all
+      Account.connection.reset_pk_sequence!(Account.table_name)
+
+      one = Account.new(:credit_limit => 50)
+      one.save!
+      assert_equal 1, one.id
+    end
+
+    def test_create_fixtures_resets_sequences
+      # create_fixtures performs reset_pk_sequence!
+      max_id = create_fixtures('accounts').inject(0) do |max_id, (name, fixture)|
+        fixture_id = fixture['id'].to_i
+        fixture_id > max_id ? fixture_id : max_id
+      end
+
+      # Clone the last fixture to check that it gets the next greatest id.
+      another = Account.new(:credit_limit => 1200)
+      another.save!
+      assert_equal max_id + 1, another.id
+    end
+  end
 end
 
 

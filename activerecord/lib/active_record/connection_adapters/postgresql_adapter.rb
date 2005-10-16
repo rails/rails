@@ -102,7 +102,7 @@ module ActiveRecord
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
         execute(sql, name)
         table = sql.split(" ", 4)[2]
-        id_value || last_insert_id(table, pk)
+        id_value || last_insert_id(table, sequence_name)
       end
 
       def query(sql, name = nil) #:nodoc:
@@ -198,6 +198,37 @@ module ActiveRecord
       def schema_search_path #:nodoc:
         @schema_search_path ||= query('SHOW search_path')[0][0]
       end
+
+      def default_sequence_name(table_name, pk = 'id')
+        "#{table_name}_#{pk}_seq"
+      end
+
+      # Set the sequence to the max value of the table's pk.
+      def reset_pk_sequence!(table)
+        sequence, pk = sequence_and_pk_for(table)
+        if sequence and pk
+          select_value <<-end_sql, 'Reset sequence'
+            SELECT setval('#{sequence}', (SELECT COALESCE(MAX(#{pk})+(SELECT increment_by FROM #{sequence}), (SELECT min_value FROM #{sequence})) FROM #{table}), false)
+          end_sql
+        end
+      end
+
+      # Find a table's primary key and sequence.
+      def sequence_and_pk_for(table, column = nil)
+        execute(<<-end_sql, 'Find pk sequence')[0]
+          SELECT (name.nspname || '.' || seq.relname) AS sequence, attr.attname AS pk
+          FROM pg_class seq, pg_attribute attr, pg_depend dep, pg_namespace name, pg_constraint cons
+          WHERE seq.oid = dep.objid
+            AND seq.relnamespace = name.oid
+            AND attr.attrelid = dep.refobjid
+            AND attr.attnum = dep.refobjsubid
+            AND attr.attrelid = cons.conrelid
+            AND attr.attnum = cons.conkey[1]
+            AND cons.contype = 'p'
+            AND dep.refobjid = '#{table}'::regclass
+        end_sql
+      end
+
       
       def rename_table(name, new_name)
         execute "ALTER TABLE #{name} RENAME TO #{new_name}"
@@ -242,9 +273,10 @@ module ActiveRecord
       private
         BYTEA_COLUMN_TYPE_OID = 17
 
-        def last_insert_id(table, column = nil)
-          sequence_name = "#{table}_#{column || 'id'}_seq"
-          @connection.exec("SELECT currval('#{sequence_name}')")[0][0].to_i
+        def last_insert_id(table, sequence_name)
+          if sequence_name
+            @connection.exec("SELECT currval('#{sequence_name}')")[0][0].to_i
+          end
         end
 
         def select(sql, name = nil)

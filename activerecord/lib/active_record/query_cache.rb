@@ -44,14 +44,15 @@ module ActiveRecord
   
   class Base
     # Set the connection for the class with caching on
-    def self.connection=(spec)
-      raise ConnectionNotEstablished unless spec
+    class << self
+      alias_method :connection_without_query_cache=, :connection=
 
-      conn = spec.config[:query_cache] ?
-        QueryCache.new(self.send(spec.adapter_method, spec.config)) :
-        self.send(spec.adapter_method, spec.config)
-      
-      active_connections[self] = conn
+      def connection=(spec)
+        if spec.is_a?(ConnectionSpecification) and spec.config[:query_cache]
+          spec = QueryCache.new(self.send(spec.adapter_method, spec.config))
+        end
+        self.connection_without_query_cache = spec
+      end
     end
   end
   

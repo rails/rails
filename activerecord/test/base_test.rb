@@ -553,7 +553,7 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_mass_assignment_accessible
-    reply = Reply.new("title" => "hello", "content" => "world", "approved" => false)
+    reply = Reply.new("title" => "hello", "content" => "world", "approved" => true)
     reply.save
 
     assert reply.approved?

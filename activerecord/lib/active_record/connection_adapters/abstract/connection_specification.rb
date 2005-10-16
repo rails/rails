@@ -114,9 +114,15 @@ module ActiveRecord
 
     # Set the connection for the class.
     def self.connection=(spec)
-      raise ConnectionNotEstablished unless spec
-      conn = self.send(spec.adapter_method, spec.config)
-      active_connections[self] = conn
+      if spec.kind_of?(ActiveRecord::ConnectionAdapters::AbstractAdapter)
+        active_connections[self] = spec
+      elsif spec.kind_of?(ConnectionSpecification)
+        self.connection = self.send(spec.adapter_method, spec.config)
+      elsif spec.nil?
+        raise ConnectionNotEstablished
+      else
+        establish_connection spec
+      end
     end
   end
 end

@@ -710,7 +710,7 @@ end
 
 class BelongsToAssociationsTest < Test::Unit::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
-           :developers_projects
+           :developers_projects, :computers, :authors, :posts
   
   def test_belongs_to
     Client.find(3).firm.name
@@ -832,7 +832,7 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
   end
 
   def test_field_name_same_as_foreign_key
-    computer = Computer.find 1
+    computer = Computer.find(1)
     assert_not_nil computer.developer, ":foreign key == attribute didn't lock up" # '
   end
 
@@ -939,7 +939,10 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
   
   def test_association_assignment_sticks
     post = Post.find(:first)
+
     author1, author2 = Author.find(:all, :limit => 2)
+    assert_not_nil author1
+    assert_not_nil author2
 
     # make sure the association is loaded
     post.author

@@ -257,8 +257,13 @@ class Fixtures < YAML::Omap
         fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
         fixtures.each { |fixture| fixture.insert_fixtures }
       end
-      
-      reset_sequences(connection, table_names) if connection.is_a?(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter)
+
+      # Cap primary key sequences to max(pk).
+      if connection.respond_to?(:reset_pk_sequence!)
+        table_names.flatten.each do |table_name|
+          connection.reset_pk_sequence!(table_name)
+        end
+      end
 
       return fixtures.size > 1 ? fixtures : fixtures.first
     ensure
@@ -266,21 +271,6 @@ class Fixtures < YAML::Omap
     end
   end
 
-  # Start PostgreSQL fixtures at id 1.  Skip tables without models
-  # and models with nonstandard primary keys.
-  def self.reset_sequences(connection, table_names)
-    table_names.flatten.each do |table|
-      if table_class = table.to_s.classify.constantize rescue nil
-        pk = table_class.columns_hash[table_class.primary_key]
-        if pk and pk.type == :integer
-          connection.execute(
-            "SELECT setval('#{table}_#{pk.name}_seq', (SELECT COALESCE(MAX(#{pk.name}), 0)+1 FROM #{table}), false)", 
-            'Setting Sequence'
-          )
-        end
-      end
-    end
-  end
 
   attr_reader :table_name
 

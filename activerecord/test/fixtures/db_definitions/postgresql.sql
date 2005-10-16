@@ -6,8 +6,10 @@ CREATE TABLE accounts (
 );
 SELECT setval('accounts_id_seq', 100);
 
+CREATE SEQUENCE companies_nonstd_seq START 101;
+
 CREATE TABLE companies (
-    id serial,
+    id integer DEFAULT nextval('companies_nonstd_seq'),
     "type" character varying(50),
     "ruby_type" character varying(50),
     firm_id integer,
@@ -16,7 +18,6 @@ CREATE TABLE companies (
     rating integer default 1,
     PRIMARY KEY (id)
 );
-SELECT setval('companies_id_seq', 100);
 
 CREATE TABLE developers_projects (
     developer_id integer NOT NULL,

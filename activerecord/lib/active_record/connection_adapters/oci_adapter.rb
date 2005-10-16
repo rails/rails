@@ -99,6 +99,10 @@ begin
       # * <tt>:password</tt> -- Defaults to nothing
       # * <tt>:host</tt> -- Defaults to localhost
       class OCIAdapter < AbstractAdapter
+        def default_sequence_name(table, column)
+          "#{table}_seq"
+        end
+
         def quote_string(string)
           string.gsub(/'/, "''")
         end
