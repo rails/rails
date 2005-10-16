@@ -357,8 +357,11 @@ module ActionView #:nodoc:
         locals_keys = @@template_args[render_symbol].keys | locals
         @@template_args[render_symbol] = locals_keys.inject({}) { |h, k| h[k] = true; h }
 
-        locals_code = locals_keys.inject("") do |code, key|
-          code << "#{key} = local_assigns[:#{key}] if local_assigns.has_key?(:#{key})\n"
+        locals_code = ""
+        unless locals_keys.empty?
+          locals_code << locals_keys.inject("local_assigns = local_assigns.symbolize_keys\n") do |code, key|
+            code << "#{key} = local_assigns[:#{key}] if local_assigns.has_key?(:#{key})\n"
+          end
         end
 
         "def #{render_symbol}(local_assigns)\n#{locals_code}#{body}\nend"

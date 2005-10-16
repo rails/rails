@@ -1,5 +1,7 @@
 *SVN*
 
+* Add temporary support for passing locals to render using string keys [Nicholas Seckar]
+
 * Clean up error pages by providing better backtraces [Nicholas Seckar]
 
 * Raise an exception if an attempt is made to insert more session data into the ActiveRecordStore data column than the column can hold. #2234.  [justin@textdrive.com]
