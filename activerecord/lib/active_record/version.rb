@@ -1,5 +1,5 @@
 module ActiveRecord
-  module Version
+  module Version #:nodoc:
     MAJOR = 1
     MINOR = 11
     TINY  = 1

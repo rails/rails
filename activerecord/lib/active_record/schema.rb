@@ -1,8 +1,44 @@
 module ActiveRecord
-  # TODO: Document me!
+  # Allows programmers to programmatically define a schema in a portable
+  # DSL. This means you can define tables, indexes, etc. without using SQL
+  # directly, so your applications can more easily support multiple
+  # databases.
+  #
+  # Usage:
+  #
+  #   ActiveRecord::Schema.define do
+  #     create_table :authors do |t|
+  #       t.column :name, :string, :null => false
+  #     end
+  #
+  #     add_index :authors, :name, :unique
+  #
+  #     create_table :posts do |t|
+  #       t.column :author_id, :integer, :null => false
+  #       t.column :subject, :string
+  #       t.column :body, :text
+  #       t.column :private, :boolean, :default => false
+  #     end
+  #
+  #     add_index :posts, :author_id
+  #   end
+  #
+  # ActiveRecord::Schema is only supported by database adapters that also
+  # support migrations, the two features being very similar.
   class Schema < Migration
     private_class_method :new
 
+    # Eval the given block. All methods available to the current connection
+    # adapter are available within the block, so you can easily use the
+    # database definition DSL to build up your schema (#create_table,
+    # #add_index, etc.).
+    #
+    # The +info+ hash is optional, and if given is used to define metadata
+    # about the current schema (like the schema's version):
+    #
+    #   ActiveRecord::Schema.define(:version => 15) do
+    #     ...
+    #   end
     def self.define(info={}, &block)
       instance_eval(&block)
 

@@ -1,5 +1,7 @@
 *SVN*                                                                                                                   
 
+* Update/clean up documentation (rdoc)
+
 * PostgreSQL sequence support.  Use set_sequence_name in your model class to specify its primary key sequence.  #2292 [Rick Olson <technoweenie@gmail.com>, Robby Russell <robby@planetargon.com>]
 
 * Change default logging colors to work on both white and black backgrounds. [Sam Stephenson]

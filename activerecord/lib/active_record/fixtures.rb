@@ -2,11 +2,12 @@ require 'erb'
 require 'yaml'
 require 'csv'
 
-class YAML::Omap
-  def keys;   map { |k, v| k } end
-  def values; map { |k, v| v } end
+module YAML #:nodoc:
+  class Omap #:nodoc:
+    def keys;   map { |k, v| k } end
+    def values; map { |k, v| v } end
+  end
 end
-
 
 # Fixtures are a way of organizing data that you want to test against; in short, sample data. They come in 3 flavours:
 #
