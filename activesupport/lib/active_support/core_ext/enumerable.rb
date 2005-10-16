@@ -1,4 +1,4 @@
-module Enumerable
+module Enumerable #:nodoc:
   def first_match
     match = nil
     each do |items|

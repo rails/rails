@@ -1,4 +1,4 @@
-class OrderedOptions < Array
+class OrderedOptions < Array #:nodoc:
   def []=(key, value)
     key = key.to_sym
     
