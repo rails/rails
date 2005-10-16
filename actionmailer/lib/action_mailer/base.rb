@@ -4,7 +4,7 @@ require 'action_mailer/part_container'
 require 'action_mailer/utils'
 require 'tmail/net'
 
-module ActionMailer #:nodoc:
+module ActionMailer
   # Usage:
   #
   #   class ApplicationMailer < ActionMailer::Base
@@ -160,11 +160,61 @@ module ActionMailer #:nodoc:
     @@default_implicit_parts_order = [ "text/html", "text/enriched", "text/plain" ]
     cattr_accessor :default_implicit_parts_order
 
-    adv_attr_accessor :recipients, :subject, :body, :from, :sent_on, :headers,
-                      :bcc, :cc, :charset, :content_type, :implicit_parts_order,
-                      :template, :mailer_name, :mime_version
+    # Specify the BCC addresses for the message
+    adv_attr_accessor :bcc
+    
+    # Define the body of the message. This is either a Hash (in which case it
+    # specifies the variables to pass to the template when it is rendered),
+    # or a string, in which case it specifies the actual text of the message.
+    adv_attr_accessor :body
+    
+    # Specify the CC addresses for the message.
+    adv_attr_accessor :cc
+    
+    # Specify the charset to use for the message. This defaults to the
+    # +default_charset+ specified for ActionMailer::Base.
+    adv_attr_accessor :charset
+    
+    # Specify the content type for the message. This defaults to <tt>text/plain</tt>
+    # in most cases, but can be automatically set in some situations.
+    adv_attr_accessor :content_type
+    
+    # Specify the from address for the message.
+    adv_attr_accessor :from
+    
+    # Specify additional headers to be added to the message.
+    adv_attr_accessor :headers
+    
+    # Specify the order in which parts should be sorted, based on content-type.
+    # This defaults to the value for the +default_implicit_parts_order+.
+    adv_attr_accessor :implicit_parts_order
+    
+    # Override the mailer name, which defaults to an inflected version of the
+    # mailer's class name. If you want to use a template in a non-standard
+    # location, you can use this to specify that location.
+    adv_attr_accessor :mailer_name
+    
+    # Defaults to "1.0", but may be explicitly given if needed.
+    adv_attr_accessor :mime_version
+    
+    # The recipient addresses for the message, either as a string (for a single
+    # address) or an array (for multiple addresses).
+    adv_attr_accessor :recipients
+    
+    # The date on which the message was sent. If not set (the default), the
+    # header will be set by the delivery agent.
+    adv_attr_accessor :sent_on
+    
+    # Specify the subject of the message.
+    adv_attr_accessor :subject
+    
+    # Specify the template name to use for current message. This is the "base"
+    # template name, without the extension or directory, and may be used to
+    # have multiple mailer methods share the same template.
+    adv_attr_accessor :template
 
-    attr_reader       :mail
+    # The mail object instance referenced by this mailer.
+    attr_reader :mail
 
     class << self
       def method_missing(method_symbol, *parameters)#:nodoc:
@@ -176,7 +226,18 @@ module ActionMailer #:nodoc:
         end
       end
 
-      def receive(raw_email) #:nodoc:
+      # Receives a raw email, parses it into an email object, decodes it,
+      # instantiates a new mailer, and passes the email object to the mailer
+      # object's #receive method. If you want your mailer to be able to
+      # process incoming messages, you'll need to implement a #receive
+      # method that accepts the email object as a parameter:
+      #
+      #   class MyMailer < ActionMailer::Base
+      #     def receive(mail)
+      #       ...
+      #     end
+      #   end
+      def receive(raw_email)
         logger.info "Received mail:\n #{raw_email}" unless logger.nil?
         mail = TMail::Mail.parse(raw_email)
         mail.base64_decode
@@ -258,7 +319,7 @@ module ActionMailer #:nodoc:
     # Delivers a TMail::Mail object. By default, it delivers the cached mail
     # object (from the #create! method). If no cached mail object exists, and
     # no alternate has been given as the parameter, this will fail.
-    def deliver!(mail = @mail) #:nodoc:
+    def deliver!(mail = @mail)
       raise "no mail object available for delivery!" unless mail
       logger.info "Sent mail:\n #{mail.encoded}" unless logger.nil?
 

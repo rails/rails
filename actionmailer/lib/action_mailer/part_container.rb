@@ -1,5 +1,22 @@
 module ActionMailer
-  module PartContainer #:nodoc:
+  # Accessors and helpers that ActionMailer::Base and ActionMailer::Part have
+  # in common. Using these helpers you can easily add subparts or attachments
+  # to your message:
+  #
+  #   def my_mail_message(...)
+  #     ...
+  #     part "text/plain" do |p|
+  #       p.body "hello, world"
+  #       p.transfer_encoding "base64"
+  #     end
+  #
+  #     attachment "image/jpg" do |a|
+  #       a.body = File.read("hello.jpg")
+  #       a.filename = "hello.jpg"
+  #     end
+  #   end
+  module PartContainer
+    # The list of subparts of this container
     attr_reader :parts
 
     # Add a part to a multipart message, with the given content-type. The

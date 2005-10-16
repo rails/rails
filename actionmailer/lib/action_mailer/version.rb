@@ -1,5 +1,5 @@
 module ActionMailer
-  module Version
+  module Version #:nodoc:
     MAJOR = 1
     MINOR = 0
     TINY  = 1

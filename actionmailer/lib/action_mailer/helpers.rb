@@ -1,6 +1,6 @@
-module ActionMailer #:nodoc:
+module ActionMailer
   module Helpers #:nodoc:
-    def self.append_features(base)
+    def self.append_features(base) #:nodoc:
       super
 
       # Initialize the base module to aggregate its helpers.
@@ -24,7 +24,7 @@ module ActionMailer #:nodoc:
       end
     end
 
-    module ClassMethods #:nodoc:
+    module ClassMethods
       # Makes all the (instance) methods in the helper module available to templates rendered through this controller.
       # See ActionView::Helpers (link:classes/ActionView/Helpers.html) for more about making your own helper modules 
       # available to the templates.

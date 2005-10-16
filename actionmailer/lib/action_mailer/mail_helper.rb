@@ -1,6 +1,8 @@
 require 'text/format'
 
-module MailHelper#:nodoc:
+module MailHelper
+  # Uses Text::Format to take the text and format it, indented two spaces for
+  # each line, and wrapped at 72 columns.
   def block_format(text)
     formatted = text.split(/\n\r\n/).collect { |paragraph| 
       Text::Format.new(

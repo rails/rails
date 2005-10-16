@@ -1,5 +1,7 @@
 *SVN*
 
+* Update and extend documentation (rdoc)
+
 * Minero Aoki made TMail available to Rails/ActionMailer under the MIT license (instead of LGPL) [RubyConf '05]
 
 * Austin Ziegler made Text::Simple available to Rails/ActionMailer under a MIT-like licens [See rails ML, subject "Text::Format Licence Exception" on Oct 15, 2005]
