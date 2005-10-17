@@ -8,6 +8,10 @@ class BinaryTest < Test::Unit::TestCase
     Binary.connection.execute 'DELETE FROM binaries'
     @data = File.read(BINARY_FIXTURE_PATH).freeze
   end
+  
+  def test_truth
+    assert true
+  end
 
   # Without using prepared statements, it makes no sense to test
   # BLOB data with SQL Server, because the length of a statement is

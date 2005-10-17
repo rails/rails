@@ -1,5 +1,3 @@
-require 'abstract_unit'
-require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/company'
 require 'fixtures/developer'
@@ -464,8 +462,8 @@ class BasicsTest < Test::Unit::TestCase
     assert_nil topic.last_read
   end
 
-  # Oracle does not have a TIME datatype.
-  unless 'OCI' == ActiveRecord::Base.connection.adapter_name
+  # Oracle and SQLServer do not have a TIME datatype.
+  unless 'OCI' == ActiveRecord::Base.connection.adapter_name or ActiveRecord::ConnectionAdapters.const_defined?(:SQLServerAdapter)
     def test_utc_as_time_zone
       Topic.default_timezone = :utc
       attributes = { "bonus_time" => "5:42:00AM" }
@@ -642,6 +640,10 @@ class BasicsTest < Test::Unit::TestCase
     # Oracle does not have a TIME datatype.
     if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
       return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
+    end
+    # Sqlserver doesn't either .
+    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter
+      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
     end
 
     attributes = {
