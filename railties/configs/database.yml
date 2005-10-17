@@ -4,8 +4,6 @@ development:
   <%= "socket: #{socket}" if socket %>
   username: root
   password:
-  # With the MySQL adapter on localhost, it defaults to /tmp/mysql.sock
-  # socket: /var/run/mysqld/mysqld.sock
   
 # Warning: The database defined as 'test' will be erased and
 # re-generated from your development database when you run 'rake'.

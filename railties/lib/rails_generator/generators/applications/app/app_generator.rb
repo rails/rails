@@ -3,7 +3,7 @@ require 'rbconfig'
 class AppGenerator < Rails::Generator::Base
   DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'],
                               Config::CONFIG['ruby_install_name'])
-
+  
   default_options   :gem => true, :shebang => DEFAULT_SHEBANG
   mandatory_options :source  => "#{File.dirname(__FILE__)}/../../../../.."
 
@@ -11,7 +11,7 @@ class AppGenerator < Rails::Generator::Base
     super
     usage if args.empty?
     @destination_root = args.shift
-    @socket = `mysql_config --socket`.strip rescue nil
+    @socket = MYSQL_SOCKET_LOCATIONS.find {|f| File.exists?(f) }
     @socket = '/path/to/your/mysql.sock' if @socket.blank?
   end
 
@@ -128,4 +128,9 @@ class AppGenerator < Rails::Generator::Base
     vendor
     vendor/plugins
   )
+
+  MYSQL_SOCKET_LOCATIONS = [ "/tmp/mysql.sock", #default
+                             "/var/run/mysqld/mysqld.sock", #debian
+                             "/var/tmp/mysql.sock", # freebsd
+                             "/var/lib/mysql/mysql.sock" ]  #fedora
 end
