@@ -52,7 +52,7 @@ class CGI
           end
           
           def data_column_size_limit
-            connection.columns(table_name).find {|column| column.name == 'data'}.limit
+            columns_hash['data'].limit
           end
 
           # Hook to set up sessid compatibility.
