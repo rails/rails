@@ -77,12 +77,16 @@ class TestController < ActionController::Base
 
   def accessing_local_assigns_in_inline_template
     name = params[:local_name]
-    render :inline => "<%= 'Goodbye, ' + local_name %>", :locals => { :local_name => name }
+    render :inline => "<%= 'Goodbye, ' + local_name %>",
+           :locals => { :local_name => name }
   end
   
   def accessing_local_assigns_in_inline_template_with_string_keys
     name = params[:local_name]
-    render :inline => "<%= 'Goodbye, ' + local_name %>", :locals => { "local_name" => name }
+    ActionView::Base.local_assigns_support_string_keys = true
+    render :inline => "<%= 'Goodbye, ' + local_name %>",
+           :locals => { "local_name" => name }
+    ActionView::Base.local_assigns_support_string_keys = false
   end
 
   def rescue_action(e) raise end

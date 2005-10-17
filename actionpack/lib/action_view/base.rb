@@ -133,6 +133,12 @@ module ActionView #:nodoc:
     @@cache_template_loading = false
     cattr_accessor :cache_template_loading
 
+    # Specify whether local_assigns should be able to use string keys.
+    # Defaults to +true+. String keys are depreciated and will be removed
+    # shortly.
+    @@local_assigns_support_string_keys = true
+    cattr_accessor :local_assigns_support_string_keys
+
     @@template_handlers = {}
  
     module CompiledTemplates #:nodoc:
@@ -258,6 +264,8 @@ module ActionView #:nodoc:
       method_name = @@method_names[file_path || template]
       evaluate_assigns                                    
 
+      local_assigns = local_assigns.symbolize_keys if @@local_assigns_support_string_keys
+
       send(method_name, local_assigns) do |*name|
         instance_variable_get "@content_for_#{name.first || 'layout'}"
       end
@@ -365,10 +373,8 @@ module ActionView #:nodoc:
         @@template_args[render_symbol] = locals_keys.inject({}) { |h, k| h[k] = true; h }
 
         locals_code = ""
-        unless locals_keys.empty?
-          locals_code << locals_keys.inject("local_assigns = local_assigns.symbolize_keys\n") do |code, key|
-            code << "#{key} = local_assigns[:#{key}] if local_assigns.has_key?(:#{key})\n"
-          end
+        locals_keys.each do |key|
+          locals_code << "#{key} = local_assigns[:#{key}] if local_assigns.has_key?(:#{key})\n"
         end
 
         "def #{render_symbol}(local_assigns)\n#{locals_code}#{body}\nend"

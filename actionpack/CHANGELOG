@@ -1,5 +1,7 @@
 *1.10.0* (October 16th, 2005)
 
+* Make string-keys locals assigns optional. Add documentation describing depreciated state [skaes@web.de]
+
 * Improve line number detection for template errors [Nicholas Seckar]
 
 * Update/clean up documentation (rdoc)
