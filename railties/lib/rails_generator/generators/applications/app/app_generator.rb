@@ -11,7 +11,7 @@ class AppGenerator < Rails::Generator::Base
     super
     usage if args.empty?
     @destination_root = args.shift
-    @socket = `mysql_config --socket`.strip
+    @socket = `mysql_config --socket`.strip rescue nil
     @socket = '/path/to/your/mysql.sock' if @socket.blank?
   end
 
