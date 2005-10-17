@@ -134,7 +134,7 @@ module ActionView #:nodoc:
     cattr_accessor :cache_template_loading
 
     # Specify whether local_assigns should be able to use string keys.
-    # Defaults to +true+. String keys are depreciated and will be removed
+    # Defaults to +true+. String keys are deprecated and will be removed
     # shortly.
     @@local_assigns_support_string_keys = true
     cattr_accessor :local_assigns_support_string_keys
