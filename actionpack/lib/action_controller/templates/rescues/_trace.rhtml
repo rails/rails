@@ -1,21 +1,24 @@
-
-<% if @exception %>
 <%
-  clean_backtrace = @exception.clean_backtrace
-  app_trace       = @exception.application_backtrace
-  framework_trace = clean_backtrace - app_trace
-  traces = {"Application Trace" => app_trace, "Framework Trace" => framework_trace, "Full Trace" => clean_backtrace}
-  trace_names = ["Application Trace", "Framework Trace", "Full Trace"]
+  traces = [
+    ["Application Trace", @exception.application_backtrace],
+    ["Framework Trace", @exception.framework_backtrace],
+    ["Full Trace", @exception.clean_backtrace]
+  ]
+  names = traces.collect {|name, trace| name}
 %>
 
 <div id="traces">
-  <% trace_names.each do |k| -%>
-    <div id="<%= k.gsub /\s/, '-' %>" style="display: <%= k == "Application Trace" ? 'block' : 'none' %>;">
-      <% trace_names.each do |ok| -%>
-        <a href="#" onclick="document.getElementById('<%= k.gsub /\s/, '-' %>').style.display='none'; document.getElementById('<%= ok.gsub /\s/, '-' %>').style.display='block'; return false;"><%= ok %></a> <%= '|' unless trace_names.last == ok %>
-      <% end -%>
-      <pre><code><%= traces[k].join "\n" %></code></pre>
+  <% names.each do |name| -%>
+    <%
+      show = "document.getElementById('#{name.gsub /\s/, '-'}').style.display='block';"
+      hide = (names - [name]).collect {|hide_name| "document.getElementById('#{hide_name.gsub /\s/, '-'}').style.display='none';"}
+    %>
+    <a href="#" onclick="<%= hide %><%= show %>; return false;"><%= name %></a> <%= '|' unless names.last == name %>
+  <% end -%>
+
+  <% traces.each do |name, trace| -%>
+    <div id="<%= name.gsub /\s/, '-' %>" style="display: <%= name == "Application Trace" ? 'block' : 'none' %>;">
+      <pre><code><%= trace.join "\n" %></code></pre>
     </div>
   <% end -%>
 </div>
-<% end %>

@@ -1,3 +1,7 @@
+* Update error trace templates [Nicholas Seckar]
+
+* Stop showing generated routing code in application traces [Nicholas Seckar]
+
 *1.10.0* (October 16th, 2005)
 
 * Make string-keys locals assigns optional. Add documentation describing depreciated state [skaes@web.de]
