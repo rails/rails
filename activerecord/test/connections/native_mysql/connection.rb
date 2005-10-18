@@ -9,14 +9,12 @@ db2 = 'activerecord_unittest2'
 
 ActiveRecord::Base.establish_connection(
   :adapter  => "mysql",
-  :socket   => `mysql_config --socket`,
   :username => "rails",
   :database => db1
 )
 
 Course.establish_connection(
   :adapter  => "mysql",
-  :socket   => `mysql_config --socket`,
   :username => "rails",
   :database => db2
 )
