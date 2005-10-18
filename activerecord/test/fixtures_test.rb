@@ -168,8 +168,12 @@ class FixturesTest < Test::Unit::TestCase
       end
     end
   end
+end
 
-  if Account.connection.respond_to?(:reset_pk_sequence!)
+if Account.connection.respond_to?(:reset_pk_sequence!)
+  class FixturesResetPkSequenceTest < Test::Unit::TestCase
+    fixtures :accounts
+
     def test_resets_to_min_pk
       Account.delete_all
       Account.connection.reset_pk_sequence!(Account.table_name)
@@ -284,11 +288,4 @@ class ForeignKeyFixturesTest < Test::Unit::TestCase
   def test_number2
     assert true
   end
-
 end
-
-
-
-
-
-

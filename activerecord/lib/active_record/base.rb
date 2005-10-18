@@ -893,8 +893,8 @@ module ActiveRecord #:nodoc:
           condition_segments = [scope_constraints[:conditions]]
           condition_segments << sanitize_sql(conditions) unless conditions.nil?
           condition_segments << type_condition unless descends_from_active_record?        
-          condition_segments.compact!  
-          sql << "WHERE #{condition_segments.join(" AND ")} " unless condition_segments.empty?
+          condition_segments.compact!
+          sql << "WHERE (#{condition_segments.join(") AND (")}) " unless condition_segments.empty?
         end
 
         def type_condition

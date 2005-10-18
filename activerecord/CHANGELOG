@@ -1,5 +1,7 @@
 *1.12.1*
 
+* Always parenthesize :conditions options so they may be safely combined with STI and constraints.
+
 * Correct PostgreSQL primary key sequence detection.  #2507 [tmornini@infomania.com]
 
 * Added support for using limits in eager loads that involve has_many and has_and_belongs_to_many associations

@@ -296,8 +296,8 @@ module ActiveRecord
         options.assert_valid_keys(
           :foreign_key, :class_name, :exclusively_dependent, :dependent, 
           :conditions, :order, :finder_sql, :counter_sql, 
-					:before_add, :after_add, :before_remove, :after_remove
-				)
+          :before_add, :after_add, :before_remove, :after_remove 
+        )
 
         association_name, association_class_name, association_class_primary_key_name =
               associate_identification(association_id, options[:class_name], options[:foreign_key])

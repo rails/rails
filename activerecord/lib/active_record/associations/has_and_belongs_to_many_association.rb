@@ -41,7 +41,7 @@ module ActiveRecord
         else
           conditions = "#{@finder_sql}"
           if sanitized_conditions = sanitize_sql(options[:conditions])
-            conditions << " AND #{sanitized_conditions}"
+            conditions << " AND (#{sanitized_conditions})"
           end
           options[:conditions] = conditions
           options[:joins] = @join_sql
@@ -141,7 +141,7 @@ module ActiveRecord
             @finder_sql = @options[:finder_sql]
           else
             @finder_sql = "#{@join_table}.#{@association_class_primary_key_name} = #{@owner.quoted_id} "
-            @finder_sql << " AND #{interpolate_sql(@options[:conditions])}" if @options[:conditions]
+            @finder_sql << " AND (#{interpolate_sql(@options[:conditions])})" if @options[:conditions]
           end
           
           @join_sql = "LEFT JOIN #{@join_table} ON #{@association_class.table_name}.#{@association_class.primary_key} = #{@join_table}.#{@association_foreign_key}"

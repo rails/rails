@@ -26,7 +26,7 @@ module ActiveRecord
           records = @association_class.find_by_sql(@finder_sql)
         else
           sql = @finder_sql
-          sql += " AND #{sanitize_sql(runtime_conditions)}" if runtime_conditions
+          sql += " AND (#{sanitize_sql(runtime_conditions)})" if runtime_conditions
           orderings ||= @options[:order]
           records = @association_class.find_all(sql, orderings, limit, joins)
         end
@@ -45,7 +45,7 @@ module ActiveRecord
           @association_class.count_by_sql(@finder_sql)
         else
           sql = @finder_sql
-          sql += " AND #{sanitize_sql(runtime_conditions)}" if runtime_conditions
+          sql += " AND (#{sanitize_sql(runtime_conditions)})" if runtime_conditions
           @association_class.count(sql)
         end
       end
@@ -137,7 +137,7 @@ module ActiveRecord
             @finder_sql = interpolate_sql(@options[:finder_sql])
           else
             @finder_sql = "#{@association_class.table_name}.#{@association_class_primary_key_name} = #{@owner.quoted_id}"
-            @finder_sql << " AND #{interpolate_sql(@conditions)}" if @conditions
+            @finder_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
           end
 
           if @options[:counter_sql]
@@ -147,7 +147,7 @@ module ActiveRecord
             @counter_sql = interpolate_sql(@options[:counter_sql])
           else
             @counter_sql = "#{@association_class.table_name}.#{@association_class_primary_key_name} = #{@owner.quoted_id}"
-            @counter_sql << " AND #{interpolate_sql(@conditions)}" if @conditions
+            @counter_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
           end
         end
     end
