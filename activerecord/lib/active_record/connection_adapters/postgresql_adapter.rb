@@ -205,8 +205,8 @@ module ActiveRecord
 
       # Set the sequence to the max value of the table's pk.
       def reset_pk_sequence!(table)
-        sequence, pk = sequence_and_pk_for(table)
-        if sequence and pk
+        pk, sequence = pk_and_sequence_for(table)
+        if pk and sequence
           select_value <<-end_sql, 'Reset sequence'
             SELECT setval('#{sequence}', (SELECT COALESCE(MAX(#{pk})+(SELECT increment_by FROM #{sequence}), (SELECT min_value FROM #{sequence})) FROM #{table}), false)
           end_sql
@@ -214,19 +214,26 @@ module ActiveRecord
       end
 
       # Find a table's primary key and sequence.
-      def sequence_and_pk_for(table, column = nil)
+      def pk_and_sequence_for(table)
         execute(<<-end_sql, 'Find pk sequence')[0]
-          SELECT (name.nspname || '.' || seq.relname) AS sequence, attr.attname AS pk
-          FROM pg_class seq, pg_attribute attr, pg_depend dep, pg_namespace name, pg_constraint cons
-          WHERE seq.oid = dep.objid
-            AND seq.relnamespace = name.oid
-            AND attr.attrelid = dep.refobjid
-            AND attr.attnum = dep.refobjsubid
-            AND attr.attrelid = cons.conrelid
-            AND attr.attnum = cons.conkey[1]
-            AND cons.contype = 'p'
-            AND dep.refobjid = '#{table}'::regclass
+          SELECT attr.attname, (name.nspname || '.' || seq.relname)
+          FROM pg_class      seq,
+               pg_attribute  attr,
+               pg_depend     dep,
+               pg_namespace  name,
+               pg_constraint cons
+          WHERE seq.oid           = dep.objid
+            AND seq.relnamespace  = name.oid
+            AND seq.relkind       = 'S'
+            AND attr.attrelid     = dep.refobjid
+            AND attr.attnum       = dep.refobjsubid
+            AND attr.attrelid     = cons.conrelid
+            AND attr.attnum       = cons.conkey[1]
+            AND cons.contype      = 'p'
+            AND dep.refobjid      = '#{table}'::regclass
         end_sql
+      rescue
+        nil
       end
 
       

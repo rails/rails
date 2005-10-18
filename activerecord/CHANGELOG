@@ -1,5 +1,7 @@
 *1.12.1*
 
+* Correct PostgreSQL primary key sequence detection.  #2507 [tmornini@infomania.com]
+
 * Added support for using limits in eager loads that involve has_many and has_and_belongs_to_many associations
 
 *1.12.0* (October 16th, 2005)
