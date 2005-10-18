@@ -95,8 +95,35 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_equal [], posts
   end
   
-  def test_eager_association_raise_on_limit
-    assert_raises(ActiveRecord::ConfigurationError) { Post.find(:all, :include => [:author, :comments], :limit => 1) }
+  def test_eager_with_has_many_and_limit
+    posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2)
+    assert_equal 2, posts.size
+    assert_equal 3, posts.inject(0) { |sum, post| sum += post.comments.size }
+  end
+
+  def test_eager_with_has_many_and_limit_with_no_results
+    posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => "posts.title = 'magic forest'")
+    assert_equal 0, posts.size
+  end
+
+  def test_eager_with_has_and_belongs_to_many_and_limit
+    posts = Post.find(:all, :include => :categories, :order => "posts.id", :limit => 3)
+    assert_equal 3, posts.size
+    assert_equal 2, posts[0].categories.size
+    assert_equal 1, posts[1].categories.size
+    assert_equal 0, posts[2].categories.size
+    assert posts[0].categories.include?(categories(:technology))
+    assert posts[1].categories.include?(categories(:general))
+  end
+
+  def test_eager_with_has_many_and_limit_and_conditions_on_the_eagers
+    assert_raises(ArgumentError) do
+      posts = authors(:david).posts.find(:all, 
+        :include    => :comments, 
+        :conditions => "comments.body like 'Normal%' OR comments.type = 'SpecialComment'",
+        :limit      => 2
+      )
+    end
   end
 
   def test_eager_association_loading_with_habtm

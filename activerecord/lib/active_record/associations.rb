@@ -167,9 +167,14 @@ module ActiveRecord
     # the number of queries. The database still needs to send all the data to Active Record and it still needs to be processed. So its no
     # catch-all for performance problems, but its a great way to cut down on the number of queries in a situation as the one described above.
     #
-    # Please note that because eager loading is fetching both models and associations in the same grab, it doesn't make sense to use the
-    # :limit and :offset options on has_many and has_and_belongs_to_many associations and an ConfigurationError exception will be raised 
-    # if attempted. It does, however, work just fine with has_one and belongs_to associations.
+    # Please note that limited eager loading with has_many and has_and_belongs_to_many associations is not compatible with describing conditions
+    # on these eager tables. This will work:
+    #
+    #   Post.find(:all, :include => :comments, :conditions => "posts.title = 'magic forest'", :limit => 2)
+    #
+    # ...but this will not (and an ArgumentError will be raised):
+    #
+    #   Post.find(:all, :include => :comments, :conditions => "comments.body like 'Normal%'", :limit => 2)
     #
     # Also have in mind that since the eager loading is pulling from multiple tables, you'll have to disambiguate any column references
     # in both conditions and orders. So :order => "posts.id DESC" will work while :order => "id DESC" will not. This may require that
@@ -766,7 +771,6 @@ module ActiveRecord
           reflections  = reflect_on_included_associations(options[:include])
 
           guard_against_missing_reflections(reflections, options)
-          guard_against_unlimitable_reflections(reflections, options)
           
           schema_abbreviations = generate_schema_abbreviations(reflections)
           primary_key_table    = generate_primary_key_table(reflections, schema_abbreviations)
@@ -867,11 +871,47 @@ module ActiveRecord
           sql = "SELECT #{column_aliases(schema_abbreviations)} FROM #{table_name} "
           sql << reflections.collect { |reflection| association_join(reflection) }.to_s
           sql << "#{options[:joins]} " if options[:joins]
+
           add_conditions!(sql, options[:conditions])
           add_sti_conditions!(sql, reflections)
+          add_limited_ids_condition!(sql, options) if !using_limitable_reflections?(reflections) && options[:limit]
+
           sql << "ORDER BY #{options[:order]} " if options[:order]
+
           add_limit!(sql, options) if using_limitable_reflections?(reflections)
+
           return sanitize_sql(sql)
+        end
+
+        def add_limited_ids_condition!(sql, options)
+          unless (id_list = select_limited_ids_list(options)).empty?
+            sql << "#{condition_word(sql)} #{table_name}.#{primary_key} IN (#{id_list}) "
+          end
+        end
+
+        def select_limited_ids_list(options)
+          connection.select_values(
+            construct_finder_sql_for_association_limiting(options),
+            "#{name} Load IDs For Limited Eager Loading"
+          ).collect { |id| "'#{id}'" }.join(", ")
+        end
+
+        def construct_finder_sql_for_association_limiting(options)
+          raise(ArgumentError, "Limited eager loads and conditions on the eager tables is incompatible") if include_eager_conditions?(options)
+          
+          sql = "SELECT #{primary_key} FROM #{table_name} "
+          add_conditions!(sql, options[:conditions])
+          sql << "ORDER BY #{options[:order]} " if options[:order]
+          add_limit!(sql, options)
+          return sanitize_sql(sql)
+        end
+
+        def include_eager_conditions?(options)
+          return false unless options[:conditions]
+          
+          options[:conditions].scan(/ ([^.]+)\.[^.]+ /).flatten.any? do |condition_table_name| 
+            condition_table_name != table_name
+          end
         end
 
         def using_limitable_reflections?(reflections)
@@ -879,12 +919,13 @@ module ActiveRecord
         end
 
         def add_sti_conditions!(sql, reflections)
-          sti_sql = ""
-          reflections.each do |reflection|
-            sti_sql << " AND #{reflection.klass.send(:type_condition)}" unless reflection.klass.descends_from_active_record?
+          sti_conditions = reflections.collect do |reflection|
+            reflection.klass.send(:type_condition) unless reflection.klass.descends_from_active_record?
+          end.compact
+          
+          unless sti_conditions.empty?
+            sql << condition_word(sql) + sti_conditions.join(" AND ")
           end
-          sti_sql.sub!(/AND/, "WHERE") unless sql =~ /where/i
-          sql << sti_sql
         end
 
         def column_aliases(schema_abbreviations)
@@ -933,6 +974,10 @@ module ActiveRecord
           end
           return record
         end        
+
+        def condition_word(sql)
+          sql =~ /where/i ? " AND " : "WHERE "
+        end
     end
 
   end
