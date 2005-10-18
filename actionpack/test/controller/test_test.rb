@@ -20,6 +20,7 @@ class TestTest < Test::Unit::TestCase
       render :text => <<HTML
 <html>
   <body>
+    <a href="/"><img src="/images/button.png" /></a>
     <div id="foo">
       <ul>
         <li class="item">hello</li>
@@ -121,8 +122,8 @@ HTML
 
     # there is a tag with a child 'input' tag
     assert_tag :child => { :tag => "input" }
-    # there is no tag with a child 'a' tag
-    assert_no_tag :child => { :tag => "a" }
+    # there is no tag with a child 'strong' tag
+    assert_no_tag :child => { :tag => "strong" }
   end
 
   def test_assert_tag_ancestor
@@ -231,6 +232,22 @@ HTML
                     :tag => "ul",
                     :children => { :greater_than => 2,
                                    :only => { :tag => "li" } } }
+  end
+
+  def test_assert_tag_children_without_content
+    process :test_html_output
+    
+    # there is a form tag with an 'input' child which is a self closing tag
+    assert_tag :tag => "form",
+      :children => { :count => 1,
+        :only => { :tag => "input" } }
+
+    # the body tag has an 'a' child which in turn has an 'img' child
+    assert_tag :tag => "body",
+      :children => { :count => 1,
+        :only => { :tag => "a",
+          :children => { :count => 1,
+            :only => { :tag => "img" } } } }
   end
 
   def test_assert_generates

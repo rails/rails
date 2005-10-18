@@ -435,7 +435,11 @@ module HTML #:nodoc:
       
       # count children
       if opts = conditions[:children]
-        matches = children.select { |c| c.match(/./) }
+        matches = children.select do |c|
+          c.match(/./) or
+          (c.kind_of?(HTML::Tag) and (c.closing == :self or ! c.childless?))
+        end
+        
         matches = matches.select { |c| c.match(opts[:only]) } if opts[:only]
         opts.each do |key, value|
           next if key == :only
