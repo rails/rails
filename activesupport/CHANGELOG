@@ -1,3 +1,8 @@
+* Classify generated routing code as framework code to avoid appearing in application traces. [Nicholas Seckar]
+
+* Show all framework frames in the framework trace. [Nicholas Seckar]
+
+
 *1.2.0* (October 16th, 2005)
 
 * Update Exception extension to show the first few framework frames in an application trace. [Nicholas Seckar] 

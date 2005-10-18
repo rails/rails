@@ -34,5 +34,13 @@ class ExceptionExtTests < Test::Unit::TestCase
     assert_kind_of Exception, e
     assert_equal ['vendor/file.rb some stuff', 'bhal.rb', 'almost all'], e.application_backtrace
   end
+
+  def test_framework_backtrace_with_before
+    Exception::TraceSubstitutions << [/\s*hidden.*/, '']
+    e = get_exception RuntimeError, 'RAWR', ['vendor/file.rb some stuff', 'bhal.rb', ' vendor/file.rb some stuff', 'almost all']
+    assert_kind_of Exception, e
+    assert_equal ['vendor/file.rb some stuff', ' vendor/file.rb some stuff'], e.framework_backtrace
+  end
+
   
 end

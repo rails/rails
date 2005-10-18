@@ -3,6 +3,7 @@ class Exception
   alias :clean_message :message
   
   TraceSubstitutions = []
+  FrameworkRegexp = /generated_code|vendor|dispatch|ruby|script\/\w+/
   
   def clean_backtrace
     backtrace.collect do |line|
@@ -16,9 +17,13 @@ class Exception
     before_application_frame = true
     
     clean_backtrace.reject do |line|
-      non_app_frame = !! (line =~ /vendor|dispatch|ruby|script\/\w+/)
+      non_app_frame = !! (line =~ FrameworkRegexp)
       before_application_frame = false unless non_app_frame
       non_app_frame && ! before_application_frame
     end
+  end
+  
+  def framework_backtrace
+    clean_backtrace.select {|line| line =~ FrameworkRegexp}
   end
 end
