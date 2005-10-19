@@ -146,6 +146,16 @@ class InflectorTest < Test::Unit::TestCase
     "underground"     => "Underground"
   }
 
+  MixtureToTitleCase = {
+    'active_record'       => 'Active Record',
+    'ActiveRecord'        => 'Active Record',
+    'action web service'  => 'Action Web Service',
+    'Action Web Service'  => 'Action Web Service',
+    'Action web service'  => 'Action Web Service',
+    'actionwebservice'    => 'Actionwebservice',
+    'Actionwebservice'    => 'Actionwebservice'
+  }
+
   OrdinalNumbers = {
     "0" => "0th",
     "1" => "1st",
@@ -193,6 +203,12 @@ class InflectorTest < Test::Unit::TestCase
     define_method "test_singularize_#{plural}" do
       assert_equal(singular, Inflector.singularize(plural))
       assert_equal(singular.capitalize, Inflector.singularize(plural.capitalize))
+    end
+  end
+
+  MixtureToTitleCase.each do |before, title_cased|
+    define_method 'test_titlecase' do
+      assert_equal(title_cased, Inflector.titleize(before))
     end
   end
 

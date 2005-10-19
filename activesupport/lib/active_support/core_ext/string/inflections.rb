@@ -15,6 +15,12 @@ module ActiveSupport #:nodoc:
         def camelize
           Inflector.camelize(self)
         end
+        alias_method :camelcase, :camelize
+
+        def titleize
+          Inflector.titleize(self)
+        end
+        alias_method :titlecase, :titleize
 
         def underscore
           Inflector.underscore(self)
