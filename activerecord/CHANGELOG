@@ -1,11 +1,12 @@
 *1.12.1* (October 19th, 2005)
 
+* Make all tests runnable on their own. #2521. [Blair Zajac <blair@orcaware.com>]
+
 * Always parenthesize :conditions options so they may be safely combined with STI and constraints.
 
 * Correct PostgreSQL primary key sequence detection.  #2507 [tmornini@infomania.com]
 
 * Added support for using limits in eager loads that involve has_many and has_and_belongs_to_many associations
-
 
 *1.12.0* (October 16th, 2005)
 
