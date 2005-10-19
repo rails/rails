@@ -1,3 +1,8 @@
+*SVN*
+
+* Don't clean RAILS_ROOT on windows
+
+
 *0.14.1* (October 19th, 2005)
 
 * Remove trailing '/' from RAILS_ROOT [Nicholas Seckar]
