@@ -1,3 +1,8 @@
+*0.9.1* (October 19th, 2005)
+
+* Upgraded to Action Pack 1.10.1 and Active Record 1.12.1
+
+
 *0.9.0* (October 16th, 2005)
 
 * Fix invalid XML request generation bug in test_invoke [Ken Barker]
