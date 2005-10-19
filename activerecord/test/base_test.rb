@@ -1,3 +1,5 @@
+require 'abstract_unit'
+require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/company'
 require 'fixtures/developer'

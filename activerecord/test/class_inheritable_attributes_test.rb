@@ -1,6 +1,5 @@
-$:.unshift(File.dirname(__FILE__) + '/../lib')
-
 require 'test/unit'
+require 'abstract_unit'
 require 'active_support/class_inheritable_attributes'
 
 class A
