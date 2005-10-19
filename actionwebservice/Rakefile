@@ -65,7 +65,7 @@ spec = Gem::Specification.new do |s|
 
   s.add_dependency('actionpack', '= 1.10.1' + PKG_BUILD)
   s.add_dependency('activerecord', '= 1.12.1' + PKG_BUILD)
-  s.add_dependency('activesupport', '= 1.2.0' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 1.2.1' + PKG_BUILD)
 
   s.has_rdoc = true
   s.requirements << 'none'
