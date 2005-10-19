@@ -1,6 +1,9 @@
+*1.10.1* (October 19th, 2005)
+
 * Update error trace templates [Nicholas Seckar]
 
 * Stop showing generated routing code in application traces [Nicholas Seckar]
+
 
 *1.10.0* (October 16th, 2005)
 

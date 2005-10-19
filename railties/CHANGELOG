@@ -1,4 +1,8 @@
+*0.14.1* (October 19th, 2005)
+
 * Remove trailing '/' from RAILS_ROOT [Nicholas Seckar]
+
+* Upgraded to Active Record 1.12.1 and Action Pack 1.10.1
 
 
 *0.14.0* (October 16th, 2005)
