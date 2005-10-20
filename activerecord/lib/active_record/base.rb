@@ -357,7 +357,7 @@ module ActiveRecord #:nodoc:
       # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
       # * <tt>:joins</tt>: An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
       #   The records will be returned read-only since they will have attributes that do not correspond to the table's columns.
-      #   Use <tt>find_by_sql</tt> to circumvent this limitation.
+      #   Pass :readonly => false to override.
       # * <tt>:include</tt>: Names associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
       #   to already defined associations. See eager loading under Associations.
       # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you for example want to do a join, but not
@@ -384,8 +384,10 @@ module ActiveRecord #:nodoc:
       def find(*args)
         options = extract_options_from_args!(args)
 
-        # :joins implies :readonly => true
-        options[:readonly] = true if options[:joins]
+        # :joins implies :readonly => true if unset.
+        if options[:joins] and !options.has_key?(:readonly)
+          options[:readonly] = true
+        end
 
         case args.first
           when :first

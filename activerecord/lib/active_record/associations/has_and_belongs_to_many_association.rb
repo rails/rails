@@ -45,6 +45,7 @@ module ActiveRecord
           end
           options[:conditions] = conditions
           options[:joins] = @join_sql
+          options[:readonly] ||= false
 
           if options[:order] && @options[:order]
             options[:order] = "#{options[:order]}, #{@options[:order]}"
