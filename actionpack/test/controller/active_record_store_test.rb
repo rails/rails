@@ -53,7 +53,6 @@ module CommonActiveRecordStoreTests
       @new_session.close
     end
   end
-
 end
 
 class ActiveRecordStoreTest < Test::Unit::TestCase
@@ -73,13 +72,17 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
     @new_session['foo'] = 'bar'
   end
 
+  def test_model_attribute
+    assert_kind_of CGI::Session::ActiveRecordStore::Session, @new_session.model
+    assert_equal @new_session.model.data, @new_session.data
+  end
+
   def teardown
     session_class.drop_table!
   end
 end
 
 class ColumnLimitTest < Test::Unit::TestCase
-
   def setup
     @session_class = CGI::Session::ActiveRecordStore::Session
     @session_class.create_table!
@@ -97,9 +100,7 @@ class ColumnLimitTest < Test::Unit::TestCase
     s.data
     assert_raises(ActionController::SessionOverflowError) { s.save }
   end
-
 end
-
 
 class DeprecatedActiveRecordStoreTest < ActiveRecordStoreTest
   def setup
@@ -128,12 +129,17 @@ class SqlBypassActiveRecordStoreTest < ActiveRecordStoreTest
     end
     @session_class
   end
+
+  def test_model_attribute
+    assert_kind_of CGI::Session::ActiveRecordStore::SqlBypass, @new_session.model
+    assert_equal @new_session.model.data, @new_session.data
+  end
 end
 
 
 # End of safety net.
   rescue Object => e
-    $stderr.puts "Skipping CGI::Session::ActiveRecordStore tests: #{e}"    
+    $stderr.puts "Skipping CGI::Session::ActiveRecordStore tests: #{e}"
     #$stderr.puts "  #{e.backtrace.join("\n  ")}"
   end
 end

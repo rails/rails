@@ -5,6 +5,16 @@ require 'base64'
 
 class CGI
   class Session
+    # Return this session's underlying Session model. Useful for the DB-backed session stores.
+    def model
+      @dbman.model rescue nil
+    end
+
+    # Proxy missing methods to the underlying Session model.
+    def method_missing(method, *args, &block)
+      if model then model.send(method, *args, &block) else super end
+    end
+
     # A session store backed by an Active Record class.
     #
     # A default class is provided, but any object duck-typing to an Active
@@ -275,6 +285,11 @@ class CGI
           end
           @session = @@session_class.new(:session_id => session_id, :data => {})
         end
+      end
+
+      # Access the underlying session model.
+      def model
+        @session
       end
 
       # Restore session state.  The session model handles unmarshaling.

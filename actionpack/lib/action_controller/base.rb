@@ -4,6 +4,7 @@ require 'action_controller/routing'
 require 'action_controller/code_generation'
 require 'action_controller/url_rewriter'
 require 'drb'
+require 'set'
 
 module ActionController #:nodoc:
   class ActionControllerError < StandardError #:nodoc:
@@ -846,8 +847,7 @@ module ActionController #:nodoc:
       end
 
       def self.action_methods
-        #puts "action method: #{public_instance_methods.inspect}"
-        @action_methods ||= (public_instance_methods - hidden_actions).inject({}) { |h, k| h[k] = true; h }
+        @action_methods ||= Set.new(public_instance_methods - hidden_actions)
       end
 
       def add_variables_to_assigns

@@ -1,5 +1,7 @@
 *SVN*
 
+* Expose the session model backing CGI::Session
+
 * Abbreviate RAILS_ROOT in traces
 
 
