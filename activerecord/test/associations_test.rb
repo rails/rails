@@ -566,6 +566,15 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert Client.find_by_id(client_id).nil?
   end                                                    
 
+  def test_clearing_without_initial_access
+    firm = companies(:first_firm)
+
+    firm.clients_of_firm.clear
+
+    assert_equal 0, firm.clients_of_firm.size
+    assert_equal 0, firm.clients_of_firm(true).size
+  end
+
   def test_deleting_a_item_which_is_not_in_the_collection
     force_signal37_to_load_all_clients_of_firm
     summit = Client.find_first("name = 'Summit'")

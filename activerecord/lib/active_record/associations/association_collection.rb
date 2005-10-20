@@ -59,7 +59,7 @@ module ActiveRecord
 
       # Removes all records from this association.  Returns +self+ so method calls may be chained.
       def clear
-        return self if empty? # forces load_target if hasn't happened already
+        return self if length.zero? # forces load_target if hasn't happened already
         if @options[:exclusively_dependent]
           destroy_all
         else          

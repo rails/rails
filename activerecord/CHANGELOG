@@ -1,6 +1,8 @@
 *1.12.1* (October 19th, 2005)
 
-* HABTM finders shouldn't return readonly records.  #2525 [patrick@lenz.sh]
+* Fixed Association#clear for associations which have not yet been accessed. #2524 [Patrick Lenz <patrick@lenz.sh>]
+
+* HABTM finders shouldn't return readonly records.  #2525 [Patrick Lenz <patrick@lenz.sh>]
 
 * Make all tests runnable on their own. #2521. [Blair Zajac <blair@orcaware.com>]
 
