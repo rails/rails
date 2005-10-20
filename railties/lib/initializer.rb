@@ -57,7 +57,7 @@ module Rails
     # * #initialize_dependency_mechanism
     # * #initialize_breakpoints
     # * #initialize_whiny_nils
-    # * #intitialize_framework_settings
+    # * #initialize_framework_settings
     # * #load_environment
     # * #load_plugins
     #
@@ -81,7 +81,7 @@ module Rails
       initialize_breakpoints
       initialize_whiny_nils
       
-      intitialize_framework_settings
+      initialize_framework_settings
       
       # Support for legacy configuration style where the environment
       # could overwrite anything set from the defaults/global through
@@ -239,7 +239,7 @@ module Rails
     # Initialize framework-specific settings for each of the loaded frameworks
     # (Configuration#frameworks). The available settings map to the accessors
     # on each of the corresponding Base classes.
-    def intitialize_framework_settings
+    def initialize_framework_settings
       configuration.frameworks.each do |framework|
         base_class = framework.to_s.camelize.constantize.const_get("Base")
 
