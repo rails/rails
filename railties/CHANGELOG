@@ -1,3 +1,8 @@
+*SVN*
+
+* Include tasks from vendor/plugins/*/tasks in the Rakefile #2545 [Rick Olson]
+
+
 *0.14.1* (October 19th, 2005)
 
 * Don't clean RAILS_ROOT on windows

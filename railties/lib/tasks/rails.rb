@@ -5,3 +5,4 @@ Dir["#{File.dirname(__FILE__)}/*.rake"].each { |ext| load ext }
 
 # Load any custom rakefile extensions
 Dir["./lib/tasks/**/*.rake"].each { |ext| load ext }
+Dir["./vendor/plugins/*/tasks/**/*.rake"].each { |ext| load ext }
