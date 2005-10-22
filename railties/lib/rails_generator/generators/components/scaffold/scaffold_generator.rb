@@ -46,7 +46,7 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
 
   def initialize(runtime_args, runtime_options = {})
     super
-    @controller_name = args.shift || ActiveRecord::Base.pluralize_table_names ? @name.pluralize : @name
+    @controller_name = args.shift or (ActiveRecord::Base.pluralize_table_names ? @name.pluralize : @name)
     base_name, @controller_class_path, @controller_file_path, @controller_class_nesting, @controller_class_nesting_depth = extract_modules(@controller_name)
     @controller_class_name_without_nesting, @controller_singular_name, @controller_plural_name = inflect_names(base_name)
     if @controller_class_nesting.empty?

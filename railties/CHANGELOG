@@ -1,5 +1,7 @@
 *SVN*
 
+* Scaffold generator pays attention to the controller name.  #2562 [self@mattmower.com]
+
 * Include tasks from vendor/plugins/*/tasks in the Rakefile #2545 [Rick Olson]
 
 
