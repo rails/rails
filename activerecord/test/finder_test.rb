@@ -96,7 +96,13 @@ class FinderTest < Test::Unit::TestCase
   end
   
   def test_find_only_some_columns
-    assert_raises(NoMethodError) { Topic.find(1, :select => "author_name").title }
+    topic = Topic.find(1, :select => "author_name")
+    assert_raises(NoMethodError) { topic.title }
+    assert_equal "David", topic.author_name
+    assert !topic.attribute_present?("title")
+    assert !topic.respond_to?("title")
+    assert topic.attribute_present?("author_name")
+    assert topic.respond_to?("author_name")
   end
 
   def test_find_on_conditions

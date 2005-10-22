@@ -130,7 +130,7 @@ class AppGenerator < Rails::Generator::Base
   )
 
   MYSQL_SOCKET_LOCATIONS = [ "/tmp/mysql.sock", #default
-                             "/var/run/mysqld/mysqld.sock", #debian
+                             "/var/run/mysqld/mysqld.sock", #debian/gentoo
                              "/var/tmp/mysql.sock", # freebsd
                              "/var/lib/mysql/mysql.sock" ]  #fedora
 end

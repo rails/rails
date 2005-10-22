@@ -211,6 +211,13 @@ class BasicsTest < Test::Unit::TestCase
     end
   end
 
+  def test_non_attribute_access_and_assignment
+    topic = Topic.new
+    assert !topic.respond_to?("mumbo")
+    assert_raises(NoMethodError) { topic.mumbo }
+    assert_raises(NoMethodError) { topic.mumbo = 5 }
+  end
+
   def test_preserving_date_objects
     # SQL Server doesn't have a separate column type just for dates, so all are returned as time
     if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter

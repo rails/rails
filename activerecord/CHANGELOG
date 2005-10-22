@@ -1,5 +1,7 @@
 *1.12.1* (October 19th, 2005)
 
+* Clarify semantics of ActiveRecord::Base#respond_to?  #2560 [skaes@web.de]
+
 * Fixed Association#clear for associations which have not yet been accessed. #2524 [Patrick Lenz <patrick@lenz.sh>]
 
 * HABTM finders shouldn't return readonly records.  #2525 [Patrick Lenz <patrick@lenz.sh>]

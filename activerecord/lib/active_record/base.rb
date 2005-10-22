@@ -731,10 +731,11 @@ module ActiveRecord #:nodoc:
       # is available.
       def column_methods_hash
         @dynamic_methods_hash ||= column_names.inject(Hash.new(false)) do |methods, attr|
-          methods[attr.to_sym]       = true
-          methods["#{attr}=".to_sym] = true
-          methods["#{attr}?".to_sym] = true
-          methods["#{attr}_before_type_cast".to_sym] = true
+          attr_name = attr.to_s
+          methods[attr.to_sym]       = attr_name
+          methods["#{attr}=".to_sym] = attr_name
+          methods["#{attr}?".to_sym] = attr_name
+          methods["#{attr}_before_type_cast".to_sym] = attr_name
           methods
         end
       end
@@ -1089,8 +1090,8 @@ module ActiveRecord #:nodoc:
 
         def encode_quoted_value(value)
           quoted_value = connection.quote(value)
-          quoted_value = "'#{quoted_value[1..-2].gsub(/\'/, "\\\\'")}'" if quoted_value.include?("\\\'")
-          quoted_value
+          quoted_value = "'#{quoted_value[1..-2].gsub(/\'/, "\\\\'")}'" if quoted_value.include?("\\\'") # (for ruby mode) " 
+          quoted_value 
         end
     end
 
@@ -1269,6 +1270,11 @@ module ActiveRecord #:nodoc:
         !value.blank? or value == 0
       end
 
+      # Returns true if the given attribute is in the attributes hash
+      def has_attribute?(attr_name)
+        @attributes.has_key?(attr_name.to_s)
+      end
+
       # Returns an array of names for the attributes available on this object sorted alphabetically.
       def attribute_names
         @attributes.keys.sort
@@ -1304,7 +1310,17 @@ module ActiveRecord #:nodoc:
       # A Person object with a name attribute can ask person.respond_to?("name"), person.respond_to?("name="), and
       # person.respond_to?("name?") which will all return true.
       def respond_to?(method, include_priv = false)
-        self.class.column_methods_hash[method.to_sym] || respond_to_without_attributes?(method, include_priv)
+        if attr_name = self.class.column_methods_hash[method.to_sym]
+          return true if @attributes.include?(attr_name) || attr_name == self.class.primary_key
+          return false if self.class.read_methods.include?(attr_name)
+        elsif @attributes.include?(method_name = method.to_s)
+          return true
+        elsif md = /(=|\?|_before_type_cast)$/.match(method_name)
+          return true if @attributes.include?(md.pre_match)
+        end
+        # super must be called at the end of the method, because the inherited respond_to?
+        # would return true for generated readers, even if the attribute wasn't present
+        super
       end
 
       # Just freeze the attributes hash, such that associations are still accessible even on destroyed records.
@@ -1424,7 +1440,7 @@ module ActiveRecord #:nodoc:
       # ActiveRecord::Base.generate_read_methods is set to true.
       def define_read_methods
         self.class.columns_hash.each do |name, column|
-          unless column.primary || self.class.serialized_attributes[name] || respond_to_without_attributes?(name)
+          unless self.class.serialized_attributes[name] || respond_to_without_attributes?(name)
             define_read_method(name.to_sym, name, column)
           end
         end
@@ -1434,15 +1450,12 @@ module ActiveRecord #:nodoc:
       def define_read_method(symbol, attr_name, column)
         cast_code = column.type_cast_code('v')
         access_code = cast_code ? "(v=@attributes['#{attr_name}']) && #{cast_code}" : "@attributes['#{attr_name}']"
-        body = access_code
 
-        # The following 3 lines behave exactly like method_missing if the
-        # attribute isn't present.
         unless symbol == :id
-          body = body.insert(0, "raise NoMethodError, 'missing attribute: #{attr_name}', caller unless @attributes.has_key?('#{attr_name}'); ")
+          access_code = access_code.insert(0, "raise NoMethodError, 'missing attribute: #{attr_name}', caller unless @attributes.has_key?('#{attr_name}'); ")
         end
-        self.class.class_eval("def #{symbol}; #{body} end")
 
+        self.class.class_eval("def #{symbol}; #{access_code}; end")
         self.class.read_methods[attr_name] = true unless symbol == :id
       end
 
