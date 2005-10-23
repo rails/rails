@@ -61,7 +61,7 @@ module ActiveRecord
           :float       => { :name => "float" },
           :datetime    => { :name => "timestamp" },
           :timestamp   => { :name => "timestamp" },
-          :time        => { :name => "timestamp" },
+          :time        => { :name => "time" },
           :date        => { :name => "date" },
           :binary      => { :name => "bytea" },
           :boolean     => { :name => "boolean" }
