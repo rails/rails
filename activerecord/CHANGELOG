@@ -1,5 +1,7 @@
 *1.12.1* (October 19th, 2005)
 
+* Keep closer tabs on dirty, loaded, and declared fixtures.  #2404 [ryand-ruby@zenspider.com]
+
 * Map Active Record time to SQL TIME.  #2575, #2576 [Robby Russell <robby@planetargon.com>]
 
 * Clarify semantics of ActiveRecord::Base#respond_to?  #2560 [skaes@web.de]

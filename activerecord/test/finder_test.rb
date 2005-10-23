@@ -6,7 +6,7 @@ require 'fixtures/developer'
 require 'fixtures/post'
 
 class FinderTest < Test::Unit::TestCase
-  fixtures :companies, :topics, :entrants, :developers, :posts
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts
 
   def test_find
     assert_equal(topics(:first).title, Topic.find(1).title)

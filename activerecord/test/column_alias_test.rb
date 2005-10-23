@@ -2,18 +2,16 @@ require 'abstract_unit'
 require 'fixtures/topic'
 
 class TestColumnAlias < Test::Unit::TestCase
+  fixtures :topics
+
+  QUERY = if 'OCI' == ActiveRecord::Base.connection.adapter_name
+            'SELECT id AS pk FROM topics WHERE ROWNUM < 2'
+          else
+            'SELECT id AS pk FROM topics'
+          end
 
   def test_column_alias
-    topic = Topic.find(1)
-    if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
-      if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
-        records = topic.connection.select_all("SELECT id AS pk FROM topics WHERE ROWNUM < 2")
-        assert_equal("pk", records[0].keys[0])
-      end
-    else
-      records = topic.connection.select_all("SELECT id AS pk FROM topics")
-      assert_equal("pk", records[0].keys[0])
-    end
+    records = Topic.connection.select_all(QUERY)
+    assert_equal 'pk', records[0].keys[0]
   end
-  
 end

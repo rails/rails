@@ -86,6 +86,7 @@ class FixturesTest < Test::Unit::TestCase
     secondRow = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'Mary'")
     assert_nil(secondRow["author_email_address"])        
   ensure
+    Fixtures.all_loaded_fixtures.delete(topics)
     ActiveRecord::Base.connection.drop_table :prefix_topics_suffix rescue nil
   end
 
@@ -259,7 +260,7 @@ class MultipleFixturesTest < Test::Unit::TestCase
   fixtures :developers, :accounts
 
   def test_fixture_table_names
-    assert_equal([:topics, :developers, :accounts], fixture_table_names)
+    assert_equal %w(topics developers accounts), fixture_table_names
   end
 end
 
@@ -269,7 +270,7 @@ class OverlappingFixturesTest < Test::Unit::TestCase
   fixtures :developers, :accounts
 
   def test_fixture_table_names
-    assert_equal([:topics, :developers, :accounts], fixture_table_names)
+    assert_equal %w(topics developers accounts), fixture_table_names
   end
 end
 
@@ -287,5 +288,44 @@ class ForeignKeyFixturesTest < Test::Unit::TestCase
 
   def test_number2
     assert true
+  end
+end
+
+
+class FixtureCleanup1Test < Test::Unit::TestCase
+  fixtures :topics
+
+  def test_isolation
+    assert_equal 0, Developer.count
+    assert_equal 2, Topic.count
+  end
+end
+
+class FixtureCleanup2Test < Test::Unit::TestCase
+  fixtures :developers
+
+  def test_isolation
+    assert_equal 0, Topic.count
+    assert_equal 10, Developer.count
+  end
+end
+
+class FixtureCleanup3Test < FixtureCleanup2Test
+  self.use_transactional_fixtures = false
+
+  def test_dirty_fixture_table_names
+    assert_equal %w(developers), dirty_fixture_table_names
+    assert_equal %w(developers), loaded_fixture_table_names
+    assert_equal %w(developers), fixture_table_names
+  end
+end
+
+class FixtureCleanup4Test < FixtureCleanup2Test
+  self.use_transactional_fixtures = true
+
+  def test_dirty_fixture_table_names
+    assert_equal [], dirty_fixture_table_names
+    assert_equal %w(developers), loaded_fixture_table_names
+    assert_equal %w(developers), fixture_table_names
   end
 end
