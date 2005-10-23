@@ -110,7 +110,7 @@ module ActiveRecord
           :float       => { :name => "float" },
           :datetime    => { :name => "datetime" },
           :timestamp   => { :name => "datetime" },
-          :time        => { :name => "datetime" },
+          :time        => { :name => "time" },
           :date        => { :name => "date" },
           :binary      => { :name => "blob" },
           :boolean     => { :name => "tinyint", :limit => 1 }
