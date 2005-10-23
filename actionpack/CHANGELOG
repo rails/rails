@@ -4,7 +4,6 @@
 
 * Abbreviate RAILS_ROOT in traces
 
-
 *1.10.1* (October 19th, 2005)
 
 * Update error trace templates [Nicholas Seckar]

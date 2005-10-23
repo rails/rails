@@ -1,3 +1,7 @@
+*SVN*
+
+* Set Logger.silencer = false to disable Logger#silence.  Useful for debugging fixtures.
+
 * Add title case method to String to do, e.g., 'action_web_service'.titlecase #  => 'Action Web Service'. [Marcel Molina Jr.]
 
 *1.2.1* (October 19th, 2005)

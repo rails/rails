@@ -32,7 +32,14 @@ class CleanLoggerTest < Test::Unit::TestCase
       logger.fatal  'fatal'
     end
 
-    assert_equal "error\nfatal\nerror\nfatal\n", @out.string
+    # Silencer off.
+    Logger.silencer = false
+    @logger.silence do |logger|
+      logger.warn   'unsilenced'
+    end
+    Logger.silencer = true
+
+    assert_equal "error\nfatal\nerror\nfatal\nunsilenced\n", @out.string
   end
 end
 
