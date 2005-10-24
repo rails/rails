@@ -217,19 +217,16 @@ class Fixtures < YAML::Omap
   DEFAULT_FILTER_RE = /\.ya?ml$/
 
   def self.instantiate_fixtures(object, table_name, fixtures, load_instances=true)
-    old_logger_level = ActiveRecord::Base.logger.level
-    ActiveRecord::Base.logger.level = Logger::ERROR
-
     object.instance_variable_set "@#{table_name.to_s.gsub('.','_')}", fixtures
     if load_instances
-      fixtures.each do |name, fixture|
-        if model = fixture.find
-          object.instance_variable_set "@#{name}", model
+      ActiveRecord::Base.logger.silence do
+        fixtures.each do |name, fixture|
+          if model = fixture.find
+            object.instance_variable_set "@#{name}", model
+          end
         end
       end
     end
-
-    ActiveRecord::Base.logger.level = old_logger_level
   end
 
   def self.instantiate_all_loaded_fixtures(object, load_instances=true)
@@ -558,7 +555,7 @@ module Test #:nodoc:
         def reload_fixtures!
           # Clear dirty fixtures and loaded fixtures which were not declared
           # for this test case.
-          wipe = dirty_fixture_table_names + loaded_fixture_table_names - fixture_table_names
+          wipe = dirty_fixture_table_names | loaded_fixture_table_names - fixture_table_names
           Fixtures.delete_fixtures(wipe) unless wipe.empty?
           dirty_fixture_table_names.clear
           loaded_fixture_table_names.clear
@@ -573,6 +570,8 @@ module Test #:nodoc:
                 @loaded_fixtures[f.table_name] = f
                 f.table_name.to_s
               }
+            else
+              @loaded_fixtures = {}
           end
         end
 

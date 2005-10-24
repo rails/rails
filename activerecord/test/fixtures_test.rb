@@ -329,3 +329,44 @@ class FixtureCleanup4Test < FixtureCleanup2Test
     assert_equal %w(developers), fixture_table_names
   end
 end
+
+class FixtureCleanup5Test < FixtureCleanup3Test
+  self.use_instantiated_fixtures = false
+
+  def test_dirty_fixture_table_names
+    assert_equal %w(developers), dirty_fixture_table_names
+    assert_equal %w(developers), loaded_fixture_table_names
+    assert_equal %w(developers), fixture_table_names
+  end
+end
+
+class FixtureCleanup6Test < FixtureCleanup4Test
+  self.use_instantiated_fixtures = true
+
+  def test_dirty_fixture_table_names
+    assert_equal [], dirty_fixture_table_names
+    assert_equal %w(developers), loaded_fixture_table_names
+    assert_equal %w(developers), fixture_table_names
+  end
+end
+
+class FixtureCleanup7Test < Test::Unit::TestCase
+  self.use_transactional_fixtures = false
+  self.use_instantiated_fixtures = true
+
+  def test_dirty_fixture_table_names
+    assert_equal [], dirty_fixture_table_names
+    assert_equal [], loaded_fixture_table_names
+    assert_equal [], fixture_table_names
+  end
+
+  def test_isolation
+    assert_equal 0, Topic.count
+    assert_equal 0, Developer.count
+  end
+end
+
+class FixtureCleanup8Test < FixtureCleanup7Test
+  self.use_transactional_fixtures = true
+  self.use_instantiated_fixtures = true
+end
