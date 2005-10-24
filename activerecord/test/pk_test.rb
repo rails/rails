@@ -1,4 +1,4 @@
-require 'abstract_unit'
+require "#{File.dirname(__FILE__)}/abstract_unit"
 require 'fixtures/topic'
 require 'fixtures/subscriber'
 require 'fixtures/movie'
@@ -16,7 +16,7 @@ class PrimaryKeysTest < Test::Unit::TestCase
     topic = Topic.new
     topic.title = "New Topic"
     assert_equal(nil, topic.id)
-    assert_nothing_raised{ topic.save }
+    assert_nothing_raised { topic.save! }
     id = topic.id
 
     topicReloaded = Topic.find(id)
@@ -25,15 +25,14 @@ class PrimaryKeysTest < Test::Unit::TestCase
 
   def test_customized_primary_key_auto_assigns_on_save
     keyboard = Keyboard.new(:name => 'HHKB')
-    assert_nothing_raised { keyboard.save }
-    assert keyboard.id
+    assert_nothing_raised { keyboard.save! }
     assert_equal keyboard.id, Keyboard.find_by_name('HHKB').id
   end
 
   def test_customized_primary_key_can_be_get_before_saving
     keyboard = Keyboard.new
-    assert_respond_to(keyboard, :key_number)
-    assert_nothing_raised { keyboard.key_number }
+    assert_nil keyboard.id
+    assert_nothing_raised { assert_nil keyboard.key_number }
   end
 
   def test_customized_string_primary_key_settable_before_save

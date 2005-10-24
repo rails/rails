@@ -1451,7 +1451,7 @@ module ActiveRecord #:nodoc:
         cast_code = column.type_cast_code('v')
         access_code = cast_code ? "(v=@attributes['#{attr_name}']) && #{cast_code}" : "@attributes['#{attr_name}']"
 
-        unless symbol == :id
+        unless attr_name.to_s == self.class.primary_key.to_s
           access_code = access_code.insert(0, "raise NoMethodError, 'missing attribute: #{attr_name}', caller unless @attributes.has_key?('#{attr_name}'); ")
         end
 
