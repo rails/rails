@@ -4,11 +4,13 @@
 
 * Add title case method to String to do, e.g., 'action_web_service'.titlecase #  => 'Action Web Service'. [Marcel Molina Jr.]
 
+
 *1.2.1* (October 19th, 2005)
 
 * Classify generated routing code as framework code to avoid appearing in application traces. [Nicholas Seckar]
 
 * Show all framework frames in the framework trace. [Nicholas Seckar]
+
 
 *1.2.0* (October 16th, 2005)
 
