@@ -43,6 +43,9 @@ module ActionController #:nodoc:
     end
     
     class FlashHash < Hash
+      @@avoid_sweep = false
+      cattr_accessor :avoid_sweep
+      
       def initialize #:nodoc:
         super
         @used = {}
@@ -99,6 +102,7 @@ module ActionController #:nodoc:
       #
       # This method is called automatically by filters, so you generally don't need to care about it.
       def sweep #:nodoc:
+        return if @@avoid_sweep
         keys.each do |k| 
           unless @used[k]
             use(k)
