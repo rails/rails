@@ -1113,6 +1113,7 @@ module ActiveRecord #:nodoc:
       def id
         attr_name = self.class.primary_key
         column    = column_for_attribute(attr_name)
+        raise ActiveRecordError, "No such primary key column #{attr_name} for table #{table_name}" if column.nil?
         define_read_method(:id, attr_name, column) if self.class.generate_read_methods
         (value = @attributes[attr_name]) && column.type_cast(value)
       end

@@ -1,7 +1,6 @@
 require 'erb'
 require 'yaml'
 require 'csv'
-require 'set'
 
 module YAML #:nodoc:
   class Omap #:nodoc:
@@ -123,7 +122,7 @@ end
 #   ...
 #
 # By adding a "fixtures" method to the test case and passing it a list of symbols (only one is shown here tho), we trigger
-# the testing environment to automatically load the appropriate fixtures into the database before each test.
+# the testing environment to automatically load the appropriate fixtures into the database before each test.  
 # To ensure consistent data, the environment deletes the fixtures before running the load.
 #
 # In addition to being available in the database, the fixtures are also loaded into a hash stored in an instance variable
@@ -149,7 +148,7 @@ end
 #       self.use_instantiated_fixtures = false
 #
 #   - to keep the fixture instance (@web_sites) available, but do not automatically 'find' each instance:
-#       self.use_instantiated_fixtures = :no_instances
+#       self.use_instantiated_fixtures = :no_instances 
 #
 # Even if auto-instantiated fixtures are disabled, you can still access them
 # by name via special dynamic methods. Each method has the same name as the
@@ -181,37 +180,37 @@ end
 #
 # = Transactional fixtures
 #
-# TestCases can use begin+rollback to isolate their changes to the database instead of having to delete+insert for every test case.
+# TestCases can use begin+rollback to isolate their changes to the database instead of having to delete+insert for every test case. 
 # They can also turn off auto-instantiation of fixture data since the feature is costly and often unused.
 #
 #   class FooTest < Test::Unit::TestCase
 #     self.use_transactional_fixtures = true
 #     self.use_instantiated_fixtures = false
-#
+#   
 #     fixtures :foos
-#
+#   
 #     def test_godzilla
 #       assert !Foo.find(:all).empty?
 #       Foo.destroy_all
 #       assert Foo.find(:all).empty?
 #     end
-#
+#   
 #     def test_godzilla_aftermath
 #       assert !Foo.find(:all).empty?
 #     end
 #   end
-#
-# If you preload your test database with all fixture data (probably in the Rakefile task) and use transactional fixtures,
+#   
+# If you preload your test database with all fixture data (probably in the Rakefile task) and use transactional fixtures, 
 # then you may omit all fixtures declarations in your test cases since all the data's already there and every case rolls back its changes.
 #
-# In order to use instantiated fixtures with preloaded data, set +self.pre_loaded_fixtures+ to true. This will provide
+# In order to use instantiated fixtures with preloaded data, set +self.pre_loaded_fixtures+ to true. This will provide 
 # access to fixture data for every table that has been loaded through fixtures (depending on the value of +use_instantiated_fixtures+)
 #
-# When *not* to use transactional fixtures:
-#   1. You're testing whether a transaction works correctly. Nested transactions don't commit until all parent transactions commit,
-#      particularly, the fixtures transaction which is begun in setup and rolled back in teardown. Thus, you won't be able to verify
-#      the results of your transaction until Active Record supports nested transactions or savepoints (in progress.)
-#   2. Your database does not support transactions. Every Active Record database supports transactions except MySQL MyISAM.
+# When *not* to use transactional fixtures: 
+#   1. You're testing whether a transaction works correctly. Nested transactions don't commit until all parent transactions commit, 
+#      particularly, the fixtures transaction which is begun in setup and rolled back in teardown. Thus, you won't be able to verify 
+#      the results of your transaction until Active Record supports nested transactions or savepoints (in progress.) 
+#   2. Your database does not support transactions. Every Active Record database supports transactions except MySQL MyISAM. 
 #      Use InnoDB, MaxDB, or NDB instead.
 class Fixtures < YAML::Omap
   DEFAULT_FILTER_RE = /\.ya?ml$/
@@ -230,51 +229,38 @@ class Fixtures < YAML::Omap
   end
 
   def self.instantiate_all_loaded_fixtures(object, load_instances=true)
-    all_loaded_fixtures.each do |fixtures|
-      Fixtures.instantiate_fixtures(object, fixtures.table_name, fixtures, load_instances)
+    all_loaded_fixtures.each do |table_name, fixtures|
+      Fixtures.instantiate_fixtures(object, table_name, fixtures, load_instances)
     end
   end
-
+  
   cattr_accessor :all_loaded_fixtures
-  self.all_loaded_fixtures = []
+  self.all_loaded_fixtures = {}
 
   def self.create_fixtures(fixtures_directory, *table_names)
-    table_names = table_names.flatten
+    table_names = table_names.flatten.map { |n| n.to_s }
     connection = block_given? ? yield : ActiveRecord::Base.connection
 
     ActiveRecord::Base.logger.silence do
+      fixtures_map = {}
       fixtures = table_names.map do |table_name|
-        Fixtures.new(connection, File.split(table_name.to_s).last, File.join(fixtures_directory, table_name.to_s))
-      end
+        fixtures_map[table_name] = Fixtures.new(connection, File.split(table_name.to_s).last, File.join(fixtures_directory, table_name.to_s))
+      end               
+      all_loaded_fixtures.merge! fixtures_map  
 
       connection.transaction do
-        table_names.reverse.each do |table_name|
-          connection.delete "DELETE FROM #{table_name}"
-        end
+        fixtures.reverse.each { |fixture| fixture.delete_existing_fixtures }
+        fixtures.each { |fixture| fixture.insert_fixtures }
 
-        fixtures.each { |f| f.insert_fixtures }
-
+        # Cap primary key sequences to max(pk).
         if connection.respond_to?(:reset_pk_sequence!)
-          table_names.flatten.each do |table_name|
+          table_names.each do |table_name|
             connection.reset_pk_sequence!(table_name)
           end
         end
       end
 
-      all_loaded_fixtures.concat fixtures
       return fixtures.size > 1 ? fixtures : fixtures.first
-    end
-  end
-
-  def self.delete_fixtures(table_names)
-    ActiveRecord::Base.silence do
-      connection = block_given? ? yield : ActiveRecord::Base.connection
-
-      connection.transaction do
-        table_names.reverse.each do |table_name|
-          connection.delete "DELETE FROM #{table_name}"
-        end
-      end
     end
   end
 
@@ -429,85 +415,83 @@ module Test #:nodoc:
   module Unit #:nodoc:
     class TestCase #:nodoc:
       cattr_accessor :fixture_path
-      cattr_accessor :dirty_fixture_table_names
-      cattr_accessor :loaded_fixture_table_names
       class_inheritable_accessor :fixture_table_names
       class_inheritable_accessor :use_transactional_fixtures
       class_inheritable_accessor :use_instantiated_fixtures   # true, false, or :no_instances
       class_inheritable_accessor :pre_loaded_fixtures
 
-      self.dirty_fixture_table_names = []
-      self.loaded_fixture_table_names = []
       self.fixture_table_names = []
       self.use_transactional_fixtures = false
       self.use_instantiated_fixtures = true
       self.pre_loaded_fixtures = false
 
-      class << self
-        def fixtures(*table_names)
-          table_names = table_names.flatten.map { |n| n.to_s }
-          self.fixture_table_names |= table_names
-          self.dirty_fixture_table_names |= table_names
+      @@already_loaded_fixtures = {}
 
-          require_fixture_classes(table_names)
-          setup_fixture_accessors(table_names)
-        end
+      def self.fixtures(*table_names)
+        table_names = table_names.flatten.map { |n| n.to_s }
+        self.fixture_table_names |= table_names
+        require_fixture_classes(table_names)
+        setup_fixture_accessors(table_names)
+      end
 
-        def require_fixture_classes(table_names=nil)
-          (table_names || fixture_table_names).each do |table_name|
-            begin
-              require table_name.to_s.singularize
-            rescue LoadError
-              # Let's hope the developer has included it himself
-            end
+      def self.require_fixture_classes(table_names=nil)
+        (table_names || fixture_table_names).each do |table_name| 
+          begin
+            require Inflector.singularize(table_name.to_s)
+          rescue LoadError
+            # Let's hope the developer has included it himself
           end
-        end
-
-        def setup_fixture_accessors(table_names = nil)
-          (table_names || fixture_table_names).each do |table_name|
-            table_name = table_name.to_s.tr('.', '_')
-            class_eval <<-end_eval, __FILE__, __LINE__
-              def #{table_name}(fixture, force_reload = false)
-                fixture = fixture.to_s
-                @fixture_cache ||= Hash.new { |h,k| h[k] = Hash.new }
-                if force_reload or @fixture_cache['#{table_name}'][fixture].nil?
-                  @fixture_cache['#{table_name}'][fixture] = @loaded_fixtures['#{table_name}'][fixture].find
-                end
-                @fixture_cache['#{table_name}'][fixture]
-              end
-            end_eval
-          end
-        end
-
-        def uses_transaction(*methods)
-          @uses_transaction ||= Set.new
-          @uses_transaction += methods.flatten.map { |m| m.to_s }
-        end
-
-        def uses_transaction?(*methods)
-          @uses_transaction && methods.flatten.all? { |m| @uses_transaction.include?(m.to_s) }
         end
       end
 
+      def self.setup_fixture_accessors(table_names=nil)
+        (table_names || fixture_table_names).each do |table_name|
+          table_name = table_name.to_s.tr('.','_')
+          define_method(table_name) do |fixture, *optionals|
+            force_reload = optionals.shift
+            @fixture_cache[table_name] ||= Hash.new
+            @fixture_cache[table_name][fixture] = nil if force_reload
+            @fixture_cache[table_name][fixture] ||= @loaded_fixtures[table_name][fixture.to_s].find
+          end
+        end
+      end
+
+      def self.uses_transaction(*methods)
+        @uses_transaction ||= []
+        @uses_transaction.concat methods.map { |m| m.to_s }
+      end
+
+      def self.uses_transaction?(method)
+        @uses_transaction && @uses_transaction.include?(method.to_s)
+      end
+
       def use_transactional_fixtures?
-        use_transactional_fixtures && !self.class.uses_transaction?(method_name)
+        use_transactional_fixtures &&
+          !self.class.uses_transaction?(method_name)
       end
 
       def setup_with_fixtures
         if pre_loaded_fixtures && !use_transactional_fixtures
-          raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures'
+          raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures' 
         end
+
+        @fixture_cache = Hash.new
 
         # Load fixtures once and begin transaction.
         if use_transactional_fixtures?
-          reload_fixtures! unless @loaded_fixtures and dirty_fixture_table_names.empty?
+          if @@already_loaded_fixtures[self.class]
+            @loaded_fixtures = @@already_loaded_fixtures[self.class]
+          else
+            load_fixtures
+            @@already_loaded_fixtures[self.class] = @loaded_fixtures
+          end
           ActiveRecord::Base.lock_mutex
           ActiveRecord::Base.connection.begin_db_transaction
 
         # Load fixtures for every test.
         else
-          reload_fixtures!
-          self.dirty_fixture_table_names |= loaded_fixture_table_names
+          @@already_loaded_fixtures[self.class] = nil
+          load_fixtures
         end
 
         # Instantiate fixtures for every test if requested.
@@ -521,10 +505,6 @@ module Test #:nodoc:
         if use_transactional_fixtures?
           ActiveRecord::Base.connection.rollback_db_transaction
           ActiveRecord::Base.unlock_mutex
-        end
-        unless dirty_fixture_table_names.empty?
-          Fixtures.delete_fixtures(dirty_fixture_table_names)
-          dirty_fixture_table_names.clear
         end
       end
 
@@ -552,26 +532,15 @@ module Test #:nodoc:
       end
 
       private
-        def reload_fixtures!
-          # Clear dirty fixtures and loaded fixtures which were not declared
-          # for this test case.
-          wipe = dirty_fixture_table_names | loaded_fixture_table_names - fixture_table_names
-          Fixtures.delete_fixtures(wipe) unless wipe.empty?
-          dirty_fixture_table_names.clear
-          loaded_fixture_table_names.clear
-
-          case fixtures = Fixtures.create_fixtures(fixture_path, fixture_table_names)
-            when Fixtures
-              loaded_fixture_table_names.push fixtures.table_name.to_s
-              @loaded_fixtures = { fixtures.table_name => fixtures }
-            when Enumerable
-              @loaded_fixtures = {}
-              loaded_fixture_table_names.concat fixtures.map { |f|
-                @loaded_fixtures[f.table_name] = f
-                f.table_name.to_s
-              }
+        def load_fixtures
+          @loaded_fixtures = {}
+          fixtures = Fixtures.create_fixtures(fixture_path, fixture_table_names)
+          unless fixtures.nil?
+            if fixtures.instance_of?(Fixtures)
+              @loaded_fixtures[fixtures.table_name] = fixtures
             else
-              @loaded_fixtures = {}
+              fixtures.each { |f| @loaded_fixtures[f.table_name] = f }
+            end
           end
         end
 
@@ -582,8 +551,7 @@ module Test #:nodoc:
           if pre_loaded_fixtures
             raise RuntimeError, 'Load fixtures before instantiating them.' if Fixtures.all_loaded_fixtures.empty?
             unless @@required_fixture_classes
-              names = Fixtures.all_loaded_fixtures.map { |fixtures| fixtures.table_name }
-              self.class.require_fixture_classes names
+              self.class.require_fixture_classes Fixtures.all_loaded_fixtures.keys
               @@required_fixture_classes = true
             end
             Fixtures.instantiate_all_loaded_fixtures(self, load_instances?)

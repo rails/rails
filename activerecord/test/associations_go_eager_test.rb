@@ -96,7 +96,7 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
   
   def test_eager_with_has_many_and_limit
-    posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2)
+    posts = Post.find(:all, :order => 'posts.id asc', :include => [ :author, :comments ], :limit => 2)
     assert_equal 2, posts.size
     assert_equal 3, posts.inject(0) { |sum, post| sum += post.comments.size }
   end

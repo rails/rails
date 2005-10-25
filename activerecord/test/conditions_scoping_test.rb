@@ -85,6 +85,7 @@ class HasAndBelongsToManyScopingTest< Test::Unit::TestCase
     assert_equal 0, @welcome.categories.find_all_by_type('SpecialCategory').size
     assert_equal 2, @welcome.categories.find_all_by_type('Category').size
   end
+
 end
 
 
