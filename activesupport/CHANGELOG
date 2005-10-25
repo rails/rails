@@ -1,4 +1,4 @@
-*SVN*
+*1.2.2* (October 26th, 2005)
 
 * Set Logger.silencer = false to disable Logger#silence.  Useful for debugging fixtures.
 

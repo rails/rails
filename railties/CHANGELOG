@@ -1,4 +1,4 @@
-*SVN*
+*0.14.2 (RC3)* (October 26th, 2005)
 
 * Constants set in the development/test/production environment file are set in Object
 
@@ -7,7 +7,7 @@
 * Include tasks from vendor/plugins/*/tasks in the Rakefile #2545 [Rick Olson]
 
 
-*0.14.1* (October 19th, 2005)
+*0.14.1 (RC2)* (October 19th, 2005)
 
 * Don't clean RAILS_ROOT on windows
 
@@ -16,7 +16,7 @@
 * Upgraded to Active Record 1.12.1 and Action Pack 1.10.1
 
 
-*0.14.0* (October 16th, 2005)
+*0.14.0 (RC1)* (October 16th, 2005)
 
 * Moved generator folder from RAILS_ROOT/generators to RAILS_ROOT/lib/generators [Tobias Luetke]
 

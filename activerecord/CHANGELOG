@@ -1,4 +1,4 @@
-*SVN*
+*1.12.2* (October 26th, 2005)
 
 * Allow symbols to rename columns when using SQLite adapter. #2531 [kevin.clark@gmail.com]
 
@@ -11,6 +11,7 @@
 * HABTM finders shouldn't return readonly records.  #2525 [Patrick Lenz <patrick@lenz.sh>]
 
 * Make all tests runnable on their own. #2521. [Blair Zajac <blair@orcaware.com>]
+
 
 *1.12.1* (October 19th, 2005)
 
