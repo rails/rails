@@ -280,10 +280,12 @@ module ActiveRecord
         def copy_table(from, to, options = {}) #:nodoc:
           create_table(to, options) do |@definition|
             columns(from).each do |column|
-              column_name = options[:rename][column.name] if 
-                options[:rename][column.name] if options[:rename]
-              
-              @definition.column(column_name || column.name, column.type, 
+              column_name = options[:rename] ?
+                (options[:rename][column.name] ||
+                 options[:rename][column.name.to_sym] ||
+                 column.name) : column.name
+
+              @definition.column(column_name, column.type, 
                 :limit => column.limit, :default => column.default,
                 :null => column.null)
             end

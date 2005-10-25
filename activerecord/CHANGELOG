@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow symbols to rename columns when using SQLite adapter. #2531 [kevin.clark@gmail.com]
+
 * Map Active Record time to SQL TIME.  #2575, #2576 [Robby Russell <robby@planetargon.com>]
 
 * Clarify semantics of ActiveRecord::Base#respond_to?  #2560 [skaes@web.de]

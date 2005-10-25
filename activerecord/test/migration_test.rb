@@ -180,6 +180,28 @@ if ActiveRecord::Base.connection.supports_migrations?
       
     end
     
+    def test_rename_column_using_symbol_arguments
+      begin
+        Person.connection.rename_column :people, :first_name, :nick_name
+        Person.reset_column_information
+        assert Person.column_names.include?("nick_name")
+      ensure
+        Person.connection.remove_column("people","nick_name")
+        Person.connection.add_column("people","first_name", :string)
+      end
+    end
+    
+    def test_rename_column
+      begin
+        Person.connection.rename_column "people", "first_name", "nick_name"
+        Person.reset_column_information
+        assert Person.column_names.include?("nick_name")
+      ensure
+        Person.connection.remove_column("people","nick_name")
+        Person.connection.add_column("people","first_name", :string)
+      end
+    end
+    
     def test_rename_table
       begin
         ActiveRecord::Base.connection.create_table :octopuses do |t|
