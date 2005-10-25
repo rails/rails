@@ -176,7 +176,7 @@ module ActiveRecord
   #   person = Person.new("first_name" => "David", "phone_number" => "what?")
   #   person.save                         # => false (and doesn't do the save)
   #   person.errors.empty?                # => false
-  #   person.count                        # => 2
+  #   person.errors.count                 # => 2
   #   person.errors.on "last_name"        # => "can't be empty"
   #   person.errors.on "phone_number"     # => "has invalid format"
   #   person.errors.each_full { |msg| puts msg } 
