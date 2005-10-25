@@ -89,6 +89,10 @@ class TestController < ActionController::Base
     ActionView::Base.local_assigns_support_string_keys = false
   end
 
+  def render_to_string_test
+    @foo = render_to_string :inline => "this is a test"
+  end
+
   def rescue_action(e) raise end
     
   private
@@ -207,6 +211,11 @@ class RenderTest < Test::Unit::TestCase
   def test_render_to_string
     @request.action = "hello_in_a_string"
     assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", process_request.body
+  end
+
+  def test_render_to_string_resets_assigns
+    @request.action = "render_to_string_test"
+    assert_equal "The value of foo is: ::this is a test::\n", process_request.body
   end
 
   def test_nested_rendering

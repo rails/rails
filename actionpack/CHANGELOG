@@ -1,5 +1,7 @@
 *SVN*
 
+* Reset template variables after using render_to_string [skaes@web.de]
+
 * Expose the session model backing CGI::Session
 
 * Abbreviate RAILS_ROOT in traces

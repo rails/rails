@@ -623,6 +623,8 @@ module ActionController #:nodoc:
       def render_to_string(options = nil) #:doc:
         result = render(options)
         erase_render_results
+        @variables_added = nil
+        @template.instance_variable_set("@assigns_added", nil)
         result
       end    
 
