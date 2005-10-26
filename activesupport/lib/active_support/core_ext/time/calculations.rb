@@ -145,6 +145,14 @@ module ActiveSupport #:nodoc:
         end
         alias :at_beginning_of_month :beginning_of_month
         
+        # Returns a new Time representing the end of the month (last day of the month, 0:00)
+        def end_of_month
+          #self - ((self.mday-1).days + self.seconds_since_midnight)
+          last_day = ::Time.days_in_month( self.month, self.year )
+          change(:mday => last_day,:hour => 0, :min => 0, :sec => 0, :usec => 0)
+        end
+        alias :at_end_of_month :end_of_month
+        
         # Returns  a new Time representing the start of the year (1st of january, 0:00)
         def beginning_of_year
           change(:month => 1,:mday => 1,:hour => 0, :min => 0, :sec => 0, :usec => 0)

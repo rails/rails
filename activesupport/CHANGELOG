@@ -1,3 +1,8 @@
+*SVN*
+
+* Added Time#end_of_month to accompany Time#beginning_of_month #2514 [Jens-Christian Fischer]
+
+
 *1.2.2* (October 26th, 2005)
 
 * Set Logger.silencer = false to disable Logger#silence.  Useful for debugging fixtures.

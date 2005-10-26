@@ -30,6 +30,13 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2005,2,1,0,0,0), Time.local(2005,2,22,10,10,10).beginning_of_month
   end
   
+  def test_end_of_month
+    assert_equal Time.local(2005,3,31,0,0,0), Time.local(2005,3,20,10,10,10).end_of_month
+    assert_equal Time.local(2005,2,28,0,0,0), Time.local(2005,2,20,10,10,10).end_of_month
+    assert_equal Time.local(2005,4,30,0,0,0), Time.local(2005,4,20,10,10,10).end_of_month
+    
+  end
+  
   def test_beginning_of_year
     assert_equal Time.local(2005,1,1,0,0,0), Time.local(2005,2,22,10,10,10).beginning_of_year
   end
