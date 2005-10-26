@@ -92,6 +92,7 @@ module ActiveRecord
   #   
   #     def self.down
   #       # not much we can do to restore deleted data
+  #       raise IrreversibleMigration
   #     end
   #   end
   #
