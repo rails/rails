@@ -202,6 +202,28 @@ module ActionView
         html
       end
       
+      # Strips all HTML tags from the input, including comments.  This uses the html-scanner
+      # tokenizer and so it's HTML parsing ability is limited by that of html-scanner.
+      #
+      # Returns the tag free text.
+      def strip_tags(html)
+        if html.index("<")
+          text = ""
+          tokenizer = HTML::Tokenizer.new(html)
+
+          while token = tokenizer.next
+            node = HTML::Node.parse(nil, 0, 0, token, false)
+            # result is only the content of any Text nodes
+            text << node.to_s if node.class == HTML::Text  
+          end
+          # strip any comments, and if they have a newline at the end (ie. line with
+          # only a comment) strip that too
+          text.gsub(/<!--(.*?)-->[\n]?/m, "") 
+        else
+          html # already plain text
+        end 
+      end
+      
       # Returns a Cycle object whose to_s value cycles through items of an
       # array every time it is called. This can be used to alternate classes
       # for table rows:

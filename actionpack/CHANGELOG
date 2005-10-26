@@ -1,5 +1,7 @@
 *SVN*
 
+* Added TextHelper#strip_tags for removing HTML tags from a string (using HTMLTokenizer) #2229 [marcin@junkheap.net]
+
 * Added a reader for flash.now, so it's possible to do stuff like flash.now[:alert] ||= 'New if not set' #2422 [Caio Chassot]
 
 

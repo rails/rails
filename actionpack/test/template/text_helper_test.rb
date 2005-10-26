@@ -268,4 +268,13 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal(%w{Specialized Fuji Giant}, @cycles)
   end
 
+  def test_strip_tags
+    assert_equal("This is a test.", strip_tags("<p>This <u>is<u> a <a href='test.html'><strong>test</strong></a>.</p>"))
+    assert_equal("This is a test.", strip_tags("This is a test."))
+    assert_equal(
+    %{This is a test.\n\n\nIt no longer contains any HTML.\n}, strip_tags(
+    %{<title>This is <b>a <a href="" target="_blank">test</a></b>.</title>\n\n<!-- it has a comment -->\n\n<p>It no <b>longer <strong>contains <em>any <strike>HTML</strike></em>.</strong></b></p>\n}))
+    assert_equal("This has a  here.", strip_tags("This has a <!-- comment --> here."))
+  end
+
 end
