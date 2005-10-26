@@ -337,15 +337,14 @@ module ActionMailer
       # mailer. Subclasses may override this method to provide different
       # defaults.
       def initialize_defaults(method_name)
-        @bcc = @cc = @from = @recipients = @sent_on = @subject = nil
-        @charset = @@default_charset.dup
-        @content_type = @@default_content_type.dup
-        @implicit_parts_order = @@default_implicit_parts_order.dup
-        @template = method_name
-        @mailer_name = Inflector.underscore(self.class.name)
-        @parts = []
-        @headers = {}
-        @body = {}
+        @charset ||= @@default_charset.dup
+        @content_type ||= @@default_content_type.dup
+        @implicit_parts_order ||= @@default_implicit_parts_order.dup
+        @template ||= method_name
+        @mailer_name ||= Inflector.underscore(self.class.name)
+        @parts ||= []
+        @headers ||= {}
+        @body ||= {}
         @mime_version = @@default_mime_version.dup if @@default_mime_version
       end
 

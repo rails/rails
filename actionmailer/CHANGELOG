@@ -1,3 +1,8 @@
+*SVN*
+
+* Allow Mailers to have custom initialize methods that set default instance variables for all mail actions #2563 [mrj@bigpond.net.au]
+
+
 *1.1.2* (October 26th, 2005)
 
 * Upgraded to Action Pack 1.10.2
