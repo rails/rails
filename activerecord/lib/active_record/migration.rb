@@ -109,7 +109,7 @@ module ActiveRecord
   #     end
   #   end
   #
-  # And some times you need to do something in SQL not abstracted directly by migrations:
+  # And sometimes you need to do something in SQL not abstracted directly by migrations:
   #
   #   class MakeJoinUnique < ActiveRecord::Migration
   #     def self.up
@@ -123,7 +123,7 @@ module ActiveRecord
   #
   # == Using the class after changing table
   #
-  # Some times you'll want to add a column in a migration and populate it immediately after. In that case, you'll need
+  # Sometimes you'll want to add a column in a migration and populate it immediately after. In that case, you'll need
   # to make a call to Base#reset_column_information in order to ensure that the class has the latest column data from 
   # after the new column was added. Example:
   #

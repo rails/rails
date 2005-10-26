@@ -24,7 +24,7 @@ module ActiveRecord
 
     # Transactions are protective blocks where SQL statements are only permanent if they can all succeed as one atomic action. 
     # The classic example is a transfer between two accounts where you can only have a deposit if the withdrawal succeeded and
-    # vice versa. Transaction enforce the integrity of the database and guards the data against program errors or database break-downs.
+    # vice versa. Transactions enforce the integrity of the database and guard the data against program errors or database break-downs.
     # So basically you should use transaction blocks whenever you have a number of statements that must be executed together or
     # not at all. Example:
     #
@@ -62,7 +62,7 @@ module ActiveRecord
     #
     # == Object-level transactions
     #
-    # You can enable object-level transactions for Active Record objects, though. You do this by naming the each of the Active Records
+    # You can enable object-level transactions for Active Record objects, though. You do this by naming each of the Active Records
     # that you want to enable object-level transactions for, like this:
     #
     #   Account.transaction(david, mary) do

@@ -7,8 +7,8 @@ module ActiveRecord
 
     # Active Record implements aggregation through a macro-like class method called +composed_of+ for representing attributes 
     # as value objects. It expresses relationships like "Account [is] composed of Money [among other things]" or "Person [is]
-    # composed of [an] address". Each call to the macro adds a description on how the value objects are created from the 
-    # attributes of the entity object (when the entity is initialized either as a new object or from finding an existing) 
+    # composed of [an] address". Each call to the macro adds a description of how the value objects are created from the 
+    # attributes of the entity object (when the entity is initialized either as a new object or from finding an existing object) 
     # and how it can be turned back into attributes (when the entity is saved to the database). Example:
     #
     #   class Customer < ActiveRecord::Base
@@ -88,8 +88,8 @@ module ActiveRecord
     # == Writing value objects
     #
     # Value objects are immutable and interchangeable objects that represent a given value, such as a Money object representing
-    # $5. Two Money objects both representing $5 should be equal (through methods such == and <=> from Comparable if ranking makes
-    # sense). This is unlike a entity objects where equality is determined by identity. An entity class such as Customer can
+    # $5. Two Money objects both representing $5 should be equal (through methods such as == and <=> from Comparable if ranking
+    # makes sense). This is unlike entity objects where equality is determined by identity. An entity class such as Customer can
     # easily have two different objects that both have an address on Hyancintvej. Entity identity is determined by object or
     # relational unique identifiers (such as primary keys). Normal ActiveRecord::Base classes are entity objects.
     #

@@ -20,7 +20,7 @@ end
 # This type of fixture is in YAML format and the preferred default. YAML is a file format which describes data structures
 # in a non-verbose, humanly-readable format. It ships with Ruby 1.8.1+.
 #
-# Unlike single-file fixtures, YAML fixtures are stored in a single file per model, which is place in the directory appointed
+# Unlike single-file fixtures, YAML fixtures are stored in a single file per model, which are placed in the directory appointed
 # by <tt>Test::Unit::TestCase.fixture_path=(path)</tt> (this is automatically configured for Rails, so you can just
 # put your files in <your-rails-app>/test/fixtures/). The fixture file ends with the .yml file extension (Rails example:
 # "<your-rails-app>/test/fixtures/web_sites.yml"). The format of a YAML fixture file looks like this:
@@ -56,7 +56,7 @@ end
 # = CSV fixtures
 #
 # Fixtures can also be kept in the Comma Separated Value format. Akin to YAML fixtures, CSV fixtures are stored
-# in a single file, but, instead end with the .csv file extension (Rails example: "<your-rails-app>/test/fixtures/web_sites.csv")
+# in a single file, but instead end with the .csv file extension (Rails example: "<your-rails-app>/test/fixtures/web_sites.csv")
 #
 # The format of this type of fixture file is much more compact than the others, but also a little harder to read by us
 # humans.  The first line of the CSV file is a comma-separated list of field names.  The rest of the file is then comprised
@@ -103,7 +103,7 @@ end
 # = Using Fixtures
 #
 # Since fixtures are a testing construct, we use them in our unit and functional tests.  There are two ways to use the
-# fixtures, but first lets take a look at a sample unit test found:
+# fixtures, but first let's take a look at a sample unit test found:
 #
 #   require 'web_site'
 #
@@ -139,7 +139,7 @@ end
 #
 # As seen above, the data hash created from the YAML fixtures would have @web_sites["rubyonrails"]["url"] return
 # "http://www.rubyonrails.org" and @web_sites["google"]["name"] would return "Google". The same fixtures, but loaded
-# from a CSV fixture file would be accessible via @web_sites["web_site_1"]["name"] == "Ruby on Rails" and have the individual
+# from a CSV fixture file, would be accessible via @web_sites["web_site_1"]["name"] == "Ruby on Rails" and have the individual
 # fixtures available as instance variables @web_site_1 and @web_site_2.
 #
 # If you do not wish to use instantiated fixtures (usually for performance reasons) there are two options.

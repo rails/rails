@@ -22,7 +22,7 @@ module ActiveRecord
     
     # Associations are a set of macro-like class methods for tying objects together through foreign keys. They express relationships like 
     # "Project has one Project Manager" or "Project belongs to a Portfolio". Each macro adds a number of methods to the class which are 
-    # specialized according to the collection or association symbol and the options hash. It works much the same was as Ruby's own attr* 
+    # specialized according to the collection or association symbol and the options hash. It works much the same way as Ruby's own attr* 
     # methods. Example:
     #
     #   class Project < ActiveRecord::Base
@@ -80,7 +80,7 @@ module ActiveRecord
     #
     # === One-to-one associations
     #
-    # * Assigning an object to a has_one association automatically saves that object, and the object being replaced (if there is one), in
+    # * Assigning an object to a has_one association automatically saves that object and the object being replaced (if there is one), in
     #   order to update their primary keys - except if the parent object is unsaved (new_record? == true).
     # * If either of these saves fail (due to one of the objects being invalid) the assignment statement returns false and the assignment
     #   is cancelled.
@@ -164,8 +164,8 @@ module ActiveRecord
     #
     # That'll add another join along the lines of: LEFT OUTER JOIN comments ON comments.post_id = posts.id. And we'll be down to 1 query.
     # But that shouldn't fool you to think that you can pull out huge amounts of data with no performance penalty just because you've reduced
-    # the number of queries. The database still needs to send all the data to Active Record and it still needs to be processed. So its no
-    # catch-all for performance problems, but its a great way to cut down on the number of queries in a situation as the one described above.
+    # the number of queries. The database still needs to send all the data to Active Record and it still needs to be processed. So it's no
+    # catch-all for performance problems, but it's a great way to cut down on the number of queries in a situation as the one described above.
     #
     # Please note that limited eager loading with has_many and has_and_belongs_to_many associations is not compatible with describing conditions
     # on these eager tables. This will work:
@@ -240,10 +240,10 @@ module ActiveRecord
       # * <tt>collection.find</tt> - finds an associated object according to the same rules as Base.find.
       # * <tt>collection.build(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key but has not yet been saved. *Note:* This only works if an 
-      #   associated object already exists, not if its nil!
+      #   associated object already exists, not if it's nil!
       # * <tt>collection.create(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
       #   with +attributes+ and linked to this object through a foreign key and that has already been saved (if it passed the validation).
-      #   *Note:* This only works if an associated object already exists, not if its nil!
+      #   *Note:* This only works if an associated object already exists, not if it's nil!
       #
       # Example: A Firm class declares <tt>has_many :clients</tt>, which will add:
       # * <tt>Firm#clients</tt> (similar to <tt>Clients.find :all, :conditions => "firm_id = #{id}"</tt>)
@@ -271,7 +271,7 @@ module ActiveRecord
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_many association will use "person_id"
       #   as the default foreign_key.
       # * <tt>:dependent</tt>   - if set to :destroy (or true) all the associated objects are destroyed
-      #   alongside this object. Also accepts :nullify which will set the associated objects foriegn key
+      #   alongside this object. Also accepts :nullify which will set the associated object's foreign key
       #   field to NULL.
       #   May not be set if :exclusively_dependent is also set.
       # * <tt>:exclusively_dependent</tt>   - if set to true all the associated object are deleted in one SQL statement without having their
@@ -279,7 +279,7 @@ module ActiveRecord
       #   clean-up in before_destroy. The upside is that it's much faster, especially if there's a counter_cache involved.
       #   May not be set if :dependent is also set.
       # * <tt>:finder_sql</tt>  - specify a complete SQL statement to fetch the association. This is a good way to go for complex
-      #   associations that depends on multiple tables. Note: When this option is used, +find_in_collection+ is _not_ added.
+      #   associations that depend on multiple tables. Note: When this option is used, +find_in_collection+ is _not_ added.
       # * <tt>:counter_sql</tt>  - specify a complete SQL statement to fetch the size of the association. If +:finder_sql+ is
       #   specified but +:counter_sql+, +:counter_sql+ will be generated by replacing SELECT ... FROM with SELECT COUNT(*) FROM.
       #
@@ -369,7 +369,7 @@ module ActiveRecord
       #   sql fragment, such as "rank = 5".
       # * <tt>:order</tt>       - specify the order from which the associated object will be picked at the top. Specified as
       #    an "ORDER BY" sql fragment, such as "last_name, first_name DESC"
-      # * <tt>:dependent</tt>   - if set to :destroy (or true) all the associated object is destroyed when this object is. Also
+      # * <tt>:dependent</tt>   - if set to :destroy (or true) all the associated objects are destroyed when this object is. Also,
       #   association is assigned.
       # * <tt>:foreign_key</tt> - specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_one association will use "person_id"
@@ -558,8 +558,8 @@ module ActiveRecord
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_and_belongs_to_many association
       #   will use "person_id" as the default foreign_key.
       # * <tt>:association_foreign_key</tt> - specify the association foreign key used for the association. By default this is
-      #   guessed to be the name of the associated class in lower-case and "_id" suffixed. So the associated class is +Project+
-      #   that makes a has_and_belongs_to_many association will use "project_id" as the default association foreign_key.
+      #   guessed to be the name of the associated class in lower-case and "_id" suffixed. So if the associated class is +Project+,
+      #   the has_and_belongs_to_many association will use "project_id" as the default association foreign_key.
       # * <tt>:conditions</tt>  - specify the conditions that the associated object must meet in order to be included as a "WHERE"
       #   sql fragment, such as "authorized = 1".
       # * <tt>:order</tt> - specify the order in which the associated objects are returned as a "ORDER BY" sql fragment, such as "last_name, first_name DESC"

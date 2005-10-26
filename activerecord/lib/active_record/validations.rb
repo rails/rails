@@ -29,8 +29,8 @@ module ActiveRecord
 
     
     # Adds an error to the base object instead of any particular attribute. This is used
-    # to report errors that doesn't tie to any specific attribute, but rather to the object
-    # as a whole. These error messages doesn't get prepended with any field name when iterating
+    # to report errors that don't tie to any specific attribute, but rather to the object
+    # as a whole. These error messages don't get prepended with any field name when iterating
     # with each_full, so they should be complete sentences.
     def add_to_base(msg)
       add(:base, msg)
@@ -359,7 +359,7 @@ module ActiveRecord
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:blank], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
-        # can't use validates_each here, because it cannot cope with non-existant attributes,
+        # can't use validates_each here, because it cannot cope with nonexistent attributes,
         # while errors.add_on_empty can	
         attr_names.each do |attr_name|
           send(validation_method(configuration[:on])) do |record|
@@ -460,7 +460,7 @@ module ActiveRecord
       #     validates_uniqueness_of :user_name, :scope => "account_id"
       #   end
       #
-      # When the record is created, a check is performed to make sure that no record exist in the database with the given value for the specified
+      # When the record is created, a check is performed to make sure that no record exists in the database with the given value for the specified
       # attribute (that maps to a column). When the record is updated, the same check is made but disregarding the record itself.
       #
       # Configuration options:
@@ -565,7 +565,7 @@ module ActiveRecord
         end
       end
 
-      # Validates whether the associated object or objects are all themselves valid. Works with any kind of association.
+      # Validates whether the associated object or objects are all valid themselves. Works with any kind of association.
       #
       #   class Book < ActiveRecord::Base
       #     has_many :pages

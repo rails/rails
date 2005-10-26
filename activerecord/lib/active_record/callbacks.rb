@@ -86,7 +86,7 @@ module ActiveRecord
   #
   # There are four types of callbacks accepted by the callback macros: Method references (symbol), callback objects,
   # inline methods (using a proc), and inline eval methods (using a string). Method references and callback objects are the
-  # recommended approaches, inline methods using a proc is some times appropriate (such as for creating mix-ins), and inline
+  # recommended approaches, inline methods using a proc are sometimes appropriate (such as for creating mix-ins), and inline
   # eval methods are deprecated.
   #
   # The method reference callbacks work by specifying a protected or private method available in the object, like this:
@@ -153,7 +153,7 @@ module ActiveRecord
   #
   # == The after_find and after_initialize exceptions
   #
-  # Because after_find and after_initialize is called for each object instantiated found by a finder, such as Base.find(:all), we've had
+  # Because after_find and after_initialize are called for each object found and instantiated by a finder, such as Base.find(:all), we've had
   # to implement a simple performance constraint (50% more speed on a simple test case). Unlike all the other callbacks, after_find and
   # after_initialize will only be run if an explicit implementation is defined (<tt>def after_find</tt>). In that case, all of the
   # callback types will be called.
@@ -263,10 +263,10 @@ module ActiveRecord
       result
     end
 
-    # Is called _before_ Base.save on existing objects that has a record.
+    # Is called _before_ Base.save on existing objects that have a record.
     def before_update() end
 
-    # Is called _after_ Base.save on existing objects that has a record.
+    # Is called _after_ Base.save on existing objects that have a record.
     def after_update() end
 
     def update_with_callbacks #:nodoc:
@@ -291,11 +291,11 @@ module ActiveRecord
     def after_validation_on_create()  end
 
     # Is called _before_ Validations.validate (which is part of the Base.save call) on
-    # existing objects that has a record.
+    # existing objects that have a record.
     def before_validation_on_update() end
 
     # Is called _after_ Validations.validate (which is part of the Base.save call) on
-    # existing objects that has a record.
+    # existing objects that have a record.
     def after_validation_on_update()  end
 
     def valid_with_callbacks #:nodoc:

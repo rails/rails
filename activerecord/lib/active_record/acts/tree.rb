@@ -6,8 +6,8 @@ module ActiveRecord
         base.extend(ClassMethods)              
       end  
 
-      # Specify this act if you want to model a tree structure by providing a parent association and an children 
-      # association. This act assumes that requires that you have a foreign key column, which by default is called parent_id.
+      # Specify this act if you want to model a tree structure by providing a parent association and a children 
+      # association. This act requires that you have a foreign key column, which by default is called parent_id.
       # 
       #   class Category < ActiveRecord::Base
       #     acts_as_tree :order => "name"
@@ -30,13 +30,14 @@ module ActiveRecord
       #
       # In addition to the parent and children associations, the following instance methods are added to the class 
       # after specifying the act:
-      # * siblings: Return all the children of the parent excluding the current node ([ subchild2 ] when called from subchild1)
-      # * ancestors: Returns all the ancestors of the current node ([child1, root] when called from subchild2)
-      # * root: Returns the root of the current node (root when called from subchild2)
+      # * siblings          : Returns all the children of the parent, excluding the current node ([ subchild2 ] when called from subchild1)
+      # * self_and_siblings : Returns all the children of the parent, including the current node ([ subchild1, subchild2 ] when called from subchild1)
+      # * ancestors         : Returns all the ancestors of the current node ([child1, root] when called from subchild2)
+      # * root              : Returns the root of the current node (root when called from subchild2)
       module ClassMethods
         # Configuration options are:
         #
-        # * <tt>foreign_key</tt> - specifies the column name to use for track of the tree (default: parent_id)
+        # * <tt>foreign_key</tt> - specifies the column name to use for tracking of the tree (default: parent_id)
         # * <tt>order</tt> - makes it possible to sort the children according to this SQL snippet.
         # * <tt>counter_cache</tt> - keeps a count in a children_count column if set to true (default: false).
         def acts_as_tree(options = {})

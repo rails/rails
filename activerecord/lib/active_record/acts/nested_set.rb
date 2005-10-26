@@ -7,17 +7,17 @@ module ActiveRecord
       end  
 
       # This acts provides Nested Set functionality.  Nested Set is similiar to Tree, but with
-      # the added feature that you can select the children and all of it's descendants with
+      # the added feature that you can select the children and all of their descendents with
       # a single query.  A good use case for this is a threaded post system, where you want
       # to display every reply to a comment without multiple selects.
       #
       # A google search for "Nested Set" should point you in the direction to explain the
-      # data base theory.  I figured a bunch of this from
+      # database theory.  I figured out a bunch of this from
       # http://threebit.net/tutorials/nestedset/tutorial1.html
       #
-      # Instead of picturing a leaf node structure with child pointing back to their parent,
+      # Instead of picturing a leaf node structure with children pointing back to their parent,
       # the best way to imagine how this works is to think of the parent entity surrounding all
-      # of it's children, and it's parent surrounding it, etc.  Assuming that they are lined up
+      # of its children, and its parent surrounding it, etc.  Assuming that they are lined up
       # horizontally, we store the left and right boundries in the database.
       #
       # Imagine:
@@ -42,7 +42,7 @@ module ActiveRecord
       #    |   |___________________________|   |___________________________|   |
       #    |___________________________________________________________________| 
       #
-      # The numbers represent the left and right boundries.  The table them might
+      # The numbers represent the left and right boundries.  The table then might
       # look like this:
       #    ID | PARENT | LEFT | RIGHT | DATA
       #     1 |      0 |    1 |    14 | root
@@ -63,10 +63,10 @@ module ActiveRecord
       # There are instance methods for all of these.
       #
       # The structure is good if you need to group things together; the downside is that
-      # keeping data integrity is a pain, and both adding and removing and entry
+      # keeping data integrity is a pain, and both adding and removing an entry
       # require a full table write.        
       #
-      # This sets up a before_destroy trigger to prune the tree correctly if one of it's
+      # This sets up a before_destroy trigger to prune the tree correctly if one of its
       # elements gets deleted.
       #
       module ClassMethods                      
@@ -134,10 +134,10 @@ module ActiveRecord
         end
 
                      
-        # Added a child to this object in the tree.  If this object hasn't been initialized,
+        # Adds a child to this object in the tree.  If this object hasn't been initialized,
         # it gets set up as a root node.  Otherwise, this method will update all of the
-        # other elements in the tree and shift them to the right. Keeping everything
-        # balanaced. 
+        # other elements in the tree and shift them to the right, keeping everything
+        # balanced. 
         def add_child( child )     
           self.reload
           child.reload
@@ -179,17 +179,17 @@ module ActiveRecord
           return (self[right_col_name] - self[left_col_name] - 1)/2
         end
                                                                
-        # Returns a set of itself and all of it's nested children
+        # Returns a set of itself and all of its nested children
         def full_set
           self.class.find(:all, :conditions => "#{scope_condition} AND (#{left_col_name} BETWEEN #{self[left_col_name]} and #{self[right_col_name]})" )
         end
                   
-        # Returns a set of all of it's children and nested children
+        # Returns a set of all of its children and nested children
         def all_children
           self.class.find(:all, :conditions => "#{scope_condition} AND (#{left_col_name} > #{self[left_col_name]}) and (#{right_col_name} < #{self[right_col_name]})" )
         end
                                   
-        # Returns a set of only this entries immediate children
+        # Returns a set of only this entry's immediate children
         def direct_children
           self.class.find(:all, :conditions => "#{scope_condition} and #{parent_column} = #{self.id}")
         end
