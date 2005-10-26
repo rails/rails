@@ -9,6 +9,9 @@ class FlashTest < Test::Unit::TestCase
 
     def set_flash_now
       flash.now["that"] = "hello"
+      flash.now["foo"] ||= "bar"
+      flash.now["foo"] ||= "err"
+      @flashy = flash.now["that"]
       @flash_copy = {}.update flash
       render :inline => "hello"
     end
@@ -75,10 +78,13 @@ class FlashTest < Test::Unit::TestCase
     @request.action = "set_flash_now"
     response = process_request
     assert_equal "hello", response.template.assigns["flash_copy"]["that"]
+    assert_equal "bar"  , response.template.assigns["flash_copy"]["foo"]
+    assert_equal "hello", response.template.assigns["flashy"]
 
     @request.action = "attempt_to_use_flash_now"
     first_response = process_request
     assert_nil first_response.template.assigns["flash_copy"]["that"]
+    assert_nil first_response.template.assigns["flash_copy"]["foo"]
     assert_nil first_response.template.assigns["flashy"]
   end 
   

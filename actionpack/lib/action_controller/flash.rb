@@ -40,6 +40,10 @@ module ActionController #:nodoc:
         @flash.discard(k)
         v
       end
+      
+      def [](k)
+        @flash[k]
+      end
     end
     
     class FlashHash < Hash

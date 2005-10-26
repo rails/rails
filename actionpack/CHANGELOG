@@ -1,3 +1,8 @@
+*SVN*
+
+* Added a reader for flash.now, so it's possible to do stuff like flash.now[:alert] ||= 'New if not set' #2422 [Caio Chassot]
+
+
 *1.10.2* (October 26th, 2005)
 
 * Reset template variables after using render_to_string [skaes@web.de]
