@@ -20,7 +20,7 @@ module ActionMailer
     attr_reader :parts
 
     # Add a part to a multipart message, with the given content-type. The
-    # part itself is yielded to the block, so that other properties (charset,
+    # part itself is yielded to the block so that other properties (charset,
     # body, headers, etc.) can be set on it.
     def part(params)
       params = {:content_type => params} if String === params

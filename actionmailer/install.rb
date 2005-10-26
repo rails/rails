@@ -4,7 +4,7 @@ require 'ftools'
 
 include Config
 
-# this was adapted from rdoc's install.rb by ways of Log4r
+# this was adapted from rdoc's install.rb by way of Log4r
 
 $sitedir = CONFIG["sitelibdir"]
 unless $sitedir

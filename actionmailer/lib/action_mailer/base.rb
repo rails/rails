@@ -9,8 +9,8 @@ module ActionMailer
   #
   #   class ApplicationMailer < ActionMailer::Base
   #     # Set up properties
-  #     # (Properties can also be specified via accessor methods
-  #     # i.e. self.subject = "foo") and instance variables (@subject = "foo").
+  #     # Properties can also be specified via accessor methods
+  #     # (i.e. self.subject = "foo") and instance variables (@subject = "foo").
   #     def signup_notification(recipient)
   #       recipients recipient.email_address_with_name
   #       subject    "New account information"
@@ -71,7 +71,7 @@ module ActionMailer
   #     end
   #   end
   #
-  #   # After this post_notification will look for "templates/application_mailer/post_notification.rhtml"
+  #   # After this, post_notification will look for "templates/application_mailer/post_notification.rhtml"
   #   ApplicationMailer.template_root = "templates"
   #  
   #   ApplicationMailer.create_comment_notification(david, hello_world)  # => a tmail object
@@ -87,11 +87,11 @@ module ActionMailer
   #   Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
   #
   # * <tt>server_settings</tt> -  Allows detailed configuration of the server:
-  #   * <tt>:address</tt> Allows you to use a remote mail server. Just change it away from it's default "localhost" setting.
-  #   * <tt>:port</tt> On the off change that your mail server doesn't run on port 25, you can change it.
+  #   * <tt>:address</tt> Allows you to use a remote mail server. Just change it from its default "localhost" setting.
+  #   * <tt>:port</tt> On the off chance that your mail server doesn't run on port 25, you can change it.
   #   * <tt>:domain</tt> If you need to specify a HELO domain, you can do it here.
-  #   * <tt>:user_name</tt> If your mail server requires authentication, set the username and password in these two settings.
-  #   * <tt>:password</tt> If your mail server requires authentication, set the username and password in these two settings.
+  #   * <tt>:user_name</tt> If your mail server requires authentication, set the username in this setting.
+  #   * <tt>:password</tt> If your mail server requires authentication, set the password in this setting.
   #   * <tt>:authentication</tt> If your mail server requires authentication, you need to specify the authentication type here. 
   #     This is a symbol and one of :plain, :login, :cram_md5
   #
@@ -108,12 +108,12 @@ module ActionMailer
   #
   # * <tt>default_charset</tt> - The default charset used for the body and to encode the subject. Defaults to UTF-8. You can also 
   #   pick a different charset from inside a method with <tt>@charset</tt>.
-  # * <tt>default_content_type</tt> - The default content type used for main part of the message. Defaults to "text/plain". You
+  # * <tt>default_content_type</tt> - The default content type used for the main part of the message. Defaults to "text/plain". You
   #   can also pick a different content type from inside a method with <tt>@content_type</tt>. 
   # * <tt>default_mime_version</tt> - The default mime version used for the message. Defaults to nil. You
   #   can also pick a different value from inside a method with <tt>@mime_version</tt>. When multipart messages are in
   #   use, <tt>@mime_version</tt> will be set to "1.0" if it is not set inside a method.
-  # * <tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assemble from templates
+  # * <tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assembled from templates
   #   which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
   #   ["text/html", "text/enriched", "text/plain"]. Items that appear first in the array have higher priority in the mail client
   #   and appear last in the mime encoded message. You can also pick a different order from inside a method with
