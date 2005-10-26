@@ -27,6 +27,17 @@ module ActiveSupport #:nodoc:
           self * 1024.gigabytes
         end
         alias :terabyte :terabytes
+        
+        def petabytes
+          self * 1024.terabytes
+        end
+        alias :petabyte :petabytes
+        
+        def exabytes
+          self * 1024.petabytes
+        end
+        alias :exabyte :exabytes
+        
       end
     end
   end

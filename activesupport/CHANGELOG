@@ -1,5 +1,7 @@
 *SVN*
 
+* Added petabytes and exebytes to numeric extensions #2397 [timct@mac.com]
+
 * Added Time#end_of_month to accompany Time#beginning_of_month #2514 [Jens-Christian Fischer]
 
 

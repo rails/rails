@@ -46,7 +46,9 @@ class NumericExtSizeTest < Test::Unit::TestCase
       1.kilobyte ** 4  =>   1.terabyte,
       1024.kilobytes + 2.megabytes =>   3.megabytes,
                    2.gigabytes / 4 => 512.megabytes,
-      256.megabytes * 20 + 5.gigabytes => 10.gigabytes
+      256.megabytes * 20 + 5.gigabytes => 10.gigabytes,
+      1.kilobyte ** 5 => 1.petabyte,
+      1.kilobyte ** 6 => 1.exabyte
     }
 
     relationships.each do |left, right|
