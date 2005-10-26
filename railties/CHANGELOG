@@ -1,3 +1,8 @@
+*SVN*
+
+* Load rake task files in alphabetical order so you can build dependencies and count on them #2554 [Blair Zajac]
+
+
 *0.14.2 (RC3)* (October 26th, 2005)
 
 * Constants set in the development/test/production environment file are set in Object
