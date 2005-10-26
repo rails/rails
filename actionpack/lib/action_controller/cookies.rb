@@ -1,6 +1,6 @@
 module ActionController #:nodoc:
-  # Cookies are read and written through ActionController#cookies. The cookies being read is what was received along with the request,
-  # the cookies being written is what will be sent out will the response. Cookies are read by value (so you won't get the cookie object
+  # Cookies are read and written through ActionController#cookies. The cookies being read are what were received along with the request,
+  # the cookies being written are what will be sent out with the response. Cookies are read by value (so you won't get the cookie object
   # itself back -- just the value it holds). Examples for writing:
   #
   #   cookies[:user_name] = "david" # => Will set a simple session cookie
@@ -43,7 +43,7 @@ module ActionController #:nodoc:
       update(@cookies)
     end
 
-    # Returns the value of the cookie by +name+ -- or nil if no such cookie exist. You set new cookies using either the cookie method
+    # Returns the value of the cookie by +name+ -- or nil if no such cookie exists. You set new cookies using either the cookie method
     # or cookies[]= (for simple name/value cookies without options).
     def [](name)
       @cookies[name.to_s].value.first if @cookies[name.to_s] && @cookies[name.to_s].respond_to?(:value)

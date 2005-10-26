@@ -41,7 +41,7 @@ module ActionController #:nodoc:
     #
     # Now any actions performed on the BankController will have the audit method called before. On the VaultController,
     # first the audit method is called, then the verify_credentials method. If the audit method returns false, then 
-    # verify_credentials and the intended action is never called.
+    # verify_credentials and the intended action are never called.
     #
     # == Filter types
     #
@@ -74,7 +74,7 @@ module ActionController #:nodoc:
     #
     # As you can see, the block expects to be passed the controller after it has assigned the request to the internal variables.
     # This means that the block has access to both the request and response objects complete with convenience methods for params,
-    # session, template, and assigns. Note: The inline method doesn't strictly has to be a block. Any object that responds to call
+    # session, template, and assigns. Note: The inline method doesn't strictly have to be a block; any object that responds to call
     # and returns 1 or -1 on arity will do (such as a Proc or an Method object).
     #
     # == Filter chain ordering
@@ -143,7 +143,7 @@ module ActionController #:nodoc:
     #       end
     #   end
     # 
-    # When setting conditions on inline method (proc) filters the condition must come first and be placed in parenthesis.
+    # When setting conditions on inline method (proc) filters the condition must come first and be placed in parentheses.
     #
     #   class UserPreferences < ActionController::Base
     #     before_filter(:except => :new) { # some proc ... }

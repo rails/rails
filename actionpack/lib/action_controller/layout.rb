@@ -24,7 +24,7 @@ module ActionController #:nodoc:
     # and if you ever want to change the structure of these two includes, you'll have to change all the templates.
     #
     # With layouts, you can flip it around and have the common structure know where to insert changing content. This means
-    # that the header and footer is only mentioned in one place, like this:
+    # that the header and footer are only mentioned in one place, like this:
     #
     #   <!-- The header part of this layout -->
     #   <%= @content_for_layout %>

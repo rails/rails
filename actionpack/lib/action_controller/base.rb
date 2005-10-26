@@ -89,7 +89,7 @@ module ActionController #:nodoc:
   #
   # == Parameters
   #
-  # All request parameters whether they come from a GET or POST request, or from the URL, are available through the params hash.
+  # All request parameters, whether they come from a GET or POST request, or from the URL, are available through the params hash.
   # So an action that was performed through /weblog/list?category=All&limit=5 will include { "category" => "All", "limit" => 5 }
   # in params.
   #
@@ -165,7 +165,7 @@ module ActionController #:nodoc:
   # the post again, but rather just show it one more time.
   # 
   # This sounds fairly simple, but the redirection is complicated by the quest for a phenomenon known as "pretty urls". Instead of accepting
-  # the dreadful beings that is "weblog_controller?action=show&post_id=5", Action Controller goes out of its way to represent the former as
+  # the dreadful being that is "weblog_controller?action=show&post_id=5", Action Controller goes out of its way to represent the former as
   # "/weblog/show/5". And this is even the simple case. As an example of a more advanced pretty url consider
   # "/library/books/ISBN/0743536703/show", which can be mapped to books_controller?action=show&type=ISBN&id=0743536703.
   # 
@@ -188,7 +188,7 @@ module ActionController #:nodoc:
   #
   # == Calling multiple redirects or renders
   #
-  # An action should conclude by a single render or redirect. Attempting to try to do either again will result in a DoubleRenderError:
+  # An action should conclude with a single render or redirect. Attempting to try to do either again will result in a DoubleRenderError:
   #
   #   def do_something
   #     redirect_to :action => "elsewhere"
@@ -241,7 +241,7 @@ module ActionController #:nodoc:
     @@debug_routes = true
     cattr_accessor :debug_routes
 
-    # Controls whether the application is thread-safe, so multi-threaded servers like WEBrick knows whether to apply a mutex
+    # Controls whether the application is thread-safe, so multi-threaded servers like WEBrick know whether to apply a mutex
     # around the performance of each action. Action Pack and Active Record are by default thread-safe, but many applications
     # may not be. Turned off by default.
     @@allow_concurrency = false
@@ -276,7 +276,7 @@ module ActionController #:nodoc:
     attr_accessor :response
     
     # Holds a hash of objects in the session. Accessed like <tt>session[:person]</tt> to get the object tied to the "person"
-    # key. The session will hold any type of object as values, but the key should be a string.
+    # key. The session will hold any type of object as values, but the key should be a string or symbol.
     attr_accessor :session
     
     # Holds a hash of header names and values. Accessed like <tt>headers["Cache-Control"]</tt> to get the value of the Cache-Control
@@ -306,7 +306,7 @@ module ActionController #:nodoc:
         @controller_name ||= controller_class_name.sub(/Controller$/, '').underscore
       end
       
-      # Convert the class name from something like "OneModule::TwoModule::NeatController" to "one_module/two_module/neat".
+      # Converts the class name from something like "OneModule::TwoModule::NeatController" to "one_module/two_module/neat".
       def controller_path
         unless @controller_path
           components = self.name.to_s.split('::')
@@ -373,7 +373,7 @@ module ActionController #:nodoc:
       #  
       # <tt>url_for</tt> is used to:
       #  
-      # All keys given to url_for are forwarded to the Route module save for the following:
+      # All keys given to url_for are forwarded to the Route module, save for the following:
       # * <tt>:anchor</tt> -- specifies the anchor name to be appended to the path. For example, 
       #   <tt>url_for :controller => 'posts', :action => 'show', :id => 10, :anchor => 'comments'</tt> 
       #   will produce "/posts/show/10#comments".
@@ -408,7 +408,7 @@ module ActionController #:nodoc:
       # The final rule is applied while the URL is being generated and is best illustrated by an example. Let us consider the
       # route given by <tt>map.connect 'people/:last/:first/:action', :action => 'bio', :controller => 'people'</tt>.
       #
-      # Suppose that the current URL is "people/hh/david/contacts". Let's consider a few different cases URLs which are generated
+      # Suppose that the current URL is "people/hh/david/contacts". Let's consider a few different cases of URLs which are generated
       # from this page.
       #
       # * <tt>url_for :action => 'bio'</tt> -- During the generation of this URL, default values will be used for the first and
@@ -436,7 +436,7 @@ module ActionController #:nodoc:
       #   url_for :overwrite_params => { :action => 'print' }
       #
       # This takes the current URL as is and only exchanges the action. In contrast, <tt>url_for :action => 'print'</tt>
-      # would have slashed-off the path components are the changed action.
+      # would have slashed-off the path components after the changed action.
       def url_for(options = {}, *parameters_for_method_reference) #:doc:
         case options
           when String then options
@@ -481,7 +481,7 @@ module ActionController #:nodoc:
       #
       # === Rendering partials
       # 
-      # Partial rendering is most commonly used together with Ajax calls that only updates one or a few elements on a page
+      # Partial rendering is most commonly used together with Ajax calls that only update one or a few elements on a page
       # without reloading. Rendering of partials from the controller makes it possible to use the same partial template in
       # both the full-page rendering (by calling it from within the template) and when sub-page updates happen (from the
       # controller action responding to Ajax calls). By default, the current layout is not used.
@@ -683,7 +683,7 @@ module ActionController #:nodoc:
         @performed_render = false
       end
 
-      # Clears the redirected results from the headers, resetting the status to 200 and returns 
+      # Clears the redirected results from the headers, resets the status to 200 and returns 
       # the URL that was used to redirect or nil if there was no redirected URL
       # Note that +redirect_to+ will change the body of the response to indicate a redirection.
       # The response body is not reset here, see +erase_render_results+

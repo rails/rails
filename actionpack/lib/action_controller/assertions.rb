@@ -8,9 +8,9 @@ module Test #:nodoc:
     # In addition to these specific assertions, you also have easy access to various collections that the regular test/unit assertions
     # can be used against. These collections are:
     #
-    # * assigns: Instance variables assigned in the action that's available for the view.
+    # * assigns: Instance variables assigned in the action that are available for the view.
     # * session: Objects being saved in the session.
-    # * flash: The flash objects being currently in the session.
+    # * flash: The flash objects currently in the session.
     # * cookies: Cookies being sent to the user on this request.
     # 
     # These collections can be used just like any other hash:
@@ -25,13 +25,13 @@ module Test #:nodoc:
     #
     # On top of the collections, you have the complete url that a given action redirected to available in redirect_to_url.
     #
-    # For redirects within the same controller, you can even call follow_redirect and the redirect will be follow triggering another
+    # For redirects within the same controller, you can even call follow_redirect and the redirect will be followed, triggering another
     # action call which can then be asserted against.
     #
     # == Manipulating the request collections
     #
-    # The collections described above link to the response, so you can test if what the actions were expected to do happen. But
-    # some times you also want to manipulate these collections in the request coming in. This is really only relevant for sessions
+    # The collections described above link to the response, so you can test if what the actions were expected to do happened. But
+    # sometimes you also want to manipulate these collections in the incoming request. This is really only relevant for sessions
     # and cookies, though. For sessions, you just do:
     #
     #   @request.session[:key] = "value"
@@ -68,7 +68,7 @@ module Test #:nodoc:
       end
 
       # Assert that the redirection options passed in match those of the redirect called in the latest action. This match can be partial,
-      # such at assert_redirected_to(:controller => "weblog") will also match the redirection of 
+      # such that assert_redirected_to(:controller => "weblog") will also match the redirection of 
       # redirect_to(:controller => "weblog", :action => "show") and so on.
       def assert_redirected_to(options = {}, message=nil)
         clean_backtrace do
@@ -118,7 +118,7 @@ module Test #:nodoc:
         end
       end
 
-      # Asserts that the routing of the given path is handled correctly and that the parsed options match.
+      # Asserts that the routing of the given path was handled correctly and that the parsed options match.
       def assert_recognizes(expected_options, path, extras={}, message=nil)
         clean_backtrace do 
           path = "/#{path}" unless path[0..0] == '/'
@@ -159,8 +159,8 @@ module Test #:nodoc:
         end
       end
 
-      # asserts that path and options match both ways, in other words, the URL generated from 
-      # options is same as path, and also that the options recognized from path are same as options
+      # Asserts that path and options match both ways; in other words, the URL generated from 
+      # options is the same as path, and also that the options recognized from path are the same as options
       def assert_routing(path, options, defaults={}, extras={}, message=nil)
         assert_recognizes(options, path, extras, message)
         

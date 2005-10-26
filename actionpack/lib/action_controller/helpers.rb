@@ -19,7 +19,7 @@ module ActionController #:nodoc:
       end
     end
 
-    # The template helpers serves to relieve the templates from including the same inline code again and again. It's a
+    # The template helpers serve to relieve the templates from including the same inline code again and again. It's a
     # set of standardized methods for working with forms (FormHelper), dates (DateHelper), texts (TextHelper), and 
     # Active Records (ActiveRecordHelper) that's available to all templates by default.
     #

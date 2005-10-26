@@ -27,7 +27,7 @@ module ActionController #:nodoc:
     #   end
     #
     # Also note, that if the models follow the pattern of just 1 class per file in the form of MyClass => my_class.rb, then these
-    # classes doesn't have to be required as Active Support will auto-require them.
+    # classes don't have to be required as Active Support will auto-require them.
     module ClassMethods
       # Specifies a variable number of models that this controller depends on. Models are normally Active Record classes or a similar
       # backend for modelling entity classes.

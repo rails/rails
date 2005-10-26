@@ -18,7 +18,7 @@ module ActionController #:nodoc:
     end
 
     # Page caching is an approach to caching where the entire action output of is stored as a HTML file that the web server 
-    # can serve without going through the Action Pack. This can be as much as 100 times faster than going the process of dynamically
+    # can serve without going through the Action Pack. This can be as much as 100 times faster than going through the process of dynamically
     # generating the content. Unfortunately, this incredible speed-up is only available to stateless pages where all visitors
     # are treated the same. Content management systems -- including weblogs and wikis -- have many pages that are a great fit
     # for this approach, but account-based systems where people log in and manipulate their own data are often less likely candidates.
@@ -140,7 +140,7 @@ module ActionController #:nodoc:
 
     # Action caching is similar to page caching by the fact that the entire output of the response is cached, but unlike page caching, 
     # every request still goes through the Action Pack. The key benefit of this is that filters are run before the cache is served, which
-    # allows for authentication and other restrictions on whether someone are supposed to see the cache. Example:
+    # allows for authentication and other restrictions on whether someone is allowed to see the cache. Example:
     #
     #   class ListsController < ApplicationController
     #     before_filter :authenticate, :except => :public
@@ -228,7 +228,7 @@ module ActionController #:nodoc:
     # In order to use the fragment caching, you need to designate where the caches should be stored. This is done by assigning a fragment store
     # of which there are four different kinds:
     #
-    # * FileStore: Keeps the fragments on disk in the +cache_path+, which works well for all types of environments and share the fragments for
+    # * FileStore: Keeps the fragments on disk in the +cache_path+, which works well for all types of environments and shares the fragments for
     #   all the web server processes running off the same application directory.
     # * MemoryStore: Keeps the fragments in memory, which is fine for WEBrick and for FCGI (if you don't care that each FCGI process holds its
     #   own fragment store). It's not suitable for CGI as the process is thrown away at the end of each request. It can potentially also take
@@ -481,14 +481,14 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
-    # The sweeper is assigned on the controllers that wish to have its job performed using the <tt>cache_sweeper</tt> class method:
+    # The sweeper is assigned in the controllers that wish to have its job performed using the <tt>cache_sweeper</tt> class method:
     #
     #   class ListsController < ApplicationController
     #     caches_action :index, :show, :public, :feed
     #     cache_sweeper :list_sweeper, :only => [ :edit, :destroy, :share ]
     #   end
     #
-    # In the example above, four actions are cached and three actions are responsible of expiring those caches.
+    # In the example above, four actions are cached and three actions are responsible for expiring those caches.
     module Sweeping
       def self.append_features(base) #:nodoc:
         super

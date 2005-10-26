@@ -1,5 +1,5 @@
 module ActionController #:nodoc:
-  # Components allows you to call other actions for their rendered response while execution another action. You can either delegate
+  # Components allows you to call other actions for their rendered response while executing another action. You can either delegate
   # the entire response rendering or you can mix a partial response in with your other content.
   #
   #   class WeblogController < ActionController::Base

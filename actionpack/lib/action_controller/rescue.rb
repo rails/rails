@@ -56,7 +56,7 @@ module ActionController #:nodoc:
         end
       end
 
-      # Overwrite to expand the meaning of a local request in order to show local rescues on other occurences than
+      # Overwrite to expand the meaning of a local request in order to show local rescues on other occurrences than
       # the remote IP being 127.0.0.1. For example, this could include the IP of the developer machine when debugging
       # remotely.
       def local_request? #:doc:
