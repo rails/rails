@@ -50,10 +50,10 @@ class CGI
     class ActiveRecordStore
       # The default Active Record class.
       class Session < ActiveRecord::Base
+        before_update :loaded? # Don't try to save if we haven't loaded the session
         before_save   :marshal_data!
         before_save   :ensure_data_not_too_big
-        before_update :data_changed?
-
+        
         class << self
 
           # Don't try to reload ARStore::Session in dev mode.
@@ -73,7 +73,6 @@ class CGI
 
           def marshal(data)     Base64.encode64(Marshal.dump(data)) end
           def unmarshal(data)   Marshal.load(Base64.decode64(data)) end
-          def fingerprint(data) Digest::MD5.hexdigest(data)         end
 
           def create_table!
             connection.execute <<-end_sql
@@ -109,17 +108,14 @@ class CGI
             end
         end
 
-        # Lazy-unmarshal session state.  Take a fingerprint so we can detect
-        # whether to save changes later.
+        # Lazy-unmarshal session state.
         def data
           unless @data
-            case @data = read_attribute('data')
+            case data = read_attribute('data')
               when String
-                @fingerprint = self.class.fingerprint(@data)
-                @data = self.class.unmarshal(@data)
-              when nil
-                @data = {}
-                @fingerprint = nil
+                @data = self.class.unmarshal(data)
+              else
+                @data = data || {}
             end
           end
           @data
@@ -127,12 +123,12 @@ class CGI
 
         private
           def marshal_data!
-            write_attribute('data', self.class.marshal(@data || {}))
+            write_attribute('data', self.class.marshal(self.data))
           end
-
-          def data_changed?
-            old_fingerprint, @fingerprint = @fingerprint, self.class.fingerprint(read_attribute('data'))
-            old_fingerprint != @fingerprint
+          
+          # Has the session been loaded yet?
+          def loaded?
+            !! @data
           end
 
           # Ensures that the data about to be stored in the database is not
@@ -188,7 +184,6 @@ class CGI
 
           def marshal(data)     Base64.encode64(Marshal.dump(data)) end
           def unmarshal(data)   Marshal.load(Base64.decode64(data)) end
-          def fingerprint(data) Digest::MD5.hexdigest(data)         end
 
           def create_table!
             @@connection.execute <<-end_sql
@@ -220,16 +215,13 @@ class CGI
           @new_record
         end
 
-        # Lazy-unmarshal session state.  Take a fingerprint so we can detect
-        # whether to save changes later.
+        # Lazy-unmarshal session state.
         def data
           unless @data
             if @marshaled_data
-              @fingerprint = self.class.fingerprint(@marshaled_data)
               @data, @marshaled_data = self.class.unmarshal(@marshaled_data), nil
             else
               @data = {}
-              @fingerprint = nil
             end
           end
           @data
@@ -249,14 +241,11 @@ class CGI
                 #{@@connection.quote(marshaled_data)} )
             end_sql
           else
-            old_fingerprint, @fingerprint = @fingerprint, self.class.fingerprint(marshaled_data)
-            if old_fingerprint != @fingerprint
-              @@connection.update <<-end_sql, 'Update session'
-                UPDATE #{@@table_name}
-                SET #{@@connection.quote_column_name(@@data_column)}=#{@@connection.quote(marshaled_data)}
-                WHERE #{@@connection.quote_column_name(@@session_id_column)}=#{@@connection.quote(session_id)}
-              end_sql
-            end
+            @@connection.update <<-end_sql, 'Update session'
+              UPDATE #{@@table_name}
+              SET #{@@connection.quote_column_name(@@data_column)}=#{@@connection.quote(marshaled_data)}
+              WHERE #{@@connection.quote_column_name(@@session_id_column)}=#{@@connection.quote(session_id)}
+            end_sql
           end
         end
 
