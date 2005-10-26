@@ -24,7 +24,7 @@ a:hover { color: #fff; background-color:#000; }
 
 #ErrorExplanation {
   width: 400px;
-  border: 2px solid 'red';
+  border: 2px solid red;
   padding: 7px;
   padding-bottom: 12px;
   margin-bottom: 20px;
