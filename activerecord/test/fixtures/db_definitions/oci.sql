@@ -259,3 +259,5 @@ create table keyboards (
   key_number integer not null,
   name varchar(50) default null
 );
+create sequence keyboards_seq minvalue 10000;
+

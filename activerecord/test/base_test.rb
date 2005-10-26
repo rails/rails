@@ -594,7 +594,9 @@ class BasicsTest < Test::Unit::TestCase
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "24" }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal Date.new(2004, 6, 24).to_s, topic.last_read.to_s
+    # note that extra #to_date call allows test to pass for Oracle, which 
+    # treats dates/times the same
+    assert_equal Date.new(2004, 6, 24).to_s, topic.last_read.to_date.to_s
   end
 
   def test_multiparameter_attributes_on_date_with_empty_date
@@ -606,7 +608,9 @@ class BasicsTest < Test::Unit::TestCase
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "" }
     topic = Topic.find(1)
     topic.attributes = attributes
-    assert_equal Date.new(2004, 6, 1).to_s, topic.last_read.to_s
+    # note that extra #to_date call allows test to pass for Oracle, which 
+    # treats dates/times the same
+    assert_equal Date.new(2004, 6, 1).to_s, topic.last_read.to_date.to_s
   end
 
   def test_multiparameter_attributes_on_date_with_all_empty
@@ -647,8 +651,8 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_attributes_on_dummy_time
     # Oracle does not have a TIME datatype.
-    if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
-      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
+    if ActiveRecord::ConnectionAdapters.const_defined? :OCIAdapter
+      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OCIAdapter)
     end
     # Sqlserver doesn't either .
     if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter

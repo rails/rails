@@ -26,10 +26,15 @@ begin
       class OCIColumn < Column #:nodoc:
         attr_reader :sql_type
 
-        def initialize(name, default, limit, sql_type, scale)
-          @name, @limit, @sql_type, @scale, @sequence = name, limit, sql_type, scale
-          @type = simplified_type sql_type
-          @default = type_cast default
+        def initialize(name, default, sql_type, limit, scale, null)
+          @name, @limit, @sql_type, @scale, @null = name, limit, sql_type, scale, null
+
+          @type = simplified_type(sql_type)
+          @default = type_cast(default)
+
+          @primary = nil
+          @text    = [:string, :text].include? @type
+          @number  = [:float, :integer].include? @type
         end
 
         def simplified_type(field_type)
@@ -127,6 +132,36 @@ begin
           name =~ /[A-Z]/ ? "\"#{name}\"" : name
         end
 
+        def tables(name = nil)
+          select_all("select lower(table_name) from user_tables").inject([]) do | tabs, t |
+            tabs << t.to_a.first.last
+          end
+        end
+
+        def indexes(table_name, name = nil) #:nodoc:
+          result = select_all(<<-SQL, name)
+            SELECT lower(i.index_name) as index_name, i.uniqueness, lower(c.column_name) as column_name
+              FROM user_indexes i, user_ind_columns c
+             WHERE c.index_name = i.index_name
+               AND i.index_name NOT IN (SELECT index_name FROM user_constraints WHERE constraint_type = 'P')
+              ORDER BY i.index_name, c.column_position
+          SQL
+
+          current_index = nil
+          indexes = []
+
+          result.each do |row|
+            if current_index != row['index_name']
+              indexes << IndexDefinition.new(table_name, row['index_name'], row['uniqueness'] == "UNIQUE", [])
+              current_index = row['index_name']
+            end
+
+            indexes.last.columns << row['column_name']
+          end
+
+          indexes
+        end
+
         def structure_dump
           s = select_all("select sequence_name from user_sequences").inject("") do |structure, seq|
             structure << "create sequence #{seq.to_a.first.last};\n\n"
@@ -211,7 +246,7 @@ begin
 
         def columns(table_name, name = nil)
           select_all(%Q{
-              select column_name, data_type, data_default, data_length, data_scale
+              select column_name, data_type, data_default, data_length, data_scale, nullable
               from user_catalog cat, user_synonyms syn, all_tab_columns col
               where cat.table_name = '#{table_name.upcase}'
               and syn.synonym_name (+)= cat.table_name
@@ -221,9 +256,10 @@ begin
             OCIColumn.new(
               oci_downcase(row['column_name']), 
               row['data_default'],
-              row['data_length'], 
               row['data_type'], 
-              row['data_scale']
+              row['data_length'], 
+              row['data_scale'],
+              row['nullable'] == 'Y'
             )
           end
         end
