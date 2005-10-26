@@ -1,3 +1,8 @@
+*SVN*
+
+* Added quoted_true and quoted_false methods to db2_adapter and cleaned up tests for DB2 #2493 [maik schmidt]
+
+
 *1.12.2* (October 26th, 2005)
 
 * Allow symbols to rename columns when using SQLite adapter. #2531 [kevin.clark@gmail.com]

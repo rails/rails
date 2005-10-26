@@ -145,6 +145,14 @@ begin
           }
         end
 
+        def quoted_true
+          '1'
+        end
+
+        def quoted_false
+          '0'
+        end
+
         private
 
         def last_insert_id

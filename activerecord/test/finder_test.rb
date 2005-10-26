@@ -339,7 +339,7 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_select_values
-    assert_equal ["1","2","3","4","5","6","7","8"], Company.connection.select_values("SELECT id FROM companies ORDER BY id")
+    assert_equal ["1","2","3","4","5","6","7","8"], Company.connection.select_values("SELECT id FROM companies ORDER BY id").map! { |i| i.to_s }
     assert_equal ["37signals","Summit","Microsoft", "Flamboyant Software", "Ex Nihilo", "RailsCore", "Leetsoft", "Jadedpixel"], Company.connection.select_values("SELECT name FROM companies ORDER BY id")
   end
 
