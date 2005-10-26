@@ -1039,6 +1039,30 @@ class BasicsTest < Test::Unit::TestCase
     assert_nothing_raised { Category.new.send(:interpolate_sql, 'foo bar} baz') }
   end
 
+  def test_constrain_conditions
+    developers = Developer.constrain(:conditions => 'salary > 90000') do
+      Developer.find(:all, :conditions => 'id < 5')
+    end
+    david = Developer.find(1)
+    assert !developers.include?(david) # David's salary is less than 90,000
+    assert_equal 3, developers.size
+  end
+  
+  def test_constrain_limit_offset
+    developers = Developer.constrain(:limit => 3, :offset => 2) do
+      Developer.find(:all, :order => 'id')
+    end    
+    david = Developer.find(1)
+    jamis = Developer.find(1)
+    assert !developers.include?(david) # David has id 1
+    assert !developers.include?(jamis) # Jamis has id 2
+    assert_equal 3, developers.size
+    
+    # Now test without constraints to make sure we get the whole thing
+    developers = Developer.find(:all, :order => 'id')
+    assert_equal 10, developers.size
+  end
+  
   # FIXME: this test ought to run, but it needs to run sandboxed so that it
   # doesn't b0rk the current test environment by undefing everything.
   #

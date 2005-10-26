@@ -809,7 +809,8 @@ module ActiveRecord #:nodoc:
       end
       
       # Add constraints to all queries to the same model in the given block.
-      # Currently supported constraints are <tt>:conditions</tt> and <tt>:joins</tt> 
+      # Currently supported constraints are <tt>:conditions</tt>, <tt>:joins</tt>,
+      # <tt>:offset</tt>, and <tt>:limit</tt> 
       #
       #   Article.constrain(:conditions => "blog_id = 1") do
       #     Article.find(1) # => SELECT * from articles WHERE blog_id = 1 AND id = 1
@@ -883,6 +884,8 @@ module ActiveRecord #:nodoc:
         end
 
         def add_limit!(sql, options)
+          options[:limit]  ||= scope_constraints[:limit]  if scope_constraints[:limit]
+          options[:offset] ||= scope_constraints[:offset] if scope_constraints[:offset]
           connection.add_limit_offset!(sql, options)
         end
         
