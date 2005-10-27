@@ -893,7 +893,7 @@ module ActiveRecord
           connection.select_values(
             construct_finder_sql_for_association_limiting(options),
             "#{name} Load IDs For Limited Eager Loading"
-          ).collect { |id| "'#{id}'" }.join(", ")
+          ).collect { |id| connection.quote(id) }.join(", ")
         end
 
         def construct_finder_sql_for_association_limiting(options)

@@ -115,7 +115,10 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal(%w( one two three four five ), topic.content)
   end
  
-  def test_attributes_hash
+  def test_case_sensitive_attributes_hash
+    # DB2 is not case-sensitive
+    return true if current_adapter?(:DB2Adapter)
+
     assert_equal @loaded_fixtures['computers']['workstation'].to_hash, Computer.find(:first).attributes
   end
 
@@ -220,26 +223,23 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_preserving_date_objects
     # SQL Server doesn't have a separate column type just for dates, so all are returned as time
-    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter
-      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
-    end
+    return true if current_adapter?(:SQLServerAdapter)
 
     assert_kind_of(
       Date, Topic.find(1).last_read, 
       "The last_read attribute should be of the Date class"
     )
+  end
 
+  def test_preserving_time_objects
     # Oracle does not have a TIME datatype.
-    if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
-      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
-    end
+    return true if current_adapter?(:OCIAdapter)
+
     assert_kind_of(
       Time, Topic.find(1).bonus_time,
       "The bonus_time attribute should be of the Time class"
     )
-  end
 
-  def test_preserving_time_objects
     assert_kind_of(
       Time, Topic.find(1).written_on,
       "The written_on attribute should be of the Time class"
@@ -384,9 +384,8 @@ class BasicsTest < Test::Unit::TestCase
   
   def test_update_all
     # The ADO library doesn't support the number of affected rows
-    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter
-      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
-    end
+    return true if current_adapter?(:SQLServerAdapter)
+
     assert_equal 2, Topic.update_all("content = 'bulk updated!'")
     assert_equal "bulk updated!", Topic.find(1).content
     assert_equal "bulk updated!", Topic.find(2).content
@@ -406,9 +405,8 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_delete_all
     # The ADO library doesn't support the number of affected rows
-    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter
-      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
-    end
+    return true if current_adapter?(:SQLServerAdapter)
+
     assert_equal 2, Topic.delete_all
   end
 
@@ -471,16 +469,16 @@ class BasicsTest < Test::Unit::TestCase
     assert_nil topic.last_read
   end
 
-  # Oracle and SQLServer do not have a TIME datatype.
-  unless 'OCI' == ActiveRecord::Base.connection.adapter_name or ActiveRecord::ConnectionAdapters.const_defined?(:SQLServerAdapter)
-    def test_utc_as_time_zone
-      Topic.default_timezone = :utc
-      attributes = { "bonus_time" => "5:42:00AM" }
-      topic = Topic.find(1)
-      topic.attributes = attributes
-      assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
-      Topic.default_timezone = :local
-    end
+  def test_utc_as_time_zone
+    # Oracle and SQLServer do not have a TIME datatype.
+    return true if current_adapter?(:SQLServerAdapter) || current_adapter?(:OCIAdapter)
+
+    Topic.default_timezone = :utc
+    attributes = { "bonus_time" => "5:42:00AM" }
+    topic = Topic.find(1)
+    topic.attributes = attributes
+    assert_equal Time.utc(2000, 1, 1, 5, 42, 0), topic.bonus_time
+    Topic.default_timezone = :local
   end
 
   def test_default_values_on_empty_strings
@@ -587,9 +585,7 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_multiparameter_attributes_on_date
     # SQL Server doesn't have a separate column type just for dates, so all are returned as time
-    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter
-      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
-    end
+    return true if current_adapter?(:SQLServerAdapter)
 
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "24" }
     topic = Topic.find(1)
@@ -601,9 +597,7 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_multiparameter_attributes_on_date_with_empty_date
     # SQL Server doesn't have a separate column type just for dates, so all are returned as time
-    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter
-      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
-    end
+    return true if current_adapter?(:SQLServerAdapter)
 
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "" }
     topic = Topic.find(1)
@@ -650,14 +644,8 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_attributes_on_dummy_time
-    # Oracle does not have a TIME datatype.
-    if ActiveRecord::ConnectionAdapters.const_defined? :OCIAdapter
-      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OCIAdapter)
-    end
-    # Sqlserver doesn't either .
-    if ActiveRecord::ConnectionAdapters.const_defined? :SQLServerAdapter
-      return true if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::SQLServerAdapter)
-    end
+    # Oracle and SQL Server does not have a TIME datatype.
+    return true if current_adapter?(:SQLServerAdapter) || current_adapter?(:OCIAdapter)
 
     attributes = {
       "bonus_time" => "5:42:00AM"
@@ -738,7 +726,7 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   # TODO: extend defaults tests to other databases!
-  if 'PostgreSQL' == ActiveRecord::Base.connection.adapter_name
+  if current_adapter?(:PostgreSQLAdapter)
     def test_default
       default = Default.new
   
@@ -1086,7 +1074,6 @@ class BasicsTest < Test::Unit::TestCase
   #end
   
   private
-
     def assert_readers(model, exceptions)
       expected_readers = model.column_names - (model.serialized_attributes.keys + exceptions + ['id'])
       assert_equal expected_readers.sort, model.read_methods.keys.sort

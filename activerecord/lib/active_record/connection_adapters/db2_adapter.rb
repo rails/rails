@@ -1,4 +1,4 @@
-# Author: Maik Schmidt <contact@maik-schmidt.de>
+# Author/Maintainer: Maik Schmidt <contact@maik-schmidt.de>
 
 require 'active_record/connection_adapters/abstract_adapter'
 
@@ -111,6 +111,14 @@ begin
           if options[:offset] and !options[:offset].nil?
             raise ArgumentError, ':offset option is not yet supported!'
           end
+        end
+
+        def tables(name = nil)
+          stmt = DB2::Statement.new(@connection)
+          result = []
+          stmt.tables.each { |t| result << t[2].downcase }
+          stmt.free
+          result
         end
 
         def columns(table_name, name = nil)

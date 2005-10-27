@@ -4,7 +4,7 @@
 
 * Fixed handling of nil number columns on Oracle and cleaned up tests for Oracle in general #2555 [schoenm@earthlink.net]
 
-* Added quoted_true and quoted_false methods to db2_adapter and cleaned up tests for DB2 #2493 [maik schmidt]
+* Added quoted_true and quoted_false methods and tables to db2_adapter and cleaned up tests for DB2 #2493, #2624 [maik schmidt]
 
 
 *1.12.2* (October 26th, 2005)

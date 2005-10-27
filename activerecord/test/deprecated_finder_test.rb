@@ -15,10 +15,8 @@ class DeprecatedFinderTest < Test::Unit::TestCase
   end
 
   def test_find_all_with_prepared_limit_and_offset
-    if ActiveRecord::ConnectionAdapters.const_defined? :OracleAdapter
-      if ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OracleAdapter)
-        assert_raises(ArgumentError) { Entrant.find_all nil, "id ASC", [2, 1] }
-      end
+    if current_adapter?(:OCIAdapter)
+      assert_raises(ArgumentError) { Entrant.find_all nil, "id ASC", [2, 1] }
     else
       entrants = Entrant.find_all nil, "id ASC", [2, 1]
 

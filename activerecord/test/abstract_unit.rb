@@ -17,3 +17,8 @@ class Test::Unit::TestCase #:nodoc:
     Fixtures.create_fixtures(File.dirname(__FILE__) + "/fixtures/", table_names, &block)
   end
 end
+
+def current_adapter?(type)
+  ActiveRecord::ConnectionAdapters.const_defined?(type) &&
+    ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters.const_get(type))
+end

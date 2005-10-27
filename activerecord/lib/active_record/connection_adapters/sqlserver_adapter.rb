@@ -11,6 +11,8 @@ require 'active_record/connection_adapters/abstract_adapter'
 # Modifications (ODBC): Mark Imbriaco <mark.imbriaco@pobox.com>
 # Date: 6/26/2005
 #
+# Current maintainer: Ryan Tomayko <rtomayko@gmail.com>
+#
 module ActiveRecord
   class Base
     def self.sqlserver_connection(config) #:nodoc:

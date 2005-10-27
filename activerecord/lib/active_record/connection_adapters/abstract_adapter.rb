@@ -33,7 +33,7 @@ module ActiveRecord
         'Abstract'
       end
       
-      # Does this adapter support migrations ?  Backend specific, as the
+      # Does this adapter support migrations?  Backend specific, as the
       # abstract adapter always returns +false+.
       def supports_migrations?
         false

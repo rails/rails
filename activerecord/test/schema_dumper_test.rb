@@ -3,9 +3,7 @@ require "#{File.dirname(__FILE__)}/../lib/active_record/schema_dumper"
 require 'stringio'
 
 if ActiveRecord::Base.connection.respond_to?(:tables)
-
-  unless ActiveRecord::ConnectionAdapters.const_defined?(:OCIAdapter) && \
-    ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters::OCIAdapter)
+  unless current_adapter?(:OCIAdapter)
 
     class SchemaDumperTest < Test::Unit::TestCase
       def test_schema_dump
@@ -20,5 +18,4 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
     end
 
   end
-
 end
