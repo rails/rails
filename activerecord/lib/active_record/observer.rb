@@ -74,9 +74,10 @@ module ActiveRecord
   #
   # == Triggering Observers
   # 
-  # In order to activate an observer, you need to call Observer.instance. In Rails, this can be done in controllers
-  # using the short-hand of for example observer :comment_observer. Or directly from Active Record, with
-  # ActiveRecord::Base.observer(:comment_observer).
+  # In order to activate an observer, list it in the <tt>config.active_record.observers</tt> configuration setting in your
+  # <tt>config/environment.rb</tt> file.
+  #
+  #   config.active_record.observers = :comment_observer, :signup_observer
   class Observer
     include Singleton
 
