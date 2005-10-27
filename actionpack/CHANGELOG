@@ -1,8 +1,8 @@
 *SVN*
 
-* Remove ARStore session fingerprinting.
+* Remove ARStore session fingerprinting. [Nicholas Seckar]
 
-* Fix obscure bug in ARStore.
+* Fix obscure bug in ARStore. [Nicholas Seckar]
 
 * Added TextHelper#strip_tags for removing HTML tags from a string (using HTMLTokenizer) #2229 [marcin@junkheap.net]
 
