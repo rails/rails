@@ -1,5 +1,7 @@
 *SVN*
 
+* rake should run functional tests even if the unit tests have failures [Jim Weirich]
+
 * Back off cleanpath to be symlink friendly. Closes #2533 [Nicholas Seckar]
 
 * Load rake task files in alphabetical order so you can build dependencies and count on them #2554 [Blair Zajac]

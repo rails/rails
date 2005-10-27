@@ -1,10 +1,12 @@
 *SVN*
 
+* Fixed document.getElementsByClassName from Prototype to be speedy again [Sam Stephenson]
+
 * Recognize ./#{RAILS_ROOT} as RAILS_ROOT in error traces [Nicholas Seckar]
 
-* Remove ARStore session fingerprinting. [Nicholas Seckar]
+* Remove ARStore session fingerprinting [Nicholas Seckar]
 
-* Fix obscure bug in ARStore. [Nicholas Seckar]
+* Fix obscure bug in ARStore [Nicholas Seckar]
 
 * Added TextHelper#strip_tags for removing HTML tags from a string (using HTMLTokenizer) #2229 [marcin@junkheap.net]
 

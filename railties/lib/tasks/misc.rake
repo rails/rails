@@ -1,5 +1,9 @@
 desc "Run all the tests on a fresh test database"
-task :default => [ :test_units, :test_functional ]
+task :default do
+  Rake::Task[:test_units].invoke      rescue got_error = true
+  Rake::Task[:test_functional].invoke rescue got_error = true
+  raise "Test failures" if got_error
+end
 
 task :environment do
   require(File.join(RAILS_ROOT, 'config', 'environment'))
