@@ -1,5 +1,7 @@
 *SVN*
 
+* When loading classes using const_missing, raise a NameError if and only if the file we tried to load was not present. [Nicholas Seckar]
+
 * Added petabytes and exebytes to numeric extensions #2397 [timct@mac.com]
 
 * Added Time#end_of_month to accompany Time#beginning_of_month #2514 [Jens-Christian Fischer]

@@ -188,15 +188,15 @@ class Module #:nodoc:
       return Object::Controllers.const_get(class_id)
     end
     
+    file_name = class_id.to_s.demodulize.underscore
     begin
-      require_dependency(class_id.to_s.demodulize.underscore)
-      if Object.const_defined?(class_id) then return Object.const_get(class_id) else raise LoadError end
-    rescue LoadError => e
-      begin
-        rails_original_const_missing(class_id)
-      rescue Exception
-        raise NameError.new("uninitialized constant #{class_id}").copy_blame!(e)
-      end
+      require_dependency(file_name)
+      raise NameError.new("uninitialized constant #{class_id}") unless Object.const_defined?(class_id)
+      return Object.const_get(class_id)
+    rescue MissingSourceFile => e
+      # Convert the exception to a NameError only if the file we are looking for is the missing one.
+      raise unless e.path == "#{file_name}.rb"
+      raise NameError.new("uninitialized constant #{class_id}").copy_blame!(e)
     end
   end
 end
