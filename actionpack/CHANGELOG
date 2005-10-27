@@ -1,5 +1,7 @@
 *SVN*
 
+* Recognize ./#{RAILS_ROOT} as RAILS_ROOT in error traces [Nicholas Seckar]
+
 * Remove ARStore session fingerprinting. [Nicholas Seckar]
 
 * Fix obscure bug in ARStore. [Nicholas Seckar]

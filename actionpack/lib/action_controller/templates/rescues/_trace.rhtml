@@ -5,7 +5,7 @@
     ["Full Trace", @exception.clean_backtrace]
   ]
   if defined?(RAILS_ROOT)
-    traces.each { |name, trace| trace.map! { |p| p.gsub(/^#{RAILS_ROOT}/, '<b>#{RAILS_ROOT}</b>') } }
+    traces.each { |name, trace| trace.map! { |p| p.gsub(/^(?:\.\/)?#{RAILS_ROOT}/, '<b>#{RAILS_ROOT}</b>') } }
   end
   names = traces.collect {|name, trace| name}
 %>
