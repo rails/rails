@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix line number detection and escape RAILS_ROOT in backtrace Regexp [Nicholas Seckar]
+
 * Fixed document.getElementsByClassName from Prototype to be speedy again [Sam Stephenson]
 
 * Recognize ./#{RAILS_ROOT} as RAILS_ROOT in error traces [Nicholas Seckar]
