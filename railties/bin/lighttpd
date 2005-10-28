@@ -1,0 +1,10 @@
+#!/usr/local/bin/ruby
+
+if RUBY_PLATFORM !~ /mswin/ && `lighttpd -version 2>/dev/null`.size > 0
+  puts "=> Rails application started on http://0.0.0.0:3000"
+  puts "=> Ctrl-C to shutdown server"
+
+  `lighttpd -D -f #{File.dirname(__FILE__) + "/../"}/config/lighttpd.conf`
+else
+  puts "lighttpd is not available on your system"
+end
