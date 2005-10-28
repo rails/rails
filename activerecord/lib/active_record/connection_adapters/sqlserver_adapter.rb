@@ -13,6 +13,10 @@ require 'active_record/connection_adapters/abstract_adapter'
 #
 # Current maintainer: Ryan Tomayko <rtomayko@gmail.com>
 #
+# Modifications (Migrations): Tom Ward <tom@popdog.net>
+# Date: 27/10/2005
+#
+
 module ActiveRecord
   class Base
     def self.sqlserver_connection(config) #:nodoc:
@@ -73,6 +77,7 @@ module ActiveRecord
         when :datetime  then cast_to_datetime(value)
         when :timestamp then cast_to_time(value)
         when :time      then cast_to_time(value)
+        when :boolean   then value == true or (value =~ /^t(rue)?$/i) == 0 or value.to_s == '1'
         else value
         end
       end
@@ -182,6 +187,10 @@ module ActiveRecord
 
       def adapter_name
         'SQLServer'
+      end
+      
+      def supports_migrations? #:nodoc:
+        true
       end
 
       def select_all(sql, name = nil)
@@ -331,6 +340,63 @@ module ActiveRecord
 
       def create_database(name)
         execute "CREATE DATABASE #{name}"
+      end
+      
+      def tables(name = nil)
+        tables = []
+        execute("SELECT table_name from information_schema.tables WHERE table_type = 'BASE TABLE'", name).each {|field| tables << field[0]}
+        tables
+      end
+      
+      def indexes(table_name, name = nil)
+        indexes = []
+        execute("EXEC sp_helpindex #{table_name}", name).each do |index| 
+          unique = index[1] =~ /unique/
+          primary = index[1] =~ /primary key/
+          if !primary
+            indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", "))
+          end
+        end
+        indexes
+      end
+            
+      def rename_table(name, new_name)
+        execute "EXEC sp_rename '#{name}', '#{new_name}'"
+      end
+      
+      def remove_column(table_name, column_name)
+        execute "ALTER TABLE #{table_name} DROP COLUMN #{column_name}"
+      end 
+      
+      def rename_column(table, column, new_column_name)
+        execute "EXEC sp_rename '#{table}.#{column}', '#{new_column_name}'"
+      end
+      
+      def change_column(table_name, column_name, type, options = {}) #:nodoc:
+        sql_commands = ["ALTER TABLE #{table_name} ALTER COLUMN #{column_name} #{type_to_sql(type, options[:limit])}"]
+        if options[:default]
+          remove_default_constraint(table_name, column_name)
+          sql_commands << "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{options[:default]} FOR #{column_name}"
+        end
+        sql_commands.each {|c|
+          execute(c)
+        }
+      end
+      
+      def remove_column(table_name, column_name)
+        remove_default_constraint(table_name, column_name)
+        execute "ALTER TABLE #{table_name} DROP COLUMN #{column_name}"
+      end
+      
+      def remove_default_constraint(table_name, column_name)
+        defaults = select "select def.name from sysobjects def, syscolumns col, sysobjects tab where col.cdefault = def.id and col.name = '#{column_name}' and tab.name = '#{table_name}' and col.id = tab.id"
+        defaults.each {|constraint|
+          execute "ALTER TABLE #{table_name} DROP CONSTRAINT #{constraint["name"]}"
+        }
+      end
+      
+      def remove_index(table_name, options = {})
+        execute "DROP INDEX #{table_name}.#{index_name(table_name, options)}"
       end
 
       private

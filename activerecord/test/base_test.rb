@@ -16,6 +16,7 @@ class CreditCard < ActiveRecord::Base; end
 class MasterCreditCard < ActiveRecord::Base; end
 class Post < ActiveRecord::Base; end
 class Computer < ActiveRecord::Base; end
+class NonExistentTable < ActiveRecord::Base; end
 
 class LoosePerson < ActiveRecord::Base
   attr_protected :credit_rating, :administrator
@@ -42,6 +43,11 @@ end
 class BasicsTest < Test::Unit::TestCase
   fixtures :topics, :companies, :developers, :projects, :computers
 
+  def test_table_exists
+    assert !NonExistentTable.table_exists?
+    assert Topic.table_exists?
+  end
+  
   def test_set_attributes
     topic = Topic.find(1)
     topic.attributes = { "title" => "Budget", "author_name" => "Jason" }

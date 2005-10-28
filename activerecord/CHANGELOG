@@ -1,5 +1,7 @@
 *SVN*
 
+* Added migration support to SQL Server adapter (please someone do the same for Oracle and DB2) #2625 [Tom Ward]
+
 * Use AR::Base.silence rather than AR::Base.logger.silence in fixtures to preserve Log4r compatibility.  #2618 [dansketcher@gmail.com]
 
 * Constraints are cloned so they can't be inadvertently modified while they're

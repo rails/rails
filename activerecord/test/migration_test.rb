@@ -4,7 +4,6 @@ require File.dirname(__FILE__) + '/fixtures/migrations/1_people_have_last_names'
 require File.dirname(__FILE__) + '/fixtures/migrations/2_we_need_reminders'
 
 if ActiveRecord::Base.connection.supports_migrations? 
-
   class Reminder < ActiveRecord::Base; end
 
   class MigrationTest < Test::Unit::TestCase
@@ -19,6 +18,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Reminder.connection.drop_table("reminders") rescue nil
       Reminder.connection.drop_table("people_reminders") rescue nil
+      Reminder.connection.drop_table("prefix_reminders_suffix") rescue nil
       Reminder.reset_column_information
 
       Person.connection.remove_column("people", "last_name") rescue nil
@@ -92,11 +92,29 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.drop_table :testings rescue nil
     end
   
-    def test_add_column_not_null
+    # SQL Server will not allow you to add a NOT NULL column
+    # to a table without specifying a default value, so the
+    # following test must be skipped  
+    unless current_adapter?(:SQLServerAdapter)
+      def test_add_column_not_null_without_default
+        Person.connection.create_table :testings do |t|
+          t.column :foo, :string
+        end
+        Person.connection.add_column :testings, :bar, :string, :null => false
+  
+        assert_raises(ActiveRecord::StatementInvalid) do
+          Person.connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
+        end
+      ensure
+        Person.connection.drop_table :testings rescue nil
+      end
+    end
+    
+    def test_add_column_not_null_with_default
       Person.connection.create_table :testings do |t|
         t.column :foo, :string
       end
-      Person.connection.add_column :testings, :bar, :string, :null => false
+      Person.connection.add_column :testings, :bar, :string, :null => false, :default => "default"
 
       assert_raises(ActiveRecord::StatementInvalid) do
         Person.connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
@@ -128,7 +146,14 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal String, bob.bio.class
       assert_equal Fixnum, bob.age.class
       assert_equal Time, bob.birthday.class
-      assert_equal Date, bob.favorite_day.class
+
+      if current_adapter?(:SQLServerAdapter)
+        # SQL Server doesn't differentiate between date/time
+        assert_equal Time, bob.favorite_day.class
+      else
+        assert_equal Date, bob.favorite_day.class
+      end
+
       assert_equal TrueClass, bob.male?.class
     end
 
@@ -162,11 +187,11 @@ if ActiveRecord::Base.connection.supports_migrations?
     
     def test_add_rename
       Person.delete_all
-            
-      Person.connection.add_column "people", "girlfriend", :string      
-      Person.create :girlfriend => 'bobette'      
-      
+           
       begin
+        Person.connection.add_column "people", "girlfriend", :string      
+        Person.create :girlfriend => 'bobette'      
+      
         Person.connection.rename_column "people", "girlfriend", "exgirlfriend"
       
         Person.reset_column_information      
@@ -237,8 +262,8 @@ if ActiveRecord::Base.connection.supports_migrations?
     end    
 
     def test_add_table
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.column_methods_hash }
-    
+      assert !Reminder.table_exists?
+      
       WeNeedReminders.up
     
       assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
@@ -250,7 +275,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_migrator
       assert !Person.column_methods_hash.include?(:last_name)
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.column_methods_hash }
+      assert !Reminder.table_exists?
 
       ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/')
 
@@ -270,14 +295,13 @@ if ActiveRecord::Base.connection.supports_migrations?
 
     def test_migrator_one_up
       assert !Person.column_methods_hash.include?(:last_name)
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.column_methods_hash }
-
+      assert !Reminder.table_exists?
+      
       ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
 
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.column_methods_hash }
-
+      assert !Reminder.table_exists?
 
       ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 2)
 
@@ -292,7 +316,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.column_methods_hash }
+      assert !Reminder.table_exists?
     end
   
     def test_migrator_one_up_one_down
@@ -300,7 +324,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
 
       assert !Person.column_methods_hash.include?(:last_name)
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.column_methods_hash }
+      assert !Reminder.table_exists?
     end
     
     def test_migrator_going_down_due_to_version_target
@@ -308,7 +332,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
 
       assert !Person.column_methods_hash.include?(:last_name)
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.column_methods_hash }
+      assert !Reminder.table_exists?
 
       ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations/')
 
@@ -359,13 +383,11 @@ if ActiveRecord::Base.connection.supports_migrations?
     end  
 
     def test_add_drop_table_with_prefix_and_suffix
-      assert_raises(ActiveRecord::StatementInvalid) { Reminder.column_methods_hash }
-
+      assert !Reminder.table_exists?
       ActiveRecord::Base.table_name_prefix = 'prefix_'
       ActiveRecord::Base.table_name_suffix = '_suffix'
       Reminder.reset_table_name
       WeNeedReminders.up
-
       assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
       assert_equal "hello world", Reminder.find(:first).content
 
@@ -375,7 +397,5 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.table_name_suffix = ''
       Reminder.reset_table_name
     end
-
-  end  
-  
+  end
 end

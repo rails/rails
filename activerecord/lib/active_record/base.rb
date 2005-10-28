@@ -707,6 +707,22 @@ module ActiveRecord #:nodoc:
         class_name
       end
 
+      # Indicates whether the table associated with this class exists
+      def table_exists?
+        if connection.respond_to?(:tables)
+          connection.tables.include? table_name
+        else
+          # if the connection adapter hasn't implemented tables, there are two crude tests that can be
+          # used - see if getting column info raises an error, or if the number of columns returned is zero
+          begin
+            reset_column_information
+            columns.size > 0
+          rescue ActiveRecord::StatementInvalid
+            false
+          end          
+        end
+      end
+
       # Returns an array of column objects for the table associated with this class.
       def columns
         unless @columns

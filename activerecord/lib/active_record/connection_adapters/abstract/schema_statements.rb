@@ -184,22 +184,24 @@ module ActiveRecord
       #   remove_index :accounts, :column => :branch_id
       # Remove the index named by_branch_party in the accounts table.
       #   remove_index :accounts, :name => :by_branch_party
+      
       def remove_index(table_name, options = {})
+        execute "DROP INDEX #{index_name(table_name, options)} ON #{table_name}"
+      end
+
+      def index_name(table_name, options) #:nodoc:
         if Hash === options # legacy support
           if options[:column]
-            index_name = "#{table_name}_#{options[:column]}_index"
+            "#{table_name}_#{options[:column]}_index"
           elsif options[:name]
-            index_name = options[:name]
+            options[:name]
           else
             raise ArgumentError, "You must specify the index name"
           end
         else
-          index_name = "#{table_name}_#{options}_index"
+          "#{table_name}_#{options}_index"
         end
-
-        execute "DROP INDEX #{index_name} ON #{table_name}"
       end
-
 
       # Returns a string of <tt>CREATE TABLE</tt> SQL statement(s) for recreating the
       # entire structure of the database.
