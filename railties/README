@@ -25,21 +25,10 @@ Rails.  You can read more about Action Pack in
 link:files/vendor/rails/actionpack/README.html.
 
 
-== Requirements
-
-* Database and driver (MySQL, PostgreSQL, or SQLite)
-* Rake[http://rake.rubyforge.org] for running tests and the generating documentation
-
-== Optionals
-
-* Apache 1.3.x or 2.x or lighttpd 1.3.11+ (or any FastCGI-capable webserver with a
-  mod_rewrite-like module)
-* FastCGI (or mod_ruby) for better performance on Apache
-
 == Getting started
 
-1. Run the WEBrick servlet: <tt>ruby script/server</tt>
-   (run with --help for options)
+1. Run the WEBrick servlet: <tt>ruby script/server</tt> (run with --help for options)
+   ...or if you have lighttpd installed: <tt>ruby script/lighttpd</tt> (it's faster)
 2. Go to http://localhost:3000/ and get "Congratulations, you've put Ruby on Rails!"
 3. Follow the guidelines on the "Congratulations, you've put Ruby on Rails!" screen
 
@@ -64,33 +53,6 @@ should be on and ".cgi" should respond. All requests from 127.0.0.1 goes
 through CGI, so no Apache restart is necessary for changes. All other requests
 goes through FCGI (or mod_ruby) that requires restart to show changes.
 
-
-== Example for lighttpd conf (with FastCGI)
-
-  server.port = 8080
-  server.bind = "127.0.0.1"
-  # server.event-handler = "freebsd-kqueue" # needed on OS X
-  
-  server.modules = ( "mod_rewrite", "mod_fastcgi" )
-  
-  url.rewrite = ( "^/$" => "index.html", "^([^.]+)$" => "$1.html" )
-  server.error-handler-404 = "/dispatch.fcgi"
-  
-  server.document-root = "/path/application/public"
-  server.errorlog      = "/path/application/log/server.log"
-  
-  fastcgi.server = ( ".fcgi" =>
-    ( "localhost" =>
-        (
-          "min-procs" => 1, 
-          "max-procs" => 5,
-          "socket"   => "/tmp/application.fcgi.socket",
-          "bin-path" => "/path/application/public/dispatch.fcgi",
-          "bin-environment" => ( "RAILS_ENV" => "development" )
-        )
-    )
-  )
-  
 
 == Debugging Rails
 

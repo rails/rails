@@ -393,9 +393,9 @@ module Rails
         paths.concat %w(
           app 
           app/models 
-          app/controllers 
-          app/helpers 
-          app/services 
+          app/controllers
+          app/helpers
+          app/services
           app/apis 
           components 
           config 

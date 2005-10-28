@@ -29,7 +29,7 @@ RUBY_FORGE_USER    = "webster132"
 
 
 BASE_DIRS   = %w( app config/environments components db doc log lib lib/tasks public script script/performance script/process test vendor vendor/plugins )
-APP_DIRS    = %w( apis models controllers helpers services views views/layouts )
+APP_DIRS    = %w( models controllers helpers views views/layouts )
 PUBLIC_DIRS = %w( images javascripts stylesheets )
 TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/test )
 

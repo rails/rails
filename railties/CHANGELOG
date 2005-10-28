@@ -1,6 +1,6 @@
 *SVN*
 
-* Trim down the default mimetypes in config/lighttpd.conf [sam]
+* Removed app/apis as a default empty dir since its automatically created when using script/generate web_service [DHH]
 
 * Added script/plugin to manage plugins (install, remove, list, etc) [Ryan Tomayko]
 
@@ -9,8 +9,6 @@
 * Added default lighttpd config in config/lighttpd.conf and added a default runner for lighttpd in script/lighttpd (works like script/server, but using lighttpd and FastCGI) [DHH]
 
 * Added plugin generator to create a stub structure for a new plugin in vendor/plugins (see "script/generate plugin" for help) [DHH]
-
-* Added app/services as a default dir in the Rails skeleton and to the load path. Use it to keep classes like MaintenanceService and PaymentGateway [DHH]
 
 * Fixed scaffold generator when started with only 1 parameter #2609 [self@mattmower.com]
 
