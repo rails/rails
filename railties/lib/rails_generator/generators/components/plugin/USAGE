@@ -7,6 +7,9 @@ Description:
     The generator creates a plugin directory in vendor/plugins that includes
     both init.rb and README files as well as lib, task, and test directories.
 
+    It's also possible to generate stub files for a generator to go with the 
+    plugin by using --with-generator
+
 Example:
     ./script/generate plugin BrowserFilters
 
@@ -16,3 +19,15 @@ Example:
         vendor/plugins/browser_filters/lib/browser_filters.rb
         vendor/plugins/browser_filters/test/browser_filters_test.rb
         vendor/plugins/browser_filters/tasks/browser_filters_tasks.rake
+
+    ./script/generate plugin BrowserFilters --with-generator
+
+    This will create:
+        vendor/plugins/browser_filters/README
+        vendor/plugins/browser_filters/init.rb
+        vendor/plugins/browser_filters/lib/browser_filters.rb
+        vendor/plugins/browser_filters/test/browser_filters_test.rb
+        vendor/plugins/browser_filters/tasks/browser_filters_tasks.rake
+        vendor/plugins/browser_filters/generators/browser_filters/browser_filters_generator.rb
+        vendor/plugins/browser_filters/generators/browser_filters/USAGE
+        vendor/plugins/browser_filters/generators/browser_filters/templates/

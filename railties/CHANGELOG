@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that plugins can carry generators and that generator stub files can be created along with new plugins using script/generate plugin <name> --with-generator [DHH]
+
 * Removed app/apis as a default empty dir since its automatically created when using script/generate web_service [DHH]
 
 * Added script/plugin to manage plugins (install, remove, list, etc) [Ryan Tomayko]
