@@ -218,7 +218,7 @@ class Fixtures < YAML::Omap
   def self.instantiate_fixtures(object, table_name, fixtures, load_instances=true)
     object.instance_variable_set "@#{table_name.to_s.gsub('.','_')}", fixtures
     if load_instances
-      ActiveRecord::Base.logger.silence do
+      ActiveRecord::Base.silence do
         fixtures.each do |name, fixture|
           if model = fixture.find
             object.instance_variable_set "@#{name}", model
@@ -241,7 +241,7 @@ class Fixtures < YAML::Omap
     table_names = table_names.flatten.map { |n| n.to_s }
     connection = block_given? ? yield : ActiveRecord::Base.connection
 
-    ActiveRecord::Base.logger.silence do
+    ActiveRecord::Base.silence do
       fixtures_map = {}
       fixtures = table_names.map do |table_name|
         fixtures_map[table_name] = Fixtures.new(connection, File.split(table_name.to_s).last, File.join(fixtures_directory, table_name.to_s))
