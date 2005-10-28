@@ -1,0 +1,18 @@
+Description:
+    The plugin generator creates stubs for a new plugin.
+
+    The generator takes a plugin name as its argument.  The plugin name may be
+    given in CamelCase or under_score and should not be suffixed with 'Plugin'.
+
+    The generator creates a plugin directory in vendor/plugins that includes
+    both init.rb and README files as well as lib, task, and test directories.
+
+Example:
+    ./script/generate plugin BrowserFilters
+
+    This will create:
+        vendor/plugins/browser_filters/README
+        vendor/plugins/browser_filters/init.rb
+        vendor/plugins/browser_filters/lib/browser_filters.rb
+        vendor/plugins/browser_filters/test/browser_filters_test.rb
+        vendor/plugins/browser_filters/tasks/browser_filters_tasks.rake

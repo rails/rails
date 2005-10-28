@@ -1,5 +1,7 @@
 *SVN*
 
+* Added plugin generator to create a stub structure for a new plugin in vendor/plugins (see "script/generate plugin" for help) [DHH]
+
 * Added app/services as a default dir in the Rails skeleton and to the load path. Use it to keep classes like MaintenanceService and PaymentGateway [DHH]
 
 * Fixed scaffold generator when started with only 1 parameter #2609 [self@mattmower.com]

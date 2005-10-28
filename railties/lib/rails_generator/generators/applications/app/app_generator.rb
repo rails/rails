@@ -26,7 +26,6 @@ class AppGenerator < Rails::Generator::Base
       # Root
       m.file "fresh_rakefile", "Rakefile"
       m.file "README",         "README"
-      m.file "CHANGELOG",      "CHANGELOG"
 
       # Application
       m.template "helpers/application.rb",        "app/controllers/application.rb"
