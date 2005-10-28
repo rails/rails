@@ -1,5 +1,7 @@
 *SVN*
 
+* Trim down the default mimetypes in config/lighttpd.conf [sam]
+
 * Added script/plugin to manage plugins (install, remove, list, etc) [Ryan Tomayko]
 
 * Added test_plugins task: Run the plugin tests in vendor/plugins/**/test (or specify with PLUGIN=name) [DHH]
