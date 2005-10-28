@@ -77,6 +77,7 @@ module ActiveRecord
         when :datetime  then cast_to_datetime(value)
         when :timestamp then cast_to_time(value)
         when :time      then cast_to_time(value)
+        when :date      then cast_to_datetime(value)
         when :boolean   then value == true or (value =~ /^t(rue)?$/i) == 0 or value.to_s == '1'
         else value
         end
@@ -198,7 +199,7 @@ module ActiveRecord
       end
 
       def select_one(sql, name = nil)
-        add_limit!(sql, nil)
+        add_limit!(sql, :limit => 1)
         result = select(sql, name)
         result.nil? ? nil : result.first
       end
@@ -317,15 +318,27 @@ module ActiveRecord
       end
 
       def add_limit_offset!(sql, options)
-        if options.has_key?(:limit) and options.has_key?(:offset) and !options[:limit].nil? and !options[:offset].nil?
-          options[:order] ||= "id ASC"
-          total_rows = @connection.select_all("SELECT count(*) as TotalRows from #{get_table_name(sql)}")[0][:TotalRows].to_i
-          if (options[:limit] + options[:offset]) > total_rows
-            options[:limit] = (total_rows - options[:offset] > 0) ? (total_rows - options[:offset]) : 1
+        if options[:limit] and options[:offset]
+          total_rows = @connection.select_all("SELECT count(*) as TotalRows from (#{sql.gsub(/SELECT/i, "SELECT TOP 1000000000")}) tally")[0][:TotalRows].to_i
+          if (options[:limit] + options[:offset]) >= total_rows
+            options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
-          sql.gsub!(/SELECT/i, "SELECT * FROM ( SELECT TOP #{options[:limit]} * FROM ( SELECT TOP #{options[:limit] + options[:offset]}")<<" ) AS tmp1 ORDER BY #{change_order_direction(options[:order])} ) AS tmp2 ORDER BY #{options[:order]}"
-        else
-          sql.gsub!(/SELECT/i, "SELECT TOP #{options[:limit]}") unless options[:limit].nil?
+          sql.sub!(/^\s*SELECT/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT TOP #{options[:limit] + options[:offset]} ")
+          sql << ") AS tmp1"
+          if options[:order]
+            options[:order] = options[:order].split(',').map do |field|
+              parts = field.split(" ")
+              if sql =~ /#{parts[0]} AS (t\d_r\d\d?)/
+                  parts[0] = $1
+              end
+              parts.join(' ')
+            end.join(', ')
+            sql << " ORDER BY #{change_order_direction(options[:order])}) AS tmp2 ORDER BY #{options[:order]}"
+          else
+            sql << " ) AS tmp2"
+          end
+        elsif sql !~ /^\s*SELECT (@@|COUNT\()/i
+          sql.sub!(/^\s*SELECT/i, "SELECT TOP #{options[:limit]}") unless options[:limit].nil?
         end
       end
 
@@ -423,9 +436,9 @@ module ActiveRecord
         end
 
         def get_table_name(sql)
-          if sql =~ /into\s*([^\s]+)\s*|update\s*([^\s]+)\s*/i
+          if sql =~ /into\s*([^\(\s]+)\s*|update\s*([^\(\s]+)\s*/i
             $1
-          elsif sql =~ /from\s*([^\s]+)\s*/i
+          elsif sql =~ /from\s*([^\(\s]+)\s*/i
             $1
           else
             nil
@@ -460,8 +473,8 @@ module ActiveRecord
 
         def get_special_columns(table_name)
           special = []
-          @table_columns = {} unless @table_columns
-          @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
+          @table_columns ||= {}
+          @table_columns[table_name] ||= columns(table_name)
           @table_columns[table_name].each do |col|
             special << col.name if col.is_special
           end
@@ -472,6 +485,7 @@ module ActiveRecord
           special_cols = get_special_columns(get_table_name(sql))
           for col in special_cols.to_a
             sql.gsub!(Regexp.new(" #{col.to_s} = "), " #{col.to_s} LIKE ")
+            sql.gsub!(/ORDER BY #{col.to_s}/i, '')
           end
           sql
         end

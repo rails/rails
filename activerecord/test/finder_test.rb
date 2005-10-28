@@ -56,6 +56,12 @@ class FinderTest < Test::Unit::TestCase
     assert_equal(1, entrants.size)
     assert_equal(entrants(:third).name, entrants.first.name)
   end
+  
+  def test_find_with_limit_and_condition
+    developers = Developer.find(:all, :order => "id DESC", :conditions => "salary = 100000", :limit => 3, :offset =>7)
+    assert_equal(1, developers.size)
+    assert_equal("fixture_3", developers.first.name)
+  end
 
   def test_find_with_entire_select_statement
     topics = Topic.find_by_sql "SELECT * FROM topics WHERE author_name = 'Mary'"

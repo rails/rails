@@ -222,7 +222,7 @@ module ActiveRecord
       def dump_schema_information #:nodoc:
         begin
           if (current_schema = ActiveRecord::Migrator.current_version) > 0
-            return "INSERT INTO #{ActiveRecord::Migrator.schema_info_table_name} (version) VALUES (#{current_schema});" 
+            return "INSERT INTO #{ActiveRecord::Migrator.schema_info_table_name} (version) VALUES (#{current_schema})" 
           end
         rescue ActiveRecord::StatementInvalid 
           # No Schema Info

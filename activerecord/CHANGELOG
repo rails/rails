@@ -1,5 +1,9 @@
 *SVN*
 
+* Fixed SQL Server adapter to pass even more tests and do even better #2634 [rtomayko@gmail.com]
+
+* Fixed SQL Server adapter so it honors options[:conditions] when applying :limits #1978 [Tom Ward]
+
 * Added migration support to SQL Server adapter (please someone do the same for Oracle and DB2) #2625 [Tom Ward]
 
 * Use AR::Base.silence rather than AR::Base.logger.silence in fixtures to preserve Log4r compatibility.  #2618 [dansketcher@gmail.com]
