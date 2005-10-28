@@ -34,6 +34,11 @@ class NewRenderTestController < ActionController::Base
   def render_text_hello_world
     render :text => "hello world"
   end
+ 
+  def render_text_hello_world_with_layout
+    @variable_for_layout = ", I'm here!"
+    render :text => "hello world", :layout => true
+  end
 
   def render_custom_code
     render :text => "hello world", :status => "404 Moved"
@@ -169,6 +174,7 @@ class NewRenderTestController < ActionController::Base
       case action_name 
         when "hello_world", "layout_test", "rendering_without_layout",
              "rendering_nothing_on_layout", "render_text_hello_world",
+             "render_text_hello_world_with_layout",
              "partial_only", "partial_only_with_layout",
              "accessing_params_in_template",
              "accessing_params_in_template_with_layout",
@@ -224,6 +230,11 @@ class NewRenderTest < Test::Unit::TestCase
   def test_do_with_render_text
     get :render_text_hello_world
     assert_equal "hello world", @response.body
+  end
+
+  def test_do_with_render_text_and_layout
+    get :render_text_hello_world_with_layout
+    assert_equal "<html>hello world, I'm here!</html>", @response.body
   end
 
   def test_do_with_render_custom_code

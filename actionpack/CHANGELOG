@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix that render :text didn't interpolate instance variables #2629, #2626 [skaes]
+
 * Fix line number detection and escape RAILS_ROOT in backtrace Regexp [Nicholas Seckar]
 
 * Fixed document.getElementsByClassName from Prototype to be speedy again [Sam Stephenson]

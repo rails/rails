@@ -219,6 +219,7 @@ module ActionController #:nodoc:
         end
 
         erase_render_results
+        add_variables_to_assigns
         @template.instance_variable_set("@content_for_layout", content_for_layout)
         render_text(@template.render_file(layout, true), deprecated_status)
       else
