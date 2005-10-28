@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed scaffold generator when started with only 1 parameter #2609 [self@mattmower.com]
+
 * rake should run functional tests even if the unit tests have failures [Jim Weirich]
 
 * Back off cleanpath to be symlink friendly. Closes #2533 [Nicholas Seckar]

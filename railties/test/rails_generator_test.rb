@@ -92,4 +92,14 @@ class RailsGeneratorTest < Test::Unit::TestCase
     g = Rails::Generator::Base.instance('working', %w(admin/foo bar baz))
     assert_equal g.singular_name, g.table_name
   end
+  
+  def test_scaffold_controller_name
+    # Default behaviour is use the model name
+    g = Rails::Generator::Base.instance('scaffold', %w(Product))
+    assert_equal "Product", g.controller_name
+    
+    # When we specify a controller name make sure it sticks!!
+    g = Rails::Generator::Base.instance('scaffold', %w(Product Admin))
+    assert_equal "Admin", g.controller_name
+  end  
 end
