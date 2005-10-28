@@ -37,8 +37,9 @@ class AppGenerator < Rails::Generator::Base
         :app_name => File.basename(File.expand_path(@destination_root)),
         :socket => @socket
       }
-      m.template "configs/routes.rb",    "config/routes.rb"
-      m.template "configs/apache.conf",  "public/.htaccess"
+      m.template "configs/routes.rb",     "config/routes.rb"
+      m.template "configs/apache.conf",   "public/.htaccess"
+      m.template "configs/lighttpd.conf", "config/lighttpd.conf"
 
       # Environments
       m.file "environments/boot.rb",        "config/boot.rb"
@@ -48,7 +49,7 @@ class AppGenerator < Rails::Generator::Base
       m.file "environments/test.rb",        "config/environments/test.rb"
 
       # Scripts
-      %w( breakpointer console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/spinner runner server ).each do |file|
+      %w( breakpointer console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/spinner runner server lighttpd ).each do |file|
         m.file "bin/#{file}", "script/#{file}", script_options
       end
 

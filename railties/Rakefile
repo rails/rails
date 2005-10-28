@@ -38,7 +38,7 @@ HTML_FILES   = %w( 404.html 500.html index.html robots.txt favicon.ico
                    javascripts/prototype.js javascripts/scriptaculous.js
                    javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js
                    javascripts/slider.js )
-BIN_FILES    = %w( breakpointer console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/spinner runner server )
+BIN_FILES    = %w( breakpointer console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/spinner runner server lighttpd )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )
 
@@ -164,6 +164,7 @@ task :copy_configs do
   cp "configs/routes.rb", "#{PKG_DESTINATION}/config/routes.rb"
 
   cp "configs/apache.conf", "#{PKG_DESTINATION}/public/.htaccess"
+  cp "configs/lighttpd.conf", "#{PKG_DESTINATION}/config/lighttpd.conf"
 
   cp "environments/boot.rb", "#{PKG_DESTINATION}/config/boot.rb"
   cp "environments/environment.rb", "#{PKG_DESTINATION}/config/environment.rb"
