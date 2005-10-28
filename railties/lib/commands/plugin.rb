@@ -1,5 +1,3 @@
-#!/usr/local/bin/ruby
-
 # Rails Plugin Manager.
 # 
 # Listing available plugins:
