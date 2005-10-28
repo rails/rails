@@ -395,6 +395,7 @@ module Rails
           app/models 
           app/controllers 
           app/helpers 
+          app/services 
           app/apis 
           components 
           config 

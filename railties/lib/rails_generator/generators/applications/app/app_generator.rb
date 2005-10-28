@@ -107,6 +107,7 @@ class AppGenerator < Rails::Generator::Base
     app/controllers
     app/helpers
     app/models
+    app/services
     app/views/layouts
     config/environments
     components
