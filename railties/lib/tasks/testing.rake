@@ -37,13 +37,13 @@ Rake::TestTask.new(:test_functional => [ :prepare_test_database ]) do |t|
 end
 
 desc "Run the plugin tests in vendor/plugins/**/test (or specify with PLUGIN=name)"
-Rake::TestTask.new(:test_plugins => [ :prepare_test_database ]) do |t|
+Rake::TestTask.new(:test_plugins => :environment) do |t|
   t.libs << "test"
   
   if ENV['PLUGIN']
-    t.pattern = "vendor/plugins/#{ENV['PLUGIN']}/test/*_test.rb"
+    t.pattern = "vendor/plugins/#{ENV['PLUGIN']}/test/**/*_test.rb"
   else
-    t.pattern = 'vendor/plugins/**/test/*_test.rb'
+    t.pattern = 'vendor/plugins/**/test/**/*_test.rb'
   end
 
   t.verbose = true

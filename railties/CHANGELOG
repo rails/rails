@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Rakefile to plugin generator.  [Jeremy Kemper]
+
 * Added test_plugins task: Run the plugin tests in vendor/plugins/**/test (or specify with PLUGIN=name) [DHH]
 
 * Added default lighttpd config in config/lighttpd.conf and added a default runner for lighttpd in script/lighttpd (works like script/server, but using lighttpd and FastCGI) [DHH]
