@@ -41,6 +41,15 @@ class ConditionsScopingTest < Test::Unit::TestCase
       assert_equal 1, Developer.count("name LIKE 'fixture_1%'")
     end        
   end
+
+  def test_immutable_constraint
+    options = { :conditions => "name = 'David'" }
+    Developer.constrain(options) do
+      assert_equal %w(David), Developer.find(:all).map { |d| d.name }
+      options[:conditions] = "name != 'David'"
+      assert_equal %w(David), Developer.find(:all).map { |d| d.name }
+    end
+  end
 end
 
 class HasManyScopingTest< Test::Unit::TestCase

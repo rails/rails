@@ -1,5 +1,8 @@
 *SVN*
 
+* Constraints are cloned so they can't be inadvertently modified while they're
+in effect.  Added :readonly finder constraint.  Calling an association collection's class method (Part.foobar via item.parts.foobar) constrains :readonly => false since the collection's :joins constraint would otherwise force it to true.  [Jeremy Kemper <rails@bitsweat.net>]
+
 * Added :offset and :limit to the kinds of options that Base.constrain can use #2466 [duane.johnson@gmail.com]
 
 * Fixed handling of nil number columns on Oracle and cleaned up tests for Oracle in general #2555 [schoenm@earthlink.net]

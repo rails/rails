@@ -384,9 +384,14 @@ module ActiveRecord #:nodoc:
       def find(*args)
         options = extract_options_from_args!(args)
 
-        # :joins implies :readonly => true if unset.
-        if options[:joins] and !options.has_key?(:readonly)
-          options[:readonly] = true
+        # Inherit :readonly from scope_constraints if set.  Otherwise,
+        # if :joins is not blank then :readonly defaults to true.
+        unless options.has_key?(:readonly)
+          if scope_constraints.has_key?(:readonly)
+            options[:readonly] = scope_constraints[:readonly]
+          elsif !options[:joins].blank?
+            options[:readonly] = true
+          end
         end
 
         case args.first
@@ -815,13 +820,15 @@ module ActiveRecord #:nodoc:
       #   Article.constrain(:conditions => "blog_id = 1") do
       #     Article.find(1) # => SELECT * from articles WHERE blog_id = 1 AND id = 1
       #   end
-      def constrain(options = {}, &block)
-        begin
-          self.scope_constraints = options
-          block.call if block_given?
-        ensure 
-          self.scope_constraints = nil
+      def constrain(options = {})
+        options = options.dup
+        if !options[:joins].blank? and !options.has_key?(:readonly)
+          options[:readonly] = true
         end
+        self.scope_constraints = options
+        yield if block_given?
+      ensure 
+        self.scope_constraints = nil
       end
 
       # Overwrite the default class equality method to provide support for association proxies.
