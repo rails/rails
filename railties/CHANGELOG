@@ -1,6 +1,6 @@
 *SVN*
 
-* Added Rakefile to plugin generator.  [Jeremy Kemper]
+* Added script/plugin to manage plugins (install, remove, list, etc) [Ryan Tomayko]
 
 * Added test_plugins task: Run the plugin tests in vendor/plugins/**/test (or specify with PLUGIN=name) [DHH]
 
