@@ -46,6 +46,12 @@
 # Send patches to rtomayko@gmail.com
 
 $verbose = false
+`svn --version`
+unless $?.success?
+  $stderr.puts "ERROR: Must have subversion (svn) available in the PATH to use plugin manager"
+  exit 1
+end
+
 
 require 'fileutils'
 require 'tempfile'
@@ -193,7 +199,7 @@ end
 class Repositories
   include Enumerable
   
-  def initialize(cache_file="~/.rails-plugin-sources")
+  def initialize(cache_file = File.join(find_home, ".rails-plugin-sources"))
     @cache_file = File.expand_path(cache_file)
     load!
   end
@@ -252,7 +258,25 @@ class Repositories
     http://svn.aviditybytes.com/rails/plugins/
     REPOSITORIES
   end
-  
+ 
+  def find_home
+    ['HOME', 'USERPROFILE'].each do |homekey|
+      return ENV[homekey] if ENV[homekey]
+    end
+    if ENV['HOMEDRIVE'] && ENV['HOMEPATH']
+      return "#{ENV['HOMEDRIVE']}:#{ENV['HOMEPATH']}"
+    end
+    begin
+      File.expand_path("~")
+    rescue StandardError => ex
+      if File::ALT_SEPARATOR
+        "C:/"
+      else
+        "/"
+      end
+    end
+  end
+
   def self.instance
     @instance ||= Repositories.new
   end
