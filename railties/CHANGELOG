@@ -1,5 +1,7 @@
 *SVN*
 
+* The PostgreSQL :db_structure_dump task limits its dump to the schema search path in database.yml.  [Anatol Pomozov <anatol.pomozov@gmail.com>]
+
 * Add task to generate rdoc for all installed plugins. [Marcel Molina]
 
 * Update script.aculo.us to V1.5_rc4 [Thomas Fuchs]
