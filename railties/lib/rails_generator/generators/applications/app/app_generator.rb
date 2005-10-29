@@ -11,7 +11,7 @@ class AppGenerator < Rails::Generator::Base
     super
     usage if args.empty?
     @destination_root = args.shift
-    @socket = MYSQL_SOCKET_LOCATIONS.find {|f| File.exists?(f) }
+    @socket = MYSQL_SOCKET_LOCATIONS.find { |f| File.exists?(f) }
     @socket = '/path/to/your/mysql.sock' if @socket.blank?
   end
 
@@ -128,8 +128,14 @@ class AppGenerator < Rails::Generator::Base
     vendor/plugins
   )
 
-  MYSQL_SOCKET_LOCATIONS = [ "/tmp/mysql.sock", #default
-                             "/var/run/mysqld/mysqld.sock", #debian/gentoo
-                             "/var/tmp/mysql.sock", # freebsd
-                             "/var/lib/mysql/mysql.sock" ]  #fedora
+  MYSQL_SOCKET_LOCATIONS = [
+    "/tmp/mysql.sock",                        # default
+    "/var/run/mysqld/mysqld.sock",            # debian/gentoo
+    "/var/tmp/mysql.sock",                    # freebsd
+    "/var/lib/mysql/mysql.sock",              # fedora
+    "/opt/local/lib/mysql/mysql.sock",        # fedora
+    "/opt/local/var/run/mysqld/mysqld.sock",  # mac + darwinports + mysql
+    "/opt/local/var/run/mysql4/mysqld.sock",  # mac + darwinports + mysql4
+    "/opt/local/var/run/mysql5/mysqld.sock"   # mac + darwinports + mysql5
+  ]
 end
