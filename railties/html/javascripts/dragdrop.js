@@ -280,7 +280,7 @@ Draggable.prototype = {
           style.position = "relative";
         
         if(this.options.zindex) {
-          this.options.originalZ = parseInt(Element.getStyle(this.element,'z-index') || 0);
+          this.originalZ = parseInt(Element.getStyle(this.element,'z-index') || 0);
           style.zIndex = this.options.zindex;
         }
 
@@ -355,8 +355,8 @@ var Sortable = {
       hoverclass:  null,
       ghosting:    false,
       format:      null,
-      onChange:    function() {},
-      onUpdate:    function() {}
+      onChange:    Prototype.emptyFunction,
+      onUpdate:    Prototype.emptyFunction
     }, arguments[1] || {});
 
     // clear any old sortable with same element
@@ -472,7 +472,10 @@ var Sortable = {
 
   onEmptyHover: function(element, dropon) {
     if(element.parentNode!=dropon) {
+      var oldParentNode = element.parentNode;
       dropon.appendChild(element);
+      Sortable.options(oldParentNode).onChange(element);
+      Sortable.options(dropon).onChange(element);
     }
   },
 

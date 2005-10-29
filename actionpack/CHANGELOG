@@ -1,5 +1,7 @@
 *SVN*
 
+* Update script.aculo.us to V1.5_rc4 [Thomas Fuchs]
+
 * Fix that render :text didn't interpolate instance variables #2629, #2626 [skaes]
 
 * Fix line number detection and escape RAILS_ROOT in backtrace Regexp [Nicholas Seckar]

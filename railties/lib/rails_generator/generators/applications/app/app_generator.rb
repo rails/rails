@@ -73,6 +73,7 @@ class AppGenerator < Rails::Generator::Base
       m.file "html/javascripts/dragdrop.js",      "public/javascripts/dragdrop.js"
       m.file "html/javascripts/controls.js",      "public/javascripts/controls.js"
       m.file "html/javascripts/slider.js",        "public/javascripts/slider.js"
+      m.file "html/javascripts/builder.js",       "public/javascripts/builder.js"
 
       # Docs
       m.file "doc/README_FOR_APP", "doc/README_FOR_APP"

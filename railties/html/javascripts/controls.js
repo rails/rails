@@ -184,7 +184,10 @@ Autocompleter.Base.prototype = {
         this.show();
         this.active = true;
       }
-    } else this.hide();
+    } else {
+      this.active = false;
+      this.hide();
+    }
   },
   
   markPrevious: function() {
@@ -425,6 +428,15 @@ Autocompleter.Local.prototype = Object.extend(new Autocompleter.Base(), {
 //
 // see documentation on http://wiki.script.aculo.us/scriptaculous/show/Ajax.InPlaceEditor
 
+// Use this if you notice weird scrolling problems on some browsers,
+// the DOM might be a bit confused when this gets called so do this
+// waits 1 ms (with setTimeout) until it does the activation
+Field.scrollFreeActivate = function(field) {
+  setTimeout(function() {
+    Field.activate(field);
+  }, 1);
+}
+
 Ajax.InPlaceEditor = Class.create();
 Ajax.InPlaceEditor.defaultHighlightColor = "#FFFF99";
 Ajax.InPlaceEditor.prototype = {
@@ -490,7 +502,7 @@ Ajax.InPlaceEditor.prototype = {
       Event.observe(this.options.externalControl, 'mouseout', this.mouseoutListener);
     }
   },
-  enterEditMode: function() {
+  enterEditMode: function(evt) {
     if (this.saving) return;
     if (this.editing) return;
     this.editing = true;
@@ -501,11 +513,12 @@ Ajax.InPlaceEditor.prototype = {
     Element.hide(this.element);
     this.createForm();
     this.element.parentNode.insertBefore(this.form, this.element);
-    Field.focus(this.editField);
+    Field.scrollFreeActivate(this.editField);
     // stop the event to avoid a page refresh in Safari
-    if (arguments.length > 1) {
-      Event.stop(arguments[0]);
+    if (evt) {
+      Event.stop(evt);
     }
+    return false;
   },
   createForm: function() {
     this.form = document.createElement("form");

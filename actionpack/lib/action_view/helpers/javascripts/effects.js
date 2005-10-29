@@ -4,296 +4,181 @@
 //  Mark Pilgrim (http://diveintomark.org/)
 //  Martin Bialasinki
 // 
-// See scriptaculous.js for full license.
+// See scriptaculous.js for full license.  
 
-Object.debug = function(obj) {
-  var info = [];
-  
-  if(typeof obj in ["string","number"]) {
-    return obj;
-  } else {
-    for(property in obj)
-      if(typeof obj[property]!="function")
-        info.push(property + ' => ' + 
-          (typeof obj[property] == "string" ?
-            '"' + obj[property] + '"' :
-            obj[property]));
-  }
-  
-  return ("'" + obj + "' #" + typeof obj + 
-    ": {" + info.join(", ") + "}");
-}
+/* ------------- element ext -------------- */  
+ 
+// converts rgb() and #xxx to #xxxxxx format,  
+// returns self (or first argument) if not convertable  
+String.prototype.parseColor = function() {  
+  color = "#";  
+  if(this.slice(0,4) == "rgb(") {  
+    var cols = this.slice(4,this.length-1).split(',');  
+    var i=0; do { color += parseInt(cols[i]).toColorPart() } while (++i<3);  
+  } else {  
+    if(this.slice(0,1) == '#') {  
+      if(this.length==4) for(var i=1;i<4;i++) color += (this.charAt(i) + this.charAt(i)).toLowerCase();  
+      if(this.length==7) color = this.toLowerCase();  
+    }  
+  }  
+  return(color.length==7 ? color : (arguments[0] || this));  
+}  
 
-
-/*--------------------------------------------------------------------------*/
-
-var Builder = {
-  NODEMAP: {
-    AREA: 'map',
-    CAPTION: 'table',
-    COL: 'table',
-    COLGROUP: 'table',
-    LEGEND: 'fieldset',
-    OPTGROUP: 'select',
-    OPTION: 'select',
-    PARAM: 'object',
-    TBODY: 'table',
-    TD: 'table',
-    TFOOT: 'table',
-    TH: 'table',
-    THEAD: 'table',
-    TR: 'table'
-  },
-  // note: For Firefox < 1.5, OPTION and OPTGROUP tags are currently broken,
-  //       due to a Firefox bug
-  node: function(elementName) {
-    elementName = elementName.toUpperCase();
-    
-    // try innerHTML approach
-    var parentTag = this.NODEMAP[elementName] || 'div';
-    var parentElement = document.createElement(parentTag);
-    parentElement.innerHTML = "<" + elementName + "></" + elementName + ">";
-    var element = parentElement.firstChild || null;
-      
-    // see if browser added wrapping tags
-    if(element && (element.tagName != elementName))
-      element = element.getElementsByTagName(elementName)[0];
-    
-    // fallback to createElement approach
-    if(!element) element = document.createElement(elementName);
-    
-    // abort if nothing could be created
-    if(!element) return;
-
-    // attributes (or text)
-    if(arguments[1])
-      if(this._isStringOrNumber(arguments[1]) ||
-        (arguments[1] instanceof Array)) {
-          this._children(element, arguments[1]);
-        } else {
-          var attrs = this._attributes(arguments[1]);
-          if(attrs.length) {
-            parentElement.innerHTML = "<" +elementName + " " +
-              attrs + "></" + elementName + ">";
-            element = parentElement.firstChild || null;
-            // workaround firefox 1.0.X bug
-            if(!element) {
-              element = document.createElement(elementName);
-              for(attr in arguments[1]) 
-                element[attr == 'class' ? 'className' : attr] = arguments[1][attr];
-            }
-            if(element.tagName != elementName)
-              element = parentElement.getElementsByTagName(elementName)[0];
-            }
-        } 
-
-    // text, or array of children
-    if(arguments[2])
-      this._children(element, arguments[2]);
-
-     return element;
-  },
-  _text: function(text) {
-     return document.createTextNode(text);
-  },
-  _attributes: function(attributes) {
-    var attrs = [];
-    for(attribute in attributes)
-      attrs.push((attribute=='className' ? 'class' : attribute) +
-          '="' + attributes[attribute].toString().escapeHTML() + '"');
-    return attrs.join(" ");
-  },
-  _children: function(element, children) {
-    if(typeof children=='object') { // array can hold nodes and text
-      children.flatten().each( function(e) {
-        if(typeof e=='object')
-          element.appendChild(e)
-        else
-          if(Builder._isStringOrNumber(e))
-            element.appendChild(Builder._text(e));
-      });
-    } else
-      if(Builder._isStringOrNumber(children)) 
-         element.appendChild(Builder._text(children));
-  },
-  _isStringOrNumber: function(param) {
-    return(typeof param=='string' || typeof param=='number');
-  }
-}
-
-/* ------------- element ext -------------- */
-
-// converts rgb() and #xxx to #xxxxxx format,
-// returns self (or first argument) if not convertable
-String.prototype.parseColor = function() {
-  color = "#";
-  if(this.slice(0,4) == "rgb(") {
-    var cols = this.slice(4,this.length-1).split(',');
-    var i=0; do { color += parseInt(cols[i]).toColorPart() } while (++i<3);
-  } else {
-    if(this.slice(0,1) == '#') {
-      if(this.length==4) for(var i=1;i<4;i++) color += (this.charAt(i) + this.charAt(i)).toLowerCase();
-      if(this.length==7) color = this.toLowerCase();
-    }
-  }
-  return(color.length==7 ? color : (arguments[0] || this));
-}
-
-Element.collectTextNodesIgnoreClass = function(element, ignoreclass) {
-  var children = $(element).childNodes;
-  var text     = "";
-  var classtest = new RegExp("^([^ ]+ )*" + ignoreclass+ "( [^ ]+)*$","i");
-
-  for (var i = 0; i < children.length; i++) {
-    if(children[i].nodeType==3) {
-      text+=children[i].nodeValue;
-    } else {
-      if((!children[i].className.match(classtest)) && children[i].hasChildNodes())
-        text += Element.collectTextNodesIgnoreClass(children[i], ignoreclass);
-    }
-  }
-
+Element.collectTextNodesIgnoreClass = function(element, ignoreclass) {  
+  var children = $(element).childNodes;  
+  var text     = "";  
+  var classtest = new RegExp("^([^ ]+ )*" + ignoreclass+ "( [^ ]+)*$","i");  
+ 
+  for (var i = 0; i < children.length; i++) {  
+    if(children[i].nodeType==3) {  
+      text+=children[i].nodeValue;  
+    } else {  
+      if((!children[i].className.match(classtest)) && children[i].hasChildNodes())  
+        text += Element.collectTextNodesIgnoreClass(children[i], ignoreclass);  
+    }  
+  }  
+ 
   return text;
 }
 
-Element.setContentZoom = function(element, percent) {
-  element = $(element);
-  element.style.fontSize = (percent/100) + "em";  
-  if(navigator.appVersion.indexOf('AppleWebKit')>0) window.scrollBy(0,0);
+Element.setContentZoom = function(element, percent) {  
+  element = $(element);  
+  element.style.fontSize = (percent/100) + "em";   
+  if(navigator.appVersion.indexOf('AppleWebKit')>0) window.scrollBy(0,0);  
 }
 
-Element.getOpacity = function(element){
-  var opacity;
-  if (opacity = Element.getStyle(element, "opacity"))
-    return parseFloat(opacity);
-  if (opacity = (Element.getStyle(element, "filter") || '').match(/alpha\(opacity=(.*)\)/))
-    if(opacity[1]) return parseFloat(opacity[1]) / 100;
-  return 1.0;
+Element.getOpacity = function(element){  
+  var opacity;  
+  if (opacity = Element.getStyle(element, "opacity"))  
+    return parseFloat(opacity);  
+  if (opacity = (Element.getStyle(element, "filter") || '').match(/alpha\(opacity=(.*)\)/))  
+    if(opacity[1]) return parseFloat(opacity[1]) / 100;  
+  return 1.0;  
 }
 
-Element.setOpacity = function(element, value){
-  element= $(element);
-  var els = element.style;
-  if (value == 1){
-    els.opacity = '0.999999';
-    if(/MSIE/.test(navigator.userAgent))
-      els.filter = Element.getStyle(element,'filter').replace(/alpha\([^\)]*\)/gi,'');
-  } else {
-    if(value < 0.00001) value = 0;
-    els.opacity = value;
-    if(/MSIE/.test(navigator.userAgent))
-      els.filter = Element.getStyle(element,'filter').replace(/alpha\([^\)]*\)/gi,'') + 
-        "alpha(opacity="+value*100+")";
-  }  
-}
-
-Element.getInlineOpacity = function(element){
-  element= $(element);
-  var op;
-  op = element.style.opacity;
-  if (typeof op != "undefined" && op != "") return op;
-  return "";
-}
-
-Element.setInlineOpacity = function(element, value){
-  element= $(element);
-  var els = element.style;
-  els.opacity = value;
-}
-
-/*--------------------------------------------------------------------------*/
-
-Element.Class = {
-    // Element.toggleClass(element, className) toggles the class being on/off
-    // Element.toggleClass(element, className1, className2) toggles between both classes,
-    //   defaulting to className1 if neither exist
-    toggle: function(element, className) {
-      if(Element.Class.has(element, className)) {
-        Element.Class.remove(element, className);
-        if(arguments.length == 3) Element.Class.add(element, arguments[2]);
-      } else {
-        Element.Class.add(element, className);
-        if(arguments.length == 3) Element.Class.remove(element, arguments[2]);
-      }
-    },
-
-    // gets space-delimited classnames of an element as an array
-    get: function(element) {
-      return $(element).className.split(' ');
-    },
-
-    // functions adapted from original functions by Gavin Kistner
-    remove: function(element) {
-      element = $(element);
-      var removeClasses = arguments;
-      $R(1,arguments.length-1).each( function(index) {
-        element.className = 
-          element.className.split(' ').reject( 
-            function(klass) { return (klass == removeClasses[index]) } ).join(' ');
-      });
-    },
-
-    add: function(element) {
-      element = $(element);
-      for(var i = 1; i < arguments.length; i++) {
-        Element.Class.remove(element, arguments[i]);
-        element.className += (element.className.length > 0 ? ' ' : '') + arguments[i];
-      }
-    },
-
-    // returns true if all given classes exist in said element
-    has: function(element) {
-      element = $(element);
-      if(!element || !element.className) return false;
-      var regEx;
-      for(var i = 1; i < arguments.length; i++) {
-        if((typeof arguments[i] == 'object') && 
-          (arguments[i].constructor == Array)) {
-          for(var j = 0; j < arguments[i].length; j++) {
-            regEx = new RegExp("(^|\\s)" + arguments[i][j] + "(\\s|$)");
-            if(!regEx.test(element.className)) return false;
-          }
-        } else {
-          regEx = new RegExp("(^|\\s)" + arguments[i] + "(\\s|$)");
-          if(!regEx.test(element.className)) return false;
-        }
-      }
-      return true;
-    },
-
-    // expects arrays of strings and/or strings as optional paramters
-    // Element.Class.has_any(element, ['classA','classB','classC'], 'classD')
-    has_any: function(element) {
-      element = $(element);
-      if(!element || !element.className) return false;
-      var regEx;
-      for(var i = 1; i < arguments.length; i++) {
-        if((typeof arguments[i] == 'object') && 
-          (arguments[i].constructor == Array)) {
-          for(var j = 0; j < arguments[i].length; j++) {
-            regEx = new RegExp("(^|\\s)" + arguments[i][j] + "(\\s|$)");
-            if(regEx.test(element.className)) return true;
-          }
-        } else {
-          regEx = new RegExp("(^|\\s)" + arguments[i] + "(\\s|$)");
-          if(regEx.test(element.className)) return true;
-        }
-      }
-      return false;
-    },
-
-    childrenWith: function(element, className) {
-      var children = $(element).getElementsByTagName('*');
-      var elements = new Array();
-
-      for (var i = 0; i < children.length; i++)
-        if (Element.Class.has(children[i], className))
-          elements.push(children[i]);
-
-      return elements;
-    }
-}
-
+Element.setOpacity = function(element, value){  
+  element= $(element);  
+  var els = element.style;  
+  if (value == 1){  
+    els.opacity = '0.999999';  
+    if(/MSIE/.test(navigator.userAgent))  
+      els.filter = Element.getStyle(element,'filter').replace(/alpha\([^\)]*\)/gi,'');  
+  } else {  
+    if(value < 0.00001) value = 0;  
+    els.opacity = value;  
+    if(/MSIE/.test(navigator.userAgent))  
+      els.filter = Element.getStyle(element,'filter').replace(/alpha\([^\)]*\)/gi,'') +  
+        "alpha(opacity="+value*100+")";  
+  }   
+}  
+ 
+Element.getInlineOpacity = function(element){  
+  element= $(element);  
+  var op;  
+  op = element.style.opacity;  
+  if (typeof op != "undefined" && op != "") return op;  
+  return "";  
+}  
+ 
+Element.setInlineOpacity = function(element, value){  
+  element= $(element);  
+  var els = element.style;  
+  els.opacity = value;  
+}  
+ 
+/*--------------------------------------------------------------------------*/  
+ 
+Element.Class = {  
+    // Element.toggleClass(element, className) toggles the class being on/off  
+    // Element.toggleClass(element, className1, className2) toggles between both classes,  
+    //   defaulting to className1 if neither exist  
+    toggle: function(element, className) {  
+      if(Element.Class.has(element, className)) {  
+        Element.Class.remove(element, className);  
+        if(arguments.length == 3) Element.Class.add(element, arguments[2]);  
+      } else {  
+        Element.Class.add(element, className);  
+        if(arguments.length == 3) Element.Class.remove(element, arguments[2]);  
+      }  
+    },  
+ 
+    // gets space-delimited classnames of an element as an array  
+    get: function(element) {  
+      return $(element).className.split(' ');  
+    },  
+ 
+    // functions adapted from original functions by Gavin Kistner  
+    remove: function(element) {  
+      element = $(element);  
+      var removeClasses = arguments;  
+      $R(1,arguments.length-1).each( function(index) {  
+        element.className =  
+          element.className.split(' ').reject(  
+            function(klass) { return (klass == removeClasses[index]) } ).join(' ');  
+      });  
+    },  
+ 
+    add: function(element) {  
+      element = $(element);  
+      for(var i = 1; i < arguments.length; i++) {  
+        Element.Class.remove(element, arguments[i]);  
+        element.className += (element.className.length > 0 ? ' ' : '') + arguments[i];  
+      }  
+    },  
+ 
+    // returns true if all given classes exist in said element  
+    has: function(element) {  
+      element = $(element);  
+      if(!element || !element.className) return false;  
+      var regEx;  
+      for(var i = 1; i < arguments.length; i++) {  
+        if((typeof arguments[i] == 'object') &&  
+          (arguments[i].constructor == Array)) {  
+          for(var j = 0; j < arguments[i].length; j++) {  
+            regEx = new RegExp("(^|\\s)" + arguments[i][j] + "(\\s|$)");  
+            if(!regEx.test(element.className)) return false;  
+          }  
+        } else {  
+          regEx = new RegExp("(^|\\s)" + arguments[i] + "(\\s|$)");  
+          if(!regEx.test(element.className)) return false;  
+        }  
+      }  
+      return true;  
+    },  
+ 
+    // expects arrays of strings and/or strings as optional paramters  
+    // Element.Class.has_any(element, ['classA','classB','classC'], 'classD')  
+    has_any: function(element) {  
+      element = $(element);  
+      if(!element || !element.className) return false;  
+      var regEx;  
+      for(var i = 1; i < arguments.length; i++) {  
+        if((typeof arguments[i] == 'object') &&  
+          (arguments[i].constructor == Array)) {  
+          for(var j = 0; j < arguments[i].length; j++) {  
+            regEx = new RegExp("(^|\\s)" + arguments[i][j] + "(\\s|$)");  
+            if(regEx.test(element.className)) return true;  
+          }  
+        } else {  
+          regEx = new RegExp("(^|\\s)" + arguments[i] + "(\\s|$)");  
+          if(regEx.test(element.className)) return true;  
+        }  
+      }  
+      return false;  
+    },  
+ 
+    childrenWith: function(element, className) {  
+      var children = $(element).getElementsByTagName('*');  
+      var elements = new Array();  
+ 
+      for (var i = 0; i < children.length; i++)  
+        if (Element.Class.has(children[i], className))  
+          elements.push(children[i]);  
+ 
+      return elements;  
+    }  
+}  
+ 
 /*--------------------------------------------------------------------------*/
 
 var Effect = {
@@ -371,6 +256,9 @@ Effect.Transitions.full = function(pos) {
 
 Effect.Queue = {
   effects:  [],
+  _each: function(iterator) {
+    this.effects._each(iterator);
+  },
   interval: null,
   add: function(effect) {
     var timestamp = new Date().getTime();
@@ -407,6 +295,7 @@ Effect.Queue = {
     this.effects.invoke('loop', timePos);
   }
 }
+Object.extend(Effect.Queue, Enumerable);
 
 Effect.Base = function() {};
 Effect.Base.prototype = {
@@ -632,6 +521,8 @@ Object.extend(Object.extend(Effect.Highlight.prototype, Effect.Base.prototype), 
     this.start(options);
   },
   setup: function() {
+    // Prevent executing on elements not in the layout flow
+    if(this.element.style.display=='none') { this.cancel(); return; }
     // Disable background image during the effect
     this.oldBgImage = this.element.style.backgroundImage;
     this.element.style.backgroundImage = "none";
@@ -862,7 +753,7 @@ Effect.SlideDown = function(element) {
     },  
     afterUpdateInternal: function(effect) { 
       effect.element.firstChild.style.bottom = 
-        (effect.originalHeight - effect.element.clientHeight) + 'px'; },
+        (effect.dims[0] - effect.element.clientHeight) + 'px'; },
     afterFinishInternal: function(effect) { 
       Element.undoClipping(effect.element); 
       Element.undoPositioned(effect.element.firstChild);
@@ -889,7 +780,7 @@ Effect.SlideUp = function(element) {
     },  
     afterUpdateInternal: function(effect) { 
      effect.element.firstChild.style.bottom = 
-       (effect.originalHeight - effect.element.clientHeight) + 'px'; },
+       (effect.dims[0] - effect.element.clientHeight) + 'px'; },
     afterFinishInternal: function(effect) { 
         Element.hide(effect.element);
         Element.undoClipping(effect.element); 
@@ -987,7 +878,7 @@ Effect.Grow = function(element) {
                els.top = oldTop;
                els.left = oldLeft;
                els.height = oldHeight;
-               els.width = originalWidth;
+               els.width = originalWidth + 'px';
                Element.setInlineOpacity(el, oldOpacity);
              }
            }, options)

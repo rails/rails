@@ -20,7 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 var Scriptaculous = {
-  Version: '1.5_rc3',
+  Version: '1.5_rc4',
   require: function(libraryName) {
     // inserting via DOM fails in Safari 2.0, so brute force approach
     document.write('<script type="text/javascript" src="'+libraryName+'"></script>');
@@ -34,6 +34,7 @@ var Scriptaculous = {
     for(var i=0;i<scriptTags.length;i++) {
       if(scriptTags[i].src && scriptTags[i].src.match(/scriptaculous\.js(\?.*)?$/)) {
         var path = scriptTags[i].src.replace(/scriptaculous\.js(\?.*)?$/,'');
+        this.require(path + 'builder.js');
         this.require(path + 'effects.js');
         this.require(path + 'dragdrop.js');
         this.require(path + 'controls.js');

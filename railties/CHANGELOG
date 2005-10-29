@@ -1,5 +1,7 @@
 *SVN*
 
+* Update script.aculo.us to V1.5_rc4 [Thomas Fuchs]
+
 * Add default Mac + DarwinPorts MySQL socket locations to the app generator.  [Jeremy Kemper]
 
 * Migrations may be destroyed: script/destroy migration foo.  #2635 [Charles M. Gerungan <charles.gerungan@gmail.com>, Jamis Buck, Jeremy Kemper]
