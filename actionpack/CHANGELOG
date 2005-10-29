@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for the queue option on visual_effect [Thomas Fuchs]
+
 * Update script.aculo.us to V1.5_rc4 [Thomas Fuchs]
 
 * Fix that render :text didn't interpolate instance variables #2629, #2626 [skaes]

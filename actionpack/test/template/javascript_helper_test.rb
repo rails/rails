@@ -125,6 +125,7 @@ class JavaScriptHelperTest < Test::Unit::TestCase
     assert_equal "new Effect.Highlight('posts',{});", visual_effect(:highlight, :posts)    
     assert_equal "new Effect.Fade('fademe',{duration:4.0});", visual_effect(:fade, "fademe", :duration => 4.0)
     assert_equal "new Effect.Shake(element,{});", visual_effect(:shake)
+    assert_equal "new Effect.DropOut('dropme',{queue:'end'});", visual_effect(:drop_out, 'dropme', :queue => :end)
   end
   
   def test_sortable_element
