@@ -1,5 +1,7 @@
 *SVN*
 
+* Added migration support for Oracle #2647 [Michael Schoen]
+
 * Worked around that connection can't be reset if allow_concurrency is off.  #2648 [Michael Schoen <schoenm@earthlink.net>]
 
 * Fixed SQL Server adapter to pass even more tests and do even better #2634 [rtomayko@gmail.com]

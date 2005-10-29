@@ -238,9 +238,6 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_preserving_time_objects
-    # Oracle does not have a TIME datatype.
-    return true if current_adapter?(:OCIAdapter)
-
     assert_kind_of(
       Time, Topic.find(1).bonus_time,
       "The bonus_time attribute should be of the Time class"
@@ -650,7 +647,7 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_attributes_on_dummy_time
-    # Oracle and SQL Server does not have a TIME datatype.
+    # Oracle and SQL Server do not have a TIME datatype.
     return true if current_adapter?(:SQLServerAdapter) || current_adapter?(:OCIAdapter)
 
     attributes = {

@@ -84,8 +84,14 @@ if ActiveRecord::Base.connection.supports_migrations?
       four = columns.detect { |c| c.name == "four" }
 
       assert_equal "hello", one.default
-      assert_equal true, two.default
-      assert_equal false, three.default
+      if current_adapter?(:OCIAdapter)
+        # Oracle doesn't support native booleans
+        assert_equal true, two.default == 1
+        assert_equal false, three.default != 0
+      else
+        assert_equal true, two.default
+        assert_equal false, three.default
+      end
       assert_equal 1, four.default
 
     ensure
@@ -147,8 +153,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal Fixnum, bob.age.class
       assert_equal Time, bob.birthday.class
 
-      if current_adapter?(:SQLServerAdapter)
-        # SQL Server doesn't differentiate between date/time
+      if current_adapter?(:SQLServerAdapter) or current_adapter?(:OCIAdapter)
+        # SQL Server and Oracle don't differentiate between date/time
         assert_equal Time, bob.favorite_day.class
       else
         assert_equal Date, bob.favorite_day.class
@@ -231,21 +237,26 @@ if ActiveRecord::Base.connection.supports_migrations?
       begin
         ActiveRecord::Base.connection.create_table :octopuses do |t|
           t.column :url, :string
-        end          
+        end
         ActiveRecord::Base.connection.rename_table :octopuses, :octopi
-        
+
         assert_nothing_raised do
-          ActiveRecord::Base.connection.execute "INSERT INTO octopi (url) VALUES ('http://www.foreverflying.com/octopus-black7.jpg')"
+          if current_adapter?(:OCIAdapter)
+            # Oracle requires the explicit sequence for the pk
+            ActiveRecord::Base.connection.execute "INSERT INTO octopi (id, url) VALUES (octopi_seq.nextval, 'http://www.foreverflying.com/octopus-black7.jpg')"
+          else
+            ActiveRecord::Base.connection.execute "INSERT INTO octopi (url) VALUES ('http://www.foreverflying.com/octopus-black7.jpg')"
+          end
         end
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', ActiveRecord::Base.connection.select_value("SELECT url FROM octopi WHERE id=1")
-      
+
       ensure
         ActiveRecord::Base.connection.drop_table :octopuses rescue nil
         ActiveRecord::Base.connection.drop_table :octopi rescue nil
       end
     end
-    
+
     def test_change_column
       Person.connection.add_column "people", "bio", :string
       assert_nothing_raised { Person.connection.change_column "people", "bio", :text }

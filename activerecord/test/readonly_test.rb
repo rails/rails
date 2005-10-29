@@ -77,10 +77,14 @@ class ReadOnlyTest < Test::Unit::TestCase
       assert !Post.find(1, :readonly => false).readonly?
     end
 
-    Post.constrain(:joins => ', developers') do 
-      assert Post.find(1).readonly?
-      assert Post.find(1, :readonly => true).readonly?
-      assert !Post.find(1, :readonly => false).readonly?
+    # Oracle barfs on this because the join includes unqualified and
+    # conflicting column names
+    unless current_adapter?(:OCIAdapter)
+      Post.constrain(:joins => ', developers') do 
+        assert Post.find(1).readonly?
+        assert Post.find(1, :readonly => true).readonly?
+        assert !Post.find(1, :readonly => false).readonly?
+      end
     end
 
     Post.constrain(:readonly => true) do

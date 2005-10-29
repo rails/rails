@@ -18,7 +18,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Schema.define(:version => 7) do
         create_table :fruits do |t|
           t.column :color, :string
-          t.column :size, :string
+          t.column :fruit_size, :string  # NOTE: "size" is reserved in Oracle
           t.column :texture, :string
           t.column :flavor, :string
         end

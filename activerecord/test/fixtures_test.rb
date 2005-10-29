@@ -52,9 +52,6 @@ class FixturesTest < Test::Unit::TestCase
   end
 
   def test_inserts_with_pre_and_suffix
-    # not supported yet in OCI adapter
-    return true if current_adapter?(:OCIAdapter)
-
     ActiveRecord::Base.connection.create_table :prefix_topics_suffix do |t|
       t.column :title, :string
       t.column :author_name, :string

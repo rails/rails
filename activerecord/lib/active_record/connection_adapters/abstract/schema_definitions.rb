@@ -232,14 +232,14 @@ module ActiveRecord
         @columns << column unless @columns.include? column
         self
       end
-            
+
       # Returns a String whose contents are the column definitions
       # concatenated together.  This string can then be pre and appended to
       # to generate the final SQL to create the table.
       def to_sql
         @columns * ', '
       end
-      
+
       private
         def native
           @base.native_database_types

@@ -1,20 +1,26 @@
-# Implementation notes:
-# 1.  I had to redefine a method in ActiveRecord to make it possible to implement an autonumbering
-#     solution for oracle. It's implemented in a way that is intended to not break other adapters.
-# 2.  Default value support needs a patch to the OCI8 driver, to enable it to read LONG columns.
-#     The driver-author has said he will add this in a future release.
-#     A similar patch is needed for TIMESTAMP. This should be replaced with the 0.2 version of the
-#     driver, which will support TIMESTAMP properly.
-# 3.  Large Object support works by an after_save callback added to the ActiveRecord. This is not
-#     a problem - you can add other (chained) after_save callbacks.
-# 4.  LIMIT and OFFSET now work using a select from select from select. This pattern enables
-#     the middle select to limit downwards as much as possible, before the outermost select
-#     limits upwards. The extra rownum column is stripped from the results.
-#     See http://asktom.oracle.com/pls/ask/f?p=4950:8:::::F4950_P8_DISPLAYID:127412348064
+# oci_adapter.rb -- ActiveRecord adapter for Oracle 8i, 9i, 10g
 #
-# Do what you want with this code, at your own peril, but if any significant portion of my code
-# remains then please acknowledge my contribution.
-# Copyright 2005 Graham Jenkins
+# Original author: Graham Jenkins
+#
+# Current maintainer: Michael Schoen <schoenm@earthlink.net>
+#
+#########################################################################
+#
+# Implementation notes:
+# 1. Redefines (safely) a method in ActiveRecord to make it possible to
+#    implement an autonumbering solution for Oracle.
+# 2. The OCI8 driver is patched to properly handle values for LONG and
+#    TIMESTAMP columns. The driver-author has indicated that a future
+#    release of the driver will obviate this patch.
+# 3. LOB support is implemented through an after_save callback.
+# 4. Oracle does not offer native LIMIT and OFFSET options; this
+#    functionality is mimiced through the use of nested selects.
+#    See http://asktom.oracle.com/pls/ask/f?p=4950:8:::::F4950_P8_DISPLAYID:127412348064
+#
+# Do what you want with this code, at your own peril, but if any
+# significant portion of my code remains then please acknowledge my
+# contribution.
+# portions Copyright 2005 Graham Jenkins
 
 require 'active_record/connection_adapters/abstract_adapter'
 
@@ -22,10 +28,53 @@ begin
   require_library_or_gem 'oci8' unless self.class.const_defined? :OCI8
 
   module ActiveRecord
+    class Base
+      def self.oci_connection(config) #:nodoc:
+        conn = OCI8.new config[:username], config[:password], config[:host]
+        conn.exec %q{alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'}
+        conn.exec %q{alter session set nls_timestamp_format = 'YYYY-MM-DD HH24:MI:SS'}
+        conn.autocommit = true
+        ConnectionAdapters::OCIAdapter.new conn, logger
+      end
+
+      # Enable the id column to be bound into the sql later, by the adapter's insert method.
+      # This is preferable to inserting the hard-coded value here, because the insert method
+      # needs to know the id value explicitly.
+      alias :attributes_with_quotes_pre_oci :attributes_with_quotes #:nodoc:
+      def attributes_with_quotes(creating = true) #:nodoc:
+        aq = attributes_with_quotes_pre_oci creating
+        if connection.class == ConnectionAdapters::OCIAdapter
+          aq[self.class.primary_key] = ":id" if creating && aq[self.class.primary_key].nil?
+        end
+        aq
+      end
+
+      # After setting large objects to empty, select the OCI8::LOB
+      # and write back the data.
+      after_save :write_lobs 
+      def write_lobs() #:nodoc:
+        if connection.is_a?(ConnectionAdapters::OCIAdapter)
+          self.class.columns.select { |c| c.type == :binary }.each { |c|
+            value = self[c.name]
+            next if value.nil?  || (value == '')
+            lob = connection.select_one(
+              "select #{ c.name} from #{ self.class.table_name } WHERE #{ self.class.primary_key} = #{quote(id)}",
+              'Writable Large Object')[c.name]
+            lob.write value
+          }
+        end
+      end
+
+      private :write_lobs
+    end
+
+
     module ConnectionAdapters #:nodoc:
       class OCIColumn < Column #:nodoc:
         attr_reader :sql_type
 
+        # overridden to add the concept of scale, required to differentiate
+        # between integer and float fields
         def initialize(name, default, sql_type, limit, scale, null)
           @name, @limit, @sql_type, @scale, @null = name, limit, sql_type, scale, null
 
@@ -37,15 +86,6 @@ begin
           @number  = [:float, :integer].include? @type
         end
 
-        def simplified_type(field_type)
-          case field_type
-          when /char/i                          : :string
-          when /num|float|double|dec|real|int/i : @scale == 0 ? :integer : :float
-          when /date|time/i                     : @name =~ /_at$/ ? :time : :datetime
-          when /lob/i                           : :binary
-          end
-        end
-
         def type_cast(value)
           return nil if value.nil? || value =~ /^\s*null\s*$/i
           case type
@@ -55,6 +95,16 @@ begin
           when :datetime then cast_to_date_or_time(value)
           when :time     then cast_to_time(value)
           else value
+          end
+        end
+
+        private
+        def simplified_type(field_type)
+          case field_type
+          when /char/i                          : :string
+          when /num|float|double|dec|real|int/i : @scale == 0 ? :integer : :float
+          when /date|time/i                     : @name =~ /_at$/ ? :time : :datetime
+          when /lob/i                           : :binary
           end
         end
 
@@ -76,27 +126,30 @@ begin
         end
       end
 
-      # This is an Oracle adapter for the ActiveRecord persistence framework. It relies upon the OCI8
-      # driver (http://rubyforge.org/projects/ruby-oci8/), which works with Oracle 8i and above. 
-      # It was developed on Windows 2000 against an 8i database, using ActiveRecord 1.6.0 and OCI8 0.1.9. 
-      # It has also been tested against a 9i database.
+
+      # This is an Oracle/OCI adapter for the ActiveRecord persistence
+      # framework. It relies upon the OCI8 driver, which works with Oracle 8i
+      # and above. Most recent development has been on Debian Linux against
+      # a 10g database, ActiveRecord 1.12.1 and OCI8 0.1.13.
+      # See: http://rubyforge.org/projects/ruby-oci8/
       #
       # Usage notes:
-      # * Key generation assumes a "${table_name}_seq" sequence is available for all tables; the
-      #   sequence name can be changed using ActiveRecord::Base.set_sequence_name
-      # * Oracle uses DATE or TIMESTAMP datatypes for both dates and times. Consequently I have had to
-      #   resort to some hacks to get data converted to Date or Time in Ruby.
-      #   If the column_name ends in _time it's created as a Ruby Time. Else if the
-      #   hours/minutes/seconds are 0, I make it a Ruby Date. Else it's a Ruby Time.
-      #   This is nasty - but if you use Duck Typing you'll probably not care very much.
-      #   In 9i it's tempting to map DATE to Date and TIMESTAMP to Time but I don't think that is
-      #   valid - too many databases use DATE for both.
-      #   Timezones and sub-second precision on timestamps are not supported.
-      # * Default values that are functions (such as "SYSDATE") are not supported. This is a
-      #   restriction of the way active record supports default values.
-      # * Referential integrity constraints are not fully supported. Under at least
-      #   some circumstances, active record appears to delete parent and child records out of
-      #   sequence and out of transaction scope. (Or this may just be a problem of test setup.)
+      # * Key generation assumes a "${table_name}_seq" sequence is available
+      #   for all tables; the sequence name can be changed using
+      #   ActiveRecord::Base.set_sequence_name. When using Migrations, these
+      #   sequences are created automatically.
+      # * Oracle uses DATE or TIMESTAMP datatypes for both dates and times.
+      #   Consequently some hacks are employed to map data back to Date or Time
+      #   in Ruby. If the column_name ends in _time it's created as a Ruby Time.
+      #   Else if the hours/minutes/seconds are 0, I make it a Ruby Date. Else
+      #   it's a Ruby Time. This is a bit nasty - but if you use Duck Typing
+      #   you'll probably not care very much. In 9i and up it's tempting to
+      #   map DATE to Date and TIMESTAMP to Time, but too many databases use
+      #   DATE for both. Timezones and sub-second precision on timestamps are
+      #   not supported.
+      # * Default values that are functions (such as "SYSDATE") are not
+      #   supported. This is a restriction of the way ActiveRecord supports
+      #   default values.
       #
       # Options:
       #
@@ -104,15 +157,47 @@ begin
       # * <tt>:password</tt> -- Defaults to nothing
       # * <tt>:host</tt> -- Defaults to localhost
       class OCIAdapter < AbstractAdapter
-        def default_sequence_name(table, column)
-          "#{table}_seq"
+
+        def adapter_name #:nodoc:
+          'OCI'
         end
 
-        def quote_string(string)
+        def supports_migrations? #:nodoc:
+          true
+        end
+        
+        def native_database_types #:nodoc
+          {
+            :primary_key => "NUMBER(38) NOT NULL",
+            :string      => { :name => "VARCHAR2", :limit => 255 },
+            :text        => { :name => "LONG" },
+            :integer     => { :name => "NUMBER", :limit => 38 },
+            :float       => { :name => "NUMBER" },
+            :datetime    => { :name => "DATE" },
+            :timestamp   => { :name => "DATE" },
+            :time        => { :name => "DATE" },
+            :date        => { :name => "DATE" },
+            :binary      => { :name => "BLOB" },
+            :boolean     => { :name => "NUMBER", :limit => 1 }
+          }
+        end
+
+
+        # QUOTING ==================================================
+        #
+        # see: abstract/quoting.rb
+
+        # camelCase column names need to be quoted; not that anyone using Oracle
+        # would really do this, but handling this case means we pass the test...
+        def quote_column_name(name) #:nodoc:
+          name =~ /[A-Z]/ ? "\"#{name}\"" : name
+        end
+
+        def quote_string(string) #:nodoc:
           string.gsub(/'/, "''")
         end
 
-        def quote(value, column = nil)
+        def quote(value, column = nil) #:nodoc:
           if column and column.type == :binary then %Q{empty_#{ column.sql_type }()}
           else case value
             when String       then %Q{'#{quote_string(value)}'}
@@ -126,13 +211,76 @@ begin
           end
         end
 
-        # camelCase column names need to be quoted; not that anyone using Oracle
-        # would really do this, but handling this case means we pass the test...
-        def quote_column_name(name)
-          name =~ /[A-Z]/ ? "\"#{name}\"" : name
+
+        # DATABASE STATEMENTS ======================================
+        #
+        # see: abstract/database_statements.rb
+
+        def select_all(sql, name = nil) #:nodoc:
+          select(sql, name)
         end
 
-        def tables(name = nil)
+        def select_one(sql, name = nil) #:nodoc:
+          result = select_all(sql, name)
+          result.size > 0 ? result.first : nil
+        end
+
+        def execute(sql, name = nil) #:nodoc:
+          log(sql, name) { @connection.exec sql }
+        end
+
+        def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
+          if pk.nil? # Who called us? What does the sql look like? No idea!
+            execute sql, name
+          elsif id_value # Pre-assigned id
+            log(sql, name) { @connection.exec sql }
+          else # Assume the sql contains a bind-variable for the id
+            id_value = select_one("select #{sequence_name}.nextval id from dual")['id']
+            log(sql, name) { @connection.exec sql, id_value }
+          end
+
+          id_value
+        end
+
+        alias :update :execute #:nodoc:
+        alias :delete :execute #:nodoc:
+
+        def begin_db_transaction #:nodoc:
+          @connection.autocommit = false
+        end
+
+        def commit_db_transaction #:nodoc:
+          @connection.commit
+        ensure
+          @connection.autocommit = true
+        end
+
+        def rollback_db_transaction #:nodoc:
+          @connection.rollback
+        ensure
+          @connection.autocommit = true
+        end
+
+        def add_limit_offset!(sql, options) #:nodoc:
+          offset = options[:offset] || 0
+
+          if limit = options[:limit]
+            sql.replace "select * from (select raw_sql_.*, rownum raw_rnum_ from (#{sql}) raw_sql_ where rownum <= #{offset+limit}) where raw_rnum_ > #{offset}"
+          elsif offset > 0
+            sql.replace "select * from (select raw_sql_.*, rownum raw_rnum_ from (#{sql}) raw_sql_) where raw_rnum_ > #{offset}"
+          end
+        end
+
+        def default_sequence_name(table, column) #:nodoc:
+          "#{table}_seq"
+        end
+
+
+        # SCHEMA STATEMENTS ========================================
+        #
+        # see: abstract/schema_statements.rb
+
+        def tables(name = nil) #:nodoc:
           select_all("select lower(table_name) from user_tables").inject([]) do | tabs, t |
             tabs << t.to_a.first.last
           end
@@ -142,7 +290,8 @@ begin
           result = select_all(<<-SQL, name)
             SELECT lower(i.index_name) as index_name, i.uniqueness, lower(c.column_name) as column_name
               FROM user_indexes i, user_ind_columns c
-             WHERE c.index_name = i.index_name
+             WHERE i.table_name = '#{table_name.to_s.upcase}'
+               AND c.index_name = i.index_name
                AND i.index_name NOT IN (SELECT index_name FROM user_constraints WHERE constraint_type = 'P')
               ORDER BY i.index_name, c.column_position
           SQL
@@ -162,7 +311,70 @@ begin
           indexes
         end
 
-        def structure_dump
+        def columns(table_name, name = nil) #:nodoc:
+          select_all(%Q{
+              select column_name, data_type, data_default, nullable,
+                     case when data_type = 'NUMBER' then data_precision
+                          when data_type = 'VARCHAR2' then data_length 
+                          else null end as length,
+                     case when data_type = 'NUMBER' then data_scale
+                          else null end as scale
+              from user_catalog cat, user_synonyms syn, all_tab_columns col
+              where cat.table_name = '#{table_name.to_s.upcase}'
+              and syn.synonym_name (+)= cat.table_name
+              and col.owner = nvl(syn.table_owner, user)
+              and col.table_name = nvl(syn.table_name, cat.table_name)}
+          ).map do |row|
+            row['data_default'].gsub!(/^'(.*)'$/, '\1') if row['data_default']
+            OCIColumn.new(
+              oci_downcase(row['column_name']), 
+              row['data_default'],
+              row['data_type'], 
+              row['length'], 
+              row['scale'],
+              row['nullable'] == 'Y'
+            )
+          end
+        end
+
+        def create_table(name, options = {}) #:nodoc:
+          super(name, options)
+          execute "CREATE SEQUENCE #{name}_seq"
+        end
+
+        def rename_table(name, new_name) #:nodoc:
+          execute "RENAME #{name} TO #{new_name}"
+          execute "RENAME #{name}_seq TO #{new_name}_seq"
+        end  
+
+        def drop_table(name) #:nodoc:
+          super(name)
+          execute "DROP SEQUENCE #{name}_seq"
+        end
+
+        def remove_index(table_name, options = {}) #:nodoc:
+          execute "DROP INDEX #{index_name(table_name, options)}"
+        end
+
+        def change_column_default(table_name, column_name, default) #:nodoc:
+          execute "ALTER TABLE #{table_name} MODIFY #{column_name} DEFAULT #{quote(default)}"
+        end
+
+        def change_column(table_name, column_name, type, options = {}) #:nodoc:
+          change_column_sql = "ALTER TABLE #{table_name} MODIFY #{column_name} #{type_to_sql(type, options[:limit])}"
+          add_column_options!(change_column_sql, options)
+          execute(change_column_sql)
+        end
+
+        def rename_column(table_name, column_name, new_column_name) #:nodoc:
+          execute "ALTER TABLE #{table_name} RENAME COLUMN #{column_name} to #{new_column_name}"
+        end
+
+        def remove_column(table_name, column_name) #:nodoc:
+          execute "ALTER TABLE #{table_name} DROP COLUMN #{column_name}"
+        end
+
+        def structure_dump #:nodoc:
           s = select_all("select sequence_name from user_sequences").inject("") do |structure, seq|
             structure << "create sequence #{seq.to_a.first.last};\n\n"
           end
@@ -193,7 +405,7 @@ begin
           end
         end
 
-        def structure_drop
+        def structure_drop #:nodoc:
           s = select_all("select sequence_name from user_sequences").inject("") do |drop, seq|
             drop << "drop sequence #{seq.to_a.first.last};\n\n"
           end
@@ -203,30 +415,25 @@ begin
           end
         end
 
-        def select_all(sql, name = nil)
-          offset = sql =~ /OFFSET (\d+)$/ ? $1.to_i : 0
-          sql, limit = $1, $2.to_i if sql =~ /(.*)(?: LIMIT[= ](\d+))(\s*OFFSET \d+)?$/
-          
-          if limit
-            sql = "select * from (select raw_sql_.*, rownum raw_rnum_ from (#{sql}) raw_sql_ where rownum <= #{offset+limit}) where raw_rnum_ > #{offset}"
-          elsif offset > 0
-            sql = "select * from (select raw_sql_.*, rownum raw_rnum_ from (#{sql}) raw_sql_) where raw_rnum_ > #{offset}"
-          end
-          
+
+        private
+
+        def select(sql, name = nil)
           cursor = log(sql, name) { @connection.exec sql }
           cols = cursor.get_col_names.map { |x| oci_downcase(x) }
           rows = []
-          
+
           while row = cursor.fetch
             hash = Hash.new
 
             cols.each_with_index do |col, i|
-              hash[col] = case row[i]
+              hash[col] =
+                case row[i]
                 when OCI8::LOB
                   name == 'Writable Large Object' ? row[i]: row[i].read
                 when OraDate
                   (row[i].hour == 0 and row[i].minute == 0 and row[i].second == 0) ?
-                    row[i].to_date : row[i].to_time
+                  row[i].to_date : row[i].to_time
                 else row[i]
                 end unless col == 'raw_rnum_'
             end
@@ -239,130 +446,23 @@ begin
           cursor.close if cursor
         end
 
-        def select_one(sql, name = nil)
-          result = select_all sql, name
-          result.size > 0 ? result.first : nil
+        # Oracle column names by default are case-insensitive, but treated as upcase;
+        # for neatness, we'll downcase within Rails. EXCEPT that folks CAN quote
+        # their column names when creating Oracle tables, which makes then case-sensitive.
+        # I don't know anybody who does this, but we'll handle the theoretical case of a
+        # camelCase column name. I imagine other dbs handle this different, since there's a
+        # unit test that's currently failing test_oci.
+        def oci_downcase(column_name)
+          column_name =~ /[a-z]/ ? column_name : column_name.downcase
         end
 
-        def columns(table_name, name = nil)
-          select_all(%Q{
-              select column_name, data_type, data_default, data_length, data_scale, nullable
-              from user_catalog cat, user_synonyms syn, all_tab_columns col
-              where cat.table_name = '#{table_name.upcase}'
-              and syn.synonym_name (+)= cat.table_name
-              and col.owner = nvl(syn.table_owner, user)
-              and col.table_name = nvl(syn.table_name, cat.table_name)}
-          ).map do |row|
-            OCIColumn.new(
-              oci_downcase(row['column_name']), 
-              row['data_default'],
-              row['data_type'], 
-              row['data_length'], 
-              row['data_scale'],
-              row['nullable'] == 'Y'
-            )
-          end
-        end
-
-        def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil)
-          if pk.nil? # Who called us? What does the sql look like? No idea!
-            execute sql, name
-          elsif id_value # Pre-assigned id
-            log(sql, name) { @connection.exec sql }
-          else # Assume the sql contains a bind-variable for the id
-            id_value = select_one("select #{sequence_name}.nextval id from dual")['id']
-            log(sql, name) { @connection.exec sql, id_value }
-          end
-
-          id_value
-        end
-
-        def execute(sql, name = nil)
-          log(sql, name) { @connection.exec sql }
-        end
-
-        alias :update :execute
-        alias :delete :execute
-
-        def begin_db_transaction()
-          @connection.autocommit = false
-        end
-
-        def commit_db_transaction()
-          @connection.commit
-        ensure
-          @connection.autocommit = true
-        end
-
-        def rollback_db_transaction()
-          @connection.rollback
-        ensure
-          @connection.autocommit = true
-        end
-
-        def adapter_name()
-          'OCI'
-        end
-        
-        private
-          # Oracle column names by default are case-insensitive, but treated as upcase;
-          # for neatness, we'll downcase within Rails. EXCEPT that folks CAN quote
-          # their column names when creating Oracle tables, which makes then case-sensitive.
-          # I don't know anybody who does this, but we'll handle the theoretical case of a
-          # camelCase column name. I imagine other dbs handle this different, since there's a
-          # unit test that's currently failing test_oci.
-          def oci_downcase(column_name)
-            column_name =~ /[a-z]/ ? column_name : column_name.downcase
-          end
       end
     end
   end
 
-  module ActiveRecord
-    class Base
-      class << self
-        def oci_connection(config) #:nodoc:
-          conn = OCI8.new config[:username], config[:password], config[:host]
-          conn.exec %q{alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'}
-          conn.exec %q{alter session set nls_timestamp_format = 'YYYY-MM-DD HH24:MI:SS'}
-          conn.autocommit = true
-          ConnectionAdapters::OCIAdapter.new conn, logger
-        end
-      end
 
-      alias :attributes_with_quotes_pre_oci :attributes_with_quotes #:nodoc:
-      # Enable the id column to be bound into the sql later, by the adapter's insert method.
-      # This is preferable to inserting the hard-coded value here, because the insert method
-      # needs to know the id value explicitly.
-      def attributes_with_quotes(creating = true) #:nodoc:
-        aq = attributes_with_quotes_pre_oci creating
-        if connection.class == ConnectionAdapters::OCIAdapter
-          aq[self.class.primary_key] = ":id" if creating && aq[self.class.primary_key].nil?
-        end
-        aq
-      end
-
-      after_save :write_lobs
-
-      # After setting large objects to empty, select the OCI8::LOB and write back the data
-      def write_lobs() #:nodoc:
-        if connection.is_a?(ConnectionAdapters::OCIAdapter)
-          self.class.columns.select { |c| c.type == :binary }.each { |c|
-            value = self[c.name]
-            next if value.nil?  || (value == '')
-            lob = connection.select_one(
-              "select #{ c.name} from #{ self.class.table_name } WHERE #{ self.class.primary_key} = #{quote(id)}",
-              'Writable Large Object'
-              )[c.name]
-            lob.write value
-          }
-        end
-      end
-
-      private :write_lobs
-    end
-  end
-
+  # This OCI8 patch may not longer be required with the upcoming
+  # release of version 0.2.
   class OCI8 #:nodoc:
     class Cursor #:nodoc:
       alias :define_a_column_pre_ar :define_a_column
@@ -375,6 +475,7 @@ begin
     	end
     end
   end
+
 rescue LoadError
   # OCI8 driver is unavailable.
 end

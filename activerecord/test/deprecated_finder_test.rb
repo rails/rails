@@ -15,14 +15,10 @@ class DeprecatedFinderTest < Test::Unit::TestCase
   end
 
   def test_find_all_with_prepared_limit_and_offset
-    if current_adapter?(:OCIAdapter)
-      assert_raises(ArgumentError) { Entrant.find_all nil, "id ASC", [2, 1] }
-    else
-      entrants = Entrant.find_all nil, "id ASC", [2, 1]
+    entrants = Entrant.find_all nil, "id ASC", [2, 1]
 
-      assert_equal(2, entrants.size)
-      assert_equal(entrants(:second).name, entrants.first.name)
-    end
+    assert_equal(2, entrants.size)
+    assert_equal(entrants(:second).name, entrants.first.name)
   end
 
   def test_find_first

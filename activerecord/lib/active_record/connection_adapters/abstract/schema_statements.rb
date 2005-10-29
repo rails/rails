@@ -239,8 +239,8 @@ module ActiveRecord
       end            
     
       def add_column_options!(sql, options) #:nodoc:
-        sql << " NOT NULL" if options[:null] == false
         sql << " DEFAULT #{quote(options[:default], options[:column])}" unless options[:default].nil?
+        sql << " NOT NULL" if options[:null] == false
       end
     end
   end
