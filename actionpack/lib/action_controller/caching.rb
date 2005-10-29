@@ -256,7 +256,7 @@ module ActionController #:nodoc:
             @@fragment_cache_store = if store.is_a?(Symbol)
               store_class_name = (store == :drb_store ? "DRbStore" : store.to_s.camelize)
               store_class = ActionController::Caching::Fragments.const_get(store_class_name)
-              parameters.empty? ? store.new : store_class.new(*parameters)
+              store_class.new(*parameters)
             else
               store
             end
