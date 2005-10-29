@@ -1,5 +1,7 @@
 *SVN*
 
+* Add task to generate rdoc for all installed plugins. [Marcel Molina]
+
 * Update script.aculo.us to V1.5_rc4 [Thomas Fuchs]
 
 * Add default Mac + DarwinPorts MySQL socket locations to the app generator.  [Jeremy Kemper]

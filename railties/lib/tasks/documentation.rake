@@ -7,6 +7,39 @@ Rake::RDocTask.new("appdoc") { |rdoc|
   rdoc.rdoc_files.include('app/**/*.rb')
 }
 
+Plugins = FileList['vendor/plugins/**'].map {|plugin| File.basename(plugin)}
+# Define doc tasks for each plugin
+Plugins.each do |plugin|
+  task :"#{plugin}_plugindoc" => :environment do
+    plugin_base   = "vendor/plugins/#{plugin}"
+    options       = []
+    files         = Rake::FileList.new
+    options << "-o doc/plugins/#{plugin}"
+    options << "--title '#{plugin.titlecase} Plugin Documentation'"
+    options << '--line-numbers --inline-source'
+    options << '-T html'
+
+    files.include("#{plugin_base}/lib/*.rb")
+    if File.exists?("#{plugin_base}/README")
+      files.include("#{plugin_base}/README")    
+      options << "--main '#{plugin_base}/README'"
+    end
+    files.include("#{plugin_base}/CHANGELOG") if File.exists?("#{plugin_base}/CHANGELOG")
+
+    options  << files.to_s
+
+    sh %(rdoc #{options * ' '})
+  end
+end
+
+desc "Generate documation for all installed plugins"
+task :plugindoc => Plugins.map {|plugin| :"#{plugin}_plugindoc"}
+
+desc "Remove plugin documentation"
+task :clobber_plugindoc do 
+  rm_rf 'doc/plugins' rescue nil
+end
+
 desc "Generate documentation for the Rails framework"
 Rake::RDocTask.new("apidoc") { |rdoc|
   rdoc.rdoc_dir = 'doc/api'
