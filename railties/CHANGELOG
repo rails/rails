@@ -1,5 +1,7 @@
 *SVN*
 
+* Migrations may be destroyed: script/destroy migration foo.  #2635 [Charles M. Gerungan <charles.gerungan@gmail.com>, Jamis Buck, Jeremy Kemper]
+
 * Added that plugins can carry generators and that generator stub files can be created along with new plugins using script/generate plugin <name> --with-generator [DHH]
 
 * Removed app/apis as a default empty dir since its automatically created when using script/generate web_service [DHH]
