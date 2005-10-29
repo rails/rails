@@ -109,6 +109,7 @@ module ActiveRecord
       conn = @@defined_connections[klass]
       @@defined_connections.delete(klass)
       active_connections[klass] = nil
+      @connection = nil
       conn.config if conn
     end
 
