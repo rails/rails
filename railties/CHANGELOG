@@ -1,6 +1,8 @@
 *SVN*
 
-* The PostgreSQL :db_structure_dump task limits its dump to the schema search path in database.yml.  [Anatol Pomozov <anatol.pomozov@gmail.com>]
+* The *_plugindoc Rake tasks look deeper into the plugins' lib directories.  #2652 [bellis@deepthought.org]
+
+* The PostgreSQL :db_structure_dump Rake task limits its dump to the schema search path in database.yml.  [Anatol Pomozov <anatol.pomozov@gmail.com>]
 
 * Add task to generate rdoc for all installed plugins. [Marcel Molina]
 

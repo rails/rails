@@ -19,14 +19,14 @@ Plugins.each do |plugin|
     options << '--line-numbers --inline-source'
     options << '-T html'
 
-    files.include("#{plugin_base}/lib/*.rb")
+    files.include("#{plugin_base}/lib/**/*.rb")
     if File.exists?("#{plugin_base}/README")
       files.include("#{plugin_base}/README")    
       options << "--main '#{plugin_base}/README'"
     end
     files.include("#{plugin_base}/CHANGELOG") if File.exists?("#{plugin_base}/CHANGELOG")
 
-    options  << files.to_s
+    options << files.to_s
 
     sh %(rdoc #{options * ' '})
   end
