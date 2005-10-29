@@ -5,10 +5,8 @@ class MigrationGenerator < Rails::Generator::NamedBase
       m.migration_template 'migration.rb', 'db/migrate'
     end
   end
-end
 
-module Rails::Generator::Commands
-  class Base
+  protected
     def existing_migrations(file_name)
       Dir.glob("db/migrate/[0-9]*_#{file_name}.rb")
     end
@@ -31,9 +29,10 @@ module Rails::Generator::Commands
     def next_migration_string(padding = 3)
       "%.#{padding}d" % next_migration_number
     end
-  end
+end
 
-  # When creating, it knows to find the first available file in db/migrate and use the migration.rb template. When deleting, it knows to delete every file named "[0-9]*_#{file_name}".
+module Rails::Generator::Commands
+  # When creating, it knows to find the first available file in db/migrate and use the migration.rb template.
   class Create
     def migration_template(relative_source, relative_destination, template_options = {})
       raise "Another migration is already named #{file_name}: #{existing_migrations(file_name).first}" if migration_exists?(file_name)
@@ -41,6 +40,7 @@ module Rails::Generator::Commands
     end
   end
 
+  # When deleting, it knows to delete every file named "[0-9]*_#{file_name}".
   class Destroy
     def migration_template(relative_source, relative_destination, template_options = {})
       raise "There is no migration named #{file_name}" unless migration_exists?(file_name)
