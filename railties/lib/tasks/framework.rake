@@ -12,18 +12,22 @@ task :freeze_gems do
   FileUtils.mv(Dir.glob("vendor/rails/rails*").first, "vendor/rails/railties")
 end
 
-desc "Lock this application to the Edge Rails (by exporting from Subversion)"
+desc "Lock this application to the Edge Rails (by exporting from Subversion).  Defaults to svn HEAD; do 'rake freeze_edge REVISION=1234' to lock to a specific revision."
 task :freeze_edge do
-  $stderr.close
-  svn_available = `svn --version`.size > 0
-  raise "Subversion is not installed" unless svn_available
+  $verbose = false
+  `svn --version`
+  unless $?.success?
+    $stderr.puts "ERROR: Must have subversion (svn) available in the PATH to lock this application to Edge Rails"
+    exit 1
+  end
 
   rm_rf   "vendor/rails"
   mkdir_p "vendor/rails"
-  
+
+  revision_switch = ENV['REVISION'] ? " -r #{ENV['REVISION']}" : ''
   for framework in %w( railties actionpack activerecord actionmailer activesupport actionwebservice )
     mkdir_p "vendor/rails/#{framework}"
-    system  "svn export http://dev.rubyonrails.org/svn/rails/trunk/#{framework}/lib vendor/rails/#{framework}/lib"
+    system  "svn export http://dev.rubyonrails.org/svn/rails/trunk/#{framework}/lib vendor/rails/#{framework}/lib #{revision_switch}"
   end
 end
 
