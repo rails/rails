@@ -40,10 +40,8 @@
 #     plugin is pulled via `svn checkout` or `svn export` but looks
 #     exactly the same.
 # 
-# This is Free Software, copyright 2005 by Ryan Tomayko and is licensed
-# MIT: (http://www.opensource.org/licenses/mit-license.php)
-# 
-# Send patches to rtomayko@gmail.com
+# This is Free Software, copyright 2005 by Ryan Tomayko (rtomayko@gmail.com) 
+# and is licensed MIT: (http://www.opensource.org/licenses/mit-license.php)
 
 $verbose = false
 `svn --version`
