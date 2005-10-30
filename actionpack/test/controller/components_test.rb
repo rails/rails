@@ -116,6 +116,11 @@ class ComponentsTest < Test::Unit::TestCase
     assert_redirected_to :action => "being_called"
   end
   
+  def test_component_multiple_redirect_redirects
+    test_component_redirect_redirects
+    test_internal_calling
+  end
+  
   def test_component_as_string_redirect_renders_redirecte_action
     get :calling_redirected_as_string
     

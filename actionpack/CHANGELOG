@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix problem where redirecting components can cause an infinite loop [Rick Olson]
+
 * Added support for the queue option on visual_effect [Thomas Fuchs]
 
 * Update script.aculo.us to V1.5_rc4 [Thomas Fuchs]

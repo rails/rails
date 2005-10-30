@@ -805,6 +805,7 @@ module ActionController #:nodoc:
         raise "You must assign a template class through ActionController.template_class= before processing a request" unless @@template_class
         
         response.template = self.class.view_class.new(self.class.view_root, {}, self)
+        response.redirected_to = nil
         @performed_render = @performed_redirect = false
       end
     
