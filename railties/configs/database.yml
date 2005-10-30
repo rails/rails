@@ -75,7 +75,7 @@ postgresql_example:
 #   gem install sqlite-ruby
 sqlite_example:
   adapter: sqlite
-  dbfile: db/development.sqlite2
+  database: db/development.sqlite2
 
 
 # SQLite version 3.x
