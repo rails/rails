@@ -683,7 +683,7 @@ module Commands
       puts "Plugins will be installed using #{install_method}" if $verbose
       args.each do |name| 
         if name =~ /\// then
-          Plugin.new(name).install(install_method)
+          ::Plugin.new(name).install(install_method)
         else
           plugin = Repositories.instance.find_plugin(name)
           unless plugin.nil?
