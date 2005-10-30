@@ -15,7 +15,7 @@ module ActiveRecord
         end
 
         db = SQLite3::Database.new(
-          config[:dbfile],
+          config[:database],
           :results_as_hash => true,
           :type_translation => false
         )
@@ -29,7 +29,7 @@ module ActiveRecord
         unless self.class.const_defined?(:SQLite)
           require_library_or_gem(config[:adapter])
 
-          db = SQLite::Database.new(config[:dbfile], 0)
+          db = SQLite::Database.new(config[:database], 0)
           db.show_datatypes   = "ON" if !defined? SQLite::Version
           db.results_as_hash  = true if defined? SQLite::Version
           db.type_translation = false
@@ -45,16 +45,17 @@ module ActiveRecord
 
       private
         def parse_config!(config)
-          # Require dbfile.
-          unless config.has_key?(:dbfile)
-            raise ArgumentError, "No database file specified. Missing argument: dbfile"
+          config[:database] ||= config[:dbfile]
+          # Require database.
+          unless config.has_key?(:database)
+            raise ArgumentError, "No database file specified. Missing argument: database"
           end
 
           # Allow database path relative to RAILS_ROOT, but only if
           # the database path is not the special path that tells
           # Sqlite build a database only in memory.
-          if Object.const_defined?(:RAILS_ROOT) && ':memory:' != config[:dbfile]
-            config[:dbfile] = File.expand_path(config[:dbfile], RAILS_ROOT)
+          if Object.const_defined?(:RAILS_ROOT) && ':memory:' != config[:database]
+            config[:database] = File.expand_path(config[:database], RAILS_ROOT)
           end
         end
     end
@@ -88,7 +89,7 @@ module ActiveRecord
     #
     # Options:
     #
-    # * <tt>:dbfile</tt> -- Path to the database file.
+    # * <tt>:database</tt> -- Path to the database file.
     class SQLiteAdapter < AbstractAdapter
       def adapter_name #:nodoc:
         'SQLite'

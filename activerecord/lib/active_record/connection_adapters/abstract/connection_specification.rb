@@ -27,13 +27,13 @@ module ActiveRecord
     #
     #   ActiveRecord::Base.establish_connection(
     #     :adapter => "sqlite",
-    #     :dbfile  => "path/to/dbfile"
+    #     :database  => "path/to/dbfile"
     #   )
     #
     # Also accepts keys as strings (for parsing from yaml for example):
     #   ActiveRecord::Base.establish_connection(
     #     "adapter" => "sqlite",
-    #     "dbfile"  => "path/to/dbfile"
+    #     "database"  => "path/to/dbfile"
     #   )
     #
     # The exceptions AdapterNotSpecified, AdapterNotFound and ArgumentError

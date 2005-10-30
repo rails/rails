@@ -55,7 +55,7 @@ task :db_structure_dump => :environment do
     else 
       raise "Task not supported by '#{abcs["test"]["adapter"]}'"
   end
-  
+
   if ActiveRecord::Base.connection.supports_migrations?
     File.open("db/#{RAILS_ENV}_structure.sql", "a") { |f| f << ActiveRecord::Base.connection.dump_schema_information }
   end
@@ -65,7 +65,7 @@ desc "Recreate the test databases from the development structure"
 task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
   abcs = ActiveRecord::Base.configurations
   case abcs["test"]["adapter"]
-    when  "mysql"
+    when "mysql"
       ActiveRecord::Base.establish_connection(:test)
       ActiveRecord::Base.connection.execute('SET foreign_key_checks = 0')
       IO.readlines("db/#{RAILS_ENV}_structure.sql").join.split("\n\n").each do |table|
@@ -80,7 +80,7 @@ task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
       `#{abcs["test"]["adapter"]} #{abcs["test"]["dbfile"]} < db/#{RAILS_ENV}_structure.sql`
     when "sqlserver"
       `osql -E -S #{abcs["test"]["host"]} -d #{abcs["test"]["database"]} -i db\\#{RAILS_ENV}_structure.sql`
-    when "oci", 
+    when "oci"
       ActiveRecord::Base.establish_connection(:test)
       IO.readlines("db/#{RAILS_ENV}_structure.sql").join.split(";\n\n").each do |ddl|
         ActiveRecord::Base.connection.execute(ddl)

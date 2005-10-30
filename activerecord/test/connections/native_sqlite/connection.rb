@@ -18,7 +18,7 @@ def make_connection(clazz, db_file, db_definitions_file)
     raise SqliteError.new("Seems that there is no sqlite executable available") unless system(sqlite_command)
     clazz.establish_connection(
         :adapter => "sqlite",
-        :dbfile  => db_file)
+        :database  => db_file)
     script = File.read("#{BASE_DIR}/db_definitions/#{db_definitions_file}")
     # SQLite-Ruby has problems with semi-colon separated commands, so split and execute one at a time
     script.split(';').each do
@@ -28,7 +28,7 @@ def make_connection(clazz, db_file, db_definitions_file)
   else
     clazz.establish_connection(
         :adapter => "sqlite",
-        :dbfile  => db_file)
+        :database  => db_file)
   end
 end
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed :dbfile to :database for SQLite adapter for consistency (old key still works as an alias) #2644 [Dan Peterson]
+
 * Added migration support for Oracle #2647 [Michael Schoen]
 
 * Worked around that connection can't be reset if allow_concurrency is off.  #2648 [Michael Schoen <schoenm@earthlink.net>]

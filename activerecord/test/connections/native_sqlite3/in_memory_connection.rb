@@ -7,7 +7,7 @@ class SqliteError < StandardError
 end
 
 def make_connection(clazz, db_definitions_file)
-  clazz.establish_connection(:adapter => 'sqlite3', :dbfile  => ':memory:')
+  clazz.establish_connection(:adapter => 'sqlite3', :database  => ':memory:')
   File.read("#{File.dirname(__FILE__)}/../../fixtures/db_definitions/#{db_definitions_file}").split(';').each do |command|
     clazz.connection.execute(command) unless command.strip.empty?
   end

@@ -6,6 +6,7 @@
 #
 # Get the fast C bindings:
 #   gem install mysql
+#   (on OS X: gem install mysql -- --include=/usr/local/lib)
 # And be sure to use new-style password hashing:
 #   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
 development:
@@ -81,10 +82,10 @@ sqlite_example:
 #   gem install sqlite3-ruby
 sqlite3_example:
   adapter: sqlite3
-  dbfile: db/development.sqlite3
+  database: db/development.sqlite3
 
 
 # In-memory SQLite 3 database.  Useful for tests.
 sqlite3_in_memory_example:
   adapter: sqlite3
-  dbfile: ":memory:"
+  database: ":memory:"

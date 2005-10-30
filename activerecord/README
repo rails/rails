@@ -165,7 +165,7 @@ A short rundown of the major features:
 
 * Database abstraction through simple adapters (~100 lines) with a shared connector
 
-   ActiveRecord::Base.establish_connection(:adapter => "sqlite", :dbfile => "dbfile")
+   ActiveRecord::Base.establish_connection(:adapter => "sqlite", :database => "dbfile")
 
    ActiveRecord::Base.establish_connection(
      :adapter  => "mysql", 
