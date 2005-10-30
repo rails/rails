@@ -1,5 +1,7 @@
 *SVN*
 
+* Comment database.yml and include PostgreSQL and SQLite examples.  [Jeremy Kemper]
+
 * Improve script/plugin on Windows.  #2646 [Chad Fowler]
 
 * The *_plugindoc Rake tasks look deeper into the plugins' lib directories.  #2652 [bellis@deepthought.org]
