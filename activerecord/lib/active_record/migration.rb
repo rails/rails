@@ -2,6 +2,12 @@ module ActiveRecord
   class IrreversibleMigration < ActiveRecordError#:nodoc:
   end
   
+  class DuplicateMigrationVersionError < ActiveRecordError#:nodoc:
+    def initialize(version)
+      super("Multiple migrations have the version number #{version}")
+    end
+  end
+  
   # Migrations can manage the evolution of a schema used by several physical databases. It's a solution
   # to the common problem of adding a field to make a new feature work in your local database, but being unsure of how to
   # push that change to other developers and to the production server. With migrations, you can describe the transformations
@@ -209,15 +215,22 @@ module ActiveRecord
 
     private
       def migration_classes
-        migrations = migration_files.collect do |migration_file|
+        migrations = migration_files.inject([]) do |migrations, migration_file|
           load(migration_file)
           version, name = migration_version_and_name(migration_file)
-          [ version.to_i, migration_class(name) ]
+          assert_unique_migration_version(migrations, version.to_i)
+          migrations << [ version.to_i, migration_class(name) ] 
         end
-        
+
         down? ? migrations.sort.reverse : migrations.sort
       end
-    
+      
+      def assert_unique_migration_version(migrations, version)
+        if !migrations.empty? && migrations.transpose.first.include?(version)
+          raise DuplicateMigrationVersionError.new(version)
+        end
+      end
+      
       def migration_files
         files = Dir["#{@migrations_path}/[0-9]*_*.rb"].sort_by do |f|
           migration_version_and_name(f).first.to_i

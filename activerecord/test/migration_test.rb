@@ -408,5 +408,11 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.table_name_suffix = ''
       Reminder.reset_table_name
     end
+    
+    def test_migrator_with_duplicates
+      assert_raises(ActiveRecord::DuplicateMigrationVersionError) do
+        ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations_with_duplicate/', nil)
+      end
+    end
   end
 end
