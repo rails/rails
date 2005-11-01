@@ -26,19 +26,19 @@
 # the environment (when Dependencies.load? is true) after each request.
 class Dispatcher
   class << self
-    
+
     # Dispatch the given CGI request, using the given session options, and
-    # emitting the output via the given output.
-    def dispatch(cgi = CGI.new, session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, output = $stdout)
-      begin
-        request, response = ActionController::CgiRequest.new(cgi, session_options), ActionController::CgiResponse.new(cgi)
-        prepare_application
-        ActionController::Routing::Routes.recognize!(request).process(request, response).out(output)
-      rescue Object => exception
-        ActionController::Base.process_with_exception(request, response, exception).out(output)
-      ensure
-        reset_after_dispatch
-      end
+    # emitting the output via the given output.  If you dispatch with your
+    # own CGI object, be sure to handle the exceptions it raises.
+    def dispatch(cgi = nil, session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, output = $stdout)
+      cgi ||= CGI.new
+      request, response = ActionController::CgiRequest.new(cgi, session_options), ActionController::CgiResponse.new(cgi)
+      prepare_application
+      ActionController::Routing::Routes.recognize!(request).process(request, response).out(output)
+    rescue Object => exception
+      ActionController::Base.process_with_exception(request, response, exception).out(output)
+    ensure
+      reset_after_dispatch
     end
 
     # Reset the application by clearing out loaded controllers, views, actions,

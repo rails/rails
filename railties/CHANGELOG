@@ -1,5 +1,7 @@
 *SVN*
 
+* Move Dispatcher.dispatch CGI.new out of default args and into rescuable block so the dispatcher catches its errors rather than the fcgi handler.  [Jeremy Kemper]
+
 * The freeze_gems Rake task accepts the VERSION environment variable to decide which version of Rails to pull into vendor/rails.  [Chad Fowler, Jeremy Kemper]
 
 * Removed script.aculo.us.js, builder.js and slider.js (preperation for move of scriptaculous extensions to plugins, core scriptaculous will remain in Railties) [Thomas Fuchs]
