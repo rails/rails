@@ -1,5 +1,7 @@
 *SVN*
 
+* A missing primary key column shouldn't raise an error when generating its error message.  [Don Park <don.park@gmail.com>]
+
 * Changed :dbfile to :database for SQLite adapter for consistency (old key still works as an alias) #2644 [Dan Peterson]
 
 * Added migration support for Oracle #2647 [Michael Schoen]
