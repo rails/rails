@@ -7,7 +7,7 @@ task :freeze_gems do
   if version = ENV['VERSION']
     puts "Freezing to the gems for Rails #{version}"
     require 'rubygems'
-    if rails = Gem.cache.search('rails').find { |g| g.version.to_s == version }
+    if rails = Gem.cache.search('rails', "= #{version}")
       rails.dependencies.select { |g| deps.include? g.name }.each do |g|
         system "cd vendor/rails; gem unpack -v '#{g.version_requirements}' #{g.name}; mv #{g.name}* #{g.name}"
       end
