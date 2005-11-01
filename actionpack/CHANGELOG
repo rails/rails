@@ -1,5 +1,7 @@
 *SVN*
 
+* Change javascript_include_tag :defaults to not use script.aculo.us loader, which facilitates the use of plugins for future script.aculo.us and third party javascript extensions, and provide register_javascript_include_default for plugins to specify additional JavaScript files to load. Removed slider.js and builder.js from actionpack. [Thomas Fuchs]
+
 * Fix problem where redirecting components can cause an infinite loop [Rick Olson]
 
 * Added support for the queue option on visual_effect [Thomas Fuchs]

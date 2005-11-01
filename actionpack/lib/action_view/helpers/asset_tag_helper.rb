@@ -35,6 +35,9 @@ module ActionView
         compute_public_path(source, 'javascripts', 'js')        
       end
 
+      JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls']
+      @@javascript_default_sources = JAVASCRIPT_DEFAULT_SOURCES.dup
+
       # Returns a script include tag per source given as argument. Examples:
       #
       #   javascript_include_tag "xmlhr" # =>
@@ -46,8 +49,9 @@ module ActionView
       #
       #   javascript_include_tag :defaults # =>
       #     <script type="text/javascript" src="/javascripts/prototype.js"></script>
-      #     <script type="text/javascript" src="/javascripts/scriptaculous.js"></script>
-      #     <script type="text/javascript" src="/javascripts/application.js"></script> *see beloe
+      #     <script type="text/javascript" src="/javascripts/effects.js"></script>
+      #     ...
+      #     <script type="text/javascript" src="/javascripts/application.js"></script> *see below
       #   
       # If there's an <tt>application.js</tt> file in your <tt>public/javascripts</tt> directory,
       # <tt>javascript_include_tag :defaults</tt> will automatically include it. This file
@@ -56,7 +60,7 @@ module ActionView
       def javascript_include_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
         if sources.first == :defaults
-          sources = ['prototype', 'scriptaculous']
+          sources = @@javascript_default_sources
           if defined?(RAILS_ROOT) and File.exists?("#{RAILS_ROOT}/public/javascripts/application.js")
             sources << 'application' 
           end
@@ -65,6 +69,20 @@ module ActionView
           source = javascript_path(source)        
           content_tag("script", "", { "type" => "text/javascript", "src" => source }.merge(options))
         }.join("\n")
+      end
+      
+      # Register one or more additional JavaScript files to be included when
+      #   
+      #   javascript_include_tag :defaults
+      #
+      # is called. This method is intended to be called only from plugin initialization
+      # to register extra .js files the plugin installed in <tt>public/javascripts</tt>.
+      def self.register_javascript_include_default(*sources)
+        @@javascript_default_sources.concat(sources)
+      end
+      
+      def self.reset_javascript_include_default #:nodoc:
+        @@javascript_default_sources = JAVASCRIPT_DEFAULT_SOURCES.dup
       end
 
       # Returns path to a stylesheet asset. Example:

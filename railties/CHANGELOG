@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed script.aculo.us.js, builder.js and slider.js (preperation for move of scriptaculous extensions to plugins, core scriptaculous will remain in Railties) [Thomas Fuchs]
+
 * The freeze_edge Rake task does smarter svn detection and can export a specific revision by passing the REVISION environment variable.  For example: rake freeze_edge REVISION=1234.  #2663 [Rick Olson]
 
 * Comment database.yml and include PostgreSQL and SQLite examples.  [Jeremy Kemper]
