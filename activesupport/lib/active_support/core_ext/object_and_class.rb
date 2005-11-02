@@ -14,19 +14,17 @@ class Object #:nodoc:
     subclasses
   end
 
-  # "", "   ", nil, and 0 are all blank
+  # "", "   ", nil, [], and {} are blank
   def blank?
     if respond_to?(:empty?) && respond_to?(:strip)
-      strip.empty?
-    elsif respond_to? :empty?
+      empty? or strip.empty?
+    elsif respond_to?(:empty?)
       empty?
-    elsif respond_to? :zero?
-      zero?
     else
       !self
     end
   end
-    
+
   def suppress(*exception_classes)
     begin yield
     rescue Exception => e

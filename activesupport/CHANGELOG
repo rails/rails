@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed 0.blank? to false rather than true since it violates everyone's expectation of blankness.  #2518, #2705 [rails@jeffcole.net]
+
 * When loading classes using const_missing, raise a NameError if and only if the file we tried to load was not present. [Nicholas Seckar]
 
 * Added petabytes and exebytes to numeric extensions #2397 [timct@mac.com]

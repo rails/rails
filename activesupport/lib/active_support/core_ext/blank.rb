@@ -30,7 +30,3 @@ class String #:nodoc:
     empty? || strip.empty?
   end
 end
-
-class Numeric #:nodoc:
-  alias_method :blank?, :zero?
-end
