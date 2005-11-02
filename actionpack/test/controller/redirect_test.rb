@@ -22,6 +22,10 @@ class RedirectController < ActionController::Base
     redirect_to :action => "hello_world"
   end
 
+  def redirect_to_back
+    redirect_to :back
+  end
+
   def rescue_errors(e) raise e end
   
   protected
@@ -65,6 +69,12 @@ class RedirectTest < Test::Unit::TestCase
   def test_redirect_with_assigns
     get :redirect_with_assigns
     assert_equal "world", assigns["hello"]
+  end
+
+  def test_redirect_to_back
+    @request.env["HTTP_REFERER"] = "http://www.example.com/coming/from"
+    get :redirect_to_back
+    assert_redirect_url "http://www.example.com/coming/from"
   end
 end
 
