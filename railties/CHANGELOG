@@ -1,6 +1,6 @@
 *SVN*
 
-* Move Dispatcher.dispatch CGI.new out of default args and into rescuable block so the dispatcher catches its errors rather than the fcgi handler.  [Jeremy Kemper]
+* Catch CGI multipart parse errors.  Wrap dispatcher internals in a failsafe response handler.  [Jeremy Kemper]
 
 * The freeze_gems Rake task accepts the VERSION environment variable to decide which version of Rails to pull into vendor/rails.  [Chad Fowler, Jeremy Kemper]
 

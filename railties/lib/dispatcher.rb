@@ -29,15 +29,20 @@ class Dispatcher
 
     # Dispatch the given CGI request, using the given session options, and
     # emitting the output via the given output.  If you dispatch with your
-    # own CGI object, be sure to handle the exceptions it raises.
+    # own CGI object be sure to handle the exceptions it raises on multipart
+    # requests (EOFError and ArgumentError).
     def dispatch(cgi = nil, session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, output = $stdout)
-      cgi ||= CGI.new
-      request, response = ActionController::CgiRequest.new(cgi, session_options), ActionController::CgiResponse.new(cgi)
-      prepare_application
-      ActionController::Routing::Routes.recognize!(request).process(request, response).out(output)
+      if cgi ||= new_cgi(output)
+        request, response = ActionController::CgiRequest.new(cgi, session_options), ActionController::CgiResponse.new(cgi)
+        prepare_application
+        ActionController::Routing::Routes.recognize!(request).process(request, response).out(output)
+      end
     rescue Object => exception
-      ActionController::Base.process_with_exception(request, response, exception).out(output)
+      failsafe_response(output, '500 Internal Server Error') do
+        ActionController::Base.process_with_exception(request, response, exception).out(output)
+      end
     ensure
+      # Do not give a failsafe response here.
       reset_after_dispatch
     end
 
@@ -51,8 +56,15 @@ class Dispatcher
       Dependencies.remove_subclasses_for(ActiveRecord::Base, ActiveRecord::Observer, ActionController::Base)
       Dependencies.remove_subclasses_for(ActionMailer::Base) if defined?(ActionMailer::Base)
     end
-    
+
     private
+      # CGI.new plus exception handling.  CGI#read_multipart raises EOFError
+      # if body.empty? or body.size != Content-Length and raises ArgumentError
+      # if Content-Length is non-integer.
+      def new_cgi(output)
+        failsafe_response(output, '400 Bad Request') { CGI.new }
+      end
+
       def prepare_application
         ActionController::Routing::Routes.reload if Dependencies.load?
         prepare_breakpoint
@@ -71,6 +83,16 @@ class Dispatcher
         true
       rescue
         nil
+      end
+
+      # If the block raises, send status code as a last-ditch response.
+      def failsafe_response(output, status)
+        yield
+      rescue Object
+        begin
+          output.write "Status: #{status}\r\n"
+        rescue Object
+        end
       end
   end
 end

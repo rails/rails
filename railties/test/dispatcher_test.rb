@@ -50,9 +50,46 @@ class DispatcherTest < Test::Unit::TestCase
     assert_equal 0, ActionMailer::Base.subclasses.length
   end
 
+
+  INVALID_MULTIPART = [
+    'POST /foo HTTP/1.0',
+    'Host: example.com',
+    'Content-Type: multipart/form-data;boundary=foo'
+  ]
+
+  EMPTY_CONTENT = (INVALID_MULTIPART + [
+    'Content-Length: 100',
+    nil, nil
+  ]).join("\r\n")
+
+  CONTENT_LENGTH_MISMATCH = (INVALID_MULTIPART + [
+    'Content-Length: 100',
+    nil, nil,
+    'foobar'
+  ]).join("\r\n")
+
+  NONINTEGER_CONTENT_LENGTH = (INVALID_MULTIPART + [
+    'Content-Length: abc',
+    nil, nil
+  ]).join("\r\n")
+
+  def test_bad_multipart_request
+    old_stdin = $stdin
+    [EMPTY_CONTENT, CONTENT_LENGTH_MISMATCH, NONINTEGER_CONTENT_LENGTH].each do |bad_request|
+      $stdin = StringIO.new(bad_request)
+      output = StringIO.new
+      assert_nothing_raised do
+        Dispatcher.dispatch(nil, ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, output)
+      end
+      assert_equal "Status: 400 Bad Request\r\n", output.string
+    end
+  ensure
+    $stdin = old_stdin
+  end
+
   private
     def dispatch
-      Dispatcher.dispatch(CGI.new, ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, @output)
+      Dispatcher.dispatch(nil, ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, @output)
     end
 
     def setup_minimal_environment
