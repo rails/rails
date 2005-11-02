@@ -363,9 +363,9 @@ module ActionController #:nodoc:
 
         log_processing if logger
         send(method, *arguments)
-        close_session
-
         @response
+      ensure
+        close_session
       end
 
       # Returns a URL that has been rewritten according to the options hash and the defined Routes. 
