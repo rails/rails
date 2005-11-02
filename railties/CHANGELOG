@@ -1,5 +1,7 @@
 *SVN*
 
+* If specified, pass PostgreSQL client character encoding to createdb.  #2703 [Kazuhiko <kazuhiko@fdiary.net>]
+
 * Catch CGI multipart parse errors.  Wrap dispatcher internals in a failsafe response handler.  [Jeremy Kemper]
 
 * The freeze_gems Rake task accepts the VERSION environment variable to decide which version of Rails to pull into vendor/rails.  [Chad Fowler, Jeremy Kemper]

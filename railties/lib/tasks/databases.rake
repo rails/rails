@@ -101,8 +101,9 @@ task :purge_test_database => :environment do
       ENV['PGHOST']     = abcs["test"]["host"] if abcs["test"]["host"]
       ENV['PGPORT']     = abcs["test"]["port"].to_s if abcs["test"]["port"]
       ENV['PGPASSWORD'] = abcs["test"]["password"].to_s if abcs["test"]["password"]
+      enc_option = "-E #{abcs["test"]["encoding"]}" if abcs["test"]["encoding"]
       `dropdb -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
-      `createdb -T template0 -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
+      `createdb #{enc_option} -T template0 -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
     when "sqlite","sqlite3"
       File.delete(abcs["test"]["dbfile"]) if File.exist?(abcs["test"]["dbfile"])
     when "sqlserver"
