@@ -1079,6 +1079,6 @@ class BasicsTest < Test::Unit::TestCase
   private
     def assert_readers(model, exceptions)
       expected_readers = model.column_names - (model.serialized_attributes.keys + exceptions + ['id'])
-      assert_equal expected_readers.sort, model.read_methods.keys.sort
+      assert_equal expected_readers.sort, model.read_methods.to_a.sort
     end
 end

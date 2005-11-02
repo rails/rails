@@ -1,4 +1,5 @@
 require 'yaml'
+require 'set'
 require 'active_record/deprecated_finders'
 
 module ActiveRecord #:nodoc:
@@ -761,15 +762,14 @@ module ActiveRecord #:nodoc:
         end
       end
 
-    
       # Contains the names of the generated reader methods.
       def read_methods
-        @read_methods ||= {}
+        @read_methods ||= Set.new
       end
-      
+
       # Resets all the cached information about columns, which will cause them to be reloaded on the next request.
       def reset_column_information
-        read_methods.each_key {|name| undef_method(name)}
+        read_methods.each { |name| undef_method(name) }
         @column_names = @columns = @columns_hash = @content_columns = @dynamic_methods_hash = @read_methods = nil
       end
 
@@ -1134,14 +1134,13 @@ module ActiveRecord #:nodoc:
         yield self if block_given?
       end
 
-      # Every Active Record class must use "id" as their primary ID. This getter overwrites the native
-      # id method, which isn't being used in this context.
+      # A model instance's primary key is always available as model.id
+      # whether you name it the default 'id' or set it to something else.
       def id
         attr_name = self.class.primary_key
-        column    = column_for_attribute(attr_name)
-        raise ActiveRecordError, "No such primary key column #{attr_name} for table #{self.class.table_name}" if column.nil?
+        column = column_for_attribute(attr_name)
         define_read_method(:id, attr_name, column) if self.class.generate_read_methods
-        (value = @attributes[attr_name]) && column.type_cast(value)
+        read_attribute(attr_name)
       end
 
       # Enables Active Record objects to be used as URL parameters in Action Pack automatically.
@@ -1473,17 +1472,17 @@ module ActiveRecord #:nodoc:
         end
       end
 
-      # Define a column type specific reader method.
+      # Define an attribute reader method.  Cope with nil column.
       def define_read_method(symbol, attr_name, column)
-        cast_code = column.type_cast_code('v')
+        cast_code = column.type_cast_code('v') if column
         access_code = cast_code ? "(v=@attributes['#{attr_name}']) && #{cast_code}" : "@attributes['#{attr_name}']"
 
         unless attr_name.to_s == self.class.primary_key.to_s
           access_code = access_code.insert(0, "raise NoMethodError, 'missing attribute: #{attr_name}', caller unless @attributes.has_key?('#{attr_name}'); ")
+          self.class.read_methods << attr_name
         end
 
         self.class.class_eval("def #{symbol}; #{access_code}; end")
-        self.class.read_methods[attr_name] = true unless symbol == :id
       end
 
       # Returns true if the attribute is of a text column and marked for serialization.
