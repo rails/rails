@@ -6,7 +6,7 @@ require 'rbconfig'
 class RailsFCGIHandler
   SIGNALS = {
     'HUP'  => :reload,
-    'TERM' => :exit,
+    'TERM' => :exit_now,
     'USR1' => :exit,
     'USR2' => :restart
   }
@@ -115,6 +115,11 @@ class RailsFCGIHandler
       trap(signal, handler)
     rescue ArgumentError
       dispatcher_log :warn, "Ignoring unsupported signal #{signal}."
+    end
+
+    def exit_now_handler(signal)
+      dispatcher_log :info, "asked to terminate immediately"
+      exit
     end
 
     def exit_handler(signal)

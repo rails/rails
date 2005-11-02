@@ -30,6 +30,10 @@ class RailsFCGIHandler
   def restore!
     @reloaded = true
   end
+  
+  def reload!
+    @reloaded = true
+  end
 
   alias_method :old_run_gc!, :run_gc!
   def run_gc!
@@ -62,7 +66,7 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     @handler.send_signal("HUP")
     @handler.thread.join
     assert_nil @handler.exit_code
-    assert_nil @handler.when_ready
+    assert_equal :reload, @handler.when_ready
     assert @handler.reloaded
   end
 
@@ -74,6 +78,7 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     @handler.thread.join
     assert_nil @handler.exit_code
     assert_equal :reload, @handler.when_ready
+    assert @handler.reloaded
   end
 
   def test_interrupted_via_USR1_when_not_in_request
@@ -94,6 +99,16 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     @handler.thread.join
     assert_nil @handler.exit_code
     assert_equal :exit, @handler.when_ready
+  end
+  
+  def test_interrupted_via_TERM
+    Dispatcher.time_to_sleep = 1
+    @handler.thread = Thread.new { @handler.process! }
+    sleep 0.1 # let the thread get started
+    @handler.send_signal("TERM")
+    @handler.thread.join
+    assert_equal 0, @handler.exit_code
+    assert_nil @handler.when_ready
   end
 
   %w(RuntimeError SignalException).each do |exception|
