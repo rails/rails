@@ -59,8 +59,8 @@ class Mysql
 
     # Store the version number components for speedy comparison
     version, ostag = @server_version.split( /-/, 2 )
-    @major_ver, @minor_ver, @revision_num = version.split( /\./ ).map { |v| v.to_i }
-    
+    @use_411 = (version.strip >= '4.1.1')
+
     @thread_id, @scramble_buff = a.slice!(0,13).unpack("La8")
     if a.size >= 2 then
       @server_capabilities, = a.slice!(0,2).unpack("v")
@@ -74,7 +74,7 @@ class Mysql
     flag |= @client_flag | CLIENT_CAPABILITIES
     flag |= CLIENT_CONNECT_WITH_DB if db
     
-    if version_meets_minimum?( 4, 1, 1 )
+    if @use_411
       # In 4.1.1+ the seed comes in two parts which must be combined
       a.slice!( 0, 16 )
       seed_part_2 = a.slice!( 0, 12 );      
@@ -116,11 +116,7 @@ class Mysql
     
     [ flag, @max_allowed_packet, @server_language, user, password.size, password, db ].pack( template )
   end
-  
-  def version_meets_minimum?( major, minor, revision )
-    @major_ver >= major && @minor_ver >= minor && @revision_num >= revision
-  end
-  
+
   # SERVER:  public_seed=create_random_string()
   #          send(public_seed)
   #
@@ -161,7 +157,7 @@ class Mysql
   end
   
   def change_user(user="", passwd="", db="")
-    scrambled_password = version_meets_minimum?( 4, 1, 1 ) ? scramble411( passwd, @scramble_buff, @protocol_version==9 ) : scramble( passwd, @scramble_buff, @protocol_version==9 )
+    scrambled_password = @use_411 ? scramble411( passwd, @scramble_buff, @protocol_version==9 ) : scramble( passwd, @scramble_buff, @protocol_version==9 )
     data = user+"\0"+scrambled_password+"\0"+db
     command COM_CHANGE_USER, data
     @user = user
@@ -175,7 +171,7 @@ class Mysql
   alias_method :old_read_one_row, :read_one_row
 
   def read_one_row( field_count )
-    if version_meets_minimum?( 4, 1, 1 )
+    if @use_411
       read_one_row_41( field_count )
     else
       old_read_one_row( field_count )
@@ -203,7 +199,7 @@ class Mysql
   alias_method :old_skip_result, :skip_result
   
   def skip_result
-    if version_meets_minimum?( 4, 1, 1 )
+    if @use_411
       skip_result_41
     else
       old_skip_result
@@ -229,7 +225,7 @@ class Mysql
   alias_method :old_unpack_fields, :unpack_fields
   
   def unpack_fields( data, long_flag_protocol )
-    if version_meets_minimum?( 4, 1, 1 )
+    if @use_411
       unpack_fields_41( data, long_flag_protocol )
     else
       old_unpack_fields( data, long_flag_protocol )
@@ -267,7 +263,7 @@ class Mysql
   alias_method :old_read_query_result, :read_query_result
   
   def read_query_result
-    if version_meets_minimum?( 4, 1, 1 )
+    if @use_411
       read_query_result_41
     else
       old_read_query_result

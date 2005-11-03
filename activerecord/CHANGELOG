@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct the pure-Ruby MySQL 4.1.1 shim's version test.  #2718 [Jeremy Kemper]
+
 * Add Model.create! to match existing model.save! method.  When save! raises RecordInvalid, you can catch the exception, retrieve the invalid record (invalid_exception.record), and see its errors (invalid_exception.record.errors).  [Jeremy Kemper]
 
 * Correct fixture behavior when table name pluralization is off.  #2719 [Rick Bradley <rick@rickbradley.com>]
