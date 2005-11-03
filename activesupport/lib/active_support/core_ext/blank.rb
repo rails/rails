@@ -30,3 +30,9 @@ class String #:nodoc:
     empty? || strip.empty?
   end
 end
+
+class Numeric #:nodoc:
+  def blank?
+    false
+  end
+end
