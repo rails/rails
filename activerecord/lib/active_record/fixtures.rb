@@ -270,7 +270,7 @@ class Fixtures < YAML::Omap
   def initialize(connection, table_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
     @connection, @table_name, @fixture_path, @file_filter = connection, table_name, fixture_path, file_filter
 
-    @class_name = Inflector.classify(@table_name)
+    @class_name = ActiveRecord::Base.pluralize_table_names ? @table_name.singularize.camelize : @table_name.camelize
     @table_name = ActiveRecord::Base.table_name_prefix + @table_name + ActiveRecord::Base.table_name_suffix
     read_fixture_files
   end
@@ -436,8 +436,10 @@ module Test #:nodoc:
 
       def self.require_fixture_classes(table_names=nil)
         (table_names || fixture_table_names).each do |table_name| 
+          file_name = table_name.to_s
+          file_name = file_name.singularize if ActiveRecord::Base.pluralize_table_names
           begin
-            require Inflector.singularize(table_name.to_s)
+            require file_name
           rescue LoadError
             # Let's hope the developer has included it himself
           end
