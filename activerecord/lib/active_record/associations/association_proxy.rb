@@ -2,7 +2,8 @@ module ActiveRecord
   module Associations
     class AssociationProxy #:nodoc:
       alias_method :proxy_respond_to?, :respond_to?
-      instance_methods.each { |m| undef_method m unless m =~ /(^__|^nil\?|^proxy_respond_to\?|^send)/ }
+      alias_method :proxy_extend, :extend
+      instance_methods.each { |m| undef_method m unless m =~ /(^__|^nil\?|^proxy_respond_to\?|^proxy_extend|^send)/ }
 
       def initialize(owner, association_name, association_class_name, association_class_primary_key_name, options)
         @owner = owner
@@ -10,6 +11,8 @@ module ActiveRecord
         @association_name = association_name
         @association_class = eval(association_class_name, nil, __FILE__, __LINE__)
         @association_class_primary_key_name = association_class_primary_key_name
+
+        proxy_extend(options[:extend]) if options[:extend]
 
         reset
       end

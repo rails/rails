@@ -1,5 +1,11 @@
 class Developer < ActiveRecord::Base
-  has_and_belongs_to_many :projects
+  has_and_belongs_to_many :projects, :extend => Module.new {
+    def find_most_recent
+      find(:first, :order => "id DESC")
+    end
+  }
+
+
   has_and_belongs_to_many :special_projects, :join_table => 'developers_projects', :association_foreign_key => 'project_id'
 
   validates_inclusion_of :salary, :in => 50000..200000

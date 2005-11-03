@@ -1,5 +1,26 @@
 *SVN*
 
+* Added extension capabilities to has_many and has_and_belongs_to_many proxies [DHH]. Example:
+
+    class Account < ActiveRecord::Base
+      has_many :people, :extend => Module.new {
+        def find_or_create_by_name(name)
+          first_name, *last_name = name.split
+          last_name = last_name.join " "
+    
+          find_by_first_name_and_last_name(first_name, last_name) ||
+            create({ :first_name => first_name, :last_name => last_name })
+        end
+      }
+    end
+ 
+    person = Account.find(:first).people.find_or_create_by_name("David Heinemeier Hansson")
+    person.first_name # => "David"
+    person.last_name  # => "Heinemeier Hansson"
+ 
+  Note that the anoymous module must be declared using brackets, not do/end (due to order of evaluation).
+ 
+
 * A missing primary key column shouldn't raise an error when generating its error message.  [Don Park <don.park@gmail.com>]
 
 * Changed :dbfile to :database for SQLite adapter for consistency (old key still works as an alias) #2644 [Dan Peterson]

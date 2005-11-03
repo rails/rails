@@ -1,7 +1,17 @@
 class Post < ActiveRecord::Base
-  belongs_to :author
-  has_many   :comments, :order => "body"
-  has_one    :very_special_comment, :class_name => "VerySpecialComment"
+  belongs_to :author, :extend => Module.new {
+    def greeting
+      "hello"
+    end
+  }
+
+  has_many   :comments, :order => "body", :extend => Module.new {
+    def find_most_recent
+      find(:first, :order => "id DESC")
+    end
+  }
+
+
   has_many   :special_comments, :class_name => "SpecialComment"
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts"
