@@ -1,14 +1,26 @@
 module ActiveRecord
-  class RecordInvalid < ActiveRecordError #:nodoc:
+  # Raised by save! and create! when the record is invalid.  Use the
+  # record method to retrieve the record which did not validate.
+  #   begin
+  #     complex_operation_that_calls_save!_internally
+  #   rescue ActiveRecord::RecordInvalid => invalid
+  #     puts invalid.record.errors
+  #   end
+  class RecordInvalid < ActiveRecordError
+    attr_reader :record
+    def initialize(record, *args)
+      @record = record
+      super(*args)
+    end
   end
-  
+
   # Active Record validation is reported to and from this object, which is used by Base#save to
   # determine whether the object in a valid state to be saved. See usage example in Validations.
   class Errors
     def initialize(base) # :nodoc:
       @base, @errors = base, {}
     end
-    
+
     @@default_error_messages = {
       :inclusion => "is not included in the list",
       :exclusion => "is reserved",
@@ -17,17 +29,17 @@ module ActiveRecord
       :accepted  => "must be accepted",
       :empty => "can't be empty",
       :blank => "can't be blank",
-      :too_long => "is too long (max is %d characters)", 
-      :too_short => "is too short (min is %d characters)", 
-      :wrong_length => "is the wrong length (should be %d characters)", 
+      :too_long => "is too long (max is %d characters)",
+      :too_short => "is too short (min is %d characters)",
+      :wrong_length => "is the wrong length (should be %d characters)",
       :taken => "has already been taken",
       :not_a_number => "is not a number"
     }
-      
+
     # Holds a hash with all the default error messages, such that they can be replaced by your own copy or localizations.
     cattr_accessor :default_error_messages
 
-    
+
     # Adds an error to the base object instead of any particular attribute. This is used
     # to report errors that don't tie to any specific attribute, but rather to the object
     # as a whole. These error messages don't get prepended with any field name when iterating
@@ -53,7 +65,7 @@ module ActiveRecord
         add(attr, msg) unless !value.nil? && !is_empty
       end
     end
-    
+
     # Will add an error message to each of the attributes in +attributes+ that is blank (using Object#blank?).
     def add_on_blank(attributes, msg = @@default_error_messages[:blank])
       for attr in [attributes].flatten
@@ -62,7 +74,7 @@ module ActiveRecord
       end
     end
 
-    # Will add an error message to each of the attributes in +attributes+ that has a length outside of the passed boundary +range+. 
+    # Will add an error message to each of the attributes in +attributes+ that has a length outside of the passed boundary +range+.
     # If the length is above the boundary, the too_long_msg message will be used. If below, the too_short_msg.
     def add_on_boundary_breaking(attributes, range, too_long_msg = @@default_error_messages[:too_long], too_short_msg = @@default_error_messages[:too_short])
       for attr in [attributes].flatten
@@ -98,12 +110,12 @@ module ActiveRecord
     def on_base
       on(:base)
     end
-    
+
     # Yields each attribute and associated message per error added.
     def each
       @errors.each_key { |attr| @errors[attr].each { |msg| yield attr, msg } }
     end
-    
+
     # Yields each full error message added. So Person.errors.add("first_name", "can't be empty") will be returned
     # through iteration as "First name can't be empty".
     def each_full
@@ -113,11 +125,11 @@ module ActiveRecord
     # Returns all the full error messages in an array.
     def full_messages
       full_messages = []
-      
-      @errors.each_key do |attr| 
+
+      @errors.each_key do |attr|
         @errors[attr].each do |msg|
           next if msg.nil?
-          
+
           if attr == "base"
             full_messages << msg
           else
@@ -125,7 +137,7 @@ module ActiveRecord
           end
         end
       end
-      
+
       return full_messages
     end
 
@@ -133,12 +145,12 @@ module ActiveRecord
     def empty?
       return @errors.empty?
     end
-    
+
     # Removes all the errors that have been added.
     def clear
       @errors = {}
     end
-    
+
     # Returns the total number of errors added. Two errors added to the same attribute will be counted as such
     # with this as well.
     def count
@@ -149,7 +161,7 @@ module ActiveRecord
   end
 
 
-  # Active Records implement validation by overwriting Base#validate (or the variations, +validate_on_create+ and 
+  # Active Records implement validation by overwriting Base#validate (or the variations, +validate_on_create+ and
   # +validate_on_update+). Each of these methods can inspect the state of the object, which usually means ensuring
   # that a number of attributes have a certain value (such as not empty, within a given range, matching a certain regular expression).
   #
@@ -179,7 +191,7 @@ module ActiveRecord
   #   person.errors.count                 # => 2
   #   person.errors.on "last_name"        # => "can't be empty"
   #   person.errors.on "phone_number"     # => "has invalid format"
-  #   person.errors.each_full { |msg| puts msg } 
+  #   person.errors.each_full { |msg| puts msg }
   #                                       # => "Last name can't be empty\n" +
   #                                            "Phone number has invalid format"
   #
@@ -312,7 +324,7 @@ module ActiveRecord
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         attr_accessor *(attr_names.map { |n| "#{n}_confirmation" })
-	
+
         validates_each(attr_names, configuration) do |record, attr_name, value|
           record.errors.add(attr_name, configuration[:message]) unless record.send("#{attr_name}_confirmation").nil? or value == record.send("#{attr_name}_confirmation")
         end
@@ -341,7 +353,7 @@ module ActiveRecord
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         attr_accessor *attr_names
-	
+
         validates_each(attr_names,configuration) do |record, attr_name, value|
           record.errors.add(attr_name, configuration[:message]) unless value == configuration[:accept]
         end
@@ -360,7 +372,7 @@ module ActiveRecord
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         # can't use validates_each here, because it cannot cope with nonexistent attributes,
-        # while errors.add_on_empty can	
+        # while errors.add_on_empty can
         attr_names.each do |attr_name|
           send(validation_method(configuration[:on])) do |record|
             unless configuration[:if] and not evaluate_condition(configuration[:if], record)
@@ -423,7 +435,7 @@ module ActiveRecord
 
         case option
         when :within, :in
-          raise ArgumentError, ":#{option} must be a Range" unless option_value.is_a?(Range) 
+          raise ArgumentError, ":#{option} must be a Range" unless option_value.is_a?(Range)
 
           too_short = options[:too_short] % option_value.begin
           too_long  = options[:too_long]  % option_value.end
@@ -483,8 +495,8 @@ module ActiveRecord
           end
         end
       end
-      
-      # Validates whether the value of the specified attribute is of the correct form by matching it against the regular expression 
+
+      # Validates whether the value of the specified attribute is of the correct form by matching it against the regular expression
       # provided.
       #
       #   class Person < ActiveRecord::Base
@@ -528,9 +540,9 @@ module ActiveRecord
       def validates_inclusion_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:inclusion], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
- 
+
         enum = configuration[:in] || configuration[:within]
- 
+
         raise(ArgumentError, "An object with the method include? is required must be supplied as the :in option of the configuration hash") unless enum.respond_to?("include?")
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
@@ -597,11 +609,11 @@ module ActiveRecord
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
-          record.errors.add(attr_name, configuration[:message]) unless 
+          record.errors.add(attr_name, configuration[:message]) unless
             (value.is_a?(Array) ? value : [value]).all? { |r| r.nil? or r.valid? }
         end
       end
-      
+
       # Validates whether the value of the specified attribute is numeric by trying to convert it to
       # a float with Kernel.Float (if <tt>integer</tt> is false) or applying it to the regular expression
       # <tt>/^[\+\-]?\d+$/</tt> (if <tt>integer</tt> is set to true).
@@ -636,8 +648,22 @@ module ActiveRecord
               record.errors.add(attr_name, configuration[:message])
             end
           end
-      	end
+        end
       end
+
+
+      # Creates an object just like Base.create but calls save! instead of save
+      # so an exception is raised if the record is invalid.
+      def create!(attributes = nil)
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| create!(attr) }
+        else
+          object = new(attributes)
+          object.save!
+          object
+        end
+      end
+
 
       private
         def write_inheritable_set(key, methods)
@@ -665,10 +691,14 @@ module ActiveRecord
       end
     end
 
-    # Attempts to save the record just like Base.save but will raise a RecordInvalid exception instead of returning false
+    # Attempts to save the record just like Base#save but will raise a RecordInvalid exception instead of returning false
     # if the record is not valid.
     def save!
-      valid? ? save(false) : raise(RecordInvalid)
+      if valid?
+        save(false)
+      else
+        raise RecordInvalid.new(self)
+      end
     end
 
     # Updates a single attribute and saves the record without going through the normal validation procedure.
@@ -688,7 +718,7 @@ module ActiveRecord
 
       if new_record?
         run_validations(:validate_on_create)
-        validate_on_create 
+        validate_on_create
       else
         run_validations(:validate_on_update)
         validate_on_update
@@ -705,7 +735,7 @@ module ActiveRecord
     protected
       # Overwrite this method for validation checks on all saves and use Errors.add(field, msg) for invalid attributes.
       def validate #:doc:
-      end 
+      end
 
       # Overwrite this method for validation checks used only on creation.
       def validate_on_create #:doc:

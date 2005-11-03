@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Model.create! to match existing model.save! method.  When save! raises RecordInvalid, you can catch the exception, retrieve the invalid record (invalid_exception.record), and see its errors (invalid_exception.record.errors).  [Jeremy Kemper]
+
 * Correct fixture behavior when table name pluralization is off.  #2719 [Rick Bradley <rick@rickbradley.com>]
 
 * Added extension capabilities to has_many and has_and_belongs_to_many proxies [DHH]. Example:

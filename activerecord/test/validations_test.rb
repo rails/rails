@@ -76,8 +76,16 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_invalid_record_exception
-    r = Reply.new
-    assert_raises(ActiveRecord::RecordInvalid) { r.save! }
+    assert_raises(ActiveRecord::RecordInvalid) { Reply.create! }
+    assert_raises(ActiveRecord::RecordInvalid) { Reply.new.save! }
+
+    begin
+      r = Reply.new
+      r.save!
+      flunk
+    rescue ActiveRecord::RecordInvalid => invalid
+      assert_equal r, invalid.record
+    end
   end
 
   def test_single_error_per_attr_iteration
