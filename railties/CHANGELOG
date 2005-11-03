@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't reap spawn-fcgi.  #2727 [matthew@walker.wattle.id.au]
+
 * Reaper knows how to find processes even if the dispatch path is very long.  #2711 [matthew@walker.wattle.id.au]
 
 * Make fcgi handler respond to TERM signals with an explicit exit [Jamis Buck]
