@@ -267,7 +267,7 @@ module Test #:nodoc:
       
       # Identical to #assert_tag, but asserts that a matching tag does _not_
       # exist. (See #assert_tag for a full discussion of the syntax.)
-      def assert_no_tag(opts)
+      def assert_no_tag(*opts)
         clean_backtrace do
           opts = opts.size > 1 ? opts.last.merge({ :tag => opts.first.to_s }) : opts.first
           tag = find_tag(opts)
