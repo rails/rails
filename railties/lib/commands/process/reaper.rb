@@ -32,7 +32,7 @@ class ProgramProcess
     #   ProgramProcess.find_by_keyword("basecamp")
     def find_by_keyword(keyword)
       process_lines_with_keyword(keyword).split("\n").collect { |line|
-        next if line =~ /inq|ps -axww|grep|spawn-fcgi/
+        next if line =~ /inq|ps -axww|grep|spawn-fcgi|spawner|reaper/
         pid, *command = line.split
         new(pid, command.join(" "))
       }.compact
