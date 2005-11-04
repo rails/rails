@@ -1,5 +1,44 @@
 *SVN*
 
+* Added constrain scoping for creates using a hash of attributes bound to the :creation key [DHH]. Example:
+
+    Comment.constrain(:creation => { :post_id => 5 }) do
+      # Associated with :post_id
+      Comment.create :body => "Hello world"
+    end
+  
+  This is rarely used directly, but allows for find_or_create on associations. So you can do:
+  
+    # If the tag doesn't exist, a new one is created that's associated with the person
+    person.tags.find_or_create_by_name("Summer")
+
+* Added find_or_create_by_X as a second type of dynamic finder that'll create the record if it doesn't already exist [DHH]. Example:
+
+    # No 'Summer' tag exists
+    Tag.find_or_create_by_name("Summer") # equal to Tag.create(:name => "Summer")
+    
+    # Now the 'Summer' tag does exist
+    Tag.find_or_create_by_name("Summer") # equal to Tag.find_by_name("Summer")
+
+* Added extension capabilities to has_many and has_and_belongs_to_many proxies [DHH]. Example:
+
+    class Account < ActiveRecord::Base
+      has_many :people, :extend => Module.new {
+        def find_or_create_by_name(name)
+          first_name, *last_name = name.split
+          last_name = last_name.join " "
+
+          find_or_create_by_first_name_and_last_name(first_name, last_name)
+        end
+      }
+    end
+
+    person = Account.find(:first).people.find_or_create_by_name("David Heinemeier Hansson")
+    person.first_name # => "David"
+    person.last_name  # => "Heinemeier Hansson"
+
+  Note that the anoymous module must be declared using brackets, not do/end (due to order of evaluation).
+
 * Omit internal dtproperties table from SQLServer table list.  #2729 [rtomayko@gmail.com]
 
 * Quote column names in generated SQL.  #2728 [rtomayko@gmail.com]
@@ -9,27 +48,6 @@
 * Add Model.create! to match existing model.save! method.  When save! raises RecordInvalid, you can catch the exception, retrieve the invalid record (invalid_exception.record), and see its errors (invalid_exception.record.errors).  [Jeremy Kemper]
 
 * Correct fixture behavior when table name pluralization is off.  #2719 [Rick Bradley <rick@rickbradley.com>]
-
-* Added extension capabilities to has_many and has_and_belongs_to_many proxies [DHH]. Example:
-
-    class Account < ActiveRecord::Base
-      has_many :people, :extend => Module.new {
-        def find_or_create_by_name(name)
-          first_name, *last_name = name.split
-          last_name = last_name.join " "
-    
-          find_by_first_name_and_last_name(first_name, last_name) ||
-            create({ :first_name => first_name, :last_name => last_name })
-        end
-      }
-    end
- 
-    person = Account.find(:first).people.find_or_create_by_name("David Heinemeier Hansson")
-    person.first_name # => "David"
-    person.last_name  # => "Heinemeier Hansson"
- 
-  Note that the anoymous module must be declared using brackets, not do/end (due to order of evaluation).
- 
 
 * Changed :dbfile to :database for SQLite adapter for consistency (old key still works as an alias) #2644 [Dan Peterson]
 

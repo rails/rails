@@ -76,6 +76,16 @@ module ActiveRecord
       end
       
       protected
+        def method_missing(method, *args, &block)
+          if @target.respond_to?(method) || (!@association_class.respond_to?(method) && Class.respond_to?(method))
+            super
+          else
+            @association_class.constrain(:conditions => @finder_sql, :joins => @join_sql, :readonly => false) do
+              @association_class.send(method, *args, &block)
+            end
+          end
+        end
+            
         def find_target
           if @options[:finder_sql]
             records = @association_class.find_by_sql(@finder_sql)

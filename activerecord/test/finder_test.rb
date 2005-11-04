@@ -278,6 +278,20 @@ class FinderTest < Test::Unit::TestCase
     assert_equal "Mary", topics[0].author_name
   end
 
+  def test_find_or_create_from_one_attribute
+    number_of_companies = Company.count
+    sig38 = Company.find_or_create_by_name("38signals")
+    assert_equal number_of_companies + 1, Company.count
+    assert_equal sig38, Company.find_or_create_by_name("38signals")
+  end
+
+  def test_find_or_create_from_two_attributes
+    number_of_companies = Company.count
+    sig38 = Company.find_or_create_by_name("38signals")
+    assert_equal number_of_companies + 1, Company.count
+    assert_equal sig38, Company.find_or_create_by_name("38signals")
+  end
+
   def test_find_with_bad_sql
     assert_raises(ActiveRecord::StatementInvalid) { Topic.find_by_sql "select 1 from badtable" }
   end

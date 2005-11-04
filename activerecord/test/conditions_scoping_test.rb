@@ -5,7 +5,7 @@ require 'fixtures/post'
 require 'fixtures/category'
 
 class ConditionsScopingTest < Test::Unit::TestCase
-  fixtures :developers
+  fixtures :developers, :comments, :posts
   
   def test_set_conditions
     Developer.constrain(:conditions => 'just a test...') do
@@ -40,6 +40,17 @@ class ConditionsScopingTest < Test::Unit::TestCase
       assert_equal 8, Developer.count
       assert_equal 1, Developer.count("name LIKE 'fixture_1%'")
     end        
+  end
+
+  def test_scoped_create
+    new_comment = nil
+
+    VerySpecialComment.constrain(:creation => { :post_id => 1 }) do
+      assert_equal({ :post_id => 1 }, Thread.current[:constraints][VerySpecialComment][:creation])
+      new_comment = VerySpecialComment.create :body => "Wonderful world"
+    end
+    
+    assert Post.find(1).comments.include?(new_comment)
   end
 
   def test_immutable_constraint

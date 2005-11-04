@@ -10,18 +10,14 @@ class Comment < ActiveRecord::Base
   end
 end
 
-class SpecialComment < Comment; 
-
+class SpecialComment < Comment
   def self.what_are_you
     'a special comment...'
   end
-  
-end;
+end
 
-class VerySpecialComment < Comment; 
-  
+class VerySpecialComment < Comment
   def self.what_are_you
     'a very special comment...'
   end
-  
-end;
+end

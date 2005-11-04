@@ -85,6 +85,20 @@ module ActiveRecord
       end
       
       protected
+        def method_missing(method, *args, &block)
+          if @target.respond_to?(method) || (!@association_class.respond_to?(method) && Class.respond_to?(method))
+            super
+          else
+            @association_class.constrain(
+                :conditions => @finder_sql, 
+                :joins      => @join_sql, 
+                :readonly   => false,
+                :creation   => { @association_class_primary_key_name => @owner.id }) do
+              @association_class.send(method, *args, &block)
+            end
+          end
+        end
+            
         def find_target
           find_all
         end

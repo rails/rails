@@ -1,9 +1,11 @@
 require 'abstract_unit'
+require 'fixtures/post'
+require 'fixtures/comment'
 require 'fixtures/project'
 require 'fixtures/developer'
 
 class AssociationsExtensionsTest < Test::Unit::TestCase
-  fixtures :projects, :developers
+  fixtures :projects, :developers, :comments, :posts
 
   def test_extension_on_habtm
     assert_equal projects(:action_controller), developers(:david).projects.find_most_recent

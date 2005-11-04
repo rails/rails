@@ -140,7 +140,7 @@ module ActiveRecord #:nodoc:
   #
   # == Dynamic attribute-based finders
   #
-  # Dynamic attribute-based finders are a cleaner way of getting objects by simple queries without turning to SQL. They work by
+  # Dynamic attribute-based finders are a cleaner way of getting (and/or creating) objects by simple queries without turning to SQL. They work by
   # appending the name of an attribute to <tt>find_by_</tt> or <tt>find_all_by_</tt>, so you get finders like Person.find_by_user_name,
   # Person.find_all_by_last_name, Payment.find_by_transaction_id. So instead of writing
   # <tt>Person.find(:first, ["user_name = ?", user_name])</tt>, you just do <tt>Person.find_by_user_name(user_name)</tt>.
@@ -154,6 +154,15 @@ module ActiveRecord #:nodoc:
   # It's even possible to use all the additional parameters to find. For example, the full interface for Payment.find_all_by_amount
   # is actually Payment.find_all_by_amount(amount, options). And the full interface to Person.find_by_user_name is
   # actually Person.find_by_user_name(user_name, options). So you could call <tt>Payment.find_all_by_amount(50, :order => "created_on")</tt>.
+  #
+  # The same dynamic finder style can be used to create the object if it doesn't already exist. This dynamic finder is called with
+  # <tt>find_or_create_by_</tt> and will return the object if it already exists and otherwise creates it, then returns it. Example:
+  #
+  #   # No 'Summer' tag exists
+  #   Tag.find_or_create_by_name("Summer") # equal to Tag.create(:name => "Summer")
+  #   
+  #   # Now the 'Summer' tag does exist
+  #   Tag.find_or_create_by_name("Summer") # equal to Tag.find_by_name("Summer")
   #
   # == Saving arrays, hashes, and other non-mappable objects in text columns
   #
@@ -451,6 +460,8 @@ module ActiveRecord #:nodoc:
         if attributes.is_a?(Array)
           attributes.collect { |attr| create(attr) }
         else
+          attributes.reverse_merge!(scope_constraints[:creation]) if scope_constraints[:creation]
+
           object = new(attributes)
           object.save
           object
@@ -838,10 +849,10 @@ module ActiveRecord #:nodoc:
       #   end
       def constrain(options = {})
         options = options.dup
-        if !options[:joins].blank? and !options.has_key?(:readonly)
-          options[:readonly] = true
-        end
+        options[:readonly] = true if !options[:joins].blank? && !options.has_key?(:readonly)
+
         self.scope_constraints = options
+
         yield if block_given?
       ensure 
         self.scope_constraints = nil
@@ -948,25 +959,52 @@ module ActiveRecord #:nodoc:
         # It's even possible to use all the additional parameters to find. For example, the full interface for find_all_by_amount
         # is actually find_all_by_amount(amount, options).
         def method_missing(method_id, *arguments)
-          method_name = method_id.id2name
+          if match = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
+            finder = determine_finder(match)
 
-          if md = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
-            finder = md.captures.first == 'all_by' ? :all : :first
-            attributes = md.captures.last.split('_and_')
-            attributes.each { |attr_name| super unless column_methods_hash.include?(attr_name.to_sym) }
+            attribute_names = extract_attribute_names_from_match(match)
+            super unless all_attributes_exists?(attribute_names)
 
-            attr_index = -1
-            conditions = attributes.collect { |attr_name| attr_index += 1; "#{table_name}.#{attr_name} #{attribute_condition(arguments[attr_index])} " }.join(" AND ")
+            conditions = construct_conditions_from_arguments(attribute_names, arguments)
 
-            if arguments[attributes.length].is_a?(Hash)
-              find(finder, { :conditions => [conditions, *arguments[0...attributes.length]] }.update(arguments[attributes.length]))
+            if arguments[attribute_names.length].is_a?(Hash)
+              find(finder, { :conditions => conditions }.update(arguments[attribute_names.length]))
             else
-              # deprecated API
-              send("find_#{finder}", [conditions, *arguments[0...attributes.length]], *arguments[attributes.length..-1])
+              send("find_#{finder}", conditions, *arguments[attribute_names.length..-1]) # deprecated API
             end
+          elsif match = /find_or_create_by_([_a-zA-Z]\w*)/.match(method_id.to_s)
+            attribute_names = extract_attribute_names_from_match(match)
+            super unless all_attributes_exists?(attribute_names)
+
+            find(:first, :conditions => construct_conditions_from_arguments(attribute_names, arguments)) || 
+              create(construct_attributes_from_arguments(attribute_names, arguments))
           else
             super
           end
+        end
+
+        def determine_finder(match)
+          match.captures.first == 'all_by' ? :all : :first
+        end
+
+        def extract_attribute_names_from_match(match)
+          match.captures.last.split('_and_')
+        end
+
+        def construct_conditions_from_arguments(attribute_names, arguments)
+          conditions = []
+          attribute_names.each_with_index { |name, idx| conditions << "#{table_name}.#{name} #{attribute_condition(arguments[idx])} " }
+          [ conditions.join(" AND "), *arguments[0...attribute_names.length] ]
+        end
+        
+        def construct_attributes_from_arguments(attribute_names, arguments)
+          attributes = {}
+          attribute_names.each_with_index { |name, idx| attributes[name] = arguments[idx] }
+          attributes
+        end
+
+        def all_attributes_exists?(attribute_names)
+          attribute_names.all? { |name| column_methods_hash.include?(name.to_sym) }
         end
 
         def attribute_condition(argument)

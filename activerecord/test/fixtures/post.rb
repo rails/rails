@@ -11,8 +11,9 @@ class Post < ActiveRecord::Base
     end
   }
 
+  has_one  :very_special_comment
+  has_many :special_comments
 
-  has_many   :special_comments, :class_name => "SpecialComment"
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts"
   

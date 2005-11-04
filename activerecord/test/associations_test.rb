@@ -490,6 +490,14 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 3, companies(:first_firm).clients_of_firm(true).size
   end
 
+  def test_find_or_create
+    number_of_clients = companies(:first_firm).clients.size
+    the_client = companies(:first_firm).clients.find_or_create_by_name("Yet another client")
+    assert_equal number_of_clients + 1, companies(:first_firm, :refresh).clients.size
+    assert_equal the_client, companies(:first_firm).clients.find_or_create_by_name("Yet another client")
+    assert_equal number_of_clients + 1, companies(:first_firm, :refresh).clients.size
+  end
+
   def test_deleting
     force_signal37_to_load_all_clients_of_firm
     companies(:first_firm).clients_of_firm.delete(companies(:first_firm).clients_of_firm.first)
