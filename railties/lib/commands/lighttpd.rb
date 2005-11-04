@@ -27,15 +27,17 @@ else
   puts "=> Ctrl-C to shutdown server (see config/lighttpd.conf for options)"
   detach = false
 
-  fork do
+  Process.detach(fork do
     begin
       File.open("#{RAILS_ROOT}/log/#{RAILS_ENV}.log", 'r') do |log|
-        log.seek 0, IO::SEEK_END
+        log.seek(0, IO::SEEK_END)
         tail_f(log) {|line| puts line}
       end
     rescue Exception
     end
-  end
+    exit
+  end)
 end
 
+trap(:INT) {exit}
 `lighttpd #{!detach ? "-D " : ""}-f #{config_file}`
