@@ -156,12 +156,12 @@ module ActiveRecord
 
     class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :default, :null) #:nodoc:
       def to_sql
-        column_sql = "#{name} #{type_to_sql(type.to_sym, limit)}"
+        column_sql = "#{base.quote_column_name(name)} #{type_to_sql(type.to_sym, limit)}"
         add_column_options!(column_sql, :null => null, :default => default)
         column_sql
       end
       alias to_s :to_sql
-      
+
       private
         def type_to_sql(name, limit)
           base.type_to_sql(name, limit) rescue name
