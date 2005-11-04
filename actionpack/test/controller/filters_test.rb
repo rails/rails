@@ -99,6 +99,7 @@ class FilterTest < Test::Unit::TestCase
 
   class PrependingController < TestController
     prepend_before_filter :wonderful_life
+    skip_before_filter :fire_flash
 
     private
       def wonderful_life
@@ -225,7 +226,7 @@ class FilterTest < Test::Unit::TestCase
   end
   
   def test_prepending_filter
-    assert_equal [ :wonderful_life, :fire_flash, :ensure_login ], PrependingController.before_filters
+    assert_equal [ :wonderful_life, :ensure_login ], PrependingController.before_filters
   end
   
   def test_running_filters

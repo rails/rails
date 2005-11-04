@@ -221,6 +221,15 @@ module Test #:nodoc:
       #   # assert that there is a "span" tag
       #   assert_tag :tag => "span"
       #
+      #   # assert that there is a "span" tag with id="x"
+      #   assert_tag :tag => "span", :attributes => { :id => "x" }
+      #
+      #   # assert that there is a "span" tag using the short-hand
+      #   assert_tag :span
+      #
+      #   # assert that there is a "span" tag with id="x" using the short-hand
+      #   assert_tag :span, :attributes => { :id => "x" }
+      #
       #   # assert that there is a "span" inside of a "div"
       #   assert_tag :tag => "span", :parent => { :tag => "div" }
       #
@@ -248,8 +257,9 @@ module Test #:nodoc:
       #                           :attributes => { :class => "enum" } },
       #              :descendant => { :tag => "span",
       #                               :child => /hello world/ }
-      def assert_tag(opts)
+      def assert_tag(*opts)
         clean_backtrace do
+          opts = opts.size > 1 ? opts.last.merge({ :tag => opts.first.to_s }) : opts.first
           tag = find_tag(opts)
           assert tag, "expected tag, but no tag found matching #{opts.inspect} in:\n#{@response.body.inspect}"
         end
@@ -259,6 +269,7 @@ module Test #:nodoc:
       # exist. (See #assert_tag for a full discussion of the syntax.)
       def assert_no_tag(opts)
         clean_backtrace do
+          opts = opts.size > 1 ? opts.last.merge({ :tag => opts.first.to_s }) : opts.first
           tag = find_tag(opts)
           assert !tag, "expected no tag, but found tag matching #{opts.inspect} in:\n#{@response.body.inspect}"
         end

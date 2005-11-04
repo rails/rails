@@ -127,6 +127,25 @@ module ActionController #:nodoc:
     #     end
     #   end
     #
+    # == Filter chain skipping
+    #
+    # Some times its convenient to specify a filter chain in a superclass that'll hold true for the majority of the 
+    # subclasses, but not necessarily all of them. The subclasses that behave in exception can then specify which filters
+    # they would like to be relieved of. Examples
+    #
+    #   class ApplicationController < ActionController::Base
+    #     before_filter :authenticate
+    #   end
+    #
+    #   class WeblogController < ApplicationController
+    #     # will run the :authenticate filter
+    #   end
+    #
+    #   class SignupController < ActionController::Base
+    #     # will not run the :authenticate filter
+    #     skip_before_filter :authenticate
+    #   end
+    #
     # == Filter conditions
     #
     # Filters can be limited to run for only specific actions. This can be expressed either by listing the actions to
@@ -228,6 +247,24 @@ module ActionController #:nodoc:
 
       # Short-hand for append_around_filter since that's the most common of the two.
       alias :around_filter :append_around_filter
+      
+      # Removes the specified filters from the +before+ filter chain. Note that this only works for skipping method-reference 
+      # filters, not procs. This is especially useful for managing the chain in inheritance hierarchies where only one out
+      # of many sub-controllers need a different hierarchy.
+      def skip_before_filter(*filters)
+        for filter in filters.flatten
+          write_inheritable_attribute("before_filters", read_inheritable_attribute("before_filters") - [ filter ])
+        end
+      end
+
+      # Removes the specified filters from the +after+ filter chain. Note that this only works for skipping method-reference 
+      # filters, not procs. This is especially useful for managing the chain in inheritance hierarchies where only one out
+      # of many sub-controllers need a different hierarchy.
+      def skip_after_filter(*filters)
+        for filter in filters.flatten
+          write_inheritable_attribute("after_filters", read_inheritable_attribute("after_filters") - [ filter ])
+        end
+      end
       
       # Returns all the before filters for this class and all its ancestors.
       def before_filters #:nodoc:

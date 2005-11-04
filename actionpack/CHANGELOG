@@ -1,6 +1,23 @@
 *SVN*
 
-* Added redirect_to :back as a short-hand for redirect_to(request.env["HTTP_REFERER"])
+* Added short-hand to assert_tag so assert_tag :tag => "span" can be written as assert_tag "span" [DHH]
+
+* Added skip_before_filter/skip_after_filter for easier control of the filter chain in inheritance hierachies [DHH]. Example:
+
+    class ApplicationController < ActionController::Base
+      before_filter :authenticate
+    end
+    
+    class WeblogController < ApplicationController
+      # will run the :authenticate filter
+    end
+    
+    class SignupController < ActionController::Base
+      # will not run the :authenticate filter
+      skip_before_filter :authenticate
+    end
+
+* Added redirect_to :back as a short-hand for redirect_to(request.env["HTTP_REFERER"]) [DHH]
 
 * Change javascript_include_tag :defaults to not use script.aculo.us loader, which facilitates the use of plugins for future script.aculo.us and third party javascript extensions, and provide register_javascript_include_default for plugins to specify additional JavaScript files to load. Removed slider.js and builder.js from actionpack. [Thomas Fuchs]
 
