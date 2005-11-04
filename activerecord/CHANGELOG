@@ -1,5 +1,7 @@
 *SVN*
 
+* Omit internal dtproperties table from SQLServer table list.  #2729 [rtomayko@gmail.com]
+
 * Quote column names in generated SQL.  #2728 [rtomayko@gmail.com]
 
 * Correct the pure-Ruby MySQL 4.1.1 shim's version test.  #2718 [Jeremy Kemper]

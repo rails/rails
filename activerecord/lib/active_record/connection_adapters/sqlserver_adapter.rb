@@ -354,13 +354,15 @@ module ActiveRecord
       def create_database(name)
         execute "CREATE DATABASE #{name}"
       end
-      
+
       def tables(name = nil)
-        tables = []
-        execute("SELECT table_name from information_schema.tables WHERE table_type = 'BASE TABLE'", name).each {|field| tables << field[0]}
-        tables
+        execute("SELECT table_name from information_schema.tables WHERE table_type = 'BASE TABLE'", name).inject([]) do |tables, field|
+          table_name = field[0]
+          tables << table_name unless table_name == 'dtproperties'
+          tables
+        end
       end
-      
+
       def indexes(table_name, name = nil)
         indexes = []
         execute("EXEC sp_helpindex #{table_name}", name).each do |index| 
