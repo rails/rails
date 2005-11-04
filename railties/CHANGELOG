@@ -1,5 +1,9 @@
 *SVN*
 
+* Tail the logfile when running script/lighttpd in the foreground [Sam Stephenson]
+
+* Try to guess the port number from config/lighttpd.conf in script/lighttpd [Sam Stephenson]
+
 * Don't reap spawn-fcgi.  #2727 [matthew@walker.wattle.id.au]
 
 * Reaper knows how to find processes even if the dispatch path is very long.  #2711 [matthew@walker.wattle.id.au]
