@@ -49,7 +49,8 @@ module ActionController
   #   def list
   #     @person_pages = Paginator.new self, Person.count, 10, @params['page']
   #     @people = Person.find :all, :order => 'last_name, first_name', 
-  #               :conditions => @person_pages.current.to_sql
+  #                           :limit  =>  @person_pages.items_per_page,
+  #                           :offset =>  @person_pages.current.offset
   #   end
   # 
   # Explicitly creates the paginator from the previous example and uses 
