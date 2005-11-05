@@ -3,7 +3,7 @@ $:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
 
 require 'test/unit'
 require 'active_support'
-require 'info'
+require 'rails_info'
 
 class << Rails::Info
 protected

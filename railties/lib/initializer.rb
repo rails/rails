@@ -87,6 +87,8 @@ module Rails
       # could overwrite anything set from the defaults/global through
       # the individual base class configurations.
       load_environment
+      
+      load_framework_info
 
       load_plugins
     end
@@ -111,6 +113,12 @@ module Rails
     # ActionPack, ActionMailer, and ActionWebService) are loaded.
     def require_frameworks
       configuration.frameworks.each { |framework| require(framework.to_s) }
+    end
+    
+    # Loads Rails::Version and Rails::Info.
+    # TODO: Make this work via dependencies.rb/const_missing instead.
+    def load_framework_info
+      require 'rails_info'
     end
     
     # Loads all plugins in the <tt>vendor/plugins</tt> directory. Each

@@ -1,5 +1,7 @@
 *SVN*
 
+* Load Rails::Info after initialization [Sam Stephenson]
+
 * Added script/about to display formatted Rails::Info output [Sam Stephenson]
 
 * Added Rails::Info to catalog assorted information about a Rails application's environment [Sam Stephenson]

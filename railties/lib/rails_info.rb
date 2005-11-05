@@ -1,3 +1,5 @@
+require 'rails_version'
+
 module Rails
   module Info
     mattr_accessor :properties
@@ -19,8 +21,7 @@ module Rails
       end
 
       def components
-        %w(active_record action_pack action_web_service 
-           action_mailer active_support)
+        %w( active_record action_pack action_web_service action_mailer active_support )
       end
       
       def component_version(component)
@@ -57,6 +58,11 @@ module Rails
       Gem::RubyGemsVersion
     end
   
+    # The Rails version.
+    property 'Rails version' do
+      Rails::Version::STRING
+    end
+  
     # Versions of each Rails component (Active Record, Action Pack, 
     # Action Web Service, Action Mailer, and Active Support).
     components.each do |component|
@@ -71,8 +77,10 @@ module Rails
     end
   
     # The application's location on the filesystem.
-    property 'Application root', File.expand_path(RAILS_ROOT)
-  
+    property 'Application root' do
+      File.expand_path(RAILS_ROOT)
+    end
+
     # The current Rails environment (development, test, or production).
     property 'Environment' do
       RAILS_ENV
