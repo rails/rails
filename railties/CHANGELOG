@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Rails::Info to catalog assorted information about a Rails application's environment [Sam Stephenson]
+
 * Tail the logfile when running script/lighttpd in the foreground [Sam Stephenson]
 
 * Try to guess the port number from config/lighttpd.conf in script/lighttpd [Sam Stephenson]
