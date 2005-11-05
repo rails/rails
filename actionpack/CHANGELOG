@@ -1,5 +1,7 @@
 *SVN*
 
+* Added action_pack.rb stub so that ActionPack::Version loads properly [Sam Stephenson]
+
 * Added short-hand to assert_tag so assert_tag :tag => "span" can be written as assert_tag "span" [DHH]
 
 * Added skip_before_filter/skip_after_filter for easier control of the filter chain in inheritance hierachies [DHH]. Example:
