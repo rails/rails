@@ -1,5 +1,7 @@
 *SVN*
 
+* Added script/about to display formatted Rails::Info output [Sam Stephenson]
+
 * Added Rails::Info to catalog assorted information about a Rails application's environment [Sam Stephenson]
 
 * Tail the logfile when running script/lighttpd in the foreground [Sam Stephenson]

@@ -1,7 +1,15 @@
 module Rails
   module Info
     mattr_accessor :properties
-    @@properties = []
+    class << (@@properties = [])
+      def names
+        map {|(name, )| name}
+      end
+      
+      def value_for(property_name)
+        find {|(name, )| name == property_name}.last rescue nil
+      end
+    end
   
     class << self #:nodoc:
       def property(name, value = nil)
@@ -19,10 +27,19 @@ module Rails
         require "#{component}/version"
         "#{component.classify}::Version::STRING".constantize
       end
-      
+    
       def edge_rails_revision
         svn_info[/^Revision: (\d+)/, 1] || 'unknown'
       end
+    
+      def to_s
+        column_width = properties.names.map {|name| name.length}.max
+        ["About your application's environment", *properties.map do |property|
+          "%-#{column_width}s   %s" % property
+        end] * "\n"
+      end
+
+      alias inspect to_s
       
     protected
       def svn_info
@@ -52,6 +69,9 @@ module Rails
     property 'Edge Rails revision' do
       edge_rails_revision
     end
+  
+    # The application's location on the filesystem.
+    property 'Application root', File.expand_path(RAILS_ROOT)
   
     # The current Rails environment (development, test, or production).
     property 'Environment' do

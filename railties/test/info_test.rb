@@ -57,21 +57,17 @@ class InfoTest < Test::Unit::TestCase
   end
 
 protected
-  def property_names
-    Rails::Info.properties.map {|(name, )| name}
+  def properties
+    Rails::Info.properties
   end
-  
-  def property_value(property_name)
-    Rails::Info.properties.find {|(name, )| property_name == name}.last
-  end
-  
+
   def property_defined?(property_name)
-    property_names.include? property_name
+    properties.names.include? property_name
   end
   
   def assert_property(property_name, value)
     raise "Property #{property_name.inspect} not defined" unless 
       property_defined? property_name
-    assert_equal value, property_value(property_name)
+    assert_equal value, properties.value_for(property_name)
   end
 end
