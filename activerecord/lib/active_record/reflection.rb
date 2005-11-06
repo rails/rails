@@ -21,12 +21,12 @@ module ActiveRecord
         base.module_eval <<-"end_eval"
           class << self
             alias_method :#{association_type}_without_reflection, :#{association_type}
-
-            def #{association_type}_with_reflection(association_id, options = {})
-              #{association_type}_without_reflection(association_id, options)
+      
+            def #{association_type}_with_reflection(association_id, options = {}, &block)
+              #{association_type}_without_reflection(association_id, options, &block)      
               reflect_on_all_associations << AssociationReflection.new(:#{association_type}, association_id, options, self)
             end
-
+      
             alias_method :#{association_type}, :#{association_type}_with_reflection
           end
         end_eval

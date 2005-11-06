@@ -34,14 +34,14 @@
 * Added extension capabilities to has_many and has_and_belongs_to_many proxies [DHH]. Example:
 
     class Account < ActiveRecord::Base
-      has_many :people, :extend => Module.new {
+      has_many :people do
         def find_or_create_by_name(name)
           first_name, *last_name = name.split
           last_name = last_name.join " "
 
           find_or_create_by_first_name_and_last_name(first_name, last_name)
         end
-      }
+      end
     end
 
     person = Account.find(:first).people.find_or_create_by_name("David Heinemeier Hansson")
