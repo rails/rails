@@ -111,6 +111,21 @@ class TestMailer < ActionMailer::Base
     end
   end
 
+  def multipart_with_utf8_subject(recipient)
+    recipients   recipient
+    subject      "Foo áëô îü"
+    from         "test@example.com"
+    charset      "utf-8"
+
+    part "text/plain" do |p|
+      p.body = "blah"
+    end
+
+    part "text/html" do |p|
+      p.body = "<b>blah</b>"
+    end
+  end
+
   def explicitly_multipart_example(recipient, ct=nil)
     recipients   recipient
     subject      "multipart example"
@@ -579,6 +594,11 @@ EOF
   def test_multipart_with_mime_version
     mail = TestMailer.create_multipart_with_mime_version(@recipient)
     assert_equal "1.1", mail.mime_version
+  end
+  
+  def test_multipart_with_utf8_subject
+    mail = TestMailer.create_multipart_with_utf8_subject(@recipient)
+    assert_match(/\nSubject: =\?utf-8\?Q\?Foo_.*?\?=/, mail.encoded)
   end
 
   def test_explicitly_multipart_messages
