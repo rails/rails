@@ -5,7 +5,7 @@ require 'fixtures/project'
 require 'fixtures/developer'
 
 class AssociationsExtensionsTest < Test::Unit::TestCase
-  fixtures :projects, :developers, :comments, :posts
+  fixtures :projects, :developers, :developers_projects, :comments, :posts
 
   def test_extension_on_has_many
     assert_equal comments(:more_greetings), posts(:welcome).comments.find_most_recent
