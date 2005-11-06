@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that SQL Server should ignore :size declarations on anything but integer and string in the agnostic schema representation #2756 [Ryan Tomayko]
+
 * Added constrain scoping for creates using a hash of attributes bound to the :creation key [DHH]. Example:
 
     Comment.constrain(:creation => { :post_id => 5 }) do

@@ -175,7 +175,7 @@ module ActiveRecord
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
           :string      => { :name => "varchar", :limit => 255  },
           :text        => { :name => "text" },
-          :integer     => { :name => "int"},
+          :integer     => { :name => "int" },
           :float       => { :name => "float", :limit => 8 },
           :datetime    => { :name => "datetime" },
           :timestamp   => { :name => "datetime" },
@@ -412,6 +412,15 @@ module ActiveRecord
       
       def remove_index(table_name, options = {})
         execute "DROP INDEX #{table_name}.#{index_name(table_name, options)}"
+      end
+
+      def type_to_sql(type, limit = nil) #:nodoc:
+        native = native_database_types[type]
+        # if there's no :limit in the default type definition, assume that type doesn't support limits
+        limit = native[:limit] ? limit || native[:limit] : nil
+        column_type_sql = native[:name]
+        column_type_sql << "(#{limit})" if limit
+        column_type_sql
       end
 
       private
