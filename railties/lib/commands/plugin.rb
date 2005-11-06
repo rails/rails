@@ -239,6 +239,8 @@ class Repositories
         return plugin if plugin.name == name
       end
     end
+    
+    return nil
   end
   
   def load!
