@@ -132,7 +132,7 @@ class RailsEnvironment
     Tempfile.open("svn-set-prop") do |file|
       file.write(items)
       file.flush
-      system("svn propset svn:externals -F #{file.path} #{root}/vendor/plugins")
+      system("svn propset -q svn:externals -F #{file.path} #{root}/vendor/plugins")
     end
   end
   
@@ -259,11 +259,9 @@ class Repositories
   end
   
   def defaults
-    <<-REPOSITORIES
-    http://dev.rubyonrails.org/svn/rails/plugins/
-    http://lesscode.org/svn/rtomayko/rails/plugins/
-    http://svn.aviditybytes.com/rails/plugins/
-    REPOSITORIES
+    <<-DEFAULTS
+    http://dev.rubyonrails.com/svn/rails/plugins/
+    DEFAULTS
   end
  
   def find_home
@@ -382,8 +380,8 @@ module Commands
         o.separator "    #{@script_name} install continuous_builder\n"
         o.separator "  Install a plugin from a subversion URL:"
         o.separator "    #{@script_name} install http://dev.rubyonrails.com/svn/rails/plugins/continuous_builder\n"
-        o.separator "  Install a plugin from a subversion URL:"
-        o.separator "    #{@script_name} install http://dev.rubyonrails.com/svn/rails/plugins/continuous_builder\n"
+        o.separator "  Install a plugin and add a svn:externals entry to vendor/plugins"
+        o.separator "    #{@script_name} install -x continuous_builder\n"
         o.separator "  List all available plugins:"
         o.separator "    #{@script_name} list\n"
         o.separator "  List plugins in the specified repository:"
@@ -394,6 +392,10 @@ module Commands
         o.separator "    #{@script_name} discover -l\n"
         o.separator "  Add a new repository to the source list:"
         o.separator "    #{@script_name} source http://dev.rubyonrails.com/svn/rails/plugins/\n"
+        o.separator "  Remove a repository from the source list:"
+        o.separator "    #{@script_name} unsource http://dev.rubyonrails.com/svn/rails/plugins/\n"
+        o.separator "  Show currently configured repositories:"
+        o.separator "    #{@script_name} sources\n"        
       end
     end
     
@@ -640,9 +642,7 @@ module Commands
   class Install
     def initialize(base_command)
       @base_command = base_command
-      @externals = false
-      @checkout = false
-      @export = false
+      @method = :export
     end
     
     def options
@@ -652,15 +652,12 @@ module Commands
         o.define_head "Install one or more plugins."
         o.separator   ""
         o.separator   "Options:"
-        o.on(         "-e", "--externals", 
-                      "Use svn:externals. This is the default behavior when", 
-                      "vendor/plugins is under subversion control.") { |@externals| }
+        o.on(         "-x", "--externals", 
+                      "Use svn:externals to grab the plugin.", 
+                      "Enables plugin updates and plugin versioning.") { |v| @method = :externals }
         o.on(         "-o", "--checkout",
-                      "Use checkout. This is turns externals off and is the default",
-                      "behavior when vendor/plugins is not under subversion control.") { |@checkout| }
-        o.on(         "-x", "--export",
-                      "Use export. This turns externals support off and is the default",
-                      "behavior when the current project is not under subversion control.") { |@export| }
+                      "Use svn checkout to grab the plugin.",
+                      "Enables updating but does not add a svn:externals entry.") { |v| @method = :checkout }
         o.separator   ""
         o.separator   "You can specify plugin names as given in 'plugin list' output or absolute URLs to "
         o.separator   "a plugin repository."
@@ -668,26 +665,21 @@ module Commands
     end
     
     def determine_install_method
-      requested = case 
-        when @export   then method = :export
-        when @checkout then method = :checkout 
-        when @http   then method = :http
-        else method = @base_command.environment.best_install_method
-      end
       best = @base_command.environment.best_install_method
-      if best == :http and requested != :http
-        puts "Cannot install using subversion because `svn' cannot be found in your PATH"
-	exit 1
+      @method = :http if best == :http and @method == :export
+      case
+      when (best == :http and @method != :http)
+        msg = "Cannot install using subversion because `svn' cannot be found in your PATH"
+      when (best == :export and (@method != :export and method != :http))
+        msg = "Cannot install using #{requested} because this project is not under subversion."
+      when (best != :externals and @method == :externals)
+        msg = "Cannot install using externals because vendor/plugins is not under subversion."
       end
-      if best == :export and requested != :export
-        puts "Cannot install using #{requested} because this project is not under subversion."
+      if msg
+        puts msg
         exit 1
       end
-      if best == :checkout and @externals
-        puts "Cannot install using externals because vendor/plugins is not under subversion."
-        exit 1
-      end
-      requested
+      @method
     end
     
     def parse!(args)
