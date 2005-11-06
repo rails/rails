@@ -1,5 +1,7 @@
 *SVN*
 
+* Add documentation to assert_tag indicating that it only works with well-formed XHTML #1937, #2570 [Jamis Buck]
+
 * Added action_pack.rb stub so that ActionPack::Version loads properly [Sam Stephenson]
 
 * Added short-hand to assert_tag so assert_tag :tag => "span" can be written as assert_tag "span" [DHH]

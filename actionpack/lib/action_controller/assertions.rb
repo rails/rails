@@ -257,6 +257,12 @@ module Test #:nodoc:
       #                           :attributes => { :class => "enum" } },
       #              :descendant => { :tag => "span",
       #                               :child => /hello world/ }
+      #
+      # <strong>Please note</strong: #assert_tag and #assert_no_tag only work
+      # with well-formed XHTML. They recognize a few tags as implicitly self-closing
+      # (like br and hr and such) but will not work correctly with tags
+      # that allow optional closing tags (p, li, td). <em>You must explicitly
+      # close all of your tags to use these assertions.</em>
       def assert_tag(*opts)
         clean_backtrace do
           opts = opts.size > 1 ? opts.last.merge({ :tag => opts.first.to_s }) : opts.first
