@@ -132,8 +132,7 @@ module ActiveRecord
     #         first_name, *last_name = name.split
     #         last_name = last_name.join " "
     #   
-    #         find_by_first_name_and_last_name(first_name, last_name) ||
-    #           create({ :first_name => first_name, :last_name => last_name })
+    #         find_or_create_by_first_name_and_last_name(first_name, last_name)
     #       end
     #     end
     #   end
@@ -149,8 +148,7 @@ module ActiveRecord
     #       first_name, *last_name = name.split
     #       last_name = last_name.join " "
     #     
-    #       find_by_first_name_and_last_name(first_name, last_name) ||
-    #         create({ :first_name => first_name, :last_name => last_name })
+    #       find_or_create_by_first_name_and_last_name(first_name, last_name)
     #     end
     #   end
     #
