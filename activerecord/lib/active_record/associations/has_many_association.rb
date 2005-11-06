@@ -89,11 +89,16 @@ module ActiveRecord
           if @target.respond_to?(method) || (!@association_class.respond_to?(method) && Class.respond_to?(method))
             super
           else
-            @association_class.constrain(
+            @association_class.with_scope(
+              :find => {
                 :conditions => @finder_sql, 
                 :joins      => @join_sql, 
-                :readonly   => false,
-                :creation   => { @association_class_primary_key_name => @owner.id }) do
+                :readonly   => false
+              },
+              :create => {
+                @association_class_primary_key_name => @owner.id
+              }
+            ) do
               @association_class.send(method, *args, &block)
             end
           end

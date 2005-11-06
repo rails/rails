@@ -80,7 +80,7 @@ module ActiveRecord
           if @target.respond_to?(method) || (!@association_class.respond_to?(method) && Class.respond_to?(method))
             super
           else
-            @association_class.constrain(:conditions => @finder_sql, :joins => @join_sql, :readonly => false) do
+            @association_class.with_scope(:find => { :conditions => @finder_sql, :joins => @join_sql, :readonly => false }) do
               @association_class.send(method, *args, &block)
             end
           end

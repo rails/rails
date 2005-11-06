@@ -8,35 +8,35 @@ class ConditionsScopingTest < Test::Unit::TestCase
   fixtures :developers, :comments, :posts
   
   def test_set_conditions
-    Developer.constrain(:conditions => 'just a test...') do
-      assert_equal 'just a test...', Thread.current[:constraints][Developer][:conditions]
+    Developer.with_scope(:find => { :conditions => 'just a test...' }) do
+      assert_equal 'just a test...', Thread.current[:scoped_methods][Developer][:find][:conditions]
     end
   end
 
   def test_scoped_find
-    Developer.constrain(:conditions => "name = 'David'") do
+    Developer.with_scope(:find => { :conditions => "name = 'David'" }) do
       assert_nothing_raised { Developer.find(1) }
     end
   end
   
   def test_scoped_find_first
-    Developer.constrain(:conditions => "salary = 100000") do
+    Developer.with_scope(:find => { :conditions => "salary = 100000" }) do
       assert_equal Developer.find(10), Developer.find(:first, :order => 'name')
     end
   end
   
   def test_scoped_find_all
-    Developer.constrain(:conditions => "name = 'David'") do
+    Developer.with_scope(:find => { :conditions => "name = 'David'" }) do
       assert_equal [Developer.find(1)], Developer.find(:all)
     end      
   end
   
   def test_scoped_count
-    Developer.constrain(:conditions => "name = 'David'") do
+    Developer.with_scope(:find => { :conditions => "name = 'David'" }) do
       assert_equal 1, Developer.count
     end        
 
-    Developer.constrain(:conditions => 'salary = 100000') do
+    Developer.with_scope(:find => { :conditions => 'salary = 100000' }) do
       assert_equal 8, Developer.count
       assert_equal 1, Developer.count("name LIKE 'fixture_1%'")
     end        
@@ -45,20 +45,35 @@ class ConditionsScopingTest < Test::Unit::TestCase
   def test_scoped_create
     new_comment = nil
 
-    VerySpecialComment.constrain(:creation => { :post_id => 1 }) do
-      assert_equal({ :post_id => 1 }, Thread.current[:constraints][VerySpecialComment][:creation])
+    VerySpecialComment.with_scope(:create => { :post_id => 1 }) do
+      assert_equal({ :post_id => 1 }, Thread.current[:scoped_methods][VerySpecialComment][:create])
       new_comment = VerySpecialComment.create :body => "Wonderful world"
     end
-    
+
     assert Post.find(1).comments.include?(new_comment)
   end
 
-  def test_immutable_constraint
+  def test_immutable_scope
     options = { :conditions => "name = 'David'" }
-    Developer.constrain(options) do
+    Developer.with_scope(:find => options) do
       assert_equal %w(David), Developer.find(:all).map { |d| d.name }
       options[:conditions] = "name != 'David'"
       assert_equal %w(David), Developer.find(:all).map { |d| d.name }
+    end
+
+    scope = { :find => { :conditions => "name = 'David'" }}
+    Developer.with_scope(scope) do
+      assert_equal %w(David), Developer.find(:all).map { |d| d.name }
+      scope[:find][:conditions] = "name != 'David'"
+      assert_equal %w(David), Developer.find(:all).map { |d| d.name }
+    end
+  end
+
+  def test_raise_on_nested_scope
+    Developer.with_scope(:find => { :conditions => '1=1' }) do
+      assert_raise(ArgumentError) do
+        Developer.with_scope(:find => { :conditions => '2=2' }) { }
+      end
     end
   end
 end
@@ -84,7 +99,12 @@ class HasManyScopingTest< Test::Unit::TestCase
     assert_equal 4, Comment.find_all_by_type('Comment').size
     assert_equal 2, @welcome.comments.find_all_by_type('Comment').size
   end
-  
+
+  def test_raise_on_nested_scope
+    Comment.with_scope(:find => { :conditions => '1=1' }) do
+      assert_raise(ArgumentError) { @welcome.comments.what_are_you }
+    end
+  end
 end
 
 
@@ -106,6 +126,11 @@ class HasAndBelongsToManyScopingTest< Test::Unit::TestCase
     assert_equal 2, @welcome.categories.find_all_by_type('Category').size
   end
 
+  def test_raise_on_nested_scope
+    Category.with_scope(:find => { :conditions => '1=1' }) do
+      assert_raise(ArgumentError) { @welcome.categories.what_are_you }
+    end
+  end
 end
 
 

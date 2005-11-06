@@ -394,11 +394,11 @@ module ActiveRecord #:nodoc:
       def find(*args)
         options = extract_options_from_args!(args)
 
-        # Inherit :readonly from scope_constraints if set.  Otherwise,
+        # Inherit :readonly from finder scope if set.  Otherwise,
         # if :joins is not blank then :readonly defaults to true.
         unless options.has_key?(:readonly)
-          if scope_constraints.has_key?(:readonly)
-            options[:readonly] = scope_constraints[:readonly]
+          if scoped?(:find, :readonly)
+            options[:readonly] = scope(:find, :readonly)
           elsif !options[:joins].blank?
             options[:readonly] = true
           end
@@ -460,7 +460,7 @@ module ActiveRecord #:nodoc:
         if attributes.is_a?(Array)
           attributes.collect { |attr| create(attr) }
         else
-          attributes.reverse_merge!(scope_constraints[:creation]) if scope_constraints[:creation]
+          attributes.reverse_merge!(scope(:create)) if scoped?(:create)
 
           object = new(attributes)
           object.save
@@ -839,23 +839,37 @@ module ActiveRecord #:nodoc:
       ensure
         logger.level = old_logger_level if logger
       end
-      
-      # Add constraints to all queries to the same model in the given block.
-      # Currently supported constraints are <tt>:conditions</tt>, <tt>:joins</tt>,
-      # <tt>:offset</tt>, and <tt>:limit</tt> 
+
+      # Scope parameters to method calls within the block.  Takes a hash of method_name => parameters hash.
+      # method_name may be :find or :create.
+      # :find parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
+      # <tt>:offset</tt>, <tt>:limit</tt>, and <tt>:readonly</tt> options.
+      # :create parameters are an attributes hash.
       #
-      #   Article.constrain(:conditions => "blog_id = 1") do
+      #   Article.with_scope(:find => { :conditions => "blog_id = 1" }, :create => { :blog_id => 1 }) do
       #     Article.find(1) # => SELECT * from articles WHERE blog_id = 1 AND id = 1
+      #     a = Article.create(1)
+      #     a.blog_id == 1
       #   end
-      def constrain(options = {})
-        options = options.dup
-        options[:readonly] = true if !options[:joins].blank? && !options.has_key?(:readonly)
+      def with_scope(method_scoping = {})
+        # Dup first and second level of hash (method and params).
+        method_scoping = method_scoping.inject({}) do |hash, (method, params)|
+          hash[method] = params.dup
+          hash
+        end
 
-        self.scope_constraints = options
+        method_scoping.assert_valid_keys [:find, :create]
+        if f = method_scoping[:find]
+          f.assert_valid_keys [:conditions, :joins, :offset, :limit, :readonly]
+          f[:readonly] = true if !f[:joins].blank? && !f.has_key?(:readonly)
+        end
 
-        yield if block_given?
+        raise ArgumentError, "Nested scopes are not yet supported: #{scoped_methods.inspect}" unless scoped_methods.nil?
+
+        self.scoped_methods = method_scoping
+        yield
       ensure 
-        self.scope_constraints = nil
+        self.scoped_methods = nil
       end
 
       # Overwrite the default class equality method to provide support for association proxies.
@@ -918,23 +932,23 @@ module ActiveRecord #:nodoc:
         end
 
         def add_limit!(sql, options)
-          options[:limit]  ||= scope_constraints[:limit]  if scope_constraints[:limit]
-          options[:offset] ||= scope_constraints[:offset] if scope_constraints[:offset]
+          options[:limit]  ||= scope(:find, :limit)
+          options[:offset] ||= scope(:find, :offset)
           connection.add_limit_offset!(sql, options)
         end
-        
+
         def add_joins!(sql, options)
-          join = scope_constraints[:joins] || options[:joins]
+          join = scope(:find, :joins) || options[:joins]
           sql << " #{join} " if join
         end
-        
+
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that the passed-in +sql+ string is changed.
         def add_conditions!(sql, conditions)          
-          condition_segments = [scope_constraints[:conditions]]
-          condition_segments << sanitize_sql(conditions) unless conditions.nil?
-          condition_segments << type_condition unless descends_from_active_record?        
-          condition_segments.compact!
-          sql << "WHERE (#{condition_segments.join(") AND (")}) " unless condition_segments.empty?
+          segments = [scope(:find, :conditions)]
+          segments << sanitize_sql(conditions) unless conditions.nil?
+          segments << type_condition unless descends_from_active_record?        
+          segments.compact!
+          sql << "WHERE (#{segments.join(") AND (")}) " unless segments.empty?
         end
 
         def type_condition
@@ -1050,29 +1064,37 @@ module ActiveRecord #:nodoc:
           @@subclasses[self] ||= []
           @@subclasses[self] + extra = @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
         end
-        
-        def scope_constraints
-          if allow_concurrency
-            Thread.current[:constraints] ||= {}
-            Thread.current[:constraints][self] ||= {}
-          else
-            @scope_constraints ||= {}
-          end
-        end
-        # backwards compatibility
-        alias_method :scope_constrains, :scope_constraints 
 
-        def scope_constraints=(value)
-          if allow_concurrency
-            Thread.current[:constraints] ||= {}
-            Thread.current[:constraints][self] = value
-          else
-            @scope_constraints = value
+        # Test whether the given method and optional key are scoped.
+        def scoped?(method, key = nil)
+          scoped_methods and scoped_methods.has_key?(method) and (key.nil? or scope(method).has_key?(key))
+        end
+
+        # Retrieve the scope for the given method and optional key.
+        def scope(method, key = nil)
+          if scoped_methods and scope = scoped_methods[method]
+            key ? scope[key] : scope
           end
         end
-        # backwards compatibility
-        alias_method :scope_constrains=, :scope_constraints=
-        
+
+        def scoped_methods
+          if allow_concurrency
+            Thread.current[:scoped_methods] ||= {}
+            Thread.current[:scoped_methods][self] ||= nil
+          else
+            @scoped_methods ||= nil
+          end
+        end
+
+        def scoped_methods=(value)
+          if allow_concurrency
+            Thread.current[:scoped_methods] ||= {}
+            Thread.current[:scoped_methods][self] = value
+          else
+            @scoped_methods = value
+          end
+        end
+
         # Returns the class type of the record using the current module as a prefix. So descendents of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)

@@ -1,5 +1,14 @@
 *SVN*
 
+* Rename Base.constrain to Base.with_scope so it doesn't conflict with existing concept of database constraints.  Make scoping more robust: uniform method => parameters, validated method names and supported finder parameters, raise exception on nested scopes.  [Jeremy Kemper]  Example:
+
+    Comment.with_scope(:find => { :conditions => 'active=true' }, :create => { :post_id => 5 }) do
+      # Find where name = ? and active=true
+      Comment.find :all, :conditions => ['name = ?', name]
+      # Create comment associated with :post_id
+      Comment.create :body => "Hello world"
+    end
+
 * Fixed that SQL Server should ignore :size declarations on anything but integer and string in the agnostic schema representation #2756 [Ryan Tomayko]
 
 * Added constrain scoping for creates using a hash of attributes bound to the :creation key [DHH]. Example:

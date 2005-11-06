@@ -1030,8 +1030,8 @@ class BasicsTest < Test::Unit::TestCase
     assert_nothing_raised { Category.new.send(:interpolate_sql, 'foo bar} baz') }
   end
 
-  def test_constrain_conditions
-    developers = Developer.constrain(:conditions => 'salary > 90000') do
+  def test_scoped_find_conditions
+    developers = Developer.with_scope(:find => { :conditions => 'salary > 90000' }) do
       Developer.find(:all, :conditions => 'id < 5')
     end
     david = Developer.find(1)
@@ -1039,8 +1039,8 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal 3, developers.size
   end
   
-  def test_constrain_limit_offset
-    developers = Developer.constrain(:limit => 3, :offset => 2) do
+  def test_scoped_find_limit_offset
+    developers = Developer.with_scope(:find => { :limit => 3, :offset => 2 }) do
       Developer.find(:all, :order => 'id')
     end    
     david = Developer.find(1)
@@ -1049,7 +1049,7 @@ class BasicsTest < Test::Unit::TestCase
     assert !developers.include?(jamis) # Jamis has id 2
     assert_equal 3, developers.size
     
-    # Now test without constraints to make sure we get the whole thing
+    # Test without scoped find conditions to ensure we get the whole thing
     developers = Developer.find(:all, :order => 'id')
     assert_equal 10, developers.size
   end

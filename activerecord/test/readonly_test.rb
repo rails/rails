@@ -4,7 +4,7 @@ require 'fixtures/comment'
 require 'fixtures/developer'
 require 'fixtures/project'
 
-# Dummy class methods to test implicit association constraints.
+# Dummy class methods to test implicit association scoping.
 def Comment.foo() find :first end
 def Project.foo() find :first end
 
@@ -64,14 +64,14 @@ class ReadOnlyTest < Test::Unit::TestCase
   end
 
 
-  def test_readonly_constraint
-    Post.constrain(:conditions => '1=1') do 
+  def test_readonly_scoping
+    Post.with_scope(:find => { :conditions => '1=1' }) do 
       assert !Post.find(1).readonly?
       assert Post.find(1, :readonly => true).readonly?
       assert !Post.find(1, :readonly => false).readonly?
     end
 
-    Post.constrain(:joins => '   ') do 
+    Post.with_scope(:find => { :joins => '   ' }) do 
       assert !Post.find(1).readonly?
       assert Post.find(1, :readonly => true).readonly?
       assert !Post.find(1, :readonly => false).readonly?
@@ -80,21 +80,21 @@ class ReadOnlyTest < Test::Unit::TestCase
     # Oracle barfs on this because the join includes unqualified and
     # conflicting column names
     unless current_adapter?(:OCIAdapter)
-      Post.constrain(:joins => ', developers') do 
+      Post.with_scope(:find => { :joins => ', developers' }) do 
         assert Post.find(1).readonly?
         assert Post.find(1, :readonly => true).readonly?
         assert !Post.find(1, :readonly => false).readonly?
       end
     end
 
-    Post.constrain(:readonly => true) do
+    Post.with_scope(:find => { :readonly => true }) do
       assert Post.find(1).readonly?
       assert Post.find(1, :readonly => true).readonly?
       assert !Post.find(1, :readonly => false).readonly?
     end
   end
 
-  def test_association_collection_method_missing_constraint_not_readonly
+  def test_association_collection_method_missing_scoping_not_readonly
     assert !Developer.find(1).projects.foo.readonly?
     assert !Post.find(1).comments.foo.readonly?
   end
