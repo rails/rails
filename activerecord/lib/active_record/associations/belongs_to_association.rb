@@ -49,9 +49,13 @@ module ActiveRecord
       private
         def find_target
           if @options[:conditions]
-            @association_class.find_on_conditions(@owner[@association_class_primary_key_name], interpolate_sql(@options[:conditions]))
+            @association_class.find(
+              @owner[@association_class_primary_key_name], 
+              :conditions => interpolate_sql(@options[:conditions]),
+              :include    => @options[:include]
+            )
           else
-            @association_class.find(@owner[@association_class_primary_key_name])
+            @association_class.find(@owner[@association_class_primary_key_name], :include => @options[:include])
           end
         end
 

@@ -90,7 +90,7 @@ module ActiveRecord
           if @options[:finder_sql]
             records = @association_class.find_by_sql(@finder_sql)
           else
-            records = find(:all)
+            records = find(:all, :include => @options[:include])
           end
           
           @options[:uniq] ? uniq(records) : records

@@ -1,5 +1,9 @@
 *SVN*
 
+* Added :include as an option for association declarations [DHH]. Example:
+
+    has_many :posts, :include => [ :author, :comments ]
+
 * Rename Base.constrain to Base.with_scope so it doesn't conflict with existing concept of database constraints.  Make scoping more robust: uniform method => parameters, validated method names and supported finder parameters, raise exception on nested scopes.  [Jeremy Kemper]  Example:
 
     Comment.with_scope(:find => { :conditions => 'active=true' }, :create => { :post_id => 5 }) do

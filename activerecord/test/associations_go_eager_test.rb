@@ -186,4 +186,29 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_nothing_raised { Post.find(:all, :include => 'comments') }
   end
 
+  def test_preconfigured_includes_with_belongs_to
+    author = posts(:welcome).author_with_posts
+    assert_equal 5, author.posts.size
+  end
+
+  def test_preconfigured_includes_with_has_one
+    comment = posts(:sti_comments).very_special_comment_with_post
+    assert_equal posts(:sti_comments), comment.post
+  end
+
+  def test_preconfigured_includes_with_has_many
+    posts = authors(:david).posts_with_comments
+    assert_equal 2, posts.first.comments.size
+  end
+
+  def test_preconfigured_includes_with_habtm
+    posts = authors(:david).posts_with_categories
+    assert_equal 2, posts.first.categories.size
+  end
+
+  def test_preconfigured_includes_with_has_many_and_habtm
+    posts = authors(:david).posts_with_comments_and_categories
+    assert_equal 2, posts.first.comments.size
+    assert_equal 2, posts.first.categories.size
+  end
 end

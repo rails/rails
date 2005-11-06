@@ -23,12 +23,12 @@ module ActiveRecord
       # DEPRECATED.
       def find_all(runtime_conditions = nil, orderings = nil, limit = nil, joins = nil)
         if @options[:finder_sql]
-          records = @association_class.find_by_sql(@finder_sql)
+          @association_class.find_by_sql(@finder_sql)
         else
-          sql = @finder_sql
-          sql += " AND (#{sanitize_sql(runtime_conditions)})" if runtime_conditions
+          conditions = @finder_sql
+          conditions += " AND (#{sanitize_sql(runtime_conditions)})" if runtime_conditions
           orderings ||= @options[:order]
-          records = @association_class.find_all(sql, orderings, limit, joins)
+          @association_class.find_all(conditions, orderings, limit, joins)
         end
       end
 
@@ -105,7 +105,17 @@ module ActiveRecord
         end
             
         def find_target
-          find_all
+          if @options[:finder_sql]
+            @association_class.find_by_sql(@finder_sql)
+          else
+            @association_class.find(:all, 
+              :conditions => @finder_sql,
+              :order      => @options[:order], 
+              :limit      => @options[:limit],
+              :joins      => @options[:joins],
+              :include    => @options[:include]
+            )
+          end
         end
 
         def count_records

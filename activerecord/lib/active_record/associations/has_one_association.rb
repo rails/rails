@@ -57,7 +57,7 @@ module ActiveRecord
             
       private
         def find_target
-          @association_class.find(:first, :conditions => @finder_sql, :order => @options[:order])
+          @association_class.find(:first, :conditions => @finder_sql, :order => @options[:order], :include => @options[:include])
         end
 
         def target_obsolete?
