@@ -4,7 +4,7 @@ require 'fixtures/comment'
 require 'fixtures/post'
 require 'fixtures/category'
 
-class ConditionsScopingTest < Test::Unit::TestCase
+class MethodScopingTest < Test::Unit::TestCase
   fixtures :developers, :comments, :posts
   
   def test_set_conditions
