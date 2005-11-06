@@ -1,5 +1,7 @@
 *SVN*
 
+* Enable HTTP installation of plugins when svn isn't avaialable. Closes #2661. [Chad Fowler]
+
 * Load Rails::Info after initialization [Sam Stephenson]
 
 * Added script/about to display formatted Rails::Info output [Sam Stephenson]

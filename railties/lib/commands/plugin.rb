@@ -44,13 +44,9 @@
 # and is licensed MIT: (http://www.opensource.org/licenses/mit-license.php)
 
 $verbose = false
-`svn --version`
-unless $?.success?
-  $stderr.puts "ERROR: Must have subversion (svn) available in the PATH to use plugin manager"
-  exit 1
-end
 
 
+require 'open-uri'
 require 'fileutils'
 require 'tempfile'
 
@@ -95,7 +91,12 @@ class RailsEnvironment
       puts "plugin not found: #{name_uri_or_plugin}"
     end
   end
-  
+ 
+  def use_svn?
+    `svn --version`
+    $?.success?
+  end
+
   def use_externals?
     File.directory?("#{root}/vendor/plugins/.svn")
   end
@@ -108,6 +109,7 @@ class RailsEnvironment
   end
   
   def best_install_method
+    return :http unless use_svn?
     case
       when use_externals? then :externals
       when use_checkout? then :checkout
@@ -181,7 +183,14 @@ class Plugin
       rails_env.externals = externals
       install_using_checkout
     end
-    
+
+    def install_using_http
+      root = rails_env.root
+      mkdir_p "#{root}/vendor/plugins"
+      Dir.chdir "#{root}/vendor/plugins"
+      RecursiveHTTPFetcher.new(uri).fetch
+    end
+
     def guess_name(url)
       @name = File.basename(url)
       if @name == 'trunk' || @name.empty?
@@ -662,9 +671,14 @@ module Commands
       requested = case 
         when @export   then method = :export
         when @checkout then method = :checkout 
-        else method = :externals
+        when @http   then method = :http
+        else method = @base_command.environment.best_install_method
       end
       best = @base_command.environment.best_install_method
+      if best == :http and requested != :http
+        puts "Cannot install using subversion because `svn' cannot be found in your PATH"
+	exit 1
+      end
       if best == :export and requested != :export
         puts "Cannot install using #{requested} because this project is not under subversion."
         exit 1
@@ -760,6 +774,56 @@ module Commands
     end
   end
 
+end
+ 
+class RecursiveHTTPFetcher
+  def initialize(urls_to_fetch, cwd = ".")
+    @cwd = cwd
+    @urls_to_fetch = urls_to_fetch.to_a
+  end
+
+  def push_d(dir)
+    @cwd = File.join(@cwd, dir)
+    FileUtils.mkdir_p(@cwd)
+  end
+
+  def pop_d
+    @cwd = File.dirname(@cwd)
+  end
+
+  def links(base_url, contents)
+    links = []
+    contents.scan(/href\s*=\s*\"*[^\">]*/i) do |link|
+      link = link.sub(/href="/i, "")
+      next if link =~ /^http/i || link =~ /^\./
+      links << File.join(base_url, link)
+    end
+    links
+  end
+  
+  def download(link)
+    puts "+ #{File.join(@cwd, File.basename(link))}"
+    open(link) do |stream|
+      File.open(File.join(@cwd, File.basename(link)), "wb") do |file|
+        file.write(stream.read)
+      end
+    end
+  end
+  
+  def fetch(links = @urls_to_fetch)
+    links.each do |l|
+      (l =~ /\/$/ || links == @urls_to_fetch) ? fetch_dir(l) : download(l)
+    end
+  end
+  
+  def fetch_dir(url)
+    push_d(File.basename(url))
+    open(url) do |stream|
+      contents =  stream.read
+      fetch(links(url, contents))
+    end
+    pop_d
+  end
 end
 
 Commands::Plugin.parse!
