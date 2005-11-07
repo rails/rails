@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/module_attribute_accessors'
+require File.dirname(__FILE__) + '/core_ext/load_error'
 
 module Dependencies #:nodoc:
   extend self

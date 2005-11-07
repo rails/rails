@@ -20,7 +20,7 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_require_missing_dependency
-    assert_raises(LoadError) { require_dependency("missing_service") }
+    assert_raises(MissingSourceFile) { require_dependency("missing_service") }
   end
   
   def test_require_missing_association
