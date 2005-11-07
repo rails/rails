@@ -3,7 +3,7 @@ Inflector.inflections do |inflect|
   inflect.plural /s$/i, 's'
   inflect.plural /(ax|test)is$/i, '\1es'
   inflect.plural /(octop|vir)us$/i, '\1i'
-  inflect.plural /(alias|status)/i, '\1es'
+  inflect.plural /(alias|status)$/i, '\1es'
   inflect.plural /(bu)s$/i, '\1ses'
   inflect.plural /(buffal|tomat)o$/i, '\1oes'
   inflect.plural /([ti])um$/i, '\1a'

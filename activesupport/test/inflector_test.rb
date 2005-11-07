@@ -81,6 +81,7 @@ class InflectorTest < Test::Unit::TestCase
     "equipment" => "equipment",
     "bus" => "buses", 
     "status" => "statuses",
+    "status_code" => "status_codes",
     "mouse" => "mice",
 
     "louse" => "lice",
