@@ -282,7 +282,7 @@ module ActionView
         #
         #     "attr" => bool_value
         #
-        # if the the associated _bool_value_ evaluates to true, it is
+        # if the associated _bool_value_ evaluates to true, it is
         # replaced with the attribute's name; otherwise the attribute is
         # removed from the _html_options_ hash.  (See the XHTML 1.0 spec,
         # section 4.5 "Attribute Minimization" for more:

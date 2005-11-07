@@ -18,7 +18,7 @@ module ActionWebService # :nodoc:
         self.class.cast_expects(@api_method, params)
       end
 
-      # Coerces the given +return_value+ into the the type returned by this
+      # Coerces the given +return_value+ into the type returned by this
       # method
       def cast_returns(return_value)
         self.class.cast_returns(@api_method, return_value)

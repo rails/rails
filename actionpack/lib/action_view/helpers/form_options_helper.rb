@@ -146,7 +146,7 @@ module ActionView
       # Returns a string of option tags, like options_from_collection_for_select, but surrounds them with <optgroup> tags.
       #
       # An array of group objects are passed. Each group should return an array of options when calling group_method
-      # Each group should should return its name when calling group_label_method.
+      # Each group should return its name when calling group_label_method.
       #
       # html_option_groups_from_collection(@continents, "countries", "continent_name", "country_id", "country_name", @selected_country.id)
       #
