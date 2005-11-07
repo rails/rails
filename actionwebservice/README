@@ -21,14 +21,14 @@ You specify the methods you want to make available as API methods in an
 ActionWebService::API::Base derivative, and then specify this API
 definition class wherever you want to use that API. 
 
-The implementation of the methods is done seperately to the API
+The implementation of the methods is done separately from the API
 specification.
 
 
 ==== Method name inflection
 
 Action Web Service will camelcase the method names according to Rails Inflector
-rules for the API visible to public callers. What this means, for example
+rules for the API visible to public callers. What this means, for example,
 is that the method names in generated WSDL will be camelcased, and callers will
 have to supply the camelcased name in their requests for the request to
 succeed.
@@ -222,12 +222,12 @@ If you're going to be sending back strings containing non-ASCII UTF-8
 characters using the <tt>:string</tt> data type, you need to make sure that
 Ruby is using UTF-8 as the default encoding for its strings.
 
-The default in Ruby to use US-ASCII encoding for strings, which causes a string
+The default in Ruby is to use US-ASCII encoding for strings, which causes a string
 validation check in the Ruby SOAP library to fail and your string to be sent
 back as a Base-64 value, which may confuse clients that expected strings
 because of the WSDL.
 
-Two ways of doing setting the default string encoding are:
+Two ways of setting the default string encoding are:
 
 * Start Ruby using the <tt>-Ku</tt> command-line option to the Ruby executable
 * Set the <tt>$KCODE</tt> flag in <tt>config/environment.rb</tt> to the
@@ -334,7 +334,7 @@ Action Web Service requires that the Action Pack and Active Record are either
 available to be required immediately or are accessible as GEMs.
 
 It also requires a version of Ruby that includes SOAP support in the standard
-library. At least version 1.8.2 final (2004-12-25) of Ruby is recommended, this
+library. At least version 1.8.2 final (2004-12-25) of Ruby is recommended; this
 is the version tested against.
 
 

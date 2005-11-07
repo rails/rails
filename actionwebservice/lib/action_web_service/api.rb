@@ -18,7 +18,7 @@ module ActionWebService # :nodoc:
       class_inheritable_option :inflect_names, true
 
       # Whether to allow ActiveRecord::Base models in <tt>:expects</tt>.
-      # The default is +false+, you should be aware of the security implications
+      # The default is +false+; you should be aware of the security implications
       # of allowing this, and ensure that you don't allow remote callers to
       # easily overwrite data they should not have access to.
       class_inheritable_option :allow_active_record_expects, false
@@ -43,7 +43,7 @@ module ActionWebService # :nodoc:
         # A signature is an array of one or more parameter specifiers. 
         # A parameter specifier can be one of the following:
         #
-        # * A symbol or string of representing one of the Action Web Service base types.
+        # * A symbol or string representing one of the Action Web Service base types.
         #   See ActionWebService::SignatureTypes for a canonical list of the base types.
         # * The Class object of the parameter type
         # * A single-element Array containing one of the two preceding items. This

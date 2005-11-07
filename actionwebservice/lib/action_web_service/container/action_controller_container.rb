@@ -25,12 +25,12 @@ module ActionWebService # :nodoc:
         # now exist on the controller, and calling it will return the
         # XML-RPC client object for working with that remote service.
         #
-        # +options+ is the set of protocol client specific options,
-        # see a protocol client class for details.
+        # +options+ is the set of protocol client specific options (see
+        # a protocol client class for details).
         #
         # If your API definition does not exist on the load path with the
-        # correct rules for it to be found using +name+, you can pass through
-        # the API definition class in +options+, using a key of <tt>:api</tt>
+        # correct rules for it to be found using +name+, you can pass in
+        # the API definition class via +options+, using a key of <tt>:api</tt>
         def web_client_api(name, protocol, endpoint_uri, options={})
           unless method_defined?(name)
             api_klass = options.delete(:api) || require_web_service_api(name)

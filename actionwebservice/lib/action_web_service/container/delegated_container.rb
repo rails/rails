@@ -11,7 +11,7 @@ module ActionWebService # :nodoc:
       end
   
       module ClassMethods
-        # Declares a web service that will provides access to the API of the given
+        # Declares a web service that will provide access to the API of the given
         # +object+. +object+ must be an ActionWebService::Base derivative.
         #
         # Web service object creation can either be _immediate_, where the object
