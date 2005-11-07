@@ -20,4 +20,14 @@ class KernelTest < Test::Unit::TestCase
   def test_silence_warnings_with_return_value
     assert_equal 1, silence_warnings { 1 }
   end
+  
+  def test_silence_stderr
+    old_stderr_position = STDERR.tell
+    silence_stderr { STDERR.puts 'hello world' }
+    assert_equal old_stderr_position, STDERR.tell
+  end
+  
+  def test_silence_stderr_with_return_value
+    assert_equal 1, silence_stderr { 1 }
+  end
 end

@@ -1,5 +1,9 @@
 *SVN*
 
+* Added Kernel#silence_stderr to silence stderr for the duration of the given block [Sam Stephenson]
+
+* Changed Kernel#` to print a message to stderr (like Unix) instead of raising Errno::ENOENT on Win32 [Sam Stephenson]
+
 * Changed 0.blank? to false rather than true since it violates everyone's expectation of blankness.  #2518, #2705 [rails@jeffcole.net]
 
 * When loading classes using const_missing, raise a NameError if and only if the file we tried to load was not present. [Nicholas Seckar]

@@ -29,6 +29,32 @@ module Kernel
     $VERBOSE = old_verbose
   end
 
+  # Silences stderr for the duration of the block.
+  #
+  #   silence_stderr do
+  #     $stderr.puts 'This will never be seen'
+  #   end
+  #
+  #   $stderr.puts 'But this will'
+  def silence_stderr
+    old_stderr = STDERR.dup
+    STDERR.reopen(RUBY_PLATFORM =~ /mswin/ ? 'NUL:' : '/dev/null')
+    STDERR.sync = true
+    yield
+  ensure
+    STDERR.reopen(old_stderr)
+  end
+
+  # Makes backticks behave (somewhat more) similarly on all platforms.
+  # On win32 `nonexistent_command` raises Errno::ENOENT; on Unix, the
+  # spawned shell prints a message to stderr and sets $?.  We emulate
+  # Unix on the former but not the latter.
+  def `(command) #:nodoc:
+    super
+  rescue Errno::ENOENT => e
+    STDERR.puts "#$0: #{e}"
+  end
+  
   # Method that requires a library, ensuring that rubygems is loaded
   def require_library_or_gem(library_name)
     begin
