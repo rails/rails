@@ -13,7 +13,7 @@ development:
   adapter: mysql
   database: <%= app_name %>_development
   username: root
-  password: optional
+  password:
 
   # Connect on a domain socket.
   <%= "socket: #{socket}" %>
