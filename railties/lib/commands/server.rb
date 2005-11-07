@@ -1,7 +1,7 @@
 require 'active_support'
 
 begin
-  require 'fcgi'
+  require_library_or_gem 'fcgi'
 rescue Exception
   # FCGI not available
 end

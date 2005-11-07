@@ -1,5 +1,7 @@
 *SVN*
 
+* Use require_library_or_gem 'fcgi' in script/server [Sam Stephenson]
+
 * Added default lighttpd config in config/lighttpd.conf and added a default runner for lighttpd in script/server (works like script/server, but using lighttpd and FastCGI). It will use lighttpd if available, otherwise WEBrick. You can force either or using 'script/server lighttpd' or 'script/server webrick' [DHH]
 
 * New configuration option config.plugin_paths which may be a single path like the default 'vendor/plugins' or an array of paths: ['vendor/plugins', 'lib/plugins'].  [Jeremy Kemper]
