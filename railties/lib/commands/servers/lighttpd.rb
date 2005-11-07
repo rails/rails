@@ -1,7 +1,10 @@
-require 'active_support'
-
 unless RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `lighttpd -version` }.blank?
-  puts "lighttpd is not available on your system (or not in your path)"
+  puts "PROBLEM: Lighttpd is not available on your system (or not in your path)"
+  exit 1
+end
+
+unless defined?(FCGI)
+  puts "PROBLEM: Lighttpd requires that the FCGI Ruby bindings are installed on the system"
   exit 1
 end
 

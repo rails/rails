@@ -1,12 +1,18 @@
 require 'active_support'
 
+begin
+  require 'fcgi'
+rescue Exception
+  # FCGI not available
+end
+
 server = case ARGV.first
   when "lighttpd"
     ARGV.shift
   when "webrick"
     ARGV.shift
   else
-    if RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `lighttpd -version` }.blank?
+    if RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `lighttpd -version` }.blank? && defined?(FCGI)
       "lighttpd"
     else
       "webrick"
