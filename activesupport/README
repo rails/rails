@@ -18,8 +18,8 @@ Documentation can be found at
 
 == Installation
 
-The prefered method of installing Active Support is through its GEM file. You'll need to have
-RubyGems[http://rubygems.rubyforge.org/wiki/wiki.pl] installed for that, though. If you have,
+The preferred method of installing Active Support is through its GEM file. You'll need to have
+RubyGems[http://rubygems.rubyforge.org/wiki/wiki.pl] installed for that, though. If you have it,
 then use:
 
   % [sudo] gem install activesupport-1.0.0.gem

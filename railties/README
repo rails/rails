@@ -1,22 +1,22 @@
 == Welcome to Rails
 
-Rails is a web-application and persistance framework that includes everything
+Rails is a web-application and persistence framework that includes everything
 needed to create database-backed web-applications according to the
 Model-View-Control pattern of separation. This pattern splits the view (also
 called the presentation) into "dumb" templates that are primarily responsible
-for inserting pre-build data in between HTML tags. The model contains the
+for inserting pre-built data in between HTML tags. The model contains the
 "smart" domain objects (such as Account, Product, Person, Post) that holds all
 the business logic and knows how to persist themselves to a database. The
 controller handles the incoming requests (such as Save New Account, Update
 Product, Show Post) by manipulating the model and directing data to the view.
 
-In Rails, the model is handled by what's called a object-relational mapping
+In Rails, the model is handled by what's called an object-relational mapping
 layer entitled Active Record. This layer allows you to present the data from
 database rows as objects and embellish these data objects with business logic
 methods. You can read more about Active Record in 
 link:files/vendor/rails/activerecord/README.html.
 
-The controller and view is handled by the Action Pack, which handles both
+The controller and view are handled by the Action Pack, which handles both
 layers by its two parts: Action View and Action Controller. These two layers
 are bundled in a single package due to their heavy interdependence. This is
 unlike the relationship between the Active Record and Action Pack that is much
@@ -49,9 +49,9 @@ link:files/vendor/rails/actionpack/README.html.
   </VirtualHost>
 
 NOTE: Be sure that CGIs can be executed in that directory as well. So ExecCGI
-should be on and ".cgi" should respond. All requests from 127.0.0.1 goes
+should be on and ".cgi" should respond. All requests from 127.0.0.1 go
 through CGI, so no Apache restart is necessary for changes. All other requests
-goes through FCGI (or mod_ruby) that requires restart to show changes.
+go through FCGI (or mod_ruby), which requires a restart to show changes.
 
 
 == Debugging Rails
@@ -101,7 +101,7 @@ Finally, when you're ready to resume execution, you press CTRL-D
 You can interact with the domain model by starting the console through script/console. 
 Here you'll have all parts of the application configured, just like it is when the
 application is running. You can inspect domain models, change values, and save to the
-database. Start the script without arguments will launch it in the development environment.
+database. Starting the script without arguments will launch it in the development environment.
 Passing an argument will specify a different environment, like <tt>console production</tt>.
 
 
@@ -117,11 +117,11 @@ app/controllers
 
 app/models
   Holds models that should be named like post.rb.
-  Most models will descent from ActiveRecord::Base.
+  Most models will descend from ActiveRecord::Base.
   
 app/views
   Holds the template files for the view that should be named like
-  weblog/index.rhtml for the WeblogController#index action. All views uses eRuby
+  weblog/index.rhtml for the WeblogController#index action. All views use eRuby
   syntax. This directory can also be used to keep stylesheets, images, and so on
   that can be symlinked to public.
   
@@ -132,14 +132,14 @@ config
   Configuration files for the Rails environment, the routing map, the database, and other dependencies.
 
 components
-  Self-contained mini-applications that can bundle controllers, models, and views together.
+  Self-contained mini-applications that can bundle together controllers, models, and views.
 
 lib
   Application specific libraries. Basically, any kind of custom code that doesn't
-  belong controllers, models, or helpers. This directory is in the load path.
+  belong under controllers, models, or helpers. This directory is in the load path.
     
 public
-  The directory available for the web server. Contains sub-directories for images, stylesheets,
+  The directory available for the web server. Contains subdirectories for images, stylesheets,
   and javascripts. Also contains the dispatchers and the default HTML files.
 
 script
@@ -149,4 +149,5 @@ test
   Unit and functional tests along with fixtures.
 
 vendor
-  External libraries that the application depend on. This directory is in the load path.
+  External libraries that the application depends on. Also includes the plugins subdirectory.
+  This directory is in the load path.
