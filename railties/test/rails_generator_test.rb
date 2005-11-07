@@ -68,7 +68,7 @@ class RailsGeneratorTest < Test::Unit::TestCase
   def test_generator_spec
     spec = Rails::Generator::Base.lookup('working')
     assert_equal 'working', spec.name
-    assert_equal "#{RAILS_ROOT}/generators/working", spec.path
+    assert_equal "#{RAILS_ROOT}/lib/generators/working", spec.path
     assert_equal :app, spec.source
     assert_nothing_raised { assert_match /WorkingGenerator$/, spec.klass.name }
   end
