@@ -66,6 +66,6 @@ task :add_new_scripts do
     if !File.directory?("#{local_base}/#{File.dirname(base_name)}")
       mkdir_p "#{local_base}/#{File.dirname(base_name)}"
     end
-    install script, "#{local_base}/#{base_name}", :mode => 0655
+    install script, "#{local_base}/#{base_name}", :mode => 0755
   end
 end
