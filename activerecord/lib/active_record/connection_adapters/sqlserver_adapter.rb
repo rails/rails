@@ -447,9 +447,9 @@ module ActiveRecord
         end
 
         def get_table_name(sql)
-          if sql =~ /into\s*([^\(\s]+)\s*|update\s*([^\(\s]+)\s*/i
+          if sql =~ /^\s*insert\s+into\s+([^\(\s]+)\s*|^\s*update\s+([^\(\s]+)\s*/i
             $1
-          elsif sql =~ /from\s*([^\(\s]+)\s*/i
+          elsif sql =~ /from\s+([^\(\s]+)\s*/i
             $1
           else
             nil

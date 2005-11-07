@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed faulty regex in get_table_name method (SQLServerAdapter) #2639 [Ryan Tomayko]
+
 * Added :include as an option for association declarations [DHH]. Example:
 
     has_many :posts, :include => [ :author, :comments ]
