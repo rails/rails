@@ -15,8 +15,7 @@ development:
   username: root
   password:
 
-  # Connect on a domain socket.
-  <%= "socket: #{socket}" %>
+  <%= "socket: #{socket}" if socket %>
 
   # Connect on a TCP socket.  If omitted, the adapter will connect on the
   # domain socket given by the socket parameter instead.
