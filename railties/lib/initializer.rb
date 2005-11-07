@@ -284,20 +284,23 @@ module Rails
       # Returns <tt>true</tt> if the plugin is successfully loaded or
       # <tt>false</tt> if it is already loaded (similar to Kernel#require).
       # Raises <tt>LoadError</tt> if the plugin is not found.
-      def load_plugin(path)
-        name = File.basename(path)
-        return false if loaded_plugins.include?(name)
+      def load_plugin(directory)
+        name = File.basename(directory)
+        return false if loaded_plugins.include?(directory)
 
         # Catch nonexistent and empty plugins.
-        raise LoadError, "No such plugin: #{path}" unless plugin_path?(path)
+        raise LoadError, "No such plugin: #{directory}" unless plugin_path?(directory)
 
-        lib_path  = File.join(path, 'lib')
-        init_path = File.join(path, 'init.rb')
+        lib_path  = File.join(directory, 'lib')
+        init_path = File.join(directory, 'init.rb')
         has_lib   = File.directory?(lib_path)
         has_init  = File.file?(init_path)
 
         # Add lib to load path.
         $LOAD_PATH.unshift(lib_path) if has_lib
+        
+        # Allow plugins to reference the current configuration object
+        config = configuration 
 
         # Evaluate init.rb.
         silence_warnings { eval(IO.read(init_path), binding) } if has_init
