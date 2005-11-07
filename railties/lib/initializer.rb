@@ -1,4 +1,5 @@
 require 'logger'
+require 'set'
 
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 
@@ -22,7 +23,10 @@ module Rails
   class Initializer
     # The Configuration instance used by this Initializer instance.
     attr_reader :configuration
-    
+
+    # The set of loaded plugins.
+    attr_reader :loaded_plugins
+
     # Runs the initializer. By default, this will invoke the #process method,
     # which simply executes all of the initialization routines. Alternately,
     # you can specify explicitly which initialization routine you want:
@@ -40,8 +44,9 @@ module Rails
     # instance.
     def initialize(configuration)
       @configuration = configuration
+      @loaded_plugins = Set.new
     end
-    
+
     # Sequentially step through all of the available initialization routines,
     # in order:
     #
@@ -120,32 +125,19 @@ module Rails
     def load_framework_info
       require 'rails_info'
     end
-    
-    # Loads all plugins in the <tt>vendor/plugins</tt> directory. Each
-    # subdirectory of <tt>vendor/plugins</tt> is inspected as follows:
+
+    # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
+    # defaults to <tt>vendor/plugins</tt> but may also be set to a list of
+    # paths, such as
+    #   config.plugin_paths = ['lib/plugins', 'vendor/plugins']
     #
-    # * if the directory has a +lib+ subdirectory, add it to the load path
-    # * if the directory contains an <tt>init.rb</tt> file, read it in and
-    #   eval it.
+    # Each plugin discovered in <tt>plugin_paths</tt> is initialized:
+    # * add its +lib+ directory, if present, to the beginning of the load path
+    # * evaluate <tt>init.rb</tt> if present
     #
     # After all plugins are loaded, duplicates are removed from the load path.
     def load_plugins
-      config = configuration
-
-      Dir.glob("#{configuration.plugins_path}/*") do |directory|
-        next if File.basename(directory)[0] == ?. || !File.directory?(directory)
-
-        if File.directory?("#{directory}/lib")
-          $LOAD_PATH.unshift "#{directory}/lib"
-        end
-
-        if File.exist?("#{directory}/init.rb")
-          silence_warnings do
-            eval(IO.read("#{directory}/init.rb"), binding)
-          end
-        end
-      end
-
+      find_plugins(configuration.plugin_paths).each { |path| load_plugin path }
       $LOAD_PATH.uniq!
     end
 
@@ -260,8 +252,62 @@ module Rails
         end
       end
     end
+
+    protected
+      # Return a list of plugin paths within base_path.  A plugin path is
+      # a directory that contains either a lib directory or an init.rb file.
+      # This recurses into directories which are not plugin paths, so you
+      # may organize your plugins which the plugin path.
+      def find_plugins(*base_paths)
+        base_paths.flatten.inject([]) do |plugins, base_path|
+          Dir.glob(File.join(base_path, '*')).each do |path|
+            if plugin_path?(path)
+              plugins << path
+            elsif File.directory?(path)
+              plugins += find_plugins(path)
+            end
+          end
+          plugins
+        end
+      end
+
+      def plugin_path?(path)
+        File.directory?(path) and (File.directory?(File.join(path, 'lib')) or File.file?(File.join(path, 'init.rb')))
+      end
+
+      # Load the plugin at <tt>path</tt> unless already loaded.
+      #
+      # Each plugin is initialized:
+      # * add its +lib+ directory, if present, to the beginning of the load path
+      # * evaluate <tt>init.rb</tt> if present
+      #
+      # Returns <tt>true</tt> if the plugin is successfully loaded or
+      # <tt>false</tt> if it is already loaded (similar to Kernel#require).
+      # Raises <tt>LoadError</tt> if the plugin is not found.
+      def load_plugin(path)
+        name = File.basename(path)
+        return false if loaded_plugins.include?(name)
+
+        # Catch nonexistent and empty plugins.
+        raise LoadError, "No such plugin: #{path}" unless plugin_path?(path)
+
+        lib_path  = File.join(path, 'lib')
+        init_path = File.join(path, 'init.rb')
+        has_lib   = File.directory?(lib_path)
+        has_init  = File.file?(init_path)
+
+        # Add lib to load path.
+        $LOAD_PATH.unshift(lib_path) if has_lib
+
+        # Evaluate init.rb.
+        silence_warnings { eval(IO.read(init_path), binding) } if has_init
+
+        # Add to set of loaded plugins.
+        loaded_plugins << name
+        true
+      end
   end
-  
+
   # The Configuration class holds all the parameters for the Initializer and
   # ships with defaults that suites most Rails applications. But it's possible
   # to overwrite everything. Usually, you'll create an Configuration file
@@ -339,6 +385,10 @@ module Rails
     # any method of +nil+. Set to +false+ for the standard Ruby behavior.
     attr_accessor :whiny_nils
     
+    # The path to the root of the plugins directory. By default, it is in
+    # <tt>vendor/plugins</tt>.
+    attr_accessor :plugin_paths
+
     # Create a new Configuration instance, initialized with the default
     # values.
     def initialize
@@ -351,8 +401,9 @@ module Rails
       self.cache_classes                = default_cache_classes
       self.breakpoint_server            = default_breakpoint_server
       self.whiny_nils                   = default_whiny_nils
+      self.plugin_paths                 = default_plugin_paths
       self.database_configuration_file  = default_database_configuration_file
-      
+
       for framework in default_frameworks
         self.send("#{framework}=", OrderedOptions.new)
       end
@@ -368,15 +419,9 @@ module Rails
     # The path to the current environment's file (development.rb, etc.). By
     # default the file is at <tt>config/environments/#{environment}.rb</tt>.
     def environment_path
-      "#{RAILS_ROOT}/config/environments/#{environment}.rb"
+      "#{root_path}/config/environments/#{environment}.rb"
     end
 
-    # The path to the root of the plugins directory. By default, it is in
-    # <tt>vendor/plugins</tt>.
-    def plugins_path
-      "#{RAILS_ROOT}/vendor/plugins"
-    end
-    
     # Return the currently selected environment. By default, it returns the
     # value of the +RAILS_ENV+ constant.
     def environment
@@ -384,17 +429,21 @@ module Rails
     end
 
     private
+      def root_path
+        ::RAILS_ROOT
+      end
+
       def default_frameworks
         [ :active_record, :action_controller, :action_view, :action_mailer, :action_web_service ]
       end
     
       def default_load_paths
-        paths = ["#{RAILS_ROOT}/test/mocks/#{environment}"]
+        paths = ["#{root_path}/test/mocks/#{environment}"]
 
         # Then model subdirectories.
         # TODO: Don't include .rb models as load paths
-        paths.concat(Dir["#{RAILS_ROOT}/app/models/[_a-z]*"])
-        paths.concat(Dir["#{RAILS_ROOT}/components/[_a-z]*"])
+        paths.concat(Dir["#{root_path}/app/models/[_a-z]*"])
+        paths.concat(Dir["#{root_path}/components/[_a-z]*"])
 
         # Followed by the standard includes.
         # TODO: Don't include dirs for frameworks that are not used
@@ -416,11 +465,11 @@ module Rails
           vendor/rails/activerecord/lib
           vendor/rails/actionmailer/lib
           vendor/rails/actionwebservice/lib
-        ).map { |dir| "#{RAILS_ROOT}/#{dir}" }.select { |dir| File.directory?(dir) }
+        ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
       end
 
       def default_log_path
-        File.join(RAILS_ROOT, 'log', "#{environment}.log")
+        File.join(root_path, 'log', "#{environment}.log")
       end
       
       def default_log_level
@@ -428,15 +477,15 @@ module Rails
       end
       
       def default_database_configuration_file
-        File.join(RAILS_ROOT, 'config', 'database.yml')
+        File.join(root_path, 'config', 'database.yml')
       end
       
       def default_view_path
-        File.join(RAILS_ROOT, 'app', 'views')
+        File.join(root_path, 'app', 'views')
       end
       
       def default_controller_paths
-        [ File.join(RAILS_ROOT, 'app', 'controllers'), File.join(RAILS_ROOT, 'components') ]
+        [ File.join(root_path, 'app', 'controllers'), File.join(root_path, 'components') ]
       end
       
       def default_dependency_mechanism
@@ -453,6 +502,10 @@ module Rails
       
       def default_whiny_nils
         false
+      end
+
+      def default_plugin_paths
+        ["#{root_path}/vendor/plugins"]
       end
   end
 end

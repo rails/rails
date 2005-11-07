@@ -1,5 +1,11 @@
 *SVN*
 
+* New configuration option config.plugin_paths which may be a single path like the default 'vendor/plugins' or an array of paths: ['vendor/plugins', 'lib/plugins'].  [Jeremy Kemper]
+
+* Plugins are discovered in nested paths, so you can organize your plugins directory as you like.  [Jeremy Kemper]
+
+* Refactor load_plugin from load_plugins.  #2757 [alex.r.moon@gmail.com]
+
 * Make use of silence_stderr in script/lighttpd, script/plugin, and Rails::Info [Sam Stephenson]
 
 * Enable HTTP installation of plugins when svn isn't avaialable. Closes #2661. [Chad Fowler]
