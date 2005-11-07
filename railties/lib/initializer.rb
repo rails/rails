@@ -286,7 +286,7 @@ module Rails
       # Raises <tt>LoadError</tt> if the plugin is not found.
       def load_plugin(directory)
         name = File.basename(directory)
-        return false if loaded_plugins.include?(directory)
+        return false if loaded_plugins.include?(name)
 
         # Catch nonexistent and empty plugins.
         raise LoadError, "No such plugin: #{directory}" unless plugin_path?(directory)
