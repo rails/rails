@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove bogus hyphen from script/process/reaper calls to 'ps'.  #2767 [anonymous]
+
 * Copy lighttpd.conf when it is first needed, instead of on app creation [Jamis Buck]
 
 * Use require_library_or_gem 'fcgi' in script/server [Sam Stephenson]
