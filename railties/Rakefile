@@ -37,7 +37,7 @@ LOG_FILES    = %w( server.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html robots.txt favicon.ico 
                    javascripts/prototype.js
                    javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js )
-BIN_FILES    = %w( about breakpointer console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/spinner runner server lighttpd plugin )
+BIN_FILES    = %w( about breakpointer console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/spinner runner server plugin )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )
 

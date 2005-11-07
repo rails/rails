@@ -1,5 +1,7 @@
 *SVN*
 
+* Added default lighttpd config in config/lighttpd.conf and added a default runner for lighttpd in script/server (works like script/server, but using lighttpd and FastCGI). It will use lighttpd if available, otherwise WEBrick. You can force either or using 'script/server lighttpd' or 'script/server webrick' [DHH]
+
 * New configuration option config.plugin_paths which may be a single path like the default 'vendor/plugins' or an array of paths: ['vendor/plugins', 'lib/plugins'].  [Jeremy Kemper]
 
 * Plugins are discovered in nested paths, so you can organize your plugins directory as you like.  [Jeremy Kemper]
@@ -10,15 +12,13 @@
 
 * Enable HTTP installation of plugins when svn isn't avaialable. Closes #2661. [Chad Fowler]
 
-* Load Rails::Info after initialization [Sam Stephenson]
-
 * Added script/about to display formatted Rails::Info output [Sam Stephenson]
 
 * Added Rails::Info to catalog assorted information about a Rails application's environment [Sam Stephenson]
 
-* Tail the logfile when running script/lighttpd in the foreground [Sam Stephenson]
+* Tail the logfile when running script/server lighttpd in the foreground [Sam Stephenson]
 
-* Try to guess the port number from config/lighttpd.conf in script/lighttpd [Sam Stephenson]
+* Try to guess the port number from config/lighttpd.conf in script/server lighttpd [Sam Stephenson]
 
 * Don't reap spawn-fcgi.  #2727 [matthew@walker.wattle.id.au]
 
@@ -61,8 +61,6 @@
 * Added script/plugin to manage plugins (install, remove, list, etc) [Ryan Tomayko]
 
 * Added test_plugins task: Run the plugin tests in vendor/plugins/**/test (or specify with PLUGIN=name) [DHH]
-
-* Added default lighttpd config in config/lighttpd.conf and added a default runner for lighttpd in script/lighttpd (works like script/server, but using lighttpd and FastCGI) [DHH]
 
 * Added plugin generator to create a stub structure for a new plugin in vendor/plugins (see "script/generate plugin" for help) [DHH]
 
