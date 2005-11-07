@@ -1,8 +1,4 @@
-# Set up database connections for each environment.
-# By default, development, test, and production connect to local MySQL.
-# Example configurations for PostgreSQL and SQLite are at the end.
-
-# MySQL.  Versions 4.1 and 5.0 are recommended.
+# MySQL (default setup).  Versions 4.1 and 5.0 are recommended.
 #
 # Get the fast C bindings:
 #   gem install mysql
@@ -14,11 +10,10 @@ development:
   database: <%= app_name %>_development
   username: root
   password:
-
-  <%= "socket: #{socket}" if socket %>
+<%= "  socket: #{socket}" if socket -%>
 
   # Connect on a TCP socket.  If omitted, the adapter will connect on the
-  # domain socket given by the socket parameter instead.
+  # domain socket given by socket instead.
   #host: localhost
   #port: 3306
   
@@ -28,14 +23,14 @@ development:
 test:
   adapter: mysql
   database: <%= app_name %>_test
-  <%= "socket: #{socket}" if socket %>
+<%= "  socket: #{socket}" if socket -%>
   username: root
   password:
 
 production:
   adapter: mysql
   database: <%= app_name %>_production
-  <%= "socket: #{socket}" if socket %>
+<%= "  socket: #{socket}" if socket -%>
   username: root
   password: 
 
