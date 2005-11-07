@@ -1,5 +1,7 @@
 *SVN*
 
+* Define kernel.rb methods in "class Object" instead of "module Kernel" to work around a Windows peculiarity [Sam Stephenson]
+
 * Fix broken tests caused by incomplete loading of active support. [Nicholas Seckar]
 
 * Fix status pluralization bug so status_codes doesn't get pluralized as statuses_code.  #2758 [keithm@infused.org]
