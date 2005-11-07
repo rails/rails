@@ -50,3 +50,22 @@ desc "Unlock this application from freeze of gems or edge and return to a fluid 
 task :unfreeze_rails do
   rm_rf "vendor/rails"
 end
+
+desc "Add new scripts to the application script/ directory"
+task :add_new_scripts do
+  local_base = "script"
+  edge_base  = "#{File.dirname(__FILE__)}/../../bin"
+
+  local = Dir["#{local_base}/**/*"].reject { |path| File.directory?(path) }
+  edge  = Dir["#{edge_base}/**/*"].reject { |path| File.directory?(path) }
+  
+  edge.each do |script|
+    base_name = script[(edge_base.length+1)..-1]
+    next if base_name == "rails"
+    next if local.detect { |path| base_name == path[(local_base.length+1)..-1] }
+    if !File.directory?("#{local_base}/#{File.dirname(base_name)}")
+      mkdir_p "#{local_base}/#{File.dirname(base_name)}"
+    end
+    install script, "#{local_base}/#{base_name}", :mode => 0655
+  end
+end

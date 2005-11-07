@@ -1,5 +1,7 @@
 *SVN*
 
+* Add 'add_new_scripts' rake task for adding new rails scripts to script/* [Jamis Buck]
+
 * Remove bogus hyphen from script/process/reaper calls to 'ps'.  #2767 [anonymous]
 
 * Copy lighttpd.conf when it is first needed, instead of on app creation [Jamis Buck]
