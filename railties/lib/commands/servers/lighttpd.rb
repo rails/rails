@@ -21,6 +21,14 @@ end
 
 config_file = "#{RAILS_ROOT}/config/lighttpd.conf"
 
+unless File.exist?(config_file)
+  require 'fileutils'
+  source = File.expand_path(File.join(File.dirname(__FILE__),
+     "..", "..", "..", "configs", "lighttpd.conf"))
+  puts "=> #{config_file} not found, copying from #{source}"
+  FileUtils.cp source, config_file
+end
+
 port = IO.read(config_file).scan(/^server.port\s*=\s*(\d+)/).first rescue 3000
 puts "=> Rails application started on http://0.0.0.0:#{port}"
 

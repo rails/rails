@@ -39,7 +39,6 @@ class AppGenerator < Rails::Generator::Base
       }
       m.template "configs/routes.rb",     "config/routes.rb"
       m.template "configs/apache.conf",   "public/.htaccess"
-      m.template "configs/lighttpd.conf", "config/lighttpd.conf"
 
       # Environments
       m.file "environments/boot.rb",        "config/boot.rb"
