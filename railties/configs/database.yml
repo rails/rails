@@ -10,7 +10,7 @@ development:
   database: <%= app_name %>_development
   username: root
   password:
-<%= "  socket: #{socket}" if socket -%>
+<%= "  socket: #{socket}" if socket %>
 
   # Connect on a TCP socket.  If omitted, the adapter will connect on the
   # domain socket given by socket instead.
@@ -25,14 +25,14 @@ test:
   database: <%= app_name %>_test
   username: root
   password:
-<%= "  socket: #{socket}" if socket -%>
+<%= "  socket: #{socket}" if socket %>
 
 production:
   adapter: mysql
   database: <%= app_name %>_production
   username: root
   password: 
-<%= "  socket: #{socket}" if socket -%>
+<%= "  socket: #{socket}" if socket %>
 
 
 # PostgreSQL versions 7.4 - 8.1
