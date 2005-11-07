@@ -119,7 +119,7 @@ class RailsEnvironment
 
   def externals
     return [] unless use_externals?
-    ext = `svn propget svn:externals #{root}/vendor/plugins 2> /dev/null`
+    ext = silence_stderr { `svn propget svn:externals #{root}/vendor/plugins` }
     ext.reject{ |line| line.strip == '' }.map do |line| 
       line.strip.split(/\s+/, 2) 
     end

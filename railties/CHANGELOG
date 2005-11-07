@@ -1,5 +1,7 @@
 *SVN*
 
+* Make use of silence_stderr in script/lighttpd, script/plugin, and Rails::Info [Sam Stephenson]
+
 * Enable HTTP installation of plugins when svn isn't avaialable. Closes #2661. [Chad Fowler]
 
 * Load Rails::Info after initialization [Sam Stephenson]

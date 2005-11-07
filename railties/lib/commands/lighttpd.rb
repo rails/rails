@@ -1,4 +1,6 @@
-unless RUBY_PLATFORM !~ /mswin/ && `lighttpd -version 2>/dev/null`.size > 0
+require 'active_support'
+
+unless RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `lighttpd -version` }.blank?
   puts "lighttpd is not available on your system (or not in your path)"
   exit 1
 end

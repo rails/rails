@@ -29,8 +29,8 @@ module Rails
         "#{component.classify}::Version::STRING".constantize
       end
     
-      def edge_rails_revision
-        svn_info[/^Revision: (\d+)/, 1] || 'unknown'
+      def edge_rails_revision(info = svn_info)
+        info[/^Revision: (\d+)/, 1]
       end
     
       def to_s
@@ -45,7 +45,7 @@ module Rails
     protected
       def svn_info
         Dir.chdir("#{RAILS_ROOT}/vendor/rails") do
-          IO.popen('svn info') { |f| f.read }
+          silence_stderr { `svn info` }
         end
       end
     end
