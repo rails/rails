@@ -1,5 +1,7 @@
 *SVN*
 
+* Added request as instance method to views, so you can do <%= request.env["HTTP_REFERER"] %>, just like you can already access response, session, and the likes [DHH]
+
 * Fix conflict with assert_tag and Glue gem #2255 [david.felstead@gmail.com]
 
 * Add documentation to assert_tag indicating that it only works with well-formed XHTML #1937, #2570 [Jamis Buck]

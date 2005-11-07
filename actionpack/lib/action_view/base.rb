@@ -122,7 +122,7 @@ module ActionView #:nodoc:
     attr_accessor :base_path, :assigns, :template_extension
     attr_accessor :controller
 
-    attr_reader :logger, :params, :response, :session, :headers, :flash
+    attr_reader :logger, :params, :request, :response, :session, :headers, :flash
 
     # Specify trim mode for the ERB compiler. Defaults to '-'.
     # See ERB documentation for suitable values.
