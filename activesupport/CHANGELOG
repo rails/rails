@@ -1,4 +1,4 @@
-*SVN*
+*1.2.3* (November 7th, 2005)
 
 * Define kernel.rb methods in "class Object" instead of "module Kernel" to work around a Windows peculiarity [Sam Stephenson]
 

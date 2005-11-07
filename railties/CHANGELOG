@@ -1,4 +1,4 @@
-*SVN*
+*0.14.3 (RC4)* (November 7th, 2005)
 
 * Add 'add_new_scripts' rake task for adding new rails scripts to script/* [Jamis Buck]
 

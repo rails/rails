@@ -1,4 +1,4 @@
-*SVN*
+*1.11.0* (November 7th, 2005)
 
 * Added request as instance method to views, so you can do <%= request.env["HTTP_REFERER"] %>, just like you can already access response, session, and the likes [DHH]
 
