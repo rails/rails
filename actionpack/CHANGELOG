@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix conflict with assert_tag and Glue gem #2255 [david.felstead@gmail.com]
+
 * Add documentation to assert_tag indicating that it only works with well-formed XHTML #1937, #2570 [Jamis Buck]
 
 * Added action_pack.rb stub so that ActionPack::Version loads properly [Sam Stephenson]

@@ -1,5 +1,5 @@
-require 'html/tokenizer'
-require 'html/node'
+require File.dirname(__FILE__) + '/tokenizer'
+require File.dirname(__FILE__) + '/node'
 
 module HTML #:nodoc:
   
