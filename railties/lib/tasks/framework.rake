@@ -30,8 +30,8 @@ end
 desc "Lock this application to the Edge Rails (by exporting from Subversion).  Defaults to svn HEAD; do 'rake freeze_edge REVISION=1234' to lock to a specific revision."
 task :freeze_edge do
   $verbose = false
-  `svn --version`
-  unless $?.success?
+  `svn --version` rescue nil
+  unless !$?.nil? && $?.success?
     $stderr.puts "ERROR: Must have subversion (svn) available in the PATH to lock this application to Edge Rails"
     exit 1
   end

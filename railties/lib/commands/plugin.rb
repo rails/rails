@@ -93,8 +93,8 @@ class RailsEnvironment
   end
  
   def use_svn?
-    `svn --version`
-    $?.success?
+    `svn --version` rescue nil
+    !$?.nil? && $?.success?
   end
 
   def use_externals?
