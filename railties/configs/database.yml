@@ -23,16 +23,16 @@ development:
 test:
   adapter: mysql
   database: <%= app_name %>_test
-<%= "  socket: #{socket}" if socket -%>
   username: root
   password:
+<%= "  socket: #{socket}" if socket -%>
 
 production:
   adapter: mysql
   database: <%= app_name %>_production
-<%= "  socket: #{socket}" if socket -%>
   username: root
   password: 
+<%= "  socket: #{socket}" if socket -%>
 
 
 # PostgreSQL versions 7.4 - 8.1
