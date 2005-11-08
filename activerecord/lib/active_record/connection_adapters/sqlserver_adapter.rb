@@ -478,7 +478,7 @@ module ActiveRecord
           case order
             when  /DESC/i     then order.gsub(/DESC/i, "ASC")
             when  /ASC/i      then order.gsub(/ASC/i, "DESC")
-            else                   String.new(order).insert(-1, " DESC")
+            else                   String.new(order).split(',').join(' DESC,') + ' DESC'
           end
         end
 

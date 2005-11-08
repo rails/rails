@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct handling of complex order clauses with SQL Server limit emulation.  #2770 [Tom Ward <tom@popdog.net>, Matt B.]
+
 * Correct whitespace problem in Oracle default column value parsing.  #2788 [rick@rickbradley.com]
 
 * Destroy associated has_and_belongs_to_many records after all before_destroy callbacks but before destroy.  This allows you to act on the habtm association as you please while preserving referential integrity.  #2065 [larrywilliams1@gmail.com, sam.kirchmeier@gmail.com, elliot@townx.org, Jeremy Kemper]
