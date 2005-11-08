@@ -331,7 +331,7 @@ begin
                 and col.owner = nvl(syn.table_owner, cat.owner)
                 and col.table_name = nvl(syn.table_name, cat.table_name)
           }).map do |row|
-            row['data_default'].gsub!(/^'(.*)'$/, '\1') if row['data_default']
+            row['data_default'].gsub!(/^'(.*)'\s*$/, '\1') if row['data_default']
             OCIColumn.new(
               oci_downcase(row['column_name']), 
               row['data_default'],
