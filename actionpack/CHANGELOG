@@ -1,3 +1,10 @@
+*SVN*
+
+* Do not raise an exception when default helper is missing; log a debug message instead.  It's nice to delete empty helpers.  [Jeremy Kemper]
+
+* Controllers with acronyms in their names (e.g. PDFController) require the correct default helper (PDFHelper in file pdf_helper.rb).  #2262 [jeff@opendbms.com]
+
+
 *1.11.0* (November 7th, 2005)
 
 * Added request as instance method to views, so you can do <%= request.env["HTTP_REFERER"] %>, just like you can already access response, session, and the likes [DHH]

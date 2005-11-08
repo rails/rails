@@ -108,12 +108,23 @@ module ActionController #:nodoc:
       end
 
       private 
+        def default_helper_module!
+          module_name = name.sub(/^Controllers::/, '').sub(/Controller$|$/, 'Helper')
+          module_path = module_name.split('::').map { |m| m.underscore }.join('/')
+          require_dependency module_path
+          helper module_name.constantize
+        rescue LoadError
+          logger.debug("#{name}: missing default helper path #{module_path}") if logger
+        rescue NameError
+          logger.debug("#{name}: missing default helper module #{module_name}") if logger
+        end
+
         def inherited_with_helper(child)
           inherited_without_helper(child)
           begin
             child.master_helper_module = Module.new
             child.master_helper_module.send :include, master_helper_module
-            child.helper child.controller_path
+            child.send :default_helper_module!
           rescue MissingSourceFile => e
             raise unless e.is_missing?("helpers/#{child.controller_path}_helper")
           end

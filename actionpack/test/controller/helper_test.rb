@@ -14,6 +14,14 @@ module Fun
 
     def rescue_action(e) raise end
   end
+
+  class PDFController < ActionController::Base
+    def test
+      render :inline => "test: <%= foobar %>"
+    end
+
+    def rescue_action(e) raise end
+  end
 end
 
 module LocalAbcHelper
@@ -100,11 +108,19 @@ class HelperTest < Test::Unit::TestCase
   end
 
   def test_helper_for_nested_controller
-    @request    = ActionController::TestRequest.new
-    @response   = ActionController::TestResponse.new
-    @request.action = "render_hello_world"
-    
-    assert_equal "hello: Iz guuut!", Fun::GamesController.process(@request, @response).body
+    request  = ActionController::TestRequest.new
+    response = ActionController::TestResponse.new
+    request.action = 'render_hello_world'
+
+    assert_equal 'hello: Iz guuut!', Fun::GamesController.process(request, response).body
+  end
+
+  def test_helper_for_acronym_controller
+    request  = ActionController::TestRequest.new
+    response = ActionController::TestResponse.new
+    request.action = 'test'
+
+    assert_equal 'test: baz', Fun::PDFController.process(request, response).body
   end
 
   private
