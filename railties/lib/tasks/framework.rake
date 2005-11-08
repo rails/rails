@@ -1,29 +1,28 @@
 desc "Lock this application to the current gems (by unpacking them into vendor/rails)"
 task :freeze_gems do
+  deps = %w(actionpack activerecord actionmailer activesupport actionwebservice)
+  require 'rubygems'
+
+  rails = if version = ENV['VERSION']
+            Gem.cache.search('rails', "= #{version}").first
+          else
+            Gem.cache.search('rails').sort_by { |g| g.version }.last
+          end
+
+  unless rails
+    puts "No rails gem #{version} is installed.  Do 'gem list rails' to see what you have available."
+    exit
+  end
+
+  puts "Freezing to the gems for Rails #{rails.version}"
   rm_rf   "vendor/rails"
   mkdir_p "vendor/rails"
 
-  deps = %w( actionpack activerecord actionmailer activesupport actionwebservice )
-  if version = ENV['VERSION']
-    puts "Freezing to the gems for Rails #{version}"
-    require 'rubygems'
-    if rails = Gem.cache.search('rails', "= #{version}")
-      rails.dependencies.select { |g| deps.include? g.name }.each do |g|
-        system "cd vendor/rails; gem unpack -v '#{g.version_requirements}' #{g.name}; mv #{g.name}* #{g.name}"
-      end
-      system "cd vendor/rails; gem unpack -v '= #{version}' rails"
-    else
-      puts "No rails gem version #{version} is installed.  Do 'gem list rails' to see which versions you have available."
-      exit
-    end
-  else
-    puts "Freezing to your latest Rails gems"
-    for gem in deps
-      system "cd vendor/rails; gem unpack #{gem}"
-      FileUtils.mv(Dir.glob("vendor/rails/#{gem}*").first, "vendor/rails/#{gem}")
-    end
-    system "cd vendor/rails; gem unpack rails"
+  rails.dependencies.select { |g| deps.include? g.name }.each do |g|
+    system "cd vendor/rails; gem unpack -v '#{g.version_requirements}' #{g.name}; mv #{g.name}* #{g.name}"
   end
+  system "cd vendor/rails; gem unpack -v '= #{version}' rails"
+
   FileUtils.mv(Dir.glob("vendor/rails/rails*").first, "vendor/rails/railties")
 end
 
