@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecate the old, confusing :exclusively_dependent option in favor of :dependent => :delete_all.  [Jeremy Kemper]
+
 * More compatible Oracle column reflection.  #2771 [Ryan Davis <ryand-ruby@zenspider.com>, Michael Schoen <schoenm@earthlink.net>]
 
 

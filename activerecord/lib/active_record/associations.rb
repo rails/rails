@@ -311,10 +311,12 @@ module ActiveRecord
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_many association will use "person_id"
       #   as the default foreign_key.
       # * <tt>:dependent</tt>   - if set to :destroy (or true) all the associated objects are destroyed
-      #   alongside this object. Also accepts :nullify which will set the associated object's foreign key
-      #   field to NULL.
+      #   alongside this object by calling their destroy method.  If set to :delete_all all associated
+      #   objects are deleted *without* calling their destroy method.  If set to :nullify all associated
+      #   objects' foreign keys are set to NULL *without* calling their save callbacks.
       #   May not be set if :exclusively_dependent is also set.
-      # * <tt>:exclusively_dependent</tt>   - if set to true all the associated object are deleted in one SQL statement without having their
+      # * <tt>:exclusively_dependent</tt>   - Deprecated; equivalent to :dependent => :delete_all. If set to true all
+      #   the associated object are deleted in one SQL statement without having their
       #   before_destroy callback run. This should only be used on associations that depend solely on this class and don't need to do any
       #   clean-up in before_destroy. The upside is that it's much faster, especially if there's a counter_cache involved.
       #   May not be set if :dependent is also set.
@@ -350,23 +352,27 @@ module ActiveRecord
         require_association_class(association_class_name)
 
         raise ArgumentError, ':dependent and :exclusively_dependent are mutually exclusive options.  You may specify one or the other.' if options[:dependent] and options[:exclusively_dependent]
-          
+
+        if options[:exclusively_dependent]
+          options[:dependent] = :delete_all
+          #warn "The :exclusively_dependent option is deprecated.  Please use :dependent => :delete_all instead.")
+        end
+
         # See HasManyAssociation#delete_records.  Dependent associations
         # delete children, otherwise foreign key is set to NULL.
         case options[:dependent]
           when :destroy, true  
             module_eval "before_destroy '#{association_name}.each { |o| o.destroy }'"
+          when :delete_all
+            module_eval "before_destroy { |record| #{association_class_name}.delete_all(%(#{association_class_primary_key_name} = \#{record.quoted_id})) }"
           when :nullify
             module_eval "before_destroy { |record| #{association_class_name}.update_all(%(#{association_class_primary_key_name} = NULL),  %(#{association_class_primary_key_name} = \#{record.quoted_id})) }"
           when nil, false
             # pass
           else
-            raise ArgumentError, 'The :dependent option expects either true, :destroy or :nullify' 
-        end   
-        
-        if options[:exclusively_dependent]
-          module_eval "before_destroy { |record| #{association_class_name}.delete_all(%(#{association_class_primary_key_name} = \#{record.quoted_id})) }"
+            raise ArgumentError, 'The :dependent option expects either true, :destroy, :delete_all, or :nullify' 
         end
+
 
         add_multiple_associated_save_callbacks(association_name)
         add_association_callbacks(association_name, options)
