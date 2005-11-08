@@ -1246,10 +1246,13 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_removing_associations_on_destroy
-    Developer.find(1).destroy
-    assert Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1").empty?
+    david = DeveloperWithBeforeDestroyRaise.find(1)
+    assert !david.projects.empty?
+    assert_nothing_raised { david.destroy }
+    assert david.projects.empty?
+    assert DeveloperWithBeforeDestroyRaise.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1").empty?
   end
-  
+
   def test_additional_columns_from_join_table
     # SQL Server doesn't have a separate column type just for dates, 
     # so the time is in the string and incorrectly formatted

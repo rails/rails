@@ -652,8 +652,17 @@ module ActiveRecord
       
         collection_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasAndBelongsToManyAssociation)
 
-        before_destroy_sql = "DELETE FROM #{options[:join_table]} WHERE #{association_class_primary_key_name} = \\\#{self.quoted_id}"
-        module_eval(%{before_destroy "self.connection.delete(%{#{before_destroy_sql}})"}) # "
+        # Don't use a before_destroy callback since users' before_destroy
+        # callbacks will be executed after the association is wiped out.
+        old_method = "destroy_without_habtm_shim_for_#{association_name}"
+        class_eval <<-end_eval
+          alias_method :#{old_method}, :destroy_without_callbacks
+          def destroy_without_callbacks
+            #{association_name}.clear
+            #{old_method}
+          end
+        end_eval
+
         add_association_callbacks(association_name, options)
         
         # deprecated api
