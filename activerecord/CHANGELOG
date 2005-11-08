@@ -1,3 +1,8 @@
+*SVN*
+
+* More compatible Oracle column reflection.  #2771 [Ryan Davis <ryand-ruby@zenspider.com>, Michael Schoen <schoenm@earthlink.net>]
+
+
 *1.13.0* (November 7th, 2005)
 
 * Fixed faulty regex in get_table_name method (SQLServerAdapter) #2639 [Ryan Tomayko]
