@@ -1,5 +1,6 @@
 require 'logger'
 require 'set'
+require File.join(File.dirname(__FILE__), 'railties_path')
 
 RAILS_ENV = (ENV['RAILS_ENV'] || 'development').dup unless defined?(RAILS_ENV)
 
@@ -488,7 +489,7 @@ module Rails
       end
       
       def default_controller_paths
-        [ File.join(root_path, 'app', 'controllers'), File.join(root_path, 'components') ]
+        [ File.join(root_path, 'app', 'controllers'), File.join(root_path, 'components'), File.join(RAILTIES_PATH, 'builtin', 'controllers') ]
       end
       
       def default_dependency_mechanism

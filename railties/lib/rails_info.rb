@@ -42,6 +42,16 @@ module Rails
 
       alias inspect to_s
       
+      def to_html
+        returning table = '<table>' do
+          properties.each do |(name, value)|
+            table << %(<tr><td class="name">#{CGI.escapeHTML(name)}</td>)
+            table << %(<td class="value">#{CGI.escapeHTML(value)}</td></tr>)
+          end
+          table << '</table>'
+        end
+      end
+      
     protected
       def svn_info
         Dir.chdir("#{RAILS_ROOT}/vendor/rails") do
