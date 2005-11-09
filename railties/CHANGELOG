@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't detach or fork for script/server tailing [Nicholas Seckar]
+
 * Added automatic browser launching on OS X when starting script/server [DHH]
 
 * Changed all script/* to use #!/usr/bin/env ruby instead of hard-coded Ruby path. public/dispatcher.* still uses the hard-coded path  for compatibility with web servers that don't have Ruby in path [DHH]

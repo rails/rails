@@ -8,16 +8,6 @@ unless defined?(FCGI)
   exit 1
 end
 
-def tail_f(input)
-  loop do
-    line = input.gets
-    yield line if line
-    if input.eof?
-      sleep 1
-      input.seek(input.tell)
-    end
-  end
-end
 
 config_file = "#{RAILS_ROOT}/config/lighttpd.conf"
 
@@ -32,6 +22,8 @@ end
 port = IO.read(config_file).scan(/^server.port\s*=\s*(\d+)/).first rescue 3000
 puts "=> Rails application started on http://0.0.0.0:#{port}"
 
+tail_thread = nil
+
 if ARGV.first == "-d"
   puts "=> Configure in config/lighttpd.conf"
   detach = true
@@ -40,18 +32,26 @@ else
   puts "=> Ctrl-C to shutdown server (see config/lighttpd.conf for options)"
   detach = false
 
-  Process.detach(fork do
-    begin
-      File.open("#{RAILS_ROOT}/log/#{RAILS_ENV}.log", 'r') do |log|
-        log.seek(0, IO::SEEK_END)
-        tail_f(log) {|line| puts line}
+  log_path = "#{RAILS_ROOT}/log/#{RAILS_ENV}.log"
+  cursor = File.size(log_path)
+  last_checked = Time.now
+  tail_thread = Thread.new do
+    File.open(log_path, 'r') do |f|
+      loop do
+        f.seek cursor
+        if f.mtime > last_checked
+          last_checked = f.mtime
+          contents = f.read
+          cursor += contents.length
+          print contents
+        end
+        sleep 1
       end
-    rescue Exception
     end
-    exit
-  end)
+  end
 end
 
 trap(:INT) { exit }
 Thread.new { sleep 0.5; `open http://0.0.0.0:#{port}` } if RUBY_PLATFORM =~ /darwin/
 `lighttpd #{!detach ? "-D " : ""}-f #{config_file}`
+tail_thread.kill if tail_thread
