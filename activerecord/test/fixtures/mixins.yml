@@ -28,7 +28,17 @@ tree3_1:
   id: 1006
   type: TreeMixin
   parent_id:
-  
+
+tree_without_order_1:
+  id: 1101
+  type: TreeMixinWithoutOrder
+  parent_id:
+
+tree_without_order_2:
+  id: 1100
+  type: TreeMixinWithoutOrder
+  parent_id:
+
 # List mixins
 
 <% (1..4).each do |counter| %>  

@@ -6,6 +6,10 @@ class TreeMixin < Mixin
     acts_as_tree :foreign_key => "parent_id", :order => "id"
 end
 
+class TreeMixinWithoutOrder < Mixin
+    acts_as_tree :foreign_key => "parent_id"
+end
+
 class ListMixin < Mixin
   acts_as_list :column => "pos", :scope => :parent
 

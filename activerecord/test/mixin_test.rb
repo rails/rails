@@ -291,6 +291,18 @@ class TreeTest < Test::Unit::TestCase
   end
 end
 
+class TreeTestWithoutOrder < Test::Unit::TestCase
+  fixtures :mixins
+  
+  def test_root
+    assert [mixins(:tree_without_order_1), mixins(:tree_without_order_2)].include?(TreeMixinWithoutOrder.root)
+  end                                                                  
+
+  def test_roots
+    assert_equal [], [mixins(:tree_without_order_1), mixins(:tree_without_order_2)] - TreeMixinWithoutOrder.roots
+  end
+end
+
 class TouchTest < Test::Unit::TestCase
   fixtures :mixins
   

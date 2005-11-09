@@ -49,10 +49,10 @@ module ActiveRecord
 
           module_eval <<-END
             def self.roots
-              self.find(:all, :conditions => "#{configuration[:foreign_key]} IS NULL", :order => "#{configuration[:order]}")
+              self.find(:all, :conditions => "#{configuration[:foreign_key]} IS NULL", :order => #{configuration[:order].nil? ? "nil" : %Q{"#{configuration[:order]}"}})
             end
             def self.root
-              self.find(:first, :conditions => "#{configuration[:foreign_key]} IS NULL", :order => "#{configuration[:order]}")
+              self.find(:first, :conditions => "#{configuration[:foreign_key]} IS NULL", :order => #{configuration[:order].nil? ? "nil" : %Q{"#{configuration[:order]}"}})
             end
           END
 
