@@ -500,7 +500,7 @@ module ActiveRecord
       # provided.
       #
       #   class Person < ActiveRecord::Base
-      #     validates_format_of :email, :with => /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/, :on => :create
+      #     validates_format_of :email, :with => /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i, :on => :create
       #   end
       #
       # A regular expression must be provided or else an exception will be raised.
