@@ -95,12 +95,14 @@ module ActionController #:nodoc:
         if @session_options == false
           @session = Hash.new
         else
-          if session_options_with_string_keys['new_session'] == true
-            @session = new_session
-          else
-            @session = CGI::Session.new(@cgi, session_options_with_string_keys)
+          stale_session_check! do
+            if session_options_with_string_keys['new_session'] == true
+              @session = new_session
+            else
+              @session = CGI::Session.new(@cgi, session_options_with_string_keys)
+            end
+            @session['__valid_session']
           end
-          stale_session_check!
         end
       end
       @session
@@ -127,7 +129,7 @@ module ActionController #:nodoc:
       end
 
       def stale_session_check!
-        @session['__valid_session']
+        yield
       rescue ArgumentError => argument_error
         if argument_error.message =~ %r{undefined class/module (\w+)}
           begin
