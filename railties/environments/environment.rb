@@ -1,8 +1,8 @@
 # Be sure to restart your web server when you modify this file.
 
-# Uncomment below to force Rails into production mode
-# (Use only when you can't set environment variables through your web/app server)
-# ENV['RAILS_ENV'] ||= 'production' # Keep the ||=, don't use =, or tests will wipe production db
+# Uncomment below to force Rails into production mode when 
+# you don't control web/app server and can't set it the proper way
+# ENV['RAILS_ENV'] ||= 'production'
 
 # Bootstrap the Rails environment, frameworks, and default configuration
 require File.join(File.dirname(__FILE__), 'boot')

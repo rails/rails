@@ -1,5 +1,7 @@
 *SVN*
 
+* Force RAILS_ENV to be "test" when running tests, so that ENV["RAILS_ENV"] = "production" in config/environment.rb doesn't wreck havok [DHH] #2660
+
 * Correct versioning in :freeze_gems Rake task.  #2778 [jakob@mentalized.net, Jeremy Kemper]
 
 * Added an omnipresent RailsInfoController with a properties action that delivers an HTML rendering of Rails::Info (but only when local_request? is true). Added a new default index.html which fetches this with Ajax. [Sam Stephenson]
