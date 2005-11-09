@@ -1,5 +1,7 @@
 *SVN*
 
+* CGI::Session::ActiveRecordStore.data_column_name = 'foobar' to use a different session data column than the 'data' default.  [nbpwie102@sneakemail.com]
+
 * Do not raise an exception when default helper is missing; log a debug message instead.  It's nice to delete empty helpers.  [Jeremy Kemper]
 
 * Controllers with acronyms in their names (e.g. PDFController) require the correct default helper (PDFHelper in file pdf_helper.rb).  #2262 [jeff@opendbms.com]

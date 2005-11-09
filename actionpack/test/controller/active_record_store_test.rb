@@ -74,7 +74,7 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
 
   def test_model_attribute
     assert_kind_of CGI::Session::ActiveRecordStore::Session, @new_session.model
-    assert_equal @new_session.model.data, @new_session.data
+    assert_equal({ 'foo' => 'bar' }, @new_session.model.data)
   end
 
   def teardown
@@ -98,7 +98,7 @@ class ColumnLimitTest < Test::Unit::TestCase
     too_big = ':(' * limit
     s = @session_class.new(:session_id => '666', :data => {'foo' => too_big})
     s.data
-    assert_raises(ActionController::SessionOverflowError) { s.save }
+    assert_raise(ActionController::SessionOverflowError) { s.save }
   end
 end
 
@@ -132,7 +132,7 @@ class SqlBypassActiveRecordStoreTest < ActiveRecordStoreTest
 
   def test_model_attribute
     assert_kind_of CGI::Session::ActiveRecordStore::SqlBypass, @new_session.model
-    assert_equal @new_session.model.data, @new_session.data
+    assert_equal({ 'foo' => 'bar' }, @new_session.model.data)
   end
 end
 

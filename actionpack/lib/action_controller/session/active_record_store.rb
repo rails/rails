@@ -5,33 +5,42 @@ require 'base64'
 
 class CGI
   class Session
-    # Return this session's underlying Session model. Useful for the DB-backed session stores.
+    # Return this session's underlying Session instance. Useful for the DB-backed session stores.
     def model
-      @dbman.model rescue nil
+      @dbman.model if @dbman
     end
 
-    # Proxy missing methods to the underlying Session model.
-    def method_missing(method, *args, &block)
-      if model then model.send(method, *args, &block) else super end
-    end
 
-    # A session store backed by an Active Record class.
+    # A session store backed by an Active Record class.  A default class is
+    # provided, but any object duck-typing to an Active Record +Session+ class
+    # with text +session_id+ and +data+ attributes is sufficient.
     #
-    # A default class is provided, but any object duck-typing to an Active
-    # Record +Session+ class with text +session_id+ and +data+ attributes
-    # may be used as the backing store.
+    # The default assumes a +sessions+ tables with columns:
+    #   +id+ (numeric primary key),
+    #   +session_id+ (text, or longtext if your session data exceeds 65K), and
+    #   +data+ (text or longtext; careful if your session data exceeds 65KB).
+    # The +session_id+ column should always be indexed for speedy lookups.
+    # Session data is marshaled to the +data+ column in Base64 format.
+    # If the data you write is larger than the column's size limit,
+    # ActionController::SessionOverflowError will be raised.
     #
-    # The default assumes a +sessions+ tables with columns +id+ (numeric
-    # primary key), +session_id+ (text, or longtext if your session data exceeds 65K), 
-    # and +data+ (text).  Session data is marshaled to +data+.  +session_id+ should be 
-    # indexed for speedy lookups.
+    # You may configure the table name, primary key, and data column.
+    # For example, at the end of config/environment.rb:
+    #   CGI::Session::ActiveRecordStore::Session.table_name = 'legacy_session_table'
+    #   CGI::Session::ActiveRecordStore::Session.primary_key = 'session_id'
+    #   CGI::Session::ActiveRecordStore::Session.data_column_name = 'legacy_session_data'
+    # Note that setting the primary key to the session_id frees you from
+    # having a separate id column if you don't want it.  However, you must
+    # set session.model.id = session.session_id by hand!  A before_filter
+    # on ApplicationController is a good place.
     #
     # Since the default class is a simple Active Record, you get timestamps
     # for free if you add +created_at+ and +updated_at+ datetime columns to
     # the +sessions+ table, making periodic session expiration a snap.
     #
-    # You may provide your own session class, whether a feature-packed
-    # Active Record or a bare-metal high-performance SQL store, by setting
+    # You may provide your own session class implementation, whether a
+    # feature-packed Active Record or a bare-metal high-performance SQL
+    # store, by setting
     #   +CGI::Session::ActiveRecordStore.session_class = MySessionClass+
     # You must implement these methods:
     #   self.find_by_session_id(session_id)
@@ -41,28 +50,28 @@ class CGI
     #   save
     #   destroy
     #
-    # The fast SqlBypass class is a generic SQL session store.  You may
+    # The example SqlBypass class is a generic SQL session store.  You may
     # use it as a basis for high-performance database-specific stores.
-    #
-    # If the data you are attempting to write to the +data+ column is larger
-    # than the column's size limit, ActionController::SessionOverflowError 
-    # will be raised.
     class ActiveRecordStore
       # The default Active Record class.
       class Session < ActiveRecord::Base
-        before_update :loaded? # Don't try to save if we haven't loaded the session
-        before_save   :marshal_data!
-        before_save   :ensure_data_not_too_big
-        
-        class << self
+        # Customizable data column name.  Defaults to 'data'.
+        cattr_accessor :data_column_name
+        self.data_column_name = 'data'
 
+        # Don't try to save if we haven't loaded the session.
+        before_update :loaded?
+        before_save   :marshal_data!
+        before_save   :raise_on_session_data_overflow!
+
+        class << self
           # Don't try to reload ARStore::Session in dev mode.
           def reloadable? #:nodoc:
             false
           end
-          
+
           def data_column_size_limit
-            columns_hash['data'].limit
+            @data_column_size_limit ||= columns_hash[@@data_column_name].limit
           end
 
           # Hook to set up sessid compatibility.
@@ -79,7 +88,7 @@ class CGI
               CREATE TABLE #{table_name} (
                 id INTEGER PRIMARY KEY,
                 #{connection.quote_column_name('session_id')} TEXT UNIQUE,
-                #{connection.quote_column_name('data')} TEXT(255)
+                #{connection.quote_column_name(@@data_column_name)} TEXT(255)
               )
             end_sql
           end
@@ -111,11 +120,11 @@ class CGI
         # Lazy-unmarshal session state.
         def data
           unless @data
-            case data = read_attribute('data')
+            case d = read_attribute(@@data_column_name)
               when String
-                @data = self.class.unmarshal(data)
+                @data = self.class.unmarshal(d)
               else
-                @data = data || {}
+                @data = d || {}
             end
           end
           @data
@@ -123,9 +132,9 @@ class CGI
 
         private
           def marshal_data!
-            write_attribute('data', self.class.marshal(self.data))
+            write_attribute(@@data_column_name, self.class.marshal(self.data))
           end
-          
+
           # Has the session been loaded yet?
           def loaded?
             !! @data
@@ -134,15 +143,17 @@ class CGI
           # Ensures that the data about to be stored in the database is not
           # larger than the data storage column. Raises
           # ActionController::SessionOverflowError.
-          def ensure_data_not_too_big
-            return unless limit = self.class.data_column_size_limit
-            raise ActionController::SessionOverflowError, ActionController::SessionOverflowError::DEFAULT_MESSAGE if read_attribute('data').size > limit
+          def raise_on_session_data_overflow!
+            limit = self.class.data_column_size_limit
+            if loaded? and limit and read_attribute(@@data_column_name).size > limit
+              raise ActionController::SessionOverflowError
+            end
           end
-
       end
 
       # A barebones session store which duck-types with the default session
-      # store but bypasses Active Record and issues SQL directly.
+      # store but bypasses Active Record and issues SQL directly.  This is
+      # an example session model class meant as a basis for your own classes.
       #
       # The database connection, table name, and session id and data columns
       # are configurable class attributes.  Marshaling and unmarshaling
@@ -257,13 +268,13 @@ class CGI
             end_sql
           end
         end
-
       end
+
 
       # The class used for session storage.  Defaults to
       # CGI::Session::ActiveRecordStore::Session.
       cattr_accessor :session_class
-      @@session_class = Session
+      self.session_class = Session
 
       # Find or instantiate a session given a CGI::Session.
       def initialize(session, option = nil)
