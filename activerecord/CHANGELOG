@@ -1,5 +1,10 @@
 *SVN*
 
+* Upgrade bundled ruby-mysql 0.2.4 with mysql411 shim (see #440) to ruby-mysql
+0.2.6 with a patchset for 4.1 protocol support.  Local change [301] is now a
+part of the main driver; reapplied local change [2182].  Removed GC.start from
+Result.free.  [tommy@tmtm.org, akuroda@gmail.com, Doug Fales <doug.fales@gmail.com>, Jeremy Kemper]
+
 * Correct handling of complex order clauses with SQL Server limit emulation.  #2770 [Tom Ward <tom@popdog.net>, Matt B.]
 
 * Correct whitespace problem in Oracle default column value parsing.  #2788 [rick@rickbradley.com]

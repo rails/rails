@@ -14,7 +14,6 @@ module ActiveRecord
           # Only use the supplied backup Ruby/MySQL driver if no driver is already in place
           begin
             require 'active_record/vendor/mysql'
-            require 'active_record/vendor/mysql411'
             # The ruby version of mysql returns null fields in each_hash
             ConnectionAdapters::MysqlAdapter.null_values_in_each_hash = true
           rescue LoadError

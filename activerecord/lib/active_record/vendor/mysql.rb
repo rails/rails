@@ -1,14 +1,15 @@
-# $Id: mysql.rb,v 1.1 2004/02/24 15:42:29 webster132 Exp $
+# $Id: mysql.rb,v 1.24 2005/02/12 11:37:15 tommy Exp $
 #
-# Copyright (C) 2003 TOMITA Masahiro
+# Copyright (C) 2003-2005 TOMITA Masahiro
 # tommy@tmtm.org
 #
 
 class Mysql
 
-  VERSION = "4.0-ruby-0.2.4"
+  VERSION = "4.0-ruby-0.2.5"
 
   require "socket"
+  require "digest/sha1"
 
   MAX_PACKET_LENGTH = 256*256*256-1
   MAX_ALLOWED_PACKET = 1024*1024*1024
@@ -51,11 +52,15 @@ class Mysql
   CLIENT_ODBC		= 1 << 6
   CLIENT_LOCAL_FILES	= 1 << 7
   CLIENT_IGNORE_SPACE	= 1 << 8
+  CLIENT_PROTOCOL_41	= 1 << 9
   CLIENT_INTERACTIVE	= 1 << 10
   CLIENT_SSL		= 1 << 11
   CLIENT_IGNORE_SIGPIPE	= 1 << 12
   CLIENT_TRANSACTIONS	= 1 << 13
+  CLIENT_RESERVED	= 1 << 14
+  CLIENT_SECURE_CONNECTION	= 1 << 15
   CLIENT_CAPABILITIES = CLIENT_LONG_PASSWORD|CLIENT_LONG_FLAG|CLIENT_TRANSACTIONS
+  PROTO_AUTH41 = CLIENT_PROTOCOL_41 | CLIENT_SECURE_CONNECTION
 
   # Connection Option
   OPT_CONNECT_TIMEOUT	= 0
@@ -115,19 +120,37 @@ class Mysql
       @server_capabilities, = a.slice!(0,2).unpack("v")
     end
     if a.size >= 16 then
-      @server_language, @server_status = a.unpack("cv")
+      @server_language, @server_status = a.slice!(0,3).unpack("cv")
     end
 
     flag = 0 if flag == nil
     flag |= @client_flag | CLIENT_CAPABILITIES
     flag |= CLIENT_CONNECT_WITH_DB if db
-    data = Net::int2str(flag)+Net::int3str(@max_allowed_packet)+(user||"")+"\0"+scramble(passwd, @scramble_buff, @protocol_version==9)
+
+    if !@server_capabilities & PROTO_AUTH41
+      data = Net::int2str(flag)+Net::int3str(@max_allowed_packet)+
+             (user||"")+"\0"+
+                   scramble(passwd, @scramble_buff, @protocol_version==9)
+    else
+      dummy, @salt2 = a.unpack("a13a12")
+      @scramble_buff += @salt2
+      flag |= PROTO_AUTH41
+      data = Net::int4str(flag) + Net::int4str(@max_allowed_packet) +
+             ([8] + Array.new(23, 0)).pack("c24") + (user||"")+"\0"+
+             scramble41(passwd, @scramble_buff)
+    end
+    
     if db and @server_capabilities & CLIENT_CONNECT_WITH_DB != 0 then
-      data << "\0"+db
+      if PROTO_AUTH41
+        data << db+"\0"
+      else
+        data << "\0"+db
+      end
       @db = db.dup
     end
     write data
     read
+    ObjectSpace.define_finalizer(self, Mysql.finalizer(@net))
     self
   end
   alias :connect :real_connect
@@ -182,7 +205,11 @@ class Mysql
   end
 
   def change_user(user="", passwd="", db="")
+    if !@server_capabilities & PROTO_AUTH41
     data = user+"\0"+scramble(passwd, @scramble_buff, @protocol_version==9)+"\0"+db
+    else
+      data = user+"\0"+ scramble41(passwd, @scramble_buff)
+    end
     command COM_CHANGE_USER, data
     @user = user
     @passwd = passwd
@@ -243,7 +270,11 @@ class Mysql
 
   def list_fields(table, field=nil)
     command COM_FIELD_LIST, "#{table}\0#{field}", true
+    if !@server_capabilities & PROTO_AUTH41
     f = read_rows 6
+    else
+      f = read_rows 7
+    end
     fields = unpack_fields(f, @server_capabilities & CLIENT_LONG_FLAG != 0)
     res = Result::new self, fields, f.length
     res.eof = true
@@ -253,7 +284,11 @@ class Mysql
   def list_processes()
     data = command COM_PROCESS_INFO
     @field_count = get_length data
+    if !@server_capabilities & PROTO_AUTH41
     fields = read_rows 5
+    else
+      fields = read_rows 7
+    end
     @fields = unpack_fields(fields, @server_capabilities & CLIENT_LONG_FLAG != 0)
     @status = :STATUS_GET_RESULT
     store_result
@@ -311,7 +346,11 @@ class Mysql
 
   def read_one_row(field_count)
     data = read
-    return if data[0] == 254 and data.length == 1
+    if data[0] == 254 and data.length == 1 ## EOF
+      return
+    elsif data[0] == 254 and data.length == 5
+      return
+    end
     rec = []
     field_count.times do
       len = get_length data
@@ -363,7 +402,11 @@ class Mysql
       end
     else
       @extra_info = get_length(data, true)
+      if !@server_capabilities & PROTO_AUTH41
       fields = read_rows 5
+      else
+        fields = read_rows(7)
+      end
       @fields = unpack_fields(fields, @server_capabilities & CLIENT_LONG_FLAG != 0)
       @status = :STATUS_GET_RESULT
     end
@@ -373,6 +416,7 @@ class Mysql
   def unpack_fields(data, long_flag_protocol)
     ret = []
     data.each do |f|
+      if !@server_capabilities & PROTO_AUTH41
       table = org_table = f[0]
       name = f[1]
       length = f[2][0]+f[2][1]*256+f[2][2]*256*256
@@ -386,7 +430,21 @@ class Mysql
       end
       def_value = f[5]
       max_length = 0
+      else
+        catalog = f[0]
+        db = f[1]
+        table = f[2]
+        org_table = f[3]
+        name = f[4]
+        org_name = f[5]
+        length = f[6][2]+f[6][3]*256+f[6][4]*256*256
+        type = f[6][6]
+        flags = f[6][7]+f[6][8]*256
+        decimals = f[6][9]
+        def_value = ""
+        max_length = 0
       ret << Field::new(table, org_table, name, length, type, flags, decimals, def_value, max_length)
+    end
     end
     ret
   end
@@ -489,6 +547,19 @@ class Mysql
     to.join
   end
 
+  def scramble41(password, message)
+    if password.length != 0
+      buf = [0x14]
+      s1 = Digest::SHA1.new(password).digest
+      s2 = Digest::SHA1.new(s1).digest
+      x = Digest::SHA1.new(message + s2).digest
+      (0..s1.length - 1).each {|i| buf.push(s1[i] ^ x[i])}
+      buf.pack("C*")
+    else
+      0x00.chr
+    end
+  end
+
   def error(errno)
     @errno = errno
     @error = Error::err errno
@@ -574,7 +645,6 @@ class Mysql
     def free()
       @handle.skip_result
       @handle = @fields = @data = nil
-      GC::start
     end
 
     def num_fields()
@@ -1023,8 +1093,8 @@ class Mysql
       @sock.sync = true
       buf.join
     rescue
-      errno = Error::CR_SERVER_LOST
-      raise Error::new(errno, Error::err(errno))
+      errno = Error::CR_SERVER_LOST 
+      raise Error::new(errno, Error::err(errno)) 
     end
     
     def write(data)
@@ -1043,8 +1113,8 @@ class Mysql
       @sock.sync = true
       @sock.flush
     rescue
-      errno = Error::CR_SERVER_LOST
-      raise Error::new(errno, Error::err(errno))
+      errno = Error::CR_SERVER_LOST 
+      raise Error::new(errno, Error::err(errno)) 
     end
 
     def close()
@@ -1090,6 +1160,13 @@ class << Mysql
     Mysql::new(*args)
   end
   alias :connect :real_connect
+
+  def finalizer(net)
+    proc {
+      net.clear
+      net.write Mysql::COM_QUIT.chr
+    }
+  end
 
   def escape_string(str)
     str.gsub(/([\0\n\r\032\'\"\\])/) do
