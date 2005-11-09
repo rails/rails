@@ -89,37 +89,26 @@ module ActionController #:nodoc:
     def port_from_http_host
       $1.to_i if env['HTTP_HOST'] && /:(\d+)$/ =~ env['HTTP_HOST']
     end
-    
-    def session
-      return @session unless @session.nil?
 
-      begin
-        @session = (@session_options == false ? {} : CGI::Session.new(@cgi, session_options_with_string_keys))
-        @session["__valid_session"]
-        return @session
-      rescue ArgumentError => e
-        if e.message =~ %r{undefined class/module (\w+)}
-          begin
-            Module.const_missing($1)
-          rescue LoadError, NameError => e
-            raise(
-              ActionController::SessionRestoreError, 
-              "Session contained objects where the class definition wasn't available. " +
-              "Remember to require classes for all objects kept in the session. " +
-              "(Original exception: #{e.message} [#{e.class}])"
-            )
-          end
-        
-          retry
+    def session
+      unless @session
+        if @session_options == false
+          @session = Hash.new
         else
-          raise
+          if session_options_with_string_keys['new_session'] == true
+            @session = new_session
+          else
+            @session = CGI::Session.new(@cgi, session_options_with_string_keys)
+          end
+          stale_session_check!
         end
       end
+      @session
     end
-    
+
     def reset_session
       @session.delete if CGI::Session === @session
-      @session = (@session_options == false ? {} : new_session)
+      @session = new_session
     end
 
     def method_missing(method_id, *arguments)
@@ -127,12 +116,38 @@ module ActionController #:nodoc:
     end
 
     private
+      # Delete an old session if it exists then create a new one.
       def new_session
-        CGI::Session.new(@cgi, session_options_with_string_keys.update("new_session" => true))
+        if @session_options == false
+          Hash.new
+        else
+          CGI::Session.new(@cgi, session_options_with_string_keys.merge("new_session" => false)).delete rescue nil
+          CGI::Session.new(@cgi, session_options_with_string_keys.merge("new_session" => true))
+        end
       end
-      
+
+      def stale_session_check!
+        @session['__valid_session']
+      rescue ArgumentError => argument_error
+        if argument_error.message =~ %r{undefined class/module (\w+)}
+          begin
+            Module.const_missing($1)
+          rescue LoadError, NameError => const_error
+            raise ActionController::SessionRestoreError, <<end_msg
+Session contains objects whose class definition isn't available.
+Remember to require the classes for all objects kept in the session.
+(Original exception: #{const_error.message} [#{const_error.class}])
+end_msg
+          end
+
+          retry
+        else
+          raise
+        end
+      end
+
       def session_options_with_string_keys
-        DEFAULT_SESSION_OPTIONS.merge(@session_options).inject({}) { |options, (k,v)| options[k.to_s] = v; options }
+        @session_options_with_string_keys ||= DEFAULT_SESSION_OPTIONS.merge(@session_options).inject({}) { |options, (k,v)| options[k.to_s] = v; options }
       end
   end
 
