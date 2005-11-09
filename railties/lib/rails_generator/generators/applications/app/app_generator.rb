@@ -16,7 +16,8 @@ class AppGenerator < Rails::Generator::Base
   end
 
   def manifest
-    script_options = { :chmod => 0755, :shebang => options[:shebang] }
+    script_options     = { :chmod => 0755 }
+    dispatcher_options = { :chmod => 0755, :shebang => options[:shebang] }
 
     record do |m|
       # Root directory and all subdirectories.
@@ -53,9 +54,9 @@ class AppGenerator < Rails::Generator::Base
       end
 
       # Dispatches
-      m.file "dispatches/dispatch.rb",   "public/dispatch.rb", script_options
-      m.file "dispatches/dispatch.rb",   "public/dispatch.cgi", script_options
-      m.file "dispatches/dispatch.fcgi", "public/dispatch.fcgi", script_options
+      m.file "dispatches/dispatch.rb",   "public/dispatch.rb", dispatcher_options
+      m.file "dispatches/dispatch.rb",   "public/dispatch.cgi", dispatcher_options
+      m.file "dispatches/dispatch.fcgi", "public/dispatch.fcgi", dispatcher_options
 
       # HTML files
       %w(404 500 index).each do |file|

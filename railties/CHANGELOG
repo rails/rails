@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed all script/* to use #!/usr/bin/env ruby instead of hard-coded Ruby path. public/dispatcher.* still uses the hard-coded path  for compatibility with web servers that doesn't have Ruby in path [DHH]
+
 * Force RAILS_ENV to be "test" when running tests, so that ENV["RAILS_ENV"] = "production" in config/environment.rb doesn't wreck havok [DHH] #2660
 
 * Correct versioning in :freeze_gems Rake task.  #2778 [jakob@mentalized.net, Jeremy Kemper]

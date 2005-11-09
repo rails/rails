@@ -1,4 +1,3 @@
-#!/usr/local/bin/ruby
 if ARGV.empty?
   $stderr.puts "Usage: ./script/perform profiler 'Person.expensive_method(10)' [times]"
   exit(1)
