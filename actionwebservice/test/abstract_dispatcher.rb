@@ -62,6 +62,7 @@ module DispatcherTest
     api_method :test_utf8, :returns => [:string]
     api_method :hex, :expects => [:base64], :returns => [:string]
     api_method :unhex, :expects => [:string], :returns => [:base64]
+    api_method :time, :expects => [:time], :returns => [:time]
   end
 
   class VirtualAPI < ActionWebService::API::Base
@@ -260,6 +261,10 @@ module DispatcherTest
       return [s].pack("H*")
     end
 
+    def time(t)
+      t
+    end
+
     protected
       def alwaysfail(method_name, params)
         @before_filter_called = true
@@ -295,6 +300,8 @@ module DispatcherCommonTests
     assert(result[1].is_a?(DispatcherTest::Person))
     assert_equal("cafe", do_method_call(@direct_controller, 'Hex', "\xca\xfe"))
     assert_equal("\xca\xfe", do_method_call(@direct_controller, 'Unhex', "cafe"))
+    time = Time.gm(1998, "Feb", 02, 15, 12, 01)
+    assert_equal(time, do_method_call(@direct_controller, 'Time', time))
   end
 
   def test_direct_entrypoint
