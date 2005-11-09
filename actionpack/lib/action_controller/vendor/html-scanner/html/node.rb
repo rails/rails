@@ -497,7 +497,7 @@ module HTML #:nodoc:
       def match_condition(value, condition)
         case condition
           when String
-            value && value.index(condition)
+            value && value == condition
           when Regexp
             value && value.match(condition)
           when Numeric
