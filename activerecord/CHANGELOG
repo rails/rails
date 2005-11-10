@@ -1,5 +1,7 @@
 *SVN*
 
+* acts_as_list plays nicely with inheritance by remembering the class which declared it.  #2811 [rephorm@rephorm.com]
+
 * Fix sqlite adaptor's detection of missing dbfile or database declaration. [Nicholas Seckar]
 
 * Fixed acts_as_list for definitions without an explicit :order #2803 [jonathan@bluewire.net.nz]

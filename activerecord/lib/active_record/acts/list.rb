@@ -54,6 +54,10 @@ module ActiveRecord
           class_eval <<-EOV
             include ActiveRecord::Acts::List::InstanceMethods
 
+            def acts_as_list_class
+              #{self.name}
+            end
+            
             def position_column
               '#{configuration[:column]}'
             end
@@ -78,7 +82,7 @@ module ActiveRecord
         def move_lower
           return unless lower_item
 
-          self.class.transaction do
+          acts_as_list_class.transaction do
             lower_item.decrement_position
             increment_position
           end
@@ -87,7 +91,7 @@ module ActiveRecord
         def move_higher
           return unless higher_item
 
-          self.class.transaction do
+          acts_as_list_class.transaction do
             higher_item.increment_position
             decrement_position
           end
@@ -95,7 +99,7 @@ module ActiveRecord
         
         def move_to_bottom
           return unless in_list?
-          self.class.transaction do
+          acts_as_list_class.transaction do
             decrement_positions_on_lower_items
             assume_bottom_position
           end
@@ -103,7 +107,7 @@ module ActiveRecord
         
         def move_to_top
           return unless in_list?
-          self.class.transaction do
+          acts_as_list_class.transaction do
             increment_positions_on_higher_items
             assume_top_position
           end
@@ -135,14 +139,14 @@ module ActiveRecord
         
         def higher_item
           return nil unless in_list?
-          self.class.find(:first, :conditions =>
+          acts_as_list_class.find(:first, :conditions =>
             "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i - 1).to_s}"
           )
         end
 
         def lower_item
           return nil unless in_list?
-          self.class.find(:first, :conditions =>
+          acts_as_list_class.find(:first, :conditions =>
             "#{scope_condition} AND #{position_column} = #{(send(position_column).to_i + 1).to_s}"
           )
         end
@@ -171,7 +175,7 @@ module ActiveRecord
           def bottom_item(except = nil)
             conditions = scope_condition
             conditions = "#{conditions} AND id != #{except.id}" if except
-            self.class.find(:first, :conditions => conditions, :order => "#{position_column} DESC")
+            acts_as_list_class.find(:first, :conditions => conditions, :order => "#{position_column} DESC")
           end
 
           def assume_bottom_position
@@ -184,7 +188,7 @@ module ActiveRecord
 
           # This has the effect of moving all the higher items up one.
           def decrement_positions_on_higher_items(position)
-            self.class.update_all(
+            acts_as_list_class.update_all(
               "#{position_column} = (#{position_column} - 1)", "#{scope_condition} AND #{position_column} <= #{position}"
             )
           end
@@ -192,7 +196,7 @@ module ActiveRecord
           # This has the effect of moving all the lower items up one.
           def decrement_positions_on_lower_items
             return unless in_list?
-            self.class.update_all(
+            acts_as_list_class.update_all(
               "#{position_column} = (#{position_column} - 1)", "#{scope_condition} AND #{position_column} > #{send(position_column).to_i}"
             )
           end
@@ -200,20 +204,20 @@ module ActiveRecord
           # This has the effect of moving all the higher items down one.
           def increment_positions_on_higher_items
             return unless in_list?
-            self.class.update_all(
+            acts_as_list_class.update_all(
               "#{position_column} = (#{position_column} + 1)", "#{scope_condition} AND #{position_column} < #{send(position_column).to_i}"
             )
           end
 
           # This has the effect of moving all the lower items down one.
           def increment_positions_on_lower_items(position)
-            self.class.update_all(
+            acts_as_list_class.update_all(
               "#{position_column} = (#{position_column} + 1)", "#{scope_condition} AND #{position_column} >= #{position}"
            )
           end
 
           def increment_positions_on_all_items
-            self.class.update_all(
+            acts_as_list_class.update_all(
               "#{position_column} = (#{position_column} + 1)",  "#{scope_condition}"
             )
           end

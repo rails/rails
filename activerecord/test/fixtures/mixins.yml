@@ -78,3 +78,12 @@ tree_<%= set[0] %>:
   root_id: 42
 
 <% end %>
+
+# subclasses of list items
+<% (1..4).each do |i| %>
+list_sub_<%= i %>:
+  id: <%= i + 5000 %>
+  pos: <%= i %>
+  parent_id: 5000
+  type: <%= (i % 2 == 1) ? ListMixinSub1 : ListMixinSub2 %> 
+<% end %>
