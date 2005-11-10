@@ -6,96 +6,95 @@ require 'fixtures/mixin'
 
 class ListTest < Test::Unit::TestCase
   fixtures :mixins
- 
+
   def test_reordering
-    
-    assert_equal [mixins(:list_1), 
-                  mixins(:list_2), 
-                  mixins(:list_3), 
-                  mixins(:list_4)], 
+    assert_equal [mixins(:list_1),
+                  mixins(:list_2),
+                  mixins(:list_3),
+                  mixins(:list_4)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
-                  
+
     mixins(:list_2).move_lower
-                  
-    assert_equal [mixins(:list_1), 
-                  mixins(:list_3), 
-                  mixins(:list_2), 
-                  mixins(:list_4)], 
+
+    assert_equal [mixins(:list_1),
+                  mixins(:list_3),
+                  mixins(:list_2),
+                  mixins(:list_4)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
-                  
+
     mixins(:list_2).move_higher
 
-    assert_equal [mixins(:list_1), 
-                  mixins(:list_2), 
-                  mixins(:list_3), 
-                  mixins(:list_4)], 
+    assert_equal [mixins(:list_1),
+                  mixins(:list_2),
+                  mixins(:list_3),
+                  mixins(:list_4)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
-    
+
     mixins(:list_1).move_to_bottom
 
-    assert_equal [mixins(:list_2), 
-                  mixins(:list_3), 
-                  mixins(:list_4), 
-                  mixins(:list_1)], 
+    assert_equal [mixins(:list_2),
+                  mixins(:list_3),
+                  mixins(:list_4),
+                  mixins(:list_1)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
 
     mixins(:list_1).move_to_top
 
-    assert_equal [mixins(:list_1), 
-                  mixins(:list_2), 
-                  mixins(:list_3), 
+    assert_equal [mixins(:list_1),
+                  mixins(:list_2),
+                  mixins(:list_3),
                   mixins(:list_4)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
-                  
-                  
+
+
     mixins(:list_2).move_to_bottom
-  
-    assert_equal [mixins(:list_1), 
-                  mixins(:list_3), 
-                  mixins(:list_4), 
+
+    assert_equal [mixins(:list_1),
+                  mixins(:list_3),
+                  mixins(:list_4),
                   mixins(:list_2)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
 
     mixins(:list_4).move_to_top
 
-    assert_equal [mixins(:list_4), 
-                  mixins(:list_1), 
-                  mixins(:list_3), 
+    assert_equal [mixins(:list_4),
+                  mixins(:list_1),
+                  mixins(:list_3),
                   mixins(:list_2)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
-        
+
   end
 
   def test_move_to_bottom_with_next_to_last_item
-    assert_equal [mixins(:list_1), 
-                  mixins(:list_2), 
-                  mixins(:list_3), 
-                  mixins(:list_4)], 
+    assert_equal [mixins(:list_1),
+                  mixins(:list_2),
+                  mixins(:list_3),
+                  mixins(:list_4)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
 
     mixins(:list_3).move_to_bottom
 
-    assert_equal [mixins(:list_1), 
-                  mixins(:list_2), 
-                  mixins(:list_4), 
-                  mixins(:list_3)], 
+    assert_equal [mixins(:list_1),
+                  mixins(:list_2),
+                  mixins(:list_4),
+                  mixins(:list_3)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
   end
-  
+
   def test_next_prev
     assert_equal mixins(:list_2), mixins(:list_1).lower_item
     assert_nil mixins(:list_1).higher_item
     assert_equal mixins(:list_3), mixins(:list_4).higher_item
     assert_nil mixins(:list_4).lower_item
   end
-  
-  
+
+
   def test_injection
     item = ListMixin.new("parent_id"=>1)
     assert_equal "parent_id = 1", item.scope_condition
     assert_equal "pos", item.position_column
-  end  
-  
+  end
+
   def test_insert
     new = ListMixin.create("parent_id"=>20)
     assert_equal 1, new.pos
@@ -106,37 +105,37 @@ class ListTest < Test::Unit::TestCase
     assert_equal 2, new.pos
     assert !new.first?
     assert new.last?
-    
+
     new = ListMixin.create("parent_id"=>20)
-    assert_equal 3, new.pos    
+    assert_equal 3, new.pos
     assert !new.first?
     assert new.last?
-    
+
     new = ListMixin.create("parent_id"=>0)
     assert_equal 1, new.pos
     assert new.first?
     assert new.last?
-  end    
+  end
 
   def test_insert_at
     new = ListMixin.create("parent_id" => 20)
     assert_equal 1, new.pos
 
-	 new = ListMixin.create("parent_id" => 20)
-	 assert_equal 2, new.pos
-	
-	 new = ListMixin.create("parent_id" => 20)
-	 assert_equal 3, new.pos
+    new = ListMixin.create("parent_id" => 20)
+    assert_equal 2, new.pos
 
-	 new4 = ListMixin.create("parent_id" => 20)
-	 assert_equal 4, new4.pos
+    new = ListMixin.create("parent_id" => 20)
+    assert_equal 3, new.pos
 
-	 new4.insert_at(3)
-	 assert_equal 3, new4.pos
+    new4 = ListMixin.create("parent_id" => 20)
+    assert_equal 4, new4.pos
 
-	 new.reload
-	 assert_equal 4, new.pos
-    
+    new4.insert_at(3)
+    assert_equal 3, new4.pos
+
+    new.reload
+    assert_equal 4, new.pos
+
     new.insert_at(2)
     assert_equal 2, new.pos
 
@@ -152,43 +151,42 @@ class ListTest < Test::Unit::TestCase
     new4.reload
     assert_equal 5, new4.pos
   end
-  
+
   def test_delete_middle
-    
-    assert_equal [mixins(:list_1), 
-                  mixins(:list_2), 
-                  mixins(:list_3), 
-                  mixins(:list_4)], 
+    assert_equal [mixins(:list_1),
+                  mixins(:list_2),
+                  mixins(:list_3),
+                  mixins(:list_4)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
-              
+
     mixins(:list_2).destroy
-    
-    assert_equal [mixins(:list_1, :reload), 
-                  mixins(:list_3, :reload), 
-                  mixins(:list_4, :reload)], 
+
+    assert_equal [mixins(:list_1, :reload),
+                  mixins(:list_3, :reload),
+                  mixins(:list_4, :reload)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
-                  
+
     assert_equal 1, mixins(:list_1).pos
     assert_equal 2, mixins(:list_3).pos
     assert_equal 3, mixins(:list_4).pos
 
     mixins(:list_1).destroy
 
-    assert_equal [mixins(:list_3, :reload), 
-                  mixins(:list_4, :reload)], 
+    assert_equal [mixins(:list_3, :reload),
+                  mixins(:list_4, :reload)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5', :order => 'pos')
-                  
+
     assert_equal 1, mixins(:list_3).pos
     assert_equal 2, mixins(:list_4).pos
-    
-  end  
+
+  end
 
   def test_with_string_based_scope
     new = ListWithStringScopeMixin.create("parent_id"=>500)
     assert_equal 1, new.pos
     assert new.first?
     assert new.last?
-  end 
+  end
 
   def test_nil_scope
     new1, new2, new3 = ListMixin.create, ListMixin.create, ListMixin.create
@@ -200,7 +198,7 @@ end
 
 class TreeTest < Test::Unit::TestCase
   fixtures :mixins
-  
+
   def test_has_child
     assert_equal true, mixins(:tree_1).has_children?
     assert_equal true, mixins(:tree_2).has_children?
@@ -227,7 +225,7 @@ class TreeTest < Test::Unit::TestCase
     assert_equal mixins(:tree_2).parent, mixins(:tree_4).parent
     assert_nil mixins(:tree_1).parent
   end
-  
+
   def test_delete
     assert_equal 6, TreeMixin.count
     mixins(:tree_1).destroy
@@ -239,9 +237,9 @@ class TreeTest < Test::Unit::TestCase
 
   def test_insert
     @extra = mixins(:tree_1).children.create
-    
+
     assert @extra
-    
+
     assert_equal @extra.parent, mixins(:tree_1)
 
     assert_equal 3, mixins(:tree_1).children.size
@@ -258,7 +256,7 @@ class TreeTest < Test::Unit::TestCase
     assert_equal [], mixins(:tree2_1).ancestors
     assert_equal [], mixins(:tree3_1).ancestors
   end
-  
+
   def test_root
     assert_equal mixins(:tree_1), TreeMixin.root
     assert_equal mixins(:tree_1), mixins(:tree_1).root
@@ -267,7 +265,7 @@ class TreeTest < Test::Unit::TestCase
     assert_equal mixins(:tree_1), mixins(:tree_4).root
     assert_equal mixins(:tree2_1), mixins(:tree2_1).root
     assert_equal mixins(:tree3_1), mixins(:tree3_1).root
-  end                                                                  
+  end
 
   def test_roots
     assert_equal [mixins(:tree_1), mixins(:tree2_1), mixins(:tree3_1)], TreeMixin.roots
@@ -294,10 +292,10 @@ end
 
 class TreeTestWithoutOrder < Test::Unit::TestCase
   fixtures :mixins
-  
+
   def test_root
     assert [mixins(:tree_without_order_1), mixins(:tree_without_order_2)].include?(TreeMixinWithoutOrder.root)
-  end                                                                  
+  end
 
   def test_roots
     assert_equal [], [mixins(:tree_without_order_1), mixins(:tree_without_order_2)] - TreeMixinWithoutOrder.roots
@@ -306,38 +304,36 @@ end
 
 class TouchTest < Test::Unit::TestCase
   fixtures :mixins
-  
+
   def test_update
-    
-    stamped = Mixin.new 
-      
+    stamped = Mixin.new
+
     assert_nil stamped.updated_at
     assert_nil stamped.created_at
     stamped.save
     assert_not_nil stamped.updated_at
     assert_not_nil stamped.created_at
-  end  
+  end
 
   def test_create
     @obj = Mixin.create
     assert_not_nil @obj.updated_at
     assert_not_nil @obj.created_at
-  end  
+  end
 
   def test_many_updates
-
-    stamped = Mixin.new 
+    stamped = Mixin.new
 
     assert_nil stamped.updated_at
     assert_nil stamped.created_at
     stamped.save
     assert_not_nil stamped.created_at
     assert_not_nil stamped.updated_at
-    
+
     old_updated_at = stamped.updated_at
 
     sleep 1
-    stamped.save    
+    stamped.save
     assert_not_equal stamped.created_at, stamped.updated_at
     assert_not_equal old_updated_at, stamped.updated_at
 
@@ -358,116 +354,115 @@ end
 
 class ListSubTest < Test::Unit::TestCase
   fixtures :mixins
- 
+
   def test_reordering
-    
-    assert_equal [mixins(:list_sub_1), 
-                  mixins(:list_sub_2), 
-                  mixins(:list_sub_3), 
-                  mixins(:list_sub_4)], 
+    assert_equal [mixins(:list_sub_1),
+                  mixins(:list_sub_2),
+                  mixins(:list_sub_3),
+                  mixins(:list_sub_4)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5000', :order => 'pos')
-                  
+
     mixins(:list_sub_2).move_lower
-                  
-    assert_equal [mixins(:list_sub_1), 
-                  mixins(:list_sub_3), 
-                  mixins(:list_sub_2), 
-                  mixins(:list_sub_4)], 
+
+    assert_equal [mixins(:list_sub_1),
+                  mixins(:list_sub_3),
+                  mixins(:list_sub_2),
+                  mixins(:list_sub_4)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5000', :order => 'pos')
-                  
+
     mixins(:list_sub_2).move_higher
 
-    assert_equal [mixins(:list_sub_1), 
-                  mixins(:list_sub_2), 
-                  mixins(:list_sub_3), 
-                  mixins(:list_sub_4)], 
+    assert_equal [mixins(:list_sub_1),
+                  mixins(:list_sub_2),
+                  mixins(:list_sub_3),
+                  mixins(:list_sub_4)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5000', :order => 'pos')
-    
+
     mixins(:list_sub_1).move_to_bottom
 
-    assert_equal [mixins(:list_sub_2), 
-                  mixins(:list_sub_3), 
-                  mixins(:list_sub_4), 
-                  mixins(:list_sub_1)], 
+    assert_equal [mixins(:list_sub_2),
+                  mixins(:list_sub_3),
+                  mixins(:list_sub_4),
+                  mixins(:list_sub_1)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5000', :order => 'pos')
 
     mixins(:list_sub_1).move_to_top
 
-    assert_equal [mixins(:list_sub_1), 
-                  mixins(:list_sub_2), 
-                  mixins(:list_sub_3), 
+    assert_equal [mixins(:list_sub_1),
+                  mixins(:list_sub_2),
+                  mixins(:list_sub_3),
                   mixins(:list_sub_4)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5000', :order => 'pos')
-                  
-                  
+
+
     mixins(:list_sub_2).move_to_bottom
-  
-    assert_equal [mixins(:list_sub_1), 
-                  mixins(:list_sub_3), 
-                  mixins(:list_sub_4), 
+
+    assert_equal [mixins(:list_sub_1),
+                  mixins(:list_sub_3),
+                  mixins(:list_sub_4),
                   mixins(:list_sub_2)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5000', :order => 'pos')
 
     mixins(:list_sub_4).move_to_top
 
-    assert_equal [mixins(:list_sub_4), 
-                  mixins(:list_sub_1), 
-                  mixins(:list_sub_3), 
+    assert_equal [mixins(:list_sub_4),
+                  mixins(:list_sub_1),
+                  mixins(:list_sub_3),
                   mixins(:list_sub_2)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5000', :order => 'pos')
-        
+
   end
 
   def test_move_to_bottom_with_next_to_last_item
-    assert_equal [mixins(:list_sub_1), 
-                  mixins(:list_sub_2), 
-                  mixins(:list_sub_3), 
-                  mixins(:list_sub_4)], 
+    assert_equal [mixins(:list_sub_1),
+                  mixins(:list_sub_2),
+                  mixins(:list_sub_3),
+                  mixins(:list_sub_4)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5000', :order => 'pos')
 
     mixins(:list_sub_3).move_to_bottom
 
-    assert_equal [mixins(:list_sub_1), 
-                  mixins(:list_sub_2), 
-                  mixins(:list_sub_4), 
-                  mixins(:list_sub_3)], 
+    assert_equal [mixins(:list_sub_1),
+                  mixins(:list_sub_2),
+                  mixins(:list_sub_4),
+                  mixins(:list_sub_3)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5000', :order => 'pos')
   end
-  
+
   def test_next_prev
     assert_equal mixins(:list_sub_2), mixins(:list_sub_1).lower_item
     assert_nil mixins(:list_sub_1).higher_item
     assert_equal mixins(:list_sub_3), mixins(:list_sub_4).higher_item
     assert_nil mixins(:list_sub_4).lower_item
   end
-  
-  
+
+
   def test_injection
     item = ListMixin.new("parent_id"=>1)
     assert_equal "parent_id = 1", item.scope_condition
     assert_equal "pos", item.position_column
-  end  
-  
+  end
+
 
   def test_insert_at
     new = ListMixin.create("parent_id" => 20)
     assert_equal 1, new.pos
 
-	 new = ListMixinSub1.create("parent_id" => 20)
-	 assert_equal 2, new.pos
-	
-	 new = ListMixinSub2.create("parent_id" => 20)
-	 assert_equal 3, new.pos
+    new = ListMixinSub1.create("parent_id" => 20)
+    assert_equal 2, new.pos
 
-	 new4 = ListMixin.create("parent_id" => 20)
-	 assert_equal 4, new4.pos
+    new = ListMixinSub2.create("parent_id" => 20)
+    assert_equal 3, new.pos
 
-	 new4.insert_at(3)
-	 assert_equal 3, new4.pos
+    new4 = ListMixin.create("parent_id" => 20)
+    assert_equal 4, new4.pos
 
-	 new.reload
-	 assert_equal 4, new.pos
-    
+    new4.insert_at(3)
+    assert_equal 3, new4.pos
+
+    new.reload
+    assert_equal 4, new.pos
+
     new.insert_at(2)
     assert_equal 2, new.pos
 
@@ -483,36 +478,35 @@ class ListSubTest < Test::Unit::TestCase
     new4.reload
     assert_equal 5, new4.pos
   end
-  
+
   def test_delete_middle
-    
-    assert_equal [mixins(:list_sub_1), 
-                  mixins(:list_sub_2), 
-                  mixins(:list_sub_3), 
-                  mixins(:list_sub_4)], 
+    assert_equal [mixins(:list_sub_1),
+                  mixins(:list_sub_2),
+                  mixins(:list_sub_3),
+                  mixins(:list_sub_4)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5000', :order => 'pos')
-              
+
     mixins(:list_sub_2).destroy
-    
-    assert_equal [mixins(:list_sub_1, :reload), 
-                  mixins(:list_sub_3, :reload), 
-                  mixins(:list_sub_4, :reload)], 
+
+    assert_equal [mixins(:list_sub_1, :reload),
+                  mixins(:list_sub_3, :reload),
+                  mixins(:list_sub_4, :reload)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5000', :order => 'pos')
-                  
+
     assert_equal 1, mixins(:list_sub_1).pos
     assert_equal 2, mixins(:list_sub_3).pos
     assert_equal 3, mixins(:list_sub_4).pos
 
     mixins(:list_sub_1).destroy
 
-    assert_equal [mixins(:list_sub_3, :reload), 
-                  mixins(:list_sub_4, :reload)], 
+    assert_equal [mixins(:list_sub_3, :reload),
+                  mixins(:list_sub_4, :reload)],
                   ListMixin.find(:all, :conditions => 'parent_id = 5000', :order => 'pos')
-                  
+
     assert_equal 1, mixins(:list_sub_3).pos
     assert_equal 2, mixins(:list_sub_4).pos
-    
-  end  
+
+  end
 
 end
 
