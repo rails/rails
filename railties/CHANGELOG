@@ -1,5 +1,7 @@
 *SVN*
 
+* Pass __FILE__ when evaluating plugins' init.rb.  #2817 [james.adam@gmail.com]
+
 * Better svn status matching for generators.  #2814 [François Beausoleil <francois.beausoleil@gmail.com>, Blair Zajac <blair@orcaware.com>]
 
 * Don't reload routes until plugins have been loaded so they have a chance to extend the routing capabilities [DHH]

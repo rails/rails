@@ -306,7 +306,7 @@ module Rails
         config = configuration 
 
         # Evaluate init.rb.
-        silence_warnings { eval(IO.read(init_path), binding) } if has_init
+        silence_warnings { eval(IO.read(init_path), binding, init_path) } if has_init
 
         # Add to set of loaded plugins.
         loaded_plugins << name
