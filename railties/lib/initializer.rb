@@ -82,7 +82,6 @@ module Rails
       initialize_logger
       initialize_framework_logging
       initialize_framework_views
-      initialize_routing
       initialize_dependency_mechanism
       initialize_breakpoints
       initialize_whiny_nils
@@ -97,6 +96,9 @@ module Rails
       load_framework_info
 
       load_plugins
+
+      # Routing must be initialized after plugins to allow the former to extend the routes
+      initialize_routing
     end
     
     # Set the <tt>$LOAD_PATH</tt> based on the value of

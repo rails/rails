@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't reload routes until plugins have been loaded so they have a chance to extend the routing capabilities [DHH]
+
 * Don't detach or fork for script/server tailing [Nicholas Seckar]
 
 * Added automatic browser launching on OS X when starting script/server [DHH]
