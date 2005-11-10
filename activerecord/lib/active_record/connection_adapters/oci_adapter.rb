@@ -110,6 +110,7 @@ begin
 
         def cast_to_date_or_time(value)
           return value if value.is_a? Date
+          return nil if value.blank?
           guess_date_or_time (value.is_a? Time) ? value : cast_to_time(value)
         end
 
