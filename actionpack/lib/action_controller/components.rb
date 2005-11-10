@@ -52,11 +52,11 @@ module ActionController #:nodoc:
       def component_response(options, reuse_response = true)
         begin
           ActionController::Flash::FlashHash.avoid_sweep = true
-          Thread.current[:p] = component_class(options).process(request_for_component(options), reuse_response ? @response : response_for_component)
+          p = component_class(options).process(request_for_component(options), reuse_response ? @response : response_for_component)
         ensure
           ActionController::Flash::FlashHash.avoid_sweep = false
         end
-        Thread.current[:p]
+        p
       end
     
       def component_class(options)
