@@ -113,7 +113,8 @@ module ActiveRecord
               :order      => @options[:order], 
               :limit      => @options[:limit],
               :joins      => @options[:joins],
-              :include    => @options[:include]
+              :include    => @options[:include],
+              :group      => @options[:group]
             )
           end
         end

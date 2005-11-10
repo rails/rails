@@ -363,6 +363,7 @@ module ActiveRecord #:nodoc:
       #
       # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro.
       # * <tt>:order</tt>: An SQL fragment like "created_at DESC, name".
+      # * <tt>:group</tt>: An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
       # * <tt>:limit</tt>: An integer determining the limit on the number of rows that should be returned.
       # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
       # * <tt>:joins</tt>: An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
@@ -391,6 +392,7 @@ module ActiveRecord #:nodoc:
       #   Person.find(:all, :conditions => [ "category IN (?)", categories], :limit => 50)
       #   Person.find(:all, :offset => 10, :limit => 10)
       #   Person.find(:all, :include => [ :account, :friends ])
+      #   Person.find(:all, :group => "category")
       def find(*args)
         options = extract_options_from_args!(args)
 
@@ -926,6 +928,7 @@ module ActiveRecord #:nodoc:
           sql  = "SELECT #{options[:select] || '*'} FROM #{table_name} "
           add_joins!(sql, options)
           add_conditions!(sql, options[:conditions])
+          sql << " GROUP BY #{options[:group]} " if options[:group]
           sql << " ORDER BY #{options[:order]} " if options[:order]
           add_limit!(sql, options)
           sql
@@ -1171,7 +1174,7 @@ module ActiveRecord #:nodoc:
         end
 
         def validate_find_options(options)
-          options.assert_valid_keys [:conditions, :include, :joins, :limit, :offset, :order, :select, :readonly]
+          options.assert_valid_keys [:conditions, :include, :joins, :limit, :offset, :order, :select, :readonly, :group]
         end
 
         def encode_quoted_value(value)

@@ -307,6 +307,8 @@ module ActiveRecord
       #   sql fragment, such as "price > 5 AND name LIKE 'B%'".
       # * <tt>:order</tt>       - specify the order in which the associated objects are returned as a "ORDER BY" sql fragment,
       #   such as "last_name, first_name DESC"
+      # * <tt>:group</tt>       - specify the attribute by which the associated objects are returned as a "GROUP BY" sql fragment,
+      #   such as "category"      
       # * <tt>:foreign_key</tt> - specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_many association will use "person_id"
       #   as the default foreign_key.
@@ -341,7 +343,8 @@ module ActiveRecord
         options.assert_valid_keys(
           :foreign_key, :class_name, :exclusively_dependent, :dependent, 
           :conditions, :order, :include, :finder_sql, :counter_sql, 
-          :before_add, :after_add, :before_remove, :after_remove, :extend
+          :before_add, :after_add, :before_remove, :after_remove, :extend,
+          :group
         )
 
         options[:extend] = create_extension_module(association_id, extension) if block_given?

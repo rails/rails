@@ -1,5 +1,7 @@
 *SVN*
 
+* Add :group option, correspond to GROUP BY, to the find method and to the has_many association.  #2818 [rubyonrails@atyp.de]
+
 * Don't cast nil or empty strings to a dummy date.  #2789 [Rick Bradley <rick@rickbradley.com>]
 
 * acts_as_list plays nicely with inheritance by remembering the class which declared it.  #2811 [rephorm@rephorm.com]

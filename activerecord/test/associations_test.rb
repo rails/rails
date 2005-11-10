@@ -384,6 +384,13 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_raises(ActiveRecord::RecordNotFound) { companies(:first_firm).clients.find(6) }
   end
 
+  def test_find_grouped
+    all_clients_of_firm1 = Client.find(:all, :conditions => "firm_id = 1")
+    grouped_clients_of_firm1 = Client.find(:all, :conditions => "firm_id = 1", :group => "firm_id", :select => 'firm_id, count(id) as clients_count')
+    assert_equal 2, all_clients_of_firm1.size
+    assert_equal 1, grouped_clients_of_firm1.size
+  end
+
   def test_adding
     force_signal37_to_load_all_clients_of_firm
     natural = Client.new("name" => "Natural Company")
