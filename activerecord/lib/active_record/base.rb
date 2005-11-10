@@ -1247,7 +1247,11 @@ module ActiveRecord #:nodoc:
         freeze
       end
 
-      # Returns a clone of the record that hasn't been assigned an id yet and is treated as a new record.
+      # Returns a clone of the record that hasn't been assigned an id yet and
+      # is treated as a new record.  Note that this is a "shallow" clone:
+      # it copies the object's attributes only, not its associations.
+      # The extent of a "deep" clone is application-specific and is therefore
+      # left to the application to implement according to its need.
       def clone
         attrs = self.attributes_before_type_cast
         attrs.delete(self.class.primary_key)
