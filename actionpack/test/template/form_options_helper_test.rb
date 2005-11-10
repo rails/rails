@@ -103,25 +103,35 @@ class FormOptionsHelperTest < Test::Unit::TestCase
         options_for_select([ "ruby", "rubyonrails" ], "ruby")
       )
   end
-  
+
   def test_hash_options_for_select
     assert_dom_equal(
       "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\">$</option>",
       options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" })
     )
-  end
-
-  def test_hash_options_for_select_with_selection
     assert_dom_equal(
       "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\" selected=\"selected\">$</option>",
       options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, "Dollar")
     )
-  end
-
-  def test_hash_options_for_select_with_selection
     assert_dom_equal(
       "<option value=\"&lt;Kroner&gt;\" selected=\"selected\">&lt;DKR&gt;</option>\n<option value=\"Dollar\" selected=\"selected\">$</option>",
       options_for_select({ "$" => "Dollar", "<DKR>" => "<Kroner>" }, [ "Dollar", "<Kroner>" ])
+    )
+  end
+
+  def test_ducktyped_options_for_select
+    quack = Struct.new(:first, :last)
+    assert_dom_equal(
+      "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\">$</option>",
+      options_for_select([quack.new("<DKR>", "<Kroner>"), quack.new("$", "Dollar")])
+    )
+    assert_dom_equal(
+      "<option value=\"&lt;Kroner&gt;\">&lt;DKR&gt;</option>\n<option value=\"Dollar\" selected=\"selected\">$</option>",
+      options_for_select([quack.new("<DKR>", "<Kroner>"), quack.new("$", "Dollar")], "Dollar")
+    )
+    assert_dom_equal(
+      "<option value=\"&lt;Kroner&gt;\" selected=\"selected\">&lt;DKR&gt;</option>\n<option value=\"Dollar\" selected=\"selected\">$</option>",
+      options_for_select([quack.new("<DKR>", "<Kroner>"), quack.new("$", "Dollar")], ["Dollar", "<Kroner>"])
     )
   end
 
