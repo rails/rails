@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix sqlite adaptor's detection of missing dbfile or database declaration. [Nicholas Seckar]
+
 * Fixed acts_as_list for definitions without an explicit :order #2803 [jonathan@bluewire.net.nz]
 
 * Upgrade bundled ruby-mysql 0.2.4 with mysql411 shim (see #440) to ruby-mysql 0.2.6 with a patchset for 4.1 protocol support.  Local change [301] is now a part of the main driver; reapplied local change [2182].  Removed GC.start from Result.free.  [tommy@tmtm.org, akuroda@gmail.com, Doug Fales <doug.fales@gmail.com>, Jeremy Kemper]
