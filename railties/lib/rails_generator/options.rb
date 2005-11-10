@@ -127,7 +127,12 @@ module Rails
           opt.on('-q', '--quiet', 'Suppress normal output.') { |options[:quiet]| }
           opt.on('-t', '--backtrace', 'Debugging: show backtrace on errors.') { |options[:backtrace]| }
           opt.on('-h', '--help', 'Show this help message.') { |options[:help]| }
-          opt.on('-c', '--svn', 'Modify files with subversion. (Note: svn must be in path)') { options[:svn] = Hash[*`svn status`.collect { |e| e.chop.split.reverse unless e.chop.split.size != 2 }.flatten] }
+          opt.on('-c', '--svn', 'Modify files with subversion. (Note: svn must be in path)') do
+            options[:svn] = `svn status`.inject({}) do |opt, e|
+              opt[e.chomp[7..-1]] = true
+              opt
+            end
+          end
         end
 
     end
