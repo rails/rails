@@ -196,7 +196,7 @@ class Module #:nodoc:
       return Object.const_get(class_id)
     rescue MissingSourceFile => e
       # Convert the exception to a NameError only if the file we are looking for is the missing one.
-      raise unless e.path == "#{file_name}.rb"
+      raise unless e.is_missing? file_name
       raise NameError.new("uninitialized constant #{class_id}").copy_blame!(e)
     end
   end
