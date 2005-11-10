@@ -1,6 +1,8 @@
 *SVN*
 
-* assert_tag uses exact matches for string conditions, instead of partial matches. Use regex to do partial matches. #2799
+* The auto_link text helper accepts an optional block to format the link text for each url and email address.  Example: auto_link(post.body) { |text| truncate(text, 10) }  [Jeremy Kemper]
+
+* assert_tag uses exact matches for string conditions, instead of partial matches. Use regex to do partial matches. #2799 [Jamis Buck]
 
 * CGI::Session::ActiveRecordStore.data_column_name = 'foobar' to use a different session data column than the 'data' default.  [nbpwie102@sneakemail.com]
 

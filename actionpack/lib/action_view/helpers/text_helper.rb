@@ -135,11 +135,17 @@ module ActionView
       #   auto_link("Go to http://www.rubyonrails.com and say hello to david@loudthinking.com") =>
       #     Go to <a href="http://www.rubyonrails.com">http://www.rubyonrails.com</a> and
       #     say hello to <a href="mailto:david@loudthinking.com">david@loudthinking.com</a>
-      def auto_link(text, link = :all, href_options = {})
+      #
+      # If a block is given, each url and email address is yielded and the
+      # result is used as the link text.  Example:
+      #   auto_link(post.body, :all, :target => '_blank') do |text|
+      #     truncate(text, 15)
+      #   end
+      def auto_link(text, link = :all, href_options = {}, &block)
         case link
-          when :all             then auto_link_urls(auto_link_email_addresses(text), href_options)
-          when :email_addresses then auto_link_email_addresses(text)
-          when :urls            then auto_link_urls(text, href_options)
+          when :all             then auto_link_urls(auto_link_email_addresses(text, &block), href_options, &block)
+          when :email_addresses then auto_link_email_addresses(text, &block)
+          when :urls            then auto_link_urls(text, href_options, &block)
         end
       end
 
@@ -325,22 +331,37 @@ module ActionView
                         ([[:punct:]]|\s|<|$)    # trailing text
                        /x unless const_defined?(:AUTO_LINK_RE)
 
-        # Turns all urls into clickable links.
+        # Turns all urls into clickable links.  If a block is given, each url
+        # is yielded and the result is used as the link text.  Example:
+        #   auto_link_urls(post.body, :all, :target => '_blank') do |text|
+        #     truncate(text, 15)
+        #   end
         def auto_link_urls(text, href_options = {})
+          extra_options = tag_options(href_options.stringify_keys) || ""
           text.gsub(AUTO_LINK_RE) do
             all, a, b, c, d = $&, $1, $2, $3, $5
             if a =~ /<a\s/i # don't replace URL's that are already linked
               all
             else
-              extra_options = tag_options(href_options.stringify_keys) || ""
-              %(#{a}<a href="#{b=="www."?"http://www.":b}#{c}"#{extra_options}>#{b}#{c}</a>#{d})
+              text = b + c
+              text = yield(text) if block_given?
+              %(#{a}<a href="#{b=="www."?"http://www.":b}#{c}"#{extra_options}>#{text}</a>#{d})
             end
           end
         end
 
-        # Turns all email addresses into clickable links.
+        # Turns all email addresses into clickable links.  If a block is given,
+        # each email is yielded and the result is used as the link text.
+        # Example:
+        #   auto_link_email_addresses(post.body) do |text|
+        #     truncate(text, 15)
+        #   end
         def auto_link_email_addresses(text)
-          text.gsub(/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/, '<a href="mailto:\1">\1</a>')
+          text.gsub(/([\w\.!#\$%\-+.]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+)/) do
+            text = $1
+            text = yield(text) if block_given?
+            %{<a href="mailto:#{$1}">#{text}</a>}
+          end
         end
     end
   end

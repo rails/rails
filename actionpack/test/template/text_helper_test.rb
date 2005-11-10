@@ -161,6 +161,13 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %(<p><a href="#{url1}">#{url1}</a><br /><a href="#{url2}">#{url2}</a><br /></p>), auto_link("<p>#{url1}<br />#{url2}<br /></p>")
   end
 
+  def test_auto_link_with_block
+    url = "http://api.rubyonrails.com/Foo.html"
+    email = "fantabulous@shiznadel.ic"
+
+    assert_equal %(<p><a href="#{url}">#{url[0..7]}...</a><br /><a href="mailto:#{email}">#{email[0..7]}...</a><br /></p>), auto_link("<p>#{url}<br />#{email}<br /></p>") { |url| truncate(url, 10) }
+  end
+
   def test_sanitize_form
     raw = "<form action=\"/foo/bar\" method=\"post\"><input></form>"
     result = sanitize(raw)
