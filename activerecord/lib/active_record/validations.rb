@@ -17,6 +17,8 @@ module ActiveRecord
   # Active Record validation is reported to and from this object, which is used by Base#save to
   # determine whether the object in a valid state to be saved. See usage example in Validations.
   class Errors
+    include Enumerable
+
     def initialize(base) # :nodoc:
       @base, @errors = base, {}
     end
