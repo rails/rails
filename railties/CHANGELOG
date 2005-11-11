@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure that legacy db tasks also reference :database for SQLite #2830 [kazuhiko@fdiary.net]
+
 * Pass __FILE__ when evaluating plugins' init.rb.  #2817 [james.adam@gmail.com]
 
 * Better svn status matching for generators.  #2814 [François Beausoleil <francois.beausoleil@gmail.com>, Blair Zajac <blair@orcaware.com>]
