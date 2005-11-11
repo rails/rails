@@ -48,7 +48,8 @@ task :db_structure_dump => :environment do
       search_path = "--schema=#{search_path}" if search_path
       `pg_dump -U "#{abcs[RAILS_ENV]["username"]}" -s -x -O -f db/#{RAILS_ENV}_structure.sql #{search_path} #{abcs[RAILS_ENV]["database"]}`
     when "sqlite", "sqlite3"
-      `#{abcs[RAILS_ENV]["adapter"]} #{abcs[RAILS_ENV]["dbfile"]} .schema > db/#{RAILS_ENV}_structure.sql`
+      dbfile = abcs[RAILS_ENV]["database"] || abcs[RAILS_ENV]["dbfile"]
+      `#{abcs[RAILS_ENV]["adapter"]} #{dbfile} .schema > db/#{RAILS_ENV}_structure.sql`
     when "sqlserver"
       `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /f db\\#{RAILS_ENV}_structure.sql /q /A /r`
       `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /F db\ /q /A /r`
@@ -77,7 +78,8 @@ task :clone_structure_to_test => [ :db_structure_dump, :purge_test_database ] do
       ENV['PGPASSWORD'] = abcs["test"]["password"].to_s if abcs["test"]["password"]
       `psql -U "#{abcs["test"]["username"]}" -f db/#{RAILS_ENV}_structure.sql #{abcs["test"]["database"]}`
     when "sqlite", "sqlite3"
-      `#{abcs["test"]["adapter"]} #{abcs["test"]["dbfile"]} < db/#{RAILS_ENV}_structure.sql`
+      dbfile = abcs[RAILS_ENV]["database"] || abcs[RAILS_ENV]["dbfile"]
+      `#{abcs["test"]["adapter"]} #{dbfile} < db/#{RAILS_ENV}_structure.sql`
     when "sqlserver"
       `osql -E -S #{abcs["test"]["host"]} -d #{abcs["test"]["database"]} -i db\\#{RAILS_ENV}_structure.sql`
     when "oci"
@@ -105,7 +107,8 @@ task :purge_test_database => :environment do
       `dropdb -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
       `createdb #{enc_option} -T template0 -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
     when "sqlite","sqlite3"
-      File.delete(abcs["test"]["dbfile"]) if File.exist?(abcs["test"]["dbfile"])
+      dbfile = abcs[RAILS_ENV]["database"] || abcs[RAILS_ENV]["dbfile"]
+      File.delete(dbfile) if File.exist?(dbfile)
     when "sqlserver"
       dropfkscript = "#{abcs["test"]["host"]}.#{abcs["test"]["database"]}.DP1".gsub(/\\/,'-')
       `osql -E -S #{abcs["test"]["host"]} -d #{abcs["test"]["database"]} -i db\\#{dropfkscript}`
