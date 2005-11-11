@@ -52,6 +52,8 @@ module ActiveRecord
         @identity = is_identity
         @is_special = sql_type =~ /text|ntext|image/i ? true : false
         @scale = scale_value
+        # SQL Server only supports limits on *char and float types
+        @limit = nil unless @type == :float or @type == :string
       end
 
       def simplified_type(field_type)
