@@ -646,9 +646,16 @@ module ActiveRecord #:nodoc:
         "type"
       end
 
-      # Default sequence_name.  Use set_sequence_name to override.
+      # Lazy-set the sequence name to the connection's default.  This method
+      # is only ever called once since set_sequence_name overrides it.
       def sequence_name
-        connection.default_sequence_name(table_name, primary_key)
+        reset_sequence_name
+      end
+
+      def reset_sequence_name
+        default = connection.default_sequence_name(table_name, primary_key)
+        set_sequence_name(default)
+        default
       end
 
       # Sets the table name to use to the given value, or (if the value
@@ -1053,12 +1060,12 @@ module ActiveRecord #:nodoc:
         def define_attr_method(name, value=nil, &block)
           sing = class << self; self; end
           sing.send :alias_method, "original_#{name}", name
-          if value
+          if block_given?
+            sing.send :define_method, name, &block
+          else
             # use eval instead of a block to work around a memory leak in dev
             # mode in fcgi
             sing.class_eval "def #{name}; #{value.to_s.inspect}; end"
-          else
-            sing.send :define_method, name, &block
           end
         end
 

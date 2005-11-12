@@ -102,7 +102,7 @@ module ActiveRecord
       def insert(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
         execute(sql, name)
         table = sql.split(" ", 4)[2]
-        id_value || last_insert_id(table, sequence_name)
+        id_value || last_insert_id(table, sequence_name || default_sequence_name(table, pk))
       end
 
       def query(sql, name = nil) #:nodoc:
@@ -199,23 +199,34 @@ module ActiveRecord
         @schema_search_path ||= query('SHOW search_path')[0][0]
       end
 
-      def default_sequence_name(table_name, pk = 'id')
-        "#{table_name}_#{pk}_seq"
+      def default_sequence_name(table_name, pk = nil)
+        default_pk, default_seq = pk_and_sequence_for(table_name)
+        default_seq || "#{table_name}_#{pk || default_pk}_seq"
       end
 
-      # Set the sequence to the max value of the table's pk.
-      def reset_pk_sequence!(table)
-        pk, sequence = pk_and_sequence_for(table)
-        if pk and sequence
-          select_value <<-end_sql, 'Reset sequence'
-            SELECT setval('#{sequence}', (SELECT COALESCE(MAX(#{pk})+(SELECT increment_by FROM #{sequence}), (SELECT min_value FROM #{sequence})) FROM #{table}), false)
-          end_sql
+      # Resets sequence to the max value of the table's pk if present.
+      def reset_pk_sequence!(table, pk = nil, sequence = nil)
+        unless pk and sequence
+          default_pk, default_sequence = pk_and_sequence_for(table)
+          pk ||= default_pk
+          sequence ||= default_sequence
+        end
+        if pk
+          if sequence
+            select_value <<-end_sql, 'Reset sequence'
+              SELECT setval('#{sequence}', (SELECT COALESCE(MAX(#{pk})+(SELECT increment_by FROM #{sequence}), (SELECT min_value FROM #{sequence})) FROM #{table}), false)
+            end_sql
+          else
+            @logger.warn "#{table} has primary key #{pk} with no default sequence" if @logger
+          end
         end
       end
 
       # Find a table's primary key and sequence.
       def pk_and_sequence_for(table)
-        execute(<<-end_sql, 'Find pk sequence')[0]
+        # First try looking for a sequence with a dependency on the
+        # given table's primary key.
+        result = execute(<<-end_sql, 'PK and serial sequence')[0]
           SELECT attr.attname, (name.nspname || '.' || seq.relname)
           FROM pg_class      seq,
                pg_attribute  attr,
@@ -232,11 +243,29 @@ module ActiveRecord
             AND cons.contype      = 'p'
             AND dep.refobjid      = '#{table}'::regclass
         end_sql
+
+        if result.nil? or result.empty?
+          # If that fails, try parsing the primary key's default value.
+          # Support the 7.x and 8.0 nextval('foo'::text) as well as
+          # the 8.1+ nextval('foo'::regclass).
+          # TODO: assumes sequence is in same schema as table.
+          result = execute(<<-end_sql, 'PK and custom sequence')[0]
+            SELECT attr.attname, (name.nspname || '.' || split_part(def.adsrc, '\\\'', 2))
+            FROM pg_class       t
+            JOIN pg_namespace   name ON (t.relnamespace = name.oid)
+            JOIN pg_attribute   attr ON (t.oid = attrelid)
+            JOIN pg_attrdef     def  ON (adrelid = attrelid AND adnum = attnum)
+            JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
+            WHERE t.oid = '#{table}'::regclass
+              AND cons.contype = 'p'
+              AND def.adsrc ~ 'nextval\\\\(\\\'[^\\\']*\\\'::[^\\\\)]*\\\\)'
+          end_sql
+        end
+        result
       rescue
         nil
       end
 
-      
       def rename_table(name, new_name)
         execute "ALTER TABLE #{name} RENAME TO #{new_name}"
       end
@@ -281,9 +310,7 @@ module ActiveRecord
         BYTEA_COLUMN_TYPE_OID = 17
 
         def last_insert_id(table, sequence_name)
-          if sequence_name
-            @connection.exec("SELECT currval('#{sequence_name}')")[0][0].to_i
-          end
+          Integer(@connection.exec("SELECT currval('#{sequence_name}')")[0][0])
         end
 
         def select(sql, name = nil)

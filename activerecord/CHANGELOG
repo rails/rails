@@ -1,5 +1,11 @@
 *SVN*
 
+* Base.reset_sequence_name analogous to reset_table_name (mostly useful for testing).  Base.define_attr_method allows nil values.  [Jeremy Kemper]
+
+* PostgreSQL: smarter sequence name defaults, stricter last_insert_id, warn on pk without sequence.  [Jeremy Kemper]
+
+* PostgreSQL: correctly discover custom primary key sequences.  #2594 [Blair Zajac <blair@orcaware.com>, meadow.nnick@gmail.com, Jeremy Kemper]
+
 * SQLServer: don't report limits for unsupported field types.  #2835 [Ryan Tomayko]
 
 * Include the Enumerable module in ActiveRecord::Errors.  [Rick Bradley <rick@rickbradley.com>]

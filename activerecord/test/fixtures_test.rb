@@ -173,27 +173,45 @@ end
 if Account.connection.respond_to?(:reset_pk_sequence!)
   class FixturesResetPkSequenceTest < Test::Unit::TestCase
     fixtures :accounts
+    fixtures :companies
 
-    def test_resets_to_min_pk
-      Account.delete_all
-      Account.connection.reset_pk_sequence!(Account.table_name)
+    def setup
+      @instances = [Account.new(:credit_limit => 50), Company.new(:name => 'RoR Consulting')]
+    end
 
-      one = Account.new(:credit_limit => 50)
-      one.save!
-      assert_equal 1, one.id
+    def test_resets_to_min_pk_with_specified_pk_and_sequence
+      @instances.each do |instance|
+        model = instance.class
+        model.delete_all
+        model.connection.reset_pk_sequence!(model.table_name, model.primary_key, model.sequence_name)
+
+        instance.save!
+        assert_equal 1, instance.id, "Sequence reset for #{model.table_name} failed."
+      end
+    end
+
+    def test_resets_to_min_pk_with_default_pk_and_sequence
+      @instances.each do |instance|
+        model = instance.class
+        model.delete_all
+        model.connection.reset_pk_sequence!(model.table_name)
+
+        instance.save!
+        assert_equal 1, instance.id, "Sequence reset for #{model.table_name} failed."
+      end
     end
 
     def test_create_fixtures_resets_sequences
-      # create_fixtures performs reset_pk_sequence!
-      max_id = create_fixtures('accounts').inject(0) do |max_id, (name, fixture)|
-        fixture_id = fixture['id'].to_i
-        fixture_id > max_id ? fixture_id : max_id
-      end
+      @instances.each do |instance|
+        max_id = create_fixtures(instance.class.table_name).inject(0) do |max_id, (name, fixture)|
+          fixture_id = fixture['id'].to_i
+          fixture_id > max_id ? fixture_id : max_id
+        end
 
-      # Clone the last fixture to check that it gets the next greatest id.
-      another = Account.new(:credit_limit => 1200)
-      another.save!
-      assert_equal max_id + 1, another.id
+        # Clone the last fixture to check that it gets the next greatest id.
+        instance.save!
+        assert_equal max_id + 1, instance.id, "Sequence reset for #{instance.class.table_name} failed."
+      end
     end
   end
 end

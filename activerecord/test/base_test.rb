@@ -839,10 +839,10 @@ class BasicsTest < Test::Unit::TestCase
   def test_column_name_properly_quoted
     col_record = ColumnName.new
     col_record.references = 40
-    col_record.save
+    assert col_record.save
     col_record.references = 41
-    col_record.save
-    c2 = ColumnName.find(col_record.id)
+    assert col_record.save
+    assert_not_nil c2 = ColumnName.find(col_record.id)
     assert_equal(41, c2.references)
   end
 
