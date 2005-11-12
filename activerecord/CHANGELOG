@@ -2,6 +2,8 @@
 
 * SQLServer: don't report limits for unsupported field types.  #2835 [Ryan Tomayko]
 
+* Include the Enumerable module in ActiveRecord::Errors.  [Rick Bradley <rick@rickbradley.com>]
+
 * Add :group option, correspond to GROUP BY, to the find method and to the has_many association.  #2818 [rubyonrails@atyp.de]
 
 * Don't cast nil or empty strings to a dummy date.  #2789 [Rick Bradley <rick@rickbradley.com>]
