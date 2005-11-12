@@ -66,10 +66,6 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     require File.join(@server_options[:server_root], "..", "config", "environment") unless defined?(RAILS_ROOT)
     require "dispatcher"
 
-    if options[:open_in_browser] && RUBY_PLATFORM =~ /darwin/
-      Thread.new { sleep 0.5; `open http://#{options[:ip]}:#{options[:port]}` }
-    end
-
     server.start
   end
 
