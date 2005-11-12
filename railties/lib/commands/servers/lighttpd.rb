@@ -52,6 +52,5 @@ else
 end
 
 trap(:INT) { exit }
-Thread.new { sleep 0.5; `open http://0.0.0.0:#{port}` } if RUBY_PLATFORM =~ /darwin/
 `lighttpd #{!detach ? "-D " : ""}-f #{config_file}`
 tail_thread.kill if tail_thread

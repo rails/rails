@@ -8,8 +8,7 @@ OPTIONS = {
   :server_root     => File.expand_path(RAILS_ROOT + "/public/"),
   :server_type     => WEBrick::SimpleServer,
   :charset         => "UTF-8",
-  :mime_types      => WEBrick::HTTPUtils::DefaultMimeTypes,
-  :open_in_browser => true
+  :mime_types      => WEBrick::HTTPUtils::DefaultMimeTypes
 }
 
 ARGV.options do |opts|
