@@ -22,6 +22,12 @@ module ActiveRecord
       include Quoting, DatabaseStatements, SchemaStatements
       @@row_even = true
 
+      @@reconnect_success = 0
+      @@reconnect_failure = 0
+      def self.reconnect_success_rate
+        @@reconnect_success.to_f / (@@reconnect_success + @@reconnect_failure)
+      end
+
       def initialize(connection, logger = nil) #:nodoc:
         @connection, @logger = connection, logger
         @runtime = 0
@@ -40,9 +46,8 @@ module ActiveRecord
       end
 
       def reset_runtime #:nodoc:
-        rt = @runtime
-        @runtime = 0
-        return rt
+        rt, @runtime = @runtime, 0
+        rt
       end
 
       protected  
@@ -100,7 +105,14 @@ module ActiveRecord
         def reconnect_if_inactive!
           if respond_to?(:active?) and respond_to?(:reconnect!)
             reconnect! unless active?
-            raise ActiveRecord::ConnectionFailed unless active?
+            if active?
+              @@reconnect_success += 1
+              @logger.info "#{adapter_name} automatically reconnected.  Success rate: #{'%.2f' % self.class.reconnect_success_rate}%" if @logger
+            else
+              @@reconnect_failure += 1
+              @logger.warn "#{adapter_name} automatic reconnection failed.  Success rate: #{'%.2f' % self.class.reconnect_success_rate}%" if @logger
+              raise ActiveRecord::ConnectionFailed
+            end
           else
             @logger.warn "#{adapter_name} does not yet support automatic reconnection." if @logger
           end

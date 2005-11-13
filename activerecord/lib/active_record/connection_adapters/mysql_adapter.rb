@@ -136,6 +136,25 @@ module ActiveRecord
       end
 
 
+      # CONNECTION MANAGEMENT ====================================
+
+      def active?
+        @connection.stat if @connection.respond_to?(:stat)
+        true
+      rescue Mysql::Error
+        false
+      end
+
+      def reconnect!
+        if @connection.respond_to?(:ping)
+          @connection.ping
+        else
+          @connection.close rescue nil
+          @connection.real_connect(*@connection_options)
+        end
+      end
+
+
       # DATABASE STATEMENTS ======================================
 
       def select_all(sql, name = nil) #:nodoc:
@@ -148,22 +167,10 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil, retries = 2) #:nodoc:
-        unless @logger
-          @connection.query(sql)
-        else
-          log(sql, name) { @connection.query(sql) }
-        end
+        log(sql, name) { @connection.query(sql) }
       rescue ActiveRecord::StatementInvalid => exception
-        if LOST_CONNECTION_ERROR_MESSAGES.any? { |msg| exception.message.split(":").first =~ /^#{msg}/ }
-          @connection.real_connect(*@connection_options)
-          unless @logger
-            @connection.query(sql)
-          else
-            @logger.info "Retrying invalid statement with reopened connection"
-            log(sql, name) { @connection.query(sql) }
-          end
-        elsif exception.message.split(":").first =~ /Packets out of order/
-          raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem update mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information."
+        if exception.message.split(":").first =~ /Packets out of order/
+          raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem install mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information.  If you're on Windows, use the Instant Rails installer to get the updated mysql bindings."
         else
           raise
         end
