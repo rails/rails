@@ -1,5 +1,7 @@
 *SVN*
 
+* Only include builtin filters whose filenames match /^[a-z][a-z_]*_helper.rb$/ to avoid including operating system metadata such as ._foo_helper.rb.  #2855 [court3nay@gmail.com]
+
 * Added FormHelper#form_for and FormHelper#fields_for that makes it easier to work with forms for single objects also if they don't reside in instance variables [DHH]. Examples:
 
   <% form_for :person => @person, :url => { :action => "update" } do |f| %>

@@ -157,13 +157,12 @@ module ActionView #:nodoc:
 
     class ObjectWrapper < Struct.new(:value) #:nodoc:
     end
-    
+
     def self.load_helpers(helper_dir)#:nodoc:
       Dir.foreach(helper_dir) do |helper_file| 
-        next unless helper_file =~ /_helper.rb$/
-        require helper_dir + helper_file
-        helper_module_name = helper_file.capitalize.gsub(/_([a-z])/) { |m| $1.capitalize }[0..-4]
-
+        next unless helper_file =~ /^([a-z][a-z_]*_helper).rb$/
+        require File.join(helper_dir, $1)
+        helper_module_name = $1.camelize
         class_eval("include ActionView::Helpers::#{helper_module_name}") if Helpers.const_defined?(helper_module_name)
       end
     end
