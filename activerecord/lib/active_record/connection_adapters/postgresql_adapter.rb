@@ -305,12 +305,12 @@ module ActiveRecord
         execute "DROP INDEX #{index_name}"
       end      
 
-      
+
       private
         BYTEA_COLUMN_TYPE_OID = 17
 
         def last_insert_id(table, sequence_name)
-          Integer(@connection.exec("SELECT currval('#{sequence_name}')")[0][0])
+          Integer(select_value("SELECT currval('#{sequence_name}')"))
         end
 
         def select(sql, name = nil)
