@@ -155,7 +155,7 @@ module ActionView
 
       # Works just like text_field, but returns an input tag of the "hidden" type instead.
       def hidden_field(object_name, method, options = {})
-        InstanceTag.new(object_name, method, self).to_input_field_tag("hidden", options)
+        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_input_field_tag("hidden", options)
       end
 
       # Works just like text_field, but returns an input tag of the "file" type instead, which won't have a default value.
