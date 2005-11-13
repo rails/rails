@@ -67,9 +67,12 @@ module ActiveRecord
             nil
           end
         rescue Exception => e
-          log_info("#{e.message}: #{sql}", name, 0)
-          reconnect_if_inactive!
-          raise ActiveRecord::StatementInvalid, "#{e.message}: #{sql}"
+          message = "#{e.class.name}: #{e.message}: #{sql}"
+          unless reconnect_if_inactive!
+            message = "(reconnect failed) #{message}"
+          end
+          log_info(message, name, 0)
+          raise ActiveRecord::StatementInvalid, message
         end
 
         def log_info(sql, name, runtime)
@@ -108,10 +111,11 @@ module ActiveRecord
             if active?
               @@reconnect_success += 1
               @logger.info "#{adapter_name} automatically reconnected.  Success rate: #{'%.2f' % self.class.reconnect_success_rate}%" if @logger
+              true
             else
               @@reconnect_failure += 1
               @logger.warn "#{adapter_name} automatic reconnection failed.  Success rate: #{'%.2f' % self.class.reconnect_success_rate}%" if @logger
-              raise ActiveRecord::ConnectionFailed
+              false
             end
           else
             @logger.warn "#{adapter_name} does not yet support automatic reconnection." if @logger
