@@ -9,16 +9,16 @@ db2 = 'activerecord_unittest2'
 
 ActiveRecord::Base.establish_connection(
   :adapter  => "postgresql",
-  :host     => nil, 
   :username => "postgres",
   :password => "postgres", 
-  :database => db1
+  :database => db1,
+  :min_messages => "warning"
 )
 
 Course.establish_connection(
   :adapter  => "postgresql",
-  :host     => nil, 
   :username => "postgres",
   :password => "postgres", 
-  :database => db2
+  :database => db2,
+  :min_messages => "warning"
 )

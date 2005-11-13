@@ -362,6 +362,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.table_name_suffix = ""
       Reminder.reset_table_name
       assert_equal "schema_info", ActiveRecord::Migrator.schema_info_table_name
+    ensure
+      ActiveRecord::Base.table_name_prefix = ""
+      ActiveRecord::Base.table_name_suffix = ""
     end
   
     def test_proper_table_name
@@ -398,17 +401,20 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.table_name_prefix = 'prefix_'
       ActiveRecord::Base.table_name_suffix = '_suffix'
       Reminder.reset_table_name
+      Reminder.reset_sequence_name
       WeNeedReminders.up
       assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
       assert_equal "hello world", Reminder.find(:first).content
 
       WeNeedReminders.down
       assert_raises(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
+    ensure
       ActiveRecord::Base.table_name_prefix = ''
       ActiveRecord::Base.table_name_suffix = ''
       Reminder.reset_table_name
+      Reminder.reset_sequence_name
     end
-    
+
     def test_migrator_with_duplicates
       assert_raises(ActiveRecord::DuplicateMigrationVersionError) do
         ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations_with_duplicate/', nil)
