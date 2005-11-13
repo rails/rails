@@ -114,7 +114,7 @@ module ActionView
         additional_options = options.reject { |k, v| ![ :method, :multipart ].include?(k) }
         
         concat(form_tag(url_for_options, additional_options, *parameters_for_url), proc.binding)
-        fields_for({ options.keys.first => options.values.first }, &proc)
+        fields_for({ object_name => object }, &proc)
         concat(end_form_tag, proc.binding)
       end
 
