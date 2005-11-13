@@ -107,7 +107,7 @@ task :purge_test_database => :environment do
       `dropdb -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
       `createdb #{enc_option} -T template0 -U "#{abcs["test"]["username"]}" #{abcs["test"]["database"]}`
     when "sqlite","sqlite3"
-      dbfile = abcs[RAILS_ENV]["database"] || abcs[RAILS_ENV]["dbfile"]
+      dbfile = abcs["test"]["database"] || abcs["test"]["dbfile"]
       File.delete(dbfile) if File.exist?(dbfile)
     when "sqlserver"
       dropfkscript = "#{abcs["test"]["host"]}.#{abcs["test"]["database"]}.DP1".gsub(/\\/,'-')
