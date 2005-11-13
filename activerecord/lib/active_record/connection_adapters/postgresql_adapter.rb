@@ -201,7 +201,7 @@ module ActiveRecord
 
       def default_sequence_name(table_name, pk = nil)
         default_pk, default_seq = pk_and_sequence_for(table_name)
-        default_seq || "#{table_name}_#{pk || default_pk}_seq"
+        default_seq || "#{table_name}_#{pk || default_pk || 'id'}_seq"
       end
 
       # Resets sequence to the max value of the table's pk if present.
@@ -258,7 +258,7 @@ module ActiveRecord
             JOIN pg_constraint  cons ON (conrelid = adrelid AND adnum = conkey[1])
             WHERE t.oid = '#{table}'::regclass
               AND cons.contype = 'p'
-              AND def.adsrc ~ 'nextval\\\\(\\\'[^\\\']*\\\'::[^\\\\)]*\\\\)'
+              AND def.adsrc ~* 'nextval'
           end_sql
         end
         result
