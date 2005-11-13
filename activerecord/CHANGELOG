@@ -1,5 +1,7 @@
 *SVN*
 
+* Much faster Oracle column reflection.  #2848 [Michael Schoen <schoenm@earthlink.net>]
+
 * Base.reset_sequence_name analogous to reset_table_name (mostly useful for testing).  Base.define_attr_method allows nil values.  [Jeremy Kemper]
 
 * PostgreSQL: smarter sequence name defaults, stricter last_insert_id, warn on pk without sequence.  [Jeremy Kemper]

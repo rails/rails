@@ -316,23 +316,29 @@ begin
           table_name = table_name.to_s.upcase
           owner = table_name.include?('.') ? "'#{table_name.split('.').first}'" : "user"
           table = "'#{table_name.split('.').last}'"
+          scope = (owner == "user" ? "user" : "all")
 
-          select_all(%Q{
-              select column_name, data_type, data_default, nullable,
-                     case when data_type = 'NUMBER' then data_precision
-                          when data_type = 'VARCHAR2' then data_length
-                          else null end as length,
-                     case when data_type = 'NUMBER' then data_scale
-                          else null end as scale
-               from all_catalog cat, all_synonyms syn, all_tab_columns col
-              where cat.owner = #{owner}
-                and cat.table_name = #{table}
-                and syn.owner (+)= cat.owner
-                and syn.synonym_name (+)= cat.table_name
-                and col.owner = nvl(syn.table_owner, cat.owner)
-                and col.table_name = nvl(syn.table_name, cat.table_name)
-          }).map do |row|
-            row['data_default'].gsub!(/^'(.*)'\s*$/, '\1') if row['data_default']
+          table_cols = %Q{
+            select column_name, data_type, data_default, nullable,
+                   case when data_type = 'NUMBER' then data_precision
+                        when data_type = 'VARCHAR2' then data_length
+                        else null end as length,
+                   case when data_type = 'NUMBER' then data_scale
+                        else null end as scale
+              from #{scope}_catalog cat, #{scope}_synonyms syn, all_tab_columns col
+             where cat.table_name = #{table}
+               and syn.synonym_name (+)= cat.table_name
+               and col.table_name = nvl(syn.table_name, cat.table_name)
+               and col.owner = nvl(syn.table_owner, #{(scope == "all" ? "cat.owner" : "user")}) }
+
+          if scope == "all"
+            table_cols << %Q{
+               and cat.owner = #{owner}
+               and syn.owner (+)= cat.owner }
+          end
+
+          select_all(table_cols).map do |row|
+            row['data_default'].gsub!(/^'(.*)'$/, '\1') if row['data_default']
             OCIColumn.new(
               oci_downcase(row['column_name']), 
               row['data_default'],
