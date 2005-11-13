@@ -1,6 +1,6 @@
 *SVN*
 
-* SQLite: the clone_structure_to_test Rake task should always use the test environment.  #2846 [Rick Olson]
+* SQLite: the clone_structure_to_test and purge_test_database Rake tasks should always use the test environment.  #2846 [Rick Olson]
 
 * Make sure that legacy db tasks also reference :database for SQLite #2830 [kazuhiko@fdiary.net]
 
