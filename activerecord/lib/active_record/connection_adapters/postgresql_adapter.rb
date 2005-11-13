@@ -52,6 +52,24 @@ module ActiveRecord
         'PostgreSQL'
       end
 
+      # Is this connection alive and ready for queries?
+      def active?
+        # TODO: postgres-pr doesn't have PGconn#status.
+        if @connection.respond_to?(:status)
+          @connection.status != PGconn::CONNECTION_BAD
+        else
+          true
+        end
+      end
+
+      # Close then reopen the connection.
+      def reconnect!
+        # TODO: postgres-pr doesn't have PGconn#reset.
+        if @connection.respond_to?(:reset)
+          @connection.reset
+        end
+      end
+
       def native_database_types
         {
           :primary_key => "serial primary key",

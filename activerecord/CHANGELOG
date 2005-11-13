@@ -1,5 +1,7 @@
 *SVN*
 
+* When AbstractAdapter#log rescues an exception, attempt to detect and reconnect to an inactive database connection.  Connection adapter must respond to the active? and reconnect! instance methods.  Initial support for PostgreSQL.  [Jeremy Kemper]
+
 * Much faster Oracle column reflection.  #2848 [Michael Schoen <schoenm@earthlink.net>]
 
 * Base.reset_sequence_name analogous to reset_table_name (mostly useful for testing).  Base.define_attr_method allows nil values.  [Jeremy Kemper]

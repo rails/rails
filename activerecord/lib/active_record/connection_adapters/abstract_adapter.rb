@@ -47,25 +47,24 @@ module ActiveRecord
 
       protected  
         def log(sql, name)
-          begin
-            if block_given?
-              if @logger and @logger.level <= Logger::INFO
-                result = nil
-                seconds = Benchmark.realtime { result = yield }
-                @runtime += seconds
-                log_info(sql, name, seconds)
-                result
-              else
-                yield
-              end
+          if block_given?
+            if @logger and @logger.level <= Logger::INFO
+              result = nil
+              seconds = Benchmark.realtime { result = yield }
+              @runtime += seconds
+              log_info(sql, name, seconds)
+              result
             else
-              log_info(sql, name, 0)
-              nil
+              yield
             end
-          rescue Exception => e
-            log_info("#{e.message}: #{sql}", name, 0)
-            raise ActiveRecord::StatementInvalid, "#{e.message}: #{sql}"
+          else
+            log_info(sql, name, 0)
+            nil
           end
+        rescue Exception => e
+          log_info("#{e.message}: #{sql}", name, 0)
+          reconnect_if_inactive!
+          raise ActiveRecord::StatementInvalid, "#{e.message}: #{sql}"
         end
 
         def log_info(sql, name, runtime)
@@ -94,6 +93,16 @@ module ActiveRecord
             log_entry
           else
             "%s  %s" % [message, dump]
+          end
+        end
+
+      private
+        def reconnect_if_inactive!
+          if respond_to?(:active?) and respond_to?(:reconnect!)
+            reconnect! unless active?
+            raise ActiveRecord::ConnectionFailed unless active?
+          else
+            @logger.warn "#{adapter_name} does not yet support automatic reconnection." if @logger
           end
         end
     end
