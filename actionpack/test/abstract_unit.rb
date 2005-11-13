@@ -1,9 +1,10 @@
 $:.unshift(File.dirname(__FILE__) + '/../lib')
-$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib')
+$:.unshift(File.dirname(__FILE__) + '/../../activesupport/lib/active_support')
 $:.unshift(File.dirname(__FILE__) + '/fixtures/helpers')
 
 require 'test/unit'
 require 'action_controller'
+require 'breakpoint'
 
 require 'action_controller/test_process'
 

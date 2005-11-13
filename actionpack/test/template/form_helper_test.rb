@@ -1,10 +1,11 @@
-require 'test/unit'
-require 'erb'
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/form_helper'
-require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/hash' #for stringify keys
+require File.dirname(__FILE__) + '/../abstract_unit'
 
 class FormHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::FormHelper
+  include ActionView::Helpers::FormTagHelper
+  include ActionView::Helpers::UrlHelper
+  include ActionView::Helpers::TagHelper
+  include ActionView::Helpers::TextHelper
 
   silence_warnings do
     Post = Struct.new("Post", :title, :author_name, :body, :secret, :written_on, :cost)
@@ -27,6 +28,13 @@ class FormHelperTest < Test::Unit::TestCase
     @post.body        = "Back to the hill and over it again!"
     @post.secret      = 1
     @post.written_on  = Date.new(2004, 6, 15)
+
+    @controller = Class.new do
+      def url_for(options, *parameters_for_method_reference)
+        "http://www.example.com"
+      end
+    end
+    @controller = @controller.new
   end
 
   def test_text_field
@@ -186,5 +194,66 @@ class FormHelperTest < Test::Unit::TestCase
     assert_dom_equal("<input id=\"post_#{pid}_title_goodbye_world\" name=\"post[#{pid}][title]\" type=\"radio\" value=\"Goodbye World\" />",
       radio_button("post[]", "title", "Goodbye World")
     )
+  end
+
+  def test_form_for
+    _erbout = ''
+
+    form_for(:post => @post) do |f|
+      _erbout.concat f.text_field(:title)
+      _erbout.concat f.text_area(:body)
+      _erbout.concat f.check_box(:secret)
+    end
+
+    expected = 
+      "<form action='http://www.example.com' method='post'>" +
+      "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
+      "<input name='post[secret]' type='hidden' value='0' />" +
+      "</form>"
+
+    assert_dom_equal expected, _erbout
+  end
+
+  def test_fields_for
+    _erbout = ''
+
+    fields_for(:post => @post) do |f|
+      _erbout.concat f.text_field(:title)
+      _erbout.concat f.text_area(:body)
+      _erbout.concat f.check_box(:secret)
+    end
+
+    expected = 
+      "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
+      "<input name='post[secret]' type='hidden' value='0' />"
+
+    assert_dom_equal expected, _erbout
+  end
+  
+  def test_form_for_and_fields_for
+    _erbout = ''
+
+    form_for(:post => @post) do |post_form|
+      _erbout.concat post_form.text_field(:title)
+      _erbout.concat post_form.text_area(:body)
+
+      fields_for(:parent_post => @post) do |parent_fields|
+        _erbout.concat parent_fields.check_box(:secret)
+      end
+    end
+
+    expected = 
+      "<form action='http://www.example.com' method='post'>" +
+      "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
+      "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
+      "<input name='parent_post[secret]' checked='checked' type='checkbox' id='parent_post_secret' value='1' />" +
+      "<input name='parent_post[secret]' type='hidden' value='0' />" +
+      "</form>"
+
+    assert_dom_equal expected, _erbout
   end
 end

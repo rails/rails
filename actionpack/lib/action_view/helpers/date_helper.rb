@@ -293,5 +293,15 @@ module ActionView
         datetime_select
       end
     end
+
+    class FormBuilder
+      def date_select(method, options = {})
+        @template.date_select(@object_name, method, options.merge(:object => @object))
+      end
+
+      def datetime_select(method, options = {})
+        @template.datetime_select(@object_name, method, options.merge(:object => @object))
+      end
+    end
   end
 end

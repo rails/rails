@@ -1,5 +1,23 @@
 *SVN*
 
+* Added FormHelper#form_for and FormHelper#fields_for that makes it easier to work with forms for single objects also if they don't reside in instance variables [DHH]. Examples:
+
+  <% form_for :person => @person, :url => { :action => "update" } do |f| %>
+    First name: <%= f.text_field :first_name %>
+    Last name : <%= f.text_field :last_name %>
+    Biography : <%= f.text_area :biography %>
+    Admin?    : <%= f.check_box :admin %>
+  <% end %>
+
+  <% form_for :person => @person, :url => { :action => "update" } do |person_form| %>
+    First name: <%= person_form.text_field :first_name %>
+    Last name : <%= person_form.text_field :last_name %>
+    
+    <% fields_for :permission => @person.permission do |permission_fields| %>
+      Admin?  : <%= permission_fields.check_box :admin %>
+    <% end %>
+  <% end %>
+  
 * options_for_select allows any objects which respond_to? :first and :last rather than restricting to Array and Range.  #2824 [Jacob Robbins <jrobbins@cmj.com>, Jeremy Kemper]
 
 * The auto_link text helper accepts an optional block to format the link text for each url and email address.  Example: auto_link(post.body) { |text| truncate(text, 10) }  [Jeremy Kemper]

@@ -65,6 +65,78 @@ module ActionView
     # There's also methods for helping to build form tags in link:classes/ActionView/Helpers/FormOptionsHelper.html,
     # link:classes/ActionView/Helpers/DateHelper.html, and link:classes/ActionView/Helpers/ActiveRecordHelper.html
     module FormHelper
+      # Creates a form and a scope around a specific model object, which is then used as a base for questioning about
+      # values for the fields. Examples:
+      #
+      #   <% form_for :person => @person, :url => { :action => "update" } do |f| %>
+      #     First name: <%= f.text_field :first_name %>
+      #     Last name : <%= f.text_field :last_name %>
+      #     Biography : <%= f.text_area :biography %>
+      #     Admin?    : <%= f.check_box :admin %>
+      #   <% end %>
+      #
+      # Worth noting is that the form_for tag is called in a ERb evaluation block, not a ERb output block. So that's <tt><% %></tt>, 
+      # not <tt><%= %></tt>. Also worth noting is that the form_for yields a form_builder object, in this example as f, which emulates
+      # the API for the stand-alone FormHelper methods, but without the object name. So instead of <tt>text_field :person, :name</tt>,
+      # you get away with <tt>f.text_field :name</tt>. 
+      #
+      # That in itself is a modest increase in comfort. The big news is that form_for allows us to more easily escape the instance
+      # variable convention, so while the stand-alone approach would require <tt>text_field :person, :name, :object => person</tt> 
+      # to work with local variables instead of instance ones, the form_for calls remain the same. You simply declare once with 
+      # <tt>:person => person</tt> and all subsequent field calls save <tt>:person</tt> and <tt>:object => person</tt>.
+      #
+      # Also note that form_for doesn't create an exclusive scope. It's still possible to use both the stand-alone FormHelper methods
+      # and methods from FormTagHelper. Example:
+      #
+      #   <% form_for :person => @person, :url => { :action => "update" } do |f| %>
+      #     First name: <%= f.text_field :first_name %>
+      #     Last name : <%= f.text_field :last_name %>
+      #     Biography : <%= text_area :person, :biography %>
+      #     Admin?    : <%= check_box_tag "person[admin]", @person.company.admin? %>
+      #   <% end %>
+      #
+      # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base.
+      # Like collection_select and datetime_select.
+      def form_for(options, *parameters_for_url, &proc)
+        keys = [ :url, :method, :multipart ]
+        leftover_keys = (options.keys - keys)
+
+        case leftover_keys.length
+          when 0 then raise 'No object given!'
+          when 1 then
+            object_name = leftover_keys.first
+            object = options[object_name]
+          else
+            raise "Too many options: #{options.inspect}"
+        end
+        
+        url_for_options = options[:url]
+        additional_options = options.reject { |k, v| ![ :method, :multipart ].include?(k) }
+        
+        concat(form_tag(url_for_options, additional_options, *parameters_for_url), proc.binding)
+        fields_for({ options.keys.first => options.values.first }, &proc)
+        concat(end_form_tag, proc.binding)
+      end
+
+      # Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes
+      # fields_for suitable for specifying additional model objects in the same form. Example:
+      #
+      #   <% form_for :person => @person, :url => { :action => "update" } do |person_form| %>
+      #     First name: <%= person_form.text_field :first_name %>
+      #     Last name : <%= person_form.text_field :last_name %>
+      #     
+      #     <% fields_for :permission => @person.permission do |permission_fields| %>
+      #       Admin?  : <%= permission_fields.check_box :admin %>
+      #     <% end %>
+      #   <% end %>
+      #
+      # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base.
+      # Like collection_select and datetime_select.
+      def fields_for(object = {}, &proc)
+        form_builder = FormBuilder.new(object.keys.first, object.values.first, self, proc)
+        proc.call(form_builder)
+      end
+
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
       # assigned to the template (identified by +object+). Additional options on the input tag can be passed as a
       # hash with +options+.
@@ -72,23 +144,23 @@ module ActionView
       # Examples (call, result):
       #   text_field("post", "title", "size" => 20)
       #     <input type="text" id="post_title" name="post[title]" size="20" value="#{@post.title}" />
-      def text_field(object, method, options = {})
-        InstanceTag.new(object, method, self).to_input_field_tag("text", options)
+      def text_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_input_field_tag("text", options)
       end
 
       # Works just like text_field, but returns an input tag of the "password" type instead.
-      def password_field(object, method, options = {})
-        InstanceTag.new(object, method, self).to_input_field_tag("password", options)
+      def password_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_input_field_tag("password", options)
       end
 
       # Works just like text_field, but returns an input tag of the "hidden" type instead.
-      def hidden_field(object, method, options = {})
-        InstanceTag.new(object, method, self).to_input_field_tag("hidden", options)
+      def hidden_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self).to_input_field_tag("hidden", options)
       end
 
       # Works just like text_field, but returns an input tag of the "file" type instead, which won't have a default value.
-      def file_field(object, method, options = {})
-        InstanceTag.new(object, method, self).to_input_field_tag("file", options)
+      def file_field(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_input_field_tag("file", options)
       end
 
       # Returns a textarea opening and closing tag set tailored for accessing a specified attribute (identified by +method+)
@@ -100,8 +172,8 @@ module ActionView
       #     <textarea cols="20" rows="40" id="post_body" name="post[body]">
       #       #{@post.body}
       #     </textarea>
-      def text_area(object, method, options = {})
-        InstanceTag.new(object, method, self).to_text_area_tag(options)
+      def text_area(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_text_area_tag(options)
       end
 
       # Returns a checkbox tag tailored for accessing a specified attribute (identified by +method+) on an object
@@ -120,8 +192,8 @@ module ActionView
       #   check_box("puppy", "gooddog", {}, "yes", "no")
       #     <input type="checkbox" id="puppy_gooddog" name="puppy[gooddog]" value="yes" />
       #     <input name="puppy[gooddog]" type="hidden" value="no" />
-      def check_box(object, method, options = {}, checked_value = "1", unchecked_value = "0")
-        InstanceTag.new(object, method, self).to_check_box_tag(options, checked_value, unchecked_value)
+      def check_box(object_name, method, options = {}, checked_value = "1", unchecked_value = "0")
+        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_check_box_tag(options, checked_value, unchecked_value)
       end
 
       # Returns a radio button tag for accessing a specified attribute (identified by +method+) on an object
@@ -134,8 +206,8 @@ module ActionView
       #     <input type="radio" id="post_category" name="post[category]" value="rails" checked="checked" />
       #     <input type="radio" id="post_category" name="post[category]" value="java" />
       #
-      def radio_button(object, method, tag_value, options = {})
-        InstanceTag.new(object, method, self).to_radio_button_tag(tag_value, options)
+      def radio_button(object_name, method, tag_value, options = {})
+        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_radio_button_tag(tag_value, options)
       end
     end
 
@@ -149,9 +221,10 @@ module ActionView
       DEFAULT_TEXT_AREA_OPTIONS = { "cols" => 40, "rows" => 20 }.freeze unless const_defined?(:DEFAULT_TEXT_AREA_OPTIONS)
       DEFAULT_DATE_OPTIONS = { :discard_type => true }.freeze unless const_defined?(:DEFAULT_DATE_OPTIONS)
 
-      def initialize(object_name, method_name, template_object, local_binding = nil)
+      def initialize(object_name, method_name, template_object, local_binding = nil, object = nil)
         @object_name, @method_name = object_name.to_s, method_name.to_s
         @template_object, @local_binding = template_object, local_binding
+        @object = object
         if @object_name.sub!(/\[\]$/,"")
           @auto_index = @template_object.instance_variable_get("@#{Regexp.last_match.pre_match}").id_before_type_cast
         end
@@ -240,7 +313,7 @@ module ActionView
       end
       
       def object
-        @template_object.instance_variable_get "@#{@object_name}"
+        @object || @template_object.instance_variable_get("@#{@object_name}")
       end
 
       def value
@@ -285,6 +358,31 @@ module ActionView
         def tag_id_with_index(index)
           "#{@object_name}_#{index}_#{@method_name}"
         end
+    end
+
+    class FormBuilder
+      def initialize(object_name, object, template, proc)
+        @object_name, @object, @template, @proc = object_name, object, template, proc        
+      end
+
+      (FormHelper.instance_methods - [ :check_box, :radio_button ]).each do |selector|
+        next if selector == "form_for"
+
+        src = <<-end_src
+          def #{selector}(method, options = {})
+            @template.send(#{selector.inspect}, @object_name, method, options.merge(:object => @object))
+          end
+        end_src
+        class_eval src, __FILE__, __LINE__
+      end
+      
+      def check_box(method, options = {}, checked_value = "1", unchecked_value = "0")
+        @template.check_box(@object_name, method, options.merge(:object => @object), checked_value, unchecked_value)
+      end
+      
+      def radio_button(method, tag_value, options = {})
+        @template.check_box(@object_name, method, tag_value, options.merge(:object => @object))
+      end
     end
   end
 end

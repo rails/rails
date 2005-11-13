@@ -15,7 +15,7 @@ module ActionView
       # Options:
       # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
       # * <tt>:method</tt> - The method to use when submitting the form, usually either "get" or "post".
-      def form_tag(url_for_options = {}, options = {}, *parameters_for_url)
+      def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &proc)
         html_options = { "method" => "post" }.merge(options.stringify_keys)
 
         if html_options["multipart"]
