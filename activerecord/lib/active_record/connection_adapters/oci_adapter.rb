@@ -338,7 +338,7 @@ begin
           end
 
           select_all(table_cols).map do |row|
-            row['data_default'].gsub!(/^'(.*)'$/, '\1') if row['data_default']
+            row['data_default'].gsub!(/^'(.*)'\s*$/, '\1') if row['data_default']
             OCIColumn.new(
               oci_downcase(row['column_name']), 
               row['data_default'],
