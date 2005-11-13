@@ -1,5 +1,7 @@
 *SVN*
 
+* Only include builtin filters whose filenames match /^[a-z][a-z_]*_helper.rb$/ to avoid including operating system metadata such as ._foo_helper.rb.  #2855 [court3nay@gmail.com]
+
 * options_for_select allows any objects which respond_to? :first and :last rather than restricting to Array and Range.  #2824 [Jacob Robbins <jrobbins@cmj.com>, Jeremy Kemper]
 
 * The auto_link text helper accepts an optional block to format the link text for each url and email address.  Example: auto_link(post.body) { |text| truncate(text, 10) }  [Jeremy Kemper]
