@@ -20,7 +20,7 @@ module ActiveRecord
   #     def self.up
   #       add_column :accounts, :ssl_enabled, :boolean, :default => 1
   #     end
-  #   
+  #
   #     def self.down
   #       remove_column :accounts, :ssl_enabled
   #     end
@@ -28,7 +28,7 @@ module ActiveRecord
   #
   # This migration will add a boolean flag to the accounts table and remove it again, if you're backing out of the migration.
   # It shows how all migrations have two class methods +up+ and +down+ that describes the transformations required to implement
-  # or remove the migration. These methods can consist of both the migration specific methods, like add_column and remove_column, 
+  # or remove the migration. These methods can consist of both the migration specific methods, like add_column and remove_column,
   # but may also contain regular Ruby code for generating data needed for the transformations.
   #
   # Example of a more complex migration that also needs to initialize data:
@@ -42,10 +42,10 @@ module ActiveRecord
   #         t.column :type,     :string
   #         t.column :position, :integer
   #       end
-  #   
+  #
   #       SystemSetting.create :name => "notice", :label => "Use notice?", :value => 1
   #     end
-  #   
+  #
   #     def self.down
   #       drop_table :system_settings
   #     end
@@ -79,13 +79,29 @@ module ActiveRecord
   #
   # == Running migrations from within Rails
   #
-  # The Rails package has support for migrations with the <tt>script/generate migration my_new_migration</tt> command and
-  # with the <tt>rake migrate</tt> command that'll run all the pending migrations. It'll even create the needed schema_info
-  # table automatically if it's missing.
+  # The Rails package has several tools to help create and apply migrations.
+  #
+  # To generate a new migration, use <tt>script/generate migration MyNewMigration</tt>
+  # where MyNewMigration is the name of your migration. The generator will
+  # create a file <tt>nnn_my_new_migration.rb</tt> in the <tt>db/migrate/</tt>
+  # directory, where <tt>nnn</tt> is the next largest migration number.
+  # You may then edit the <tt>self.up</tt> and <tt>self.down</tt> methods of
+  # n MyNewMigration.
+  #
+  # To run migrations against the currently configured database, use
+  # <tt>rake migrate</tt>. This will update the database by running all of the
+  # pending migrations, creating the <tt>schema_info</tt> table if missing.
+  #
+  # To roll the database back to a previous migration version, use
+  # <tt>rake migrate version=X</tt> where <tt>X</tt> is the version to which
+  # you wish to downgrade. If any of the migrations throw an
+  # <tt>IrreversibleMigration</tt> exception, that step will fail and you'll
+  # have some manual work to do.
   #
   # == Database support
   #
-  # Migrations are currently only supported in MySQL and PostgreSQL.
+  # Migrations are currently supported in MySQL, PostgreSQL, SQLite,
+  # SQL Server, and Oracle (all supported databases except DB2).
   #
   # == More examples
   #
@@ -95,7 +111,7 @@ module ActiveRecord
   #     def self.up
   #       Tag.find(:all).each { |tag| tag.destroy if tag.pages.empty? }
   #     end
-  #   
+  #
   #     def self.down
   #       # not much we can do to restore deleted data
   #       raise IrreversibleMigration
@@ -128,20 +144,21 @@ module ActiveRecord
   #     end
   #   end
   #
-  # == Using the class after changing table
+  # == Using a model after changing its table
   #
   # Sometimes you'll want to add a column in a migration and populate it immediately after. In that case, you'll need
-  # to make a call to Base#reset_column_information in order to ensure that the class has the latest column data from 
+  # to make a call to Base#reset_column_information in order to ensure that the model has the latest column data from
   # after the new column was added. Example:
   #
-  #   class MakeJoinUnique < ActiveRecord::Migration
+  #   class AddPeopleSalary < ActiveRecord::Migration
   #     def self.up
   #       add_column :people, :salary, :integer
+  #       Person.reset_column_information
   #       Person.find(:all).each do |p|
   #         p.salary = SalaryCalculator.compute(p)
   #       end
   #     end
-  #   end  
+  #   end
   class Migration
     class << self
       def up() end

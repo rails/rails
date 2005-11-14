@@ -1,5 +1,7 @@
 *SVN*
 
+* Update documentation for Migrations.  #2861 [Tom Werner <tom@cube6media.com>]
+
 * When AbstractAdapter#log rescues an exception, attempt to detect and reconnect to an inactive database connection.  Connection adapter must respond to the active? and reconnect! instance methods.  Initial support for PostgreSQL, MySQL, and SQLite.  Make certain that all statements which may need reconnection are performed within a logged block: for example, this means no avoiding log(sql, name) { } if @logger.nil?  [Jeremy Kemper]
 
 * Much faster Oracle column reflection.  #2848 [Michael Schoen <schoenm@earthlink.net>]
