@@ -1,5 +1,7 @@
 *SVN*
 
+* Updated docs for in_place_editor, fixes a couple bugs and offers extended support for external controls [Justin Palmer]
+
 * Update documentation for render :file.  #2858 [Tom Werner]
 
 * Only include builtin filters whose filenames match /^[a-z][a-z_]*_helper.rb$/ to avoid including operating system metadata such as ._foo_helper.rb.  #2855 [court3nay@gmail.com]

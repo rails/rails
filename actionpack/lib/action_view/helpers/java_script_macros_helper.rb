@@ -28,21 +28,23 @@ module ActionView
       #                       be sent after the user presses "ok".
       # 
       # Addtional +options+ are:
-      # <tt>:rows</tt>::        Number of rows (more than 1 will use a TEXTAREA)
-      # <tt>:cancel_text</tt>:: The text on the cancel link. (default: "cancel")
-      # <tt>:ok_text</tt>::     The text on the save link. (default: "ok")
-      # <tt>:options</tt>::     Pass through options to the AJAX call (see prototype's Ajax.Updater)
-      # <tt>:with</tt>::        JavaScript snippet that should return what is to be sent
-      #                         in the AJAX call, +form+ is an implicit parameter
+      # <tt>:rows</tt>::              Number of rows (more than 1 will use a TEXTAREA)
+      # <tt>:cancel_text</tt>::       The text on the cancel link. (default: "cancel")
+      # <tt>:save_text</tt>::         The text on the save link. (default: "ok")
+      # <tt>:external_control</tt>::  The id of an external control used to enter edit mode.
+      # <tt>:options</tt>::           Pass through options to the AJAX call (see prototype's Ajax.Updater)
+      # <tt>:with</tt>::              JavaScript snippet that should return what is to be sent
+      #                               in the AJAX call, +form+ is an implicit parameter
       def in_place_editor(field_id, options = {})
         function =  "new Ajax.InPlaceEditor("
         function << "'#{field_id}', "
         function << "'#{url_for(options[:url])}'"
 
         js_options = {}
-        js_options['cancelText'] = options[:cancel_text] if options[:cancel_text]
-        js_options['okText'] = options[:save_text] if options[:save_text]
+        js_options['cancelText'] = %('#{options[:cancel_text]}') if options[:cancel_text]
+        js_options['okText'] = %('#{options[:save_text]}') if options[:save_text]
         js_options['rows'] = options[:rows] if options[:rows]
+        js_options['externalControl'] = options[:external_control] if options[:external_control]
         js_options['ajaxOptions'] = options[:options] if options[:options]
         js_options['callback']   = "function(form) { return #{options[:with]} }" if options[:with]
         function << (', ' + options_for_javascript(js_options)) unless js_options.empty?
@@ -59,7 +61,7 @@ module ActionView
         tag = ::ActionView::Helpers::InstanceTag.new(object, method, self)
         tag_options = {:tag => "span", :id => "#{object}_#{method}_#{tag.object.id}_in_place_editor", :class => "in_place_editor_field"}.merge!(tag_options)
         in_place_editor_options[:url] = in_place_editor_options[:url] || url_for({ :action => "set_#{object}_#{method}", :id => tag.object.id })
-        tag.to_content_tag(tag_options[:tag], tag_options) +
+        tag.to_content_tag(tag_options.delete(:tag), tag_options) +
         in_place_editor(tag_options[:id], in_place_editor_options)
       end
       

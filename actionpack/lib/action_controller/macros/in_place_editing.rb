@@ -14,7 +14,7 @@ module ActionController
       #   end
       #
       #   # View
-      #   <%= in_place_editor_field :post, title %>
+      #   <%= in_place_editor_field :post, 'title' %>
       #
       # For help on defining an in place editor in the browser,
       # see ActionView::Helpers::JavaScriptHelper.
