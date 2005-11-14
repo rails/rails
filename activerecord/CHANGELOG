@@ -1,12 +1,14 @@
 *SVN*
 
+* Oracle: active? and reconnect! methods for handling stale connections.  Optionally retry queries after reconnect.  #428 [Michael Schoen <schoenm@earthlink.net>]
+
 * Correct documentation for Base.delete_all.  #1568 [Newhydra]
 
 * Oracle: test case for column default parsing.  #2788 [Michael Schoen <schoenm@earthlink.net>]
 
 * Update documentation for Migrations.  #2861 [Tom Werner <tom@cube6media.com>]
 
-* When AbstractAdapter#log rescues an exception, attempt to detect and reconnect to an inactive database connection.  Connection adapter must respond to the active? and reconnect! instance methods.  Initial support for PostgreSQL, MySQL, and SQLite.  Make certain that all statements which may need reconnection are performed within a logged block: for example, this means no avoiding log(sql, name) { } if @logger.nil?  [Jeremy Kemper]
+* When AbstractAdapter#log rescues an exception, attempt to detect and reconnect to an inactive database connection.  Connection adapter must respond to the active? and reconnect! instance methods.  Initial support for PostgreSQL, MySQL, and SQLite.  Make certain that all statements which may need reconnection are performed within a logged block: for example, this means no avoiding log(sql, name) { } if @logger.nil?  #428 [Jeremy Kemper]
 
 * Oracle: Much faster column reflection.  #2848 [Michael Schoen <schoenm@earthlink.net>]
 

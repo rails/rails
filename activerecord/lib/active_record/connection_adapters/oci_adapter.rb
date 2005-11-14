@@ -23,6 +23,7 @@
 # portions Copyright 2005 Graham Jenkins
 
 require 'active_record/connection_adapters/abstract_adapter'
+require 'delegate'
 
 begin
   require_library_or_gem 'oci8' unless self.class.const_defined? :OCI8
@@ -30,11 +31,8 @@ begin
   module ActiveRecord
     class Base
       def self.oci_connection(config) #:nodoc:
-        conn = OCI8.new config[:username], config[:password], config[:host]
-        conn.exec %q{alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'}
-        conn.exec %q{alter session set nls_timestamp_format = 'YYYY-MM-DD HH24:MI:SS'}
-        conn.autocommit = true
-        ConnectionAdapters::OCIAdapter.new conn, logger
+        # Use OCI8AutoRecover instead of normal OCI8 driver.
+        ConnectionAdapters::OCIAdapter.new OCI8AutoRecover.new(config), logger
       end
 
       # Enable the id column to be bound into the sql later, by the adapter's insert method.
@@ -213,6 +211,27 @@ begin
         end
 
 
+        # CONNECTION MANAGEMENT ====================================#
+
+        # Returns true if the connection is active.
+        def active?
+          # Just checks the active flag, which is set false if the last exec
+          # got an error indicating a bad connection. An alternative would be
+          # to call #ping, which is more expensive (and should always get
+          # the same result).
+          @connection.active?
+        end
+
+        # Reconnects to the database.
+        def reconnect!
+          begin
+            @connection.reset!
+          rescue OCIError => e
+            @logger.warn "#{adapter_name} automatic reconnection failed: #{e.message}"
+          end
+        end
+
+
         # DATABASE STATEMENTS ======================================
         #
         # see: abstract/database_statements.rb
@@ -337,7 +356,7 @@ begin
                and syn.owner (+)= cat.owner }
           end
 
-          select_all(table_cols).map do |row|
+          select_all(table_cols, name).map do |row|
             row['data_default'].sub!(/^'(.*)'\s*$/, '\1') if row['data_default']
             OCIColumn.new(
               oci_downcase(row['column_name']), 
@@ -485,8 +504,99 @@ begin
         when 187  : @stmt.defineByPos(i, OraDate) # Read TIMESTAMP values
         else define_a_column_pre_ar i
         end
-    	end
+      end
     end
+  end
+
+
+  # The OCIConnectionFactory factors out the code necessary to connect and
+  # configure an OCI connection.
+  class OCIConnectionFactory
+    def new_connection(username, password, host)
+      conn = OCI8.new username, password, host
+      conn.exec %q{alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'}
+      conn.exec %q{alter session set nls_timestamp_format = 'YYYY-MM-DD HH24:MI:SS'}
+      conn.autocommit = true
+      conn
+    end
+  end
+
+
+  # The OCI8AutoRecover class enhances the OCI8 driver with auto-recover and
+  # reset functionality. If a call to #exec fails, and autocommit is turned on
+  # (ie., we're not in the middle of a longer transaction), it will 
+  # automatically reconnect and try again. If autocommit is turned off,
+  # this would be dangerous (as the earlier part of the implied transaction
+  # may have failed silently if the connection died) -- so instead the 
+  # connection is marked as dead, to be reconnected on it's next use.
+  class OCI8AutoRecover < DelegateClass(OCI8)
+    attr_accessor :active
+    alias :active? :active
+
+    cattr_accessor :auto_retry
+    class << self
+      alias :auto_retry? :auto_retry
+    end
+    @@auto_retry = false
+
+    def initialize(config, factory = OCIConnectionFactory.new)
+      @active = true
+      @username, @password, @host = config[:username], config[:password], config[:host]
+      @factory = factory
+      @connection  = @factory.new_connection @username, @password, @host
+      super @connection
+    end
+
+    # Checks connection, returns true if active. Note that ping actively
+    # checks the connection, while #active? simply returns the last
+    # known state.
+    def ping
+      @active = true
+      begin
+        @connection.commit
+      rescue
+        @active = false
+      end
+      active?
+    end
+
+    # Resets connection, by logging off and creating a new connection.
+    def reset!
+      logoff rescue nil
+      begin
+        @connection = @factory.new_connection @username, @password, @host
+        __setobj__ @connection
+        @active = true
+      rescue
+        @active = false
+        raise
+      end
+    end
+
+    # ORA-00028: your session has been killed
+    # ORA-01012: not logged on 
+    # ORA-03113: end-of-file on communication channel
+    # ORA-03114: not connected to ORACLE
+    LOST_CONNECTION_ERROR_CODES = [ 28, 1012, 3113, 3114 ]
+
+    # Adds auto-recovery functionality.
+    #
+    # See: http://www.jiubao.org/ruby-oci8/api.en.html#label-11
+    def exec(sql, *bindvars)
+      should_retry = self.class.auto_retry? && autocommit?
+
+      begin
+        @connection.exec(sql, *bindvars)
+      rescue OCIError => e
+        raise unless LOST_CONNECTION_ERROR_CODES.include?(e.code)
+        @active = false
+        raise unless should_retry
+        should_retry = false
+        reset! rescue nil
+        retry
+      end
+    end
+
   end
 
 rescue LoadError
