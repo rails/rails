@@ -513,7 +513,7 @@ module ActiveRecord #:nodoc:
 
       # Deletes all the records that match the +condition+ without instantiating the objects first (and hence not
       # calling the destroy method). Example:
-      #   Post.destroy_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
+      #   Post.delete_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
       def delete_all(conditions = nil)
         sql = "DELETE FROM #{table_name} "
         add_conditions!(sql, conditions)
