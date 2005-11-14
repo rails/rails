@@ -1,5 +1,21 @@
 *SVN*
 
+* Added PrototypeHelper::JavaScriptGenerator and PrototypeHelper#update_page for easily modifying multiple elements in an Ajax response. [Sam Stephenson]  Example:
+
+    update_page do |page|
+      page.insert_html :bottom, 'list', '<li>Last item</li>'
+      page.visual_effect :highlight, 'list'
+      page.hide 'status-indicator', 'cancel-link'
+    end
+  
+  generates the following JavaScript:
+  
+    new Insertion.Bottom("list", "<li>Last item</li>");
+    new Effect.Highlight("list");
+    ["status-indicator", "cancel-link"].each(Element.hide);
+  
+* Refactored JavaScriptHelper into PrototypeHelper and ScriptaculousHelper [Sam Stephenson]
+
 * Update to latest script.aculo.us version (as of [3031])
 
 * Updated docs for in_place_editor, fixes a couple bugs and offers extended support for external controls [Justin Palmer]
