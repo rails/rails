@@ -236,7 +236,7 @@ module ActiveRecord
           end
           log(sql, name) do
             @connection.execute(sql)
-            select_one("SELECT @@IDENTITY AS Ident")["Ident"]
+            id_value || select_one("SELECT @@IDENTITY AS Ident")["Ident"]
           end
         ensure
           if ii_enabled
