@@ -17,6 +17,7 @@ class MasterCreditCard < ActiveRecord::Base; end
 class Post < ActiveRecord::Base; end
 class Computer < ActiveRecord::Base; end
 class NonExistentTable < ActiveRecord::Base; end
+class TestOCIDefault < ActiveRecord::Base; end
 
 class LoosePerson < ActiveRecord::Base
   attr_protected :credit_rating, :administrator
@@ -470,6 +471,15 @@ class BasicsTest < Test::Unit::TestCase
     topic = Topic.find(topic.id)
     assert topic.approved?
     assert_nil topic.last_read
+
+    # Oracle has some funky default handling, so it requires a bit of 
+    # extra testing. See ticket #2788.
+    if current_adapter?(:OCIAdapter)
+      test = TestOCIDefault.new
+      assert_equal "X", test.test_char
+      assert_equal "hello", test.test_string
+      assert_equal 3, test.test_int
+    end
   end
 
   def test_utc_as_time_zone

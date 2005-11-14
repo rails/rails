@@ -261,3 +261,11 @@ create table keyboards (
 );
 create sequence keyboards_seq minvalue 10000;
 
+create table test_oci_defaults (
+  id integer not null primary key,
+  test_char char(1) default 'X' not null,
+  test_string varchar2(20) default 'hello' not null,
+  test_int integer default 3 not null
+);
+create sequence test_oci_defaults_seq minvalue 10000;
+
