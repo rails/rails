@@ -1,5 +1,7 @@
 *SVN*
 
+* Update documentation for Migrations.  #2861 [Tom Werner <tom@cube6media.com>]
+
 * Much faster Oracle column reflection.  #2848 [Michael Schoen <schoenm@earthlink.net>]
 
 * Base.reset_sequence_name analogous to reset_table_name (mostly useful for testing).  Base.define_attr_method allows nil values.  [Jeremy Kemper]
