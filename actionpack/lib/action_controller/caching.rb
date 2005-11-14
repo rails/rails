@@ -236,6 +236,7 @@ module ActionController #:nodoc:
     # * DRbStore: Keeps the fragments in the memory of a separate, shared DRb process. This works for all environments and only keeps one cache
     #   around for all processes, but requires that you run and manage a separate DRb process.
     # * MemCacheStore: Works like DRbStore, but uses Danga's MemCache instead.
+    #   Requires the ruby-memcache library:  gem install ruby-memcache.
     #
     # Configuration examples (MemoryStore is the default):
     #
