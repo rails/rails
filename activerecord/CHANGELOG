@@ -1,5 +1,7 @@
 *SVN*
 
+* SQLServer: insert uses given primary key value if not nil rather than SELECT @@IDENTITY.  #2866 [kajism@yahoo.com, Tom Ward <tom@popdog.net>]
+
 * Oracle: active? and reconnect! methods for handling stale connections.  Optionally retry queries after reconnect.  #428 [Michael Schoen <schoenm@earthlink.net>]
 
 * Correct documentation for Base.delete_all.  #1568 [Newhydra]
