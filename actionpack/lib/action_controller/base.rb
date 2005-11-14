@@ -460,8 +460,7 @@ module ActionController #:nodoc:
       end
 
     protected
-      # Renders the content that'll be returned to the browser as the response body. This can just be as regular text, but is
-      # more often the compilation of a template.
+      # Renders the content that will be returned to the browser as the response body.
       #
       # === Rendering an action
       # 
@@ -521,14 +520,19 @@ module ActionController #:nodoc:
       #
       # === Rendering a file
       # 
-      # File rendering works just like action rendering except that it takes an absolute path. 
-      # The current layout is not applied automatically.
+      # File rendering works just like action rendering except that it takes a filesystem path. By default, the path
+      # is assumed to be absolute, and the current layout is not applied.
       #
-      #   # Renders the template located in /path/to/some/template.r(html|xml)
-      #   render :file => "/path/to/some/template"
+      #   # Renders the template located at the absolute filesystem path
+      #   render :file => "/path/to/some/template.rhtml"
+      #   render :file => "c:/path/to/some/template.rhtml"
       #
-      #   # Renders the same template within the current layout, but with a 404 status code
-      #   render :file => "/path/to/some/template", :layout => true, :status => 404
+      #   # Renders a template within the current layout, and with a 404 status code
+      #   render :file => "/path/to/some/template.rhtml", :layout => true, :status => 404
+      #   render :file => "c:/path/to/some/template.rhtml", :layout => true, :status => 404
+      #
+      #   # Renders a template relative to the template root and chooses the proper file extension
+      #   render :file => "some/template", :use_full_path => true
       #
       # _Deprecation_ _notice_: This used to have the signature <tt>render_file(path, status = 200)</tt>
       #
