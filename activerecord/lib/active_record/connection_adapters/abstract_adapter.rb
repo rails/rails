@@ -25,7 +25,7 @@ module ActiveRecord
       @@reconnect_success = 0
       @@reconnect_failure = 0
       def self.reconnect_success_rate
-        @@reconnect_success.to_f / (@@reconnect_success + @@reconnect_failure)
+        (100.0 * @@reconnect_success / (@@reconnect_success + @@reconnect_failure)).to_i
       end
 
       def initialize(connection, logger = nil) #:nodoc:
@@ -38,7 +38,7 @@ module ActiveRecord
       def adapter_name
         'Abstract'
       end
-      
+
       # Does this adapter support migrations?  Backend specific, as the
       # abstract adapter always returns +false+.
       def supports_migrations?
@@ -50,7 +50,7 @@ module ActiveRecord
         rt
       end
 
-      protected  
+      protected
         def log(sql, name)
           if block_given?
             if @logger and @logger.level <= Logger::INFO
@@ -110,11 +110,11 @@ module ActiveRecord
             reconnect! unless active?
             if active?
               @@reconnect_success += 1
-              @logger.info "#{adapter_name} automatically reconnected.  Success rate: #{'%.2f' % self.class.reconnect_success_rate}%" if @logger
+              @logger.info "#{adapter_name} automatically reconnected.  Success rate: #{self.class.reconnect_success_rate}%" if @logger
               true
             else
               @@reconnect_failure += 1
-              @logger.warn "#{adapter_name} automatic reconnection failed.  Success rate: #{'%.2f' % self.class.reconnect_success_rate}%" if @logger
+              @logger.warn "#{adapter_name} automatic reconnection failed.  Success rate: #{self.class.reconnect_success_rate}%" if @logger
               false
             end
           else
