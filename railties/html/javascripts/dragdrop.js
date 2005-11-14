@@ -1,7 +1,5 @@
 // Copyright (c) 2005 Thomas Fuchs (http://script.aculo.us, http://mir.aculo.us)
 // 
-// Element.Class part Copyright (c) 2005 by Rick Olson
-// 
 // See scriptaculous.js for full license.
 
 /*--------------------------------------------------------------------------*/
@@ -31,6 +29,8 @@ var Droppables = {
         options._containers.push($(containment));
       }
     }
+    
+    if(options.accept) options.accept = [options.accept].flatten();
 
     Element.makePositioned(element); // fix IE
     options.element = element;
@@ -49,20 +49,21 @@ var Droppables = {
       ((!drop._containers) ||
         this.isContained(element, drop)) &&
       ((!drop.accept) ||
-        (Element.Class.has_any(element, drop.accept))) &&
+        (Element.classNames(element).detect( 
+          function(v) { return drop.accept.include(v) } ) )) &&
       Position.within(drop.element, pX, pY) );
   },
 
   deactivate: function(drop) {
     if(drop.hoverclass)
-      Element.Class.remove(drop.element, drop.hoverclass);
+      Element.removeClassName(drop.element, drop.hoverclass);
     this.last_active = null;
   },
 
   activate: function(drop) {
     if(this.last_active) this.deactivate(this.last_active);
     if(drop.hoverclass)
-      Element.Class.add(drop.element, drop.hoverclass);
+      Element.addClassName(drop.element, drop.hoverclass);
     this.last_active = drop;
   },
 
@@ -105,13 +106,25 @@ var Droppables = {
 var Draggables = {
   observers: [],
   addObserver: function(observer) {
-    this.observers.push(observer);    
+    this.observers.push(observer);
+    this._cacheObserverCallbacks();
   },
-  removeObserver: function(element) {  // element instead of obsever fixes mem leaks
+  removeObserver: function(element) {  // element instead of observer fixes mem leaks
     this.observers = this.observers.reject( function(o) { return o.element==element });
+    this._cacheObserverCallbacks();
   },
-  notify: function(eventName, draggable) {  // 'onStart', 'onEnd'
-    this.observers.invoke(eventName, draggable);
+  notify: function(eventName, draggable, event) {  // 'onStart', 'onEnd', 'onDrag'
+    if(this[eventName+'Count'] > 0)
+      this.observers.each( function(o) {
+        if(o[eventName]) o[eventName](eventName, draggable, event);
+      });
+  },
+  _cacheObserverCallbacks: function() {
+    ['onStart','onEnd','onDrag'].each( function(eventName) {
+      Draggables[eventName+'Count'] = Draggables.observers.select(
+        function(o) { return o[eventName]; }
+      ).length;
+    });
   }
 }
 
@@ -138,7 +151,7 @@ Draggable.prototype = {
 
     this.element      = $(element);
     if(options.handle && (typeof options.handle == 'string'))
-      this.handle = Element.Class.childrenWith(this.element, options.handle)[0];
+      this.handle = Element.childrenWithClassName(this.element, options.handle)[0];
       
     if(!this.handle) this.handle = $(options.handle);
     if(!this.handle) this.handle = this.element;
@@ -219,7 +232,7 @@ Draggable.prototype = {
     }
 
     if(success) Droppables.fire(event, this.element);
-    Draggables.notify('onEnd', this);
+    Draggables.notify('onEnd', this, event);
 
     var revert = this.options.revert;
     if(revert && typeof revert == 'function') revert = revert(this.element);
@@ -290,11 +303,12 @@ Draggable.prototype = {
           this.element.parentNode.insertBefore(this._clone, this.element);
         }
 
-        Draggables.notify('onStart', this);
+        Draggables.notify('onStart', this, event);
         if(this.options.starteffect) this.options.starteffect(this.element);
       }
 
       Droppables.show(event, this.element);
+      Draggables.notify('onDrag', this, event);
       this.draw(event);
       if(this.options.change) this.options.change(this);
 
@@ -413,7 +427,7 @@ var Sortable = {
     (this.findElements(element, options) || []).each( function(e) {
       // handles are per-draggable
       var handle = options.handle ? 
-        Element.Class.childrenWith(e, options.handle)[0] : e;    
+        Element.childrenWithClassName(e, options.handle)[0] : e;    
       options.draggables.push(
         new Draggable(e, Object.extend(options_for_draggable, { handle: handle })));
       Droppables.add(e, options_for_droppable);
@@ -434,7 +448,7 @@ var Sortable = {
     var elements = [];
     $A(element.childNodes).each( function(e) {
       if(e.tagName && e.tagName==options.tag.toUpperCase() &&
-        (!options.only || (Element.Class.has(e, options.only))))
+        (!options.only || (Element.hasClassName(e, options.only))))
           elements.push(e);
       if(options.tree) {
         var grandchildren = this.findElements(e, options);
@@ -491,14 +505,20 @@ var Sortable = {
     if(!Sortable._marker) {
       Sortable._marker = $('dropmarker') || document.createElement('DIV');
       Element.hide(Sortable._marker);
-      Element.Class.add(Sortable._marker, 'dropmarker');
+      Element.addClassName(Sortable._marker, 'dropmarker');
       Sortable._marker.style.position = 'absolute';
       document.getElementsByTagName("body").item(0).appendChild(Sortable._marker);
     }    
     var offsets = Position.cumulativeOffset(dropon);
-    Sortable._marker.style.top  = offsets[1] + 'px';
-    if(position=='after') Sortable._marker.style.top = (offsets[1]+dropon.clientHeight) + 'px';
     Sortable._marker.style.left = offsets[0] + 'px';
+    Sortable._marker.style.top = offsets[1] + 'px';
+    
+    if(position=='after')
+      if(sortable.overlap == 'horizontal') 
+        Sortable._marker.style.left = (offsets[0]+dropon.clientWidth) + 'px';
+      else
+        Sortable._marker.style.top = (offsets[1]+dropon.clientHeight) + 'px';
+    
     Element.show(Sortable._marker);
   },
 

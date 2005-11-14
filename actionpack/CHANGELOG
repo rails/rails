@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to latest script.aculo.us version (as of [3031])
+
 * Updated docs for in_place_editor, fixes a couple bugs and offers extended support for external controls [Justin Palmer]
 
 * Update documentation for render :file.  #2858 [Tom Werner]

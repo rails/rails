@@ -80,7 +80,10 @@ Autocompleter.Base.prototype = {
 
   show: function() {
     if(Element.getStyle(this.update, 'display')=='none') this.options.onShow(this.element, this.update);
-    if(!this.iefix && (navigator.appVersion.indexOf('MSIE')>0) && (Element.getStyle(this.update, 'position')=='absolute')) {
+    if(!this.iefix && 
+      (navigator.appVersion.indexOf('MSIE')>0) &&
+      (navigator.userAgent.indexOf('Opera')<0) &&
+      (Element.getStyle(this.update, 'position')=='absolute')) {
       new Insertion.After(this.update, 
        '<iframe id="' + this.update.id + '_iefix" '+
        'style="display:none;position:absolute;filter:progid:DXImageTransform.Microsoft.Alpha(opacity=0);" ' +
@@ -717,5 +720,31 @@ Ajax.InPlaceEditor.prototype = {
       Event.stopObserving(this.options.externalControl, 'mouseover', this.mouseoverListener);
       Event.stopObserving(this.options.externalControl, 'mouseout', this.mouseoutListener);
     }
+  }
+};
+
+// Delayed observer, like Form.Element.Observer, 
+// but waits for delay after last key input
+// Ideal for live-search fields
+
+Form.Element.DelayedObserver = Class.create();
+Form.Element.DelayedObserver.prototype = {
+  initialize: function(element, delay, callback) {
+    this.delay     = delay || 0.5;
+    this.element   = $(element);
+    this.callback  = callback;
+    this.timer     = null;
+    this.lastValue = $F(this.element); 
+    Event.observe(this.element,'keyup',this.delayedListener.bindAsEventListener(this));
+  },
+  delayedListener: function(event) {
+    if(this.lastValue == $F(this.element)) return;
+    if(this.timer) clearTimeout(this.timer);
+    this.timer = setTimeout(this.onTimerEvent.bind(this), this.delay * 1000);
+    this.lastValue = $F(this.element);
+  },
+  onTimerEvent: function() {
+    this.timer = null;
+    this.callback(this.element, $F(this.element));
   }
 };
