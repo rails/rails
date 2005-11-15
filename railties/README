@@ -128,11 +128,18 @@ app/views
 app/helpers
   Holds view helpers that should be named like weblog_helper.rb.
 
+app/apis
+  Holds API classes for web services.
+
 config
   Configuration files for the Rails environment, the routing map, the database, and other dependencies.
 
 components
   Self-contained mini-applications that can bundle together controllers, models, and views.
+
+db
+  Contains the SQL dump of your development database.  db/migrate contains all
+  the sequence of Migrations for your schema.
 
 lib
   Application specific libraries. Basically, any kind of custom code that doesn't
