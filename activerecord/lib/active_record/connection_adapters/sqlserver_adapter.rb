@@ -207,23 +207,20 @@ module ActiveRecord
 
       # Returns true if the connection is active.
       def active?
-        @connection.execute("SELECT 1") {|sth|}
+        @connection.execute("SELECT 1") { }
         true
-      rescue DBI::DatabaseError => e
+      rescue DBI::DatabaseError, DBI::InterfaceError
         false
       end
 
-      # Reconnects to the database.
+      # Reconnects to the database, returns false if no connection could be made.
       def reconnect!
-        begin
-          @connection.disconnect
-          @connection = DBI.connect(*@connection_options)
-        rescue DBI::DatabaseError => e
-          @logger.warn "#{adapter_name} automatic reconnection failed: #{e.message}"
-        end
+        @connection.disconnect rescue nil
+        @connection = DBI.connect(*@connection_options)
+      rescue DBI::DatabaseError => e
+        @logger.warn "#{adapter_name} reconnection failed: #{e.message}" if @logger
+        false
       end
-
-
 
       def select_all(sql, name = nil)
         select(sql, name)
