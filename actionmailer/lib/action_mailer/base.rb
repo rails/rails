@@ -278,11 +278,13 @@ module ActionMailer
         if @parts.empty?
           templates = Dir.glob("#{template_path}/#{@template}.*")
           templates.each do |path|
-            type = (File.basename(path).split(".")[1..-2] || []).join("/")
-            next if type.empty?
-            @parts << Part.new(:content_type => type,
+            # TODO: don't hardcode rhtml|rxml
+            next unless md = /^([^\.]+)\.([^\.]+\.[^\+]+)\.(rhtml|rxml)$/.match(File.basename(path))
+            template_name = "#{md.captures[0]}.#{md.captures[1]}"
+            content_type = md.captures[1].gsub('.', '/')
+            @parts << Part.new(:content_type => content_type,
               :disposition => "inline", :charset => charset,
-              :body => render_message(File.basename(path).split(".")[0..-2].join('.'), @body))
+              :body => render_message(template_name, @body))
           end
           unless @parts.empty?
             @content_type = "multipart/alternative"
