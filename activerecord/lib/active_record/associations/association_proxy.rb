@@ -17,13 +17,20 @@ module ActiveRecord
         reset
       end
       
+      def respond_to?(symbol, include_priv = false)
+        proxy_respond_to?(symbol, include_priv) || (load_target && @target.respond_to?(symbol, include_priv))
+      end
+
+      # Explicitly proxy === because the instance method removal above
+      # doesn't catch it.
+      def ===(other)
+        load_target
+        other === @target
+      end
+
       def reload
         reset
         load_target
-      end
-
-      def respond_to?(symbol, include_priv = false)
-        proxy_respond_to?(symbol, include_priv) || (load_target && @target.respond_to?(symbol, include_priv))
       end
 
       def loaded?

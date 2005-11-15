@@ -79,6 +79,7 @@ class HasOneAssociationsTest < Test::Unit::TestCase
 
   def test_triple_equality
     assert Account === companies(:first_firm).account
+    assert companies(:first_firm).account === Account
   end
 
   def test_type_mismatch
@@ -278,6 +279,11 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   
   def test_finding
     assert_equal 2, Firm.find(:first).clients.length
+  end
+
+  def test_triple_equality
+    assert !(Array === Firm.find(:first).clients)
+    assert Firm.find(:first).clients === Array
   end
 
   def test_finding_default_orders
@@ -747,6 +753,11 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert_nothing_raised { account.firm = account.firm }
   end
 
+  def test_triple_equality
+    assert Client.find(3).firm === Firm
+    assert Firm === Client.find(3).firm
+  end
+
   def test_type_mismatch
     assert_raise(ActiveRecord::AssociationTypeMismatch) { Account.find(1).firm = 1 }
     assert_raise(ActiveRecord::AssociationTypeMismatch) { Account.find(1).firm = Project.find(1) }
@@ -1024,6 +1035,11 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert !active_record.developers.empty?
     assert_equal 2, active_record.developers.size
     assert active_record.developers.include?(david)
+  end
+
+  def test_triple_equality
+    assert !(Array === Developer.find(1).projects)
+    assert Developer.find(1).projects === Array
   end
 
   def test_adding_single
