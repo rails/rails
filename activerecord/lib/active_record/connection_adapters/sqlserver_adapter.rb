@@ -30,16 +30,17 @@ module ActiveRecord
       if mode == "ODBC"
         raise ArgumentError, "Missing DSN. Argument ':dsn' must be set in order for this adapter to work." unless config.has_key?(:dsn)
         dsn       = config[:dsn]
-        conn      = DBI.connect("DBI:ODBC:#{dsn}", username, password)
+        driver_url = "DBI:ODBC:#{dsn}"
       else
         raise ArgumentError, "Missing Database. Argument ':database' must be set in order for this adapter to work." unless config.has_key?(:database)
         database  = config[:database]
         host      = config[:host] ? config[:host].to_s : 'localhost'
-        conn      = DBI.connect("DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User Id=#{username};Password=#{password};")
+        driver_url = "DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User Id=#{username};Password=#{password};"
       end
+      conn      = DBI.connect(driver_url, username, password)
 
       conn["AutoCommit"] = true
-      ConnectionAdapters::SQLServerAdapter.new(conn, logger)
+      ConnectionAdapters::SQLServerAdapter.new(conn, logger, [driver_url, username, password])
     end
   end # class Base
 
@@ -172,6 +173,12 @@ module ActiveRecord
     # unixODBC 2.2.11, Ruby ODBC 0.996, Ruby DBI 0.0.23 and Ruby 1.8.2.
     # [Linux strongmad 2.6.11-1.1369_FC4 #1 Thu Jun 2 22:55:56 EDT 2005 i686 i686 i386 GNU/Linux]
     class SQLServerAdapter < AbstractAdapter
+    
+      def initialize(connection, logger, connection_options=nil)
+        super(connection, logger)
+        @connection_options = connection_options
+      end
+
       def native_database_types
         {
           :primary_key => "int NOT NULL IDENTITY(1, 1) PRIMARY KEY",
@@ -195,6 +202,28 @@ module ActiveRecord
       def supports_migrations? #:nodoc:
         true
       end
+
+      # CONNECTION MANAGEMENT ====================================#
+
+      # Returns true if the connection is active.
+      def active?
+        @connection.execute("SELECT 1") {|sth|}
+        true
+      rescue DBI::DatabaseError => e
+        false
+      end
+
+      # Reconnects to the database.
+      def reconnect!
+        begin
+          @connection.disconnect
+          @connection = DBI.connect(*@connection_options)
+        rescue DBI::DatabaseError => e
+          @logger.warn "#{adapter_name} automatic reconnection failed: #{e.message}"
+        end
+      end
+
+
 
       def select_all(sql, name = nil)
         select(sql, name)

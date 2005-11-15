@@ -1,5 +1,7 @@
 *SVN*
 
+* SQLServer: active? and reconnect! methods for handling stale connections.  #428 [kajism@yahoo.com]
+
 * Associations handle case-equality more consistently: item.parts.is_a?(Array) and item.parts === Array.  #1345 [MarkusQ@reality.com]
 
 * SQLServer: insert uses given primary key value if not nil rather than SELECT @@IDENTITY.  #2866 [kajism@yahoo.com, Tom Ward <tom@popdog.net>]
