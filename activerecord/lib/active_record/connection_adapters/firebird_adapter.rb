@@ -258,7 +258,7 @@ module ActiveRecord
 
       # Returns true for Firebird adapter (since Firebird requires primary key
       # values to be pre-fetched before insert). See also #next_sequence_value.
-      def prefetch_primary_key?
+      def prefetch_primary_key?(table_name = nil)
         true
       end
 

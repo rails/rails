@@ -49,7 +49,7 @@ module ActiveRecord
       # sequence before the insert statement?  If true, next_sequence_value
       # is called before each insert to set the record's primary key.
       # This is false for all adapters but Firebird.
-      def prefetch_primary_key?
+      def prefetch_primary_key?(table_name = nil)
         false
       end
 
