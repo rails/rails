@@ -1,5 +1,7 @@
 *SVN*
 
+* MemCache store may be given multiple addresses.  #2869 [Ryan Carver <ryan@fivesevensix.com>]
+
 * Handle cookie parsing irregularity for certain Nokia phones.  #2530 [zaitzow@gmail.com]
 
 * Added PrototypeHelper::JavaScriptGenerator and PrototypeHelper#update_page for easily modifying multiple elements in an Ajax response. [Sam Stephenson]  Example:
