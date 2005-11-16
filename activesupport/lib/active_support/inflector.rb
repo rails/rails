@@ -142,9 +142,11 @@ module Inflector
   end
 
   def constantize(camel_cased_word)
-    camel_cased_word.split("::").inject(Object) do |final_type, part| 
-      final_type = final_type.const_get(part)
-    end
+    raise NameError, "#{camel_cased_word.inspect} is not a valid constant name!" unless
+      camel_cased_word.split("::").all? { |part| /^[A-Z]\w*$/ =~ part }
+    
+    camel_cased_word = "::#{camel_cased_word}" unless camel_cased_word[0, 2] == '::'
+    Object.module_eval(camel_cased_word, __FILE__, __LINE__)
   end
 
   def ordinalize(number)
