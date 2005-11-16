@@ -1,6 +1,6 @@
 *SVN*
 
-* Performance tweaks: use Set instead of Array to speed up prototype helper include? calls.  Avoid logging code if logger is nil.  #2880, #2881 [Stefan Kaes]
+* Performance tweaks: use Set instead of Array to speed up prototype helper include? calls.  Avoid logging code if logger is nil.  Inline commonly-called template presence checks.  #2880, #2881, #2882 [Stefan Kaes]
 
 * MemCache store may be given multiple addresses.  #2869 [Ryan Carver <ryan@fivesevensix.com>]
 

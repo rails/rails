@@ -273,9 +273,9 @@ module ActionView #:nodoc:
     def pick_template_extension(template_path)#:nodoc:
       if match = delegate_template_exists?(template_path)
         match.first
-      elsif erb_template_exists?(template_path)
+      elsif template_exists?(template_path, :rhtml)
         'rhtml'
-      elsif builder_template_exists?(template_path)
+      elsif template_exists?(template_path, :rxml)
         'rxml'
       else
         raise ActionViewError, "No rhtml, rxml, or delegate template found for #{template_path}"
