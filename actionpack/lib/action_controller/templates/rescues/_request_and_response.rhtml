@@ -31,8 +31,6 @@
   request_parameters_without_action.delete("controller")
   
   request_dump  = request_parameters_without_action.inspect.gsub(/,/, ",\n")
-  session_dump  = @request.session.instance_variable_get("@data").inspect.gsub(/,/, ",\n")
-  response_dump = @response.inspect.gsub(/,/, ",\n")
 %>
 
 <h2 style="margin-top: 30px">Request</h2>

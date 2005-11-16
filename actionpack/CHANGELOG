@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove the unused, slow response_dump and session_dump variables from error pages.  #1222 [lmarlow@yahoo.com]
+
 * Update to latest script.aculo.us version (as of [3031])
 
 * Update documentation for render :file.  #2858 [Tom Werner]
