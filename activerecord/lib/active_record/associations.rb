@@ -999,7 +999,7 @@ module ActiveRecord
         end
 
         def column_aliases(schema_abbreviations)
-          schema_abbreviations.collect { |cn, tc| "#{tc.join(".")} AS #{cn}" }.join(", ")
+          schema_abbreviations.collect { |cn, tc| "#{tc[0]}.#{connection.quote_column_name tc[1]} AS #{cn}" }.join(", ")
         end
 
         def association_join(reflection)

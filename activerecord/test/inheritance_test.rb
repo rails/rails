@@ -11,7 +11,7 @@ class InheritanceTest < Test::Unit::TestCase
     if current_adapter?(:SQLServerAdapter)
       Company.connection.execute "SET IDENTITY_INSERT companies ON"
     end
-    Company.connection.insert "INSERT INTO companies (id, type, name) VALUES(100, 'bad_class!', 'Not happening')"
+    Company.connection.insert "INSERT INTO companies (id, #{QUOTED_TYPE}, name) VALUES(100, 'bad_class!', 'Not happening')"
 
     #We then need to turn it back Off before continuing.
     if current_adapter?(:SQLServerAdapter)

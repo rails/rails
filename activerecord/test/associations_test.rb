@@ -357,7 +357,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   def test_find_all
     firm = Firm.find_first
     assert_equal firm.clients, firm.clients.find_all
-    assert_equal 2, firm.clients.find(:all, :conditions => "type = 'Client'").length
+    assert_equal 2, firm.clients.find(:all, :conditions => "#{QUOTED_TYPE} = 'Client'").length
     assert_equal 1, firm.clients.find(:all, :conditions => "name = 'Summit'").length
   end
 
@@ -373,16 +373,16 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     firm = Firm.find_first
     client2 = Client.find(2)
     assert_equal firm.clients.first, firm.clients.find_first
-    assert_equal client2, firm.clients.find_first("type = 'Client'")
-    assert_equal client2, firm.clients.find(:first, :conditions => "type = 'Client'")
+    assert_equal client2, firm.clients.find_first("#{QUOTED_TYPE} = 'Client'")
+    assert_equal client2, firm.clients.find(:first, :conditions => "#{QUOTED_TYPE} = 'Client'")
   end
 
   def test_find_first_sanitized
     firm = Firm.find_first
     client2 = Client.find(2)
-    assert_equal client2, firm.clients.find_first(["type = ?", "Client"])
-    assert_equal client2, firm.clients.find(:first, :conditions => ['type = ?', 'Client'])
-    assert_equal client2, firm.clients.find(:first, :conditions => ['type = :type', { :type => 'Client' }])
+    assert_equal client2, firm.clients.find_first(["#{QUOTED_TYPE} = ?", "Client"])
+    assert_equal client2, firm.clients.find(:first, :conditions => ["#{QUOTED_TYPE} = ?", 'Client'])
+    assert_equal client2, firm.clients.find(:first, :conditions => ["#{QUOTED_TYPE} = :type", { :type => 'Client' }])
   end
 
   def test_find_in_collection

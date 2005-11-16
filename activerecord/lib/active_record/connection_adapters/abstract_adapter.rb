@@ -45,6 +45,14 @@ module ActiveRecord
         false
       end
 
+      # Should primary key values be selected from their corresponding
+      # sequence before the insert statement?  If true, next_sequence_value
+      # is called before each insert to set the record's primary key.
+      # This is false for all adapters but Firebird.
+      def prefetch_primary_key?
+        false
+      end
+
       def reset_runtime #:nodoc:
         rt, @runtime = @runtime, 0
         rt

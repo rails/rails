@@ -505,7 +505,7 @@ class BasicsTest < Test::Unit::TestCase
     assert_nil topic.last_read
     assert_nil topic.approved
   end
-  
+
   def test_equality
     assert_equal Topic.find(1), Topic.find(2).parent
   end
@@ -1003,10 +1003,10 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_count_with_join
-    res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.type = 'Post'"
+    res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.#{QUOTED_TYPE} = 'Post'"
     res2 = res + 1
     assert_nothing_raised do
-      res2 = Post.count("posts.type = 'Post'",
+      res2 = Post.count("posts.#{QUOTED_TYPE} = 'Post'",
                         "LEFT JOIN comments ON posts.id=comments.post_id")
     end
     assert_equal res, res2

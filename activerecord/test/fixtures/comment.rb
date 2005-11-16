@@ -6,7 +6,7 @@ class Comment < ActiveRecord::Base
   end
   
   def self.search_by_type(q)
-    self.find(:all, :conditions => ['type = ?', q])
+    self.find(:all, :conditions => ["#{QUOTED_TYPE} = ?", q])
   end
 end
 

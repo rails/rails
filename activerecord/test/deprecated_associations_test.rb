@@ -312,7 +312,7 @@ class DeprecatedAssociationsTest < Test::Unit::TestCase
   end
 
   def test_has_many_find_all
-    assert_equal 2, Firm.find_first.find_all_in_clients("type = 'Client'").length
+    assert_equal 2, Firm.find_first.find_all_in_clients("#{QUOTED_TYPE} = 'Client'").length
     assert_equal 1, Firm.find_first.find_all_in_clients("name = 'Summit'").length
   end
 
