@@ -276,6 +276,11 @@ class InflectorTest < Test::Unit::TestCase
     assert_equal Ace::Base::Case, Inflector.constantize("Ace::Base::Case")
     assert_equal InflectorTest, Inflector.constantize("InflectorTest")
     assert_raises(NameError) { Inflector.constantize("UnknownClass") }
+    assert_raises(NameError) { Inflector.constantize("An invalid string") }
+  end
+  
+  def test_constantize_doesnt_look_in_parent
+    assert_raises(NameError) { Inflector.constantize("Ace::Base::InflectorTest") }
   end
 
   def test_ordinal
