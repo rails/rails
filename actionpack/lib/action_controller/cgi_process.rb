@@ -183,11 +183,14 @@ end_msg
 
     private
       def convert_content_type!(headers)
-        %w( Content-Type Content-type content-type ).each do |ct|
-          if headers[ct]
-            headers["type"] = headers[ct]
-            headers.delete(ct)
-          end
+        if header = headers.delete("Content-Type")
+          headers["type"] = header
+        end
+        if header = headers.delete("Content-type")
+          headers["type"] = header
+        end
+        if header = headers.delete("content-type")
+          headers["type"] = header
         end
       end
   end
