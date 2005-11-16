@@ -209,7 +209,7 @@ module ActionView
       end
 
       # Returns a string of option tags for pretty much any time zone in the
-      # world. Supply a TimeZone object as +selected+ to have it marked as the
+      # world. Supply a TimeZone name as +selected+ to have it marked as the
       # selected option tag. You can also supply an array of TimeZone objects
       # as +priority_zones+, so that they will be listed above the rest of the
       # (long) list. (You can use TimeZone.us_zones as a convenience for

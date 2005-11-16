@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct time_zone_options_for_select docs.  #2892 [pudeyo@rpi.com]
+
 * Remove the unused, slow response_dump and session_dump variables from error pages.  #1222 [lmarlow@yahoo.com]
 
 * Performance tweaks: use Set instead of Array to speed up prototype helper include? calls.  Avoid logging code if logger is nil.  Inline commonly-called template presence checks.  #2880, #2881, #2882, #2883 [Stefan Kaes]
