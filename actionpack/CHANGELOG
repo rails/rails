@@ -1,5 +1,7 @@
 *SVN*
 
+* Use Set instead of Array to speed up prototype helper include? calls.  #2880 [Stefan Kaes]
+
 * MemCache store may be given multiple addresses.  #2869 [Ryan Carver <ryan@fivesevensix.com>]
 
 * Handle cookie parsing irregularity for certain Nokia phones.  #2530 [zaitzow@gmail.com]

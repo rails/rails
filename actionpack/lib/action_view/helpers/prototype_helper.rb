@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/javascript_helper'
+require 'set'
 
 module ActionView
   module Helpers
@@ -25,11 +26,12 @@ module ActionView
     # on the page in an Ajax response. 
     module PrototypeHelper
       unless const_defined? :CALLBACKS
-        CALLBACKS    = [ :uninitialized, :loading, :loaded, :interactive, 
-                         :complete, :failure, :success ] + (100..599).to_a
-        AJAX_OPTIONS = [ :before, :after, :condition, :url, :asynchronous, 
-                         :method, :insertion, :position, :form, :with, :update,
-                         :script ] + CALLBACKS
+        CALLBACKS    = Set.new([ :uninitialized, :loading, :loaded,
+                         :interactive, :complete, :failure, :success ] +
+                         (100..599).to_a)
+        AJAX_OPTIONS = Set.new([ :before, :after, :condition, :url,
+                         :asynchronous, :method, :insertion, :position,
+                         :form, :with, :update, :script ]).merge(CALLBACKS)
       end
 
       # Returns a link to a remote action defined by <tt>options[:url]</tt> 
