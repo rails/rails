@@ -1,5 +1,7 @@
 *SVN*
 
+* Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
+
 * Update to latest script.aculo.us version (as of [3031])
 
 * Eliminate Subversion dependencies in scripts/plugin.  Correct install options.  Introduce --force option to reinstall a plugin.  Remove useless --long option for list.  Use --quiet to quiet the download output and --revision to update to a specific svn revision.  #2842 [Chad Fowler, Rick Olson]

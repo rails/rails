@@ -1,5 +1,5 @@
 module Rails
-  module Version #:nodoc:
+  module VERSION #:nodoc:
     MAJOR = 0
     MINOR = 14
     TINY  = 3

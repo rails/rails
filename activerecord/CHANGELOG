@@ -1,5 +1,7 @@
 *SVN*
 
+* Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
+
 * Introducing the Firebird adapter.  Quote columns and use attribute_condition more consistently.  Setup guide: http://wiki.rubyonrails.com/rails/pages/Firebird+Adapter  #1874 [Ken Kunz <kennethkunz@gmail.com>]
 
 * SQLServer: active? and reconnect! methods for handling stale connections.  #428 [kajism@yahoo.com, Tom Ward <tom@popdog.net>]

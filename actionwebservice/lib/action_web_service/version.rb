@@ -1,5 +1,5 @@
 module ActionWebService
-  module Version
+  module VERSION
     MAJOR = 0
     MINOR = 9
     TINY  = 3

@@ -1,5 +1,7 @@
 *SVN*
 
+* Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
+
 * Correct time_zone_options_for_select docs.  #2892 [pudeyo@rpi.com]
 
 * Remove the unused, slow response_dump and session_dump variables from error pages.  #1222 [lmarlow@yahoo.com]
