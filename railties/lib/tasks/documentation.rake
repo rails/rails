@@ -7,9 +7,9 @@ Rake::RDocTask.new("appdoc") { |rdoc|
   rdoc.rdoc_files.include('app/**/*.rb')
 }
 
-Plugins = FileList['vendor/plugins/**'].map {|plugin| File.basename(plugin)}
+plugins = FileList['vendor/plugins/**'].map {|plugin| File.basename(plugin)}
 # Define doc tasks for each plugin
-Plugins.each do |plugin|
+plugins.each do |plugin|
   task :"#{plugin}_plugindoc" => :environment do
     plugin_base   = "vendor/plugins/#{plugin}"
     options       = []
@@ -33,7 +33,7 @@ Plugins.each do |plugin|
 end
 
 desc "Generate documation for all installed plugins"
-task :plugindoc => Plugins.map {|plugin| :"#{plugin}_plugindoc"}
+task :plugindoc => plugins.map {|plugin| :"#{plugin}_plugindoc"}
 
 desc "Remove plugin documentation"
 task :clobber_plugindoc do 
