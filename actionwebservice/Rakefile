@@ -10,7 +10,7 @@ require File.join(File.dirname(__FILE__), 'lib', 'action_web_service', 'version'
 
 PKG_BUILD     = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME      = 'actionwebservice'
-PKG_VERSION   = ActionWebService::Version::STRING + PKG_BUILD
+PKG_VERSION   = ActionWebService::VERSION::STRING + PKG_BUILD
 PKG_FILE_NAME   = "#{PKG_NAME}-#{PKG_VERSION}"
 PKG_DESTINATION = ENV["RAILS_PKG_DESTINATION"] || "../#{PKG_NAME}"
 

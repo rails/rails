@@ -1,5 +1,7 @@
 *SVN*
 
+* Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
+
 * Update to latest script.aculo.us version (as of [3031])
 
 * SQLite: the clone_structure_to_test and purge_test_database Rake tasks should always use the test environment.  #2846 [Rick Olson]

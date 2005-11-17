@@ -1,5 +1,7 @@
 *SVN*
 
+* Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
+
 * Remove the unused, slow response_dump and session_dump variables from error pages.  #1222 [lmarlow@yahoo.com]
 
 * Update to latest script.aculo.us version (as of [3031])

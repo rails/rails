@@ -62,7 +62,7 @@ EOS
   end
   
   def test_component_version
-    assert_property 'Active Support version', ActiveSupport::Version::STRING
+    assert_property 'Active Support version', ActiveSupport::VERSION::STRING
   end
 
 protected

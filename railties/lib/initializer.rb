@@ -123,7 +123,7 @@ module Rails
       configuration.frameworks.each { |framework| require(framework.to_s) }
     end
     
-    # Loads Rails::Version and Rails::Info.
+    # Loads Rails::VERSION and Rails::Info.
     # TODO: Make this work via dependencies.rb/const_missing instead.
     def load_framework_info
       require 'rails_info'

@@ -1,5 +1,7 @@
 *SVN*
 
+* Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
+
 * Fix that XML-RPC date/time values did not have well-defined behaviour (#2516, #2534). This fix has one caveat, in that we can't support pre-1970 dates from XML-RPC clients.
 
 *0.9.3* (November 7th, 2005)

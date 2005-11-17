@@ -1,5 +1,7 @@
 *SVN*
 
+* Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
+
 * SQLServer: insert uses given primary key value if not nil rather than SELECT @@IDENTITY.  #2866 [kajism@yahoo.com, Tom Ward <tom@popdog.net>]
 
 * Correct documentation for Base.delete_all.  #1568 [Newhydra]

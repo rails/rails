@@ -26,7 +26,7 @@ module Rails
       
       def component_version(component)
         require "#{component}/version"
-        "#{component.classify}::Version::STRING".constantize
+        "#{component.classify}::VERSION::STRING".constantize
       end
     
       def edge_rails_revision(info = svn_info)
@@ -70,7 +70,7 @@ module Rails
   
     # The Rails version.
     property 'Rails version' do
-      Rails::Version::STRING
+      Rails::VERSION::STRING
     end
   
     # Versions of each Rails component (Active Record, Action Pack, 

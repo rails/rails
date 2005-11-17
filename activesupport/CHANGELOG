@@ -1,3 +1,7 @@
+*SVN*
+
+* Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
+
 *1.2.3* (November 7th, 2005)
 
 * Change Inflector#constantize to use eval instead of const_get. [Nicholas Seckar]
