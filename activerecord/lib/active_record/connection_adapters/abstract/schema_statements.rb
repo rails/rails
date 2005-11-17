@@ -43,6 +43,9 @@ module ActiveRecord
       #   Any extra options you want appended to the table definition.
       # [<tt>:temporary</tt>]
       #   Make a temporary table.
+      # [<tt>:force</tt>]
+      #   Set to true or false to drop the table before creating it.
+      #   Defaults to false.
       #
       # ===== Examples
       # ====== Add a backend specific option to the generated SQL (MySQL)
