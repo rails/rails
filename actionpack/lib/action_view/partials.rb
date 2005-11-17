@@ -117,15 +117,12 @@ module ActionView
       end
 
       def add_object_to_local_assigns!(partial_name, local_assigns, object)
-        local_assigns[partial_name.intern] ||= unwrap_object(object) || controller.instance_variable_get("@#{partial_name}")
-      end
-
-      def unwrap_object(object)
-        if object.is_a?(ActionView::Base::ObjectWrapper)
-          object.value
-        else
-          object
-        end
+        local_assigns[partial_name.intern] ||=
+          if object.is_a?(ActionView::Base::ObjectWrapper)
+            object.value
+          else
+            object
+          end || controller.instance_variable_get("@#{partial_name}")
       end
   end
 end
