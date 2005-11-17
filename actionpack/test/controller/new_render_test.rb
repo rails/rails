@@ -154,6 +154,20 @@ class NewRenderTestController < ActionController::Base
     render :action => "potential_conflicts"
   end
 
+  def delete_with_js
+    @project_id = 4
+  end
+
+  def render_js_with_explicit_template
+    @project_id = 4
+    render :template => 'test/delete_with_js'
+  end
+
+  def render_js_with_explicit_action_template
+    @project_id = 4
+    render :action => 'delete_with_js'
+  end
+
   def action_talk_to_layout
     # Action template sets variable that's picked up by layout
   end
@@ -277,6 +291,21 @@ class NewRenderTest < Test::Unit::TestCase
   def test_render_xml_with_default
     get :greeting
     assert_equal "<p>This is grand!</p>\n", @response.body
+  end
+
+  def test_render_rjs_with_default
+    get :delete_with_js
+    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight('project-4',{});!, @response.body
+  end
+
+  def test_render_rjs_template_explicitly
+    get :render_js_with_explicit_template
+    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight('project-4',{});!, @response.body
+  end
+
+  def test_rendering_rjs_action_explicitly
+    get :render_js_with_explicit_action_template
+    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight('project-4',{});!, @response.body
   end
 
   def test_layout_rendering
