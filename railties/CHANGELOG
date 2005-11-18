@@ -1,5 +1,7 @@
 *SVN*
 
+* Eliminate nil from newly generated logfiles.  #2927 [Blair Zajac <blair@orcaware.com>]
+
 * Update to Prototype 1.4.0_rc3. Closes #1893, #2505, #2550, #2748, #2783. [Sam Stephenson]
 
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
