@@ -637,10 +637,11 @@ module ActionController #:nodoc:
       end    
 
       def render_action(action_name, status = nil, with_layout = true)
-        if with_layout
-          render_with_layout(default_template_name(action_name), status)
+        template = default_template_name(action_name)
+        if with_layout && !template_exempt_from_layout?(template) 
+          render_with_layout(template, status)
         else
-          render_with_no_layout(default_template_name(action_name), status)
+          render_without_layout(template, status)
         end
       end
 
@@ -917,6 +918,10 @@ module ActionController #:nodoc:
 
       def template_public?(template_name = default_template_name)
         @template.file_public?(template_name)
+      end
+
+      def template_exempt_from_layout?(template_name = default_template_name)
+        @template.javascript_template_exists?(template_name)
       end
 
       def assert_existance_of_template_file(template_name)

@@ -192,7 +192,8 @@ class NewRenderTestController < ActionController::Base
              "partial_only", "partial_only_with_layout",
              "accessing_params_in_template",
              "accessing_params_in_template_with_layout",
-             "render_with_explicit_template"
+             "render_with_explicit_template",
+             "test_rendering_rjs_action_explicitly"
           "layouts/standard"
         when "builder_layout_test"
           "layouts/builder"
