@@ -1,5 +1,7 @@
 *SVN*
 
+* script/console uses RAILS_ENV environment variable if present.  #2932 [Blair Zajac <blair@orcaware.com>
+
 * Windows: eliminate the socket option in database.yml.  #2924 [Wayne Vucenic <waynev@gmail.com>]
 
 * Eliminate nil from newly generated logfiles.  #2927 [Blair Zajac <blair@orcaware.com>]
