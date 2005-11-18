@@ -192,7 +192,7 @@ module Rails
               if block_given?
                 df.write(yield(sf))
               else
-                line = sf.gets
+                line = sf.gets || ''
                 if file_options[:shebang]
                   df.puts("#!#{file_options[:shebang]}")
                   df.puts(line) if line !~ /^#!/
