@@ -167,7 +167,7 @@ class JavaScriptGeneratorTest < Test::Unit::TestCase
   end
   
   def test_replace_html_with_string
-    assert_equal '$("element").innerHTML = "<p>This is a test</p>";',
+    assert_equal 'Element.update("element", "<p>This is a test</p>");',
       @generator.replace_html('element', '<p>This is a test</p>')
   end
   
@@ -202,7 +202,7 @@ class JavaScriptGeneratorTest < Test::Unit::TestCase
 new Insertion.Top("element", "<p>This is a test</p>");
 new Insertion.Bottom("element", "<p>This is a test</p>");
 ["foo", "bar"].each(Element.remove);
-$("baz").innerHTML = "<p>This is a test</p>";
+Element.update("baz", "<p>This is a test</p>");
     EOS
   end
 end

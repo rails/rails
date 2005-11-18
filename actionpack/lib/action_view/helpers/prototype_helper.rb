@@ -425,7 +425,7 @@ module ActionView
         #
         def replace_html(id, *options_for_render)
           html = render(*options_for_render)
-          record "$(#{id.inspect}).innerHTML = #{html.inspect}"
+          record "Element.update(#{id.inspect}, #{html.inspect})"
         end
   
         # Removes the DOM elements with the given +ids+ from the page.
