@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to Prototype 1.4.0_rc3. Closes #1893, #2505, #2550, #2748, #2783. [Sam Stephenson]
+
 * Updated docs for in_place_editor, fixes a couple bugs and offers extended support for external controls [Justin Palmer]
 
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
