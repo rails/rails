@@ -1,8 +1,13 @@
 # MySQL (default setup).  Versions 4.1 and 5.0 are recommended.
 #
-# Get the fast C bindings:
+# Install the MySQL driver:
 #   gem install mysql
-#   (on OS X: gem install mysql -- --include=/usr/local/lib)
+# On MacOS X:
+#   gem install mysql -- --include=/usr/local/lib
+# On Windows:
+#   There is no gem for Windows.  Install mysql.so from RubyForApache.
+#   http://rubyforge.org/projects/rubyforapache
+#
 # And be sure to use new-style password hashing:
 #   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
 development:
@@ -10,13 +15,12 @@ development:
   database: <%= app_name %>_development
   username: root
   password:
-<%= "  socket: #{socket}" if socket %>
+<% if socket -%>
+  socket: <%= socket %>
+<% else -%>
+  host: localhost
+<% end -%>
 
-  # Connect on a TCP socket.  If omitted, the adapter will connect on the
-  # domain socket given by socket instead.
-  #host: localhost
-  #port: 3306
-  
 # Warning: The database defined as 'test' will be erased and
 # re-generated from your development database when you run 'rake'.
 # Do not set this db to the same as development or production.
@@ -25,15 +29,25 @@ test:
   database: <%= app_name %>_test
   username: root
   password:
-<%= "  socket: #{socket}" if socket %>
+<% if socket -%>
+  socket: <%= socket %>
+<% else -%>
+  host: localhost
+<% end -%>
 
 production:
   adapter: mysql
   database: <%= app_name %>_production
   username: root
   password: 
-<%= "  socket: #{socket}" if socket %>
+<% if socket -%>
+  socket: <%= socket %>
+<% else -%>
+  host: localhost
+<% end -%>
 
+
+### Example database connections.  You can safely delete these. ###
 
 # PostgreSQL versions 7.4 - 8.1
 #
@@ -48,8 +62,9 @@ postgresql_example:
   password:
 
   # Connect on a TCP socket.  Omitted by default since the client uses a
-  # domain socket that doesn't need configuration.
-  #host: remote-database
+  # domain socket that doesn't need configuration.  Windows does not have
+  # domain sockets, so uncomment these lines.
+  #host: localhost
   #port: 5432
 
   # Schema search path.  The server defaults to $user,public

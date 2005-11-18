@@ -11,8 +11,9 @@ class AppGenerator < Rails::Generator::Base
     super
     usage if args.empty?
     @destination_root = args.shift
-    @socket = MYSQL_SOCKET_LOCATIONS.find { |f| File.exists?(f) }
-    @socket = '/path/to/your/mysql.sock' if @socket.blank?
+    unless RUBY_PLATFORM =~ /mswin32/
+      @socket = MYSQL_SOCKET_LOCATIONS.find { |f| File.exists?(f) }
+    end
   end
 
   def manifest
