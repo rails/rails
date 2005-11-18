@@ -24,7 +24,7 @@ class TextHelperTest < Test::Unit::TestCase
 
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", 12)
-    assert_equal "Hello Worl...", truncate("Hello World!!", 12)
+    assert_equal "Hello Wor...", truncate("Hello World!!", 12)
   end
 
   def test_truncate_multibyte_without_kcode
@@ -34,7 +34,7 @@ class TextHelperTest < Test::Unit::TestCase
       truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10)
     CODE
 
-    assert_equal "\354\225\210\353\205\225\355\225...", result
+    assert_equal "\354\225\210\353\205\225\355...", result
   end
 
   def test_truncate_multibyte_with_kcode
@@ -47,7 +47,7 @@ class TextHelperTest < Test::Unit::TestCase
       truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 \354\225\204\353\235\274\353\246\254\354\230\244", 10)
     CODE
 
-    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 \354\225\204...", result
+    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 ...", result
   end
 
   def test_strip_links
@@ -165,7 +165,7 @@ class TextHelperTest < Test::Unit::TestCase
     url = "http://api.rubyonrails.com/Foo.html"
     email = "fantabulous@shiznadel.ic"
 
-    assert_equal %(<p><a href="#{url}">#{url[0..7]}...</a><br /><a href="mailto:#{email}">#{email[0..7]}...</a><br /></p>), auto_link("<p>#{url}<br />#{email}<br /></p>") { |url| truncate(url, 10) }
+    assert_equal %(<p><a href="#{url}">#{url[0...7]}...</a><br /><a href="mailto:#{email}">#{email[0...7]}...</a><br /></p>), auto_link("<p>#{url}<br />#{email}<br /></p>") { |url| truncate(url, 10) }
   end
 
   def test_sanitize_form

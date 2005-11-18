@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct length for the truncate text helper.  #2913 [Stefan Kaes]
+
 * Update to Prototype 1.4.0_rc3. Closes #1893, #2505, #2550, #2748, #2783. [Sam Stephenson]
 
 * Add support for new rjs templates which wrap an update_page block. [Marcel Molina Jr.]
