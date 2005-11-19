@@ -221,6 +221,13 @@ class BasicsTest < Test::Unit::TestCase
     end
   end
 
+  def test_reader_for_invalid_column_names
+    # column names which aren't legal ruby ids
+    topic = Topic.find(:first)
+    topic.send(:define_read_method, "mumub-jumbo".to_sym, "mumub-jumbo", nil)
+    assert !Topic.read_methods.include?("mumub-jumbo")
+  end
+
   def test_non_attribute_access_and_assignment
     topic = Topic.new
     assert !topic.respond_to?("mumbo")
