@@ -19,14 +19,8 @@ module ActiveRecord
     # SchemaStatements#add_column, SchemaStatements#change_column and
     # SchemaStatements#remove_column are very useful.
     class AbstractAdapter
-      include Quoting, DatabaseStatements, SchemaStatements
+      include Quoting, DatabaseStatements, SchemaStatements, ConnectionManagement
       @@row_even = true
-
-      @@reconnect_success = 0
-      @@reconnect_failure = 0
-      def self.reconnect_success_rate
-        (100.0 * @@reconnect_success / (@@reconnect_success + @@reconnect_failure)).to_i
-      end
 
       def initialize(connection, logger = nil) #:nodoc:
         @connection, @logger = connection, logger
@@ -75,10 +69,11 @@ module ActiveRecord
             nil
           end
         rescue Exception => e
+          # Flag connection as possibly dirty; needs verification before use.
+          self.needs_verification!
+
+          # Log message and raise exception.
           message = "#{e.class.name}: #{e.message}: #{sql}"
-          unless reconnect_if_inactive!
-            message = "(reconnect failed) #{message}"
-          end
           log_info(message, name, 0)
           raise ActiveRecord::StatementInvalid, message
         end
@@ -109,24 +104,6 @@ module ActiveRecord
             log_entry
           else
             "%s  %s" % [message, dump]
-          end
-        end
-
-      private
-        def reconnect_if_inactive!
-          if respond_to?(:active?) and respond_to?(:reconnect!)
-            reconnect! unless active?
-            if active?
-              @@reconnect_success += 1
-              @logger.info "#{adapter_name} automatically reconnected.  Success rate: #{self.class.reconnect_success_rate}%" if @logger
-              true
-            else
-              @@reconnect_failure += 1
-              @logger.warn "#{adapter_name} automatic reconnection failed.  Success rate: #{self.class.reconnect_success_rate}%" if @logger
-              false
-            end
-          else
-            @logger.warn "#{adapter_name} does not yet support automatic reconnection." if @logger
           end
         end
     end

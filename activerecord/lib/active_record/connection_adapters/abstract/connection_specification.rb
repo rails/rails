@@ -1,4 +1,28 @@
 module ActiveRecord
+  module ConnectionAdapters
+    module ConnectionManagement
+      # Check whether the connection should be checked for activity before use.
+      def needs_verification?
+        @needs_verification == true
+      end
+
+      # Flag the connection for an activity check before use.
+      def needs_verification!
+        @needs_verification = true
+      end
+
+      # If the connection is flagged for an activity check, check whether
+      # it is active and reconnect if not.
+      def verify!
+        if needs_verification?
+          reconnect! unless active?
+          @needs_verification = false
+        end
+        self
+      end
+    end
+  end
+
   # The root class of all active record objects.
   class Base
     class ConnectionSpecification #:nodoc:
@@ -78,8 +102,11 @@ module ActiveRecord
       ar_super = ActiveRecord::Base.superclass
       until klass == ar_super
         if conn = active_connections[klass]
+          # Validate the active connection before returning it.
+          conn.verify!
           return conn
         elsif conn = @@defined_connections[klass]
+          # Activate this connection specification.
           klass.connection = conn
           return self.connection
         end
@@ -124,6 +151,11 @@ module ActiveRecord
       else
         establish_connection spec
       end
+    end
+
+    # Mark active connections for verification on next retrieve_connection.
+    def self.mark_active_connections_for_verification! #:nodoc:
+      active_connections.values.each { |conn| conn.needs_verification! }
     end
   end
 end

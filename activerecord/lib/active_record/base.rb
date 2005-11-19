@@ -247,11 +247,7 @@ module ActiveRecord #:nodoc:
     # also be used to "borrow" the connection to do database work unrelated
     # to any of the specific Active Records.
     def self.connection
-      if allow_concurrency
-        retrieve_connection
-      else
-        @connection ||= retrieve_connection
-      end
+      retrieve_connection
     end
 
     # Returns the connection currently associated with the class. This can
