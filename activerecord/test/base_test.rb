@@ -226,19 +226,19 @@ class BasicsTest < Test::Unit::TestCase
     topic.approved = "false"
     # puts "Expecting false"
     # puts topic.inspect
-    assert !topic.approved, "approved should be false"
+    assert !topic.approved?, "approved should be false"
     topic.approved = "false"
     # puts "Expecting false"
     # puts topic.inspect
-    assert !topic.approved, "approved should be false"
+    assert !topic.approved?, "approved should be false"
     topic.approved = "true"
     # puts "Expecting true"
     # puts topic.inspect
-    assert topic.approved, "approved should be true"
+    assert topic.approved?, "approved should be true"
     topic.approved = "true"
     # puts "Expecting true"
     # puts topic.inspect
-    assert topic.approved, "approved should be true"
+    assert topic.approved?, "approved should be true"
     # puts ""
   end
 
