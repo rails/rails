@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to Prototype 1.4.0_rc4. Closes #2943 (old Array.prototype.reverse behavior can be obtained by passing false as an argument). [Sam Stephenson]
+
 * Use Element.update('id', 'html') instead of $('id').innerHTML = 'html' in JavaScriptGenerator#replace_html so that script tags are evaluated. [Sam Stephenson]
 
 * Make rjs templates always implicitly skip out on layouts. [Marcel Molina Jr.]

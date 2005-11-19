@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to Prototype 1.4.0_rc4. Closes #2943 (old Array.prototype.reverse behavior can be obtained by passing false as an argument). [Sam Stephenson]
+
 * script/console uses RAILS_ENV environment variable if present.  #2932 [Blair Zajac <blair@orcaware.com>
 
 * Windows: eliminate the socket option in database.yml.  #2924 [Wayne Vucenic <waynev@gmail.com>]
