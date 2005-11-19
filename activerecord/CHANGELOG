@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't generate read methods for columns whose names are not valid ruby method names.  #2946 [Stefan Kaes]
+
 * Document :force option to create_table.  #2921 [Blair Zajac <blair@orcaware.com>]
 
 * Don't add the same conditions twice in has_one finder sql.  #2916 [Jeremy Evans]

@@ -1556,7 +1556,16 @@ module ActiveRecord #:nodoc:
           self.class.read_methods << attr_name
         end
 
-        self.class.class_eval("def #{symbol}; #{access_code}; end")
+        begin
+          self.class.class_eval("def #{symbol}; #{access_code}; end")
+        rescue SyntaxError => err
+          self.class.read_methods.delete(attr_name)
+          if logger
+            logger.warn "Exception occured during reader method compilation."
+            logger.warn "Maybe #{attr_name} is not a valid Ruby identifier?"
+            logger.warn "#{err.message}"
+          end
+        end
       end
 
       # Returns true if the attribute is of a text column and marked for serialization.
