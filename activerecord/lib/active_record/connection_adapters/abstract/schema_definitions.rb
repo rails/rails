@@ -59,7 +59,7 @@ module ActiveRecord
           when :time      then self.class.string_to_dummy_time(value)
           when :date      then self.class.string_to_date(value)
           when :binary    then self.class.binary_to_string(value)
-          when :boolean   then value == true or (value =~ /^t(rue)?$/i) == 0 or value.to_s == '1'
+          when :boolean   then self.class.value_to_boolean(value)
           else value
         end
       end
@@ -75,7 +75,7 @@ module ActiveRecord
           when :time      then "#{self.class.name}.string_to_dummy_time(#{var_name})"
           when :date      then "#{self.class.name}.string_to_date(#{var_name})"
           when :binary    then "#{self.class.name}.binary_to_string(#{var_name})"
-          when :boolean   then "(#{var_name} == true or (#{var_name} =~ /^t(?:true)?$/i) == 0 or #{var_name}.to_s == '1')"
+          when :boolean   then "#{self.class.name}.value_to_boolean(#{var_name})"
           else nil
         end
       end
@@ -118,6 +118,15 @@ module ActiveRecord
         # pad the resulting array with dummy date information
         time_array[0] = 2000; time_array[1] = 1; time_array[2] = 1;
         Time.send(Base.default_timezone, *time_array) rescue nil
+      end
+
+      # convert something to a boolean
+      def self.value_to_boolean(value)
+        return value if value==true || value==false
+        case value.to_s.downcase
+        when "true", "t", "1" then true
+        else false
+        end
       end
 
     private
