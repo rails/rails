@@ -206,6 +206,40 @@ class BasicsTest < Test::Unit::TestCase
     topic = topics(:first)
     topic.approved = false
     assert !topic.approved?, "approved should be false"
+    topic.approved = "false"
+    assert !topic.approved?, "approved should be false"
+  end
+
+  def test_read_attribute_when_true
+    topic = topics(:first)
+    topic.approved = true
+    assert topic.approved?, "approved should be true"
+    topic.approved = "true"
+    assert topic.approved?, "approved should be true"
+  end
+
+  def test_read_write_boolean_attribute
+    topic = Topic.new
+    # puts ""
+    # puts "New Topic"
+    # puts topic.inspect
+    topic.approved = "false"
+    # puts "Expecting false"
+    # puts topic.inspect
+    assert !topic.approved, "approved should be false"
+    topic.approved = "false"
+    # puts "Expecting false"
+    # puts topic.inspect
+    assert !topic.approved, "approved should be false"
+    topic.approved = "true"
+    # puts "Expecting true"
+    # puts topic.inspect
+    assert topic.approved, "approved should be true"
+    topic.approved = "true"
+    # puts "Expecting true"
+    # puts topic.inspect
+    assert topic.approved, "approved should be true"
+    # puts ""
   end
 
   def test_reader_generation

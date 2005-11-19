@@ -24,3 +24,6 @@ def current_adapter?(type)
   ActiveRecord::ConnectionAdapters.const_defined?(type) &&
     ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters.const_get(type))
 end
+
+#ActiveRecord::Base.logger = Logger.new(STDOUT)
+#ActiveRecord::Base.colorize_logging = false

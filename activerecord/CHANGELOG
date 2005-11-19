@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct boolean handling in generated reader methods.  #2945 [don.park@gmail.com, Stefan Kaes]
+
 * Don't generate read methods for columns whose names are not valid ruby method names.  #2946 [Stefan Kaes]
 
 * Document :force option to create_table.  #2921 [Blair Zajac <blair@orcaware.com>]
