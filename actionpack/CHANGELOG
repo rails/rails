@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct docs for automatic layout assignment. #2610. [Charles M. Gerungan]
+
 * Always create new AR sessions rather than trying too hard to avoid database traffic.  #2731 [Jeremy Kemper]
 
 * Update to Prototype 1.4.0_rc4. Closes #2943 (old Array.prototype.reverse behavior can be obtained by passing false as an argument). [Sam Stephenson]
