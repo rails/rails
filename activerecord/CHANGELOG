@@ -1,5 +1,7 @@
 *SVN*
 
+* Add tasks to create, drop and rebuild the MySQL and PostgreSQL test  databases. [Marcel Molina Jr.]
+
 * Correct boolean handling in generated reader methods.  #2945 [don.park@gmail.com, Stefan Kaes]
 
 * Don't generate read methods for columns whose names are not valid ruby method names.  #2946 [Stefan Kaes]
