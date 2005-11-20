@@ -279,6 +279,9 @@ class CGI
           end
           @session = @@session_class.new(:session_id => session_id, :data => {})
           @session.save
+          logger.debug "opened new session #{@session.session_id}" if logger
+        else
+          logger.debug "reopened session #{@session.session_id}" if logger
         end
       end
 
@@ -290,33 +293,49 @@ class CGI
       # Restore session state.  The session model handles unmarshaling.
       def restore
         if @session
+          logger.debug "restore session #{@session.session_id}" if logger
           @session.data
+        else
+          logger.debug "skipped restore nil session" if logger
         end
       end
 
       # Save session store.
       def update
         if @session
+          logger.debug "update session #{@session.session_id}" if logger
           ActiveRecord::Base.silence { @session.save }
+        else
+          logger.debug "skipped update nil session" if logger
         end
       end
 
       # Save and close the session store.
       def close
         if @session
+          logger.debug "close session #{@session.session_id}" if logger
           update
           @session = nil
+        else
+          logger.debug "skipped close nil session" if logger
         end
       end
 
       # Delete and close the session store.
       def delete
         if @session
+          logger.debug "delete session #{@session.session_id}" if logger
           ActiveRecord::Base.silence { @session.destroy }
           @session = nil
+        else
+          logger.debug "skipped delete nil session" if logger
         end
       end
 
+      protected
+        def logger
+          ActionController::Base.logger rescue nil
+        end
     end
   end
 end
