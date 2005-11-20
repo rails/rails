@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Array#to_strings which to_s's all elements in an array. [Marcel Molina Jr., Sam Stephenson]
+
 * Added the following methods [Marcel Molina Jr., Sam Stephenson]:
   * Object#copy_instance_variables_from(object) to copy instance variables from one object to another 
   * Object#extended_by to get an instance's included/extended modules

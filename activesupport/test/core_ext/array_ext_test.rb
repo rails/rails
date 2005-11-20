@@ -33,4 +33,8 @@ class ArrayExtConversionTests < Test::Unit::TestCase
   def test_one_element
     assert_equal "one", ['one'].to_sentence
   end
+  
+  def test_to_strings
+    assert_equal %w(one two three), [:one, :two, :three].to_strings
+  end
 end
