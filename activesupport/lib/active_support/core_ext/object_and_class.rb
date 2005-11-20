@@ -13,7 +13,26 @@ class Object #:nodoc:
     end
     subclasses
   end
-
+  
+  def extended_by
+    ancestors = class << self; ancestors end
+    ancestors.select { |mod| mod.class == Module } - [ Object, Kernel ]
+  end
+  
+  def copy_instance_variables_from(object, exclude = [])
+    exclude += object.protected_instance_variables if
+      object.respond_to? :protected_instance_variables
+    
+    instance_variables = object.instance_variables - exclude.map { |name| name.to_s }
+    instance_variables.each do |name|
+      instance_variable_set name, object.instance_variable_get(name)
+    end
+  end
+  
+  def extend_with_included_modules_from(object)
+    object.extended_by.each { |mod| extend mod }
+  end
+  
   # "", "   ", nil, [], and {} are blank
   def blank?
     if respond_to?(:empty?) && respond_to?(:strip)

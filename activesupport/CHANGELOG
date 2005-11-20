@@ -1,5 +1,10 @@
 *SVN*
 
+* Added the following methods [Marcel Molina Jr., Sam Stephenson]:
+  * Object#copy_instance_variables_from(object) to copy instance variables from one object to another 
+  * Object#extended_by to get an instance's included/extended modules
+  * Object#extend_with_included_modules_from(object) to extend an instance with the modules from another instance
+
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
 
 *1.2.3* (November 7th, 2005)
