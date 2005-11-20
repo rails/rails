@@ -56,8 +56,12 @@ module Rails
         end
 
         protected
+          def migration_directory(relative_path)
+            directory(@migration_directory = relative_path)
+          end
+
           def existing_migrations(file_name)
-            Dir.glob("db/migrate/[0-9]*_#{file_name}.rb")
+            Dir.glob("#{@migration_directory}/[0-9]*_#{file_name}.rb")
           end
 
           def migration_exists?(file_name)
@@ -65,7 +69,7 @@ module Rails
           end
 
           def current_migration_number
-            Dir.glob('db/migrate/[0-9]*.rb').inject(0) do |max, file_path|
+            Dir.glob("#{@migration_directory}/[0-9]*.rb").inject(0) do |max, file_path|
               n = File.basename(file_path).split('_', 2).first.to_i
               if n > max then n else max end
             end
@@ -305,6 +309,7 @@ module Rails
 
         # When creating a migration, it knows to find the first available file in db/migrate and use the migration.rb template.
         def migration_template(relative_source, relative_destination, template_options = {})
+          migration_directory relative_destination
           raise "Another migration is already named #{file_name}: #{existing_migrations(file_name).first}" if migration_exists?(file_name)
           template(relative_source, "#{relative_destination}/#{next_migration_string}_#{file_name}.rb", template_options)
         end
@@ -418,6 +423,7 @@ end_message
 
         # When deleting a migration, it knows to delete every file named "[0-9]*_#{file_name}".
         def migration_template(relative_source, relative_destination, template_options = {})
+          migration_directory relative_destination
           raise "There is no migration named #{file_name}" unless migration_exists?(file_name)
           existing_migrations(file_name).each do |file_path|
             file(relative_source, file_path, template_options)
@@ -457,6 +463,7 @@ end_message
         end
         
         def migration_template(relative_source, relative_destination, options = {})
+          migration_directory relative_destination
           logger.migration_template file_name
         end
       end
