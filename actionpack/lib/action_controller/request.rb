@@ -2,7 +2,7 @@ module ActionController
   # These methods are available in both the production and test Request objects.
   class AbstractRequest
     cattr_accessor :relative_url_root
-    
+
     # Returns both GET and POST parameters in a single hash.
     def parameters
       @parameters ||= request_parameters.merge(query_parameters).merge(path_parameters).with_indifferent_access
@@ -110,7 +110,7 @@ module ActionController
     # a different <tt>tld_length</tt>, such as 2 to catch rubyonrails.co.uk in "www.rubyonrails.co.uk".
     def domain(tld_length = 1)
       return nil if !/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/.match(host).nil? or host.nil?
-        
+
       host.split('.').last(1 + tld_length).join('.')
     end
 
@@ -123,13 +123,13 @@ module ActionController
       parts[0..-(tld_length+2)]
     end
 
-    # Receive the raw post data. 
-    # This is useful for services such as REST, XMLRPC and SOAP 
-    # which communicate over HTTP POST but don't use the traditional parameter format. 
+    # Receive the raw post data.
+    # This is useful for services such as REST, XMLRPC and SOAP
+    # which communicate over HTTP POST but don't use the traditional parameter format.
     def raw_post
       env['RAW_POST_DATA']
     end
-    
+
     # Returns the request URI correctly, taking into account the idiosyncracies
     # of the various servers.
     def request_uri
@@ -153,9 +153,9 @@ module ActionController
 
     # Is this an SSL request?
     def ssl?
-      env['HTTPS'] == 'on' 
+      env['HTTPS'] == 'on'
     end
-  
+
     # Returns the interpreted path to requested resource after all the installation directory of this application was taken into account
     def path
       path = (uri = request_uri) ? uri.split('?').first : ''
@@ -165,7 +165,7 @@ module ActionController
       path[0, root.length] = '' if root
       path || ''
     end
-    
+
     # Returns the path minus the web server relative installation directory.
     # This method returns nil unless the web server is apache.
     def relative_url_root
@@ -176,7 +176,7 @@ module ActionController
     def port
       @port_as_int ||= env['SERVER_PORT'].to_i
     end
-    
+
     # Returns the standard port number for this request's protocol
     def standard_port
       case protocol
@@ -196,12 +196,12 @@ module ActionController
     def host_with_port
       host + port_string
     end
-  
+
     def path_parameters=(parameters)
       @path_parameters = parameters
       @symbolized_path_parameters = @parameters = nil
     end
-    
+
     def symbolized_path_parameters
       @symbolized_path_parameters ||= path_parameters.symbolize_keys
     end
@@ -224,10 +224,13 @@ module ActionController
     def request_parameters #:nodoc:
     end
 
-    def env #:nodoc:
+    # Returns the hash of environment variables for this request,
+    # such as { 'RAILS_ENV' => 'production' }.
+    def env
     end
 
-    def host #:nodoc:
+    # Returns the host for this request, such as example.com.
+    def host
     end
 
     def cookies #:nodoc:
@@ -237,6 +240,6 @@ module ActionController
     end
 
     def reset_session #:nodoc:
-    end    
+    end
   end
 end
