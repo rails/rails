@@ -80,8 +80,8 @@ class CGI
             find_by_session_id(session_id)
           end
 
-          def marshal(data)     Base64.encode64(Marshal.dump(data)) end
-          def unmarshal(data)   Marshal.load(Base64.decode64(data)) end
+          def marshal(data)   Base64.encode64(Marshal.dump(data)) if data end
+          def unmarshal(data) Marshal.load(Base64.decode64(data)) if data end
 
           def create_table!
             connection.execute <<-end_sql
@@ -117,14 +117,14 @@ class CGI
             end
         end
 
-        attr_writer :data
-
         # Lazy-unmarshal session state.
         def data
-          @data ||= self.class.unmarshal(read_attribute(@@data_column_name))
+          @data ||= self.class.unmarshal(read_attribute(@@data_column_name)) || {}
         end
 
         private
+          attr_writer :data
+
           def marshal_data!
             write_attribute(@@data_column_name, self.class.marshal(self.data))
           end
@@ -187,8 +187,8 @@ class CGI
             end
           end
 
-          def marshal(data)     Base64.encode64(Marshal.dump(data)) end
-          def unmarshal(data)   Marshal.load(Base64.decode64(data)) end
+          def marshal(data)   Base64.encode64(Marshal.dump(data)) if data end
+          def unmarshal(data) Marshal.load(Base64.decode64(data)) if data end
 
           def create_table!
             @@connection.execute <<-end_sql
@@ -224,7 +224,7 @@ class CGI
         def data
           unless @data
             if @marshaled_data
-              @data, @marshaled_data = self.class.unmarshal(@marshaled_data), nil
+              @data, @marshaled_data = self.class.unmarshal(@marshaled_data) || {}, nil
             else
               @data = {}
             end
