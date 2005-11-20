@@ -35,6 +35,41 @@ for adapter in %w( mysql postgresql sqlite sqlite3 sqlserver sqlserver_odbc db2 
   }
 end
 
+SCHEMA_PATH = File.join(File.dirname(__FILE__), *%w(test fixtures db_definitions))
+
+desc 'Build the MySQL test databases'
+task :build_mysql_databases do 
+  %x( mysqladmin  create activerecord_unittest )
+  %x( mysqladmin  create activerecord_unittest2 )
+  %x( mysql  activerecord_unittest < #{File.join(SCHEMA_PATH, 'mysql.sql')} )
+  %x( mysql  activerecord_unittest < #{File.join(SCHEMA_PATH, 'mysql2.sql')} )
+end
+
+desc 'Drop the MySQL test databases'
+task :drop_mysql_databases do 
+  %x( mysqladmin -f drop activerecord_unittest )
+  %x( mysqladmin -f drop activerecord_unittest2 )
+end
+
+desc 'Rebuild the MySQL test databases'
+task :rebuild_mysql_databases => [:drop_mysql_databases, :build_mysql_databases]
+
+desc 'Build the PostgreSQL test databases'
+task :build_postgresql_databases do 
+  %x( createdb activerecord_unittest )
+  %x( createdb activerecord_unittest2 )
+  %x( psql activerecord_unittest -f #{File.join(SCHEMA_PATH, 'postgresql.sql')} )
+  %x( psql activerecord_unittest -f #{File.join(SCHEMA_PATH, 'postgresql2.sql')} )
+end
+
+desc 'Drop the PostgreSQL test databases'
+task :drop_postgresql_databases do 
+  %x( dropdb   activerecord_unittest )
+  %x( dropdb   activerecord_unittest2 )
+end
+
+desc 'Rebuild the PostgreSQL test databases'
+task :rebuild_postgresql_databases => [:drop_postgresql_databases, :build_postgresql_databases]
 
 # Generate the RDoc documentation
 
