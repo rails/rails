@@ -117,17 +117,11 @@ class CGI
             end
         end
 
+        attr_writer :data
+
         # Lazy-unmarshal session state.
         def data
-          unless @data
-            case d = read_attribute(@@data_column_name)
-              when String
-                @data = self.class.unmarshal(d)
-              else
-                @data = d || {}
-            end
-          end
-          @data
+          @data ||= self.class.unmarshal(read_attribute(@@data_column_name))
         end
 
         private
@@ -284,6 +278,7 @@ class CGI
             raise CGI::Session::NoSession, 'uninitialized session'
           end
           @session = @@session_class.new(:session_id => session_id, :data => {})
+          @session.save
         end
       end
 
