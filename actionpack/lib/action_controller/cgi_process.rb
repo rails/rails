@@ -93,7 +93,7 @@ module ActionController #:nodoc:
     def session
       unless @session
         if @session_options == false
-          @session = Hash.new
+          @session = disabled_session_hash
         else
           stale_session_check! do
             if session_options_with_string_keys['new_session'] == true
@@ -121,11 +121,15 @@ module ActionController #:nodoc:
       # Delete an old session if it exists then create a new one.
       def new_session
         if @session_options == false
-          Hash.new
+          disabled_session_hash
         else
           CGI::Session.new(@cgi, session_options_with_string_keys.merge("new_session" => false)).delete rescue nil
           CGI::Session.new(@cgi, session_options_with_string_keys.merge("new_session" => true))
         end
+      end
+
+      def disabled_session_hash
+        Hash.new { |h,k| raise "You disabled sessions but are attempting to set session[#{k.inspect}]" }
       end
 
       def stale_session_check!
