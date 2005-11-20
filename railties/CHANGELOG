@@ -1,5 +1,7 @@
 *SVN*
 
+* Introducing the session_migration generator.  Creates an add_session_table migration.  #2958 [Rick Olson]
+
 * Update to Prototype 1.4.0_rc4. Closes #2943 (old Array.prototype.reverse behavior can be obtained by passing false as an argument). [Sam Stephenson]
 
 * Eliminate nil from newly generated logfiles.  #2927 [Blair Zajac <blair@orcaware.com>]

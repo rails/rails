@@ -1,0 +1,15 @@
+Description:
+    The session table migration generator creates a migration for adding a session table 
+    used by CGI::Session::ActiveRecordStore.
+
+    The generator takes a migration name as its argument.  The migration name may be
+    given in CamelCase or under_score.
+
+    The generator creates a migration class in db/migrate prefixed by its number
+    in the queue.
+
+Example:
+    ./script/generate session_migration AddSessionTable
+
+    With 4 existing migrations, this will create an AddSessionTable migration in the
+    file db/migrate/5_add_session_table.rb

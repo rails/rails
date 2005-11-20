@@ -55,6 +55,30 @@ module Rails
         def readme(*args)
         end
 
+        protected
+          def existing_migrations(file_name)
+            Dir.glob("db/migrate/[0-9]*_#{file_name}.rb")
+          end
+
+          def migration_exists?(file_name)
+            not existing_migrations(file_name).empty?
+          end
+
+          def current_migration_number
+            Dir.glob('db/migrate/[0-9]*.rb').inject(0) do |max, file_path|
+              n = File.basename(file_path).split('_', 2).first.to_i
+              if n > max then n else max end
+            end
+          end
+
+          def next_migration_number
+            current_migration_number + 1
+          end
+
+          def next_migration_string(padding = 3)
+            "%.#{padding}d" % next_migration_number
+          end
+
         private
           # Ask the user interactively whether to force collision.
           def force_file_collision?(destination)
@@ -84,10 +108,10 @@ module Rails
             begin_mark = template_part_mark(template_options[:begin_mark], template_options[:mark_id])
             end_mark = template_part_mark(template_options[:end_mark], template_options[:mark_id])
             begin_mark + rendered_part + end_mark
-         end
+          end
 
-         def template_part_mark(name, id)
-           "<!--[#{name}:#{id}]-->\n"
+          def template_part_mark(name, id)
+            "<!--[#{name}:#{id}]-->\n"
           end
       end
 
@@ -279,6 +303,12 @@ module Rails
           end
         end
 
+        # When creating a migration, it knows to find the first available file in db/migrate and use the migration.rb template.
+        def migration_template(relative_source, relative_destination, template_options = {})
+          raise "Another migration is already named #{file_name}: #{existing_migrations(file_name).first}" if migration_exists?(file_name)
+          template(relative_source, "#{relative_destination}/#{next_migration_string}_#{file_name}.rb", template_options)
+        end
+
         private
           # Raise a usage error with an informative WordNet suggestion.
           # Thanks to Florian Gross (flgr).
@@ -385,6 +415,14 @@ end_message
         def complex_template(*args)
           # nothing should be done here
         end
+
+        # When deleting a migration, it knows to delete every file named "[0-9]*_#{file_name}".
+        def migration_template(relative_source, relative_destination, template_options = {})
+          raise "There is no migration named #{file_name}" unless migration_exists?(file_name)
+          existing_migrations(file_name).each do |file_path|
+            file(relative_source, file_path, template_options)
+          end
+        end
       end
 
 
@@ -416,6 +454,10 @@ end_message
 
         def readme(*args)
           logger.readme args.join(', ')
+        end
+        
+        def migration_template(relative_source, relative_destination, options = {})
+          logger.migration_template file_name
         end
       end
 
