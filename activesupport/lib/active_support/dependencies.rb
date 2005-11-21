@@ -33,12 +33,21 @@ module Dependencies #:nodoc:
   def clear
     self.loaded = [ ]
   end
-  
+
   def require_or_load(file_name)
     file_name = "#{file_name}.rb" unless ! load? || file_name[-3..-1] == '.rb'
-    load? ? load(file_name) : require(file_name)
+    if load?
+      begin
+        original_verbosity, $VERBOSE = $VERBOSE, true
+        load file_name
+      ensure
+        $VERBOSE = original_verbosity
+      end
+    else
+      require file_name
+    end
   end
-  
+
   def remove_subclasses_for(*classes)
     Object.remove_subclasses_of(*classes)
   end
