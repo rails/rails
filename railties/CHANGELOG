@@ -1,4 +1,5 @@
 *SVN*
+* Make help for the console command more explicit about how to specify the desired environment in which to run the console. #2911. [anonymous]
 
 * PostgreSQL: the purge_test_database Rake task shouldn't explicitly specify the template0 template when creating a fresh test database.  #2964 [dreamer3@gmail.com]
 
