@@ -19,8 +19,11 @@ unless File.exist?(config_file)
   FileUtils.cp source, config_file
 end
 
-port = IO.read(config_file).scan(/^server.port\s*=\s*(\d+)/).first rescue 3000
-puts "=> Rails application started on http://0.0.0.0:#{port}"
+config = IO.read(config_file)
+default_port, default_ip = 3000, '0.0.0.0'
+port = config.scan(/^server.port\s*=\s*(\d+)/).first rescue default_port
+ip   = config.scan(/^server.bind\s*=\s*"([^"]+)"/).first rescue default_ip
+puts "=> Rails application started on http://#{ip || default_ip}:#{port || default_port}"
 
 tail_thread = nil
 

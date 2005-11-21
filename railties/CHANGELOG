@@ -1,5 +1,7 @@
 *SVN*
 
+* Have the lighttpd server script report the actual ip to which the server is bound. #2903. [Adam]
+
 * Add plugin library directories to the load path after the lib directory so that libraries in the lib directory get precedence. #2910. [james.adam@gmail.com]
 
 * Make help for the console command more explicit about how to specify the desired environment in which to run the console. #2911. [anonymous]
