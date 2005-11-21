@@ -332,7 +332,7 @@ module ActiveRecord
             when Symbol
               self.send(callback)
             when String
-              eval(callback, binding)
+              eval(callback, Kernel.binding)
             when Proc, Method
               callback.call(self)
             else
