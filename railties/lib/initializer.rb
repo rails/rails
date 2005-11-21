@@ -299,9 +299,13 @@ module Rails
         has_lib   = File.directory?(lib_path)
         has_init  = File.file?(init_path)
 
-        # Add lib to load path.
-        $LOAD_PATH.unshift(lib_path) if has_lib
-        
+        # Add lib to load path *after* the application lib, to allow
+        # application libraries to override plugin libraries.
+        if has_lib
+          application_lib_index = $LOAD_PATH.index(File.join(RAILS_ROOT, "lib")) || 0  
+          $LOAD_PATH.insert(application_lib_index + 1, lib_path)
+        end
+
         # Allow plugins to reference the current configuration object
         config = configuration 
 
