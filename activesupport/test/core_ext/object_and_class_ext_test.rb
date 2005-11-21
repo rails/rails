@@ -77,7 +77,7 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
   def test_copy_instance_variables_from_without_explicit_excludes
     assert_equal [], @dest.instance_variables
     @dest.copy_instance_variables_from(@source)
-    
+
     assert_equal %w(@bar @baz), @dest.instance_variables.sort
     %w(@bar @baz).each do |name|
       assert_equal @source.instance_variable_get(name).object_id, 
@@ -87,7 +87,7 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
   
   def test_copy_instance_variables_from_with_explicit_excludes
     @dest.copy_instance_variables_from(@source, ['@baz'])
-    assert_nil @dest.instance_variable_get('@baz')
+    assert !@dest.instance_variables.include?('@baz')
     assert_equal 'bar', @dest.instance_variable_get('@bar')
   end
   
@@ -100,8 +100,8 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
     end
     
     @dest.copy_instance_variables_from(@source)
-    assert_nil @dest.instance_variable_get('@bar')
-    assert_nil @dest.instance_variable_get('@quux')
+    assert !@dest.instance_variables.include?('@bar')
+    assert !@dest.instance_variables.include?('@quux')
     assert_equal 'baz', @dest.instance_variable_get('@baz')
   end
 end
