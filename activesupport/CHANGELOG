@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Symbol#to_proc, which allows for, e.g. [:foo, :bar].map(&:to_s). [Marcel Molina Jr.]
+
 * Add Array#to_strings which to_s's all elements in an array. [Marcel Molina Jr., Sam Stephenson]
 
 * Added the following methods [Marcel Molina Jr., Sam Stephenson]:
