@@ -1,11 +1,7 @@
 require 'test/unit'
 require 'date'
 require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/string'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/kernel'
-
-silence_warnings do
-  require File.dirname(__FILE__) + '/../inflector_test'
-end
+require File.dirname(__FILE__) + '/../inflector_test' unless defined? InflectorTest
 
 class StringInflectionsTest < Test::Unit::TestCase
   def test_pluralize

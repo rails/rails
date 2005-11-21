@@ -16,7 +16,7 @@
 # license please contact me.
 
 require 'irb'
-require File.dirname(__FILE__) + '/binding_of_caller'
+require File.dirname(__FILE__) + '/binding_of_caller' unless defined? Binding.of_caller
 require 'drb'
 require 'drb/acl'
 

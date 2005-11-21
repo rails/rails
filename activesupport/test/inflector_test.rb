@@ -1,5 +1,5 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../lib/active_support/inflector'
+require File.dirname(__FILE__) + '/../lib/active_support/inflector' unless defined? Inflector
 
 module Ace
   module Base
