@@ -25,9 +25,6 @@ module ActiveSupport #:nodoc:
           join '/'
         end
         
-        def to_strings
-          map { |element| element.to_s }
-        end
       end
     end
   end
