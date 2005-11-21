@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/module_attribute_accessors'
 require File.dirname(__FILE__) + '/core_ext/load_error'
+require File.dirname(__FILE__) + '/core_ext/kernel'
 
 module Dependencies #:nodoc:
   extend self
@@ -37,12 +38,7 @@ module Dependencies #:nodoc:
   def require_or_load(file_name)
     file_name = "#{file_name}.rb" unless ! load? || file_name[-3..-1] == '.rb'
     if load?
-      begin
-        original_verbosity, $VERBOSE = $VERBOSE, true
-        load file_name
-      ensure
-        $VERBOSE = original_verbosity
-      end
+      enable_warnings { load file_name }
     else
       require file_name
     end

@@ -1,6 +1,6 @@
 *SVN*
 
-* Turn warnings on when loading a file if Dependencies.mechanism == :load.  Common mistakes such as redefined methods will print warnings to stderr.  [Jeremy Kemper]
+* Introduce enable_warnings counterpart to silence_warnings.  Turn warnings on when loading a file if Dependencies.mechanism == :load.  Common mistakes such as redefined methods will print warnings to stderr.  [Jeremy Kemper]
 
 * Add Symbol#to_proc, which allows for, e.g. [:foo, :bar].map(&:to_s). [Marcel Molina Jr.]
 
