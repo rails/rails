@@ -1,5 +1,7 @@
 *SVN*
 
+* Update html-scanner to handle CDATA sections better. Closes #2970. [Jamis Buck]
+
 * Don't put flash in session if sessions are disabled.  [Jeremy Kemper]
 
 * Strip out trailing &_= for raw post bodies. Closes #2868. [Sam Stephenson]

@@ -52,6 +52,9 @@ module HTML #:nodoc:
         if @scanner.scan(/!--/) # comment
           tag << @scanner.matched
           tag << (@scanner.scan_until(/--\s*>/) || @scanner.scan_until(/\Z/))
+        elsif @scanner.scan(/!\[CDATA\[/)
+          tag << @scanner.matched
+          tag << @scanner.scan_until(/\]\]>/)
         elsif @scanner.scan(/!/) # doctype
           tag << @scanner.matched
           tag << consume_quoted_regions
