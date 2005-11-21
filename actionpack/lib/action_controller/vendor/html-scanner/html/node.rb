@@ -412,7 +412,13 @@ module HTML #:nodoc:
       conditions = validate_conditions(conditions)
 
       # check content of child nodes
-      return false unless children.find { |child| child.match(conditions[:content]) } if conditions[:content]
+      if conditions[:content]
+        if children.empty?
+          return false unless match_condition("", conditions[:content])
+        else
+          return false unless children.find { |child| child.match(conditions[:content]) }
+        end
+      end
 
       # test the name
       return false unless match_condition(@name, conditions[:tag]) if conditions[:tag]

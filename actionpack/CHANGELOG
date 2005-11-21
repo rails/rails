@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow assert_tag(:conditions) to match the empty string when a tag has no children. Closes #2959. [Jamis Buck]
+
 * Update html-scanner to handle CDATA sections better. Closes #2970. [Jamis Buck]
 
 * Don't put flash in session if sessions are disabled.  [Jeremy Kemper]
