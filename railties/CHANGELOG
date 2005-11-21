@@ -1,5 +1,7 @@
 *SVN*
 
+* Make the db_schema_dump task honor the SCHEMA environment variable if present the way db_schema_import does. #2931. [Blair Zajac]
+
 * Make help for the console command more explicit about how to specify the desired environment in which to run the console. #2911. [anonymous]
 
 * Introducing the session_migration generator.  Creates an add_session_table migration.  Allows generator to specify migrations directory.  #2958, #2960 [Rick Olson]

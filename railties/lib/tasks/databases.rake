@@ -16,7 +16,7 @@ end
 desc "Create a db/schema.rb file that can be portably used against any DB supported by AR."
 task :db_schema_dump => :environment do
   require 'active_record/schema_dumper'
-  File.open("db/schema.rb", "w") do |file|
+  File.open(ENV['SCHEMA'] || "db/schema.rb", "w") do |file|
     ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
   end
 end
