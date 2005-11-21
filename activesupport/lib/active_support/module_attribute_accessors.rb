@@ -3,26 +3,17 @@
 class Module # :nodoc:
   def mattr_reader(*syms)
     syms.each do |sym|
-      class_eval <<-EOS
-        if ! defined? @@#{sym.id2name}
-          @@#{sym.id2name} = nil
+      class_eval(<<-EOS, __FILE__, __LINE__)
+        unless defined? @@#{sym}
+          @@#{sym} = nil
         end
         
-        def self.#{sym.id2name}
+        def self.#{sym}
           @@#{sym}
         end
 
-        def #{sym.id2name}
+        def #{sym}
           @@#{sym}
-        end
-
-        def call_#{sym.id2name}
-          case @@#{sym.id2name}
-            when Symbol then send(@@#{sym})
-            when Proc   then @@#{sym}.call(self)
-            when String then @@#{sym}
-            else nil
-          end
         end
       EOS
     end
@@ -30,20 +21,16 @@ class Module # :nodoc:
   
   def mattr_writer(*syms)
     syms.each do |sym|
-      class_eval <<-EOS
-        if ! defined? @@#{sym.id2name}
-          @@#{sym.id2name} = nil
+      class_eval(<<-EOS, __FILE__, __LINE__)
+        unless defined? @@#{sym}
+          @@#{sym} = nil
         end
         
-        def self.#{sym.id2name}=(obj)
-          @@#{sym.id2name} = obj
+        def self.#{sym}=(obj)
+          @@#{sym} = obj
         end
 
-        def self.set_#{sym.id2name}(obj)
-          @@#{sym.id2name} = obj
-        end
-
-        def #{sym.id2name}=(obj)
+        def #{sym}=(obj)
           @@#{sym} = obj
         end
       EOS

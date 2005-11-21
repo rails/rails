@@ -1,55 +1,42 @@
-# Extends the class object with class and instance accessors for class attributes, 
+# Extends the class object with class and instance accessors for class attributes,
 # just like the native attr* accessors for instance attributes.
 class Class # :nodoc:
   def cattr_reader(*syms)
-    syms.select { |sym| sym.respond_to?(:id2name) }.each do |sym|
-      class_eval <<-EOS
-        if ! defined? @@#{sym.id2name}
-          @@#{sym.id2name} = nil
+    syms.flatten.each do |sym|
+      class_eval(<<-EOS, __FILE__, __LINE__)
+        unless defined? @@#{sym}
+          @@#{sym} = nil
         end
-        
-        def self.#{sym.id2name}
+
+        def self.#{sym}
           @@#{sym}
         end
 
-        def #{sym.id2name}
+        def #{sym}
           @@#{sym}
-        end
-
-        def call_#{sym.id2name}
-          case @@#{sym.id2name}
-            when Symbol then send(@@#{sym})
-            when Proc   then @@#{sym}.call(self)
-            when String then @@#{sym}
-            else nil
-          end
         end
       EOS
     end
   end
-  
+
   def cattr_writer(*syms)
-    syms.select { |sym| sym.respond_to?(:id2name) }.each do |sym|
-      class_eval <<-EOS
-        if ! defined? @@#{sym.id2name}
-          @@#{sym.id2name} = nil
-        end
-        
-        def self.#{sym.id2name}=(obj)
-          @@#{sym.id2name} = obj
+    syms.flatten.each do |sym|
+      class_eval(<<-EOS, __FILE__, __LINE__)
+        unless defined? @@#{sym}
+          @@#{sym} = nil
         end
 
-        def self.set_#{sym.id2name}(obj)
-          @@#{sym.id2name} = obj
+        def self.#{sym}=(obj)
+          @@#{sym} = obj
         end
 
-        def #{sym.id2name}=(obj)
+        def #{sym}=(obj)
           @@#{sym} = obj
         end
       EOS
     end
   end
-  
+
   def cattr_accessor(*syms)
     cattr_reader(*syms)
     cattr_writer(*syms)
