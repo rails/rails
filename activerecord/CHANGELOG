@@ -1,5 +1,7 @@
 *SVN*
 
+* has_and_belongs_to_many: use JOIN instead of LEFT JOIN.  [Jeremy Kemper]
+
 * MySQL: introduce :encoding option to specify the character set for client, connection, and results.  Only available for MySQL 4.1 and later with the mysql-ruby driver.  Do SHOW CHARACTER SET in mysql client to see available encodings.  #2975 [Shugo Maeda]
 
 * Add tasks to create, drop and rebuild the MySQL and PostgreSQL test  databases. [Marcel Molina Jr.]

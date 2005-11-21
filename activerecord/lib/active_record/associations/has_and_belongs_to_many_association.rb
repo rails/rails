@@ -154,8 +154,8 @@ module ActiveRecord
             @finder_sql = "#{@join_table}.#{@association_class_primary_key_name} = #{@owner.quoted_id} "
             @finder_sql << " AND (#{interpolate_sql(@options[:conditions])})" if @options[:conditions]
           end
-          
-          @join_sql = "LEFT JOIN #{@join_table} ON #{@association_class.table_name}.#{@association_class.primary_key} = #{@join_table}.#{@association_foreign_key}"
+
+          @join_sql = "JOIN #{@join_table} ON #{@association_class.table_name}.#{@association_class.primary_key} = #{@join_table}.#{@association_foreign_key}"
         end
         
     end
