@@ -1,5 +1,7 @@
 *SVN*
 
+* Make the db_schema_dump task honor the SCHEMA environment variable if present the way db_schema_import does. #2931. [Blair Zajac]
+
 * Have the lighttpd server script report the actual ip to which the server is bound. #2903. [Adam]
 
 * Add plugin library directories to the load path after the lib directory so that libraries in the lib directory get precedence. #2910. [james.adam@gmail.com]
