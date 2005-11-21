@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve expire_fragment documentation.  #2966 [court3nay@gmail.com]
+
 * Correct docs for automatic layout assignment. #2610. [Charles M. Gerungan]
 
 * Always create new AR sessions rather than trying too hard to avoid database traffic.  #2731 [Jeremy Kemper]
