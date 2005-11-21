@@ -1,7 +1,5 @@
 *SVN*
 
-* Use Kernel.binding rather than binding to allow columns of that name.  #2973 [arc@uchicago.edu]
-
 * Add tasks to create, drop and rebuild the MySQL and PostgreSQL test  databases. [Marcel Molina Jr.]
 
 * Correct boolean handling in generated reader methods.  #2945 [don.park@gmail.com, Stefan Kaes]

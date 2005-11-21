@@ -254,7 +254,7 @@ module ActiveRecord
       def evaluate_condition(condition, record)
         case condition
           when Symbol: record.send(condition)
-          when String: eval(condition, Kernel.binding)
+          when String: eval(condition, binding)
           else
             if condition_block?(condition)
               condition.call(record)
@@ -757,7 +757,7 @@ module ActiveRecord
           if validation.is_a?(Symbol)
             self.send(validation)
           elsif validation.is_a?(String)
-            eval(validation, Kernel.binding)
+            eval(validation, binding)
           elsif validation_block?(validation)
             validation.call(self)
           elsif validation_class?(validation, validation_method)
