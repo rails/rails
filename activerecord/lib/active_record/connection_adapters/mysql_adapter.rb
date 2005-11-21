@@ -38,7 +38,17 @@ module ActiveRecord
 
       mysql = Mysql.init
       mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslkey]
-      ConnectionAdapters::MysqlAdapter.new(mysql.real_connect(host, username, password, database, port, socket), logger, [host, username, password, database, port, socket])
+      if config[:encoding]
+        begin
+          mysql.options(Mysql::SET_CHARSET_NAME, config[:encoding])
+        rescue
+          raise ActiveRecord::ConnectionFailed, 'The :encoding option is only available for MySQL 4.1 and later with the mysql-ruby driver.  Again, this does not work with the ruby-mysql driver or MySQL < 4.1.'
+        end
+      end
+
+      conn = mysql.real_connect(host, username, password, database, port, socket)
+      conn.query("SET NAMES '#{config[:encoding]}'") if config[:encoding]
+      ConnectionAdapters::MysqlAdapter.new(conn, logger, [host, username, password, database, port, socket], mysql)
     end
   end
 
@@ -87,9 +97,10 @@ module ActiveRecord
         "MySQL server has gone away"
       ]
 
-      def initialize(connection, logger, connection_options=nil)
+      def initialize(connection, logger, connection_options=nil, mysql=Mysql)
         super(connection, logger)
         @connection_options = connection_options
+        @mysql = mysql
       end
 
       def adapter_name #:nodoc:
@@ -119,12 +130,21 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
+      def quote(value, column = nil)
+        if value.kind_of?(String) && column && column.type == :binary
+          s = column.class.string_to_binary(value).unpack("H*")[0]
+          "x'#{s}'"
+        else
+          super
+        end
+      end
+
       def quote_column_name(name) #:nodoc:
         "`#{name}`"
       end
 
       def quote_string(string) #:nodoc:
-        Mysql::quote(string)
+        @mysql.quote(string)
       end
 
       def quoted_true
