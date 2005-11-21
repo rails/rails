@@ -1,5 +1,7 @@
 *SVN*
 
+* Pass multiple arguments to Element.show and Element.hide in JavaScriptGenerator instead of using iterators. [Sam Stephenson]
+
 * Improve expire_fragment documentation.  #2966 [court3nay@gmail.com]
 
 * Correct docs for automatic layout assignment. #2610. [Charles M. Gerungan]

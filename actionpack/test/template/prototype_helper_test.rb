@@ -179,16 +179,16 @@ class JavaScriptGeneratorTest < Test::Unit::TestCase
   end
   
   def test_show
-    assert_equal '["foo"].each(Element.show);',
+    assert_equal 'Element.show("foo");',
       @generator.show('foo')
-    assert_equal '["foo", "bar", "baz"].each(Element.show);',
+    assert_equal 'Element.show("foo", "bar", "baz");',
       @generator.show('foo', 'bar', 'baz')
   end
   
   def test_hide
-    assert_equal '["foo"].each(Element.hide);',
+    assert_equal 'Element.hide("foo");',
       @generator.hide('foo')
-    assert_equal '["foo", "bar", "baz"].each(Element.hide);',
+    assert_equal 'Element.hide("foo", "bar", "baz");',
       @generator.hide('foo', 'bar', 'baz')
   end
   

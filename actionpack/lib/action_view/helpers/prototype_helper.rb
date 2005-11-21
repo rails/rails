@@ -435,12 +435,12 @@ module ActionView
   
         # Shows hidden DOM elements with the given +ids+.
         def show(*ids)
-          record "#{ids.inspect}.each(Element.show)"
+          record "Element.show(#{ids.map {|id| id.inspect} * ', '})"
         end
   
         # Hides the visible DOM elements with the given +ids+.
         def hide(*ids)
-          record "#{ids.inspect}.each(Element.hide)"
+          record "Element.hide(#{ids.map {|id| id.inspect} * ', '})"
         end
 
       private
