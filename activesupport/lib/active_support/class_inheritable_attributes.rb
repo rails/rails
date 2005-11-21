@@ -110,8 +110,6 @@ class Class # :nodoc:
       child.instance_variable_set('@inheritable_attributes', inheritable_attributes.dup)
     end
 
-    if respond_to?(:inherited)
-      alias_method :inherited_without_inheritable_attributes, :inherited
-    end
-    alias_method :inherited, :inherited_with_inheritable_attributes
+    alias inherited_without_inheritable_attributes inherited
+    alias inherited inherited_with_inheritable_attributes
 end
