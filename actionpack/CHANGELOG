@@ -1,5 +1,7 @@
 *SVN*
 
+* Make ActionController's render honor the :locals option when rendering a :file. #1665. [Emanuel Borsboom, Marcel Molina Jr.]
+
 * Allow assert_tag(:conditions) to match the empty string when a tag has no children. Closes #2959. [Jamis Buck]
 
 * Update html-scanner to handle CDATA sections better. Closes #2970. [Jamis Buck]
