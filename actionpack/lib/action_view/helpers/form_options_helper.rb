@@ -60,17 +60,17 @@ module ActionView
       # This allows the user to submit a form page more than once with the expected results of creating multiple records.
       # In addition, this allows a single partial to be used to generate form inputs for both edit and create forms.
       def select(object, method, choices, options = {}, html_options = {})
-        InstanceTag.new(object, method, self).to_select_tag(choices, options, html_options)
+        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_select_tag(choices, options, html_options)
       end
 
       # Return select and option tags for the given object and method using options_from_collection_for_select to generate the list of option tags.
       def collection_select(object, method, collection, value_method, text_method, options = {}, html_options = {})
-        InstanceTag.new(object, method, self).to_collection_select_tag(collection, value_method, text_method, options, html_options)
+        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_collection_select_tag(collection, value_method, text_method, options, html_options)
       end
 
       # Return select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
       def country_select(object, method, priority_countries = nil, options = {}, html_options = {})
-        InstanceTag.new(object, method, self).to_country_select_tag(priority_countries, options, html_options)
+        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_country_select_tag(priority_countries, options, html_options)
       end
 
       # Return select and option tags for the given object and method, using
@@ -82,7 +82,7 @@ module ActionView
       # zone model object. (See #time_zone_options_for_select for more
       # information.)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
-        InstanceTag.new(object, method, self).to_time_zone_select_tag(priority_zones, options, html_options)
+        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_time_zone_select_tag(priority_zones, options, html_options)
       end
 
       # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container

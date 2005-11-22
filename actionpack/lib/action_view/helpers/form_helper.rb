@@ -317,7 +317,9 @@ module ActionView
       end
 
       def value
-        object.send(@method_name) unless object.nil?
+        unless object.nil?
+          object.send(@method_name)
+        end
       end
 
       def value_before_type_cast
