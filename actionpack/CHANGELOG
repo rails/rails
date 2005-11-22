@@ -1,5 +1,7 @@
 *SVN*
 
+* Make ActionController's render honor the :locals option when rendering a :file. #1665. [Emanuel Borsboom, Marcel Molina Jr.]
+
 * Strip out trailing &_= for raw post bodies. Closes #2868. [Sam Stephenson]
 
 * Correct docs for automatic layout assignment. #2610. [Charles M. Gerungan]

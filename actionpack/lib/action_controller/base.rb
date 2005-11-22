@@ -459,6 +459,10 @@ module ActionController #:nodoc:
         self.class.controller_name
       end
 
+      def session_enabled?
+        request.session_options[:disabled] != false
+      end
+
     protected
       # Renders the content that will be returned to the browser as the response body.
       #
@@ -596,7 +600,7 @@ module ActionController #:nodoc:
 
         else
           if file = options[:file]
-            render_file(file, options[:status], options[:use_full_path])
+            render_file(file, options[:status], options[:use_full_path], options[:locals] || {})
 
           elsif template = options[:template]
             render_file(template, options[:status], true)
@@ -644,11 +648,11 @@ module ActionController #:nodoc:
         end
       end
 
-      def render_file(template_path, status = nil, use_full_path = false)
+      def render_file(template_path, status = nil, use_full_path = false, locals = {})
         add_variables_to_assigns
         assert_existance_of_template_file(template_path) if use_full_path
         logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
-        render_text(@template.render_file(template_path, use_full_path), status)
+        render_text(@template.render_file(template_path, use_full_path, locals), status)
       end
 
       def render_template(template, status = nil, type = :rhtml, local_assigns = {})

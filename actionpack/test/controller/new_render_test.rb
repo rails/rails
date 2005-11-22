@@ -43,6 +43,22 @@ class NewRenderTestController < ActionController::Base
   def render_custom_code
     render :text => "hello world", :status => "404 Moved"
   end
+
+  def render_file_with_instance_variables
+    @secret = 'in the sauce'
+    path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_ivar.rhtml')
+    render :file => path
+  end
+
+  def render_file_with_locals
+    path = File.join(File.dirname(__FILE__), '../fixtures/test/render_file_with_locals.rhtml')
+    render :file => path, :locals => {:secret => 'in the sauce'} 
+  end
+
+  def render_file_not_using_full_path
+    @secret = 'in the sauce'
+    render :file => 'test/render_file_with_ivar', :use_full_path => true
+  end
   
   def render_xml_hello
     @name = "David"
@@ -240,6 +256,21 @@ class NewRenderTest < Test::Unit::TestCase
   def test_do_with_render_custom_code
     get :render_custom_code
     assert_response :missing
+  end
+
+  def test_render_file_with_instance_variables
+    get :render_file_with_instance_variables
+    assert_equal "The secret is in the sauce\n", @response.body
+  end
+
+  def test_render_file_not_using_full_path
+    get :render_file_not_using_full_path 
+    assert_equal "The secret is in the sauce\n", @response.body
+  end
+
+  def test_render_file_with_locals
+    get :render_file_with_locals
+    assert_equal "The secret is in the sauce\n", @response.body
   end
 
   def test_attempt_to_access_object_method
