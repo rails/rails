@@ -1,5 +1,7 @@
 *SVN*
 
+* Model generator: correct relative path to test_helper in unit test.  [Jeremy Kemper]
+
 * Make the db_schema_dump task honor the SCHEMA environment variable if present the way db_schema_import does. #2931. [Blair Zajac]
 
 * Have the lighttpd server script report the actual ip to which the server is bound. #2903. [Adam]
