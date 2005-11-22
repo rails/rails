@@ -100,6 +100,7 @@ module ActionController
     
       def initialize(key, options = {})
         @key = key.to_sym
+        @optional = false
         default, @condition = options[:default], options[:condition]
         self.default = default if options.key?(:default)
       end
