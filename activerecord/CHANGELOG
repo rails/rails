@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL, PostgreSQL: reconnect! also reconfigures the connection.  Otherwise, the connection 'loses' its settings if it times out and is reconnected.  #2978 [Shugo Maeda]
+
 * has_and_belongs_to_many: use JOIN instead of LEFT JOIN.  [Jeremy Kemper]
 
 * MySQL: introduce :encoding option to specify the character set for client, connection, and results.  Only available for MySQL 4.1 and later with the mysql-ruby driver.  Do SHOW CHARACTER SET in mysql client to see available encodings.  #2975 [Shugo Maeda]

@@ -38,17 +38,7 @@ module ActiveRecord
 
       mysql = Mysql.init
       mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslkey]
-      if config[:encoding]
-        begin
-          mysql.options(Mysql::SET_CHARSET_NAME, config[:encoding])
-        rescue
-          raise ActiveRecord::ConnectionFailed, 'The :encoding option is only available for MySQL 4.1 and later with the mysql-ruby driver.  Again, this does not work with the ruby-mysql driver or MySQL < 4.1.'
-        end
-      end
-
-      conn = mysql.real_connect(host, username, password, database, port, socket)
-      conn.query("SET NAMES '#{config[:encoding]}'") if config[:encoding]
-      ConnectionAdapters::MysqlAdapter.new(conn, logger, [host, username, password, database, port, socket], mysql)
+      ConnectionAdapters::MysqlAdapter.new(mysql, logger, [host, username, password, database, port, socket], config)
     end
   end
 
@@ -97,10 +87,11 @@ module ActiveRecord
         "MySQL server has gone away"
       ]
 
-      def initialize(connection, logger, connection_options=nil, mysql=Mysql)
+      def initialize(connection, logger, connection_options=nil, config={})
         super(connection, logger)
         @connection_options = connection_options
-        @mysql = mysql
+        @config = config
+        connect
       end
 
       def adapter_name #:nodoc:
@@ -144,7 +135,7 @@ module ActiveRecord
       end
 
       def quote_string(string) #:nodoc:
-        @mysql.quote(string)
+        @connection.quote(string)
       end
 
       def quoted_true
@@ -170,7 +161,7 @@ module ActiveRecord
           @connection.ping
         else
           @connection.close rescue nil
-          @connection.real_connect(*@connection_options)
+          connect
         end
       end
 
@@ -318,6 +309,19 @@ module ActiveRecord
 
 
       private
+        def connect
+          encoding = @config[:encoding]
+          if encoding
+            begin
+              @connection.options(Mysql::SET_CHARSET_NAME, encoding)
+            rescue
+              raise ActiveRecord::ConnectionFailed, 'The :encoding option is only available for MySQL 4.1 and later with the mysql-ruby driver.  Again, this does not work with the ruby-mysql driver or MySQL < 4.1.'
+            end
+          end
+          @connection.real_connect(*@connection_options)
+          execute("SET NAMES '#{encoding}'") if encoding
+        end
+
         def select(sql, name = nil)
           @connection.query_with_result = true
           result = execute(sql, name)

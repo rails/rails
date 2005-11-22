@@ -12,7 +12,6 @@ module ActiveRecord
       username = config[:username].to_s
       password = config[:password].to_s
 
-      encoding = config[:encoding]
       min_messages = config[:min_messages]
 
       if config.has_key?(:database)
@@ -22,12 +21,10 @@ module ActiveRecord
       end
 
       pga = ConnectionAdapters::PostgreSQLAdapter.new(
-        PGconn.connect(host, port, "", "", database, username, password), logger
+        PGconn.connect(host, port, "", "", database, username, password), logger, config
       )
 
       pga.schema_search_path = config[:schema_search_path] || config[:schema_order]
-      pga.execute("SET client_encoding TO '#{encoding}'") if encoding
-      pga.execute("SET client_min_messages TO '#{min_messages}'") if min_messages
 
       pga
     end
@@ -52,6 +49,12 @@ module ActiveRecord
         'PostgreSQL'
       end
 
+      def initialize(connection, logger, config = {})
+        super(connection, logger)
+        @config = config
+        configure_connection
+      end
+
       # Is this connection alive and ready for queries?
       def active?
         # TODO: postgres-pr doesn't have PGconn#status.
@@ -67,6 +70,7 @@ module ActiveRecord
         # TODO: postgres-pr doesn't have PGconn#reset.
         if @connection.respond_to?(:reset)
           @connection.reset
+          configure_connection
         end
       end
 
@@ -326,6 +330,15 @@ module ActiveRecord
 
       private
         BYTEA_COLUMN_TYPE_OID = 17
+
+        def configure_connection
+          if @config[:encoding]
+            execute("SET client_encoding TO '#{@config[:encoding]}'")
+          end
+          if @config[:min_messages]
+            execute("SET client_min_messages TO '#{@config[:min_messages]}'")
+          end
+        end
 
         def last_insert_id(table, sequence_name)
           Integer(select_value("SELECT currval('#{sequence_name}')"))
