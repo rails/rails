@@ -43,7 +43,7 @@ module Dependencies #:nodoc:
   def require_or_load(file_name)
     if load?
       # Append .rb if we have a bare file name.
-      load_file_name = "#{file_name}.rb" unless file_name[-3..-1] == '.rb'
+      load_file_name = (file_name =~ /\.rb$/ ? file_name : "#{file_name}.rb")
 
       # Enable warnings iff this file has not been loaded before.
       if history.include?(file_name)
