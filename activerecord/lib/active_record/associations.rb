@@ -809,6 +809,9 @@ module ActiveRecord
               records_to_save.each { |record| association.send(:insert_record, record) }
               association.send(:construct_sql)   # reconstruct the SQL queries now that we know the owner's id
             end
+
+            @new_record_before_save = false
+            true
           end_eval
 
           # Doesn't use after_save as that would save associations added in after_create/after_update twice

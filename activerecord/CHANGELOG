@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed bug where using update_attribute after pushing a record to a habtm association of the object caused duplicate rows in the join table. #2888 [Florian Weber]
+
 * Add tasks to create, drop and rebuild the MySQL and PostgreSQL test  databases. [Marcel Molina Jr.]
 
 * Correct boolean handling in generated reader methods.  #2945 [don.park@gmail.com, Stefan Kaes]

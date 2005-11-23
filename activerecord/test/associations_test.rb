@@ -1381,5 +1381,14 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert developer.special_projects.include?(special_project)
     assert !developer.special_projects.include?(other_project)
   end
-
+  
+  def test_update_attributes_after_push_without_duplicate_join_table_rows
+    developer = Developer.new("name" => "Kano")
+    project = SpecialProject.create("name" => "Special Project")
+    assert developer.save
+    developer.projects << project
+    developer.update_attribute("name", "Bruza")
+    assert_equal "1", developer.connection.select_one("SELECT count(*) FROM developers_projects WHERE 
+      project_id = #{project.id} AND developer_id = #{developer.id}")["count(*)"]
+  end
 end
