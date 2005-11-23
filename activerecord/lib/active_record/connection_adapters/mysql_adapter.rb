@@ -5,7 +5,7 @@ module ActiveRecord
     # Establishes a connection to the database that's used by all Active Record objects.
     def self.mysql_connection(config) # :nodoc:
       # Only include the MySQL driver if one hasn't already been loaded
-      unless self.class.const_defined?(:Mysql)
+      unless defined? Mysql
         begin
           require_library_or_gem 'mysql'
           # The C version of mysql returns null fields in each_hash if Mysql::VERSION is defined
@@ -21,7 +21,7 @@ module ActiveRecord
           end
         end
       end
-      
+
 
       config = config.symbolize_keys
       host     = config[:host]
