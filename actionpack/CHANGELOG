@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce :selected option to the select helper.  Allows you to specify a selection other than the current value of object.method.  Specify :selected => nil to leave all options unselected.  #2991 [Jonathan Viney <jonathan@bluewire.net.nz>]
+
 * Initialize @optional in routing code to avoid warnings about uninitialized access to an instance variable. [Nicholas Seckar]
 
 * Make ActionController's render honor the :locals option when rendering a :file. #1665. [Emanuel Borsboom, Marcel Molina Jr.]

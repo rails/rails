@@ -47,7 +47,7 @@ module ActionView
       #
       # could become:
       #
-      #   <select name="post[person_id">
+      #   <select name="post[person_id]">
       #     <option></option>
       #     <option value="1" selected="selected">David</option>
       #     <option value="2">Sam</option>
@@ -59,6 +59,9 @@ module ActionView
       # to the database. Instead, a second model object is created when the create request is received.
       # This allows the user to submit a form page more than once with the expected results of creating multiple records.
       # In addition, this allows a single partial to be used to generate form inputs for both edit and create forms.
+      #
+      # By default, post.person_id is the selected option.  Specify :selected => value to use a different selection
+      # or :selected => nil to leave all options unselected.
       def select(object, method, choices, options = {}, html_options = {})
         InstanceTag.new(object, method, self, nil, options.delete(:object)).to_select_tag(choices, options, html_options)
       end
@@ -296,7 +299,8 @@ module ActionView
       def to_select_tag(choices, options, html_options)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
-        content_tag("select", add_options(options_for_select(choices, value), options, value), html_options)
+        selected_value = options.has_key?(:selected) ? options[:selected] : value
+        content_tag("select", add_options(options_for_select(choices, selected_value), options, value), html_options)
       end
 
       def to_collection_select_tag(collection, value_method, text_method, options, html_options)

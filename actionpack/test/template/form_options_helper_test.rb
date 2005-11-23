@@ -283,6 +283,24 @@ class FormOptionsHelperTest < Test::Unit::TestCase
       select("post", "category", %w( abe <mus> hest), :prompt => true, :include_blank => true)
     )
   end
+  
+  def test_select_with_selected_value
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\" selected=\"selected\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest ), :selected => 'abe')
+    )
+  end
+
+  def test_select_with_selected_nil
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest ), :selected => nil)
+    )
+  end
 
   def test_collection_select
     @posts = [
