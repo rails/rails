@@ -1,6 +1,6 @@
 *SVN*
 
-* Fixed bug where using update_attribute after pushing a record to a habtm association of the object caused duplicate rows in the join table. #2888 [Florian Weber]
+* Fixed bug where using update_attribute after pushing a record to a habtm association of the object caused duplicate rows in the join table. #2888 [colman@rominato.com, Florian Weber]
 
 * Add tasks to create, drop and rebuild the MySQL and PostgreSQL test  databases. [Marcel Molina Jr.]
 
