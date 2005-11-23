@@ -1,3 +1,4 @@
+require 'set'
 require File.dirname(__FILE__) + '/module_attribute_accessors'
 require File.dirname(__FILE__) + '/core_ext/load_error'
 require File.dirname(__FILE__) + '/core_ext/kernel'
@@ -5,20 +6,24 @@ require File.dirname(__FILE__) + '/core_ext/kernel'
 module Dependencies #:nodoc:
   extend self
 
-  @@loaded = [ ]
-  mattr_accessor :loaded
+  # All files ever loaded.
+  mattr_accessor :history
+  self.history = Set.new
 
-  @@mechanism = :load
+  # All files currently loaded.
+  mattr_accessor :loaded
+  self.loaded = Set.new
+
+  # Should we load files or require them?
   mattr_accessor :mechanism
-  
+  self.mechanism = :load
+
   def load?
     mechanism == :load
   end
-  
+
   def depend_on(file_name, swallow_load_errors = false)
     unless loaded.include?(file_name)
-      loaded << file_name
-
       begin
         require_or_load(file_name)
       rescue LoadError
@@ -30,18 +35,29 @@ module Dependencies #:nodoc:
   def associate_with(file_name)
     depend_on(file_name, true)
   end
-  
+
   def clear
-    self.loaded = [ ]
+    loaded.clear
   end
 
   def require_or_load(file_name)
-    file_name = "#{file_name}.rb" unless ! load? || file_name[-3..-1] == '.rb'
     if load?
-      enable_warnings { load file_name }
+      # Append .rb if we have a bare file name.
+      load_file_name = "#{file_name}.rb" unless file_name[-3..-1] == '.rb'
+
+      # Enable warnings iff this file has not been loaded before.
+      if history.include?(file_name)
+        load load_file_name
+      else
+        enable_warnings { load load_file_name }
+      end
     else
       require file_name
     end
+
+    # Record that we've seen this file.
+    loaded  << file_name
+    history << file_name
   end
 
   def remove_subclasses_for(*classes)
