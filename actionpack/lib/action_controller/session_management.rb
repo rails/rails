@@ -11,7 +11,7 @@ module ActionController #:nodoc:
       base.extend(ClassMethods)
       base.send(:alias_method, :process_without_session_management_support, :process)
       base.send(:alias_method, :process, :process_with_session_management_support)
-      base.after_filter(:clear_persistant_model_associations)
+      base.after_filter(:clear_persistent_model_associations)
     end
 
     module ClassMethods
@@ -115,11 +115,21 @@ module ActionController #:nodoc:
       request.session_options = self.class.session_options_for(request, action)
       process_without_session_management_support(request, response, method, *arguments)
     end
-  
+
     private
-      def clear_persistant_model_associations #:doc:
-        if session = @session.instance_variable_get("@data")
-          session.each { |key, obj| obj.clear_association_cache if obj.respond_to?(:clear_association_cache) }
+      # Clear cached associations in session data so they don't overflow
+      # the database field.  Only applies to ActiveRecordStore since there
+      # is not a standard way to iterate over session data.
+      def clear_persistent_model_associations #:doc:
+        if defined?(@session) and @session.instance_variables.include?('@data')
+          session_data = @session.instance_variable_get('@data')
+          if session_data and session_data.respond_to?(:each_value)
+            session_data.each_value do |obj|
+              if obj.respond_to?(:clear_association_cache)
+                obj.clear_association_cache
+              end
+            end
+          end
         end
       end
   end
