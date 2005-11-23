@@ -61,7 +61,7 @@ class RailsEnvironment
   def initialize(dir)
     @root = dir
   end
-  
+
   def self.find(dir=nil)
     dir ||= pwd
     while dir.length > 1
@@ -104,14 +104,14 @@ class RailsEnvironment
   def use_externals?
     use_svn? && File.directory?("#{root}/vendor/plugins/.svn")
   end
-  
+
   def use_checkout?
     # this is a bit of a guess. we assume that if the rails environment
     # is under subversion than they probably want the plugin checked out
     # instead of exported. This can be overridden on the command line
     File.directory?("#{root}/.svn")
   end
-  
+
   def best_install_method
     return :http unless use_svn?
     case
@@ -123,12 +123,12 @@ class RailsEnvironment
 
   def externals
     return [] unless use_externals?
-    ext = `svn propget svn:externals #{root}/vendor/plugins`
+    ext = `svn propget svn:externals "#{root}/vendor/plugins"`
     ext.reject{ |line| line.strip == '' }.map do |line| 
       line.strip.split(/\s+/, 2) 
     end
   end
-  
+
   def externals=(items)
     unless items.is_a? String
       items = items.map{|name,uri| "#{name.ljust(29)} #{uri.chomp('/')}"}.join("\n")
@@ -136,7 +136,7 @@ class RailsEnvironment
     Tempfile.open("svn-set-prop") do |file|
       file.write(items)
       file.flush
-      system("svn propset -q svn:externals -F #{file.path} #{root}/vendor/plugins")
+      system("svn propset -q svn:externals -F #{file.path} \"#{root}/vendor/plugins\"")
     end
   end
   
@@ -212,7 +212,7 @@ class Plugin
     def svn_command(cmd, options = {})
       root = rails_env.root
       mkdir_p "#{root}/vendor/plugins"
-      base_cmd = "svn #{cmd} #{uri} #{root}/vendor/plugins/#{name}"
+      base_cmd = "svn #{cmd} #{uri} \"#{root}/vendor/plugins/#{name}\""
       base_cmd += ' -q' if options[:quiet] and not $verbose
       base_cmd += " -r #{options[:revision]}" if options[:revision]
       system(base_cmd)
@@ -754,14 +754,15 @@ module Commands
     def parse!(args)
       options.parse!(args)
       root = @base_command.environment.root
-      args = Dir["#{root}/vendor/plugins/*"].map do |f|
+      cd root
+      args = Dir["vendor/plugins/*"].map do |f|
         File.directory?("#{f}/.svn") ? File.basename(f) : nil
       end.compact if args.empty?
-      cd "#{root}/vendor/plugins"
+      cd "vendor/plugins"
       args.each do |name|
         if File.directory?(name)
           puts "Updating plugin: #{name}"
-          system("svn #{$verbose ? '' : '-q'} up #{name} #{@revision ? "-r #{@revision}" : ''}")
+          system("svn #{$verbose ? '' : '-q'} up \"#{name}\" #{@revision ? "-r #{@revision}" : ''}")
         else
           puts "Plugin doesn't exist: #{name}"
         end
