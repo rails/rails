@@ -132,22 +132,31 @@ module ActionController #:nodoc:
           end
         end
     end
-     
-   
+
+
     protected 
       # Access the contents of the flash. Use <tt>flash["notice"]</tt> to read a notice you put there or 
       # <tt>flash["notice"] = "hello"</tt> to put a new one.
+      # Note that if sessions are disabled only flash.now will work.
       def flash #:doc:
-        @session['flash'] ||= FlashHash.new
+        # @session = Hash.new if sessions are disabled
+        if @session.is_a?(Hash)
+          @__flash ||= FlashHash.new
+
+        # otherwise, @session is a CGI::Session or a TestSession
+        else
+          @session['flash'] ||= FlashHash.new
+        end
       end
-  
+
       # deprecated. use <tt>flash.keep</tt> instead
       def keep_flash #:doc:
+        warn 'keep_flash is deprecated; use flash.keep instead.'
         flash.keep
       end
-  
-  
-      private
+
+
+    private
   
       # marks flash entries as used and expose the flash to the view 
       def fire_flash
