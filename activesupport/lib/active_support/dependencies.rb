@@ -45,18 +45,26 @@ module Dependencies #:nodoc:
       # Append .rb if we have a bare file name.
       load_file_name = (file_name =~ /\.rb$/ ? file_name : "#{file_name}.rb")
 
-      # Enable warnings iff this file has not been loaded before.
-      if history.include?(file_name)
-        load load_file_name
-      else
-        enable_warnings { load load_file_name }
+      # Record that we've seen this file *before* loading it to avoid an
+      # infinite loop with mutual dependencies.
+      loaded << file_name
+
+      begin
+        # Enable warnings iff this file has not been loaded before.
+        if history.include?(file_name)
+          load load_file_name
+        else
+          enable_warnings { load load_file_name }
+        end
+      rescue
+        loaded.delete file_name
+        raise
       end
     else
       require file_name
     end
 
-    # Record that we've seen this file.
-    loaded  << file_name
+    # Record history *after* loading so first load gets warnings.
     history << file_name
   end
 

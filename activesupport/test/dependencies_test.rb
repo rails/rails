@@ -79,4 +79,22 @@ class DependenciesTest < Test::Unit::TestCase
   ensure
     Dependencies.mechanism = old_mechanism
   end
+
+  def test_mutual_dependencies_dont_infinite_loop
+    $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/dependencies"
+    old_mechanism, Dependencies.mechanism = Dependencies.mechanism, :load
+
+    $mutual_dependencies_count = 0
+    assert_nothing_raised { require_dependency 'mutual_one' }
+    assert_equal 2, $mutual_dependencies_count
+
+    Dependencies.clear
+
+    $mutual_dependencies_count = 0
+    assert_nothing_raised { require_dependency 'mutual_two' }
+    assert_equal 2, $mutual_dependencies_count
+  ensure
+    $LOAD_PATH.shift
+    Dependencies.mechanism = old_mechanism
+  end
 end
