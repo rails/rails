@@ -6,6 +6,10 @@ require File.dirname(__FILE__) + '/core_ext/kernel'
 module Dependencies #:nodoc:
   extend self
 
+  # Should we turn on Ruby warnings on the first load of dependent files?
+  mattr_accessor :warnings_on_first_load
+  self.warnings_on_first_load = false
+
   # All files ever loaded.
   mattr_accessor :history
   self.history = Set.new
@@ -50,8 +54,9 @@ module Dependencies #:nodoc:
       loaded << file_name
 
       begin
-        # Enable warnings iff this file has not been loaded before.
-        if history.include?(file_name)
+        # Enable warnings iff this file has not been loaded before and
+        # warnings_on_first_load is set.
+        if !warnings_on_first_load or history.include?(file_name)
           load load_file_name
         else
           enable_warnings { load load_file_name }

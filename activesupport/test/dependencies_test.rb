@@ -46,6 +46,7 @@ class DependenciesTest < Test::Unit::TestCase
 
   def test_warnings_should_be_enabled_on_first_load
     old_mechanism, Dependencies.mechanism = Dependencies.mechanism, :load
+    old_warnings, Dependencies.warnings_on_first_load = Dependencies.warnings_on_first_load, true
 
     filename = "#{File.dirname(__FILE__)}/dependencies/check_warnings"
     $check_warnings_load_count = 0
@@ -78,6 +79,7 @@ class DependenciesTest < Test::Unit::TestCase
     assert Dependencies.loaded.include?(filename)
   ensure
     Dependencies.mechanism = old_mechanism
+    Dependencies.warnings_on_first_load = old_warnings
   end
 
   def test_mutual_dependencies_dont_infinite_loop

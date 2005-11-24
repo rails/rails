@@ -1,5 +1,7 @@
 *SVN*
 
+* Introduce Dependencies.warnings_on_first_load setting.  If true, enables warnings on first load of a require_dependency.  Otherwise, loads without warnings.  Disabled (set to false) by default.  [Jeremy Kemper]
+
 * Active Support is warnings-safe.  #1792 [Eric Hodel]
 
 * Introduce enable_warnings counterpart to silence_warnings.  Turn warnings on when loading a file for the first time if Dependencies.mechanism == :load.  Common mistakes such as redefined methods will print warnings to stderr.  [Jeremy Kemper]
