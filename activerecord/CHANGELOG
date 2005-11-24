@@ -1,5 +1,7 @@
 *SVN*
 
+* Oracle: active? check pings the database rather than testing the last command status.  #428 [Michael Schoen]
+
 * SQLServer: resolve column aliasing/quoting collision when using limit or offset in an eager find.  #2974 [kajism@yahoo.com]
 
 * Reloading a model doesn't lose track of its connection.  #2996 [junk@miriamtech.com, Jeremy Kemper]

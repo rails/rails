@@ -116,7 +116,7 @@ begin
           return value if value.is_a? Time
           time_array = ParseDate.parsedate value
           time_array[0] ||= 2000; time_array[1] ||= 1; time_array[2] ||= 1;
-          Time.send Base.default_timezone, *time_array
+          Time.send(Base.default_timezone, *time_array) rescue nil
         end
 
         def guess_date_or_time(value)
@@ -215,20 +215,20 @@ begin
 
         # Returns true if the connection is active.
         def active?
-          # Just checks the active flag, which is set false if the last exec
-          # got an error indicating a bad connection. An alternative would be
-          # to call #ping, which is more expensive (and should always get
-          # the same result).
-          @connection.active?
+          # Pings the connection to check if it's still good. Note that an
+          # #active? method is also available, but that simply returns the 
+          # last known state, which isn't good enough if the connection has
+          # gone stale since the last use.
+          @connection.ping
+        rescue OCIError
+          false
         end
 
         # Reconnects to the database.
         def reconnect!
-          begin
-            @connection.reset!
-          rescue OCIError => e
-            @logger.warn "#{adapter_name} automatic reconnection failed: #{e.message}"
-          end
+          @connection.reset!
+        rescue OCIError => e
+          @logger.warn "#{adapter_name} automatic reconnection failed: #{e.message}"
         end
 
 
@@ -551,13 +551,11 @@ begin
     # checks the connection, while #active? simply returns the last
     # known state.
     def ping
+      @connection.commit
       @active = true
-      begin
-        @connection.commit
-      rescue
-        @active = false
-      end
-      active?
+    rescue
+      @active = false
+      raise
     end
 
     # Resets connection, by logging off and creating a new connection.
