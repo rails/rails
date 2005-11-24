@@ -15,12 +15,12 @@ require 'action_controller/session/active_record_store'
 
 #ActiveRecord::Base.logger = Logger.new($stdout)
 begin
-  CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite3', :dbfile => ':memory:')
+  CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite3', :database => ':memory:')
   CGI::Session::ActiveRecordStore::Session.connection
 rescue Object
   $stderr.puts 'SQLite 3 unavailable; falling back to SQLite 2.'
   begin
-    CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite', :dbfile => ':memory:')
+    CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite', :database => ':memory:')
     CGI::Session::ActiveRecordStore::Session.connection
   rescue Object
     $stderr.puts 'SQLite 2 unavailable; skipping ActiveRecordStore test suite.'
@@ -68,8 +68,14 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
     ENV['REQUEST_METHOD'] = 'GET'
     CGI::Session::ActiveRecordStore.session_class = session_class
 
-    @new_session = CGI::Session.new(CGI.new, 'database_manager' => CGI::Session::ActiveRecordStore, 'new_session' => true)
+    @cgi = CGI.new
+    @new_session = CGI::Session.new(@cgi, 'database_manager' => CGI::Session::ActiveRecordStore, 'new_session' => true)
     @new_session['foo'] = 'bar'
+  end
+
+  def test_another_instance
+    @another = CGI::Session.new(@cgi, 'session_id' => @new_session.session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
+    assert_equal @new_session.session_id, @another.session_id
   end
 
   def test_model_attribute

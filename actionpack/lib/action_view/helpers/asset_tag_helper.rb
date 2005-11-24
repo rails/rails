@@ -35,7 +35,7 @@ module ActionView
         compute_public_path(source, 'javascripts', 'js')        
       end
 
-      JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls']
+      JAVASCRIPT_DEFAULT_SOURCES = ['prototype', 'effects', 'dragdrop', 'controls'] unless const_defined?(:JAVASCRIPT_DEFAULT_SOURCES)
       @@javascript_default_sources = JAVASCRIPT_DEFAULT_SOURCES.dup
 
       # Returns a script include tag per source given as argument. Examples:
