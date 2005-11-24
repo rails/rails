@@ -4,7 +4,7 @@
 
 * Reloading a model doesn't lose track of its connection.  #2996 [junk@miriamtech.com, Jeremy Kemper]
 
-* Fixed bug where using update_attribute after pushing a record to a habtm association of the object caused duplicate rows in the join table. #2888 [colman@rominato.com, Florian Weber]
+* Fixed bug where using update_attribute after pushing a record to a habtm association of the object caused duplicate rows in the join table. #2888 [colman@rominato.com, Florian Weber, Michael Schoen]
 
 * MySQL, PostgreSQL: reconnect! also reconfigures the connection.  Otherwise, the connection 'loses' its settings if it times out and is reconnected.  #2978 [Shugo Maeda]
 
