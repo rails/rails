@@ -6,6 +6,8 @@
 
 * Make help for the console command more explicit about how to specify the desired environment in which to run the console. #2911. [anonymous]
 
+* PostgreSQL: the purge_test_database Rake task shouldn't explicitly specify the template0 template when creating a fresh test database.  #2964 [dreamer3@gmail.com]
+
 * Introducing the session_migration generator.  Creates an add_session_table migration.  Allows generator to specify migrations directory.  #2958, #2960 [Rick Olson]
 
 * Update to Prototype 1.4.0_rc4. Closes #2943 (old Array.prototype.reverse behavior can be obtained by passing false as an argument). [Sam Stephenson]
