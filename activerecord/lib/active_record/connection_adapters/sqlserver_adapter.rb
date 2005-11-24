@@ -356,7 +356,12 @@ module ActiveRecord
           if options[:order]
             options[:order] = options[:order].split(',').map do |field|
               parts = field.split(" ")
-              if sql =~ /#{parts[0]} AS (t\d_r\d\d?)/
+              tc = parts[0]
+              if sql =~ /\.\[/ and tc =~ /\./ # if column quoting used in query
+                tc.gsub!(/\./, '\\.\\[')
+                tc << '\\]'
+              end
+              if sql =~ /#{tc} AS (t\d_r\d\d?)/
                   parts[0] = $1
               end
               parts.join(' ')
