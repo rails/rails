@@ -1,5 +1,5 @@
 print "Using OCI Oracle\n"
-require 'fixtures/course'
+require_dependency 'fixtures/course'
 require 'logger'
 
 ActiveRecord::Base.logger = Logger.new STDOUT
