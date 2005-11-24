@@ -21,7 +21,7 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
 
   def test_loading_conditions_with_or
-    posts = authors(:david).posts.find(:all, :include => :comments, :conditions => "comments.body like 'Normal%' OR comments.type = 'SpecialComment'")
+    posts = authors(:david).posts.find(:all, :include => :comments, :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE} = 'SpecialComment'")
     assert_nil posts.detect { |p| p.author_id != authors(:david).id },
       "expected to find only david's posts"
   end
@@ -120,7 +120,7 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_raises(ArgumentError) do
       posts = authors(:david).posts.find(:all, 
         :include    => :comments, 
-        :conditions => "comments.body like 'Normal%' OR comments.type = 'SpecialComment'",
+        :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'",
         :limit      => 2
       )
     end

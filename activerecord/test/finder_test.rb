@@ -350,7 +350,7 @@ class FinderTest < Test::Unit::TestCase
   def test_find_by_id_with_conditions_with_or
     assert_nothing_raised do
       Post.find([1,2,3],
-        :conditions => "posts.id <= 3 OR posts.type = 'Post'")
+        :conditions => "posts.id <= 3 OR posts.#{QUOTED_TYPE} = 'Post'")
     end
   end
 

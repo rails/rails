@@ -23,6 +23,7 @@ end
 
 # Set up company fixtures.
 $LOAD_PATH << "#{path_to_ar}/test"
+QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type') unless Object.const_defined?(:QUOTED_TYPE)
 require 'fixtures/company'
 File.read("#{path_to_ar}/test/fixtures/db_definitions/sqlite.sql").split(';').each do |sql|
   ActiveRecord::Base.connection.execute(sql) unless sql.blank?

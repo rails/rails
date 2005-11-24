@@ -706,9 +706,11 @@ module ActiveRecord #:nodoc:
       # given block. This is required for Oracle and is useful for any
       # database which relies on sequences for primary key generation.
       #
-      # Setting the sequence name when using other dbs will have no effect.
-      # If a sequence name is not explicitly set when using Oracle, it will
-      # default to the commonly used pattern of: #{table_name}_seq
+      # If a sequence name is not explicitly set when using Oracle or Firebird,
+      # it will default to the commonly used pattern of: #{table_name}_seq
+      #
+      # If a sequence name is not explicitly set when using PostgreSQL, it
+      # will discover the sequence corresponding to your primary key for you.
       #
       # Example:
       #
@@ -962,8 +964,9 @@ module ActiveRecord #:nodoc:
         end
 
         def type_condition
-          type_condition = subclasses.inject("#{table_name}.#{inheritance_column} = '#{name.demodulize}' ") do |condition, subclass|
-            condition << "OR #{table_name}.#{inheritance_column} = '#{subclass.name.demodulize}' "
+          quoted_inheritance_column = connection.quote_column_name(inheritance_column)
+          type_condition = subclasses.inject("#{table_name}.#{quoted_inheritance_column} = '#{name.demodulize}' ") do |condition, subclass|
+            condition << "OR #{table_name}.#{quoted_inheritance_column} = '#{subclass.name.demodulize}' "
           end
 
           " (#{type_condition}) "
@@ -1017,7 +1020,7 @@ module ActiveRecord #:nodoc:
 
         def construct_conditions_from_arguments(attribute_names, arguments)
           conditions = []
-          attribute_names.each_with_index { |name, idx| conditions << "#{table_name}.#{name} #{attribute_condition(arguments[idx])} " }
+          attribute_names.each_with_index { |name, idx| conditions << "#{table_name}.#{connection.quote_column_name(name)} #{attribute_condition(arguments[idx])} " }
           [ conditions.join(" AND "), *arguments[0...attribute_names.length] ]
         end
         
@@ -1457,6 +1460,10 @@ module ActiveRecord #:nodoc:
 
       # Creates a new record with values matching those of the instance attributes.
       def create
+        if self.id.nil? and connection.prefetch_primary_key?(self.class.table_name)
+          self.id = connection.next_sequence_value(self.class.sequence_name)
+        end
+
         self.id = connection.insert(
           "INSERT INTO #{self.class.table_name} " +
           "(#{quoted_column_names.join(', ')}) " +

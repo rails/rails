@@ -8,6 +8,8 @@ require 'active_support/binding_of_caller'
 require 'active_support/breakpoint'
 require 'connection'
 
+QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type') unless Object.const_defined?(:QUOTED_TYPE)
+
 class Test::Unit::TestCase #:nodoc:
   self.fixture_path = File.dirname(__FILE__) + "/fixtures/"
   self.use_instantiated_fixtures = false

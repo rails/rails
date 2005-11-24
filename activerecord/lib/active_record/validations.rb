@@ -487,13 +487,20 @@ module ActiveRecord
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken] }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
-        if scope = configuration[:scope]
-          validates_each(attr_names,configuration) do |record, attr_name, value|
-            record.errors.add(attr_name, configuration[:message]) if record.class.find(:first, :conditions => (record.new_record? ? ["#{attr_name} = ? AND #{scope} = ?", record.send(attr_name), record.send(scope)] : ["#{attr_name} = ? AND #{record.class.primary_key} <> ? AND #{scope} = ?", record.send(attr_name), record.send(:id), record.send(scope)]))
+        validates_each(attr_names,configuration) do |record, attr_name, value|
+          condition_sql = "#{attr_name} #{attribute_condition(value)}"
+          condition_params = [value]
+          if scope = configuration[:scope]
+            scope_value = record.send(scope)
+            condition_sql << " AND #{scope} #{attribute_condition(scope_value)}"
+            condition_params << scope_value
           end
-        else
-          validates_each(attr_names,configuration) do |record, attr_name, value|
-            record.errors.add(attr_name, configuration[:message]) if record.class.find(:first, :conditions => (record.new_record? ? ["#{attr_name} = ?", record.send(attr_name)] : ["#{attr_name} = ? AND #{record.class.primary_key} <> ?", record.send(attr_name), record.send(:id) ] ))
+          unless record.new_record?
+            condition_sql << " AND #{record.class.primary_key} <> ?"
+            condition_params << record.send(:id)
+          end
+          if record.class.find(:first, :conditions => [condition_sql, *condition_params])
+            record.errors.add(attr_name, configuration[:message])
           end
         end
       end

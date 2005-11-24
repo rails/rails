@@ -123,7 +123,7 @@ module ActiveRecord
       end
 
       def quote_column_name(name) #:nodoc:
-        "'#{name}'"
+        %Q("#{name}")
       end
 
 
