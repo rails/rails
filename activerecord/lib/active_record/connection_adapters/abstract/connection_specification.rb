@@ -44,7 +44,7 @@ module ActiveRecord
           raise AdapterNotSpecified unless defined? RAILS_ENV
           establish_connection(RAILS_ENV)
         when ConnectionSpecification
-          @@defined_connections[self] = spec
+          @@defined_connections[name] = spec
         when Symbol, String
           if configuration = configurations[spec.to_s]
             establish_connection(configuration)
@@ -77,9 +77,9 @@ module ActiveRecord
       klass = self
       ar_super = ActiveRecord::Base.superclass
       until klass == ar_super
-        if conn = active_connections[klass]
+        if conn = active_connections[klass.name]
           return conn
-        elsif conn = @@defined_connections[klass]
+        elsif conn = @@defined_connections[klass.name]
           klass.connection = conn
           return self.connection
         end
@@ -92,7 +92,7 @@ module ActiveRecord
     def self.connected?
       klass = self
       until klass == ActiveRecord::Base.superclass
-        if active_connections[klass]
+        if active_connections[klass.name]
           return true
         else
           klass = klass.superclass
@@ -106,9 +106,9 @@ module ActiveRecord
     # can be used as argument for establish_connection, for easy
     # re-establishing of the connection.
     def self.remove_connection(klass=self)
-      conn = @@defined_connections[klass]
-      @@defined_connections.delete(klass)
-      active_connections[klass] = nil
+      conn = @@defined_connections[klass.name]
+      @@defined_connections.delete(klass.name)
+      active_connections[klass.name] = nil
       @connection = nil
       conn.config if conn
     end
@@ -116,7 +116,7 @@ module ActiveRecord
     # Set the connection for the class.
     def self.connection=(spec)
       if spec.kind_of?(ActiveRecord::ConnectionAdapters::AbstractAdapter)
-        active_connections[self] = spec
+        active_connections[name] = spec
       elsif spec.kind_of?(ConnectionSpecification)
         self.connection = self.send(spec.adapter_method, spec.config)
       elsif spec.nil?
