@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix freeze_gems so that the latest rails version is dumped by default. [Nicholas Seckar]
+
 * Model generator: correct relative path to test_helper in unit test.  [Jeremy Kemper]
 
 * Make the db_schema_dump task honor the SCHEMA environment variable if present the way db_schema_import does. #2931. [Blair Zajac]

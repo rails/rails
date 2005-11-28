@@ -8,6 +8,7 @@ task :freeze_gems do
           else
             Gem.cache.search('rails').sort_by { |g| g.version }.last
           end
+  version ||= rails.version
 
   unless rails
     puts "No rails gem #{version} is installed.  Do 'gem list rails' to see what you have available."
@@ -21,8 +22,8 @@ task :freeze_gems do
   rails.dependencies.select { |g| deps.include? g.name }.each do |g|
     system "cd vendor/rails; gem unpack -v '#{g.version_requirements}' #{g.name}; mv #{g.name}* #{g.name}"
   end
-  system "cd vendor/rails; gem unpack -v '= #{version}' rails"
-
+  system "cd vendor/rails; gem unpack -v '=#{version}' rails"
+  
   FileUtils.mv(Dir.glob("vendor/rails/rails*").first, "vendor/rails/railties")
 end
 
