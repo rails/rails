@@ -1,6 +1,6 @@
 *SVN*
 
-* MySQL: active? compatibility with the pure-Ruby driver.  #428 [Jeremy Kemper]
+* MySQL and PostgreSQL: active? compatibility with the pure-Ruby driver.  #428 [Jeremy Kemper]
 
 * Oracle: active? check pings the database rather than testing the last command status.  #428 [Michael Schoen]
 

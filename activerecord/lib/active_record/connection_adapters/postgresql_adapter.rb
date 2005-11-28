@@ -57,12 +57,14 @@ module ActiveRecord
 
       # Is this connection alive and ready for queries?
       def active?
-        # TODO: postgres-pr doesn't have PGconn#status.
         if @connection.respond_to?(:status)
-          @connection.status != PGconn::CONNECTION_BAD
+          @connection.status == PGconn::CONNECTION_OK
         else
+          @connection.query 'SELECT 1'
           true
         end
+      rescue PGError
+        false
       end
 
       # Close then reopen the connection.
