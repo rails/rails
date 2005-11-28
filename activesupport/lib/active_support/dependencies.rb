@@ -27,13 +27,9 @@ module Dependencies #:nodoc:
   end
 
   def depend_on(file_name, swallow_load_errors = false)
-    unless loaded.include?(file_name)
-      begin
-        require_or_load(file_name)
-      rescue LoadError
-        raise unless swallow_load_errors
-      end
-    end
+    require_or_load(file_name)
+  rescue LoadError
+    raise unless swallow_load_errors
   end
 
   def associate_with(file_name)
@@ -45,21 +41,21 @@ module Dependencies #:nodoc:
   end
 
   def require_or_load(file_name)
+    file_name = $1 if file_name =~ /^(.*)\.rb$/
+    return if loaded.include?(file_name)
+
+    # Record that we've seen this file *before* loading it to avoid an
+    # infinite loop with mutual dependencies.
+    loaded << file_name
+
     if load?
-      # Append .rb if we have a bare file name.
-      load_file_name = (file_name =~ /\.rb$/ ? file_name : "#{file_name}.rb")
-
-      # Record that we've seen this file *before* loading it to avoid an
-      # infinite loop with mutual dependencies.
-      loaded << file_name
-
       begin
         # Enable warnings iff this file has not been loaded before and
         # warnings_on_first_load is set.
         if !warnings_on_first_load or history.include?(file_name)
-          load load_file_name
+          load "#{file_name}.rb"
         else
-          enable_warnings { load load_file_name }
+          enable_warnings { load "#{file_name}.rb" }
         end
       rescue
         loaded.delete file_name
