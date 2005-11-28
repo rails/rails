@@ -8,7 +8,7 @@ desc "Load fixtures into the current environment's database"
 task :load_fixtures => :environment do
   require 'active_record/fixtures'
   ActiveRecord::Base.establish_connection(RAILS_ENV.to_sym)
-  Dir.glob(File.join(RAILS_ROOT, 'test', 'fixtures', '*.yml')).each do |fixture_file|
+  Dir.glob(File.join(RAILS_ROOT, 'test', 'fixtures', '*.{yml,csv}')).each do |fixture_file|
     Fixtures.create_fixtures('test/fixtures', File.basename(fixture_file, '.*'))
   end
 end
