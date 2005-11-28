@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix freeze_gems so that the latest rails version is dumped by default. [Nicholas Seckar]
+
 * script/plugin: handle root paths and plugin names which contain spaces.  #2995 [justin@aspect.net]
 
 * Model generator: correct relative path to test_helper in unit test.  [Jeremy Kemper]
