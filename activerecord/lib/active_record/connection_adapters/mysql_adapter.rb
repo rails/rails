@@ -150,7 +150,11 @@ module ActiveRecord
       # CONNECTION MANAGEMENT ====================================
 
       def active?
-        @connection.stat if @connection.respond_to?(:stat)
+        if @connection.respond_to?(:stat)
+          @connection.stat
+        else
+          @connection.query 'select 1'
+        end
         true
       rescue Mysql::Error
         false
