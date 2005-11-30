@@ -38,7 +38,9 @@ module Rails
     # incuring the overhead of completely loading the entire environment. 
     def self.run(command = :process, configuration = Configuration.new)
       yield configuration if block_given?
-      new(configuration).send(command)
+      initializer = new configuration
+      initializer.send(command)
+      initializer
     end
     
     # Create a new Initializer instance that references the given Configuration

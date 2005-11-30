@@ -8,6 +8,8 @@ unless defined?(FCGI)
   exit 1
 end
 
+require 'initializer'
+configuration = Rails::Initializer.run(:initialize_logger).configuration
 
 config_file = "#{RAILS_ROOT}/config/lighttpd.conf"
 
@@ -19,8 +21,11 @@ unless File.exist?(config_file)
   FileUtils.cp source, config_file
 end
 
-port = IO.read(config_file).scan(/^server.port\s*=\s*(\d+)/).first rescue 3000
-puts "=> Rails application started on http://0.0.0.0:#{port}"
+config = IO.read(config_file)
+default_port, default_ip = 3000, '0.0.0.0'
+port = config.scan(/^\s*server.port\s*=\s*(\d+)/).first rescue default_port
+ip   = config.scan(/^\s*server.bind\s*=\s*"([^"]+)"/).first rescue default_ip
+puts "=> Rails application started on http://#{ip || default_ip}:#{port || default_port}"
 
 tail_thread = nil
 
@@ -32,11 +37,10 @@ else
   puts "=> Ctrl-C to shutdown server (see config/lighttpd.conf for options)"
   detach = false
 
-  log_path = "#{RAILS_ROOT}/log/#{RAILS_ENV}.log"
-  cursor = File.size(log_path)
+  cursor = File.size(configuration.log_path)
   last_checked = Time.now
   tail_thread = Thread.new do
-    File.open(log_path, 'r') do |f|
+    File.open(configuration.log_path, 'r') do |f|
       loop do
         f.seek cursor
         if f.mtime > last_checked
