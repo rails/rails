@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix docs for text_area_tag. #3083. [Christopher Cotton]
+
 * Change form_for and fields_for method signatures to take object name and object as separate arguments rather than as a Hash. [DHH]
 
 * Introduce :selected option to the select helper.  Allows you to specify a selection other than the current value of object.method.  Specify :selected => nil to leave all options unselected.  #2991 [Jonathan Viney <jonathan@bluewire.net.nz>]
