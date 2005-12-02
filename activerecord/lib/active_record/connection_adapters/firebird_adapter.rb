@@ -31,9 +31,10 @@ module ActiveRecord
         raise ArgumentError, "No database specified. Missing argument: database."
       end
       options = config[:charset] ? { CHARACTER_SET => config[:charset] } : {}
+      connection_params = [config[:username], config[:password], options]
       db = FireRuby::Database.new_from_params(*config.values_at(:database, :host, :port, :service))
-      connection = db.connect(config[:username], config[:password], options)
-      ConnectionAdapters::FirebirdAdapter.new(connection, logger)
+      connection = db.connect(*connection_params)
+      ConnectionAdapters::FirebirdAdapter.new(connection, logger, connection_params)
     end
   end
 
@@ -240,6 +241,11 @@ module ActiveRecord
       @@boolean_domain = { :true => 1, :false => 0 }
       cattr_accessor :boolean_domain
 
+      def initialize(connection, logger, connection_params=nil)
+        super(connection, logger)
+        @connection_params = connection_params
+      end
+
       def adapter_name # :nodoc:
         'Firebird'
       end
@@ -253,6 +259,7 @@ module ActiveRecord
       def default_sequence_name(table_name, primary_key) # :nodoc:
         "#{table_name}_seq"
       end
+
 
       # QUOTING ==================================================
 
@@ -279,6 +286,19 @@ module ActiveRecord
       def quoted_false # :nodoc:
         quote(boolean_domain[:false])
       end
+
+
+      # CONNECTION MANAGEMENT ====================================
+
+      def active?
+        not @connection.closed?
+      end
+
+      def reconnect!
+        @connection.close
+        @connection = @connection.database.connect(*@connection_params)
+      end
+
 
       # DATABASE STATEMENTS ======================================
 
@@ -339,6 +359,7 @@ module ActiveRecord
       def next_sequence_value(sequence_name)
         FireRuby::Generator.new(sequence_name, @connection).next(1)
       end
+
 
       # SCHEMA STATEMENTS ========================================
 

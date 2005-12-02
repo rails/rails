@@ -1,5 +1,7 @@
 *SVN*
 
+* Firebird: active? and reconnect! methods for handling stale connections.  #428 [Ken Kunz <kennethkunz@gmail.com>]
+
 * Firebird: updated for FireRuby 0.4.0.  #3009 [Ken Kunz <kennethkunz@gmail.com>]
 
 * MySQL and PostgreSQL: active? compatibility with the pure-Ruby driver.  #428 [Jeremy Kemper]
