@@ -471,7 +471,14 @@ module ActiveRecord
       # can be named "davidhh".
       #
       #   class Person < ActiveRecord::Base
-      #     validates_uniqueness_of :user_name, :scope => "account_id"
+      #     validates_uniqueness_of :user_name, :scope => :account_id
+      #   end
+      #
+      # It can also validate whether the value of the specified attributes are unique based on multiple scope parameters.  For example,
+      # making sure that a teacher can only be on the schedule once per semester for a particular class. 
+      #
+      #   class TeacherSchedule < ActiveRecord::Base
+      #     validates_uniqueness_of :teacher_id, :scope => [:semester_id, :class_id] 
       #   end
       #
       # When the record is created, a check is performed to make sure that no record exists in the database with the given value for the specified
@@ -479,10 +486,11 @@ module ActiveRecord
       #
       # Configuration options:
       # * <tt>message</tt> - Specifies a custom error message (default is: "has already been taken")
-      # * <tt>scope</tt> - Ensures that the uniqueness is restricted to a condition of "scope = record.scope"
+      # * <tt>scope</tt> - One or more columns by which to limit the scope of the uniquness constraint.
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
+       
       def validates_uniqueness_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken] }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
@@ -491,9 +499,11 @@ module ActiveRecord
           condition_sql = "#{attr_name} #{attribute_condition(value)}"
           condition_params = [value]
           if scope = configuration[:scope]
-            scope_value = record.send(scope)
-            condition_sql << " AND #{scope} #{attribute_condition(scope_value)}"
-            condition_params << scope_value
+            Array(scope).map do |scope_item|
+              scope_value = record.send(scope_item)
+              condition_sql << " AND #{scope_item} #{attribute_condition(scope_value)}"
+              condition_params << scope_value
+            end
           end
           unless record.new_record?
             condition_sql << " AND #{record.class.primary_key} <> ?"

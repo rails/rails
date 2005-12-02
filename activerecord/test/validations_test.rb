@@ -280,6 +280,30 @@ class ValidationsTest < Test::Unit::TestCase
     assert r3.valid?, "Saving r3"
   end
 
+  def test_validate_uniqueness_with_scope_array
+    Reply.validates_uniqueness_of(:author_name, :scope => [:author_email_address, :parent_id])
+
+    t = Topic.create("title" => "The earth is actually flat!")
+ 
+    r1 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're crazy!", "content" => "Crazy reply"
+    assert r1.valid?, "Saving r1"
+    
+    r2 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're crazy!", "content" => "Crazy reply again..."
+    assert !r2.valid?, "Saving r2. Double reply by same author." 
+    
+    r2.author_email_address = "jeremy_alt_email@rubyonrails.com"
+    assert r2.save, "Saving r2 the second time." 
+    
+    r3 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy_alt_email@rubyonrails.com", "title" => "You're wrong", "content" => "It's cubic"
+    assert !r3.valid?, "Saving r3"
+    
+    r3.author_name = "jj"
+    assert r3.save, "Saving r3 the second time."
+    
+    r3.author_name = "jeremy"
+    assert !r3.save, "Saving r3 the third time."
+  end
+
   def test_validate_format
     Topic.validates_format_of(:title, :content, :with => /^Validation\smacros \w+!$/, :message => "is bad data")
 
