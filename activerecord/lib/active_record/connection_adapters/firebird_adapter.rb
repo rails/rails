@@ -3,10 +3,6 @@
 require 'active_record/connection_adapters/abstract_adapter'
 
 module FireRuby # :nodoc: all
-  class ResultSet
-    include Enumerable
-  end
-
   class Database
     def self.new_from_params(database, host, port, service)
       db_string = ""
@@ -25,6 +21,11 @@ module ActiveRecord
   class << Base
     def firebird_connection(config) # :nodoc:
       require_library_or_gem 'fireruby'
+      unless defined? FireRuby::SQLType
+        raise AdapterNotFound,
+          'The Firebird adapter requires FireRuby version 0.4.0 or greater; you appear ' <<
+          'to be running an older version -- please update FireRuby (gem install fireruby).'
+      end
       config = config.symbolize_keys
       unless config.has_key?(:database)
         raise ArgumentError, "No database specified. Missing argument: database."
@@ -41,15 +42,22 @@ module ActiveRecord
       VARCHAR_MAX_LENGTH = 32_765
       BLOB_MAX_LENGTH    = 32_767
 
-      def initialize(name, domain_name, type, sub_type, length, precision, scale, default_source, null_flag)
-        column_type = metadata_to_column_type(type, sub_type)
-        sql_type = domain_name =~ /BOOLEAN/ ? 'BOOLEAN' : column_type
-        super(name.downcase, nil, sql_type, !null_flag)
-        if default_source
-          @default = parse_default(default_source)
-          @cast_type = firebird_cast_type(column_type, length, precision, scale)
-        end
+      def initialize(name, domain, type, sub_type, length, precision, scale, default_source, null_flag)
+        @firebird_type = FireRuby::SQLType.to_base_type(type, sub_type).to_s
+        super(name.downcase, nil, @firebird_type, !null_flag)
+        @default = parse_default(default_source) if default_source
         @limit = type == 'BLOB' ? BLOB_MAX_LENGTH : length
+        @domain, @sub_type, @precision, @scale = domain, sub_type, precision, scale
+      end
+
+      def type
+        if @domain =~ /BOOLEAN/
+          :boolean
+        elsif @type == :binary and @sub_type == 1
+          :text
+        else
+          @type
+        end
       end
 
       # Submits a _CAST_ query to the database, casting the default value to the specified SQL type.
@@ -57,7 +65,7 @@ module ActiveRecord
       # defaults (such as CURRENT_TIMESTAMP).
       def default
         if @default
-          sql = "SELECT CAST(#{@default} AS #{@cast_type}) FROM RDB$DATABASE"
+          sql = "SELECT CAST(#{@default} AS #{column_def}) FROM RDB$DATABASE"
           connection = ActiveRecord::Base.active_connections.values.detect { |conn| conn && conn.adapter_name == 'Firebird' }
           if connection
             type_cast connection.execute(sql).to_a.first['CAST']
@@ -68,9 +76,7 @@ module ActiveRecord
       end
 
       def type_cast(value)
-        if type == :date and value.instance_of?(Time)
-          value.to_date
-        elsif type == :boolean
+        if type == :boolean
           value == true or value == ActiveRecord::ConnectionAdapters::FirebirdAdapter.boolean_domain[:true]
         else
           super
@@ -78,36 +84,18 @@ module ActiveRecord
       end
 
       private
-        # Maps the internal type returned by Firebird metadata tables to a
-        # SQL type that can be passed to #firebird_cast_type and Column#new
-        def metadata_to_column_type(type, sub_type)
-          case type
-            when 'TEXT'    then 'CHAR'
-            when 'VARYING' then 'VARCHAR'
-            when 'DOUBLE'  then 'DOUBLE PRECISION'
-            when 'BLOB'    then sub_type == 1 ? 'CLOB' : 'BLOB'
-            when 'SHORT', 'LONG', 'INT64'
-              case sub_type
-                when 1 then 'NUMERIC'
-                when 2 then 'DECIMAL'
-                else 'BIGINT'
-              end
-            else type
-          end
-        end
-
         def parse_default(default_source)
           default_source =~ /^\s*DEFAULT\s+(.*)\s*$/i
           return $1 unless $1.upcase == "NULL"
         end
 
-        # Returns a column definition that can be used in a Firebird CAST statement
-        def firebird_cast_type(column_type, length, precision, scale)
-          case column_type
-            when 'BLOB', 'CLOB'       then "VARCHAR(#{VARCHAR_MAX_LENGTH})"
-            when 'CHAR', 'VARCHAR'    then "#{column_type}(#{length})"
-            when 'NUMERIC', 'DECIMAL' then "#{column_type}(#{precision},#{scale.abs})"
-            else column_type
+        def column_def
+          case @firebird_type
+            when 'BLOB'               then "VARCHAR(#{VARCHAR_MAX_LENGTH})"
+            when 'CHAR', 'VARCHAR'    then "#{@firebird_type}(#{@limit})"
+            when 'NUMERIC', 'DECIMAL' then "#{@firebird_type}(#{@precision},#{@scale.abs})"
+            when 'DOUBLE'             then "DOUBLE PRECISION"
+            else @firebird_type
           end
         end
 
@@ -121,7 +109,7 @@ module ActiveRecord
     end
 
     # The Firebird adapter relies on the FireRuby[http://rubyforge.org/projects/fireruby/]
-    # extension, version 0.3.2 or later (available as a gem or from
+    # extension, version 0.4.0 or later (available as a gem or from
     # RubyForge[http://rubyforge.org/projects/fireruby/]). FireRuby works with
     # Firebird 1.5.x on Linux, OS X and Win32 platforms.
     #
@@ -356,15 +344,13 @@ module ActiveRecord
 
       def columns(table_name, name = nil) # :nodoc:
         sql = <<-END_SQL
-          SELECT r.rdb$field_name, r.rdb$field_source, t.rdb$type_name, f.rdb$field_sub_type,
+          SELECT r.rdb$field_name, r.rdb$field_source, f.rdb$field_type, f.rdb$field_sub_type,
                  f.rdb$field_length, f.rdb$field_precision, f.rdb$field_scale,
                  COALESCE(r.rdb$default_source, f.rdb$default_source) rdb$default_source,
                  COALESCE(r.rdb$null_flag, f.rdb$null_flag) rdb$null_flag
           FROM rdb$relation_fields r
           JOIN rdb$fields f ON r.rdb$field_source = f.rdb$field_name
-          JOIN rdb$types t ON f.rdb$field_type = t.rdb$type
-          WHERE r.rdb$relation_name = '#{table_name.upcase}'
-          AND t.rdb$field_name = 'RDB$FIELD_TYPE'
+          WHERE r.rdb$relation_name = '#{table_name.to_s.upcase}'
           ORDER BY r.rdb$field_position
         END_SQL
         execute(sql, name).collect do |field|
@@ -383,29 +369,11 @@ module ActiveRecord
         def select(sql, name = nil)
           execute(sql, name).collect do |row|
             hashed_row = {}
-            # TODO: zip is slow.
-            row.aliases.zip(row.values) do |column_alias, value|
-              value = case value
-                when Time           then guess_date_or_time(value)
-                when FireRuby::Blob then value.to_s
-                else value
-              end
-              hashed_row[fb_to_ar_case(column_alias)] = value
+            row.each do |column, value|
+              value = value.to_s if FireRuby::Blob === value
+              hashed_row[fb_to_ar_case(column)] = value
             end
             hashed_row
-          end
-        end
-
-        # FireRuby (as of 0.3.2) returns a Time object for TIME, TIMESTAMP and
-        # DATE columns. This method guesses whether time is really a date, and
-        # returns a string representing the date if it is. This date string gets
-        # properly type-cast later (as a Time or Date object) based on the
-        # column type.
-        def guess_date_or_time(time)
-          if (time.hour + time.min + time.sec + time.usec).zero?
-            time.strftime("%Y-%m-%d")
-          else
-            time
           end
         end
 
