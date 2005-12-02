@@ -229,7 +229,7 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     
     _erbout = ''
     
-    fields_for :post => @post do |f|
+    fields_for :post, @post do |f|
       _erbout.concat f.select(:category, %w( abe <mus> hest))
     end
     
@@ -330,7 +330,7 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     
     _erbout = ''
     
-    fields_for :post => @post do |f|
+    fields_for :post, @post do |f|
       _erbout.concat f.collection_select(:author_name, @posts, :author_name, :author_name)
     end
     
@@ -386,7 +386,7 @@ class FormOptionsHelperTest < Test::Unit::TestCase
     
     _erbout = ''
     
-    fields_for :firm => @firm do |f|
+    fields_for :firm, @firm do |f|
       _erbout.concat f.time_zone_select(:time_zone)
     end
     

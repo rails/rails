@@ -199,7 +199,7 @@ class FormHelperTest < Test::Unit::TestCase
   def test_form_for
     _erbout = ''
 
-    form_for(:post => @post) do |f|
+    form_for(:post, @post) do |f|
       _erbout.concat f.text_field(:title)
       _erbout.concat f.text_area(:body)
       _erbout.concat f.check_box(:secret)
@@ -219,7 +219,7 @@ class FormHelperTest < Test::Unit::TestCase
   def test_fields_for
     _erbout = ''
 
-    fields_for(:post => @post) do |f|
+    fields_for(:post, @post) do |f|
       _erbout.concat f.text_field(:title)
       _erbout.concat f.text_area(:body)
       _erbout.concat f.check_box(:secret)
@@ -237,11 +237,11 @@ class FormHelperTest < Test::Unit::TestCase
   def test_form_for_and_fields_for
     _erbout = ''
 
-    form_for(:post => @post) do |post_form|
+    form_for(:post, @post) do |post_form|
       _erbout.concat post_form.text_field(:title)
       _erbout.concat post_form.text_area(:body)
 
-      fields_for(:parent_post => @post) do |parent_fields|
+      fields_for(:parent_post, @post) do |parent_fields|
         _erbout.concat parent_fields.check_box(:secret)
       end
     end

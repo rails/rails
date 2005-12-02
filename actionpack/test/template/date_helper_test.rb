@@ -507,7 +507,7 @@ class DateHelperTest < Test::Unit::TestCase
     
     _erbout = ''
     
-    fields_for :post => @post do |f|
+    fields_for :post, @post do |f|
       _erbout.concat f.date_select(:written_on)
     end
     
@@ -524,7 +524,7 @@ class DateHelperTest < Test::Unit::TestCase
     
     _erbout = ''
     
-    fields_for :post => @post do |f|
+    fields_for :post, @post do |f|
       _erbout.concat f.datetime_select(:updated_at)
     end
     

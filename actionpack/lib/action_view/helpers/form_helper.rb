@@ -83,12 +83,12 @@ module ActionView
       # That in itself is a modest increase in comfort. The big news is that form_for allows us to more easily escape the instance
       # variable convention, so while the stand-alone approach would require <tt>text_field :person, :name, :object => person</tt> 
       # to work with local variables instead of instance ones, the form_for calls remain the same. You simply declare once with 
-      # <tt>:person => person</tt> and all subsequent field calls save <tt>:person</tt> and <tt>:object => person</tt>.
+      # <tt>:person, person</tt> and all subsequent field calls save <tt>:person</tt> and <tt>:object => person</tt>.
       #
       # Also note that form_for doesn't create an exclusive scope. It's still possible to use both the stand-alone FormHelper methods
       # and methods from FormTagHelper. Example:
       #
-      #   <% form_for :person => @person, :url => { :action => "update" } do |f| %>
+      #   <% form_for :person, @person, :url => { :action => "update" } do |f| %>
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= text_area :person, :biography %>
@@ -97,43 +97,30 @@ module ActionView
       #
       # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base.
       # Like collection_select and datetime_select.
-      def form_for(options, *parameters_for_url, &proc)
-        keys = [ :url, :method, :multipart ]
-        leftover_keys = (options.keys - keys)
-
-        case leftover_keys.length
-          when 0 then raise 'No object given!'
-          when 1 then
-            object_name = leftover_keys.first
-            object = options[object_name]
-          else
-            raise "Too many options: #{options.inspect}"
-        end
-        
-        url_for_options = options[:url]
+      def form_for(object_name, object, options = {}, &proc)
+        url_for_options    = options[:url]
         additional_options = options.reject { |k, v| ![ :method, :multipart ].include?(k) }
-        
-        concat(form_tag(url_for_options, additional_options, *parameters_for_url), proc.binding)
-        fields_for({ object_name => object }, &proc)
+        concat(form_tag(url_for_options, additional_options), proc.binding)
+        fields_for(object_name, object, &proc)
         concat(end_form_tag, proc.binding)
       end
 
       # Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes
       # fields_for suitable for specifying additional model objects in the same form. Example:
       #
-      #   <% form_for :person => @person, :url => { :action => "update" } do |person_form| %>
+      #   <% form_for :person, @person, :url => { :action => "update" } do |person_form| %>
       #     First name: <%= person_form.text_field :first_name %>
       #     Last name : <%= person_form.text_field :last_name %>
       #     
-      #     <% fields_for :permission => @person.permission do |permission_fields| %>
+      #     <% fields_for :permission, @person.permission do |permission_fields| %>
       #       Admin?  : <%= permission_fields.check_box :admin %>
       #     <% end %>
       #   <% end %>
       #
       # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base.
       # Like collection_select and datetime_select.
-      def fields_for(object = {}, &proc)
-        form_builder = FormBuilder.new(object.keys.first, object.values.first, self, proc)
+      def fields_for(object_name, object, &proc)
+        form_builder = FormBuilder.new(object_name, object, self, proc)
         proc.call(form_builder)
       end
 
