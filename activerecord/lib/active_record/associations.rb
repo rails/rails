@@ -1,6 +1,7 @@
 require 'active_record/associations/association_proxy'
 require 'active_record/associations/association_collection'
 require 'active_record/associations/belongs_to_association'
+require 'active_record/associations/belongs_to_polymorphic_association'
 require 'active_record/associations/has_one_association'
 require 'active_record/associations/has_many_association'
 require 'active_record/associations/has_and_belongs_to_many_association'
@@ -344,7 +345,7 @@ module ActiveRecord
           :foreign_key, :class_name, :exclusively_dependent, :dependent, 
           :conditions, :order, :include, :finder_sql, :counter_sql, 
           :before_add, :after_add, :before_remove, :after_remove, :extend,
-          :group
+          :group, :as
         )
 
         options[:extend] = create_extension_module(association_id, extension) if block_given?
@@ -516,47 +517,73 @@ module ActiveRecord
       #   belongs_to :valid_coupon, :class_name => "Coupon", :foreign_key => "coupon_id", 
       #              :conditions => 'discounts > #{payments_count}'
       def belongs_to(association_id, options = {})
-        options.assert_valid_keys(:class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend)
+        options.assert_valid_keys(:class_name, :foreign_key, :foreign_type, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend, :polymorphic)
 
         association_name, association_class_name, class_primary_key_name =
             associate_identification(association_id, options[:class_name], options[:foreign_key], false)
 
-        require_association_class(association_class_name)
-
         association_class_primary_key_name = options[:foreign_key] || association_class_name.foreign_key
 
-        association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
-        association_constructor_method(:build, association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
-        association_constructor_method(:create, association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
+        if options[:polymorphic]
+          options[:foreign_type] ||= association_class_name.underscore + "_type"
 
-        module_eval do
-          before_save <<-EOF
-            association = instance_variable_get("@#{association_name}")
-            if not association.nil? 
-              if association.new_record?
-                association.save(true)
-                association.send(:construct_sql)
+          association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, BelongsToPolymorphicAssociation)
+
+          module_eval do
+            before_save <<-EOF
+              association = instance_variable_get("@#{association_name}")
+              if !association.nil? 
+                if association.new_record?
+                  association.save(true)
+                  association.send(:construct_sql)
+                end
+                
+                if association.updated?
+                  self["#{association_class_primary_key_name}"] = association.id
+                  self["#{options[:foreign_type]}"] = ActiveRecord::Base.send(:class_name_of_active_record_descendant, association.class).to_s
+                end
               end
-              self["#{association_class_primary_key_name}"] = association.id if association.updated?
-            end            
-          EOF
-        end
+            EOF
+          end
+        else
+          require_association_class(association_class_name)
+
+          association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
+          association_constructor_method(:build, association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
+          association_constructor_method(:create, association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
+
+          module_eval do
+            before_save <<-EOF
+              association = instance_variable_get("@#{association_name}")
+              if !association.nil? 
+                if association.new_record?
+                  association.save(true)
+                  association.send(:construct_sql)
+                end
+                
+                if association.updated?
+                  self["#{association_class_primary_key_name}"] = association.id
+                end
+              end            
+            EOF
+          end
       
-        if options[:counter_cache]
-          module_eval(
-            "after_create '#{association_class_name}.increment_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{association_class_primary_key_name})" +
-            " unless #{association_name}.nil?'"
-          )
+          if options[:counter_cache]
+            module_eval(
+              "after_create '#{association_class_name}.increment_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{association_class_primary_key_name})" +
+              " unless #{association_name}.nil?'"
+            )
 
-          module_eval(
-            "before_destroy '#{association_class_name}.decrement_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{association_class_primary_key_name})" +
-            " unless #{association_name}.nil?'"
-          )          
+            module_eval(
+              "before_destroy '#{association_class_name}.decrement_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{association_class_primary_key_name})" +
+              " unless #{association_name}.nil?'"
+            )          
+          end
+
+          # deprecated api
+          deprecated_has_association_method(association_name)
+          deprecated_association_comparison_method(association_name, association_class_name)
         end
-
-        # deprecated api
-        deprecated_has_association_method(association_name)
-        deprecated_association_comparison_method(association_name, association_class_name)
       end
 
       # Associates two classes via an intermediate join table.  Unless the join table is explicitly specified as

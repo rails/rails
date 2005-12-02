@@ -76,7 +76,6 @@ module ActiveRecord
         end
         
       private
-        
         def method_missing(method, *args, &block)
           load_target
           @target.send(method, *args, &block)

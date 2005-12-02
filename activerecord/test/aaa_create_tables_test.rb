@@ -10,6 +10,11 @@ class CreateTablesTest < Test::Unit::TestCase
     recreate ActiveRecord::Base
     assert true
   end
+
+  def test_load_schema
+    eval(File.read("#{File.dirname(__FILE__)}/fixtures/db_definitions/schema.rb"))
+    assert true
+  end
   
   def test_drop_and_create_courses_table
     recreate Course, '2'

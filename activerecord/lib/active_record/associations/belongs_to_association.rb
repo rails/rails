@@ -1,7 +1,6 @@
 module ActiveRecord
   module Associations
     class BelongsToAssociation < AssociationProxy #:nodoc:
-      
       def initialize(owner, association_name, association_class_name, association_class_primary_key_name, options)
         super        
         construct_sql        
@@ -43,9 +42,6 @@ module ActiveRecord
         @updated
       end
       
-      protected
-
-
       private
         def find_target
           if @options[:conditions]

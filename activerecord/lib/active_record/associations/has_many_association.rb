@@ -163,11 +163,19 @@ module ActiveRecord
         end
 
         def construct_sql
-          if @options[:finder_sql]
-            @finder_sql = interpolate_sql(@options[:finder_sql])
-          else
-            @finder_sql = "#{@association_class.table_name}.#{@association_class_primary_key_name} = #{@owner.quoted_id}"
-            @finder_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
+          case
+            when @options[:as]
+              @finder_sql = 
+                "#{@association_class.table_name}.#{@options[:as]}_id = #{@owner.quoted_id} AND " + 
+                "#{@association_class.table_name}.#{@options[:as]}_type = '#{ActiveRecord::Base.send(:class_name_of_active_record_descendant, @owner.class).to_s}'"
+              @finder_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
+
+            when @options[:finder_sql]
+              @finder_sql = interpolate_sql(@options[:finder_sql])
+
+            else
+              @finder_sql = "#{@association_class.table_name}.#{@association_class_primary_key_name} = #{@owner.quoted_id}"
+              @finder_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
           end
 
           if @options[:counter_sql]
@@ -176,8 +184,7 @@ module ActiveRecord
             @options[:counter_sql] = @options[:finder_sql].gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
             @counter_sql = interpolate_sql(@options[:counter_sql])
           else
-            @counter_sql = "#{@association_class.table_name}.#{@association_class_primary_key_name} = #{@owner.quoted_id}"
-            @counter_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
+            @counter_sql = @finder_sql
           end
         end
     end

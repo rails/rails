@@ -19,7 +19,9 @@ class Post < ActiveRecord::Base
 
   has_and_belongs_to_many :categories
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts"
-  
+
+  has_many :taggings, :as => :taggable
+
   def self.what_are_you
     'a post...'
   end
