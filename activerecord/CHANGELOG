@@ -1,4 +1,6 @@
-*SVN*
+* SVN*
+
+* Firebird: updated for FireRuby 0.4.0.  #3009 [Ken Kunz <kennethkunz@gmail.com>]
 
 * Introducing the Firebird adapter.  Quote columns and use attribute_condition more consistently.  Setup guide: http://wiki.rubyonrails.com/rails/pages/Firebird+Adapter  #1874 [Ken Kunz <kennethkunz@gmail.com>]
 
