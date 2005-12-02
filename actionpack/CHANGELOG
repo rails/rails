@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix docs for text_area_tag. #3083. [Christopher Cotton]
+ 
 * Make ActionController's render honor the :locals option when rendering a :file. #1665. [Emanuel Borsboom, Marcel Molina Jr.]
 
 * Don't put flash in session if sessions are disabled.  [Jeremy Kemper]

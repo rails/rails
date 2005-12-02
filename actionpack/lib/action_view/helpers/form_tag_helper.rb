@@ -95,7 +95,7 @@ module ActionView
       # Options:
       # * <tt>:size</tt> - A string specifying the dimensions of the textarea.
       #     # Outputs <textarea name="body" id="body" cols="25" rows="10"></textarea>
-      #     <%= text_area_tag "body", nil, :size => 25x10 %>
+      #     <%= text_area_tag "body", nil, :size => "25x10" %>
       def text_area_tag(name, content = nil, options = {})
         options = options.stringify_keys
         if options["size"]
