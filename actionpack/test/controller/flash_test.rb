@@ -31,7 +31,7 @@ class FlashTest < Test::Unit::TestCase
     def use_flash_and_keep_it
       @flash_copy = {}.update flash
       @flashy = flash["that"]
-      keep_flash
+      silence_warnings { keep_flash }
       render :inline => "hello"
     end
 
