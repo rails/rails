@@ -4,6 +4,7 @@ require 'active_record/associations/belongs_to_association'
 require 'active_record/associations/belongs_to_polymorphic_association'
 require 'active_record/associations/has_one_association'
 require 'active_record/associations/has_many_association'
+require 'active_record/associations/has_many_through_association'
 require 'active_record/associations/has_and_belongs_to_many_association'
 require 'active_record/deprecated_associations'
 
@@ -341,57 +342,19 @@ module ActiveRecord
       #       'WHERE ps.post_id = #{id} AND ps.person_id = p.id ' +
       #       'ORDER BY p.first_name'
       def has_many(association_id, options = {}, &extension)
-        options.assert_valid_keys(
-          :foreign_key, :class_name, :exclusively_dependent, :dependent, 
-          :conditions, :order, :include, :finder_sql, :counter_sql, 
-          :before_add, :after_add, :before_remove, :after_remove, :extend,
-          :group, :as
-        )
+        reflection = create_has_many_reflection(association_id, options, &extension)
 
-        options[:extend] = create_extension_module(association_id, extension) if block_given?
+        configure_dependency_for_has_many(reflection)
 
-        association_name, association_class_name, association_class_primary_key_name =
-              associate_identification(association_id, options[:class_name], options[:foreign_key])
- 
-        require_association_class(association_class_name)
-
-        raise ArgumentError, ':dependent and :exclusively_dependent are mutually exclusive options.  You may specify one or the other.' if options[:dependent] and options[:exclusively_dependent]
-
-        if options[:exclusively_dependent]
-          options[:dependent] = :delete_all
-          #warn "The :exclusively_dependent option is deprecated.  Please use :dependent => :delete_all instead.")
+        if options[:through]
+          collection_reader_method(reflection, HasManyThroughAssociation)
+        else
+          add_multiple_associated_save_callbacks(reflection.name)
+          add_association_callbacks(reflection.name, reflection.options)
+          collection_accessor_methods(reflection, HasManyAssociation)
         end
 
-        # See HasManyAssociation#delete_records.  Dependent associations
-        # delete children, otherwise foreign key is set to NULL.
-        case options[:dependent]
-          when :destroy, true  
-            module_eval "before_destroy '#{association_name}.each { |o| o.destroy }'"
-          when :delete_all
-            module_eval "before_destroy { |record| #{association_class_name}.delete_all(%(#{association_class_primary_key_name} = \#{record.quoted_id})) }"
-          when :nullify
-            module_eval "before_destroy { |record| #{association_class_name}.update_all(%(#{association_class_primary_key_name} = NULL),  %(#{association_class_primary_key_name} = \#{record.quoted_id})) }"
-          when nil, false
-            # pass
-          else
-            raise ArgumentError, 'The :dependent option expects either true, :destroy, :delete_all, or :nullify' 
-        end
-
-
-        add_multiple_associated_save_callbacks(association_name)
-        add_association_callbacks(association_name, options)
-
-        collection_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasManyAssociation)
-        
-        # deprecated api
-        deprecated_collection_count_method(association_name)
-        deprecated_add_association_relation(association_name)
-        deprecated_remove_association_relation(association_name)
-        deprecated_has_collection_method(association_name)
-        deprecated_find_in_collection_method(association_name)
-        deprecated_find_all_in_collection_method(association_name)
-        deprecated_collection_create_method(association_name)
-        deprecated_collection_build_method(association_name)
+        add_deprecated_api_for_has_many(reflection.name)
       end
 
       # Adds the following methods for retrieval and query of a single associated object.
@@ -436,42 +399,27 @@ module ActiveRecord
       #   has_one :last_comment, :class_name => "Comment", :order => "posted_on"
       #   has_one :project_manager, :class_name => "Person", :conditions => "role = 'project_manager'"
       def has_one(association_id, options = {})
-        options.assert_valid_keys(:class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend)
-
-        association_name, association_class_name, association_class_primary_key_name =
-            associate_identification(association_id, options[:class_name], options[:foreign_key], false)
-
-        require_association_class(association_class_name)
+        reflection = create_has_one_reflection(association_id, options)
 
         module_eval do
           after_save <<-EOF
-            association = instance_variable_get("@#{association_name}")
+            association = instance_variable_get("@#{reflection.name}")
             unless association.nil?
-              association["#{association_class_primary_key_name}"] = id
+              association["#{reflection.primary_key_name}"] = id
               association.save(true)
-              association.send(:construct_sql)
             end
           EOF
         end
       
-        association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasOneAssociation)
-        association_constructor_method(:build, association_name, association_class_name, association_class_primary_key_name, options, HasOneAssociation)
-        association_constructor_method(:create, association_name, association_class_name, association_class_primary_key_name, options, HasOneAssociation)
+        association_accessor_methods(reflection, HasOneAssociation)
+        association_constructor_method(:build,  reflection, HasOneAssociation)
+        association_constructor_method(:create, reflection, HasOneAssociation)
         
-        case options[:dependent]
-          when :destroy, true
-            module_eval "before_destroy '#{association_name}.destroy unless #{association_name}.nil?'"
-          when :nullify
-            module_eval "before_destroy '#{association_name}.update_attribute(\"#{association_class_primary_key_name}\", nil)'"
-          when nil, false
-            # pass
-          else
-            raise ArgumentError, "The :dependent option expects either :destroy or :nullify."
-        end
+        configure_dependency_for_has_one(reflection)
 
         # deprecated api
-        deprecated_has_association_method(association_name)
-        deprecated_association_comparison_method(association_name, association_class_name)
+        deprecated_has_association_method(reflection.name)
+        deprecated_association_comparison_method(reflection.name, reflection.class_name)
       end
 
       # Adds the following methods for retrieval and query for a single associated object that this object holds an id to.
@@ -517,52 +465,41 @@ module ActiveRecord
       #   belongs_to :valid_coupon, :class_name => "Coupon", :foreign_key => "coupon_id", 
       #              :conditions => 'discounts > #{payments_count}'
       def belongs_to(association_id, options = {})
-        options.assert_valid_keys(:class_name, :foreign_key, :foreign_type, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend, :polymorphic)
-
-        association_name, association_class_name, class_primary_key_name =
-            associate_identification(association_id, options[:class_name], options[:foreign_key], false)
-
-        association_class_primary_key_name = options[:foreign_key] || association_class_name.foreign_key
-
-        if options[:polymorphic]
-          options[:foreign_type] ||= association_class_name.underscore + "_type"
-
-          association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, BelongsToPolymorphicAssociation)
+        reflection = create_belongs_to_reflection(association_id, options)
+        
+        if reflection.options[:polymorphic]
+          association_accessor_methods(reflection, BelongsToPolymorphicAssociation)
 
           module_eval do
             before_save <<-EOF
-              association = instance_variable_get("@#{association_name}")
+              association = instance_variable_get("@#{reflection.name}")
               if !association.nil? 
                 if association.new_record?
                   association.save(true)
-                  association.send(:construct_sql)
                 end
                 
                 if association.updated?
-                  self["#{association_class_primary_key_name}"] = association.id
-                  self["#{options[:foreign_type]}"] = ActiveRecord::Base.send(:class_name_of_active_record_descendant, association.class).to_s
+                  self["#{reflection.primary_key_name}"] = association.id
+                  self["#{reflection.options[:foreign_type]}"] = ActiveRecord::Base.send(:class_name_of_active_record_descendant, association.class).to_s
                 end
               end
             EOF
           end
         else
-          require_association_class(association_class_name)
-
-          association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
-          association_constructor_method(:build, association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
-          association_constructor_method(:create, association_name, association_class_name, association_class_primary_key_name, options, BelongsToAssociation)
+          association_accessor_methods(reflection, BelongsToAssociation)
+          association_constructor_method(:build,  reflection, BelongsToAssociation)
+          association_constructor_method(:create, reflection, BelongsToAssociation)
 
           module_eval do
             before_save <<-EOF
-              association = instance_variable_get("@#{association_name}")
+              association = instance_variable_get("@#{reflection.name}")
               if !association.nil? 
                 if association.new_record?
                   association.save(true)
-                  association.send(:construct_sql)
                 end
                 
                 if association.updated?
-                  self["#{association_class_primary_key_name}"] = association.id
+                  self["#{reflection.primary_key_name}"] = association.id
                 end
               end            
             EOF
@@ -570,19 +507,19 @@ module ActiveRecord
       
           if options[:counter_cache]
             module_eval(
-              "after_create '#{association_class_name}.increment_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{association_class_primary_key_name})" +
-              " unless #{association_name}.nil?'"
+              "after_create '#{reflection.class_name}.increment_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{reflection.primary_key_name})" +
+              " unless #{reflection.name}.nil?'"
             )
 
             module_eval(
-              "before_destroy '#{association_class_name}.decrement_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{association_class_primary_key_name})" +
-              " unless #{association_name}.nil?'"
+              "before_destroy '#{reflection.class_name}.decrement_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{reflection.primary_key_name})" +
+              " unless #{reflection.name}.nil?'"
             )          
           end
 
           # deprecated api
-          deprecated_has_association_method(association_name)
-          deprecated_association_comparison_method(association_name, association_class_name)
+          deprecated_has_association_method(reflection.name)
+          deprecated_association_comparison_method(reflection.name, reflection.class_name)
         end
       end
 
@@ -663,43 +600,29 @@ module ActiveRecord
       #   has_and_belongs_to_many :active_projects, :join_table => 'developers_projects', :delete_sql => 
       #   'DELETE FROM developers_projects WHERE active=1 AND developer_id = #{id} AND project_id = #{record.id}'
       def has_and_belongs_to_many(association_id, options = {}, &extension)
-        options.assert_valid_keys(
-          :class_name, :table_name, :foreign_key, :association_foreign_key, :conditions, :include,
-          :join_table, :finder_sql, :delete_sql, :insert_sql, :order, :uniq, :before_add, :after_add, 
-          :before_remove, :after_remove, :extend
-        )
-
-        options[:extend] = create_extension_module(association_id, extension) if block_given?
-
-        association_name, association_class_name, association_class_primary_key_name =
-              associate_identification(association_id, options[:class_name], options[:foreign_key])
-
-        require_association_class(association_class_name)
-
-        options[:join_table] ||= join_table_name(undecorated_table_name(self.to_s), undecorated_table_name(association_class_name))
-
-        add_multiple_associated_save_callbacks(association_name)
-      
-        collection_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, HasAndBelongsToManyAssociation)
+        reflection = create_has_and_belongs_to_many_reflection(association_id, options, &extension)
+        
+        add_multiple_associated_save_callbacks(reflection.name)
+        collection_accessor_methods(reflection, HasAndBelongsToManyAssociation)
 
         # Don't use a before_destroy callback since users' before_destroy
         # callbacks will be executed after the association is wiped out.
-        old_method = "destroy_without_habtm_shim_for_#{association_name}"
+        old_method = "destroy_without_habtm_shim_for_#{reflection.name}"
         class_eval <<-end_eval
           alias_method :#{old_method}, :destroy_without_callbacks
           def destroy_without_callbacks
-            #{association_name}.clear
+            #{reflection.name}.clear
             #{old_method}
           end
         end_eval
 
-        add_association_callbacks(association_name, options)
+        add_association_callbacks(reflection.name, options)
         
         # deprecated api
-        deprecated_collection_count_method(association_name)
-        deprecated_add_association_relation(association_name)
-        deprecated_remove_association_relation(association_name)
-        deprecated_has_collection_method(association_name)
+        deprecated_collection_count_method(reflection.name)
+        deprecated_add_association_relation(reflection.name)
+        deprecated_remove_association_relation(reflection.name)
+        deprecated_has_collection_method(reflection.name)
       end
 
       private
@@ -713,93 +636,81 @@ module ActiveRecord
           table_name_prefix + join_table + table_name_suffix
         end
         
-        def associate_identification(association_id, association_class_name, foreign_key, plural = true)
-          if association_class_name !~ /::/
-            association_class_name = type_name_with_module(
-              association_class_name || 
-                Inflector.camelize(plural ? Inflector.singularize(association_id.id2name) : association_id.id2name)
-            )
-          end
-
-          primary_key_name = foreign_key || name.foreign_key
-        
-          return association_id.id2name, association_class_name, primary_key_name
-        end
-        
-        def association_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, association_proxy_class)
-          define_method(association_name) do |*params|
+        def association_accessor_methods(reflection, association_proxy_class)
+          define_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?
-            association = instance_variable_get("@#{association_name}")
-            if association.nil? or force_reload
-              association = association_proxy_class.new(self,
-                association_name, association_class_name,
-                association_class_primary_key_name, options)
+            association = instance_variable_get("@#{reflection.name}")
+
+            if association.nil? || force_reload
+              association = association_proxy_class.new(self, reflection)
               retval = association.reload
               unless retval.nil?
-                instance_variable_set("@#{association_name}", association)
+                instance_variable_set("@#{reflection.name}", association)
               else
-                instance_variable_set("@#{association_name}", nil)
+                instance_variable_set("@#{reflection.name}", nil)
                 return nil
               end
             end
             association
           end
 
-          define_method("#{association_name}=") do |new_value|
-            association = instance_variable_get("@#{association_name}")
+          define_method("#{reflection.name}=") do |new_value|
+            association = instance_variable_get("@#{reflection.name}")
             if association.nil?
-              association = association_proxy_class.new(self,
-                association_name, association_class_name,
-                association_class_primary_key_name, options)
+              association = association_proxy_class.new(self, reflection)
             end
+
             association.replace(new_value)
+
             unless new_value.nil?
-              instance_variable_set("@#{association_name}", association)
+              instance_variable_set("@#{reflection.name}", association)
             else
-              instance_variable_set("@#{association_name}", nil)
+              instance_variable_set("@#{reflection.name}", nil)
               return nil
             end
+
             association
           end
 
-          define_method("set_#{association_name}_target") do |target|
+          define_method("set_#{reflection.name}_target") do |target|
             return if target.nil?
-            association = association_proxy_class.new(self,
-              association_name, association_class_name,
-              association_class_primary_key_name, options)
+            association = association_proxy_class.new(self, reflection)
             association.target = target
-            instance_variable_set("@#{association_name}", association)
+            instance_variable_set("@#{reflection.name}", association)
           end
         end
 
-        def collection_accessor_methods(association_name, association_class_name, association_class_primary_key_name, options, association_proxy_class)
-          define_method(association_name) do |*params|
+        def collection_reader_method(reflection, association_proxy_class)
+          define_method(reflection.name) do |*params|
             force_reload = params.first unless params.empty?
-            association = instance_variable_get("@#{association_name}")
+            association = instance_variable_get("@#{reflection.name}")
+
             unless association.respond_to?(:loaded?)
-              association = association_proxy_class.new(self,
-                association_name, association_class_name,
-                association_class_primary_key_name, options)
-              instance_variable_set("@#{association_name}", association)
+              association = association_proxy_class.new(self, reflection)
+              instance_variable_set("@#{reflection.name}", association)
             end
+
             association.reload if force_reload
+
             association
           end
+        end
 
-          define_method("#{association_name}=") do |new_value|
-            association = instance_variable_get("@#{association_name}")
+        def collection_accessor_methods(reflection, association_proxy_class)
+          collection_reader_method(reflection, association_proxy_class)
+
+          define_method("#{reflection.name}=") do |new_value|
+            association = instance_variable_get("@#{reflection.name}")
             unless association.respond_to?(:loaded?)
-              association = association_proxy_class.new(self,
-                association_name, association_class_name,
-                association_class_primary_key_name, options)
-              instance_variable_set("@#{association_name}", association)
+              association = association_proxy_class.new(self, reflection)
+              instance_variable_set("@#{reflection.name}", association)
             end
             association.replace(new_value)
             association
           end
 
-          define_method("#{Inflector.singularize(association_name)}_ids=") do |new_value|
-            send("#{association_name}=", association_class_name.constantize.find(new_value))
+          define_method("#{reflection.name.to_s.singularize}_ids=") do |new_value|
+            send("#{reflection.name}=", reflection.class_name.constantize.find(new_value))
           end
         end
 
@@ -847,17 +758,15 @@ module ActiveRecord
           after_update(after_callback)
         end
 
-        def association_constructor_method(constructor, association_name, association_class_name, association_class_primary_key_name, options, association_proxy_class)
-          define_method("#{constructor}_#{association_name}") do |*params|
+        def association_constructor_method(constructor, reflection, association_proxy_class)
+          define_method("#{constructor}_#{reflection.name}") do |*params|
             attributees      = params.first unless params.empty?
             replace_existing = params[1].nil? ? true : params[1]
-            association      = instance_variable_get("@#{association_name}")
+            association      = instance_variable_get("@#{reflection.name}")
 
             if association.nil?
-              association = association_proxy_class.new(self,
-                association_name, association_class_name,
-                association_class_primary_key_name, options)
-              instance_variable_set("@#{association_name}", association)
+              association = association_proxy_class.new(self, reflection)
+              instance_variable_set("@#{reflection.name}", association)
             end
 
             if association_proxy_class == HasOneAssociation
@@ -909,6 +818,118 @@ module ActiveRecord
           return records_in_order
         end
 
+
+        def configure_dependency_for_has_many(reflection)
+          if reflection.options[:dependent] && reflection.options[:exclusively_dependent]
+            raise ArgumentError, ':dependent and :exclusively_dependent are mutually exclusive options.  You may specify one or the other.'
+          end
+
+          if reflection.options[:exclusively_dependent]
+            reflection.options[:dependent] = :delete_all
+            #warn "The :exclusively_dependent option is deprecated.  Please use :dependent => :delete_all instead.")
+          end
+
+          # See HasManyAssociation#delete_records.  Dependent associations
+          # delete children, otherwise foreign key is set to NULL.
+          case reflection.options[:dependent]
+            when :destroy, true  
+              module_eval "before_destroy '#{reflection.name}.each { |o| o.destroy }'"
+            when :delete_all
+              module_eval "before_destroy { |record| #{reflection.class_name}.delete_all(%(#{reflection.primary_key_name} = \#{record.quoted_id})) }"
+            when :nullify
+              module_eval "before_destroy { |record| #{reflection.class_name}.update_all(%(#{reflection.primary_key_name} = NULL),  %(#{reflection.primary_key_name} = \#{record.quoted_id})) }"
+            when nil, false
+              # pass
+            else
+              raise ArgumentError, 'The :dependent option expects either true, :destroy, :delete_all, or :nullify' 
+          end
+        end
+        
+        def configure_dependency_for_has_one(reflection)
+          case reflection.options[:dependent]
+            when :destroy, true
+              module_eval "before_destroy '#{reflection.name}.destroy unless #{reflection.name}.nil?'"
+            when :nullify
+              module_eval "before_destroy '#{reflection.name}.update_attribute(\"#{reflection.primary_key_name}\", nil)'"
+            when nil, false
+              # pass
+            else
+              raise ArgumentError, "The :dependent option expects either :destroy or :nullify."
+          end
+        end
+        
+        
+        def add_deprecated_api_for_has_many(association_name)
+          deprecated_collection_count_method(association_name)
+          deprecated_add_association_relation(association_name)
+          deprecated_remove_association_relation(association_name)
+          deprecated_has_collection_method(association_name)
+          deprecated_find_in_collection_method(association_name)
+          deprecated_find_all_in_collection_method(association_name)
+          deprecated_collection_create_method(association_name)
+          deprecated_collection_build_method(association_name)
+        end
+
+        def create_has_many_reflection(association_id, options, &extension)
+          options.assert_valid_keys(
+            :foreign_key, :class_name, :exclusively_dependent, :dependent, 
+            :conditions, :order, :include, :finder_sql, :counter_sql, 
+            :before_add, :after_add, :before_remove, :after_remove, :extend,
+            :group, :as, :through
+          )
+
+          options[:extend] = create_extension_module(association_id, extension) if block_given?
+
+          reflection = create_reflection(:has_many, association_id, options, self)
+          reflection.require_class
+
+          reflection
+        end
+
+        def create_has_one_reflection(association_id, options)
+          options.assert_valid_keys(
+            :class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend
+          )
+
+          reflection = create_reflection(:has_one, association_id, options, self)
+          reflection.require_class
+
+          reflection
+        end
+
+        def create_belongs_to_reflection(association_id, options)
+          options.assert_valid_keys(
+            :class_name, :foreign_key, :foreign_type, :remote, :conditions, :order, :include, :dependent, 
+            :counter_cache, :extend, :polymorphic
+          )
+          
+          reflection = create_reflection(:belongs_to, association_id, options, self)
+
+          if options[:polymorphic]
+            reflection.options[:foreign_type] ||= reflection.class_name.underscore + "_type"
+          else
+            reflection.require_class
+          end
+
+          reflection
+        end
+        
+        def create_has_and_belongs_to_many_reflection(association_id, options, &extension)
+          options.assert_valid_keys(
+            :class_name, :table_name, :foreign_key, :association_foreign_key, :conditions, :include,
+            :join_table, :finder_sql, :delete_sql, :insert_sql, :order, :uniq, :before_add, :after_add, 
+            :before_remove, :after_remove, :extend
+          )
+
+          options[:extend] = create_extension_module(association_id, extension) if block_given?
+
+          reflection = create_reflection(:has_and_belongs_to_many, association_id, options, self)
+          reflection.require_class
+
+          reflection.options[:join_table] ||= join_table_name(undecorated_table_name(self.to_s), undecorated_table_name(reflection.class_name))
+          
+          reflection
+        end
 
         def reflect_on_included_associations(associations)
           [ associations ].flatten.collect { |association| reflect_on_association(association.to_s.intern) }

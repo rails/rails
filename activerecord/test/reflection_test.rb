@@ -60,10 +60,9 @@ class ReflectionTest < Test::Unit::TestCase
       :composed_of, :gps_location, { }, Customer
     )
 
-    assert_equal(
-      [ reflection_for_address, reflection_for_balance, reflection_for_gps_location ],
-      Customer.reflect_on_all_aggregations
-    )
+    assert Customer.reflect_on_all_aggregations.include?(reflection_for_gps_location)
+    assert Customer.reflect_on_all_aggregations.include?(reflection_for_balance)
+    assert Customer.reflect_on_all_aggregations.include?(reflection_for_address)
 
     assert_equal reflection_for_address, Customer.reflect_on_aggregation(:address)
 

@@ -1,10 +1,9 @@
 module ActiveRecord
   module Associations
     class HasManyAssociation < AssociationCollection #:nodoc:
-      def initialize(owner, association_name, association_class_name, association_class_primary_key_name, options)
+      def initialize(owner, reflection)
         super
-        @conditions = sanitize_sql(options[:conditions])
-
+        @conditions = sanitize_sql(reflection.options[:conditions])
         construct_sql
       end
 
@@ -13,8 +12,8 @@ module ActiveRecord
           attributes.collect { |attr| create(attr) }
         else
           load_target
-          record = @association_class.new(attributes)
-          record[@association_class_primary_key_name] = @owner.id unless @owner.new_record?
+          record = @reflection.klass.new(attributes)
+          record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
           @target << record
           record
         end
@@ -22,13 +21,13 @@ module ActiveRecord
 
       # DEPRECATED.
       def find_all(runtime_conditions = nil, orderings = nil, limit = nil, joins = nil)
-        if @options[:finder_sql]
-          @association_class.find_by_sql(@finder_sql)
+        if @reflection.options[:finder_sql]
+          @reflection.klass.find_by_sql(@finder_sql)
         else
           conditions = @finder_sql
           conditions += " AND (#{sanitize_sql(runtime_conditions)})" if runtime_conditions
-          orderings ||= @options[:order]
-          @association_class.find_all(conditions, orderings, limit, joins)
+          orderings ||= @reflection.options[:order]
+          @reflection.klass.find_all(conditions, orderings, limit, joins)
         end
       end
 
@@ -39,14 +38,14 @@ module ActiveRecord
 
       # Count the number of associated records. All arguments are optional.
       def count(runtime_conditions = nil)
-        if @options[:counter_sql]
-          @association_class.count_by_sql(@counter_sql)
-        elsif @options[:finder_sql]
-          @association_class.count_by_sql(@finder_sql)
+        if @reflection.options[:counter_sql]
+          @reflection.klass.count_by_sql(@counter_sql)
+        elsif @reflection.options[:finder_sql]
+          @reflection.klass.count_by_sql(@finder_sql)
         else
           sql = @finder_sql
           sql += " AND (#{sanitize_sql(runtime_conditions)})" if runtime_conditions
-          @association_class.count(sql)
+          @reflection.klass.count(sql)
         end
       end
 
@@ -54,7 +53,7 @@ module ActiveRecord
         options = Base.send(:extract_options_from_args!, args)
 
         # If using a custom finder_sql, scan the entire collection.
-        if @options[:finder_sql]
+        if @reflection.options[:finder_sql]
           expects_array = args.first.kind_of?(Array)
           ids = args.flatten.compact.uniq
 
@@ -72,49 +71,49 @@ module ActiveRecord
           end
           options[:conditions] = conditions
 
-          if options[:order] && @options[:order]
-            options[:order] = "#{options[:order]}, #{@options[:order]}"
-          elsif @options[:order]
-            options[:order] = @options[:order]
+          if options[:order] && @reflection.options[:order]
+            options[:order] = "#{options[:order]}, #{@reflection.options[:order]}"
+          elsif @reflection.options[:order]
+            options[:order] = @reflection.options[:order]
           end
 
           # Pass through args exactly as we received them.
           args << options
-          @association_class.find(*args)
+          @reflection.klass.find(*args)
         end
       end
       
       protected
         def method_missing(method, *args, &block)
-          if @target.respond_to?(method) || (!@association_class.respond_to?(method) && Class.respond_to?(method))
+          if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             super
           else
-            @association_class.with_scope(
+            @reflection.klass.with_scope(
               :find => {
                 :conditions => @finder_sql, 
                 :joins      => @join_sql, 
                 :readonly   => false
               },
               :create => {
-                @association_class_primary_key_name => @owner.id
+                @reflection.primary_key_name => @owner.id
               }
             ) do
-              @association_class.send(method, *args, &block)
+              @reflection.klass.send(method, *args, &block)
             end
           end
         end
             
         def find_target
-          if @options[:finder_sql]
-            @association_class.find_by_sql(@finder_sql)
+          if @reflection.options[:finder_sql]
+            @reflection.klass.find_by_sql(@finder_sql)
           else
-            @association_class.find(:all, 
+            @reflection.klass.find(:all, 
               :conditions => @finder_sql,
-              :order      => @options[:order], 
-              :limit      => @options[:limit],
-              :joins      => @options[:joins],
-              :include    => @options[:include],
-              :group      => @options[:group]
+              :order      => @reflection.options[:order], 
+              :limit      => @reflection.options[:limit],
+              :joins      => @reflection.options[:joins],
+              :include    => @reflection.options[:include],
+              :group      => @reflection.options[:group]
             )
           end
         end
@@ -122,10 +121,10 @@ module ActiveRecord
         def count_records
           count = if has_cached_counter?
             @owner.send(:read_attribute, cached_counter_attribute_name)
-          elsif @options[:counter_sql]
-            @association_class.count_by_sql(@counter_sql)
+          elsif @reflection.options[:counter_sql]
+            @reflection.klass.count_by_sql(@counter_sql)
           else
-            @association_class.count(@counter_sql)
+            @reflection.klass.count(@counter_sql)
           end
           
           @target = [] and loaded if count == 0
@@ -138,22 +137,22 @@ module ActiveRecord
         end
 
         def cached_counter_attribute_name
-          "#{@association_name}_count"
+          "#{@reflection.name}_count"
         end
 
         def insert_record(record)
-          record[@association_class_primary_key_name] = @owner.id
+          record[@reflection.primary_key_name] = @owner.id
           record.save
         end
 
         def delete_records(records)
-          if @options[:dependent]
+          if @reflection.options[:dependent]
             records.each { |r| r.destroy }
           else
             ids = quoted_record_ids(records)
-            @association_class.update_all(
-              "#{@association_class_primary_key_name} = NULL", 
-              "#{@association_class_primary_key_name} = #{@owner.quoted_id} AND #{@association_class.primary_key} IN (#{ids})"
+            @reflection.klass.update_all(
+              "#{@reflection.primary_key_name} = NULL", 
+              "#{@reflection.primary_key_name} = #{@owner.quoted_id} AND #{@reflection.klass.primary_key} IN (#{ids})"
             )
           end
         end
@@ -164,25 +163,25 @@ module ActiveRecord
 
         def construct_sql
           case
-            when @options[:as]
+            when @reflection.options[:finder_sql]
+              @finder_sql = interpolate_sql(@reflection.options[:finder_sql])
+
+            when @reflection.options[:as]
               @finder_sql = 
-                "#{@association_class.table_name}.#{@options[:as]}_id = #{@owner.quoted_id} AND " + 
-                "#{@association_class.table_name}.#{@options[:as]}_type = '#{ActiveRecord::Base.send(:class_name_of_active_record_descendant, @owner.class).to_s}'"
+                "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_id = #{@owner.quoted_id} AND " + 
+                "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_type = '#{ActiveRecord::Base.send(:class_name_of_active_record_descendant, @owner.class).to_s}'"
               @finder_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
 
-            when @options[:finder_sql]
-              @finder_sql = interpolate_sql(@options[:finder_sql])
-
             else
-              @finder_sql = "#{@association_class.table_name}.#{@association_class_primary_key_name} = #{@owner.quoted_id}"
+              @finder_sql = "#{@reflection.klass.table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
               @finder_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
           end
 
-          if @options[:counter_sql]
-            @counter_sql = interpolate_sql(@options[:counter_sql])
-          elsif @options[:finder_sql]
-            @options[:counter_sql] = @options[:finder_sql].gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
-            @counter_sql = interpolate_sql(@options[:counter_sql])
+          if @reflection.options[:counter_sql]
+            @counter_sql = interpolate_sql(@reflection.options[:counter_sql])
+          elsif @reflection.options[:finder_sql]
+            @reflection.options[:counter_sql] = @reflection.options[:finder_sql].gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
+            @counter_sql = interpolate_sql(@reflection.options[:counter_sql])
           else
             @counter_sql = @finder_sql
           end

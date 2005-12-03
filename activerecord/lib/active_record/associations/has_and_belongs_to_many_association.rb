@@ -1,20 +1,14 @@
 module ActiveRecord
   module Associations
     class HasAndBelongsToManyAssociation < AssociationCollection #:nodoc:
-      def initialize(owner, association_name, association_class_name, association_class_primary_key_name, options)
+      def initialize(owner, reflection)
         super
-
-        @association_foreign_key = options[:association_foreign_key] || association_class_name.foreign_key
-        @association_table_name = options[:table_name] || @association_class.table_name
-        @join_table = options[:join_table]
-        @order = options[:order]
-
         construct_sql
       end
  
       def build(attributes = {})
         load_target
-        record = @association_class.new(attributes)
+        record = @reflection.klass.new(attributes)
         @target << record
         record
       end
@@ -27,7 +21,7 @@ module ActiveRecord
         options = Base.send(:extract_options_from_args!, args)
 
         # If using a custom finder_sql, scan the entire collection.
-        if @options[:finder_sql]
+        if @reflection.options[:finder_sql]
           expects_array = args.first.kind_of?(Array)
           ids = args.flatten.compact.uniq
 
@@ -40,60 +34,64 @@ module ActiveRecord
           end
         else
           conditions = "#{@finder_sql}"
+
           if sanitized_conditions = sanitize_sql(options[:conditions])
             conditions << " AND (#{sanitized_conditions})"
           end
+
           options[:conditions] = conditions
           options[:joins] = @join_sql
           options[:readonly] ||= false
 
-          if options[:order] && @options[:order]
-            options[:order] = "#{options[:order]}, #{@options[:order]}"
-          elsif @options[:order]
-            options[:order] = @options[:order]
+          if options[:order] && @reflection.options[:order]
+            options[:order] = "#{options[:order]}, #{@reflection.options[:order]}"
+          elsif @reflection.options[:order]
+            options[:order] = @reflection.options[:order]
           end
 
           # Pass through args exactly as we received them.
           args << options
-          @association_class.find(*args)
+          @reflection.klass.find(*args)
         end
       end      
 
       def push_with_attributes(record, join_attributes = {})
         raise_on_type_mismatch(record)
         join_attributes.each { |key, value| record[key.to_s] = value }
+
         callback(:before_add, record)
         insert_record(record) unless @owner.new_record?
         @target << record
         callback(:after_add, record)
+
         self
       end
       
       alias :concat_with_attributes :push_with_attributes
 
       def size
-        @options[:uniq] ? count_records : super
+        @reflection.options[:uniq] ? count_records : super
       end
       
       protected
         def method_missing(method, *args, &block)
-          if @target.respond_to?(method) || (!@association_class.respond_to?(method) && Class.respond_to?(method))
+          if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             super
           else
-            @association_class.with_scope(:find => { :conditions => @finder_sql, :joins => @join_sql, :readonly => false }) do
-              @association_class.send(method, *args, &block)
+            @reflection.klass.with_scope(:find => { :conditions => @finder_sql, :joins => @join_sql, :readonly => false }) do
+              @reflection.klass.send(method, *args, &block)
             end
           end
         end
             
         def find_target
-          if @options[:finder_sql]
-            records = @association_class.find_by_sql(@finder_sql)
+          if @reflection.options[:finder_sql]
+            records = @reflection.klass.find_by_sql(@finder_sql)
           else
-            records = find(:all, :include => @options[:include])
+            records = find(:all, :include => @reflection.options[:include])
           end
           
-          @options[:uniq] ? uniq(records) : records
+          @reflection.options[:uniq] ? uniq(records) : records
         end
         
         def count_records
@@ -105,16 +103,16 @@ module ActiveRecord
             return false unless record.save
           end
 
-          if @options[:insert_sql]
-            @owner.connection.execute(interpolate_sql(@options[:insert_sql], record))
+          if @reflection.options[:insert_sql]
+            @owner.connection.execute(interpolate_sql(@reflection.options[:insert_sql], record))
           else
-            columns = @owner.connection.columns(@join_table, "#{@join_table} Columns")
+            columns = @owner.connection.columns(@reflection.options[:join_table], "#{@reflection.options[:join_table]} Columns")
 
             attributes = columns.inject({}) do |attributes, column|
               case column.name
-                when @association_class_primary_key_name
+                when @reflection.primary_key_name
                   attributes[column.name] = @owner.quoted_id
-                when @association_foreign_key
+                when @reflection.association_foreign_key
                   attributes[column.name] = record.quoted_id
                 else
                   if record.attributes.has_key?(column.name)
@@ -126,7 +124,7 @@ module ActiveRecord
             end
 
             sql =
-              "INSERT INTO #{@join_table} (#{@owner.send(:quoted_column_names, attributes).join(', ')}) " +
+              "INSERT INTO #{@reflection.options[:join_table]} (#{@owner.send(:quoted_column_names, attributes).join(', ')}) " +
               "VALUES (#{attributes.values.join(', ')})"
 
             @owner.connection.execute(sql)
@@ -136,26 +134,26 @@ module ActiveRecord
         end
         
         def delete_records(records)
-          if sql = @options[:delete_sql]
+          if sql = @reflection.options[:delete_sql]
             records.each { |record| @owner.connection.execute(interpolate_sql(sql, record)) }
           else
             ids = quoted_record_ids(records)
-            sql = "DELETE FROM #{@join_table} WHERE #{@association_class_primary_key_name} = #{@owner.quoted_id} AND #{@association_foreign_key} IN (#{ids})"
+            sql = "DELETE FROM #{@reflection.options[:join_table]} WHERE #{@reflection.primary_key_name} = #{@owner.quoted_id} AND #{@reflection.association_foreign_key} IN (#{ids})"
             @owner.connection.execute(sql)
           end
         end
 
         def construct_sql
-          interpolate_sql_options!(@options, :finder_sql)
+          interpolate_sql_options!(@reflection.options, :finder_sql)
 
-          if @options[:finder_sql]
-            @finder_sql = @options[:finder_sql]
+          if @reflection.options[:finder_sql]
+            @finder_sql = @reflection.options[:finder_sql]
           else
-            @finder_sql = "#{@join_table}.#{@association_class_primary_key_name} = #{@owner.quoted_id} "
-            @finder_sql << " AND (#{interpolate_sql(@options[:conditions])})" if @options[:conditions]
+            @finder_sql = "#{@reflection.options[:join_table]}.#{@reflection.primary_key_name} = #{@owner.quoted_id} "
+            @finder_sql << " AND (#{interpolate_sql(@reflection.options[:conditions])})" if @reflection.options[:conditions]
           end
 
-          @join_sql = "JOIN #{@join_table} ON #{@association_class.table_name}.#{@association_class.primary_key} = #{@join_table}.#{@association_foreign_key}"
+          @join_sql = "JOIN #{@reflection.options[:join_table]} ON #{@reflection.klass.table_name}.#{@reflection.klass.primary_key} = #{@reflection.options[:join_table]}.#{@reflection.association_foreign_key}"
         end
         
     end

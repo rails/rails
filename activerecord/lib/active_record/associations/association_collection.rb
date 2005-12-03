@@ -18,6 +18,7 @@ module ActiveRecord
       def <<(*records)
         result = true
         load_target
+
         @owner.transaction do
           flatten_deeper(records).each do |record|
             raise_on_type_mismatch(record)
@@ -28,7 +29,7 @@ module ActiveRecord
           end
         end
 				
-        result and self
+        result && self
       end
 
       alias_method :push, :<<
@@ -60,11 +61,13 @@ module ActiveRecord
       # Removes all records from this association.  Returns +self+ so method calls may be chained.
       def clear
         return self if length.zero? # forces load_target if hasn't happened already
-        if @options[:exclusively_dependent]
+
+        if @reflection.options[:exclusively_dependent]
           destroy_all
         else          
           delete_all
         end
+
         self
       end
       
@@ -124,14 +127,6 @@ module ActiveRecord
       end
 
       private
-        def raise_on_type_mismatch(record)
-          raise ActiveRecord::AssociationTypeMismatch, "#{@association_class} expected, got #{record.class}" unless record.is_a?(@association_class)
-        end
-
-        def target_obsolete?
-          false
-        end
-
         # Array#flatten has problems with recursive arrays. Going one level deeper solves the majority of the problems.
         def flatten_deeper(array)
           array.collect { |element| element.respond_to?(:flatten) ? element.flatten : element }.flatten
@@ -155,8 +150,8 @@ module ActiveRecord
         end
         
         def callbacks_for(callback_name)
-          full_callback_name = "#{callback_name.to_s}_for_#{@association_name.to_s}"
-          @owner.class.read_inheritable_attribute(full_callback_name.to_sym) or []
+          full_callback_name = "#{callback_name}_for_#{@reflection.name}"
+          @owner.class.read_inheritable_attribute(full_callback_name.to_sym) || []
         end
         
     end

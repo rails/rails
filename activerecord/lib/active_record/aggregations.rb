@@ -1,7 +1,6 @@
 module ActiveRecord
   module Aggregations # :nodoc:
-    def self.append_features(base)
-      super
+    def self.included(base)
       base.extend(ClassMethods)
     end
 
@@ -128,6 +127,8 @@ module ActiveRecord
 
         reader_method(name, class_name, mapping)
         writer_method(name, class_name, mapping)
+        
+        create_reflection(:composed_of, part_id, options, self)
       end
 
       private

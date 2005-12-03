@@ -1,5 +1,9 @@
 *SVN*
 
+* Added preliminary support for polymorphic associations [DHH]
+
+* Added preliminary support for join models [DHH]
+
 * Allow validate_uniqueness_of to be scoped by more than just one column.  #1559. [jeremy@jthopple.com, Marcel Molina Jr.]
 
 * Firebird: active? and reconnect! methods for handling stale connections.  #428 [Ken Kunz <kennethkunz@gmail.com>]

@@ -930,12 +930,17 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_sql(options)
-          sql  = "SELECT #{options[:select] || '*'} FROM #{table_name} "
+          sql  = "SELECT #{options[:select] || '*'} "
+          sql << "FROM #{options[:from] || table_name} "
+
           add_joins!(sql, options)
           add_conditions!(sql, options[:conditions])
+
           sql << " GROUP BY #{options[:group]} " if options[:group]
           sql << " ORDER BY #{options[:order]} " if options[:order]
+
           add_limit!(sql, options)
+
           sql
         end
 
@@ -1180,7 +1185,7 @@ module ActiveRecord #:nodoc:
         end
 
         def validate_find_options(options)
-          options.assert_valid_keys [:conditions, :include, :joins, :limit, :offset, :order, :select, :readonly, :group]
+          options.assert_valid_keys [:conditions, :include, :joins, :limit, :offset, :order, :select, :readonly, :group, :from]
         end
 
         def encode_quoted_value(value)
