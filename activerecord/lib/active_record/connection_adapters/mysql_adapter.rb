@@ -155,18 +155,20 @@ module ActiveRecord
         else
           @connection.query 'select 1'
         end
-        true
+
+        # mysql-ruby doesn't raise an exception when stat fails.
+        if @connection.respond_to?(:errno)
+          @connection.errno.zero?
+        else
+          true
+        end
       rescue Mysql::Error
         false
       end
 
       def reconnect!
-        if @connection.respond_to?(:ping)
-          @connection.ping
-        else
-          @connection.close rescue nil
-          connect
-        end
+        @connection.close rescue nil
+        connect
       end
 
 
