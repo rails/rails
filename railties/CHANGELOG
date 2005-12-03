@@ -1,5 +1,7 @@
 *SVN*
 
+* Add install.rb file to plugin generation which is loaded, if it exists, when you install a plugin. [Marcel Molina Jr.]
+
 * Run initialize_logger in script/lighttpd to ensure the log file exists before tailing it. [Sam Stephenson]
 
 * Make load_fixtures include csv fixtures. #3053. [me@mdaines.com]

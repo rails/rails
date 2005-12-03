@@ -166,6 +166,7 @@ class Plugin
 
     unless installed?
       send("install_using_#{method}", options)
+      run_install_hook
     else
       puts "already installed: #{name} (#{uri}).  pass --force to reinstall"
     end
@@ -185,6 +186,12 @@ class Plugin
   end
 
   private 
+
+    def run_install_hook
+      install_hook_file = "#{rails_env.root}/vendor/plugins/#{name}/install.rb"
+      load install_hook_file if File.exists? install_hook_file
+    end
+
     def install_using_export(options = {})
       svn_command :export, options
     end
