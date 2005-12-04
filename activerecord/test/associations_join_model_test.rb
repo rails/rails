@@ -5,6 +5,7 @@ require 'fixtures/post'
 require 'fixtures/comment'
 
 class AssociationsJoinModelTest < Test::Unit::TestCase
+  self.use_transactional_fixtures = false
   fixtures :posts, :comments, :tags, :taggings
 
   def test_polymorphic_has_many

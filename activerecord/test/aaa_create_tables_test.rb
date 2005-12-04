@@ -2,6 +2,8 @@
 require 'abstract_unit'
 
 class CreateTablesTest < Test::Unit::TestCase
+  self.use_transactional_fixtures = false
+
   def setup
     @base_path = "#{File.dirname(__FILE__)}/fixtures/db_definitions"
   end
