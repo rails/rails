@@ -127,19 +127,6 @@ module ActiveRecord
       end
 
 
-      # CONNECTION MANAGEMENT ====================================
-
-      def active?
-        # TODO: SQLite is an embedded db, it doesn't lose connections,
-        # but perhaps some of its exceptions merit a retry, such as
-        # LockedException.
-        true
-      end
-
-      def reconnect!
-      end
-
-
       # DATABASE STATEMENTS ======================================
 
       def execute(sql, name = nil) #:nodoc:

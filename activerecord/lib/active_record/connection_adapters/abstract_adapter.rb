@@ -52,6 +52,19 @@ module ActiveRecord
         rt
       end
 
+
+      # CONNECTION MANAGEMENT ====================================
+
+      # Is this connection active and ready to perform queries?
+      def active?
+        true
+      end
+
+      # Close this connection and open a new one in its place.
+      def reconnect!
+      end
+
+
       protected
         def log(sql, name)
           if block_given?
