@@ -19,7 +19,7 @@ module ActiveRecord
     # SchemaStatements#add_column, SchemaStatements#change_column and
     # SchemaStatements#remove_column are very useful.
     class AbstractAdapter
-      include Quoting, DatabaseStatements, SchemaStatements, ConnectionManagement
+      include Quoting, DatabaseStatements, SchemaStatements
       @@row_even = true
 
       def initialize(connection, logger = nil) #:nodoc:
@@ -69,9 +69,6 @@ module ActiveRecord
             nil
           end
         rescue Exception => e
-          # Flag connection as possibly dirty; needs verification before use.
-          self.needs_verification!
-
           # Log message and raise exception.
           message = "#{e.class.name}: #{e.message}: #{sql}"
           log_info(message, name, 0)

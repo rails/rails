@@ -73,7 +73,7 @@ class Dispatcher
     
       def reset_after_dispatch
         reset_application! if Dependencies.load?
-        ActiveRecord::Base.mark_active_connections_for_verification!
+        ActiveRecord::Base.clear_connection_cache!
         Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
       end
 
