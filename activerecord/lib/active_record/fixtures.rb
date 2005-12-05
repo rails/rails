@@ -503,13 +503,12 @@ module Test #:nodoc:
       alias_method :setup, :setup_with_fixtures
 
       def teardown_with_fixtures
-        ActiveRecord::Base.clear_connection_cache!
-      ensure
         # Rollback changes.
         if use_transactional_fixtures?
           ActiveRecord::Base.connection.rollback_db_transaction
           ActiveRecord::Base.unlock_mutex
         end
+        ActiveRecord::Base.clear_connection_cache!
       end
 
       alias_method :teardown, :teardown_with_fixtures
