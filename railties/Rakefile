@@ -252,6 +252,7 @@ end
 PKG_FILES = FileList[
   '[a-zA-Z]*',
   'bin/**/*', 
+  'builtin/**/*',
   'configs/**/*', 
   'doc/**/*', 
   'dispatches/**/*', 
