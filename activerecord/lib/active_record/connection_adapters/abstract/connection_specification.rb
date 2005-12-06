@@ -1,5 +1,4 @@
 module ActiveRecord
-  # The root class of all active record objects.
   class Base
     class ConnectionSpecification #:nodoc:
       attr_reader :config, :adapter_method
