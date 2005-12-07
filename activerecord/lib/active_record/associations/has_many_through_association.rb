@@ -37,6 +37,7 @@ module ActiveRecord
             
         def find_target
           @reflection.klass.find(:all, 
+            :select     => "#{@reflection.table_name}.*",
             :conditions => construct_conditions,
             :from       => construct_from,
             :order      => @reflection.options[:order], 
