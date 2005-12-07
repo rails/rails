@@ -10,6 +10,28 @@ module ActiveRecord
     # The class -> [adapter_method, config] map
     @@defined_connections = {}
 
+    # The class -> thread id -> adapter cache.
+    @@connection_cache = Hash.new { |h, k| h[k] = Hash.new }
+
+    # Returns the connection currently associated with the class. This can
+    # also be used to "borrow" the connection to do database work unrelated
+    # to any of the specific Active Records.
+    def self.connection
+      @@connection_cache[Thread.current.object_id][name] ||= retrieve_connection
+    end
+
+    # Clears the cache which maps classes to connections.
+    def self.clear_connection_cache!
+      @@connection_cache.clear
+    end
+
+    # Returns the connection currently associated with the class. This can
+    # also be used to "borrow" the connection to do database work that isn't
+    # easily done without going straight to SQL.
+    def connection
+      self.class.connection
+    end
+
     # Establishes the connection to the database. Accepts a hash as input where
     # the :adapter key must be specified with the name of a database adapter (in lower-case)
     # example for regular databases (MySQL, Postgresql, etc):
@@ -77,6 +99,8 @@ module ActiveRecord
       ar_super = ActiveRecord::Base.superclass
       until klass == ar_super
         if conn = active_connections[klass.name]
+          # Reconnect if the connection is inactive.
+          conn.reconnect! unless conn.active?
           return conn
         elsif conn = @@defined_connections[klass.name]
           klass.connection = conn
@@ -107,7 +131,8 @@ module ActiveRecord
     def self.remove_connection(klass=self)
       conn = @@defined_connections[klass.name]
       @@defined_connections.delete(klass.name)
-      active_connections[klass.name] = nil
+      @@connection_cache[Thread.current.object_id].delete(klass.name)
+      active_connections.delete(klass.name)
       @connection = nil
       conn.config if conn
     end

@@ -32,7 +32,7 @@ module ActiveRecord
       def adapter_name
         'Abstract'
       end
-      
+
       # Does this adapter support migrations?  Backend specific, as the
       # abstract adapter always returns +false+.
       def supports_migrations?
@@ -48,32 +48,44 @@ module ActiveRecord
       end
 
       def reset_runtime #:nodoc:
-        rt = @runtime
-        @runtime = 0
-        return rt
+        rt, @runtime = @runtime, 0
+        rt
       end
 
-      protected  
+
+      # CONNECTION MANAGEMENT ====================================
+
+      # Is this connection active and ready to perform queries?
+      def active?
+        true
+      end
+
+      # Close this connection and open a new one in its place.
+      def reconnect!
+      end
+
+
+      protected
         def log(sql, name)
-          begin
-            if block_given?
-              if @logger and @logger.level <= Logger::INFO
-                result = nil
-                seconds = Benchmark.realtime { result = yield }
-                @runtime += seconds
-                log_info(sql, name, seconds)
-                result
-              else
-                yield
-              end
+          if block_given?
+            if @logger and @logger.level <= Logger::INFO
+              result = nil
+              seconds = Benchmark.realtime { result = yield }
+              @runtime += seconds
+              log_info(sql, name, seconds)
+              result
             else
-              log_info(sql, name, 0)
-              nil
+              yield
             end
-          rescue Exception => e
-            log_info("#{e.message}: #{sql}", name, 0)
-            raise ActiveRecord::StatementInvalid, "#{e.message}: #{sql}"
+          else
+            log_info(sql, name, 0)
+            nil
           end
+        rescue Exception => e
+          # Log message and raise exception.
+          message = "#{e.class.name}: #{e.message}: #{sql}"
+          log_info(message, name, 0)
+          raise ActiveRecord::StatementInvalid, message
         end
 
         def log_info(sql, name, runtime)

@@ -1,14 +1,26 @@
 * SVN*
 
+* MySQL: work around ruby-mysql/mysql-ruby inconsistency with mysql.stat.  Eliminate usage of mysql.ping because it doesn't guarantee reconnect.  Explicitly close and reopen the connection instead.  [Jeremy Kemper]
+
+* When AbstractAdapter#log rescues an exception, attempt to detect and reconnect to an inactive database connection.  Connection adapter must respond to the active? and reconnect! instance methods.  Initial support for PostgreSQL, MySQL, and SQLite.  Make certain that all statements which may need reconnection are performed within a logged block: for example, this means no avoiding log(sql, name) { } if @logger.nil?  [Jeremy Kemper]
+
+* Firebird: active? and reconnect! methods for handling stale connections.  #428 [Ken Kunz <kennethkunz@gmail.com>]
+
 * Firebird: updated for FireRuby 0.4.0.  #3009 [Ken Kunz <kennethkunz@gmail.com>]
 
 * Introducing the Firebird adapter.  Quote columns and use attribute_condition more consistently.  Setup guide: http://wiki.rubyonrails.com/rails/pages/Firebird+Adapter  #1874 [Ken Kunz <kennethkunz@gmail.com>]
+
+* MySQL and PostgreSQL: active? compatibility with the pure-Ruby driver.  #428 [Jeremy Kemper]
+
+* Oracle: active? check pings the database rather than testing the last command status.  #428 [Michael Schoen]
 
 * SQLServer: resolve column aliasing/quoting collision when using limit or offset in an eager find.  #2974 [kajism@yahoo.com]
 
 * Reloading a model doesn't lose track of its connection.  #2996 [junk@miriamtech.com, Jeremy Kemper]
 
 * Fixed bug where using update_attribute after pushing a record to a habtm association of the object caused duplicate rows in the join table. #2888 [colman@rominato.com, Florian Weber, Michael Schoen]
+
+* MySQL: introduce :encoding option to specify the character set for client, connection, and results.  Only available for MySQL 4.1 and later with the mysql-ruby driver.  Do SHOW CHARACTER SET in mysql client to see available encodings.  #2975 [Shugo Maeda]
 
 * Add tasks to create, drop and rebuild the MySQL and PostgreSQL test  databases. [Marcel Molina Jr.]
 

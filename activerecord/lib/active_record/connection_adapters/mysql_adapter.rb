@@ -38,7 +38,17 @@ module ActiveRecord
 
       mysql = Mysql.init
       mysql.ssl_set(config[:sslkey], config[:sslcert], config[:sslca], config[:sslcapath], config[:sslcipher]) if config[:sslkey]
-      ConnectionAdapters::MysqlAdapter.new(mysql.real_connect(host, username, password, database, port, socket), logger, [host, username, password, database, port, socket])
+      if config[:encoding]
+        begin
+          mysql.options(Mysql::SET_CHARSET_NAME, config[:encoding])
+        rescue
+          raise ActiveRecord::ConnectionFailed, 'The :encoding option is only available for MySQL 4.1 and later with the mysql-ruby driver.  Again, this does not work with the ruby-mysql driver or MySQL < 4.1.'
+        end
+      end
+
+      conn = mysql.real_connect(host, username, password, database, port, socket)
+      conn.query("SET NAMES '#{config[:encoding]}'") if config[:encoding]
+      ConnectionAdapters::MysqlAdapter.new(conn, logger, [host, username, password, database, port, socket], mysql)
     end
   end
 
@@ -87,9 +97,10 @@ module ActiveRecord
         "MySQL server has gone away"
       ]
 
-      def initialize(connection, logger, connection_options=nil)
+      def initialize(connection, logger, connection_options=nil, mysql=Mysql)
         super(connection, logger)
         @connection_options = connection_options
+        @mysql = mysql
       end
 
       def adapter_name #:nodoc:
@@ -119,12 +130,21 @@ module ActiveRecord
 
       # QUOTING ==================================================
 
+      def quote(value, column = nil)
+        if value.kind_of?(String) && column && column.type == :binary
+          s = column.class.string_to_binary(value).unpack("H*")[0]
+          "x'#{s}'"
+        else
+          super
+        end
+      end
+
       def quote_column_name(name) #:nodoc:
         "`#{name}`"
       end
 
       def quote_string(string) #:nodoc:
-        Mysql::quote(string)
+        @mysql.quote(string)
       end
 
       def quoted_true
@@ -133,6 +153,31 @@ module ActiveRecord
       
       def quoted_false
         "0"
+      end
+
+
+      # CONNECTION MANAGEMENT ====================================
+
+      def active?
+        if @connection.respond_to?(:stat)
+          @connection.stat
+        else
+          @connection.query 'select 1'
+        end
+
+        # mysql-ruby doesn't raise an exception when stat fails.
+        if @connection.respond_to?(:errno)
+          @connection.errno.zero?
+        else
+          true
+        end
+      rescue Mysql::Error
+        false
+      end
+
+      def reconnect!
+        @connection.close rescue nil
+        connect
       end
 
 
@@ -148,22 +193,10 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil, retries = 2) #:nodoc:
-        unless @logger
-          @connection.query(sql)
-        else
-          log(sql, name) { @connection.query(sql) }
-        end
+        log(sql, name) { @connection.query(sql) }
       rescue ActiveRecord::StatementInvalid => exception
-        if LOST_CONNECTION_ERROR_MESSAGES.any? { |msg| exception.message.split(":").first =~ /^#{msg}/ }
-          @connection.real_connect(*@connection_options)
-          unless @logger
-            @connection.query(sql)
-          else
-            @logger.info "Retrying invalid statement with reopened connection"
-            log(sql, name) { @connection.query(sql) }
-          end
-        elsif exception.message.split(":").first =~ /Packets out of order/
-          raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem update mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information."
+        if exception.message.split(":").first =~ /Packets out of order/
+          raise ActiveRecord::StatementInvalid, "'Packets out of order' error was received from the database. Please update your mysql bindings (gem install mysql) and read http://dev.mysql.com/doc/mysql/en/password-hashing.html for more information.  If you're on Windows, use the Instant Rails installer to get the updated mysql bindings."
         else
           raise
         end
@@ -291,6 +324,19 @@ module ActiveRecord
 
 
       private
+        def connect
+          encoding = @config[:encoding]
+          if encoding
+            begin
+              @connection.options(Mysql::SET_CHARSET_NAME, encoding)
+            rescue
+              raise ActiveRecord::ConnectionFailed, 'The :encoding option is only available for MySQL 4.1 and later with the mysql-ruby driver.  Again, this does not work with the ruby-mysql driver or MySQL < 4.1.'
+            end
+          end
+          @connection.real_connect(*@connection_options)
+          execute("SET NAMES '#{encoding}'") if encoding
+        end
+
         def select(sql, name = nil)
           @connection.query_with_result = true
           result = execute(sql, name)
