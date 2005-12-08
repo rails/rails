@@ -197,7 +197,7 @@
       window.onload = function() {
         $('search-text').value = '';
         $('search').onsubmit = function() {
-          $('search-text').value = 'site:rubyonrails.com ' + $F('search-text');
+          $('search-text').value = 'site:rubyonrails.org ' + $F('search-text');
         }
       }
     </script>
@@ -209,7 +209,7 @@
           <li>
             <form id="search" action="http://www.google.com/search" method="get">
               <input type="hidden" name="hl" value="en" />
-              <input type="text" id="search-text" name="q" value="site:rubyonrails.com " />
+              <input type="text" id="search-text" name="q" value="site:rubyonrails.org " />
               <input type="submit" value="Search" /> the Rails site
             </form>
           </li>
@@ -217,23 +217,21 @@
           <li>
             <h3>Join the community</h3>
             <ul class="links">
-              <li><a href="http://www.rubyonrails.com/">Ruby on Rails</a></li>
-              <li><a href="http://weblog.rubyonrails.com/">Official weblog</a></li>
+              <li><a href="http://www.rubyonrails.org/">Ruby on Rails</a></li>
+              <li><a href="http://weblog.rubyonrails.org/">Official weblog</a></li>
               <li><a href="http://lists.rubyonrails.org/">Mailing lists</a></li>
-              <li><a href="http://wiki.rubyonrails.com/rails/pages/IRC">IRC channel</a></li>
-              <li><a href="http://wiki.rubyonrails.com/">Wiki</a></li>
-              <li><a href="http://dev.rubyonrails.com/">Bug tracker</a></li>
+              <li><a href="http://wiki.rubyonrails.org/rails/pages/IRC">IRC channel</a></li>
+              <li><a href="http://wiki.rubyonrails.org/">Wiki</a></li>
+              <li><a href="http://dev.rubyonrails.org/">Bug tracker</a></li>
             </ul>
           </li>
           
           <li>
             <h3>Browse the documentation</h3>
             <ul class="links">
-              <li><a href="http://manuals.rubyonrails.com/">Manuals</a></li>
-              <li><a href="http://api.rubyonrails.com/">All APIs</a></li>
-              <li><a href="http://ar.rubyonrails.com/">Active Record</a></li>
-              <li><a href="http://ap.rubyonrails.com/">Action Pack</a></li>
-              <li><a href="http://as.rubyonrails.com/">Active Support</a></li>
+              <li><a href="http://api.rubyonrails.org/">Rails API</a></li>
+              <li><a href="http://www.ruby-doc.org/stdlib/">Ruby standard library</a></li>
+              <li><a href="http://www.ruby-doc.org/core/">Ruby core</a></li>
             </ul>
           </li>
         </ul>
@@ -256,18 +254,18 @@
           
           <ol>
             <li>
-              <h2>Create your databases and edit <tt>database.yml</tt></h2>
-              <p>Instructions here</p>
+              <h2>Create your databases and edit <tt>config/database.yml</tt></h2>
+              <p>Rails needs to know your login and password.</p>
             </li>
           
             <li>
               <h2>Use <tt>script/generate</tt> to create your models and controllers</h2>
-              <p>Instructions here</p>
+              <p>To see all available options, run it without parameters.</p>
             </li>
             
             <li>
               <h2>Set up a default route and remove or rename this file</h2>
-              <p>Instructions here</p>
+              <p>Routes are setup in config/routes.rb.</p>
             </li>
           </ol>
         </div>

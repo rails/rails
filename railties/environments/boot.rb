@@ -1,3 +1,5 @@
+# Don't change this file. Configuration is done in config/environment.rb and config/environments/*.rb
+
 unless defined?(RAILS_ROOT)
   root_path = File.join(File.dirname(__FILE__), '..')
   unless RUBY_PLATFORM =~ /mswin32/
