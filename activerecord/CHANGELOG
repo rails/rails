@@ -1,5 +1,7 @@
 *SVN*
 
+* PostgreSQL: more robust sequence name discovery.  #3087 [Rick Olson]
+
 * Oracle: use syntax compatible with Oracle 8.  #3131 [Michael Schoen]
 
 * MySQL: work around ruby-mysql/mysql-ruby inconsistency with mysql.stat.  Eliminate usage of mysql.ping because it doesn't guarantee reconnect.  Explicitly close and reopen the connection instead.  [Jeremy Kemper]

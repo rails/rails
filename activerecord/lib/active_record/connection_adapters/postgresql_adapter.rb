@@ -251,7 +251,7 @@ module ActiveRecord
         # First try looking for a sequence with a dependency on the
         # given table's primary key.
         result = execute(<<-end_sql, 'PK and serial sequence')[0]
-          SELECT attr.attname, (name.nspname || '.' || seq.relname)
+          SELECT attr.attname, name.nspname, seq.relname
           FROM pg_class      seq,
                pg_attribute  attr,
                pg_depend     dep,
@@ -274,7 +274,7 @@ module ActiveRecord
           # the 8.1+ nextval('foo'::regclass).
           # TODO: assumes sequence is in same schema as table.
           result = execute(<<-end_sql, 'PK and custom sequence')[0]
-            SELECT attr.attname, (name.nspname || '.' || split_part(def.adsrc, '\\\'', 2))
+            SELECT attr.attname, name.nspname, split_part(def.adsrc, '\\\'', 2)
             FROM pg_class       t
             JOIN pg_namespace   name ON (t.relnamespace = name.oid)
             JOIN pg_attribute   attr ON (t.oid = attrelid)
@@ -285,7 +285,8 @@ module ActiveRecord
               AND def.adsrc ~* 'nextval'
           end_sql
         end
-        result
+        # check for existence of . in sequence name as in public.foo_sequence.  if it does not exist, join the current namespace
+        result.last['.'] ? [result.first, result.last] : [result.first, "#{result[1]}.#{result[2]}"]
       rescue
         nil
       end

@@ -1,10 +1,11 @@
+CREATE SEQUENCE public.accounts_id_seq START 100;
+
 CREATE TABLE accounts (
-    id serial,
+    id integer DEFAULT nextval('public.accounts_id_seq'),
     firm_id integer,
     credit_limit integer,
     PRIMARY KEY (id)
 );
-SELECT setval('accounts_id_seq', 100);
 
 CREATE SEQUENCE companies_nonstd_seq START 101;
 
