@@ -264,7 +264,7 @@ module HTML #:nodoc:
   
   # A CDATA node is simply a text node with a specialized way of displaying
   # itself.
-  class CDATA < Text
+  class CDATA < Text #:nodoc:
     def to_s
       "<![CDATA[#{super}]>"
     end
