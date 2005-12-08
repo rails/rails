@@ -1,5 +1,7 @@
 * SVN*
 
+* Reloading an instance refreshes its aggregations as well as its associations.  #3024 [FranÃ§ois Beausolei]
+
 * Fixed that using :include together with :conditions array in Base.find would cause NoMethodError #2887 [Paul Hammmond]
 
 * PostgreSQL: more robust sequence name discovery.  #3087 [Rick Olson]

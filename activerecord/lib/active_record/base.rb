@@ -1304,6 +1304,7 @@ module ActiveRecord #:nodoc:
 
       # Reloads the attributes of this object from the database.
       def reload
+        clear_aggregation_cache
         clear_association_cache
         @attributes.update(self.class.find(self.id).instance_variable_get('@attributes'))
         self
