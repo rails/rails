@@ -55,7 +55,7 @@ module ActiveRecord
           # the database path is not the special path that tells
           # Sqlite build a database only in memory.
           if Object.const_defined?(:RAILS_ROOT) && ':memory:' != config[:database]
-            config[:database] = File.expand_path(config[:database], RAILS_ROOT)
+            config[:database] = File.join(RAILS_ROOT, config[:database])
           end
         end
     end
