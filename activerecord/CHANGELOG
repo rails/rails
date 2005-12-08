@@ -1,5 +1,7 @@
 * SVN*
 
+* Fixed that using :include together with :conditions array in Base.find would cause NoMethodError #2887 [Paul Hammmond]
+
 * PostgreSQL: more robust sequence name discovery.  #3087 [Rick Olson]
 
 * Oracle: use syntax compatible with Oracle 8.  #3131 [Michael Schoen]

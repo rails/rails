@@ -980,9 +980,10 @@ module ActiveRecord
         end
 
         def include_eager_conditions?(options)
-          return false unless options[:conditions]
-          
-          options[:conditions].scan(/ ([^.]+)\.[^.]+ /).flatten.any? do |condition_table_name| 
+          conditions = options[:conditions]
+          return false unless conditions
+          conditions = conditions.first if conditions.is_a?(Array)
+          conditions.scan(/(\w+)\.\w+/).flatten.any? do |condition_table_name|
             condition_table_name != table_name
           end
         end
