@@ -44,4 +44,8 @@ class GpsLocation
   def longitude
     gps_location.split("x").last
   end
+
+  def ==(other)
+    self.latitude == other.latitude && self.longitude == other.longitude
+  end
 end

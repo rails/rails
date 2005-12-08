@@ -44,4 +44,23 @@ class AggregationsTest < Test::Unit::TestCase
     assert_equal "39", customers(:david).gps_location.latitude
     assert_equal "-110", customers(:david).gps_location.longitude
   end
+
+  def test_reloaded_instance_refreshes_aggregations
+    assert_equal "35.544623640962634", customers(:david).gps_location.latitude
+    assert_equal "-105.9309951055148", customers(:david).gps_location.longitude
+
+    Customer.update_all("gps_location = '24x113'")
+    customers(:david).reload
+    assert_equal '24x113', customers(:david)['gps_location']
+
+    assert_equal GpsLocation.new('24x113'), customers(:david).gps_location 
+  end
+
+  def test_gps_equality
+    assert GpsLocation.new('39x110') == GpsLocation.new('39x110')
+  end
+
+  def test_gps_inequality
+    assert GpsLocation.new('39x110') != GpsLocation.new('39x111')
+  end
 end

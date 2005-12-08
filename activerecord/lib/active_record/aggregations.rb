@@ -4,6 +4,12 @@ module ActiveRecord
       base.extend(ClassMethods)
     end
 
+    def clear_aggregation_cache #:nodoc:
+      self.class.reflect_on_all_aggregations.to_a.each do |assoc|
+        instance_variable_set "@#{assoc.name}", nil
+      end unless self.new_record?
+    end
+
     # Active Record implements aggregation through a macro-like class method called +composed_of+ for representing attributes 
     # as value objects. It expresses relationships like "Account [is] composed of Money [among other things]" or "Person [is]
     # composed of [an] address". Each call to the macro adds a description of how the value objects are created from the 
