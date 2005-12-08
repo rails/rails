@@ -1,4 +1,4 @@
-*SVN*
+*0.14.4 (RC5)* (December 7th, 2005)
 
 * Add builtin/ to the gemspec. Closes #3047. [Nicholas Seckar, Sam Stephenson]
 
@@ -47,6 +47,7 @@
 * Correct versioning in :freeze_gems Rake task.  #2778 [jakob@mentalized.net, Jeremy Kemper]
 
 * Added an omnipresent RailsInfoController with a properties action that delivers an HTML rendering of Rails::Info (but only when local_request? is true). Added a new default index.html which fetches this with Ajax. [Sam Stephenson]
+
 
 *0.14.3 (RC4)* (November 7th, 2005)
 

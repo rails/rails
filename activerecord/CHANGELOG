@@ -1,4 +1,4 @@
-* SVN*
+*1.13.1* (December 7th, 2005)
 
 * MySQL: more robust test for nullified result hashes.  #3124 [Stefan Kaes]
 
