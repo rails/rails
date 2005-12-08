@@ -1388,7 +1388,10 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert developer.save
     developer.projects << project
     developer.update_attribute("name", "Bruza")
-    assert_equal 1, developer.connection.select_one("SELECT count(*) FROM developers_projects WHERE 
-      project_id = #{project.id} AND developer_id = #{developer.id}")["count(*)"].to_i
+    assert_equal 1, Developer.connection.select_value(<<-end_sql).to_i
+      SELECT count(*) FROM developers_projects
+      WHERE project_id = #{project.id}
+      AND developer_id = #{developer.id}
+    end_sql
   end
 end
