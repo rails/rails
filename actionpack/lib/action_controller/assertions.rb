@@ -1,7 +1,7 @@
 require 'test/unit'
 require 'test/unit/assertions'
 require 'rexml/document'
-require "#{File.dirname(__FILE__)}/vendor/html-scanner/html/document"
+require File.dirname(__FILE__) + "/vendor/html-scanner/html/document"
 
 module Test #:nodoc:
   module Unit #:nodoc:

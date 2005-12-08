@@ -70,7 +70,7 @@ unless defined?(RAILS_CONNECTION_ADAPTERS)
 end
 
 RAILS_CONNECTION_ADAPTERS.each do |adapter|
-  require "active_record/connection_adapters/#{adapter}_adapter"
+  require "active_record/connection_adapters/" + adapter + "_adapter"
 end
 
 require 'active_record/query_cache'
