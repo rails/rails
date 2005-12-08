@@ -222,17 +222,23 @@ class EagerAssociationTest < Test::Unit::TestCase
 
   def test_preconfigured_includes_with_has_many
     posts = authors(:david).posts_with_comments
-    assert_equal 2, posts.first.comments.size
+    one = posts.detect { |p| p.id == 1 }
+    assert_equal 5, posts.size
+    assert_equal 2, one.comments.size
   end
 
   def test_preconfigured_includes_with_habtm
     posts = authors(:david).posts_with_categories
-    assert_equal 2, posts.first.categories.size
+    one = posts.detect { |p| p.id == 1 }
+    assert_equal 5, posts.size
+    assert_equal 2, one.categories.size
   end
 
   def test_preconfigured_includes_with_has_many_and_habtm
     posts = authors(:david).posts_with_comments_and_categories
-    assert_equal 2, posts.first.comments.size
-    assert_equal 2, posts.first.categories.size
+    one = posts.detect { |p| p.id == 1 }
+    assert_equal 5, posts.size
+    assert_equal 2, one.comments.size
+    assert_equal 2, one.categories.size
   end
 end
