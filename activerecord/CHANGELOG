@@ -1,5 +1,7 @@
 * SVN*
 
+* MySQL: more robust test for nullified result hashes.  #3124 [Stefan Kaes]
+
 * SQLite: find database file when RAILS_ROOT is a symlink.  #3116 [anna@wota.jp]
 
 * Reloading an instance refreshes its aggregations as well as its associations.  #3024 [FranÃ§ois Beausolei]

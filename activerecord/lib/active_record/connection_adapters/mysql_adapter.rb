@@ -8,14 +8,10 @@ module ActiveRecord
       unless defined? Mysql
         begin
           require_library_or_gem 'mysql'
-          # The C version of mysql returns null fields in each_hash if Mysql::VERSION is defined
-          ConnectionAdapters::MysqlAdapter.null_values_in_each_hash = Mysql.const_defined?(:VERSION)
         rescue LoadError => cannot_require_mysql
           # Only use the supplied backup Ruby/MySQL driver if no driver is already in place
           begin
             require 'active_record/vendor/mysql'
-            # The ruby version of mysql returns null fields in each_hash
-            ConnectionAdapters::MysqlAdapter.null_values_in_each_hash = true
           rescue LoadError
             raise cannot_require_mysql
           end
@@ -87,9 +83,6 @@ module ActiveRecord
       @@emulate_booleans = true
       cattr_accessor :emulate_booleans
 
-      cattr_accessor :null_values_in_each_hash
-      @@null_values_in_each_hash = false
-
       LOST_CONNECTION_ERROR_MESSAGES = [
         "Server shutdown in progress",
         "Broken pipe",
@@ -100,6 +93,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_options=nil, mysql=Mysql)
         super(connection, logger)
         @connection_options = connection_options
+        @null_values_in_each_hash = Mysql.const_defined?(:VERSION)
         @mysql = mysql
       end
 
@@ -341,7 +335,7 @@ module ActiveRecord
           @connection.query_with_result = true
           result = execute(sql, name)
           rows = []
-          if @@null_values_in_each_hash
+          if @null_values_in_each_hash
             result.each_hash { |row| rows << row }
           else
             all_fields = result.fetch_fields.inject({}) { |fields, f| fields[f.name] = nil; fields }
