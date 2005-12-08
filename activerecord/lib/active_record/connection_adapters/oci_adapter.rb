@@ -510,7 +510,7 @@ begin
 
   # The OCIConnectionFactory factors out the code necessary to connect and
   # configure an OCI connection.
-  class OCIConnectionFactory
+  class OCIConnectionFactory #:nodoc:
     def new_connection(username, password, host)
       conn = OCI8.new username, password, host
       conn.exec %q{alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'}
@@ -528,7 +528,7 @@ begin
   # this would be dangerous (as the earlier part of the implied transaction
   # may have failed silently if the connection died) -- so instead the 
   # connection is marked as dead, to be reconnected on it's next use.
-  class OCI8AutoRecover < DelegateClass(OCI8)
+  class OCI8AutoRecover < DelegateClass(OCI8) #:nodoc:
     attr_accessor :active
     alias :active? :active
 
