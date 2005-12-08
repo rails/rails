@@ -550,7 +550,7 @@ begin
     # checks the connection, while #active? simply returns the last
     # known state.
     def ping
-      @connection.commit
+      @connection.exec("select 1 from dual") { |r| nil }
       @active = true
     rescue
       @active = false
