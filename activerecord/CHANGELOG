@@ -1,5 +1,7 @@
 * SVN*
 
+* Oracle: use syntax compatible with Oracle 8.  #3131 [Michael Schoen]
+
 * MySQL: work around ruby-mysql/mysql-ruby inconsistency with mysql.stat.  Eliminate usage of mysql.ping because it doesn't guarantee reconnect.  Explicitly close and reopen the connection instead.  [Jeremy Kemper]
 
 * When AbstractAdapter#log rescues an exception, attempt to detect and reconnect to an inactive database connection.  Connection adapter must respond to the active? and reconnect! instance methods.  Initial support for PostgreSQL, MySQL, and SQLite.  Make certain that all statements which may need reconnection are performed within a logged block: for example, this means no avoiding log(sql, name) { } if @logger.nil?  [Jeremy Kemper]

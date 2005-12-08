@@ -339,11 +339,10 @@ begin
 
           table_cols = %Q{
             select column_name, data_type, data_default, nullable,
-                   case when data_type = 'NUMBER' then data_precision
-                        when data_type = 'VARCHAR2' then data_length
-                        else null end as length,
-                   case when data_type = 'NUMBER' then data_scale
-                        else null end as scale
+                   decode(data_type, 'NUMBER', data_precision,
+                                     'VARCHAR2', data_length,
+                                      null) as length,
+                   decode(data_type, 'NUMBER', data_scale, null) as scale
               from #{scope}_catalog cat, #{scope}_synonyms syn, all_tab_columns col
              where cat.table_name = #{table}
                and syn.synonym_name (+)= cat.table_name
@@ -515,7 +514,7 @@ begin
     def new_connection(username, password, host)
       conn = OCI8.new username, password, host
       conn.exec %q{alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'}
-      conn.exec %q{alter session set nls_timestamp_format = 'YYYY-MM-DD HH24:MI:SS'}
+      conn.exec %q{alter session set nls_timestamp_format = 'YYYY-MM-DD HH24:MI:SS'} rescue nil
       conn.autocommit = true
       conn
     end
