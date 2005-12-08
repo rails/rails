@@ -83,6 +83,12 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_equal [6,7,8], comments.collect { |c| c.id }
   end
   
+  def test_eager_association_loading_with_belongs_to_and_limit_and_offset_and_conditions_array
+    comments = Comment.find(:all, :include => :post, :conditions => ['post_id = ?',4], :limit => 3, :offset => 1, :order => 'comments.id')
+    assert_equal 3, comments.length
+    assert_equal [6,7,8], comments.collect { |c| c.id }
+  end
+
   def test_eager_association_loading_with_belongs_to_and_limit_and_multiple_associations
     posts = Post.find(:all, :include => [:author, :very_special_comment], :limit => 1)
     assert_equal 1, posts.length
@@ -99,6 +105,24 @@ class EagerAssociationTest < Test::Unit::TestCase
     posts = Post.find(:all, :order => 'posts.id asc', :include => [ :author, :comments ], :limit => 2)
     assert_equal 2, posts.size
     assert_equal 3, posts.inject(0) { |sum, post| sum += post.comments.size }
+  end
+
+  def test_eager_with_has_many_and_limit_and_conditions
+    posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => "posts.body = 'hello'", :order => "posts.id")
+    assert_equal 2, posts.size
+    assert_equal [4,5], posts.collect { |p| p.id }
+  end
+
+  def test_eager_with_has_many_and_limit_and_conditions_array
+    posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => [ "posts.body = ?", 'hello' ], :order => "posts.id")
+    assert_equal 2, posts.size
+    assert_equal [4,5], posts.collect { |p| p.id }    
+  end
+
+  def test_eager_with_has_many_and_limit_and_conditions_array_on_the_eagers
+    assert_raises(ArgumentError) do
+      posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => [ "authors.name = ?", 'David' ])
+    end
   end
 
   def test_eager_with_has_many_and_limit_with_no_results
