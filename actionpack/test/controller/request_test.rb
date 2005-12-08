@@ -100,6 +100,11 @@ class RequestTest < Test::Unit::TestCase
     @request.relative_url_root = nil
     @request.env['SCRIPT_NAME'] = "/collaboration/hieraki/dispatch.cgi"
     assert_equal "/collaboration/hieraki", @request.relative_url_root    
+    
+    # apache/scgi case
+    @request.relative_url_root = nil
+    @request.env['SCRIPT_NAME'] = "/collaboration/hieraki"
+    assert_equal "/collaboration/hieraki", @request.relative_url_root    
   end
   
   def test_request_uri

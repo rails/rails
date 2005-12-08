@@ -169,7 +169,8 @@ module ActionController
     # Returns the path minus the web server relative installation directory.
     # This method returns nil unless the web server is apache.
     def relative_url_root
-      @@relative_url_root ||= server_software == 'apache' ? File.dirname(env["SCRIPT_NAME"].to_s).gsub(/(^\.$|^\/$)/, '') : ''
+      @@relative_url_root ||= server_software == 'apache' ? env["SCRIPT_NAME"].to_s.sub(/\/dispatch\.(fcgi|rb|cgi)$/, '') : ''
+      
     end
 
     # Returns the port number of this request as an integer.
