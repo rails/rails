@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL, PostgreSQL: reconnect! also reconfigures the connection.  Otherwise, the connection 'loses' its settings if it times out and is reconnected.  #2978 [Shugo Maeda]
+
 * Oracle: active? performs a select instead of a commit.  #3133 [Michael Schoen]
 
 
