@@ -80,11 +80,10 @@ module ActiveRecord
         "MySQL server has gone away"
       ]
 
-      def initialize(connection, logger, connection_options=nil, config={})
+      def initialize(connection, logger, connection_options, config)
         super(connection, logger)
-        @connection_options = connection_options
+        @connection_options, @config = connection_options, config
         @null_values_in_each_hash = Mysql.const_defined?(:VERSION)
-        @config = config
         connect
       end
 
