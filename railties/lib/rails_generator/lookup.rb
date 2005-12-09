@@ -99,8 +99,8 @@ module Rails
         def use_component_sources!
           reset_sources
           if defined? ::RAILS_ROOT
-            sources << PathSource.new(:app, "#{::RAILS_ROOT}/lib/generators")
-            sources << PathSource.new(:app, "#{::RAILS_ROOT}/vendor/generators")
+            sources << PathSource.new(:lib, "#{::RAILS_ROOT}/lib/generators")
+            sources << PathSource.new(:vendor, "#{::RAILS_ROOT}/vendor/generators")
             sources << PathSource.new(:plugins, "#{::RAILS_ROOT}/vendor/plugins/**/generators")
           end
           sources << PathSource.new(:user, "#{Dir.user_home}/.rails/generators")
