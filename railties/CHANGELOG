@@ -1,3 +1,8 @@
+*SVN*
+
+* Generator copies files in binary mode.  #3156 [minimudboy@gmail.com]
+
+
 *0.14.4 (RC5)* (December 7th, 2005)
 
 * Add builtin/ to the gemspec. Closes #3047. [Nicholas Seckar, Sam Stephenson]

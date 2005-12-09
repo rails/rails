@@ -215,8 +215,8 @@ module Rails
           # if block given so templaters may render the source file.  If a
           # shebang is requested, replace the existing shebang or insert a
           # new one.
-          File.open(destination, 'w') do |df|
-            File.open(source) do |sf|
+          File.open(destination, 'wb') do |df|
+            File.open(source, 'rb') do |sf|
               if block_given?
                 df.write(yield(sf))
               else
