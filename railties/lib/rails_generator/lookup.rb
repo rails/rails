@@ -98,8 +98,11 @@ module Rails
         # 4.  Builtins.  Model, controller, mailer, scaffold.
         def use_component_sources!
           reset_sources
-          sources << PathSource.new(:app, "#{::RAILS_ROOT}/lib/generators") if defined? ::RAILS_ROOT
-          sources << PathSource.new(:plugins, "#{::RAILS_ROOT}/vendor/plugins/**/generators") if defined? ::RAILS_ROOT
+          if defined? ::RAILS_ROOT
+            sources << PathSource.new(:app, "#{::RAILS_ROOT}/lib/generators")
+            sources << PathSource.new(:app, "#{::RAILS_ROOT}/vendor/generators")
+            sources << PathSource.new(:plugins, "#{::RAILS_ROOT}/vendor/plugins/**/generators")
+          end
           sources << PathSource.new(:user, "#{Dir.user_home}/.rails/generators")
           sources << GemSource.new if Object.const_defined?(:Gem)
           sources << PathSource.new(:builtin, "#{File.dirname(__FILE__)}/generators/components")

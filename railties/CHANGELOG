@@ -1,5 +1,7 @@
 *SVN*
 
+* Generator looks in vendor/generators also.  [Chad Fowler]
+
 * Generator copies files in binary mode.  #3156 [minimudboy@gmail.com]
 
 
