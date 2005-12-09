@@ -1,5 +1,7 @@
 *SVN*
 
+* Generator copies files in binary mode.  #3156 [minimudboy@gmail.com]
+
 * Add builtin/ to the gemspec. Closes #3047. [Nicholas Seckar, Sam Stephenson]
 
 * Add install.rb file to plugin generation which is loaded, if it exists, when you install a plugin. [Marcel Molina Jr.]
