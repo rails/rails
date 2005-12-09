@@ -127,7 +127,7 @@ class Mysql
     flag |= @client_flag | CLIENT_CAPABILITIES
     flag |= CLIENT_CONNECT_WITH_DB if db
 
-    if !@server_capabilities & PROTO_AUTH41
+    if 0 == @server_capabilities & PROTO_AUTH41
       data = Net::int2str(flag)+Net::int3str(@max_allowed_packet)+
              (user||"")+"\0"+
                    scramble(passwd, @scramble_buff, @protocol_version==9)
@@ -139,13 +139,10 @@ class Mysql
              ([8] + Array.new(23, 0)).pack("c24") + (user||"")+"\0"+
              scramble41(passwd, @scramble_buff)
     end
-    
-    if db and @server_capabilities & CLIENT_CONNECT_WITH_DB != 0 then
-      if PROTO_AUTH41
-        data << db+"\0"
-      else
-        data << "\0"+db
-      end
+
+    if db and @server_capabilities & CLIENT_CONNECT_WITH_DB != 0
+      data << "\0" if 0 == @server_capabilities & PROTO_AUTH41
+      data << db
       @db = db.dup
     end
     write data
@@ -205,10 +202,10 @@ class Mysql
   end
 
   def change_user(user="", passwd="", db="")
-    if !@server_capabilities & PROTO_AUTH41
-    data = user+"\0"+scramble(passwd, @scramble_buff, @protocol_version==9)+"\0"+db
+    if 0 == @server_capabilities & PROTO_AUTH41
+      data = user+"\0"+scramble(passwd, @scramble_buff, @protocol_version==9)+"\0"+db
     else
-      data = user+"\0"+ scramble41(passwd, @scramble_buff)
+      data = user+"\0"+scramble41(passwd, @scramble_buff)+db
     end
     command COM_CHANGE_USER, data
     @user = user
@@ -270,8 +267,8 @@ class Mysql
 
   def list_fields(table, field=nil)
     command COM_FIELD_LIST, "#{table}\0#{field}", true
-    if !@server_capabilities & PROTO_AUTH41
-    f = read_rows 6
+    if 0 == @server_capabilities & PROTO_AUTH41
+      f = read_rows 6
     else
       f = read_rows 7
     end
@@ -284,8 +281,8 @@ class Mysql
   def list_processes()
     data = command COM_PROCESS_INFO
     @field_count = get_length data
-    if !@server_capabilities & PROTO_AUTH41
-    fields = read_rows 5
+    if 0 == @server_capabilities & PROTO_AUTH41
+      fields = read_rows 5
     else
       fields = read_rows 7
     end
@@ -402,8 +399,8 @@ class Mysql
       end
     else
       @extra_info = get_length(data, true)
-      if !@server_capabilities & PROTO_AUTH41
-      fields = read_rows 5
+      if 0 == @server_capabilities & PROTO_AUTH41
+        fields = read_rows(5)
       else
         fields = read_rows(7)
       end
@@ -416,20 +413,20 @@ class Mysql
   def unpack_fields(data, long_flag_protocol)
     ret = []
     data.each do |f|
-      if !@server_capabilities & PROTO_AUTH41
-      table = org_table = f[0]
-      name = f[1]
-      length = f[2][0]+f[2][1]*256+f[2][2]*256*256
-      type = f[3][0]
-      if long_flag_protocol then
-	flags = f[4][0]+f[4][1]*256
-	decimals = f[4][2]
-      else
-	flags = f[4][0]
-	decimals = f[4][1]
-      end
-      def_value = f[5]
-      max_length = 0
+      if 0 == @server_capabilities & PROTO_AUTH41
+        table = org_table = f[0]
+        name = f[1]
+        length = f[2][0]+f[2][1]*256+f[2][2]*256*256
+        type = f[3][0]
+        if long_flag_protocol then
+          flags = f[4][0]+f[4][1]*256
+          decimals = f[4][2]
+        else
+          flags = f[4][0]
+          decimals = f[4][1]
+        end
+        def_value = f[5]
+        max_length = 0
       else
         catalog = f[0]
         db = f[1]
@@ -443,8 +440,8 @@ class Mysql
         decimals = f[6][9]
         def_value = ""
         max_length = 0
-      ret << Field::new(table, org_table, name, length, type, flags, decimals, def_value, max_length)
-    end
+        ret << Field::new(table, org_table, name, length, type, flags, decimals, def_value, max_length)
+      end
     end
     ret
   end
@@ -548,16 +545,13 @@ class Mysql
   end
 
   def scramble41(password, message)
-    if password.length != 0
-      buf = [0x14]
-      s1 = Digest::SHA1.new(password).digest
-      s2 = Digest::SHA1.new(s1).digest
-      x = Digest::SHA1.new(message + s2).digest
-      (0..s1.length - 1).each {|i| buf.push(s1[i] ^ x[i])}
-      buf.pack("C*")
-    else
-      0x00.chr
-    end
+    return 0x00.chr if password.nil? or password.empty?
+    buf = [0x14]
+    s1 = Digest::SHA1.new(password).digest
+    s2 = Digest::SHA1.new(s1).digest
+    x = Digest::SHA1.new(message + s2).digest
+    (0..s1.length - 1).each {|i| buf.push(s1[i] ^ x[i])}
+    buf.pack("C*")
   end
 
   def error(errno)
