@@ -68,6 +68,7 @@ module ActiveRecord
           when /binary|image|varbinary/i                             then :binary
           when /char|nchar|nvarchar|string|varchar/i                 then :string
           when /bit/i                                                then :boolean
+          when /uniqueidentifier/i                                   then :string
         end
       end
 
@@ -233,6 +234,9 @@ module ActiveRecord
       end
 
       def columns(table_name, name = nil)
+        return [] if table_name.blank?
+        table_name = table_name.to_s if table_name.is_a?(Symbol)
+        table_name = table_name.split('.')[-1] unless table_name.nil?
         sql = "SELECT COLUMN_NAME as ColName, COLUMN_DEFAULT as DefaultValue, DATA_TYPE as ColType, COL_LENGTH('#{table_name}', COLUMN_NAME) as Length, COLUMNPROPERTY(OBJECT_ID('#{table_name}'), COLUMN_NAME, 'IsIdentity') as IsIdentity, NUMERIC_SCALE as Scale FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '#{table_name}'"
         # Comment out if you want to have the Columns select statment logged.
         # Personnally, I think it adds unneccessary bloat to the log. 
@@ -347,7 +351,7 @@ module ActiveRecord
 
       def add_limit_offset!(sql, options)
         if options[:limit] and options[:offset]
-          total_rows = @connection.select_all("SELECT count(*) as TotalRows from (#{sql.gsub(/SELECT/i, "SELECT TOP 1000000000")}) tally")[0][:TotalRows].to_i
+          total_rows = @connection.select_all("SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT\b/i, "SELECT TOP 1000000000")}) tally")[0][:TotalRows].to_i
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
@@ -509,9 +513,9 @@ module ActiveRecord
 
         def change_order_direction(order)
           case order
-            when  /DESC/i     then order.gsub(/DESC/i, "ASC")
-            when  /ASC/i      then order.gsub(/ASC/i, "DESC")
-            else                   String.new(order).split(',').join(' DESC,') + ' DESC'
+            when  /\bDESC\b/i     then order.gsub(/\bDESC\b/i, "ASC")
+            when  /\bASC\b/i      then order.gsub(/\bASC\b/i, "DESC")
+            else                  String.new(order).split(',').join(' DESC,') + ' DESC'
           end
         end
 
