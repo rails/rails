@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL: fixes for the bundled mysql.rb driver.  #3160 [Justin Forder]
+
 * SQLServer: fix obscure optimistic locking bug.  #3068 [kajism@yahoo.com]
 
 * SQLServer: support uniqueidentifier columns.  #2930 [keithm@infused.org]
