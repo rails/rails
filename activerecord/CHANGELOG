@@ -1,5 +1,15 @@
 *SVN*
 
+* SQLServer: fix obscure optimistic locking bug.  #3068 [kajism@yahoo.com]
+
+* SQLServer: support uniqueidentifier columns.  #2930 [keithm@infused.org]
+
+* SQLServer: cope with tables names qualified by owner.  #3067 [jeff@ministrycentered.com]
+
+* SQLServer: cope with columns with "desc" in the name.  #1950 [Ron Lusk, Ryan Tomayko]
+
+* SQLServer: cope with primary keys with "select" in the name.  #3057 [rdifrango@captechventures.com]
+
 * Oracle: active? performs a select instead of a commit.  #3133 [Michael Schoen]
 
 * MySQL: more robust test for nullified result hashes.  #3124 [Stefan Kaes]
