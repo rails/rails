@@ -170,6 +170,13 @@ module ActionView
         tag("form", options[:html], true)
       end
       
+      # Works like form_remote_tag, but uses form_for semantics.
+      def form_remote_for(object_name, object, options = {}, &proc)
+        concat(form_remote_tag(options), proc.binding)
+        fields_for(object_name, object, &proc)
+        concat(end_form_tag, proc.binding)
+      end
+      
       # Returns a button input tag that will submit form using XMLHttpRequest 
       # in the background instead of regular reloading POST arrangement. 
       # <tt>options</tt> argument is the same as in <tt>form_remote_tag</tt>.
@@ -235,7 +242,6 @@ module ActionView
       #
       # See also JavaScriptGenerator and update_page.
       def update_element_function(element_id, options = {}, &block)
-        
         content = escape_javascript(options[:content] || '')
         content = escape_javascript(capture(&block)) if block
         
