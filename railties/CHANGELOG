@@ -2,8 +2,6 @@
 
 * Update instructions on how to find and install generators. #3172. [Chad Fowler]
 
-* Update instructions on how to find and install generators. #3172. [Chad Fowler]
-
 * Generator looks in vendor/generators also.  [Chad Fowler]
 
 * Generator copies files in binary mode.  #3156 [minimudboy@gmail.com]
