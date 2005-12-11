@@ -58,7 +58,7 @@ module ActiveRecord
           else
             conditions = 
               "#{@reflection.klass.table_name}.#{@reflection.klass.primary_key} = #{through_reflection.table_name}.#{@reflection.klass.to_s.foreign_key} " +
-              "AND #{through_reflection.table_name}.#{@owner.to_s.foreign_key} = #{@owner.quoted_id}"
+              "AND #{through_reflection.table_name}.#{@owner.class.to_s.foreign_key} = #{@owner.quoted_id}"
           end
           
           conditions << " AND (#{interpolate_sql(sanitize_sql(@reflection.options[:conditions]))})" if @reflection.options[:conditions]

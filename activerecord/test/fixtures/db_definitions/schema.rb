@@ -10,4 +10,10 @@ ActiveRecord::Schema.define do
     t.column "name", :string
   end
 
+  create_table "categorizations", :force => true do |t|
+    t.column "category_id", :integer
+    t.column "post_id", :integer
+    t.column "author_id", :integer
+  end
+
 end
