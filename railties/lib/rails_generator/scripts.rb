@@ -69,8 +69,8 @@ end_blurb
        #{$0} login
 
 Generator gems are also available:
-  1. gem list generator -s http://gems.rubyonrails.org
-  2. gem install login_generator -s http://gems.rubyonrails.org
+  1. gem search -r generator
+  2. gem install login_generator
   3. #{$0} login
 
 end_blurb
