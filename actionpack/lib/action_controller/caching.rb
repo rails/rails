@@ -514,8 +514,8 @@ module ActionController #:nodoc:
         end
       end
     end
-    
-    if defined?(ActiveRecord::Observer)
+
+    if defined?(ActiveRecord) and defined?(ActiveRecord::Observer)
       class Sweeper < ActiveRecord::Observer #:nodoc:
         attr_accessor :controller
         
