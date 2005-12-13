@@ -26,8 +26,6 @@
 
 * MySQL: more robust test for nullified result hashes.  #3124 [Stefan Kaes]
 
-* SQLite: find database file when RAILS_ROOT is a symlink.  #3116 [anna@wota.jp]
-
 * Reloading an instance refreshes its aggregations as well as its associations.  #3024 [FranÃ§ois Beausolei]
 
 * Fixed that using :include together with :conditions array in Base.find would cause NoMethodError #2887 [Paul Hammmond]
