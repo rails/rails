@@ -77,6 +77,8 @@ module ActiveRecord
             options[:order] = @reflection.options[:order]
           end
 
+          merge_options_from_reflection!(options)
+
           # Pass through args exactly as we received them.
           args << options
           @reflection.klass.find(*args)
@@ -107,14 +109,7 @@ module ActiveRecord
           if @reflection.options[:finder_sql]
             @reflection.klass.find_by_sql(@finder_sql)
           else
-            @reflection.klass.find(:all, 
-              :conditions => @finder_sql,
-              :order      => @reflection.options[:order], 
-              :limit      => @reflection.options[:limit],
-              :joins      => @reflection.options[:joins],
-              :include    => @reflection.options[:include],
-              :group      => @reflection.options[:group]
-            )
+            find(:all)
           end
         end
 
@@ -128,6 +123,10 @@ module ActiveRecord
           end
           
           @target = [] and loaded if count == 0
+          
+          if @reflection.options[:limit]
+            count = [ @reflection.options[:limit], count ].min
+          end
           
           return count
         end
@@ -171,7 +170,7 @@ module ActiveRecord
                 "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_id = #{@owner.quoted_id} AND " + 
                 "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_type = '#{ActiveRecord::Base.send(:class_name_of_active_record_descendant, @owner.class).to_s}'"
               @finder_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
-
+            
             else
               @finder_sql = "#{@reflection.klass.table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
               @finder_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions

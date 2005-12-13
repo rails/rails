@@ -16,6 +16,8 @@ module ActiveRecord
           options[:order] = @reflection.options[:order]
         end
 
+        merge_options_from_reflection!(options)
+
         # Pass through args exactly as we received them.
         args << options
         @reflection.klass.find(*args)

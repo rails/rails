@@ -49,6 +49,8 @@ module ActiveRecord
             options[:order] = @reflection.options[:order]
           end
 
+          merge_options_from_reflection!(options)
+
           # Pass through args exactly as we received them.
           args << options
           @reflection.klass.find(*args)
@@ -88,7 +90,7 @@ module ActiveRecord
           if @reflection.options[:finder_sql]
             records = @reflection.klass.find_by_sql(@finder_sql)
           else
-            records = find(:all, :include => @reflection.options[:include])
+            records = find(:all)
           end
           
           @reflection.options[:uniq] ? uniq(records) : records

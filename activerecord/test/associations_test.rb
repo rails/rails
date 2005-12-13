@@ -281,6 +281,12 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 2, Firm.find(:first).clients.length
   end
 
+  def test_find_many_with_merged_options
+    assert_equal 1, companies(:first_firm).limited_clients.size
+    assert_equal 1, companies(:first_firm).limited_clients.find(:all).size
+    assert_equal 2, companies(:first_firm).limited_clients.find(:all, :limit => nil).size
+  end
+
   def test_triple_equality
     assert !(Array === Firm.find(:first).clients)
     assert Firm.find(:first).clients === Array
@@ -669,7 +675,6 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     companies(:first_firm).destroy
     assert_equal num_accounts - 1, Account.count
   end
-
 
   def test_depends_and_nullify
     num_accounts = Account.count
@@ -1342,6 +1347,11 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal developers(:david), projects(:active_record).developers_with_finder_sql.find(developers(:david).id.to_s), "SQL find"
   end
 
+  def test_find_with_merged_options
+    assert_equal 1, projects(:active_record).limited_developers.size
+    assert_equal 1, projects(:active_record).limited_developers.find(:all).size
+    assert_equal 2, projects(:active_record).limited_developers.find(:all, :limit => nil).size
+  end
 
   def test_new_with_values_in_collection
     jamis = DeveloperForProjectWithAfterCreateHook.find_by_name('Jamis')

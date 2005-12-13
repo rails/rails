@@ -1,5 +1,17 @@
 *SVN*
 
+* Added option inheritance for find calls on has_and_belongs_to_many and has_many assosociations [DHH]. Example:
+
+    class Post
+      has_many :recent_comments, :class_name => "Comment", :limit => 10, :include => :author
+    end
+    
+    post.recent_comments.find(:all) # Uses LIMIT 10 and includes authors
+    post.recent_comments.find(:all, :limit => nil) # Uses no limit but include authors
+    post.recent_comments.find(:all, :limit => nil, :include => nil) # Uses no limit and doesn't include authors
+
+* Added option to specify :group, :limit, :offset, and :select options from find on has_and_belongs_to_many and has_many assosociations [DHH]
+
 * MySQL: fixes for the bundled mysql.rb driver.  #3160 [Justin Forder]
 
 * SQLServer: fix obscure optimistic locking bug.  #3068 [kajism@yahoo.com]

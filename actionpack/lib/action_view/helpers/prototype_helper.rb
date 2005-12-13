@@ -169,7 +169,13 @@ module ActionView
 
         tag("form", options[:html], true)
       end
-      
+
+      def form_remote_for(object_name, object, options = {}, &proc)
+        concat(form_remote_tag(options), proc.binding)
+        fields_for(object_name, object, &proc)
+        concat(end_form_tag, proc.binding)
+      end
+
       # Works like form_remote_tag, but uses form_for semantics.
       def form_remote_for(object_name, object, options = {}, &proc)
         concat(form_remote_tag(options), proc.binding)

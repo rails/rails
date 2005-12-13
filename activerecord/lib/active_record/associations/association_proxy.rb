@@ -73,6 +73,17 @@ module ActiveRecord
         def extract_options_from_args!(args)
           @owner.send(:extract_options_from_args!, args)
         end
+
+        def merge_options_from_reflection!(options)
+          options.reverse_merge!(
+            :group   => @reflection.options[:group],
+            :limit   => @reflection.options[:limit],
+            :offset  => @reflection.options[:offset],
+            :joins   => @reflection.options[:joins],
+            :include => @reflection.options[:include],
+            :select  => @reflection.options[:select]
+          )
+        end
         
       private
         def method_missing(method, *args, &block)
