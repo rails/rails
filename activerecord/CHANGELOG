@@ -1,4 +1,6 @@
-*SVN*
+*1.13.2* (December 13th, 2005)
+
+* Become part of Rails 1.0
 
 * MySQL: fixes for the bundled mysql.rb driver.  #3160 [Justin Forder]
 

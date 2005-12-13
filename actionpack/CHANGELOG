@@ -1,3 +1,8 @@
+*1.1.2* (December 13th, 2005)
+
+* Become part of Rails 1.0
+
+
 *1.11.1* (December 7th, 2005)
 
 * More robust relative url root discovery for SCGI compatibility.  This solves the 'SCGI routes problem' -- you no longer need to prefix all your routes with the name of the SCGI mountpoint.  #3070 [Dave Ringoen]

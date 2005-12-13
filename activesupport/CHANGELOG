@@ -1,3 +1,8 @@
+*1.2.5* (December 13th, 2005)
+
+* Become part of Rails 1.0
+
+
 *1.2.4* (December 7th, 2005)
 
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
