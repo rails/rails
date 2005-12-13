@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to Prototype 1.4.0 final [Sam Stephenson]
+
 * Added form_remote_for (form_for meets form_remote_tag) [DHH]
 
 * Update to script.aculo.us 1.5.0_rc6
