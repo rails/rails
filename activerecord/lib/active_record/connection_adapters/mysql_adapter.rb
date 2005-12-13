@@ -311,11 +311,7 @@ module ActiveRecord
         def connect
           encoding = @config[:encoding]
           if encoding
-            begin
-              @connection.options(Mysql::SET_CHARSET_NAME, encoding)
-            rescue
-              raise ActiveRecord::ConnectionFailed, 'The :encoding option is only available for MySQL 4.1 and later with the mysql-ruby driver.  Again, this does not work with the ruby-mysql driver or MySQL < 4.1.'
-            end
+            @connection.options(Mysql::SET_CHARSET_NAME, encoding) rescue nil
           end
           @connection.real_connect(*@connection_options)
           execute("SET NAMES '#{encoding}'") if encoding

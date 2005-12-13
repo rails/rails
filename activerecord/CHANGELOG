@@ -1,5 +1,7 @@
 *SVN*
 
+* MySQL: allow encoding option for mysql.rb driver.  [Jeremy Kemper]
+
 * Added option inheritance for find calls on has_and_belongs_to_many and has_many assosociations [DHH]. Example:
 
     class Post
