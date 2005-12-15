@@ -1,5 +1,16 @@
 *SVN*
 
+* Add Object#with_options for DRYing up multiple calls to methods having shared options. [Sam Stephenson]  Example:
+
+  ActionController::Routing::Routes.draw do |map|
+    # Account routes
+    map.with_options(:controller => 'account') do |account|
+      account.home   '',       :action => 'dashboard'
+      account.signup 'signup', :action => 'new'
+      account.logout 'logout', :action => 'logout'
+    end
+  end
+
 * Introduce Dependencies.warnings_on_first_load setting.  If true, enables warnings on first load of a require_dependency.  Otherwise, loads without warnings.  Disabled (set to false) by default.  [Jeremy Kemper]
 
 * Active Support is warnings-safe.  #1792 [Eric Hodel]
