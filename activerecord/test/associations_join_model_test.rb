@@ -14,7 +14,15 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   def test_has_many
     assert_equal categories(:general), authors(:david).categories.first
   end
+  
+  def test_has_many_inherited
+    assert_equal categories(:sti_test), authors(:mary).categories.first
+  end
 
+  def test_inherited_has_many
+    assert_equal authors(:mary), categories(:sti_test).authors.first
+  end
+  
   def test_polymorphic_has_many
     assert_equal taggings(:welcome_general), posts(:welcome).taggings.first
   end
@@ -25,5 +33,10 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
 
   def test_polymorphic_has_many_going_through_join_model
     assert_equal tags(:general), posts(:welcome).tags.first
-  end  
+  end
+  
+  def test_polymorphic_has_many_going_through_join_model_with_inheritance
+    assert_equal tags(:general), posts(:thinking).tags.first
+  end
+    
 end

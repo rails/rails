@@ -4,6 +4,9 @@ class Category < ActiveRecord::Base
   def self.what_are_you
     'a category...'
   end
+  
+  has_many :categorizations
+  has_many :authors, :through => :categorizations  
 end
 
 class SpecialCategory < Category
