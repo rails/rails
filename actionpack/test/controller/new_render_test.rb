@@ -209,7 +209,10 @@ class NewRenderTestController < ActionController::Base
              "accessing_params_in_template",
              "accessing_params_in_template_with_layout",
              "render_with_explicit_template",
-             "test_rendering_rjs_action_explicitly"
+             "render_js_with_explicit_template",
+             "render_js_with_explicit_action_template",
+             "delete_with_js"
+    
           "layouts/standard"
         when "builder_layout_test"
           "layouts/builder"

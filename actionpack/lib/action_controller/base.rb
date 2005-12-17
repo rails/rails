@@ -937,7 +937,17 @@ module ActionController #:nodoc:
       end
 
       def default_template_name(default_action_name = action_name)
+        default_action_name = default_action_name.dup
+        strip_out_controller!(default_action_name) if template_path_includes_controller?(default_action_name)
         "#{self.class.controller_path}/#{default_action_name}"
+      end
+      
+      def strip_out_controller!(path)
+        path.replace path.split('/', 2).last
+      end
+      
+      def template_path_includes_controller?(path)
+        path.to_s['/'] && self.class.controller_path.split('/')[-1] == path.split('/')[0]
       end
   end
 end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't include a layout when rendering an rjs template using render's :template option. [Marcel Molina Jr.]
+
 * Update to script.aculo.us 1.5.0 final (equals 1.5.0_rc6) [Thomas Fuchs]
 
 * Update to Prototype 1.4.0 final [Sam Stephenson]
