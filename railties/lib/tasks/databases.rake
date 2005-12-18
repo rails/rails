@@ -128,6 +128,10 @@ def prepare_test_database_task
    :ruby => :clone_schema_to_test}[ActiveRecord::Base.schema_format]
 end
 
+def session_table_name
+  ActiveRecord::Base.pluralize_table_names ? :sessions : :session
+end
+
 desc 'Prepare the test database and load the schema'
 task :prepare_test_database => :environment do
   Rake::Task[prepare_test_database_task].invoke
@@ -137,20 +141,20 @@ desc "Creates a sessions table for use with CGI::Session::ActiveRecordStore"
 task :create_sessions_table => :environment do
   raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
 
-  ActiveRecord::Base.connection.create_table :sessions do |t|
+  ActiveRecord::Base.connection.create_table session_table_name do |t|
     t.column :session_id, :string
     t.column :data, :text
     t.column :updated_at, :datetime
   end
   
-  ActiveRecord::Base.connection.add_index :sessions, :session_id
+  ActiveRecord::Base.connection.add_index session_table_name, :session_id
 end
 
 desc "Drop the sessions table"
 task :drop_sessions_table => :environment do
   raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
   
-  ActiveRecord::Base.connection.drop_table :sessions
+  ActiveRecord::Base.connection.drop_table session_table_name
 end
 
 desc "Drop and recreate the session table (much faster than 'DELETE * FROM sessions')"

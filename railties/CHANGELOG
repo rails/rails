@@ -1,5 +1,7 @@
 *SVN*
 
+* Honor ActiveRecord::Base.pluralize_table_names when creating and destroying session store table. #3204. [rails@bencurtis.com, Marcel Molina Jr.]
+
 * Update to script.aculo.us 1.5.0 final (equals 1.5.0_rc6) [Thomas Fuchs]
 
 * Update to Prototype 1.4.0 final [Sam Stephenson]
