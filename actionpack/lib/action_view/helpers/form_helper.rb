@@ -68,7 +68,7 @@ module ActionView
       # Creates a form and a scope around a specific model object, which is then used as a base for questioning about
       # values for the fields. Examples:
       #
-      #   <% form_for :person => @person, :url => { :action => "update" } do |f| %>
+      #   <% form_for :person, @person, :url => { :action => "update" } do |f| %>
       #     First name: <%= f.text_field :first_name %>
       #     Last name : <%= f.text_field :last_name %>
       #     Biography : <%= f.text_area :biography %>
