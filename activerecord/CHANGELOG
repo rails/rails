@@ -1,5 +1,7 @@
 *SVN*
 
+* removed :piggyback in favor of just allowing :select on :through associations. [Tobias Luetke]
+
 * made method missing delegation to class methods on relation target work on :through associations. [Tobias Luetke]
 
 * made .find() work on :through relations. [Tobias Luetke]

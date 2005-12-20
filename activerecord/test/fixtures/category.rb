@@ -6,7 +6,7 @@ class Category < ActiveRecord::Base
   end
   
   has_many :categorizations
-  has_many :authors, :through => :categorizations, :piggyback => [:post_id]  
+  has_many :authors, :through => :categorizations, :select => 'authors.*, categorizations.post_id'
 end
 
 class SpecialCategory < Category

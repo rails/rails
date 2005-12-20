@@ -85,11 +85,7 @@ module ActiveRecord
         end
         
         def construct_select
-          selected = ["#{@reflection.table_name}.*"]          
-          if @reflection.options[:piggyback]
-            selected += [@reflection.options[:piggyback]].flatten.collect { |field| "#{@owner.class.reflections[@reflection.options[:through]].table_name}.#{field}" } 
-          end
-          selected.join(', ')
+          selected = @reflection.options[:select] || "#{@reflection.table_name}.*"          
         end
         
         def construct_scope
