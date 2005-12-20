@@ -39,7 +39,7 @@ module ActiveRecord
             
         def find_target
           @reflection.klass.find(:all, 
-            :select     => "#{@reflection.table_name}.*",
+            :select     => construct_select,
             :conditions => construct_conditions,
             :from       => construct_from,
             :order      => @reflection.options[:order], 
@@ -71,6 +71,14 @@ module ActiveRecord
 
         def construct_from
           "#{@reflection.table_name}, #{@owner.class.reflections[@reflection.options[:through]].table_name}"
+        end
+        
+        def construct_select
+          selected = ["#{@reflection.table_name}.*"]          
+          if @reflection.options[:piggyback]
+            selected += [@reflection.options[:piggyback]].flatten.collect { |field| "#{@owner.class.reflections[@reflection.options[:through]].table_name}.#{field}" } 
+          end
+          selected.join(', ')
         end
         
         def construct_scope

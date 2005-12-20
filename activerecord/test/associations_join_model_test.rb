@@ -38,5 +38,9 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   def test_polymorphic_has_many_going_through_join_model_with_inheritance
     assert_equal tags(:general), posts(:thinking).tags.first
   end
+  
+  def test_has_many_with_piggyback
+    assert_equal "2", categories(:sti_test).authors.first.post_id
+  end
     
 end

@@ -881,7 +881,7 @@ module ActiveRecord
             :class_name, :table_name, :foreign_key,
             :exclusively_dependent, :dependent,
             :select, :conditions, :include, :order, :group, :limit, :offset,
-            :as, :through,
+            :as, :through, :piggyback, 
             :finder_sql, :counter_sql, 
             :before_add, :after_add, :before_remove, :after_remove, 
             :extend
