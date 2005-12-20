@@ -454,6 +454,11 @@ module ActionView
           call 'Element.hide', *ids
         end
         
+        # Toggles the visibility of the DOM elements with the given +ids+.
+        def toggle(*ids)
+          call 'Element.toggle', *ids
+        end
+        
         # Displays an alert dialog with the given +message+.
         def alert(message)
           call 'alert', message
