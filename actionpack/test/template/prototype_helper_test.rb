@@ -192,6 +192,15 @@ class JavaScriptGeneratorTest < Test::Unit::TestCase
       @generator.hide('foo', 'bar', 'baz')
   end
   
+  def test_alert
+    assert_equal 'alert("hello");', @generator.alert('hello')
+  end
+  
+  def test_redirect_to
+    assert_equal 'window.location.href = "http://www.example.com/welcome";',
+      @generator.redirect_to(:action => 'welcome')
+  end
+  
   def test_to_s
     @generator.insert_html(:top, 'element', '<p>This is a test</p>')
     @generator.insert_html(:bottom, 'element', '<p>This is a test</p>')

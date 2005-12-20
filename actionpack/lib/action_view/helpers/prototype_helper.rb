@@ -422,8 +422,8 @@ module ActionView
         #   insert_html :bottom, 'list', '<li>Last item</li>'
         #
         def insert_html(position, id, *options_for_render)
-          html = render(*options_for_render)
-          record "new Insertion.#{position.to_s.camelize}(#{id.inspect}, #{html.inspect})"
+          insertion = position.to_s.camelize
+          call "new Insertion.#{insertion}", id, render(*options_for_render)
         end
   
         # Replaces the inner HTML of the DOM element with the given +id+.
@@ -436,25 +436,51 @@ module ActionView
         #   replace_html 'person-45', :partial => 'person', :object => @person
         #
         def replace_html(id, *options_for_render)
-          html = render(*options_for_render)
-          record "Element.update(#{id.inspect}, #{html.inspect})"
+          call 'Element.update', id, render(*options_for_render)
         end
   
         # Removes the DOM elements with the given +ids+ from the page.
         def remove(*ids)
-          record "#{ids.inspect}.each(Element.remove)"
+          record "#{javascript_object_for(ids)}.each(Element.remove)"
         end
   
         # Shows hidden DOM elements with the given +ids+.
         def show(*ids)
-          record "Element.show(#{ids.map {|id| id.inspect} * ', '})"
+          call 'Element.show', *ids
         end
   
         # Hides the visible DOM elements with the given +ids+.
         def hide(*ids)
-          record "Element.hide(#{ids.map {|id| id.inspect} * ', '})"
+          call 'Element.hide', *ids
         end
-
+        
+        # Displays an alert dialog with the given +message+.
+        def alert(message)
+          call 'alert', message
+        end
+        
+        # Redirects the browser to the given +location+, in the same form as
+        # +url_for+.
+        def redirect_to(location)
+          assign 'window.location.href', @context.url_for(location)
+        end
+        
+        # Calls the JavaScript +function+, optionally with the given 
+        # +arguments+.
+        def call(function, *arguments)
+          record "#{function}(#{arguments_for_call(arguments)})"
+        end
+        
+        # Assigns the JavaScript +variable+ the given +value+.
+        def assign(variable, value)
+          record "#{variable} = #{javascript_object_for(value)}"
+        end
+        
+        # Writes raw JavaScript to the page.
+        def <<(javascript)
+          @lines << javascript
+        end
+        
       private
         def method_missing(method, *arguments, &block)
           record @context.send(method, *arguments, &block)
@@ -462,7 +488,7 @@ module ActionView
 
         def record(line)
           returning line = "#{line.to_s.chomp.gsub /\;$/, ''};" do
-            @lines << line
+            self << line
           end
         end
   
@@ -470,6 +496,14 @@ module ActionView
           Hash === options_for_render.first ? 
             @context.render(*options_for_render) : 
               options_for_render.first.to_s
+        end
+
+        def javascript_object_for(object)
+          object.respond_to?(:to_json) ? object.to_json : object.inspect
+        end
+
+        def arguments_for_call(arguments)
+          arguments.map { |argument| javascript_object_for(argument) }.join ', '
         end
       end
       

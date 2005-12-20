@@ -1,5 +1,13 @@
 *SVN*
 
+* Add the following RJS methods: [Sam Stephenson]
+  
+    * alert - Displays an alert() dialog
+    * redirect_to - Changes window.location.href to simulate a browser redirect
+    * call - Calls a JavaScript function
+    * assign - Assigns to a JavaScript variable
+    * << - Inserts an arbitrary JavaScript string
+
 * Fix incorrect documentation for form_for [Nicholas Seckar]
 
 * Don't include a layout when rendering an rjs template using render's :template option. [Marcel Molina Jr.]
