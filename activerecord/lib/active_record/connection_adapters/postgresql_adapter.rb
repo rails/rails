@@ -296,15 +296,9 @@ module ActiveRecord
       end
             
       def add_column(table_name, column_name, type, options = {})
-        native_type = native_database_types[type]
-        sql_commands = ["ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type, options[:limit])}"]
-        if options.has_key?(:default)
-          sql_commands << "ALTER TABLE #{table_name} ALTER #{column_name} SET DEFAULT '#{options[:default]}'"
-        end
-        if options[:null] == false
-          sql_commands << "ALTER TABLE #{table_name} ALTER #{column_name} SET NOT NULL"
-        end
-        sql_commands.each { |cmd| execute(cmd) }
+        execute("ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type, options[:limit])}")
+        execute("ALTER TABLE #{table_name} ALTER #{column_name} SET NOT NULL") if options[:null] == false
+        change_column_default(table_name, column_name, options[:default]) unless options[:default].nil?
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
