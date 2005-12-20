@@ -1,12 +1,6 @@
 *SVN*
 
-* removed :piggyback in favor of just allowing :select on :through associations. [Tobias Luetke]
-
-* made method missing delegation to class methods on relation target work on :through associations. [Tobias Luetke]
-
-* made .find() work on :through relations. [Tobias Luetke]
-
-* added :piggyback option to has_many :through relationships to pick up values from the join table as needed [Tobias Luetke] 
+* Fix change_column to work with PostgreSQL 7.x and 8.x.  #3141 [wejn@box.cz, Rick Olson, Scott Barron] 
 
 * Fix typo in association docs. #3296. [Blair Zajac]
 

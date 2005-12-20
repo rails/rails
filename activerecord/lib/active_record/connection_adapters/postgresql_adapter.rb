@@ -302,7 +302,17 @@ module ActiveRecord
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
-        execute = "ALTER TABLE #{table_name} ALTER  #{column_name} TYPE #{type}"
+        begin
+          execute "ALTER TABLE #{table_name} ALTER  #{column_name} TYPE #{type_to_sql(type, options[:limit])}"
+        rescue ActiveRecord::StatementInvalid
+          # This is PG7, so we use a more arcane way of doing it.
+          begin_db_transaction
+          add_column(table_name, "#{column_name}_ar_tmp", type, options)
+          execute "UPDATE #{table_name} SET #{column_name}_ar_tmp = CAST(#{column_name} AS #{type_to_sql(type, options[:limit])})"
+          remove_column(table_name, column_name)
+          rename_column(table_name, "#{column_name}_ar_tmp", column_name)
+          commit_db_transaction
+        end
         change_column_default(table_name, column_name, options[:default]) unless options[:default].nil?
       end      
 

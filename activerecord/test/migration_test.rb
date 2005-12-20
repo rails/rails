@@ -31,7 +31,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.remove_column("people", "administrator") rescue nil
       Person.reset_column_information
     end
-    
+
     def test_add_index
       Person.connection.add_column "people", "last_name", :string        
       Person.connection.add_column "people", "administrator", :boolean
@@ -258,8 +258,15 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_change_column
-      Person.connection.add_column "people", "bio", :string
-      assert_nothing_raised { Person.connection.change_column "people", "bio", :text }
+      Person.connection.add_column 'people', 'age', :integer
+      old_columns = Person.connection.columns(Person.table_name, "#{name} Columns")
+      assert old_columns.find { |c| c.name == 'age' and c.type == :integer }
+
+      assert_nothing_raised { Person.connection.change_column "people", "age", :string }
+      
+      new_columns = Person.connection.columns(Person.table_name, "#{name} Columns")
+      assert_nil new_columns.find { |c| c.name == 'age' and c.type == :integer }
+      assert new_columns.find { |c| c.name == 'age' and c.type == :string }
     end    
 
     def test_change_column_with_new_default
