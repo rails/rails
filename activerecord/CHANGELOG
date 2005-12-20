@@ -1,5 +1,9 @@
 *SVN*
 
+* made method missing delegation to class methods on relation target work on :through associations. [Tobias Luetke]
+
+* made .find() work on :through relations. [Tobias Luetke]
+
 * added :piggyback option to has_many :through relationships to pick up values from the join table as needed [Tobias Luetke] 
 
 * Fix typo in association docs. #3296. [Blair Zajac]

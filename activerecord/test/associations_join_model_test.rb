@@ -42,5 +42,23 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   def test_has_many_with_piggyback
     assert_equal "2", categories(:sti_test).authors.first.post_id
   end
+  
+  def test_has_many_find_all
+    assert_equal [categories(:general)], authors(:david).categories.find(:all)
+  end
+  
+  def test_has_many_find_first
+    assert_equal categories(:general), authors(:david).categories.find(:first)
+  end
+  
+  def test_has_many_find_conditions
+    assert_equal categories(:general), authors(:david).categories.find(:first, :conditions => "categories.name = 'General'")
+    assert_equal nil, authors(:david).categories.find(:first, :conditions => "categories.name = 'Technology'")
+  end
+  
+  def test_has_many_class_methods_called_by_method_missing
+    assert_equal categories(:general), authors(:david).categories.find_by_name('General')
+#    assert_equal nil, authors(:david).categories.find_by_name('Technology')
+  end
     
 end

@@ -1,6 +1,14 @@
 module ActiveRecord
   module Associations
     class HasManyThroughAssociation < AssociationProxy #:nodoc:
+
+      def initialize(owner, reflection)
+        super
+        @finder_sql = construct_conditions
+        construct_sql
+      end
+
+
       def find(*args)
         options = Base.send(:extract_options_from_args!, args)
 
@@ -15,7 +23,10 @@ module ActiveRecord
         elsif @reflection.options[:order]
           options[:order] = @reflection.options[:order]
         end
-
+        
+        options[:select] = construct_select
+        options[:from]   = construct_from
+        
         merge_options_from_reflection!(options)
 
         # Pass through args exactly as we received them.
@@ -83,10 +94,30 @@ module ActiveRecord
         
         def construct_scope
           {
-            :find   => { :conditions => construct_conditions },
+            :find   => { :from => construct_from, :conditions => construct_conditions },
             :create => { @reflection.primary_key_name => @owner.id }
           }
         end
+        
+        def construct_sql
+          case
+            when @reflection.options[:finder_sql]
+              @finder_sql = interpolate_sql(@reflection.options[:finder_sql])
+
+              @finder_sql = "#{@reflection.klass.table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
+              @finder_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
+          end
+
+          if @reflection.options[:counter_sql]
+            @counter_sql = interpolate_sql(@reflection.options[:counter_sql])
+          elsif @reflection.options[:finder_sql]
+            @reflection.options[:counter_sql] = @reflection.options[:finder_sql].gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
+            @counter_sql = interpolate_sql(@reflection.options[:counter_sql])
+          else
+            @counter_sql = @finder_sql
+          end
+        end
+        
     end
   end
 end

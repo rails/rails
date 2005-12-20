@@ -853,7 +853,7 @@ module ActiveRecord #:nodoc:
 
         method_scoping.assert_valid_keys [:find, :create]
         if f = method_scoping[:find]
-          f.assert_valid_keys [:conditions, :joins, :offset, :limit, :readonly]
+          f.assert_valid_keys [:conditions, :joins, :from, :offset, :limit, :readonly]
           f[:readonly] = true if !f[:joins].blank? && !f.has_key?(:readonly)
         end
 
@@ -917,7 +917,7 @@ module ActiveRecord #:nodoc:
 
         def construct_finder_sql(options)
           sql  = "SELECT #{options[:select] || '*'} "
-          sql << "FROM #{options[:from] || table_name} "
+          sql << "FROM #{scope(:find, :from) || options[:from] || table_name} "
 
           add_joins!(sql, options)
           add_conditions!(sql, options[:conditions])
