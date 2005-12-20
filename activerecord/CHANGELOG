@@ -2,6 +2,12 @@
 
 * Fix change_column to work with PostgreSQL 7.x and 8.x.  #3141 [wejn@box.cz, Rick Olson, Scott Barron] 
 
+* removed :piggyback in favor of just allowing :select on :through associations. [Tobias Luetke] 
+
+* made method missing delegation to class methods on relation target work on :through associations. [Tobias Luetke] 
+
+* made .find() work on :through relations. [Tobias Luetke] 
+
 * Fix typo in association docs. #3296. [Blair Zajac]
 
 * Fixed :through relations when using STI inherited classes would use the inherited class's name as foreign key on the join model [Tobias Luetke] 
