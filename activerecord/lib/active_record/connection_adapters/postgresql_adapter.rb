@@ -298,7 +298,7 @@ module ActiveRecord
       def add_column(table_name, column_name, type, options = {})
         native_type = native_database_types[type]
         sql_commands = ["ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type, options[:limit])}"]
-        if options[:default]
+        if options.has_key?(:default)
           sql_commands << "ALTER TABLE #{table_name} ALTER #{column_name} SET DEFAULT '#{options[:default]}'"
         end
         if options[:null] == false
