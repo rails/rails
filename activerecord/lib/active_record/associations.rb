@@ -125,7 +125,7 @@ module ActiveRecord
     # === Association extensions
     #
     # The proxy objects that controls the access to associations can be extended through anonymous modules. This is especially
-    # beneficial for adding new finders, creators, and other factory-type methods that are only used as part of this associatio.
+    # beneficial for adding new finders, creators, and other factory-type methods that are only used as part of this association.
     # Example:
     #
     #   class Account < ActiveRecord::Base

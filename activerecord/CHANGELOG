@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix typo in association docs. #3296. [Blair Zajac]
+
 * Fixed :through relations when using STI inherited classes would use the inherited class's name as foreign key on the join model [Tobias Luetke] 
 
 * MySQL: allow encoding option for mysql.rb driver.  [Jeremy Kemper]
