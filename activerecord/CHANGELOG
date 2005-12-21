@@ -1,4 +1,8 @@
-* 
+*SVN*
+
+* Fixed that saving a model with multiple habtm associations would only save the first one.  #3244 [yanowitz-rubyonrails@quantumfoam.org, Florian Weber]
+
+
 *1.13.2* (December 13th, 2005)
 
 * Become part of Rails 1.0

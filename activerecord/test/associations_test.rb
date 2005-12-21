@@ -1173,6 +1173,22 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     end
   end
 
+  def test_habtm_saving_multiple_relationships
+    new_project = Project.new("name" => "Grimetime")
+    amount_of_developers = 4
+    developers = (0..amount_of_developers).collect {|i| Developer.create(:name => "JME #{i}") }
+  
+    new_project.developer_ids = [developers[0].id, developers[1].id]
+    new_project.developers_with_callback_ids = [developers[2].id, developers[3].id]
+    assert new_project.save
+    
+    new_project.reload
+    assert_equal amount_of_developers, new_project.developers.size
+    amount_of_developers.times do |i|
+      assert_equal developers[i].name, new_project.developers[i].name
+    end
+  end
+
   def test_build
     devel = Developer.find(1)
     proj = devel.projects.build("name" => "Projekt")
