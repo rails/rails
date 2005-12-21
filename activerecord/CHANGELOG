@@ -1,6 +1,6 @@
 *SVN*
 
-* Fixed that saving a model with multiple habtm associations, would only save the first habtm association.  #3244 [yanowitz-rubyonrails@quantumfoam.org, Florian Weber]
+* Fixed that saving a model with multiple habtm associations would only save the first one.  #3244 [yanowitz-rubyonrails@quantumfoam.org, Florian Weber]
 
 * Fix change_column to work with PostgreSQL 7.x and 8.x.  #3141 [wejn@box.cz, Rick Olson, Scott Barron] 
 
