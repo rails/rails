@@ -727,7 +727,6 @@ module ActiveRecord
         def add_multiple_associated_save_callbacks(association_name)
           method_name = "validate_associated_records_for_#{association_name}".to_sym
           define_method(method_name) do
-            @new_record_before_save = new_record?
             association = instance_variable_get("@#{association_name}")
             if association.respond_to?(:loaded?)
               if new_record?
@@ -741,6 +740,7 @@ module ActiveRecord
           end
 
           validate method_name
+          before_save("@new_record_before_save = new_record?; true")
 
           after_callback = <<-end_eval
             association = instance_variable_get("@#{association_name}")
@@ -754,9 +754,6 @@ module ActiveRecord
               records_to_save.each { |record| association.send(:insert_record, record) }
               association.send(:construct_sql)   # reconstruct the SQL queries now that we know the owner's id
             end
-            
-            @new_record_before_save = false
-            true
           end_eval
                 
           # Doesn't use after_save as that would save associations added in after_create/after_update twice
