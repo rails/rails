@@ -851,9 +851,10 @@ module ActiveRecord #:nodoc:
           hash
         end
 
-        method_scoping.assert_valid_keys [:find, :create]
+        method_scoping.assert_valid_keys([ :find, :create ])
+
         if f = method_scoping[:find]
-          f.assert_valid_keys [:conditions, :joins, :from, :offset, :limit, :readonly]
+          f.assert_valid_keys([ :conditions, :joins, :from, :offset, :limit, :readonly ])
           f[:readonly] = true if !f[:joins].blank? && !f.has_key?(:readonly)
         end
 
@@ -1448,7 +1449,7 @@ module ActiveRecord #:nodoc:
 
       # Creates a new record with values matching those of the instance attributes.
       def create
-        if self.id.nil? and connection.prefetch_primary_key?(self.class.table_name)
+        if self.id.nil? && connection.prefetch_primary_key?(self.class.table_name)
           self.id = connection.next_sequence_value(self.class.sequence_name)
         end
 

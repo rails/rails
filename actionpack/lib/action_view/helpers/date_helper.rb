@@ -76,8 +76,8 @@ module ActionView
       #   date_select("user", "birthday",   :order => [:month, :day])
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
-      def date_select(object, method, options = {})
-        InstanceTag.new(object, method, self).to_date_select_tag(options)
+      def date_select(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_date_select_tag(options)
       end
 
       # Returns a set of select tags (one for year, month, day, hour, and minute) pre-selected for accessing a specified datetime-based
@@ -87,8 +87,8 @@ module ActionView
       #   datetime_select("post", "written_on", :start_year => 1995)
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
-      def datetime_select(object, method, options = {})
-        InstanceTag.new(object, method, self).to_datetime_select_tag(options)
+      def datetime_select(object_name, method, options = {})
+        InstanceTag.new(object_name, method, self, nil, options.delete(:object)).to_datetime_select_tag(options)
       end
 
       # Returns a set of html select-tags (one for year, month, and day) pre-selected with the +date+.
