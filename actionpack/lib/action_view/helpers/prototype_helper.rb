@@ -485,10 +485,21 @@ module ActionView
         def <<(javascript)
           @lines << javascript
         end
-        
+
+        # Executes the content of the block after a delay of +seconds+. Example:
+        #
+        #   page.delay(20) do
+        #     page.visual_effect :fade, 'notice'
+        #   end
+        def delay(seconds = 1)
+          record "setTimeout(function() {\n\n"
+          yield
+          record "}, #{(seconds * 1000).to_i})"
+        end
+
       private
         def method_missing(method, *arguments, &block)
-          record @context.send(method, *arguments, &block)
+          record(@context.send(method, *arguments, &block))
         end
 
         def record(line)

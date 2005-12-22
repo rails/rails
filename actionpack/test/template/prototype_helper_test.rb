@@ -201,6 +201,14 @@ class JavaScriptGeneratorTest < Test::Unit::TestCase
       @generator.redirect_to(:action => 'welcome')
   end
   
+  def test_delay
+    @generator.delay(20) do
+      @generator.hide('foo')
+    end
+    
+    assert_equal "setTimeout(function() {\n;\nElement.hide(\"foo\");\n}, 20000);", @generator.to_s
+  end
+  
   def test_to_s
     @generator.insert_html(:top, 'element', '<p>This is a test</p>')
     @generator.insert_html(:bottom, 'element', '<p>This is a test</p>')
