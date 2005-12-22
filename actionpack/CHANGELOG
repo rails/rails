@@ -1,5 +1,7 @@
 *SVN*
 
+* Add session ID to default logging, but remove the verbose description of every step [DHH]
+
 * Add the following RJS methods: [Sam Stephenson]
   
     * alert - Displays an alert() dialog

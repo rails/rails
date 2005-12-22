@@ -846,6 +846,7 @@ module ActionController #:nodoc:
 
       def log_processing
         logger.info "\n\nProcessing #{controller_class_name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
+        logger.info "  Session ID: #{@session.session_id}" if @session
         logger.info "  Parameters: #{@params.inspect}"
       end
     
