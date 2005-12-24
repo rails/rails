@@ -22,7 +22,7 @@ String.prototype.parseColor = function() {
     }  
   }  
   return(color.length==7 ? color : (arguments[0] || this));  
-}
+}  
 
 Element.collectTextNodes = function(element) {  
   return $A($(element).childNodes).collect( function(node) {
@@ -38,6 +38,7 @@ Element.collectTextNodesIgnoreClass = function(element, className) {
         Element.collectTextNodes(node) : ''));
   }).flatten().join('');
 }
+
 
 Element.setStyle = function(element, style) {
   element = $(element);
