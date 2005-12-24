@@ -332,12 +332,6 @@ module ActiveRecord #:nodoc:
     cattr_accessor :schema_format 
     @@schema_format = :sql
 
-    # A list of tables which should not be dumped to the schema. 
-    # Acceptable values are strings as well as regexp.
-    # This setting is only used if schema_format == :ruby
-    cattr_accessor :schema_ignore_tables 
-    @@schema_ignore_tables = []
-
     class << self # Class methods
       # Find operates with three different retrieval approaches:
       #

@@ -74,3 +74,4 @@ RAILS_CONNECTION_ADAPTERS.each do |adapter|
 end
 
 require 'active_record/query_cache'
+require 'active_record/schema_dumper'

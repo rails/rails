@@ -1,6 +1,6 @@
 *SVN*
 
-* Added ActiveRecord::Base.schema_ignore_tables which tells SchemaDumper which tables to ignore. Useful for tables with funky column like the ones required for tsearch2. [TobiasLuetke]
+* Added ActiveRecord::SchemaDumper.ignore_tables which tells SchemaDumper which tables to ignore. Useful for tables with funky column like the ones required for tsearch2. [TobiasLuetke]
 
 * SchemaDumper now doesn't fail anymore when there are unknown column types in the schema. Instead the table is ignored and a Comment is left in the schema.rb. [TobiasLuetke]
 
