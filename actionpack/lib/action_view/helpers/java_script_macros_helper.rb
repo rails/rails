@@ -118,8 +118,9 @@ module ActionView
         js_options[:tokens] = array_or_string_for_javascript(options[:tokens]) if options[:tokens]
         js_options[:callback]   = "function(element, value) { return #{options[:with]} }" if options[:with]
         js_options[:indicator]  = "'#{options[:indicator]}'" if options[:indicator]
+        js_options[:select]     = "'#{options[:select]}'" if options[:select]
 
-        { :on_show => :onShow, :on_hide => :onHide, :min_chars => :min_chars, :select => :select }.each do |k,v|
+        { :on_show => :onShow, :on_hide => :onHide, :min_chars => :min_chars }.each do |k,v|
           js_options[v] = options[k] if options[k]
         end
 
