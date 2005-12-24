@@ -221,8 +221,13 @@ Autocompleter.Base.prototype = {
       this.options.updateElement(selectedElement);
       return;
     }
-
-    var value = Element.collectTextNodesIgnoreClass(selectedElement, 'informal');
+    var value = '';
+    if (this.options.select) {
+      var nodes = document.getElementsByClassName(this.options.select, selectedElement) || [];
+      if(nodes.length>0) value = Element.collectTextNodes(nodes[0], this.options.select);
+    } else
+      value = Element.collectTextNodesIgnoreClass(selectedElement, 'informal');
+    
     var lastTokenPos = this.findLastToken();
     if (lastTokenPos != -1) {
       var newValue = this.element.value.substr(0, lastTokenPos + 1);

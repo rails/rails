@@ -105,6 +105,9 @@ module ActionView
       #                       innerHTML is replaced.
       # <tt>:on_show</tt>::   Like on_hide, only now the expression is called
       #                       then the div is shown.
+      # <tt>:select</tt>::    Pick the class of the element from which the value for 
+      #                       insertion should be extracted. If this is not specified,
+      #                       the entire element is used.
       def auto_complete_field(field_id, options = {})
         function =  "new Ajax.Autocompleter("
         function << "'#{field_id}', "
@@ -115,9 +118,11 @@ module ActionView
         js_options[:tokens] = array_or_string_for_javascript(options[:tokens]) if options[:tokens]
         js_options[:callback]   = "function(element, value) { return #{options[:with]} }" if options[:with]
         js_options[:indicator]  = "'#{options[:indicator]}'" if options[:indicator]
-        {:on_show => :onShow, :on_hide => :onHide, :min_chars => :min_chars}.each do |k,v|
+
+        { :on_show => :onShow, :on_hide => :onHide, :min_chars => :min_chars, :select => :select }.each do |k,v|
           js_options[v] = options[k] if options[k]
         end
+
         function << (', ' + options_for_javascript(js_options) + ')')
 
         javascript_tag(function)

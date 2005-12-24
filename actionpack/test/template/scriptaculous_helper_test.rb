@@ -29,6 +29,15 @@ class ScriptaculousHelperTest < Test::Unit::TestCase
     assert_equal "new Effect.Shake(element,{});", visual_effect(:shake)
     assert_equal "new Effect.DropOut('dropme',{queue:'end'});", visual_effect(:drop_out, 'dropme', :queue => :end)
   end
+
+  def test_parallel_effects
+    actual = parallel_effects(:duration => 2) do
+      visual_effect(:highlight, "posts") +
+      visual_effect(:fade, "fademe", :duration => 4.0)
+    end
+    
+    assert_equal "new Effect.Parallel([new Effect.Highlight('posts',{});new Effect.Fade('fademe',{duration:4.0});], {duration:2})", actual
+  end
   
   def test_sortable_element
     assert_dom_equal %(<script type=\"text/javascript\">\n//<![CDATA[\nSortable.create('mylist', {onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize('mylist')})}})\n//]]>\n</script>), 

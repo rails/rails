@@ -22,23 +22,21 @@ String.prototype.parseColor = function() {
     }  
   }  
   return(color.length==7 ? color : (arguments[0] || this));  
-}  
+}
 
-Element.collectTextNodesIgnoreClass = function(element, ignoreclass) {  
-  var children = $(element).childNodes;  
-  var text     = '';  
-  var classtest = new RegExp('^([^ ]+ )*' + ignoreclass+ '( [^ ]+)*$','i');  
- 
-  for (var i = 0; i < children.length; i++) {  
-    if(children[i].nodeType==3) {  
-      text+=children[i].nodeValue;  
-    } else {  
-      if((!children[i].className.match(classtest)) && children[i].hasChildNodes())  
-        text += Element.collectTextNodesIgnoreClass(children[i], ignoreclass);  
-    }  
-  }  
- 
-  return text;
+Element.collectTextNodes = function(element) {  
+  return $A($(element).childNodes).collect( function(node) {
+    return (node.nodeType==3 ? node.nodeValue : 
+      (node.hasChildNodes() ? Element.collectTextNodes(node) : ''));
+  }).flatten().join('');
+}
+
+Element.collectTextNodesIgnoreClass = function(element, className) {  
+  return $A($(element).childNodes).collect( function(node) {
+    return (node.nodeType==3 ? node.nodeValue : 
+      ((node.hasChildNodes() && !Element.hasClassName(node,className)) ? 
+        Element.collectTextNodes(node) : ''));
+  }).flatten().join('');
 }
 
 Element.setStyle = function(element, style) {
