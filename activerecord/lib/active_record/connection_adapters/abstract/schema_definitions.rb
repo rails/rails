@@ -4,7 +4,7 @@ module ActiveRecord
   module ConnectionAdapters #:nodoc:
     # An abstract definition of a column in a table.
     class Column
-      attr_reader :name, :default, :type, :limit, :null
+      attr_reader :name, :default, :type, :limit, :null, :sql_type
       attr_accessor :primary
 
       # Instantiates a new column in the table.
@@ -15,6 +15,7 @@ module ActiveRecord
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type = nil, null = true)
         @name, @type, @null = name, simplified_type(sql_type), null
+        @sql_type = sql_type
         # have to do this one separately because type_cast depends on #type
         @default = type_cast(default)
         @limit   = extract_limit(sql_type) unless sql_type.nil?

@@ -14,6 +14,38 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
       assert_match %r{create_table "authors"}, output
       assert_no_match %r{create_table "schema_info"}, output
     end
+
+    def test_schema_dump_with_string_ignored_table
+      stream = StringIO.new
+      
+      ActiveRecord::Base.schema_ignore_tables = ['accounts']      
+      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
+      output = stream.string
+      assert_no_match %r{create_table "accounts"}, output
+      assert_match %r{create_table "authors"}, output
+      assert_no_match %r{create_table "schema_info"}, output
+    end
+
+
+    def test_schema_dump_with_regexp_ignored_table
+      stream = StringIO.new
+      
+      ActiveRecord::Base.schema_ignore_tables = [/^account/]      
+      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
+      output = stream.string
+      assert_no_match %r{create_table "accounts"}, output
+      assert_match %r{create_table "authors"}, output
+      assert_no_match %r{create_table "schema_info"}, output
+    end
+
+
+    def test_schema_dump_illegal_ignored_table_value
+      stream = StringIO.new      
+      ActiveRecord::Base.schema_ignore_tables = [5]      
+      assert_raise(StandardError) do
+        ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
+      end
+    end
   end
 
 end
