@@ -221,14 +221,13 @@ Autocompleter.Base.prototype = {
       this.options.updateElement(selectedElement);
       return;
     }
-
     var value = '';
     if (this.options.select) {
       var nodes = document.getElementsByClassName(this.options.select, selectedElement) || [];
       if(nodes.length>0) value = Element.collectTextNodes(nodes[0], this.options.select);
     } else
       value = Element.collectTextNodesIgnoreClass(selectedElement, 'informal');
-
+    
     var lastTokenPos = this.findLastToken();
     if (lastTokenPos != -1) {
       var newValue = this.element.value.substr(0, lastTokenPos + 1);
@@ -454,7 +453,9 @@ Ajax.InPlaceEditor.prototype = {
     this.element = $(element);
 
     this.options = Object.extend({
+      okButton: true,
       okText: "ok",
+      cancelLink: true,
       cancelText: "cancel",
       savingText: "Saving...",
       clickToEditText: "Click to edit",
@@ -477,6 +478,7 @@ Ajax.InPlaceEditor.prototype = {
       highlightcolor: Ajax.InPlaceEditor.defaultHighlightColor,
       highlightendcolor: "#FFFFFF",
       externalControl:	null,
+      submitOnBlur: false,
       ajaxOptions: {}
     }, options || {});
 
@@ -542,16 +544,20 @@ Ajax.InPlaceEditor.prototype = {
       this.form.appendChild(br);
     }
 
-    okButton = document.createElement("input");
-    okButton.type = "submit";
-    okButton.value = this.options.okText;
-    this.form.appendChild(okButton);
+    if (this.options.okButton) {
+      okButton = document.createElement("input");
+      okButton.type = "submit";
+      okButton.value = this.options.okText;
+      this.form.appendChild(okButton);
+    }
 
-    cancelLink = document.createElement("a");
-    cancelLink.href = "#";
-    cancelLink.appendChild(document.createTextNode(this.options.cancelText));
-    cancelLink.onclick = this.onclickCancel.bind(this);
-    this.form.appendChild(cancelLink);
+    if (this.options.cancelLink) {
+      cancelLink = document.createElement("a");
+      cancelLink.href = "#";
+      cancelLink.appendChild(document.createTextNode(this.options.cancelText));
+      cancelLink.onclick = this.onclickCancel.bind(this);
+      this.form.appendChild(cancelLink);
+    }
   },
   hasHTMLLineBreaks: function(string) {
     if (!this.options.handleLineBreaks) return false;
@@ -567,24 +573,32 @@ Ajax.InPlaceEditor.prototype = {
     } else {
       text = this.getText();
     }
+
+    var obj = this;
     
     if (this.options.rows == 1 && !this.hasHTMLLineBreaks(text)) {
       this.options.textarea = false;
       var textField = document.createElement("input");
+      textField.obj = this;
       textField.type = "text";
       textField.name = "value";
       textField.value = text;
       textField.style.backgroundColor = this.options.highlightcolor;
       var size = this.options.size || this.options.cols || 0;
       if (size != 0) textField.size = size;
+      if (this.options.submitOnBlur)
+        textField.onblur = this.onSubmit.bind(this);
       this.editField = textField;
     } else {
       this.options.textarea = true;
       var textArea = document.createElement("textarea");
+      textArea.obj = this;
       textArea.name = "value";
       textArea.value = this.convertHTMLLineBreaks(text);
       textArea.rows = this.options.rows;
       textArea.cols = this.options.cols || 40;
+      if (this.options.submitOnBlur)
+        textArea.onblur = this.onSubmit.bind(this);
       this.editField = textArea;
     }
     

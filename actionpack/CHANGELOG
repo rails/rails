@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to script.aculo.us to 1.5.0 rev. 3343 [Thomas Fuchs]
+
 * Added :select option for JavaScriptMacroHelper#auto_complete_field that makes it easier to only use part of the auto-complete suggestion as the value for insertion [Thomas Fuchs]
 
 * Added delayed execution of Javascript from within RJS #3264 [devslashnull@gmail.com]. Example:

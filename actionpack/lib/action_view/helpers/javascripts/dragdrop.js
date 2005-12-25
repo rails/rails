@@ -146,6 +146,7 @@ var Draggables = {
     if(!this.activeDraggable) return;
     this._lastPointer = null;
     this.activeDraggable.endDrag(event);
+    this.activeDraggable = null;
   },
   
   keyPress: function(event) {
@@ -191,7 +192,7 @@ Draggable.prototype = {
       },
       reverteffect: function(element, top_offset, left_offset) {
         var dur = Math.sqrt(Math.abs(top_offset^2)+Math.abs(left_offset^2))*0.02;
-        element._revert = new Effect.MoveBy(element, -top_offset, -left_offset, {duration:dur});
+        element._revert = new Effect.Move(element, { x: -left_offset, y: -top_offset, duration: dur});
       },
       endeffect: function(element) { 
         new Effect.Opacity(element, {duration:0.2, from:0.7, to:1.0}); 
@@ -227,8 +228,8 @@ Draggable.prototype = {
   
   currentDelta: function() {
     return([
-      parseInt(this.element.style.left || '0'),
-      parseInt(this.element.style.top || '0')]);
+      parseInt(Element.getStyle(this.element,'left') || '0'),
+      parseInt(Element.getStyle(this.element,'top') || '0')]);
   },
   
   initDrag: function(event) {
