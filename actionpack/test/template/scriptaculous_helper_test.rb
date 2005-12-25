@@ -29,6 +29,16 @@ class ScriptaculousHelperTest < Test::Unit::TestCase
     assert_equal "new Effect.Shake(element,{});", visual_effect(:shake)
     assert_equal "new Effect.DropOut('dropme',{queue:'end'});", visual_effect(:drop_out, 'dropme', :queue => :end)
   end
+  
+  def test_toggle_effects
+    assert_equal "Effect.toggle('posts','appear',{});", visual_effect(:toggle_appear, "posts")
+    assert_equal "Effect.toggle('posts','slide',{});", visual_effect(:toggle_slide, "posts")
+    assert_equal "Effect.toggle('posts','blind',{});", visual_effect(:toggle_blind, "posts")
+    assert_equal "Effect.toggle('posts','appear',{});", visual_effect("toggle_appear", "posts")
+    assert_equal "Effect.toggle('posts','slide',{});", visual_effect("toggle_slide", "posts")
+    assert_equal "Effect.toggle('posts','blind',{});", visual_effect("toggle_blind", "posts")
+  end
+  
 
   def test_parallel_effects
     actual = parallel_effects(:duration => 2) do

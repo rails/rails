@@ -14,6 +14,10 @@ module ActionView
     # See the documentation at http://script.aculo.us for more information on
     # using these helpers in your application.
     module ScriptaculousHelper
+      unless const_defined? :TOGGLE_EFFECTS
+        TOGGLE_EFFECTS = [:toggle_appear, :toggle_slide, :toggle_blind]
+      end
+      
       # Returns a JavaScript snippet to be used on the Ajax callbacks for
       # starting visual effects.
       #
@@ -31,12 +35,21 @@ module ActionView
       # This would fade the element that was dropped on the drop receiving 
       # element.
       #
+      # For toggling visual effects, you can use :toggle_appear, :toggle_slide, and
+      # :toggle_blind which will alternate between appear/fade, slidedown/slideup, and
+      # blinddown/blindup respectively.
+      #
       # You can change the behaviour with various options, see
       # http://script.aculo.us for more documentation.
       def visual_effect(name, element_id = false, js_options = {})
         element = element_id ? "'#{element_id}'" : "element"
         js_options[:queue] = "'#{js_options[:queue]}'" if js_options[:queue]
-        "new Effect.#{name.to_s.camelize}(#{element},#{options_for_javascript(js_options)});"
+        
+        if TOGGLE_EFFECTS.include? name.to_sym
+          "Effect.toggle(#{element},'#{name.to_s.gsub(/^toggle_/,'')}',#{options_for_javascript(js_options)});"
+        else
+          "new Effect.#{name.to_s.camelize}(#{element},#{options_for_javascript(js_options)});"
+        end
       end
       
       # Needs more work so + isn't required for concation of effects. Currently, you have to do:

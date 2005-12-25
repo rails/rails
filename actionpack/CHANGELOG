@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for toggling visual effects to ScriptaculousHelper::visual_effect, #3323. [Thomas Fuchs]
+
 * Update to script.aculo.us to 1.5.0 rev. 3343 [Thomas Fuchs]
 
 * Added :select option for JavaScriptMacroHelper#auto_complete_field that makes it easier to only use part of the auto-complete suggestion as the value for insertion [Thomas Fuchs]
