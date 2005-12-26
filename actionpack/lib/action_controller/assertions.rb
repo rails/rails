@@ -309,12 +309,10 @@ module Test #:nodoc:
       end             
       
       def clean_backtrace(&block)
-        begin
-          yield
-        rescue AssertionFailedError => e         
-          path = File.expand_path(__FILE__)
-          raise AssertionFailedError, e.message, e.backtrace.reject { |line| File.expand_path(line) =~ /#{path}/ }
-        end           
+        yield
+      rescue AssertionFailedError => e         
+        path = File.expand_path(__FILE__)
+        raise AssertionFailedError, e.message, e.backtrace.reject { |line| File.expand_path(line) =~ /#{path}/ }
       end
     end
   end

@@ -87,7 +87,7 @@ class ActionPackAssertionsController < ActionController::Base
 
       def errors
         Class.new do 
-           def full_messages; '...stuff...'; end          
+           def full_messages; []; end          
         end.new
       end    
     
@@ -106,7 +106,7 @@ class ActionPackAssertionsController < ActionController::Base
       
       def errors
         Class.new do 
-           def full_messages; '...stuff...'; end          
+           def full_messages; ['...stuff...']; end          
         end.new
       end
     end.new                
