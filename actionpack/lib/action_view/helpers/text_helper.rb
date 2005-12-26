@@ -324,7 +324,7 @@ module ActionView
                           (?:www\.)             # www.*
                         ) 
                         (
-                          ([\w]+[=?&\/.-]?)*    # url segment
+                          ([\w]+:?[=?&\/.-]?)*    # url segment
                           \w+[\/]?              # url tail
                           (?:\#\w*)?            # trailing anchor
                         )
