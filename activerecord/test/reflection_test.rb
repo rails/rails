@@ -93,4 +93,10 @@ class ReflectionTest < Test::Unit::TestCase
     assert_equal MyApplication::Business::Client, MyApplication::Business::Firm.reflect_on_association(:clients_of_firm).klass
     assert_equal MyApplication::Business::Firm, MyApplication::Billing::Account.reflect_on_association(:firm).klass
   end
+  
+  def test_reflection_of_all_associations
+    assert_equal 12, Firm.reflect_on_all_associations.size
+    assert_equal 11, Firm.reflect_on_all_associations(:has_many).size
+    assert_equal 1, Firm.reflect_on_all_associations(:has_one).size
+  end
 end
