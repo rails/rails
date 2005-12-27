@@ -54,6 +54,17 @@ class Object #:nodoc:
   def with_options(options)
     yield ActiveSupport::OptionMerger.new(self, options)
   end
+  
+  def instance_values
+    instance_variables.inject({}) do |values, name|
+      values[name[1..-1]] = instance_variable_get(name)
+      values
+    end
+  end
+  
+  def to_json
+    ActiveSupport::JSON.encode(self)
+  end
 end
 
 class Class #:nodoc:

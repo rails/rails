@@ -104,4 +104,11 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
     assert !@dest.instance_variables.include?('@quux')
     assert_equal 'baz', @dest.instance_variable_get('@baz')
   end
+  
+  def test_instance_values
+    object = Object.new
+    object.instance_variable_set :@a, 1
+    object.instance_variable_set :@b, 2
+    assert_equal({'a' => 1, 'b' => 2}, object.instance_values)
+  end
 end

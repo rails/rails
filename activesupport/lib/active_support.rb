@@ -35,3 +35,5 @@ require 'active_support/ordered_options'
 require 'active_support/option_merger'
 
 require 'active_support/values/time_zone'
+
+require 'active_support/json'

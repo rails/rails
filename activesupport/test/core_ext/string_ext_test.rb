@@ -89,4 +89,14 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert s.ends_with?('lo')    
     assert !s.ends_with?('el')  
   end
+
+  def test_each_char_with_utf8_string_when_kcode_is_utf8
+    old_kcode, $KCODE = $KCODE, 'UTF8'
+    '€2.99'.each_char do |char|
+      assert_not_equal 1, char.length
+      break
+    end
+  ensure
+    $KCODE = old_kcode
+  end
 end
