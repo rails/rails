@@ -155,6 +155,8 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %(<p>Link #{link4_result}</p>), auto_link("<p>Link #{link4_raw}</p>")
     assert_equal %(<p>#{link4_result} Link</p>), auto_link("<p>#{link4_raw} Link</p>")
     assert_equal %(<p>#{link5_result} Link</p>), auto_link("<p>#{link5_raw} Link</p>")
+    assert_equal '', auto_link(nil)
+    assert_equal '', auto_link('')
   end
 
   def test_auto_link_at_eol

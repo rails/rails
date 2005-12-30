@@ -1,5 +1,7 @@
 *SVN*
 
+* Make auto_link handle nil by returning quickly if blank? [Scott Barron]
+
 * Make auto_link match urls with a port number specified. [Marcel Molina Jr.]
 
 * Added support for toggling visual effects to ScriptaculousHelper::visual_effect, #3323. [Thomas Fuchs]

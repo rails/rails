@@ -142,6 +142,7 @@ module ActionView
       #     truncate(text, 15)
       #   end
       def auto_link(text, link = :all, href_options = {}, &block)
+        return '' if text.blank?
         case link
           when :all             then auto_link_urls(auto_link_email_addresses(text, &block), href_options, &block)
           when :email_addresses then auto_link_email_addresses(text, &block)
