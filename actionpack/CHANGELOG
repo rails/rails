@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :disable_with option to FormTagHelper#submit_tag to allow for easily disabled submit buttons with different text [DHH]
+
 * Make auto_link handle nil by returning quickly if blank? [Scott Barron]
 
 * Make auto_link match urls with a port number specified. [Marcel Molina Jr.]
