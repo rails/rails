@@ -30,4 +30,9 @@ class JavaScriptHelperTest < Test::Unit::TestCase
     assert_dom_equal %(<a href="#" onclick="confirm('Sanity!'); alert('Hello world!'); return false;">Greeting</a>), 
       link_to_function("Greeting", "alert('Hello world!')", :onclick => "confirm('Sanity!')")
   end
+
+  def test_button_to_function
+    assert_dom_equal %(<input type="button" onclick="alert('Hello world!');" value="Greeting" />), 
+      button_to_function("Greeting", "alert('Hello world!')")
+  end
 end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added JavaScriptHelper#button_to_function that works just like JavaScriptHelper#link_to_function but uses a button instead of a href [DHH]
+
 * Added that JavaScriptHelper#link_to_function will honor existing :onclick definitions when adding the function call [DHH]
 
 * Added :disable_with option to FormTagHelper#submit_tag to allow for easily disabled submit buttons with different text [DHH]
