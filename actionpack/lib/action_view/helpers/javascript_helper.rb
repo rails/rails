@@ -53,7 +53,7 @@ module ActionView
           "a", name, 
           html_options.merge({ 
             :href => html_options[:href] || "#", 
-            :onclick => "#{function};#{html_options[:onclick] ? " #{html_options[:onclick]};" : ""} return false;" 
+            :onclick => (html_options[:onclick] ? "#{html_options[:onclick]}; " : "") + "#{function}; return false;" 
           })
         )
       end

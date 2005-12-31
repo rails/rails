@@ -27,7 +27,7 @@ class JavaScriptHelperTest < Test::Unit::TestCase
   end
   
   def test_link_to_function_with_existing_onclick
-    assert_dom_equal %(<a href="#" onclick="alert('Hello world!'); confirm('Sanity!'); return false;">Greeting</a>), 
+    assert_dom_equal %(<a href="#" onclick="confirm('Sanity!'); alert('Hello world!'); return false;">Greeting</a>), 
       link_to_function("Greeting", "alert('Hello world!')", :onclick => "confirm('Sanity!')")
   end
 end
