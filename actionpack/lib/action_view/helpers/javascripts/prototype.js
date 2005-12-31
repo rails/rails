@@ -1154,8 +1154,18 @@ var Field = {
       $(arguments[i]).value = '';
   },
 
-  focus: function(element) {
-    $(element).focus();
+  // Pass the field id or element as the first parameter and optionally a triggering delay in micro-seconds as the second.
+  // The delay is useful when the focus is part of effects that won't finish instantly since they prevent the focus from
+  // taking hold. Set the delay to right after the effect finishes and the focus will work.
+  focus: function() {
+    element = $(arguments[0]);
+    delay   = arguments[1];
+    
+    if (delay) {
+      setTimeout(function() { $(element).focus(); }, delay)
+    } else {
+      $(element).focus();
+    }
   },
 
   present: function() {
