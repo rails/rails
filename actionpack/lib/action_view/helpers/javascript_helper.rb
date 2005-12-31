@@ -48,9 +48,13 @@ module ActionView
       #   link_to_function "Greeting", "alert('Hello world!')"
       #   link_to_function(image_tag("delete"), "if confirm('Really?'){ do_delete(); }")
       def link_to_function(name, function, html_options = {})
+        html_options.symbolize_keys!
         content_tag(
           "a", name, 
-          {:href => "#", :onclick => "#{function}; return false;"}.merge(html_options.symbolize_keys)
+          html_options.merge({ 
+            :href => html_options[:href] || "#", 
+            :onclick => "#{function};#{html_options[:onclick] ? " #{html_options[:onclick]};" : ""} return false;" 
+          })
         )
       end
 
