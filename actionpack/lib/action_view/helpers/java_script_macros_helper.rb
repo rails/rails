@@ -72,8 +72,12 @@ module ActionView
       # or nothing if no entries should be displayed for autocompletion.
       #
       # You'll probably want to turn the browser's built-in autocompletion off,
-      # su be sure to include a autocomplete="off" attribute with your text
+      # so be sure to include a autocomplete="off" attribute with your text
       # input field.
+      #
+      # The autocompleter object is assigned to a Javascript variable named <tt>field_id</tt>_auto_completer.
+      # This object is useful if you for example want to trigger the auto-complete suggestions through
+      # other means than user input (for that specific case, call the <tt>activate</tt> method on that object). 
       # 
       # Required +options+ are:
       # <tt>:url</tt>::       URL to call for autocompletion results
@@ -109,7 +113,7 @@ module ActionView
       #                       insertion should be extracted. If this is not specified,
       #                       the entire element is used.
       def auto_complete_field(field_id, options = {})
-        function =  "new Ajax.Autocompleter("
+        function =  "var #{field_id}_auto_completer = new Ajax.Autocompleter("
         function << "'#{field_id}', "
         function << "'" + (options[:update] || "#{field_id}_auto_complete") + "', "
         function << "'#{url_for(options[:url])}'"

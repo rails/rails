@@ -152,6 +152,12 @@ Autocompleter.Base.prototype = {
         setTimeout(this.onObserverEvent.bind(this), this.options.frequency*1000);
   },
 
+  activate: function() {
+    this.changed = false;
+    this.hasFocus = true;
+    this.getUpdatedChoices();
+  },
+
   onHover: function(event) {
     var element = Event.findElement(event, 'LI');
     if(this.index != element.autocompleteIndex) 

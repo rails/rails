@@ -57,6 +57,20 @@ module ActionView
           })
         )
       end
+      
+      # Returns a link that'll trigger a JavaScript +function+ using the 
+      # onclick handler.
+      #
+      # Examples:
+      #   button_to_function "Greeting", "alert('Hello world!')"
+      #   button_to_function "Delete", "if confirm('Really?'){ do_delete(); }")
+      def button_to_function(name, function, html_options = {})
+        html_options.symbolize_keys!
+        tag(:input, html_options.merge({ 
+          :type => "button", :value => name, 
+          :onclick => (html_options[:onclick] ? "#{html_options[:onclick]}; " : "") + "#{function};" 
+        }))
+      end
 
       # Returns a link that'll trigger a JavaScript +function+ using the 
       # onclick handler.

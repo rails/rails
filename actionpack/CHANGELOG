@@ -1,5 +1,9 @@
 *SVN*
 
+* Added assignment of the Autocompleter object created by JavaScriptMacroHelper#auto_complete_field to a local javascript variables [DHH]
+
+* Added :on option for PrototypeHelper#observe_field that allows you to specify a different callback hook to have the observer trigger on [DHH]
+
 * Added JavaScriptHelper#button_to_function that works just like JavaScriptHelper#link_to_function but uses a button instead of a href [DHH]
 
 * Added that JavaScriptHelper#link_to_function will honor existing :onclick definitions when adding the function call [DHH]

@@ -1398,15 +1398,16 @@ Form.Observer.prototype = Object.extend(new Abstract.TimedObserver(), {
 
 Abstract.EventObserver = function() {}
 Abstract.EventObserver.prototype = {
-  initialize: function(element, callback) {
-    this.element  = $(element);
-    this.callback = callback;
+  initialize: function() {
+    this.element  = $(arguments[0]);
+    this.callback = arguments[1];
+    this.trigger  = arguments[2];
 
     this.lastValue = this.getValue();
     if (this.element.tagName.toLowerCase() == 'form')
       this.registerFormCallbacks();
     else
-      this.registerCallback(this.element);
+      this.registerCallback(this.element, this.trigger);
   },
 
   onElementEvent: function() {
@@ -1420,11 +1421,13 @@ Abstract.EventObserver.prototype = {
   registerFormCallbacks: function() {
     var elements = Form.getElements(this.element);
     for (var i = 0; i < elements.length; i++)
-      this.registerCallback(elements[i]);
+      this.registerCallback(elements[i], this.trigger);
   },
 
-  registerCallback: function(element) {
-    if (element.type) {
+  registerCallback: function(element, trigger) {
+    if (trigger && element.type) {
+      Event.observe(element, trigger, this.onElementEvent.bind(this));
+    } else if (element.type) {
       switch (element.type.toLowerCase()) {
         case 'checkbox':
         case 'radio':

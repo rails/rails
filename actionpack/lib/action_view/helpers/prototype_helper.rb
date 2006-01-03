@@ -337,11 +337,16 @@ module ActionView
       #                       parameters for the XMLHttpRequest. This defaults
       #                       to 'value', which in the evaluated context 
       #                       refers to the new field value.
+      # <tt>:on</tt>::        Specifies which event handler to observe. By default,
+      #                       it's set to "changed" for text fields and areas and
+      #                       "click" for radio buttons and checkboxes. With this,
+      #                       you can specify it instead to be "blur" or "focus" or
+      #                       any other event.
       #
       # Additionally, you may specify any of the options documented in
       # link_to_remote.
       def observe_field(field_id, options = {})
-        if options[:frequency] and options[:frequency] > 0
+        if options[:frequency] && options[:frequency] > 0
           build_observer('Form.Element.Observer', field_id, options)
         else
           build_observer('Form.Element.EventObserver', field_id, options)
@@ -567,7 +572,9 @@ module ActionView
         javascript  = "new #{klass}('#{name}', "
         javascript << "#{options[:frequency]}, " if options[:frequency]
         javascript << "function(element, value) {"
-        javascript << "#{callback}})"
+        javascript << "#{callback}}"
+        javascript << ", '#{options[:on]}'" if options[:on]
+        javascript << ")"
         javascript_tag(javascript)
       end
           
