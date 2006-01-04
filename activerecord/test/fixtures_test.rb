@@ -136,7 +136,7 @@ class FixturesTest < Test::Unit::TestCase
   end
 
   def test_erb_in_fixtures
-    assert_equal 10, @developers.size
+    assert_equal 11, @developers.size
     assert_equal "fixture_5", @dev_5.name
   end
 

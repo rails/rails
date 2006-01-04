@@ -25,9 +25,27 @@ class MethodScopingTest < Test::Unit::TestCase
     end
   end
   
+  def test_scoped_find_combines_conditions
+    Developer.with_scope(:find => { :conditions => "salary = 9000" }) do
+      assert_equal developers(:poor_jamis), Developer.find(:first, :conditions => "name = 'Jamis'")
+    end
+  end
+  
+  def test_scoped_find_sanitizes_conditions
+    Developer.with_scope(:find => { :conditions => ['salary = ?', 9000] }) do
+      assert_equal developers(:poor_jamis), Developer.find(:first)
+    end  
+  end
+  
+  def test_scoped_find_combines_and_sanitizes_conditions
+    Developer.with_scope(:find => { :conditions => ['salary = ?', 9000] }) do
+      assert_equal developers(:poor_jamis), Developer.find(:first, :conditions => ['name = ?', 'Jamis'])
+    end  
+  end
+  
   def test_scoped_find_all
     Developer.with_scope(:find => { :conditions => "name = 'David'" }) do
-      assert_equal [Developer.find(1)], Developer.find(:all)
+      assert_equal [developers(:david)], Developer.find(:all)
     end      
   end
   

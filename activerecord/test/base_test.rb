@@ -1082,27 +1082,24 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_scoped_find_conditions
-    developers = Developer.with_scope(:find => { :conditions => 'salary > 90000' }) do
+    scoped_developers = Developer.with_scope(:find => { :conditions => 'salary > 90000' }) do
       Developer.find(:all, :conditions => 'id < 5')
     end
-    david = Developer.find(1)
-    assert !developers.include?(david) # David's salary is less than 90,000
-    assert_equal 3, developers.size
+    assert !scoped_developers.include?(developers(:david)) # David's salary is less than 90,000
+    assert_equal 3, scoped_developers.size
   end
   
   def test_scoped_find_limit_offset
-    developers = Developer.with_scope(:find => { :limit => 3, :offset => 2 }) do
+    scoped_developers = Developer.with_scope(:find => { :limit => 3, :offset => 2 }) do
       Developer.find(:all, :order => 'id')
     end    
-    david = Developer.find(1)
-    jamis = Developer.find(1)
-    assert !developers.include?(david) # David has id 1
-    assert !developers.include?(jamis) # Jamis has id 2
-    assert_equal 3, developers.size
+    assert !scoped_developers.include?(developers(:david))
+    assert !scoped_developers.include?(developers(:jamis))
+    assert_equal 3, scoped_developers.size
     
     # Test without scoped find conditions to ensure we get the whole thing
     developers = Developer.find(:all, :order => 'id')
-    assert_equal 10, developers.size
+    assert_equal Developer.count, developers.size
   end
   
   # FIXME: this test ought to run, but it needs to run sandboxed so that it

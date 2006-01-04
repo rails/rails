@@ -944,7 +944,7 @@ module ActiveRecord #:nodoc:
 
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that the passed-in +sql+ string is changed.
         def add_conditions!(sql, conditions)          
-          segments = [scope(:find, :conditions)]
+          segments = [sanitize_sql(scope(:find, :conditions))]
           segments << sanitize_sql(conditions) unless conditions.nil?
           segments << type_condition unless descends_from_active_record?        
           segments.compact!
