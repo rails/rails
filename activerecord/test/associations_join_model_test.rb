@@ -40,7 +40,7 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   end
   
   def test_has_many_with_piggyback
-    assert_equal "2", categories(:sti_test).authors.first.post_id
+    assert_equal "2", categories(:sti_test).authors.first.post_id.to_s
   end
   
   def test_has_many_find_all

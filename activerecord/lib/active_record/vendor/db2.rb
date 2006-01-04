@@ -110,13 +110,18 @@ module DB2
       check_rc(rc)
     end
 
-    def columns(table_name)
-      check_rc(SQLColumns(@handle, "", "%", table_name, "%"))
+    def columns(table_name, schema_name = '%')
+      check_rc(SQLColumns(@handle, '', schema_name, table_name, '%'))
       fetch_all
     end
 
     def tables
-      check_rc(SQLTables(@handle, "", "%", "%", "TABLE"))
+      check_rc(SQLTables(@handle, '', '%', '%', 'TABLE'))
+      fetch_all
+    end
+
+    def indexes(table_name)
+      check_rc(SQLStatistics(@handle, '', '', table_name, SQL_INDEX_ALL, SQL_ENSURE))
       fetch_all
     end
 

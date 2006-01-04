@@ -1,5 +1,7 @@
 *SVN*
 
+* Multiple enhancements and adjustments to DB2 adaptor. #3377 [contact@maik-schmidt.de]
+
 * Sanitize scoped conditions. [Marcel Molina Jr.]
 
 * Added option to Base.reflection_of_all_associations to specify a specific association to scope the call. For example Base.reflection_of_all_associations(:has_many) [DHH]

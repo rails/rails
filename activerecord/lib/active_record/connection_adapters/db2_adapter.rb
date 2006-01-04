@@ -14,16 +14,17 @@ begin
         config = config.symbolize_keys
         usr = config[:username]
         pwd = config[:password]
+        schema = config[:schema]
 
         if config.has_key?(:database)
           database = config[:database]
         else
-          raise ArgumentError, "No database specified. Missing argument: database."
+          raise ArgumentError, 'No database specified. Missing argument: database.'
         end
 
         connection = DB2::Connection.new(DB2::Environment.new)
         connection.connect(database, usr, pwd)
-        ConnectionAdapters::DB2Adapter.new(connection)
+        ConnectionAdapters::DB2Adapter.new(connection, logger, :schema => schema)
       end
     end
 
@@ -35,7 +36,18 @@ begin
       # * <tt>:username</tt> -- Defaults to nothing
       # * <tt>:password</tt> -- Defaults to nothing
       # * <tt>:database</tt> -- The name of the database. No default, must be provided.
+      # * <tt>:schema</tt> -- Database schema to be set initially.
       class DB2Adapter < AbstractAdapter
+        def initialize(connection, logger, connection_options)
+          super(connection, logger)
+          @connection_options = connection_options
+          if schema = @connection_options[:schema]
+            with_statement do |stmt|
+              stmt.exec_direct("SET SCHEMA=#{schema}")
+            end
+          end
+        end
+        
         def select_all(sql, name = nil)
           select(sql, name)
         end
@@ -51,14 +63,12 @@ begin
 
         def execute(sql, name = nil)
           rows_affected = 0
-
-          log(sql, name) do
-            stmt = DB2::Statement.new(@connection)
-            stmt.exec_direct(sql)
-            rows_affected = stmt.row_count
-            stmt.free
+          with_statement do |stmt|
+            log(sql, name) do
+              stmt.exec_direct(sql)
+              rows_affected = stmt.row_count
+            end
           end
-
           rows_affected
         end
 
@@ -92,64 +102,68 @@ begin
         end
 
         def add_limit_offset!(sql, options)
-          if options[:limit] and !options[:limit].nil?
-            # "FETCH FIRST 0 ROWS ONLY" is not allowed, so we have
-            # to use a cheap trick.
-            if options[:limit] == 0
-              if sql =~ /WHERE/i
-                sql.sub!(/WHERE/i, 'WHERE 1 = 2 AND ')
-              elsif
-                sql =~ /ORDER\s+BY/i
-                sql.sub!(/ORDER\s+BY/i, 'WHERE 1 = 2 ORDER BY')
-              else
-                sql << 'WHERE 1 = 2'
-              end
-            else
-              sql << " FETCH FIRST #{options[:limit]} ROWS ONLY" 
-            end
-          end
-          if options[:offset] and !options[:offset].nil?
-            raise ArgumentError, ':offset option is not yet supported!'
+          if limit = options[:limit]
+            offset = options[:offset] || 0
+            # The following trick was added by andrea+rails@webcom.it.
+            sql.gsub!(/SELECT/i, 'SELECT B.* FROM (SELECT A.*, row_number() over () AS internal$rownum FROM (SELECT')
+            sql << ") A ) B WHERE B.internal$rownum > #{offset} AND B.internal$rownum <= #{limit + offset}"
           end
         end
 
         def tables(name = nil)
-          stmt = DB2::Statement.new(@connection)
           result = []
-          stmt.tables.each { |t| result << t[2].downcase }
-          stmt.free
+          with_statement do |stmt|
+            stmt.tables.each { |t| result << t[2].downcase }
+          end
           result
         end
 
+        def indexes(table_name, name = nil)
+          tmp = {}
+          with_statement do |stmt|
+            stmt.indexes(table_name.upcase).each do |t|
+              next unless t[5]
+              next if t[4] == 'SYSIBM' # Skip system indexes.
+              idx_name = t[5].downcase
+              col_name = t[8].downcase
+              if tmp.has_key?(idx_name)
+                tmp[idx_name].columns << col_name
+              else
+                is_unique = t[3] == 0
+                tmp[idx_name] = IndexDefinition.new(table_name, idx_name, is_unique, [col_name])
+              end
+            end
+          end
+          tmp.values
+        end
+
         def columns(table_name, name = nil)
-          stmt = DB2::Statement.new(@connection)
           result = []
-
-          stmt.columns(table_name.upcase).each do |c| 
-            c_name = c[3].downcase
-            c_default = c[12] == 'NULL' ? nil : c[12]
-            c_type = c[5].downcase
-            c_type += "(#{c[6]})" if !c[6].nil? && c[6] != ''
-            result << Column.new(c_name, c_default, c_type)
-          end 
-
-          stmt.free
+          with_statement do |stmt|
+            stmt.columns(table_name.upcase).each do |c| 
+              c_name = c[3].downcase
+              c_default = c[12] == 'NULL' ? nil : c[12]
+              c_type = c[5].downcase
+              c_type += "(#{c[6]})" if !c[6].nil? && c[6] != ''
+              result << Column.new(c_name, c_default, c_type)
+            end 
+          end
           result
         end
 
         def native_database_types
           {
-            :primary_key => "int generated by default as identity primary key",
-            :string      => { :name => "varchar", :limit => 255 },
-            :text        => { :name => "clob", :limit => 32768 },
-            :integer     => { :name => "int" },
-            :float       => { :name => "float" },
-            :datetime    => { :name => "timestamp" },
-            :timestamp   => { :name => "timestamp" },
-            :time        => { :name => "time" },
-            :date        => { :name => "date" },
-            :binary      => { :name => "blob", :limit => 32768 },
-            :boolean     => { :name => "decimal", :limit => 1 }
+            :primary_key => 'int generated by default as identity primary key',
+            :string      => { :name => 'varchar', :limit => 255 },
+            :text        => { :name => 'clob', :limit => 32768 },
+            :integer     => { :name => 'int' },
+            :float       => { :name => 'float' },
+            :datetime    => { :name => 'timestamp' },
+            :timestamp   => { :name => 'timestamp' },
+            :time        => { :name => 'time' },
+            :date        => { :name => 'date' },
+            :binary      => { :name => 'blob', :limit => 32768 },
+            :boolean     => { :name => 'decimal', :limit => 1 }
           }
         end
 
@@ -161,7 +175,23 @@ begin
           '0'
         end
 
+        def active?
+          @connection.select_one 'select 1 from ibm.sysdummy1'
+          true
+        rescue Exception
+          false
+        end
+
+        def reconnect!
+        end
+
         private
+
+        def with_statement
+          stmt = DB2::Statement.new(@connection)
+          yield stmt
+          stmt.free
+        end
 
         def last_insert_id
           row = select_one(<<-GETID.strip)
@@ -171,17 +201,17 @@ begin
         end
 
         def select(sql, name = nil)
-          stmt = nil
-          log(sql, name) do
-            stmt = DB2::Statement.new(@connection)
-            stmt.exec_direct("#{sql.gsub(/=\s*null/i, 'IS NULL')} with ur")
-          end
-
           rows = []
-          while row = stmt.fetch_as_hash
-            rows << row
+          with_statement do |stmt|
+            log(sql, name) do
+              stmt.exec_direct("#{sql.gsub(/=\s*null/i, 'IS NULL')} with ur")
+            end
+
+            while row = stmt.fetch_as_hash
+              row.delete('internal$rownum')
+              rows << row
+            end
           end
-          stmt.free
           rows
         end
       end

@@ -19,13 +19,14 @@ class AdapterTest < Test::Unit::TestCase
 
   def test_indexes
     if @connection.respond_to?(:indexes)
+      idx_name = "accounts_idx"
       indexes = @connection.indexes("accounts")
       assert indexes.empty?
 
-      @connection.add_index :accounts, :firm_id
+      @connection.add_index :accounts, :firm_id, :name => idx_name
       indexes = @connection.indexes("accounts")
       assert_equal "accounts", indexes.first.table
-      assert_equal "accounts_firm_id_index", indexes.first.name
+      assert_equal idx_name, indexes.first.name
       assert !indexes.first.unique
       assert_equal ["firm_id"], indexes.first.columns
     else
