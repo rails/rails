@@ -1140,7 +1140,6 @@ module ActiveRecord #:nodoc:
         end
 
         def replace_named_bind_variables(statement, bind_vars)
-          raise_if_bind_arity_mismatch(statement, statement.scan(/:(\w+)/).uniq.size, bind_vars.size)
           statement.gsub(/:(\w+)/) do
             match = $1.to_sym
             if bind_vars.include?(match)

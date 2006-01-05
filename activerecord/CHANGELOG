@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't raise an exception when there are more keys than there are named bind variables when sanitizing conditions. [Marcel Molina Jr.]
+
 * Multiple enhancements and adjustments to DB2 adaptor. #3377 [contact@maik-schmidt.de]
 
 * Sanitize scoped conditions. [Marcel Molina Jr.]

@@ -157,22 +157,6 @@ class FinderTest < Test::Unit::TestCase
     assert_nil Company.find(:first, :conditions => ["name = :name", { :name => "37signals!" }])
     assert_nil Company.find(:first, :conditions => ["name = :name", { :name => "37signals!' OR 1=1" }])
     assert_kind_of Time, Topic.find(:first, :conditions => ["id = :id", { :id => 1 }]).written_on
-    assert_raises(ActiveRecord::PreparedStatementInvalid) {
-      Company.find(:first, :conditions => ["id=:id and name=:name", { :id=>3 }])
-    }
-    assert_raises(ActiveRecord::PreparedStatementInvalid) {
-      Company.find(:first, :conditions => ["id=:id", { :id=>3, :name=>"37signals!" }])
-    }
-  end
-
-  def test_named_bind_arity
-    assert_nothing_raised { bind '', {} }
-    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind '', :a => 1 }
-    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind ':a', {} } # ' ruby-mode
-    assert_nothing_raised { bind ':a', :a => 1 } # ' ruby-mode
-    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind ':a', :a => 1, :b => 2 } # ' ruby-mode
-    assert_nothing_raised { bind ':a :a', :a => 1 } # ' ruby-mode
-    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind ':a :a', :a => 1, :b => 2 } # ' ruby-mode
   end
 
   def test_bind_enumerable
