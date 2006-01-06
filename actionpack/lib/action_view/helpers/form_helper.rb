@@ -370,7 +370,7 @@ module ActionView
       end
       
       def radio_button(method, tag_value, options = {})
-        @template.check_box(@object_name, method, tag_value, options.merge(:object => @object))
+        @template.radio_button(@object_name, method, tag_value, options.merge(:object => @object))
       end
     end
   end

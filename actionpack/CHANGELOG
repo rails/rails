@@ -1,5 +1,7 @@
 *SVN*
 
+* Have the form builder output radio button, not check box, when calling the radio button helper. #3331 [LouisStAmour@gmail.com]
+
 * Added assignment of the Autocompleter object created by JavaScriptMacroHelper#auto_complete_field to a local javascript variables [DHH]
 
 * Added :on option for PrototypeHelper#observe_field that allows you to specify a different callback hook to have the observer trigger on [DHH]
