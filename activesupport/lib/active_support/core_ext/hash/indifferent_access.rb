@@ -18,9 +18,12 @@ class HashWithIndifferentAccess < Hash
   def []=(key, value)
     regular_writer(convert_key(key), convert_value(value))
   end
-  def update(hash)
-    hash.each {|key, value| self[key] = value}
+
+  def update(other_hash)
+    other_hash.each {|key, value| self[key] = value}
+    self
   end
+  alias_method :merge!, :update
 
   def key?(key)
     super(convert_key(key))

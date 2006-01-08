@@ -93,6 +93,29 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal hash[3], 3
   end
 
+  def test_indifferent_update
+    hash = HashWithIndifferentAccess.new
+    hash[:a] = 'a'
+    hash['b'] = 'b'
+    
+    updated_with_strings = hash.update(@strings)
+    updated_with_symbols = hash.update(@symbols)
+    updated_with_mixed = hash.update(@mixed)
+
+    assert_equal updated_with_strings[:a], 1
+    assert_equal updated_with_strings['a'], 1
+    assert_equal updated_with_strings['b'], 2
+
+    assert_equal updated_with_symbols[:a], 1
+    assert_equal updated_with_symbols['b'], 2
+    assert_equal updated_with_symbols[:b], 2
+
+    assert_equal updated_with_mixed[:a], 1
+    assert_equal updated_with_mixed['b'], 2
+
+    assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? {|hash| hash.keys.size == 2}
+  end
+
   def test_assert_valid_keys
     assert_nothing_raised do
       { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])

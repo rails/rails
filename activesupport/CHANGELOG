@@ -1,5 +1,7 @@
 *SVN*
 
+* Make HashWithIndifferentAccess#update behave like Hash#update by returning the hash. #3419, #3425 [asnem@student.ethz.ch, JanPrill@blauton.de, Marcel Molina Jr.]
+
 * Add ActiveSupport::JSON and Object#to_json for converting Ruby objects to JSON strings. [Sam Stephenson]
 
 * Add Object#with_options for DRYing up multiple calls to methods having shared options. [Sam Stephenson]  Example:
