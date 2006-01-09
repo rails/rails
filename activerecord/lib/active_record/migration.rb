@@ -93,7 +93,7 @@ module ActiveRecord
   # pending migrations, creating the <tt>schema_info</tt> table if missing.
   #
   # To roll the database back to a previous migration version, use
-  # <tt>rake migrate version=X</tt> where <tt>X</tt> is the version to which
+  # <tt>rake migrate VERSION=X</tt> where <tt>X</tt> is the version to which
   # you wish to downgrade. If any of the migrations throw an
   # <tt>IrreversibleMigration</tt> exception, that step will fail and you'll
   # have some manual work to do.
