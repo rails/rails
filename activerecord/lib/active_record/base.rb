@@ -444,9 +444,10 @@ module ActiveRecord #:nodoc:
         if attributes.is_a?(Array)
           attributes.collect { |attr| create(attr) }
         else
-          attributes.reverse_merge!(scope(:create)) if scoped?(:create)
-
           object = new(attributes)
+          if scoped?(:create)
+            scope(:create).each { |att,value| object.send("#{att}=", value) }
+          end
           object.save
           object
         end
