@@ -61,13 +61,13 @@ module Rails
     # * #initialize_logger
     # * #initialize_framework_logging
     # * #initialize_framework_views
-    # * #initialize_routing
     # * #initialize_dependency_mechanism
     # * #initialize_breakpoints
     # * #initialize_whiny_nils
     # * #initialize_framework_settings
     # * #load_environment
     # * #load_plugins
+    # * #initialize_routing
     #
     # (Note that #load_environment is invoked twice, once at the start and
     # once at the end, to support the legacy configuration style where the
