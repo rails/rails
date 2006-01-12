@@ -174,11 +174,11 @@ module ActionController #:nodoc:
       private
         def inherited(child)
           inherited_without_layout(child)
-          child.layout(child.controller_name) unless layout_list.grep(/^#{child.controller_name}\.r(?:x|ht)ml$/).empty?
+          child.layout(child.controller_name) unless layout_list.grep(/^#{child.controller_name}\.[a-z][0-9a-z]*$/).empty?
         end
 
         def layout_list
-          Dir.glob("#{template_root}/layouts/*.r{x,ht}ml").map { |layout| File.basename(layout) }
+          Dir.glob("#{template_root}/layouts/*.*").map { |layout| File.basename(layout) }
         end
 
         def add_layout_conditions(conditions)
