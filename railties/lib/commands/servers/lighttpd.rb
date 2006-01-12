@@ -1,3 +1,5 @@
+require 'rbconfig'
+
 unless RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `lighttpd -version` }.blank?
   puts "PROBLEM: Lighttpd is not available on your system (or not in your path)"
   exit 1
@@ -56,5 +58,13 @@ else
 end
 
 trap(:INT) { exit }
-`lighttpd #{!detach ? "-D " : ""}-f #{config_file}`
-tail_thread.kill if tail_thread
+
+begin
+  `lighttpd #{!detach ? "-D " : ""}-f #{config_file}`
+ensure
+  tail_thread.kill if tail_thread
+  
+  # Ensure FCGI processes are reaped
+  path_to_ruby = "#{Config::CONFIG['bindir']}/#{Config::CONFIG['ruby_install_name']}"
+  `#{path_to_ruby} #{RAILS_ROOT}/script/process/reaper -a kill`
+end
