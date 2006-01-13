@@ -63,6 +63,7 @@ begin
   `lighttpd #{!detach ? "-D " : ""}-f #{config_file}`
 ensure
   tail_thread.kill if tail_thread
+  puts 'Exiting'
   
   # Ensure FCGI processes are reaped
   path_to_ruby = "#{Config::CONFIG['bindir']}/#{Config::CONFIG['ruby_install_name']}"
