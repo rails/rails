@@ -1,5 +1,7 @@
 *SVN*
 
+* Corrected problems with plugin loader where plugins set 'name' incorrectly #3297 [anna@wota.jp]
+
 * Make migration generator only report on exact duplicate names, not partial dupliate names. #3442 [jeremy@planetargon.com Marcel Molina Jr.]
 
 * Fix typo in mailer generator USAGE. #3458 [chriztian.steinmeier@gmail.com]

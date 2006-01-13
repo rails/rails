@@ -310,12 +310,13 @@ module Rails
 
         # Allow plugins to reference the current configuration object
         config = configuration 
+	
+        # Add to set of loaded plugins before 'name' collapsed in eval.
+        loaded_plugins << name
 
         # Evaluate init.rb.
         silence_warnings { eval(IO.read(init_path), binding, init_path) } if has_init
 
-        # Add to set of loaded plugins.
-        loaded_plugins << name
         true
       end
   end
