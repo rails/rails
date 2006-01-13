@@ -22,7 +22,7 @@ a:hover { color: #fff; background-color:#000; }
   display: table;
 }
 
-#ErrorExplanation {
+#errorExplanation {
   width: 400px;
   border: 2px solid red;
   padding: 7px;
@@ -31,7 +31,7 @@ a:hover { color: #fff; background-color:#000; }
   background-color: #f0f0f0;
 }
 
-#ErrorExplanation h2 {
+#errorExplanation h2 {
   text-align: left;
   font-weight: bold;
   padding: 5px 5px 5px 15px;
@@ -41,13 +41,13 @@ a:hover { color: #fff; background-color:#000; }
   color: #fff;
 }
 
-#ErrorExplanation p {
+#errorExplanation p {
   color: #333;
   margin-bottom: 0;
   padding: 5px;
 }
 
-#ErrorExplanation ul li {
+#errorExplanation ul li {
   font-size: 12px;
   list-style: square;
 }
