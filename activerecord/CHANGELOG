@@ -1,6 +1,8 @@
 *SVN*
 
-* Escape database name in MySQL adapter when creating and dropping databases. #3409 [anna@wota.jp]
+* Fix date errors for SQLServer in association tests. #3406 [kevin.clark@gmal.com]
+
+r Escape database name in MySQL adapter when creating and dropping databases. #3409 [anna@wota.jp]
 
 * Disambiguate table names for columns in validates_uniquness_of's WHERE clause. #3423 [alex.borovsky@gmail.com]
 
