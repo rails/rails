@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix typo in mailer generator USAGE. #3458 [chriztian.steinmeier@gmail.com]
+
 * Ignore version mismatch between pg_dump and the database server. #3457 [simon.stapleton@gmail.com]
 
 * Reap FCGI processes after lighttpd exits. [Sam Stephenson]
