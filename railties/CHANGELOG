@@ -1,5 +1,7 @@
 *SVN*
 
+* Ignore version mismatch between pg_dump and the database server. #3457 [simon.stapleton@gmail.com]
+
 * Reap FCGI processes after lighttpd exits. [Sam Stephenson]
 
 * Update to script.aculo.us to 1.5.0 rev. 3343 [Thomas Fuchs]

@@ -46,7 +46,7 @@ task :db_structure_dump => :environment do
       ENV['PGPASSWORD'] = abcs[RAILS_ENV]["password"].to_s if abcs[RAILS_ENV]["password"]
       search_path = abcs[RAILS_ENV]["schema_search_path"]
       search_path = "--schema=#{search_path}" if search_path
-      `pg_dump -U "#{abcs[RAILS_ENV]["username"]}" -s -x -O -f db/#{RAILS_ENV}_structure.sql #{search_path} #{abcs[RAILS_ENV]["database"]}`
+      `pg_dump -i -U "#{abcs[RAILS_ENV]["username"]}" -s -x -O -f db/#{RAILS_ENV}_structure.sql #{search_path} #{abcs[RAILS_ENV]["database"]}`
     when "sqlite", "sqlite3"
       dbfile = abcs[RAILS_ENV]["database"] || abcs[RAILS_ENV]["dbfile"]
       `#{abcs[RAILS_ENV]["adapter"]} #{dbfile} .schema > db/#{RAILS_ENV}_structure.sql`
