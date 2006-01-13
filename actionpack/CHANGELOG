@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix typo in function name mapping in auto_complete_field. #3446 [doppler@gmail.com]
+
 *  Allow auto-discovery of third party template library layouts. [Marcel Molina Jr.]
 
 * Have the form builder output radio button, not check box, when calling the radio button helper. #3331 [LouisStAmour@gmail.com]

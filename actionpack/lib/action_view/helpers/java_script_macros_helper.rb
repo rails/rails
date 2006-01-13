@@ -124,7 +124,7 @@ module ActionView
         js_options[:indicator]  = "'#{options[:indicator]}'" if options[:indicator]
         js_options[:select]     = "'#{options[:select]}'" if options[:select]
 
-        { :on_show => :onShow, :on_hide => :onHide, :min_chars => :min_chars }.each do |k,v|
+        { :on_show => :onShow, :on_hide => :onHide, :min_chars => :minChars }.each do |k,v|
           js_options[v] = options[k] if options[k]
         end
 
