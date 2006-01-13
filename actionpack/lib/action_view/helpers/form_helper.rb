@@ -47,7 +47,7 @@ module ActionView
     #
     # If the object name contains square brackets the id for the object will be inserted. Example:
     #
-    #   <%= textfield "person[]", "name" %> 
+    #   <%= text_field "person[]", "name" %> 
     # 
     # ...becomes:
     #

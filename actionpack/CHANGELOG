@@ -1,5 +1,7 @@
 *SVN*
 
+* Documentation typo fix. #2367 [Blair Zajac]
+
 * Remove Upload Progress. #2871 [Sean Treadway]
 
 * Fix typo in function name mapping in auto_complete_field. #2929 #3446 [doppler@gmail.com phil.ross@gmail.com]
