@@ -243,11 +243,11 @@ module ActiveRecord
       end
 
       def create_database(name) #:nodoc:
-        execute "CREATE DATABASE #{name}"
+        execute "CREATE DATABASE `#{name}`"
       end
       
       def drop_database(name) #:nodoc:
-        execute "DROP DATABASE IF EXISTS #{name}"
+        execute "DROP DATABASE IF EXISTS `#{name}`"
       end
 
 
