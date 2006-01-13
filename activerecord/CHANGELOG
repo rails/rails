@@ -1,5 +1,7 @@
 *SVN*
 
+* Disambiguate table names for columns in validates_uniquness_of's WHERE clause. #3423 [alex.borovsky@gmail.com]
+
 * .with_scope imposed create parameters now bypass attr_protected [Tobias Luetke]
 
 * Don't raise an exception when there are more keys than there are named bind variables when sanitizing conditions. [Marcel Molina Jr.]

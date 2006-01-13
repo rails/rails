@@ -496,17 +496,17 @@ module ActiveRecord
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
-          condition_sql = "#{attr_name} #{attribute_condition(value)}"
+          condition_sql = "#{record.class.table_name}.#{attr_name} #{attribute_condition(value)}"
           condition_params = [value]
           if scope = configuration[:scope]
             Array(scope).map do |scope_item|
               scope_value = record.send(scope_item)
-              condition_sql << " AND #{scope_item} #{attribute_condition(scope_value)}"
+              condition_sql << " AND #{record.class.table_name}.#{scope_item} #{attribute_condition(scope_value)}"
               condition_params << scope_value
             end
           end
           unless record.new_record?
-            condition_sql << " AND #{record.class.primary_key} <> ?"
+            condition_sql << " AND #{record.class.table_name}.#{record.class.primary_key} <> ?"
             condition_params << record.send(:id)
           end
           if record.class.find(:first, :conditions => [condition_sql, *condition_params])
