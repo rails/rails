@@ -327,6 +327,10 @@ class CGIRequestTest < Test::Unit::TestCase
     @request_hash.delete "HTTP_X_FORWARDED_HOST"
     @request_hash['HTTP_HOST'] = "rubyonrails.org:8080"
     assert_equal "rubyonrails.org:8080", @request.host_with_port
+    
+    @request_hash['HTTP_X_FORWARDED_HOST'] = "www.firsthost.org, www.secondhost.org"
+    assert_equal "www.secondhost.org", @request.host
+    
   end
   
   def test_cookie_syntax_resilience

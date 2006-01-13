@@ -1,5 +1,7 @@
 *SVN*
 
+* Add support for multiple proxy servers to CgiRequest#host [gaetanot@comcast.net]
+
 * Documentation typo fix. #2367 [Blair Zajac]
 
 * Remove Upload Progress. #2871 [Sean Treadway]
