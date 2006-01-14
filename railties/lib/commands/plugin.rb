@@ -444,7 +444,7 @@ module Commands
         command.parse!(sub)
       else
         puts "Unknown command: #{command}"
-        puts "Try: #{$0} --help"
+        puts options
         exit 1
       end
     end
