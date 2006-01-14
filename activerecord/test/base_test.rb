@@ -133,8 +133,19 @@ class BasicsTest < Test::Unit::TestCase
     topic = Topic.new
     topic.title = "New Topic"
     topic.save
-    topicReloaded = Topic.find(topic.id)
-    assert_equal("New Topic", topicReloaded.title)
+    topic_reloaded = Topic.find(topic.id)
+    assert_equal("New Topic", topic_reloaded.title)
+  end
+    
+  def test_hashes_not_mangled
+    new_topic = { :title => "New Topic" }
+    new_topic_values = { :title => "AnotherTopic" }
+
+    topic = Topic.new(new_topic)
+    assert_equal new_topic[:title], topic.title
+
+    topic.attributes= new_topic_values
+    assert_equal new_topic_value[:title], topic.title
   end
   
   def test_create_many
