@@ -141,8 +141,9 @@ module Rails
     # * evaluate <tt>init.rb</tt> if present
     #
     # After all plugins are loaded, duplicates are removed from the load path.
+    # Plugins are loaded in alphabetical order.
     def load_plugins
-      find_plugins(configuration.plugin_paths).each { |path| load_plugin path }
+      find_plugins(configuration.plugin_paths).sort.each { |path| load_plugin path }
       $LOAD_PATH.uniq!
     end
 
@@ -262,7 +263,7 @@ module Rails
       # Return a list of plugin paths within base_path.  A plugin path is
       # a directory that contains either a lib directory or an init.rb file.
       # This recurses into directories which are not plugin paths, so you
-      # may organize your plugins which the plugin path.
+      # may organize your plugins within the plugin path.
       def find_plugins(*base_paths)
         base_paths.flatten.inject([]) do |plugins, base_path|
           Dir.glob(File.join(base_path, '*')).each do |path|

@@ -1,5 +1,7 @@
 *SVN*
 
+* Sort the list of plugins so we load in a consistent order [Rick Olson]
+
 * Show usage when script/plugin is called without arguments [tom@craz8.com]
 
 * Corrected problems with plugin loader where plugins set 'name' incorrectly #3297 [anna@wota.jp]
