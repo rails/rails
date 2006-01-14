@@ -145,7 +145,7 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal new_topic[:title], topic.title
 
     topic.attributes= new_topic_values
-    assert_equal new_topic_value[:title], topic.title
+    assert_equal new_topic_values[:title], topic.title
   end
   
   def test_create_many
