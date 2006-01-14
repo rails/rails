@@ -26,6 +26,7 @@ DROP TABLE fk_test_has_fk;
 DROP TABLE fk_test_has_pk;
 DROP TABLE keyboards;
 DROP TABLE defaults;
+DROP TABLE legacy_things;
 
 DROP DOMAIN D_BOOLEAN;
 

@@ -181,3 +181,11 @@ CREATE TABLE keyboards (
   key_number int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
   name varchar(50) default NULL
 );
+
+--This table has an altered lock_version column name.
+CREATE TABLE legacy_things (
+  id int NOT NULL IDENTITY(1, 1),
+  tps_report_number int default NULL,
+  version int default 0,
+  PRIMARY KEY (id)
+);

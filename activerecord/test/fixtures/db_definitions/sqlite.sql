@@ -181,3 +181,10 @@ CREATE TABLE 'keyboards' (
   'key_number' INTEGER PRIMARY KEY NOT NULL,
   'name' VARCHAR(255) DEFAULT NULL
 );
+
+--Altered lock_version column name.
+CREATE TABLE 'legacy_things' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'tps_report_number' INTEGER DEFAULT NULL,
+  'version' INTEGER NOT NULL DEFAULT 0
+)

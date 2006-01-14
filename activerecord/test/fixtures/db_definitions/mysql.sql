@@ -197,3 +197,11 @@ CREATE TABLE `keyboards` (
   `key_number` int(11) NOT NULL auto_increment primary key,
   `name` varchar(50) default NULL
 );
+
+--Altered lock_version column name.
+CREATE TABLE `legacy_things` (
+  `id` int(11) NOT NULL auto_increment,
+  `tps_report_number` int(11) default NULL,
+  `version` int(11) NOT NULL default 0,
+  PRIMARY KEY  (`id`)
+) TYPE=InnoDB;

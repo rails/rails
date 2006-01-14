@@ -1,8 +1,9 @@
 require 'abstract_unit'
 require 'fixtures/person'
+require 'fixtures/legacy_thing'
 
 class LockingTest < Test::Unit::TestCase
-  fixtures :people
+  fixtures :people, :legacy_things
 
   def test_lock_existing
     p1 = Person.find(1)
@@ -28,5 +29,18 @@ class LockingTest < Test::Unit::TestCase
       p2.first_name = "should fail"
       p2.save
     }
+  end
+  
+  def test_lock_column_name_existing
+    t1 = LegacyThing.find(1)
+    t2 = LegacyThing.find(1)
+    t1.tps_report_number = 400
+    t1.save
+
+    assert_raises(ActiveRecord::StaleObjectError) {
+      t2.tps_report_number = 300
+      t2.save
+    }
   end 
+
 end

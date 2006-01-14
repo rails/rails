@@ -257,3 +257,12 @@ CREATE TABLE defaults (
 );
 CREATE GENERATOR defaults_seq;
 SET GENERATOR defaults_seq TO 10000;
+
+CREATE TABLE legacy_things (
+  id BIGINT NOT NULL,
+  tps_report_number INTEGER,
+  version INTEGER DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+CREATE GENERATOR legacy_things_seq;
+SET GENERATOR legacy_things_seq TO 10000;

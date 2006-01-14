@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow configuration of the column used for optimistic locking [wilsonb@gmail.com]
+
 * Don't hardcode 'id' in acts as list.  [ror@philippeapril.com]
 
 * Fix date errors for SQLServer in association tests. #3406 [kevin.clark@gmal.com]

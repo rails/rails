@@ -26,6 +26,8 @@ drop table posts;
 drop table fk_test_has_pk;
 drop table fk_test_has_fk;
 drop table keyboards;
+drop table legacy_things;
+
 drop sequence accounts_seq;
 drop sequence companies_nonstd_seq;
 drop sequence topics_seq;
@@ -53,3 +55,4 @@ drop sequence categories_posts_seq;
 drop sequence fk_test_has_pk_seq;
 drop sequence fk_test_has_fk_seq;
 drop sequence keyboards_seq;
+drop sequence legacy_things_seq;

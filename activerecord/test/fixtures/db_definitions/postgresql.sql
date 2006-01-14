@@ -225,3 +225,10 @@ CREATE TABLE keyboards (
   key_number serial primary key,
   "name" character varying(50)
 );
+
+--Altered lock_version column name.
+CREATE TABLE legacy_things (
+  id serial primary key,
+  tps_report_number integer,
+  version integer default 0
+);

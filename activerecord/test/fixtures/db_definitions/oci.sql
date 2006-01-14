@@ -269,3 +269,10 @@ create table test_oci_defaults (
 );
 create sequence test_oci_defaults_seq minvalue 10000;
 
+--This table has an altered lock_version column name.
+create table legacy_things (
+    id integer not null primary key,
+    tps_report_number integer default null,
+    version integer default 0
+);
+create sequence legacy_things_seq minvalue 10000;
