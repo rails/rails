@@ -174,11 +174,12 @@ module ActionController #:nodoc:
       private
         def inherited(child)
           inherited_without_layout(child)
-          child.layout(child.controller_name) unless layout_list.grep(/^#{child.controller_name}\.[a-z][0-9a-z]*$/).empty?
+          layout_match = child.name.underscore.sub(/_controller$/, '')
+          child.layout(layout_match) unless layout_list.grep(%r{layouts/#{layout_match}\.[a-z][0-9a-z]*$}).empty?
         end
 
         def layout_list
-          Dir.glob("#{template_root}/layouts/*.*").map { |layout| File.basename(layout) }
+          Dir.glob("#{template_root}/layouts/**/*")
         end
 
         def add_layout_conditions(conditions)
@@ -202,8 +203,12 @@ module ActionController #:nodoc:
         when Proc   then layout.call(self)
         when String then layout
       end
-
-      active_layout.include?("/") ? active_layout : "layouts/#{active_layout}" if active_layout
+      
+      # Explicitly passed layout names with slashes are looked up relative to the template root,
+      # but auto-discovered layouts derived from a nested controller will contain a slash, though be relative
+      # to the 'layouts' directory so we have to check the file system to infer which case the layout name came from.
+      nested_controller = File.directory?(File.dirname(File.join(self.class.template_root, 'layouts', active_layout)))
+      active_layout.include?('/') && !nested_controller ? active_layout : "layouts/#{active_layout}" if active_layout
     end
 
     def render_with_a_layout(options = nil, deprecated_status = nil, deprecated_layout = nil) #:nodoc:

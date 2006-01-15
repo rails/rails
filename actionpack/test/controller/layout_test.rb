@@ -20,6 +20,12 @@ end
 class ThirdPartyTemplateLibraryController < LayoutTest
 end
 
+module ControllerNameSpace
+end
+
+class ControllerNameSpace::NestedController < LayoutTest
+end
+
 class MabView
   def initialize(view)
   end
@@ -56,6 +62,13 @@ class LayoutAutoDiscoveryTest < Test::Unit::TestCase
     get :hello
     assert_equal 'layouts/third_party_template_library', @controller.active_layout
     assert_equal 'Mab', @response.body
+  end
+  
+  def test_namespaced_controllers_auto_detect_layouts
+    @controller = ControllerNameSpace::NestedController.new
+    get :hello
+    assert_equal 'layouts/controller_name_space/nested', @controller.active_layout
+    assert_equal 'controller_name_space/nested.rhtml hello.rhtml', @response.body
   end
 
 end
