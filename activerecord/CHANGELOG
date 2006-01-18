@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix case of VERSION option in migration docs. #3521 [Dawnthorn <peterh@sapros.com>]
+
 * Fixed that saving a model with multiple habtm associations would only save the first one.  #3244 [yanowitz-rubyonrails@quantumfoam.org, Florian Weber]
 
 
