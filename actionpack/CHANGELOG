@@ -1,6 +1,6 @@
 *SVN*
 
-* Update to Prototype 1.5.0_rc0 [Sam Stephenson]
+* Update to Prototype 1.5.0_pre0 [Sam Stephenson]
 
 * Automatically discover layouts when a controller is namespaced. #2199, #3424 [me@jonnii.com rails@jeffcole.net Marcel Molina Jr.]
 
