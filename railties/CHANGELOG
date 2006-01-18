@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to Prototype 1.5.0_rc0 [Sam Stephenson]
+
 * Sort the list of plugins so we load in a consistent order [Rick Olson]
 
 * Show usage when script/plugin is called without arguments [tom@craz8.com]
