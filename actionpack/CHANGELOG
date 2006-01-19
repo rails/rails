@@ -1,5 +1,7 @@
 *SVN*
 
+* allow nil objects for error_messages_for [Michael Koziarski]
+
 * Refactor human_size to exclude decimal place if it is zero. [Marcel Molina Jr.]
 
 * Update to Prototype 1.5.0_pre0 [Sam Stephenson]
