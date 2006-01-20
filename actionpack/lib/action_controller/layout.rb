@@ -211,7 +211,7 @@ module ActionController #:nodoc:
       active_layout.include?('/') && !nested_controller ? active_layout : "layouts/#{active_layout}" if active_layout
     end
 
-    def render_with_a_layout(options = nil, deprecated_status = nil, deprecated_layout = nil) #:nodoc:
+    def render_with_a_layout(options = nil, deprecated_status = nil, deprecated_layout = nil, &block) #:nodoc:
       template_with_options = options.is_a?(Hash)
 
       if apply_layout?(template_with_options, options) && (layout = pick_layout(template_with_options, options, deprecated_layout))
@@ -219,10 +219,10 @@ module ActionController #:nodoc:
         logger.info("Rendering #{options} within #{layout}") if logger
 
         if template_with_options
-          content_for_layout = render_with_no_layout(options)
+          content_for_layout = render_with_no_layout(options, &block)
           deprecated_status = options[:status] || deprecated_status
         else
-          content_for_layout = render_with_no_layout(options, deprecated_status)
+          content_for_layout = render_with_no_layout(options, deprecated_status, &block)
         end
 
         erase_render_results
@@ -230,7 +230,7 @@ module ActionController #:nodoc:
         @template.instance_variable_set("@content_for_layout", content_for_layout)
         render_text(@template.render_file(layout, true), deprecated_status)
       else
-        render_with_no_layout(options, deprecated_status)
+        render_with_no_layout(options, deprecated_status, &block)
       end
     end
 

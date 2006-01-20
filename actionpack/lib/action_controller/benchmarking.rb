@@ -43,14 +43,14 @@ module ActionController #:nodoc:
       end
     end
 
-    def render_with_benchmark(options = nil, deprecated_status = nil)
+    def render_with_benchmark(options = nil, deprecated_status = nil, &block)
       unless logger
-        render_without_benchmark(options, deprecated_status)
+        render_without_benchmark(options, deprecated_status, &block)
       else
         db_runtime = ActiveRecord::Base.connection.reset_runtime if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
 
         render_output = nil
-        @rendering_runtime = Benchmark::measure{ render_output = render_without_benchmark(options, deprecated_status) }.real
+        @rendering_runtime = Benchmark::measure{ render_output = render_without_benchmark(options, deprecated_status, &block) }.real
 
         if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
           @db_rt_before_render = db_runtime

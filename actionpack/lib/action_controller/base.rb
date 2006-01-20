@@ -368,9 +368,9 @@ module ActionController #:nodoc:
 
       # Returns a URL that has been rewritten according to the options hash and the defined Routes. 
       # (For doing a complete redirect, use redirect_to).
-      #  
+      # Â 
       # <tt>url_for</tt> is used to:
-      #  
+      # Â 
       # All keys given to url_for are forwarded to the Route module, save for the following:
       # * <tt>:anchor</tt> -- specifies the anchor name to be appended to the path. For example, 
       #   <tt>url_for :controller => 'posts', :action => 'show', :id => 10, :anchor => 'comments'</tt> 
@@ -386,7 +386,7 @@ module ActionController #:nodoc:
       #
       # The default Routes setup supports a typical Rails path of "controller/action/id" where action and id are optional, with
       # action defaulting to 'index' when not given. Here are some typical url_for statements and their corresponding URLs:
-      #  
+      # Â 
       #   url_for :controller => 'posts', :action => 'recent' # => 'proto://host.com/posts/recent'
       #   url_for :controller => 'posts', :action => 'index' # => 'proto://host.com/posts'
       #   url_for :controller => 'posts', :action => 'show', :id => 10 # => 'proto://host.com/posts/show/10'
@@ -395,7 +395,7 @@ module ActionController #:nodoc:
       # <tt>url_for :action => 'some_action'</tt> will retain the current controller, as expected. This behavior extends to
       # other parameters, including <tt>:controller</tt>, <tt>:id</tt>, and any other parameters that are placed into a Route's
       # path.
-      #  
+      # Â 
       # The URL helpers such as <tt>url_for</tt> have a limited form of memory: when generating a new URL, they can look for
       # missing values in the current request's parameters. Routes attempts to guess when a value should and should not be
       # taken from the defaults. There are a few simple rules on how this is performed:
@@ -418,7 +418,7 @@ module ActionController #:nodoc:
       # answer has to do with the order in which the parameters appear in the generated path. In a nutshell, since the
       # value that appears in the slot for <tt>:first</tt> is not equal to default value for <tt>:first</tt> we stop using
       # defaults. On it's own, this rule can account for much of the typical Rails URL behavior.
-      #  
+      # Â 
       # Although a convienence, defaults can occasionaly get in your way. In some cases a default persists longer than desired.
       # The default may be cleared by adding <tt>:name => nil</tt> to <tt>url_for</tt>'s options.
       # This is often required when writing form helpers, since the defaults in play may vary greatly depending upon where the
@@ -571,6 +571,16 @@ module ActionController #:nodoc:
       #
       # _Deprecation_ _notice_: This used to have the signature <tt>render_template(template, status = 200, type = :rhtml)</tt>
       #
+      # === Rendering inline JavaScriptGenerator page updates
+      #
+      # In addition to rendering JavaScriptGenerator page updates with Ajax in RJS templates (see ActionView::Base for details),
+      # you can also pass the <tt>:update</tt> parameter to +render+, along with a block, to render page updates inline.
+      #
+      #   render :update do |page|
+      #     page.replace_html  'user_list', :partial => 'user', :collection => @users
+      #     page.visual_effect :highlight, 'user_list'
+      #   end
+      #
       # === Rendering nothing
       #
       # Rendering nothing is often convenient in combination with Ajax calls that perform their effect client-side or
@@ -581,12 +591,16 @@ module ActionController #:nodoc:
       #
       #   # Renders an empty response with status code 401 (access denied)
       #   render :nothing => true, :status => 401
-      def render(options = nil, deprecated_status = nil) #:doc:
+      def render(options = nil, deprecated_status = nil, &block) #:doc:
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
         # Backwards compatibility
         unless options.is_a?(Hash)
-          return render_file(options || default_template_name, deprecated_status, true)
+          if options == :update
+            options = {:update => true}
+          else
+            return render_file(options || default_template_name, deprecated_status, true)
+          end
         end
 
         if text = options[:text]
@@ -612,6 +626,10 @@ module ActionController #:nodoc:
             else
               render_partial(partial, ActionView::Base::ObjectWrapper.new(options[:object]), options[:locals], options[:status])
             end
+
+          elsif options[:update]
+            generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(@template, &block)
+            render_javascript(generator.to_s)
 
           elsif options[:nothing]
             # Safari doesn't pass the headers of the return if the response is zero length
@@ -659,6 +677,11 @@ module ActionController #:nodoc:
         @performed_render = true
         @response.headers['Status'] = (status || DEFAULT_RENDER_STATUS_CODE).to_s
         @response.body = text
+      end
+
+      def render_javascript(javascript, status = nil)
+        @response.headers['Content-type'] = 'text/javascript'
+        render_text(javascript, status)
       end
 
       def render_nothing(status = nil)

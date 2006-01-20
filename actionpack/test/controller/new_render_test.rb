@@ -188,6 +188,13 @@ class NewRenderTestController < ActionController::Base
     render :action => 'delete_with_js'
   end
 
+  def update_page
+    render :update do |page|
+      page.replace_html 'balance', '$37,000,000.00'
+      page.visual_effect :highlight, 'balance'
+    end
+  end
+
   def action_talk_to_layout
     # Action template sets variable that's picked up by layout
   end
@@ -478,6 +485,12 @@ class NewRenderTest < Test::Unit::TestCase
   def test_render_text_with_assigns
     get :render_text_with_assigns
     assert_equal "world", assigns["hello"]
+  end
+  
+  def test_update_page
+    get :update_page
+    assert_equal 'text/javascript', @response.headers['Content-type']
+    assert_equal 2, @response.body.split($/).length
   end
   
   def test_yield_content_for

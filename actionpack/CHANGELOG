@@ -1,5 +1,15 @@
 *SVN*
 
+* Add render :update for inline RJS. [Sam Stephenson]  Example:
+  class UserController < ApplicationController
+    def refresh
+      render :update do |page|
+        page.replace_html  'user_list', :partial => 'user', :collection => @users
+        page.visual_effect :highlight, 'user_list'
+      end
+    end
+  end
+
 * allow nil objects for error_messages_for [Michael Koziarski]
 
 * Refactor human_size to exclude decimal place if it is zero. [Marcel Molina Jr.]
