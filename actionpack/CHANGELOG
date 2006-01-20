@@ -1,5 +1,7 @@
 *SVN*
 
+* Pass along blocks from render_to_string to render. [Sam Stephenson]
+
 * Add render :update for inline RJS. [Sam Stephenson]  Example:
   class UserController < ApplicationController
     def refresh

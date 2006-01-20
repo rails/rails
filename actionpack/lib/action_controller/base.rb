@@ -644,8 +644,8 @@ module ActionController #:nodoc:
 
       # Renders according to the same rules as <tt>render</tt>, but returns the result in a string instead
       # of sending it as the response body to the browser.
-      def render_to_string(options = nil) #:doc:
-        result = render(options)
+      def render_to_string(options = nil, &block) #:doc:
+        result = render(options, &block)
         erase_render_results
         @variables_added = nil
         @template.instance_variable_set("@assigns_added", nil)
