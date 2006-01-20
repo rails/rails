@@ -1,5 +1,7 @@
 *SVN*
 
+* Add AR::Base.base_class for querying the ancestor AR::Base subclass [Jamis Buck]
+
 * Allow configuration of the column used for optimistic locking [wilsonb@gmail.com]
 
 * Don't hardcode 'id' in acts as list.  [ror@philippeapril.com]

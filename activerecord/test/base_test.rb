@@ -1112,7 +1112,12 @@ class BasicsTest < Test::Unit::TestCase
     developers = Developer.find(:all, :order => 'id')
     assert_equal Developer.count, developers.size
   end
-  
+
+  def test_base_class
+    assert_equal LoosePerson, LoosePerson.base_class
+    assert_equal LoosePerson, LooseDescendant.base_class
+  end
+
   # FIXME: this test ought to run, but it needs to run sandboxed so that it
   # doesn't b0rk the current test environment by undefing everything.
   #

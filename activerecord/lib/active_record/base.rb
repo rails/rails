@@ -882,6 +882,13 @@ module ActiveRecord #:nodoc:
         self.allow_concurrency = value
       end
 
+      # Returns the base AR subclass that this class descends from. If A
+      # extends AR::Base, A.base_class will return A. If B descends from A
+      # through some arbitrarily deep hierarchy, B.base_class will return A.
+      def base_class
+        class_of_active_record_descendant(self)
+      end
+
       
       private
         # Finder methods must instantiate through this method to work with the single-table inheritance model
@@ -1105,15 +1112,20 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Returns the name of the class descending directly from ActiveRecord in the inheritance hierarchy.
-        def class_name_of_active_record_descendant(klass)
+        # Returns the class descending directly from ActiveRecord in the inheritance hierarchy.
+        def class_of_active_record_descendant(klass)
           if klass.superclass == Base
-            klass.name
+            klass
           elsif klass.superclass.nil?
             raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
           else
-            class_name_of_active_record_descendant(klass.superclass)
+            class_of_active_record_descendant(klass.superclass)
           end
+        end
+
+        # Returns the name of the class descending directly from ActiveRecord in the inheritance hierarchy.
+        def class_name_of_active_record_descendant(klass)
+          class_of_active_record_descendant(klass).name
         end
 
         # Accepts an array or string.  The string is returned untouched, but the array has each value
