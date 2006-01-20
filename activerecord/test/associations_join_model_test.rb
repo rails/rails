@@ -39,6 +39,14 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_equal tags(:general), posts(:thinking).tags.first
   end
   
+  def test_polymorphic_has_many_create_model_with_inheritance
+    post = posts(:thinking)
+    assert_instance_of SpecialPost, post
+    
+    tagging = tags(:misc).taggings.create(:taggable => post)
+    assert_equal "Post", tagging.taggable_type
+  end
+  
   def test_has_many_with_piggyback
     assert_equal "2", categories(:sti_test).authors.first.post_id.to_s
   end
