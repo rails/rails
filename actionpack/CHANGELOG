@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix IE bug with link_to "something", :post => true #3443 [Justin Palmer]
+
 * Extract Test::Unit::TestCase test process behavior into an ActionController::TestProcess module. [Sam Stephenson]
 
 * Pass along blocks from render_to_string to render. [Sam Stephenson]

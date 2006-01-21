@@ -269,7 +269,7 @@ module ActionView
         end
         
         def post_javascript_function
-          "f = document.createElement('form'); document.body.appendChild(f); f.method = 'POST'; f.action = this.href; f.submit();"
+          "var f = document.createElement('form'); document.body.appendChild(f); f.method = 'POST'; f.action = this.href; f.submit();"
         end
 
         # Processes the _html_options_ hash, converting the boolean
