@@ -23,6 +23,9 @@ class Post < ActiveRecord::Base
   has_many :taggings, :as => :taggable
   has_many :tags, :through => :taggings
 
+  has_many :categorizations, :foreign_key => :category_id
+  has_many :authors, :through => :categorizations
+
   def self.what_are_you
     'a post...'
   end

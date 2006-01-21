@@ -68,5 +68,9 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_equal categories(:general), authors(:david).categories.find_by_name('General')
 #    assert_equal nil, authors(:david).categories.find_by_name('Technology')
   end
-    
+
+  def test_has_many_going_through_join_model_with_custom_foreign_key
+    assert_equal [], posts(:thinking).authors
+    assert_equal [authors(:mary)], posts(:authorless).authors
+  end
 end

@@ -62,7 +62,6 @@ module ActiveRecord
 
         def construct_conditions
           through_reflection = @owner.class.reflections[@reflection.options[:through]]
-          through_foreign_classname = ActiveRecord::Base.send(:class_name_of_active_record_descendant, @owner.class).to_s
           
           if through_reflection.options[:as]
             conditions = 
@@ -72,7 +71,7 @@ module ActiveRecord
           else
             conditions = 
               "#{@reflection.klass.table_name}.#{@reflection.klass.primary_key} = #{through_reflection.table_name}.#{@reflection.klass.to_s.foreign_key} " +
-              "AND #{through_reflection.table_name}.#{through_foreign_classname.foreign_key} = #{@owner.quoted_id}"
+              "AND #{through_reflection.table_name}.#{through_reflection.primary_key_name} = #{@owner.quoted_id}"
           end
           
           conditions << " AND (#{interpolate_sql(sanitize_sql(@reflection.options[:conditions]))})" if @reflection.options[:conditions]
