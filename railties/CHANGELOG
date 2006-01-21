@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed documentation tasks to work with Rake 0.7.0 #3563 [kazuhiko@fdiary.net]
+
 * Update to Prototype 1.5.0_pre0 [Sam Stephenson]
 
 * Sort the list of plugins so we load in a consistent order [Rick Olson]

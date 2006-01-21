@@ -16,7 +16,7 @@ plugins.each do |plugin|
     files         = Rake::FileList.new
     options << "-o doc/plugins/#{plugin}"
     options << "--title '#{plugin.titlecase} Plugin Documentation'"
-    options << '--line-numbers --inline-source'
+    options << '--line-numbers' << '--inline-source'
     options << '-T html'
 
     files.include("#{plugin_base}/lib/**/*.rb")
@@ -45,7 +45,7 @@ Rake::RDocTask.new("apidoc") { |rdoc|
   rdoc.rdoc_dir = 'doc/api'
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.title    = "Rails Framework Documentation"
-  rdoc.options << '--line-numbers --inline-source'
+  rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.rdoc_files.include('README')
   rdoc.rdoc_files.include('vendor/rails/railties/CHANGELOG')
   rdoc.rdoc_files.include('vendor/rails/railties/MIT-LICENSE')
