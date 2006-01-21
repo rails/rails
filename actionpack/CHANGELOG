@@ -1,5 +1,7 @@
 *SVN*
 
+* Treat timestamps like datetimes for scaffolding purposes #3388 [Maik Schmidt]
+
 * Fix IE bug with link_to "something", :post => true #3443 [Justin Palmer]
 
 * Extract Test::Unit::TestCase test process behavior into an ActionController::TestProcess module. [Sam Stephenson]

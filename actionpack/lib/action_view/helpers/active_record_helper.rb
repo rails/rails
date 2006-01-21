@@ -141,7 +141,7 @@ module ActionView
             to_input_field_tag("text", options)
           when :date
             to_date_select_tag(options)
-          when :datetime
+          when :datetime, :timestamp
             to_datetime_select_tag(options)
           when :boolean
             to_boolean_select_tag(options)
