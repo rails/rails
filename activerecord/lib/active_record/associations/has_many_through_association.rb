@@ -107,7 +107,8 @@ module ActiveRecord
           if @reflection.options[:counter_sql]
             @counter_sql = interpolate_sql(@reflection.options[:counter_sql])
           elsif @reflection.options[:finder_sql]
-            @reflection.options[:counter_sql] = @reflection.options[:finder_sql].gsub(/SELECT (.*) FROM/i, "SELECT COUNT(*) FROM")
+            # replace the SELECT clause with COUNT(*), preserving any hints within /* ... */
+            @reflection.options[:counter_sql] = @reflection.options[:finder_sql].sub(/SELECT (\/\*.*?\*\/ )?(.*)\bFROM\b/im) { "SELECT #{$1}COUNT(*) FROM" }
             @counter_sql = interpolate_sql(@reflection.options[:counter_sql])
           else
             @counter_sql = @finder_sql

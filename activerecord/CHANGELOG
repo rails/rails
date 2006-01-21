@@ -1,5 +1,7 @@
 *SVN*
 
+* Make .count work for has_many associations with multi line finder sql [schoenm@earthlink.net]
+
 * Add AR::Base.base_class for querying the ancestor AR::Base subclass [Jamis Buck]
 
 * Allow configuration of the column used for optimistic locking [wilsonb@gmail.com]
