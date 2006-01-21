@@ -1,7 +1,9 @@
 require 'test/unit'
 
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
-require 'active_support'
+unless defined? ActiveSupport::OptionMerger
+  require File.dirname(__FILE__) + '/../lib/active_support/option_merger'
+  require File.dirname(__FILE__) + '/../lib/active_support/core_ext/object_and_class'
+end
 
 class OptionMergerTest < Test::Unit::TestCase
   def setup
