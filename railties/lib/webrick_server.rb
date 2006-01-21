@@ -77,16 +77,16 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   end
 
   def service(req, res) #:nodoc:
-    begin
-      unless handle_file(req, res)
+    unless handle_file(req, res)
+      begin
         REQUEST_MUTEX.lock unless ActionController::Base.allow_concurrency
         unless handle_dispatch(req, res)
           raise WEBrick::HTTPStatus::NotFound, "`#{req.path}' not found."
         end
-      end
-    ensure
-      unless ActionController::Base.allow_concurrency
-        REQUEST_MUTEX.unlock if REQUEST_MUTEX.locked?
+      ensure
+        unless ActionController::Base.allow_concurrency
+          REQUEST_MUTEX.unlock if REQUEST_MUTEX.locked?
+        end
       end
     end
   end
