@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that static requests could unlock the mutex guarding dynamic requests in the WEBrick servlet #3433 [tom@craz8.com]
+
 * Fixed documentation tasks to work with Rake 0.7.0 #3563 [kazuhiko@fdiary.net]
 
 * Update to Prototype 1.5.0_pre0 [Sam Stephenson]
