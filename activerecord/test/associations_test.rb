@@ -1170,7 +1170,6 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     no_of_devels = Developer.count
     no_of_projects = Project.count
     now = Date.today
-    sqlnow = Time.now.strftime("%Y/%m/%d 00:00:00")
     ken = Developer.new("name" => "Ken")
     ken.projects.push_with_attributes( Project.find(1), :joined_on => now )
     p = Project.new("name" => "Foomatic")
@@ -1185,13 +1184,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal 2, ken.projects(true).size
 
     kenReloaded = Developer.find_by_name 'Ken'
-    # SQL Server doesn't have a separate column type just for dates, 
-    # so the time is in the string and incorrectly formatted
-    if current_adapter?(:SQLServerAdapter)
-      kenReloaded.projects.each { |prj| assert_equal(sqlnow, prj.joined_on.to_s) }
-    else
-      kenReloaded.projects.each { |prj| assert_equal(now.to_s, prj.joined_on.to_s) }
-    end
+    kenReloaded.projects.each {|prj| assert_date_from_db(now, prj.joined_on)}
   end
 
   def test_habtm_saving_multiple_relationships
@@ -1298,10 +1291,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_additional_columns_from_join_table
-    # SQL Server doesn't have a separate column type just for dates, 
-    # so the time is in the string and incorrectly formatted
-    expected = (current_adapter?(:SQLServerAdapter) ? Time.mktime(2004, 10, 10).strftime("%Y/%m/%d 00:00:00") : Date.new(2004, 10, 10).to_s)
-    assert_equal expected, Developer.find(1).projects.first.joined_on.to_s
+    assert_date_from_db Date.new(2004, 10, 10), Developer.find(1).projects.first.joined_on
   end
   
   def test_destroy_all
@@ -1316,15 +1306,9 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_rich_association
     jamis = developers(:jamis)
     jamis.projects.push_with_attributes(projects(:action_controller), :joined_on => Date.today)
-    # SQL Server doesn't have a separate column type just for dates, 
-    # so the time is in the string and incorrectly formatted
-    if current_adapter?(:SQLServerAdapter)
-      assert_equal Time.now.strftime("%Y/%m/%d 00:00:00"), jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
-      assert_equal Time.now.strftime("%Y/%m/%d 00:00:00"), developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
-    else
-      assert_equal Date.today.to_s, jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
-      assert_equal Date.today.to_s, developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
-    end
+    
+    assert_date_from_db Date.today, jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on
+    assert_date_from_db Date.today, developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on
   end
 
   def test_associations_with_conditions

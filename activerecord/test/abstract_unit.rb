@@ -18,6 +18,17 @@ class Test::Unit::TestCase #:nodoc:
   def create_fixtures(*table_names, &block)
     Fixtures.create_fixtures(File.dirname(__FILE__) + "/fixtures/", table_names, &block)
   end
+  
+  def assert_date_from_db(expected, actual, message = nil)
+    # SQL Server doesn't have a separate column type just for dates, 
+    # so the time is in the string and incorrectly formatted
+    
+    if current_adapter?(:SQLServerAdapter)
+      assert_equal expected.strftime("%Y/%m/%d 00:00:00"), actual.strftime("%Y/%m/%d 00:00:00")
+    else
+      assert_equal expected.to_s, actual.to_s, message
+    end
+  end
 end
 
 def current_adapter?(type)

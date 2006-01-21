@@ -649,27 +649,21 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_multiparameter_attributes_on_date
-    # SQL Server doesn't have a separate column type just for dates, so all are returned as time
-    return true if current_adapter?(:SQLServerAdapter)
-
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "24" }
     topic = Topic.find(1)
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which 
     # treats dates/times the same
-    assert_equal Date.new(2004, 6, 24).to_s, topic.last_read.to_date.to_s
+    assert_date_from_db Date.new(2004, 6, 24), topic.last_read.to_date
   end
 
   def test_multiparameter_attributes_on_date_with_empty_date
-    # SQL Server doesn't have a separate column type just for dates, so all are returned as time
-    return true if current_adapter?(:SQLServerAdapter)
-
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "" }
     topic = Topic.find(1)
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which 
     # treats dates/times the same
-    assert_equal Date.new(2004, 6, 1).to_s, topic.last_read.to_date.to_s
+    assert_date_from_db Date.new(2004, 6, 1), topic.last_read.to_date
   end
 
   def test_multiparameter_attributes_on_date_with_all_empty
