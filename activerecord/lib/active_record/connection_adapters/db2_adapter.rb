@@ -189,4 +189,12 @@ begin
   end
 rescue LoadError
   # DB2 driver is unavailable.
+  module ActiveRecord # :nodoc:
+    class Base # :nodoc:
+      def self.db2_connection(config) # :nodoc:
+        # Set up a reasonable error message
+        raise LoadError, "DB2 Libraries could not be loaded."
+      end
+    end
+  end
 end
