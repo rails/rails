@@ -27,6 +27,8 @@ class RedirectController < ActionController::Base
   end
 
   def rescue_errors(e) raise e end
+    
+  def rescue_action(e) raise end
   
   protected
     def dashbord_url(id, message)
@@ -75,6 +77,13 @@ class RedirectTest < Test::Unit::TestCase
     @request.env["HTTP_REFERER"] = "http://www.example.com/coming/from"
     get :redirect_to_back
     assert_redirect_url "http://www.example.com/coming/from"
+  end
+  
+  def test_redirect_to_back_with_no_referer
+    assert_raises(ActionController::RedirectBackError) {
+      @request.env["HTTP_REFERER"] = nil
+      get :redirect_to_back
+    }
   end
 end
 

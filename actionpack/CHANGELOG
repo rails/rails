@@ -1,5 +1,7 @@
 *SVN*
 
+* Raise a RedirectBackError if redirect_to :back is called when there's no HTTP_REFERER defined #3049 [kevin.clark@gmail.com]
+
 * Treat timestamps like datetimes for scaffolding purposes #3388 [Maik Schmidt]
 
 * Fix IE bug with link_to "something", :post => true #3443 [Justin Palmer]

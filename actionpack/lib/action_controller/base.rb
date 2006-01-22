@@ -40,6 +40,13 @@ module ActionController #:nodoc:
       super(message || DEFAULT_MESSAGE)
     end
   end
+  class RedirectBackError < ActionControllerError #:nodoc:
+    DEFAULT_MESSAGE = 'No HTTP_REFERER was set in the request to this action, so redirect_to :back could not be called successfully. If this is a test, make sure to specify @request.env["HTTP_REFERER"].'
+  
+    def initialize(message = nil)
+      super(message || DEFAULT_MESSAGE)
+    end
+  end
 
   # Action Controllers are made up of one or more actions that performs its purpose and then either renders a template or
   # redirects to another action. An action is defined as a public method on the controller, which will automatically be 
@@ -780,7 +787,7 @@ module ActionController #:nodoc:
             redirect_to(request.protocol + request.host_with_port + options)
           
           when :back
-            redirect_to(request.env["HTTP_REFERER"])
+            request.env["HTTP_REFERER"] ? redirect_to(request.env["HTTP_REFERER"]) : raise(RedirectBackError)
 
           else
             if parameters_for_method_reference.empty?
