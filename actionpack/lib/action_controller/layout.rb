@@ -207,7 +207,7 @@ module ActionController #:nodoc:
       # Explicitly passed layout names with slashes are looked up relative to the template root,
       # but auto-discovered layouts derived from a nested controller will contain a slash, though be relative
       # to the 'layouts' directory so we have to check the file system to infer which case the layout name came from.
-      nested_controller = File.directory?(File.dirname(File.join(self.class.template_root, 'layouts', active_layout)))
+      nested_controller = File.directory?(File.dirname(File.join(self.class.template_root, 'layouts', active_layout))) if active_layout
       active_layout.include?('/') && !nested_controller ? active_layout : "layouts/#{active_layout}" if active_layout
     end
 
