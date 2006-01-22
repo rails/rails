@@ -6,7 +6,7 @@ require 'fixtures/developer'
 require 'fixtures/post'
 
 class FinderTest < Test::Unit::TestCase
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :accounts
 
   def test_find
     assert_equal(topics(:first).title, Topic.find(1).title)
@@ -200,6 +200,19 @@ class FinderTest < Test::Unit::TestCase
     assert_nil Topic.find_by_title("The First Topic!")
   end
 
+  def test_find_by_one_attribute_with_order_option
+    assert_equal accounts(:signals37), Account.find_by_credit_limit(50)
+    assert_equal accounts(:rails_core_account), Account.find_by_credit_limit(50, :order => 'id DESC')
+  end
+
+  def test_find_by_one_attribute_with_conditions
+    assert_equal accounts(:rails_core_account), Account.find_by_credit_limit(50, :conditions => ['firm_id = ?', 6])
+  end
+
+  def test_find_by_one_attribute_with_several_options
+    assert_equal accounts(:unknown), Account.find_by_credit_limit(50, :order => 'id DESC', :conditions => ['id != ?', 3])
+  end
+  
   def test_find_by_one_missing_attribute
     assert_raises(NoMethodError) { Topic.find_by_undertitle("The First Topic!") }
   end

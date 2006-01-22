@@ -990,8 +990,15 @@ module ActiveRecord #:nodoc:
 
             conditions = construct_conditions_from_arguments(attribute_names, arguments)
 
-            if arguments[attribute_names.length].is_a?(Hash)
-              find(finder, { :conditions => conditions }.update(arguments[attribute_names.length]))
+            if (extra_options = arguments[attribute_names.size]).is_a?(Hash)
+              finder_options = extra_options.merge(:conditions => conditions)
+              if extra_options[:conditions]
+                with_scope(:find => {:conditions => extra_options[:conditions]}) do
+                  find(finder, finder_options)
+                end
+              else
+                find(finder, finder_options)
+              end
             else
               send("find_#{finder}", conditions, *arguments[attribute_names.length..-1]) # deprecated API
             end

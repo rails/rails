@@ -1,5 +1,7 @@
 *SVN*
 
+* Make dynamic finders honor additional passed in :conditions. #3569 [Oleg Pudeyev <pudeyo@rpi.edu>, Marcel Molina Jr.]
+
 * Show a meaningful error when the DB2 adapter cannot be loaded due to missing dependencies. [Nicholas Seckar]
 
 * Make .count work for has_many associations with multi line finder sql [schoenm@earthlink.net]
