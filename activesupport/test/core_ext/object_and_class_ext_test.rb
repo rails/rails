@@ -111,4 +111,10 @@ class ObjectInstanceVariableTest < Test::Unit::TestCase
     object.instance_variable_set :@b, 2
     assert_equal({'a' => 1, 'b' => 2}, object.instance_values)
   end
+  
+  def test_instance_exec_passes_arguments_to_block
+    block = Proc.new { |value| [self, value] }
+    assert_equal %w(hello goodbye), 'hello'.instance_exec('goodbye', &block)
+  end
+  
 end
