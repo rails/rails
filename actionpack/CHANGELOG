@@ -1,19 +1,5 @@
 *SVN*
 
-* Add the ability to call JavaScriptGenerator methods from helpers called in update blocks. [Sam Stephenson]  Example:
-  module ApplicationHelper
-    def update_time
-      page.replace_html 'time', Time.now.to_s(:db)
-      page.visual_effect :highlight, 'time'
-    end
-  end
-
-  class UserController < ApplicationController
-    def poll
-      render :update { |page| page.update_time }
-    end
-  end
-
 * Fixed that SSL would not correctly be detected when running lighttpd/fcgi behind lighttpd w/mod_proxy #3548 [stephen_purcell@yahoo.com]
 
 * Added the possibility to specify atomatic expiration for the memcachd session container #3571 [Stefan Kaes]

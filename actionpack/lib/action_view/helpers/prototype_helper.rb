@@ -370,52 +370,34 @@ module ActionView
       # this in your Ajax response bodies, either in a <script> tag or as plain
       # JavaScript sent with a Content-type of "text/javascript".
       #
-      # Create new instances with PrototypeHelper#update_page or with 
-      # ActionController::Base#render, then call #insert_html, #replace_html, 
-      # #remove, #show, #hide, #visual_effect, or any other of the built-in 
-      # methods on the yielded generator in any order you like to modify the 
-      # content and appearance of the current page. 
+      # Create new instances with PrototypeHelper#update_page, then call 
+      # #insert_html, #replace_html, #remove, #show, or #hide on the yielded
+      # generator in any order you like to modify the content and appearance of
+      # the current page.  (You can also call other helper methods which
+      # return JavaScript, such as 
+      # ActionView::Helpers::ScriptaculousHelper#visual_effect.)
       #
       # Example:
       #
       #   update_page do |page|
-      #     page.insert_html :bottom, 'list', "<li>#{@item.name}</li>"
+      #     page.insert_html :bottom, 'list', '<li>Last item</li>'
       #     page.visual_effect :highlight, 'list'
       #     page.hide 'status-indicator', 'cancel-link'
       #   end
       # 
       # generates the following JavaScript:
       #
-      #   new Insertion.Bottom("list", "<li>Some item</li>");
+      #   new Insertion.Bottom("list", "<li>Last item</li>");
       #   new Effect.Highlight("list");
       #   ["status-indicator", "cancel-link"].each(Element.hide);
-      #
-      # Helper methods can be used in conjunction with JavaScriptGenerator.
-      # When a helper method is called inside an update block on the +page+ 
-      # object, that method will also have access to a +page+ object.
-      # 
-      # Example:
-      #
-      #   module ApplicationHelper
-      #     def update_time
-      #       page.replace_html 'time', Time.now.to_s(:db)
-      #       page.visual_effect :highlight, 'time'
-      #     end
-      #   end
-      #
-      #   # Controller action
-      #   def poll
-      #     render :update { |page| page.update_time }
-      #   end
       #
       # You can also use PrototypeHelper#update_page_tag instead of 
       # PrototypeHelper#update_page to wrap the generated JavaScript in a
       # <script> tag.
       class JavaScriptGenerator
-        def initialize(context, &block) #:nodoc:
+        def initialize(context) #:nodoc:
           @context, @lines = context, []
-          include_helpers_from_context
-          @context.instance_exec(self, &block)
+          yield self
         end
   
         def to_s #:nodoc:
@@ -519,24 +501,12 @@ module ActionView
           yield
           record "}, #{(seconds * 1000).to_i})"
         end
-        
-        # Starts a Scriptaculous visual effect. See 
-        # ActionView::Helpers::ScriptaculousHelper for more information.
-        def visual_effect(name, id, options = {})
-          record ScriptaculousHelper::visual_effect(name, id, options)
-        end
-        
+
       private
-        def include_helpers_from_context
-          @context.extended_by.each do |mod|
-            extend mod unless mod.name =~ /^ActionView::Helpers/
-          end
+        def method_missing(method, *arguments, &block)
+          record(@context.send(method, *arguments, &block))
         end
-        
-        def page
-          self
-        end
-        
+
         def record(line)
           returning line = "#{line.to_s.chomp.gsub /\;$/, ''};" do
             self << line
