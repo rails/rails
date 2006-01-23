@@ -223,7 +223,7 @@ class NewRenderTestController < ActionController::Base
              "render_with_explicit_template",
              "render_js_with_explicit_template",
              "render_js_with_explicit_action_template",
-             "delete_with_js"
+             "delete_with_js", "update_page"
     
           "layouts/standard"
         when "builder_layout_test"
@@ -489,6 +489,7 @@ class NewRenderTest < Test::Unit::TestCase
   
   def test_update_page
     get :update_page
+    assert_template nil
     assert_equal 'text/javascript', @response.headers['Content-type']
     assert_equal 2, @response.body.split($/).length
   end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix render(:update) to not render layouts. [Sam Stephenson]
+
 * Fixed that SSL would not correctly be detected when running lighttpd/fcgi behind lighttpd w/mod_proxy #3548 [stephen_purcell@yahoo.com]
 
 * Added the possibility to specify atomatic expiration for the memcachd session container #3571 [Stefan Kaes]

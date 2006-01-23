@@ -236,6 +236,7 @@ module ActionController #:nodoc:
 
     private
       def apply_layout?(template_with_options, options)
+        return false if options == :update
         template_with_options ?  candidate_for_layout?(options) : !template_exempt_from_layout?
       end
 
