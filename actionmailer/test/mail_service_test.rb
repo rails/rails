@@ -704,7 +704,7 @@ EOF
   def test_recursive_multipart_processing
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email7")
     mail = TMail::Mail.parse(fixture)
-    assert_equal "This is the first part.\n\nAttachment: test.pdf\n\n\nAttachment: smime.p7s\n", mail.body
+    assert_equal "This is the first part.\n\nAttachment: test.rb\nAttachment: test.pdf\n\n\nAttachment: smime.p7s\n", mail.body
   end
 
   def test_decode_encoded_attachment_filename

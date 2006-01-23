@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure anything with content-disposition of "attachment" is passed to the attachment presenter when parsing an email body [Jamis Buck]
+
 * Make sure TMail#attachments includes anything with content-disposition of "attachment", regardless of content-type [Jamis Buck]
 
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]

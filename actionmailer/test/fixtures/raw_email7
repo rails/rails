@@ -22,6 +22,16 @@ Content-Type: text/plain;
 This is the first part.
 
 --Apple-Mail-12-196940926
+Content-Transfer-Encoding: 7bit
+Content-Type: text/x-ruby-script;
+	x-unix-mode=0666;
+	name="test.rb"
+Content-Disposition: attachment;
+	filename=test.rb
+
+puts "testing, testing"
+
+--Apple-Mail-12-196940926
 Content-Transfer-Encoding: base64
 Content-Type: application/pdf;
 	x-unix-mode=0666;

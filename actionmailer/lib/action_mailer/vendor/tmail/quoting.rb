@@ -33,7 +33,7 @@ module TMail
             part.body(to_charset, &attachment_presenter)
           elsif header.nil?
             ""
-          elsif header.main_type == "text"
+          elsif !attachment?(part)
             part.unquoted_body(to_charset)
           else
             attachment_presenter.call(header["name"] || "(unnamed)")
