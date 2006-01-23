@@ -1,5 +1,19 @@
 *SVN*
 
+* Add the ability to call JavaScriptGenerator methods from helpers called in update blocks. [Sam Stephenson]  Example:
+  module ApplicationHelper
+    def update_time
+      page.replace_html 'time', Time.now.to_s(:db)
+      page.visual_effect :highlight, 'time'
+    end
+  end
+
+  class UserController < ApplicationController
+    def poll
+      render :update { |page| page.update_time }
+    end
+  end
+
 * Add render(:update) to ActionView::Base. [Sam Stephenson]
 
 * Fix render(:update) to not render layouts. [Sam Stephenson]

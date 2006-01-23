@@ -52,23 +52,6 @@ module ActionView
         end
       end
       
-      # Needs more work so + isn't required for concation of effects. Currently, you have to do:
-      #
-      #   page.parallel_effects do
-      #     page.visual_effect(:highlight, 'dom_id') +
-      #     page.visual_effect(:fade, 'dom_id')
-      #   end
-      #
-      # ...naturally, it would be better just to do
-      #
-      #   page.parallel_effects do
-      #     page.visual_effect :highlight, 'dom_id'
-      #     page.visual_effect :fade, 'dom_id'
-      #   end
-      def parallel_effects(js_options = {}) #:nodoc:
-        "new Effect.Parallel([" + yield + "], #{options_for_javascript(js_options)})"
-      end
-
       # Makes the element with the DOM ID specified by +element_id+ sortable
       # by drag-and-drop and make an Ajax call whenever the sort order has
       # changed. By default, the action called gets the serialized sortable
