@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that SSL would not correctly be detected when running lighttpd/fcgi behind lighttpd w/mod_proxy #3548 [stephen_purcell@yahoo.com]
+
 * Added the possibility to specify atomatic expiration for the memcachd session container #3571 [Stefan Kaes]
 
 * Change layout discovery to take into account the change in semantics with File.join and nil arguments. [Marcel Molina Jr.]

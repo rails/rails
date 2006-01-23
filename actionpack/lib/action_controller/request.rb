@@ -153,7 +153,7 @@ module ActionController
 
     # Is this an SSL request?
     def ssl?
-      env['HTTPS'] == 'on'
+      env['HTTPS'] == 'on' || env['HTTP_X_FORWARDED_PROTO'] == 'https'
     end
 
     # Returns the interpreted path to requested resource after all the installation directory of this application was taken into account

@@ -237,5 +237,17 @@ class RequestTest < Test::Unit::TestCase
     assert @request.xml_http_request?
     assert @request.xhr?
   end
+
+  def test_reports_ssl
+    assert !@request.ssl?
+    @request.env['HTTPS'] = 'on'
+    assert @request.ssl?
+  end
+
+  def test_reports_ssl_when_proxied_via_lighttpd
+    assert !@request.ssl?
+    @request.env['HTTP_X_FORWARDED_PROTO'] = 'https'
+    assert @request.ssl?
+  end
   
 end
