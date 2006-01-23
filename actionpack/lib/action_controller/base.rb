@@ -687,7 +687,7 @@ module ActionController #:nodoc:
       end
 
       def render_javascript(javascript, status = nil)
-        @response.headers['Content-type'] = 'text/javascript'
+        @response.headers['Content-Type'] = 'text/javascript'
         render_text(javascript, status)
       end
 
@@ -719,7 +719,8 @@ module ActionController #:nodoc:
         @response.body = nil
         @performed_render = false
       end
-
+      
+      
       # Clears the redirected results from the headers, resets the status to 200 and returns 
       # the URL that was used to redirect or nil if there was no redirected URL
       # Note that +redirect_to+ will change the body of the response to indicate a redirection.
