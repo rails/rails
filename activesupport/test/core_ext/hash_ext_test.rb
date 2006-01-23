@@ -116,6 +116,25 @@ class HashExtTest < Test::Unit::TestCase
     assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? {|hash| hash.keys.size == 2}
   end
 
+  def test_indifferent_merging
+    hash = HashWithIndifferentAccess.new
+    hash[:a] = 'failure'
+    hash['b'] = 'failure'
+   
+    other = { 'a' => 1, :b => 2 }
+  
+    merged = hash.merge(other)
+  
+    assert_equal HashWithIndifferentAccess, merged.class
+    assert_equal 1, merged[:a]
+    assert_equal 2, merged['b']
+  
+    hash.update(other)
+  
+    assert_equal 1, hash[:a]
+    assert_equal 2, hash['b']
+  end
+  
   def test_assert_valid_keys
     assert_nothing_raised do
       { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])

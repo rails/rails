@@ -41,6 +41,14 @@ class HashWithIndifferentAccess < Hash
     indices.collect {|key| self[convert_key(key)]}
   end
 
+  def dup
+    HashWithIndifferentAccess.new(self)
+  end
+  
+  def merge(hash)
+    self.dup.update(hash)
+  end
+  
   protected
     def convert_key(key)
       key.kind_of?(Symbol) ? key.to_s : key

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix merge and dup for hashes with indifferent access #3404 [kenneth.miller@bitfield.net]
+
 * Fix the requires in option_merger_test to unbreak AS tests. [Sam Stephenson]
 
 * Make HashWithIndifferentAccess#update behave like Hash#update by returning the hash. #3419, #3425 [asnem@student.ethz.ch, JanPrill@blauton.de, Marcel Molina Jr.]
