@@ -239,9 +239,11 @@ module ActionView #:nodoc:
 
     # Renders the template present at <tt>template_path</tt> (relative to the template_root). 
     # The hash in <tt>local_assigns</tt> is made available as local variables.
-    def render(options = {}, old_local_assigns = {})
+    def render(options = {}, old_local_assigns = {}, &block)
       if options.is_a?(String)
         render_file(options, true, old_local_assigns)
+      elsif options == :update
+        update_page(&block)
       elsif options.is_a?(Hash)
         options[:locals] ||= {}
         options[:use_full_path] = options[:use_full_path].nil? ? true : options[:use_full_path]

@@ -1,5 +1,7 @@
 *SVN*
 
+* Add render(:update) to ActionView::Base. [Sam Stephenson]
+
 * Fix render(:update) to not render layouts. [Sam Stephenson]
 
 * Fixed that SSL would not correctly be detected when running lighttpd/fcgi behind lighttpd w/mod_proxy #3548 [stephen_purcell@yahoo.com]
