@@ -10,10 +10,15 @@ module TMail
       multipart? && parts.any? { |part| part.header["content-type"].main_type != "text" }
     end
 
+    def attachment?(part)
+      (part['content-disposition'] && part['content-disposition'].disposition == "attachment") ||
+      part.header['content-type'].main_type != "text"
+    end
+
     def attachments
       if multipart?
         parts.collect { |part| 
-          if part.header["content-type"].main_type != "text"
+          if attachment?(part)
             content   = part.body # unquoted automatically by TMail#body
             file_name = (part['content-location'] &&
                           part['content-location'].body) ||
