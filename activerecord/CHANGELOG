@@ -1,5 +1,7 @@
 *SVN*
 
+* If the OCI library is not available, raise an exception indicating as much. #3593 [schoenm@earthlink.net]
+
 * Add explicit :order in finder tests as postgresql orders results differently by default. #3577. [Rick Olson]
 
 * Make dynamic finders honor additional passed in :conditions. #3569 [Oleg Pudeyev <pudeyo@rpi.edu>, Marcel Molina Jr.]
