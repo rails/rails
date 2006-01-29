@@ -23,6 +23,20 @@ class Net::SMTP
   end
 end
 
+class FunkyPathMailer < ActionMailer::Base
+  def multipart_with_template_path_with_dots(recipient)
+    recipients recipient
+    subject    "Have a lovely picture"
+    from       "Chad Fowler <chad@chadfowler.com>"
+    attachment :content_type => "image/jpeg",
+      :body => "not really a jpeg, we're only testing, after all"
+  end
+
+  def template_path
+    "#{File.dirname(__FILE__)}/fixtures/path.with.dots"
+  end
+end
+
 class TestMailer < ActionMailer::Base
 
   def signed_up(recipient)
@@ -748,9 +762,14 @@ EOF
   end
 
   def test_deliver_with_mail_object
-    mail = TestMailer::create_headers_with_nonalpha_chars(@recipient)
+    mail = TestMailer.create_headers_with_nonalpha_chars(@recipient)
     assert_nothing_raised { TestMailer.deliver(mail) }
     assert_equal 1, TestMailer.deliveries.length
+  end
+
+  def test_multipart_with_template_path_with_dots
+    mail = FunkyPathMailer.create_multipart_with_template_path_with_dots(@recipient)
+    assert_equal 2, mail.parts.length
   end
 end
 

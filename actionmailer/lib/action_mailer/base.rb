@@ -305,7 +305,7 @@ module ActionMailer
         # normal template exists (or if there were no implicit parts) we render
         # it.
         template_exists = @parts.empty?
-        template_exists ||= Dir.glob("#{template_path}/#{@template}.*").any? { |i| i.split(".").length == 2 }
+        template_exists ||= Dir.glob("#{template_path}/#{@template}.*").any? { |i| File.basename(i).split(".").length == 2 }
         @body = render_message(@template, @body) if template_exists
 
         # Finally, if there are other message parts and a textual body exists,
