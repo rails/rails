@@ -1,5 +1,5 @@
 require 'logger'
-require File.dirname(__FILE__) + '/class_attribute_accessors'
+require File.dirname(__FILE__) + '/core_ext/class/attribute_accessors'
 
 class Logger #:nodoc:
   cattr_accessor :silencer

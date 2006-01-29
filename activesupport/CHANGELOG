@@ -1,5 +1,15 @@
 *SVN*
 
+* Added reusable reloading support through the inclusion of the Relodable module that all subclasses of ActiveRecord::Base, ActiveRecord::Observer, ActiveController::Base, and ActionMailer::Base automatically gets. This means that these classes will be reloaded by the dispatcher when Dependencies.mechanism = :load. You can make your own models reloadable easily:
+
+    class Setting
+      include Reloadable
+    end
+  
+  Reloading a class is done by removing its constant which will cause it to be loaded again on the next reference. [DHH]
+
+* Added auto-loading support for classes in modules, so Conductor::Migration will look for conductor/migration.rb and Conductor::Database::Settings will look for conductor/database/settings.rb [Nicholas Seckar]
+
 * Add Object#instance_exec, like instance_eval but passes its arguments to the block.  (Active Support will not override the Ruby 1.9 implementation of this method.) [Sam Stephenson]
 
 * Add Proc#bind(object) for changing a proc or block's self by returning a Method bound to the given object. Based on why the lucky stiff's "cloaker" method. [Sam Stephenson]

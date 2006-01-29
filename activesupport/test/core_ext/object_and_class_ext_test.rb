@@ -1,5 +1,6 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/object_and_class'
+require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/object'
+require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/class'
 
 class ClassA; end
 class ClassB < ClassA; end

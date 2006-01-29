@@ -3,7 +3,7 @@ require "#{File.dirname(__FILE__)}/../testing_sandbox"
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/text_helper'
 require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/numeric'  # for human_size
 require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/hash' # for stringify_keys
-require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/object_and_class.rb' # for blank?
+require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/object.rb' # for blank?
 
 class TextHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TextHelper

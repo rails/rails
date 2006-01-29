@@ -1,5 +1,6 @@
 require 'test/unit'
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib/active_support/'
+require 'core_ext/string'
 require 'dependencies'
 
 class DependenciesTest < Test::Unit::TestCase
@@ -95,6 +96,22 @@ class DependenciesTest < Test::Unit::TestCase
     $mutual_dependencies_count = 0
     assert_nothing_raised { require_dependency 'mutual_two' }
     assert_equal 2, $mutual_dependencies_count
+  ensure
+    $LOAD_PATH.shift
+    Dependencies.mechanism = old_mechanism
+  end
+  
+  def test_as_load_path
+    assert_equal '', DependenciesTest.as_load_path
+  end
+  
+  def test_module_loading
+    $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/autoloading_fixtures"
+    old_mechanism, Dependencies.mechanism = Dependencies.mechanism, :load
+    
+    assert_kind_of Module, A
+    assert_kind_of Class, A::B
+    assert_kind_of Class, A::C::D
   ensure
     $LOAD_PATH.shift
     Dependencies.mechanism = old_mechanism

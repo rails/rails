@@ -333,6 +333,13 @@ module ActionController #:nodoc:
         end
       end
 
+      def build_request_uri(action, parameters)
+        options = @controller.send(:rewrite_options, parameters)
+        options.update(:only_path => true, :action => action)
+        url = ActionController::UrlRewriter.new(@request, parameters)
+        @request.set_REQUEST_URI(url.rewrite(options))
+      end
+
       def session
         @response.session
       end

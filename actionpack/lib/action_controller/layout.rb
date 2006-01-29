@@ -1,16 +1,16 @@
 module ActionController #:nodoc:
   module Layout #:nodoc:
-    def self.append_features(base)
-      super
+    def self.included(base)
+      base.extend(ClassMethods)
       base.class_eval do
         alias_method :render_with_no_layout, :render
         alias_method :render, :render_with_a_layout
 
         class << self
           alias_method :inherited_without_layout, :inherited
+          alias_method :inherited, :inherited_with_layout
         end
       end
-      base.extend(ClassMethods)
     end
 
     # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
@@ -172,8 +172,9 @@ module ActionController #:nodoc:
       end
 
       private
-        def inherited(child)
+        def inherited_with_layout(child)
           inherited_without_layout(child)
+          child.send :include, Reloadable
           layout_match = child.name.underscore.sub(/_controller$/, '')
           child.layout(layout_match) unless layout_list.grep(%r{layouts/#{layout_match}\.[a-z][0-9a-z]*$}).empty?
         end

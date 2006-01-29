@@ -1,5 +1,4 @@
 class Exception
-  
   alias :clean_message :message
   
   TraceSubstitutions = []

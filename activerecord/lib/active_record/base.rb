@@ -244,6 +244,7 @@ module ActiveRecord #:nodoc:
     cattr_accessor :logger
 
     def self.inherited(child) #:nodoc:
+      child.send :include, Reloadable
       @@subclasses[self] ||= []
       @@subclasses[self] << child
       super

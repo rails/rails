@@ -1,5 +1,5 @@
 require 'set'
-require File.dirname(__FILE__) + '/module_attribute_accessors'
+require File.dirname(__FILE__) + '/core_ext/module/attribute_accessors'
 require File.dirname(__FILE__) + '/core_ext/load_error'
 require File.dirname(__FILE__) + '/core_ext/kernel'
 
@@ -69,10 +69,6 @@ module Dependencies #:nodoc:
     history << file_name
   end
 
-  def remove_subclasses_for(*classes)
-    Object.remove_subclasses_of(*classes)
-  end
-  
   # LoadingModules implement namespace-safe dynamic loading.
   # They support automatic loading via const_missing, allowing contained items to be automatically
   # loaded when required. No extra syntax is required, as expressions such as Controller::Admin::UserController
@@ -211,23 +207,66 @@ Object.send(:define_method, :require_association) { |file_name| Dependencies.ass
 class Module #:nodoc:
   # Rename the original handler so we can chain it to the new one
   alias :rails_original_const_missing :const_missing
-
+  
+  def parent
+    parent_name = name.split('::')[0..-2] * '::'
+    parent_name.empty? ? Object : parent_name.constantize
+  end
+  
+  def as_load_path
+    if self == Object || self == Kernel
+      ''
+    elsif is_a? Class
+      parent == self ? '' : parent.as_load_path
+    else
+      name.split('::').collect do |word|
+        word.underscore
+      end * '/'
+    end
+  end
+  
   # Use const_missing to autoload associations so we don't have to
   # require_association when using single-table inheritance.
   def const_missing(class_id)
-    if Object.const_defined?(:Controllers) and Object::Controllers.const_available?(class_id)
+    if Object.const_defined?(:Controllers) && Object::Controllers.const_available?(class_id)
       return Object::Controllers.const_get(class_id)
     end
     
     file_name = class_id.to_s.demodulize.underscore
+    file_path = as_load_path.empty? ? file_name : "#{as_load_path}/#{file_name}"
     begin
-      require_dependency(file_name)
-      raise NameError.new("uninitialized constant #{class_id}") unless Object.const_defined?(class_id)
-      return Object.const_get(class_id)
+      require_dependency(file_path)
+      brief_name = self == Object ? '' : "#{name}::"
+      raise NameError.new("uninitialized constant #{brief_name}#{class_id}") unless const_defined?(class_id)
+      return const_get(class_id)
     rescue MissingSourceFile => e
-      # Convert the exception to a NameError only if the file we are looking for is the missing one.
-      raise unless e.is_missing? file_name
+      # Re-raise the error if it does not concern the file we were trying to load.
+      raise unless e.is_missing? file_path
+      
+      # Look for a directory in the load path that we ought to load.
+      if $LOAD_PATH.any? { |base| File.directory? "#{base}/#{file_path}" }
+        mod = Module.new
+        const_set class_id, mod # Create the new module
+        return mod
+      end
+      
+      if parent && parent != self
+        suppress(NameError) do
+          return parent.send(:const_missing, class_id)
+        end
+      end
+      
       raise NameError.new("uninitialized constant #{class_id}").copy_blame!(e)
+    end
+  end
+end
+
+class Class
+  def const_missing(class_id)
+    if [Object, Kernel].include?(self) || parent == self
+      super
+    else
+      parent.send :const_missing, class_id
     end
   end
 end
