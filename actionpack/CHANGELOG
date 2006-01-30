@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that the instance variables are copied to the template when performing render :update. [Nicholas Seckar]
+
 * Add the ability to call JavaScriptGenerator methods from helpers called in update blocks. [Sam Stephenson]  Example:
   module ApplicationHelper
     def update_time

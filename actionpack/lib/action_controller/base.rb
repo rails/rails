@@ -642,6 +642,9 @@ module ActionController #:nodoc:
             end
 
           elsif options[:update]
+            add_variables_to_assigns
+            @template.send :evaluate_assigns
+            
             generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(@template, &block)
             render_javascript(generator.to_s)
 

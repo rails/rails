@@ -194,6 +194,15 @@ class NewRenderTestController < ActionController::Base
       page.visual_effect :highlight, 'balance'
     end
   end
+  
+  def update_page_with_instance_variables
+    @money = '$37,000,000.00'
+    @div_id = 'balance'
+    render :update do |page|
+      page.replace_html @div_id, @money
+      page.visual_effect :highlight, @div_id
+    end
+  end
 
   def action_talk_to_layout
     # Action template sets variable that's picked up by layout
@@ -223,7 +232,7 @@ class NewRenderTestController < ActionController::Base
              "render_with_explicit_template",
              "render_js_with_explicit_template",
              "render_js_with_explicit_action_template",
-             "delete_with_js", "update_page"
+             "delete_with_js", "update_page", "update_page_with_instance_variables"
     
           "layouts/standard"
         when "builder_layout_test"
@@ -492,6 +501,14 @@ class NewRenderTest < Test::Unit::TestCase
     assert_template nil
     assert_equal 'text/javascript', @response.headers['Content-Type']
     assert_equal 2, @response.body.split($/).length
+  end
+  
+  def test_update_page_with_instance_variables
+    get :update_page_with_instance_variables
+    assert_template nil
+    assert_equal 'text/javascript', @response.headers['Content-Type']
+    assert_match /balance/, @response.body
+    assert_match /\$37/, @response.body
   end
   
   def test_yield_content_for
