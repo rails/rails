@@ -1,5 +1,7 @@
 *SVN*
 
+* Added check for RAILS_FRAMEWORK_ROOT constant that allows the Rails framework to be found in a different place than vendor/rails. Should be set in boot.rb. [DHH]
+
 * Fixed that static requests could unlock the mutex guarding dynamic requests in the WEBrick servlet #3433 [tom@craz8.com]
 
 * Fixed documentation tasks to work with Rake 0.7.0 #3563 [kazuhiko@fdiary.net]

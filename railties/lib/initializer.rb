@@ -447,6 +447,10 @@ module Rails
         ::RAILS_ROOT
       end
 
+      def framework_root_path
+        defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root_path}/vendor/rails"
+      end
+
       def default_frameworks
         [ :active_record, :action_controller, :action_view, :action_mailer, :action_web_service ]
       end
@@ -460,7 +464,6 @@ module Rails
         paths.concat(Dir["#{root_path}/components/[_a-z]*"])
 
         # Followed by the standard includes.
-        # TODO: Don't include dirs for frameworks that are not used
         paths.concat %w(
           app 
           app/models 
@@ -472,14 +475,18 @@ module Rails
           config 
           lib 
           vendor 
-          vendor/rails/railties
-          vendor/rails/railties/lib
-          vendor/rails/actionpack/lib
-          vendor/rails/activesupport/lib
-          vendor/rails/activerecord/lib
-          vendor/rails/actionmailer/lib
-          vendor/rails/actionwebservice/lib
         ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+
+        # TODO: Don't include dirs for frameworks that are not used
+        paths.concat %w(
+          railties
+          railties/lib
+          actionpack/lib
+          activesupport/lib
+          activerecord/lib
+          actionmailer/lib
+          actionwebservice/lib
+        ).map { |dir| "#{framework_root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
       end
 
       def default_log_path
