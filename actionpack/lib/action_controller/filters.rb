@@ -251,18 +251,34 @@ module ActionController #:nodoc:
       # Removes the specified filters from the +before+ filter chain. Note that this only works for skipping method-reference 
       # filters, not procs. This is especially useful for managing the chain in inheritance hierarchies where only one out
       # of many sub-controllers need a different hierarchy.
+      #
+      # You can control the actions to skip the filter for with the <tt>:only</tt> and <tt>:except</tt> options, 
+      # just like when you apply the filters.
       def skip_before_filter(*filters)
-        for filter in filters.flatten
-          write_inheritable_attribute("before_filters", read_inheritable_attribute("before_filters") - [ filter ])
+        if conditions = extract_conditions!(filters)
+          conditions[:only], conditions[:except] = conditions[:except], conditions[:only]
+          add_action_conditions(filters, conditions)
+        else
+          for filter in filters.flatten
+            write_inheritable_attribute("before_filters", read_inheritable_attribute("before_filters") - [ filter ])
+          end
         end
       end
 
       # Removes the specified filters from the +after+ filter chain. Note that this only works for skipping method-reference 
       # filters, not procs. This is especially useful for managing the chain in inheritance hierarchies where only one out
       # of many sub-controllers need a different hierarchy.
+      #
+      # You can control the actions to skip the filter for with the <tt>:only</tt> and <tt>:except</tt> options, 
+      # just like when you apply the filters.
       def skip_after_filter(*filters)
-        for filter in filters.flatten
-          write_inheritable_attribute("after_filters", read_inheritable_attribute("after_filters") - [ filter ])
+        if conditions = extract_conditions!(filters)
+          conditions[:only], conditions[:except] = conditions[:except], conditions[:only]
+          add_action_conditions(filters, conditions)
+        else
+          for filter in filters.flatten
+            write_inheritable_attribute("after_filters", read_inheritable_attribute("after_filters") - [ filter ])
+          end
         end
       end
       

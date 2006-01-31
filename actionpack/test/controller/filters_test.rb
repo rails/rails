@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 class FilterTest < Test::Unit::TestCase
   class TestController < ActionController::Base
     before_filter :ensure_login
+    after_filter  :clean_up
 
     def show
       render :inline => "ran action"
@@ -12,6 +13,11 @@ class FilterTest < Test::Unit::TestCase
       def ensure_login
         @ran_filter ||= []
         @ran_filter << "ensure_login"
+      end
+      
+      def clean_up
+        @ran_after_filter ||= []
+        @ran_after_filter << "clean_up"
       end
   end
 
@@ -107,6 +113,20 @@ class FilterTest < Test::Unit::TestCase
         @ran_filter << "wonderful_life"
       end
   end
+
+  class ConditionalSkippingController < TestController
+    skip_before_filter :ensure_login, :only => [ :login ]
+    skip_after_filter  :clean_up,     :only => [ :login ]
+
+    def login
+      render :inline => "ran action"
+    end
+
+    def change_password
+      render :inline => "ran action"
+    end
+  end
+
 
   class ProcController < PrependingController
     before_filter(proc { |c| c.assigns["ran_proc_filter"] = true })
@@ -341,6 +361,14 @@ class FilterTest < Test::Unit::TestCase
       response = DynamicDispatchController.process(request, ActionController::TestResponse.new)
       assert_equal action, response.body
     end
+  end
+
+  def test_conditional_skipping_of_filters
+    assert_nil test_process(ConditionalSkippingController, "login").template.assigns["ran_filter"]
+    assert_equal %w( ensure_login ), test_process(ConditionalSkippingController, "change_password").template.assigns["ran_filter"]
+
+    assert_nil test_process(ConditionalSkippingController, "login").template.controller.instance_variable_get("@ran_after_filter")
+    assert_equal %w( clean_up ), test_process(ConditionalSkippingController, "change_password").template.controller.instance_variable_get("@ran_after_filter")
   end
 
   private
