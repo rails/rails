@@ -1,5 +1,7 @@
 *SVN*
 
+* Support the :column option for remove_index with the PostgreSQL adapter. #3661 [shugo@ruby-lang.org]
+
 * Add documentation for add_index and remove_index. #3600 [Manfred Stienstra <m.stienstra@fngtps.com>]
 
 * If the OCI library is not available, raise an exception indicating as much. #3593 [schoenm@earthlink.net]
