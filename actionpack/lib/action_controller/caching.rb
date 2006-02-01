@@ -521,6 +521,11 @@ module ActionController #:nodoc:
       class Sweeper < ActiveRecord::Observer #:nodoc:
         attr_accessor :controller
 
+        # ActiveRecord::Observer will mark this class as reloadable even though it should be
+        def self.included_modules(include_super = true)
+          super - [ Reloadable ]
+        end
+
         def before(controller)
           self.controller = controller
           callback(:before)
