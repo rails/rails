@@ -66,7 +66,7 @@ class CGI
 
         class << self
           # Don't try to reload ARStore::Session in dev mode.
-          def included_modules(include_super = true)
+          def included_modules
             super() - [ Reloadable ]
           end
 

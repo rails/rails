@@ -522,7 +522,7 @@ module ActionController #:nodoc:
         attr_accessor :controller
 
         # ActiveRecord::Observer will mark this class as reloadable even though it should be
-        def self.included_modules(include_super = true)
+        def self.included_modules
           super() - [ Reloadable ]
         end
 
