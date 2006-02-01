@@ -47,6 +47,8 @@ module ActionController #:nodoc:
       #   must match the current request method in order for the action(s) to
       #   be safely called. (The key should be a symbol: <tt>:get</tt> or
       #   <tt>:post</tt>, for example.)
+      # * <tt>:xhr</tt>: true/false option to ensure that the request is coming
+      #   from an Ajax call or not. 
       # * <tt>:add_flash</tt>: a hash of name/value pairs that should be merged
       #   into the session's flash if the prerequisites cannot be satisfied.
       # * <tt>:redirect_to</tt>: the redirection parameters to be used when

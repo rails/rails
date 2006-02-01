@@ -1,5 +1,7 @@
 *SVN*
 
+* Document the :xhr option for verifications. #3666 [leeo]
+
 * Added :only and :except controls to skip_before/after_filter just like for when you add filters [DHH]
 
 * Ensure that the instance variables are copied to the template when performing render :update. [Nicholas Seckar]
