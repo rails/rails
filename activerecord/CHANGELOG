@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Errors#any? to mean !Errors#empty? [DHH]
+
 * Support the :column option for remove_index with the PostgreSQL adapter. #3661 [shugo@ruby-lang.org]
 
 * Add documentation for add_index and remove_index. #3600 [Manfred Stienstra <m.stienstra@fngtps.com>]
