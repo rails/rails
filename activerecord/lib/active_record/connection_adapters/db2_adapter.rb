@@ -112,16 +112,18 @@ begin
 
         def tables(name = nil)
           result = []
+          schema = @connection_options[:schema] || '%'
           with_statement do |stmt|
-            stmt.tables.each { |t| result << t[2].downcase }
+            stmt.tables(schema).each { |t| result << t[2].downcase }
           end
           result
         end
 
         def indexes(table_name, name = nil)
           tmp = {}
+          schema = @connection_options[:schema] || ''
           with_statement do |stmt|
-            stmt.indexes(table_name.upcase).each do |t|
+            stmt.indexes(table_name, schema).each do |t|
               next unless t[5]
               next if t[4] == 'SYSIBM' # Skip system indexes.
               idx_name = t[5].downcase
@@ -139,8 +141,9 @@ begin
 
         def columns(table_name, name = nil)
           result = []
+          schema = @connection_options[:schema] || '%'
           with_statement do |stmt|
-            stmt.columns(table_name.upcase).each do |c| 
+            stmt.columns(table_name, schema).each do |c| 
               c_name = c[3].downcase
               c_default = c[12] == 'NULL' ? nil : c[12]
               c_type = c[5].downcase
