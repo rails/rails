@@ -148,11 +148,6 @@ module ActiveRecord
       return @errors.empty?
     end
     
-    # Returns true if errors have been added.
-    def any?
-      !empty?
-    end
-
     # Removes all the errors that have been added.
     def clear
       @errors = {}
