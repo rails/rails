@@ -142,6 +142,14 @@ module Dependencies #:nodoc:
     def const_available?(name)
       self.const_defined?(name) || load_paths.any? {|lp| lp.filesystem_path(path + [name])}
     end
+    
+    # Erase all items in this module
+    def clear!
+      constants.each do |name|
+        Object.send(:remove_const, name) if Object.const_defined?(name) && Object.const_get(name).object_id == self.const_get(name).object_id
+        self.send(:remove_const, name)
+      end
+    end
   end
   
   class RootLoadingModule < LoadingModule #:nodoc:
