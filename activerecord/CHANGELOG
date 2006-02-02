@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove definition of reloadable? from ActiveRecord::Base to make way for new Reloadable code. [Nicholas Seckar]
+
 * Fixed schema handling for DB2 adapter that didn't work: an initial schema could be set, but it wasn't used when getting tables and indexes #3678 [Maik Schmidt]
 
 * Support the :column option for remove_index with the PostgreSQL adapter. #3661 [shugo@ruby-lang.org]
