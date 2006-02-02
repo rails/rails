@@ -52,7 +52,7 @@ class Dispatcher
     def reset_application!
       Dependencies.clear
       ActiveRecord::Base.reset_subclasses
-      Class.remove_classes(*Reloadable.reloadable_classes)
+      Class.remove_class(*Reloadable.reloadable_classes)
     end
 
     private
