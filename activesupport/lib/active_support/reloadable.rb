@@ -15,13 +15,13 @@ module Reloadable
     end
   end
   
+  # Captures the common pattern where a base class should not be reloaded,
+  # but its subclasses should be.
   module OnlySubclasses
-    class << self
-      def included(base) #nodoc:
-        base.send :include, Reloadable
-        (class << base; self; end;).class_eval do
-          define_method(:reloadable?) { self != base }
-        end
+    def self.included(base) #nodoc:
+      base.send :include, Reloadable
+      (class << base; self; end).send(:define_method, :reloadable?) do
+         base != self
       end
     end
   end
