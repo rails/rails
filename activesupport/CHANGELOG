@@ -1,5 +1,13 @@
 *SVN*
 
+* Further improvements to reloading code [Nicholas Seckar, Trevor Squires]
+  
+  - All classes/modules which include Reloadable can define reloadable? for fine grained control of reloading
+  - Class.remove_class uses Module#parent to access the parent module
+  - Class.remove_class expanded to handle multiple classes in a single call
+  - LoadingModule.clear! has been removed as it is no longer required
+  - Module#remove_classes_including has been removed in favor of Reloadable.reloadable_classes
+
 * Added reusable reloading support through the inclusion of the Relodable module that all subclasses of ActiveRecord::Base, ActiveRecord::Observer, ActiveController::Base, and ActionMailer::Base automatically gets. This means that these classes will be reloaded by the dispatcher when Dependencies.mechanism = :load. You can make your own models reloadable easily:
 
     class Setting

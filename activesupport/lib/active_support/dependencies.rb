@@ -159,14 +159,6 @@ module Dependencies #:nodoc:
     def load_file!(file_path)
       require_dependency(file_path)
     end
-
-    # Erase all items in this module
-    def clear!
-      constants.each do |name|
-        Object.send(:remove_const, name) if Object.const_defined?(name) && Object.const_get(name).object_id == self.const_get(name).object_id
-        self.send(:remove_const, name)
-      end
-    end
   end
   
   # This object defines a path from which Constants can be loaded.

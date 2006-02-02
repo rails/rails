@@ -34,18 +34,4 @@ class ModuleTest < Test::Unit::TestCase
     assert !One.included_in_classes.include?(De)
   end
 
-  def test_remove_classes_including
-    assert Ab.is_a?(Class)
-    assert Xy::Bc.is_a?(Class)
-    assert Yz::Zy::Cd.is_a?(Class)
-    assert De.is_a?(Class)
-
-    One.remove_classes_including
-
-    assert_raises(NameError) { Ae.is_a?(Class) }
-    assert_raises(NameError) { Xy::Bc.is_a?(Class) }
-    assert_raises(NameError) { Yz::Zy::Cd.is_a?(Class) }
-    
-    assert De.is_a?(Class)
-  end
 end
