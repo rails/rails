@@ -14,4 +14,15 @@ module Reloadable
       included_in_classes.select { |klass| klass.reloadable? }
     end
   end
+  
+  module OnlySubclasses
+    class << self
+      def included(base) #nodoc:
+        base.send :include, Reloadable
+        (class << base; self; end;).class_eval do
+          define_method(:reloadable?) { self != base }
+        end
+      end
+    end
+  end
 end

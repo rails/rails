@@ -224,14 +224,9 @@ module ActionController #:nodoc:
   #   FCGI.each_cgi{ |cgi| WeblogController.process_cgi(cgi) }
   class Base
     DEFAULT_RENDER_STATUS_CODE = "200 OK"
-
-    # Action Controller subclasses should be reloaded by the dispatcher in Rails
-    # when Dependencies.mechanism = :load.
-    def self.inherited(child) #:nodoc:
-      child.send :include, Reloadable
-      super
-    end
-  
+    
+    include Reloadable::OnlySubclasses
+    
     # Determines whether the view has access to controller internals @request, @response, @session, and @template.
     # By default, it does.
     @@view_controller_internals = true

@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Reloadable::OnlySubclasses which handles the common case where a base class should not be reloaded, but its subclasses should be. [Nicholas Seckar]
+
 * Further improvements to reloading code [Nicholas Seckar, Trevor Squires]
   
   - All classes/modules which include Reloadable can define reloadable? for fine grained control of reloading

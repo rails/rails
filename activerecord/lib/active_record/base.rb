@@ -242,9 +242,10 @@ module ActiveRecord #:nodoc:
     # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed
     # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
     cattr_accessor :logger
-
+    
+    include Reloadable::OnlySubclasses
+    
     def self.inherited(child) #:nodoc:
-      child.send :include, Reloadable
       @@subclasses[self] ||= []
       @@subclasses[self] << child
       super

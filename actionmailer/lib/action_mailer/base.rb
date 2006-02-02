@@ -123,11 +123,8 @@ module ActionMailer
 
     # Action Mailer subclasses should be reloaded by the dispatcher in Rails
     # when Dependencies.mechanism = :load.
-    def self.inherited(child) #:nodoc:
-      child.send :include, Reloadable
-      super
-    end
-
+    include Reloadable::OnlySubclasses
+    
     private_class_method :new #:nodoc:
 
     cattr_accessor :template_root

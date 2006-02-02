@@ -27,6 +27,19 @@ module ReloadableTestSandbox
     end
     include Reloadable
   end
+  
+  class OnlySubclassesReloadable
+    include Reloadable::OnlySubclasses
+  end
+  class ASubclassOfOnlySubclassesReloadable < OnlySubclassesReloadable
+  end
+  
+  class AnOnlySubclassReloadableClassSubclassingAReloadableClass
+    include Reloadable::OnlySubclasses
+  end
+  
+  class ASubclassofAOnlySubclassReloadableClassWhichWasSubclassingAReloadableClass < AnOnlySubclassReloadableClassSubclassingAReloadableClass
+  end
 end
 
 class ReloadableTest < Test::Unit::TestCase
@@ -43,9 +56,29 @@ class ReloadableTest < Test::Unit::TestCase
     assert_equal 10, ReloadableTestSandbox::AClassWhichDefinesItsOwnReloadable.reloadable?
   end
   
+  def test_only_subclass_reloadable
+    assert ! ReloadableTestSandbox::OnlySubclassesReloadable.reloadable?
+    assert ReloadableTestSandbox::ASubclassOfOnlySubclassesReloadable.reloadable?
+  end
+  
+  def test_inside_hierarchy_only_subclass_reloadable
+    assert ! ReloadableTestSandbox::AnOnlySubclassReloadableClassSubclassingAReloadableClass.reloadable?
+    assert ReloadableTestSandbox::ASubclassofAOnlySubclassReloadableClassWhichWasSubclassingAReloadableClass.reloadable?
+  end
+  
   def test_removable_classes
-    reloadables = %w(AReloadableClass AReloadableClassWithSubclasses AReloadableSubclass AClassWhichDefinesItsOwnReloadable)
-    non_reloadables = %w(ANonReloadableSubclass AModuleIncludingReloadable)
+    reloadables = %w(
+      AReloadableClass
+      AReloadableClassWithSubclasses
+      AReloadableSubclass
+      AClassWhichDefinesItsOwnReloadable
+      ASubclassOfOnlySubclassesReloadable
+    )
+    non_reloadables = %w(
+      ANonReloadableSubclass
+      AModuleIncludingReloadable
+      OnlySubclassesReloadable
+    )
     
     results = Reloadable.reloadable_classes
     reloadables.each do |name|
