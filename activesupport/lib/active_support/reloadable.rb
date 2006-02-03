@@ -3,7 +3,9 @@
 module Reloadable
   class << self
     def included(base) #nodoc:
-      if base.is_a?(Class) && ! base.respond_to?(:reloadable?)
+      raise TypeError, "Only Classes can be Reloadable!" unless base.is_a? Class
+      
+      unless base.respond_to?(:reloadable?)
         class << base
           define_method(:reloadable?) { true }
         end

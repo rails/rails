@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't allow Reloadable to be included into Modules.
+
 * Remove LoadingModule. [Nicholas Seckar]
 
 * Add documentation for Reloadable::OnlySubclasses. [Nicholas Seckar]
