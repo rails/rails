@@ -215,12 +215,12 @@ module ActionController
   
       class << self
         def assign_controller(g, controller)
-          expr = "::Controllers::#{controller.split('/').collect {|c| c.camelize}.join('::')}Controller"
+          expr = "::#{controller.split('/').collect {|c| c.camelize}.join('::')}Controller"
           g.result :controller, expr, true
         end
 
         def traverse_to_controller(segments, start_at = 0)
-          mod = ::Controllers
+          mod = ::Object
           length = segments.length
           index = start_at
           mod_name = controller_name = segment = nil
@@ -228,13 +228,25 @@ module ActionController
           while index < length
             return nil unless /^[A-Za-z][A-Za-z\d_]*$/ =~ (segment = segments[index])
             index += 1
-        
+            
             mod_name = segment.camelize
             controller_name = "#{mod_name}Controller"
-        
-            return eval("mod::#{controller_name}", nil, 'routing.rb', __LINE__), (index - start_at) if mod.const_available?(controller_name)
-            return nil unless mod.const_available?(mod_name)
-            mod = eval("mod::#{mod_name}", nil, 'routing.rb', __LINE__)
+            
+            suppress(NameError) do
+              controller = mod.const_get(controller_name)
+              # Detect the case when const_get returns an object from a parent namespace.
+              if mod == Object || controller.name == "#{mod.name}::#{controller_name}"
+                return controller, (index - start_at)
+              end
+            end
+            
+            mod = suppress(NameError) do
+              next_mod = mod.const_get(mod_name)
+              # Check that we didn't get a module from a parent namespace
+              (mod == Object || next_mod.name == "#{mod.name}::#{controller_name}") ? next_mod : nil
+            end
+            
+            raise RoutingError, "Cannot find controller: Dropped out at #{segments[start_at..index] * '/'}" unless mod
           end
         end
       end

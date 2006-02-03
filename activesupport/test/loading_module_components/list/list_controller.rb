@@ -1,2 +1,0 @@
-class List::ListController
-end

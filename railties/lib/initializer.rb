@@ -225,7 +225,6 @@ module Rails
     def initialize_routing
       return unless configuration.frameworks.include?(:action_controller)
       ActionController::Routing::Routes.reload
-      Object.const_set "Controllers", Dependencies::LoadingModule.root(*configuration.controller_paths)
     end
     
     # Sets the dependency loading mechanism based on the value of
@@ -457,6 +456,9 @@ module Rails
     
       def default_load_paths
         paths = ["#{root_path}/test/mocks/#{environment}"]
+        
+        # Add the app's controller directory
+        paths.concat(Dir["#{root_path}/app/controllers/"])
 
         # Then model subdirectories.
         # TODO: Don't include .rb models as load paths

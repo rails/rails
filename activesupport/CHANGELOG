@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove LoadingModule. [Nicholas Seckar]
+
 * Add documentation for Reloadable::OnlySubclasses. [Nicholas Seckar]
 
 * Add Reloadable::OnlySubclasses which handles the common case where a base class should not be reloaded, but its subclasses should be. [Nicholas Seckar]
