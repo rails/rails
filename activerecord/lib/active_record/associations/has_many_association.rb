@@ -9,7 +9,7 @@ module ActiveRecord
 
       def build(attributes = {})
         if attributes.is_a?(Array)
-          attributes.collect { |attr| create(attr) }
+          attributes.collect { |attr| build(attr) }
         else
           load_target
           record = @reflection.klass.new(attributes)
