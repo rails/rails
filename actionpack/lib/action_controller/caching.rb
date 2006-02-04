@@ -532,6 +532,8 @@ module ActionController #:nodoc:
 
         def after(controller)
           callback(:after)
+          # Clean up, so that the controller can be collected after this request
+          self.controller = nil
         end
 
         private

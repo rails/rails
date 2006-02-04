@@ -1,5 +1,7 @@
 *SVN*
 
+* Set sweeper's @controller to nil after a request so that the controller may be collected between requests.
+
 * Subclasses of ActionController::Caching::Sweeper should be Reloadable. [Rick Olson]
 
 * Document the :xhr option for verifications. #3666 [leeo]
