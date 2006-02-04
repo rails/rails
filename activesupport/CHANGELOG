@@ -1,5 +1,16 @@
 *SVN*
 
+* Added delegation support to Module that allows multiple delegations at once (unlike Forwardable in the stdlib) [DHH]. Example:
+
+    class Account < ActiveRecord::Base
+      has_one :subscription
+      delegate :free?, :paying?, :to => :subscription
+      delegate :overdue?, :to => "subscription.last_payment"
+    end
+    
+    account.free?    # => account.subscription.free?
+    account.overdue? # => account.subscription.last_payment.overdue?
+
 * Fix Reloadable to handle the case where a class that has been 'removed' has not yet been garbage collected. [Nicholas Seckar]
 
 * Don't allow Reloadable to be included into Modules.

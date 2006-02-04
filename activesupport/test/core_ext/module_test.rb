@@ -26,6 +26,34 @@ end
 class De
 end
 
+Somewhere = Struct.new(:street, :city)
+
+Someone   = Struct.new(:name, :place) do
+  delegate :street, :city, :to => :place
+  delegate :state, :to => :@place
+  delegate :upcase, :to => "place.city"
+end
+
+class Name
+  delegate :upcase, :to => :@full_name
+
+  def initialize(first, last)
+    @full_name = "#{first} #{last}"
+  end
+end
+
+$nowhere = <<-EOF
+class Name
+  delegate :nowhere
+end
+EOF
+
+$noplace = <<-EOF
+class Name
+  delegate :noplace, :tos => :hollywood
+end
+EOF
+
 class ModuleTest < Test::Unit::TestCase
   def test_included_in_classes
     assert One.included_in_classes.include?(Ab)
@@ -34,4 +62,24 @@ class ModuleTest < Test::Unit::TestCase
     assert !One.included_in_classes.include?(De)
   end
 
+  def test_delegation_to_methods
+    david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
+    assert_equal "Paulina", david.street
+    assert_equal "Chicago", david.city
+  end
+  
+  def test_delegation_down_hierarchy
+    david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
+    assert_equal "CHICAGO", david.upcase
+  end
+  
+  def test_delegation_to_instance_variable
+    david = Name.new("David", "Hansson")
+    assert_equal "DAVID HANSSON", david.upcase
+  end
+  
+  def test_missing_delegation_target
+    assert_raises(ArgumentError) { eval($nowhere) }
+    assert_raises(ArgumentError) { eval($noplace) }
+  end
 end
