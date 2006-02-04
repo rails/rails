@@ -106,14 +106,43 @@ class DependenciesTest < Test::Unit::TestCase
   end
   
   def test_module_loading
-    $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/autoloading_fixtures"
-    old_mechanism, Dependencies.mechanism = Dependencies.mechanism, :load
+    begin
+      $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/autoloading_fixtures"
+      old_mechanism, Dependencies.mechanism = Dependencies.mechanism, :load
     
-    assert_kind_of Module, A
-    assert_kind_of Class, A::B
-    assert_kind_of Class, A::C::D
-  ensure
-    $LOAD_PATH.shift
-    Dependencies.mechanism = old_mechanism
+      assert_kind_of Module, A
+      assert_kind_of Class, A::B
+      assert_kind_of Class, A::C::D
+      assert_kind_of Class, A::C::E::F
+    ensure
+      $LOAD_PATH.shift
+      Dependencies.mechanism = old_mechanism
+    end
+  end
+  
+  def test_non_existing_cost_raises_nameerrror
+    begin
+      $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/autoloading_fixtures"
+      old_mechanism, Dependencies.mechanism = Dependencies.mechanism, :load
+      assert_raises(NameError) do
+        DoesNotExist
+      end
+    
+      assert_raises(NameError) do
+        NoModule::DoesNotExist
+      end
+    
+      assert_raises(NameError) do
+        A::DoesNotExist
+      end
+
+      assert_raises(NameError) do
+        A::B::DoesNotExist
+      end
+    ensure
+      $LOAD_PATH.shift
+      Dependencies.mechanism = old_mechanism
+    end
+    
   end
 end
