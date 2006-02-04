@@ -244,7 +244,7 @@ module ActionController
             mod = suppress(NameError) do
               next_mod = eval("mod::#{mod_name}", nil, __FILE__, __LINE__)
               # Check that we didn't get a module from a parent namespace
-              (mod == Object || next_mod.name == "#{mod.name}::#{controller_name}") ? next_mod : nil
+              (mod == Object || next_mod.name == "#{mod.name}::#{mod_name}") ? next_mod : nil
             end
             
             raise RoutingError, "Cannot find controller: Dropped out at #{segments[start_at..index] * '/'}" unless mod
