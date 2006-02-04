@@ -225,7 +225,7 @@ module ActionController #:nodoc:
   class Base
     DEFAULT_RENDER_STATUS_CODE = "200 OK"
     
-    include Reloadable::OnlySubclasses
+    include Reloadable::Subclasses
     
     # Determines whether the view has access to controller internals @request, @response, @session, and @template.
     # By default, it does.

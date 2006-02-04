@@ -6,9 +6,9 @@
 
 * Remove LoadingModule. [Nicholas Seckar]
 
-* Add documentation for Reloadable::OnlySubclasses. [Nicholas Seckar]
+* Add documentation for Reloadable::Subclasses. [Nicholas Seckar]
 
-* Add Reloadable::OnlySubclasses which handles the common case where a base class should not be reloaded, but its subclasses should be. [Nicholas Seckar]
+* Add Reloadable::Subclasses which handles the common case where a base class should not be reloaded, but its subclasses should be. [Nicholas Seckar]
 
 * Further improvements to reloading code [Nicholas Seckar, Trevor Squires]
   

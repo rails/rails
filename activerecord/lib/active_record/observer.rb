@@ -83,7 +83,7 @@ module ActiveRecord
 
     # Observer subclasses should be reloaded by the dispatcher in Rails
     # when Dependencies.mechanism = :load.
-    include Reloadable::OnlySubclasses
+    include Reloadable::Subclasses
     
     # Attaches the observer to the supplied model classes.
     def self.observe(*models)

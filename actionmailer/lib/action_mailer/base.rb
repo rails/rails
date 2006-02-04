@@ -123,7 +123,7 @@ module ActionMailer
 
     # Action Mailer subclasses should be reloaded by the dispatcher in Rails
     # when Dependencies.mechanism = :load.
-    include Reloadable::OnlySubclasses
+    include Reloadable::Subclasses
     
     private_class_method :new #:nodoc:
 
