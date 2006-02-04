@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 require 'test/unit'
-require 'fake_controllers'
+require File.dirname(__FILE__) + '/fake_controllers'
 require 'stringio'
 
 RunTimeTests = ARGV.include? 'time'
