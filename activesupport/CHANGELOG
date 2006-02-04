@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix Reloadable to handle the case where a class that has been 'removed' has not yet been garbage collected. [Nicholas Seckar]
+
 * Don't allow Reloadable to be included into Modules.
 
 * Remove LoadingModule. [Nicholas Seckar]

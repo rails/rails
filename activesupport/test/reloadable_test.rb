@@ -5,9 +5,6 @@ require File.dirname(__FILE__) + '/../lib/active_support/reloadable'
 
 module ReloadableTestSandbox
   
-  module AModuleIncludingReloadable
-    include Reloadable
-  end
   class AReloadableClass
     include Reloadable
   end
@@ -43,9 +40,6 @@ module ReloadableTestSandbox
 end
 
 class ReloadableTest < Test::Unit::TestCase
-  def test_modules_do_not_receive_reloadable_method
-    assert ! ReloadableTestSandbox::AModuleIncludingReloadable.respond_to?(:reloadable?)
-  end
   def test_classes_receive_reloadable
     assert ReloadableTestSandbox::AReloadableClass.respond_to?(:reloadable?)
   end
@@ -76,7 +70,6 @@ class ReloadableTest < Test::Unit::TestCase
     )
     non_reloadables = %w(
       ANonReloadableSubclass
-      AModuleIncludingReloadable
       OnlySubclassesReloadable
     )
     
