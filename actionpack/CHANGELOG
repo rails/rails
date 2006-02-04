@@ -1,6 +1,8 @@
 *SVN*
 
-* Set sweeper's @controller to nil after a request so that the controller may be collected between requests.
+* Fix controller resolution to avoid accidentally inheriting a controller from a parent module. [Nicholas Seckar]
+
+* Set sweeper's @controller to nil after a request so that the controller may be collected between requests. [Nicholas Seckar]
 
 * Subclasses of ActionController::Caching::Sweeper should be Reloadable. [Rick Olson]
 

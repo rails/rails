@@ -233,15 +233,19 @@ module ActionController
             controller_name = "#{mod_name}Controller"
             
             suppress(NameError) do
-              controller = mod.const_get(controller_name)
+              ActionController::Base.logger.info("Looking for #{controller_name}")
+              controller = eval("mod::#{controller_name}", nil, __FILE__, __LINE__)
+              ActionController::Base.logger.info("Found")
               # Detect the case when const_get returns an object from a parent namespace.
+              
+              ActionController::Base.logger.info("#{controller.name} == #{mod.name}::#{controller_name}")
               if mod == Object || controller.name == "#{mod.name}::#{controller_name}"
                 return controller, (index - start_at)
               end
             end
             
             mod = suppress(NameError) do
-              next_mod = mod.const_get(mod_name)
+              next_mod = eval("mod::#{mod_name}", nil, __FILE__, __LINE__)
               # Check that we didn't get a module from a parent namespace
               (mod == Object || next_mod.name == "#{mod.name}::#{controller_name}") ? next_mod : nil
             end
