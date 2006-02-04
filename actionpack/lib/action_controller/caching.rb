@@ -523,7 +523,7 @@ module ActionController #:nodoc:
 
         # ActiveRecord::Observer will mark this class as reloadable even though it should not be.
         # However, subclasses of ActionController::Caching::Sweeper should be Reloadable
-        include Reloadable::OnlySubclasses
+        include Reloadable::Subclasses
         
         def before(controller)
           self.controller = controller

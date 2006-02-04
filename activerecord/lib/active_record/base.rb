@@ -243,7 +243,7 @@ module ActiveRecord #:nodoc:
     # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
     cattr_accessor :logger
     
-    include Reloadable::OnlySubclasses
+    include Reloadable::Subclasses
     
     def self.inherited(child) #:nodoc:
       @@subclasses[self] ||= []
@@ -439,9 +439,7 @@ module ActiveRecord #:nodoc:
           attributes.collect { |attr| create(attr) }
         else
           object = new(attributes)
-          if scoped?(:create)
-            scope(:create).each { |att,value| object.send("#{att}=", value) }
-          end
+          scope(:create).each { |att,value| object.send("#{att}=", value) } if scoped?(:create)
           object.save
           object
         end

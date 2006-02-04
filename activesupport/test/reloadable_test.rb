@@ -25,14 +25,14 @@ module ReloadableTestSandbox
     include Reloadable
   end
   
-  class OnlySubclassesReloadable
-    include Reloadable::OnlySubclasses
+  class SubclassesReloadable
+    include Reloadable::Subclasses
   end
-  class ASubclassOfOnlySubclassesReloadable < OnlySubclassesReloadable
+  class ASubclassOfSubclassesReloadable < SubclassesReloadable
   end
   
   class AnOnlySubclassReloadableClassSubclassingAReloadableClass
-    include Reloadable::OnlySubclasses
+    include Reloadable::Subclasses
   end
   
   class ASubclassofAOnlySubclassReloadableClassWhichWasSubclassingAReloadableClass < AnOnlySubclassReloadableClassSubclassingAReloadableClass
@@ -51,8 +51,8 @@ class ReloadableTest < Test::Unit::TestCase
   end
   
   def test_only_subclass_reloadable
-    assert ! ReloadableTestSandbox::OnlySubclassesReloadable.reloadable?
-    assert ReloadableTestSandbox::ASubclassOfOnlySubclassesReloadable.reloadable?
+    assert ! ReloadableTestSandbox::SubclassesReloadable.reloadable?
+    assert ReloadableTestSandbox::ASubclassOfSubclassesReloadable.reloadable?
   end
   
   def test_inside_hierarchy_only_subclass_reloadable
@@ -66,11 +66,11 @@ class ReloadableTest < Test::Unit::TestCase
       AReloadableClassWithSubclasses
       AReloadableSubclass
       AClassWhichDefinesItsOwnReloadable
-      ASubclassOfOnlySubclassesReloadable
+      ASubclassOfSubclassesReloadable
     )
     non_reloadables = %w(
       ANonReloadableSubclass
-      OnlySubclassesReloadable
+      SubclassesReloadable
     )
     
     results = Reloadable.reloadable_classes
