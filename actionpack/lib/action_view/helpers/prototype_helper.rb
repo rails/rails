@@ -170,18 +170,11 @@ module ActionView
         tag("form", options[:html], true)
       end
 
-      def form_remote_for(object_name, object, options = {}, &proc)
-        concat(form_remote_tag(options), proc.binding)
-        fields_for(object_name, object, &proc)
-        concat(end_form_tag, proc.binding)
-      end
-
       # Works like form_remote_tag, but uses form_for semantics.
-      def form_remote_for(object_name, object, options = {}, &proc)
-        concat(form_remote_tag(options), proc.binding)
-        fields_for(object_name, object, &proc)
-        concat(end_form_tag, proc.binding)
+      def remote_form_for(object_name, object, options = {}, &proc)
+        form_for(object_name, object, options.merge(:form_for_select => :form_remote_tag), &proc)
       end
+      alias_method :form_remote_for, :remote_form_for
       
       # Returns a button input tag that will submit form using XMLHttpRequest 
       # in the background instead of regular reloading POST arrangement. 

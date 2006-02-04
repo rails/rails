@@ -97,12 +97,36 @@ module ActionView
       #
       # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base.
       # Like collection_select and datetime_select.
+      #
+      # You can also build forms using a customized FormBuilder class. Subclass FormBuilder and override or define some more helpers,
+      # then use your custom builder like so:
+      #   
+      #   <% form_for :person, @person, :url => { :action => "update" }, :builder => LabellingFormBuilder do |f| %>
+      #     <%= f.text_field :first_name %>
+      #     <%= f.text_field :last_name %>
+      #     <%= text_area :person, :biography %>
+      #     <%= check_box_tag "person[admin]", @person.company.admin? %>
+      #   <% end %>
+      # 
+      # In many cases you will want to wrap the above in another helper, such as:
+      #
+      #   def labelled_form_for(name, object, options, &proc)
+      #     form_for(name, object, options.merge(:builder => LabellingFormBuiler), &proc)
+      #   end
+      #
       def form_for(object_name, object, options = {}, &proc)
-        url_for_options    = options[:url]
-        additional_options = options.reject { |k, v| ![ :method, :multipart ].include?(k) }
-        concat(form_tag(url_for_options, additional_options), proc.binding)
-        fields_for(object_name, object, &proc)
-        concat(end_form_tag, proc.binding)
+        raise ArgumentError, "form_for requires a block!" unless proc
+        
+        url_options = options.delete :url
+        form_tag_selector = options.delete(:form_tag_selector) || :form_tag
+        form_options = {}
+        [:method, :multipart].each { |key| form_options[key] = options.delete(key) if options.key? key }
+        
+        fields_for(object_name, object, options.merge(:proc => proc)) do |builder|
+          concat send(form_tag_selector, url_options, form_options), proc.binding
+          builder.build_form(url_options, form_options) { proc.call builder }
+          concat end_form_tag, proc.binding
+        end
       end
 
       # Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes
@@ -119,8 +143,11 @@ module ActionView
       #
       # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base.
       # Like collection_select and datetime_select.
-      def fields_for(object_name, object, &proc)
-        form_builder = FormBuilder.new(object_name, object, self, proc)
+      def fields_for(object_name, object, options = {}, &proc)
+        raise ArgumentError, "fields_for requires a block!" unless proc
+        
+        builder = options[:builder] || FormBuilder
+        form_builder = builder.new(object_name, object, self, options, options[:proc] || proc)
         proc.call(form_builder)
       end
 
@@ -350,13 +377,20 @@ module ActionView
     end
 
     class FormBuilder
-      def initialize(object_name, object, template, proc)
-        @object_name, @object, @template, @proc = object_name, object, template, proc        
+      # The methods which wrap a form helper call.
+      class_inheritable_accessor :field_helpers
+      self.field_helpers = (FormHelper.instance_methods - ['form_for'])
+      
+      def initialize(object_name, object, template, options, proc)
+        @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc        
       end
-
-      (FormHelper.instance_methods - [ :check_box, :radio_button ]).each do |selector|
-        next if selector == "form_for"
-
+      
+      # An empty stub that can be overriden to wrap a form created by form_for.
+      def build_form(url_options, form_options, &proc)
+        proc.call self
+      end
+      
+      (field_helpers - %w(check_box radio_button)).each do |selector|
         src = <<-end_src
           def #{selector}(method, options = {})
             @template.send(#{selector.inspect}, @object_name, method, options.merge(:object => @object))
