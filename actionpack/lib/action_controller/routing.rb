@@ -224,7 +224,7 @@ module ActionController
           length = segments.length
           index = start_at
           mod_name = controller_name = segment = nil
-      
+          
           while index < length
             return nil unless /^[A-Za-z][A-Za-z\d_]*$/ =~ (segment = segments[index])
             index += 1
@@ -247,7 +247,7 @@ module ActionController
               (mod == Object || next_mod.name == "#{mod.name}::#{mod_name}") ? next_mod : nil
             end
             
-            raise RoutingError, "Cannot find controller: Dropped out at #{segments[start_at..index] * '/'}" unless mod
+            return nil unless mod
           end
         end
       end
@@ -456,7 +456,6 @@ module ActionController
           @generation_methods[controller.to_sym] = method_name
         end
         
-        
         code = generation_code_for('routes', 'generate_default_path').to_s
         eval(code, nil, 'generated_code/routing/generation.rb')
         
@@ -493,7 +492,7 @@ module ActionController
             route.write_recognition(g)
           end
         end
-    
+        
         eval g.to_s, nil, 'generated/routing/recognition.rb'
         return g.to_s
       end
