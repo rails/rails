@@ -234,9 +234,10 @@ module ActionController
             
             suppress(NameError) do
               controller = eval("mod::#{controller_name}", nil, __FILE__, __LINE__)
+              expected_name = "#{mod.name}::#{controller_name}"
               
               # Detect the case when const_get returns an object from a parent namespace.
-              if mod == Object || controller.name == "#{mod.name}::#{controller_name}"
+              if controller.is_a?(Class) && controller.ancestors.include?(ActionController::Base) && (mod == Object || controller.name == expected_name)
                 return controller, (index - start_at)
               end
             end

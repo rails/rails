@@ -643,7 +643,7 @@ class RouteSetTests < Test::Unit::TestCase
     assert_equal ['/admin/stuff', []], rs.generate({:controller => 'stuff'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
     assert_equal ['/stuff', []], rs.generate({:controller => '/stuff'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
   end
-
+  
   def test_ignores_leading_slash
     @rs.draw {|m| m.connect '/:controller/:action/:id'}
     test_default_setup
@@ -801,6 +801,13 @@ class RouteSetTests < Test::Unit::TestCase
     results = rs.recognize_path %w(file)
     assert results, "Recognition should have succeeded"
     assert_equal [], results['path']
+  end
+  
+  def test_non_controllers_cannot_be_matched
+    rs.draw do
+      rs.connect ':controller/:action/:id'
+    end
+    assert_nil rs.recognize_path(%w(not_a show 10)), "Shouldn't recognize non-controllers as controllers!"
   end
 
   def test_paths_do_not_accept_defaults

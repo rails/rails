@@ -2,6 +2,8 @@ class << Object; alias_method :const_available?, :const_defined?; end
   
 class ContentController < Class.new(ActionController::Base)
 end
+class NotAController
+end
 module Admin
   class << self; alias_method :const_available?, :const_defined?; end
   class UserController < Class.new(ActionController::Base); end

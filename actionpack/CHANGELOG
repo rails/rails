@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't let arbitrary classes match as controllers -- a potentially dangerous bug. [Nicholas Seckar]
+
 * Fix Routing tests. Fix routing where failing to match a controller would prevent the rest of routes from being attempted. [Nicholas Seckar]
 
 * Add :builder => option to form_for and friends. [Nicholas Seckar, Rick Olson]
