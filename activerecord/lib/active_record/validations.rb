@@ -8,9 +8,9 @@ module ActiveRecord
   #   end
   class RecordInvalid < ActiveRecordError
     attr_reader :record
-    def initialize(record, *args)
+    def initialize(record)
       @record = record
-      super(*args)
+      super("Validation failed: #{@record.errors.full_messages.join(", ")}")
     end
   end
 
