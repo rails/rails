@@ -117,13 +117,17 @@ module ActionView
       def form_for(object_name, object, options = {}, &proc)
         raise ArgumentError, "form_for requires a block!" unless proc
         
-        url_options = options.delete :url
+        url_options       = options.delete(:url) || {}
         form_tag_selector = options.delete(:form_tag_selector) || :form_tag
-        form_options = {}
+        form_options      = {}
         [:method, :multipart].each { |key| form_options[key] = options.delete(key) if options.key? key }
         
         fields_for(object_name, object, options.merge(:proc => proc)) do |builder|
-          concat send(form_tag_selector, url_options, form_options), proc.binding
+          if form_tag_selector == :form_remote_tag
+            concat send(form_tag_selector, form_options.merge(:url => url_options)), proc.binding
+          else
+            concat send(form_tag_selector, url_options, form_options), proc.binding
+          end
           builder.build_form(url_options, form_options) { proc.call builder }
           concat end_form_tag, proc.binding
         end
