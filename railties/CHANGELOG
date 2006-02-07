@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Configuration#after_initialize for registering a block which gets called after the framework is fully initialized.  Useful for things like per-environment configuration of plugins. [Michael Koziarski]
+
 * Added check for RAILS_FRAMEWORK_ROOT constant that allows the Rails framework to be found in a different place than vendor/rails. Should be set in boot.rb. [DHH]
 
 * Fixed that static requests could unlock the mutex guarding dynamic requests in the WEBrick servlet #3433 [tom@craz8.com]

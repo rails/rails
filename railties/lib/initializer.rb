@@ -101,6 +101,9 @@ module Rails
 
       # Routing must be initialized after plugins to allow the former to extend the routes
       initialize_routing
+      
+      # the framework is now fully initialized
+      after_initialize
     end
     
     # Set the <tt>$LOAD_PATH</tt> based on the value of
@@ -245,7 +248,7 @@ module Rails
       require('active_support/whiny_nil') if configuration.whiny_nils
     end
 
-    # Initialize framework-specific settings for each of the loaded frameworks
+    # Initializes framework-specific settings for each of the loaded frameworks
     # (Configuration#frameworks). The available settings map to the accessors
     # on each of the corresponding Base classes.
     def initialize_framework_settings
@@ -257,6 +260,12 @@ module Rails
         end
       end
     end
+    
+    # Fires the user-supplied after_initialize block (Configuration#after_initialize) 
+    def after_initialize
+      configuration.after_initialize_block.call if configuration.after_initialize_block
+    end
+    
 
     protected
       # Return a list of plugin paths within base_path.  A plugin path is
@@ -440,7 +449,19 @@ module Rails
     def environment
       ::RAILS_ENV
     end
-
+    
+    # Sets a block which will be executed after rails has been fully initialized.
+    # Useful for per-environment configuration which depends on the framework being 
+    # fully initialized.
+    def after_initialize(&after_initialize_block)
+      @after_initialize_block = after_initialize_block
+    end
+    
+    # Returns the block set in Configuration#after_initialize
+    def after_initialize_block
+      @after_initialize_block
+    end
+    
     private
       def root_path
         ::RAILS_ROOT
