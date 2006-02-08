@@ -77,6 +77,12 @@ class StringInflectionsTest < Test::Unit::TestCase
 
     assert_equal "o", s.last
     assert_equal "llo", s.last(3)
+    
+    assert_equal 'x', 'x'.first
+    assert_equal 'x', 'x'.first(4)
+
+    assert_equal 'x', 'x'.last
+    assert_equal 'x', 'x'.last(4)
   end
 
   def test_starts_ends_with

@@ -50,6 +50,7 @@ module ActiveSupport #:nodoc:
         #   "hello".last(2)  # => "lo"
         #   "hello".last(10) # => "hello"
         def last(limit = 1)
+          return self if self.length < limit
           self[(-limit)..-1]
         end
       end
