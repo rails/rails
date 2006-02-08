@@ -1,5 +1,7 @@
 *SVN*
 
+* Make String#last return the string instead of nil when it is shorter than the limit [Scott Barron].
+
 * Added delegation support to Module that allows multiple delegations at once (unlike Forwardable in the stdlib) [DHH]. Example:
 
     class Account < ActiveRecord::Base
