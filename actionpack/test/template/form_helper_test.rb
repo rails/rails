@@ -338,4 +338,23 @@ class FormHelperTest < Test::Unit::TestCase
 
     assert_dom_equal expected, _erbout
   end
+  
+  def test_form_for_with_html_options_adds_options_to_form_tag
+    _erbout = ''
+    
+    form_for(:post, @post, :html => {:id => 'some_form', :class => 'some_class'}) do |f| end
+    expected = "<form action=\"http://www.example.com\" class=\"some_class\" id=\"some_form\" method=\"post\"></form>"
+    
+    assert_dom_equal expected, _erbout
+  end
+  
+  def test_remote_form_for_with_html_options_adds_options_to_form_tag
+    self.extend ActionView::Helpers::PrototypeHelper
+    _erbout = ''
+    
+    remote_form_for(:post, @post, :html => {:id => 'some_form', :class => 'some_class'}) do |f| end
+    expected = "<form action=\"http://www.example.com\" class=\"some_class\" id=\"some_form\" method=\"post\" onsubmit=\"new Ajax.Request('http://www.example.com', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\"></form>"
+    
+    assert_dom_equal expected, _erbout
+  end
 end

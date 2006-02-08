@@ -119,12 +119,12 @@ module ActionView
         
         url_options       = options.delete(:url) || {}
         form_tag_selector = options.delete(:form_tag_selector) || :form_tag
-        form_options      = {}
+        form_options      = options.delete(:html) || {}
         [:method, :multipart].each { |key| form_options[key] = options.delete(key) if options.key? key }
         
         fields_for(object_name, object, options.merge(:proc => proc)) do |builder|
           if form_tag_selector == :form_remote_tag
-            concat send(form_tag_selector, form_options.merge(:url => url_options)), proc.binding
+            concat send(form_tag_selector, form_options.merge(:url => url_options, :html => form_options)), proc.binding
           else
             concat send(form_tag_selector, url_options, form_options), proc.binding
           end
