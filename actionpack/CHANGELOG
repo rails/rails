@@ -1,5 +1,7 @@
 *SVN*
 
+* Replace dubious controller parent class in filter docs. #3655, #3722  [info@rhalff.com, eigentone@gmail.com]
+
 * Don't interpret the :value option on text_area as an html attribute. Set the text_area's value. #3752 [gabriel@gironda.org]
 
 * Fix remote_form_for creates a non-ajax form. [Rick Olson]

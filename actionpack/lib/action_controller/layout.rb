@@ -66,9 +66,11 @@ module ActionController #:nodoc:
     # <tt>app/views/layouts/weblog.rhtml</tt> or <tt>app/views/layouts/weblog.rxml</tt> exists then it will be automatically set as
     # the layout for your WeblogController. You can create a layout with the name <tt>application.rhtml</tt> or <tt>application.rxml</tt>
     # and this will be set as the default controller if there is no layout with the same name as the current controller and there is 
-    # no layout explicitly assigned with the +layout+ method. Setting a layout explicitly will always override the automatic behaviour
-    # for the controller where the layout is set. Explicitly setting the layout in a parent class, though, will not override the 
-    # child class's layout assignement if the child class has a layout with the same name. 
+    # no layout explicitly assigned with the +layout+ method. Nested controllers use the same folder structure for automatic layout.
+    # assignment. So an Admin::WeblogController will look for a template named <tt>app/views/layouts/admin/weblog.rhtml</tt>.
+    # Setting a layout explicitly will always override the automatic behaviour for the controller where the layout is set.
+    # Explicitly setting the layout in a parent class, though, will not override the child class's layout assignement if the child
+    # class has a layout with the same name. 
     #
     # == Inheritance for layouts
     #
@@ -175,7 +177,7 @@ module ActionController #:nodoc:
         def inherited_with_layout(child)
           inherited_without_layout(child)
           child.send :include, Reloadable
-          layout_match = child.name.underscore.sub(/_controller$/, '')
+          layout_match = child.name.underscore.sub(/_controller$/, '').sub(/^controllers\//, '')
           child.layout(layout_match) unless layout_list.grep(%r{layouts/#{layout_match}\.[a-z][0-9a-z]*$}).empty?
         end
 

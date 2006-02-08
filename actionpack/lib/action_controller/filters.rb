@@ -141,7 +141,7 @@ module ActionController #:nodoc:
     #     # will run the :authenticate filter
     #   end
     #
-    #   class SignupController < ActionController::Base
+    #   class SignupController < ApplicationController
     #     # will not run the :authenticate filter
     #     skip_before_filter :authenticate
     #   end
