@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't interpret the :value option on text_area as an html attribute. Set the text_area's value. #3752 [gabriel@gironda.org]
+
 * Fix remote_form_for creates a non-ajax form. [Rick Olson]
 
 * Don't let arbitrary classes match as controllers -- a potentially dangerous bug. [Nicholas Seckar]

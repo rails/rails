@@ -126,7 +126,14 @@ class FormHelperTest < Test::Unit::TestCase
       text_area("post", "body")
     )
   end
-
+  
+  def test_text_area_with_alternate_value
+    assert_dom_equal(
+      '<textarea cols="40" id="post_body" name="post[body]" rows="20">Testing alternate values.</textarea>',
+      text_area("post", "body", :value => 'Testing alternate values.')
+    )
+  end
+  
   def test_date_selects
     assert_dom_equal(
       '<textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea>',

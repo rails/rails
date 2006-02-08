@@ -277,7 +277,7 @@ module ActionView
       def to_text_area_tag(options = {})
         options = DEFAULT_TEXT_AREA_OPTIONS.merge(options.stringify_keys)
         add_default_name_and_id(options)
-        content_tag("textarea", html_escape(value_before_type_cast), options)
+        content_tag("textarea", html_escape(options.delete('value') || value_before_type_cast), options)
       end
 
       def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
