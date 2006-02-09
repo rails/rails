@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix problems with count when used with :include [Jeremy Hopple and Kevin Clark]
+
 * ActiveRecord::RecordInvalid now states which validations failed in its default error message [Tobias Luetke]
 
 * Using AssociationCollection#build with arrays of hashes should call build, not create [DHH]

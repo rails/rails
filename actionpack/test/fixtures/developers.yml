@@ -1,0 +1,21 @@
+david:
+  id: 1
+  name: David
+  salary: 80000
+
+jamis:
+  id: 2
+  name: Jamis
+  salary: 150000
+
+<% for digit in 3..10 %>
+dev_<%= digit %>:
+  id: <%= digit %>
+  name: fixture_<%= digit %>
+  salary: 100000
+<% end %>
+
+poor_jamis:
+  id: 11
+  name: Jamis
+  salary: 9000

@@ -98,6 +98,10 @@ module ActiveRecord
       def supports_migrations? #:nodoc:
         true
       end
+      
+      def supports_count_distinct? #:nodoc:
+        false
+      end
 
       def native_database_types #:nodoc:
         {

@@ -31,6 +31,13 @@ Rake::TestTask.new { |t|
   t.verbose = true
 }
 
+desc 'ActiveRecord Integration Tests'
+Rake::TestTask.new(:test_active_record_integration) do |t|
+  t.libs << "test"
+  t.test_files = Dir.glob("test/activerecord/*_test.rb")
+  t.verbose = true
+end
+
 
 # Genereate the RDoc documentation
 

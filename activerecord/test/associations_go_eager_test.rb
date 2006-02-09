@@ -120,9 +120,11 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_array_on_the_eagers
-    assert_raises(ArgumentError) do
-      posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => [ "authors.name = ?", 'David' ])
-    end
+    posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => [ "authors.name = ?", 'David' ])
+    assert_equal 2, posts.size
+    
+    count = Post.count(:include => [ :author, :comments ], :limit => 2, :conditions => [ "authors.name = ?", 'David' ])
+    assert_equal count, posts.size
   end
 
   def test_eager_with_has_many_and_limit_with_no_results
@@ -141,13 +143,19 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_on_the_eagers
-    assert_raises(ArgumentError) do
-      posts = authors(:david).posts.find(:all, 
-        :include    => :comments, 
-        :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'",
-        :limit      => 2
-      )
-    end
+    posts = authors(:david).posts.find(:all, 
+      :include    => :comments, 
+      :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'",
+      :limit      => 2
+    )
+    assert_equal 2, posts.size
+    
+    count = Post.count(
+      :include    => [ :comments, :author ], 
+      :conditions => "authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')",
+      :limit      => 2
+    )
+    assert_equal count, posts.size
   end
 
   def test_eager_association_loading_with_habtm

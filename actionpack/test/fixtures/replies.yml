@@ -1,0 +1,13 @@
+witty_retort:
+  id: 1
+  topic_id: 1
+  content: Birdman is better!
+  created_at: <%= 6.hours.ago.to_s(:db) %>
+  updated_at: nil
+  
+another:
+  id: 2
+  topic_id: 2
+  content: Nuh uh!
+  created_at: <%= 1.hour.ago.to_s(:db) %>
+  updated_at: nil

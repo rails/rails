@@ -1056,6 +1056,13 @@ class BasicsTest < Test::Unit::TestCase
                         "LEFT JOIN comments ON posts.id=comments.post_id")
     end
     assert_equal res, res2
+    
+    res3 = res + 1
+    assert_nothing_raised do
+      res3 = Post.count(:conditions => "posts.#{QUOTED_TYPE} = 'Post'",
+                        :joins => "LEFT JOIN comments ON posts.id=comments.post_id")
+    end
+    assert_equal res, res3
   end
   
   def test_clear_association_cache_stored     

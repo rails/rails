@@ -1,45 +1,6 @@
-require "#{File.dirname(__FILE__)}/../abstract_unit"
-
-# Unfurl the safety net.
-path_to_ar = File.dirname(__FILE__) + '/../../../activerecord'
-if Object.const_defined?(:ActiveRecord) || File.exist?(path_to_ar)
-  begin
-
-# These tests require Active Record, so you're going to need AR in a
-# sibling directory to AP and have SQLite installed.
-
-unless Object.const_defined?(:ActiveRecord)
-  require "#{path_to_ar}/lib/active_record"
-end
-
-begin
-  ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :dbfile => ':memory:')
-  ActiveRecord::Base.connection
-rescue Object
-  $stderr.puts 'SQLite 3 unavailable; falling to SQLite 2.'
-  ActiveRecord::Base.establish_connection(:adapter => 'sqlite', :dbfile => ':memory:')
-  ActiveRecord::Base.connection
-end
-
-# Set up company fixtures.
-$LOAD_PATH << "#{path_to_ar}/test"
-QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name('type') unless Object.const_defined?(:QUOTED_TYPE)
+require "#{File.dirname(__FILE__)}/../active_record_unit"
 require 'fixtures/company'
-File.read("#{path_to_ar}/test/fixtures/db_definitions/sqlite.sql").split(';').each do |sql|
-  ActiveRecord::Base.connection.execute(sql) unless sql.blank?
-end
 
-# Add some validation rules to trip up the assertions.
-class Company
-  protected
-    def validate
-      errors.add_on_empty('name')
-      errors.add('rating', 'rating should not be 2') if rating == 2
-      errors.add_to_base('oh oh') if rating == 3
-    end  
-end
-
-# A controller to host the assertions.
 class ActiveRecordAssertionsController < ActionController::Base
   self.template_root = "#{File.dirname(__FILE__)}/../fixtures/"
 
@@ -76,12 +37,15 @@ class ActiveRecordAssertionsController < ActionController::Base
   # the safety dance......
   def rescue_action(e) raise; end
 end
-                    
-class ActiveRecordAssertionsControllerTest < Test::Unit::TestCase
+                  
+class ActiveRecordAssertionsControllerTest < ActiveRecordTestCase
+  fixtures :companies
+  
   def setup
     @request = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new
     @controller = ActiveRecordAssertionsController.new
+    super
   end
 
   # test for 1 bad apple column
@@ -116,12 +80,5 @@ class ActiveRecordAssertionsControllerTest < Test::Unit::TestCase
     process :bad_company
     assert_success
     assert_invalid_record 'company'
-  end
-end 
-
-# End of safety net.
-  rescue Object => e
-    $stderr.puts "Skipping Active Record assertion tests: #{e}"
-    #$stderr.puts "  #{e.backtrace.join("\n  ")}"
   end
 end

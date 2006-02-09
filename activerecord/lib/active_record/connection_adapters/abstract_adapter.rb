@@ -38,6 +38,12 @@ module ActiveRecord
       def supports_migrations?
         false
       end
+      
+      # Does this adapter support using DISTINCT within COUNT?  This is +true+
+      # for all adapters except sqlite.
+      def supports_count_distinct?
+        true
+      end
 
       # Should primary key values be selected from their corresponding
       # sequence before the insert statement?  If true, next_sequence_value

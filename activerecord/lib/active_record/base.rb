@@ -495,13 +495,59 @@ module ActiveRecord #:nodoc:
         connection.delete(sql, "#{name} Delete all")
       end
 
-      # Returns the number of records that meet the +conditions+. Zero is returned if no records match. Example:
-      #   Product.count "sales > 1"
-      def count(conditions = nil, joins = nil)
-        sql  = "SELECT COUNT(*) FROM #{table_name} "
-        sql << " #{joins} " if joins
-        add_conditions!(sql, conditions)
-        count_by_sql(sql)
+      # Count operates using three different approaches. 
+      #
+      # * Count all: By not passing any parameters to count, it will return a count of all the rows for the model.
+      # * Count by conditions or joins: For backwards compatibility, you can pass in +conditions+ and +joins+ as individual parameters.
+      # * Count using options will find the row count matched by the options used.
+      #
+      # The last approach, count using options, accepts an option hash as the only parameter. The options are:
+      #
+      # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro.
+      # * <tt>:joins</tt>: An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
+      #   The records will be returned read-only since they will have attributes that do not correspond to the table's columns.
+      # * <tt>:include</tt>: Named associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
+      #   to already defined associations. When using named associations count returns the number DISTINCT items for the model you're counting.
+      #   See eager loading under Associations.
+      #
+      # Examples for counting all:
+      #   Person.count         # returns the total count of all people
+      #
+      # Examples for count by +conditions+ and +joins+ (for backwards compatibility):
+      #   Person.count("age > 26")  # returns the number of people older than 26
+      #   Person.find("age > 26 AND job.salary > 60000", "LEFT JOIN jobs on jobs.person_id = person.id") # returns the total number of rows matching the conditions and joins fetched by SELECT COUNT(*).
+      #
+      # Examples for count with options:
+      #   Person.count(:conditions => "age > 26")
+      #   Person.count(:conditions => "age > 26 AND job.salary > 60000", :include => :job) # because of the named association, it finds the DISTINCT count using LEFT OUTER JOIN.
+      #   Person.count(:conditions => "age > 26 AND job.salary > 60000", :joins => "LEFT JOIN jobs on jobs.person_id = person.id") # finds the number of rows matching the conditions and joins. 
+      def count(*args) 
+        options = {}
+        
+        #For backwards compatibility, we need to handle both count(conditions=nil, joins=nil) or count(options={}).
+        if args.size >= 0 and args.size <= 2
+          if args.first.is_a?(Hash)
+            options = args.first
+            #should we verify the options hash???
+          else
+            #Handle legacy paramter options: def count(conditions=nil, joins=nil) 
+            options.merge!(:conditions => args[0]) if args.length > 0
+            options.merge!(:joins => args[1]) if args.length > 1
+          end
+        else
+          raise(ArgumentError, "Unexpected parameters passed to count(*args): expected either count(conditions=nil, joins=nil) or count(options={})")
+        end
+        
+        options[:include] ? count_with_associations(options) : count_by_sql(construct_counter_sql(options))
+      end
+      
+      def construct_counter_sql(options)
+        sql  = "SELECT COUNT(" 
+        sql << "DISTINCT " if options[:distinct]
+        sql << "#{table_name}.#{primary_key}) FROM #{table_name} "
+        sql << " #{options[:joins]} " if options[:joins]
+        add_conditions!(sql, options[:conditions])
+        sql
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.

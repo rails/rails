@@ -1,5 +1,11 @@
 *SVN*
 
+* Fix problems with pagination and :include.  [Kevin Clark]
+
+* Add ActiveRecordTestCase for testing AR integration. [Kevin Clark]
+
+* Add Unit Tests for pagination [Kevin Clark]
+
 * Add :html option for specifying form tag options in form_for. [Sam Stephenson]
 
 * Replace dubious controller parent class in filter docs. #3655, #3722  [info@rhalff.com, eigentone@gmail.com]

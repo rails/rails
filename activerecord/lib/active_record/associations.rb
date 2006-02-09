@@ -779,6 +779,11 @@ module ActiveRecord
             end
           end
         end
+        
+        def count_with_associations(options = {})
+          reflections = reflect_on_included_associations(options[:include])
+          return count_by_sql(construct_counter_sql_with_included_associations(options, reflections))
+        end
 
         def find_with_associations(options = {})
           reflections  = reflect_on_included_associations(options[:include])
@@ -996,40 +1001,72 @@ module ActiveRecord
             "#{name} Load Including Associations"
           )
         end
-
-        def construct_finder_sql_with_included_associations(options, schema_abbreviations, reflections)
-          sql = "SELECT #{column_aliases(schema_abbreviations)} FROM #{table_name} "
+        
+        def construct_counter_sql_with_included_associations(options, reflections)
+          sql = "SELECT COUNT(DISTINCT #{table_name}.#{primary_key})"
+          
+          # A (slower) workaround if we're using a backend, like sqlite, that doesn't support COUNT DISTINCT.
+          if !Base.connection.supports_count_distinct?
+            sql = "SELECT COUNT(*) FROM (SELECT DISTINCT #{table_name}.#{primary_key}"
+          end
+          
+          sql << " FROM #{table_name} "
           sql << reflections.collect { |reflection| association_join(reflection) }.to_s
           sql << "#{options[:joins]} " if options[:joins]
 
           add_conditions!(sql, options[:conditions])
           add_sti_conditions!(sql, reflections)
-          add_limited_ids_condition!(sql, options) if !using_limitable_reflections?(reflections) && options[:limit]
-
-          sql << "ORDER BY #{options[:order]} " if options[:order]
+          add_limited_ids_condition!(sql, options, reflections) if !using_limitable_reflections?(reflections) && options[:limit]
 
           add_limit!(sql, options) if using_limitable_reflections?(reflections)
 
-          return sanitize_sql(sql)
+          if !Base.connection.supports_count_distinct?
+            sql << ")"
+          end
+
+          return sanitize_sql(sql)          
         end
 
-        def add_limited_ids_condition!(sql, options)
-          unless (id_list = select_limited_ids_list(options)).empty?
+        def construct_finder_sql_with_included_associations(options, schema_abbreviations, reflections)
+          sql = "SELECT #{column_aliases(schema_abbreviations)} FROM #{table_name} "
+          sql << reflections.collect { |reflection| association_join(reflection) }.to_s
+          sql << "#{options[:joins]} " if options[:joins]
+ 
+          add_conditions!(sql, options[:conditions])
+          add_sti_conditions!(sql, reflections)
+          add_limited_ids_condition!(sql, options, reflections) if !using_limitable_reflections?(reflections) && options[:limit]
+
+          sql << "ORDER BY #{options[:order]} " if options[:order]
+ 
+          add_limit!(sql, options) if using_limitable_reflections?(reflections)
+ 
+          return sanitize_sql(sql)
+        end
+ 
+        def add_limited_ids_condition!(sql, options, reflections)
+          unless (id_list = select_limited_ids_list(options, reflections)).empty?
             sql << "#{condition_word(sql)} #{table_name}.#{primary_key} IN (#{id_list}) "
           end
         end
-
-        def select_limited_ids_list(options)
+ 
+        def select_limited_ids_list(options, reflections)
           connection.select_values(
-            construct_finder_sql_for_association_limiting(options),
+            construct_finder_sql_for_association_limiting(options, reflections),
             "#{name} Load IDs For Limited Eager Loading"
           ).collect { |id| connection.quote(id) }.join(", ")
         end
-
-        def construct_finder_sql_for_association_limiting(options)
-          raise(ArgumentError, "Limited eager loads and conditions on the eager tables is incompatible") if include_eager_conditions?(options)
+ 
+        def construct_finder_sql_for_association_limiting(options, reflections)
+          #sql = "SELECT DISTINCT #{table_name}.#{primary_key} FROM #{table_name} "
+          sql = "SELECT "
+          sql << "DISTINCT #{table_name}." if include_eager_conditions?(options) || include_eager_order?(options)
+          sql << "#{primary_key} FROM #{table_name} "
           
-          sql = "SELECT #{primary_key} FROM #{table_name} "
+          if include_eager_conditions?(options) || include_eager_order?(options)
+            sql << reflections.collect { |reflection| association_join(reflection) }.to_s
+            sql << "#{options[:joins]} " if options[:joins]
+          end
+          
           add_conditions!(sql, options[:conditions])
           sql << "ORDER BY #{options[:order]} " if options[:order]
           add_limit!(sql, options)
@@ -1042,6 +1079,14 @@ module ActiveRecord
           conditions = conditions.first if conditions.is_a?(Array)
           conditions.scan(/(\w+)\.\w+/).flatten.any? do |condition_table_name|
             condition_table_name != table_name
+          end
+        end
+        
+        def include_eager_order?(options)
+          order = options[:order]
+          return false unless order
+          order.scan(/(\w+)\.\w+/).flatten.any? do |order_table_name|
+            order_table_name != table_name
           end
         end
 
