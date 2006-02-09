@@ -4,7 +4,7 @@ module ActiveRecord
   # automatically included, so you don't need to do that manually.
   #
   # This behavior can be turned off by setting <tt>ActiveRecord::Base.record_timestamps = false</tt>.
-  # This behavior can use GMT by setting <tt>ActiveRecord::Base.timestamps_gmt = true</tt>
+  # This behavior by default uses local time, but can use UTC by setting <tt>ActiveRecord::Base.default_timezone = :utc</tt>
   module Timestamp 
     def self.append_features(base) # :nodoc:
       super
