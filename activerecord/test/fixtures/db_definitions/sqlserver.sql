@@ -134,14 +134,14 @@ CREATE TABLE posts (
   author_id int default NULL,
   title varchar(255) default NULL,
   type varchar(255) default NULL,
-  body text default NULL
+  body varchar(4096) default NULL
 );
 
 CREATE TABLE comments (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
   post_id int default NULL,
   type varchar(255) default NULL,
-  body text default NULL
+  body varchar(4096) default NULL
 );
 
 CREATE TABLE authors (
