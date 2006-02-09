@@ -1,5 +1,7 @@
 *SVN*
 
+* PostgreSQL: correctly parse negative integer column defaults.  #3776 [bellis@deepthought.org]
+
 * Show a meaningful error when the DB2 adapter cannot be loaded due to missing dependencies. [Nicholas Seckar]
 
 * Fix case of VERSION option in migration docs. #3521 [Dawnthorn <peterh@sapros.com>]
