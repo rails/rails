@@ -65,14 +65,26 @@ HEADER
         columns = @connection.columns(table)
         begin
           tbl = StringIO.new
+
+          if @connection.respond_to?(:pk_and_sequence_for)
+            pk, pk_seq = @connection.pk_and_sequence_for(table)
+          end
+          pk ||= 'id'
+
           tbl.print "  create_table #{table.inspect}"
-          tbl.print ", :id => false" if !columns.detect { |c| c.name == "id" }
+          if columns.detect { |c| c.name == pk }
+            if pk != 'id'
+              tbl.print %Q(, :primary_key => "#{pk}")
+            end
+          else
+            tbl.print ", :id => false"
+          end
           tbl.print ", :force => true"
           tbl.puts " do |t|"
 
           columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" if @types[column.type].nil?
-            next if column.name == "id"
+            next if column.name == pk
             tbl.print "    t.column #{column.name.inspect}, #{column.type.inspect}"
             tbl.print ", :limit => #{column.limit.inspect}" if column.limit != @types[column.type][:limit] 
             tbl.print ", :default => #{column.default.inspect}" if !column.default.nil?

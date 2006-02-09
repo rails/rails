@@ -1,5 +1,7 @@
 *SVN*
 
+* PostgreSQL: smarter schema dumps using pk_and_sequence_for(table).  #2920 [Blair Zajac]
+
 * SQLServer: more compatible limit/offset emulation.  #3779 [Tom Ward]
 
 * Polymorphic join support for has_one associations (has_one :foo, :as => :bar)  #3785 [Rick Olson]
