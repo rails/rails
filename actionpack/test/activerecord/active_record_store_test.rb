@@ -73,10 +73,11 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
     @new_session['foo'] = 'bar'
   end
 
-  def test_another_instance
-    @another = CGI::Session.new(@cgi, 'session_id' => @new_session.session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
-    assert_equal @new_session.session_id, @another.session_id
-  end
+# this test only applies for eager sesssion saving
+#  def test_another_instance
+#    @another = CGI::Session.new(@cgi, 'session_id' => @new_session.session_id, 'database_manager' => CGI::Session::ActiveRecordStore)
+#    assert_equal @new_session.session_id, @another.session_id
+#  end
 
   def test_model_attribute
     assert_kind_of CGI::Session::ActiveRecordStore::Session, @new_session.model

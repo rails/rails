@@ -20,6 +20,13 @@ module ActionController #:nodoc:
   # 
   #   Let's see a greeting: 
   #   <%= render_component :controller => "greeter", :action => "hello_world" %>
+  #
+  # It is also possible to specify the controller as a class constant, bypassing the inflector
+  # code to compute the controller class at runtime. Therefore,
+  # 
+  # <%= render_component :controller => GreeterController, :action => "hello_world" %>
+  # 
+  # would work as well and be slightly faster.
   module Components
     def self.append_features(base) #:nodoc:
       super
@@ -32,16 +39,18 @@ module ActionController #:nodoc:
 
     protected
       # Renders the component specified as the response for the current method
-      def render_component(options = {}) #:doc:
-        component_logging(options) { render_text(component_response(options).body, response.headers["Status"]) }
+      def render_component(options) #:doc:
+        component_logging(options) do
+          render_text(component_response(options, true).body, response.headers["Status"])
+        end
       end
 
       # Returns the component response as a string
       def render_component_as_string(options) #:doc:
         component_logging(options) do
           response = component_response(options, false)
-          unless response.redirected_to.nil?
-            render_component_as_string response.redirected_to
+          if redirected = response.redirected_to
+            render_component_as_string redirected
           else
             response.body
           end
@@ -49,38 +58,47 @@ module ActionController #:nodoc:
       end
   
     private
-      def component_response(options, reuse_response = true)
-        begin
-          ActionController::Flash::FlashHash.avoid_sweep = true
-          p = component_class(options).process(request_for_component(options), reuse_response ? @response : response_for_component)
-        ensure
-          ActionController::Flash::FlashHash.avoid_sweep = false
+       def component_response(options, reuse_response)
+         c_class = component_class(options)
+         c_request = request_for_component(c_class.controller_name, options)
+         c_response = reuse_response ? @response : @response.dup
+         c_class.process(c_request, c_response, self)
+       end
+ 
+       # determine the controller class for the component request
+       def component_class(options)
+         if controller = options[:controller]
+           if controller.is_a? Class
+             controller
+           else
+             "#{controller.camelize}Controller".constantize
+           end
+         else
+           self.class
+         end
+       end
+ 
+       # Create a new request object based on the current request.
+       # The new request inherits the session from the current request,
+       # bypassing any session options set for the component controller's class
+       def request_for_component(controller_name, options)
+         sub_request = @request.dup
+         sub_request.session = @request.session
+         sub_request.instance_variable_set(:@parameters,
+             (options[:params] || {}).with_indifferent_access.regular_update(
+                "controller" => controller_name, "action" => options[:action], "id" => options[:id])
+         )
+         sub_request
         end
-        p
-      end
-    
-      def component_class(options)
-        options[:controller] ? (options[:controller].camelize + "Controller").constantize : self.class
-      end
-      
-      def request_for_component(options)
-        request_for_component = @request.dup
-        request_for_component.send(
-          :instance_variable_set, :@parameters, 
-          (options[:params] || {}).merge({ "controller" => options[:controller], "action" => options[:action], "id" => options[:id] }).with_indifferent_access
-        )
-        return request_for_component
-      end
-      
-      def response_for_component
-        @response.dup
-      end
+
       
       def component_logging(options)
-        logger.info("Start rendering component (#{options.inspect}): ") unless logger.nil?
-        result = yield
-        logger.info("\n\nEnd of component rendering") unless logger.nil?
-        return result
+        unless logger then yield else
+          logger.info("Start rendering component (#{options.inspect}): ")
+          result = yield
+          logger.info("\n\nEnd of component rendering")
+          result
+        end
       end
   end
 end

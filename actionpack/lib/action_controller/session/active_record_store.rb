@@ -278,7 +278,9 @@ class CGI
             raise CGI::Session::NoSession, 'uninitialized session'
           end
           @session = @@session_class.new(:session_id => session_id, :data => {})
-          @session.save
+          # session saving can be lazy again, because of improved component implementation
+          # therefore next line gets commented out:
+          # @session.save
         end
       end
 

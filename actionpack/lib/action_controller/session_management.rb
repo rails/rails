@@ -11,7 +11,6 @@ module ActionController #:nodoc:
       base.extend(ClassMethods)
       base.send(:alias_method, :process_without_session_management_support, :process)
       base.send(:alias_method, :process, :process_with_session_management_support)
-      base.after_filter(:clear_persistent_model_associations)
     end
 
     module ClassMethods
@@ -111,8 +110,11 @@ module ActionController #:nodoc:
     end
 
     def process_with_session_management_support(request, response, method = :perform_action, *arguments) #:nodoc:
-      action = request.parameters["action"] || "index"
-      request.session_options = self.class.session_options_for(request, action)
+      unless @parent_controller
+        # only determine session options if this isn't a controller created for component request processing
+        action = request.parameters["action"] || "index"
+        request.session_options = self.class.session_options_for(request, action)
+      end
       process_without_session_management_support(request, response, method, *arguments)
     end
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Major components cleanup and speedup.  #3527 [Stefan Kaes]
+
 * Fix problems with pagination and :include.  [Kevin Clark]
 
 * Add ActiveRecordTestCase for testing AR integration. [Kevin Clark]

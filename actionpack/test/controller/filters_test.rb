@@ -105,7 +105,7 @@ class FilterTest < Test::Unit::TestCase
 
   class PrependingController < TestController
     prepend_before_filter :wonderful_life
-    skip_before_filter :fire_flash
+    # skip_before_filter :fire_flash
 
     private
       def wonderful_life
@@ -189,7 +189,8 @@ class FilterTest < Test::Unit::TestCase
 
   class MixedFilterController < PrependingController
     cattr_accessor :execution_log
-    def initialize
+    def initialize(parent_controller=nil)
+      super(parent_controller)
       @@execution_log = ""
     end
 
@@ -238,11 +239,11 @@ class FilterTest < Test::Unit::TestCase
   end
 
   def test_added_filter_to_inheritance_graph
-    assert_equal [ :fire_flash, :ensure_login ], TestController.before_filters
+    assert_equal [ :ensure_login ], TestController.before_filters
   end
 
   def test_base_class_in_isolation
-    assert_equal [ :fire_flash ], ActionController::Base.before_filters
+    assert_equal [ ], ActionController::Base.before_filters
   end
   
   def test_prepending_filter

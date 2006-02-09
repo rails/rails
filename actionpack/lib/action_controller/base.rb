@@ -305,8 +305,8 @@ module ActionController #:nodoc:
 
     class << self
       # Factory for the standard create, process loop where the controller is discarded after processing.
-      def process(request, response) #:nodoc:
-        new.process(request, response)
+      def process(request, response, parent_controller=nil) #:nodoc:
+        new(parent_controller).process(request, response)
       end
       
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "NeatController".
@@ -359,20 +359,43 @@ module ActionController #:nodoc:
       end
     end
 
-    public
+    public      
+      # If this controller was instantiated to process a component request,
+      # +parent_controller+ points to the instantiator of this controller.
+      attr_reader :parent_controller
+
+      # Create a new controller instance.
+      def initialize(parent_controller=nil) #:nodoc:
+        @parent_controller = parent_controller
+      end
+
       # Extracts the action_name from the request parameters and performs that action.
       def process(request, response, method = :perform_action, *arguments) #:nodoc:
         initialize_template_class(response)
         assign_shortcuts(request, response)
+
+        my_flash = flash # calling flash creates @flash
+        if my_parent = @parent_controller
+          # only discard flash if this controller isn't a component request controller
+          my_flash.discard
+        end
+
         initialize_current_url
         @action_name = params['action'] || 'index'
         @variables_added = nil
+        @before_filter_chain_aborted = false
 
         log_processing if logger
         send(method, *arguments)
         @response
       ensure
-        close_session
+        unless my_parent
+          unless @before_filter_chain_aborted
+            my_flash.sweep
+            clear_persistent_model_associations
+          end
+          close_session
+        end
       end
 
       # Returns a URL that has been rewritten according to the options hash and the defined Routes. 
@@ -784,7 +807,7 @@ module ActionController #:nodoc:
         case options
           when %r{^\w+://.*}
             raise DoubleRenderError if performed?
-            logger.info("Redirected to #{options}") unless logger.nil?
+            logger.info("Redirected to #{options}") if logger
             response.redirect(options)
             response.redirected_to = options
             @performed_redirect = true
@@ -866,7 +889,8 @@ module ActionController #:nodoc:
 
         @session  = @response.session
         @template = @response.template
-        @assigns  = @response.template.assigns        
+        @assigns  = @response.template.assigns
+  
         @headers  = @response.headers
       end
       
@@ -929,23 +953,23 @@ module ActionController #:nodoc:
         if view_controller_internals
           [ "@assigns", "@performed_redirect", "@performed_render" ]
         else
-          [ "@assigns", "@performed_redirect", "@performed_render", "@request", "@response", "@session", "@cookies", "@template" ]
+          [ "@assigns", "@performed_redirect", "@performed_render", "@request", "@response", "@session", "@cookies", "@template", "@request_origin", "@parent_controller" ]
         end
       end
 
-
       def request_origin
-        "#{@request.remote_ip} at #{Time.now.to_s(:db)}"
+        # this *needs* to be cached!
+        # otherwise you'd get different results if calling it more than once
+        @request_origin ||= "#{@request.remote_ip} at #{Time.now.to_s(:db)}"
       end
       
       def complete_request_uri
-        request.protocol + request.host + request.request_uri
+        "#{@request.protocol}#{@request.host}#{@request.request_uri}"
       end
 
       def close_session
         @session.close unless @session.nil? || Hash === @session
       end
-
       
       def template_exists?(template_name = default_template_name)
         @template.file_exists?(template_name)

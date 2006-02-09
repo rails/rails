@@ -284,12 +284,12 @@ module ActionController #:nodoc:
       
       # Returns all the before filters for this class and all its ancestors.
       def before_filters #:nodoc:
-        read_inheritable_attribute("before_filters")
+        read_inheritable_attribute("before_filters") || []
       end
       
       # Returns all the after filters for this class and all its ancestors.
       def after_filters #:nodoc:
-        read_inheritable_attribute("after_filters")
+        read_inheritable_attribute("after_filters") || []
       end
       
       # Returns a mapping between filters and the actions that may run them.
@@ -308,7 +308,8 @@ module ActionController #:nodoc:
         end
 
         def prepend_filter_to_chain(condition, filters)
-          write_inheritable_attribute("#{condition}_filters", filters + read_inheritable_attribute("#{condition}_filters"))
+          old_filters = read_inheritable_attribute("#{condition}_filters") || []
+          write_inheritable_attribute("#{condition}_filters", filters + old_filters)
         end
 
         def ensure_filter_responds_to_before_and_after(filter)
@@ -344,9 +345,12 @@ module ActionController #:nodoc:
       end
 
       def perform_action_with_filters
-        return if before_action == false || performed?
-        perform_action_without_filters
-        after_action
+        before_action_result = before_action
+        unless before_action_result == false || performed?
+          perform_action_without_filters
+          after_action
+        end
+        @before_filter_chain_aborted = (before_action_result == false)
       end
 
       # Calls all the defined before-filter filters, which are added by using "before_filter :method".

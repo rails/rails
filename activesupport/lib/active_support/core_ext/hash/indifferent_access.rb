@@ -14,13 +14,14 @@ class HashWithIndifferentAccess < Hash
   end  
 
   alias_method :regular_writer, :[]= unless method_defined?(:regular_writer)
+  alias_method :regular_update, :update unless method_defined?(:regular_update)
   
   def []=(key, value)
     regular_writer(convert_key(key), convert_value(value))
   end
 
   def update(other_hash)
-    other_hash.each {|key, value| self[key] = value}
+    other_hash.each_pair {|key, value| regular_writer(convert_key(key), convert_value(value))}
     self
   end
   alias_method :merge!, :update

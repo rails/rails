@@ -24,11 +24,6 @@ module ActionController #:nodoc:
   #
   # See docs on the FlashHash class for more details about the flash.
   module Flash
-    def self.append_features(base) #:nodoc:
-      super
-      base.before_filter(:fire_flash)
-      base.after_filter(:sweep_flash)
-    end
 
     class FlashNow #:nodoc:
       def initialize flash
@@ -47,9 +42,6 @@ module ActionController #:nodoc:
     end
     
     class FlashHash < Hash
-      @@avoid_sweep = false
-      cattr_accessor :avoid_sweep
-      
       def initialize #:nodoc:
         super
         @used = {}
@@ -106,7 +98,6 @@ module ActionController #:nodoc:
       #
       # This method is called automatically by filters, so you generally don't need to care about it.
       def sweep #:nodoc:
-        return if @@avoid_sweep
         keys.each do |k| 
           unless @used[k]
             use(k)
@@ -139,14 +130,18 @@ module ActionController #:nodoc:
       # <tt>flash["notice"] = "hello"</tt> to put a new one.
       # Note that if sessions are disabled only flash.now will work.
       def flash #:doc:
-        # @session = Hash.new if sessions are disabled
-        if @session.is_a?(Hash)
-          @__flash ||= FlashHash.new
-
-        # otherwise, @session is a CGI::Session or a TestSession
-        else
-          @session['flash'] ||= FlashHash.new
-        end
+        @flash ||= 
+          if @parent_controller
+            @parent_controller.flash
+          elsif @session.is_a?(Hash)
+            # @session is a Hash, if sessions are disabled
+            # we don't put the flash in the session in this case
+            FlashHash.new
+          else
+            # otherwise, @session is a CGI::Session or a TestSession
+            # so make sure it gets retrieved from/saved to session storage after request processing
+            @session["flash"] ||= FlashHash.new
+          end
       end
 
       # deprecated. use <tt>flash.keep</tt> instead
@@ -155,18 +150,5 @@ module ActionController #:nodoc:
         flash.keep
       end
 
-
-    private
-  
-      # marks flash entries as used and expose the flash to the view 
-      def fire_flash
-        flash.discard
-        @assigns["flash"] = flash
-      end
-  
-      # deletes the flash entries that were not marked for keeping
-      def sweep_flash
-        flash.sweep
-      end  
   end
 end

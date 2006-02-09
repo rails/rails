@@ -43,18 +43,19 @@ module ActionController #:nodoc:
     def initialize(cgi, session_options = {})
       @cgi = cgi
       @session_options = session_options
+      @env = @cgi.send(:env_table)
       super()
     end
 
     def query_string
       if (qs = @cgi.query_string) && !qs.empty?
         qs
-      elsif uri = env['REQUEST_URI']
+      elsif uri = @env['REQUEST_URI']
         parts = uri.split('?')  
         parts.shift
         parts.join('?')
       else
-        env['QUERY_STRING'] || ''
+        @env['QUERY_STRING'] || ''
       end
     end
 
@@ -64,24 +65,20 @@ module ActionController #:nodoc:
 
     def request_parameters
       if formatted_post?
-        CGIMethods.parse_formatted_request_parameters(post_format, env['RAW_POST_DATA'])
+        CGIMethods.parse_formatted_request_parameters(post_format, @env['RAW_POST_DATA'])
       else
         CGIMethods.parse_request_parameters(@cgi.params)
       end
     end
-    
-    def env
-      @cgi.send(:env_table)
-    end
-
+   
     def cookies
       @cgi.cookies.freeze
     end
 
     def host
-      if env["HTTP_X_FORWARDED_HOST"] 
-        env["HTTP_X_FORWARDED_HOST"].split(/,\s?/).last
-      elsif env['HTTP_HOST'] =~ /^(.*):\d+$/
+      if @env["HTTP_X_FORWARDED_HOST"] 
+        @env["HTTP_X_FORWARDED_HOST"].split(/,\s?/).last
+      elsif @env['HTTP_HOST'] =~ /^(.*):\d+$/
         $1
       else 
         @cgi.host.to_s.split(":").first || ''
@@ -89,11 +86,11 @@ module ActionController #:nodoc:
     end
     
     def port
-      env["HTTP_X_FORWARDED_HOST"] ? standard_port : (port_from_http_host || super)
+      @env["HTTP_X_FORWARDED_HOST"] ? standard_port : (port_from_http_host || super)
     end
     
     def port_from_http_host
-      $1.to_i if env['HTTP_HOST'] && /:(\d+)$/ =~ env['HTTP_HOST']
+      $1.to_i if @env['HTTP_HOST'] && /:(\d+)$/ =~ @env['HTTP_HOST']
     end
 
     def session
@@ -142,7 +139,7 @@ module ActionController #:nodoc:
             Module.const_missing($1)
           rescue LoadError, NameError => const_error
             raise ActionController::SessionRestoreError, <<end_msg
-Session contains objects whose class definition isn't available.
+Session contains objects whose class definition isn\'t available.
 Remember to require the classes for all objects kept in the session.
 (Original exception: #{const_error.message} [#{const_error.class}])
 end_msg
