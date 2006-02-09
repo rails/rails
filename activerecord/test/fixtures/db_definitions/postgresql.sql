@@ -111,7 +111,9 @@ CREATE TABLE defaults (
     fixed_time timestamp default '2004-01-01 00:00:00.000000-00',
     char1 char(1) default 'Y',
     char2 character varying(50) default 'a varchar field',
-    char3 text default 'a text field'
+    char3 text default 'a text field',
+    positive_integer integer default 1,
+    negative_integer integer default -1
 );
 
 CREATE TABLE auto_id_tests (

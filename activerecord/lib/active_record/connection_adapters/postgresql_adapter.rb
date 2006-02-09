@@ -468,7 +468,7 @@ module ActiveRecord
           return $1 if value =~ /^'(.*)'::(bpchar|text|character varying)$/
           
           # Numeric values
-          return value if value =~ /^[0-9]+(\.[0-9]*)?/
+          return value if value =~ /^-?[0-9]+(\.[0-9]*)?/
 
           # Date / Time magic values
           return Time.now.to_s if value =~ /^now\(\)|^\('now'::text\)::(date|timestamp)/i
