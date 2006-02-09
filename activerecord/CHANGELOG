@@ -1,5 +1,7 @@
 *SVN*
 
+* SQLServer: more compatible limit/offset emulation.  #3779 [Tom Ward]
+
 * Polymorphic join support for has_one associations (has_one :foo, :as => :bar)  #3785 [Rick Olson]
 
 * PostgreSQL: correctly parse negative integer column defaults.  #3776 [bellis@deepthought.org]

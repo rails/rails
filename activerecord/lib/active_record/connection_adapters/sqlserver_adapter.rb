@@ -375,7 +375,9 @@ module ActiveRecord
             sql << " ) AS tmp2"
           end
         elsif sql !~ /^\s*SELECT (@@|COUNT\()/i
-          sql.sub!(/^\s*SELECT/i, "SELECT TOP #{options[:limit]}") unless options[:limit].nil?
+          sql.sub!(/^\s*SELECT([\s]*distinct)?/i) do
+            "SELECT#{$1} TOP #{options[:limit]}"
+          end unless options[:limit].nil?
         end
       end
 
