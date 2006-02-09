@@ -899,7 +899,7 @@ module ActiveRecord
 
         def create_has_one_reflection(association_id, options)
           options.assert_valid_keys(
-            :class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend
+            :class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as
           )
 
           reflection = create_reflection(:has_one, association_id, options, self)

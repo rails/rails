@@ -1,5 +1,7 @@
 *SVN*
 
+* Polymorphic join support for has_one associations (has_one :foo, :as => :bar)  #3785 [Rick Olson]
+
 * PostgreSQL: correctly parse negative integer column defaults.  #3776 [bellis@deepthought.org]
 
 * Fix problems with count when used with :include [Jeremy Hopple and Kevin Clark]

@@ -23,6 +23,8 @@ class Post < ActiveRecord::Base
   has_many :taggings, :as => :taggable
   has_many :tags, :through => :taggings
 
+  has_one :tagging, :as => :taggable
+
   has_many :categorizations, :foreign_key => :category_id
   has_many :authors, :through => :categorizations
 

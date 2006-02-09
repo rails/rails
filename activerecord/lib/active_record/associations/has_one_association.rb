@@ -66,9 +66,15 @@ module ActiveRecord
         end
 
         def construct_sql
-          @finder_sql = "#{@reflection.table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
+          case
+            when @reflection.options[:as]
+              @finder_sql = 
+                "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_id = #{@owner.quoted_id} AND " + 
+                "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_type = '#{ActiveRecord::Base.send(:class_name_of_active_record_descendant, @owner.class).to_s}'"          
+            else
+              @finder_sql = "#{@reflection.table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
+          end
           @finder_sql << " AND (#{sanitize_sql(@reflection.options[:conditions])})" if @reflection.options[:conditions]
-          @finder_sql
         end
     end
   end

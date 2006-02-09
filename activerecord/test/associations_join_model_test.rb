@@ -26,6 +26,10 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   def test_polymorphic_has_many
     assert_equal taggings(:welcome_general), posts(:welcome).taggings.first
   end
+  
+  def test_polymorphic_has_one
+    assert_equal taggings(:welcome_general), posts(:welcome).tagging
+  end
 
   def test_polymorphic_belongs_to
     assert_equal posts(:welcome), posts(:welcome).taggings.first.taggable
@@ -46,7 +50,12 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     tagging = tags(:misc).taggings.create(:taggable => post)
     assert_equal "Post", tagging.taggable_type
   end
-  
+
+  def test_polymorphic_has_one_create_model_with_inheritance
+    tagging = tags(:misc).create_tagging(:taggable => posts(:thinking))
+    assert_equal "Post", tagging.taggable_type
+  end
+
   def test_has_many_with_piggyback
     assert_equal "2", categories(:sti_test).authors.first.post_id.to_s
   end
