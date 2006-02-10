@@ -16,6 +16,7 @@ drop table entrants;
 drop table colnametests;
 drop table mixins;
 drop table people;
+drop table readers;
 drop table binaries;
 drop table comments;
 drop table authors;

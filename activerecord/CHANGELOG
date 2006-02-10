@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct syntax error in mysql DDL,  and make AAACreateTablesTest run first [Bob Silva]
+
 * Allow :include to be used with has_many :through associations #3611 [Michael Schoen]
 
 * PostgreSQL: smarter schema dumps using pk_and_sequence_for(table).  #2920 [Blair Zajac]

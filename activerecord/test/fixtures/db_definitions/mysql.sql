@@ -204,7 +204,7 @@ CREATE TABLE `keyboards` (
   `name` varchar(50) default NULL
 );
 
---Altered lock_version column name.
+-- Altered lock_version column name.
 CREATE TABLE `legacy_things` (
   `id` int(11) NOT NULL auto_increment,
   `tps_report_number` int(11) default NULL,

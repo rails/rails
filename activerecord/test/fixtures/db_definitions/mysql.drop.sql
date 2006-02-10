@@ -14,6 +14,7 @@ DROP TABLE entrants;
 DROP TABLE colnametests;
 DROP TABLE mixins;
 DROP TABLE people;
+DROP TABLE readers;
 DROP TABLE binaries;
 DROP TABLE computers;
 DROP TABLE tasks;
