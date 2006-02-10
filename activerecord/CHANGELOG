@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow :include to be used with has_many :through associations #3611 [Michael Schoen]
+
 * PostgreSQL: smarter schema dumps using pk_and_sequence_for(table).  #2920 [Blair Zajac]
 
 * SQLServer: more compatible limit/offset emulation.  #3779 [Tom Ward]

@@ -80,7 +80,7 @@ module ActiveRecord
         end
 
         def construct_from
-          "#{@reflection.table_name}, #{@owner.class.reflections[@reflection.options[:through]].table_name}"
+          "#{@owner.class.reflections[@reflection.options[:through]].table_name}, #{@reflection.table_name}"
         end
         
         def construct_select

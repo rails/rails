@@ -28,6 +28,9 @@ class Post < ActiveRecord::Base
   has_many :categorizations, :foreign_key => :category_id
   has_many :authors, :through => :categorizations
 
+  has_many :readers
+  has_many :people, :through => :readers
+
   def self.what_are_you
     'a post...'
   end

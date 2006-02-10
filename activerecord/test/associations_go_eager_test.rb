@@ -4,10 +4,12 @@ require 'fixtures/comment'
 require 'fixtures/author'
 require 'fixtures/category'
 require 'fixtures/company'
+require 'fixtures/person'
+require 'fixtures/reader'
 
 class EagerAssociationTest < Test::Unit::TestCase
   fixtures :posts, :comments, :authors, :categories, :categories_posts,
-            :companies, :accounts
+            :companies, :accounts, :tags, :people, :readers
 
   def test_loading_with_one_association
     posts = Post.find(:all, :include => :comments)
@@ -101,6 +103,15 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_equal [], posts
   end
   
+  def test_eager_with_has_many_through
+    posts_with_comments = people(:michael).posts.find(:all, :include => :comments )
+    posts_with_author = people(:michael).posts.find(:all, :include => :author )
+    posts_with_comments_and_author = people(:michael).posts.find(:all, :include => [ :comments, :author ])
+    assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum += post.comments.size }
+    assert_equal authors(:david), posts_with_author.first.author
+    assert_equal authors(:david), posts_with_comments_and_author.first.author
+  end
+
   def test_eager_with_has_many_and_limit
     posts = Post.find(:all, :order => 'posts.id asc', :include => [ :author, :comments ], :limit => 2)
     assert_equal 2, posts.size

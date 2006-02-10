@@ -187,6 +187,14 @@ create table people (
 );
 create sequence people_seq minvalue 10000;
 
+create table readers (
+    id integer not null,
+    post_id integer not null,
+    person_id integer not null,
+    primary key (id)
+);
+create sequence readers_seq minvalue 10000;
+
 create table binaries (
     id integer not null,
     data blob null,

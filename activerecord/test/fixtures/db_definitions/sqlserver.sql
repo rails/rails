@@ -118,6 +118,13 @@ CREATE TABLE people (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE readers (
+    id int NOT NULL IDENTITY(1, 1),
+    post_id int NOT NULL,
+    person_id int NOT NULL,
+    primary key (id)
+);
+
 CREATE TABLE binaries (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
   data image NULL

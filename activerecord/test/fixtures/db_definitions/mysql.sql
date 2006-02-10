@@ -130,6 +130,12 @@ CREATE TABLE `people` (
   `lock_version` INTEGER NOT NULL DEFAULT 0
 ) TYPE=InnoDB;
 
+CREATE TABLE `readers` (
+    `id` int(11) NOT NULL PRIMARY KEY,
+    `post_id` INTEGER NOT NULL,
+    `person_id` INTEGER NOT NULL
+) TYPE=InnoDB;
+
 CREATE TABLE `binaries` (
   `id` int(11) NOT NULL auto_increment,
   `data` mediumblob,

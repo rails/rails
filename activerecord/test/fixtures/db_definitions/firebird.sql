@@ -161,6 +161,15 @@ CREATE TABLE people (
 CREATE GENERATOR people_seq;
 SET GENERATOR people_seq TO 10000;
 
+CREATE TABLE readers (
+    id BIGINT NOT NULL,
+    post_id BIGINT NOT NULL,
+    person_id BIGINT NOT NULL,
+    PRIMARY KEY (id)
+);
+CREATE GENERATOR readers_seq;
+SET GENERATOR readers_seq TO 10000;
+
 CREATE TABLE binaries (
   id BIGINT NOT NULL,
   data BLOB,

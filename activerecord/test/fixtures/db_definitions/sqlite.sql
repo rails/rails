@@ -118,6 +118,12 @@ CREATE TABLE 'people' (
   'lock_version' INTEGER NOT NULL DEFAULT 0
 );
 
+CREATE TABLE 'readers' (
+    'id' INTEGER NOT NULL PRIMARY KEY,
+    'post_id' INTEGER NOT NULL,
+    'person_id' INTEGER NOT NULL
+);
+
 CREATE TABLE 'binaries' (
   'id' INTEGER NOT NULL PRIMARY KEY,
   'data' BLOB DEFAULT NULL

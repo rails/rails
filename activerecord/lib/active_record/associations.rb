@@ -1028,7 +1028,7 @@ module ActiveRecord
         end
 
         def construct_finder_sql_with_included_associations(options, schema_abbreviations, reflections)
-          sql = "SELECT #{column_aliases(schema_abbreviations)} FROM #{table_name} "
+          sql = "SELECT #{column_aliases(schema_abbreviations)} FROM #{options[:from] || table_name} "
           sql << reflections.collect { |reflection| association_join(reflection) }.to_s
           sql << "#{options[:joins]} " if options[:joins]
  

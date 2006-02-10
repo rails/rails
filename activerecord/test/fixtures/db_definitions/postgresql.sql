@@ -153,6 +153,13 @@ CREATE TABLE people (
   PRIMARY KEY  (id)
 );
 
+CREATE TABLE readers (
+    id serial,
+    post_id integer NOT NULL,
+    person_id integer NOT NULL,
+    primary key (id)
+);
+
 CREATE TABLE binaries ( 
   id serial , 
   data bytea,
