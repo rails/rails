@@ -98,6 +98,12 @@ module ActionView
       # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base.
       # Like collection_select and datetime_select.
       #
+      # Html attributes for the form tag can be given as :html => {...}. Example:
+      #     
+      #   <% form_for :person, @person, :html => {:id => 'person_form'} do |f| %>
+      #     ...
+      #   <% end %>
+      #
       # You can also build forms using a customized FormBuilder class. Subclass FormBuilder and override or define some more helpers,
       # then use your custom builder like so:
       #   
@@ -115,22 +121,9 @@ module ActionView
       #   end
       #
       def form_for(object_name, object, options = {}, &proc)
-        raise ArgumentError, "form_for requires a block!" unless proc
-        
-        url_options       = options.delete(:url) || {}
-        form_tag_selector = options.delete(:form_tag_selector) || :form_tag
-        form_options      = options.delete(:html) || {}
-        [:method, :multipart].each { |key| form_options[key] = options.delete(key) if options.key? key }
-        
-        fields_for(object_name, object, options.merge(:proc => proc)) do |builder|
-          if form_tag_selector == :form_remote_tag
-            concat send(form_tag_selector, form_options.merge(:url => url_options, :html => form_options)), proc.binding
-          else
-            concat send(form_tag_selector, url_options, form_options), proc.binding
-          end
-          builder.build_form(url_options, form_options) { proc.call builder }
-          concat end_form_tag, proc.binding
-        end
+        concat form_tag(options, options.delete(:html) || {}), proc.binding
+        fields_for(object_name, object, options, &proc)
+        concat '</form>', proc.binding
       end
 
       # Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes
@@ -148,11 +141,10 @@ module ActionView
       # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base.
       # Like collection_select and datetime_select.
       def fields_for(object_name, object, options = {}, &proc)
-        raise ArgumentError, "fields_for requires a block!" unless proc
-        
-        builder = options[:builder] || FormBuilder
-        form_builder = builder.new(object_name, object, self, options, options[:proc] || proc)
-        proc.call(form_builder)
+        raise ArgumentError, "fields_for requires a block!" unless block_given?
+        builder_klass = options[:builder] || FormBuilder
+        form_builder = builder_klass.new(object_name, object, self, options, proc)
+        yield form_builder
       end
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
@@ -387,11 +379,6 @@ module ActionView
       
       def initialize(object_name, object, template, options, proc)
         @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc        
-      end
-      
-      # An empty stub that can be overriden to wrap a form created by form_for.
-      def build_form(url_options, form_options, &proc)
-        proc.call self
       end
       
       (field_helpers - %w(check_box radio_button)).each do |selector|
