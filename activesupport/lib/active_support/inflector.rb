@@ -143,9 +143,9 @@ module Inflector
 
   def constantize(camel_cased_word)
     raise NameError, "#{camel_cased_word.inspect} is not a valid constant name!" unless
-      camel_cased_word.split("::").all? { |part| /^[A-Z]\w*$/ =~ part }
+      /^(::)?([A-Z]\w*)(::[A-Z]\w*)*$/ =~ camel_cased_word
     
-    camel_cased_word = "::#{camel_cased_word}" unless camel_cased_word[0, 2] == '::'
+    camel_cased_word = "::#{camel_cased_word}" unless $1
     Object.module_eval(camel_cased_word, __FILE__, __LINE__)
   end
 

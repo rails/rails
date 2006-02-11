@@ -274,7 +274,9 @@ class InflectorTest < Test::Unit::TestCase
   
   def test_constantize
     assert_equal Ace::Base::Case, Inflector.constantize("Ace::Base::Case")
+    assert_equal Ace::Base::Case, Inflector.constantize("::Ace::Base::Case")
     assert_equal InflectorTest, Inflector.constantize("InflectorTest")
+    assert_equal InflectorTest, Inflector.constantize("::InflectorTest")
     assert_raises(NameError) { Inflector.constantize("UnknownClass") }
     assert_raises(NameError) { Inflector.constantize("An invalid string") }
   end
