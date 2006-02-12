@@ -121,9 +121,10 @@ module ActionView
       #   end
       #
       def form_for(object_name, object, options = {}, &proc)
-        concat form_tag(options, options.delete(:html) || {}), proc.binding
+        raise ArgumentError, "Missing block" unless block_given?
+        concat(form_tag(options, options.delete(:html) || {}), proc.binding)
         fields_for(object_name, object, options, &proc)
-        concat '</form>', proc.binding
+        concat('</form>', proc.binding)
       end
 
       # Creates a scope around a specific model object like form_for, but doesn't create the form tags themselves. This makes
@@ -141,10 +142,8 @@ module ActionView
       # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base.
       # Like collection_select and datetime_select.
       def fields_for(object_name, object, options = {}, &proc)
-        raise ArgumentError, "fields_for requires a block!" unless block_given?
-        builder_klass = options[:builder] || FormBuilder
-        form_builder = builder_klass.new(object_name, object, self, options, proc)
-        yield form_builder
+        raise ArgumentError, "Missing block" unless block_given?
+        yield (options[:builder] || FormBuilder).new(object_name, object, self, options, proc)
       end
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
