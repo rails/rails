@@ -305,7 +305,7 @@ module ActionController #:nodoc:
 
     class << self
       # Factory for the standard create, process loop where the controller is discarded after processing.
-      def process(request, response, parent_controller=nil) #:nodoc:
+      def process(request, response, parent_controller = nil) #:nodoc:
         new(parent_controller).process(request, response)
       end
       
@@ -328,12 +328,13 @@ module ActionController #:nodoc:
           components.shift if components.first == 'Controllers'
           @controller_path = components.map { |name| name.underscore }.join('/')
         end
+
         @controller_path
       end
 
       # Return an array containing the names of public methods that have been marked hidden from the action processor.
       # By default, all methods defined in ActionController::Base and included modules are hidden.
-      # More methods can be hidden using +hide_actions+.
+      # More methods can be hidden using <tt>hide_actions</tt>.
       def hidden_actions
         write_inheritable_attribute(:hidden_actions, ActionController::Base.public_instance_methods) unless read_inheritable_attribute(:hidden_actions)
         read_inheritable_attribute(:hidden_actions)
@@ -341,21 +342,7 @@ module ActionController #:nodoc:
 
       # Hide each of the given methods from being callable as actions.
       def hide_action(*names)
-        write_inheritable_attribute(:hidden_actions, hidden_actions | names.collect {|n| n.to_s})
-      end
-
-      # Set the template root to be one directory behind the root dir of the controller. Examples:
-      #   /code/weblog/components/admin/users_controller.rb with Admin::UsersController 
-      #     will use /code/weblog/components as template root 
-      #     and find templates in /code/weblog/components/admin/users/
-      #
-      #   /code/weblog/components/admin/parties/users_controller.rb with Admin::Parties::UsersController 
-      #     will also use /code/weblog/components as template root 
-      #     and find templates in /code/weblog/components/admin/parties/users/
-      def uses_component_template_root
-        path_of_calling_controller = File.dirname(caller[0].split(/:\d+:/).first)
-        path_of_controller_root    = path_of_calling_controller.sub(/#{controller_path.split("/")[0..-2]}$/, "") # " (for ruby-mode)
-        self.template_root = path_of_controller_root
+        write_inheritable_attribute(:hidden_actions, hidden_actions | names.collect { |n| n.to_s })
       end
     end
 
