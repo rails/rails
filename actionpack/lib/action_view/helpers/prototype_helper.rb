@@ -501,9 +501,9 @@ module ActionView
         #   page.insert_html :bottom, :partial => 'person', :object => @person
         #
         #   # Replace an existing person
-        #   page.replace_element 'person_45', :partial => 'person', :object => @person
+        #   page.replace 'person_45', :partial => 'person', :object => @person
         #
-        def replace_element(id, *options_for_render)
+        def replace(id, *options_for_render)
           call 'Element.replace', id, render(*options_for_render)
         end
         
@@ -672,15 +672,33 @@ module ActionView
         @generator << root
       end
       
+      def assign(variable, value)
+        append_to_function_chain! "#{variable} = #{@generator.send(:javascript_object_for, value)}"
+      end
+
+      def replace_html(*options_for_render)
+        call 'update', @generator.render(*options_for_render)
+      end
+
+      def replace(*options_for_render)
+        call 'replace', @generator.render(*options_for_render)
+      end
+      
       private
-        def method_missing(method, *arguments)
-          method_chain = @generator.instance_variable_get("@lines")
-
-          last_method  = method_chain[-1]
-          method_chain[-1] = last_method[0..-2] if last_method[-1..-1] == ";" # strip trailing ; from last method call
-          method_chain[-1] += ".#{method}(#{@generator.send(:arguments_for_call, arguments)});"
-
+        def call(function, *arguments)
+          append_to_function_chain!("#{function}(#{@generator.send(:arguments_for_call, arguments)})")
           self
+        end
+        
+        alias_method :method_missing, :call
+        
+        def function_chain
+          @function_chain ||= @generator.instance_variable_get("@lines")
+        end
+        
+        def append_to_function_chain!(call)
+          function_chain[-1] = function_chain[-1][0..-2] if function_chain[-1][-1..-1] == ";" # strip last ;
+          function_chain[-1] += ".#{call};"
         end
     end
   end
