@@ -28,6 +28,9 @@ module ActionController #:nodoc:
       base.send :include, InstanceMethods
 
       base.class_eval do
+        alias_method :assign_shortcuts_without_flash, :assign_shortcuts
+        alias_method :assign_shortcuts, :assign_shortcuts_with_flash
+
         alias_method :process_cleanup_without_flash, :process_cleanup
         alias_method :process_cleanup, :process_cleanup_with_flash
       end
@@ -35,7 +38,7 @@ module ActionController #:nodoc:
     
     
     class FlashNow #:nodoc:
-      def initialize flash
+      def initialize(flash)
         @flash = flash
       end
       
@@ -134,6 +137,11 @@ module ActionController #:nodoc:
     end
 
     module InstanceMethods
+      def assign_shortcuts_with_flash(request, response) #:nodoc:
+        assign_shortcuts_without_flash(request, response)
+        flash(:refresh)
+      end
+      
       def process_cleanup_with_flash
         process_cleanup_without_flash
         flash.sweep
@@ -143,19 +151,21 @@ module ActionController #:nodoc:
         # Access the contents of the flash. Use <tt>flash["notice"]</tt> to read a notice you put there or 
         # <tt>flash["notice"] = "hello"</tt> to put a new one.
         # Note that if sessions are disabled only flash.now will work.
-        def flash #:doc:
-          @flash ||= 
-            if @parent_controller
-              @parent_controller.flash
-            elsif @session.is_a?(Hash)
-              # @session is a Hash, if sessions are disabled
-              # we don't put the flash in the session in this case
-              FlashHash.new
-            else
-              # otherwise, @session is a CGI::Session or a TestSession
-              # so make sure it gets retrieved from/saved to session storage after request processing
-              @session["flash"] ||= FlashHash.new
-            end
+        def flash(refresh = false) #:doc:
+          if @flash.nil? || refresh
+            @flash = 
+              if @session.is_a?(Hash)
+                # @session is a Hash, if sessions are disabled
+                # we don't put the flash in the session in this case
+                FlashHash.new
+              else
+                # otherwise, @session is a CGI::Session or a TestSession
+                # so make sure it gets retrieved from/saved to session storage after request processing
+                @session["flash"] ||= FlashHash.new
+              end
+          end
+          
+          @flash
         end
 
         # deprecated. use <tt>flash.keep</tt> instead

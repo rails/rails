@@ -51,6 +51,9 @@ module ActionController #:nodoc:
         
         alias_method :set_session_options_without_components, :set_session_options
         alias_method :set_session_options, :set_session_options_with_components
+        
+        alias_method :flash_without_components, :flash
+        alias_method :flash, :flash_with_components
       end
       
       # If this controller was instantiated to process a component request,
@@ -108,6 +111,19 @@ module ActionController #:nodoc:
               response.body
             end
           end
+        end
+
+        def flash_with_components(refresh = false)
+          if @flash.nil? || refresh
+            @flash = 
+              if @parent_controller
+                @parent_controller.flash
+              else
+                flash_without_components
+              end
+          end
+          
+          @flash
         end
 
       private
