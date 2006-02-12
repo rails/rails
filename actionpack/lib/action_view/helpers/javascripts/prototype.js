@@ -436,8 +436,7 @@ var Enumerable = {
 
     var collections = [this].concat(args).map($A);
     return this.map(function(value, index) {
-      iterator(value = collections.pluck(index));
-      return value;
+      return iterator(collections.pluck(index));
     });
   },
 
@@ -943,6 +942,19 @@ Object.extend(Element, {
     setTimeout(function() {html.evalScripts()}, 10);
   },
 
+  replace: function(element, html) { 
+    element = $(element); 
+    if (element.outerHTML) { 
+      element.outerHTML = html.stripScripts(); 
+    } else { 
+      var range = element.ownerDocument.createRange(); 
+      range.selectNodeContents(element); 
+      element.parentNode.replaceChild( 
+        range.createContextualFragment(html.stripScripts()), element); 
+    } 
+    setTimeout(function() {html.evalScripts()}, 10); 
+  },
+
   getHeight: function(element) {
     element = $(element);
     return element.offsetHeight;
@@ -1305,18 +1317,8 @@ var Field = {
       $(arguments[i]).value = '';
   },
 
-  // Pass the field id or element as the first parameter and optionally a triggering delay in micro-seconds as the second.
-  // The delay is useful when the focus is part of effects that won't finish instantly since they prevent the focus from
-  // taking hold. Set the delay to right after the effect finishes and the focus will work.
-  focus: function() {
-    element = $(arguments[0]);
-    delay   = arguments[1];
-    
-    if (delay) {
-      setTimeout(function() { $(element).focus(); }, delay)
-    } else {
-      $(element).focus();
-    }
+  focus: function(element) { 
+    $(element).focus();
   },
 
   present: function() {
