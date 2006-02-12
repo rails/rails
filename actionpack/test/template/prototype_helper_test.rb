@@ -238,7 +238,7 @@ Element.update("baz", "<p>This is a test</p>");
   end
 
   def test_element_proxy_assignment
-    @generator['hello'].assign :width, 400
+    @generator['hello'].width = 400
     assert_equal %($('hello').width = 400;), @generator.to_s
   end
 

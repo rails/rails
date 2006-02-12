@@ -671,10 +671,6 @@ module ActionView
         @generator = generator
         @generator << root
       end
-      
-      def assign(variable, value)
-        append_to_function_chain! "#{variable} = #{@generator.send(:javascript_object_for, value)}"
-      end
 
       def replace_html(*options_for_render)
         call 'update', @generator.render(*options_for_render)
@@ -685,12 +681,22 @@ module ActionView
       end
       
       private
+        def method_missing(method, *arguments)
+          if method.to_s =~ /(.*)=$/
+            assign($1, arguments.first)
+          else
+            call(method, *arguments)
+          end
+        end
+      
         def call(function, *arguments)
           append_to_function_chain!("#{function}(#{@generator.send(:arguments_for_call, arguments)})")
           self
         end
-        
-        alias_method :method_missing, :call
+
+        def assign(variable, value)
+          append_to_function_chain! "#{variable} = #{@generator.send(:javascript_object_for, value)}"
+        end
         
         def function_chain
           @function_chain ||= @generator.instance_variable_get("@lines")
