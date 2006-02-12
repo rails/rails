@@ -143,7 +143,7 @@ module ActionView
       # Like collection_select and datetime_select.
       def fields_for(object_name, object, options = {}, &proc)
         raise ArgumentError, "Missing block" unless block_given?
-        yield (options[:builder] || FormBuilder).new(object_name, object, self, options, proc)
+        yield((options[:builder] || FormBuilder).new(object_name, object, self, options, proc))
       end
 
       # Returns an input tag of the "text" type tailored for accessing a specified attribute (identified by +method+) on an object
