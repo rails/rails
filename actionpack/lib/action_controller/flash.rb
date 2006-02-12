@@ -143,8 +143,8 @@ module ActionController #:nodoc:
       end
       
       def process_cleanup_with_flash
-        process_cleanup_without_flash
         flash.sweep
+        process_cleanup_without_flash
       end
       
       protected 
