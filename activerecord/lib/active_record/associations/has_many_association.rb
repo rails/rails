@@ -13,7 +13,7 @@ module ActiveRecord
         else
           load_target
           record = @reflection.klass.new(attributes)
-          record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
+          set_belongs_to_association_for(record)
           @target << record
           record
         end
@@ -140,7 +140,7 @@ module ActiveRecord
         end
 
         def insert_record(record)
-          record[@reflection.primary_key_name] = @owner.id
+          set_belongs_to_association_for(record)
           record.save
         end
 

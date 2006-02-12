@@ -56,6 +56,28 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_equal "Post", tagging.taggable_type
   end
 
+  def test_set_polymorphic_has_many
+    tagging = tags(:misc).taggings.create
+    posts(:thinking).taggings << tagging
+    assert_equal "Post", tagging.taggable_type
+  end
+
+  def test_set_polymorphic_has_one
+    tagging = tags(:misc).taggings.create
+    posts(:thinking).tagging = tagging
+    assert_equal "Post", tagging.taggable_type
+  end
+
+  def test_create_polymorphic_has_many_with_scope
+    tagging = posts(:welcome).taggings.create(:tag => tags(:general))
+    assert_equal "Post", tagging.taggable_type
+  end
+
+  def test_create_polymorphic_has_one_with_scope
+    tagging = posts(:welcome).tagging.create(:tag => tags(:general))
+    assert_equal "Post", tagging.taggable_type
+  end
+
   def test_has_many_with_piggyback
     assert_equal "2", categories(:sti_test).authors.first.post_id.to_s
   end

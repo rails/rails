@@ -42,8 +42,7 @@ module ActiveRecord
           @target = nil
         else
           raise_on_type_mismatch(obj)
-          
-          obj[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
+          set_belongs_to_association_for(obj)
           @target = (AssociationProxy === obj ? obj.target : obj)
         end
 

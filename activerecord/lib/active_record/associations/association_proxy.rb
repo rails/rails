@@ -74,6 +74,15 @@ module ActiveRecord
           @owner.send(:extract_options_from_args!, args)
         end
 
+        def set_belongs_to_association_for(record)
+          if @reflection.options[:as]
+            record["#{@reflection.options[:as]}_id"]   = @owner.id unless @owner.new_record?
+            record["#{@reflection.options[:as]}_type"] = ActiveRecord::Base.send(:class_name_of_active_record_descendant, @owner.class).to_s
+          else
+            record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
+          end
+        end
+
         def merge_options_from_reflection!(options)
           options.reverse_merge!(
             :group   => @reflection.options[:group],
