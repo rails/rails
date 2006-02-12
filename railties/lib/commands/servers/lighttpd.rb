@@ -32,10 +32,10 @@ puts "=> Rails application started on http://#{ip || default_ip}:#{port || defau
 tail_thread = nil
 
 if ARGV.first == "-d"
-  puts "=> Configure in config/lighttpd.conf"
+  puts "=> Configuration in config/lighttpd.conf"
   detach = true
 else
-  puts "=> Call with -d to detach (requires absolute paths in config/lighttpd.conf)"
+  puts "=> Call with -d to detach"
   puts "=> Ctrl-C to shutdown server (see config/lighttpd.conf for options)"
   detach = false
 
@@ -62,10 +62,12 @@ trap(:INT) { exit }
 begin
   `lighttpd #{!detach ? "-D " : ""}-f #{config_file}`
 ensure
-  tail_thread.kill if tail_thread
-  puts 'Exiting'
+  unless detach
+    tail_thread.kill if tail_thread
+    puts 'Exiting'
   
-  # Ensure FCGI processes are reaped
-  path_to_ruby = "#{Config::CONFIG['bindir']}/#{Config::CONFIG['ruby_install_name']}"
-  `#{path_to_ruby} #{RAILS_ROOT}/script/process/reaper -a kill`
+    # Ensure FCGI processes are reaped
+    path_to_ruby = "#{Config::CONFIG['bindir']}/#{Config::CONFIG['ruby_install_name']}"
+    `#{path_to_ruby} #{RAILS_ROOT}/script/process/reaper -a kill`
+  end
 end
