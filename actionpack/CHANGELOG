@@ -1,5 +1,15 @@
 *SVN*
 
+* Added element and collection proxies to RJS [DHH]. Examples:
+
+    page['blank_slate']                  # => $('blank_slate');
+    page['blank_slate'].show             # => $('blank_slate').show();
+    page['blank_slate'].show('first').up # => $('blank_slate').show('first').up();
+    
+    page.select('p')                      # => $$('p');
+    page.select('p.welcome b').first      # => $$('p.welcome b').first();
+    page.select('p.welcome b').first.hide # => $$('p.welcome b').first().hide();
+
 * Add JavaScriptGenerator#replace_element for replacing an element's "outer HTML". #3246 [tom@craz8.com, Sam Stephenson]
 
 * Remove over-engineered form_for code for a leaner implementation. [Nicholas Seckar]

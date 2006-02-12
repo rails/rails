@@ -416,6 +416,26 @@ module ActionView
         def to_s #:nodoc:
           @lines * $/
         end
+
+        # Returns a element reference by finding it through +id+ in the DOM. This element can then be
+        # used for further method calls. Examples:
+        #
+        #   page['blank_slate']                  # => $('blank_slate');
+        #   page['blank_slate'].show             # => $('blank_slate').show();
+        #   page['blank_slate'].show('first').up # => $('blank_slate').show('first').up();
+        def [](id)
+          JavaScriptElementProxy.new(self, "$('#{id}')")
+        end
+
+        # Returns a collection reference by finding it through a CSS +pattern+ in the DOM. This collection can then be
+        # used for further method calls. Examples:
+        #
+        #   page.select('p')                      # => $$('p');
+        #   page.select('p.welcome b').first      # => $$('p.welcome b').first();
+        #   page.select('p.welcome b').first.hide # => $$('p.welcome b').first().hide();
+        def select(pattern)
+          JavaScriptElementProxy.new(self, "$$('#{pattern}')")
+        end
   
         # Inserts HTML at the specified +position+ relative to the DOM element
         # identified by the given +id+.
@@ -643,6 +663,25 @@ module ActionView
         end
         callbacks
       end
+    end
+
+    # Converts chained method calls on DOM proxy elements into JavaScript chains 
+    class JavaScriptElementProxy < Builder::BlankSlate #:nodoc:
+      def initialize(generator, root)
+        @generator = generator
+        @generator << root
+      end
+      
+      private
+        def method_missing(method, *arguments)
+          method_chain = @generator.instance_variable_get("@lines")
+
+          last_method  = method_chain[-1]
+          method_chain[-1] = last_method[0..-2] if last_method[-1..-1] == ";" # strip trailing ; from last method call
+          method_chain[-1] += ".#{method}(#{@generator.send(:arguments_for_call, arguments)});"
+
+          self
+        end
     end
   end
 end

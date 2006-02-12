@@ -227,4 +227,27 @@ new Insertion.Bottom("element", "<p>This is a test</p>");
 Element.update("baz", "<p>This is a test</p>");
     EOS
   end
+
+  def test_element_access
+    assert_equal %($('hello');), @generator['hello']
+  end
+
+  def test_element_proxy_one_deep
+    @generator['hello'].hide
+    assert_equal %($('hello').hide();), @generator.to_s
+  end
+
+  def test_element_proxy_two_deep
+    @generator['hello'].hide("first").display
+    assert_equal %($('hello').hide("first").display();), @generator.to_s
+  end
+  
+  def test_select_access
+    assert_equal %($$('div.hello');), @generator.select('div.hello')
+  end
+
+  def test_select_proxy_one_deep
+    @generator.select('p.welcome b').first.hide
+    assert_equal %($$('p.welcome b').first().hide();), @generator.to_s
+  end
 end
