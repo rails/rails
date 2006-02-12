@@ -488,7 +488,7 @@ module ActionView
         #   replace_html 'person-45', :partial => 'person', :object => @person
         #
         # This allows the same partial that is used for the +insert_html+ to
-        # be also used for the input to +replace_element+ without resorting to
+        # be also used for the input to +replace+ without resorting to
         # the use of wrapper elements.
         #
         # Examples:

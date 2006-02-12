@@ -173,7 +173,7 @@ class JavaScriptGeneratorTest < Test::Unit::TestCase
   
   def test_replace_element_with_string
     assert_equal 'Element.replace("element", "<div id=\"element\"><p>This is a test</p></div>");',
-      @generator.replace_element('element', '<div id="element"><p>This is a test</p></div>')
+      @generator.replace('element', '<div id="element"><p>This is a test</p></div>')
   end
   
   def test_remove
