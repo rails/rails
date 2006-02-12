@@ -436,8 +436,7 @@ var Enumerable = {
 
     var collections = [this].concat(args).map($A);
     return this.map(function(value, index) {
-      iterator(value = collections.pluck(index));
-      return value;
+      return iterator(collections.pluck(index));
     });
   },
 
@@ -943,6 +942,19 @@ Object.extend(Element, {
     setTimeout(function() {html.evalScripts()}, 10);
   },
 
+  replace: function(element, html) {
+    element = $(element);
+    if (element.outerHTML) {
+      element.outerHTML = html.stripScripts();
+    } else {
+      var range = element.ownerDocument.createRange();
+      range.selectNodeContents(element);
+      element.parentNode.replaceChild(
+        range.createContextualFragment(html.stripScripts()), element);
+    }
+    setTimeout(function() {html.evalScripts()}, 10);
+  },
+
   getHeight: function(element) {
     element = $(element);
     return element.offsetHeight;
@@ -1305,18 +1317,8 @@ var Field = {
       $(arguments[i]).value = '';
   },
 
-  // Pass the field id or element as the first parameter and optionally a triggering delay in micro-seconds as the second.
-  // The delay is useful when the focus is part of effects that won't finish instantly since they prevent the focus from
-  // taking hold. Set the delay to right after the effect finishes and the focus will work.
-  focus: function() {
-    element = $(arguments[0]);
-    delay   = arguments[1];
-    
-    if (delay) {
-      setTimeout(function() { $(element).focus(); }, delay)
-    } else {
-      $(element).focus();
-    }
+  focus: function(element) {
+    $(element).focus();
   },
 
   present: function() {
@@ -1549,16 +1551,15 @@ Form.Observer.prototype = Object.extend(new Abstract.TimedObserver(), {
 
 Abstract.EventObserver = function() {}
 Abstract.EventObserver.prototype = {
-  initialize: function() {
-    this.element  = $(arguments[0]);
-    this.callback = arguments[1];
-    this.trigger  = arguments[2];
+  initialize: function(element, callback) {
+    this.element  = $(element);
+    this.callback = callback;
 
     this.lastValue = this.getValue();
     if (this.element.tagName.toLowerCase() == 'form')
       this.registerFormCallbacks();
     else
-      this.registerCallback(this.element, this.trigger);
+      this.registerCallback(this.element);
   },
 
   onElementEvent: function() {
@@ -1572,13 +1573,11 @@ Abstract.EventObserver.prototype = {
   registerFormCallbacks: function() {
     var elements = Form.getElements(this.element);
     for (var i = 0; i < elements.length; i++)
-      this.registerCallback(elements[i], this.trigger);
+      this.registerCallback(elements[i]);
   },
 
-  registerCallback: function(element, trigger) {
-    if (trigger && element.type) {
-      Event.observe(element, trigger, this.onElementEvent.bind(this));
-    } else if (element.type) {
+  registerCallback: function(element) {
+    if (element.type) {
       switch (element.type.toLowerCase()) {
         case 'checkbox':
         case 'radio':

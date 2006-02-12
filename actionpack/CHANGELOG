@@ -1,5 +1,7 @@
 *SVN*
 
+* Add JavaScriptGenerator#replace_element for replacing an element's "outer HTML". #3246 [tom@craz8.com, Sam Stephenson]
+
 * Remove over-engineered form_for code for a leaner implementation. [Nicholas Seckar]
 
 * Document form_for's :html option. [Nicholas Seckar]

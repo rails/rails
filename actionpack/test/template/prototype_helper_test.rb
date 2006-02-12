@@ -171,6 +171,11 @@ class JavaScriptGeneratorTest < Test::Unit::TestCase
       @generator.replace_html('element', '<p>This is a test</p>')
   end
   
+  def test_replace_element_with_string
+    assert_equal 'Element.replace("element", "<div id=\"element\"><p>This is a test</p></div>");',
+      @generator.replace_element('element', '<div id="element"><p>This is a test</p></div>')
+  end
+  
   def test_remove
     assert_equal '["foo"].each(Element.remove);',
       @generator.remove('foo')

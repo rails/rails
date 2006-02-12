@@ -457,6 +457,36 @@ module ActionView
           call 'Element.update', id, render(*options_for_render)
         end
   
+        # Replaces the "outer HTML" (i.e., the entire element, not just its
+        # contents) of the DOM element with the given +id+.
+        #
+        # +options_for_render+ may be either a string of HTML to insert, or a hash
+        # of options to be passed to ActionView::Base#render.  For example:
+        #
+        #   # Replace the DOM element having ID 'person-45' with the
+        #   # 'person' partial for the appropriate object.
+        #   replace_html 'person-45', :partial => 'person', :object => @person
+        #
+        # This allows the same partial that is used for the +insert_html+ to
+        # be also used for the input to +replace_element+ without resorting to
+        # the use of wrapper elements.
+        #
+        # Examples:
+        #
+        #   <div id="people">
+        #     <%= render :partial => 'person', :collection => @people %>
+        #   </div>
+        #
+        #   # Insert a new person
+        #   page.insert_html :bottom, :partial => 'person', :object => @person
+        #
+        #   # Replace an existing person
+        #   page.replace_element 'person_45', :partial => 'person', :object => @person
+        #
+        def replace_element(id, *options_for_render)
+          call 'Element.replace', id, render(*options_for_render)
+        end
+        
         # Removes the DOM elements with the given +ids+ from the page.
         def remove(*ids)
           record "#{javascript_object_for(ids)}.each(Element.remove)"
