@@ -420,7 +420,11 @@ module ActionController #:nodoc:
         end
 
         def process_cleanup_with_filters
-          process_cleanup_without_filters unless @before_filter_chain_aborted
+          if @before_filter_chain_aborted
+            close_session
+          else
+            process_cleanup_without_filters
+          end
         end
     end
   end
