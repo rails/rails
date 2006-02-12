@@ -371,11 +371,13 @@ module ActionView
         end
     end
 
-    class FormBuilder
+    class FormBuilder #:nodoc:
       # The methods which wrap a form helper call.
       class_inheritable_accessor :field_helpers
       self.field_helpers = (FormHelper.instance_methods - ['form_for'])
-      
+
+      attr_accessor :object_name, :object
+
       def initialize(object_name, object, template, options, proc)
         @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc        
       end
