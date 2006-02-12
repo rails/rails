@@ -6,11 +6,14 @@ end
 
 module ActionController #:nodoc:
   module SessionManagement #:nodoc:
-    def self.append_features(base)
-      super
+    def self.included(base)
       base.extend(ClassMethods)
-      base.send(:alias_method, :process_without_session_management_support, :process)
-      base.send(:alias_method, :process, :process_with_session_management_support)
+
+      base.send :alias_method, :process_without_session_management_support, :process
+      base.send :alias_method, :process, :process_with_session_management_support
+
+      base.send :alias_method, :process_cleanup_without_session_management_support, :process_cleanup
+      base.send :alias_method, :process_cleanup, :process_cleanup_with_session_management_support
     end
 
     module ClassMethods
@@ -110,26 +113,30 @@ module ActionController #:nodoc:
     end
 
     def process_with_session_management_support(request, response, method = :perform_action, *arguments) #:nodoc:
-      unless @parent_controller
-        # only determine session options if this isn't a controller created for component request processing
-        action = request.parameters["action"] || "index"
-        request.session_options = self.class.session_options_for(request, action)
-      end
+      set_session_options(request)
       process_without_session_management_support(request, response, method, *arguments)
     end
 
     private
+      def set_session_options(request)
+        request.session_options = self.class.session_options_for(request, request.parameters["action"] || "index")
+      end
+      
+      def process_cleanup_with_session_management_support
+        process_cleanup_without_session_management_support
+        clear_persistent_model_associations
+      end
+
       # Clear cached associations in session data so they don't overflow
       # the database field.  Only applies to ActiveRecordStore since there
       # is not a standard way to iterate over session data.
       def clear_persistent_model_associations #:doc:
-        if defined?(@session) and @session.instance_variables.include?('@data')
+        if defined?(@session) && @session.instance_variables.include?('@data')
           session_data = @session.instance_variable_get('@data')
-          if session_data and session_data.respond_to?(:each_value)
+
+          if session_data && session_data.respond_to?(:each_value)
             session_data.each_value do |obj|
-              if obj.respond_to?(:clear_association_cache)
-                obj.clear_association_cache
-              end
+              obj.clear_association_cache if obj.respond_to?(:clear_association_cache)
             end
           end
         end

@@ -335,21 +335,33 @@ module ActionController #:nodoc:
     end
 
     module InstanceMethods # :nodoc:
-      def self.append_features(base)
-        super
-        base.class_eval {
+      def self.included(base)
+        base.class_eval do
           alias_method :perform_action_without_filters, :perform_action
           alias_method :perform_action, :perform_action_with_filters
-        }
+
+          alias_method :process_without_filters, :process
+          alias_method :process, :process_with_filters
+
+          alias_method :process_cleanup_without_filters, :process_cleanup
+          alias_method :process_cleanup, :process_cleanup_with_filters
+        end
       end
 
       def perform_action_with_filters
         before_action_result = before_action
+
         unless before_action_result == false || performed?
           perform_action_without_filters
           after_action
         end
+
         @before_filter_chain_aborted = (before_action_result == false)
+      end
+
+      def process_with_filters(request, response, method = :perform_action, *arguments) #:nodoc:
+        @before_filter_chain_aborted = false
+        process_without_filters(request, response, method, *arguments)
       end
 
       # Calls all the defined before-filter filters, which are added by using "before_filter :method".
@@ -368,6 +380,7 @@ module ActionController #:nodoc:
         def call_filters(filters)
           filters.each do |filter| 
             next if action_exempted?(filter)
+
             filter_result = case
               when filter.is_a?(Symbol)
                 self.send(filter)
@@ -404,6 +417,10 @@ module ActionController #:nodoc:
             when ea = self.class.excluded_actions[filter] 
               ea.include?(action_name)
           end
+        end
+
+        def process_cleanup_with_filters
+          process_cleanup_without_filters unless @before_filter_chain_aborted
         end
     end
   end

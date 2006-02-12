@@ -38,9 +38,9 @@ require 'action_controller/base'
 require 'action_controller/deprecated_redirects'
 require 'action_controller/rescue'
 require 'action_controller/benchmarking'
+require 'action_controller/flash'
 require 'action_controller/filters'
 require 'action_controller/layout'
-require 'action_controller/flash'
 require 'action_controller/dependencies'
 require 'action_controller/pagination'
 require 'action_controller/scaffolding'
@@ -48,10 +48,10 @@ require 'action_controller/helpers'
 require 'action_controller/cookies'
 require 'action_controller/cgi_process'
 require 'action_controller/caching'
-require 'action_controller/components'
 require 'action_controller/verification'
 require 'action_controller/streaming'
 require 'action_controller/session_management'
+require 'action_controller/components'
 require 'action_controller/macros/auto_complete'
 require 'action_controller/macros/in_place_editing'
 
@@ -59,9 +59,9 @@ require 'action_view'
 ActionController::Base.template_class = ActionView::Base
 
 ActionController::Base.class_eval do
+  include ActionController::Flash
   include ActionController::Filters
   include ActionController::Layout
-  include ActionController::Flash
   include ActionController::Benchmarking
   include ActionController::Rescue
   include ActionController::Dependencies
@@ -70,10 +70,10 @@ ActionController::Base.class_eval do
   include ActionController::Helpers
   include ActionController::Cookies
   include ActionController::Caching
-  include ActionController::Components
   include ActionController::Verification
   include ActionController::Streaming
   include ActionController::SessionManagement
+  include ActionController::Components
   include ActionController::Macros::AutoComplete
   include ActionController::Macros::InPlaceEditing
 end

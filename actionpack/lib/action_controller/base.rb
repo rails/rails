@@ -305,8 +305,8 @@ module ActionController #:nodoc:
 
     class << self
       # Factory for the standard create, process loop where the controller is discarded after processing.
-      def process(request, response, parent_controller = nil) #:nodoc:
-        new(parent_controller).process(request, response)
+      def process(request, response) #:nodoc:
+        new.process(request, response)
       end
       
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "NeatController".
@@ -347,42 +347,20 @@ module ActionController #:nodoc:
     end
 
     public      
-      # If this controller was instantiated to process a component request,
-      # +parent_controller+ points to the instantiator of this controller.
-      attr_reader :parent_controller
-
-      # Create a new controller instance.
-      def initialize(parent_controller=nil) #:nodoc:
-        @parent_controller = parent_controller
-      end
-
       # Extracts the action_name from the request parameters and performs that action.
       def process(request, response, method = :perform_action, *arguments) #:nodoc:
         initialize_template_class(response)
         assign_shortcuts(request, response)
-
-        my_flash = flash # calling flash creates @flash
-        if my_parent = @parent_controller
-          # only discard flash if this controller isn't a component request controller
-          my_flash.discard
-        end
-
         initialize_current_url
-        @action_name = params['action'] || 'index'
-        @variables_added = nil
-        @before_filter_chain_aborted = false
-
-        log_processing if logger
+        action_name(:refresh)
+        forget_variables_added_to_assigns
+        
+        log_processing
         send(method, *arguments)
-        @response
+        
+        return response
       ensure
-        unless my_parent
-          unless @before_filter_chain_aborted
-            my_flash.sweep
-            clear_persistent_model_associations
-          end
-          close_session
-        end
+        process_cleanup
       end
 
       # Returns a URL that has been rewritten according to the options hash and the defined Routes. 
@@ -470,6 +448,15 @@ module ActionController #:nodoc:
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "neat".
       def controller_name
         self.class.controller_name
+      end
+
+      # Returns the name of the current action
+      def action_name(refresh = false)
+        if @action_name.nil? || refresh
+          @action_name = (params['action'] || 'index')
+        end
+        
+        @action_name
       end
 
       def session_enabled?
@@ -668,9 +655,11 @@ module ActionController #:nodoc:
       # of sending it as the response body to the browser.
       def render_to_string(options = nil, &block) #:doc:
         result = render(options, &block)
+
         erase_render_results
-        @variables_added = nil
-        @template.instance_variable_set("@assigns_added", nil)
+        forget_variables_added_to_assigns
+        reset_variables_added_to_assigns
+
         result
       end    
 
@@ -886,9 +875,11 @@ module ActionController #:nodoc:
       end
 
       def log_processing
-        logger.info "\n\nProcessing #{controller_class_name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
-        logger.info "  Session ID: #{@session.session_id}" if @session and @session.respond_to?(:session_id)
-        logger.info "  Parameters: #{@params.inspect}"
+        if logger
+          logger.info "\n\nProcessing #{controller_class_name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
+          logger.info "  Session ID: #{@session.session_id}" if @session and @session.respond_to?(:session_id)
+          logger.info "  Parameters: #{@params.inspect}"
+        end
       end
     
       def perform_action
@@ -920,6 +911,14 @@ module ActionController #:nodoc:
           add_class_variables_to_assigns if view_controller_internals
           @variables_added = true
         end
+      end
+      
+      def forget_variables_added_to_assigns
+        @variables_added = nil
+      end
+      
+      def reset_variables_added_to_assigns
+        @template.instance_variable_set("@assigns_added", nil)
       end
 
       def add_instance_variables_to_assigns
@@ -992,6 +991,10 @@ module ActionController #:nodoc:
       
       def template_path_includes_controller?(path)
         path.to_s['/'] && self.class.controller_path.split('/')[-1] == path.split('/')[0]
+      end
+
+      def process_cleanup
+        close_session
       end
   end
 end

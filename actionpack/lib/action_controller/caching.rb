@@ -8,9 +8,9 @@ module ActionController #:nodoc:
   #
   # Note: To turn off all caching and sweeping, set Base.perform_caching = false.
   module Caching
-    def self.append_features(base) #:nodoc:
-      super
+    def self.included(base) #:nodoc:
       base.send(:include, Pages, Actions, Fragments, Sweeping)
+
       base.class_eval do
         @@perform_caching = true
         cattr_accessor :perform_caching

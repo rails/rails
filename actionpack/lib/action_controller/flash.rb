@@ -24,7 +24,16 @@ module ActionController #:nodoc:
   #
   # See docs on the FlashHash class for more details about the flash.
   module Flash
+    def self.included(base)
+      base.send :include, InstanceMethods
 
+      base.class_eval do
+        alias_method :process_cleanup_without_flash, :process_cleanup
+        alias_method :process_cleanup, :process_cleanup_with_flash
+      end
+    end
+    
+    
     class FlashNow #:nodoc:
       def initialize flash
         @flash = flash
@@ -52,14 +61,14 @@ module ActionController #:nodoc:
         super
       end
       
-      def update h #:nodoc:
-        h.keys.each{|k| discard k }
+      def update(h) #:nodoc:
+        h.keys.each{ |k| discard(k) }
         super
       end
       
-      alias merge! update
+      alias :merge! :update
       
-      def replace h #:nodoc:
+      def replace(h) #:nodoc:
         @used = {}
         super
       end
@@ -124,31 +133,36 @@ module ActionController #:nodoc:
         end
     end
 
-
-    protected 
-      # Access the contents of the flash. Use <tt>flash["notice"]</tt> to read a notice you put there or 
-      # <tt>flash["notice"] = "hello"</tt> to put a new one.
-      # Note that if sessions are disabled only flash.now will work.
-      def flash #:doc:
-        @flash ||= 
-          if @parent_controller
-            @parent_controller.flash
-          elsif @session.is_a?(Hash)
-            # @session is a Hash, if sessions are disabled
-            # we don't put the flash in the session in this case
-            FlashHash.new
-          else
-            # otherwise, @session is a CGI::Session or a TestSession
-            # so make sure it gets retrieved from/saved to session storage after request processing
-            @session["flash"] ||= FlashHash.new
-          end
+    module InstanceMethods
+      def process_cleanup_with_flash
+        process_cleanup_without_flash
+        flash.sweep
       end
+      
+      protected 
+        # Access the contents of the flash. Use <tt>flash["notice"]</tt> to read a notice you put there or 
+        # <tt>flash["notice"] = "hello"</tt> to put a new one.
+        # Note that if sessions are disabled only flash.now will work.
+        def flash #:doc:
+          @flash ||= 
+            if @parent_controller
+              @parent_controller.flash
+            elsif @session.is_a?(Hash)
+              # @session is a Hash, if sessions are disabled
+              # we don't put the flash in the session in this case
+              FlashHash.new
+            else
+              # otherwise, @session is a CGI::Session or a TestSession
+              # so make sure it gets retrieved from/saved to session storage after request processing
+              @session["flash"] ||= FlashHash.new
+            end
+        end
 
-      # deprecated. use <tt>flash.keep</tt> instead
-      def keep_flash #:doc:
-        warn 'keep_flash is deprecated; use flash.keep instead.'
-        flash.keep
-      end
-
+        # deprecated. use <tt>flash.keep</tt> instead
+        def keep_flash #:doc:
+          warn 'keep_flash is deprecated; use flash.keep instead.'
+          flash.keep
+        end
+    end
   end
 end

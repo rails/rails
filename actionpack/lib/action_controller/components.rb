@@ -36,17 +36,36 @@ module ActionController #:nodoc:
   # So to repeat: Components are a special-purpose approach that can often be replaced with better use of partials and filters.
   module Components
     def self.included(base) #:nodoc:
+      base.send :include, InstanceMethods
       base.extend(ClassMethods)
-      base.send(:include, InstanceMethods)
 
       base.helper do
         def render_component(options) 
           @controller.send(:render_component_as_string, options)
         end
       end
+
+      base.class_eval do
+        alias_method :process_cleanup_without_components, :process_cleanup
+        alias_method :process_cleanup, :process_cleanup_with_components
+        
+        alias_method :set_session_options_without_components, :set_session_options
+        alias_method :set_session_options, :set_session_options_with_components
+      end
+      
+      # If this controller was instantiated to process a component request,
+      # +parent_controller+ points to the instantiator of this controller.
+      base.send :attr_accessor, :parent_controller
     end
 
     module ClassMethods
+      # Track parent controller to identify component requests
+      def process_with_components(request, response, parent_controller = nil) #:nodoc:
+        controller = new
+        controller.parent_controller = parent_controller
+        controller.process(request, response)
+      end
+
       # Set the template root to be one directory behind the root dir of the controller. Examples:
       #   /code/weblog/components/admin/users_controller.rb with Admin::UsersController 
       #     will use /code/weblog/components as template root 
@@ -64,6 +83,12 @@ module ActionController #:nodoc:
     end
 
     module InstanceMethods
+      # Extracts the action_name from the request parameters and performs that action.
+      def process_with_components(request, response, method = :perform_action, *arguments) #:nodoc:
+        flash.discard if component_request?
+        process_without_components(request, response, method, *arguments)
+      end
+      
       protected
         # Renders the component specified as the response for the current method
         def render_component(options) #:doc:
@@ -90,8 +115,8 @@ module ActionController #:nodoc:
           klass    = component_class(options)
           request  = request_for_component(klass.controller_name, options)
           response = reuse_response ? @response : @response.dup
-        
-          klass.process(request, response, self)
+
+          klass.process_with_components(request, response, self)
         end
         
         # determine the controller class for the component request
@@ -118,18 +143,30 @@ module ActionController #:nodoc:
           )
           
           request
-         end
+        end
 
-         def component_logging(options)
-           if logger
-             logger.info "Start rendering component (#{options.inspect}): "
-             result = yield
-             logger.info "\n\nEnd of component rendering"
-             result
-           else
-             yield
-           end
-         end
+        def component_logging(options)
+          if logger
+            logger.info "Start rendering component (#{options.inspect}): "
+            result = yield
+            logger.info "\n\nEnd of component rendering"
+            result
+          else
+            yield
+          end
+        end
+        
+        def component_request?
+          !@parent_controller.nil?
+        end
+
+        def set_session_options_with_components(request)
+          set_session_options_without_components(request) unless component_request?
+        end
+
+        def process_cleanup_with_components
+          process_cleanup_without_components unless component_request?
+        end
     end
   end
 end

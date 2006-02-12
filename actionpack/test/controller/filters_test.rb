@@ -189,8 +189,8 @@ class FilterTest < Test::Unit::TestCase
 
   class MixedFilterController < PrependingController
     cattr_accessor :execution_log
-    def initialize(parent_controller=nil)
-      super(parent_controller)
+
+    def initialize
       @@execution_log = ""
     end
 

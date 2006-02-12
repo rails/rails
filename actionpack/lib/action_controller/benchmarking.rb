@@ -4,9 +4,9 @@ module ActionController #:nodoc:
   # The benchmarking module times the performance of actions and reports to the logger. If the Active Record
   # package has been included, a separate timing section for database calls will be added as well.
   module Benchmarking #:nodoc:
-    def self.append_features(base)
-      super
+    def self.included(base)
       base.extend(ClassMethods)
+
       base.class_eval do
         alias_method :perform_action_without_benchmark, :perform_action
         alias_method :perform_action, :perform_action_with_benchmark
