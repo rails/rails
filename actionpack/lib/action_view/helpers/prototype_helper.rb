@@ -424,7 +424,7 @@ module ActionView
         #   page['blank_slate'].show             # => $('blank_slate').show();
         #   page['blank_slate'].show('first').up # => $('blank_slate').show('first').up();
         def [](id)
-          JavaScriptElementProxy.new(self, "$('#{id}')")
+          JavaScriptElementProxy.new(self, id)
         end
 
         # Returns a collection reference by finding it through a CSS +pattern+ in the DOM. This collection can then be
@@ -434,7 +434,7 @@ module ActionView
         #   page.select('p.welcome b').first      # => $$('p.welcome b').first();
         #   page.select('p.welcome b').first.hide # => $$('p.welcome b').first().hide();
         def select(pattern)
-          JavaScriptElementProxy.new(self, "$$('#{pattern}')")
+          JavaScriptCollectionProxy.new(self, pattern)
         end
   
         # Inserts HTML at the specified +position+ relative to the DOM element
@@ -666,20 +666,12 @@ module ActionView
     end
 
     # Converts chained method calls on DOM proxy elements into JavaScript chains 
-    class JavaScriptElementProxy < Builder::BlankSlate #:nodoc:
+    class JavaScriptProxy < Builder::BlankSlate #:nodoc:
       def initialize(generator, root)
         @generator = generator
         @generator << root
       end
 
-      def replace_html(*options_for_render)
-        call 'update', @generator.render(*options_for_render)
-      end
-
-      def replace(*options_for_render)
-        call 'replace', @generator.render(*options_for_render)
-      end
-      
       private
         def method_missing(method, *arguments)
           if method.to_s =~ /(.*)=$/
@@ -706,6 +698,34 @@ module ActionView
           function_chain[-1] = function_chain[-1][0..-2] if function_chain[-1][-1..-1] == ";" # strip last ;
           function_chain[-1] += ".#{call};"
         end
+    end
+    
+    class JavaScriptElementProxy < JavaScriptProxy #:nodoc:
+      def initialize(generator, id)
+        @id = id
+        super(generator, "$('#{id}')")
+      end
+      
+      def replace_html(*options_for_render)
+        call 'update', @generator.send(:render, *options_for_render)
+      end
+
+      def replace(*options_for_render)
+        call 'replace', @generator.send(:render, *options_for_render)
+      end
+      
+      def reload
+        replace :partial => @id.to_s
+      end
+    end
+
+    class JavaScriptCollectionProxy < JavaScriptProxy #:nodoc:
+      def initialize(generator, pattern)
+        @pattern = pattern
+        super(generator, "$$('#{pattern}')")
+      end
+
+      # TODO: Implement funky stuff like .each
     end
   end
 end
