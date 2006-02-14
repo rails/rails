@@ -1,5 +1,7 @@
 *SVN*
 
+* Update script.aculo.us to V1.5.2 [Thomas Fuchs]
+
 * Changed default lighttpd.conf to use CWD from lighttpd 1.4.10 that allows the same configuration to be used for both detach and not. Also ensured that auto-repeaping of FCGIs only happens when lighttpd is not detached. [DHH]
 
 * Added Configuration#after_initialize for registering a block which gets called after the framework is fully initialized.  Useful for things like per-environment configuration of plugins. [Michael Koziarski]

@@ -1,5 +1,7 @@
 *SVN*
 
+* Update script.aculo.us to V1.5.2 [Thomas Fuchs]
+
 * Added element and collection proxies to RJS [DHH]. Examples:
 
     page['blank_slate']                  # => $('blank_slate');

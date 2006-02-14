@@ -35,7 +35,7 @@ Element.collectTextNodesIgnoreClass = function(element, className) {
   return $A($(element).childNodes).collect( function(node) {
     return (node.nodeType==3 ? node.nodeValue : 
       ((node.hasChildNodes() && !Element.hasClassName(node,className)) ? 
-        Element.collectTextNodes(node) : ''));
+        Element.collectTextNodesIgnoreClass(node, className) : ''));
   }).flatten().join('');
 }
 
@@ -137,7 +137,7 @@ var Effect = {
     element = $(element);
     effect = (effect || 'appear').toLowerCase();
     var options = Object.extend({
-      queue: { position:'end', scope:(element.id || 'global') }
+      queue: { position:'end', scope:(element.id || 'global'), limit: 1 }
     }, arguments[2] || {});
     Effect[Element.visible(element) ? 
       Effect.PAIRS[effect][1] : Effect.PAIRS[effect][0]](element, options);
@@ -209,7 +209,10 @@ Object.extend(Object.extend(Effect.ScopedQueue.prototype, Enumerable), {
     
     effect.startOn  += timestamp;
     effect.finishOn += timestamp;
-    this.effects.push(effect);
+
+    if(!effect.options.queue.limit || (this.effects.length < effect.options.queue.limit))
+      this.effects.push(effect);
+    
     if(!this.interval) 
       this.interval = setInterval(this.loop.bind(this), 40);
   },
@@ -690,8 +693,14 @@ Effect.SlideDown = function(element) {
         (effect.dims[0] - effect.element.clientHeight) + 'px' }); }},
     afterFinishInternal: function(effect) { with(Element) {
       undoClipping(effect.element); 
-      undoPositioned(effect.element.firstChild);
-      undoPositioned(effect.element);
+      // IE will crash if child is undoPositioned first
+      if(/MSIE/.test(navigator.userAgent)){
+        undoPositioned(effect.element);
+        undoPositioned(effect.element.firstChild);
+      }else{
+        undoPositioned(effect.element.firstChild);
+        undoPositioned(effect.element);
+      }
       setStyle(effect.element.firstChild, {bottom: oldInnerBottom}); }}
     }, arguments[1] || {})
   );
@@ -741,7 +750,7 @@ Effect.Grow = function(element) {
   element = $(element);
   var options = Object.extend({
     direction: 'center',
-    moveTransistion: Effect.Transitions.sinoidal,
+    moveTransition: Effect.Transitions.sinoidal,
     scaleTransition: Effect.Transitions.sinoidal,
     opacityTransition: Effect.Transitions.full
   }, arguments[1] || {});
@@ -817,7 +826,7 @@ Effect.Shrink = function(element) {
   element = $(element);
   var options = Object.extend({
     direction: 'center',
-    moveTransistion: Effect.Transitions.sinoidal,
+    moveTransition: Effect.Transitions.sinoidal,
     scaleTransition: Effect.Transitions.sinoidal,
     opacityTransition: Effect.Transitions.none
   }, arguments[1] || {});
