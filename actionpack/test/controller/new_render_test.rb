@@ -30,6 +30,10 @@ class NewRenderTestController < ActionController::Base
   def render_action_hello_world
     render :action => "hello_world"
   end
+
+  def render_action_hello_world_as_symbol
+    render :action => :hello_world
+  end
   
   def render_text_hello_world
     render :text => "hello world"
@@ -279,6 +283,11 @@ class NewRenderTest < Test::Unit::TestCase
 
   def test_do_with_render_action
     get :render_action_hello_world
+    assert_template "test/hello_world"
+  end
+
+  def test_do_with_render_action_as_symbol
+    get :render_action_hello_world_as_symbol
     assert_template "test/hello_world"
   end
 
