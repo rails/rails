@@ -7,6 +7,9 @@ class ClassB < ClassA; end
 class ClassC < ClassB; end
 class ClassD < ClassA; end
 
+class ClassI; end
+class ClassJ < ClassI; end
+
 module Bar
   def bar; end
 end
@@ -30,6 +33,12 @@ class ClassExtTest < Test::Unit::TestCase
     assert !defined?(ClassB)
     assert !defined?(ClassC)
     assert !defined?(ClassD)
+  end
+  
+  def test_subclasses_of
+    assert_equal [ClassJ], Object.subclasses_of(ClassI)
+    ClassI.remove_subclasses
+    assert_equal [], Object.subclasses_of(ClassI)
   end
 end
 

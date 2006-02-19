@@ -8,7 +8,7 @@ class Object #:nodoc:
   def subclasses_of(*superclasses)
     subclasses = []
     ObjectSpace.each_object(Class) do |k|
-      next if (k.ancestors & superclasses).empty? || superclasses.include?(k) || k.to_s.include?("::") || subclasses.include?(k)
+      next if (k.ancestors & superclasses).empty? || superclasses.include?(k) || k.to_s.include?("::") || subclasses.include?(k) || !Object.const_defined?(k.to_s.to_sym)
       subclasses << k
     end
     subclasses
