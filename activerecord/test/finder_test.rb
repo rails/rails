@@ -283,10 +283,10 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_or_create_from_two_attributes
-    number_of_companies = Company.count
-    sig38 = Company.find_or_create_by_name("38signals")
-    assert_equal number_of_companies + 1, Company.count
-    assert_equal sig38, Company.find_or_create_by_name("38signals")
+    number_of_topics = Topic.count
+    another = Topic.find_or_create_by_title_and_author_name("Another topic","John")
+    assert_equal number_of_topics + 1, Topic.count
+    assert_equal another, Topic.find_or_create_by_title_and_author_name("Another topic", "John")
   end
 
   def test_find_with_bad_sql
