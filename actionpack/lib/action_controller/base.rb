@@ -664,7 +664,7 @@ module ActionController #:nodoc:
       end    
 
       def render_action(action_name, status = nil, with_layout = true)
-        template = default_template_name(action_name)
+        template = default_template_name(action_name.to_s)
         if with_layout && !template_exempt_from_layout?(template) 
           render_with_layout(template, status)
         else

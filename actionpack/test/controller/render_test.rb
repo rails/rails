@@ -30,7 +30,11 @@ class TestController < ActionController::Base
   def render_action_hello_world
     render_action "hello_world"
   end
-  
+
+  def render_action_hello_world_with_symbol
+    render_action :hello_world
+  end
+ 
   def render_text_hello_world
     render_text "hello world"
   end
@@ -134,6 +138,11 @@ class RenderTest < Test::Unit::TestCase
 
   def test_do_with_render_action
     @request.action = "render_action_hello_world"
+    assert_equal "test/hello_world", process_request.template.first_render
+  end
+
+  def test_do_with_render_action_with_symbol
+    @request.action = "render_action_hello_world_with_symbol"
     assert_equal "test/hello_world", process_request.template.first_render
   end
 
