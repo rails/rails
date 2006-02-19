@@ -1,5 +1,7 @@
 *SVN*
 
+* Added SIGTRAP signal handler to RailsFCGIHandler that'll force the process into a breakpoint after the next request. This breakpoint can then be caught with script/breakpointer and give you access to the Ruby image inside that process. Useful for debugging memory leaks among other things [DHH]
+
 * Update script.aculo.us to V1.5.2 [Thomas Fuchs]
 
 * Changed default lighttpd.conf to use CWD from lighttpd 1.4.10 that allows the same configuration to be used for both detach and not. Also ensured that auto-repeaping of FCGIs only happens when lighttpd is not detached. [DHH]
