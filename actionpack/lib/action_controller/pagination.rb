@@ -71,6 +71,7 @@ module ActionController
         :order      => nil,
         :join       => nil,
         :joins      => nil,
+        :count      => nil,
         :include    => nil,
         :select     => nil,
         :parameter  => 'page'
@@ -119,6 +120,10 @@ module ActionController
     #                        and Model.count
     # <tt>:include</tt>::    optional eager loading parameter passed to Model.find(:all, *params)
     #                        and Model.count
+    # <tt>:select</tt>::     :select parameter passed to Model.find(:all, *params)
+    #
+    # <tt>:count</tt>::      parameter passed as :select option to Model.count(*params)
+    #
     def paginate(collection_id, options={})
       Pagination.validate_options!(collection_id, options, true)
       paginator_and_collection_for(collection_id, options)
@@ -165,7 +170,9 @@ module ActionController
     # custom counter.
     def count_collection_for_pagination(model, options)
       model.count(:conditions => options[:conditions],
-                  :joins => options[:join] || options[:joins], :include => options[:include])
+                  :joins => options[:join] || options[:joins],
+                  :include => options[:include],
+                  :select => options[:count])
     end
     
     # Returns a collection of items for the given +model+ and +options[conditions]+,

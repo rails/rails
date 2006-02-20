@@ -64,6 +64,14 @@ class PaginationTest < ActiveRecordTestCase
                                              :conditions => 'project_id=1')        
       render :nothing => true
     end
+     
+    def paginate_with_join_and_count
+      @developer_pages, @developers = paginate(:developers, 
+                                             :join => 'd LEFT JOIN developers_projects ON d.id = developers_projects.developer_id',
+                                             :conditions => 'project_id=1',
+                                             :count => "d.id")        
+      render :nothing => true
+    end
     
     def rescue_errors(e) raise e end
 
@@ -133,9 +141,16 @@ class PaginationTest < ActiveRecordTestCase
   
   def test_paginate_with_join_and_conditions
     get :paginate_with_joins
-    expected = assigns(:topics)
+    expected = assigns(:developers)
     get :paginate_with_join
-    assert_equal expected, assigns(:topics)      
+    assert_equal expected, assigns(:developers)
+  end
+  
+  def test_paginate_with_join_and_count
+    get :paginate_with_joins
+    expected = assigns(:developers)
+    get :paginate_with_join_and_count
+    assert_equal expected, assigns(:developers)
   end
   
   def test_paginate_with_include_and_order

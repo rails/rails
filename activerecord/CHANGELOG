@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :select option to Base.count that'll allow you to select something else than * to be counted on. Especially important for count queries using DISTINCT #3839 [skaes]
+
 * Correct syntax error in mysql DDL,  and make AAACreateTablesTest run first [Bob Silva]
 
 * Allow :include to be used with has_many :through associations #3611 [Michael Schoen]

@@ -544,7 +544,7 @@ module ActiveRecord #:nodoc:
       def construct_counter_sql(options)
         sql  = "SELECT COUNT(" 
         sql << "DISTINCT " if options[:distinct]
-        sql << "#{table_name}.#{primary_key}) FROM #{table_name} "
+        sql << "#{options[:select] || "#{table_name}.#{primary_key}"}) FROM #{table_name} "
         sql << " #{options[:joins]} " if options[:joins]
         add_conditions!(sql, options[:conditions])
         sql
