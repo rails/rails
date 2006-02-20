@@ -102,8 +102,9 @@ module ActionController #:nodoc:
     
     def recycle!
       self.request_parameters = {}
-      self.query_parameters   = {}         
-      self.path_parameters    = {}     
+      self.query_parameters   = {}
+      self.path_parameters    = {}
+      @request_method = nil
     end    
 
     private

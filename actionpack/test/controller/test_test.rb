@@ -327,6 +327,12 @@ HTML
     assert_nil @request.env['HTTP_X_REQUESTED_WITH']
   end
 
+   def test_header_properly_reset_after_get_request
+    get :test_params
+    @request.recycle!
+    assert_nil @request.instance_variable_get("@request_method")
+  end
+
   %w(controller response request).each do |variable|
     %w(get post put delete head process).each do |method|
       define_method("test_#{variable}_missing_for_#{method}_raises_error") do
