@@ -56,7 +56,7 @@ begin
             value = self[c.name]
             next if value.nil?  || (value == '')
             lob = connection.select_one(
-              "select #{ c.name} from #{ self.class.table_name } WHERE #{ self.class.primary_key} = #{quote(id)}",
+              "SELECT #{ c.name} FROM #{ self.class.table_name } WHERE #{ self.class.primary_key} = #{quote(id)}",
               'Writable Large Object')[c.name]
             lob.write value
           }
@@ -149,6 +149,9 @@ begin
       # * Default values that are functions (such as "SYSDATE") are not
       #   supported. This is a restriction of the way ActiveRecord supports
       #   default values.
+      # * Support for Oracle8 is limited by Rails' use of ANSI join syntax, which
+      #   is supported in Oracle9i and later. You will need to use #finder_sql for
+      #   has_and_belongs_to_many associations to run against Oracle8.
       #
       # Options:
       #
@@ -167,7 +170,7 @@ begin
         
         def native_database_types #:nodoc
           {
-            :primary_key => "NUMBER(38) NOT NULL",
+            :primary_key => "NUMBER(38) NOT NULL PRIMARY KEY",
             :string      => { :name => "VARCHAR2", :limit => 255 },
             :text        => { :name => "LONG" },
             :integer     => { :name => "NUMBER", :limit => 38 },
@@ -332,10 +335,7 @@ begin
         end
 
         def columns(table_name, name = nil) #:nodoc:
-          table_name = table_name.to_s.upcase
-          owner = table_name.include?('.') ? "'#{table_name.split('.').first}'" : "user"
-          table = "'#{table_name.split('.').last}'"
-          scope = (owner == "user" ? "user" : "all")
+          table_info = @connection.object_info(table_name)
 
           table_cols = %Q{
             select column_name, data_type, data_default, nullable,
@@ -343,25 +343,18 @@ begin
                                      'VARCHAR2', data_length,
                                       null) as length,
                    decode(data_type, 'NUMBER', data_scale, null) as scale
-              from #{scope}_catalog cat, #{scope}_synonyms syn, all_tab_columns col
-             where cat.table_name = #{table}
-               and syn.synonym_name (+)= cat.table_name
-               and col.table_name = nvl(syn.table_name, cat.table_name)
-               and col.owner = nvl(syn.table_owner, #{(scope == "all" ? "cat.owner" : "user")}) }
-
-          if scope == "all"
-            table_cols << %Q{
-               and cat.owner = #{owner}
-               and syn.owner (+)= cat.owner }
-          end
+              from all_tab_columns
+             where owner      = '#{table_info.schema}'
+               and table_name = '#{table_info.name}'
+          }
 
           select_all(table_cols, name).map do |row|
             row['data_default'].sub!(/^'(.*)'\s*$/, '\1') if row['data_default']
             OCIColumn.new(
-              oci_downcase(row['column_name']), 
+              oci_downcase(row['column_name']),
               row['data_default'],
-              row['data_type'], 
-              row['length'], 
+              row['data_type'],
+              row['length'],
               row['scale'],
               row['nullable'] == 'Y'
             )
@@ -370,17 +363,17 @@ begin
 
         def create_table(name, options = {}) #:nodoc:
           super(name, options)
-          execute "CREATE SEQUENCE #{name}_seq"
+          execute "CREATE SEQUENCE #{name}_seq" unless options[:id] == false
         end
 
         def rename_table(name, new_name) #:nodoc:
           execute "RENAME #{name} TO #{new_name}"
-          execute "RENAME #{name}_seq TO #{new_name}_seq"
+          execute "RENAME #{name}_seq TO #{new_name}_seq" rescue nil
         end  
 
         def drop_table(name) #:nodoc:
           super(name)
-          execute "DROP SEQUENCE #{name}_seq"
+          execute "DROP SEQUENCE #{name}_seq" rescue nil
         end
 
         def remove_index(table_name, options = {}) #:nodoc:
@@ -492,9 +485,10 @@ begin
   end
 
 
-  # This OCI8 patch may not longer be required with the upcoming
-  # release of version 0.2.
   class OCI8 #:nodoc:
+
+    # This OCI8 patch may not longer be required with the upcoming
+    # release of version 0.2.
     class Cursor #:nodoc:
       alias :define_a_column_pre_ar :define_a_column
       def define_a_column(i)
@@ -502,6 +496,33 @@ begin
         when 8    : @stmt.defineByPos(i, String, 65535) # Read LONG values
         when 187  : @stmt.defineByPos(i, OraDate) # Read TIMESTAMP values
         else define_a_column_pre_ar i
+        end
+      end
+    end
+
+    # missing constant from oci8
+    OCI_PTYPE_UNK = 0
+
+    def object_info(name)
+      OraObject.new describe(name.to_s, OCI_PTYPE_UNK)
+    end
+
+    def describe(name, type)
+      @desc ||= @@env.alloc(OCIDescribe)
+      @desc.describeAny(@svc, name, type)
+      @desc.attrGet(OCI_ATTR_PARAM)
+    end
+
+    class OraObject
+      attr_reader :schema, :name
+      def initialize(info)
+        case info.attrGet(OCI_ATTR_PTYPE)
+        when OCI_PTYPE_TABLE, OCI_PTYPE_VIEW
+          @schema = info.attrGet(OCI_ATTR_OBJ_SCHEMA)
+          @name   = info.attrGet(OCI_ATTR_OBJ_NAME)
+        when OCI_PTYPE_SYN
+          @schema = info.attrGet(OCI_ATTR_SCHEMA_NAME)
+          @name   = info.attrGet(OCI_ATTR_NAME)
         end
       end
     end

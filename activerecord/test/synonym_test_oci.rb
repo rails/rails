@@ -10,7 +10,7 @@ class TestOracleSynonym < Test::Unit::TestCase
 
   def test_oracle_synonym
     topic = Topic.new
-	subject = Subject.new
+    subject = Subject.new
     assert_equal(topic.attributes, subject.attributes)
   end
   

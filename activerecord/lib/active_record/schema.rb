@@ -51,7 +51,7 @@ module ActiveRecord
           "#{k} = #{v}"
         end
 
-        update "UPDATE schema_info SET #{info.join(", ")}"
+        update "UPDATE #{Migrator.schema_info_table_name} SET #{info.join(", ")}"
       end
     end
   end

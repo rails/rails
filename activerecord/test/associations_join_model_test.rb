@@ -96,7 +96,7 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   end
   
   def test_has_many_class_methods_called_by_method_missing
-    assert_equal categories(:general), authors(:david).categories.find_by_name('General')
+    assert_equal categories(:general), authors(:david).categories.find_all_by_name('General').first
 #    assert_equal nil, authors(:david).categories.find_by_name('Technology')
   end
 

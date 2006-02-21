@@ -17,8 +17,7 @@ create sequence companies_nonstd_seq minvalue 10000;
 create table accounts (
     id integer not null,
     firm_id integer default null references companies initially deferred disable,
-    credit_limit integer default null,
-    primary key (id)
+    credit_limit integer default null
 );
 create sequence accounts_seq minvalue 10000;
 

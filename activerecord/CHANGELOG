@@ -1,5 +1,9 @@
 *SVN*
 
+* Improved the Oracle OCI Adapter with better performance for column reflection (from #3210), fixes to migrations (from #3476 and #3742), tweaks to unit tests (from #3610), and improved documentation (from #2446) #3879 [Aggregated by schoenm@earthlink.net]
+
+* Fixed that the schema_info table used by ActiveRecord::Schema.define should respect table pre- and suffixes #3834 [rubyonrails@atyp.de]
+
 * Added :select option to Base.count that'll allow you to select something else than * to be counted on. Especially important for count queries using DISTINCT #3839 [skaes]
 
 * Correct syntax error in mysql DDL,  and make AAACreateTablesTest run first [Bob Silva]
