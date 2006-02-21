@@ -1,5 +1,7 @@
 *SVN*
 
+* Added various InPlaceEditor options, #3746, #3891, #3896, #3906 [Bill Burcham, ruairi, sl33p3r]
+
 * Added :count option to pagination that'll make it possible for the ActiveRecord::Base.count call to using something else than * for the count. Especially important for count queries using DISTINCT #3839 [skaes]
 
 * Update script.aculo.us to V1.5.2 [Thomas Fuchs]
