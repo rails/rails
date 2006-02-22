@@ -956,10 +956,10 @@ module ActiveRecord #:nodoc:
           object
         end
 
-        # Returns the name of the type of the record using the current module as a prefix. So descendents of
-        # MyApp::Business::Account would appear as "MyApp::Business::AccountSubclass".
+        # Nest the type name in the same module as this class.
+        # Bar is "MyApp::Business::Bar" relative to MyApp::Business::Foo
         def type_name_with_module(type_name)
-          self.name =~ /::/ ? self.name.scan(/(.*)::/).first.first + "::" + type_name : type_name
+          "#{self.name.sub(/(::)?[^:]+$/, '')}#{$1}#{type_name}"
         end
 
         def construct_finder_sql(options)
@@ -1152,8 +1152,10 @@ module ActiveRecord #:nodoc:
         # Returns the class type of the record using the current module as a prefix. So descendents of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
-          type_name_with_module(type_name).split("::").inject(Object) do |final_type, part|
-            final_type.const_get(part)
+          begin
+            instance_eval(type_name_with_module(type_name))
+          rescue Object
+            instance_eval(type_name)
           end
         end
 

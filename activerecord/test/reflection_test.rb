@@ -90,8 +90,41 @@ class ReflectionTest < Test::Unit::TestCase
   end
 
   def test_association_reflection_in_modules
-    assert_equal MyApplication::Business::Client, MyApplication::Business::Firm.reflect_on_association(:clients_of_firm).klass
-    assert_equal MyApplication::Business::Firm, MyApplication::Billing::Account.reflect_on_association(:firm).klass
+    assert_reflection MyApplication::Business::Firm,
+      :clients_of_firm,
+      :klass      => MyApplication::Business::Client,
+      :class_name => 'Client',
+      :table_name => 'companies'
+
+    assert_reflection MyApplication::Billing::Account,
+      :firm,
+      :klass      => MyApplication::Business::Firm,
+      :class_name => 'MyApplication::Business::Firm',
+      :table_name => 'companies'
+
+    assert_reflection MyApplication::Billing::Account,
+      :qualified_billing_firm,
+      :klass      => MyApplication::Billing::Firm,
+      :class_name => 'MyApplication::Billing::Firm',
+      :table_name => 'companies'
+
+    assert_reflection MyApplication::Billing::Account,
+      :unqualified_billing_firm,
+      :klass      => MyApplication::Billing::Firm,
+      :class_name => 'Firm',
+      :table_name => 'companies'
+
+    assert_reflection MyApplication::Billing::Account,
+      :nested_qualified_billing_firm,
+      :klass      => MyApplication::Billing::Nested::Firm,
+      :class_name => 'MyApplication::Billing::Nested::Firm',
+      :table_name => 'companies'
+
+    assert_reflection MyApplication::Billing::Account,
+      :nested_unqualified_billing_firm,
+      :klass      => MyApplication::Billing::Nested::Firm,
+      :class_name => 'Nested::Firm',
+      :table_name => 'companies'
   end
   
   def test_reflection_of_all_associations
@@ -100,4 +133,12 @@ class ReflectionTest < Test::Unit::TestCase
     assert_equal 1, Firm.reflect_on_all_associations(:has_one).size
     assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
   end
+
+  private
+    def assert_reflection(klass, association, options)
+      assert reflection = klass.reflect_on_association(association)
+      options.each do |method, value|
+        assert_equal(value, reflection.send(method))
+      end
+    end
 end

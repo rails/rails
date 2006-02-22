@@ -33,11 +33,25 @@ module MyApplication
     end
 
   end
-  
+
   module Billing
+    class Firm < ActiveRecord::Base
+      self.table_name = 'companies'
+    end
+
+    module Nested
+      class Firm < ActiveRecord::Base
+        self.table_name = 'companies'
+      end
+    end
+
     class Account < ActiveRecord::Base
-      belongs_to :firm, :class_name => "MyApplication::Business::Firm"
-      
+      belongs_to :firm, :class_name => 'MyApplication::Business::Firm'
+      belongs_to :qualified_billing_firm, :class_name => 'MyApplication::Billing::Firm'
+      belongs_to :unqualified_billing_firm, :class_name => 'Firm'
+      belongs_to :nested_qualified_billing_firm, :class_name => 'MyApplication::Billing::Nested::Firm'
+      belongs_to :nested_unqualified_billing_firm, :class_name => 'Nested::Firm'
+
       protected
         def validate
           errors.add_on_empty "credit_limit"

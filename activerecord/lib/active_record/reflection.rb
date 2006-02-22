@@ -136,13 +136,12 @@ module ActiveRecord
             name
           else
             if options[:class_name]
-              class_name = options[:class_name]
+              options[:class_name]
             else
               class_name = name.to_s.camelize
               class_name = class_name.singularize if [ :has_many, :has_and_belongs_to_many ].include?(macro)
+              class_name
             end
-
-            active_record.send(:type_name_with_module, class_name)
           end
         end
     end

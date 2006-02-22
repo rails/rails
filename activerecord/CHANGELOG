@@ -1,5 +1,7 @@
 *SVN*
 
+* Reflections don't attempt to resolve module nesting of association classes. Simplify type computation. [Jeremy Kemper]
+
 * Improved the Oracle OCI Adapter with better performance for column reflection (from #3210), fixes to migrations (from #3476 and #3742), tweaks to unit tests (from #3610), and improved documentation (from #2446) #3879 [Aggregated by schoenm@earthlink.net]
 
 * Fixed that the schema_info table used by ActiveRecord::Schema.define should respect table pre- and suffixes #3834 [rubyonrails@atyp.de]
