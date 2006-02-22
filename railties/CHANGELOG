@@ -1,5 +1,7 @@
 *SVN*
 
+* Update script.aculo.us to V1.5.3 [Thomas Fuchs]
+
 * Added SIGTRAP signal handler to RailsFCGIHandler that'll force the process into a breakpoint after the next request. This breakpoint can then be caught with script/breakpointer and give you access to the Ruby image inside that process. Useful for debugging memory leaks among other things [DHH]
 
 * Update script.aculo.us to V1.5.2 [Thomas Fuchs]

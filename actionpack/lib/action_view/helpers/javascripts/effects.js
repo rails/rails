@@ -584,7 +584,6 @@ Effect.BlindUp = function(element) {
 
 Effect.BlindDown = function(element) {
   element = $(element);
-  var oldHeight = Element.getStyle(element, 'height');
   var elementDimensions = Element.getDimensions(element);
   return new Effect.Scale(element, 100, 
     Object.extend({ scaleContent: false, 
@@ -597,10 +596,9 @@ Effect.BlindDown = function(element) {
         setStyle(effect.element, {height: '0px'});
         show(effect.element); 
       }},  
-      afterFinishInternal: function(effect) { with(Element) {
-        undoClipping(effect.element);
-        setStyle(effect.element, {height: oldHeight});
-      }}
+      afterFinishInternal: function(effect) {
+        Element.undoClipping(effect.element);
+      }
     }, arguments[1] || {})
   );
 }

@@ -316,7 +316,7 @@ Autocompleter.Base.prototype = {
 Ajax.Autocompleter = Class.create();
 Object.extend(Object.extend(Ajax.Autocompleter.prototype, Autocompleter.Base.prototype), {
   initialize: function(element, update, url, options) {
-	  this.baseInitialize(element, update, options);
+    this.baseInitialize(element, update, options);
     this.options.asynchronous  = true;
     this.options.onComplete    = this.onComplete.bind(this);
     this.options.defaultParams = this.options.parameters || null;
@@ -483,9 +483,10 @@ Ajax.InPlaceEditor.prototype = {
       formClassName: 'inplaceeditor-form',
       highlightcolor: Ajax.InPlaceEditor.defaultHighlightColor,
       highlightendcolor: "#FFFFFF",
-      externalControl:	null,
+      externalControl: null,
       submitOnBlur: false,
-      ajaxOptions: {}
+      ajaxOptions: {},
+      evalScripts: false
     }, options || {});
 
     if(!this.options.formId && this.element.id) {
@@ -554,6 +555,7 @@ Ajax.InPlaceEditor.prototype = {
       okButton = document.createElement("input");
       okButton.type = "submit";
       okButton.value = this.options.okText;
+      okButton.className = 'editor_ok_button';
       this.form.appendChild(okButton);
     }
 
@@ -562,6 +564,7 @@ Ajax.InPlaceEditor.prototype = {
       cancelLink.href = "#";
       cancelLink.appendChild(document.createTextNode(this.options.cancelText));
       cancelLink.onclick = this.onclickCancel.bind(this);
+      cancelLink.className = 'editor_cancel';      
       this.form.appendChild(cancelLink);
     }
   },
@@ -590,6 +593,7 @@ Ajax.InPlaceEditor.prototype = {
       textField.name = "value";
       textField.value = text;
       textField.style.backgroundColor = this.options.highlightcolor;
+      textField.className = 'editor_field';
       var size = this.options.size || this.options.cols || 0;
       if (size != 0) textField.size = size;
       if (this.options.submitOnBlur)
@@ -603,6 +607,7 @@ Ajax.InPlaceEditor.prototype = {
       textArea.value = this.convertHTMLLineBreaks(text);
       textArea.rows = this.options.rows;
       textArea.cols = this.options.cols || 40;
+      textArea.className = 'editor_field';      
       if (this.options.submitOnBlur)
         textArea.onblur = this.onSubmit.bind(this);
       this.editField = textArea;
@@ -655,19 +660,26 @@ Ajax.InPlaceEditor.prototype = {
     // to be displayed indefinitely
     this.onLoading();
     
-    new Ajax.Updater(
-      { 
-        success: this.element,
-         // don't update on failure (this could be an option)
-        failure: null
-      },
-      this.url,
-      Object.extend({
-        parameters: this.options.callback(form, value),
-        onComplete: this.onComplete.bind(this),
-        onFailure: this.onFailure.bind(this)
-      }, this.options.ajaxOptions)
-    );
+    if (this.options.evalScripts) {
+      new Ajax.Request(
+        this.url, Object.extend({
+          parameters: this.options.callback(form, value),
+          onComplete: this.onComplete.bind(this),
+          onFailure: this.onFailure.bind(this),
+          asynchronous:true, 
+          evalScripts:true
+        }, this.options.ajaxOptions));
+    } else  {
+      new Ajax.Updater(
+        { success: this.element,
+          // don't update on failure (this could be an option)
+          failure: null }, 
+        this.url, Object.extend({
+          parameters: this.options.callback(form, value),
+          onComplete: this.onComplete.bind(this),
+          onFailure: this.onFailure.bind(this)
+        }, this.options.ajaxOptions));
+    }
     // stop the event to avoid a page refresh in Safari
     if (arguments.length > 1) {
       Event.stop(arguments[0]);
@@ -748,6 +760,33 @@ Ajax.InPlaceEditor.prototype = {
     }
   }
 };
+
+Ajax.InPlaceCollectionEditor = Class.create();
+Object.extend(Ajax.InPlaceCollectionEditor.prototype, Ajax.InPlaceEditor.prototype);
+Object.extend(Ajax.InPlaceCollectionEditor.prototype, {
+  createEditField: function() {
+    if (!this.cached_selectTag) {
+      var selectTag = document.createElement("select");
+      var collection = this.options.collection || [];
+      var optionTag;
+      collection.each(function(e,i) {
+        optionTag = document.createElement("option");
+        optionTag.value = (e instanceof Array) ? e[0] : e;
+        if(this.options.value==optionTag.value) optionTag.selected = true;
+        optionTag.appendChild(document.createTextNode((e instanceof Array) ? e[1] : e));
+        selectTag.appendChild(optionTag);
+      }.bind(this));
+      this.cached_selectTag = selectTag;
+    }
+
+    this.editField = this.cached_selectTag;
+    if(this.options.loadTextURL) this.loadExternalText();
+    this.form.appendChild(this.editField);
+    this.options.callback = function(form, value) {
+      return "value=" + encodeURIComponent(value);
+    }
+  }
+});
 
 // Delayed observer, like Form.Element.Observer, 
 // but waits for delay after last key input
