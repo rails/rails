@@ -1,5 +1,7 @@
 *SVN*
 
+* During controller resolution, update the NameError suppression to check for the expected constant. [Nicholas Seckar]
+
 * Update script.aculo.us to V1.5.3 [Thomas Fuchs]
 
 * Added various InPlaceEditor options, #3746, #3891, #3896, #3906 [Bill Burcham, ruairi, sl33p3r]

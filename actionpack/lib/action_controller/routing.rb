@@ -232,7 +232,7 @@ module ActionController
             mod_name = segment.camelize
             controller_name = "#{mod_name}Controller"
             
-            suppress(NameError) do
+            begin
               controller = eval("mod::#{controller_name}", nil, __FILE__, __LINE__)
               expected_name = "#{mod.name}::#{controller_name}"
               
@@ -240,12 +240,16 @@ module ActionController
               if controller.is_a?(Class) && controller.ancestors.include?(ActionController::Base) && (mod == Object || controller.name == expected_name)
                 return controller, (index - start_at)
               end
+            rescue NameError => e
+              raise unless /^uninitialized constant #{controller_name}$/ =~ e.message
             end
             
-            mod = suppress(NameError) do
+            begin
               next_mod = eval("mod::#{mod_name}", nil, __FILE__, __LINE__)
               # Check that we didn't get a module from a parent namespace
-              (mod == Object || next_mod.name == "#{mod.name}::#{mod_name}") ? next_mod : nil
+              mod = (mod == Object || next_mod.name == "#{mod.name}::#{mod_name}") ? next_mod : nil
+            rescue NameError => e
+              raise unless /^uninitialized constant #{mod_name}$/ =~ e.message
             end
             
             return nil unless mod
