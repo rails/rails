@@ -67,7 +67,7 @@ ensure
     puts 'Exiting'
   
     # Ensure FCGI processes are reaped
-    path_to_ruby = "#{Config::CONFIG['bindir']}/#{Config::CONFIG['ruby_install_name']}"
-    `#{path_to_ruby} #{RAILS_ROOT}/script/process/reaper -a kill`
+    ARGV.replace ['-a', 'kill']
+    require 'commands/process/reaper'
   end
 end
