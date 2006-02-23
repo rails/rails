@@ -155,11 +155,14 @@ module ActiveRecord
 
     # Returns the total number of errors added. Two errors added to the same attribute will be counted as such
     # with this as well.
-    def count
+    def size
       error_count = 0
       @errors.each_value { |attribute| error_count += attribute.length }
       error_count
     end
+    
+    alias_method :count, :size
+    alias_method :length, :size
   end
 
 

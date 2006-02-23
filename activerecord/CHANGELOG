@@ -1,5 +1,7 @@
 *SVN*
 
+* Renamed Errors#count to Errors#size but kept an alias for the old name (and included an alias for length too) #3920 [contact@lukeredpath.co.uk]
+
 * Reflections don't attempt to resolve module nesting of association classes. Simplify type computation. [Jeremy Kemper]
 
 * Improved the Oracle OCI Adapter with better performance for column reflection (from #3210), fixes to migrations (from #3476 and #3742), tweaks to unit tests (from #3610), and improved documentation (from #2446) #3879 [Aggregated by schoenm@earthlink.net]
