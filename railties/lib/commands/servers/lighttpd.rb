@@ -12,10 +12,20 @@ end
 
 require 'initializer'
 configuration = Rails::Initializer.run(:initialize_logger).configuration
+default_config_file = config_file = "#{RAILS_ROOT}/config/lighttpd.conf"
 
-config_file = "#{RAILS_ROOT}/config/lighttpd.conf"
+require 'optparse'
+ARGV.options do |opt|
+  opt.on('-c', "--config=#{config_file}", 'Specify a different lighttpd config file.') { |path| config_file = path }
+  opt.on('-h', '--help', 'Show this message.') { puts opt; exit 0 }
+  opt.parse!
+end
 
 unless File.exist?(config_file)
+  if config_file != default_config_file
+    puts "=> #{config_file} not found."
+    exit 1
+  end
   require 'fileutils'
   source = File.expand_path(File.join(File.dirname(__FILE__),
      "..", "..", "..", "configs", "lighttpd.conf"))
