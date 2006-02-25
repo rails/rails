@@ -13,10 +13,12 @@ module ActiveRecord
       def create_reflection(macro, name, options, active_record)
         case macro
           when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
-            reflections[name] = AssociationReflection.new(macro, name, options, active_record)
+            reflection = AssociationReflection.new(macro, name, options, active_record)
           when :composed_of
-            reflections[name] = AggregateReflection.new(macro, name, options, active_record)
+            reflection = AggregateReflection.new(macro, name, options, active_record)
         end
+        write_inheritable_hash :reflections, name => reflection
+        reflection
       end
       
       def reflections

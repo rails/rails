@@ -3,6 +3,8 @@ class Company < ActiveRecord::Base
   set_sequence_name :companies_nonstd_seq
 
   validates_presence_of :name
+
+  has_one :dummy_account, :foreign_key => "firm_id", :class_name => "Account"
 end
 
 
