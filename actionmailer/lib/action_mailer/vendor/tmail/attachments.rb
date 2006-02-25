@@ -7,7 +7,7 @@ module TMail
 
   class Mail
     def has_attachments?
-      multipart? && parts.any? { |part| part.header["content-type"].main_type != "text" }
+      multipart? && parts.any? { |part| attachment?(part) }
     end
 
     def attachment?(part)
