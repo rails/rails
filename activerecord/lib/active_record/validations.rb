@@ -439,31 +439,35 @@ module ActiveRecord
         option_value = options[range_options.first]
 
         case option
-        when :within, :in
-          raise ArgumentError, ":#{option} must be a Range" unless option_value.is_a?(Range)
+          when :within, :in
+            raise ArgumentError, ":#{option} must be a Range" unless option_value.is_a?(Range)
 
-          too_short = options[:too_short] % option_value.begin
-          too_long  = options[:too_long]  % option_value.end
+            too_short = options[:too_short] % option_value.begin
+            too_long  = options[:too_long]  % option_value.end
 
-          validates_each(attrs, options) do |record, attr, value|
-            if value.nil? or value.size < option_value.begin
-              record.errors.add(attr, too_short)
-            elsif value.size > option_value.end
-              record.errors.add(attr, too_long)
+            validates_each(attrs, options) do |record, attr, value|
+              if value.nil? or value.split(//).size < option_value.begin
+                record.errors.add(attr, too_short)
+              elsif value.split(//).size > option_value.end
+                record.errors.add(attr, too_long)
+              end
             end
-          end
-        when :is, :minimum, :maximum
-          raise ArgumentError, ":#{option} must be a nonnegative Integer" unless option_value.is_a?(Integer) and option_value >= 0
+          when :is, :minimum, :maximum
+            raise ArgumentError, ":#{option} must be a nonnegative Integer" unless option_value.is_a?(Integer) and option_value >= 0
 
-          # Declare different validations per option.
-          validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
-          message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
+            # Declare different validations per option.
+            validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
+            message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
 
-          message = (options[:message] || options[message_options[option]]) % option_value
+            message = (options[:message] || options[message_options[option]]) % option_value
 
-          validates_each(attrs, options) do |record, attr, value|
-            record.errors.add(attr, message) unless !value.nil? and value.size.method(validity_checks[option])[option_value]
-          end
+            validates_each(attrs, options) do |record, attr, value|
+              if value.kind_of?(String)
+                record.errors.add(attr, message) unless !value.nil? and value.split(//).size.method(validity_checks[option])[option_value]
+              else
+                record.errors.add(attr, message) unless !value.nil? and value.size.method(validity_checks[option])[option_value]
+              end
+            end
         end
       end
 

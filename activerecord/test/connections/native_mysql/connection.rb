@@ -10,6 +10,7 @@ db2 = 'activerecord_unittest2'
 ActiveRecord::Base.establish_connection(
   :adapter  => "mysql",
   :username => "rails",
+  :encoding => "utf8",
   :database => db1
 )
 

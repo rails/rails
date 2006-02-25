@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed validates_length_of to work on UTF-8 strings by using characters instead of bytes #3699 [Masao Mutoh]
+
 * Fixed that reflections would bleed across class boundaries in single-table inheritance setups #3796 [lars@pind.com]
 
 * Added calculations: Base.count, Base.average, Base.sum, Base.minimum, Base.maxmium, and the generic Base.calculate. All can be used with :group and :having. Calculations and statitics need no longer require custom SQL. #3958 [Rick Olson]. Examples:

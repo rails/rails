@@ -614,6 +614,141 @@ class ValidationsTest < Test::Unit::TestCase
     assert_equal "hoo 5", t.errors["title"]
   end
 
+  def kcode_scope(kcode)
+    orig_kcode = $KCODE
+    $KCODE = kcode
+    begin
+      yield
+    ensure
+      $KCODE = orig_kcode
+    end
+  end
+
+  def test_validates_length_of_using_minimum_utf8
+    kcode_scope('UTF8') do
+      Topic.validates_length_of :title, :minimum => 5
+
+      t = Topic.create("title" => "一二三四五", "content" => "whatever")
+      assert t.valid?
+
+      t.title = "一二三四"
+      assert !t.valid?
+      assert t.errors.on(:title)
+      assert_equal "is too short (min is 5 characters)", t.errors["title"]
+    end
+  end
+
+  def test_validates_length_of_using_maximum_utf8
+    kcode_scope('UTF8') do
+      Topic.validates_length_of :title, :maximum => 5
+
+      t = Topic.create("title" => "一二三四五", "content" => "whatever")
+      assert t.valid?
+      
+      t.title = "一二34五六"
+      assert !t.valid?
+      assert t.errors.on(:title)
+      assert_equal "is too long (max is 5 characters)", t.errors["title"]
+    end
+  end
+
+  def test_validates_length_of_using_within_utf8
+    kcode_scope('UTF8') do
+      Topic.validates_length_of(:title, :content, :within => 3..5)
+
+      t = Topic.new("title" => "一二", "content" => "12三四五六七")
+      assert !t.valid?
+      assert_equal "is too short (min is 3 characters)", t.errors.on(:title)
+      assert_equal "is too long (max is 5 characters)", t.errors.on(:content)
+      t.title = "一二三"
+      t.content  = "12三"
+      assert t.valid?
+    end
+  end
+
+  def test_optionally_validates_length_of_using_within_utf8
+    kcode_scope('UTF8') do
+      Topic.validates_length_of :title, :content, :within => 3..5, :allow_nil => true
+
+      t = Topic.create('title' => '一二三', 'content' => '一二三四五')
+      assert t.valid?
+
+      t.title = nil
+      assert t.valid?
+    end
+  end
+
+  def test_optionally_validates_length_of_using_within_on_create_utf8
+    kcode_scope('UTF8') do
+      Topic.validates_length_of :title, :content, :within => 5..10, :on => :create, :too_long => "長すぎます: %d"
+
+      t = Topic.create("title" => "一二三四五六七八九十A", "content" => "whatever")
+      assert !t.save
+      assert t.errors.on(:title)
+      assert_equal "長すぎます: 10", t.errors[:title]
+      
+      t.title = "一二三四五六七八九"
+      assert t.save
+      
+      t.title = "一二3"
+      assert t.save
+      
+      t.content = "一二三四五六七八九十"
+      assert t.save
+      
+      t.content = t.title = "一二三四五六"
+      assert t.save
+    end
+  end
+
+  def test_optionally_validates_length_of_using_within_on_update_utf8
+    kcode_scope('UTF8') do    
+      Topic.validates_length_of :title, :content, :within => 5..10, :on => :update, :too_short => "短すぎます: %d"
+
+      t = Topic.create("title" => "一二三4", "content" => "whatever")
+      assert !t.save
+      assert t.errors.on(:title)
+      
+      t.title = "1二三4"
+      assert !t.save
+      assert t.errors.on(:title)
+      assert_equal "短すぎます: 5", t.errors[:title]
+      
+      t.title = "valid"
+      t.content = "一二三四五六七八九十A"
+      assert !t.save
+      assert t.errors.on(:content)
+      
+      t.content = "一二345"
+      assert t.save
+    end
+  end
+
+  def test_validates_length_of_using_is_utf8
+    kcode_scope('UTF8') do
+      Topic.validates_length_of :title, :is => 5
+
+      t = Topic.create("title" => "一二345", "content" => "whatever")
+      assert t.valid?
+
+      t.title = "一二345六"
+      assert !t.valid?
+      assert t.errors.on(:title)
+      assert_equal "is the wrong length (should be 5 characters)", t.errors["title"]
+    end
+  end
+
+  def test_validates_size_of_association_utf8
+    kcode_scope('UTF8') do
+      assert_nothing_raised { Topic.validates_size_of :replies, :minimum => 1 }
+      t = Topic.new('title' => 'あいうえお', 'content' => 'かきくけこ')
+      assert !t.save
+      assert t.errors.on(:replies)
+      t.replies.create('title' => 'あいうえお', 'content' => 'かきくけこ')
+      assert t.valid?
+    end
+  end
+
   def test_validates_associated_many
     Topic.validates_associated( :replies )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
