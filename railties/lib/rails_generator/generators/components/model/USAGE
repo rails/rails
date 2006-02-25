@@ -5,7 +5,8 @@ Description:
     given in CamelCase or under_score and should not be suffixed with 'Model'.
 
     The generator creates a model class in app/models, a test suite in
-    test/unit, and test fixtures in test/fixtures/singular_name.yml.
+    test/unit, test fixtures in test/fixtures/singular_name.yml, and a migration
+    in db/migrate.
 
 Example:
     ./script/generate model Account
@@ -14,4 +15,5 @@ Example:
         Model:      app/models/account.rb
         Test:       test/unit/account_test.rb
         Fixtures:   test/fixtures/accounts.yml
+        Migration:  db/migrate/XXX_add_accounts.rb
 
