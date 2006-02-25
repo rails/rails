@@ -620,7 +620,7 @@ begin
 rescue LoadError
   # OCI8 driver is unavailable.
   module ActiveRecord # :nodoc:
-    class Base # :nodoc:
+    class Base
       def self.oci_connection(config) # :nodoc:
         # Set up a reasonable error message
         raise LoadError, "Oracle/OCI libraries could not be loaded."
