@@ -129,6 +129,9 @@ class AppGenerator < Rails::Generator::Base
     test/unit
     vendor
     vendor/plugins
+    tmp/sessions
+    tmp/sockets
+    tmp/cache
   )
 
   MYSQL_SOCKET_LOCATIONS = [

@@ -19,7 +19,7 @@ class ModelGenerator < Rails::Generator::NamedBase
       unless options[:skip_migration]
         m.migration_template 'migration.rb', 'db/migrate', :assigns => {
           :migration_name => "Add#{class_name.pluralize}"
-        }
+        }, :migration_file_name => "add_#{file_name.pluralize}"
       end
     end
   end

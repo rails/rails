@@ -309,8 +309,9 @@ module Rails
         # When creating a migration, it knows to find the first available file in db/migrate and use the migration.rb template.
         def migration_template(relative_source, relative_destination, template_options = {})
           migration_directory relative_destination
-          raise "Another migration is already named #{file_name}: #{existing_migrations(file_name).first}" if migration_exists?(file_name)
-          template(relative_source, "#{relative_destination}/#{next_migration_string}_#{file_name}.rb", template_options)
+          migration_file_name = template_options[:migration_file_name] || file_name
+          raise "Another migration is already named #{migration_file_name}: #{existing_migrations(migration_file_name).first}" if migration_exists?(migration_file_name)
+          template(relative_source, "#{relative_destination}/#{next_migration_string}_#{migration_file_name}.rb", template_options)
         end
 
         private

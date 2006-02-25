@@ -87,7 +87,8 @@ module Rails
       initialize_dependency_mechanism
       initialize_breakpoints
       initialize_whiny_nils
-      
+      initialize_temporary_directories
+
       initialize_framework_settings
       
       # Support for legacy configuration style where the environment
@@ -246,6 +247,18 @@ module Rails
     # on +nil+ values) if Configuration#whiny_nils is true.
     def initialize_whiny_nils
       require('active_support/whiny_nil') if configuration.whiny_nils
+    end
+
+    def initialize_temporary_directories
+      if configuration.frameworks.include?(:action_controller)
+        session_path = "#{RAILS_ROOT}/tmp/sessions/"
+        ActionController::Base.session_options[:tmpdir] = File.exist?(session_path) ? session_path : Dir::tmpdir
+        
+        cache_path = "#{RAILS_ROOT}/tmp/cache/"
+        if File.exist?(cache_path)
+          ActionController::Base.fragment_cache_store = :file_store, cache_path
+        end
+      end
     end
 
     # Initializes framework-specific settings for each of the loaded frameworks
