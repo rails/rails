@@ -89,8 +89,9 @@ class AppGenerator < Rails::Generator::Base
     def add_options!(opt)
       opt.separator ''
       opt.separator 'Options:'
-      opt.on("--ruby [#{DEFAULT_SHEBANG}]",
-             "Path to the Ruby binary of your choice.") { |options[:shebang]| }
+      opt.on("-r", "--ruby", 
+             "Path to the Ruby binary of your choice.",
+             "Default: #{DEFAULT_SHEBANG}") { |options[:shebang]| }
 
       opt.on("-d", "--database=name", String,
              "Preconfigure for selected database (options: mysql/postgresql/sqlite2/sqlite3).",

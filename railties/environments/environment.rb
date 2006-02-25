@@ -20,13 +20,17 @@ Rails::Initializer.run do |config|
   # (by default production uses :info, the others :debug)
   # config.log_level = :debug
 
+  # Enable page/fragment caching by setting a file-based store
+  # (remember to create the caching directory and make it readable to the application)
+  # config.action_controller.fragment_cache_store = :file_store, "#{RAILS_ROOT}/cache"
+
   # Use the database for sessions instead of the file system
   # (create the session table with 'rake create_sessions_table')
   # config.action_controller.session_store = :active_record_store
 
-  # Enable page/fragment caching by setting a file-based store
-  # (remember to create the caching directory and make it readable to the application)
-  # config.action_controller.fragment_cache_store = :file_store, "#{RAILS_ROOT}/cache"
+  # Use Active Record's schema dumper instead of SQL when creating the test database
+  # (enables use of different database adapters for development and test environments)
+  # config.active_record.schema_format = :ruby
 
   # Activate observers that should always be running
   # config.active_record.observers = :cacher, :garbage_collector
@@ -34,10 +38,6 @@ Rails::Initializer.run do |config|
   # Make Active Record use UTC-base instead of local time
   # config.active_record.default_timezone = :utc
   
-  # Use Active Record's schema dumper instead of SQL when creating the test database
-  # (enables use of different database adapters for development and test environments)
-  # config.active_record.schema_format = :ruby
-
   # See Rails::Configuration for more options
 end
 
