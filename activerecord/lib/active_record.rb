@@ -49,6 +49,7 @@ require 'active_record/acts/nested_set'
 require 'active_record/locking'
 require 'active_record/migration'
 require 'active_record/schema'
+require 'active_record/calculations'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
@@ -63,6 +64,7 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Acts::Tree
   include ActiveRecord::Acts::List
   include ActiveRecord::Acts::NestedSet
+  include ActiveRecord::Calculations
 end
 
 unless defined?(RAILS_CONNECTION_ADAPTERS)

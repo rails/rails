@@ -1,5 +1,12 @@
 *SVN*
 
+* Added calculations: Base.count, Base.average, Base.sum, Base.minimum, Base.maxmium, and the generic Base.calculate. All can be used with :group and :having. Calculations and statitics need no longer require custom SQL. #3958 [Rick Olson]. Examples:
+
+    Person.average :age
+    Person.minimum :age
+    Person.maximum :age
+    Person.sum :salary, :group => :last_name
+
 * Renamed Errors#count to Errors#size but kept an alias for the old name (and included an alias for length too) #3920 [contact@lukeredpath.co.uk]
 
 * Reflections don't attempt to resolve module nesting of association classes. Simplify type computation. [Jeremy Kemper]
