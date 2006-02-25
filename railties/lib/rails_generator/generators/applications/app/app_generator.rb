@@ -4,16 +4,13 @@ class AppGenerator < Rails::Generator::Base
   DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'],
                               Config::CONFIG['ruby_install_name'])
   
-  default_options   :gem => true, :shebang => DEFAULT_SHEBANG
-  mandatory_options :source  => "#{File.dirname(__FILE__)}/../../../../.."
+  default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG
+  mandatory_options :source => "#{File.dirname(__FILE__)}/../../../../.."
 
   def initialize(runtime_args, runtime_options = {})
     super
     usage if args.empty?
     @destination_root = args.shift
-    unless RUBY_PLATFORM =~ /mswin32/
-      @socket = MYSQL_SOCKET_LOCATIONS.find { |f| File.exists?(f) }
-    end
   end
 
   def manifest
@@ -35,9 +32,9 @@ class AppGenerator < Rails::Generator::Base
       m.template "helpers/test_helper.rb",        "test/test_helper.rb"
 
       # database.yml and .htaccess
-      m.template "configs/database.yml", "config/database.yml", :assigns => {
+      m.template "configs/databases/#{options[:db]}.yml", "config/database.yml", :assigns => {
         :app_name => File.basename(File.expand_path(@destination_root)),
-        :socket => @socket
+        :socket   => options[:db] == "mysql" ? mysql_socket_location : nil
       }
       m.template "configs/routes.rb",     "config/routes.rb"
       m.template "configs/apache.conf",   "public/.htaccess"
@@ -64,15 +61,15 @@ class AppGenerator < Rails::Generator::Base
         m.template "html/#{file}.html", "public/#{file}.html"
       end
       
-      m.template "html/favicon.ico", "public/favicon.ico"
-      m.template "html/robots.txt", "public/robots.txt"
+      m.template "html/favicon.ico",  "public/favicon.ico"
+      m.template "html/robots.txt",   "public/robots.txt"
       m.file "html/images/rails.png", "public/images/rails.png"
 
       # Javascripts
-      m.file "html/javascripts/prototype.js",     "public/javascripts/prototype.js"
-      m.file "html/javascripts/effects.js",       "public/javascripts/effects.js"
-      m.file "html/javascripts/dragdrop.js",      "public/javascripts/dragdrop.js"
-      m.file "html/javascripts/controls.js",      "public/javascripts/controls.js"
+      m.file "html/javascripts/prototype.js", "public/javascripts/prototype.js"
+      m.file "html/javascripts/effects.js",   "public/javascripts/effects.js"
+      m.file "html/javascripts/dragdrop.js",  "public/javascripts/dragdrop.js"
+      m.file "html/javascripts/controls.js",  "public/javascripts/controls.js"
 
       # Docs
       m.file "doc/README_FOR_APP", "doc/README_FOR_APP"
@@ -94,9 +91,14 @@ class AppGenerator < Rails::Generator::Base
       opt.separator 'Options:'
       opt.on("--ruby [#{DEFAULT_SHEBANG}]",
              "Path to the Ruby binary of your choice.") { |options[:shebang]| }
-      opt.on("--without-gems",
-             "Don't use the Rails gems for your app.",
-             "WARNING: see note below.") { |options[:gem]| }
+
+      opt.on("-d", "--database=name", String,
+             "Preconfigure for selected database (options: mysql/postgresql/sqlite2/sqlite3).",
+             "Default: mysql") { |options[:db]| }
+    end
+    
+    def mysql_socket_location
+      RUBY_PLATFORM =~ /mswin32/ ? MYSQL_SOCKET_LOCATIONS.find { |f| File.exists?(f) } : nil
     end
 
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added -d/--database option to the rails command, so you can do "rails --database=sqlite2 myapp" to start a new application preconfigured to use SQLite2 as the database. Removed the configuration examples from SQLite and PostgreSQL from the default MySQL configuration [DHH]
+
 * Allow script/server -c /path/to/lighttpd.conf [Jeremy Kemper]
 
 * Remove hardcoded path to reaper script in script/server [Jeremy Kemper]

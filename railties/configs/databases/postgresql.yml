@@ -1,0 +1,44 @@
+# PostgreSQL versions 7.4 - 8.1
+#
+# Get the C bindings:
+#   gem install postgres
+# or use the pure-Ruby bindings on Windows:
+#   gem install postgres-pr
+development:
+  adapter: postgresql
+  database: <%= app_name %>_development
+  username: <%= app_name %>
+  password:
+
+  # Connect on a TCP socket.  Omitted by default since the client uses a
+  # domain socket that doesn't need configuration.  Windows does not have
+  # domain sockets, so uncomment these lines.
+  #host: localhost
+  #port: 5432
+
+  # Schema search path.  The server defaults to $user,public
+  #schema_search_path: myapp,sharedapp,public
+
+  # Character set encoding.  The server defaults to sql_ascii.
+  #encoding: UTF8
+
+  # Minimum log levels, in increasing order:
+  #   debug5, debug4, debug3, debug2, debug1,
+  #   info, notice, warning, error, log, fatal, or panic
+  # The server defaults to notice.
+  #min_messages: warning
+
+# Warning: The database defined as 'test' will be erased and
+# re-generated from your development database when you run 'rake'.
+# Do not set this db to the same as development or production.
+test:
+  adapter: postgresql
+  database: <%= app_name %>_test
+  username: <%= app_name %>
+  password:
+
+production:
+  adapter: postgresql
+  database: <%= app_name %>_production
+  username: <%= app_name %>
+  password:
