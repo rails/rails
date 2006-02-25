@@ -108,9 +108,11 @@ class CalculationsTest < Test::Unit::TestCase
   end
   
   def test_should_calculate_grouped_by_function_with_table_alias
-    c = Topic.count(:all, :group => 'DATE(topics.written_on)')
-    assert_equal 1, c["2003-07-15"]
-    assert_equal 1, c["2003-07-16"]
+    c = Company.count(:all, :group => 'UPPER(companies.type)')
+    assert_equal 2, c[nil]
+    assert_equal 1, c['DEPENDENTFIRM']
+    assert_equal 3, c['CLIENT']
+    assert_equal 2, c['FIRM']
   end
 
   def test_should_sum_scoped_field
