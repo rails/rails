@@ -1,5 +1,11 @@
 *SVN*
 
+* Added script.aculo.us drag and drop helpers to RJS [Thomas Fuchs]. Examples:
+
+    page.draggable 'product-1'
+    page.drop_receiving 'wastebasket', :url => { :action => 'delete' }
+    page.sortable 'todolist', :url => { action => 'change_order' }
+
 * Fixed that form elements would strip the trailing [] from the first parameter #3545 [ruby@bobsilva.com]
 
 * During controller resolution, update the NameError suppression to check for the expected constant. [Nicholas Seckar]

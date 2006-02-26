@@ -565,10 +565,30 @@ module ActionView
           record "}, #{(seconds * 1000).to_i})"
         end
         
-        # Starts a Scriptaculous visual effect. See 
+        # Starts a script.aculo.us visual effect. See 
         # ActionView::Helpers::ScriptaculousHelper for more information.
         def visual_effect(name, id, options = {})
           record @context.send(:visual_effect, name, id, options)
+        end
+        
+        # Creates a script.aculo.us sortable element. Useful
+        # to recreate sortable elements after items get added
+        # or deleted.
+        # See ActionView::Helpers::ScriptaculousHelper for more information.
+        def sortable(id, options = {})
+          record @context.send(:sortable_element_js, id, options)
+        end
+        
+        # Creates a script.aculo.us draggable element.
+        # See ActionView::Helpers::ScriptaculousHelper for more information.
+        def draggable(id, options = {})
+          record @context.send(:draggable_element_js, id, options)
+        end
+        
+        # Creates a script.aculo.us drop receiving element.
+        # See ActionView::Helpers::ScriptaculousHelper for more information.
+        def drop_receiving(id, options = {})
+          record @context.send(:drop_receiving_element_js, id, options)
         end
         
       private

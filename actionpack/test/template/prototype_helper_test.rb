@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 module BaseTest
   include ActionView::Helpers::JavaScriptHelper
   include ActionView::Helpers::PrototypeHelper
+  include ActionView::Helpers::ScriptaculousHelper
   
   include ActionView::Helpers::UrlHelper
   include ActionView::Helpers::TagHelper
@@ -254,5 +255,30 @@ Element.update("baz", "<p>This is a test</p>");
   def test_select_proxy_one_deep
     @generator.select('p.welcome b').first.hide
     assert_equal %($$('p.welcome b').first().hide();), @generator.to_s
+  end
+  
+  def test_visual_effect
+    assert_equal %(new Effect.Puff('blah',{});), 
+      @generator.visual_effect(:puff,'blah')
+  end 
+  
+  def test_visual_effect_toggle
+    assert_equal %(Effect.toggle('blah','appear',{});), 
+      @generator.visual_effect(:toggle_appear,'blah')
+  end
+  
+  def test_sortable
+    assert_equal %(Sortable.create('blah', {onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize('blah')})}});), 
+      @generator.sortable('blah', :url => { :action => "order" })
+  end
+  
+  def test_draggable
+    assert_equal %(new Draggable('blah', {});), 
+      @generator.draggable('blah')
+  end
+  
+  def test_drop_receiving
+    assert_equal %(Droppables.add('blah', {onDrop:function(element){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}});), 
+      @generator.drop_receiving('blah', :url => { :action => "order" })
   end
 end

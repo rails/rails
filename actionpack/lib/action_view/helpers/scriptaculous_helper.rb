@@ -67,6 +67,10 @@ module ActionView
       # You can change the behaviour with various options, see
       # http://script.aculo.us for more documentation.
       def sortable_element(element_id, options = {})
+        javascript_tag(sortable_element_js(element_id, options).chop!)
+      end
+      
+      def sortable_element_js(element_id, options = {}) #:nodoc:
         options[:with]     ||= "Sortable.serialize('#{element_id}')"
         options[:onUpdate] ||= "function(){" + remote_function(options) + "}"
         options.delete_if { |key, value| PrototypeHelper::AJAX_OPTIONS.include?(key) }
@@ -78,7 +82,7 @@ module ActionView
         options[:containment] = array_or_string_for_javascript(options[:containment]) if options[:containment]
         options[:only] = array_or_string_for_javascript(options[:only]) if options[:only]
   
-        javascript_tag("Sortable.create('#{element_id}', #{options_for_javascript(options)})")
+        %(Sortable.create('#{element_id}', #{options_for_javascript(options)});)
       end
 
       # Makes the element with the DOM ID specified by +element_id+ draggable.
@@ -87,9 +91,13 @@ module ActionView
       #   <%= draggable_element("my_image", :revert => true)
       # 
       # You can change the behaviour with various options, see
-      # http://script.aculo.us for more documentation. 
+      # http://script.aculo.us for more documentation.
       def draggable_element(element_id, options = {})
-        javascript_tag("new Draggable('#{element_id}', #{options_for_javascript(options)})")
+        javascript_tag(draggable_element_js(element_id, options).chop!)
+      end
+      
+      def draggable_element_js(element_id, options = {}) #:nodoc:
+        %(new Draggable('#{element_id}', #{options_for_javascript(options)});)
       end
 
       # Makes the element with the DOM ID specified by +element_id+ receive
@@ -104,14 +112,18 @@ module ActionView
       # You can change the behaviour with various options, see
       # http://script.aculo.us for more documentation.
       def drop_receiving_element(element_id, options = {})
+        javascript_tag(drop_receiving_element_js(element_id, options).chop!)
+      end
+      
+      def drop_receiving_element_js(element_id, options = {}) #:nodoc:
         options[:with]     ||= "'id=' + encodeURIComponent(element.id)"
         options[:onDrop]   ||= "function(element){" + remote_function(options) + "}"
         options.delete_if { |key, value| PrototypeHelper::AJAX_OPTIONS.include?(key) }
-  
+
         options[:accept] = array_or_string_for_javascript(options[:accept]) if options[:accept]    
         options[:hoverclass] = "'#{options[:hoverclass]}'" if options[:hoverclass]
-  
-        javascript_tag("Droppables.add('#{element_id}', #{options_for_javascript(options)})")
+        
+        %(Droppables.add('#{element_id}', #{options_for_javascript(options)});)
       end
     end
   end
