@@ -1,5 +1,7 @@
 *SVN*
 
+* Added more information to script/plugin's doings to ease debugging #3755 [Rick Olson]
+
 * Changed the default configuration for lighttpd to use tmp/sockets instead of log/ for the FastCGI sockets [DHH]
 
 * Added a default configuration of the FileStore for fragment caching if tmp/cache is available, which makes action/fragment caching ready to use out of the box with no additional configuration [DHH]
@@ -19,8 +21,6 @@
 * Update script.aculo.us to V1.5.3 [Thomas Fuchs]
 
 * Added SIGTRAP signal handler to RailsFCGIHandler that'll force the process into a breakpoint after the next request. This breakpoint can then be caught with script/breakpointer and give you access to the Ruby image inside that process. Useful for debugging memory leaks among other things [DHH]
-
-* Update script.aculo.us to V1.5.2 [Thomas Fuchs]
 
 * Changed default lighttpd.conf to use CWD from lighttpd 1.4.10 that allows the same configuration to be used for both detach and not. Also ensured that auto-repeaping of FCGIs only happens when lighttpd is not detached. [DHH]
 
@@ -48,15 +48,7 @@
 
 * Reap FCGI processes after lighttpd exits. [Sam Stephenson]
 
-* Update to script.aculo.us to 1.5.0 rev. 3343 [Thomas Fuchs]
-
 * Honor ActiveRecord::Base.pluralize_table_names when creating and destroying session store table. #3204. [rails@bencurtis.com, Marcel Molina Jr.]
-
-* Update to script.aculo.us 1.5.0 final (equals 1.5.0_rc6) [Thomas Fuchs]
-
-* Update to Prototype 1.4.0 final [Sam Stephenson]
-
-* Update to script.aculo.us 1.5.0_rc6
 
 * Update instructions on how to find and install generators. #3172. [Chad Fowler]
 
@@ -90,19 +82,13 @@
 
 * Introducing the session_migration generator.  Creates an add_session_table migration.  Allows generator to specify migrations directory.  #2958, #2960 [Rick Olson]
 
-* Update to Prototype 1.4.0_rc4. Closes #2943 (old Array.prototype.reverse behavior can be obtained by passing false as an argument). [Sam Stephenson]
-
 * script/console uses RAILS_ENV environment variable if present.  #2932 [Blair Zajac <blair@orcaware.com>
 
 * Windows: eliminate the socket option in database.yml.  #2924 [Wayne Vucenic <waynev@gmail.com>]
 
 * Eliminate nil from newly generated logfiles.  #2927 [Blair Zajac <blair@orcaware.com>]
 
-* Update to Prototype 1.4.0_rc3. Closes #1893, #2505, #2550, #2748, #2783. [Sam Stephenson]
-
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
-
-* Update to latest script.aculo.us version (as of [3031])
 
 * Eliminate Subversion dependencies in scripts/plugin.  Correct install options.  Introduce --force option to reinstall a plugin.  Remove useless --long option for list.  Use --quiet to quiet the download output and --revision to update to a specific svn revision.  #2842 [Chad Fowler, Rick Olson]
 
@@ -125,6 +111,7 @@
 * Correct versioning in :freeze_gems Rake task.  #2778 [jakob@mentalized.net, Jeremy Kemper]
 
 * Added an omnipresent RailsInfoController with a properties action that delivers an HTML rendering of Rails::Info (but only when local_request? is true). Added a new default index.html which fetches this with Ajax. [Sam Stephenson]
+
 
 *0.14.3 (RC4)* (November 7th, 2005)
 

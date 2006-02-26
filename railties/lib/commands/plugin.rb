@@ -175,6 +175,7 @@ class Plugin
   def uninstall
     path = "#{rails_env.root}/vendor/plugins/#{name}"
     if File.directory?(path)
+      puts "Removing 'vendor/plugins/#{name}'" if $verbose
       rm_r path
     else
       puts "Plugin doesn't exist: #{path}"
@@ -211,6 +212,7 @@ class Plugin
       root = rails_env.root
       mkdir_p "#{root}/vendor/plugins"
       Dir.chdir "#{root}/vendor/plugins"
+      puts "fetching from '#{uri}'" if $verbose
       fetcher = RecursiveHTTPFetcher.new(uri)
       fetcher.quiet = true if options[:quiet]
       fetcher.fetch
@@ -222,6 +224,7 @@ class Plugin
       base_cmd = "svn #{cmd} #{uri} \"#{root}/vendor/plugins/#{name}\""
       base_cmd += ' -q' if options[:quiet] and not $verbose
       base_cmd += " -r #{options[:revision]}" if options[:revision]
+      puts base_cmd if $verbose
       system(base_cmd)
     end
 
@@ -331,8 +334,7 @@ class Repository
   attr_reader :uri, :plugins
   
   def initialize(uri)
-    uri << "/" unless uri =~ /\/$/
-    @uri = uri
+    @uri = uri.chomp('/') << "/"
     @plugins = nil
   end
   
