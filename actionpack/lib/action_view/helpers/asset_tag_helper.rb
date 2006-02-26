@@ -131,7 +131,7 @@ module ActionView
       # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
       # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
       def image_tag(source, options = {})
-        options.symbolize_keys
+        options.symbolize_keys!
                 
         options[:src] = image_path(source)
         options[:alt] ||= File.basename(options[:src], '.*').split('.').first.capitalize
