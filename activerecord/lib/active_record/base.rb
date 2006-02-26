@@ -828,20 +828,40 @@ module ActiveRecord #:nodoc:
       end
 
       # Scope parameters to method calls within the block.  Takes a hash of method_name => parameters hash.
-      # method_name may be :find or :create.
-      # :find parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
-      # <tt>:offset</tt>, <tt>:limit</tt>, and <tt>:readonly</tt> options.
-      # :create parameters are an attributes hash.
+      # method_name may be :find or :create. :find parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
+      # <tt>:offset</tt>, <tt>:limit</tt>, and <tt>:readonly</tt> options. :create parameters are an attributes hash.
       #
       #   Article.with_scope(:find => { :conditions => "blog_id = 1" }, :create => { :blog_id => 1 }) do
       #     Article.find(1) # => SELECT * from articles WHERE blog_id = 1 AND id = 1
       #     a = Article.create(1)
-      #     a.blog_id == 1
+      #     a.blog_id # => 1
       #   end
-      def with_scope(method_scoping = {})
+      #
+      # In nested scopings, all previous parameters are overwritten by inner rule
+      # except :conditions in :find, that are merged as hash.
+      #
+      #   Article.with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }, :create => { :blog_id => 1 }) do
+      #     Article.with_scope(:find => { :limit => 10})
+      #       Article.find(:all) # => SELECT * from articles WHERE blog_id = 1 LIMIT 10
+      #     end
+      #     Article.with_scope(:find => { :conditions => "author_id = 3" })
+      #       Article.find(:all) # => SELECT * from articles WHERE blog_id = 1 AND author_id = 3 LIMIT 1
+      #     end
+      #   end
+      #
+      # You can ignore any previous scopings by using <tt>with_exclusive_scope</tt> method.
+      #
+      #   Article.with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }) do
+      #     Article.with_exclusive_scope(:find => { :limit => 10 })
+      #       Article.find(:all) # => SELECT * from articles LIMIT 10
+      #     end
+      #   end
+      def with_scope(method_scoping = {}, action = :merge, &block)
+        method_scoping = method_scoping.method_scoping if method_scoping.respond_to?(:method_scoping)
+
         # Dup first and second level of hash (method and params).
         method_scoping = method_scoping.inject({}) do |hash, (method, params)|
-          hash[method] = params.dup
+          hash[method] = (params == true) ? params : params.dup
           hash
         end
 
@@ -852,12 +872,40 @@ module ActiveRecord #:nodoc:
           f[:readonly] = true if !f[:joins].blank? && !f.has_key?(:readonly)
         end
 
-        raise ArgumentError, "Nested scopes are not yet supported: #{scoped_methods.inspect}" unless scoped_methods.nil?
+        # Merge scopings
+        if action == :merge && current_scoped_methods
+          method_scoping = current_scoped_methods.inject(method_scoping) do |hash, (method, params)|
+            case hash[method]
+              when Hash
+                if method == :find && hash[method][:conditions] && params[:conditions]
+                  (hash[method].keys + params.keys).uniq.each do |key|
+                    if key == :conditions
+                      hash[method][key] = [params[key], hash[method][key]].collect{|sql| "( %s )" % sanitize_sql(sql)}.join(" AND ")
+                    else
+                      hash[method][key] = hash[method][key] || params[key]
+                    end
+                  end
+                else
+                  hash[method] = params.merge(hash[method])
+                end
+              else
+                hash[method] = params
+            end
+            hash
+          end
+        end
 
-        self.scoped_methods = method_scoping
-        yield
-      ensure 
-        self.scoped_methods = nil
+        self.scoped_methods << method_scoping
+
+        begin
+          yield
+        ensure 
+          self.scoped_methods.pop
+        end
+      end
+
+      def with_exclusive_scope(method_scoping = {}, &block)
+        with_scope(method_scoping, :overwrite, &block)
       end
 
       # Overwrite the default class equality method to provide support for association proxies.
@@ -1076,12 +1124,12 @@ module ActiveRecord #:nodoc:
 
         # Test whether the given method and optional key are scoped.
         def scoped?(method, key = nil)
-          scoped_methods and scoped_methods.has_key?(method) and (key.nil? or scope(method).has_key?(key))
+          current_scoped_methods && current_scoped_methods.has_key?(method) && (key.nil? || scope(method).has_key?(key))
         end
 
         # Retrieve the scope for the given method and optional key.
         def scope(method, key = nil)
-          if scoped_methods and scope = scoped_methods[method]
+          if current_scoped_methods && scope = current_scoped_methods[method]
             key ? scope[key] : scope
           end
         end
@@ -1089,19 +1137,14 @@ module ActiveRecord #:nodoc:
         def scoped_methods
           if allow_concurrency
             Thread.current[:scoped_methods] ||= {}
-            Thread.current[:scoped_methods][self] ||= nil
+            Thread.current[:scoped_methods][self] ||= []
           else
-            @scoped_methods ||= nil
+            @scoped_methods ||= []
           end
         end
 
-        def scoped_methods=(value)
-          if allow_concurrency
-            Thread.current[:scoped_methods] ||= {}
-            Thread.current[:scoped_methods][self] = value
-          else
-            @scoped_methods = value
-          end
+        def current_scoped_methods
+          scoped_methods.last
         end
 
         # Returns the class type of the record using the current module as a prefix. So descendents of

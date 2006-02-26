@@ -1,5 +1,21 @@
 *SVN*
 
+* Added support for nested scopes #3407 [anna@wota.jp]. Examples:
+
+    Developer.with_scope(:find => { :conditions => "salary > 10000", :limit => 10 }) do
+      Developer.find(:all)     # => SELECT * FROM developers WHERE (salary > 10000) LIMIT 10
+
+      # inner rule is used. (all previous parameters are ignored)
+      Developer.with_exclusive_scope(:find => { :conditions => "name = 'Jamis'" }) do
+        Developer.find(:all)   # => SELECT * FROM developers WHERE (name = 'Jamis')
+      end
+
+      # parameters are merged
+      Developer.with_scope(:find => { :conditions => "name = 'Jamis'" }) do
+        Developer.find(:all)   # => SELECT * FROM developers WHERE (( salary > 10000 ) AND ( name = 'Jamis' )) LIMIT 10
+      end
+    end
+
 * Fixed db2 connection with empty user_name and auth options #3622 [phurley@gmail.com]
 
 * Fixed validates_length_of to work on UTF-8 strings by using characters instead of bytes #3699 [Masao Mutoh]
