@@ -160,8 +160,12 @@ module ActiveRecord
       end
 
       def reconnect!
-        @connection.close rescue nil
+        disconnect!
         connect
+      end
+      
+      def disconnect!
+        @connection.close rescue nil
       end
 
 

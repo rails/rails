@@ -57,11 +57,17 @@ module ActiveRecord
 
       # Is this connection active and ready to perform queries?
       def active?
-        true
+        @active != false
       end
 
       # Close this connection and open a new one in its place.
       def reconnect!
+        @active = true
+      end
+
+      # Close this connection
+      def disconnect!
+        @active = false
       end
 
 

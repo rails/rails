@@ -216,11 +216,17 @@ module ActiveRecord
 
       # Reconnects to the database, returns false if no connection could be made.
       def reconnect!
-        @connection.disconnect rescue nil
+        disconnect!
         @connection = DBI.connect(*@connection_options)
       rescue DBI::DatabaseError => e
         @logger.warn "#{adapter_name} reconnection failed: #{e.message}" if @logger
         false
+      end
+      
+      # Disconnects from the database
+      
+      def disconnect!
+        @connection.disconnect rescue nil
       end
 
       def select_all(sql, name = nil)

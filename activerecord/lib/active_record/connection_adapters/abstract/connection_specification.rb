@@ -129,12 +129,13 @@ module ActiveRecord
     # can be used as argument for establish_connection, for easy
     # re-establishing of the connection.
     def self.remove_connection(klass=self)
-      conn = @@defined_connections[klass.name]
-      @@defined_connections.delete(klass.name)
-      @@connection_cache[Thread.current.object_id].delete(klass.name)
-      active_connections.delete(klass.name)
-      @connection = nil
-      conn.config if conn
+      spec = @@defined_connections[klass.name]
+      konn = active_connections[klass.name]
+      @@defined_connections.delete_if { |key, value| value == spec }
+      @@connection_cache[Thread.current.object_id].delete_if { |key, value| value == konn }
+      active_connections.delete_if { |key, value| value == konn }
+      konn.disconnect! if konn
+      spec.config if spec
     end
 
     # Set the connection for the class.

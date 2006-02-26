@@ -75,6 +75,11 @@ module ActiveRecord
           configure_connection
         end
       end
+      
+      def disconnect!
+        # Both postgres and postgres-pr respond to :close
+        @connection.close rescue nil
+      end
 
       def native_database_types
         {
