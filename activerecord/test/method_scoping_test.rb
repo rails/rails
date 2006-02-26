@@ -184,7 +184,7 @@ class NestedScopingTest < Test::Unit::TestCase
     poor_jamis = developers(:poor_jamis)
     Developer.with_scope(:find => { :conditions => "salary < 100000" }) do
       Developer.with_scope(:find => { :offset => 1 }) do
-        assert_equal(poor_jamis, Developer.find(:first))
+        assert_equal(poor_jamis, Developer.find(:first, :order => 'id asc'))
       end
     end
   end
