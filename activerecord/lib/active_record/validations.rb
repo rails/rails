@@ -364,8 +364,14 @@ module ActiveRecord
         end
       end
 
-      # Validates that the specified attributes are not blank (as defined by Object#blank?). Happens by default on save.
+      # Validates that the specified attributes are not blank (as defined by Object#blank?). Happens by default on save. Example:
       #
+      #   class Person < ActiveRecord::Base
+      #     validates_presence_of :first_name
+      #   end
+      #
+      # The first_name attribute must be in the object and it cannot be blank.
+      #      
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "can't be blank")
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
