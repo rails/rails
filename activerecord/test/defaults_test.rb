@@ -1,8 +1,8 @@
 require 'abstract_unit'
 require 'fixtures/default'
 
-class DefaultsTest < Test::Unit::TestCase
-  if %w(PostgreSQL).include? ActiveRecord::Base.connection.adapter_name
+if %w(PostgreSQL).include? ActiveRecord::Base.connection.adapter_name
+  class DefaultsTest < Test::Unit::TestCase
     def test_default_integers
       default = Default.new
       assert_instance_of(Fixnum, default.positive_integer)
