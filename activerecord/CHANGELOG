@@ -1,5 +1,7 @@
 *SVN*
 
+* ActiveRecord::Base.remove_connection explicitly closes database connections and doesn't corrupt the connection cache. Introducing the disconnect! instance method for the PostgreSQL, MySQL, and SQL Server adapters; implementations for the others are welcome.  #3591 [Simon Stapleton, Tom Ward]
+
 * Added support for nested scopes #3407 [anna@wota.jp]. Examples:
 
     Developer.with_scope(:find => { :conditions => "salary > 10000", :limit => 10 }) do

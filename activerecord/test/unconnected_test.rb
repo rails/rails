@@ -7,19 +7,26 @@ class TestUnconnectedAdaptor < Test::Unit::TestCase
   self.use_transactional_fixtures = false
 
   def setup
-    @connection = ActiveRecord::Base.remove_connection
+    @underlying = ActiveRecord::Base.connection
+    @specification = ActiveRecord::Base.remove_connection
   end
 
   def teardown
-    ActiveRecord::Base.establish_connection(@connection)
+    @underlying = nil
+    ActiveRecord::Base.establish_connection(@specification)
   end
 
-  def test_unconnected
+  def test_connection_no_longer_established
     assert_raise(ActiveRecord::ConnectionNotEstablished) do
-      TestRecord.find(1)   
+      TestRecord.find(1)
     end
+
     assert_raise(ActiveRecord::ConnectionNotEstablished) do
-      TestRecord.new.save   
+      TestRecord.new.save
     end
+  end
+
+  def test_underlying_adapter_no_longer_active
+    assert !@underlying.active?, "Removed adapter should no longer be active"
   end
 end
