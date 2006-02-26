@@ -1348,17 +1348,19 @@ module ActiveRecord #:nodoc:
       # from this form of mass-assignment by using the +attr_protected+ macro. Or you can alternatively
       # specify which attributes *can* be accessed in with the +attr_accessible+ macro. Then all the
       # attributes not included in that won't be allowed to be mass-assigned.
-      def attributes=(attrs)
-        return if attrs.nil?
-        attributes= attrs.dup
+      def attributes=(new_attributes)
+        return if new_attributes.nil?
+        attributes = new_attributes.dup
         attributes.stringify_keys!
 
         multi_parameter_attributes = []
         remove_attributes_protected_from_mass_assignment(attributes).each do |k, v|
           k.include?("(") ? multi_parameter_attributes << [ k, v ] : send(k + "=", v)
         end
+
         assign_multiparameter_attributes(multi_parameter_attributes)
       end
+
 
       # Returns a hash of all the attributes with their names as keys and clones of their objects as values.
       def attributes
