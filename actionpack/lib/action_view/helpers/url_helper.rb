@@ -218,7 +218,7 @@ module ActionView
           for i in 0...tmp.length
             string << sprintf("%%%x",tmp[i])
           end
-          "<script type=\"text/javascript\" language=\"javascript\">eval(unescape('#{string}'))</script>"
+          "<script type=\"text/javascript\">eval(unescape('#{string}'))</script>"
         elsif encode == 'hex'
           for i in 0...email_address.length
             if email_address[i,1] =~ /\w/
