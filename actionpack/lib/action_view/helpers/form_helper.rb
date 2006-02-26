@@ -231,7 +231,7 @@ module ActionView
       DEFAULT_DATE_OPTIONS = { :discard_type => true }.freeze unless const_defined?(:DEFAULT_DATE_OPTIONS)
 
       def initialize(object_name, method_name, template_object, local_binding = nil, object = nil)
-        @object_name, @method_name = object_name.to_s, method_name.to_s
+        @object_name, @method_name = object_name.to_s.dup, method_name.to_s.dup
         @template_object, @local_binding = template_object, local_binding
         @object = object
         if @object_name.sub!(/\[\]$/,"")

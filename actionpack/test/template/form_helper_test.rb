@@ -68,6 +68,13 @@ class FormHelperTest < Test::Unit::TestCase
     assert_dom_equal expected, text_field("post", "title", :maxlength => 35)
   end
 
+  def test_text_field_doesnt_change_param_values
+    object_name = 'post[]'
+    expected = '<input id="post_123_title" name="post[123][title]" size="30" type="text" value="Hello World" />'
+    assert_equal expected, text_field(object_name, "title")
+    assert_equal object_name, "post[]"
+  end
+
   def test_check_box
     assert_dom_equal(
       '<input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="1" /><input name="post[secret]" type="hidden" value="0" />',
