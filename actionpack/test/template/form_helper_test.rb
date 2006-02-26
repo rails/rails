@@ -30,7 +30,9 @@ class FormHelperTest < Test::Unit::TestCase
     @post.written_on  = Date.new(2004, 6, 15)
 
     @controller = Class.new do
+      attr_reader :url_for_options
       def url_for(options, *parameters_for_method_reference)
+        @url_for_options = options
         "http://www.example.com"
       end
     end
@@ -353,6 +355,23 @@ class FormHelperTest < Test::Unit::TestCase
     expected = "<form action=\"http://www.example.com\" class=\"some_class\" id=\"some_form\" method=\"post\"></form>"
     
     assert_dom_equal expected, _erbout
+  end
+  
+  def test_form_for_with_string_url_option
+    _erbout = ''
+
+    form_for(:post, @post, :url => 'http://www.otherdomain.com') do |f| end
+
+    assert_equal 'http://www.otherdomain.com', @controller.url_for_options
+  end
+
+  def test_form_for_with_hash_url_option
+    _erbout = ''
+
+    form_for(:post, @post, :url => {:controller => 'controller', :action => 'action'}) do |f| end
+
+    assert_equal 'controller', @controller.url_for_options[:controller]
+    assert_equal 'action', @controller.url_for_options[:action]
   end
   
   def test_remote_form_for_with_html_options_adds_options_to_form_tag

@@ -122,7 +122,7 @@ module ActionView
       #
       def form_for(object_name, object, options = {}, &proc)
         raise ArgumentError, "Missing block" unless block_given?
-        concat(form_tag(options, options.delete(:html) || {}), proc.binding)
+        concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}), proc.binding)
         fields_for(object_name, object, options, &proc)
         concat('</form>', proc.binding)
       end
