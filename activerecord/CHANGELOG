@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed db2 connection with empty user_name and auth options #3622 [phurley@gmail.com]
+
 * Fixed validates_length_of to work on UTF-8 strings by using characters instead of bytes #3699 [Masao Mutoh]
 
 * Fixed that reflections would bleed across class boundaries in single-table inheritance setups #3796 [lars@pind.com]

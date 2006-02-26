@@ -66,7 +66,7 @@ module DB2
     end
 
     def connect(server_name, user_name = '', auth = '')
-      check_rc(SQLConnect(@handle, server_name, user_name, auth))
+      check_rc(SQLConnect(@handle, server_name, user_name.to_s, auth.to_s))
     end
 
     def set_connect_attr(attr, value)
