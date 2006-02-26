@@ -152,6 +152,12 @@ module ActiveSupport #:nodoc:
           change(:mday => last_day,:hour => 0, :min => 0, :sec => 0, :usec => 0)
         end
         alias :at_end_of_month :end_of_month
+		  
+        # Returns  a new Time representing the start of the quarter (1st of january, april, july, october, 0:00)
+        def beginning_of_quarter
+          beginning_of_month.change(:month => [10, 7, 4, 1].detect { |m| m <= self.month })
+        end
+        alias :at_beginning_of_quarter :beginning_of_quarter
         
         # Returns  a new Time representing the start of the year (1st of january, 0:00)
         def beginning_of_year
