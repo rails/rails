@@ -1,5 +1,10 @@
 *SVN*
 
+* Add 'around' methods to Logger,  to make it easy to log before and after messages for a given block as requested in #3809. [Michael Koziarski]  Example:
+
+  logger.around_info("Start rendering component (#{options.inspect}): ", 
+                     "\n\nEnd of component rendering") { yield }
+
 * Added Time#beginning_of_quarter #3607 [cohen.jeff@gmail.com]
 
 * Fix Object.subclasses_of to only return currently defined objects [Jonathan Viney <jonathan@bluewire.net.nz>]
