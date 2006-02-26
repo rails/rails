@@ -109,7 +109,7 @@ module ActionController #:nodoc:
 
       private 
         def default_helper_module!
-          module_name = name.sub(/^Controllers::/, '').sub(/Controller$|$/, 'Helper')
+          module_name = name.sub(/Controller$|$/, 'Helper')
           module_path = module_name.split('::').map { |m| m.underscore }.join('/')
           require_dependency module_path
           helper module_name.constantize
@@ -128,7 +128,7 @@ module ActionController #:nodoc:
           rescue MissingSourceFile => e
             raise unless e.is_missing?("helpers/#{child.controller_path}_helper")
           end
-        end        
+        end
     end
   end
 end

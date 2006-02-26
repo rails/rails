@@ -98,10 +98,6 @@ class Module #:nodoc:
   # Use const_missing to autoload associations so we don't have to
   # require_association when using single-table inheritance.
   def const_missing(class_id)
-    if Object.const_defined?(:Controllers) && Object::Controllers.const_available?(class_id)
-      return Object::Controllers.const_get(class_id)
-    end
-    
     file_name = class_id.to_s.demodulize.underscore
     file_path = as_load_path.empty? ? file_name : "#{as_load_path}/#{file_name}"
     begin

@@ -324,8 +324,6 @@ module ActionController #:nodoc:
         unless @controller_path
           components = self.name.to_s.split('::')
           components[-1] = $1 if /^(.*)Controller$/ =~ components.last
-          # Accomodate the root Controllers module.
-          components.shift if components.first == 'Controllers'
           @controller_path = components.map { |name| name.underscore }.join('/')
         end
 
