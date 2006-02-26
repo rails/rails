@@ -1,5 +1,10 @@
 *SVN*
 
+* Added collision option to template generation in generators #3329 [anna@wota.jp]. Examples:
+
+    m.template "stuff.config" , "config/stuff.config" , :collision => :skip
+    m.template "auto-stamping", "config/generator.log", :collision => :force
+
 * Added more information to script/plugin's doings to ease debugging #3755 [Rick Olson]
 
 * Changed the default configuration for lighttpd to use tmp/sockets instead of log/ for the FastCGI sockets [DHH]

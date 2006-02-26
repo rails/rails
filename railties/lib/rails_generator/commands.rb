@@ -163,11 +163,13 @@ module Rails
 
         # Copy a file from source to destination with collision checking.
         #
-        # The file_options hash accepts :chmod and :shebang options.
+        # The file_options hash accepts :chmod and :shebang and :collision options.
         # :chmod sets the permissions of the destination file:
         #   file 'config/empty.log', 'log/test.log', :chmod => 0664
         # :shebang sets the #!/usr/bin/ruby line for scripts
         #   file 'bin/generate.rb', 'script/generate', :chmod => 0755, :shebang => '/usr/bin/env ruby'
+        # :collision sets the collision option only for the destination file: 
+        #   file 'settings/server.yml', 'config/server.yml', :collision => :skip
         #
         # Collisions are handled by checking whether the destination file
         # exists and either skipping the file, forcing overwrite, or asking
@@ -188,7 +190,7 @@ module Rails
 
             # Make a choice whether to overwrite the file.  :force and
             # :skip already have their mind made up, but give :ask a shot.
-            choice = case options[:collision].to_sym #|| :ask
+            choice = case (file_options[:collision] || options[:collision]).to_sym #|| :ask
               when :ask   then force_file_collision?(relative_destination)
               when :force then :force
               when :skip  then :skip
