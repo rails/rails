@@ -1,5 +1,7 @@
 *SVN*
 
+* Added -r/--repeat option to script/process/spawner that offers the same loop protection as the spinner did. This deprecates the script/process/spinner, so it's no longer included in the default Rails skeleton, but still available for backwards compatibility #3461 [ror@andreas-s.net]
+
 * Added collision option to template generation in generators #3329 [anna@wota.jp]. Examples:
 
     m.template "stuff.config" , "config/stuff.config" , :collision => :skip
