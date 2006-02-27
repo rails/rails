@@ -1544,19 +1544,19 @@ module ActiveRecord #:nodoc:
       # table with a master_id foreign key can instantiate master through Client#master.
       def method_missing(method_id, *args, &block)
         method_name = method_id.to_s
-        if @attributes.include?(method_name)
+        if @attributes.include?(method_name) or
+            (md = /\?$/.match(method_name) and
+            @attributes.include?(method_name = md.pre_match))
           define_read_methods if self.class.read_methods.empty? && self.class.generate_read_methods
-          read_attribute(method_name)
+          md ? query_attribute(method_name) : read_attribute(method_name)
         elsif self.class.primary_key.to_s == method_name
           id
-        elsif md = /(=|\?|_before_type_cast)$/.match(method_name)
+        elsif md = /(=|_before_type_cast)$/.match(method_name)
           attribute_name, method_type = md.pre_match, md.to_s
           if @attributes.include?(attribute_name)
             case method_type
               when '='
                 write_attribute(attribute_name, args.first)
-              when '?'
-                query_attribute(attribute_name)
               when '_before_type_cast'
                 read_attribute_before_type_cast(attribute_name)
             end
@@ -1610,12 +1610,15 @@ module ActiveRecord #:nodoc:
         unless attr_name.to_s == self.class.primary_key.to_s
           access_code = access_code.insert(0, "raise NoMethodError, 'missing attribute: #{attr_name}', caller unless @attributes.has_key?('#{attr_name}'); ")
           self.class.read_methods << attr_name
+          self.class.read_methods << "#{attr_name}?"
         end
 
         begin
           self.class.class_eval("def #{symbol}; #{access_code}; end")
+          self.class.class_eval("def #{symbol}?; query_attribute('#{attr_name}'); end")
         rescue SyntaxError => err
           self.class.read_methods.delete(attr_name)
+          self.class.read_methods.delete("#{attr_name}?")
           if logger
             logger.warn "Exception occured during reader method compilation."
             logger.warn "Maybe #{attr_name} is not a valid Ruby identifier?"
