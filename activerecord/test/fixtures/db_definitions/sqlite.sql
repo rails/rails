@@ -4,6 +4,11 @@ CREATE TABLE 'accounts' (
   'credit_limit' INTEGER DEFAULT NULL
 );
 
+CREATE TABLE 'funny_jokes' (
+  'id' INTEGER PRIMARY KEY NOT NULL,
+  'name' TEXT DEFAULT NULL
+);
+
 CREATE TABLE 'companies' (
   'id' INTEGER PRIMARY KEY NOT NULL,
   'type' VARCHAR(255) DEFAULT NULL,

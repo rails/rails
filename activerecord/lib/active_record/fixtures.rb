@@ -237,14 +237,13 @@ class Fixtures < YAML::Omap
   cattr_accessor :all_loaded_fixtures
   self.all_loaded_fixtures = {}
 
-  def self.create_fixtures(fixtures_directory, *table_names)
+  def self.create_fixtures(fixtures_directory, table_names, class_names)
     table_names = table_names.flatten.map { |n| n.to_s }
     connection = block_given? ? yield : ActiveRecord::Base.connection
-
     ActiveRecord::Base.silence do
       fixtures_map = {}
       fixtures = table_names.map do |table_name|
-        fixtures_map[table_name] = Fixtures.new(connection, File.split(table_name.to_s).last, File.join(fixtures_directory, table_name.to_s))
+        fixtures_map[table_name] = Fixtures.new(connection, File.split(table_name.to_s).last, class_names[table_name.to_sym], File.join(fixtures_directory, table_name.to_s))
       end               
       all_loaded_fixtures.merge! fixtures_map  
 
@@ -267,10 +266,10 @@ class Fixtures < YAML::Omap
 
   attr_reader :table_name
 
-  def initialize(connection, table_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
+  def initialize(connection, table_name, class_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
     @connection, @table_name, @fixture_path, @file_filter = connection, table_name, fixture_path, file_filter
-
-    @class_name = ActiveRecord::Base.pluralize_table_names ? @table_name.singularize.camelize : @table_name.camelize
+    @class_name = class_name || 
+                  (ActiveRecord::Base.pluralize_table_names ? @table_name.singularize.camelize : @table_name.camelize)
     @table_name = ActiveRecord::Base.table_name_prefix + @table_name + ActiveRecord::Base.table_name_suffix
     read_fixture_files
   end
@@ -423,6 +422,7 @@ module Test #:nodoc:
     class TestCase #:nodoc:
       cattr_accessor :fixture_path
       class_inheritable_accessor :fixture_table_names
+      class_inheritable_accessor :fixture_class_names
       class_inheritable_accessor :use_transactional_fixtures
       class_inheritable_accessor :use_instantiated_fixtures   # true, false, or :no_instances
       class_inheritable_accessor :pre_loaded_fixtures
@@ -431,9 +431,16 @@ module Test #:nodoc:
       self.use_transactional_fixtures = false
       self.use_instantiated_fixtures = true
       self.pre_loaded_fixtures = false
-
+      
+      self.fixture_class_names = {}
+      
       @@already_loaded_fixtures = {}
-
+      self.fixture_class_names = {}
+      
+      def self.set_fixture_class(class_names = {})
+        self.fixture_class_names = self.fixture_class_names.merge(class_names)
+      end
+      
       def self.fixtures(*table_names)
         table_names = table_names.flatten.map { |n| n.to_s }
         self.fixture_table_names |= table_names
@@ -548,7 +555,7 @@ module Test #:nodoc:
       private
         def load_fixtures
           @loaded_fixtures = {}
-          fixtures = Fixtures.create_fixtures(fixture_path, fixture_table_names)
+          fixtures = Fixtures.create_fixtures(fixture_path, fixture_table_names, fixture_class_names)
           unless fixtures.nil?
             if fixtures.instance_of?(Fixtures)
               @loaded_fixtures[fixtures.table_name] = fixtures

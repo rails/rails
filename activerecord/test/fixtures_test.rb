@@ -4,6 +4,7 @@ require 'fixtures/developer'
 require 'fixtures/company'
 require 'fixtures/task'
 require 'fixtures/reply'
+require 'fixtures/joke'
 
 class FixturesTest < Test::Unit::TestCase
   self.use_instantiated_fixtures = true
@@ -110,7 +111,7 @@ class FixturesTest < Test::Unit::TestCase
 
   def test_deprecated_yaml_extension
     assert_raise(Fixture::FormatError) {
-      Fixtures.new(nil, 'bad_extension', File.join(File.dirname(__FILE__), 'fixtures'))
+      Fixtures.new(nil, 'bad_extension', 'BadExtension', File.join(File.dirname(__FILE__), 'fixtures'))
     }
   end
 
@@ -141,26 +142,26 @@ class FixturesTest < Test::Unit::TestCase
   end
 
   def test_empty_yaml_fixture
-    assert_not_nil Fixtures.new( Account.connection, "accounts", File.dirname(__FILE__) + "/fixtures/naked/yml/accounts")
+    assert_not_nil Fixtures.new( Account.connection, "accounts", 'Account', File.dirname(__FILE__) + "/fixtures/naked/yml/accounts")
   end
 
   def test_empty_yaml_fixture_with_a_comment_in_it
-    assert_not_nil Fixtures.new( Account.connection, "companies", File.dirname(__FILE__) + "/fixtures/naked/yml/companies")
+    assert_not_nil Fixtures.new( Account.connection, "companies", 'Company', File.dirname(__FILE__) + "/fixtures/naked/yml/companies")
   end
 
   def test_dirty_dirty_yaml_file
     assert_raises(Fixture::FormatError) do
-      Fixtures.new( Account.connection, "courses", File.dirname(__FILE__) + "/fixtures/naked/yml/courses")
+      Fixtures.new( Account.connection, "courses", 'Course', File.dirname(__FILE__) + "/fixtures/naked/yml/courses")
     end
   end
 
   def test_empty_csv_fixtures
-    assert_not_nil Fixtures.new( Account.connection, "accounts", File.dirname(__FILE__) + "/fixtures/naked/csv/accounts")
+    assert_not_nil Fixtures.new( Account.connection, "accounts", 'Account', File.dirname(__FILE__) + "/fixtures/naked/csv/accounts")
   end
 
   def test_omap_fixtures
     assert_nothing_raised do
-      fixtures = Fixtures.new(Account.connection, 'categories', File.dirname(__FILE__) + '/fixtures/categories_ordered')
+      fixtures = Fixtures.new(Account.connection, 'categories', 'Category', File.dirname(__FILE__) + '/fixtures/categories_ordered')
 
       i = 0
       fixtures.each do |name, fixture|
@@ -326,3 +327,18 @@ class ForeignKeyFixturesTest < Test::Unit::TestCase
     assert true
   end
 end
+
+class SetTableNameFixturesTest < Test::Unit::TestCase
+  set_fixture_class :funny_jokes => 'Joke'
+  fixtures :funny_jokes
+  
+  def test_table_method
+    assert_kind_of Joke, funny_jokes(:a_joke)
+  end
+end
+    
+    
+    
+    
+    
+    

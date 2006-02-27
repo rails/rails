@@ -1,5 +1,7 @@
 *SVN*
 
+* Add set_fixture_class to allow the use of table name accessors with models which use set_default_name. [Kevin Clark]
+
 * Added that fixtures to placed in subdirectories of the main fixture files are also loaded #3937 [dblack@wobblini.net]
 
 * Define attribute query methods to avoid method_missing calls. #3677 [jonathan@bluewire.net.nz]
