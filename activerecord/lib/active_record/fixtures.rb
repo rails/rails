@@ -292,7 +292,7 @@ class Fixtures < YAML::Omap
         # YAML fixtures
         begin
           yaml_string = ""
-          Dir["#{@fixture_path}/**/*"].select {|f| test(?f,f) }.each do |subfixture_path|
+          Dir["#{@fixture_path}/**/*.yml"].select {|f| test(?f,f) }.each do |subfixture_path|
             yaml_string << IO.read(subfixture_path)
           end
           yaml_string << IO.read(yaml_file_path)
