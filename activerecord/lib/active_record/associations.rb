@@ -891,10 +891,7 @@ module ActiveRecord
 
           options[:extend] = create_extension_module(association_id, extension) if block_given?
 
-          reflection = create_reflection(:has_many, association_id, options, self)
-          reflection.require_class
-
-          reflection
+          create_reflection(:has_many, association_id, options, self)
         end
 
         def create_has_one_reflection(association_id, options)
@@ -902,10 +899,7 @@ module ActiveRecord
             :class_name, :foreign_key, :remote, :conditions, :order, :include, :dependent, :counter_cache, :extend, :as
           )
 
-          reflection = create_reflection(:has_one, association_id, options, self)
-          reflection.require_class
-
-          reflection
+          create_reflection(:has_one, association_id, options, self)
         end
 
         def create_belongs_to_reflection(association_id, options)
@@ -918,8 +912,6 @@ module ActiveRecord
 
           if options[:polymorphic]
             reflection.options[:foreign_type] ||= reflection.class_name.underscore + "_type"
-          else
-            reflection.require_class
           end
 
           reflection
@@ -937,7 +929,6 @@ module ActiveRecord
           options[:extend] = create_extension_module(association_id, extension) if block_given?
 
           reflection = create_reflection(:has_and_belongs_to_many, association_id, options, self)
-          reflection.require_class
 
           reflection.options[:join_table] ||= join_table_name(undecorated_table_name(self.to_s), undecorated_table_name(reflection.class_name))
           

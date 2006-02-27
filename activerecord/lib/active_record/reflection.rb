@@ -85,10 +85,6 @@ module ActiveRecord
         @class_name ||= name_to_class_name(name.id2name)
       end
 
-      def require_class
-        require_association(class_name.underscore) if class_name
-      end
-
       def ==(other_aggregation)
         name == other_aggregation.name && other_aggregation.options && active_record == other_aggregation.active_record
       end
