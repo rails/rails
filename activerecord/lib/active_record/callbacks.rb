@@ -13,15 +13,15 @@ module ActiveRecord
   # * (2) before_validation_on_create
   # * (-) validate
   # * (-) validate_on_create
-  # * (4) after_validation
-  # * (5) after_validation_on_create
-  # * (6) before_save
-  # * (7) before_create
+  # * (3) after_validation
+  # * (4) after_validation_on_create
+  # * (5) before_save
+  # * (6) before_create
   # * (-) create
-  # * (8) after_create
-  # * (9) after_save
+  # * (7) after_create
+  # * (8) after_save
   #
-  # That's a total of nine callbacks, which gives you immense power to react and prepare for each state in the
+  # That's a total of eight callbacks, which gives you immense power to react and prepare for each state in the
   # Active Record lifecycle.
   #
   # Examples:
