@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that fixtures to placed in subdirectories of the main fixture files are also loaded #3937 [dblack@wobblini.net]
+
 * Define attribute query methods to avoid method_missing calls. #3677 [jonathan@bluewire.net.nz]
 
 * ActiveRecord::Base.remove_connection explicitly closes database connections and doesn't corrupt the connection cache. Introducing the disconnect! instance method for the PostgreSQL, MySQL, and SQL Server adapters; implementations for the others are welcome.  #3591 [Simon Stapleton, Tom Ward]

@@ -9,7 +9,7 @@ class FixturesTest < Test::Unit::TestCase
   self.use_instantiated_fixtures = true
   self.use_transactional_fixtures = false
 
-  fixtures :topics, :developers, :accounts, :tasks
+  fixtures :topics, :developers, :accounts, :tasks, :categories
 
   FIXTURES = %w( accounts companies customers
                  developers developers_projects entrants
@@ -170,6 +170,23 @@ class FixturesTest < Test::Unit::TestCase
       end
     end
   end
+
+  def test_non_yml_file_in_subdirectory
+    assert_equal(categories(:sub_special_1).name, "A special category")
+    assert_equal(categories(:sub_special_1).class, SpecialCategory)
+  end
+
+  def test_yml_file_in_subdirectory
+    assert_equal(categories(:sub_special_3).name, "A special category in a .yml file")
+    assert_equal(categories(:sub_special_3).class, SpecialCategory)
+  end
+
+  def test_subsubdir_file_with_arbitrary_name
+    assert_equal(categories(:sub_special_5).name, "A special category in an arbitrarily named subsubdir file")
+    assert_equal(categories(:sub_special_5).class, SpecialCategory)
+  end
+
+
 end
 
 if Account.connection.respond_to?(:reset_pk_sequence!)

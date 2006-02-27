@@ -286,11 +286,18 @@ class Fixtures < YAML::Omap
   end
 
   private
+
     def read_fixture_files
       if File.file?(yaml_file_path)
         # YAML fixtures
         begin
-          if yaml = YAML::load(erb_render(IO.read(yaml_file_path)))
+          yaml_string = ""
+          Dir["#{@fixture_path}/**/*"].select {|f| test(?f,f) }.each do |subfixture_path|
+            yaml_string << IO.read(subfixture_path)
+          end
+          yaml_string << IO.read(yaml_file_path)
+
+          if yaml = YAML::load(erb_render(yaml_string))
             yaml = yaml.value if yaml.respond_to?(:type_id) and yaml.respond_to?(:value)
             yaml.each do |name, data|
               self[name] = Fixture.new(data, @class_name)
