@@ -14,7 +14,7 @@ end
 desc 'Test all units and functionals'
 task :test do
   Rake::Task["test:units"].invoke      rescue got_error = true
-  Rake::Task["test:functional"].invoke rescue got_error = true
+  Rake::Task["test:functionals"].invoke rescue got_error = true
   raise "Test failures" if got_error
 end
 
