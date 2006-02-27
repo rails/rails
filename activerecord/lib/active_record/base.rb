@@ -324,7 +324,7 @@ module ActiveRecord #:nodoc:
     # supports migrations.  Use :ruby if you want to have different database
     # adapters for, e.g., your development and test environments.
     cattr_accessor :schema_format 
-    @@schema_format = :sql
+    @@schema_format = :ruby
 
     class << self # Class methods
       # Find operates with three different retrieval approaches:
