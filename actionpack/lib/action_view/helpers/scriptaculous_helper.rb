@@ -43,7 +43,12 @@ module ActionView
       # http://script.aculo.us for more documentation.
       def visual_effect(name, element_id = false, js_options = {})
         element = element_id ? "'#{element_id}'" : "element"
-        js_options[:queue] = "'#{js_options[:queue]}'" if js_options[:queue]
+        
+        js_options[:queue] = if js_options[:queue].is_a?(Hash)
+          '{' + js_options[:queue].map {|k, v| k == :limit ? "#{k}:#{v}" : "#{k}:'#{v}'" }.join(',') + '}'
+        elsif js_options[:queue]
+          "'#{js_options[:queue]}'"
+        end if js_options[:queue]
         
         if TOGGLE_EFFECTS.include? name.to_sym
           "Effect.toggle(#{element},'#{name.to_s.gsub(/^toggle_/,'')}',#{options_for_javascript(js_options)});"

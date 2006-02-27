@@ -28,6 +28,12 @@ class ScriptaculousHelperTest < Test::Unit::TestCase
     assert_equal "new Effect.Fade('fademe',{duration:4.0});", visual_effect(:fade, "fademe", :duration => 4.0)
     assert_equal "new Effect.Shake(element,{});", visual_effect(:shake)
     assert_equal "new Effect.DropOut('dropme',{queue:'end'});", visual_effect(:drop_out, 'dropme', :queue => :end)
+    assert_equal "new Effect.DropOut('dropme',{queue:{scope:'test',limit:2,position:'end'}});", 
+      visual_effect(:drop_out, 'dropme', :queue => {:position => "end", :scope => "test", :limit => 2})
+    assert_equal "new Effect.DropOut('dropme',{queue:{scope:'list',limit:2}});", 
+      visual_effect(:drop_out, 'dropme', :queue => {:scope => :list, :limit => 2})
+    assert_equal "new Effect.DropOut('dropme',{queue:{scope:'test',limit:2,position:'end'}});", 
+      visual_effect(:drop_out, 'dropme', :queue => {:position => :end, :scope => :test, :limit => 2})
   end
   
   def test_toggle_effects

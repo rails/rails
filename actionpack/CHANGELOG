@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for visual effects scoped queues to the visual_effect helper #3530 [Abdur-Rahman Advany]
+
 * Added .rxml (and any non-rhtml template, really) supportfor CaptureHelper#content_for and CaptureHelper#capture #3287 [Brian Takita]
 
 * Added script.aculo.us drag and drop helpers to RJS [Thomas Fuchs]. Examples:
