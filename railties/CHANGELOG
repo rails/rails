@@ -1,5 +1,7 @@
 *SVN*
 
+* Added namespaces to all tasks, so for example load_fixtures is now db:fixtures:load. All the old task names are still valid, they just point to the new namespaced names. "rake -T" will only show the namespaced ones, though [DHH]
+
 * CHANGED DEFAULT: ActiveRecord::Base.schema_format is now :ruby by default instead of :sql. This means that we'll assume you want to live in the world of db/schema.rb where the grass is green and the girls are pretty. If your schema contains un-dumpable elements, such as constraints or database-specific column types, you just got an invitation to either 1) patch the dumper to include foreign key support, 2) stop being db specific, or 3) just change the default in config/environment.rb to config.active_record.schema_format = :sql -- we even include an example for that on new Rails skeletons now. Brought to you by the federation of opinionated framework builders! [DHH]
 
 * Added -r/--repeat option to script/process/spawner that offers the same loop protection as the spinner did. This deprecates the script/process/spinner, so it's no longer included in the default Rails skeleton, but still available for backwards compatibility #3461 [ror@andreas-s.net]
