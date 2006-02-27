@@ -1,5 +1,7 @@
 *SVN*
 
+* Speed up class -> connection caching and stale connection verification.  #3979 [Stefan Kaes]
+
 * Add set_fixture_class to allow the use of table name accessors with models which use set_table_name. [Kevin Clark]
 
 * Added that fixtures to placed in subdirectories of the main fixture files are also loaded #3937 [dblack@wobblini.net]

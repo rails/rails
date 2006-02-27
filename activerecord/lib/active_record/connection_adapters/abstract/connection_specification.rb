@@ -7,24 +7,70 @@ module ActiveRecord
       end
     end
 
+    # Check connections for active? after +@@connection_cache_timeout+ seconds
+    # defaults to 5 minutes
+    cattr_accessor :connection_cache_timeout
+    @@connection_cache_timeout = 300
+    
     # The class -> [adapter_method, config] map
     @@defined_connections = {}
 
-    # The class -> thread id -> adapter cache.
-    @@connection_cache = Hash.new { |h, k| h[k] = Hash.new }
+    # The class -> thread id -> adapter cache. (class -> adapter if not allow_concurrency)
+    @@connection_cache = {}
 
+    # retrieve the connection cache
+    def self.connection_cache
+      if @@allow_concurrency
+        @@connection_cache[Thread.current.object_id] ||= {}
+      else
+        @@connection_cache
+      end
+    end
+    
+    @connection_cache_key = nil
+    def self.connection_cache_key
+      @connection_cache_key ||=
+         if active_connections[name] || @@defined_connections[name]
+           name
+         elsif self == ActiveRecord::Base
+           nil
+         else
+           superclass.connection_cache_key
+         end
+    end
+    
+    def self.clear_connection_cache_key
+      @connection_cache_key = nil
+      subclasses.each{|klass| klass.clear_connection_cache_key }
+    end
+    
     # Returns the connection currently associated with the class. This can
     # also be used to "borrow" the connection to do database work unrelated
     # to any of the specific Active Records.
     def self.connection
-      @@connection_cache[Thread.current.object_id][name] ||= retrieve_connection
+      if (cache_key = @connection_cache_key) && (conn = connection_cache[cache_key])
+        conn
+      else
+        conn = retrieve_connection # this will set @connection_cache_key
+        connection_cache[@connection_cache_key] = conn
+      end
     end
 
     # Clears the cache which maps classes to connections.
     def self.clear_connection_cache!
-      @@connection_cache.clear
+      if @@allow_concurrency
+        @@connection_cache.delete(Thread.current.object_id)
+      else
+        @@connection_cache = {}
+      end
     end
-
+   
+    # Verify connection cache.
+    def self.verify_connection_cache!
+      timeout = @@connection_cache_timeout
+      connection_cache.each_value { |connection| connection.verify!(timeout) }
+    end
+   
     # Returns the connection currently associated with the class. This can
     # also be used to "borrow" the connection to do database work that isn't
     # easily done without going straight to SQL.
@@ -65,6 +111,8 @@ module ActiveRecord
           raise AdapterNotSpecified unless defined? RAILS_ENV
           establish_connection(RAILS_ENV)
         when ConnectionSpecification
+          clear_connection_cache_key
+          @connection_cache_key = name 
           @@defined_connections[name] = spec
         when Symbol, String
           if configuration = configurations[spec.to_s]
@@ -83,7 +131,7 @@ module ActiveRecord
     end
 
     def self.active_connections #:nodoc:
-      if allow_concurrency
+      if @@allow_concurrency
         Thread.current['active_connections'] ||= {}
       else
         @@active_connections ||= {}
@@ -95,34 +143,27 @@ module ActiveRecord
     # opened and set as the active connection for the class it was defined
     # for (not necessarily the current class).
     def self.retrieve_connection #:nodoc:
-      klass = self
-      ar_super = ActiveRecord::Base.superclass
-      until klass == ar_super
-        if conn = active_connections[klass.name]
-          # Reconnect if the connection is inactive.
-          conn.reconnect! unless conn.active?
-          return conn
-        elsif conn = @@defined_connections[klass.name]
-          # Activate this connection specification.
-          klass.connection = conn
-          return self.connection
-        end
-        klass = klass.superclass
+      cache_key = connection_cache_key
+      # cache_key is nil if establish_connection hasn't been called for
+      # some class along the inheritance chain up to AR::Base yet
+      raise ConnectionNotEstablished unless cache_key
+      if conn = active_connections[cache_key]
+        # Verify the connection.
+        conn.verify!(@@connection_cache_timeout)
+        return conn
+      elsif conn = @@defined_connections[cache_key]
+        # Activate this connection specification.
+        klass = cache_key.constantize
+        klass.connection = conn
+        return active_connections[cache_key]
+      else
+        raise ConnectionNotEstablished
       end
-      raise ConnectionNotEstablished
     end
 
     # Returns true if a connection that's accessible to this class have already been opened.
     def self.connected?
-      klass = self
-      until klass == ActiveRecord::Base.superclass
-        if active_connections[klass.name]
-          return true
-        else
-          klass = klass.superclass
-        end
-      end
-      return false
+      active_connections[connection_cache_key] ? true : false
     end
 
     # Remove the connection for this class. This will close the active
@@ -133,7 +174,7 @@ module ActiveRecord
       spec = @@defined_connections[klass.name]
       konn = active_connections[klass.name]
       @@defined_connections.delete_if { |key, value| value == spec }
-      @@connection_cache[Thread.current.object_id].delete_if { |key, value| value == konn }
+      connection_cache.delete_if { |key, value| value == konn }
       active_connections.delete_if { |key, value| value == konn }
       konn.disconnect! if konn
       spec.config if spec
@@ -149,6 +190,16 @@ module ActiveRecord
         raise ConnectionNotEstablished
       else
         establish_connection spec
+      end
+    end
+      
+    # connection state logging
+    def self.log_connections
+      if logger
+        logger.info "Defined connections: #{@@defined_connections.inspect}"
+        logger.info "Active connections: #{active_connections.inspect}"
+        logger.info "Connection cache: #{connection_cache.inspect}"
+        logger.info "Connection cache key: #{@connection_cache_key}"
       end
     end
   end
