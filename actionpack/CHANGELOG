@@ -1,5 +1,7 @@
 *SVN*
 
+* Add ActionController::IntegrationTest to allow high-level testing of the way the controllers and routes all work together [Jamis Buck]
+
 * Added support to AssetTagHelper#javascript_include_tag for having :defaults appear anywhere in the list, so you can now make one call ala javascript_include_tag(:defaults, "my_scripts") or javascript_include_tag("my_scripts", :defaults) depending on how you want the load order #3506 [Bob Silva]
 
 * Added support for visual effects scoped queues to the visual_effect helper #3530 [Abdur-Rahman Advany]
