@@ -1,4 +1,5 @@
 DROP TABLE accounts;
+DROP TABLE funny_jokes;
 DROP TABLE companies;
 DROP TABLE topics;
 DROP TABLE developers;

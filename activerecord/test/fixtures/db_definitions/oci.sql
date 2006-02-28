@@ -14,6 +14,13 @@ create table companies (
 --
 create sequence companies_nonstd_seq minvalue 10000;
 
+create table funny_jokes (
+  id integer not null,
+  name varchar(50) default null,
+  primary key (id)
+);
+create sequence funny_jokes_seq minvalue 10000;
+
 create table accounts (
     id integer not null,
     firm_id integer default null references companies initially deferred disable,

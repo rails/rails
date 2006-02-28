@@ -7,6 +7,11 @@ CREATE TABLE accounts (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE funny_jokes (
+  id serial
+  name character varying(50)
+);
+
 CREATE SEQUENCE companies_nonstd_seq START 101;
 
 CREATE TABLE companies (

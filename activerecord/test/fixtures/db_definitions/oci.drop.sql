@@ -1,4 +1,5 @@
 drop table accounts;
+drop table funny_jokes;
 drop table companies;
 drop table topics;
 drop synonym subjects;
@@ -30,6 +31,7 @@ drop table keyboards;
 drop table legacy_things;
 
 drop sequence accounts_seq;
+drop sequence funny_jokes_seq;
 drop sequence companies_nonstd_seq;
 drop sequence topics_seq;
 drop sequence developers_seq;

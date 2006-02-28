@@ -1,4 +1,5 @@
 DROP TABLE accounts;
+DROP TABLE funny_jokes;
 DROP TABLE companies;
 DROP TABLE topics;
 DROP TABLE developers;
@@ -32,6 +33,7 @@ DROP TABLE legacy_things;
 DROP DOMAIN D_BOOLEAN;
 
 DROP GENERATOR accounts_seq;
+DROP GENERATOR funny_jokes_seq;
 DROP GENERATOR companies_nonstd_seq;
 DROP GENERATOR topics_seq;
 DROP GENERATOR developers_seq;

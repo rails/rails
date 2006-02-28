@@ -4,6 +4,11 @@ CREATE TABLE accounts (
   credit_limit int default NULL
 );
 
+CREATE TABLE funny_jokes (
+  id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+  name varchar(50) default NULL
+);
+
 CREATE TABLE companies (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
   type varchar(50) default NULL,

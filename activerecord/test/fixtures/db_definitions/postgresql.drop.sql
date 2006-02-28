@@ -1,4 +1,5 @@
 DROP TABLE accounts;
+DROP TABLE funny_jokes;
 DROP TABLE companies;
 DROP SEQUENCE companies_nonstd_seq;
 DROP TABLE topics;

@@ -5,6 +5,12 @@ CREATE TABLE `accounts` (
   PRIMARY KEY  (`id`)
 ) TYPE=InnoDB;
 
+CREATE TABLE `funny_jokes` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(50) default NULL,
+  PRIMARY KEY  (`id`)
+) TYPE=InnoDB;
+
 CREATE TABLE `companies` (
   `id` int(11) NOT NULL auto_increment,
   `type` varchar(50) default NULL,

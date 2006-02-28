@@ -9,6 +9,14 @@ CREATE TABLE accounts (
 CREATE GENERATOR accounts_seq;
 SET GENERATOR accounts_seq TO 10000;
 
+CREATE TABLE funny_jokes (
+  id BIGINT NOT NULL,
+  name VARCHAR(50),
+  PRIMARY KEY (id)
+);
+CREATE GENERATOR funny_jokes_seq;
+SET GENERATOR funny_jokes_seq TO 10000;
+
 CREATE TABLE companies (
   id BIGINT NOT NULL,
   "TYPE" VARCHAR(50),
