@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that Base.save should always return false if the save didn't succeed, including if it has halted by before_save's #1861, #2477 [DHH]
+
 * Speed up class -> connection caching and stale connection verification.  #3979 [Stefan Kaes]
 
 * Add set_fixture_class to allow the use of table name accessors with models which use set_table_name. [Kevin Clark]

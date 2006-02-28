@@ -172,19 +172,15 @@ class FixturesTest < Test::Unit::TestCase
     end
   end
 
-  def test_non_yml_file_in_subdirectory
-    assert_equal(categories(:sub_special_1).name, "A special category")
+
+  def test_yml_file_in_subdirectory
+    assert_equal(categories(:sub_special_1).name, "A special category in a subdir file")
     assert_equal(categories(:sub_special_1).class, SpecialCategory)
   end
 
-  def test_yml_file_in_subdirectory
-    assert_equal(categories(:sub_special_3).name, "A special category in a .yml file")
-    assert_equal(categories(:sub_special_3).class, SpecialCategory)
-  end
-
   def test_subsubdir_file_with_arbitrary_name
-    assert_equal(categories(:sub_special_5).name, "A special category in an arbitrarily named subsubdir file")
-    assert_equal(categories(:sub_special_5).class, SpecialCategory)
+    assert_equal(categories(:sub_special_3).name, "A special category in an arbitrarily named subsubdir file")
+    assert_equal(categories(:sub_special_3).class, SpecialCategory)
   end
 
 
