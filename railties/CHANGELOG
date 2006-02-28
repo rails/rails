@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove the extraneous AR::Base.threaded_connections setting from the webrick server. [Jeremy Kemper]
+
 * Add integration test support to app generation and testing [Jamis Buck]
 
 * Added namespaces to all tasks, so for example load_fixtures is now db:fixtures:load. All the old task names are still valid, they just point to the new namespaced names. "rake -T" will only show the namespaced ones, though [DHH]
