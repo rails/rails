@@ -59,11 +59,10 @@ module ActionView
       # <tt>controllers/application.rb</tt> and <tt>helpers/application_helper.rb</tt>.
       def javascript_include_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
-        if sources.first == :defaults
-          sources = @@javascript_default_sources.dup
-          if defined?(RAILS_ROOT) and File.exists?("#{RAILS_ROOT}/public/javascripts/application.js")
-            sources << 'application' 
-          end
+        if sources.include?(:defaults) 
+          sources = sources[0..(sources.index(:defaults))] + @@javascript_default_sources.dup + sources[(sources.index(:defaults) + 1)..sources.length] 
+          sources.delete(:defaults) 
+          sources << "application" if defined?(RAILS_ROOT) and File.exists?("#{RAILS_ROOT}/public/javascripts/application.js") 
         end
         sources.collect { |source|
           source = javascript_path(source)        
