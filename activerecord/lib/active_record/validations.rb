@@ -216,6 +216,9 @@ module ActiveRecord
         alias_method :save_without_validation, :save
         alias_method :save, :save_with_validation
 
+        alias_method :save_without_validation!, :save!
+        alias_method :save!, :save_with_validation!
+
         alias_method :update_attribute_without_validation_skipping, :update_attribute
         alias_method :update_attribute, :update_attribute_with_validation_skipping
       end
@@ -719,7 +722,6 @@ module ActiveRecord
     def save_with_validation(perform_validation = true)
       if perform_validation && valid? || !perform_validation
         save_without_validation
-        true
       else
         false
       end
@@ -727,9 +729,9 @@ module ActiveRecord
 
     # Attempts to save the record just like Base#save but will raise a RecordInvalid exception instead of returning false
     # if the record is not valid.
-    def save!
+    def save_with_validation!
       if valid?
-        save(false)
+        save_without_validation!
       else
         raise RecordInvalid.new(self)
       end

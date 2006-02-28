@@ -21,6 +21,8 @@ module ActiveRecord #:nodoc:
   end
   class RecordNotFound < ActiveRecordError #:nodoc:
   end
+  class RecordNotSaved < ActiveRecordError #:nodoc:
+  end
   class StatementInvalid < ActiveRecordError #:nodoc:
   end
   class PreparedStatementInvalid < ActiveRecordError #:nodoc:
@@ -1285,8 +1287,14 @@ module ActiveRecord #:nodoc:
       # * No record exists: Creates a new record with values matching those of the object attributes.
       # * A record does exist: Updates the record with values matching those of the object attributes.
       def save
-        raise ActiveRecord::ReadOnlyRecord if readonly?
+        raise ReadOnlyRecord if readonly?
         create_or_update
+      end
+      
+      # Attempts to save the record, but instead of just returning false if it couldn't happen, it raises a 
+      # RecordNotSaved exception
+      def save!
+        raise RecordNotSaved unless save
       end
 
       # Deletes the record in the database and freezes this instance to reflect that no changes should
@@ -1505,6 +1513,8 @@ module ActiveRecord #:nodoc:
           "WHERE #{self.class.primary_key} = #{quote(id)}",
           "#{self.class.name} Update"
         )
+        
+        return true
       end
 
       # Creates a new record with values matching those of the instance attributes.
@@ -1522,6 +1532,8 @@ module ActiveRecord #:nodoc:
         )
 
         @new_record = false
+        
+        return true
       end
 
       # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord descendent.
