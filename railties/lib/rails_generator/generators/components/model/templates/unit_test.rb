@@ -5,6 +5,6 @@ class <%= class_name %>Test < Test::Unit::TestCase
 
   # Replace this with your real tests.
   def test_truth
-    assert_kind_of <%= class_name %>, <%= table_name %>(:first)
+    assert true
   end
 end
