@@ -10,18 +10,24 @@ namespace :tmp do
     FileUtils.mkdir "tmp/sockets"
   end
 
-  desc "Clears all files in tmp/sessions"
-  task :clear_sessions do
-    FileUtils.rm(Dir['tmp/sessions/[^.]*'])
+  namespace :sessions do
+    desc "Clears all files in tmp/sessions"
+    task :clear do
+      FileUtils.rm(Dir['tmp/sessions/[^.]*'])
+    end
   end
 
-  desc "Clears all files and directories in tmp/cache"
-  task :clear_cache do
-    FileUtils.rm_rf(Dir['tmp/cache/[^.]*'])
+  namespace :cache do
+    desc "Clears all files and directories in tmp/cache"
+    task :clear do
+      FileUtils.rm_rf(Dir['tmp/cache/[^.]*'])
+    end
   end
 
-  desc "Clears all ruby_sess.* files in tmp/sessions"
-  task :clear_sockets do
-    FileUtils.rm(Dir['tmp/sockets/[^.]*'])
+  namespace :sockets do
+    desc "Clears all ruby_sess.* files in tmp/sessions"
+    task :clear do
+      FileUtils.rm(Dir['tmp/sockets/[^.]*'])
+    end
   end
 end
