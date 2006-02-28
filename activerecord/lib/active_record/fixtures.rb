@@ -237,7 +237,7 @@ class Fixtures < YAML::Omap
   cattr_accessor :all_loaded_fixtures
   self.all_loaded_fixtures = {}
 
-  def self.create_fixtures(fixtures_directory, table_names, class_names)
+  def self.create_fixtures(fixtures_directory, table_names, class_names = {})
     table_names = table_names.flatten.map { |n| n.to_s }
     connection = block_given? ? yield : ActiveRecord::Base.connection
     ActiveRecord::Base.silence do
