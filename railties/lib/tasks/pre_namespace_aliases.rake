@@ -1,5 +1,5 @@
 # clear
-task :clear_logs => "clear:logs"
+task :clear_logs => "logs:clear"
 
 # test
 task :recent          => "test:recent"
