@@ -1,5 +1,7 @@
 *SVN*
 
+* Generator::Base#usage takes an optional message argument which defaults to Generator::Base#usage_message. [Jeremy Kemper]
+
 * Remove the extraneous AR::Base.threaded_connections setting from the webrick server. [Jeremy Kemper]
 
 * Add integration test support to app generation and testing [Jamis Buck]
