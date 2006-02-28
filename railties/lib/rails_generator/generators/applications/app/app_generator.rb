@@ -4,12 +4,15 @@ class AppGenerator < Rails::Generator::Base
   DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'],
                               Config::CONFIG['ruby_install_name'])
   
+  DATABASES = %w( mysql sqlite2 sqlite3 postgresql )
+  
   default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG
   mandatory_options :source => "#{File.dirname(__FILE__)}/../../../../.."
 
   def initialize(runtime_args, runtime_options = {})
     super
     usage if args.empty?
+    usage("Databases supported for preconfiguration are: #{DATABASES.join(", ")}") if (options[:db] && !DATABASES.include?(options[:db]))
     @destination_root = args.shift
   end
 
