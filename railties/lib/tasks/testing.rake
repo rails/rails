@@ -13,8 +13,13 @@ end
 
 desc 'Test all units and functionals'
 task :test do
-  Rake::Task["test:units"].invoke      rescue got_error = true
+  Rake::Task["test:units"].invoke       rescue got_error = true
   Rake::Task["test:functionals"].invoke rescue got_error = true
+  
+  if File.exist?("test/integration")
+    Rake::Task["test:integration"].invoke rescue got_error = true
+  end
+
   raise "Test failures" if got_error
 end
 
@@ -42,6 +47,13 @@ namespace :test do
   Rake::TestTask.new(:functionals => "db:test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/functional/**/*_test.rb'
+    t.verbose = true
+  end
+
+  desc "Run the integration tests in test/integration"
+  Rake::TestTask.new(:integration => "db:test:prepare") do |t|
+    t.libs << "test"
+    t.pattern = 'test/integration/**/*_test.rb'
     t.verbose = true
   end
 

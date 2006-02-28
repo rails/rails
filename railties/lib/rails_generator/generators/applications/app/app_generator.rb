@@ -124,6 +124,7 @@ class AppGenerator < Rails::Generator::Base
     script/process
     test/fixtures
     test/functional
+    test/integration
     test/mocks/development
     test/mocks/test
     test/unit
