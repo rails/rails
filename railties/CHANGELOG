@@ -1,5 +1,7 @@
 *SVN*
 
+* Add 'app' accessor to script/console as an instance of Integration::Session [Jamis Buck]
+
 * Generator::Base#usage takes an optional message argument which defaults to Generator::Base#usage_message. [Jeremy Kemper]
 
 * Remove the extraneous AR::Base.threaded_connections setting from the webrick server. [Jeremy Kemper]

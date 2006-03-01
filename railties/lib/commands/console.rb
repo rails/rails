@@ -11,6 +11,7 @@ end
 
 libs =  " -r irb/completion"
 libs << " -r #{RAILS_ROOT}/config/environment"
+libs << " -r console_app"
 libs << " -r console_sandbox" if options[:sandbox]
 
 ENV['RAILS_ENV'] = ARGV.first || ENV['RAILS_ENV'] || 'development'
