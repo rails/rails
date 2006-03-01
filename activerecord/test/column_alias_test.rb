@@ -4,7 +4,7 @@ require 'fixtures/topic'
 class TestColumnAlias < Test::Unit::TestCase
   fixtures :topics
 
-  QUERY = if 'OCI' == ActiveRecord::Base.connection.adapter_name
+  QUERY = if 'Oracle' == ActiveRecord::Base.connection.adapter_name
             'SELECT id AS pk FROM topics WHERE ROWNUM < 2'
           else
             'SELECT id AS pk FROM topics'

@@ -84,7 +84,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       four = columns.detect { |c| c.name == "four" }
 
       assert_equal "hello", one.default
-      if current_adapter?(:OCIAdapter)
+      if current_adapter?(:OracleAdapter)
         # Oracle doesn't support native booleans
         assert_equal true, two.default == 1
         assert_equal false, three.default != 0
@@ -153,7 +153,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal Fixnum, bob.age.class
       assert_equal Time, bob.birthday.class
 
-      if current_adapter?(:SQLServerAdapter) or current_adapter?(:OCIAdapter)
+      if current_adapter?(:SQLServerAdapter) or current_adapter?(:OracleAdapter)
         # SQL Server and Oracle don't differentiate between date/time
         assert_equal Time, bob.favorite_day.class
       else
@@ -241,7 +241,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         ActiveRecord::Base.connection.rename_table :octopuses, :octopi
 
         assert_nothing_raised do
-          if current_adapter?(:OCIAdapter)
+          if current_adapter?(:OracleAdapter)
             # Oracle requires the explicit sequence for the pk
             ActiveRecord::Base.connection.execute "INSERT INTO octopi (id, url) VALUES (octopi_seq.nextval, 'http://www.foreverflying.com/octopus-black7.jpg')"
           else

@@ -61,7 +61,7 @@ class FixturesTest < Test::Unit::TestCase
         t.column :written_on, :datetime
         t.column :bonus_time, :time
         t.column :last_read, :date
-        t.column :content, :text
+        t.column :content, :string
         t.column :approved, :boolean, :default => true
         t.column :replies_count, :integer, :default => 0
         t.column :parent_id, :integer
@@ -78,16 +78,16 @@ class FixturesTest < Test::Unit::TestCase
 
       topics = create_fixtures("topics")
 
-      # Restore prefix/suffix to its previous values
-      ActiveRecord::Base.table_name_prefix = old_prefix 
-      ActiveRecord::Base.table_name_suffix = old_suffix 
-
       firstRow = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'David'")
       assert_equal("The First Topic", firstRow["title"])
 
       secondRow = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'Mary'")
       assert_nil(secondRow["author_email_address"])        
     ensure
+      # Restore prefix/suffix to its previous values
+      ActiveRecord::Base.table_name_prefix = old_prefix 
+      ActiveRecord::Base.table_name_suffix = old_suffix 
+
       ActiveRecord::Base.connection.drop_table :prefix_topics_suffix rescue nil
     end
   end

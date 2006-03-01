@@ -1,4 +1,4 @@
-# oci_adapter.rb -- ActiveRecord adapter for Oracle 8i, 9i, 10g
+# oracle_adapter.rb -- ActiveRecord adapter for Oracle 8i, 9i, 10g
 #
 # Original author: Graham Jenkins
 #
@@ -30,18 +30,24 @@ begin
 
   module ActiveRecord
     class Base
-      def self.oci_connection(config) #:nodoc:
+      def self.oracle_connection(config) #:nodoc:
         # Use OCI8AutoRecover instead of normal OCI8 driver.
-        ConnectionAdapters::OCIAdapter.new OCI8AutoRecover.new(config), logger
+        ConnectionAdapters::OracleAdapter.new OCI8AutoRecover.new(config), logger
+      end
+
+      # for backwards-compatibility
+      def self.oci_connection(config) #:nodoc:
+        config[:database] = config[:host]
+        self.oracle_connection(config)
       end
 
       # Enable the id column to be bound into the sql later, by the adapter's insert method.
       # This is preferable to inserting the hard-coded value here, because the insert method
       # needs to know the id value explicitly.
-      alias :attributes_with_quotes_pre_oci :attributes_with_quotes #:nodoc:
+      alias :attributes_with_quotes_pre_oracle :attributes_with_quotes #:nodoc:
       def attributes_with_quotes(creating = true) #:nodoc:
-        aq = attributes_with_quotes_pre_oci creating
-        if connection.class == ConnectionAdapters::OCIAdapter
+        aq = attributes_with_quotes_pre_oracle creating
+        if connection.class == ConnectionAdapters::OracleAdapter
           aq[self.class.primary_key] = ":id" if creating && aq[self.class.primary_key].nil?
         end
         aq
@@ -51,7 +57,7 @@ begin
       # and write back the data.
       after_save :write_lobs 
       def write_lobs() #:nodoc:
-        if connection.is_a?(ConnectionAdapters::OCIAdapter)
+        if connection.is_a?(ConnectionAdapters::OracleAdapter)
           self.class.columns.select { |c| c.type == :binary }.each { |c|
             value = self[c.name]
             next if value.nil?  || (value == '')
@@ -68,7 +74,7 @@ begin
 
 
     module ConnectionAdapters #:nodoc:
-      class OCIColumn < Column #:nodoc:
+      class OracleColumn < Column #:nodoc:
         attr_reader :sql_type
 
         # overridden to add the concept of scale, required to differentiate
@@ -153,15 +159,15 @@ begin
       #   is supported in Oracle9i and later. You will need to use #finder_sql for
       #   has_and_belongs_to_many associations to run against Oracle8.
       #
-      # Options:
+      # Required parameters:
       #
-      # * <tt>:username</tt> -- Defaults to root
-      # * <tt>:password</tt> -- Defaults to nothing
-      # * <tt>:host</tt> -- Defaults to localhost
-      class OCIAdapter < AbstractAdapter
+      # * <tt>:username</tt>
+      # * <tt>:password</tt>
+      # * <tt>:database</tt>
+      class OracleAdapter < AbstractAdapter
 
         def adapter_name #:nodoc:
-          'OCI'
+          'Oracle'
         end
 
         def supports_migrations? #:nodoc:
@@ -172,7 +178,7 @@ begin
           {
             :primary_key => "NUMBER(38) NOT NULL PRIMARY KEY",
             :string      => { :name => "VARCHAR2", :limit => 255 },
-            :text        => { :name => "LONG" },
+            :text        => { :name => "BLOB" },
             :integer     => { :name => "NUMBER", :limit => 38 },
             :float       => { :name => "NUMBER" },
             :datetime    => { :name => "DATE" },
@@ -214,7 +220,8 @@ begin
         end
 
 
-        # CONNECTION MANAGEMENT ====================================#
+        # CONNECTION MANAGEMENT ====================================
+        #
 
         # Returns true if the connection is active.
         def active?
@@ -223,15 +230,21 @@ begin
           # last known state, which isn't good enough if the connection has
           # gone stale since the last use.
           @connection.ping
-        rescue OCIError
+        rescue OCIException
           false
         end
 
         # Reconnects to the database.
         def reconnect!
           @connection.reset!
-        rescue OCIError => e
+        rescue OCIException => e
           @logger.warn "#{adapter_name} automatic reconnection failed: #{e.message}"
+        end
+
+        # Disconnects from the database.
+        def disconnect!
+          @connection.logoff rescue nil
+          @connection.active = false
         end
 
 
@@ -346,16 +359,17 @@ begin
               from all_tab_columns
              where owner      = '#{table_info.schema}'
                and table_name = '#{table_info.name}'
+             order by column_id
           }
 
           select_all(table_cols, name).map do |row|
             row['data_default'].sub!(/^'(.*)'\s*$/, '\1') if row['data_default']
-            OCIColumn.new(
-              oci_downcase(row['column_name']),
+            OracleColumn.new(
+              oracle_downcase(row['column_name']),
               row['data_default'],
               row['data_type'],
-              row['length'],
-              row['scale'],
+              row['length'].to_i,
+              row['scale'].to_i,
               row['nullable'] == 'Y'
             )
           end
@@ -444,7 +458,7 @@ begin
 
         def select(sql, name = nil)
           cursor = log(sql, name) { @connection.exec sql }
-          cols = cursor.get_col_names.map { |x| oci_downcase(x) }
+          cols = cursor.get_col_names.map { |x| oracle_downcase(x) }
           rows = []
 
           while row = cursor.fetch
@@ -476,7 +490,7 @@ begin
         # I don't know anybody who does this, but we'll handle the theoretical case of a
         # camelCase column name. I imagine other dbs handle this different, since there's a
         # unit test that's currently failing test_oci.
-        def oci_downcase(column_name)
+        def oracle_downcase(column_name)
           column_name =~ /[a-z]/ ? column_name : column_name.downcase
         end
 
@@ -500,8 +514,8 @@ begin
       end
     end
 
-    # missing constant from oci8
-    OCI_PTYPE_UNK = 0
+    # missing constant from oci8 < 0.1.14
+    OCI_PTYPE_UNK = 0 unless defined?(OCI_PTYPE_UNK)
 
     def object_info(name)
       OraObject.new describe(name.to_s, OCI_PTYPE_UNK)
@@ -529,11 +543,11 @@ begin
   end
 
 
-  # The OCIConnectionFactory factors out the code necessary to connect and
-  # configure an OCI connection.
-  class OCIConnectionFactory #:nodoc:
-    def new_connection(username, password, host)
-      conn = OCI8.new username, password, host
+  # The OracleConnectionFactory factors out the code necessary to connect and
+  # configure an Oracle/OCI connection.
+  class OracleConnectionFactory #:nodoc:
+    def new_connection(username, password, database)
+      conn = OCI8.new username, password, database
       conn.exec %q{alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'}
       conn.exec %q{alter session set nls_timestamp_format = 'YYYY-MM-DD HH24:MI:SS'} rescue nil
       conn.autocommit = true
@@ -559,11 +573,11 @@ begin
     end
     @@auto_retry = false
 
-    def initialize(config, factory = OCIConnectionFactory.new)
+    def initialize(config, factory = OracleConnectionFactory.new)
       @active = true
-      @username, @password, @host = config[:username], config[:password], config[:host]
+      @username, @password, @database = config[:username], config[:password], config[:database]
       @factory = factory
-      @connection  = @factory.new_connection @username, @password, @host
+      @connection  = @factory.new_connection @username, @password, @database
       super @connection
     end
 
@@ -582,7 +596,7 @@ begin
     def reset!
       logoff rescue nil
       begin
-        @connection = @factory.new_connection @username, @password, @host
+        @connection = @factory.new_connection @username, @password, @database
         __setobj__ @connection
         @active = true
       rescue
@@ -605,7 +619,7 @@ begin
 
       begin
         @connection.exec(sql, *bindvars)
-      rescue OCIError => e
+      rescue OCIException => e
         raise unless LOST_CONNECTION_ERROR_CODES.include?(e.code)
         @active = false
         raise unless should_retry
@@ -621,6 +635,10 @@ rescue LoadError
   # OCI8 driver is unavailable.
   module ActiveRecord # :nodoc:
     class Base
+      def self.oracle_connection(config) # :nodoc:
+        # Set up a reasonable error message
+        raise LoadError, "Oracle/OCI libraries could not be loaded."
+      end
       def self.oci_connection(config) # :nodoc:
         # Set up a reasonable error message
         raise LoadError, "Oracle/OCI libraries could not be loaded."

@@ -4,7 +4,7 @@ class AppGenerator < Rails::Generator::Base
   DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'],
                               Config::CONFIG['ruby_install_name'])
   
-  DATABASES = %w( mysql sqlite2 sqlite3 postgresql )
+  DATABASES = %w( mysql oracle postgresql sqlite2 sqlite3 )
   
   default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG
   mandatory_options :source => "#{File.dirname(__FILE__)}/../../../../.."
@@ -97,7 +97,7 @@ class AppGenerator < Rails::Generator::Base
              "Default: #{DEFAULT_SHEBANG}") { |options[:shebang]| }
 
       opt.on("-d", "--database=name", String,
-             "Preconfigure for selected database (options: mysql/postgresql/sqlite2/sqlite3).",
+             "Preconfigure for selected database (options: mysql/oracle/postgresql/sqlite2/sqlite3).",
              "Default: mysql") { |options[:db]| }
     end
     
