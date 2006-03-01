@@ -526,7 +526,7 @@ module Test #:nodoc:
           ActiveRecord::Base.connection.rollback_db_transaction
           ActiveRecord::Base.unlock_mutex
         end
-        ActiveRecord::Base.clear_connection_cache!
+        ActiveRecord::Base.clear_active_connections!
       end
 
       alias_method :teardown, :teardown_with_fixtures

@@ -1,5 +1,7 @@
 *SVN*
 
+* Clear stale, cached connections left behind by defunct threads. [Jeremy Kemper]
+
 * CHANGED DEFAULT: set ActiveRecord::Base.allow_concurrency to false.  Most AR usage is in single-threaded applications. [Jeremy Kemper]
 
 * Renamed the "oci" adapter to "oracle", but kept the old name as an alias #4017 [schoenm@earthlink.net]
