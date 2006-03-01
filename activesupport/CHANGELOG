@@ -1,5 +1,30 @@
 *SVN*
 
+* Add Enumerable#group_by for grouping collections based on the result of some
+  block. Useful, for example, for grouping records by date.
+
+  ex.
+
+     latest_transcripts.group_by(&:day).each do |day, transcripts| 
+       p "#{day} -> #{transcripts.map(&:class) * ', '}"
+     end
+     "2006-03-01 -> Transcript"
+     "2006-02-28 -> Transcript"
+     "2006-02-27 -> Transcript, Transcript"
+     "2006-02-26 -> Transcript, Transcript"
+
+  Add Array#in_groups_of, for iterating over an array in groups of a certain
+  size.
+
+  ex.
+
+     %w(1 2 3 4 5 6 7).in_groups_of(3) {|g| p g}
+     ["1", "2", "3"]
+     ["4", "5", "6"]
+     ["7", nil, nil]
+
+  [Marcel Molina Jr., Sam Stephenson]
+
 * Added Kernel#daemonize to turn the current process into a daemon that can be killed with a TERM signal [DHH]
 
 * Add 'around' methods to Logger,  to make it easy to log before and after messages for a given block as requested in #3809. [Michael Koziarski]  Example:

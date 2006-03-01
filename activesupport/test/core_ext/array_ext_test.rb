@@ -34,3 +34,34 @@ class ArrayExtConversionTests < Test::Unit::TestCase
     assert_equal "one", ['one'].to_sentence
   end
 end
+
+class ArrayExtGroupingTests < Test::Unit::TestCase
+  def test_group_by_with_perfect_fit
+    groups = []
+    ('a'..'i').to_a.in_groups_of(3) do |group|
+      groups << group
+    end
+
+    assert_equal [%w(a b c), %w(d e f), %w(g h i)], groups
+  end
+
+  def test_group_by_with_padding
+    groups = []
+    ('a'..'g').to_a.in_groups_of(3) do |group|
+      groups << group
+    end
+
+    assert_equal [%w(a b c), %w(d e f), ['g', nil, nil]], groups
+  end
+
+  def test_group_by_pads_with_specified_values
+    groups = []
+
+    ('a'..'g').to_a.in_groups_of(3, false) do |group|
+      groups << group
+    end
+
+    assert_equal [%w(a b c), %w(d e f), ['g', false, false]], groups
+  end
+
+end
