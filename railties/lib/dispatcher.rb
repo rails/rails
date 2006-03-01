@@ -67,13 +67,12 @@ class Dispatcher
         ActionController::Routing::Routes.reload if Dependencies.load?
         prepare_breakpoint
         require_dependency('application.rb') unless Object.const_defined?(:ApplicationController)
-        ActiveRecord::Base.verify_connection_cache!
+        ActiveRecord::Base.verify_active_connections!
       end
-    
+
       def reset_after_dispatch
         reset_application! if Dependencies.load?
         Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
-        # ActiveRecord::Base.clear_connection_cache!
       end
 
       def prepare_breakpoint
