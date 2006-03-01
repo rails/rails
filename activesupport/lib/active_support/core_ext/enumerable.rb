@@ -23,14 +23,9 @@ module Enumerable #:nodoc:
   #   "2006-02-24 -> Transcript, Transcript"
   #   "2006-02-23 -> Transcript"
   def group_by
-    inject([]) do |groups, element|
-      value = yield(element)
-      if (last_group = groups.last) && last_group.first == value
-        last_group.last << element
-      else
-        groups << [value, [element]]
-      end
+    inject({}) do |groups, element|
+      (groups[yield(element)] ||= []) << element
       groups
     end
-  end
+  end 
 end
