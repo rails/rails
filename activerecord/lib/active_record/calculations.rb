@@ -1,5 +1,6 @@
 module ActiveRecord
   module Calculations
+    CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct]
     def self.included(base)
       base.extend(ClassMethods)
     end
@@ -19,6 +20,11 @@ module ActiveRecord
       # * <tt>:include</tt>: Named associations that should be loaded alongside using LEFT OUTER JOINs. The symbols named refer
       #   to already defined associations. When using named associations count returns the number DISTINCT items for the model you're counting.
       #   See eager loading under Associations.
+      # * <tt>:order</tt>: An SQL fragment like "created_at DESC, name" (really only used with GROUP BY calculations).
+      # * <tt>:group</tt>: An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
+      # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you for example want to do a join, but not
+      #   include the joined columns.
+      # * <tt>:distinct</tt>: Set this to true to make this a distinct calculation, such as SELECT COUNT(DISTINCT posts.id) ...
       #
       # Examples for counting all:
       #   Person.count         # returns the total count of all people
@@ -37,7 +43,6 @@ module ActiveRecord
       # Note: Person.count(:all) will not work because it will use :all as the condition.  Use Person.count instead.
       def count(*args)
         options    = {}
-        column_name = :all
         
         #For backwards compatibility, we need to handle both count(conditions=nil, joins=nil) or count(options={}).
         if args.size >= 0 and args.size <= 2
@@ -55,9 +60,8 @@ module ActiveRecord
         else
           raise(ArgumentError, "Unexpected parameters passed to count(*args): expected either count(conditions=nil, joins=nil) or count(options={})")
         end
-        
-        column_name = options[:select] if options[:select]
-        options[:include] ? count_with_associations(options) : calculate(:count, column_name, options)
+
+        options[:include] ? count_with_associations(options) : calculate(:count, :all, options)
       end
 
       # Calculates average value on a given column.  The value is returned as a float.  See #calculate for examples with options.
@@ -109,14 +113,26 @@ module ActiveRecord
       #       ...
       #       end
       #
+      # Options:
+      # * <tt>:conditions</tt>: An SQL fragment like "administrator = 1" or [ "user_name = ?", username ]. See conditions in the intro.
+      # * <tt>:joins</tt>: An SQL fragment for additional joins like "LEFT JOIN comments ON comments.post_id = id". (Rarely needed).
+      #   The records will be returned read-only since they will have attributes that do not correspond to the table's columns.
+      # * <tt>:order</tt>: An SQL fragment like "created_at DESC, name" (really only used with GROUP BY calculations).
+      # * <tt>:group</tt>: An attribute name by which the result should be grouped. Uses the GROUP BY SQL-clause.
+      # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you for example want to do a join, but not
+      #   include the joined columns.
+      # * <tt>:distinct</tt>: Set this to true to make this a distinct calculation, such as SELECT COUNT(DISTINCT posts.id) ...
+      #
       # Examples:
       #   Person.calculate(:count, :all) # The same as Person.count
       #   Person.average(:age) # SELECT AVG(age) FROM people...
       #   Person.minimum(:age, :conditions => ['last_name != ?', 'Drake']) # Selects the minimum age for everyone with a last name other than 'Drake'
       #   Person.minimum(:age, :having => 'min(age) > 17', :group => :last_name) # Selects the minimum age for any family without any minors
       def calculate(operation, column_name, options = {})
+        validate_calculation_options(operation, options)
+        column_name     = options[:select] if options[:select]
         column_name     = '*' if column_name == :all
-        column          = columns.detect { |c| c.name.to_s == column_name.to_s }
+        column          = column_for column_name
         aggregate       = select_aggregate(operation, column_name, options)
         aggregate_alias = column_alias_for(operation, column_name)
         if options[:group]
@@ -149,6 +165,7 @@ module ActiveRecord
         associated      = association && association.macro == :belongs_to # only count belongs_to associations
         group_field     = (associated ? "#{options[:group]}_id" : options[:group]).to_s
         group_alias     = column_alias_for(group_field)
+        group_column    = column_for group_field
         sql             = construct_calculation_sql(aggregate, aggregate_alias, options.merge(:group_field => group_field, :group_alias => group_alias))
         calculated_data = connection.select_all(sql)
 
@@ -159,13 +176,21 @@ module ActiveRecord
         end
 
         calculated_data.inject(OrderedHash.new) do |all, row|
-          key   = associated ? key_records[row[group_alias].to_i] : row[group_alias]
+          key   = associated ? key_records[row[group_alias].to_i] : type_cast_calculated_value(row[group_alias], group_column)
           value = row[aggregate_alias]
           all << [key, type_cast_calculated_value(value, column, operation)]
         end
       end
 
       private
+      def validate_calculation_options(operation, options = {})
+        if operation.to_s == 'count'
+          options.assert_valid_keys(CALCULATIONS_OPTIONS + [:include])
+        else
+          options.assert_valid_keys(CALCULATIONS_OPTIONS)
+        end
+      end
+
       def select_aggregate(operation, column_name, options)
         "#{operation}(#{'DISTINCT ' if options[:distinct]}#{column_name})"
       end
@@ -180,7 +205,12 @@ module ActiveRecord
         keys.join(' ').downcase.gsub(/\*/, 'all').gsub(/\W+/, ' ').strip.gsub(/ +/, '_')
       end
 
-      def type_cast_calculated_value(value, column, operation)
+      def column_for(field)
+        field_name = field.to_s.split('.').last
+        columns.detect { |c| c.name.to_s == field_name }
+      end
+
+      def type_cast_calculated_value(value, column, operation = nil)
         operation = operation.to_s.downcase
         case operation
           when 'count' then value.to_i

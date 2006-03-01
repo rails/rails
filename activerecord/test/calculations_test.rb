@@ -27,22 +27,22 @@ class CalculationsTest < Test::Unit::TestCase
 
   def test_should_group_by_field
     c = Account.sum(:credit_limit, :group => :firm_id)
-    %w( 1 6 2 ).each { |firm_id| assert c.keys.include?(firm_id) }
+    [1,6,2].each { |firm_id| assert c.keys.include?(firm_id) }
   end
 
   def test_should_group_by_summed_field
     c = Account.sum(:credit_limit, :group => :firm_id)
-    assert_equal 50,   c['1']
-    assert_equal 105,  c['6']
-    assert_equal 60,   c['2']
+    assert_equal 50,   c[1]
+    assert_equal 105,  c[6]
+    assert_equal 60,   c[2]
   end
 
   def test_should_group_by_summed_field_having_condition
     c = Account.sum(:credit_limit, :group => :firm_id, 
                                    :having => 'sum(credit_limit) > 50')
-    assert_nil        c['1']
-    assert_equal 105, c['6']
-    assert_equal 60,  c['2']
+    assert_nil        c[1]
+    assert_equal 105, c[6]
+    assert_equal 60,  c[2]
   end
 
   def test_should_group_by_summed_association
@@ -59,25 +59,25 @@ class CalculationsTest < Test::Unit::TestCase
   def test_should_group_by_summed_field_with_conditions
     c = Account.sum(:credit_limit, :conditions => 'firm_id > 1', 
                                    :group => :firm_id)
-    assert_nil        c['1']
-    assert_equal 105, c['6']
-    assert_equal 60,  c['2']
+    assert_nil        c[1]
+    assert_equal 105, c[6]
+    assert_equal 60,  c[2]
   end
   
   def test_should_group_by_summed_field_with_conditions_and_having
     c = Account.sum(:credit_limit, :conditions => 'firm_id > 1', 
                                    :group => :firm_id, 
                                    :having => 'sum(credit_limit) > 60')
-    assert_nil        c['1']
-    assert_equal 105, c['6']
-    assert_nil        c['2']
+    assert_nil        c[1]
+    assert_equal 105, c[6]
+    assert_nil        c[2]
   end
 
   def test_should_group_by_fields_with_table_alias
     c = Account.sum(:credit_limit, :group => 'accounts.firm_id')
-    assert_equal 50,  c['1']
-    assert_equal 105, c['6']
-    assert_equal 60,  c['2']
+    assert_equal 50,  c[1]
+    assert_equal 105, c[6]
+    assert_equal 60,  c[2]
   end
   
   def test_should_calculate_with_invalid_field
@@ -87,9 +87,9 @@ class CalculationsTest < Test::Unit::TestCase
   
   def test_should_calculate_grouped_with_invalid_field
     c = Account.count(:all, :group => 'accounts.firm_id')
-    assert_equal 1, c['1']
-    assert_equal 2, c['6']
-    assert_equal 1, c['2']
+    assert_equal 1, c[1]
+    assert_equal 2, c[6]
+    assert_equal 1, c[2]
   end
   
   def test_should_calculate_grouped_association_with_invalid_field
@@ -134,5 +134,25 @@ class CalculationsTest < Test::Unit::TestCase
                                                   :having => 'sum(id) > 7')
     assert_nil      c['Leetsoft']
     assert_equal 8, c['Jadedpixel']
+  end
+
+  def test_should_reject_invalid_options
+    assert_nothing_raised do
+      [:count, :sum].each do |func|
+        # empty options are valid
+        Company.send(:validate_calculation_options, func)
+        # these options are valid for all calculations
+        [:select, :conditions, :joins, :order, :group, :having, :distinct].each do |opt| 
+          Company.send(:validate_calculation_options, func, opt => true)
+        end
+      end
+      
+      # :include is only valid on :count
+      Company.send(:validate_calculation_options, :count, :include => true)
+    end
+    
+    assert_raises(ArgumentError) { Company.send(:validate_calculation_options, :sum,   :include => :posts) }
+    assert_raises(ArgumentError) { Company.send(:validate_calculation_options, :sum,   :foo => :bar) }
+    assert_raises(ArgumentError) { Company.send(:validate_calculation_options, :count, :foo => :bar) }
   end
 end
