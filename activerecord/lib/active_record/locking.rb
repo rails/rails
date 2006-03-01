@@ -30,24 +30,24 @@ module ActiveRecord
     end
 
     def update_with_lock #:nodoc:
-      if locking_enabled?
-        lock_col = self.class.locking_column
-        previous_value = send(lock_col)
-        send(lock_col + '=', previous_value + 1)
-        
-        affected_rows = connection.update(<<-end_sql, "#{self.class.name} Update with optimistic locking")
-          UPDATE #{self.class.table_name}
-          SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))}
-          WHERE #{self.class.primary_key} = #{quote(id)} 
-          AND #{lock_col} = #{quote(previous_value)}
-        end_sql
+      return update_without_lock unless locking_enabled?
 
-        unless affected_rows == 1
-          raise ActiveRecord::StaleObjectError, "Attempted to update a stale object"
-        end
-      else
-        update_without_lock
+      lock_col = self.class.locking_column
+      previous_value = send(lock_col)
+      send(lock_col + '=', previous_value + 1)
+
+      affected_rows = connection.update(<<-end_sql, "#{self.class.name} Update with optimistic locking")
+        UPDATE #{self.class.table_name}
+        SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))}
+        WHERE #{self.class.primary_key} = #{quote(id)} 
+        AND #{lock_col} = #{quote(previous_value)}
+      end_sql
+
+      unless affected_rows == 1
+        raise ActiveRecord::StaleObjectError, "Attempted to update a stale object"
       end
+
+      return true
     end
   end
 
