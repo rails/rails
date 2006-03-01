@@ -51,13 +51,16 @@ module Rails
           table << '</table>'
         end
       end
-      
-    protected
-      def svn_info
-        Dir.chdir("#{RAILS_ROOT}/vendor/rails") do
-          silence_stderr { `svn info` }
+
+      protected
+        def svn_info
+          env_lang, ENV['LC_ALL'] = ENV['LC_ALL'], 'C'
+          Dir.chdir("#{RAILS_ROOT}/vendor/rails") do
+            silence_stderr { `svn info` }
+          end
+        ensure
+          ENV['LC_ALL'] = env_lang
         end
-      end
     end
 
     # The Ruby version and platform, e.g. "1.8.2 (powerpc-darwin8.2.0)".

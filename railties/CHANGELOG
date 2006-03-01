@@ -1,5 +1,7 @@
 *SVN*
 
+* Help script/about print the correct svn revision when in a non-English locale.  #4026 [babie7a0@ybb.ne.jp]
+
 * Add 'app' accessor to script/console as an instance of Integration::Session [Jamis Buck]
 
 * Generator::Base#usage takes an optional message argument which defaults to Generator::Base#usage_message. [Jeremy Kemper]
