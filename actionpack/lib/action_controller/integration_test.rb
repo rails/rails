@@ -72,6 +72,7 @@ module ActionController
       def https!(flag=true)
         @https = flag
         initialize_url_writer
+        @https
       end
 
       # Return +true+ if the session is mimicing a secure HTTPS request.
@@ -89,6 +90,7 @@ module ActionController
       def host!(name)
         @host = name
         initialize_url_writer
+        @host
       end
 
       # Follow a single redirect response. If the last response was not a
@@ -97,6 +99,7 @@ module ActionController
       def follow_redirect!
         raise "not a redirect! #{@status} #{@status_message}" unless redirect?
         get(interpret_uri(headers["location"].first))
+        status
       end
 
       # Performs a GET request, following any subsequent redirect. Note that
@@ -106,6 +109,7 @@ module ActionController
       def get_via_redirect(path, args={})
         get path, args
         follow_redirect! while redirect?
+        status
       end
 
       # Performs a POST request, following any subsequent redirect. This is
@@ -113,6 +117,7 @@ module ActionController
       def post_via_redirect(path, args={})
         post path, args
         follow_redirect! while redirect?
+        status
       end
 
       # Returns +true+ if the last response was a redirect.
@@ -217,6 +222,7 @@ module ActionController
           @response = @controller.response
 
           parse_result
+          return status
         end
 
         # Parses the result of the response and extracts the various values,
@@ -254,7 +260,7 @@ module ActionController
                             'QUERY_STRING'   => "",
                             "REQUEST_URI"    => "/",
                             "HTTP_HOST"      => host,
-                            "SERVER_PORT"    => https? ? "80" : "443",
+                            "SERVER_PORT"    => https? ? "443" : "80",
                             "HTTPS"          => https? ? "on" : "off")                          
           @rewriter = ActionController::UrlRewriter.new(ActionController::CgiRequest.new(cgi), {})
         end
