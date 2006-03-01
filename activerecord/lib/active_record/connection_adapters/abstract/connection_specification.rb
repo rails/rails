@@ -98,7 +98,7 @@ module ActiveRecord
           stale = Set.new(cache.keys)
 
           Thread.list.each do |thread|
-            stale -= t.object_id if t.alive?
+            stale -= thread.object_id if t.alive?
           end
 
           stale.each do |thread_id|
