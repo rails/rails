@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Kernel#daemonize to turn the current process into a daemon that can be killed with a TERM signal [DHH]
+
 * Add 'around' methods to Logger,  to make it easy to log before and after messages for a given block as requested in #3809. [Michael Koziarski]  Example:
 
   logger.around_info("Start rendering component (#{options.inspect}): ", 

@@ -1,16 +1,25 @@
 class Object #:nodoc:
+  # A Ruby-ized realization of the K combinator, courtesy of Mikael Brockman.
+  #
+  #   def foo
+  #     returning values = [] do
+  #       values << 'bar'
+  #       values << 'baz'
+  #     end
+  #   end
+  #
+  #   foo # => ['bar', 'baz']
+  #
+  def returning(value)
+    yield
+    value
+  end
+
   def with_options(options)
     yield ActiveSupport::OptionMerger.new(self, options)
   end
   
   def to_json
     ActiveSupport::JSON.encode(self)
-  end
-
-  def suppress(*exception_classes)
-    begin yield
-    rescue Exception => e
-      raise unless exception_classes.any? { |cls| e.kind_of?(cls) }
-    end
   end
 end
