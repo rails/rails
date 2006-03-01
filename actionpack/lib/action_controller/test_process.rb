@@ -325,12 +325,13 @@ module ActionController #:nodoc:
       get(@response.redirected_to.delete(:action), @response.redirected_to.stringify_keys)
     end
 
-    def build_request_uri(action, parameters)
-      options = @controller.send(:rewrite_options, parameters)
-      options.update(:only_path => true, :action => action)
-      url = ActionController::UrlRewriter.new(@request, parameters)
-      @request.set_REQUEST_URI(url.rewrite(options))
-    end
+    def assigns(key = nil) 
+      if key.nil? 
+        @response.template.assigns 
+      else 
+        @response.template.assigns[key.to_s] 
+      end 
+    end 
 
     def session
       @response.session
