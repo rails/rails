@@ -306,12 +306,12 @@ module ActiveRecord #:nodoc:
     # This is set to :local by default.
     cattr_accessor :default_timezone
     @@default_timezone = :local
-    
+
     # Determines whether or not to use a connection for each thread, or a single shared connection for all threads.
-    # Defaults to true; Railties' WEBrick server sets this to false.
+    # Defaults to false. Set to true if you're writing a threaded application.
     cattr_accessor :allow_concurrency
-    @@allow_concurrency = true
-    
+    @@allow_concurrency = false
+
     # Determines whether to speed up access by generating optimized reader
     # methods to avoid expensive calls to method_missing when accessing
     # attributes by name. You might want to set this to false in development
