@@ -76,7 +76,8 @@ class AssetTagHelperTest < Test::Unit::TestCase
     %(image_tag("xml")) => %(<img alt="Xml" src="/images/xml.png" />),
     %(image_tag("rss", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/images/rss.png" />),
     %(image_tag("gold", :size => "45x70")) => %(<img alt="Gold" height="70" src="/images/gold.png" width="45" />),
-    %(image_tag("symbolize", "size" => "45x70")) => %(<img alt="Symbolize" height="70" src="/images/symbolize.png" width="45" />)
+    %(image_tag("symbolize", "size" => "45x70")) => %(<img alt="Symbolize" height="70" src="/images/symbolize.png" width="45" />),
+    %(image_tag("http://www.rubyonrails.com/images/rails")) => %(<img alt="Rails" src="http://www.rubyonrails.com/images/rails.png" />)
   }
 
   def test_auto_discovery

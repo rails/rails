@@ -146,7 +146,7 @@ module ActionView
       private
         def compute_public_path(source, dir, ext)
           source = "/#{dir}/#{source}" unless source.first == "/" || source.include?(":")
-          source = "#{source}.#{ext}" unless source.include?(".")
+          source = "#{source}.#{ext}" unless source.split("/").last.include?(".")
           source = "#{@controller.request.relative_url_root}#{source}" unless %r{^[-a-z]+://} =~ source
           source = ActionController::Base.asset_host + source unless source.include?(":")
           source
