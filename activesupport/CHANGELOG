@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that Array#to_sentence will return "" on an empty array instead of ", and" #3842, #4031 [rubyonrails@beautifulpixel.com]
+
 * Add Enumerable#group_by for grouping collections based on the result of some
   block. Useful, for example, for grouping records by date.
 

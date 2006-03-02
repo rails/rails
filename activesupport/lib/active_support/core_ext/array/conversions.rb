@@ -11,6 +11,8 @@ module ActiveSupport #:nodoc:
           options.reverse_merge! :connector => 'and', :skip_last_comma => false
           
           case length
+          	when 0
+          		""
             when 1
               self[0]
             when 2

@@ -15,7 +15,11 @@ end
 
 class ArrayExtConversionTests < Test::Unit::TestCase
   def test_plain_array_to_sentence
+    assert_equal "", [].to_sentence
+    assert_equal "one", ['one'].to_sentence
+    assert_equal "one and two", ['one', 'two'].to_sentence
     assert_equal "one, two, and three", ['one', 'two', 'three'].to_sentence
+    
   end
   
   def test_to_sentence_with_connector
