@@ -310,7 +310,7 @@ module ActiveRecord #:nodoc:
     # Determines whether or not to use a connection for each thread, or a single shared connection for all threads.
     # Defaults to false. Set to true if you're writing a threaded application.
     cattr_accessor :allow_concurrency
-    @@allow_concurrency = false
+    @@allow_concurrency = true
 
     # Determines whether to speed up access by generating optimized reader
     # methods to avoid expensive calls to method_missing when accessing

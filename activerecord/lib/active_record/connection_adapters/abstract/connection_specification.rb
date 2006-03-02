@@ -55,7 +55,8 @@ module ActiveRecord
           conn
         else
           # retrieve_connection sets the cache key.
-          active_connections[@active_connection_name] = retrieve_connection
+          conn = retrieve_connection
+          active_connections[@active_connection_name] = conn
         end
       end
 
