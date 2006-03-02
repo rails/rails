@@ -87,7 +87,7 @@ module ActiveRecord
 
       # Calculates the sum value on a given column.  The value is returned with the same data type of the column..  See #calculate for examples with options.
       #
-      #   Person.maximum('age')
+      #   Person.sum('age')
       def sum(column_name, options = {})
         calculate(:sum, column_name, options)
       end
