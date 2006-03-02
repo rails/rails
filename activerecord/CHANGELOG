@@ -1,5 +1,12 @@
 *SVN*
 
+* Added Sybase database adapter that relies on the Sybase Open Client bindings (see http://raa.ruby-lang.org/project/sybase-ctlib) #3765 [John Sheets]. It's almost completely Active Record compliant, but has the following caveats:
+
+    * Does not support DATE SQL column types; use DATETIME instead.
+    * Date columns on HABTM join tables are returned as String, not Time.
+    * Insertions are potentially broken for :polymorphic join tables
+    * BLOB column access not yet fully supported
+
 * Clear stale, cached connections left behind by defunct threads. [Jeremy Kemper]
 
 * CHANGED DEFAULT: set ActiveRecord::Base.allow_concurrency to false.  Most AR usage is in single-threaded applications. [Jeremy Kemper]

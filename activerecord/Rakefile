@@ -27,7 +27,7 @@ task :default => [ :test_mysql, :test_sqlite, :test_postgresql ]
 
 # Run the unit tests
 
-for adapter in %w( mysql postgresql sqlite sqlite3 firebird sqlserver sqlserver_odbc db2 oracle )
+for adapter in %w( mysql postgresql sqlite sqlite3 firebird sqlserver sqlserver_odbc db2 oracle sybase )
   Rake::TestTask.new("test_#{adapter}") { |t|
     t.libs << "test" << "test/connections/native_#{adapter}"
     t.pattern = "test/*_test{,_#{adapter}}.rb"

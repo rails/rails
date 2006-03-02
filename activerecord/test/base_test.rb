@@ -284,10 +284,18 @@ class BasicsTest < Test::Unit::TestCase
     # SQL Server doesn't have a separate column type just for dates, so all are returned as time
     return true if current_adapter?(:SQLServerAdapter)
 
-    assert_kind_of(
-      Date, Topic.find(1).last_read, 
-      "The last_read attribute should be of the Date class"
-    )
+    if current_adapter?(:SybaseAdapter)
+      # Sybase ctlib does not (yet?) support the date type; use datetime instead.
+      assert_kind_of(
+        Time, Topic.find(1).last_read, 
+        "The last_read attribute should be of the Time class"
+      )
+    else
+      assert_kind_of(
+        Date, Topic.find(1).last_read, 
+        "The last_read attribute should be of the Date class"
+      )
+    end
   end
 
   def test_preserving_time_objects
@@ -445,7 +453,7 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal 2, Topic.update_all("content = 'bulk updated!'")
     assert_equal "bulk updated!", Topic.find(1).content
     assert_equal "bulk updated!", Topic.find(2).content
-    assert_equal 2, Topic.update_all(['content = ?', 'bulk updated again!']);
+    assert_equal 2, Topic.update_all(['content = ?', 'bulk updated again!'])
     assert_equal "bulk updated again!", Topic.find(1).content
     assert_equal "bulk updated again!", Topic.find(2).content
   end

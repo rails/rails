@@ -23,7 +23,7 @@ class Test::Unit::TestCase #:nodoc:
     # SQL Server doesn't have a separate column type just for dates, 
     # so the time is in the string and incorrectly formatted
     
-    if current_adapter?(:SQLServerAdapter)
+    if current_adapter?(:SQLServerAdapter) || current_adapter?(:SybaseAdapter)
       assert_equal expected.strftime("%Y/%m/%d 00:00:00"), actual.strftime("%Y/%m/%d 00:00:00")
     else
       assert_equal expected.to_s, actual.to_s, message

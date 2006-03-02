@@ -30,7 +30,7 @@ class ListWithStringScopeMixin < ActiveRecord::Base
 end
 
 class NestedSet < Mixin
-  acts_as_nested_set :scope => "ROOT_ID IS NULL"
+  acts_as_nested_set :scope => "root_id IS NULL"
   
   def self.table_name() "mixins" end
 end
