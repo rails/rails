@@ -5,12 +5,13 @@
 # Based on code from Will Sobel (http://dev.rubyonrails.org/ticket/2030)
 
 require 'active_record/connection_adapters/abstract_adapter'
-require 'sybsql'
 
 module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects
     def self.sybase_connection(config) # :nodoc:
+      require_library_or_gem 'sybsql'
+
       config = config.symbolize_keys
 
       username = config[:username] ? config[:username].to_s : 'sa'
