@@ -42,6 +42,18 @@ module ActiveRecord
   #
   # This Observer sends an email when a Comment#save is finished.
   #
+  #   class ContactObserver < ActiveRecord::Observer
+  #     def after_create(contact)
+  #       contact.logger.info('New contact added!')
+  #     end
+  #
+  #     def after_destroy(contact)
+  #       contact.logger.warn("Contact with an id of #{contact.id} was destroyed!")
+  #     end
+  #   end
+  #
+  # This Observer uses logger to log when specific callbacks are triggered.
+  #
   # == Observing a class that can't be inferred
   #
   # Observers will by default be mapped to the class with which they share a name. So CommentObserver will
@@ -72,12 +84,20 @@ module ActiveRecord
   #
   # The observer can implement callback methods for each of the methods described in the Callbacks module.
   #
-  # == Triggering Observers
+  # == Storing Observers in Rails
+  # 
+  # If you're using Active Record within Rails, observer classes are usually stored in app/models with the
+  # naming convention of app/models/audit_observer.rb.
+  #
+  # == Configuration
   # 
   # In order to activate an observer, list it in the <tt>config.active_record.observers</tt> configuration setting in your
   # <tt>config/environment.rb</tt> file.
   #
   #   config.active_record.observers = :comment_observer, :signup_observer
+  #
+  # Observers will not be invoked unless you define these in your application configuration.
+  #
   class Observer
     include Singleton
 
