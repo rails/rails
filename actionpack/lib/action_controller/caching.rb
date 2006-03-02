@@ -134,7 +134,7 @@ module ActionController #:nodoc:
 
       private
         def caching_allowed
-          !@request.post?
+          !@request.post? && @response.headers['Status'] && @response.headers['Status'].to_i < 400
         end
     end
 
