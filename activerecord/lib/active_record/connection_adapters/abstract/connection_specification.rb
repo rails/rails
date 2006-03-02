@@ -72,7 +72,7 @@ module ActiveRecord
         end
 
         active_connections.each_value do |connection|
-          connection.verify!(@@connection_cache_timeout)
+          connection.verify!(@@verification_timeout)
         end
       end
 
