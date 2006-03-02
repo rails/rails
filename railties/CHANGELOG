@@ -1,5 +1,7 @@
 *SVN*
 
+* Added test:uncommitted to test changes since last checkin to Subversion #4035 [technomancy@gmail.com]
+
 * Help script/about print the correct svn revision when in a non-English locale.  #4026 [babie7a0@ybb.ne.jp]
 
 * Add 'app' accessor to script/console as an instance of Integration::Session [Jamis Buck]
