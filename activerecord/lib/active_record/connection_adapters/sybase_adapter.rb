@@ -6,12 +6,13 @@
 
 require 'active_record/connection_adapters/abstract_adapter'
 
+begin
+require 'sybsql'
+
 module ActiveRecord
   class Base
     # Establishes a connection to the database that's used by all Active Record objects
     def self.sybase_connection(config) # :nodoc:
-      require_library_or_gem 'sybsql'
-
       config = config.symbolize_keys
 
       username = config[:username] ? config[:username].to_s : 'sa'
@@ -596,5 +597,8 @@ class Fixtures
   def allow_identity_inserts(table_name, enable)
       @connection.execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}" rescue nil
   end
+end
 
+rescue LoadError => cannot_require_sybase
+  # Couldn't load sybase adapter
 end
