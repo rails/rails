@@ -43,17 +43,9 @@ namespace :rails do
 
       revision_switch = ENV['REVISION'] ? " -r #{ENV['REVISION']}" : ''
       
-      # Railties needs bin/ and html/ in order for update:scripts and
-      # update:javascripts to function properly
-      mkdir_p "vendor/rails/railties"
-      system  "svn export http://dev.rubyonrails.org/svn/rails/trunk/railties/lib vendor/rails/railties/lib #{revision_switch}"
-      system  "svn export http://dev.rubyonrails.org/svn/rails/trunk/railties/bin vendor/rails/railties/bin #{revision_switch}"
-      system  "svn export http://dev.rubyonrails.org/svn/rails/trunk/railties/html vendor/rails/railties/html #{revision_switch}"
-      
-      # The rest of the frameworks really just need lib/
-      for framework in %w( actionpack activerecord actionmailer activesupport actionwebservice )
+      for framework in %w( railties actionpack activerecord actionmailer activesupport actionwebservice )
         mkdir_p "vendor/rails/#{framework}"
-        system  "svn export http://dev.rubyonrails.org/svn/rails/trunk/#{framework}/lib vendor/rails/#{framework}/lib #{revision_switch}"
+        system  "svn export http://dev.rubyonrails.org/svn/rails/trunk/#{framework} vendor/rails/#{framework} #{revision_switch}"
       end
     end
   end
