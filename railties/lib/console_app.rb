@@ -3,10 +3,6 @@ require 'action_controller/integration_test'
 # work around the at_exit hook in test/unit, which kills IRB
 Test::Unit.run = true
 
-# have to use :require dependencies mechanism with the integration test stuff,
-# or things start acting really wierd from request to request.
-Dependencies.mechanism = :require
-
 # reference the global "app" instance, created on demand. To recreate the
 # instance, pass a non-false value as the parameter.
 def app(create=false)
