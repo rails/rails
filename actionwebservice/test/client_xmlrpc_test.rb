@@ -124,7 +124,7 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
     assert_equal 'Kent', user.name
     assert user.active?
     assert_kind_of Time, user.created_on
-    assert_equal Time.now.getgm.beginning_of_day, user.created_on
+    assert_equal Time.utc(Time.now.year, Time.now.month, Time.now.day), user.created_on
   end
 
   def test_with_model
