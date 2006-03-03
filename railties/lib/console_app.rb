@@ -23,3 +23,9 @@ def new_session
   yield session if block_given?
   session
 end
+
+#reloads the environment
+def reload!
+  puts "Reloading..."
+  Dispatcher.reset_application!
+end
