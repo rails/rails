@@ -34,7 +34,7 @@ module ActiveRecord
             @owner.clear_association_cache
           else
             @target[@reflection.primary_key_name] = nil
-            @target.save unless @owner.new_record?
+            @target.save unless @owner.new_record? || @target.new_record?
           end
         end
 

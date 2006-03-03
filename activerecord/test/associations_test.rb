@@ -158,6 +158,15 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     assert_equal "can't be empty", account.errors.on("credit_limit")
   end
 
+  def test_build_association_twice_without_saving_affects_nothing
+    count_of_account = Account.count
+    firm = Firm.find(:first)
+    account1 = firm.build_account("credit_limit" => 1000)
+    account2 = firm.build_account("credit_limit" => 2000)
+
+    assert_equal count_of_account, Account.count
+  end
+
   def test_create_association
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
