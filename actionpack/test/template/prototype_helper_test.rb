@@ -148,6 +148,8 @@ class PrototypeHelperTest < Test::Unit::TestCase
   end
 end
 
+ActionView::Helpers::JavaScriptCollectionProxy.send :public, :enumerate
+
 class JavaScriptGeneratorTest < Test::Unit::TestCase
   include BaseTest
   
@@ -244,8 +246,8 @@ Element.update("baz", "<p>This is a test</p>");
   end
 
   def test_element_proxy_two_deep
-    @generator['hello'].hide("first").display
-    assert_equal %($('hello').hide("first").display();), @generator.to_s
+    @generator['hello'].hide("first").clean_whitespace
+    assert_equal %($('hello').hide("first").cleanWhitespace();), @generator.to_s
   end
   
   def test_select_access
@@ -280,5 +282,103 @@ Element.update("baz", "<p>This is a test</p>");
   def test_drop_receiving
     assert_equal %(Droppables.add('blah', {onDrop:function(element){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}});), 
       @generator.drop_receiving('blah', :url => { :action => "order" })
+  end
+
+  def test_collection_proxy_with_each
+    @generator.select('p.welcome b').each do |page, value|
+      value.remove_class_name 'selected'
+    end
+    @generator.select('p.welcome b').each do |page, value, index|
+      page.call 'alert', index
+      page.call 'alert', value, 'selected'
+    end
+      assert_equal <<-EOS.strip, @generator.to_s
+$$('p.welcome b').each(function(value, index) {
+value.removeClassName("selected");
+});
+$$('p.welcome b').each(function(value, index) {
+alert(index);
+alert(value, "selected");
+});
+      EOS
+  end
+
+  def test_collection_proxy_on_enumerables_with_return_and_index
+    iterator            = Proc.new { |page, value|        page << '(value.className == "welcome")' }
+    iterator_with_index = Proc.new { |page, value, index| page.call 'alert', index ; page << '(value.className == "welcome")' }
+    ActionView::Helpers::JavaScriptCollectionProxy::ENUMERABLE_METHODS_WITH_RETURN.each do |enum|
+      @generator.select('p').enumerate(enum, 'a', &iterator)
+      @generator.select('p').enumerate(enum, 'b', &iterator_with_index)
+      
+      assert_equal <<-EOS.strip, @generator.to_s
+a = $$('p').#{enum}(function(value, index) {
+return (value.className == "welcome");
+});
+b = $$('p').#{enum}(function(value, index) {
+alert(index);
+return (value.className == "welcome");
+});
+      EOS
+      @generator = create_generator
+    end
+  end
+
+  def test_collection_proxy_with_grep
+    @generator.select('p').grep 'a', /^a/ do |page, value|
+      page << '(value.className == "welcome")'
+    end
+    @generator.select('p').grep 'b', /b$/ do |page, value, index|
+      page.call 'alert', value
+      page << '(value.className == "welcome")'
+    end
+
+    assert_equal <<-EOS.strip, @generator.to_s
+a = $$('p').grep(/^a/, function(value, index) {
+return (value.className == "welcome");
+});
+b = $$('p').grep(/b$/, function(value, index) {
+alert(value);
+return (value.className == "welcome");
+});
+    EOS
+  end
+
+  def test_collection_proxy_with_inject
+    @generator.select('p').inject 'a', [] do |page, memo, value|
+      page << '(value.className == "welcome")'
+    end
+    @generator.select('p').inject 'b', nil do |page, memo, value, index|
+      page.call 'alert', memo
+      page << '(value.className == "welcome")'
+    end
+
+    assert_equal <<-EOS.strip, @generator.to_s
+a = $$('p').inject([], function(memo, value, index) {
+return (value.className == "welcome");
+});
+b = $$('p').inject(null, function(memo, value, index) {
+alert(memo);
+return (value.className == "welcome");
+});
+    EOS
+  end
+
+  def test_collection_proxy_with_pluck
+    @generator.select('p').pluck('a', 'className')
+    assert_equal %(a = $$('p').pluck("className");), @generator.to_s
+  end
+
+  def test_collection_proxy_with_zip
+    ActionView::Helpers::JavaScriptCollectionProxy.new(@generator, '[1, 2, 3]').zip('a', [4, 5, 6], [7, 8, 9])
+    ActionView::Helpers::JavaScriptCollectionProxy.new(@generator, '[1, 2, 3]').zip('b', [4, 5, 6], [7, 8, 9]) do |page, array|
+      page.call 'array.reverse'
+    end
+
+    assert_equal <<-EOS.strip, @generator.to_s
+a = [1, 2, 3].zip([4, 5, 6], [7, 8, 9]);
+b = [1, 2, 3].zip([4, 5, 6], [7, 8, 9], function(array) {
+return array.reverse();
+});
+    EOS
   end
 end

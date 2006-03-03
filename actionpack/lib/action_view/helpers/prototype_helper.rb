@@ -434,7 +434,7 @@ module ActionView
         #   page.select('p.welcome b').first      # => $$('p.welcome b').first();
         #   page.select('p.welcome b').first.hide # => $$('p.welcome b').first().hide();
         def select(pattern)
-          JavaScriptCollectionProxy.new(self, pattern)
+          JavaScriptElementCollectionProxy.new(self, pattern)
         end
   
         # Inserts HTML at the specified +position+ relative to the DOM element
@@ -687,9 +687,9 @@ module ActionView
 
     # Converts chained method calls on DOM proxy elements into JavaScript chains 
     class JavaScriptProxy < Builder::BlankSlate #:nodoc:
-      def initialize(generator, root)
+      def initialize(generator, root = nil)
         @generator = generator
-        @generator << root
+        @generator << root if root
       end
 
       private
@@ -697,7 +697,7 @@ module ActionView
           if method.to_s =~ /(.*)=$/
             assign($1, arguments.first)
           else
-            call(method, *arguments)
+            call("#{method.to_s.first}#{method.to_s.classify[1..-1]}", *arguments)
           end
         end
       
@@ -707,7 +707,7 @@ module ActionView
         end
 
         def assign(variable, value)
-          append_to_function_chain! "#{variable} = #{@generator.send(:javascript_object_for, value)}"
+          append_to_function_chain!("#{variable} = #{@generator.send(:javascript_object_for, value)}")
         end
         
         def function_chain
@@ -715,7 +715,7 @@ module ActionView
         end
         
         def append_to_function_chain!(call)
-          function_chain[-1] = function_chain[-1][0..-2] if function_chain[-1][-1..-1] == ";" # strip last ;
+          function_chain[-1].chomp!(';')
           function_chain[-1] += ".#{call};"
         end
     end
@@ -737,15 +737,105 @@ module ActionView
       def reload
         replace :partial => @id.to_s
       end
+      
+    end
+
+    class JavaScriptVariableProxy < JavaScriptProxy #:nodoc:
+      def initialize(generator, variable)
+        @variable = variable
+        @empty    = true # only record lines if we have to.  gets rid of unnecessary linebreaks
+        super(generator)
+      end
+
+      # The JSON Encoder calls this to check for the #to_json method
+      # Since it's a blank slate object, I suppose it responds to anything.
+      def respond_to?(method)
+        true
+      end
+
+      def to_json
+        @variable
+      end
+      
+      private
+        def append_to_function_chain!(call)
+          @generator << @variable if @empty
+          @empty = false
+          super
+        end
     end
 
     class JavaScriptCollectionProxy < JavaScriptProxy #:nodoc:
+      ENUMERABLE_METHODS_WITH_RETURN = [:all, :any, :collect, :map, :detect, :find, :findAll, :select, :max, :min, :partition, :reject, :sortBy]
+      ENUMERABLE_METHODS = ENUMERABLE_METHODS_WITH_RETURN + [:each]
+
       def initialize(generator, pattern)
-        @pattern = pattern
-        super(generator, "$$('#{pattern}')")
+        super(generator, @pattern = pattern)
       end
 
-      # TODO: Implement funky stuff like .each
+      def grep(variable, pattern, &block)
+        enumerable_method("grep(#{pattern.to_json}, function(value, index) {", variable, %w(value index), &block)
+      end
+
+      def inject(variable, memo, &block)
+        enumerable_method("inject(#{memo.to_json}, function(memo, value, index) {", variable, %w(memo value index), &block)
+      end
+
+      def pluck(variable, property)
+        add_variable_assignment!(variable)
+        append_enumerable_function!("pluck(#{property.to_json});")
+      end
+
+      def zip(variable, *arguments, &block)
+        add_variable_assignment!(variable)
+        append_enumerable_function!("zip(#{arguments.collect { |a| a.to_json } * ', '}")
+        if block
+          function_chain[-1] += ", function(array) {"
+          yield @generator, ActiveSupport::JSON::Variable.new('array')
+          add_return_statement!
+          @generator << '});'
+        else
+          function_chain[-1] += ');'
+        end
+      end
+
+      private
+        def method_missing(method, *arguments, &block)
+          ENUMERABLE_METHODS.include?(method) ? enumerate(method, ENUMERABLE_METHODS_WITH_RETURN.include?(method), &block) : super
+        end
+
+        def enumerate(enumerable, variable = nil, &block)
+          enumerable_method("#{enumerable}(function(value, index) {", variable, %w(value index), &block)
+        end
+
+        def enumerable_method(enumerable, variable, yield_params, &block)
+          add_variable_assignment!(variable) if variable
+          append_enumerable_function!(enumerable)
+          yield *([@generator] + yield_params.collect { |p| JavaScriptVariableProxy.new(@generator, p) })
+          add_return_statement! if variable
+          @generator << '});'
+        end
+
+        def add_variable_assignment!(variable)
+          function_chain.push("#{variable} = #{function_chain.pop}")
+        end
+
+        def add_return_statement!
+          unless function_chain.last =~ /return/
+            function_chain.push("return #{function_chain.pop.chomp(';')};")
+          end
+        end
+        
+        def append_enumerable_function!(call)
+          function_chain[-1].chomp!(';')
+          function_chain[-1] += ".#{call}"
+        end
+    end
+    
+    class JavaScriptElementCollectionProxy < JavaScriptCollectionProxy #:nodoc:\
+      def initialize(generator, pattern)
+        super(generator, "$$('#{pattern}')")
+      end
     end
   end
 end

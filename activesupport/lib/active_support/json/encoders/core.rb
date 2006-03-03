@@ -56,6 +56,10 @@ module ActiveSupport
           result << '}'
         end
       end
+
+      define_encoder Regexp do |regexp|
+        regexp.inspect
+      end
     end
   end
 end
