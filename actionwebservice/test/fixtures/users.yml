@@ -1,0 +1,10 @@
+user1:
+  id: 1
+  name: Kent
+  active: 1
+  created_on: <%= Date.today %>
+user2:
+  id: 2
+  name: David
+  active: 1
+  created_on: <%= Date.today %>

@@ -65,14 +65,23 @@ module ActionWebService
               when :xmlrpc
                 @protocol = Protocol::XmlRpc::XmlRpcProtocol.create(self)
               end
-              @invocation_cgi = request.respond_to?(:cgi) ? request.cgi : nil
               bm = Benchmark.measure do
                 @protocol.register_api(@scaffold_service.api)
                 post_params = params['method_params'] ? params['method_params'].dup : nil
                 params = []
                 if @scaffold_method.expects
-                  @scaffold_method.expects.length.times do |i|
-                    params << post_params[i.to_s]
+                  @scaffold_method.expects.each_with_index do |spec, i|
+                    case spec.type
+                    when :date
+                      date = post_params[i.to_s]
+                      params << (date['2'] + '/' + date['3'] + '/' + date['1'])
+                    when :datetime, :time
+                      date = post_params[i.to_s]
+                      params << (date['2'] + '/' + date['3'] + '/' + date['1'] + ' ' +
+                                 date['4'] + ':' + date['5'] + ':' + date['6'])
+                    else    
+                      params << post_params[i.to_s]                                            
+                    end
                   end
                 end
                 params = @scaffold_method.cast_expects(params)
@@ -130,14 +139,8 @@ module ActionWebService
             end
 
             def reset_invocation_response
-              template = response.template
-              if @invocation_cgi
-                @response = ::ActionController::CgiResponse.new(@invocation_cgi)
-              else
-                @response = ::ActionController::TestResponse.new
-              end
-              response.template = template
-              @performed_render = false
+              erase_render_results
+              @response.headers = ::ActionController::AbstractResponse::DEFAULT_HEADERS.merge("cookie" => [])
             end
 
             def public_method_name(service_name, method_name)
@@ -173,7 +176,7 @@ module ActionWebService
     end
 
     module Helpers # :nodoc:
-      def method_parameter_input_fields(method, type, field_name_base)
+      def method_parameter_input_fields(method, type, field_name_base, idx)
         if type.array?
           return content_tag('em', "Typed array input fields not supported yet (#{type.name})")
         end
@@ -184,7 +187,7 @@ module ActionWebService
             nested_content = method_parameter_input_fields(
               method,
               member_type,
-              field_name_base + '[' + member_name.to_s + ']')
+              "#{field_name_base}[#{idx}][#{member_name}]")
             if member_type.custom?
               parameters << content_tag('li', label)
               parameters << content_tag('ul', nested_content)
@@ -196,18 +199,30 @@ module ActionWebService
         else
           case type.type
           when :int
-            text_field_tag field_name_base
+            text_field_tag "#{field_name_base}[#{idx}]"
           when :string
-            text_field_tag field_name_base
+            text_field_tag "#{field_name_base}[#{idx}]"
+          when :base64
+            text_area_tag "#{field_name_base}[#{idx}]", nil, :size => "40x5"
           when :bool
-            radio_button_tag(field_name_base, "true") + " True" +
-            radio_button_tag(field_name_base, "false") + "False"
+            radio_button_tag("#{field_name_base}[#{idx}]", "true") + " True" +
+            radio_button_tag("#{field_name_base}[#{idx}]", "false") + "False"
           when :float
-            text_field_tag field_name_base
-          when :time
-            select_datetime Time.now, 'name' => field_name_base
+            text_field_tag "#{field_name_base}[#{idx}]"
+          when :time, :datetime
+            time = Time.now
+            i = 0
+            %w|year month day hour minute second|.map do |name|
+              i += 1
+              send("select_#{name}", time, :prefix => "#{field_name_base}[#{idx}][#{i}]", :discard_type => true)
+            end.join
           when :date
-            select_date Date.today, 'name' => field_name_base
+            date = Date.today
+            i = 0
+            %w|year month day|.map do |name|
+              i += 1
+              send("select_#{name}", date, :prefix => "#{field_name_base}[#{idx}][#{i}]", :discard_type => true)
+            end.join
           end
         end
       end

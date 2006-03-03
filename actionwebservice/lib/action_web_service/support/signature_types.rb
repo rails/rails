@@ -53,9 +53,9 @@ module ActionWebService # :nodoc:
       case name
         when :int, :integer, :fixnum, :bignum
           :int
-        when :string
+        when :string, :text
           :string
-        when :base64
+        when :base64, :binary
           :base64
         when :bool, :boolean
           :bool
@@ -203,7 +203,7 @@ module ActionWebService # :nodoc:
       elsif @type_class.respond_to?(:columns)
         i = -1
         @type_class.columns.each do |column|
-          yield column.name, canonical_signature_entry(column.klass, i += 1)
+          yield column.name, canonical_signature_entry(column.type, i += 1)
         end
       end
     end

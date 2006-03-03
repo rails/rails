@@ -12,7 +12,7 @@ module ClientXmlRpcTest
       test_request.env['HTTP_CONTENT_TYPE'] = 'text/xml'
       test_request.env['RAW_POST_DATA'] = req.body
       response = ActionController::TestResponse.new
-      @controller.process(test_request, response)
+      @controller.process(test_request, response) 
       res.header['content-type'] = 'text/xml'
       res.body = response.body
       # puts res.body
@@ -44,6 +44,8 @@ end
 class TC_ClientXmlRpc < Test::Unit::TestCase
   include ClientTest
   include ClientXmlRpcTest
+  
+  fixtures :users
 
   def setup
     @server = XmlRpcServer.instance
@@ -83,6 +85,16 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
     assert_equal(true, @client.struct_pass([new_person]))
     assert_equal([[new_person]], @container.value_struct_pass)
   end
+  
+  def test_nil_struct_return
+    assert_equal false, @client.nil_struct_return
+  end
+
+  def test_inner_nil
+    outer = @client.inner_nil
+    assert_equal 'outer', outer.name
+    assert_nil outer.inner
+  end
 
   def test_client_container
     assert_equal(50, ClientContainer.new.get_client.client_container)
@@ -90,7 +102,7 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
 
   def test_named_parameters
     assert(@container.value_named_parameters.nil?)
-    assert_equal(true, @client.named_parameters("xxx", 7))
+    assert_equal(false, @client.named_parameters("xxx", 7))
     assert_equal(["xxx", 7], @container.value_named_parameters)
   end
 
@@ -104,5 +116,29 @@ class TC_ClientXmlRpc < Test::Unit::TestCase
     assert_raises(ArgumentError) do
       @client.normal
     end
+  end
+
+  def test_model_return
+    user = @client.user_return
+    assert_equal 1, user.id
+    assert_equal 'Kent', user.name
+    assert user.active?
+    assert_kind_of Time, user.created_on
+    assert_equal Time.now.getgm.beginning_of_day, user.created_on
+  end
+
+  def test_with_model
+    with_model = @client.with_model_return
+    assert_equal 'Kent', with_model.user.name
+    assert_equal 2, with_model.users.size
+    with_model.users.each do |user|
+      assert_kind_of User, user
+    end
+  end
+  
+  def test_scoped_model_return
+    scoped_model = @client.scoped_model_return
+    assert_kind_of Accounting::User, scoped_model
+    assert_equal 'Kent', scoped_model.name
   end
 end

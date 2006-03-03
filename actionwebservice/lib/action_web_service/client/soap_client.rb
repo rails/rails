@@ -80,12 +80,20 @@ module ActionWebService # :nodoc:
             if expects
               expects.each do |type|
                 type_binding = @protocol.marshaler.lookup_type(type)
-                param_def << ['in', type.name, type_binding.mapping]
+                if SOAP::Version >= "1.5.5"
+                  param_def << ['in', type.name.to_s, [type_binding.type.type_class.to_s]]
+                else
+                  param_def << ['in', type.name, type_binding.mapping]
+                end
               end
             end
             if returns
               type_binding = @protocol.marshaler.lookup_type(returns[0])
-              param_def << ['retval', 'return', type_binding.mapping]
+              if SOAP::Version >= "1.5.5"
+                param_def << ['retval', 'return', [type_binding.type.type_class.to_s]]
+              else
+                param_def << ['retval', 'return', type_binding.mapping]
+              end
             end
             driver.add_method(qname, action, method.name.to_s, param_def)
           end

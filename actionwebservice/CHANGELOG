@@ -1,5 +1,19 @@
 *SVN*
 
+* Fix that marshaler couldn't handle ActiveRecord models defined in a different namespace (#2392).
+
+* Fix that marshaler couldn't handle structs with members of ActiveRecord type (#1889).
+
+* Fix that marshaler couldn't handle nil values for inner structs (#3576).
+
+* Fix that changes to ActiveWebService::API::Base required restarting of the server (#2390).
+
+* Fix scaffolding for signatures with :date, :time and :base64 types (#3321, #2769, #2078).
+
+* Fix for incorrect casting of TrueClass/FalseClass instances (#2633, #3421).
+
+* Fix for incompatibility problems with SOAP4R 1.5.5 (#2553) [Kent Sibilev]
+
 * Update from LGPL to MIT license as per Minero Aoki's permission. [Marcel Molina Jr.]
 
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]

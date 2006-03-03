@@ -32,7 +32,9 @@ module ActionWebService
         end
 
         def ruby_to_soap(obj)
-          SOAP::Mapping.obj2soap(obj, @registry)
+          soap = SOAP::Mapping.obj2soap(obj, @registry)
+          soap.elename = XSD::QName.new if SOAP::Version >= "1.5.5" && soap.elename == XSD::QName::EMPTY
+          soap
         end
 
         def register_type(type)
@@ -63,12 +65,21 @@ module ActionWebService
           end
 
           @type2binding[type] = array_binding ? array_binding : type_binding
+          
+          if type.structured?
+            type.each_member do |m_name, m_type|
+              register_type(m_type)
+            end
+          end
+          
           @type2binding[type]
         end
         alias :lookup_type :register_type
 
         def annotate_arrays(binding, value)
-          if binding.type.array?
+          if value.nil?
+            return
+          elsif binding.type.array?
             mark_typed_array(value, binding.element_binding.qname)
             if binding.element_binding.type.custom?
               value.each do |element|

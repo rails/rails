@@ -10,20 +10,19 @@
 </p>
 
 <% if @scaffold_method.expects %>
-<% i = 0 %>
 
 <strong>Method Parameters:</strong><br />
-<% @scaffold_method.expects.each do |type| %>
+<% @scaffold_method.expects.each_with_index do |type, i| %>
   <p>
   <label for="method_params[<%= i %>]"><%= method_parameter_label(type.name, type) %> </label><br />
-  <%= method_parameter_input_fields(@scaffold_method, type, "method_params[#{i}]") %>
+  <%= method_parameter_input_fields(@scaffold_method, type, "method_params", i) %>
   </p>
-  <% i += 1 %>
 <% end %>
 
 <% end %>
 
 <%= submit_tag "Invoke" %>
+<%= end_form_tag %>
 
 <p>
 <%= link_to "Back", :action => @scaffold_action_name %>

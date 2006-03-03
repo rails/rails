@@ -25,12 +25,16 @@ module ActionWebService # :nodoc:
   #     api_method :delete_person, :expects => [:int]
   #   end
   #
-  #   class SearchCriteria < ActionStruct::Base
+  #   class SearchCriteria < ActionWebService::Struct
   #     member :firstname, :string
   #     member :lastname,  :string
   #     member :email,     :string
   #   end
   class Base
+    # Action WebService subclasses should be reloaded by the dispatcher in Rails
+    # when Dependencies.mechanism = :load.
+    include Reloadable::Subclasses
+
     # Whether to report exceptions back to the caller in the protocol's exception
     # format
     class_inheritable_option :web_service_exception_reporting, true

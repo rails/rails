@@ -49,6 +49,8 @@ end
 class TC_ClientSoap < Test::Unit::TestCase
   include ClientTest
   include ClientSoapTest
+  
+  fixtures :users
 
   def setup
     @server = SoapServer.instance
@@ -88,6 +90,16 @@ class TC_ClientSoap < Test::Unit::TestCase
     assert_equal(true, @client.struct_pass([new_person]))
     assert_equal([[new_person]], @container.value_struct_pass)
   end
+  
+  def test_nil_struct_return
+    assert_nil @client.nil_struct_return
+  end
+  
+  def test_inner_nil
+    outer = @client.inner_nil
+    assert_equal 'outer', outer.name
+    assert_nil outer.inner
+  end
 
   def test_client_container
     assert_equal(50, ClientContainer.new.get_client.client_container)
@@ -105,5 +117,29 @@ class TC_ClientSoap < Test::Unit::TestCase
     assert_equal(5, @client.Normal(5, 6))
     assert_equal([5, 6], @container.value_normal)
     @container.value_normal = nil
+  end
+  
+  def test_model_return
+    user = @client.user_return
+    assert_equal 1, user.id
+    assert_equal 'Kent', user.name
+    assert user.active?
+    assert_kind_of Date, user.created_on
+    assert_equal Date.today, user.created_on
+  end
+  
+  def test_with_model
+    with_model = @client.with_model_return
+    assert_equal 'Kent', with_model.user.name
+    assert_equal 2, with_model.users.size
+    with_model.users.each do |user|
+      assert_kind_of User, user
+    end
+  end
+  
+  def test_scoped_model_return
+    scoped_model = @client.scoped_model_return
+    assert_kind_of Accounting::User, scoped_model
+    assert_equal 'Kent', scoped_model.name
   end
 end
