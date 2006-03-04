@@ -131,6 +131,14 @@ module ActiveRecord
         @association_foreign_key ||= @options[:association_foreign_key] || class_name.foreign_key
       end
 
+      def counter_cache_column
+        if options[:counter_cache] == true
+          "#{active_record.name.underscore.pluralize}_count"
+        elsif options[:counter_cache]
+          options[:counter_cache]
+        end
+      end
+
       private
         def name_to_class_name(name)
           if name =~ /::/

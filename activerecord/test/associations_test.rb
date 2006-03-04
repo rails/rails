@@ -829,6 +829,38 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply deleted"
   end
 
+  def test_belongs_to_counter_with_reassigning
+    t1 = Topic.create("title" => "t1")
+    t2 = Topic.create("title" => "t2")
+    r1 = Reply.new("title" => "r1", "content" => "r1")
+    r1.topic = t1
+
+    assert r1.save
+    assert_equal 1, Topic.find(t1.id).replies.size
+    assert_equal 0, Topic.find(t2.id).replies.size
+
+    r1.topic = Topic.find(t2.id)
+
+    assert r1.save
+    assert_equal 0, Topic.find(t1.id).replies.size
+    assert_equal 1, Topic.find(t2.id).replies.size
+
+    r1.topic = nil
+
+    assert_equal 0, Topic.find(t1.id).replies.size
+    assert_equal 0, Topic.find(t2.id).replies.size
+
+    r1.topic = t1
+
+    assert_equal 1, Topic.find(t1.id).replies.size
+    assert_equal 0, Topic.find(t2.id).replies.size
+
+    r1.destroy
+
+    assert_equal 0, Topic.find(t1.id).replies.size
+    assert_equal 0, Topic.find(t2.id).replies.size
+  end
+
   def test_assignment_before_parent_saved
     client = Client.find(:first)
     apple = Firm.new("name" => "Apple")

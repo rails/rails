@@ -1,5 +1,7 @@
 *SVN*
 
+* Make counter cache work when replacing an association #3245 [eugenol@gmail.com]
+
 * Make migrations verbose [Jamis Buck]
 
 * Make counter_cache work with polymorphic belongs_to [Jamis Buck]
