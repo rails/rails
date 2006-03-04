@@ -1,7 +1,5 @@
 *SVN*
 
-* CHANGED DEFAILT: File-based sessions now have a suffix of ".rails_session" instead of a prefix called "ruby_sess." [DHH]
-
 * Fixed Effect.Appear in effects.js to work with floats in Safari #3524, #3813, #3044 [Thomas Fuchs]
 
 * Fixed that default image extension was not appended when using a full URL with AssetTagHelper#image_tag #4032, #3728 [rubyonrails@beautifulpixel.com]

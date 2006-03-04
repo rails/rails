@@ -36,7 +36,7 @@ module ActionController #:nodoc:
 
     DEFAULT_SESSION_OPTIONS = {
       :database_manager => CGI::Session::PStore,
-      :suffix           => ".rails_session",
+      :prefix           => "ruby_sess.",
       :session_path     => "/"
     } unless const_defined?(:DEFAULT_SESSION_OPTIONS)
 
@@ -153,6 +153,8 @@ end_msg
 
       def session_options_with_string_keys
         @session_options_with_string_keys ||= DEFAULT_SESSION_OPTIONS.merge(@session_options).inject({}) { |options, (k,v)| options[k.to_s] = v; options }
+        RAILS_DEFAULT_LOGGER.info "sess: #{@session_options_with_string_keys.inspect}"
+        @session_options_with_string_keys
       end
   end
 
