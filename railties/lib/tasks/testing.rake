@@ -11,6 +11,18 @@ def recent_tests(source_pattern, test_path, touched_since = 10.minutes.ago)
 end
 
 
+# Recreated here from ActiveSupport because :uncommitted needs it before Rails is available
+module Kernel
+  def silence_stderr
+    old_stderr = STDERR.dup
+    STDERR.reopen(RUBY_PLATFORM =~ /mswin/ ? 'NUL:' : '/dev/null')
+    STDERR.sync = true
+    yield
+  ensure
+    STDERR.reopen(old_stderr)
+  end
+end
+
 desc 'Test all units and functionals'
 task :test do
   Rake::Task["test:units"].invoke       rescue got_error = true
@@ -38,8 +50,8 @@ namespace :test do
   
   desc 'Test changes since last checkin (only Subversion)'
   Rake::TestTask.new(:uncommitted => "db:test:prepare") do |t|
-    changed_since_checkin = `svn status`.map { |path| path.chomp[7 .. -1] }
-    models = changed_since_checkin.delete_if { |path| not path =~ /app\/models\/.*\.rb/ }
+    changed_since_checkin = silence_stderr { `svn status` }.map { |path| path.chomp[7 .. -1] }
+    models = changed_since_checkin.select { |path| path =~ /app\/models\/.*\.rb/ }
     tests = models.map { |model| "test/unit/#{File.basename(model, '.rb')}_test.rb" }
 
     t.libs << 'test'
