@@ -6,10 +6,22 @@ require File.dirname(__FILE__) + '/fixtures/migrations/2_we_need_reminders'
 if ActiveRecord::Base.connection.supports_migrations? 
   class Reminder < ActiveRecord::Base; end
 
+  class ActiveRecord::Migration
+    class <<self
+      attr_accessor :message_count
+      def puts(text="")
+        self.message_count ||= 0
+        self.message_count += 1
+      end
+    end
+  end
+
   class MigrationTest < Test::Unit::TestCase
     self.use_transactional_fixtures = false
 
     def setup
+      ActiveRecord::Migration.verbose = true
+      PeopleHaveLastNames.message_count = 0
     end
 
     def teardown
@@ -343,6 +355,24 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       assert !Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
+    end
+    
+    def test_migrator_verbosity
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
+      assert PeopleHaveLastNames.message_count > 0
+      PeopleHaveLastNames.message_count = 0
+
+      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
+      assert PeopleHaveLastNames.message_count > 0
+      PeopleHaveLastNames.message_count = 0
+    end
+    
+    def test_migrator_verbosity_off
+      PeopleHaveLastNames.verbose = false
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
+      assert PeopleHaveLastNames.message_count.zero?
+      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
+      assert PeopleHaveLastNames.message_count.zero?
     end
     
     def test_migrator_going_down_due_to_version_target

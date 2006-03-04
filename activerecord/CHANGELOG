@@ -1,5 +1,7 @@
 *SVN*
 
+* Make migrations verbose [Jamis Buck]
+
 * Make counter_cache work with polymorphic belongs_to [Jamis Buck]
 
 * Fixed that calling HasOneProxy#build_model repeatedly would cause saving to happen #4058 [anna@wota.jp]
