@@ -506,21 +506,21 @@ module ActiveRecord
             EOF
           end
       
-          if options[:counter_cache]
-            module_eval(
-              "after_create '#{reflection.class_name}.increment_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{reflection.primary_key_name})" +
-              " unless #{reflection.name}.nil?'"
-            )
-
-            module_eval(
-              "before_destroy '#{reflection.class_name}.decrement_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{reflection.primary_key_name})" +
-              " unless #{reflection.name}.nil?'"
-            )          
-          end
-
           # deprecated api
           deprecated_has_association_method(reflection.name)
           deprecated_association_comparison_method(reflection.name, reflection.class_name)
+        end
+
+        if options[:counter_cache]
+          module_eval(
+            "after_create '#{reflection.name}.class.increment_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{reflection.primary_key_name})" +
+            " unless #{reflection.name}.nil?'"
+          )
+
+          module_eval(
+            "before_destroy '#{reflection.name}.class.decrement_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{reflection.primary_key_name})" +
+            " unless #{reflection.name}.nil?'"
+          )          
         end
       end
 

@@ -8,6 +8,7 @@ ActiveRecord::Schema.define do
 
   create_table "tags", :force => true do |t|
     t.column "name", :string
+    t.column :taggings_count, :integer, :default => 0
   end
 
   create_table "categorizations", :force => true do |t|
@@ -15,5 +16,7 @@ ActiveRecord::Schema.define do
     t.column "post_id", :integer
     t.column "author_id", :integer
   end
+
+  add_column :posts, :taggings_count, :integer, :default => 0
 
 end

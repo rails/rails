@@ -104,4 +104,12 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_equal [], posts(:thinking).authors
     assert_equal [authors(:mary)], posts(:authorless).authors
   end
+
+  def test_belongs_to_polymorphic_with_counter_cache
+    assert_equal 0, posts(:welcome)[:taggings_count]
+    tagging = posts(:welcome).taggings.create(:tag => tags(:general))
+    assert_equal 1, posts(:welcome, :reload)[:taggings_count]
+    tagging.destroy
+    assert posts(:welcome, :reload)[:taggings_count].zero?
+  end
 end

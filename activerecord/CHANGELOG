@@ -1,5 +1,7 @@
 *SVN*
 
+* Make counter_cache work with polymorphic belongs_to [Jamis Buck]
+
 * Fixed that calling HasOneProxy#build_model repeatedly would cause saving to happen #4058 [anna@wota.jp]
 
 * Added Sybase database adapter that relies on the Sybase Open Client bindings (see http://raa.ruby-lang.org/project/sybase-ctlib) #3765 [John Sheets]. It's almost completely Active Record compliant, but has the following caveats:
