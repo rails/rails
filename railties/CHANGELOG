@@ -1,6 +1,6 @@
 *SVN*
 
-* Added -a/--with-assets option to rails generator that will include default assets for application layout, javascript, and stylesheet (this an experiment and may go away at any time!) [DHH]
+* Added public/javascripts/application.js as a sample since it'll automatically be included in javascript_include_tag :defaults [DHH]
 
 * Added socket cleanup for lighttpd, both before and after [DHH]
 

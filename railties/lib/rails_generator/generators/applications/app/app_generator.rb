@@ -6,7 +6,7 @@ class AppGenerator < Rails::Generator::Base
   
   DATABASES = %w( mysql oracle postgresql sqlite2 sqlite3 )
   
-  default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG, :include_assets => false
+  default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG
   mandatory_options :source => "#{File.dirname(__FILE__)}/../../../../.."
 
   def initialize(runtime_args, runtime_options = {})
@@ -69,10 +69,11 @@ class AppGenerator < Rails::Generator::Base
       m.file "html/images/rails.png", "public/images/rails.png"
 
       # Javascripts
-      m.file "html/javascripts/prototype.js", "public/javascripts/prototype.js"
-      m.file "html/javascripts/effects.js",   "public/javascripts/effects.js"
-      m.file "html/javascripts/dragdrop.js",  "public/javascripts/dragdrop.js"
-      m.file "html/javascripts/controls.js",  "public/javascripts/controls.js"
+      m.file "html/javascripts/prototype.js",    "public/javascripts/prototype.js"
+      m.file "html/javascripts/effects.js",      "public/javascripts/effects.js"
+      m.file "html/javascripts/dragdrop.js",     "public/javascripts/dragdrop.js"
+      m.file "html/javascripts/controls.js",     "public/javascripts/controls.js"
+      m.file "html/javascripts/application.js",  "public/javascripts/application.js"
 
       # Docs
       m.file "doc/README_FOR_APP", "doc/README_FOR_APP"
@@ -81,13 +82,6 @@ class AppGenerator < Rails::Generator::Base
       %w(server production development test).each { |file|
         m.file "configs/empty.log", "log/#{file}.log", :chmod => 0666
       }
-      
-      # Default assets
-      if options[:include_assets]
-        m.file "assets/application.css",   "public/stylesheets/application.css"
-        m.file "assets/application.js",    "public/javascripts/application.css"
-        m.file "assets/application.rhtml", "app/views/layouts/application.rhtml"
-      end
     end
   end
 
@@ -106,9 +100,6 @@ class AppGenerator < Rails::Generator::Base
       opt.on("-d", "--database=name", String,
             "Preconfigure for selected database (options: mysql/oracle/postgresql/sqlite2/sqlite3).",
             "Default: mysql") { |options[:db]| }
-
-      opt.on("-a", "--with-assets",
-             "Include default assets for layout, javascript, and stylesheet.") { |options[:include_assets]| }
     end
     
     def mysql_socket_location
