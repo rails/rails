@@ -72,6 +72,7 @@ end
 trap(:INT) { exit }
 
 begin
+  `rake tmp:sockets:clear` # Needed if lighttpd crashes or otherwise leaves FCGI sockets around
   `lighttpd #{!detach ? "-D " : ""}-f #{config_file}`
 ensure
   unless detach
@@ -79,7 +80,11 @@ ensure
     puts 'Exiting'
   
     # Ensure FCGI processes are reaped
-    ARGV.replace ['-a', 'kill']
-    require 'commands/process/reaper'
+    silence_stream(STDOUT) do
+      ARGV.replace ['-a', 'kill']
+      require 'commands/process/reaper'
+    end
+
+    `rake tmp:sockets:clear` # Remove sockets on clean shutdown
   end
 end

@@ -1,5 +1,11 @@
 *SVN*
 
+* Added socket cleanup for lighttpd, both before and after [DHH]
+
+* Added automatic creation of tmp/ when running script/server [DHH]
+
+* Added silence_stream that'll work on both STDERR or STDOUT or any other stream and deprecated silence_stderr in the process [DHH]
+
 * Added reload! method to script/console to reload all models and others that include Reloadable without quitting the console #4056 [esad@esse.at]
 
 * Added that rake rails:freeze:edge will now just export all the contents of the frameworks instead of just lib, so stuff like rails:update:scripts, rails:update:javascripts, and script/server on lighttpd still just works #4047 [DHH]

@@ -21,20 +21,25 @@ module Kernel
     $VERBOSE = old_verbose
   end
 
-  # Silences stderr for the duration of the block.
+  # For compatibility
+  def silence_stderr #:nodoc:
+    silence_stream(STDERR) { yield }
+  end
+
+  # Silences any stream for the duration of the block.
   #
-  #   silence_stderr do
-  #     $stderr.puts 'This will never be seen'
+  #   silence_stream(STDOUT) do
+  #     puts 'This will never be seen'
   #   end
   #
-  #   $stderr.puts 'But this will'
-  def silence_stderr
-    old_stderr = STDERR.dup
-    STDERR.reopen(RUBY_PLATFORM =~ /mswin/ ? 'NUL:' : '/dev/null')
-    STDERR.sync = true
+  #   puts 'But this will'
+  def silence_stream(stream)
+    old_stream = stream.dup
+    stream.reopen(RUBY_PLATFORM =~ /mswin/ ? 'NUL:' : '/dev/null')
+    stream.sync = true
     yield
   ensure
-    STDERR.reopen(old_stderr)
+    stream.reopen(old_stream)
   end
 
   def suppress(*exception_classes)

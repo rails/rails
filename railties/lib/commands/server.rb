@@ -25,4 +25,5 @@ else
   puts "=> Booting lighttpd (use 'script/server webrick' to force WEBrick)"
 end
 
+silence_stderr { `rake tmp:create` }
 require "commands/servers/#{server}"
