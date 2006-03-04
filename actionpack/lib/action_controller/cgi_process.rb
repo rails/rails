@@ -153,7 +153,6 @@ end_msg
 
       def session_options_with_string_keys
         @session_options_with_string_keys ||= DEFAULT_SESSION_OPTIONS.merge(@session_options).inject({}) { |options, (k,v)| options[k.to_s] = v; options }
-        RAILS_DEFAULT_LOGGER.info "sess: #{@session_options_with_string_keys.inspect}"
         @session_options_with_string_keys
       end
   end
