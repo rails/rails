@@ -6,7 +6,7 @@ class AppGenerator < Rails::Generator::Base
   
   DATABASES = %w( mysql oracle postgresql sqlite2 sqlite3 )
   
-  default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG
+  default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG, :include_assets => false
   mandatory_options :source => "#{File.dirname(__FILE__)}/../../../../.."
 
   def initialize(runtime_args, runtime_options = {})
@@ -81,6 +81,13 @@ class AppGenerator < Rails::Generator::Base
       %w(server production development test).each { |file|
         m.file "configs/empty.log", "log/#{file}.log", :chmod => 0666
       }
+      
+      # Default assets
+      if options[:include_assets]
+        m.file "assets/application.css",   "public/stylesheets/application.css"
+        m.file "assets/application.js",    "public/javascripts/application.css"
+        m.file "assets/application.rhtml", "app/views/layouts/application.rhtml"
+      end
     end
   end
 
@@ -97,8 +104,11 @@ class AppGenerator < Rails::Generator::Base
              "Default: #{DEFAULT_SHEBANG}") { |options[:shebang]| }
 
       opt.on("-d", "--database=name", String,
-             "Preconfigure for selected database (options: mysql/oracle/postgresql/sqlite2/sqlite3).",
-             "Default: mysql") { |options[:db]| }
+            "Preconfigure for selected database (options: mysql/oracle/postgresql/sqlite2/sqlite3).",
+            "Default: mysql") { |options[:db]| }
+
+      opt.on("-a", "--with-assets",
+             "Include default assets for layout, javascript, and stylesheet.") { |options[:include_assets]| }
     end
     
     def mysql_socket_location

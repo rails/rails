@@ -1,5 +1,7 @@
 *SVN*
 
+* Added -a/--with-assets option to rails generator that will include default assets for application layout, javascript, and stylesheet [DHH]
+
 * Added socket cleanup for lighttpd, both before and after [DHH]
 
 * Added automatic creation of tmp/ when running script/server [DHH]
