@@ -36,8 +36,8 @@ module ActionController #:nodoc:
 
     DEFAULT_SESSION_OPTIONS = {
       :database_manager => CGI::Session::PStore,
-      :prefix => "ruby_sess.",
-      :session_path => "/"
+      :suffix           => ".rails_session",
+      :session_path     => "/"
     } unless const_defined?(:DEFAULT_SESSION_OPTIONS)
 
     def initialize(cgi, session_options = {})
