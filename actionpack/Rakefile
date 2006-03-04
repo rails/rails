@@ -115,11 +115,13 @@ end
 # Publishing ------------------------------------------------------
 
 task :update_scriptaculous do
-  system("svn export --force http://dev.rubyonrails.org/svn/rails/spinoffs/scriptaculous/src/ #{File.dirname(__FILE__)}/lib/action_view/helpers/javascripts/")
+  for js in %w( controls dragdrop effects )
+    system("svn export --force http://dev.rubyonrails.org/svn/rails/spinoffs/scriptaculous/src/#{js} #{File.dirname(__FILE__)}/lib/action_view/helpers/javascripts/")
+  end
 end
 
 desc "Updates actionpack to the latest version of the javascript spinoffs"
-task :update_js => [:update_scriptaculous]
+task :update_js => [ :update_scriptaculous ]
 
 # Publishing ------------------------------------------------------
 

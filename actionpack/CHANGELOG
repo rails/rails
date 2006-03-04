@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed Effect.Appear in effects.js to work with floats in Safari #3524, #3813, #3044 [Thomas Fuchs]
+
 * Fixed that default image extension was not appended when using a full URL with AssetTagHelper#image_tag #4032, #3728 [rubyonrails@beautifulpixel.com]
 
 * Added that page caching will only happen if the response code is less than 400 #4033 [g.bucher@teti.ch]
