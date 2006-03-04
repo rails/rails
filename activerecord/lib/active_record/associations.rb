@@ -781,51 +781,15 @@ module ActiveRecord
         end
         
         def count_with_associations(options = {})
-          reflections = reflect_on_included_associations(options[:include])
-          return count_by_sql(construct_counter_sql_with_included_associations(options, reflections))
+          join_dependency = JoinDependency.new(self, options[:include])
+          return count_by_sql(construct_counter_sql_with_included_associations(options, join_dependency))
         end
 
         def find_with_associations(options = {})
-          reflections  = reflect_on_included_associations(options[:include])
-
-          guard_against_missing_reflections(reflections, options)
-          
-          schema_abbreviations = generate_schema_abbreviations(reflections)
-          primary_key_table    = generate_primary_key_table(reflections, schema_abbreviations)
-
-          rows                      = select_all_rows(options, schema_abbreviations, reflections)
-          records, records_in_order = { }, []
-          primary_key               = primary_key_table[table_name]
-          
-          for row in rows
-            id = row[primary_key]
-            records_in_order << (records[id] = instantiate(extract_record(schema_abbreviations, table_name, row))) unless records[id]
-            record = records[id]
-
-            reflections.each do |reflection|
-              case reflection.macro
-                when :has_many, :has_and_belongs_to_many
-                  collection = record.send(reflection.name)
-                  collection.loaded
-
-                  next unless row[primary_key_table[reflection.table_name]]
-
-                  association = reflection.klass.send(:instantiate, extract_record(schema_abbreviations, reflection.table_name, row))                  
-                  collection.target.push(association) unless collection.target.include?(association)
-                when :has_one, :belongs_to
-                  next unless row[primary_key_table[reflection.table_name]]
-
-                  record.send(
-                    "set_#{reflection.name}_target", 
-                    reflection.klass.send(:instantiate, extract_record(schema_abbreviations, reflection.table_name, row))
-                  )
-              end
+          join_dependency = JoinDependency.new(self, options[:include])
+          rows = select_all_rows(options, join_dependency)
+          return join_dependency.instantiate(rows)
             end
-          end
-          
-          return records_in_order
-        end
-
 
         def configure_dependency_for_has_many(reflection)
           if reflection.options[:dependent] && reflection.options[:exclusively_dependent]
@@ -939,16 +903,6 @@ module ActiveRecord
           [ associations ].flatten.collect { |association| reflect_on_association(association.to_s.intern) }
         end
 
-        def guard_against_missing_reflections(reflections, options)
-          reflections.each do |r| 
-            raise(
-              ConfigurationError, 
-              "Association was not found; perhaps you misspelled it?  " +
-              "You specified :include => :#{[options[:include]].flatten.join(', :')}"
-            ) if r.nil? 
-          end
-        end
-        
         def guard_against_unlimitable_reflections(reflections, options)
           if (options[:offset] || options[:limit]) && !using_limitable_reflections?(reflections)
             raise(
@@ -958,42 +912,14 @@ module ActiveRecord
           end
         end
 
-        def generate_schema_abbreviations(reflections)
-          schema = [ [ table_name, column_names ] ]
-          schema += reflections.collect { |r| [ r.table_name, r.klass.column_names ] }
-
-          schema_abbreviations = {}
-          schema.each_with_index do |table_and_columns, i|
-            table, columns = table_and_columns
-            columns.each_with_index { |column, j| schema_abbreviations["t#{i}_r#{j}"] = [ table, column ] }
-          end
-          
-          return schema_abbreviations
-        end
-
-        def generate_primary_key_table(reflections, schema_abbreviations)
-          primary_key_lookup_table = {}
-          primary_key_lookup_table[table_name] = 
-            schema_abbreviations.find { |cn, tc| tc == [ table_name, primary_key ] }.first
-
-          reflections.collect do |reflection| 
-            primary_key_lookup_table[reflection.klass.table_name] = schema_abbreviations.find { |cn, tc| 
-              tc == [ reflection.klass.table_name, reflection.klass.primary_key ]
-            }.first
-          end
-          
-          return primary_key_lookup_table
-        end
-
-
-        def select_all_rows(options, schema_abbreviations, reflections)
+        def select_all_rows(options, join_dependency)
           connection.select_all(
-            construct_finder_sql_with_included_associations(options, schema_abbreviations, reflections), 
+            construct_finder_sql_with_included_associations(options, join_dependency),
             "#{name} Load Including Associations"
           )
         end
         
-        def construct_counter_sql_with_included_associations(options, reflections)
+        def construct_counter_sql_with_included_associations(options, join_dependency)
           sql = "SELECT COUNT(DISTINCT #{table_name}.#{primary_key})"
           
           # A (slower) workaround if we're using a backend, like sqlite, that doesn't support COUNT DISTINCT.
@@ -1002,14 +928,14 @@ module ActiveRecord
           end
           
           sql << " FROM #{table_name} "
-          sql << reflections.collect { |reflection| association_join(reflection) }.to_s
+          sql << join_dependency.join_associations.collect{|join| join.association_join }.join
           sql << "#{options[:joins]} " if options[:joins]
 
           add_conditions!(sql, options[:conditions])
-          add_sti_conditions!(sql, reflections)
-          add_limited_ids_condition!(sql, options, reflections) if !using_limitable_reflections?(reflections) && options[:limit]
+          add_sti_conditions!(sql, join_dependency)
+          add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && options[:limit]
 
-          add_limit!(sql, options) if using_limitable_reflections?(reflections)
+          add_limit!(sql, options) if using_limitable_reflections?(join_dependency.reflections)
 
           if !Base.connection.supports_count_distinct?
             sql << ")"
@@ -1018,43 +944,43 @@ module ActiveRecord
           return sanitize_sql(sql)          
         end
 
-        def construct_finder_sql_with_included_associations(options, schema_abbreviations, reflections)
-          sql = "SELECT #{column_aliases(schema_abbreviations)} FROM #{options[:from] || table_name} "
-          sql << reflections.collect { |reflection| association_join(reflection) }.to_s
+        def construct_finder_sql_with_included_associations(options, join_dependency)
+          sql = "SELECT #{column_aliases(join_dependency)} FROM #{options[:from] || table_name} "
+          sql << join_dependency.join_associations.collect{|join| join.association_join }.join
           sql << "#{options[:joins]} " if options[:joins]
  
           add_conditions!(sql, options[:conditions])
-          add_sti_conditions!(sql, reflections)
-          add_limited_ids_condition!(sql, options, reflections) if !using_limitable_reflections?(reflections) && options[:limit]
+          add_sti_conditions!(sql, join_dependency)
+          add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && options[:limit]
 
           sql << "ORDER BY #{options[:order]} " if options[:order]
  
-          add_limit!(sql, options) if using_limitable_reflections?(reflections)
+          add_limit!(sql, options) if using_limitable_reflections?(join_dependency.reflections)
  
           return sanitize_sql(sql)
         end
  
-        def add_limited_ids_condition!(sql, options, reflections)
-          unless (id_list = select_limited_ids_list(options, reflections)).empty?
+        def add_limited_ids_condition!(sql, options, join_dependency)
+          unless (id_list = select_limited_ids_list(options, join_dependency)).empty?
             sql << "#{condition_word(sql)} #{table_name}.#{primary_key} IN (#{id_list}) "
           end
         end
  
-        def select_limited_ids_list(options, reflections)
+        def select_limited_ids_list(options, join_dependency)
           connection.select_values(
-            construct_finder_sql_for_association_limiting(options, reflections),
+            construct_finder_sql_for_association_limiting(options, join_dependency),
             "#{name} Load IDs For Limited Eager Loading"
           ).collect { |id| connection.quote(id) }.join(", ")
         end
  
-        def construct_finder_sql_for_association_limiting(options, reflections)
+        def construct_finder_sql_for_association_limiting(options, join_dependency)
           #sql = "SELECT DISTINCT #{table_name}.#{primary_key} FROM #{table_name} "
           sql = "SELECT "
           sql << "DISTINCT #{table_name}." if include_eager_conditions?(options) || include_eager_order?(options)
           sql << "#{primary_key} FROM #{table_name} "
           
           if include_eager_conditions?(options) || include_eager_order?(options)
-            sql << reflections.collect { |reflection| association_join(reflection) }.to_s
+            sql << join_dependency.join_associations.collect{|join| join.association_join }.join
             sql << "#{options[:joins]} " if options[:joins]
           end
           
@@ -1085,9 +1011,34 @@ module ActiveRecord
           reflections.reject { |r| [ :belongs_to, :has_one ].include?(r.macro) }.length.zero?
         end
 
-        def add_sti_conditions!(sql, reflections)
+        def join_depended_type_condition (klass, join_dependency)
+          aliased_table_name = join_dependency.aliased_table_names_for(klass.table_name).last || klass.table_name
+          quoted_inheritance_column = connection.quote_column_name(klass.inheritance_column)
+          type_condition = klass.subclasses.inject(sti_condition(klass, aliased_table_name, quoted_inheritance_column)) do |condition, subclass|
+            condition << " OR #{sti_condition subclass, aliased_table_name, quoted_inheritance_column}"
+          end
+        
+          " (#{type_condition}) "
+        end
+        
+        def sti_condition(klass, table_name, inheritance_column)
+          "(#{table_name}.#{inheritance_column} = '#{klass.name.demodulize}' OR #{table_name}.#{inheritance_column} IS NULL)"
+        end
+
+        #def join_depended_type_condition (klass, join_dependency)
+        #  aliased_table_name = join_dependency.aliased_table_names_for(klass.table_name).first || klass.table_name
+        #  quoted_inheritance_column = connection.quote_column_name(klass.inheritance_column)
+        #  type_condition = klass.subclasses.inject("#{aliased_table_name}.#{quoted_inheritance_column} = '#{klass.name.demodulize}' ") do |condition, subclass|
+        #    condition << "OR #{aliased_table_name}.#{quoted_inheritance_column} = '#{subclass.name.demodulize}' "
+        #  end
+        #
+        #  " (#{type_condition}) "
+        #end
+
+        def add_sti_conditions!(sql, join_dependency)
+          reflections = join_dependency.reflections
           sti_conditions = reflections.collect do |reflection|
-            reflection.klass.send(:type_condition) unless reflection.klass.descends_from_active_record?
+            join_depended_type_condition(reflection.klass, join_dependency) unless reflection.klass.descends_from_active_record?
           end.compact
           
           unless sti_conditions.empty?
@@ -1095,30 +1046,9 @@ module ActiveRecord
           end
         end
 
-        def column_aliases(schema_abbreviations)
-          schema_abbreviations.collect { |cn, tc| "#{tc[0]}.#{connection.quote_column_name tc[1]} AS #{cn}" }.join(", ")
-        end
-
-        def association_join(reflection)
-          case reflection.macro
-            when :has_and_belongs_to_many
-              " LEFT OUTER JOIN #{reflection.options[:join_table]} ON " +
-              "#{reflection.options[:join_table]}.#{reflection.options[:foreign_key] || table_name.classify.foreign_key} = " +
-              "#{table_name}.#{primary_key} " +
-              " LEFT OUTER JOIN #{reflection.klass.table_name} ON " +
-              "#{reflection.options[:join_table]}.#{reflection.options[:association_foreign_key] || reflection.klass.table_name.classify.foreign_key} = " +
-              "#{reflection.klass.table_name}.#{reflection.klass.primary_key} "
-            when :has_many, :has_one
-              " LEFT OUTER JOIN #{reflection.klass.table_name} ON " +
-              "#{reflection.klass.table_name}.#{reflection.options[:foreign_key] || table_name.classify.foreign_key} = " +
-              "#{table_name}.#{primary_key} "
-            when :belongs_to
-              " LEFT OUTER JOIN #{reflection.klass.table_name} ON " +
-              "#{reflection.klass.table_name}.#{reflection.klass.primary_key} = " +
-              "#{table_name}.#{reflection.options[:foreign_key] || reflection.klass.table_name.classify.foreign_key} "
-            else
-              ""
-          end          
+        def column_aliases(join_dependency)
+          join_dependency.joins.collect{|join| join.column_names_with_alias.collect{|column_name, aliased_name|
+              "#{join.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"}}.flatten.join(", ")
         end
 
         def add_association_callbacks(association_name, options)
@@ -1133,15 +1063,6 @@ module ActiveRecord
           end
         end
 
-        def extract_record(schema_abbreviations, table_name, row)
-          record = {}
-          row.each do |column, value|
-            prefix, column_name = schema_abbreviations[column]
-            record[column_name] = value if prefix == table_name
-          end
-          return record
-        end        
-
         def condition_word(sql)
           sql =~ /where/i ? " AND " : "WHERE "
         end
@@ -1154,6 +1075,189 @@ module ActiveRecord
           end
           
           extension_module_name.constantize
+        end
+
+        class JoinDependency
+          attr_reader :joins, :reflections
+
+          def initialize(base, associations)
+            @joins                 = [JoinBase.new(base)]
+            @associations          = associations
+            @reflections           = []
+            @base_records_hash     = {}
+            @base_records_in_order = []
+            build(associations)
+          end
+
+          def join_associations
+            @joins[1..-1].to_a
+          end
+
+          def join_base
+            @joins[0]
+          end
+
+          def instantiate(rows)
+            rows.each_with_index do |row, i|
+              primary_id = join_base.record_id(row)
+              unless @base_records_hash[primary_id]
+                @base_records_in_order << (@base_records_hash[primary_id] = join_base.instantiate(row))
+              end
+              construct(@base_records_hash[primary_id], @associations, join_associations.dup, row)
+            end
+            return @base_records_in_order
+          end
+
+          def aliased_table_names_for(table_name)
+            joins.select{|join| join.table_name == table_name }.collect{|join| join.aliased_table_name}
+          end
+
+          protected
+            def build(associations, parent = nil)
+              parent ||= @joins.last
+              case associations
+                when Symbol, String
+                  reflection = parent.reflections[associations.to_s.intern] or
+                  raise ConfigurationError, "Association named '#{ associations }' was not found; perhaps you misspelled it?"
+                  @reflections << reflection
+                  @joins << JoinAssociation.new(reflection, self, parent)
+                when Array
+                  associations.each do |association|
+                    build(association, parent)
+                  end
+                when Hash
+                  associations.keys.sort{|a,b|a.to_s<=>b.to_s}.each do |name|
+                    build(name, parent)
+                    build(associations[name])
+                  end
+                else
+                  raise ConfigurationError, associations.inspect
+              end
+            end
+
+            def construct(parent, associations, joins, row)
+              case associations
+                when Symbol, String
+                  while (join = joins.shift).reflection.name.to_s != associations.to_s
+                    raise ConfigurationError, "Not Enough Associations" if joins.empty?
+                  end
+                  construct_association(parent, join, row)
+                when Array
+                  associations.each do |association|
+                    construct(parent, association, joins, row)
+                  end
+                when Hash
+                  associations.keys.sort{|a,b|a.to_s<=>b.to_s}.each do |name|
+                    association = construct_association(parent, joins.shift, row)
+                    construct(association, associations[name], joins, row) if association
+                  end
+                else
+                  raise ConfigurationError, associations.inspect
+              end
+            end
+
+            def construct_association(record, join, row)
+              case join.reflection.macro
+                when :has_many, :has_and_belongs_to_many
+                  collection = record.send(join.reflection.name)
+                  collection.loaded
+    
+                  return nil if record.id.to_s != join.parent.record_id(row).to_s or row[join.aliased_primary_key].nil?
+                  association = join.instantiate(row)
+                  collection.target.push(association) unless collection.target.include?(association)
+                when :has_one, :belongs_to
+                  return if record.id.to_s != join.parent.record_id(row).to_s or row[join.aliased_primary_key].nil?
+                  association = join.instantiate(row)
+                  record.send("set_#{join.reflection.name}_target", association)
+                else
+                  raise ConfigurationError, "unknown macro: #{join.reflection.macro}"
+              end
+              return association
+            end
+
+          class JoinBase
+            attr_reader :active_record
+            delegate    :table_name, :column_names, :primary_key, :reflections, :to=>:active_record
+
+            def initialize(active_record)
+              @active_record = active_record
+              @cached_record = {}
+            end
+
+            def aliased_prefix
+              "t0"
+            end
+
+            def aliased_primary_key
+              "#{ aliased_prefix }_r0"
+            end
+
+            def aliased_table_name
+              active_record.table_name
+            end
+
+            def column_names_with_alias
+              unless @column_names_with_alias
+                @column_names_with_alias = []
+                ([primary_key] + (column_names - [primary_key])).each_with_index do |column_name, i|
+                  @column_names_with_alias << [column_name, "#{ aliased_prefix }_r#{ i }"]
+                end
+              end
+              return @column_names_with_alias
+            end
+
+            def extract_record(row)
+              column_names_with_alias.inject({}){|record, (cn, an)| record[cn] = row[an]; record}
+            end
+
+            def record_id(row)
+              row[aliased_primary_key]
+            end
+
+            def instantiate(row)
+              @cached_record[record_id(row)] ||= active_record.instantiate(extract_record(row))
+            end
+          end
+
+          class JoinAssociation < JoinBase
+            attr_reader :reflection, :parent, :aliased_table_name, :aliased_prefix
+            delegate    :options, :klass, :to=>:reflection
+
+            def initialize(reflection, join_dependency, parent = nil)
+              super(reflection.klass)
+              @parent             = parent
+              @reflection         = reflection
+              @aliased_prefix     = "t#{ join_dependency.joins.size }"
+              @aliased_table_name = join_dependency.aliased_table_names_for(table_name).empty? ? table_name : @aliased_prefix
+            end
+
+            def association_join
+              case reflection.macro
+                when :has_and_belongs_to_many
+                  join_table_name    =
+                  " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
+                     options[:join_table], options[:join_table],
+                     options[:foreign_key] || reflection.active_record.to_s.classify.foreign_key,
+                     reflection.active_record.table_name, reflection.active_record.primary_key] +
+                  " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
+                     aliased_table_name, aliased_table_name, klass.primary_key,
+                     options[:join_table], options[:association_foreign_key] || klass.table_name.classify.foreign_key
+                     ]
+                when :has_many, :has_one
+                  " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s " % [table_name, aliased_table_name,
+                     aliased_table_name, options[:foreign_key] || reflection.active_record.to_s.classify.foreign_key,
+                     parent.aliased_table_name, parent.primary_key
+                    ]
+                when :belongs_to
+                  " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s " % [table_name, aliased_table_name,
+                     aliased_table_name, reflection.klass.primary_key,
+                     parent.aliased_table_name, options[:foreign_key] || reflection.klass.to_s.classify.foreign_key
+                    ]
+                else
+                  ""
+              end
+            end
+          end
         end
     end
   end

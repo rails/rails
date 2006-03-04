@@ -1,5 +1,34 @@
 *SVN*
 
+* Added cascading eager loading that allows for queries like Author.find(:all, :include=> { :posts=> :comments }), which will fetch all authors, their posts, and the comments belonging to those posts in a single query (using LEFT OUTER JOIN) #3913 [anna@wota.jp]. Examples:
+
+    # cascaded in two levels
+    >> Author.find(:all, :include=>{:posts=>:comments})
+    => authors
+         +- posts
+              +- comments
+    
+    # cascaded in two levels and normal association
+    >> Author.find(:all, :include=>[{:posts=>:comments}, :categorizations])
+    => authors
+         +- posts
+              +- comments
+         +- categorizations
+    
+    # cascaded in two levels with two has_many associations
+    >> Author.find(:all, :include=>{:posts=>[:comments, :categorizations]})
+    => authors
+         +- posts
+              +- comments
+              +- categorizations
+    
+    # cascaded in three levels
+    >> Company.find(:all, :include=>{:groups=>{:members=>{:favorites}}})
+    => companies
+         +- groups
+              +- members
+                   +- favorites
+    
 * Make counter cache work when replacing an association #3245 [eugenol@gmail.com]
 
 * Make migrations verbose [Jamis Buck]

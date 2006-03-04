@@ -92,15 +92,15 @@ class EagerAssociationTest < Test::Unit::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_and_limit_and_multiple_associations
-    posts = Post.find(:all, :include => [:author, :very_special_comment], :limit => 1)
+    posts = Post.find(:all, :include => [:author, :very_special_comment], :limit => 1, :order => 'posts.id')
     assert_equal 1, posts.length
-    assert_equal [4], posts.collect { |p| p.id }
+    assert_equal [3], posts.collect { |p| p.id }
   end
   
   def test_eager_association_loading_with_belongs_to_and_limit_and_offset_and_multiple_associations
-    posts = Post.find(:all, :include => [:author, :very_special_comment], :limit => 1, :offset => 1)
-    assert_equal 0, posts.length
-    assert_equal [], posts
+    posts = Post.find(:all, :include => [:author, :very_special_comment], :limit => 1, :offset => 1, :order => 'posts.id')
+    assert_equal 1, posts.length
+    assert_equal [4], posts.collect { |p| p.id }
   end
   
   def test_eager_with_has_many_through
