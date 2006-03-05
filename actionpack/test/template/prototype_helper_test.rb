@@ -260,52 +260,50 @@ Element.update("baz", "<p>This is a test</p>");
   end
   
   def test_visual_effect
-    assert_equal %(new Effect.Puff('blah',{});), 
+    assert_equal %(new Effect.Puff("blah",{});), 
       @generator.visual_effect(:puff,'blah')
   end 
   
   def test_visual_effect_toggle
-    assert_equal %(Effect.toggle('blah','appear',{});), 
+    assert_equal %(Effect.toggle("blah",'appear',{});), 
       @generator.visual_effect(:toggle_appear,'blah')
   end
   
   def test_sortable
-    assert_equal %(Sortable.create('blah', {onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize('blah')})}});), 
+    assert_equal %(Sortable.create("blah", {onUpdate:function(){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize("blah")})}});), 
       @generator.sortable('blah', :url => { :action => "order" })
   end
   
   def test_draggable
-    assert_equal %(new Draggable('blah', {});), 
+    assert_equal %(new Draggable("blah", {});), 
       @generator.draggable('blah')
   end
   
   def test_drop_receiving
-    assert_equal %(Droppables.add('blah', {onDrop:function(element){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}});), 
+    assert_equal %(Droppables.add("blah", {onDrop:function(element){new Ajax.Request('http://www.example.com/order', {asynchronous:true, evalScripts:true, parameters:'id=' + encodeURIComponent(element.id)})}});), 
       @generator.drop_receiving('blah', :url => { :action => "order" })
   end
 
   def test_collection_proxy_with_each
-    @generator.select('p.welcome b').each do |page, value|
+    @generator.select('p.welcome b').each do |value|
       value.remove_class_name 'selected'
     end
-    @generator.select('p.welcome b').each do |page, value, index|
-      page.call 'alert', index
-      page.call 'alert', value, 'selected'
+    @generator.select('p.welcome b').each do |value, index|
+      @generator.visual_effect :highlight, value
     end
-      assert_equal <<-EOS.strip, @generator.to_s
+    assert_equal <<-EOS.strip, @generator.to_s
 $$('p.welcome b').each(function(value, index) {
 value.removeClassName("selected");
 });
 $$('p.welcome b').each(function(value, index) {
-alert(index);
-alert(value, "selected");
+new Effect.Highlight(value,{});
 });
       EOS
   end
 
   def test_collection_proxy_on_enumerables_with_return_and_index
-    iterator            = Proc.new { |page, value|        page << '(value.className == "welcome")' }
-    iterator_with_index = Proc.new { |page, value, index| page.call 'alert', index ; page << '(value.className == "welcome")' }
+    iterator            = Proc.new { |value|        @generator << '(value.className == "welcome")' }
+    iterator_with_index = Proc.new { |value, index| @generator.call 'alert', index ; @generator << '(value.className == "welcome")' }
     ActionView::Helpers::JavaScriptCollectionProxy::ENUMERABLE_METHODS_WITH_RETURN.each do |enum|
       @generator.select('p').enumerate(enum, 'a', &iterator)
       @generator.select('p').enumerate(enum, 'b', &iterator_with_index)
@@ -324,12 +322,12 @@ return (value.className == "welcome");
   end
 
   def test_collection_proxy_with_grep
-    @generator.select('p').grep 'a', /^a/ do |page, value|
-      page << '(value.className == "welcome")'
+    @generator.select('p').grep 'a', /^a/ do |value|
+      @generator << '(value.className == "welcome")'
     end
-    @generator.select('p').grep 'b', /b$/ do |page, value, index|
-      page.call 'alert', value
-      page << '(value.className == "welcome")'
+    @generator.select('p').grep 'b', /b$/ do |value, index|
+      @generator.call 'alert', value
+      @generator << '(value.className == "welcome")'
     end
 
     assert_equal <<-EOS.strip, @generator.to_s
@@ -344,12 +342,12 @@ return (value.className == "welcome");
   end
 
   def test_collection_proxy_with_inject
-    @generator.select('p').inject 'a', [] do |page, memo, value|
-      page << '(value.className == "welcome")'
+    @generator.select('p').inject 'a', [] do |memo, value|
+      @generator << '(value.className == "welcome")'
     end
-    @generator.select('p').inject 'b', nil do |page, memo, value, index|
-      page.call 'alert', memo
-      page << '(value.className == "welcome")'
+    @generator.select('p').inject 'b', nil do |memo, value, index|
+      @generator.call 'alert', memo
+      @generator << '(value.className == "welcome")'
     end
 
     assert_equal <<-EOS.strip, @generator.to_s
@@ -370,8 +368,8 @@ return (value.className == "welcome");
 
   def test_collection_proxy_with_zip
     ActionView::Helpers::JavaScriptCollectionProxy.new(@generator, '[1, 2, 3]').zip('a', [4, 5, 6], [7, 8, 9])
-    ActionView::Helpers::JavaScriptCollectionProxy.new(@generator, '[1, 2, 3]').zip('b', [4, 5, 6], [7, 8, 9]) do |page, array|
-      page.call 'array.reverse'
+    ActionView::Helpers::JavaScriptCollectionProxy.new(@generator, '[1, 2, 3]').zip('b', [4, 5, 6], [7, 8, 9]) do |array|
+      @generator.call 'array.reverse'
     end
 
     assert_equal <<-EOS.strip, @generator.to_s

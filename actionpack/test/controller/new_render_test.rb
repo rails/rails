@@ -358,6 +358,18 @@ class NewRenderTest < Test::Unit::TestCase
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
   end
 
+  def test_enum_rjs_test
+    get :enum_rjs_test
+    assert_equal <<-EOS.strip, @response.body
+$$('.product').each(function(value, index) {
+new Effect.Highlight(element,{});
+new Effect.Highlight(value,{});
+Sortable.create(value, {onUpdate:function(){new Ajax.Request('/test/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize(value)})}});
+new Draggable(value, {});
+});
+EOS
+  end
+
   def test_render_xml_with_default
     get :greeting
     assert_equal "<p>This is grand!</p>\n", @response.body
@@ -365,17 +377,17 @@ class NewRenderTest < Test::Unit::TestCase
 
   def test_render_rjs_with_default
     get :delete_with_js
-    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight('project-4',{});!, @response.body
+    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight(\"project-4\",{});!, @response.body
   end
 
   def test_render_rjs_template_explicitly
     get :render_js_with_explicit_template
-    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight('project-4',{});!, @response.body
+    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight(\"project-4\",{});!, @response.body
   end
 
   def test_rendering_rjs_action_explicitly
     get :render_js_with_explicit_action_template
-    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight('project-4',{});!, @response.body
+    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight(\"project-4\",{});!, @response.body
   end
 
   def test_layout_rendering

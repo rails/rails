@@ -409,7 +409,8 @@ module ActionView
       class JavaScriptGenerator
         def initialize(context, &block) #:nodoc:
           @context, @lines = context, []
-          include_helpers_from_context
+          # removed because those methods were overriding valid generator methods
+          # include_helpers_from_context 
           @context.instance_exec(self, &block)
         end
   
@@ -567,7 +568,7 @@ module ActionView
         
         # Starts a script.aculo.us visual effect. See 
         # ActionView::Helpers::ScriptaculousHelper for more information.
-        def visual_effect(name, id, options = {})
+        def visual_effect(name, id = nil, options = {})
           record @context.send(:visual_effect, name, id, options)
         end
         
@@ -791,7 +792,7 @@ module ActionView
         append_enumerable_function!("zip(#{arguments.collect { |a| a.to_json } * ', '}")
         if block
           function_chain[-1] += ", function(array) {"
-          yield @generator, ActiveSupport::JSON::Variable.new('array')
+          yield ActiveSupport::JSON::Variable.new('array')
           add_return_statement!
           @generator << '});'
         else
@@ -811,7 +812,8 @@ module ActionView
         def enumerable_method(enumerable, variable, yield_params, &block)
           add_variable_assignment!(variable) if variable
           append_enumerable_function!(enumerable)
-          yield *([@generator] + yield_params.collect { |p| JavaScriptVariableProxy.new(@generator, p) })
+          # only yield as many params as were passed in the block
+          yield *yield_params.collect { |p| JavaScriptVariableProxy.new(@generator, p) }[0..block.arity-1]
           add_return_statement! if variable
           @generator << '});'
         end
