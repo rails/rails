@@ -278,16 +278,11 @@ module ActionController #:nodoc:
     # behavior you can re-register XmlSimple as application/xml handler and enable application/x-yaml like 
     # this:
     #
-    #   ActionController::Base.param_parsers['application/xml'] = Proc.new do |data| 
-    #     XmlSimple.xml_in(data, 'ForceArray' => false)
-    #   end
-    #
-    #   ActionController::Base.param_parsers['application/x-yaml'] = Proc.new do |data| 
-    #     |post| YAML.load(post)
-    #   end
+    #   ActionController::Base.param_parsers['application/xml'] = :xml_simple
+    #   ActionController::Base.param_parsers['application/x-yaml'] = :yaml
     #
     @@param_parsers = {
-      'application/xml'     => Proc.new { |post| node = XmlNode.from_xml(post); { node.node_name => node } },
+      'application/xml'     => :xml_node
     }
     cattr_accessor :param_parsers 
 

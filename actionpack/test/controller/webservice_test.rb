@@ -27,6 +27,8 @@ class WebServiceTest < Test::Unit::TestCase
   
   def setup
     @controller = TestController.new
+    ActionController::Base.param_parsers.clear
+    ActionController::Base.param_parsers['application/xml'] = :xml_node
   end
   
   def test_check_parameters
@@ -55,12 +57,28 @@ class WebServiceTest < Test::Unit::TestCase
   def test_register_and_use_yaml
     ActionController::Base.param_parsers['application/x-yaml'] = Proc.new { |d| YAML.load(d) }
     process('POST', 'application/x-yaml', {"entry" => "loaded from yaml"}.to_yaml)
+    assert_equal 'entry', @controller.response.body
     assert @controller.params.has_key?(:entry)
     assert_equal 'loaded from yaml', @controller.params["entry"]
-  ensure
-    ActionController::Base.param_parsers['application/x-yaml'] = nil
   end
   
+  def test_register_and_use_yaml_as_symbol
+    ActionController::Base.param_parsers['application/x-yaml'] = :yaml
+    process('POST', 'application/x-yaml', {"entry" => "loaded from yaml"}.to_yaml)
+    assert_equal 'entry', @controller.response.body
+    assert @controller.params.has_key?(:entry)
+    assert_equal 'loaded from yaml', @controller.params["entry"]
+  end
+
+  def test_register_and_use_xml_simple
+    ActionController::Base.param_parsers['application/xml'] = :xml_simple
+    process('POST', 'application/xml', '<request><summary>content...</summary><title>SimpleXml</title></request>' )
+    assert_equal 'summary, title', @controller.response.body
+    assert @controller.params.has_key?(:summary)
+    assert @controller.params.has_key?(:title)
+    assert_equal 'content...', @controller.params["summary"]
+    assert_equal 'SimpleXml', @controller.params["title"]
+  end
   
   def test_deprecated_request_methods
     process('POST', 'application/x-yaml')

@@ -59,7 +59,19 @@ class CGIMethods #:nodoc:
     end
 
     def self.parse_formatted_request_parameters(format, raw_post_data)
-      ActionController::Base.param_parsers[format].call(raw_post_data) || {}
+      params = case strategy = ActionController::Base.param_parsers[format]
+      when Proc
+        strategy.call(raw_post_data)
+      when :xml_node
+        node = XmlNode.from_xml(raw_post_data)
+        { node.node_name => node }
+      when :xml_simple
+        XmlSimple.xml_in(raw_post_data, 'ForceArray' => false)
+      when :yaml
+        YAML.load(raw_post_data)
+      end
+      
+      params || {}
     rescue Object => e
       { "exception" => "#{e.message} (#{e.class})", "backtrace" => e.backtrace, 
         "raw_post_data" => raw_post_data, "format" => format }
