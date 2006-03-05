@@ -906,6 +906,7 @@ module ActiveRecord #:nodoc:
         end
       end
 
+      # Works like with_scope, but discards any nested properties.
       def with_exclusive_scope(method_scoping = {}, &block)
         with_scope(method_scoping, :overwrite, &block)
       end
@@ -916,12 +917,12 @@ module ActiveRecord #:nodoc:
       end      
 
       # Deprecated 
-      def threaded_connections
+      def threaded_connections #:nodoc:
         allow_concurrency
       end
 
       # Deprecated 
-      def threaded_connections=(value)
+      def threaded_connections=(value) #:nodoc:
         self.allow_concurrency = value
       end
 
@@ -994,7 +995,7 @@ module ActiveRecord #:nodoc:
         end
 
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that the passed-in +sql+ string is changed.
-        def add_conditions!(sql, conditions)          
+        def add_conditions!(sql, conditions)
           segments = [sanitize_sql(scope(:find, :conditions))]
           segments << sanitize_sql(conditions) unless conditions.nil?
           segments << type_condition unless descends_from_active_record?        
