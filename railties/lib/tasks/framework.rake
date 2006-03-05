@@ -38,13 +38,20 @@ namespace :rails do
         exit 1
       end
 
+      rails_svn = 'http://dev.rubyonrails.org/svn/rails/trunk'
+
+      if ENV['REVISION'].nil?
+        ENV['REVISION'] = /^r(\d+)/.match(%x{svn -qr HEAD log #{rails_svn}})[1]
+        puts "REVISION not set. Using HEAD, which is revision #{ENV['REVISION']}."
+      end
+
       rm_rf   "vendor/rails"
       mkdir_p "vendor/rails"
 
-      revision_switch = ENV['REVISION'] ? " -r #{ENV['REVISION']}" : ''
+      touch   "vendor/rails/REVISION_#{ENV['REVISION']}"
       
       for framework in %w( railties actionpack activerecord actionmailer activesupport actionwebservice )
-        system  "svn export http://dev.rubyonrails.org/svn/rails/trunk/#{framework} vendor/rails/#{framework} #{revision_switch}"
+        system "svn export #{rails_svn}/#{framework} vendor/rails/#{framework} -r #{ENV['REVISION']}"
       end
     end
   end

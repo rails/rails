@@ -30,9 +30,15 @@ module Rails
       end
     
       def edge_rails_revision(info = svn_info)
-        info[/^Revision: (\d+)/, 1]
+        info[/^Revision: (\d+)/, 1] || freeze_edge_version
       end
-    
+
+      def freeze_edge_version
+        if File.exists?(rails_vendor_root)
+          Dir[File.join(rails_vendor_root, 'REVISION_*')].first.scan(/_(\d+)$/).first.first rescue 'unknown'
+        end
+      end
+
       def to_s
         column_width = properties.names.map {|name| name.length}.max
         ["About your application's environment", *properties.map do |property|
@@ -53,9 +59,13 @@ module Rails
       end
 
       protected
+        def rails_vendor_root
+          @rails_vendor_root ||= "#{RAILS_ROOT}/vendor/rails"
+        end
+
         def svn_info
           env_lang, ENV['LC_ALL'] = ENV['LC_ALL'], 'C'
-          Dir.chdir("#{RAILS_ROOT}/vendor/rails") do
+          Dir.chdir(rails_vendor_root) do
             silence_stderr { `svn info` }
           end
         ensure
@@ -102,6 +112,10 @@ module Rails
     # The name of the database adapter for the current environment.
     property 'Database adapter' do
       ActiveRecord::Base.configurations[RAILS_ENV]['adapter']
+    end
+
+    property 'Database schema version' do
+      ActiveRecord::Migrator.current_version rescue nil
     end
   end
 end

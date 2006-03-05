@@ -1,5 +1,7 @@
 *SVN*
 
+* Added tracking of database and framework versions in script/about #4088 [charles.gerungan@gmail.com/Rick Olson]
+
 * Added public/javascripts/application.js as a sample since it'll automatically be included in javascript_include_tag :defaults [DHH]
 
 * Added socket cleanup for lighttpd, both before and after [DHH]
