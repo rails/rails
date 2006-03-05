@@ -1,7 +1,6 @@
 require 'rexml/document'
 
 # SimpleXML like xml parser. Written by leon breet from the ruby on rails Mailing list
-# 
 class XmlNode
   attr :node
 

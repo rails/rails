@@ -528,6 +528,7 @@ module ActiveRecord #:nodoc:
         update_all "#{counter_name} = #{counter_name} - 1", "#{primary_key} = #{quote(id)}"
       end
 
+
       # Attributes named in this macro are protected from mass-assignment, such as <tt>new(attributes)</tt> and
       # <tt>attributes=(attributes)</tt>. Their assignment will simply be ignored. Instead, you can use the direct writer
       # methods to do assignment. This is meant to protect sensitive attributes from being overwritten by URL/form hackers. Example:
@@ -565,6 +566,7 @@ module ActiveRecord #:nodoc:
         read_inheritable_attribute("attr_accessible")
       end
 
+
       # Specifies that the attribute by the name of +attr_name+ should be serialized before saving to the database and unserialized
       # after loading from the database. The serialization is done through YAML. If +class_name+ is specified, the serialized
       # object must be of that class on retrieval or +SerializationTypeMismatch+ will be raised.
@@ -576,6 +578,7 @@ module ActiveRecord #:nodoc:
       def serialized_attributes
         read_inheritable_attribute("attr_serialized") or write_inheritable_attribute("attr_serialized", {})
       end
+
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
       # directly from ActiveRecord. So if the hierarchy looks like: Reply < Message < ActiveRecord, then Message is used
@@ -597,7 +600,7 @@ module ActiveRecord #:nodoc:
 
       def reset_table_name
         name = "#{table_name_prefix}#{undecorated_table_name(class_name_of_active_record_descendant(self))}#{table_name_suffix}"
-        set_table_name name
+        set_table_name(name)
         name
       end
 

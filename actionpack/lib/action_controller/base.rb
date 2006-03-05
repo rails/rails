@@ -261,7 +261,7 @@ module ActionController #:nodoc:
     cattr_accessor :allow_concurrency
 
     # Modern REST web services often need to submit complex data to the web application. 
-    # the param_parsers hash lets you register handlers wich will process the http body and add parameters to the 
+    # The param_parsers hash lets you register handlers wich will process the http body and add parameters to the 
     # @params hash. These handlers are invoked for post and put requests.
     #
     # By default application/xml is enabled. a XmlNode class with the same param name as the root 
@@ -281,9 +281,7 @@ module ActionController #:nodoc:
     #   ActionController::Base.param_parsers['application/xml'] = :xml_simple
     #   ActionController::Base.param_parsers['application/x-yaml'] = :yaml
     #
-    @@param_parsers = {
-      'application/xml'     => :xml_node
-    }
+    @@param_parsers = { 'application/xml' => :xml_node }
     cattr_accessor :param_parsers 
 
     # Template root determines the base from which template references will be made. So a call to render("test/template")
