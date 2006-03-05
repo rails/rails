@@ -67,6 +67,7 @@ namespace :db do
     desc "Recreate the test database from the current environment's database schema"
     task :clone => "db:schema:dump" do
       ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
+      ActiveRecord::Schema.verbose = false
       Rake::Task["db:schema:load"].invoke
     end
 
