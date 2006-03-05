@@ -178,6 +178,17 @@ class NewRenderTestController < ActionController::Base
     render :action => "potential_conflicts"
   end
 
+  def enum_rjs_test
+    render :update do |page|
+      page.select('.product').each do |value|
+        page.visual_effect :highlight
+        page.visual_effect :highlight, value
+        page.sortable(value, :url => { :action => "order" })
+        page.draggable(value)
+      end
+    end
+  end
+
   def delete_with_js
     @project_id = 4
   end

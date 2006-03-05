@@ -28,12 +28,25 @@ class ScriptaculousHelperTest < Test::Unit::TestCase
     assert_equal "new Effect.Fade(\"fademe\",{duration:4.0});", visual_effect(:fade, "fademe", :duration => 4.0)
     assert_equal "new Effect.Shake(element,{});", visual_effect(:shake)
     assert_equal "new Effect.DropOut(\"dropme\",{queue:'end'});", visual_effect(:drop_out, 'dropme', :queue => :end)
-    assert_equal "new Effect.DropOut(\"dropme\",{queue:{limit:2,scope:'test',position:'end'}});", 
-      visual_effect(:drop_out, 'dropme', :queue => {:position => "end", :scope => "test", :limit => 2})
-    assert_equal "new Effect.DropOut(\"dropme\",{queue:{limit:2,scope:'list'}});", 
-      visual_effect(:drop_out, 'dropme', :queue => {:scope => :list, :limit => 2})
-    assert_equal "new Effect.DropOut(\"dropme\",{queue:{limit:2,scope:'test',position:'end'}});", 
+
+    # chop the queue params into a comma separated list
+    beginning, ending = 'new Effect.DropOut("dropme",{queue:{', '}});'
+    ve = [
+      visual_effect(:drop_out, 'dropme', :queue => {:position => "end", :scope => "test", :limit => 2}),
+      visual_effect(:drop_out, 'dropme', :queue => {:scope => :list, :limit => 2}),
       visual_effect(:drop_out, 'dropme', :queue => {:position => :end, :scope => :test, :limit => 2})
+    ].collect { |v| v[beginning.length..-ending.length-1].split(',') }
+
+    assert ve[0].include?("limit:2")
+    assert ve[0].include?("scope:'test'")
+    assert ve[0].include?("position:'end'")
+
+    assert ve[1].include?("limit:2")
+    assert ve[1].include?("scope:'list'")
+
+    assert ve[2].include?("limit:2")
+    assert ve[2].include?("scope:'test'")
+    assert ve[2].include?("position:'end'")
   end
   
   def test_toggle_effects
