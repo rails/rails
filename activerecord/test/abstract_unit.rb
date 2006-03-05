@@ -30,7 +30,7 @@ class Test::Unit::TestCase #:nodoc:
     end
   end
 
-  def assert_no_queries
+  def assert_queries(num = 1)
     ActiveRecord::Base.connection.class.class_eval do
       self.query_count = 0
       alias_method :execute, :execute_with_query_counting
@@ -40,7 +40,11 @@ class Test::Unit::TestCase #:nodoc:
     ActiveRecord::Base.connection.class.class_eval do
       alias_method :execute, :execute_without_query_counting
     end
-    assert_equal 0, ActiveRecord::Base.connection.query_count, "1 or more queries were executed"
+    assert_equal num, ActiveRecord::Base.connection.query_count, "#{ActiveRecord::Base.connection.query_count} instead of #{num} queries were executed."
+  end
+
+  def assert_no_queries(&block)
+    assert_queries(0, &block)
   end
 end
 

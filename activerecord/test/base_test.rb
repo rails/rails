@@ -1147,6 +1147,13 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal LoosePerson, LooseDescendant.base_class
   end
 
+  def test_assert_queries
+    query = lambda { ActiveRecord::Base.connection.execute 'select count(*) from developers' }
+    assert_queries(2) { 2.times { query.call } }
+    assert_queries 1, &query
+    assert_no_queries { assert true }
+  end
+
   # FIXME: this test ought to run, but it needs to run sandboxed so that it
   # doesn't b0rk the current test environment by undefing everything.
   #
