@@ -81,7 +81,34 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   def test_has_many_with_piggyback
     assert_equal "2", categories(:sti_test).authors.first.post_id.to_s
   end
-  
+
+  def test_include_has_many_through
+    posts              = Post.find(:all, :order => 'posts.id')
+    posts_with_authors = Post.find(:all, :include => :authors, :order => 'posts.id')
+    assert_equal posts.length, posts_with_authors.length
+    posts.length.times do |i|
+      assert_equal posts[i].authors.length, assert_no_queries { posts_with_authors[i].authors.length }
+    end
+  end
+
+  def test_include_polymorphic_has_many_through
+    posts           = Post.find(:all, :order => 'posts.id')
+    posts_with_tags = Post.find(:all, :include => :tags, :order => 'posts.id')
+    assert_equal posts.length, posts_with_tags.length
+    posts.length.times do |i|
+      assert_equal posts[i].tags.length, assert_no_queries { posts_with_tags[i].tags.length }
+    end
+  end
+
+  def test_include_polymorphic_has_many
+    posts               = Post.find(:all, :order => 'posts.id')
+    posts_with_taggings = Post.find(:all, :include => :taggings, :order => 'posts.id')
+    assert_equal posts.length, posts_with_taggings.length
+    posts.length.times do |i|
+      assert_equal posts[i].taggings.length, assert_no_queries { posts_with_taggings[i].taggings.length }
+    end
+  end
+
   def test_has_many_find_all
     assert_equal [categories(:general)], authors(:david).categories.find(:all)
   end

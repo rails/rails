@@ -19,3 +19,4 @@ second:
   approved: true
   replies_count: 2
   parent_id: 1
+  type: Reply

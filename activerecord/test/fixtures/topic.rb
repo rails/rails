@@ -6,7 +6,7 @@ class Topic < ActiveRecord::Base
   before_destroy :destroy_children
 
   def parent
-    self.class.find(parent_id)
+    Topic.find(parent_id)
   end
   
   protected

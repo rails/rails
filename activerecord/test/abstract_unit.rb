@@ -29,11 +29,33 @@ class Test::Unit::TestCase #:nodoc:
       assert_equal expected.to_s, actual.to_s, message
     end
   end
+
+  def assert_no_queries
+    ActiveRecord::Base.connection.class.class_eval do
+      self.query_count = 0
+      alias_method :execute, :execute_with_query_counting
+    end
+    yield
+  ensure
+    ActiveRecord::Base.connection.class.class_eval do
+      alias_method :execute, :execute_without_query_counting
+    end
+    assert_equal 0, ActiveRecord::Base.connection.query_count, "1 or more queries were executed"
+  end
 end
 
 def current_adapter?(type)
   ActiveRecord::ConnectionAdapters.const_defined?(type) &&
     ActiveRecord::Base.connection.instance_of?(ActiveRecord::ConnectionAdapters.const_get(type))
+end
+
+ActiveRecord::Base.connection.class.class_eval do
+  cattr_accessor :query_count
+  alias_method :execute_without_query_counting, :execute
+  def execute_with_query_counting(sql, name = nil)
+    self.query_count += 1
+    execute_without_query_counting(sql, name)
+  end
 end
 
 #ActiveRecord::Base.logger = Logger.new(STDOUT)

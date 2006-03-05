@@ -932,7 +932,6 @@ module ActiveRecord
           sql << "#{options[:joins]} " if options[:joins]
 
           add_conditions!(sql, options[:conditions])
-          add_sti_conditions!(sql, join_dependency)
           add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && options[:limit]
 
           add_limit!(sql, options) if using_limitable_reflections?(join_dependency.reflections)
@@ -950,7 +949,6 @@ module ActiveRecord
           sql << "#{options[:joins]} " if options[:joins]
  
           add_conditions!(sql, options[:conditions])
-          add_sti_conditions!(sql, join_dependency)
           add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && options[:limit]
 
           sql << "ORDER BY #{options[:order]} " if options[:order]
@@ -1011,41 +1009,6 @@ module ActiveRecord
           reflections.reject { |r| [ :belongs_to, :has_one ].include?(r.macro) }.length.zero?
         end
 
-        def join_depended_type_condition (klass, join_dependency)
-          aliased_table_name = join_dependency.aliased_table_names_for(klass.table_name).last || klass.table_name
-          quoted_inheritance_column = connection.quote_column_name(klass.inheritance_column)
-          type_condition = klass.subclasses.inject(sti_condition(klass, aliased_table_name, quoted_inheritance_column)) do |condition, subclass|
-            condition << " OR #{sti_condition subclass, aliased_table_name, quoted_inheritance_column}"
-          end
-        
-          " (#{type_condition}) "
-        end
-        
-        def sti_condition(klass, table_name, inheritance_column)
-          "(#{table_name}.#{inheritance_column} = '#{klass.name.demodulize}' OR #{table_name}.#{inheritance_column} IS NULL)"
-        end
-
-        #def join_depended_type_condition (klass, join_dependency)
-        #  aliased_table_name = join_dependency.aliased_table_names_for(klass.table_name).first || klass.table_name
-        #  quoted_inheritance_column = connection.quote_column_name(klass.inheritance_column)
-        #  type_condition = klass.subclasses.inject("#{aliased_table_name}.#{quoted_inheritance_column} = '#{klass.name.demodulize}' ") do |condition, subclass|
-        #    condition << "OR #{aliased_table_name}.#{quoted_inheritance_column} = '#{subclass.name.demodulize}' "
-        #  end
-        #
-        #  " (#{type_condition}) "
-        #end
-
-        def add_sti_conditions!(sql, join_dependency)
-          reflections = join_dependency.reflections
-          sti_conditions = reflections.collect do |reflection|
-            join_depended_type_condition(reflection.klass, join_dependency) unless reflection.klass.descends_from_active_record?
-          end.compact
-          
-          unless sti_conditions.empty?
-            sql << condition_word(sql) + sti_conditions.join(" AND ")
-          end
-        end
-
         def column_aliases(join_dependency)
           join_dependency.joins.collect{|join| join.column_names_with_alias.collect{|column_name, aliased_name|
               "#{join.aliased_table_name}.#{connection.quote_column_name column_name} AS #{aliased_name}"}}.flatten.join(", ")
@@ -1078,7 +1041,7 @@ module ActiveRecord
         end
 
         class JoinDependency
-          attr_reader :joins, :reflections
+          attr_reader :joins, :reflections, :table_aliases
 
           def initialize(base, associations)
             @joins                 = [JoinBase.new(base)]
@@ -1086,6 +1049,8 @@ module ActiveRecord
             @reflections           = []
             @base_records_hash     = {}
             @base_records_in_order = []
+            @table_aliases         = Hash.new { |aliases, table| aliases[table] = 0 }
+            @table_aliases[base.table_name] = 1
             build(associations)
           end
 
@@ -1228,26 +1193,65 @@ module ActiveRecord
               @parent             = parent
               @reflection         = reflection
               @aliased_prefix     = "t#{ join_dependency.joins.size }"
-              @aliased_table_name = join_dependency.aliased_table_names_for(table_name).empty? ? table_name : @aliased_prefix
+              @aliased_table_name = table_name # start with the table name
+              unless join_dependency.table_aliases[aliased_table_name].zero?
+                # if the table name has been used, then use an alias
+                # if the alias has been used, add a '_n' suffix to the end.
+                @aliased_table_name = "#{parent.table_name}_#{reflection.name}_#{join_dependency.table_aliases[aliased_table_name]}".gsub(/_1$/, '')
+              end
+              join_dependency.table_aliases[aliased_table_name] += 1
             end
 
             def association_join
-              case reflection.macro
+              join = case reflection.macro
                 when :has_and_belongs_to_many
                   join_table_name    =
                   " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
                      options[:join_table], options[:join_table],
                      options[:foreign_key] || reflection.active_record.to_s.classify.foreign_key,
                      reflection.active_record.table_name, reflection.active_record.primary_key] +
-                  " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
-                     aliased_table_name, aliased_table_name, klass.primary_key,
+                  " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s " % [
+                     table_name, aliased_table_name, aliased_table_name, klass.primary_key,
                      options[:join_table], options[:association_foreign_key] || klass.table_name.classify.foreign_key
                      ]
                 when :has_many, :has_one
-                  " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s " % [table_name, aliased_table_name,
-                     aliased_table_name, options[:foreign_key] || reflection.active_record.to_s.classify.foreign_key,
-                     parent.aliased_table_name, parent.primary_key
-                    ]
+                  case
+                    when reflection.macro == :has_many && reflection.options[:through]
+                      through_reflection       = parent.active_record.reflect_on_association(reflection.options[:through])
+                      aliased_through_table    = "#{parent.table_name}_#{through_reflection.klass.table_name}"
+                      if through_reflection.options[:as] # has_many :through against a polymorphic join
+                        polymorphic_foreign_key  = through_reflection.options[:as].to_s + '_id'
+                        polymorphic_foreign_type = through_reflection.options[:as].to_s + '_type'
+
+                        " LEFT OUTER JOIN %s AS %s ON (%s.%s = %s.%s AND %s.%s = %s) "  % [through_reflection.klass.table_name, aliased_through_table,
+                          aliased_through_table, polymorphic_foreign_key,
+                          parent.aliased_table_name, parent.primary_key,
+                          aliased_through_table, polymorphic_foreign_type, reflection.klass.quote(parent.active_record.base_class.name)] +
+                        " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s " % [table_name, aliased_table_name,
+                          aliased_table_name, primary_key, aliased_through_table, options[:foreign_key] || reflection.klass.to_s.classify.foreign_key
+                        ]
+                      else # has_many :through against a normal join
+                        " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s "  % [through_reflection.klass.table_name, aliased_through_table,
+                          aliased_through_table, through_reflection.options[:foreign_key] || through_reflection.active_record.to_s.classify.foreign_key,
+                          parent.aliased_table_name, parent.primary_key] +
+                        " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s " % [table_name, aliased_table_name,
+                          aliased_table_name, primary_key, aliased_through_table, options[:foreign_key] || reflection.klass.to_s.classify.foreign_key
+                        ]
+                      end
+                      
+                    when reflection.macro == :has_many && reflection.options[:as]
+                      " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s AND %s.%s = %s" % [table_name, aliased_table_name,
+                        aliased_table_name, "#{reflection.options[:as]}_id",
+                        parent.aliased_table_name, parent.primary_key,
+                        aliased_table_name, "#{reflection.options[:as]}_type",
+                        reflection.klass.quote(parent.active_record.base_class.name)
+                      ]
+                    else
+                      " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s " % [table_name, aliased_table_name,
+                        aliased_table_name, options[:foreign_key] || reflection.active_record.to_s.classify.foreign_key,
+                        parent.aliased_table_name, parent.primary_key
+                      ]
+                  end
                 when :belongs_to
                   " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s " % [table_name, aliased_table_name,
                      aliased_table_name, reflection.klass.primary_key,
@@ -1256,6 +1260,11 @@ module ActiveRecord
                 else
                   ""
               end
+              join << %(AND %s."%s" = %s ) % [
+                aliased_table_name, 
+                reflection.active_record.inheritance_column, 
+                reflection.klass.quote(klass.name)] unless join.blank? || reflection.klass.descends_from_active_record?
+              join
             end
           end
         end

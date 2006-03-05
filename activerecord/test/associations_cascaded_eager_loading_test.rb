@@ -56,23 +56,33 @@ class CascadedEagerLoadingTest < Test::Unit::TestCase
   def test_eager_association_loading_with_acts_as_tree
     roots = TreeMixin.find(:all, :include=>"children", :conditions=>"mixins.parent_id IS NULL", :order=>"mixins.id")
     assert_equal [mixins(:tree_1), mixins(:tree2_1), mixins(:tree3_1)], roots
-    assert_equal 2, roots[0].children.size
-    assert_equal 0, roots[1].children.size
-    assert_equal 0, roots[2].children.size
+    assert_no_queries do
+      assert_equal 2, roots[0].children.size
+      assert_equal 0, roots[1].children.size
+      assert_equal 0, roots[2].children.size
+    end
   end
 
   def test_eager_association_loading_with_cascaded_three_levels_by_ping_pong
     firms = Firm.find(:all, :include=>{:account=>{:firm=>:account}}, :order=>"companies.id")
     assert_equal 2, firms.size
     assert_equal firms.first.account, firms.first.account.firm.account
-    assert_equal companies(:first_firm).account, firms.first.account.firm.account
-    assert_equal companies(:first_firm).account.firm.account, firms.first.account.firm.account
+    assert_equal companies(:first_firm).account, assert_no_queries { firms.first.account.firm.account }
+    assert_equal companies(:first_firm).account.firm.account, assert_no_queries { firms.first.account.firm.account }
   end
 
-  def test_eager_association_loading_with_sti
+  def test_eager_association_loading_with_has_many_sti
     topics = Topic.find(:all, :include => :replies, :order => 'topics.id')
     assert_equal [topics(:first), topics(:second)], topics
-    assert_equal 1, topics[0].replies.size
-    assert_equal 0, topics[1].replies.size
+    assert_no_queries do
+      assert_equal 1, topics[0].replies.size
+      assert_equal 0, topics[1].replies.size
+    end
+  end
+
+  def test_eager_association_loading_with_belongs_to_sti
+    replies = Reply.find(:all, :include => :topic, :order => 'topics.id')
+    assert_equal [topics(:second)], replies
+    assert_equal topics(:first), assert_no_queries { replies.first.topic }
   end
 end

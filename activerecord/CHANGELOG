@@ -1,5 +1,16 @@
 *SVN*
 
+* Added smarter table aliasing for eager associations for multiple self joins #3580 [Rick Olson]
+
+    * The first time a table is referenced in a join, no alias is used.
+    * After that, the parent table name and the reflection name are used.
+    
+        Tree.find(:all, :include => :children) # LEFT OUTER JOIN trees AS tress_children ...
+    
+    * Any additional join references get a numerical suffix like '_2', '_3', etc.
+
+* Fixed eager loading problems with single-table inheritance #3580 [Rick Olson]. Post.find(:all, :include => :special_comments) now returns all posts, and any special comments that the posts may have. And made STI work with has_many :through and polymorphic belongs_to.
+
 * Added cascading eager loading that allows for queries like Author.find(:all, :include=> { :posts=> :comments }), which will fetch all authors, their posts, and the comments belonging to those posts in a single query (using LEFT OUTER JOIN) #3913 [anna@wota.jp]. Examples:
 
     # cascaded in two levels

@@ -1,6 +1,7 @@
 require 'abstract_unit'
 require 'fixtures/company'
 require 'fixtures/topic'
+require 'fixtures/reply'
 require 'fixtures/entrant'
 require 'fixtures/developer'
 require 'fixtures/post'
@@ -92,7 +93,7 @@ class FinderTest < Test::Unit::TestCase
       Topic.find(1).parent
     }
     
-    Topic.find(2).parent
+    Topic.find(2).topic
   end
   
   def test_find_only_some_columns

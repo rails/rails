@@ -567,7 +567,7 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_equality
-    assert_equal Topic.find(1), Topic.find(2).parent
+    assert_equal Topic.find(1), Topic.find(2).topic
   end
   
   def test_equality_of_new_records
@@ -575,7 +575,7 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_hashing
-    assert_equal [ Topic.find(1) ], [ Topic.find(2).parent ] & [ Topic.find(1) ]
+    assert_equal [ Topic.find(1) ], [ Topic.find(2).topic ] & [ Topic.find(1) ]
   end
   
   def test_destroy_new_record
