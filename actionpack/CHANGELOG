@@ -1,5 +1,16 @@
 *SVN*
 
+* Added new infrastructure support for REST webservices. 
+  By default application/xml posts are handled by creating a XmlNode object with the same name as the root element of the submitted xml. More handlers can easily be registered like this
+
+ ActionController::Base.param_parsers['application/atom+xml'] = Proc.new do |data| 
+    node = REXML::Document.new(post) 
+   { node.root.name => node.root }
+ end
+ 
+ XmlSimple and Yaml web services were retired, ActionController::Base.param_parsers carries an example which shows how to get this functionality back. 
+ request.[formatted_post?, xml_post?, yaml_post? and post_format] were all deprecated in favor of request.content_type [Tobias Luetke]
+ 
 * Fixed Effect.Appear in effects.js to work with floats in Safari #3524, #3813, #3044 [Thomas Fuchs]
 
 * Fixed that default image extension was not appended when using a full URL with AssetTagHelper#image_tag #4032, #3728 [rubyonrails@beautifulpixel.com]

@@ -1,5 +1,6 @@
 require 'cgi'
 require 'action_controller/vendor/xml_simple'
+require 'action_controller/vendor/xml_node'
 
 # Static methods for parsing the query and request parameters that can be used in
 # a CGI extension class or testing in isolation.
@@ -58,12 +59,7 @@ class CGIMethods #:nodoc:
     end
 
     def self.parse_formatted_request_parameters(format, raw_post_data)
-      case format
-        when :xml
-          return XmlSimple.xml_in(raw_post_data, 'ForceArray' => false)
-        when :yaml
-          return YAML.load(raw_post_data)
-      end
+      ActionController::Base.param_parsers[format].call(raw_post_data) || {}
     rescue Object => e
       { "exception" => "#{e.message} (#{e.class})", "backtrace" => e.backtrace, 
         "raw_post_data" => raw_post_data, "format" => format }

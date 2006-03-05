@@ -260,10 +260,41 @@ module ActionController #:nodoc:
     @@allow_concurrency = false
     cattr_accessor :allow_concurrency
 
+    # Modern REST web services often need to submit complex data to the web application. 
+    # the param_parsers hash lets you register handlers wich will process the http body and add parameters to the 
+    # @params hash. These handlers are invoked for post and put requests.
+    #
+    # By default application/xml is enabled. a XmlNode class with the same param name as the root 
+    # will be instanciated in the @params. 
+    # 
+    # Example:
+    #
+    #   ActionController::Base.param_parsers['application/atom+xml'] = Proc.new do |data| 
+    #      node = REXML::Document.new(post) 
+    #     { node.root.name => node.root }
+    #   end
+    #
+    # Note: Up until release 1.1 rails would default to using XmlSimple for such requests. To get the old 
+    # behavior you can re-register XmlSimple as application/xml handler and enable application/x-yaml like 
+    # this:
+    #
+    #   ActionController::Base.param_parsers['application/xml'] = Proc.new do |data| 
+    #     XmlSimple.xml_in(data, 'ForceArray' => false)
+    #   end
+    #
+    #   ActionController::Base.param_parsers['application/x-yaml'] = Proc.new do |data| 
+    #     |post| YAML.load(post)
+    #   end
+    #
+    @@param_parsers = {
+      'application/xml'     => Proc.new { |post| node = XmlNode.from_xml(post); { node.node_name => node } },
+    }
+    cattr_accessor :param_parsers 
+
     # Template root determines the base from which template references will be made. So a call to render("test/template")
     # will be converted to "#{template_root}/test/template.rhtml".
     class_inheritable_accessor :template_root
-
+    
     # The logger is used for generating information on the action run-time (including benchmarking) if available.
     # Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
     cattr_accessor :logger
@@ -302,7 +333,7 @@ module ActionController #:nodoc:
 
     # Returns the name of the action this controller is processing.
     attr_accessor :action_name
-
+    
     class << self
       # Factory for the standard create, process loop where the controller is discarded after processing.
       def process(request, response) #:nodoc:

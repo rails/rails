@@ -42,44 +42,25 @@ module ActionController
       method == :head
     end
 
-    # Determine whether the body of a POST request is URL-encoded (default),
-    # XML, or YAML by checking the Content-Type HTTP header:
-    #
-    #   Content-Type        Post Format
-    #   application/xml     :xml
-    #   text/xml            :xml
-    #   application/x-yaml  :yaml
-    #   text/x-yaml         :yaml
-    #   *                   :url_encoded
+    # Determine whether the body of a HTTP call is URL-encoded (default)
+    # or matches one of the registered param_parsers. 
     #
     # For backward compatibility, the post format is extracted from the
     # X-Post-Data-Format HTTP header if present.
-    def post_format
-      @post_format ||=
-           if @env['HTTP_X_POST_DATA_FORMAT']
-             @env['HTTP_X_POST_DATA_FORMAT'].downcase.to_sym
-           else
-             case @env['CONTENT_TYPE'].to_s.downcase
-             when 'application/xml', 'text/xml'        then :xml
-             when 'application/x-yaml', 'text/x-yaml'  then :yaml
-             else :url_encoded
-             end
-           end
-    end
+    def content_type
+      return @content_type if @content_type
 
-    # Is this a POST request formatted as XML or YAML?
-    def formatted_post?
-      post? && (post_format == :xml || post_format == :yaml)
-    end
-
-    # Is this a POST request formatted as XML?
-    def xml_post?
-      post? && post_format == :xml
-    end
-
-    # Is this a POST request formatted as YAML?
-    def yaml_post?
-      post? && post_format == :yaml
+      @content_type = @env['CONTENT_TYPE'].to_s.downcase
+      
+      if @env['HTTP_X_POST_DATA_FORMAT']          
+        case @env['HTTP_X_POST_DATA_FORMAT'].downcase.to_sym
+        when :yaml
+          @content_type = 'application/x-yaml'
+        when :xml
+          @content_type = 'application/xml'
+        end
+      end
+      @content_type
     end
 
     # Returns true if the request's "X-Requested-With" header contains

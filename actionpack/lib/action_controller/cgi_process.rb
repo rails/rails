@@ -64,8 +64,8 @@ module ActionController #:nodoc:
     end
 
     def request_parameters
-      if formatted_post?
-        CGIMethods.parse_formatted_request_parameters(post_format, @env['RAW_POST_DATA'])
+      if ActionController::Base.param_parsers.has_key?(content_type)
+        CGIMethods.parse_formatted_request_parameters(content_type, @env['RAW_POST_DATA'])
       else
         CGIMethods.parse_request_parameters(@cgi.params)
       end
