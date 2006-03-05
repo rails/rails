@@ -44,7 +44,6 @@ namespace :rails do
       revision_switch = ENV['REVISION'] ? " -r #{ENV['REVISION']}" : ''
       
       for framework in %w( railties actionpack activerecord actionmailer activesupport actionwebservice )
-        mkdir_p "vendor/rails/#{framework}"
         system  "svn export http://dev.rubyonrails.org/svn/rails/trunk/#{framework} vendor/rails/#{framework} #{revision_switch}"
       end
     end
