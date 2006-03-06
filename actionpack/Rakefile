@@ -116,7 +116,7 @@ end
 
 task :update_scriptaculous do
   for js in %w( controls dragdrop effects )
-    system("svn export --force http://dev.rubyonrails.org/svn/rails/spinoffs/scriptaculous/src/#{js} #{File.dirname(__FILE__)}/lib/action_view/helpers/javascripts/")
+    system("svn export --force http://dev.rubyonrails.org/svn/rails/spinoffs/scriptaculous/src/#{js}.js #{File.dirname(__FILE__)}/lib/action_view/helpers/javascripts/#{js}.js")
   end
 end
 

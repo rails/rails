@@ -558,9 +558,10 @@ var Sortable = {
   findElements: function(element, options) {
     if(!element.hasChildNodes()) return null;
     var elements = [];
+    var only = options.only ? [options.only].flatten() : null;
     $A(element.childNodes).each( function(e) {
       if(e.tagName && e.tagName.toUpperCase()==options.tag.toUpperCase() &&
-        (!options.only || (Element.hasClassName(e, options.only))))
+        (!only || (Element.classNames(e).detect(function(v) { return only.include(v) }))))
           elements.push(e);
       if(options.tree) {
         var grandchildren = this.findElements(e, options);
