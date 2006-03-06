@@ -9,6 +9,9 @@ module YAML #:nodoc:
   end
 end
 
+class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
+end
+
 # Fixtures are a way of organizing data that you want to test against; in short, sample data. They come in 3 flavours:
 #
 #   1.  YAML fixtures
@@ -391,9 +394,11 @@ class Fixture #:nodoc:
   end
 
   def find
-    if Object.const_defined?(@class_name)
-      klass = Object.const_get(@class_name)
+    klass = @class_name.is_a?(Class) ? @class_name : Object.const_get(@class_name) rescue nil
+    if klass
       klass.find(self[klass.primary_key])
+    else
+      raise FixtureClassNotFound, "The class #{@class_name.inspect} was not found."
     end
   end
 

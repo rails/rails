@@ -5,6 +5,7 @@ require 'fixtures/company'
 require 'fixtures/task'
 require 'fixtures/reply'
 require 'fixtures/joke'
+require 'fixtures/category'
 
 class FixturesTest < Test::Unit::TestCase
   self.use_instantiated_fixtures = true
@@ -332,9 +333,13 @@ class SetTableNameFixturesTest < Test::Unit::TestCase
     assert_kind_of Joke, funny_jokes(:a_joke)
   end
 end
-    
-    
-    
-    
-    
-    
+
+class InvalidTableNameFixturesTest < Test::Unit::TestCase
+  fixtures :funny_jokes
+
+  def test_raises_error
+    assert_raises FixtureClassNotFound do
+      funny_jokes(:a_joke)
+    end
+  end
+end
