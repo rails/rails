@@ -116,25 +116,6 @@ PeriodicalExecuter.prototype = {
     }
   }
 }
-
-/*--------------------------------------------------------------------------*/
-
-function $() {
-  var elements = new Array();
-
-  for (var i = 0; i < arguments.length; i++) {
-    var element = arguments[i];
-    if (typeof element == 'string')
-      element = document.getElementById(element);
-
-    if (arguments.length == 1)
-      return element;
-
-    elements.push(element);
-  }
-
-  return elements;
-}
 Object.extend(String.prototype, {
   gsub: function(pattern, replacement) {
     var result = '', source = this, match;
@@ -891,22 +872,48 @@ Ajax.PeriodicalUpdater.prototype = Object.extend(new Ajax.Base(), {
     this.updater = new Ajax.Updater(this.container, this.url, this.options);
   }
 });
+function $() {
+  var results = [], element;
+  for (var i = 0; i < arguments.length; i++) {
+    element = arguments[i];
+    if (typeof element == 'string')
+      element = document.getElementById(element);
+    results.push(Element.extend(element));
+  }
+  return results.length < 2 ? results[0] : results;
+}
+
 document.getElementsByClassName = function(className, parentElement) {
   var children = ($(parentElement) || document.body).getElementsByTagName('*');
   return $A(children).inject([], function(elements, child) {
     if (child.className.match(new RegExp("(^|\\s)" + className + "(\\s|$)")))
-      elements.push(child);
+      elements.push(Element.extend(child));
     return elements;
   });
 }
 
 /*--------------------------------------------------------------------------*/
 
-if (!window.Element) {
+if (!window.Element)
   var Element = new Object();
+
+Element.extend = function(element) {
+  if (!element) return;
+
+  if (!element._extended && element.tagName && element != window) {
+    var methods = Element.Methods;
+    for (property in methods) {
+      var value = methods[property];
+      if (typeof value == 'function')
+        element[property] = value.bind(null, element);
+    }
+  }
+
+  element._extended = true;
+  return element;
 }
 
-Object.extend(Element, {
+Element.Methods = {
   visible: function(element) {
     return $(element).style.display != 'none';
   },
@@ -942,17 +949,17 @@ Object.extend(Element, {
     setTimeout(function() {html.evalScripts()}, 10);
   },
 
-  replace: function(element, html) { 
-    element = $(element); 
-    if (element.outerHTML) { 
-      element.outerHTML = html.stripScripts(); 
-    } else { 
-      var range = element.ownerDocument.createRange(); 
-      range.selectNodeContents(element); 
-      element.parentNode.replaceChild( 
-        range.createContextualFragment(html.stripScripts()), element); 
-    } 
-    setTimeout(function() {html.evalScripts()}, 10); 
+  replace: function(element, html) {
+    element = $(element);
+    if (element.outerHTML) {
+      element.outerHTML = html.stripScripts();
+    } else {
+      var range = element.ownerDocument.createRange();
+      range.selectNodeContents(element);
+      element.parentNode.replaceChild(
+        range.createContextualFragment(html.stripScripts()), element);
+    }
+    setTimeout(function() {html.evalScripts()}, 10);
   },
 
   getHeight: function(element) {
@@ -1093,7 +1100,9 @@ Object.extend(Element, {
     element.style.overflow = element._overflow;
     element._overflow = undefined;
   }
-});
+}
+
+Object.extend(Element, Element.Methods);
 
 var Toggle = new Object();
 Toggle.display = Element.toggle;
@@ -1249,6 +1258,7 @@ Selector.prototype = {
       switch (modifier) {
         case '#':       params.id = clause; break;
         case '.':       params.classNames.push(clause); break;
+        case '':
         case undefined: params.tagName = clause.toUpperCase(); break;
         default:        abort(expr.inspect());
       }
@@ -1276,8 +1286,8 @@ Selector.prototype = {
   },
 
   compileMatcher: function() {
-    this.match = eval('function(element) { if (!element.tagName) return false; \
-      return ' + this.buildMatchExpression() + ' }');
+    this.match = new Function('element', 'if (!element.tagName) return false; \
+      return ' + this.buildMatchExpression());
   },
 
   findElements: function(scope) {
@@ -1293,7 +1303,7 @@ Selector.prototype = {
     var results = [];
     for (var i = 0; i < scope.length; i++)
       if (this.match(element = scope[i]))
-        results.push(element);
+        results.push(Element.extend(element));
 
     return results;
   },
@@ -1317,7 +1327,7 @@ var Field = {
       $(arguments[i]).value = '';
   },
 
-  focus: function(element) { 
+  focus: function(element) {
     $(element).focus();
   },
 
@@ -1551,16 +1561,15 @@ Form.Observer.prototype = Object.extend(new Abstract.TimedObserver(), {
 
 Abstract.EventObserver = function() {}
 Abstract.EventObserver.prototype = {
-  initialize: function() {
-    this.element  = $(arguments[0]);
-    this.callback = arguments[1];
-    this.trigger  = arguments[2];
+  initialize: function(element, callback) {
+    this.element  = $(element);
+    this.callback = callback;
 
     this.lastValue = this.getValue();
     if (this.element.tagName.toLowerCase() == 'form')
       this.registerFormCallbacks();
     else
-      this.registerCallback(this.element, this.trigger);
+      this.registerCallback(this.element);
   },
 
   onElementEvent: function() {
@@ -1574,13 +1583,11 @@ Abstract.EventObserver.prototype = {
   registerFormCallbacks: function() {
     var elements = Form.getElements(this.element);
     for (var i = 0; i < elements.length; i++)
-      this.registerCallback(elements[i], this.trigger);
+      this.registerCallback(elements[i]);
   },
 
-  registerCallback: function(element, trigger) {
-    if (trigger && element.type) {
-      Event.observe(element, trigger, this.onElementEvent.bind(this));
-    } else if (element.type) {
+  registerCallback: function(element) {
+    if (element.type) {
       switch (element.type.toLowerCase()) {
         case 'checkbox':
         case 'radio':
