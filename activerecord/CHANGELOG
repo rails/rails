@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix quoting of inheritance column for STI eager loading #4098 [Jonathan Viney <jonathan@bluewire.net.nz>]
+
 * Added smarter table aliasing for eager associations for multiple self joins #3580 [Rick Olson]
 
     * The first time a table is referenced in a join, no alias is used.

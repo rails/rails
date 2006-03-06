@@ -1226,7 +1226,7 @@ module ActiveRecord
                         " LEFT OUTER JOIN %s AS %s ON (%s.%s = %s.%s AND %s.%s = %s) "  % [through_reflection.klass.table_name, aliased_through_table,
                           aliased_through_table, polymorphic_foreign_key,
                           parent.aliased_table_name, parent.primary_key,
-                          aliased_through_table, polymorphic_foreign_type, reflection.klass.quote(parent.active_record.base_class.name)] +
+                          aliased_through_table, polymorphic_foreign_type, klass.quote(parent.active_record.base_class.name)] +
                         " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s " % [table_name, aliased_table_name,
                           aliased_table_name, primary_key, aliased_through_table, options[:foreign_key] || reflection.klass.to_s.classify.foreign_key
                         ]
@@ -1235,7 +1235,7 @@ module ActiveRecord
                           aliased_through_table, through_reflection.options[:foreign_key] || through_reflection.active_record.to_s.classify.foreign_key,
                           parent.aliased_table_name, parent.primary_key] +
                         " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s " % [table_name, aliased_table_name,
-                          aliased_table_name, primary_key, aliased_through_table, options[:foreign_key] || reflection.klass.to_s.classify.foreign_key
+                          aliased_table_name, primary_key, aliased_through_table, options[:foreign_key] || klass.to_s.classify.foreign_key
                         ]
                       end
                       
@@ -1244,7 +1244,7 @@ module ActiveRecord
                         aliased_table_name, "#{reflection.options[:as]}_id",
                         parent.aliased_table_name, parent.primary_key,
                         aliased_table_name, "#{reflection.options[:as]}_type",
-                        reflection.klass.quote(parent.active_record.base_class.name)
+                        klass.quote(parent.active_record.base_class.name)
                       ]
                     else
                       " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s " % [table_name, aliased_table_name,
@@ -1255,15 +1255,15 @@ module ActiveRecord
                 when :belongs_to
                   " LEFT OUTER JOIN %s AS %s ON %s.%s = %s.%s " % [table_name, aliased_table_name,
                      aliased_table_name, reflection.klass.primary_key,
-                     parent.aliased_table_name, options[:foreign_key] || reflection.klass.to_s.classify.foreign_key
+                     parent.aliased_table_name, options[:foreign_key] || klass.to_s.classify.foreign_key
                     ]
                 else
                   ""
               end
-              join << %(AND %s."%s" = %s ) % [
+              join << %(AND %s.%s = %s ) % [
                 aliased_table_name, 
-                reflection.active_record.inheritance_column, 
-                reflection.klass.quote(klass.name)] unless join.blank? || reflection.klass.descends_from_active_record?
+                reflection.active_record.connection.quote_column_name(reflection.active_record.inheritance_column), 
+                klass.quote(klass.name)] unless join.blank? || klass.descends_from_active_record?
               join
             end
           end
