@@ -3,9 +3,9 @@
 * Added smarter table aliasing for eager associations for multiple self joins #3580 [Rick Olson]
 
     * The first time a table is referenced in a join, no alias is used.
-    * After that, the parent table name and the reflection name are used.
+    * After that, the parent class name and the reflection name are used.
     
-        Tree.find(:all, :include => :children) # LEFT OUTER JOIN trees AS tress_children ...
+        Tree.find(:all, :include => :children) # LEFT OUTER JOIN trees AS tree_children ...
     
     * Any additional join references get a numerical suffix like '_2', '_3', etc.
 

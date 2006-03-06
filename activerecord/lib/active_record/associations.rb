@@ -1197,7 +1197,7 @@ module ActiveRecord
               unless join_dependency.table_aliases[aliased_table_name].zero?
                 # if the table name has been used, then use an alias
                 # if the alias has been used, add a '_n' suffix to the end.
-                @aliased_table_name = "#{parent.table_name}_#{reflection.name}_#{join_dependency.table_aliases[aliased_table_name]}".gsub(/_1$/, '')
+                @aliased_table_name = "#{parent.active_record.to_s.underscore}_#{reflection.name}_#{join_dependency.table_aliases[aliased_table_name]}".gsub(/_1$/, '')
               end
               join_dependency.table_aliases[aliased_table_name] += 1
             end
