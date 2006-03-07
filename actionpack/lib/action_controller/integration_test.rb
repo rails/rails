@@ -414,6 +414,37 @@ module ActionController
       super   
     end
 
+    # Because of how use_instantiated_fixtures and use_transactional_fixtures
+    # are defined, we need to treat them as special cases. Otherwise, users
+    # would potentially have to set their values for both Test::Unit::TestCase
+    # ActionController::IntegrationTest, since by the time the value is set on
+    # TestCase, IntegrationTest has already been defined and cannot inherit
+    # changes to those variables. So, we make those two attributes copy-on-write.
+
+    class<<self
+      def use_transactional_fixtures=(flag) #:nodoc:
+        @_use_transactional_fixtures = true
+        @use_transactional_fixtures = flag
+      end
+
+      def use_instantiated_fixtures=(flag) #:nodoc:
+        @_use_instantiated_fixtures = true
+        @use_instantiated_fixtures = flag
+      end
+
+      def use_transactional_fixtures #:nodoc:
+        @_use_transactional_fixtures ?
+          @use_transactional_fixtures :
+          superclass.use_transactional_fixtures
+      end
+
+      def use_instantiated_fixtures #:nodoc:
+        @_use_instantiated_fixtures ?
+          @use_instantiated_fixtures :
+          superclass.use_instantiated_fixtures
+      end
+    end
+
     # Reset the current session. This is useful for testing multiple sessions
     # in a single test case.
     def reset!
