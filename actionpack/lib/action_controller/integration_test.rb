@@ -405,12 +405,20 @@ module ActionController
   #       end
   #   end
   class IntegrationTest < Test::Unit::TestCase
+    # Work around a bug in test/unit caused by the default test being named
+    # as a symbol (:default_test), which causes regex test filters
+    # (like "ruby test.rb -n /foo/") to fail because =~ doesn't work on
+    # symbols.
+    def initialize(name) #:nodoc:
+      super(name.to_s)
+    end
+
     # Work around test/unit's requirement that every subclass of TestCase have
     # at least one test method. Note that this implementation extends to all
     # subclasses, as well, so subclasses of IntegrationTest may also exist
     # without any test methods.
     def run(*args) #:nodoc:
-      return if @method_name == :default_test
+      return if @method_name == "default_test"
       super   
     end
 
