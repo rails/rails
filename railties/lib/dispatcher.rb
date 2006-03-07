@@ -38,7 +38,7 @@ class Dispatcher
         ActionController::Routing::Routes.recognize!(request).process(request, response).out(output)
       end
     rescue Object => exception
-      failsafe_response(output, '500 Internal Server Error') do
+      failsafe_response(output, '500 Internal Server Error', exception) do
         ActionController::Base.process_with_exception(request, response, exception).out(output)
       end
     ensure
@@ -85,11 +85,13 @@ class Dispatcher
       end
 
       # If the block raises, send status code as a last-ditch response.
-      def failsafe_response(output, status)
+      def failsafe_response(output, status, exception)
         yield
       rescue Object
         begin
           output.write "Status: #{status}\r\n"
+          output.write "Content-Type: text/plain\r\n\r\n"
+          output.write exception.to_s + "\r\n" + exception.backtrace.join("\r\n")
         rescue Object
         end
       end
