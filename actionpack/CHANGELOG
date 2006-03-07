@@ -1,15 +1,17 @@
 *SVN*
 
-* Added new infrastructure support for REST webservices. 
-  By default application/xml posts are handled by creating a XmlNode object with the same name as the root element of the submitted xml. More handlers can easily be registered like this
+* Added plugin support for parameter parsers, which allows for better support for REST web services. By default, posts submitted with the application/xml content type is handled by creating a XmlSimple hash with the same name as the root element of the submitted xml. More handlers can easily be registered like this:
 
- ActionController::Base.param_parsers['application/atom+xml'] = Proc.new do |data| 
-    node = REXML::Document.new(post) 
-   { node.root.name => node.root }
- end
+    # Assign a new param parser to a new content type
+    ActionController::Base.param_parsers['application/atom+xml'] = Proc.new do |data| 
+      node = REXML::Document.new(post) 
+     { node.root.name => node.root }
+    end
+
+    # Assign the default XmlSimple to a new content type
+    ActionController::Base.param_parsers['application/backpack+xml'] = :xml_simple
  
- XmlSimple and Yaml web services were retired, ActionController::Base.param_parsers carries an example which shows how to get this functionality back. 
- request.[formatted_post?, xml_post?, yaml_post? and post_format] were all deprecated in favor of request.content_type [Tobias Luetke]
+Default YAML web services were retired, ActionController::Base.param_parsers carries an example which shows how to get this functionality back. As part of this new plugin support, request.[formatted_post?, xml_post?, yaml_post? and post_format] were all deprecated in favor of request.content_type [Tobias Luetke]
  
 * Fixed Effect.Appear in effects.js to work with floats in Safari #3524, #3813, #3044 [Thomas Fuchs]
 
