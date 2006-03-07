@@ -93,6 +93,10 @@ module ActionController
         @host
       end
 
+      # To make setting the host more natural when using a session object
+      # directly: foo.host = "blah"
+      alias_method :host=, :host!
+
       # Follow a single redirect response. If the last response was not a
       # redirect, an exception will be raised. Otherwise, the redirect is
       # performed on the location header.
@@ -173,7 +177,7 @@ module ActionController
         def interpret_uri(path)
           location = URI.parse(path)
           https! URI::HTTPS === location
-          host! location.host
+          host! location.host if location.host
           location.query ? "#{location.path}?#{location.query}" : location.path
         end
 
