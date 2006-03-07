@@ -15,7 +15,6 @@ module ActionController
     class Session
       include Test::Unit::Assertions
       include ActionController::TestProcess
-      include ActionController::Routing::NamedRoutes
 
       # The integer HTTP status code of the last request.
       attr_reader :status
@@ -56,13 +55,24 @@ module ActionController
       #
       #   session.reset!
       def reset!
-        @status = @path = @host = @headers = nil
+        @status = @path = @headers = nil
         @result = @status_message = nil
         @https = false
         @cookies = {}
         @controller = @request = @response = nil
       
-        initialize_url_writer
+        host! "www.example.test"
+
+        unless @named_routes_configured
+          # install the named routes in this session instance.
+          klass = class<<self; self; end
+          Routing::NamedRoutes.install(klass)
+
+          # the helpers are made protected by default--we make them public for
+          # easier access during testing and troubleshooting.
+          klass.send(:public, *Routing::NamedRoutes::Helpers)
+          @named_routes_configured = true
+        end
       end
 
       # Specify whether or not the session should mimic a secure HTTPS request.
@@ -176,7 +186,7 @@ module ActionController
         # and the hostname.
         def interpret_uri(path)
           location = URI.parse(path)
-          https! URI::HTTPS === location
+          https! URI::HTTPS === location if location.scheme
           host! location.host if location.host
           location.query ? "#{location.path}?#{location.query}" : location.path
         end
@@ -269,14 +279,22 @@ module ActionController
           @rewriter = ActionController::UrlRewriter.new(ActionController::CgiRequest.new(cgi), {})
         end
 
+        def name_with_prefix(prefix, name)
+          prefix ? "#{prefix}[#{name}]" : name.to_s
+        end
+
         # Convert the given parameters to a request string. The parameters may
         # be a string, +nil+, or a Hash.
-        def requestify(parameters)
+        def requestify(parameters, prefix=nil)
           if Hash === parameters
-            parameters.empty? ? nil :
-              parameters.map { |k,v| "#{CGI.escape(k.to_s)}=#{CGI.escape(v.to_s)}" }.join("&")
-          else
+            return nil if parameters.empty?
+            parameters.map { |k,v| requestify(v, name_with_prefix(prefix, k)) }.join("&")
+          elsif Array === parameters
+            parameters.map { |v| requestify(v, name_with_prefix(prefix, "")) }.join("&")
+          elsif prefix.nil?
             parameters
+          else
+            "#{CGI.escape(prefix)}=#{CGI.escape(parameters.to_s)}"
           end
         end
 
@@ -420,6 +438,17 @@ module ActionController
     # simultaneously.
     def open_session
       session = Integration::Session.new
+
+      # delegate the fixture accessors back to the test instance
+      klass = class<<session; self; end
+      tests = self
+
+      self.class.fixture_table_names.each do |table_name|
+        name = table_name.tr(".", "_")
+        next unless respond_to?(name)
+        klass.send(:define_method, name) { |*args| tests.send(name, *args) }
+      end
+
       yield session if block_given?
       session
     end
