@@ -155,7 +155,6 @@ module ActionController
     # This method returns nil unless the web server is apache.
     def relative_url_root
       @@relative_url_root ||= server_software == 'apache' ? @env["SCRIPT_NAME"].to_s.sub(/\/dispatch\.(fcgi|rb|cgi)$/, '') : ''
-      
     end
 
     # Returns the port number of this request as an integer.

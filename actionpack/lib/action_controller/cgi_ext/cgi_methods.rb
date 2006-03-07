@@ -63,7 +63,7 @@ class CGIMethods #:nodoc:
         when Proc
           strategy.call(raw_post_data)
         when :xml_simple
-          XmlSimple.xml_in(raw_post_data, 'ForceArray' => false, :keeproot => true)
+          XmlSimple.xml_in(raw_post_data, 'ForceArray' => false, 'keeproot' => true)
         when :yaml
           YAML.load(raw_post_data)
         when :xml_node
