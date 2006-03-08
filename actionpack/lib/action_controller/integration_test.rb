@@ -80,9 +80,7 @@ module ActionController
       #   session.https!
       #   session.https!(false)
       def https!(flag=true)
-        @https = flag
-        initialize_url_writer
-        @https
+        @https = flag        
       end
 
       # Return +true+ if the session is mimicing a secure HTTPS request.
@@ -99,8 +97,6 @@ module ActionController
       #   session.host! "www.example.test"
       def host!(name)
         @host = name
-        initialize_url_writer
-        @host
       end
 
       # To make setting the host more natural when using a session object
@@ -165,7 +161,7 @@ module ActionController
       # Returns the URL for the given options, according to the rules specified
       # in the application's routes.
       def url_for(options)
-        @rewriter.rewrite(options)
+        controller ? controller.url_for(options) : generic_url_rewriter.rewrite(options)
       end
 
       private
@@ -267,16 +263,15 @@ module ActionController
           end
         end
 
-        # Initialize the URL writer object that will be used to generate
-        # URL's.
-        def initialize_url_writer
+        # Get a temporarly URL writer object
+        def generic_url_rewriter
           cgi = MockCGI.new('REQUEST_METHOD' => "GET",
                             'QUERY_STRING'   => "",
                             "REQUEST_URI"    => "/",
                             "HTTP_HOST"      => host,
                             "SERVER_PORT"    => https? ? "443" : "80",
                             "HTTPS"          => https? ? "on" : "off")                          
-          @rewriter = ActionController::UrlRewriter.new(ActionController::CgiRequest.new(cgi), {})
+          ActionController::UrlRewriter.new(ActionController::CgiRequest.new(cgi), {})
         end
 
         def name_with_prefix(prefix, name)
