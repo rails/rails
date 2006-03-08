@@ -62,6 +62,10 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
     CGI::Session::ActiveRecordStore::Session
   end
 
+  def session_id_column
+    "session_id"
+  end
+
   def setup
     session_class.create_table!
 
@@ -82,6 +86,20 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
   def test_model_attribute
     assert_kind_of CGI::Session::ActiveRecordStore::Session, @new_session.model
     assert_equal({ 'foo' => 'bar' }, @new_session.model.data)
+  end
+
+  def test_save_unloaded_session
+    c = session_class.connection
+    bogus_class = c.quote(Base64.encode64("\004\010o:\vBlammo\000"))
+    c.insert("INSERT INTO #{session_class.table_name} ('#{session_id_column}', 'data') VALUES ('abcdefghijklmnop', #{bogus_class})")
+
+    sess = session_class.find_by_session_id('abcdefghijklmnop')
+    assert_not_nil sess
+    assert !sess.loaded?
+
+    # because the session is not loaded, the save should be a no-op. If it
+    # isn't, this'll try and unmarshall the bogus class, and should get an error.
+    assert_nothing_raised { sess.save }
   end
 
   def teardown
@@ -110,6 +128,10 @@ class ColumnLimitTest < Test::Unit::TestCase
 end
 
 class DeprecatedActiveRecordStoreTest < ActiveRecordStoreTest
+  def session_id_column
+    "sessid"
+  end
+
   def setup
     session_class.connection.execute 'create table old_sessions (id integer primary key, sessid text unique, data text)'
     session_class.table_name = 'old_sessions'
