@@ -1,5 +1,20 @@
 *SVN*
 
+* Added Hash#to_xml and Array#to_xml that makes it much easier to produce XML from basic structures [DHH]. Examples:
+
+    { :name => "David", :street_name => "Paulina", :age => 26, :moved_on => Date.new(2005, 11, 15) }.to_xml
+    
+  ...returns:
+
+      <person>
+        <street-name type="string">Paulina</street>
+        <name type="string">David</name>
+        <age type="integer">26</age>
+        <moved-on type="date">2005-11-15</moved-on>
+      </person>
+
+* Moved Jim Weirich's wonderful Builder from Action Pack to Active Support (it's simply too useful to be stuck in AP) [DHH]
+
 * Fixed that Array#to_sentence will return "" on an empty array instead of ", and" #3842, #4031 [rubyonrails@beautifulpixel.com]
 
 * Add Enumerable#group_by for grouping collections based on the result of some

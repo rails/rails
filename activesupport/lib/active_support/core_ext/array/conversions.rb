@@ -1,7 +1,6 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Array #:nodoc:
-      # Enables to conversion of Arrays to human readable lists. ['one', 'two', 'three'] => "one, two, and three"
       module Conversions
         # Converts the array to comma-seperated sentence where the last element is joined by the connector word. Options:
         # * <tt>:connector</tt>: The word used to join the last element in arrays with more than two elements (default: "and")
@@ -27,6 +26,12 @@ module ActiveSupport #:nodoc:
           join '/'
         end
         
+        def to_xml(options = {})
+          raise "Not all elements respond to to_xml" unless all? { |e| e.respond_to? :to_xml }
+          options[:root] ||= all? { |e| e.is_a? first.class } ? first.class.to_s.underscore.pluralize : "records"
+          xml = options[:builder] || Builder::XmlMarkup.new
+          xml.__send__(options[:root]) { each { |e| e.to_xml(:builder => xml) } }
+        end
       end
     end
   end

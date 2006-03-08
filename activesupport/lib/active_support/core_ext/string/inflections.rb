@@ -26,6 +26,10 @@ module ActiveSupport #:nodoc:
           Inflector.underscore(self)
         end
 
+        def dasherize
+          Inflector.dasherize(self)
+        end
+
         def demodulize
           Inflector.demodulize(self)
         end

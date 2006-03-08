@@ -67,5 +67,14 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
 
     assert_equal [%w(a b c), %w(d e f), ['g', false, false]], groups
   end
+end
 
+class ArraToXmlTests < Test::Unit::TestCase
+  def test_to_xml
+    a = [ { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" } ]
+    assert_equal(
+      "<hashes><hash><street-address type=\"string\">Paulina</street-address><name type=\"string\">David</name></hash><hash><street-address type=\"string\">Evergreen</street-address><name type=\"string\">Jason</name></hash></hashes>",
+      a.to_xml
+    )
+  end
 end

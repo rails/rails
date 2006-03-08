@@ -187,6 +187,12 @@ class InflectorTest < Test::Unit::TestCase
     "1000" => "1000th",
     "1001" => "1001st"
   }
+  
+  UnderscoresToDashes = {
+    "street"                => "street",
+    "street_address"        => "street-address",
+    "person_street_address" => "person-street-address"
+  }
 
   def test_pluralize_plurals
     assert_equal "plurals", Inflector.pluralize("plurals")
@@ -288,6 +294,12 @@ class InflectorTest < Test::Unit::TestCase
   def test_ordinal
     OrdinalNumbers.each do |number, ordinalized|
       assert_equal(ordinalized, Inflector.ordinalize(number))
+    end
+  end
+
+  def test_dasherize
+    UnderscoresToDashes.each do |underscored, dasherized|
+      assert_equal(dasherized, Inflector.dasherize(underscored))
     end
   end
 end

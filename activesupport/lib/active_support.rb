@@ -22,6 +22,9 @@
 #++
 
 $:.unshift(File.dirname(__FILE__))
+$:.unshift(File.dirname(__FILE__) + "/../vendor")
+
+require 'builder'
 
 require 'active_support/inflector'
 

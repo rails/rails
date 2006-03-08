@@ -1,5 +1,5 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/hash'
+require File.dirname(__FILE__) + '/../../lib/active_support'
 
 class HashExtTest < Test::Unit::TestCase
   def setup
@@ -163,5 +163,33 @@ class HashExtTest < Test::Unit::TestCase
 
   def test_reverse_merge
     assert_equal({ :a => 1, :b => 2, :c => 10 }, { :a => 1, :b => 2 }.reverse_merge({:a => "x", :b => "y", :c => 10}) )
+  end
+end
+
+class HashToXmlTest < Test::Unit::TestCase
+  def test_one_level
+    h = { :name => "David", :street => "Paulina" }
+    assert_equal %(<person><street type="string">Paulina</street><name type="string">David</name></person>), h.to_xml(:root => :person)
+  end
+
+  def test_one_level_with_types
+    h = { :name => "David", :street => "Paulina", :age => 26, :moved_on => Date.new(2005, 11, 15) }
+    assert_equal(
+      "<person><street type=\"string\">Paulina</street><name type=\"string\">David</name><age type=\"integer\">26</age><moved-on type=\"date\">2005-11-15</moved-on></person>", 
+      h.to_xml(:root => :person)
+    )
+  end
+
+  def test_one_level_with_nils
+    h = { :name => "David", :street => "Paulina", :age => nil }
+    assert_equal(
+      "<person><street type=\"string\">Paulina</street><name type=\"string\">David</name><age></age></person>", 
+      h.to_xml(:root => :person)
+    )
+  end
+
+  def test_two_levels
+    h = { :name => "David", :address => { :street => "Paulina" } }
+    assert_equal %(<person><address><street type="string">Paulina</street></address><name type="string">David</name></person>), h.to_xml(:root => :person)
   end
 end
