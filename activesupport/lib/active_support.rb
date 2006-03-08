@@ -22,7 +22,7 @@
 #++
 
 $:.unshift(File.dirname(__FILE__))
-$:.unshift(File.dirname(__FILE__) + "/../vendor")
+$:.unshift(File.dirname(__FILE__) + "/active_support/vendor")
 
 require 'builder'
 
