@@ -9,6 +9,12 @@ module Fun
   end
 end
 
+module NewRenderTestHelper
+  def rjs_helper_method_from_module
+    page.visual_effect :highlight
+  end
+end
+
 class NewRenderTestController < ActionController::Base
   layout :determine_layout
 
@@ -178,11 +184,18 @@ class NewRenderTestController < ActionController::Base
     render :action => "potential_conflicts"
   end
 
+  helper NewRenderTestHelper
+  helper do 
+    def rjs_helper_method(value)
+      page.visual_effect :highlight, value
+    end
+  end
+
   def enum_rjs_test
     render :update do |page|
       page.select('.product').each do |value|
-        page.visual_effect :highlight
-        page.visual_effect :highlight, value
+        page.rjs_helper_method_from_module
+        page.rjs_helper_method(value)
         page.sortable(value, :url => { :action => "order" })
         page.draggable(value)
       end

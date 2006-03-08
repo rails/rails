@@ -360,267 +360,287 @@ module ActionView
         end
       end
       
-      # JavaScriptGenerator generates blocks of JavaScript code that allow you 
-      # to change the content and presentation of multiple DOM elements.  Use 
-      # this in your Ajax response bodies, either in a <script> tag or as plain
-      # JavaScript sent with a Content-type of "text/javascript".
-      #
-      # Create new instances with PrototypeHelper#update_page or with 
-      # ActionController::Base#render, then call #insert_html, #replace_html, 
-      # #remove, #show, #hide, #visual_effect, or any other of the built-in 
-      # methods on the yielded generator in any order you like to modify the 
-      # content and appearance of the current page. 
-      #
-      # Example:
-      #
-      #   update_page do |page|
-      #     page.insert_html :bottom, 'list', "<li>#{@item.name}</li>"
-      #     page.visual_effect :highlight, 'list'
-      #     page.hide 'status-indicator', 'cancel-link'
-      #   end
-      # 
-      # generates the following JavaScript:
-      #
-      #   new Insertion.Bottom("list", "<li>Some item</li>");
-      #   new Effect.Highlight("list");
-      #   ["status-indicator", "cancel-link"].each(Element.hide);
-      #
-      # Helper methods can be used in conjunction with JavaScriptGenerator.
-      # When a helper method is called inside an update block on the +page+ 
-      # object, that method will also have access to a +page+ object.
-      # 
-      # Example:
-      #
-      #   module ApplicationHelper
-      #     def update_time
-      #       page.replace_html 'time', Time.now.to_s(:db)
-      #       page.visual_effect :highlight, 'time'
-      #     end
-      #   end
-      #
-      #   # Controller action
-      #   def poll
-      #     render :update { |page| page.update_time }
-      #   end
-      #
-      # You can also use PrototypeHelper#update_page_tag instead of 
-      # PrototypeHelper#update_page to wrap the generated JavaScript in a
-      # <script> tag.
-      class JavaScriptGenerator
+      # All the methods were moved to GeneratorMethods so that 
+      # #include_helpers_from_context has nothing to overwrite.
+      class JavaScriptGenerator #:nodoc:
         def initialize(context, &block) #:nodoc:
           @context, @lines = context, []
-          # removed because those methods were overriding valid generator methods
-          # include_helpers_from_context 
+          include_helpers_from_context
           @context.instance_exec(self, &block)
         end
-  
-        def to_s #:nodoc:
-          @lines * $/
-        end
-
-        # Returns a element reference by finding it through +id+ in the DOM. This element can then be
-        # used for further method calls. Examples:
-        #
-        #   page['blank_slate']                  # => $('blank_slate');
-        #   page['blank_slate'].show             # => $('blank_slate').show();
-        #   page['blank_slate'].show('first').up # => $('blank_slate').show('first').up();
-        def [](id)
-          JavaScriptElementProxy.new(self, id)
-        end
-
-        # Returns a collection reference by finding it through a CSS +pattern+ in the DOM. This collection can then be
-        # used for further method calls. Examples:
-        #
-        #   page.select('p')                      # => $$('p');
-        #   page.select('p.welcome b').first      # => $$('p.welcome b').first();
-        #   page.select('p.welcome b').first.hide # => $$('p.welcome b').first().hide();
-        def select(pattern)
-          JavaScriptElementCollectionProxy.new(self, pattern)
-        end
-  
-        # Inserts HTML at the specified +position+ relative to the DOM element
-        # identified by the given +id+.
-        # 
-        # +position+ may be one of:
-        # 
-        # <tt>:top</tt>::    HTML is inserted inside the element, before the 
-        #                    element's existing content.
-        # <tt>:bottom</tt>:: HTML is inserted inside the element, after the
-        #                    element's existing content.
-        # <tt>:before</tt>:: HTML is inserted immediately preceeding the element.
-        # <tt>:after</tt>::  HTML is inserted immediately following the element.
-        #
-        # +options_for_render+ may be either a string of HTML to insert, or a hash
-        # of options to be passed to ActionView::Base#render.  For example:
-        #
-        #   # Insert the rendered 'navigation' partial just before the DOM
-        #   # element with ID 'content'.
-        #   insert_html :before, 'content', :partial => 'navigation'
-        #
-        #   # Add a list item to the bottom of the <ul> with ID 'list'.
-        #   insert_html :bottom, 'list', '<li>Last item</li>'
-        #
-        def insert_html(position, id, *options_for_render)
-          insertion = position.to_s.camelize
-          call "new Insertion.#{insertion}", id, render(*options_for_render)
-        end
-  
-        # Replaces the inner HTML of the DOM element with the given +id+.
-        #
-        # +options_for_render+ may be either a string of HTML to insert, or a hash
-        # of options to be passed to ActionView::Base#render.  For example:
-        #
-        #   # Replace the HTML of the DOM element having ID 'person-45' with the
-        #   # 'person' partial for the appropriate object.
-        #   replace_html 'person-45', :partial => 'person', :object => @person
-        #
-        def replace_html(id, *options_for_render)
-          call 'Element.update', id, render(*options_for_render)
-        end
-  
-        # Replaces the "outer HTML" (i.e., the entire element, not just its
-        # contents) of the DOM element with the given +id+.
-        #
-        # +options_for_render+ may be either a string of HTML to insert, or a hash
-        # of options to be passed to ActionView::Base#render.  For example:
-        #
-        #   # Replace the DOM element having ID 'person-45' with the
-        #   # 'person' partial for the appropriate object.
-        #   replace_html 'person-45', :partial => 'person', :object => @person
-        #
-        # This allows the same partial that is used for the +insert_html+ to
-        # be also used for the input to +replace+ without resorting to
-        # the use of wrapper elements.
-        #
-        # Examples:
-        #
-        #   <div id="people">
-        #     <%= render :partial => 'person', :collection => @people %>
-        #   </div>
-        #
-        #   # Insert a new person
-        #   page.insert_html :bottom, :partial => 'person', :object => @person
-        #
-        #   # Replace an existing person
-        #   page.replace 'person_45', :partial => 'person', :object => @person
-        #
-        def replace(id, *options_for_render)
-          call 'Element.replace', id, render(*options_for_render)
-        end
-        
-        # Removes the DOM elements with the given +ids+ from the page.
-        def remove(*ids)
-          record "#{javascript_object_for(ids)}.each(Element.remove)"
-        end
-  
-        # Shows hidden DOM elements with the given +ids+.
-        def show(*ids)
-          call 'Element.show', *ids
-        end
-  
-        # Hides the visible DOM elements with the given +ids+.
-        def hide(*ids)
-          call 'Element.hide', *ids
-        end
-        
-        # Toggles the visibility of the DOM elements with the given +ids+.
-        def toggle(*ids)
-          call 'Element.toggle', *ids
-        end
-        
-        # Displays an alert dialog with the given +message+.
-        def alert(message)
-          call 'alert', message
-        end
-        
-        # Redirects the browser to the given +location+, in the same form as
-        # +url_for+.
-        def redirect_to(location)
-          assign 'window.location.href', @context.url_for(location)
-        end
-        
-        # Calls the JavaScript +function+, optionally with the given 
-        # +arguments+.
-        def call(function, *arguments)
-          record "#{function}(#{arguments_for_call(arguments)})"
-        end
-        
-        # Assigns the JavaScript +variable+ the given +value+.
-        def assign(variable, value)
-          record "#{variable} = #{javascript_object_for(value)}"
-        end
-        
-        # Writes raw JavaScript to the page.
-        def <<(javascript)
-          @lines << javascript
-        end
-
-        # Executes the content of the block after a delay of +seconds+. Example:
-        #
-        #   page.delay(20) do
-        #     page.visual_effect :fade, 'notice'
-        #   end
-        def delay(seconds = 1)
-          record "setTimeout(function() {\n\n"
-          yield
-          record "}, #{(seconds * 1000).to_i})"
-        end
-        
-        # Starts a script.aculo.us visual effect. See 
-        # ActionView::Helpers::ScriptaculousHelper for more information.
-        def visual_effect(name, id = nil, options = {})
-          record @context.send(:visual_effect, name, id, options)
-        end
-        
-        # Creates a script.aculo.us sortable element. Useful
-        # to recreate sortable elements after items get added
-        # or deleted.
-        # See ActionView::Helpers::ScriptaculousHelper for more information.
-        def sortable(id, options = {})
-          record @context.send(:sortable_element_js, id, options)
-        end
-        
-        # Creates a script.aculo.us draggable element.
-        # See ActionView::Helpers::ScriptaculousHelper for more information.
-        def draggable(id, options = {})
-          record @context.send(:draggable_element_js, id, options)
-        end
-        
-        # Creates a script.aculo.us drop receiving element.
-        # See ActionView::Helpers::ScriptaculousHelper for more information.
-        def drop_receiving(id, options = {})
-          record @context.send(:drop_receiving_element_js, id, options)
-        end
-        
-      private
+      
+        private
         def include_helpers_from_context
           @context.extended_by.each do |mod|
             extend mod unless mod.name =~ /^ActionView::Helpers/
           end
+          extend GeneratorMethods
         end
-        
-        def page
-          self
-        end
-        
-        def record(line)
-          returning line = "#{line.to_s.chomp.gsub /\;$/, ''};" do
-            self << line
+      
+        # JavaScriptGenerator generates blocks of JavaScript code that allow you 
+        # to change the content and presentation of multiple DOM elements.  Use 
+        # this in your Ajax response bodies, either in a <script> tag or as plain
+        # JavaScript sent with a Content-type of "text/javascript".
+        #
+        # Create new instances with PrototypeHelper#update_page or with 
+        # ActionController::Base#render, then call #insert_html, #replace_html, 
+        # #remove, #show, #hide, #visual_effect, or any other of the built-in 
+        # methods on the yielded generator in any order you like to modify the 
+        # content and appearance of the current page. 
+        #
+        # Example:
+        #
+        #   update_page do |page|
+        #     page.insert_html :bottom, 'list', "<li>#{@item.name}</li>"
+        #     page.visual_effect :highlight, 'list'
+        #     page.hide 'status-indicator', 'cancel-link'
+        #   end
+        # 
+        # generates the following JavaScript:
+        #
+        #   new Insertion.Bottom("list", "<li>Some item</li>");
+        #   new Effect.Highlight("list");
+        #   ["status-indicator", "cancel-link"].each(Element.hide);
+        #
+        # Helper methods can be used in conjunction with JavaScriptGenerator.
+        # When a helper method is called inside an update block on the +page+ 
+        # object, that method will also have access to a +page+ object.
+        # 
+        # Example:
+        #
+        #   module ApplicationHelper
+        #     def update_time
+        #       page.replace_html 'time', Time.now.to_s(:db)
+        #       page.visual_effect :highlight, 'time'
+        #     end
+        #   end
+        #
+        #   # Controller action
+        #   def poll
+        #     render :update { |page| page.update_time }
+        #   end
+        #
+        # You can also use PrototypeHelper#update_page_tag instead of 
+        # PrototypeHelper#update_page to wrap the generated JavaScript in a
+        # <script> tag.
+        module GeneratorMethods
+          def to_s #:nodoc:
+            @lines * $/
           end
-        end
-  
-        def render(*options_for_render)
-          Hash === options_for_render.first ? 
-            @context.render(*options_for_render) : 
-              options_for_render.first.to_s
-        end
-
-        def javascript_object_for(object)
-          object.respond_to?(:to_json) ? object.to_json : object.inspect
-        end
-
-        def arguments_for_call(arguments)
-          arguments.map { |argument| javascript_object_for(argument) }.join ', '
+          
+          # Returns a element reference by finding it through +id+ in the DOM. This element can then be
+          # used for further method calls. Examples:
+          #
+          #   page['blank_slate']                  # => $('blank_slate');
+          #   page['blank_slate'].show             # => $('blank_slate').show();
+          #   page['blank_slate'].show('first').up # => $('blank_slate').show('first').up();
+          def [](id)
+            JavaScriptElementProxy.new(self, id)
+          end
+          
+          # Returns a collection reference by finding it through a CSS +pattern+ in the DOM. This collection can then be
+          # used for further method calls. Examples:
+          #
+          #   page.select('p')                      # => $$('p');
+          #   page.select('p.welcome b').first      # => $$('p.welcome b').first();
+          #   page.select('p.welcome b').first.hide # => $$('p.welcome b').first().hide();
+          # 
+          # You can also use prototype enumerations with the collection.  Observe:
+          # 
+          #   page.select('#items li').each do |value|
+          #     value.hide
+          #   end 
+          #   # => $$('#items li').each(function(value) { value.hide(); });
+          #
+          # Though you can call the block param anything you want, they are always rendered in the 
+          # javascript as 'value, index.'  Other enumerations, like collect() return the last statement:
+          # 
+          #   page.select('#items li').collect('hidden') do |item|
+          #     item.hide
+          #   end
+          #   # => var hidden = $$('#items li').collect(function(value, index) { return value.hide(); });
+          def select(pattern)
+            JavaScriptElementCollectionProxy.new(self, pattern)
+          end
+          
+          # Inserts HTML at the specified +position+ relative to the DOM element
+          # identified by the given +id+.
+          # 
+          # +position+ may be one of:
+          # 
+          # <tt>:top</tt>::    HTML is inserted inside the element, before the 
+          #                    element's existing content.
+          # <tt>:bottom</tt>:: HTML is inserted inside the element, after the
+          #                    element's existing content.
+          # <tt>:before</tt>:: HTML is inserted immediately preceeding the element.
+          # <tt>:after</tt>::  HTML is inserted immediately following the element.
+          #
+          # +options_for_render+ may be either a string of HTML to insert, or a hash
+          # of options to be passed to ActionView::Base#render.  For example:
+          #
+          #   # Insert the rendered 'navigation' partial just before the DOM
+          #   # element with ID 'content'.
+          #   insert_html :before, 'content', :partial => 'navigation'
+          #
+          #   # Add a list item to the bottom of the <ul> with ID 'list'.
+          #   insert_html :bottom, 'list', '<li>Last item</li>'
+          #
+          def insert_html(position, id, *options_for_render)
+            insertion = position.to_s.camelize
+            call "new Insertion.#{insertion}", id, render(*options_for_render)
+          end
+          
+          # Replaces the inner HTML of the DOM element with the given +id+.
+          #
+          # +options_for_render+ may be either a string of HTML to insert, or a hash
+          # of options to be passed to ActionView::Base#render.  For example:
+          #
+          #   # Replace the HTML of the DOM element having ID 'person-45' with the
+          #   # 'person' partial for the appropriate object.
+          #   replace_html 'person-45', :partial => 'person', :object => @person
+          #
+          def replace_html(id, *options_for_render)
+            call 'Element.update', id, render(*options_for_render)
+          end
+          
+          # Replaces the "outer HTML" (i.e., the entire element, not just its
+          # contents) of the DOM element with the given +id+.
+          #
+          # +options_for_render+ may be either a string of HTML to insert, or a hash
+          # of options to be passed to ActionView::Base#render.  For example:
+          #
+          #   # Replace the DOM element having ID 'person-45' with the
+          #   # 'person' partial for the appropriate object.
+          #   replace_html 'person-45', :partial => 'person', :object => @person
+          #
+          # This allows the same partial that is used for the +insert_html+ to
+          # be also used for the input to +replace+ without resorting to
+          # the use of wrapper elements.
+          #
+          # Examples:
+          #
+          #   <div id="people">
+          #     <%= render :partial => 'person', :collection => @people %>
+          #   </div>
+          #
+          #   # Insert a new person
+          #   page.insert_html :bottom, :partial => 'person', :object => @person
+          #
+          #   # Replace an existing person
+          #   page.replace 'person_45', :partial => 'person', :object => @person
+          #
+          def replace(id, *options_for_render)
+            call 'Element.replace', id, render(*options_for_render)
+          end
+          
+          # Removes the DOM elements with the given +ids+ from the page.
+          def remove(*ids)
+            record "#{javascript_object_for(ids)}.each(Element.remove)"
+          end
+          
+          # Shows hidden DOM elements with the given +ids+.
+          def show(*ids)
+            call 'Element.show', *ids
+          end
+          
+          # Hides the visible DOM elements with the given +ids+.
+          def hide(*ids)
+            call 'Element.hide', *ids
+          end
+          
+          # Toggles the visibility of the DOM elements with the given +ids+.
+          def toggle(*ids)
+            call 'Element.toggle', *ids
+          end
+          
+          # Displays an alert dialog with the given +message+.
+          def alert(message)
+            call 'alert', message
+          end
+          
+          # Redirects the browser to the given +location+, in the same form as
+          # +url_for+.
+          def redirect_to(location)
+            assign 'window.location.href', @context.url_for(location)
+          end
+          
+          # Calls the JavaScript +function+, optionally with the given 
+          # +arguments+.
+          def call(function, *arguments)
+            record "#{function}(#{arguments_for_call(arguments)})"
+          end
+          
+          # Assigns the JavaScript +variable+ the given +value+.
+          def assign(variable, value)
+            record "#{variable} = #{javascript_object_for(value)}"
+          end
+          
+          # Writes raw JavaScript to the page.
+          def <<(javascript)
+            @lines << javascript
+          end
+          
+          # Executes the content of the block after a delay of +seconds+. Example:
+          #
+          #   page.delay(20) do
+          #     page.visual_effect :fade, 'notice'
+          #   end
+          def delay(seconds = 1)
+            record "setTimeout(function() {\n\n"
+            yield
+            record "}, #{(seconds * 1000).to_i})"
+          end
+          
+          # Starts a script.aculo.us visual effect. See 
+          # ActionView::Helpers::ScriptaculousHelper for more information.
+          def visual_effect(name, id = nil, options = {})
+            record @context.send(:visual_effect, name, id, options)
+          end
+          
+          # Creates a script.aculo.us sortable element. Useful
+          # to recreate sortable elements after items get added
+          # or deleted.
+          # See ActionView::Helpers::ScriptaculousHelper for more information.
+          def sortable(id, options = {})
+            record @context.send(:sortable_element_js, id, options)
+          end
+          
+          # Creates a script.aculo.us draggable element.
+          # See ActionView::Helpers::ScriptaculousHelper for more information.
+          def draggable(id, options = {})
+            record @context.send(:draggable_element_js, id, options)
+          end
+          
+          # Creates a script.aculo.us drop receiving element.
+          # See ActionView::Helpers::ScriptaculousHelper for more information.
+          def drop_receiving(id, options = {})
+            record @context.send(:drop_receiving_element_js, id, options)
+          end
+          
+          private
+          def page
+            self
+          end
+          
+          def record(line)
+            returning line = "#{line.to_s.chomp.gsub /\;$/, ''};" do
+              self << line
+            end
+          end
+          
+          def render(*options_for_render)
+            Hash === options_for_render.first ? 
+              @context.render(*options_for_render) : 
+                options_for_render.first.to_s
+          end
+          
+          def javascript_object_for(object)
+            object.respond_to?(:to_json) ? object.to_json : object.inspect
+          end
+          
+          def arguments_for_call(arguments)
+            arguments.map { |argument| javascript_object_for(argument) }.join ', '
+          end
         end
       end
       
@@ -769,17 +789,19 @@ module ActionView
     class JavaScriptCollectionProxy < JavaScriptProxy #:nodoc:
       ENUMERABLE_METHODS_WITH_RETURN = [:all, :any, :collect, :map, :detect, :find, :findAll, :select, :max, :min, :partition, :reject, :sortBy]
       ENUMERABLE_METHODS = ENUMERABLE_METHODS_WITH_RETURN + [:each]
+      attr_reader :generator
+      delegate :arguments_for_call, :to => :generator
 
       def initialize(generator, pattern)
         super(generator, @pattern = pattern)
       end
 
       def grep(variable, pattern, &block)
-        enumerable_method("grep(#{pattern.to_json}, function(value, index) {", variable, %w(value index), &block)
+        enumerate :grep, :variable => variable, :return => true, :method_args => [pattern], :yield_args => %w(value index), &block
       end
 
       def inject(variable, memo, &block)
-        enumerable_method("inject(#{memo.to_json}, function(memo, value, index) {", variable, %w(memo value index), &block)
+        enumerate :inject, :variable => variable, :method_args => [memo], :yield_args => %w(memo value index), :return => true, &block
       end
 
       def pluck(variable, property)
@@ -789,7 +811,7 @@ module ActionView
 
       def zip(variable, *arguments, &block)
         add_variable_assignment!(variable)
-        append_enumerable_function!("zip(#{arguments.collect { |a| a.to_json } * ', '}")
+        append_enumerable_function!("zip(#{arguments_for_call arguments}")
         if block
           function_chain[-1] += ", function(array) {"
           yield ActiveSupport::JSON::Variable.new('array')
@@ -802,24 +824,36 @@ module ActionView
 
       private
         def method_missing(method, *arguments, &block)
-          ENUMERABLE_METHODS.include?(method) ? enumerate(method, ENUMERABLE_METHODS_WITH_RETURN.include?(method), &block) : super
+          if ENUMERABLE_METHODS.include?(method)
+            returnable = ENUMERABLE_METHODS_WITH_RETURN.include?(method)
+            variable   = arguments.first if returnable
+            enumerate(method, {:variable => (arguments.first if returnable), :return => returnable, :yield_args => %w(value index)}, &block)
+          else
+            super
+          end
         end
 
-        def enumerate(enumerable, variable = nil, &block)
-          enumerable_method("#{enumerable}(function(value, index) {", variable, %w(value index), &block)
-        end
-
-        def enumerable_method(enumerable, variable, yield_params, &block)
-          add_variable_assignment!(variable) if variable
-          append_enumerable_function!(enumerable)
+        # Options
+        #   * variable - name of the variable to set the result of the enumeration to
+        #   * method_args - array of the javascript enumeration method args that occur before the function
+        #   * yield_args - array of the javascript yield args
+        #   * return - true if the enumeration should return the last statement
+        def enumerate(enumerable, options = {}, &block)
+          options[:method_args] ||= []
+          options[:yield_args]  ||= []
+          yield_args  = options[:yield_args] * ', '
+          method_args = arguments_for_call options[:method_args] # foo, bar, function
+          method_args << ', ' unless method_args.blank?
+          add_variable_assignment!(options[:variable]) if options[:variable]
+          append_enumerable_function!("#{enumerable}(#{method_args}function(#{yield_args}) {")
           # only yield as many params as were passed in the block
-          yield *yield_params.collect { |p| JavaScriptVariableProxy.new(@generator, p) }[0..block.arity-1]
-          add_return_statement! if variable
+          yield *options[:yield_args].collect { |p| JavaScriptVariableProxy.new(@generator, p) }[0..block.arity-1]
+          add_return_statement! if options[:return]
           @generator << '});'
         end
 
         def add_variable_assignment!(variable)
-          function_chain.push("#{variable} = #{function_chain.pop}")
+          function_chain.push("var #{variable} = #{function_chain.pop}")
         end
 
         def add_return_statement!

@@ -1,5 +1,12 @@
 *SVN*
 
+* Re-added mixed-in helper methods for the JavascriptGenerator.  Moved JavascriptGenerators methods to a module that is mixed in after the helpers are added.  Also fixed that variables set in the enumeration methods like #collect are set correctly.  Documentation added for the enumeration methods [Rick Olson].  Examples:
+
+    page.select('#items li').collect('items') do |element|
+      element.hide
+    end
+    # => var items = $$('#items li').collect(function(value, index) { return value.hide(); });
+
 * Added plugin support for parameter parsers, which allows for better support for REST web services. By default, posts submitted with the application/xml content type is handled by creating a XmlSimple hash with the same name as the root element of the submitted xml. More handlers can easily be registered like this:
 
     # Assign a new param parser to a new content type

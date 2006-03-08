@@ -148,8 +148,6 @@ class PrototypeHelperTest < Test::Unit::TestCase
   end
 end
 
-ActionView::Helpers::JavaScriptCollectionProxy.send :public, :enumerate
-
 class JavaScriptGeneratorTest < Test::Unit::TestCase
   include BaseTest
   
@@ -284,6 +282,15 @@ Element.update("baz", "<p>This is a test</p>");
       @generator.drop_receiving('blah', :url => { :action => "order" })
   end
 
+  def test_collection_first_and_last
+    @generator.select('p.welcome b').first.hide()
+    @generator.select('p.welcome b').last.show()
+    assert_equal <<-EOS.strip, @generator.to_s
+$$('p.welcome b').first().hide();
+$$('p.welcome b').last().show();
+      EOS
+  end
+
   def test_collection_proxy_with_each
     @generator.select('p.welcome b').each do |value|
       value.remove_class_name 'selected'
@@ -301,24 +308,18 @@ new Effect.Highlight(value,{});
       EOS
   end
 
-  def test_collection_proxy_on_enumerables_with_return_and_index
-    iterator            = Proc.new { |value|        @generator << '(value.className == "welcome")' }
-    iterator_with_index = Proc.new { |value, index| @generator.call 'alert', index ; @generator << '(value.className == "welcome")' }
-    ActionView::Helpers::JavaScriptCollectionProxy::ENUMERABLE_METHODS_WITH_RETURN.each do |enum|
-      @generator.select('p').enumerate(enum, 'a', &iterator)
-      @generator.select('p').enumerate(enum, 'b', &iterator_with_index)
-      
-      assert_equal <<-EOS.strip, @generator.to_s
-a = $$('p').#{enum}(function(value, index) {
-return (value.className == "welcome");
+  def test_collection_proxy_on_collect
+    @generator.select('p').collect('a') { |para| para.show }
+    @generator.select('p').collect { |para| para.hide }
+    assert_equal <<-EOS.strip, @generator.to_s
+var a = $$('p').collect(function(value, index) {
+return value.show();
 });
-b = $$('p').#{enum}(function(value, index) {
-alert(index);
-return (value.className == "welcome");
+$$('p').collect(function(value, index) {
+return value.hide();
 });
-      EOS
-      @generator = create_generator
-    end
+    EOS
+    @generator = create_generator
   end
 
   def test_collection_proxy_with_grep
@@ -331,10 +332,10 @@ return (value.className == "welcome");
     end
 
     assert_equal <<-EOS.strip, @generator.to_s
-a = $$('p').grep(/^a/, function(value, index) {
+var a = $$('p').grep(/^a/, function(value, index) {
 return (value.className == "welcome");
 });
-b = $$('p').grep(/b$/, function(value, index) {
+var b = $$('p').grep(/b$/, function(value, index) {
 alert(value);
 return (value.className == "welcome");
 });
@@ -351,10 +352,10 @@ return (value.className == "welcome");
     end
 
     assert_equal <<-EOS.strip, @generator.to_s
-a = $$('p').inject([], function(memo, value, index) {
+var a = $$('p').inject([], function(memo, value, index) {
 return (value.className == "welcome");
 });
-b = $$('p').inject(null, function(memo, value, index) {
+var b = $$('p').inject(null, function(memo, value, index) {
 alert(memo);
 return (value.className == "welcome");
 });
@@ -363,7 +364,7 @@ return (value.className == "welcome");
 
   def test_collection_proxy_with_pluck
     @generator.select('p').pluck('a', 'className')
-    assert_equal %(a = $$('p').pluck("className");), @generator.to_s
+    assert_equal %(var a = $$('p').pluck("className");), @generator.to_s
   end
 
   def test_collection_proxy_with_zip
@@ -373,8 +374,8 @@ return (value.className == "welcome");
     end
 
     assert_equal <<-EOS.strip, @generator.to_s
-a = [1, 2, 3].zip([4, 5, 6], [7, 8, 9]);
-b = [1, 2, 3].zip([4, 5, 6], [7, 8, 9], function(array) {
+var a = [1, 2, 3].zip([4, 5, 6], [7, 8, 9]);
+var b = [1, 2, 3].zip([4, 5, 6], [7, 8, 9], function(array) {
 return array.reverse();
 });
     EOS
