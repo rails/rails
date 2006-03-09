@@ -662,7 +662,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   def test_three_levels_of_dependence
     topic = Topic.create "title" => "neat and simple"
     reply = topic.replies.create "title" => "neat and simple", "content" => "still digging it"
-    silly_reply = reply.silly_replies.create "title" => "neat and simple", "content" => "ain't complaining"
+    silly_reply = reply.replies.create "title" => "neat and simple", "content" => "ain't complaining"
     
     assert_nothing_raised { topic.destroy }
   end
@@ -925,6 +925,10 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     reply.topic = topic
 
     assert_equal 1, topic.reload[:replies_count]
+    assert_equal 1, topic.replies.size
+
+    topic[:replies_count] = 15
+    assert_equal 15, topic.replies.size
   end
 
   def test_custom_counter_cache
@@ -935,23 +939,10 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     silly.reply = reply
 
     assert_equal 1, reply.reload[:replies_count]
-  end
+    assert_equal 1, reply.replies.size
 
-  def xtest_size_uses_counter_cache
-    apple = Firm.create("name" => "Apple")
-    final_cut = apple.clients.create("name" => "Final Cut")
-
-    apple.clients.to_s
-    assert_equal 1, apple.clients.size, "Created one client"
-    
-    apple.companies_count = 2
-    apple.save
-
-    apple = Firm.find(:first, :conditions => "name = 'Apple'")
-    assert_equal 2, apple.clients.size, "Should use the new cached number"
-
-    apple.clients.to_s 
-    assert_equal 1, apple.clients.size, "Should not use the cached number, but go to the database"
+    reply[:replies_count] = 17
+    assert_equal 17, reply.replies.size
   end
 
   def test_store_two_association_with_one_save

@@ -2,7 +2,7 @@ require 'fixtures/topic'
 
 class Reply < Topic
   belongs_to :topic, :foreign_key => "parent_id", :counter_cache => true
-  has_many :silly_replies, :dependent => true, :foreign_key => "parent_id"
+  has_many :replies, :class_name => "SillyReply", :dependent => true, :foreign_key => "parent_id"
 
   validate :errors_on_empty_content
   validate_on_create :title_is_wrong_create
