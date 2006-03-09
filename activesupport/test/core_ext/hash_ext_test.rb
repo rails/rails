@@ -167,29 +167,46 @@ class HashExtTest < Test::Unit::TestCase
 end
 
 class HashToXmlTest < Test::Unit::TestCase
+  def setup
+    @xml_options = { :root => :person, :skip_instruct => true, :indent => 0 }
+  end
+
   def test_one_level
-    h = { :name => "David", :street => "Paulina" }
-    assert_equal %(<person><street type="string">Paulina</street><name type="string">David</name></person>), h.to_xml(:root => :person)
+    xml = { :name => "David", :street => "Paulina" }.to_xml(@xml_options)
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street>Paulina</street>))
+    assert xml.include?(%(<name>David</name>))
   end
 
   def test_one_level_with_types
-    h = { :name => "David", :street => "Paulina", :age => 26, :moved_on => Date.new(2005, 11, 15) }
-    assert_equal(
-      "<person><street type=\"string\">Paulina</street><name type=\"string\">David</name><age type=\"integer\">26</age><moved-on type=\"date\">2005-11-15</moved-on></person>", 
-      h.to_xml(:root => :person)
-    )
+    xml = { :name => "David", :street => "Paulina", :age => 26, :moved_on => Date.new(2005, 11, 15) }.to_xml(@xml_options)
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street>Paulina</street>))
+    assert xml.include?(%(<name>David</name>))
+    assert xml.include?(%(<age type="integer">26</age>))
+    assert xml.include?(%(<moved-on type="date">2005-11-15</moved-on>))
   end
 
   def test_one_level_with_nils
-    h = { :name => "David", :street => "Paulina", :age => nil }
-    assert_equal(
-      "<person><street type=\"string\">Paulina</street><name type=\"string\">David</name><age></age></person>", 
-      h.to_xml(:root => :person)
-    )
+    xml = { :name => "David", :street => "Paulina", :age => nil }.to_xml(@xml_options)
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street>Paulina</street>))
+    assert xml.include?(%(<name>David</name>))
+    assert xml.include?(%(<age></age>))
+  end
+
+  def test_one_level_with_skipping_types
+    xml = { :name => "David", :street => "Paulina", :age => nil }.to_xml(@xml_options.merge(:skip_types => true))
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street>Paulina</street>))
+    assert xml.include?(%(<name>David</name>))
+    assert xml.include?(%(<age></age>))
   end
 
   def test_two_levels
-    h = { :name => "David", :address => { :street => "Paulina" } }
-    assert_equal %(<person><address><street type="string">Paulina</street></address><name type="string">David</name></person>), h.to_xml(:root => :person)
+    xml = { :name => "David", :address => { :street => "Paulina" } }.to_xml(@xml_options)
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<address><street>Paulina</street></address>))
+    assert xml.include?(%(<name>David</name>))
   end
 end

@@ -1,5 +1,5 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/array'
+require File.dirname(__FILE__) + '/../../lib/active_support'
 
 class ArrayExtToParamTests < Test::Unit::TestCase
   def test_string_array
@@ -71,10 +71,26 @@ end
 
 class ArraToXmlTests < Test::Unit::TestCase
   def test_to_xml
-    a = [ { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" } ]
-    assert_equal(
-      "<hashes><hash><street-address type=\"string\">Paulina</street-address><name type=\"string\">David</name></hash><hash><street-address type=\"string\">Evergreen</street-address><name type=\"string\">Jason</name></hash></hashes>",
-      a.to_xml
-    )
+    xml = [
+      { :name => "David", :age => 26 }, { :name => "Jason", :age => 31 }
+    ].to_xml(:skip_instruct => true, :indent => 0)
+
+    assert_equal "<hashes><hash>", xml.first(14)
+    assert xml.include?(%(<age type="integer">26</age>))
+    assert xml.include?(%(<name>David</name>))
+    assert xml.include?(%(<age type="integer">31</age>))
+    assert xml.include?(%(<name>Jason</name>))
+  end
+  
+  def test_to_xml_with_options
+    xml = [ 
+      { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
+    ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0)
+
+    assert_equal "<hashes><hash>", xml.first(14)
+    assert xml.include?(%(<street-address>Paulina</street-address>))
+    assert xml.include?(%(<name>David</name>))
+    assert xml.include?(%(<street-address>Evergreen</street-address>))
+    assert xml.include?(%(<name>Jason</name>))
   end
 end

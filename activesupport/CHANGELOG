@@ -10,8 +10,8 @@ approximations and shouldn't be used for critical calculations. [Koz]
   ...returns:
 
       <person>
-        <street-name type="string">Paulina</street>
-        <name type="string">David</name>
+        <street-name>Paulina</street-name>
+        <name>David</name>
         <age type="integer">26</age>
         <moved-on type="date">2005-11-15</moved-on>
       </person>

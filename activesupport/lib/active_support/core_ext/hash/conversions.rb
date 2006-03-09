@@ -3,10 +3,11 @@ module ActiveSupport #:nodoc:
     module Hash #:nodoc:
       module Conversions
         XML_TYPE_NAMES = {
-          "String" => "string",
-          "Fixnum" => "integer",
-          "Date"   => "date",
-          "Time"   => "datetime"
+          "Fixnum"     => "integer",
+          "Date"       => "date",
+          "Time"       => "datetime",
+          "TrueClass"  => "boolean",
+          "FalseClass" => "boolean"
         }
         
         XML_FORMATTING = {
@@ -15,19 +16,22 @@ module ActiveSupport #:nodoc:
         }
         
         def to_xml(options = {})
-          options.reverse_merge!({ :builder => Builder::XmlMarkup.new, :root => "hash" })
+          options[:indent] ||= 2
+          options.reverse_merge!({ :builder => Builder::XmlMarkup.new(:indent => options[:indent]), :root => "hash" })
+          options[:builder].instruct! unless options.delete(:skip_instruct)
 
           options[:builder].__send__(options[:root]) do
             for key in keys
               value = self[key]
 
               if value.is_a?(self.class)
-                value.to_xml(:builder => options[:builder], :root => key)
+                value.to_xml(options.merge({ :root => key, :skip_instruct => true }))
               else
                 type_name = XML_TYPE_NAMES[value.class.to_s]
+
                 options[:builder].__send__(key.to_s.dasherize, 
                   XML_FORMATTING[type_name] ? XML_FORMATTING[type_name].call(value) : value,
-                  value.nil? ? { } : { :type => type_name }
+                  options[:skip_types] || value.nil? || type_name.nil? ? { } : { :type => type_name }
                 )
               end
             end

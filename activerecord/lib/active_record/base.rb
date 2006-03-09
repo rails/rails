@@ -1504,6 +1504,20 @@ module ActiveRecord #:nodoc:
         @readonly = true
       end
 
+      # Turns this record into XML 
+      def to_xml(options = {})
+        options[:skip_attributes] = Array(options[:skip_attributes])
+        options[:skip_attributes] << :type
+        options[:skip_attributes].collect! { |attribute| attribute.to_s }
+
+        attributes_to_be_xmled = attributes
+        options[:skip_attributes].each { |attribute_name| attributes_to_be_xmled.delete(attribute_name) }
+
+        options[:root] ||= self.class.to_s.underscore
+
+        attributes_to_be_xmled.to_xml(options)
+      end
+
     private
       def create_or_update
         if new_record? then create else update end

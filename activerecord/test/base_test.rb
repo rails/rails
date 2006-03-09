@@ -1154,6 +1154,34 @@ class BasicsTest < Test::Unit::TestCase
     assert_no_queries { assert true }
   end
 
+  def test_to_xml
+    xml = Topic.find(:first).to_xml(:indent => 0, :skip_instruct => true)
+    assert_equal "<topic>", xml.first(7)
+    assert xml.include?(%(<title>The First Topic</title>))
+    assert xml.include?(%(<author-name>David</author-name>))
+    assert xml.include?(%(<id type="integer">1</id>))
+    assert xml.include?(%(<approved type="boolean">false</approved>))
+    assert xml.include?(%(<replies-count type="integer">0</replies-count>))
+    assert xml.include?(%(<bonus-time type="datetime">2000-01-01 08:28:00</bonus-time>))
+    assert xml.include?(%(<written-on type="datetime">2003-07-16 09:28:00</written-on>))
+    assert xml.include?(%(<content>Have a nice day</content>))
+    assert xml.include?(%(<author-email-address>david@loudthinking.com</author-email-address>))
+    assert xml.include?(%(<parent-id></parent-id>))
+    assert xml.include?(%(<last-read type="date">2004-04-15</last-read>))
+  end
+  
+  def test_to_xml_skipping_attributes
+    xml = Topic.find(:first).to_xml(:indent => 0, :skip_instruct => true, :skip_attributes => :title)
+    breakpoint
+    assert_equal "<topic>", xml.first(7)
+    assert !xml.include?(%(<title>The First Topic</title>))
+    assert xml.include?(%(<author-name>David</author-name>))    
+
+    xml = Topic.find(:first).to_xml(:indent => 0, :skip_instruct => true, :skip_attributes => [ :title, :author_name ])
+    assert !xml.include?(%(<title>The First Topic</title>))
+    assert !xml.include?(%(<author-name>David</author-name>))    
+  end
+
   # FIXME: this test ought to run, but it needs to run sandboxed so that it
   # doesn't b0rk the current test environment by undefing everything.
   #
