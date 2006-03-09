@@ -86,9 +86,12 @@ Element.childrenWithClassName = function(element, className) {
 }
 
 Element.forceRerendering = function(element) {
-  var n = document.createTextNode(' ');
-  $(element).appendChild(n);
-  Element.remove(n);
+  try {
+    element = $(element);
+    var n = document.createTextNode(' ');
+    element.appendChild(n);
+    element.removeChild(n);
+  } catch(e) {}
 }
 
 Array.prototype.call = function() {
