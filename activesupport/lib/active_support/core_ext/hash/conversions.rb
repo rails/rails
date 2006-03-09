@@ -24,15 +24,18 @@ module ActiveSupport #:nodoc:
             for key in keys
               value = self[key]
 
-              if value.is_a?(self.class)
-                value.to_xml(options.merge({ :root => key, :skip_instruct => true }))
-              else
-                type_name = XML_TYPE_NAMES[value.class.to_s]
+              case value.class.to_s # TODO: Figure out why I have to to_s the class to do comparisons in order for tests to run
+                when "Hash"
+                  value.to_xml(options.merge({ :root => key, :skip_instruct => true }))
+                when "Array"
+                  value.to_xml(options.merge({ :root => key, :children => key.to_s.singularize, :skip_instruct => true}))
+                else
+                  type_name = XML_TYPE_NAMES[value.class.to_s]
 
-                options[:builder].__send__(key.to_s.dasherize, 
-                  XML_FORMATTING[type_name] ? XML_FORMATTING[type_name].call(value) : value,
-                  options[:skip_types] || value.nil? || type_name.nil? ? { } : { :type => type_name }
-                )
+                  options[:builder].__send__(key.to_s.dasherize, 
+                    XML_FORMATTING[type_name] ? XML_FORMATTING[type_name].call(value) : value,
+                    options[:skip_types] || value.nil? || type_name.nil? ? { } : { :type => type_name }
+                  )
               end
             end
           end

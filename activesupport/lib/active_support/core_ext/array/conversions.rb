@@ -29,13 +29,16 @@ module ActiveSupport #:nodoc:
         def to_xml(options = {})
           raise "Not all elements respond to to_xml" unless all? { |e| e.respond_to? :to_xml }
 
-          options[:root]    ||= all? { |e| e.is_a? first.class } ? first.class.to_s.underscore.pluralize : "records"
-          options[:indent]  ||= 2
-          options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+          options[:root]     ||= all? { |e| e.is_a?(first.class) && first.class.to_s != "Hash" } ? first.class.to_s.underscore.pluralize : "records"
+          options[:children] ||= options[:root].singularize
+          options[:indent]   ||= 2
+          options[:builder]  ||= Builder::XmlMarkup.new(:indent => options[:indent])
+
+          root     = options.delete(:root)
+          children = options.delete(:children)
 
           options[:builder].instruct! unless options.delete(:skip_instruct)
-          root = options.delete(:root)
-          options[:builder].__send__(root) { each { |e| e.to_xml(options.merge({ :skip_instruct => true })) } }
+          options[:builder].__send__(root) { each { |e| e.to_xml(options.merge({ :skip_instruct => true, :root => children })) } }
         end
       end
     end

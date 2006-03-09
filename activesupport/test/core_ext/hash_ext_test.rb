@@ -209,4 +209,19 @@ class HashToXmlTest < Test::Unit::TestCase
     assert xml.include?(%(<address><street>Paulina</street></address>))
     assert xml.include?(%(<name>David</name>))
   end
+  
+  def test_two_levels_with_array
+    xml = { :name => "David", :addresses => [{ :street => "Paulina" }, { :street => "Evergreen" }] }.to_xml(@xml_options)
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<addresses><address>))
+    assert xml.include?(%(<address><street>Paulina</street></address>))
+    assert xml.include?(%(<address><street>Evergreen</street></address>))
+    assert xml.include?(%(<name>David</name>))
+  end
+
+  
+  def test_three_levels_with_array
+    xml = { :name => "David", :addresses => [{ :streets => [ { :name => "Paulina" }, { :name => "Paulina" } ] } ] }.to_xml(@xml_options)
+    assert xml.include?(%(<addresses><address><streets><street><name>))
+  end
 end

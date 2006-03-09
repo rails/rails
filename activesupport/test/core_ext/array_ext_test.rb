@@ -75,11 +75,19 @@ class ArraToXmlTests < Test::Unit::TestCase
       { :name => "David", :age => 26 }, { :name => "Jason", :age => 31 }
     ].to_xml(:skip_instruct => true, :indent => 0)
 
-    assert_equal "<hashes><hash>", xml.first(14)
+    assert_equal "<records><record>", xml.first(17)
     assert xml.include?(%(<age type="integer">26</age>))
     assert xml.include?(%(<name>David</name>))
     assert xml.include?(%(<age type="integer">31</age>))
     assert xml.include?(%(<name>Jason</name>))
+  end
+
+  def test_to_xml_with_dedicated_name
+    xml = [
+      { :name => "David", :age => 26 }, { :name => "Jason", :age => 31 }
+    ].to_xml(:skip_instruct => true, :indent => 0, :root => "people")
+
+    assert_equal "<people><person>", xml.first(16)
   end
   
   def test_to_xml_with_options
@@ -87,7 +95,7 @@ class ArraToXmlTests < Test::Unit::TestCase
       { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
     ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0)
 
-    assert_equal "<hashes><hash>", xml.first(14)
+    assert_equal "<records><record>", xml.first(17)
     assert xml.include?(%(<street-address>Paulina</street-address>))
     assert xml.include?(%(<name>David</name>))
     assert xml.include?(%(<street-address>Evergreen</street-address>))
