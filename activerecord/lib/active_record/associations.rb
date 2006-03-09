@@ -310,10 +310,11 @@ module ActiveRecord
       # * <tt>:foreign_key</tt> - specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_many association will use "person_id"
       #   as the default foreign_key.
-      # * <tt>:dependent</tt>   - if set to :destroy (or true) all the associated objects are destroyed
+      # * <tt>:dependent</tt>   - if set to :destroy all the associated objects are destroyed
       #   alongside this object by calling their destroy method.  If set to :delete_all all associated
       #   objects are deleted *without* calling their destroy method.  If set to :nullify all associated
       #   objects' foreign keys are set to NULL *without* calling their save callbacks.
+      #   NOTE: :dependent => true is deprecated and has been replaced with :dependent => :destroy. 
       #   May not be set if :exclusively_dependent is also set.
       # * <tt>:exclusively_dependent</tt>   - Deprecated; equivalent to :dependent => :delete_all. If set to true all
       #   the associated object are deleted in one SQL statement without having their
@@ -336,7 +337,8 @@ module ActiveRecord
       #   has_many :comments, :order => "posted_on"
       #   has_many :comments, :include => :author
       #   has_many :people, :class_name => "Person", :conditions => "deleted = 0", :order => "name"
-      #   has_many :tracks, :order => "position", :dependent => true
+      #   has_many :tracks, :order => "position", :dependent => :destroy
+      #   has_many :comments, :dependent => :nullify
       #   has_many :subscribers, :class_name => "Person", :finder_sql =>
       #       'SELECT DISTINCT people.* ' +
       #       'FROM people p, post_subscriptions ps ' +
@@ -396,7 +398,8 @@ module ActiveRecord
       # * <tt>:include</tt>  - specify second-order associations that should be eager loaded when this object is loaded.
       #
       # Option examples:
-      #   has_one :credit_card, :dependent => true
+      #   has_one :credit_card, :dependent => :destroy  # destroys the associated credit card
+      #   has_one :credit_card, :dependent => :nullify  # updates the associated records foriegn key value to null rather than destroying it
       #   has_one :last_comment, :class_name => "Comment", :order => "posted_on"
       #   has_one :project_manager, :class_name => "Person", :conditions => "role = 'project_manager'"
       def has_one(association_id, options = {})
@@ -813,7 +816,7 @@ module ActiveRecord
             when nil, false
               # pass
             else
-              raise ArgumentError, 'The :dependent option expects either true, :destroy, :delete_all, or :nullify' 
+              raise ArgumentError, 'The :dependent option expects either :destroy, :delete_all, or :nullify' 
           end
         end
         

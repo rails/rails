@@ -61,7 +61,7 @@ module ActiveRecord
     
     class << self
       def set_locking_column( value=nil, &block )
-          define_attr_method :locking_column, value, &block
+        define_attr_method :locking_column, value, &block
       end
   
       def locking_column
