@@ -121,7 +121,9 @@ module ActionController #:nodoc:
       end
   end
 
-  class TestResponse < AbstractResponse #:nodoc:
+  # A refactoring of TestResponse to allow the same behavior to be applied
+  # to the "real" CgiResponse class in integration tests.
+  module TestResponseBehavior #:nodoc:
     # the response code of the request
     def response_code
       headers['Status'][0,3].to_i rescue 0
@@ -249,6 +251,10 @@ module ActionController #:nodoc:
       sio.rewind
       sio.read
     end
+  end
+
+  class TestResponse < AbstractResponse #:nodoc:
+    include TestResponseBehavior
   end
 
   class TestSession #:nodoc:

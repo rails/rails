@@ -231,6 +231,11 @@ module ActionController
           @request = @controller.request
           @response = @controller.response
 
+          # Decorate the response with the standard behavior of the TestResponse
+          # so that things like assert_response can be used in integration
+          # tests.
+          @response.extend(TestResponseBehavior)
+
           parse_result
           return status
         end
