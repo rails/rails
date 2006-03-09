@@ -21,7 +21,7 @@ module ActiveRecord
         else
           raise_on_type_mismatch(record)
 
-          if counter_cache_name && @owner[counter_cache_name] && !@owner.new_record?
+          if counter_cache_name && !@owner.new_record?
             @reflection.klass.increment_counter(counter_cache_name, record.id)
             @reflection.klass.decrement_counter(counter_cache_name, @owner[@reflection.primary_key_name]) if @owner[@reflection.primary_key_name]
           end
