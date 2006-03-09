@@ -256,6 +256,14 @@ module ActiveRecord
         result
       end
 
+      def suppress_messages
+        save = verbose
+        self.verbose = false
+        yield
+      ensure
+        self.verbose = save
+      end
+
       def method_missing(method, *arguments, &block)
         say_with_time "#{method}(#{arguments.map { |a| a.inspect }.join(", ")})" do
           arguments[0] = Migrator.proper_table_name(arguments.first) unless arguments.empty?
