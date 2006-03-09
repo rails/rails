@@ -1,5 +1,8 @@
 *SVN*
 
+* Added a note to the documentation for the Date related Numeric extensions to indicate that they're
+approximations and shouldn't be used for critical calculations. [Koz]
+
 * Added Hash#to_xml and Array#to_xml that makes it much easier to produce XML from basic structures [DHH]. Examples:
 
     { :name => "David", :street_name => "Paulina", :age => 26, :moved_on => Date.new(2005, 11, 15) }.to_xml
