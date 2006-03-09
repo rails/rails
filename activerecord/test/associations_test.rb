@@ -917,7 +917,27 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert_not_nil computer.developer, ":foreign key == attribute didn't lock up" # '
   end
 
-  def xtest_counter_cache
+  def test_counter_cache
+    topic = Topic.create :title => "Zoom-zoom-zoom"
+    assert_equal 0, topic[:replies_count]
+    
+    reply = Reply.create(:title => "re: zoom", :content => "speedy quick!")
+    reply.topic = topic
+
+    assert_equal 1, topic.reload[:replies_count]
+  end
+
+  def test_custom_counter_cache
+    reply = Reply.create(:title => "re: zoom", :content => "speedy quick!")
+    assert_equal 0, reply[:replies_count]
+
+    silly = SillyReply.create(:title => "gaga", :content => "boo-boo")
+    silly.reply = reply
+
+    assert_equal 1, reply.reload[:replies_count]
+  end
+
+  def xtest_size_uses_counter_cache
     apple = Firm.create("name" => "Apple")
     final_cut = apple.clients.create("name" => "Final Cut")
 

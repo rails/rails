@@ -460,7 +460,8 @@ module ActiveRecord
       # * <tt>:counter_cache</tt> - caches the number of belonging objects on the associate class through use of increment_counter 
       #   and decrement_counter. The counter cache is incremented when an object of this class is created and decremented when it's
       #   destroyed. This requires that a column named "#{table_name}_count" (such as comments_count for a belonging Comment class)
-      #   is used on the associate class (such as a Post class).
+      #   is used on the associate class (such as a Post class). You can also specify a custom counter cache column by given that
+      #   name instead of a true/false value to this option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
       # * <tt>:include</tt>  - specify second-order associations that should be eager loaded when this object is loaded.
       #
       # Option examples:
@@ -515,13 +516,17 @@ module ActiveRecord
         end
 
         if options[:counter_cache]
+          cache_column = options[:counter_cache] == true ?
+            "#{self.to_s.underscore.pluralize}_count" :
+            options[:counter_cache]
+
           module_eval(
-            "after_create '#{reflection.name}.class.increment_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{reflection.primary_key_name})" +
+            "after_create '#{reflection.name}.class.increment_counter(\"#{cache_column}\", #{reflection.primary_key_name})" +
             " unless #{reflection.name}.nil?'"
           )
 
           module_eval(
-            "before_destroy '#{reflection.name}.class.decrement_counter(\"#{self.to_s.underscore.pluralize + "_count"}\", #{reflection.primary_key_name})" +
+            "before_destroy '#{reflection.name}.class.decrement_counter(\"#{cache_column}\", #{reflection.primary_key_name})" +
             " unless #{reflection.name}.nil?'"
           )          
         end
