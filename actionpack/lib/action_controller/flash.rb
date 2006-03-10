@@ -143,7 +143,7 @@ module ActionController #:nodoc:
       end
       
       def process_cleanup_with_flash
-        flash.sweep
+        flash.sweep if @session
         process_cleanup_without_flash
       end
       
