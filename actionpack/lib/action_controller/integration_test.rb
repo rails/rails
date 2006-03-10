@@ -488,6 +488,9 @@ module ActionController
         klass.send(:define_method, name) { |*args| tests.send(name, *args) }
       end
 
+      # delegate add_assertion to the test case
+      klass.send(:define_method, :add_assertion) { tests.add_assertion }
+
       yield session if block_given?
       session
     end
