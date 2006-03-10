@@ -1523,7 +1523,7 @@ module ActiveRecord #:nodoc:
       # Turns this record into XML 
       def to_xml(options = {})
         options[:root]    ||= self.class.to_s.underscore
-        options[:except]    = Array(options[:except]) << self.class.inheritance_column unless options[:only]
+        options[:except]    = Array(options[:except]) << self.class.inheritance_column unless options[:only] # skip type column
         root_only_or_except = { :only => options[:only], :except => options[:except] }
 
         attributes_for_xml = attributes(root_only_or_except)
