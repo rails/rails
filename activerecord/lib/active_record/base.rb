@@ -1522,25 +1522,29 @@ module ActiveRecord #:nodoc:
 
       # Turns this record into XML 
       def to_xml(options = {})
-        options[:root] ||= self.class.to_s.underscore
-        options[:except] = Array(options[:except]) << self.class.inheritance_column unless options[:only]
-        only_or_except   = { :only => options[:only], :except => options[:except] }
+        options[:root]    ||= self.class.to_s.underscore
+        options[:except]    = Array(options[:except]) << self.class.inheritance_column unless options[:only]
+        root_only_or_except = { :only => options[:only], :except => options[:except] }
 
-        attributes_for_xml = attributes(only_or_except)
+        attributes_for_xml = attributes(root_only_or_except)
         
         if include_associations = options.delete(:include)
-          for association in Array(include_associations)
+          include_has_options = include_associations.is_a?(Hash)
+          
+          for association in include_has_options ? include_associations.keys : Array(include_associations)
+            association_options = include_has_options ? include_associations[association] : root_only_or_except
+
             case self.class.reflect_on_association(association).macro
               when :has_many, :has_and_belongs_to_many
                 records = send(association).to_a
                 unless records.empty?
                   attributes_for_xml[association] = records.collect do |record| 
-                    record.attributes(only_or_except)
+                    record.attributes(association_options)
                   end
                 end
               when :has_one, :belongs_to
                 if record = send(association)
-                  attributes_for_xml[association] = record.attributes(only_or_except)
+                  attributes_for_xml[association] = record.attributes(association_options)
                 end
             end
           end

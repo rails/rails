@@ -1202,6 +1202,17 @@ class BasicsTest < Test::Unit::TestCase
     assert xml.include?(%(<account>))
     assert xml.include?(%(<clients><client>))
   end
+
+  def test_to_xml_including_multiple_associations_with_options
+    xml = companies(:first_firm).to_xml(
+      :indent  => 0, :skip_instruct => true, 
+      :include => { :clients => { :only => :name } }
+    )
+    
+    assert_equal "<firm>", xml.first(6)
+    assert xml.include?(%(<client><name>Summit</name></client>))
+    assert xml.include?(%(<clients><client>))
+  end
   
   def test_except_attributes
     assert_equal(
