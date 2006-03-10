@@ -32,7 +32,7 @@ module ActiveSupport #:nodoc:
                 else
                   type_name = XML_TYPE_NAMES[value.class.to_s]
 
-                  options[:builder].__send__(key.to_s.dasherize, 
+                  options[:builder].tag!(key.to_s.dasherize, 
                     XML_FORMATTING[type_name] ? XML_FORMATTING[type_name].call(value) : value,
                     options[:skip_types] || value.nil? || type_name.nil? ? { } : { :type => type_name }
                   )
