@@ -1418,8 +1418,24 @@ module ActiveRecord #:nodoc:
 
 
       # Returns a hash of all the attributes with their names as keys and clones of their objects as values.
-      def attributes
-        clone_attributes :read_attribute
+      def attributes(options = nil)
+        attributes = clone_attributes :read_attribute
+        
+        if options.nil?
+          attributes
+        else
+          if except = options[:except]
+            except = Array(except).collect { |attribute| attribute.to_s }
+            except.each { |attribute_name| attributes.delete(attribute_name) }
+            attributes
+          elsif only = options[:only]
+            only = Array(only).collect { |attribute| attribute.to_s }
+            attributes.delete_if { |key, value| !only.include?(key) }
+            attributes
+          else
+            raise ArgumentError, "Options does not specify :except or :only (#{options.keys.inspect})"
+          end
+        end
       end
 
       # Returns a hash of cloned attributes before typecasting and deserialization.
@@ -1506,16 +1522,31 @@ module ActiveRecord #:nodoc:
 
       # Turns this record into XML 
       def to_xml(options = {})
-        options[:skip_attributes] = Array(options[:skip_attributes])
-        options[:skip_attributes] << :type
-        options[:skip_attributes].collect! { |attribute| attribute.to_s }
-
-        attributes_to_be_xmled = attributes
-        options[:skip_attributes].each { |attribute_name| attributes_to_be_xmled.delete(attribute_name) }
-
         options[:root] ||= self.class.to_s.underscore
+        options[:except] = Array(options[:except]) << self.class.inheritance_column unless options[:only]
+        only_or_except   = { :only => options[:only], :except => options[:except] }
 
-        attributes_to_be_xmled.to_xml(options)
+        attributes_for_xml = attributes(only_or_except)
+        
+        if include_associations = options.delete(:include)
+          for association in Array(include_associations)
+            case self.class.reflect_on_association(association).macro
+              when :has_many, :has_and_belongs_to_many
+                records = send(association).to_a
+                unless records.empty?
+                  attributes_for_xml[association] = records.collect do |record| 
+                    record.attributes(only_or_except)
+                  end
+                end
+              when :has_one, :belongs_to
+                if record = send(association)
+                  attributes_for_xml[association] = record.attributes(only_or_except)
+                end
+            end
+          end
+        end
+
+        attributes_for_xml.to_xml(options)
       end
 
     private

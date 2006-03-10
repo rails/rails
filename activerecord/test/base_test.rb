@@ -1155,12 +1155,12 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_to_xml
-    xml = Topic.find(:first).to_xml(:indent => 0, :skip_instruct => true)
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true)
     assert_equal "<topic>", xml.first(7)
     assert xml.include?(%(<title>The First Topic</title>))
     assert xml.include?(%(<author-name>David</author-name>))
     assert xml.include?(%(<id type="integer">1</id>))
-    assert xml.include?(%(<approved type="boolean">false</approved>))
+    assert xml.include?(%(<approved type="boolean">false</approved>)), "Approved should be a boolean"
     assert xml.include?(%(<replies-count type="integer">0</replies-count>))
     assert xml.include?(%(<bonus-time type="datetime">2000-01-01 08:28:00</bonus-time>))
     assert xml.include?(%(<written-on type="datetime">2003-07-16 09:28:00</written-on>))
@@ -1171,15 +1171,53 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_to_xml_skipping_attributes
-    xml = Topic.find(:first).to_xml(:indent => 0, :skip_instruct => true, :skip_attributes => :title)
-    breakpoint
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => :title)
     assert_equal "<topic>", xml.first(7)
     assert !xml.include?(%(<title>The First Topic</title>))
     assert xml.include?(%(<author-name>David</author-name>))    
 
-    xml = Topic.find(:first).to_xml(:indent => 0, :skip_instruct => true, :skip_attributes => [ :title, :author_name ])
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [ :title, :author_name ])
     assert !xml.include?(%(<title>The First Topic</title>))
     assert !xml.include?(%(<author-name>David</author-name>))    
+  end
+  
+  def test_to_xml_including_has_many_association
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :include => :replies)
+    assert_equal "<topic>", xml.first(7)
+    assert xml.include?(%(<replies><reply>))
+    assert xml.include?(%(<title>The Second Topic's of the day</title>))
+  end
+
+  def test_to_xml_including_belongs_to_association
+    xml = companies(:first_client).to_xml(:indent => 0, :skip_instruct => true, :include => :firm)
+    assert !xml.include?("<firm>")
+
+    xml = companies(:second_client).to_xml(:indent => 0, :skip_instruct => true, :include => :firm)
+    assert xml.include?("<firm>")
+  end
+  
+  def test_to_xml_including_multiple_associations
+    xml = companies(:first_firm).to_xml(:indent => 0, :skip_instruct => true, :include => [ :clients, :account ])
+    assert_equal "<firm>", xml.first(6)
+    assert xml.include?(%(<account>))
+    assert xml.include?(%(<clients><client>))
+  end
+  
+  def test_except_attributes
+    assert_equal(
+      %w( author_name type id approved replies_count bonus_time written_on content author_email_address parent_id last_read), 
+      topics(:first).attributes(:except => :title).keys
+    )
+
+    assert_equal(
+      %w( replies_count bonus_time written_on content author_email_address parent_id last_read), 
+      topics(:first).attributes(:except => [ :title, :id, :type, :approved, :author_name ]).keys
+    )
+  end
+  
+  def test_include_attributes
+    assert_equal(%w( title ), topics(:first).attributes(:only => :title).keys)
+    assert_equal(%w( title author_name type id approved ), topics(:first).attributes(:only => [ :title, :id, :type, :approved, :author_name ]).keys)
   end
 
   # FIXME: this test ought to run, but it needs to run sandboxed so that it

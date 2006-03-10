@@ -36,6 +36,33 @@
       <parent-id></parent-id>
       <last-read type="date">2004-04-15</last-read>
     </topic>
+  
+  You can even do load first-level associations as part of the document:
+  
+    firm.to_xml :include => [ :account, :clients ]
+  
+  ...that'll return something like:
+  
+    <?xml version="1.0" encoding="UTF-8"?>
+    <firm>
+      <id type="integer">1</id>
+      <rating type="integer">1</rating>
+      <name>37signals</name>
+      <clients>
+        <client>
+          <rating type="integer">1</rating>
+          <name>Summit</name>
+        </client>
+        <client>
+          <rating type="integer">1</rating>
+          <name>Microsoft</name>
+        </client>
+      </clients>
+      <account>
+        <id type="integer">1</id>
+        <credit-limit type="integer">50</credit-limit>
+      </account>
+    </firm>  
 
 * Allow :counter_cache to take a column name for custom counter cache columns [Jamis Buck]
 
