@@ -1,3 +1,4 @@
+require 'action_controller/mime_type'
 require 'action_controller/request'
 require 'action_controller/response'
 require 'action_controller/routing'
@@ -648,7 +649,10 @@ module ActionController #:nodoc:
             
           elsif action_name = options[:action]
             render_action(action_name, options[:status], options[:layout]) 
-            
+
+          elsif xml = options[:xml]
+            render_xml(xml, options[:status])
+
           elsif partial = options[:partial]
             partial = default_template_name if partial == true
             if collection = options[:collection]
@@ -715,8 +719,13 @@ module ActionController #:nodoc:
       end
 
       def render_javascript(javascript, status = nil)
-        @response.headers['Content-Type'] = 'text/javascript'
+        @response.headers['Content-Type'] = 'text/javascript; charset=UTF-8'
         render_text(javascript, status)
+      end
+
+      def render_xml(xml, status = nil)
+        @response.headers['Content-Type'] = 'text/xml; charset=UTF-8'
+        render_text(xml, status)
       end
 
       def render_nothing(status = nil)

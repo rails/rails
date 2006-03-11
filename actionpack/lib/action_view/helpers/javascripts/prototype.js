@@ -703,7 +703,8 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
   setRequestHeaders: function() {
     var requestHeaders =
       ['X-Requested-With', 'XMLHttpRequest',
-       'X-Prototype-Version', Prototype.Version];
+       'X-Prototype-Version', Prototype.Version,
+       'Accept', 'text/javascript; text/html; text/xml; */*' ];
 
     if (this.options.method == 'post') {
       requestHeaders.push('Content-type',

@@ -54,13 +54,20 @@ module ActionController
       
       if @env['HTTP_X_POST_DATA_FORMAT']          
         case @env['HTTP_X_POST_DATA_FORMAT'].downcase.to_sym
-        when :yaml
-          @content_type = 'application/x-yaml'
-        when :xml
-          @content_type = 'application/xml'
-        end
+          when :yaml
+            @content_type = 'application/x-yaml'
+          when :xml
+            @content_type = 'application/xml'
+          end
       end
-      @content_type
+
+      @content_type = Mime::Type.new(@content_type)
+    end
+
+    def accepts
+      @accepts ||= (@env['HTTP_ACCEPT'].strip.blank? ? "*/*" : @env['HTTP_ACCEPT']).split(";").collect! do |mime_type| 
+        Mime::Type.new(mime_type.strip)
+      end
     end
 
     # Returns true if the request's "X-Requested-With" header contains

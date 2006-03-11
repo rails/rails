@@ -1,5 +1,24 @@
 *SVN*
 
+* Added better support for using the same actions to output for different sources depending on the Accept header [DHH]. Example:
+
+    class WeblogController < ActionController::Base
+      def create
+        @post = Post.create(params[:post])
+      
+        respond_to do |type|
+          type.js   { render }  # renders create.rjs
+          type.html { redirect_to :action => "index" }
+          type.xml  do
+            headers["Location"] = url_for(:action => "show", :id => @post)
+            render(:nothing, :status => "201 Created")
+          end
+        end
+      end
+    end
+
+* Added Base#render(:xml => xml) that works just like Base#render(:text => text), but sets the content-type to text/xml and the charset to UTF-8 [DHH]
+
 * Integration test's url_for now runs in the context of the last request (if any) so after post /products/show/1 url_for :action => 'new' will yield /product/new  [Tobias Luetke]
 
 * Re-added mixed-in helper methods for the JavascriptGenerator.  Moved JavascriptGenerators methods to a module that is mixed in after the helpers are added.  Also fixed that variables set in the enumeration methods like #collect are set correctly.  Documentation added for the enumeration methods [Rick Olson].  Examples:

@@ -44,6 +44,7 @@ require 'action_controller/flash'
 require 'action_controller/filters'
 require 'action_controller/layout'
 require 'action_controller/dependencies'
+require 'action_controller/mime_responds'
 require 'action_controller/pagination'
 require 'action_controller/scaffolding'
 require 'action_controller/helpers'
@@ -67,6 +68,7 @@ ActionController::Base.class_eval do
   include ActionController::Benchmarking
   include ActionController::Rescue
   include ActionController::Dependencies
+  include ActionController::MimeResponds
   include ActionController::Pagination
   include ActionController::Scaffolding
   include ActionController::Helpers

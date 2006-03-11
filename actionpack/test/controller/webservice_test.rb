@@ -71,7 +71,7 @@ class WebServiceTest < Test::Unit::TestCase
   end
 
   def test_register_and_use_xml_simple
-    ActionController::Base.param_parsers['application/xml'] = :xml_simple
+    ActionController::Base.param_parsers['application/xml'] = Proc.new { |data| XmlSimple.xml_in(data, 'ForceArray' => false) }
     process('POST', 'application/xml', '<request><summary>content...</summary><title>SimpleXml</title></request>' )
     assert_equal 'summary, title', @controller.response.body
     assert @controller.params.has_key?(:summary)

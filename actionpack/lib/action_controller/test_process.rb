@@ -104,7 +104,7 @@ module ActionController #:nodoc:
       self.request_parameters = {}
       self.query_parameters   = {}
       self.path_parameters    = {}
-      @request_method = nil
+      @request_method, @accepts, @content_type = nil, nil, nil
     end    
 
     private
