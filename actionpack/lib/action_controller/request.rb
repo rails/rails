@@ -70,9 +70,7 @@ module ActionController
       @accepts = if @env['HTTP_ACCEPT'].to_s.strip.blank?
         [ content_type, Mime::ALL ]
       else
-        @env['HTTP_ACCEPT'].split(",").collect! do |mime_type|
-          Mime::Type.lookup(mime_type.split(";").first.strip)
-        end
+        Mime::Type.parse(@env['HTTP_ACCEPT'])
       end
     end
 

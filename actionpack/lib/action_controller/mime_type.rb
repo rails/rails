@@ -3,6 +3,12 @@ module Mime
     def self.lookup(string)
       LOOKUP[string]
     end
+
+    def self.parse(accept_header)
+      accept_header.split(",").collect! do |mime_type|
+        Mime::Type.lookup(mime_type.split(";").first.strip)
+      end
+    end
     
     def initialize(string, symbol = nil, synonyms = [])
       @symbol, @synonyms = symbol, synonyms
@@ -33,7 +39,7 @@ module Mime
   ALL   = Type.new "*/*", :all
   HTML  = Type.new "text/html", :html, %w( application/xhtml+xml )
   JS    = Type.new "text/javascript", :js, %w( application/javascript application/x-javascript )
-  XML   = Type.new "application/xml", :xml, %w( text/xml application/x-xml )
+  XML   = Type.new "application/xml", :xml, %w( application/x-xml )
   RSS   = Type.new "application/rss+xml", :rss
   ATOM  = Type.new "application/atom+xml", :atom
   YAML  = Type.new "application/x-yaml", :yaml
