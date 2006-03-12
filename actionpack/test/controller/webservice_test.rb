@@ -28,7 +28,7 @@ class WebServiceTest < Test::Unit::TestCase
   def setup
     @controller = TestController.new
     ActionController::Base.param_parsers.clear
-    ActionController::Base.param_parsers['application/xml'] = :xml_node
+    ActionController::Base.param_parsers[Mime::XML] = :xml_node
   end
   
   def test_check_parameters
@@ -55,7 +55,7 @@ class WebServiceTest < Test::Unit::TestCase
   end
 
   def test_register_and_use_yaml
-    ActionController::Base.param_parsers['application/x-yaml'] = Proc.new { |d| YAML.load(d) }
+    ActionController::Base.param_parsers[Mime::YAML] = Proc.new { |d| YAML.load(d) }
     process('POST', 'application/x-yaml', {"entry" => "loaded from yaml"}.to_yaml)
     assert_equal 'entry', @controller.response.body
     assert @controller.params.has_key?(:entry)
@@ -63,7 +63,7 @@ class WebServiceTest < Test::Unit::TestCase
   end
   
   def test_register_and_use_yaml_as_symbol
-    ActionController::Base.param_parsers['application/x-yaml'] = :yaml
+    ActionController::Base.param_parsers[Mime::YAML] = :yaml
     process('POST', 'application/x-yaml', {"entry" => "loaded from yaml"}.to_yaml)
     assert_equal 'entry', @controller.response.body
     assert @controller.params.has_key?(:entry)
@@ -71,7 +71,7 @@ class WebServiceTest < Test::Unit::TestCase
   end
 
   def test_register_and_use_xml_simple
-    ActionController::Base.param_parsers['application/xml'] = Proc.new { |data| XmlSimple.xml_in(data, 'ForceArray' => false) }
+    ActionController::Base.param_parsers[Mime::XML] = Proc.new { |data| XmlSimple.xml_in(data, 'ForceArray' => false) }
     process('POST', 'application/xml', '<request><summary>content...</summary><title>SimpleXml</title></request>' )
     assert_equal 'summary, title', @controller.response.body
     assert @controller.params.has_key?(:summary)
@@ -82,7 +82,7 @@ class WebServiceTest < Test::Unit::TestCase
   
   def test_deprecated_request_methods
     process('POST', 'application/x-yaml')
-    assert_equal 'application/x-yaml', @controller.request.content_type
+    assert_equal Mime::YAML, @controller.request.content_type
     assert_equal true, @controller.request.post?
     assert_equal :yaml, @controller.request.post_format
     assert_equal true, @controller.request.yaml_post?

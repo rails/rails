@@ -6,7 +6,7 @@ module ActionController
     # For backward compatibility, the post format is extracted from the
     # X-Post-Data-Format HTTP header if present.
     def post_format
-      case content_type
+      case content_type.to_s
       when 'application/xml'
         :xml
       when 'application/x-yaml'

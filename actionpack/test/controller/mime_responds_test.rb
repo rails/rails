@@ -111,7 +111,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_js_or_html
-    @request.env["HTTP_ACCEPT"] = "text/javascript; text/html"
+    @request.env["HTTP_ACCEPT"] = "text/javascript, text/html"
     get :js_or_html
     assert_equal 'JS', @response.body
 
@@ -123,7 +123,7 @@ class MimeControllerTest < Test::Unit::TestCase
   end
 
   def test_js_or_anything
-    @request.env["HTTP_ACCEPT"] = "text/javascript; */*"
+    @request.env["HTTP_ACCEPT"] = "text/javascript, */*"
     get :js_or_html
     assert_equal 'JS', @response.body
 

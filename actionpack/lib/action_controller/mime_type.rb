@@ -1,12 +1,16 @@
 module Mime
-  class Type < String
+  class Type
     def self.lookup(string)
       LOOKUP[string]
     end
     
     def initialize(string, symbol = nil, synonyms = [])
       @symbol, @synonyms = symbol, synonyms
-      super(string)
+      @string = string
+    end
+    
+    def to_s
+      @string
     end
     
     def to_sym
@@ -19,6 +23,10 @@ module Mime
       else
         super
       end
+    end
+    
+    def ==(mime_type)
+      (@synonyms + [ self ]).any? { |synonym| synonym.to_s == mime_type.to_s } if mime_type
     end
   end
 

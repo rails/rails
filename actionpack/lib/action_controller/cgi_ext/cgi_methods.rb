@@ -58,8 +58,8 @@ class CGIMethods #:nodoc:
       parsed_params
     end
 
-    def self.parse_formatted_request_parameters(format, raw_post_data)
-      params = case strategy = ActionController::Base.param_parsers[format]
+    def self.parse_formatted_request_parameters(mime_type, raw_post_data)
+      params = case strategy = ActionController::Base.param_parsers[mime_type]
         when Proc
           strategy.call(raw_post_data)
         when :xml_simple

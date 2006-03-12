@@ -271,7 +271,7 @@ module ActionController #:nodoc:
     # 
     # Example of doing your own parser for a custom content type:
     #
-    #   ActionController::Base.param_parsers['application/atom+xml'] = Proc.new do |data| 
+    #   ActionController::Base.param_parsers[Mime::Type.lookup('application/atom+xml')] = Proc.new do |data| 
     #      node = REXML::Document.new(post) 
     #     { node.root.name => node.root }
     #   end
@@ -281,10 +281,10 @@ module ActionController #:nodoc:
     # in params[:r][:name] for "David" instead of params[:name]. To get the old behavior, you can 
     # re-register XmlSimple as application/xml handler and enable application/x-yaml like this:
     #
-    #   ActionController::Base.param_parsers['application/xml']    = 
+    #   ActionController::Base.param_parsers[Mime::XML]  = 
     #     Proc.new { |data| XmlSimple.xml_in(data, 'ForceArray' => false) }
-    #   ActionController::Base.param_parsers['application/x-yaml'] = :yaml
-    @@param_parsers = { 'application/xml' => :xml_simple }
+    #   ActionController::Base.param_parsers[Mime::YAML] = :yaml
+    @@param_parsers = { Mime::XML => :xml_simple }
     cattr_accessor :param_parsers 
 
     # Template root determines the base from which template references will be made. So a call to render("test/template")
