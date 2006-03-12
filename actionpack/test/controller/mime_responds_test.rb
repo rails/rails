@@ -31,11 +31,29 @@ class RespondToController < ActionController::Base
       type.xml  { render :text => "XML" }
     end
   end
+  
+  def using_defaults
+    respond_to do |type|
+      type.html
+      type.js
+      type.xml
+    end
+  end
+  
+  def using_argument_defaults
+    person_in_xml = { :name => "David" }.to_xml(:root => "person")
+    respond_to do |type|
+      type.html
+      type.xml(person_in_xml)
+    end
+  end
 
   def rescue_action(e)
     raise unless ActionController::MissingTemplate === e
   end
 end
+
+RespondToController.template_root = File.dirname(__FILE__) + "/../fixtures/"
 
 class MimeControllerTest < Test::Unit::TestCase
   def setup
@@ -98,5 +116,25 @@ class MimeControllerTest < Test::Unit::TestCase
 
     get :just_xml
     assert_equal 'XML', @response.body
+  end
+  
+  def test_using_defaults
+    @request.env["HTTP_ACCEPT"] = "*/*"
+    get :using_defaults
+    assert_equal 'Hello world!', @response.body
+
+    @request.env["HTTP_ACCEPT"] = "text/javascript"
+    get :using_defaults
+    assert_equal "$('body').visualEffect(\"highlight\");", @response.body
+
+    @request.env["HTTP_ACCEPT"] = "application/xml"
+    get :using_defaults
+    assert_equal "<p>Hello world!</p>\n", @response.body
+  end
+  
+  def test_using_argument_defaults
+    @request.env["HTTP_ACCEPT"] = "application/xml"
+    get :using_argument_defaults
+    assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>David</name>\n</person>\n", @response.body
   end
 end

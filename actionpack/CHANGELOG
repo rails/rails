@@ -7,7 +7,7 @@
         @posts = Post.find :all
   
         respond_to do |type|
-          type.html { render } # renders weblog/index.rhtml
+          type.html # using defaults, which will render weblog/index.rhtml
           type.xml  { render :action => "index.rxml" }
           type.js   { render :action => "index.rjs" }
         end

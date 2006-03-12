@@ -18,14 +18,6 @@ class TestController < ActionController::Base
   def hello_world
   end
 
-  def hello_world_from_rxml_using_action
-    render :action => "hello_world.rxml"
-  end
-
-  def hello_world_from_rxml_using_template
-    render :template => "test/hello_world.rxml"
-  end
-
   def render_hello_world
     render "test/hello_world"
   end
@@ -250,13 +242,5 @@ class RenderTest < Test::Unit::TestCase
   def test_accessing_local_assigns_in_inline_template_with_string_keys
     get :accessing_local_assigns_in_inline_template_with_string_keys, :local_name => "Local David"
     assert_equal "Goodbye, Local David", @response.body
-  end
-
-  def test_overwritting_rendering_relative_file_with_extension
-    get :hello_world_from_rxml_using_template
-    assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
-
-    get :hello_world_from_rxml_using_action
-    assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
   end
 end

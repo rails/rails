@@ -184,6 +184,14 @@ class NewRenderTestController < ActionController::Base
     render :action => "potential_conflicts"
   end
 
+  def hello_world_from_rxml_using_action
+    render :action => "hello_world.rxml"
+  end
+
+  def hello_world_from_rxml_using_template
+    render :template => "test/hello_world.rxml"
+  end
+
   helper NewRenderTestHelper
   helper do 
     def rjs_helper_method(value)
@@ -559,5 +567,14 @@ EOS
   def test_yield_content_for
     get :yield_content_for
     assert_equal "<title>Putting stuff in the title!</title>\n\nGreat stuff!\n", @response.body
+  end
+
+
+  def test_overwritting_rendering_relative_file_with_extension
+    get :hello_world_from_rxml_using_template
+    assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
+
+    get :hello_world_from_rxml_using_action
+    assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
   end
 end

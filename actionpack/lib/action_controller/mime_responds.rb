@@ -13,6 +13,13 @@ module ActionController #:nodoc:
     end
     
     class Responder #:nodoc:
+      DEFAULT_BLOCKS = {
+        :html    => 'Proc.new { render }',
+        :js      => 'Proc.new { render :action => "#{action_name}.rjs" }',
+        :xml     => 'Proc.new { render :action => "#{action_name}.rxml" }',
+        :xml_arg => 'Proc.new { render :xml => __mime_responder_arg__ }'
+      }
+      
       def initialize(block_binding)
         @block_binding = block_binding
         @mime_type_priority = eval("request.accepts", block_binding)
@@ -22,9 +29,19 @@ module ActionController #:nodoc:
       
       for mime_type in %w( all html js xml rss atom yaml )
         eval <<-EOT
-          def #{mime_type}(&block)
+          def #{mime_type}(argument = nil, &block)
             @order << Mime::#{mime_type.upcase}
-            @responses[Mime::#{mime_type.upcase}] = block
+            
+            if block_given?
+              @responses[Mime::#{mime_type.upcase}] = block
+            else
+              if argument
+                eval("__mime_responder_arg__ = " + (argument.is_a?(String) ? "'" + argument + "'" : argument), @block_binding)
+                @responses[Mime::#{mime_type.upcase}] = eval(DEFAULT_BLOCKS[(Mime::#{mime_type.upcase}.to_sym.to_s + "_arg").to_sym], @block_binding)
+              else
+                @responses[Mime::#{mime_type.upcase}] = eval(DEFAULT_BLOCKS[Mime::#{mime_type.upcase}.to_sym], @block_binding)
+              end
+            end
           end
         EOT
       end

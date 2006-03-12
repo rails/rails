@@ -1,0 +1,1 @@
+page[:body].visual_effect :highlight
