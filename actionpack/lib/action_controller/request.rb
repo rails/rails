@@ -51,7 +51,7 @@ module ActionController
       return @content_type if @content_type
 
       @content_type = @env['CONTENT_TYPE'].to_s.downcase
-      
+
       if @env['HTTP_X_POST_DATA_FORMAT']          
         case @env['HTTP_X_POST_DATA_FORMAT'].downcase.to_sym
           when :yaml
@@ -65,8 +65,14 @@ module ActionController
     end
 
     def accepts
-      @accepts ||= (@env['HTTP_ACCEPT'].strip.blank? ? "*/*" : @env['HTTP_ACCEPT']).split(";").collect! do |mime_type| 
-        Mime::Type.new(mime_type.strip)
+      return @accepts if @accepts
+      
+      @accepts = if @env['HTTP_ACCEPT'].to_s.strip.blank?
+        [ content_type, Mime::ALL ]
+      else
+        @env['HTTP_ACCEPT'].split(";").collect! do |mime_type|
+          Mime::Type.new(mime_type.strip)
+        end
       end
     end
 

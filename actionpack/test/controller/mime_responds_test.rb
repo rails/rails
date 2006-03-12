@@ -48,6 +48,14 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def made_for_content_type
+    respond_to do |type|
+      type.rss  { render :text => "RSS"  }
+      type.atom { render :text => "ATOM" }
+      type.all  { render :text => "Nothing" }
+    end
+  end
+
   def rescue_action(e)
     raise unless ActionController::MissingTemplate === e
   end
@@ -136,5 +144,15 @@ class MimeControllerTest < Test::Unit::TestCase
     @request.env["HTTP_ACCEPT"] = "application/xml"
     get :using_argument_defaults
     assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>David</name>\n</person>\n", @response.body
+  end
+  
+  def test_with_content_type
+    @request.env["CONTENT_TYPE"] = "application/atom+xml"
+    get :made_for_content_type
+    assert_equal "ATOM", @response.body
+
+    @request.env["CONTENT_TYPE"] = "application/rss+xml"
+    get :made_for_content_type
+    assert_equal "RSS", @response.body
   end
 end

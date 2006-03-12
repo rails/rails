@@ -39,6 +39,6 @@ module Mime
   JAVASCRIPT = Type.new "text/javascript"
   XML        = Type.new "application/xml"
   RSS        = Type.new "application/rss+xml"
-  ATOM       = Type.new "application/rss+atom"
+  ATOM       = Type.new "application/atom+xml"
   YAML       = Type.new "application/x-yaml"
 end
