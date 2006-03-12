@@ -1,5 +1,19 @@
 *SVN*
 
+* Added option to render action/template/file of a specific extension (and here by template type). This means you can have multiple templates with the same name but a different extension [DHH]. Example:
+  
+    class WeblogController < ActionController::Base
+      def index
+        @posts = Post.find :all
+  
+        respond_to do |type|
+          type.html { render } # renders weblog/index.rhtml
+          type.xml  { render :action => "index.rxml" }
+          type.js   { render :action => "index.rjs" }
+        end
+      end
+    end
+
 * Added better support for using the same actions to output for different sources depending on the Accept header [DHH]. Example:
 
     class WeblogController < ActionController::Base

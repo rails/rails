@@ -216,8 +216,14 @@ module ActionView #:nodoc:
       @first_render      = template_path if @first_render.nil?
 
       if use_full_path
-        template_extension = pick_template_extension(template_path)
-        template_file_name = full_template_path(template_path, template_extension)
+        template_path_without_extension, template_extension = template_path.split('.')
+
+        if template_extension
+          template_file_name = full_template_path(template_path_without_extension, template_extension)
+        else
+          template_extension = pick_template_extension(template_path)
+          template_file_name = full_template_path(template_path, template_extension)
+        end
       else
         template_file_name = template_path
         template_extension = template_path.split('.').last
@@ -324,8 +330,14 @@ module ActionView #:nodoc:
     end
 
     def file_exists?(template_path)#:nodoc:
-      %w(erb builder javascript delegate).any? do |template_type| 
-        send("#{template_type}_template_exists?", template_path)
+      template_file_name, template_file_extension = template_path.split(".")
+      
+      if template_file_extension
+        template_exists?(template_file_name, template_file_extension)
+      else
+        %w(erb builder javascript delegate).any? do |template_type| 
+          send("#{template_type}_template_exists?", template_path)
+        end
       end
     end
 

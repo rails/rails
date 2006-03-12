@@ -18,6 +18,14 @@ class TestController < ActionController::Base
   def hello_world
   end
 
+  def hello_world_from_rxml_using_action
+    render :action => "hello_world.rxml"
+  end
+
+  def hello_world_from_rxml_using_template
+    render :template => "test/hello_world.rxml"
+  end
+
   def render_hello_world
     render "test/hello_world"
   end
@@ -115,55 +123,53 @@ class RenderTest < Test::Unit::TestCase
   def setup
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
+    @controller = TestController.new
 
     @request.host = "www.nextangle.com"
   end
 
   def test_simple_show
-    @request.action = "hello_world"
-    response = process_request
-    assert_equal "200 OK", response.headers["Status"]
-    assert_equal "test/hello_world", response.template.first_render
+    get :hello_world
+    assert_response 200
+    assert_template "test/hello_world"
   end
 
   def test_do_with_render
-    @request.action = "render_hello_world"
-    assert_equal "test/hello_world", process_request.template.first_render
+    get :render_hello_world
+    assert_template "test/hello_world"
   end
 
   def test_do_with_render_from_variable
-    @request.action = "render_hello_world_from_variable"
-    assert_equal "hello david", process_request.body
+    get :render_hello_world_from_variable
+    assert_equal "hello david", @response.body
   end
 
   def test_do_with_render_action
-    @request.action = "render_action_hello_world"
-    assert_equal "test/hello_world", process_request.template.first_render
+    get :render_action_hello_world
+    assert_template "test/hello_world"
   end
 
   def test_do_with_render_action_with_symbol
-    @request.action = "render_action_hello_world_with_symbol"
-    assert_equal "test/hello_world", process_request.template.first_render
+    get :render_action_hello_world_with_symbol
+    assert_template "test/hello_world"
   end
 
   def test_do_with_render_text
-    @request.action = "render_text_hello_world"
-    assert_equal "hello world", process_request.body
+    get :render_text_hello_world
+    assert_equal "hello world", @response.body
   end
 
   def test_do_with_render_custom_code
-    @request.action = "render_custom_code"
-    assert_equal "404 Moved", process_request.headers["Status"]
+    get :render_custom_code
+    assert_response 404
   end
 
   def test_attempt_to_access_object_method
-    @request.action = "clone"
-    assert_raises(ActionController::UnknownAction, "No action responded to [clone]") { process_request }
+    assert_raises(ActionController::UnknownAction, "No action responded to [clone]") { get :clone }
   end
 
   def test_private_methods
-    @request.action = "determine_layout"
-    assert_raises(ActionController::UnknownAction, "No action responded to [determine_layout]") { process_request }
+    assert_raises(ActionController::UnknownAction, "No action responded to [determine_layout]") { get :determine_layout }
   end
 
   def test_access_to_request_in_view
@@ -172,86 +178,85 @@ class RenderTest < Test::Unit::TestCase
     ActionController::Base.view_controller_internals = false
     ActionController::Base.protected_variables_cache = nil
 
-    @request.action = "hello_world"
-    response = process_request
-    assert_nil response.template.assigns["request"]
+    get :hello_world
+    assert_nil assigns["request"]
 
     ActionController::Base.view_controller_internals = true
     ActionController::Base.protected_variables_cache = nil
 
-    @request.action = "hello_world"
-    response = process_request
-    assert_kind_of ActionController::AbstractRequest,  response.template.assigns["request"]
+    get :hello_world
+    assert_kind_of ActionController::AbstractRequest,  assigns["request"]
 
     ActionController::Base.view_controller_internals = view_internals_old_value
     ActionController::Base.protected_variables_cache = nil
   end
   
   def test_render_xml
-    @request.action = "render_xml_hello"
-    assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", process_request.body
+    get :render_xml_hello
+    assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
   end
 
   def test_render_xml_with_default
-    @request.action = "greeting"
-    assert_equal "<p>This is grand!</p>\n", process_request.body
+    get :greeting
+    assert_equal "<p>This is grand!</p>\n", @response.body
   end
 
   def test_layout_rendering
-    @request.action = "layout_test"
-    assert_equal "<html>Hello world!</html>", process_request.body
+    get :layout_test
+    assert_equal "<html>Hello world!</html>", @response.body
   end
 
   def test_render_xml_with_layouts
-    @request.action = "builder_layout_test"
-    assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", process_request.body
+    get :builder_layout_test
+    assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
   end
 
   # def test_partials_list
-  #   @request.action = "partials_list"
+  #   get :partials_list
   #   assert_equal "goodbyeHello: davidHello: marygoodbye\n", process_request.body
   # end
 
   def test_partial_only
-    @request.action = "partial_only"
-    assert_equal "only partial", process_request.body
+    get :partial_only
+    assert_equal "only partial", @response.body
   end
 
   def test_render_to_string
-    @request.action = "hello_in_a_string"
-    assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", process_request.body
+    get :hello_in_a_string
+    assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", @response.body
   end
 
   def test_render_to_string_resets_assigns
-    @request.action = "render_to_string_test"
-    assert_equal "The value of foo is: ::this is a test::\n", process_request.body
+    get :render_to_string_test
+    assert_equal "The value of foo is: ::this is a test::\n", @response.body
   end
 
   def test_nested_rendering
-    @request.action = "hello_world"
-    assert_equal "Living in a nested world", Fun::GamesController.process(@request, @response).body
+    @controller = Fun::GamesController.new
+    get :hello_world
+    assert_equal "Living in a nested world", @response.body
   end
 
   def test_accessing_params_in_template
-    @request.action = "accessing_params_in_template"
-    @request.query_parameters[:name] = "David"
-    assert_equal "Hello: David", process_request.body
+    get :accessing_params_in_template, :name => "David"
+    assert_equal "Hello: David", @response.body
   end
 
   def test_accessing_local_assigns_in_inline_template
-    @request.action = "accessing_local_assigns_in_inline_template"
-    @request.query_parameters[:local_name] = "Local David"
-    assert_equal "Goodbye, Local David", process_request.body
+    get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
+    assert_equal "Goodbye, Local David", @response.body
   end
   
   def test_accessing_local_assigns_in_inline_template_with_string_keys
-    @request.action = "accessing_local_assigns_in_inline_template_with_string_keys"
-    @request.query_parameters[:local_name] = "Local David"
-    assert_equal "Goodbye, Local David", process_request.body
+    get :accessing_local_assigns_in_inline_template_with_string_keys, :local_name => "Local David"
+    assert_equal "Goodbye, Local David", @response.body
   end
 
-  private
-    def process_request
-      TestController.process(@request, @response)
-    end
+  def test_overwritting_rendering_relative_file_with_extension
+    get :hello_world_from_rxml_using_template
+    assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
+
+    get :hello_world_from_rxml_using_action
+    assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
+  end
 end
