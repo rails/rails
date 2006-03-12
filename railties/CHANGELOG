@@ -1,5 +1,7 @@
 *SVN*
 
+* Use the Rake API instead of shelling out to create the tmp directory in commands/server.rb. [Chad Fowler]
+
 * Added a backtrace to the evil WSOD (White Screen of Death).  Closes #4073. TODO: Clearer exceptions [Rick Olson]
 
 * Added tracking of database and framework versions in script/about #4088 [charles.gerungan@gmail.com/Rick Olson]

@@ -25,5 +25,10 @@ else
   puts "=> Booting lighttpd (use 'script/server webrick' to force WEBrick)"
 end
 
-silence_stderr { `rake tmp:create` }
+require 'rake'
+load File.join(File.dirname(__FILE__), "..", "tasks", "tmp.rake")
+begin
+  Rake::Task['tmp:create'].execute 
+rescue Errno::EEXIST => e 
+end
 require "commands/servers/#{server}"
