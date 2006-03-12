@@ -461,7 +461,10 @@ module ActionController
 
     %w(get post cookies assigns).each do |method|
       define_method(method) do |*args|
-        @integration_session.send(method, *args)
+        reset! unless @integration_session
+        returning @integration_session.send(method, *args) do
+          copy_session_variables!
+        end
       end
     end
 
@@ -479,26 +482,38 @@ module ActionController
       session = Integration::Session.new
 
       # delegate the fixture accessors back to the test instance
-      klass = class<<session; self; end
-      tests = self
-
+      extras = Module.new { attr_accessor :delegate, :test_result }
       self.class.fixture_table_names.each do |table_name|
         name = table_name.tr(".", "_")
         next unless respond_to?(name)
-        klass.send(:define_method, name) { |*args| tests.send(name, *args) }
+        extras.send(:define_method, name) { |*args| delegate.send(name, *args) }
       end
 
       # delegate add_assertion to the test case
-      klass.send(:define_method, :add_assertion) { tests.add_assertion }
+      extras.send(:define_method, :add_assertion) { test_result.add_assertion }
+      session.extend(extras)
+      session.delegate = self
+      session.test_result = @_result
 
       yield session if block_given?
       session
     end
 
+    # Copy the instance variables from the current session instance into the
+    # test instance.
+    def copy_session_variables! #:nodoc:
+      return unless @integration_session
+      %w(controller response request).each do |var|
+        instance_variable_set("@#{var}", @integration_session.send(var))
+      end
+    end
+
     # Delegate unhandled messages to the current session instance.
     def method_missing(sym, *args, &block)
       reset! unless @integration_session
-      @integration_session.send(sym, *args, &block)
+      returning @integration_session.send(sym, *args, &block) do
+        copy_session_variables!
+      end
     end
   end
 end
