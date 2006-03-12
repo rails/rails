@@ -183,4 +183,16 @@ class MimeControllerTest < Test::Unit::TestCase
     get :custom_type_handling
     assert_equal 'HTML', @response.body
   end
+
+  def test_xhtml_alias
+    @request.env["HTTP_ACCEPT"] = "application/xhtml+xml,application/xml"
+    get :html_or_xml
+    assert_equal 'HTML', @response.body
+  end
+  
+  def test_firefox_simulation
+    @request.env["HTTP_ACCEPT"] = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
+    get :html_or_xml
+    assert_equal 'HTML', @response.body
+  end
 end

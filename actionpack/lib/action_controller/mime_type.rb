@@ -30,27 +30,30 @@ module Mime
     end
   end
 
-  ALL  = Type.new "*/*", :all
-  HTML = Type.new "text/html", :html
-  JS   = Type.new "text/javascript", :js, %w( application/javascript application/x-javascript )
-  XML  = Type.new "text/xml", :xml, %w( application/xml application/x-xml )
-  RSS  = Type.new "application/rss+xml", :rss
-  ATOM = Type.new "application/atom+xml", :atom
-  YAML = Type.new "application/x-yaml", :yaml
+  ALL   = Type.new "*/*", :all
+  HTML  = Type.new "text/html", :html, %w( application/xhtml+xml )
+  JS    = Type.new "text/javascript", :js, %w( application/javascript application/x-javascript )
+  XML   = Type.new "application/xml", :xml, %w( text/xml application/x-xml )
+  RSS   = Type.new "application/rss+xml", :rss
+  ATOM  = Type.new "application/atom+xml", :atom
+  YAML  = Type.new "application/x-yaml", :yaml
 
   LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) }
 
   LOOKUP["*/*"]                      = ALL
+
   LOOKUP["text/html"]                = HTML
-  LOOKUP["application/rss+xml"]      = RSS
-  LOOKUP["application/atom+xml"]     = ATOM
-  LOOKUP["application/x-yaml"]       = YAML
+  LOOKUP["application/xhtml+xml"]    = HTML
+
+  LOOKUP["application/xml"]          = XML
+  LOOKUP["text/xml"]                 = XML
+  LOOKUP["application/x-xml"]        = XML
 
   LOOKUP["text/javascript"]          = JS
   LOOKUP["application/javascript"]   = JS
   LOOKUP["application/x-javascript"] = JS
 
-  LOOKUP["text/xml"]                 = XML
-  LOOKUP["application/xml"]          = XML
-  LOOKUP["application/x-xml"]        = XML
+  LOOKUP["application/rss+xml"]      = RSS
+  LOOKUP["application/atom+xml"]     = ATOM
+  LOOKUP["application/x-yaml"]       = YAML
 end
