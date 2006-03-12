@@ -26,22 +26,28 @@ module ActionController #:nodoc:
         @order     = []
         @responses = {}
       end
+
+      def custom(mime_type, *args, &block)
+        mime_type = mime_type.is_a?(Mime::Type) ? mime_type : Mime::Type.lookup(mime_type.to_s)
+        
+        @order << mime_type
+        
+        if block_given?
+          @responses[mime_type] = block
+        else
+          if argument = args.first
+            eval("__mime_responder_arg__ = " + (argument.is_a?(String) ? "'" + argument + "'" : argument), @block_binding)
+            @responses[mime_type] = eval(DEFAULT_BLOCKS[(mime_type.to_sym.to_s + "_arg").to_sym], @block_binding)
+          else
+            @responses[mime_type] = eval(DEFAULT_BLOCKS[mime_type.to_sym], @block_binding)
+          end
+        end
+      end
       
       for mime_type in %w( all html js xml rss atom yaml )
         eval <<-EOT
           def #{mime_type}(argument = nil, &block)
-            @order << Mime::#{mime_type.upcase}
-            
-            if block_given?
-              @responses[Mime::#{mime_type.upcase}] = block
-            else
-              if argument
-                eval("__mime_responder_arg__ = " + (argument.is_a?(String) ? "'" + argument + "'" : argument), @block_binding)
-                @responses[Mime::#{mime_type.upcase}] = eval(DEFAULT_BLOCKS[(Mime::#{mime_type.upcase}.to_sym.to_s + "_arg").to_sym], @block_binding)
-              else
-                @responses[Mime::#{mime_type.upcase}] = eval(DEFAULT_BLOCKS[Mime::#{mime_type.upcase}.to_sym], @block_binding)
-              end
-            end
+            custom(Mime::#{mime_type.upcase}, argument, &block)
           end
         EOT
       end
@@ -52,7 +58,7 @@ module ActionController #:nodoc:
             @responses[@order.first].call
             return
           else
-            if @order.include?(priority)
+            if priority === @order
               @responses[priority].call
               return # mime type match found, be happy and return
             end

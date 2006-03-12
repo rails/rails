@@ -56,6 +56,14 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def custom_type_handling
+    respond_to do |type|
+      type.html { render :text => "HTML"    }
+      type.custom("application/crazy-xml")  { render :text => "Crazy XML"  }
+      type.all  { render :text => "Nothing" }
+    end
+  end
+
   def rescue_action(e)
     raise unless ActionController::MissingTemplate === e
   end
@@ -154,5 +162,25 @@ class MimeControllerTest < Test::Unit::TestCase
     @request.env["CONTENT_TYPE"] = "application/rss+xml"
     get :made_for_content_type
     assert_equal "RSS", @response.body
+  end
+  
+  def test_synonyms
+    @request.env["HTTP_ACCEPT"] = "application/javascript"
+    get :js_or_html
+    assert_equal 'JS', @response.body
+
+    @request.env["HTTP_ACCEPT"] = "application/x-xml"
+    get :using_argument_defaults
+    assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>David</name>\n</person>\n", @response.body
+  end
+  
+  def test_custom_types
+    @request.env["HTTP_ACCEPT"] = "application/crazy-xml"
+    get :custom_type_handling
+    assert_equal 'Crazy XML', @response.body
+
+    @request.env["HTTP_ACCEPT"] = "text/html"
+    get :custom_type_handling
+    assert_equal 'HTML', @response.body
   end
 end

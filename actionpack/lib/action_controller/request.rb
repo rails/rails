@@ -61,7 +61,7 @@ module ActionController
           end
       end
 
-      @content_type = Mime::Type.new(@content_type)
+      @content_type = Mime::Type.lookup(@content_type)
     end
 
     def accepts
@@ -71,7 +71,7 @@ module ActionController
         [ content_type, Mime::ALL ]
       else
         @env['HTTP_ACCEPT'].split(";").collect! do |mime_type|
-          Mime::Type.new(mime_type.strip)
+          Mime::Type.lookup(mime_type.strip)
         end
       end
     end
