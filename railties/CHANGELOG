@@ -1,5 +1,7 @@
 *SVN*
 
+* Use require_library_or_gem to load rake in commands/server.rb.  Closes #4205.  [rob.rasmussen@gmail.com]
+
 * Use the Rake API instead of shelling out to create the tmp directory in commands/server.rb. [Chad Fowler]
 
 * Added a backtrace to the evil WSOD (White Screen of Death).  Closes #4073. TODO: Clearer exceptions [Rick Olson]

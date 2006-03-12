@@ -25,7 +25,7 @@ else
   puts "=> Booting lighttpd (use 'script/server webrick' to force WEBrick)"
 end
 
-require 'rake'
+require_library_or_gem 'rake'
 load File.join(File.dirname(__FILE__), "..", "tasks", "tmp.rake")
 begin
   Rake::Task['tmp:create'].execute 
