@@ -141,7 +141,7 @@ class MimeControllerTest < Test::Unit::TestCase
 
     @request.env["HTTP_ACCEPT"] = "text/javascript"
     get :using_defaults
-    assert_equal "$('body').visualEffect(\"highlight\");", @response.body
+    assert_equal '$("body").visualEffect("highlight");', @response.body
 
     @request.env["HTTP_ACCEPT"] = "application/xml"
     get :using_defaults

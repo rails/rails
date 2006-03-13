@@ -393,7 +393,7 @@ class NewRenderTest < Test::Unit::TestCase
   def test_enum_rjs_test
     get :enum_rjs_test
     assert_equal <<-EOS.strip, @response.body
-$$('.product').each(function(value, index) {
+$$(".product").each(function(value, index) {
 new Effect.Highlight(element,{});
 new Effect.Highlight(value,{});
 Sortable.create(value, {onUpdate:function(){new Ajax.Request('/test/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize(value)})}});

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added simple alert() notifications for RJS exceptions when config.action_view.debug_rjs = true. [Sam Stephenson]
+
 * Added :content_type option to render, so you can change the content type on the fly [DHH]. Example: render :action => "atom.rxml", :content_type => "application/atom+xml"
 
 * CHANGED DEFAULT: The default content type for .rxml is now application/xml instead of type/xml, see http://www.xml.com/pub/a/2004/07/21/dive.html for reason [DHH]

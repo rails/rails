@@ -370,12 +370,12 @@ module ActionView
         end
       
         private
-        def include_helpers_from_context
-          @context.extended_by.each do |mod|
-            extend mod unless mod.name =~ /^ActionView::Helpers/
+          def include_helpers_from_context
+            @context.extended_by.each do |mod|
+              extend mod unless mod.name =~ /^ActionView::Helpers/
+            end
+            extend GeneratorMethods
           end
-          extend GeneratorMethods
-        end
       
         # JavaScriptGenerator generates blocks of JavaScript code that allow you 
         # to change the content and presentation of multiple DOM elements.  Use 
@@ -425,7 +425,12 @@ module ActionView
         # <script> tag.
         module GeneratorMethods
           def to_s #:nodoc:
-            @lines * $/
+            returning javascript = @lines * $/ do
+              if ActionView::Base.debug_rjs
+                javascript.replace "try {\n#{javascript}\n} catch (e) "
+                javascript << "{ alert('RJS error:\\n\\n' + e.toString()); throw e }"
+              end
+            end
           end
           
           # Returns a element reference by finding it through +id+ in the DOM. This element can then be
@@ -748,7 +753,7 @@ module ActionView
     class JavaScriptElementProxy < JavaScriptProxy #:nodoc:
       def initialize(generator, id)
         @id = id
-        super(generator, "$('#{id}')")
+        super(generator, "$(#{id.to_json})")
       end
       
       def replace_html(*options_for_render)
@@ -874,7 +879,7 @@ module ActionView
     
     class JavaScriptElementCollectionProxy < JavaScriptCollectionProxy #:nodoc:\
       def initialize(generator, pattern)
-        super(generator, "$$('#{pattern}')")
+        super(generator, "$$(#{pattern.to_json})")
       end
     end
   end

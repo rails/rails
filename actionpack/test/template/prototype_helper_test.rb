@@ -230,31 +230,31 @@ Element.update("baz", "<p>This is a test</p>");
   end
 
   def test_element_access
-    assert_equal %($('hello');), @generator['hello']
+    assert_equal %($("hello");), @generator['hello']
   end
 
   def test_element_proxy_one_deep
     @generator['hello'].hide
-    assert_equal %($('hello').hide();), @generator.to_s
+    assert_equal %($("hello").hide();), @generator.to_s
   end
 
   def test_element_proxy_assignment
     @generator['hello'].width = 400
-    assert_equal %($('hello').width = 400;), @generator.to_s
+    assert_equal %($("hello").width = 400;), @generator.to_s
   end
 
   def test_element_proxy_two_deep
     @generator['hello'].hide("first").clean_whitespace
-    assert_equal %($('hello').hide("first").cleanWhitespace();), @generator.to_s
+    assert_equal %($("hello").hide("first").cleanWhitespace();), @generator.to_s
   end
   
   def test_select_access
-    assert_equal %($$('div.hello');), @generator.select('div.hello')
+    assert_equal %($$("div.hello");), @generator.select('div.hello')
   end
 
   def test_select_proxy_one_deep
     @generator.select('p.welcome b').first.hide
-    assert_equal %($$('p.welcome b').first().hide();), @generator.to_s
+    assert_equal %($$("p.welcome b").first().hide();), @generator.to_s
   end
   
   def test_visual_effect
@@ -286,8 +286,8 @@ Element.update("baz", "<p>This is a test</p>");
     @generator.select('p.welcome b').first.hide()
     @generator.select('p.welcome b').last.show()
     assert_equal <<-EOS.strip, @generator.to_s
-$$('p.welcome b').first().hide();
-$$('p.welcome b').last().show();
+$$("p.welcome b").first().hide();
+$$("p.welcome b").last().show();
       EOS
   end
 
@@ -299,10 +299,10 @@ $$('p.welcome b').last().show();
       @generator.visual_effect :highlight, value
     end
     assert_equal <<-EOS.strip, @generator.to_s
-$$('p.welcome b').each(function(value, index) {
+$$("p.welcome b").each(function(value, index) {
 value.removeClassName("selected");
 });
-$$('p.welcome b').each(function(value, index) {
+$$("p.welcome b").each(function(value, index) {
 new Effect.Highlight(value,{});
 });
       EOS
@@ -312,10 +312,10 @@ new Effect.Highlight(value,{});
     @generator.select('p').collect('a') { |para| para.show }
     @generator.select('p').collect { |para| para.hide }
     assert_equal <<-EOS.strip, @generator.to_s
-var a = $$('p').collect(function(value, index) {
+var a = $$("p").collect(function(value, index) {
 return value.show();
 });
-$$('p').collect(function(value, index) {
+$$("p").collect(function(value, index) {
 return value.hide();
 });
     EOS
@@ -332,10 +332,10 @@ return value.hide();
     end
 
     assert_equal <<-EOS.strip, @generator.to_s
-var a = $$('p').grep(/^a/, function(value, index) {
+var a = $$("p").grep(/^a/, function(value, index) {
 return (value.className == "welcome");
 });
-var b = $$('p').grep(/b$/, function(value, index) {
+var b = $$("p").grep(/b$/, function(value, index) {
 alert(value);
 return (value.className == "welcome");
 });
@@ -352,10 +352,10 @@ return (value.className == "welcome");
     end
 
     assert_equal <<-EOS.strip, @generator.to_s
-var a = $$('p').inject([], function(memo, value, index) {
+var a = $$("p").inject([], function(memo, value, index) {
 return (value.className == "welcome");
 });
-var b = $$('p').inject(null, function(memo, value, index) {
+var b = $$("p").inject(null, function(memo, value, index) {
 alert(memo);
 return (value.className == "welcome");
 });
@@ -364,7 +364,7 @@ return (value.className == "welcome");
 
   def test_collection_proxy_with_pluck
     @generator.select('p').pluck('a', 'className')
-    assert_equal %(var a = $$('p').pluck("className");), @generator.to_s
+    assert_equal %(var a = $$("p").pluck("className");), @generator.to_s
   end
 
   def test_collection_proxy_with_zip
@@ -379,6 +379,14 @@ var b = [1, 2, 3].zip([4, 5, 6], [7, 8, 9], function(array) {
 return array.reverse();
 });
     EOS
+  end
+  
+  def test_debug_rjs
+    ActionView::Base.debug_rjs = true
+    @generator['welcome'].replace_html 'Welcome'
+    assert_equal "try {\n$(\"welcome\").update(\"Welcome\");\n} catch (e) { alert('RJS error:\\n\\n' + e.toString()); throw e }", @generator.to_s
+  ensure
+    ActionView::Base.debug_rjs = false
   end
 
   def test_class_proxy

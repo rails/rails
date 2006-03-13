@@ -162,6 +162,11 @@ module ActionView #:nodoc:
     # shortly.
     @@local_assigns_support_string_keys = true
     cattr_accessor :local_assigns_support_string_keys
+    
+    # Specify whether RJS responses should be wrapped in a try/catch block
+    # that alert()s the caught exception (and then re-raises it). 
+    @@debug_rjs = false
+    cattr_accessor :debug_rjs
 
     @@template_handlers = {}
  
