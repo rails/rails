@@ -728,7 +728,7 @@ module ActionController #:nodoc:
       end
 
       def render_xml(xml, status = nil)
-        @response.headers['Content-Type'] = 'text/xml; charset=UTF-8'
+        @response.headers['Content-Type'] = 'application/xml'
         render_text(xml, status)
       end
 
