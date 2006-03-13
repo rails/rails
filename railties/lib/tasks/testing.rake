@@ -50,13 +50,15 @@ namespace :test do
   
   desc 'Test changes since last checkin (only Subversion)'
   Rake::TestTask.new(:uncommitted => "db:test:prepare") do |t|
-    changed_since_checkin = silence_stderr { `svn status` }.map { |path| path.chomp[7 .. -1] }
-    models = changed_since_checkin.select { |path| path =~ /app\/models\/.*\.rb/ }
-    tests = models.map { |model| "test/unit/#{File.basename(model, '.rb')}_test.rb" }
-
+    def t.file_list
+      changed_since_checkin = silence_stderr { `svn status` }.map { |path| path.chomp[7 .. -1] }
+      models = changed_since_checkin.select { |path| path =~ /app\/models\/.*\.rb/ }
+      tests = models.map { |model| "test/unit/#{File.basename(model, '.rb')}_test.rb" }
+      tests.uniq
+    end
+    
     t.libs << 'test'
     t.verbose = true
-    t.test_files = tests.uniq
   end
 
   desc "Run the unit tests in test/unit"
