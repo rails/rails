@@ -331,7 +331,11 @@ module ActionView
       # <tt>:with</tt>::      A JavaScript expression specifying the
       #                       parameters for the XMLHttpRequest. This defaults
       #                       to 'value', which in the evaluated context 
-      #                       refers to the new field value.
+      #                       refers to the new field value. If you specify a
+      #                       string without a "=", it'll be extended to mean
+      #                       the form key that the value should be assigned to.
+      #                       So :with => "term" gives "'term'=value". If a "=" is
+      #                       present, no extension will happen.
       # <tt>:on</tt>::        Specifies which event handler to observe. By default,
       #                       it's set to "changed" for text fields and areas and
       #                       "click" for radio buttons and checkboxes. With this,
@@ -692,7 +696,12 @@ module ActionView
       end
     
       def build_observer(klass, name, options = {})
-        options[:with] ||= 'value' if options[:update]
+        if options[:with] && !options[:with].include?("=")
+          options[:with] = "'#{options[:with]}=' + value"
+        else
+          options[:with] ||= 'value' if options[:update]
+        end
+
         callback = remote_function(options)
         javascript  = "new #{klass}('#{name}', "
         javascript << "#{options[:frequency]}, " if options[:frequency]

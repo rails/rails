@@ -1003,7 +1003,9 @@ module ActionController #:nodoc:
       end
 
       def template_exempt_from_layout?(template_name = default_template_name)
-        @template.javascript_template_exists?(template_name)
+        @template.pick_template_extension(template_name).to_sym == :rjs
+      rescue
+        false
       end
 
       def assert_existance_of_template_file(template_name)
