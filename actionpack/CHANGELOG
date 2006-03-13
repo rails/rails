@@ -1,5 +1,9 @@
 *SVN*
 
+* Added :content_type option to render, so you can change the content type on the fly [DHH]. Example: render :action => "atom.rxml", :content_type => "application/atom+xml"
+
+* CHANGED DEFAULT: The default content type for .rxml is now application/xml instead of type/xml, see http://www.xml.com/pub/a/2004/07/21/dive.html for reason [DHH]
+
 * Added option to render action/template/file of a specific extension (and here by template type). This means you can have multiple templates with the same name but a different extension [DHH]. Example:
   
     class WeblogController < ActionController::Base

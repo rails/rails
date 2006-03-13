@@ -634,6 +634,10 @@ module ActionController #:nodoc:
           end
         end
 
+        if content_type = options[:content_type]
+          headers["Content-Type"] = content_type
+        end
+
         if text = options[:text]
           render_text(text, options[:status])
 

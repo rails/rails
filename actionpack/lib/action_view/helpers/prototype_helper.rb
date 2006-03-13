@@ -618,29 +618,33 @@ module ActionView
           end
           
           private
-          def page
-            self
-          end
-          
-          def record(line)
-            returning line = "#{line.to_s.chomp.gsub /\;$/, ''};" do
-              self << line
+            def page
+              self
             end
-          end
           
-          def render(*options_for_render)
-            Hash === options_for_render.first ? 
-              @context.render(*options_for_render) : 
-                options_for_render.first.to_s
-          end
+            def record(line)
+              returning line = "#{line.to_s.chomp.gsub /\;$/, ''};" do
+                self << line
+              end
+            end
           
-          def javascript_object_for(object)
-            object.respond_to?(:to_json) ? object.to_json : object.inspect
-          end
+            def render(*options_for_render)
+              Hash === options_for_render.first ? 
+                @context.render(*options_for_render) : 
+                  options_for_render.first.to_s
+            end
           
-          def arguments_for_call(arguments)
-            arguments.map { |argument| javascript_object_for(argument) }.join ', '
-          end
+            def javascript_object_for(object)
+              object.respond_to?(:to_json) ? object.to_json : object.inspect
+            end
+          
+            def arguments_for_call(arguments)
+              arguments.map { |argument| javascript_object_for(argument) }.join ', '
+            end
+            
+            def method_missing(method, *arguments)
+              JavaScriptProxy.new(self, method.to_s.camelize)
+            end
         end
       end
       
@@ -718,7 +722,7 @@ module ActionView
           if method.to_s =~ /(.*)=$/
             assign($1, arguments.first)
           else
-            call("#{method.to_s.first}#{method.to_s.classify[1..-1]}", *arguments)
+            call("#{method.to_s.first}#{method.to_s.camelize[1..-1]}", *arguments)
           end
         end
       

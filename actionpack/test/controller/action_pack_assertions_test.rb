@@ -479,10 +479,12 @@ class ActionPackHeaderTest < Test::Unit::TestCase
     @controller = ActionPackAssertionsController.new
     @request, @response = ActionController::TestRequest.new, ActionController::TestResponse.new
   end
+
   def test_rendering_xml_sets_content_type
     process :hello_xml_world
-    assert_equal('text/xml', @controller.headers['Content-Type'])
+    assert_equal('application/xml', @controller.headers['Content-Type'])
   end
+
   def test_rendering_xml_respects_content_type
     @response.headers['Content-Type'] = 'application/pdf'
     process :hello_xml_world

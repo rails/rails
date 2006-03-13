@@ -406,7 +406,7 @@ module ActionView #:nodoc:
           body = case extension.to_sym
             when :rxml
               "xml = Builder::XmlMarkup.new(:indent => 2)\n" +
-              "@controller.headers['Content-Type'] ||= 'text/xml'\n" +
+              "@controller.headers['Content-Type'] ||= 'application/xml'\n" +
               template
             when :rjs
               "@controller.headers['Content-Type'] ||= 'text/javascript'\n" +

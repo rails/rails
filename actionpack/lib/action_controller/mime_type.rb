@@ -1,13 +1,31 @@
 module Mime
   class Type
-    def self.lookup(string)
-      LOOKUP[string]
-    end
-
-    def self.parse(accept_header)
-      accept_header.split(",").collect! do |mime_type|
-        Mime::Type.lookup(mime_type.split(";").first.strip)
+    class << self
+      def lookup(string)
+        LOOKUP[string]
       end
+
+      def parse(accept_header)
+        mime_types = accept_header.split(",").collect! do |mime_type|
+          mime_type.split(";").first.strip
+        end
+
+        reorder_xml_types!(mime_types)
+        mime_types.collect! { |mime_type| Mime::Type.lookup(mime_type) }
+      end
+      
+      private
+        def reorder_xml_types!(mime_types)
+          mime_types.delete("text/xml") if mime_types.include?("application/xml")
+
+          if index_for_generic_xml = mime_types.index("application/xml")
+            specific_xml_types = mime_types[index_for_generic_xml..-1].grep(/application\/[a-z]*\+xml/)
+
+            for specific_xml_type in specific_xml_types.reverse
+              mime_types.insert(index_for_generic_xml, mime_types.delete(specific_xml_type))
+            end
+          end
+        end
     end
     
     def initialize(string, symbol = nil, synonyms = [])
@@ -17,6 +35,10 @@ module Mime
     
     def to_s
       @string
+    end
+    
+    def to_str
+      to_s
     end
     
     def to_sym
@@ -39,7 +61,7 @@ module Mime
   ALL   = Type.new "*/*", :all
   HTML  = Type.new "text/html", :html, %w( application/xhtml+xml )
   JS    = Type.new "text/javascript", :js, %w( application/javascript application/x-javascript )
-  XML   = Type.new "application/xml", :xml, %w( application/x-xml )
+  XML   = Type.new "application/xml", :xml, %w( text/xml application/x-xml )
   RSS   = Type.new "application/rss+xml", :rss
   ATOM  = Type.new "application/atom+xml", :atom
   YAML  = Type.new "application/x-yaml", :yaml

@@ -380,4 +380,9 @@ return array.reverse();
 });
     EOS
   end
+
+  def test_class_proxy
+    @generator.form.focus('my_field')
+    assert_equal "Form.focus(\"my_field\");", @generator.to_s
+  end
 end
