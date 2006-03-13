@@ -1,5 +1,7 @@
 *SVN*
 
+* Dynamically set allow_concurrency.  #4044 [Stefan Kaes]
+
 * Added Base#to_xml that'll turn the current record into a XML representation [DHH]. Example:
 
     topic.to_xml

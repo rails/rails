@@ -310,7 +310,7 @@ module ActiveRecord #:nodoc:
     # Determines whether or not to use a connection for each thread, or a single shared connection for all threads.
     # Defaults to false. Set to true if you're writing a threaded application.
     cattr_accessor :allow_concurrency
-    @@allow_concurrency = true
+    @@allow_concurrency = false
 
     # Determines whether to speed up access by generating optimized reader
     # methods to avoid expensive calls to method_missing when accessing
@@ -1140,15 +1140,22 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def scoped_methods
-          if allow_concurrency
-            Thread.current[:scoped_methods] ||= {}
-            Thread.current[:scoped_methods][self] ||= []
-          else
-            @scoped_methods ||= []
-          end
+        def thread_safe_scoped_methods #:nodoc:
+          scoped_methods = (Thread.current[:scoped_methods] ||= {})
+          scoped_methods[self] ||= []
         end
-
+        
+        def single_threaded_scoped_methods #:nodoc:
+          @scoped_methods ||= []
+        end
+        
+        # pick up the correct scoped_methods version from @@allow_concurrency
+        if @@allow_concurrency
+          alias_method :scoped_methods, :thread_safe_scoped_methods
+        else
+          alias_method :scoped_methods, :single_threaded_scoped_methods
+        end
+        
         def current_scoped_methods
           scoped_methods.last
         end

@@ -22,15 +22,35 @@ module ActiveRecord
 
     class << self
       # Retrieve the connection cache.
-      def active_connections
-        if @@allow_concurrency
-          @@active_connections[Thread.current.object_id] ||= {}
-        else
-          @@active_connections
-        end
+      def thread_safe_active_connections #:nodoc:
+        @@active_connections[Thread.current.object_id] ||= {}
       end
-
-      @active_connection_name = nil
+     
+      def single_threaded_active_connections #:nodoc:
+        @@active_connections
+      end
+     
+      # pick up the right active_connection method from @@allow_concurrency
+      if @@allow_concurrency
+        alias_method :active_connections, :thread_safe_active_connections
+      else
+        alias_method :active_connections, :single_threaded_active_connections
+      end
+     
+      # set concurrency support flag (not thread safe, like most of the methods in this file)
+      def allow_concurrency=(threaded)
+        logger.debug "allow_concurrency=#{threaded}" if logger
+        return if @@allow_concurrency == threaded
+        clear_all_cached_connections!
+        @@allow_concurrency = threaded
+        method_prefix = threaded ? "thread_safe" : "single_threaded"
+        sing = (class << self; self; end)
+        [:active_connections, :scoped_methods].each do |method|
+          sing.send(:alias_method, method, "#{method_prefix}_#{method}")
+        end
+        log_connections if logger
+      end
+      
       def active_connection_name
         @active_connection_name ||=
            if active_connections[name] || @@defined_connections[name]
@@ -62,15 +82,19 @@ module ActiveRecord
 
       # Clears the cache which maps classes to connections.
       def clear_active_connections!
-        clear_cache!(@@active_connections)
+        clear_cache!(@@active_connections) do |name, conn|
+          conn.disconnect!
+        end
       end
 
       # Verify active connections.
       def verify_active_connections!
-        remove_stale_cached_threads!(@@active_connections) do |name, conn|
-          conn.disconnect!
+        if @@allow_concurrency
+          remove_stale_cached_threads!(@@active_connections) do |name, conn|
+            conn.disconnect!
+          end
         end
-
+        
         active_connections.each_value do |connection|
           connection.verify!(@@verification_timeout)
         end
@@ -105,6 +129,18 @@ module ActiveRecord
           stale.each do |thread_id|
             clear_cache!(cache, thread_id, &block)
           end
+        end
+        
+        def clear_all_cached_connections!
+          if @@allow_concurrency
+            @@active_connections.each_value do |connection_hash_for_thread|
+              connection_hash_for_thread.each_value {|conn| conn.disconnect! }
+              connection_hash_for_thread.clear
+            end
+          else
+            @@active_connections.each_value {|conn| conn.disconnect! }
+          end
+          @@active_connections.clear          
         end
     end
 
@@ -164,14 +200,6 @@ module ActiveRecord
           unless respond_to?(adapter_method) then raise AdapterNotFound, "database configuration specifies nonexistent #{spec[:adapter]} adapter" end
           remove_connection
           establish_connection(ConnectionSpecification.new(spec, adapter_method))
-      end
-    end
-
-    def self.active_connections #:nodoc:
-      if @@allow_concurrency
-        Thread.current['active_connections'] ||= {}
-      else
-        @@active_connections ||= {}
       end
     end
 

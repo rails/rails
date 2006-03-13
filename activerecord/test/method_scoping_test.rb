@@ -9,7 +9,7 @@ class MethodScopingTest < Test::Unit::TestCase
   
   def test_set_conditions
     Developer.with_scope(:find => { :conditions => 'just a test...' }) do
-      assert_equal 'just a test...', Thread.current[:scoped_methods][Developer][-1][:find][:conditions]
+      assert_equal 'just a test...', Developer.send(:current_scoped_methods)[:find][:conditions]
     end
   end
 
@@ -64,7 +64,7 @@ class MethodScopingTest < Test::Unit::TestCase
     new_comment = nil
 
     VerySpecialComment.with_scope(:create => { :post_id => 1 }) do
-      assert_equal({ :post_id => 1 }, Thread.current[:scoped_methods][VerySpecialComment][-1][:create])
+      assert_equal({ :post_id => 1 }, VerySpecialComment.send(:current_scoped_methods)[:create])
       new_comment = VerySpecialComment.create :body => "Wonderful world"
     end
 
@@ -123,7 +123,7 @@ class NestedScopingTest < Test::Unit::TestCase
     Developer.with_scope(:find => { :conditions => "name = 'David'" }) do
       Developer.with_exclusive_scope(:find => { :conditions => "name = 'Jamis'" }) do
         assert_equal({:find => { :conditions => "name = 'Jamis'" }}, Developer.instance_eval('current_scoped_methods'))
-        assert_equal({:find => { :conditions => "name = 'Jamis'" }}, Thread.current[:scoped_methods][Developer][-1])
+        assert_equal({:find => { :conditions => "name = 'Jamis'" }}, Developer.send(:scoped_methods)[-1])
       end
     end
   end
