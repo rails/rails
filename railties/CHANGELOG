@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't replace application.js in public/javascripts if it already exists [Cody Fauser]
+
 * Change test:uncommitted to delay execution of `svn status` by using internal Rake API's. [Nicholas Seckar]
 
 * Use require_library_or_gem to load rake in commands/server.rb.  Closes #4205.  [rob.rasmussen@gmail.com]

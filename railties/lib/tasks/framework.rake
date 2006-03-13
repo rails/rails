@@ -85,9 +85,12 @@ namespace :rails do
     end
 
     desc "Update your javascripts from your current rails install"
-    task :javascripts do 
+    task :javascripts do
       require 'railties_path'  
-      FileUtils.cp(Dir[RAILTIES_PATH + '/html/javascripts/*.js'], RAILS_ROOT + '/public/javascripts/')
+      project_dir = RAILS_ROOT + '/public/javascripts/'
+      scripts = Dir[RAILTIES_PATH + '/html/javascripts/*.js']
+      scripts.reject!{|s| File.basename(s) == 'application.js'} if File.exists?(project_dir + 'application.js')
+      FileUtils.cp(scripts, project_dir)
     end
   end
 end
