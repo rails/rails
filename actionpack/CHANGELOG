@@ -1,5 +1,9 @@
 *SVN*
 
+* Avoid hitting the filesystem when using layouts by using a File.directory? cache. [Stefan Kaes, Nicholas Seckar]
+
+* Simplify ActionController::Base#controller_path [Nicholas Seckar]
+
 * Added simple alert() notifications for RJS exceptions when config.action_view.debug_rjs = true. [Sam Stephenson]
 
 * Added :content_type option to render, so you can change the content type on the fly [DHH]. Example: render :action => "atom.rxml", :content_type => "application/atom+xml"

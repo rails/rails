@@ -192,6 +192,12 @@ module ActionController #:nodoc:
         def normalize_conditions(conditions)
           conditions.inject({}) {|hash, (key, value)| hash.merge(key => [value].flatten.map {|action| action.to_s})}
         end
+        
+        def layout_directory_exists_cache
+          @@layout_directory_exists_cache ||= Hash.new do |h, dirname|
+            h[dirname] = File.directory? dirname
+          end
+        end
     end
 
     # Returns the name of the active layout. If the layout was specified as a method reference (through a symbol), this method
@@ -202,16 +208,21 @@ module ActionController #:nodoc:
       layout = passed_layout || self.class.read_inheritable_attribute("layout")
 
       active_layout = case layout
+        when String then layout
         when Symbol then send(layout)
         when Proc   then layout.call(self)
-        when String then layout
       end
       
       # Explicitly passed layout names with slashes are looked up relative to the template root,
       # but auto-discovered layouts derived from a nested controller will contain a slash, though be relative
       # to the 'layouts' directory so we have to check the file system to infer which case the layout name came from.
-      nested_controller = File.directory?(File.dirname(File.join(self.class.template_root, 'layouts', active_layout))) if active_layout
-      active_layout.include?('/') && !nested_controller ? active_layout : "layouts/#{active_layout}" if active_layout
+      if active_layout
+        if active_layout.include?('/') && ! layout_directory?(active_layout)
+          active_layout
+        else
+          "layouts/#{active_layout}"
+        end
+      end
     end
 
     def render_with_a_layout(options = nil, deprecated_status = nil, deprecated_layout = nil, &block) #:nodoc:
@@ -279,6 +290,14 @@ module ActionController #:nodoc:
         else
           true
         end
+      end
+      
+      # Does a layout directory for this class exist?
+      # we cache this info in a class level hash
+      def layout_directory?(layout_name)
+        template_path = File.join(self.class.view_root, 'layouts', layout_name)
+        dirname = File.dirname(template_path)
+        self.class.send(:layout_directory_exists_cache)[dirname]
       end
   end
 end

@@ -348,13 +348,7 @@ module ActionController #:nodoc:
       
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "one_module/two_module/neat".
       def controller_path
-        unless @controller_path
-          components = self.name.to_s.split('::')
-          components[-1] = $1 if /^(.*)Controller$/ =~ components.last
-          @controller_path = components.map { |name| name.underscore }.join('/')
-        end
-
-        @controller_path
+        @controller_path ||= name.gsub(/Controller$/, '').underscore
       end
 
       # Return an array containing the names of public methods that have been marked hidden from the action processor.
