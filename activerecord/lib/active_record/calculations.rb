@@ -151,6 +151,7 @@ module ActiveRecord
         add_conditions!(sql, options[:conditions])
         sql << " GROUP BY #{options[:group_field]}" if options[:group]
         sql << " HAVING #{options[:having]}" if options[:group] && options[:having]
+        sql << " ORDER BY #{options[:order]}" if options[:order]
         sql.join
       end
 

@@ -37,6 +37,17 @@ class CalculationsTest < Test::Unit::TestCase
     assert_equal 60,   c[2]
   end
 
+  def test_should_order_by_grouped_field
+    c = Account.sum(:credit_limit, :group => :firm_id, :order => "firm_id")
+    assert_equal [nil, 1, 2, 6], c.keys
+  end
+
+  def test_should_order_by_calculation
+    c = Account.sum(:credit_limit, :group => :firm_id, :order => "sum_credit_limit desc, firm_id")
+    assert_equal [105, 60, 50, 50], c.keys.collect { |k| c[k] }
+    assert_equal [6, 2, nil, 1], c.keys
+  end
+
   def test_should_group_by_summed_field_having_condition
     c = Account.sum(:credit_limit, :group => :firm_id, 
                                    :having => 'sum(credit_limit) > 50')
