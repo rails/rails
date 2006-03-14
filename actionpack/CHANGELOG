@@ -1,5 +1,7 @@
 *SVN*
 
+* Make the xml_http_request testing method set the HTTP_ACCEPT header [Jamis Buck]
+
 * Add Verification to scaffolds.   Prevent destructive actions using GET [Michael Koziarski]
 
 * Avoid hitting the filesystem when using layouts by using a File.directory? cache. [Stefan Kaes, Nicholas Seckar]
