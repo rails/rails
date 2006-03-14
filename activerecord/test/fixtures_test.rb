@@ -11,7 +11,7 @@ class FixturesTest < Test::Unit::TestCase
   self.use_instantiated_fixtures = true
   self.use_transactional_fixtures = false
 
-  fixtures :topics, :developers, :accounts, :tasks, :categories
+  fixtures :topics, :developers, :accounts, :tasks, :categories, :funny_jokes
 
   FIXTURES = %w( accounts companies customers
                  developers developers_projects entrants

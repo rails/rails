@@ -1,5 +1,7 @@
 *SVN*
 
+* Catch FixtureClassNotFound when using instantiated fixtures on a fixture that has no ActiveRecord model [Rick Olson]
+
 * Allow ordering of calculated results and/or grouped fields in calculations [solo@gatelys.com]
 
 * Dynamically set allow_concurrency.  #4044 [Stefan Kaes]
