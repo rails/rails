@@ -1,5 +1,7 @@
 *SVN*
 
+* Add verification to generated scaffolds,  don't allow get for unsafe actions [Michael Koziarski]
+
 * Don't replace application.js in public/javascripts if it already exists [Cody Fauser]
 
 * Change test:uncommitted to delay execution of `svn status` by using internal Rake API's. [Nicholas Seckar]
