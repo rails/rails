@@ -1,5 +1,7 @@
 *SVN*
 
+* Underscore dasherized keys in formatted requests [Jamis Buck]
+
 * Add MimeResponds::Responder#any for managing multiple types with identical responses [Jamis Buck]
 
 * Make the xml_http_request testing method set the HTTP_ACCEPT header [Jamis Buck]

@@ -36,7 +36,7 @@ module ActionController #:nodoc:
           @responses[mime_type] = block
         else
           if argument = args.first
-            eval("__mime_responder_arg__ = " + (argument.is_a?(String) ? "'" + argument + "'" : argument), @block_binding)
+            eval("__mime_responder_arg__ = #{argument.is_a?(String) ? argument.inspect : argument}", @block_binding)
             @responses[mime_type] = eval(DEFAULT_BLOCKS[(mime_type.to_sym.to_s + "_arg").to_sym], @block_binding)
           else
             @responses[mime_type] = eval(DEFAULT_BLOCKS[mime_type.to_sym], @block_binding)

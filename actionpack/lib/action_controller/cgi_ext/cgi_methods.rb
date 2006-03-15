@@ -71,13 +71,25 @@ class CGIMethods #:nodoc:
           { node.node_name => node }
       end
       
-      params || {}
+      dasherize_keys(params || {})
     rescue Object => e
       { "exception" => "#{e.message} (#{e.class})", "backtrace" => e.backtrace, 
         "raw_post_data" => raw_post_data, "format" => mime_type }
     end
 
   private
+
+    def self.dasherize_keys(params)
+       case params.class.to_s
+       when "Hash"
+         params.inject({}) do |h,(k,v)|
+           h[k.tr("-", "_")] = dasherize_keys(v)
+           h
+         end
+       else
+         params
+       end
+    end
 
     # Splits the given key into several pieces. Example keys are 'name', 'person[name]',
     # 'person[name][first]', and 'people[]'. In each instance, an Array instance is returned.

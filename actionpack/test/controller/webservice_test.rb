@@ -19,7 +19,20 @@ class WebServiceTest < Test::Unit::TestCase
     session :off
 
     def assign_parameters
-      render :text => (@params.keys - ['controller', 'action']).sort.join(", ")
+      if params[:full]
+        render :text => dump_params_keys
+      else
+        render :text => (params.keys - ['controller', 'action']).sort.join(", ")
+      end
+    end
+
+    def dump_params_keys(hash=params)
+      hash.keys.sort.inject("") do |s, k|
+        value = hash[k]
+        value = Hash === value ? "(#{dump_params_keys(value)})" : ""
+        s << ", " unless s.empty?
+        s << "#{k}#{value}"
+      end
     end
 
     def rescue_action(e) raise end
@@ -88,16 +101,28 @@ class WebServiceTest < Test::Unit::TestCase
     assert_equal true, @controller.request.yaml_post?
     assert_equal false, @controller.request.xml_post?    
   end
+
+  def test_dasherized_keys_as_xml
+    ActionController::Base.param_parsers[Mime::XML] = :xml_simple
+    process('POST', 'application/xml', "<first-key>\n<sub-key>...</sub-key>\n</first-key>", true)
+    assert_equal 'action, controller, first_key(sub_key), full', @controller.response.body
+  end
+
+  def test_dasherized_keys_as_yaml
+    ActionController::Base.param_parsers[Mime::YAML] = :yaml
+    process('POST', 'application/x-yaml', "---\nfirst-key:\n  sub-key: ...\n", true)
+    assert_equal 'action, controller, first_key(sub_key), full', @controller.response.body
+  end
   
   
   private  
   
-  def process(verb, content_type = 'application/x-www-form-urlencoded', data = '')
+  def process(verb, content_type = 'application/x-www-form-urlencoded', data = '', full=false)
     
     cgi = MockCGI.new({
       'REQUEST_METHOD' => verb,
       'CONTENT_TYPE'   => content_type,
-      'QUERY_STRING'   => "action=assign_parameters&controller=webservicetest/test",
+      'QUERY_STRING'   => "action=assign_parameters&controller=webservicetest/test#{"&full=1" if full}",
       "REQUEST_URI"    => "/",
       "HTTP_HOST"      => 'testdomain.com',
       "CONTENT_LENGTH" => data.size,
