@@ -12,7 +12,7 @@ module ActiveSupport #:nodoc:
         
         XML_FORMATTING = {
           "date"     => Proc.new { |date| date.to_s(:db) },
-          "datetime" => Proc.new { |time| time.to_s(:db) }
+          "datetime" => Proc.new { |time| time.xmlschema }
         }
         
         def to_xml(options = {})

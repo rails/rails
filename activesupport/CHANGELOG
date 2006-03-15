@@ -1,5 +1,7 @@
 *SVN*
 
+* Switched to_xml to use the xml schema format for datetimes.  This allows the encoding of time zones and should improve operability. [Koz]
+
 * Added a note to the documentation for the Date related Numeric extensions to indicate that they're
 approximations and shouldn't be used for critical calculations. [Koz]
 
