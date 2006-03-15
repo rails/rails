@@ -241,7 +241,7 @@ module ActionController
                 return controller, (index - start_at)
               end
             rescue NameError => e
-              raise unless /^uninitialized constant #{controller_name}$/ =~ e.message
+              raise unless /^uninitialized constant .*#{controller_name}$/ =~ e.message                            
             end
             
             begin
@@ -249,7 +249,8 @@ module ActionController
               # Check that we didn't get a module from a parent namespace
               mod = (mod == Object || next_mod.name == "#{mod.name}::#{mod_name}") ? next_mod : nil
             rescue NameError => e
-              raise unless /^uninitialized constant #{mod_name}$/ =~ e.message
+              breakpoint
+              raise unless /^uninitialized constant .*#{mod_name}$/ =~ e.message
             end
             
             return nil unless mod
