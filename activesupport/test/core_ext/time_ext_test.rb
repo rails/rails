@@ -188,4 +188,8 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
   def test_last_month_on_31st
     assert_equal Time.local(2004, 2, 29), Time.local(2004, 3, 31).last_month
   end
+  
+  def test_xmlschema_is_available
+    assert_nothing_raised { Time.now.xmlschema }
+  end
 end
