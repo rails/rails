@@ -1,5 +1,7 @@
 *SVN*
 
+* Add MimeResponds::Responder#any for managing multiple types with identical responses [Jamis Buck]
+
 * Make the xml_http_request testing method set the HTTP_ACCEPT header [Jamis Buck]
 
 * Add Verification to scaffolds.   Prevent destructive actions using GET [Michael Koziarski]

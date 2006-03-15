@@ -51,6 +51,10 @@ module ActionController #:nodoc:
           end
         EOT
       end
+
+      def any(*args, &block)
+        args.each { |type| send(type, &block) }
+      end
       
       def respond
         for priority in @mime_type_priority

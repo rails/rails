@@ -64,6 +64,13 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def handle_any
+    respond_to do |type|
+      type.html { render :text => "HTML" }
+      type.any(:js, :xml) { render :text => "Either JS or XML" }
+    end
+  end
+
   def rescue_action(e)
     raise unless ActionController::MissingTemplate === e
   end
@@ -194,5 +201,19 @@ class MimeControllerTest < Test::Unit::TestCase
     @request.env["HTTP_ACCEPT"] = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
     get :html_or_xml
     assert_equal 'HTML', @response.body
+  end
+
+  def test_handle_any
+    @request.env["HTTP_ACCEPT"] = "*/*"
+    get :handle_any
+    assert_equal 'HTML', @response.body
+
+    @request.env["HTTP_ACCEPT"] = "text/javascript"
+    get :handle_any
+    assert_equal 'Either JS or XML', @response.body
+
+    @request.env["HTTP_ACCEPT"] = "text/xml"
+    get :handle_any
+    assert_equal 'Either JS or XML', @response.body
   end
 end
