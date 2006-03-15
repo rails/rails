@@ -302,4 +302,10 @@ class InflectorTest < Test::Unit::TestCase
       assert_equal(dasherized, Inflector.dasherize(underscored))
     end
   end
+
+  def test_underscore_as_reverse_of_dasherize
+    UnderscoresToDashes.each do |underscored, dasherized|
+      assert_equal(underscored, Inflector.underscore(Inflector.dasherize(underscored)))
+    end
+  end
 end

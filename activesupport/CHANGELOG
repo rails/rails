@@ -1,5 +1,7 @@
 *SVN*
 
+* Enhance Inflector.underscore to convert '-' into '_' (as the inverse of Inflector.dasherize) [Jamis Buck]
+
 * Switched to_xml to use the xml schema format for datetimes.  This allows the encoding of time zones and should improve operability. [Koz]
 
 * Added a note to the documentation for the Date related Numeric extensions to indicate that they're
