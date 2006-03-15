@@ -42,7 +42,7 @@ module Mime
     end
     
     def to_sym
-      @symbol || to_sym
+      @symbol || @string.to_sym
     end
 
     def ===(list)
@@ -64,7 +64,7 @@ module Mime
   XML   = Type.new "application/xml", :xml, %w( text/xml application/x-xml )
   RSS   = Type.new "application/rss+xml", :rss
   ATOM  = Type.new "application/atom+xml", :atom
-  YAML  = Type.new "application/x-yaml", :yaml
+  YAML  = Type.new "application/x-yaml", :yaml, %w( text/yaml )
 
   LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) }
 
@@ -81,7 +81,9 @@ module Mime
   LOOKUP["application/javascript"]   = JS
   LOOKUP["application/x-javascript"] = JS
 
+  LOOKUP["text/yaml"]                = YAML
+  LOOKUP["application/x-yaml"]       = YAML
+
   LOOKUP["application/rss+xml"]      = RSS
   LOOKUP["application/atom+xml"]     = ATOM
-  LOOKUP["application/x-yaml"]       = YAML
 end
