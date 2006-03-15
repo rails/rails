@@ -8,7 +8,7 @@ CREATE TABLE accounts (
 );
 
 CREATE TABLE funny_jokes (
-  id serial
+  id serial,
   name character varying(50)
 );
 
