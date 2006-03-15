@@ -1156,14 +1156,16 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_to_xml
     xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true)
+    bonus_time_in_current_timezone = topics(:first).bonus_time.xmlschema
+    written_on_in_current_timezone = topics(:first).written_on.xmlschema
     assert_equal "<topic>", xml.first(7)
     assert xml.include?(%(<title>The First Topic</title>))
     assert xml.include?(%(<author-name>David</author-name>))
     assert xml.include?(%(<id type="integer">1</id>))
     assert xml.include?(%(<approved type="boolean">false</approved>)), "Approved should be a boolean"
     assert xml.include?(%(<replies-count type="integer">0</replies-count>))
-    assert xml.include?(%(<bonus-time type="datetime">2000-01-01 08:28:00</bonus-time>))
-    assert xml.include?(%(<written-on type="datetime">2003-07-16 09:28:00</written-on>))
+    assert xml.include?(%(<bonus-time type="datetime">#{bonus_time_in_current_timezone}</bonus-time>))
+    assert xml.include?(%(<written-on type="datetime">#{written_on_in_current_timezone}</written-on>))
     assert xml.include?(%(<content>Have a nice day</content>))
     assert xml.include?(%(<author-email-address>david@loudthinking.com</author-email-address>))
     assert xml.include?(%(<parent-id></parent-id>))

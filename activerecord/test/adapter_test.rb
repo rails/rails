@@ -53,7 +53,7 @@ class AdapterTest < Test::Unit::TestCase
 
       sub = Subscriber.new(:name => 'robert drake')
       sub.id = 'bob drake'
-      assert sub.save!
+      assert_nothing_raised { sub.save! }
     end
   end
 end
