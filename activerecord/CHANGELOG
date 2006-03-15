@@ -4,6 +4,8 @@
 
 * Allow ordering of calculated results and/or grouped fields in calculations [solo@gatelys.com]
 
+* Make ActiveRecord::Base#save! return true instead of nil on success.  #4173 [johan@johansorensen.com]
+
 * Dynamically set allow_concurrency.  #4044 [Stefan Kaes]
 
 * Added Base#to_xml that'll turn the current record into a XML representation [DHH]. Example:

@@ -1305,7 +1305,7 @@ module ActiveRecord #:nodoc:
       # Attempts to save the record, but instead of just returning false if it couldn't happen, it raises a 
       # RecordNotSaved exception
       def save!
-        raise RecordNotSaved unless save
+        save || raise(RecordNotSaved)
       end
 
       # Deletes the record in the database and freezes this instance to reflect that no changes should

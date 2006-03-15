@@ -136,6 +136,11 @@ class BasicsTest < Test::Unit::TestCase
     topic_reloaded = Topic.find(topic.id)
     assert_equal("New Topic", topic_reloaded.title)
   end
+  
+  def test_save!
+    topic = Topic.new(:title => "New Topic")
+    assert topic.save!
+  end
     
   def test_hashes_not_mangled
     new_topic = { :title => "New Topic" }
