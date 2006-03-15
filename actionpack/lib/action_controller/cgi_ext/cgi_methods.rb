@@ -74,7 +74,7 @@ class CGIMethods #:nodoc:
       params || {}
     rescue Object => e
       { "exception" => "#{e.message} (#{e.class})", "backtrace" => e.backtrace, 
-        "raw_post_data" => raw_post_data, "format" => format }
+        "raw_post_data" => raw_post_data, "format" => mime_type }
     end
 
   private
