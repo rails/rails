@@ -330,9 +330,27 @@ class CGIRequestTest < Test::Unit::TestCase
     
     @request_hash['HTTP_X_FORWARDED_HOST'] = "www.firsthost.org, www.secondhost.org"
     assert_equal "www.secondhost.org", @request.host
-    
   end
   
+  def test_http_host_with_default_port_overrides_server_port
+    @request_hash.delete "HTTP_X_FORWARDED_HOST"
+    @request_hash['HTTP_HOST'] = "rubyonrails.org"
+    assert_equal "rubyonrails.org", @request.host_with_port
+  end
+
+  def test_host_with_port_defaults_to_server_name_if_no_host_headers
+    @request_hash.delete "HTTP_X_FORWARDED_HOST"
+    @request_hash.delete "HTTP_HOST"
+    assert_equal "glu.ttono.us:8007", @request.host_with_port
+  end
+
+  def test_host_with_port_falls_back_to_server_addr_if_necessary
+    @request_hash.delete "HTTP_X_FORWARDED_HOST"
+    @request_hash.delete "HTTP_HOST"
+    @request_hash.delete "SERVER_NAME"
+    assert_equal "207.7.108.53:8007", @request.host_with_port
+  end
+
   def test_cookie_syntax_resilience
     cookies = CGI::Cookie::parse(@request_hash["HTTP_COOKIE"]);
     assert_equal ["c84ace84796670c052c6ceb2451fb0f2"], cookies["_session_id"]
@@ -342,5 +360,4 @@ class CGIRequestTest < Test::Unit::TestCase
     assert_equal ["c84ace84796670c052c6ceb2451fb0f2"], alt_cookies["_session_id"]
     assert_equal ["yes"], alt_cookies["is_admin"]
   end
-  
 end

@@ -75,22 +75,28 @@ module ActionController #:nodoc:
       @cgi.cookies.freeze
     end
 
+    def host_with_port
+      if forwarded = env["HTTP_X_FORWARDED_HOST"]
+        forwarded.split(/,\s?/).last
+      elsif http_host = env['HTTP_HOST']
+        http_host
+      elsif server_name = env['SERVER_NAME']
+        server_name
+      else
+        "#{env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
+      end
+    end
+
     def host
-      if @env["HTTP_X_FORWARDED_HOST"] 
-        @env["HTTP_X_FORWARDED_HOST"].split(/,\s?/).last
-      elsif @env['HTTP_HOST'] =~ /^(.*):\d+$/
-        $1
-      else 
-        @cgi.host.to_s.split(":").first || ''
-      end 
+      host_with_port[/^[^:]+/]
     end
-    
+
     def port
-      @env["HTTP_X_FORWARDED_HOST"] ? standard_port : (port_from_http_host || super)
-    end
-    
-    def port_from_http_host
-      $1.to_i if @env['HTTP_HOST'] && /:(\d+)$/ =~ @env['HTTP_HOST']
+      if host_with_port =~ /:(\d+)$/
+        $1.to_i
+      else
+        standard_port
+      end
     end
 
     def session
