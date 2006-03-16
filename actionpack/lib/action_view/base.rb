@@ -221,7 +221,7 @@ module ActionView #:nodoc:
       @first_render      = template_path if @first_render.nil?
 
       if use_full_path
-        template_path_without_extension, template_extension = template_path.split('.')
+        template_path_without_extension, template_extension = path_and_extension(template_path)
 
         if template_extension
           template_file_name = full_template_path(template_path_without_extension, template_extension)
@@ -335,7 +335,7 @@ module ActionView #:nodoc:
     end
 
     def file_exists?(template_path)#:nodoc:
-      template_file_name, template_file_extension = template_path.split(".")
+      template_file_name, template_file_extension = path_and_extension(template_path)
       
       if template_file_extension
         template_exists?(template_file_name, template_file_extension)
@@ -359,6 +359,11 @@ module ActionView #:nodoc:
       def template_exists?(template_path, extension)
         file_path = full_template_path(template_path, extension)
         @@method_names.has_key?(file_path) || FileTest.exists?(file_path)
+      end
+
+      def path_and_extension(template_path)
+        template_path_without_extension = template_path.sub(/\.(\w+)$/, '')
+        [ template_path_without_extension, $1 ]
       end
 
       # This method reads a template file.
