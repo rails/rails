@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Time#advance to do precise time time calculations for cases where a month being approximated to 30 days won't do #1860 [Rick Olson]
+
 * Enhance Inflector.underscore to convert '-' into '_' (as the inverse of Inflector.dasherize) [Jamis Buck]
 
 * Switched to_xml to use the xml schema format for datetimes.  This allows the encoding of time zones and should improve operability. [Koz]

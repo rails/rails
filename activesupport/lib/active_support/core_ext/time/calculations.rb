@@ -44,6 +44,15 @@ module ActiveSupport #:nodoc:
             options[:usec]  || ((options[:hour] || options[:min] || options[:sec]) ? 0 : self.usec)
           )
         end
+        
+        # Uses Date to provide precise Time calculations for years, months, and days.  The +options+ parameter takes a hash with 
+        # any of these keys: :months, :days, :years.
+        def advance(options)
+          d = ::Date.new(year + (options.delete(:years) || 0), month, day)
+          d = d >> options.delete(:months) if options[:months]
+          d = d +  options.delete(:days)   if options[:days]
+          change(options.merge(:year => d.year, :month => d.month, :mday => d.day))
+        end
 
         # Returns a new Time representing the time a number of seconds ago, this is basically a wrapper around the Numeric extension
         # Do not use this method in combination with x.months, use months_ago instead!
