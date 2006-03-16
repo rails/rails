@@ -1,5 +1,11 @@
 *SVN*
 
+* Alias the has_and_belongs_to_many join table on eager includes. #4106 [jeremyevans0@gmail.com]
+
+  This statement would normally error because the projects_developers table is joined twice, and therefore joined_on would be ambiguous.
+
+    Developer.find(:all, :include => {:projects => :developers}, :conditions => 'join_project_developers.joined_on IS NOT NULL')
+
 * Oracle adapter gets some love #4230 [schoenm@earthlink.net]
 
     * Changes :text to CLOB rather than BLOB [Moses Hohman]

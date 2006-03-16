@@ -1469,4 +1469,8 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
       AND developer_id = #{developer.id}
     end_sql
   end
+
+  def test_join_table_alias
+    assert_equal 3, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'join_project_developers.joined_on IS NOT NULL').size
+  end
 end
