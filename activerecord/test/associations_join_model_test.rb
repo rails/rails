@@ -69,13 +69,72 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   end
 
   def test_create_polymorphic_has_many_with_scope
-    tagging = posts(:welcome).taggings.create(:tag => tags(:general))
+    old_count = posts(:welcome).taggings.count
+    tagging = posts(:welcome).taggings.create(:tag => tags(:misc))
     assert_equal "Post", tagging.taggable_type
+    assert_equal old_count+1, posts(:welcome).taggings.count
   end
 
   def test_create_polymorphic_has_one_with_scope
-    tagging = posts(:welcome).tagging.create(:tag => tags(:general))
+    old_count = Tagging.count
+    tagging = posts(:welcome).tagging.create(:tag => tags(:misc))
     assert_equal "Post", tagging.taggable_type
+    assert_equal old_count+1, Tagging.count
+  end
+
+  def test_delete_polymorphic_has_many_with_delete_all
+    assert_equal 1, posts(:welcome).taggings.count
+    posts(:welcome).taggings.first.update_attribute :taggable_type, 'PostWithHasManyDeleteAll'
+    post = find_post_with_dependency(1, :has_many, :taggings, :delete_all)
+
+    old_count = Tagging.count
+    post.destroy
+    assert_equal old_count-1, Tagging.count
+    assert_equal 0, posts(:welcome).taggings.count
+  end
+
+  def test_delete_polymorphic_has_many_with_destroy
+    assert_equal 1, posts(:welcome).taggings.count
+    posts(:welcome).taggings.first.update_attribute :taggable_type, 'PostWithHasManyDestroy'
+    post = find_post_with_dependency(1, :has_many, :taggings, :destroy)
+
+    old_count = Tagging.count
+    post.destroy
+    assert_equal old_count-1, Tagging.count
+    assert_equal 0, posts(:welcome).taggings.count
+  end
+
+  def test_delete_polymorphic_has_many_with_nullify
+    assert_equal 1, posts(:welcome).taggings.count
+    posts(:welcome).taggings.first.update_attribute :taggable_type, 'PostWithHasManyNullify'
+    post = find_post_with_dependency(1, :has_many, :taggings, :nullify)
+
+    old_count = Tagging.count
+    post.destroy
+    assert_equal old_count, Tagging.count
+    assert_equal 0, posts(:welcome).taggings.count
+  end
+
+  def test_delete_polymorphic_has_one_with_destroy
+    assert posts(:welcome).tagging
+    posts(:welcome).tagging.update_attribute :taggable_type, 'PostWithHasOneDestroy'
+    post = find_post_with_dependency(1, :has_one, :tagging, :destroy)
+
+    old_count = Tagging.count
+    post.destroy
+    assert_equal old_count-1, Tagging.count
+    assert_nil posts(:welcome).tagging(true)
+  end
+
+  def test_delete_polymorphic_has_one_with_nullify
+    assert posts(:welcome).tagging
+    posts(:welcome).tagging.update_attribute :taggable_type, 'PostWithHasOneNullify'
+    post = find_post_with_dependency(1, :has_one, :tagging, :nullify)
+
+    old_count = Tagging.count
+    post.destroy
+    assert_equal old_count, Tagging.count
+    assert_nil posts(:welcome).tagging(true)
   end
 
   def test_has_many_with_piggyback
@@ -139,4 +198,15 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     tagging.destroy
     assert posts(:welcome, :reload)[:taggings_count].zero?
   end
+
+  private
+    # create dynamic Post models to allow different dependency options
+    def find_post_with_dependency(post_id, association, association_name, dependency)
+      class_name = "PostWith#{association.to_s.classify}#{dependency.to_s.classify}"
+      Post.find(post_id).update_attribute :type, class_name
+      klass = Object.const_set(class_name, Class.new(ActiveRecord::Base))
+      klass.set_table_name 'posts'
+      klass.send(association, association_name, :as => :taggable, :dependent => dependency)
+      klass.find(post_id)
+    end
 end

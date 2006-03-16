@@ -118,10 +118,11 @@ module ActiveRecord
 
       def primary_key_name
         return @primary_key_name if @primary_key_name
-        
-        case macro
-          when :belongs_to
+        case
+          when macro == :belongs_to
             @primary_key_name = options[:foreign_key] || class_name.foreign_key
+          when options[:as]
+            @primary_key_name = options[:foreign_key] || "#{options[:as]}_id"
           else
             @primary_key_name = options[:foreign_key] || active_record.name.foreign_key
         end

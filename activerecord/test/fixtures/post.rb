@@ -18,7 +18,7 @@ class Post < ActiveRecord::Base
   has_many :special_comments
 
   has_and_belongs_to_many :categories
-  has_and_belongs_to_many :special_categories, :join_table => "categories_posts"
+  has_and_belongs_to_many :special_categories, :join_table => "categories_posts", :association_foreign_key => 'category_id'
 
   has_many :taggings, :as => :taggable
   has_many :tags, :through => :taggings

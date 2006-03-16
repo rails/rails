@@ -1,5 +1,11 @@
 *SVN*
 
+* Allow :dependent options to be used with polymorphic joins. #3820 [Rick Olson]
+
+    class Foo < ActiveRecord::Base
+      has_many :attachments, :as => :attachable, :dependent => :delete_all
+    end
+
 * Upgrade to Transaction::Simple 1.3 [Jamis Buck]
 
 * Catch FixtureClassNotFound when using instantiated fixtures on a fixture that has no ActiveRecord model [Rick Olson]

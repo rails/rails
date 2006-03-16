@@ -9,3 +9,9 @@ thinking_general:
   tag_id: 1
   taggable_id: 2
   taggable_type: Post
+
+fake: 
+  id: 3
+  tag_id: 1
+  taggable_id: 1
+  taggable_type: FakeModel

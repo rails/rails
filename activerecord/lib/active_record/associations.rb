@@ -485,7 +485,7 @@ module ActiveRecord
                 
                 if association.updated?
                   self["#{reflection.primary_key_name}"] = association.id
-                  self["#{reflection.options[:foreign_type]}"] = ActiveRecord::Base.send(:class_name_of_active_record_descendant, association.class).to_s
+                  self["#{reflection.options[:foreign_type]}"] = association.class.base_class.name.to_s
                 end
               end
             EOF
@@ -811,13 +811,20 @@ module ActiveRecord
 
           # See HasManyAssociation#delete_records.  Dependent associations
           # delete children, otherwise foreign key is set to NULL.
+
+          # Add polymorphic type if the :as option is present
+          dependent_conditions = %(#{reflection.primary_key_name} = \#{record.quoted_id})
+          if reflection.options[:as]
+            dependent_conditions += " AND #{reflection.options[:as]}_type = '#{base_class.name}'"
+          end
+
           case reflection.options[:dependent]
             when :destroy, true  
               module_eval "before_destroy '#{reflection.name}.each { |o| o.destroy }'"
             when :delete_all
-              module_eval "before_destroy { |record| #{reflection.class_name}.delete_all(%(#{reflection.primary_key_name} = \#{record.quoted_id})) }"
+              module_eval "before_destroy { |record| #{reflection.class_name}.delete_all(%(#{dependent_conditions})) }"
             when :nullify
-              module_eval "before_destroy { |record| #{reflection.class_name}.update_all(%(#{reflection.primary_key_name} = NULL),  %(#{reflection.primary_key_name} = \#{record.quoted_id})) }"
+              module_eval "before_destroy { |record| #{reflection.class_name}.update_all(%(#{reflection.primary_key_name} = NULL),  %(#{dependent_conditions})) }"
             when nil, false
               # pass
             else
