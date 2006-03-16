@@ -108,7 +108,8 @@ begin
           when /char/i                          : :string
           when /num|float|double|dec|real|int/i : @scale == 0 ? :integer : :float
           when /date|time/i                     : @name =~ /_at$/ ? :time : :datetime
-          when /lob/i                           : :binary
+          when /clob/i                           : :text
+          when /blob/i                           : :binary
           end
         end
 
@@ -178,7 +179,7 @@ begin
           {
             :primary_key => "NUMBER(38) NOT NULL PRIMARY KEY",
             :string      => { :name => "VARCHAR2", :limit => 255 },
-            :text        => { :name => "BLOB" },
+            :text        => { :name => "CLOB" },
             :integer     => { :name => "NUMBER", :limit => 38 },
             :float       => { :name => "NUMBER" },
             :datetime    => { :name => "DATE" },
@@ -316,6 +317,10 @@ begin
         #
         # see: abstract/schema_statements.rb
 
+        def current_database #:nodoc:
+          select_one("select sys_context('userenv','db_name') db from dual")["db"]
+        end
+
         def tables(name = nil) #:nodoc:
           select_all("select lower(table_name) from user_tables").inject([]) do | tabs, t |
             tabs << t.to_a.first.last
@@ -368,8 +373,8 @@ begin
               oracle_downcase(row['column_name']),
               row['data_default'],
               row['data_type'],
-              row['length'].to_i,
-              row['scale'].to_i,
+              (l = row['length']).nil? ? nil : l.to_i,
+              (s = row['scale']).nil? ? nil : s.to_i,
               row['nullable'] == 'Y'
             )
           end
@@ -509,6 +514,12 @@ begin
         case do_ocicall(@ctx) { @parms[i - 1].attrGet(OCI_ATTR_DATA_TYPE) }
         when 8    : @stmt.defineByPos(i, String, 65535) # Read LONG values
         when 187  : @stmt.defineByPos(i, OraDate) # Read TIMESTAMP values
+        when 108
+          if @parms[i - 1].attrGet(OCI_ATTR_TYPE_NAME) == 'XMLTYPE'
+            @stmt.defineByPos(i, String, 65535)
+          else
+            raise 'unsupported datatype'
+          end
         else define_a_column_pre_ar i
         end
       end

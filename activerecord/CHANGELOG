@@ -1,5 +1,13 @@
 *SVN*
 
+* Oracle adapter gets some love #4230 [schoenm@earthlink.net]
+
+    * Changes :text to CLOB rather than BLOB [Moses Hohman]
+    * Fixes an issue with nil numeric length/scales (several)
+    * Implements support for XMLTYPE columns [wilig / Kubo Takehiro]
+    * Tweaks a unit test to get it all green again
+    * Adds support for #current_database
+
 * Added Base.abstract_class? that marks which classes are not part of the Active Record hierarchy #3704 [Rick Olson]
 
     class CachedModel < ActiveRecord::Base
