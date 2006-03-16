@@ -20,7 +20,7 @@ module ActiveSupport #:nodoc:
           options.reverse_merge!({ :builder => Builder::XmlMarkup.new(:indent => options[:indent]), :root => "hash" })
           options[:builder].instruct! unless options.delete(:skip_instruct)
 
-          options[:builder].__send__(options[:root]) do
+          options[:builder].__send__(options[:root].to_s.dasherize) do
             for key in keys
               value = self[key]
 
