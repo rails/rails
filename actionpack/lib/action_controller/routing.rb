@@ -249,7 +249,6 @@ module ActionController
               # Check that we didn't get a module from a parent namespace
               mod = (mod == Object || next_mod.name == "#{mod.name}::#{mod_name}") ? next_mod : nil
             rescue NameError => e
-              breakpoint
               raise unless /^uninitialized constant .*#{mod_name}$/ =~ e.message
             end
             
