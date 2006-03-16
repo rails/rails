@@ -4,6 +4,9 @@ class Author < ActiveRecord::Base
   has_many :posts_with_categories, :include => :categories, :class_name => "Post"
   has_many :posts_with_comments_and_categories, :include => [ :comments, :categories ], :order => "posts.id", :class_name => "Post"
 
+  has_many :special_posts, :class_name => "Post"
+  has_many :hello_posts, :class_name => "Post", :conditions=>"\#{aliased_table_name}.body = 'hello'"
+  has_many :nonexistent_posts, :class_name => "Post", :conditions=>"\#{aliased_table_name}.body = 'nonexistent'"
   has_many :posts_with_callbacks, :class_name => "Post", :before_add => :log_before_adding,
            :after_add => :log_after_adding, :before_remove => :log_before_removing,
            :after_remove => :log_after_removing

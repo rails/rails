@@ -17,3 +17,7 @@ general_sti_habtm:
 sti_test_sti_habtm:
   category_id: 3
   post_id: 6
+
+general_hello:
+  category_id: 1
+  post_id: 4

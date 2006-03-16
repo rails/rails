@@ -73,7 +73,7 @@ module ActiveRecord
             else
               @finder_sql = "#{@reflection.table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
           end
-          @finder_sql << " AND (#{sanitize_sql(@reflection.options[:conditions])})" if @reflection.options[:conditions]
+          @finder_sql << " AND (#{conditions})" if conditions
         end
     end
   end

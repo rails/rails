@@ -14,14 +14,23 @@ module ActiveRecord
       def respond_to?(symbol, include_priv = false)
         proxy_respond_to?(symbol, include_priv) || (load_target && @target.respond_to?(symbol, include_priv))
       end
-
+      
       # Explicitly proxy === because the instance method removal above
       # doesn't catch it.
       def ===(other)
         load_target
         other === @target
       end
-
+      
+      def aliased_table_name
+        @reflection.klass.table_name
+      end
+      
+      def conditions
+        @conditions ||= eval("%(#{@reflection.options[:conditions]})") if @reflection.options[:conditions]
+      end
+      alias :sql_conditions :conditions
+      
       def reset
         @target = nil
         @loaded = false

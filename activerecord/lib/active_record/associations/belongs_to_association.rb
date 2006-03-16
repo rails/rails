@@ -43,7 +43,7 @@ module ActiveRecord
         def find_target
           @reflection.klass.find(
             @owner[@reflection.primary_key_name], 
-            :conditions => @reflection.options[:conditions] ? interpolate_sql(@reflection.options[:conditions]) : nil,
+            :conditions => conditions,
             :include    => @reflection.options[:include]
           )
         end

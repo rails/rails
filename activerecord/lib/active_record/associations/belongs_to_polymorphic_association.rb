@@ -30,7 +30,7 @@ module ActiveRecord
           if @reflection.options[:conditions]
             association_class.find(
               @owner[@reflection.primary_key_name], 
-              :conditions => interpolate_sql(@reflection.options[:conditions]),
+              :conditions => conditions,
               :include    => @reflection.options[:include]
             )
           else

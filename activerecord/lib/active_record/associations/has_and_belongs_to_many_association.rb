@@ -144,7 +144,11 @@ module ActiveRecord
             @owner.connection.execute(sql)
           end
         end
-
+        
+        #def aliased_join_table_name
+        #  @reflection.options[:join_table]
+        #end
+        
         def construct_sql
           interpolate_sql_options!(@reflection.options, :finder_sql)
 
@@ -152,7 +156,7 @@ module ActiveRecord
             @finder_sql = @reflection.options[:finder_sql]
           else
             @finder_sql = "#{@reflection.options[:join_table]}.#{@reflection.primary_key_name} = #{@owner.quoted_id} "
-            @finder_sql << " AND (#{interpolate_sql(@reflection.options[:conditions])})" if @reflection.options[:conditions]
+            @finder_sql << " AND (#{conditions})" if conditions
           end
 
           @join_sql = "JOIN #{@reflection.options[:join_table]} ON #{@reflection.klass.table_name}.#{@reflection.klass.primary_key} = #{@reflection.options[:join_table]}.#{@reflection.association_foreign_key}"

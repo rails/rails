@@ -1157,7 +1157,7 @@ module ActiveRecord
 
           class JoinBase
             attr_reader :active_record
-            delegate    :table_name, :column_names, :primary_key, :reflections, :to=>:active_record
+            delegate    :table_name, :column_names, :primary_key, :reflections, :to => :active_record
 
             def initialize(active_record)
               @active_record = active_record
@@ -1227,19 +1227,19 @@ module ActiveRecord
             def association_join
               join = case reflection.macro
                 when :has_and_belongs_to_many
-                  join_table_name    =
                   " LEFT OUTER JOIN %s %s ON %s.%s = %s.%s " % [
                      options[:join_table], aliased_join_table_name, aliased_join_table_name,
                      options[:foreign_key] || reflection.active_record.to_s.classify.foreign_key,
                      reflection.active_record.table_name, reflection.active_record.primary_key] +
                   " LEFT OUTER JOIN %s %s ON %s.%s = %s.%s " % [
                      table_name, aliased_table_name, aliased_table_name, klass.primary_key,
-                     options[:join_table], options[:association_foreign_key] || klass.table_name.classify.foreign_key
+                     aliased_join_table_name, options[:association_foreign_key] || klass.table_name.classify.foreign_key
                      ]
                 when :has_many, :has_one
                   case
                     when reflection.macro == :has_many && reflection.options[:through]
-                      through_reflection       = parent.active_record.reflect_on_association(reflection.options[:through])
+                      through_reflection = parent.active_record.reflect_on_association(reflection.options[:through])
+                      through_conditions = through_reflection.options[:conditions] ? "AND #{eval("%(#{through_reflection.options[:conditions]})")}" : ''
                       if through_reflection.options[:as] # has_many :through against a polymorphic join
                         polymorphic_foreign_key  = through_reflection.options[:as].to_s + '_id'
                         polymorphic_foreign_type = through_reflection.options[:as].to_s + '_type'
@@ -1284,11 +1284,12 @@ module ActiveRecord
                     ]
                 else
                   ""
-              end
+              end || ''
               join << %(AND %s.%s = %s ) % [
                 aliased_table_name, 
                 reflection.active_record.connection.quote_column_name(reflection.active_record.inheritance_column), 
-                klass.quote(klass.name)] unless join.blank? || klass.descends_from_active_record?
+                klass.quote(klass.name)] unless klass.descends_from_active_record?
+              join << "AND #{eval("%(#{reflection.options[:conditions]})")} " if reflection.options[:conditions]
               join
             end
           end

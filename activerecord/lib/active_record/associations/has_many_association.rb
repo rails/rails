@@ -3,7 +3,6 @@ module ActiveRecord
     class HasManyAssociation < AssociationCollection #:nodoc:
       def initialize(owner, reflection)
         super
-        @conditions = sanitize_sql(reflection.options[:conditions])
         construct_sql
       end
 
@@ -169,11 +168,11 @@ module ActiveRecord
               @finder_sql = 
                 "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_id = #{@owner.quoted_id} AND " + 
                 "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote @owner.class.base_class.name.to_s}"
-              @finder_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
+              @finder_sql << " AND (#{conditions})" if conditions
             
             else
               @finder_sql = "#{@reflection.klass.table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
-              @finder_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
+              @finder_sql << " AND (#{conditions})" if conditions
           end
 
           if @reflection.options[:counter_sql]

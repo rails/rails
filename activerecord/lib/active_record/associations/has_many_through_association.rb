@@ -74,7 +74,7 @@ module ActiveRecord
               "AND #{through_reflection.table_name}.#{through_reflection.primary_key_name} = #{@owner.quoted_id}"
           end
           
-          conditions << " AND (#{interpolate_sql(sanitize_sql(@reflection.options[:conditions]))})" if @reflection.options[:conditions]
+          conditions << " AND (#{sql_conditions})" if sql_conditions
           
           return conditions
         end
@@ -100,7 +100,7 @@ module ActiveRecord
               @finder_sql = interpolate_sql(@reflection.options[:finder_sql])
 
               @finder_sql = "#{@reflection.klass.table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
-              @finder_sql << " AND (#{interpolate_sql(@conditions)})" if @conditions
+              @finder_sql << " AND (#{conditions})" if conditions
           end
 
           if @reflection.options[:counter_sql]

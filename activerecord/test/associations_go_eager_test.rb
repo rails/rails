@@ -224,7 +224,57 @@ class EagerAssociationTest < Test::Unit::TestCase
       post = Post.find(6, :include=>[ :monkeys, :elephants ])
     }
   end
+  
+  def find_all_ordered(className, include=nil)
+    className.find(:all, :order=>"#{className.table_name}.#{className.primary_key}", :include=>include)
+  end
 
+  def test_eager_with_multiple_associations_with_same_table_has_many_and_habtm
+    # Eager includes of has many and habtm associations aren't necessarily sorted in the same way
+    def assert_equal_after_sort(item1, item2, item3 = nil)
+      assert_equal(item1.sort{|a,b| a.id <=> b.id}, item2.sort{|a,b| a.id <=> b.id})
+      assert_equal(item3.sort{|a,b| a.id <=> b.id}, item2.sort{|a,b| a.id <=> b.id}) if item3
+    end
+    # Test regular association, association with conditions, association with
+    # STI, and association with conditions assured not to be true
+    post_types = [:posts, :hello_posts, :special_posts, :nonexistent_posts]
+    # test both has_many and has_and_belongs_to_many
+    [Author, Category].each do |className|
+      d1 = find_all_ordered(className)
+      # test including all post types at once
+      d2 = find_all_ordered(className, post_types) 
+      d1.each_index do |i| 
+        assert_equal(d1[i], d2[i])
+        assert_equal_after_sort(d1[i].posts, d2[i].posts)
+        post_types[1..-1].each do |post_type|
+          # test including post_types together
+          d3 = find_all_ordered(className, [:posts, post_type])
+          assert_equal(d1[i], d3[i])
+          assert_equal_after_sort(d1[i].posts, d3[i].posts)
+          assert_equal_after_sort(d1[i].send(post_type), d2[i].send(post_type), d3[i].send(post_type))
+        end
+      end
+    end
+  end
+  
+  def test_eager_with_multiple_associations_with_same_table_has_one
+    d1 = find_all_ordered(Firm)
+    d2 = find_all_ordered(Firm, :account)
+    d1.each_index do |i| 
+      assert_equal(d1[i], d2[i])
+      assert_equal(d1[i].account, d2[i].account)
+    end
+  end
+  
+  def test_eager_with_multiple_associations_with_same_table_belongs_to
+    firm_types = [:firm, :firm_with_basic_id, :firm_with_other_name, :firm_with_condition]
+    d1 = find_all_ordered(Client)
+    d2 = find_all_ordered(Client, firm_types)
+    d1.each_index do |i| 
+      assert_equal(d1[i], d2[i])
+      firm_types.each { |type| assert_equal(d1[i].send(type), d2[i].send(type)) }
+    end
+  end
   def test_eager_with_valid_association_as_string_not_symbol
     assert_nothing_raised { Post.find(:all, :include => 'comments') }
   end
