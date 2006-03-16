@@ -145,10 +145,6 @@ module ActiveRecord
           end
         end
         
-        #def aliased_join_table_name
-        #  @reflection.options[:join_table]
-        #end
-        
         def construct_sql
           interpolate_sql_options!(@reflection.options, :finder_sql)
 
