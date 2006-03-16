@@ -41,7 +41,17 @@ module ActionController #:nodoc:
     def reset_session
       @session = {}
     end              
+
+    def raw_post
+      params = self.request_parameters.dup
+      %w(controller action only_path).each do |k|
+        params.delete(k)
+        params.delete(k.to_sym)
+      end
     
+      params.map { |k,v| [ CGI.escape(k.to_s), CGI.escape(v.to_s) ].join('=') }.sort.join('&')
+    end
+
     def port=(number)
       @env["SERVER_PORT"] = number.to_i
       @port_as_int = nil

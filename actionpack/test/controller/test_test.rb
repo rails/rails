@@ -8,6 +8,11 @@ class TestTest < Test::Unit::TestCase
       render :text => 'ignore me'
     end
     
+    def render_raw_post
+      raise Test::Unit::AssertionFailedError, "#raw_post is blank" if request.raw_post.blank?
+      render :text => request.raw_post
+    end
+
     def test_params
       render :text => params.inspect
     end                         
@@ -44,6 +49,10 @@ HTML
     def test_remote_addr
       render :text => (request.remote_addr || "not specified")
     end
+
+    def rescue_action(e)
+      raise e
+    end
   end
 
   def setup
@@ -55,6 +64,14 @@ HTML
 
   def teardown
     ActionController::Routing::Routes.reload
+  end
+
+  def test_raw_post_handling
+    params = {:page => {:name => 'page name'}, 'some key' => 123}
+    get :render_raw_post, params.dup
+
+    raw_post = params.map {|k,v| [CGI::escape(k.to_s), CGI::escape(v.to_s)].join('=')}.sort.join('&')
+    assert_equal raw_post, @response.body
   end
 
   def test_process_without_flash

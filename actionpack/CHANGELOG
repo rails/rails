@@ -1,5 +1,7 @@
 *SVN*
 
+* Added TestRequest#raw_post that simulate raw_post from CgiRequest #3042 [francois.beausoleil@gmail.com]
+
 * Underscore dasherized keys in formatted requests [Jamis Buck]
 
 * Add MimeResponds::Responder#any for managing multiple types with identical responses [Jamis Buck]
