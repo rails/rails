@@ -1,5 +1,7 @@
 *SVN*
 
+* Added protection against proxy setups treating requests as local even when they're not #3898 [stephen_purcell@yahoo.com]
+
 * Added TestRequest#raw_post that simulate raw_post from CgiRequest #3042 [francois.beausoleil@gmail.com]
 
 * Underscore dasherized keys in formatted requests [Jamis Buck]
