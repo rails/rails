@@ -21,6 +21,7 @@ class TestOracleDefault < ActiveRecord::Base; end
 
 class LoosePerson < ActiveRecord::Base
   attr_protected :credit_rating, :administrator
+  self.abstract_class = true
 end
 
 class LooseDescendant < LoosePerson
@@ -1148,8 +1149,12 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_base_class
-    assert_equal LoosePerson, LoosePerson.base_class
-    assert_equal LoosePerson, LooseDescendant.base_class
+    assert LoosePerson.abstract_class?
+    assert !LooseDescendant.abstract_class?
+    assert_equal LoosePerson,     LoosePerson.base_class
+    assert_equal LooseDescendant, LooseDescendant.base_class
+    assert_equal TightPerson,     TightPerson.base_class
+    assert_equal TightPerson,     TightDescendant.base_class
   end
 
   def test_assert_queries

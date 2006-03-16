@@ -67,7 +67,7 @@ module ActiveRecord
             conditions = 
               "#{@reflection.table_name}.#{@reflection.klass.primary_key} = #{through_reflection.table_name}.#{@reflection.klass.to_s.foreign_key} " +
               "AND #{through_reflection.table_name}.#{through_reflection.options[:as]}_id = #{@owner.quoted_id} " + 
-              "AND #{through_reflection.table_name}.#{through_reflection.options[:as]}_type = '#{ActiveRecord::Base.send(:class_name_of_active_record_descendant, @owner.class).to_s}'"
+              "AND #{through_reflection.table_name}.#{through_reflection.options[:as]}_type = #{@owner.class.quote @owner.class.base_class.name.to_s}"
           else
             conditions = 
               "#{@reflection.klass.table_name}.#{@reflection.klass.primary_key} = #{through_reflection.table_name}.#{@reflection.klass.to_s.foreign_key} " +

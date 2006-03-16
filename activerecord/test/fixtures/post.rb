@@ -39,5 +39,9 @@ end
 class SpecialPost < Post; end;
 
 class StiPost < Post
+  self.abstract_class = true
   has_one :special_comment, :class_name => "SpecialComment"
+end
+
+class SubStiPost < StiPost
 end

@@ -599,7 +599,7 @@ module ActiveRecord #:nodoc:
       end
 
       def reset_table_name
-        name = "#{table_name_prefix}#{undecorated_table_name(class_name_of_active_record_descendant(self))}#{table_name_suffix}"
+        name = "#{table_name_prefix}#{undecorated_table_name(base_class.name)}#{table_name_suffix}"
         set_table_name(name)
         name
       end
@@ -614,9 +614,9 @@ module ActiveRecord #:nodoc:
         key = 'id'
         case primary_key_prefix_type
           when :table_name
-            key = Inflector.foreign_key(class_name_of_active_record_descendant(self), false)
+            key = Inflector.foreign_key(base_class.name, false)
           when :table_name_with_underscore
-            key = Inflector.foreign_key(class_name_of_active_record_descendant(self))
+            key = Inflector.foreign_key(base_class.name)
         end
         set_primary_key(key)
         key
@@ -936,7 +936,15 @@ module ActiveRecord #:nodoc:
         class_of_active_record_descendant(self)
       end
 
-      
+      # Set this to true if this is an abstract class (see #abstract_class?).
+      attr_accessor :abstract_class
+
+      # Returns whether this class is a base AR class.  If A is a base class and
+      # B descends from A, then B.base_class will return B.
+      def abstract_class?
+        abstract_class == true
+      end
+
       private
         # Finder methods must instantiate through this method to work with the single-table inheritance model
         # that makes it possible to create objects of different types from the same table.
@@ -1016,7 +1024,7 @@ module ActiveRecord #:nodoc:
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
-        def undecorated_table_name(class_name = class_name_of_active_record_descendant(self))
+        def undecorated_table_name(class_name = base_class.name)
           table_name = Inflector.underscore(Inflector.demodulize(class_name))
           table_name = Inflector.pluralize(table_name) if pluralize_table_names
           table_name
@@ -1172,7 +1180,7 @@ module ActiveRecord #:nodoc:
 
         # Returns the class descending directly from ActiveRecord in the inheritance hierarchy.
         def class_of_active_record_descendant(klass)
-          if klass.superclass == Base
+          if klass.superclass == Base || klass.superclass.abstract_class?
             klass
           elsif klass.superclass.nil?
             raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
@@ -1183,7 +1191,7 @@ module ActiveRecord #:nodoc:
 
         # Returns the name of the class descending directly from ActiveRecord in the inheritance hierarchy.
         def class_name_of_active_record_descendant(klass)
-          class_of_active_record_descendant(klass).name
+          klass.base_class.name
         end
 
         # Accepts an array or string.  The string is returned untouched, but the array has each value

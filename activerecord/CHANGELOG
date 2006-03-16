@@ -1,5 +1,26 @@
 *SVN*
 
+* Added Base.abstract_class? that marks which classes are not part of the Active Record hierarchy #3704 [Rick Olson]
+
+    class CachedModel < ActiveRecord::Base
+      self.abstract_class = true
+    end
+    
+    class Post < CachedModel
+    end
+    
+    CachedModel.abstract_class?
+    => true
+    
+    Post.abstract_class?
+    => false
+
+    Post.base_class
+    => Post
+    
+    Post.table_name
+    => 'posts'
+
 * Allow :dependent options to be used with polymorphic joins. #3820 [Rick Olson]
 
     class Foo < ActiveRecord::Base
