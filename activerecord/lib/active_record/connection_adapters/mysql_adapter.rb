@@ -236,7 +236,14 @@ module ActiveRecord
       # SCHEMA STATEMENTS ========================================
 
       def structure_dump #:nodoc:
-        select_all("SHOW TABLES").inject("") do |structure, table|
+        if supports_views?
+          sql = "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'"
+        else
+          sql = "SHOW TABLES"
+        end
+        
+        select_all(sql).inject("") do |structure, table|
+          table.delete('Table_type')
           structure += select_one("SHOW CREATE TABLE #{table.to_a.first.last}")["Create Table"] + ";\n\n"
         end
       end
@@ -333,6 +340,14 @@ module ActiveRecord
           end
           result.free
           rows
+        end
+        
+        def supports_views?
+          version[0] >= 5
+        end
+        
+        def version
+          @version ||= @connection.server_info.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
         end
     end
   end
