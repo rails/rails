@@ -233,6 +233,7 @@ module ActionController
             controller_name = "#{mod_name}Controller"
             
             begin
+              # We use eval instead of const_get to avoid obtaining values from parent modules.
               controller = eval("mod::#{controller_name}", nil, __FILE__, __LINE__)
               expected_name = "#{mod.name}::#{controller_name}"
               
