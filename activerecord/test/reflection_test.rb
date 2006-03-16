@@ -3,12 +3,19 @@ require 'fixtures/topic'
 require 'fixtures/customer'
 require 'fixtures/company'
 require 'fixtures/company_in_module'
+require 'fixtures/subscriber'
 
 class ReflectionTest < Test::Unit::TestCase
-  fixtures :topics, :customers, :companies
+  fixtures :topics, :customers, :companies, :subscribers
 
   def setup
     @first = Topic.find(1)
+  end
+
+  def test_column_null_not_null
+    subscriber = Subscriber.find(:first)
+    assert subscriber.column_for_attribute("name").null
+    assert !subscriber.column_for_attribute("nick").null
   end
 
   def test_read_attribute_names
