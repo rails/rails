@@ -11,3 +11,7 @@ david_active_record:
 jamis_active_record:
   developer_id: 2
   project_id: 1
+
+poor_jamis_active_record:
+  developer_id: 11
+  project_id: 1

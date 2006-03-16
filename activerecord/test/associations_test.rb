@@ -1090,7 +1090,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
 
     active_record = Project.find(1)
     assert !active_record.developers.empty?
-    assert_equal 2, active_record.developers.size
+    assert_equal 3, active_record.developers.size
     assert active_record.developers.include?(david)
   end
 
@@ -1282,7 +1282,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_uniq_before_the_fact
     projects(:active_record).developers << developers(:jamis)
     projects(:active_record).developers << developers(:david)
-    assert_equal 2, projects(:active_record, :reload).developers.size
+    assert_equal 3, projects(:active_record, :reload).developers.size
   end
   
   def test_deleting
@@ -1290,13 +1290,13 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     active_record = Project.find(1)
     david.projects.reload
     assert_equal 2, david.projects.size
-    assert_equal 2, active_record.developers.size
+    assert_equal 3, active_record.developers.size
 
     david.projects.delete(active_record)
     
     assert_equal 1, david.projects.size
     assert_equal 1, david.projects(true).size
-    assert_equal 1, active_record.developers(true).size
+    assert_equal 2, active_record.developers(true).size
   end
 
   def test_deleting_array
@@ -1311,16 +1311,16 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     david = Developer.find(1)
     active_record = Project.find(1)
     active_record.developers.reload
-    assert_equal 2, active_record.developers_by_sql.size
+    assert_equal 3, active_record.developers_by_sql.size
     
     active_record.developers_by_sql.delete(david)
-    assert_equal 1, active_record.developers_by_sql(true).size
+    assert_equal 2, active_record.developers_by_sql(true).size
   end
 
   def test_deleting_array_with_sql
     active_record = Project.find(1)
     active_record.developers.reload
-    assert_equal 2, active_record.developers_by_sql.size
+    assert_equal 3, active_record.developers_by_sql.size
     
     active_record.developers_by_sql.delete(Developer.find(:all))
     assert_equal 0, active_record.developers_by_sql(true).size
@@ -1364,14 +1364,14 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_associations_with_conditions
-    assert_equal 2, projects(:active_record).developers.size
+    assert_equal 3, projects(:active_record).developers.size
     assert_equal 1, projects(:active_record).developers_named_david.size
 
     assert_equal developers(:david), projects(:active_record).developers_named_david.find(developers(:david).id)
     assert_equal developers(:david), projects(:active_record).salaried_developers.find(developers(:david).id)
 
     projects(:active_record).developers_named_david.clear
-    assert_equal 1, projects(:active_record, :reload).developers.size
+    assert_equal 2, projects(:active_record, :reload).developers.size
   end
   
   def test_find_in_association
@@ -1399,7 +1399,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_find_with_merged_options
     assert_equal 1, projects(:active_record).limited_developers.size
     assert_equal 1, projects(:active_record).limited_developers.find(:all).size
-    assert_equal 2, projects(:active_record).limited_developers.find(:all, :limit => nil).size
+    assert_equal 3, projects(:active_record).limited_developers.find(:all, :limit => nil).size
   end
 
   def test_new_with_values_in_collection
@@ -1414,12 +1414,12 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert project.developers.include?(david)
   end
 
-  def xtest_find_in_association_with_options
+  def test_find_in_association_with_options
     developers = projects(:active_record).developers.find(:all)
-    assert_equal 2, developers.size
+    assert_equal 3, developers.size
     
-    assert_equal developers(:david), projects(:active_record).developers.find(:first, :conditions => "salary < 10000")
-    assert_equal developers(:jamis), projects(:active_record).developers.find(:first, :order => "salary DESC")
+    assert_equal developers(:poor_jamis), projects(:active_record).developers.find(:first, :conditions => "salary < 10000")
+    assert_equal developers(:jamis),      projects(:active_record).developers.find(:first, :order => "salary DESC")
   end
   
   def test_replace_with_less

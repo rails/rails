@@ -339,7 +339,7 @@ class FinderTest < Test::Unit::TestCase
       :joins => 'LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id', 
       :conditions => 'project_id=1'
     )
-    assert_equal 2, developers_on_project_one.length
+    assert_equal 3, developers_on_project_one.length
     developer_names = developers_on_project_one.map { |d| d.name }
     assert developer_names.include?('David')
     assert developer_names.include?('Jamis')
