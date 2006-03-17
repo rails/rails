@@ -42,7 +42,7 @@ module ActiveRecord
     class MysqlColumn < Column #:nodoc:
       private
         def simplified_type(field_type)
-          return :boolean if MysqlAdapter.emulate_booleans && field_type.downcase == "tinyint(1)"
+          return :boolean if MysqlAdapter.emulate_booleans && field_type.downcase.index("tinyint(1)")
           super
         end
     end
