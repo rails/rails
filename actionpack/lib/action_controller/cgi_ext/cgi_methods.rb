@@ -80,15 +80,17 @@ class CGIMethods #:nodoc:
   private
 
     def self.dasherize_keys(params)
-       case params.class.to_s
-       when "Hash"
-         params.inject({}) do |h,(k,v)|
-           h[k.tr("-", "_")] = dasherize_keys(v)
-           h
-         end
-       else
-         params
-       end
+      case params.class.to_s
+      when "Hash"
+        params.inject({}) do |h,(k,v)|
+          h[k.to_s.tr("-", "_")] = dasherize_keys(v)
+          h
+        end
+      when "Array"
+        params.map { |v| dasherize_keys(v) }
+      else
+        params
+      end
     end
 
     # Splits the given key into several pieces. Example keys are 'name', 'person[name]',
