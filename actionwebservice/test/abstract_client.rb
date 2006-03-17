@@ -34,6 +34,10 @@ module ClientTest
     member :user, User
     member :users, [User]
   end
+  
+  class WithMultiDimArray < ActionWebService::Struct
+    member :pref, [[:string]]
+  end
 
   class API < ActionWebService::API::Base
     api_method :void
@@ -48,6 +52,7 @@ module ClientTest
     api_method :user_return,          :returns => [User]
     api_method :with_model_return,    :returns => [WithModel]
     api_method :scoped_model_return,  :returns => [Accounting::User]
+    api_method :multi_dim_return,     :returns => [WithMultiDimArray]
   end
   
   class NullLogOut
@@ -123,6 +128,10 @@ module ClientTest
     
     def scoped_model_return
       Accounting::User.find(1)
+    end
+    
+    def multi_dim_return
+      WithMultiDimArray.new :pref => [%w{pref1 value1}, %w{pref2 value2}]
     end
   end
 

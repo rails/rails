@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix soap type registration of multidimensional arrays (#4232)
+
 * Fix that marshaler couldn't handle ActiveRecord models defined in a different namespace (#2392).
 
 * Fix that marshaler couldn't handle structs with members of ActiveRecord type (#1889).

@@ -40,32 +40,25 @@ module ActionWebService
         def register_type(type)
           return @type2binding[type] if @type2binding.has_key?(type)
 
-          type_class = type.array?? type.element_type.type_class : type.type_class
-          type_type = type.array?? type.element_type : type
-          type_binding = nil
-          if (mapping = @registry.find_mapped_soap_class(type_class) rescue nil)
-            qname = mapping[2] ? mapping[2][:type] : nil
-            qname ||= soap_base_type_name(mapping[0])
-            type_binding = SoapBinding.new(self, qname, type_type, mapping)
-          else
-            qname = XSD::QName.new(@namespace, soap_type_name(type_class.name))
-            @registry.add(type_class,
-                          SOAP::SOAPStruct,
-                          typed_struct_factory(type_class),
-                          { :type => qname })
-            mapping = @registry.find_mapped_soap_class(type_class)
-            type_binding = SoapBinding.new(self, qname, type_type, mapping)
-          end
-
-          array_binding = nil
           if type.array?
             array_mapping = @registry.find_mapped_soap_class(Array)
             qname = XSD::QName.new(@namespace, soap_type_name(type.element_type.type_class.name) + 'Array')
-            array_binding = SoapBinding.new(self, qname, type, array_mapping, type_binding)
+            element_type_binding = register_type(type.element_type)
+            @type2binding[type] = SoapBinding.new(self, qname, type, array_mapping, element_type_binding)
+          elsif (mapping = @registry.find_mapped_soap_class(type.type_class) rescue nil)
+            qname = mapping[2] ? mapping[2][:type] : nil
+            qname ||= soap_base_type_name(mapping[0])
+            @type2binding[type] = SoapBinding.new(self, qname, type, mapping)
+          else
+            qname = XSD::QName.new(@namespace, soap_type_name(type.type_class.name))
+            @registry.add(type.type_class,
+              SOAP::SOAPStruct,
+              typed_struct_factory(type.type_class),
+              { :type => qname })
+            mapping = @registry.find_mapped_soap_class(type.type_class)
+            @type2binding[type] = SoapBinding.new(self, qname, type, mapping)
           end
 
-          @type2binding[type] = array_binding ? array_binding : type_binding
-          
           if type.structured?
             type.each_member do |m_name, m_type|
               register_type(m_type)

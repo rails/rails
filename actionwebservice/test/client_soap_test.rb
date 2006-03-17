@@ -142,4 +142,11 @@ class TC_ClientSoap < Test::Unit::TestCase
     assert_kind_of Accounting::User, scoped_model
     assert_equal 'Kent', scoped_model.name
   end
+  
+  def test_multi_dim_return
+    md_struct = @client.multi_dim_return
+    assert_kind_of Array, md_struct.pref
+    assert_equal 2, md_struct.pref.size
+    assert_kind_of Array, md_struct.pref[0]
+  end
 end

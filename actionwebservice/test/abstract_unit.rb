@@ -29,3 +29,10 @@ ActiveRecord::Base.establish_connection(
 ActiveRecord::Base.connection
 
 Test::Unit::TestCase.fixture_path = "#{File.dirname(__FILE__)}/fixtures/"
+
+# restore default raw_post functionality
+class ActionController::TestRequest
+  def raw_post
+    super
+  end
+end
