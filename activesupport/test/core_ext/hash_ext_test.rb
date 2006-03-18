@@ -135,6 +135,16 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal 2, hash['b']
   end
   
+  def test_indifferent_deleting
+    get_hash = proc{ { :a => 'foo' }.with_indifferent_access }
+    hash = get_hash.call
+    assert_equal hash.delete(:a), 'foo'
+    assert_equal hash.delete(:a), nil
+    hash = get_hash.call
+    assert_equal hash.delete('a'), 'foo'
+    assert_equal hash.delete('a'), nil
+  end
+
   def test_assert_valid_keys
     assert_nothing_raised do
       { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])

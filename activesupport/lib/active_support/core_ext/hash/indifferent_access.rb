@@ -9,53 +9,31 @@ class HashWithIndifferentAccess < Hash
     end
   end
  
-  def default(key)
-    self[key.to_s] if key.is_a?(Symbol)
-  end  
+  convert_key_and_hashes_and_call_super = lambda { |key, *args| super(convert_key(key), *args.map{|arg| convert_value(arg) }) }
+  convert_other_hash_and_call_super     = lambda { |other_hash| super(convert_hash(other_hash)) }
 
-  alias_method :regular_writer, :[]= unless method_defined?(:regular_writer)
-  alias_method :regular_update, :update unless method_defined?(:regular_update)
-  
-  def []=(key, value)
-    regular_writer(convert_key(key), convert_value(value))
-  end
+  %w( [] []= fetch store delete has_key? include? key? member? ).each{ |method_name| define_method method_name, &convert_key_and_hashes_and_call_super }
+  %w( == eql? replace initialize_copy merge merge! update      ).each{ |method_name| define_method method_name, &convert_other_hash_and_call_super     }
 
-  def update(other_hash)
-    other_hash.each_pair {|key, value| regular_writer(convert_key(key), convert_value(value))}
-    self
-  end
-  alias_method :merge!, :update
-
-  def key?(key)
-    super(convert_key(key))
-  end
-
-  alias_method :include?, :key?
-  alias_method :has_key?, :key?
-  alias_method :member?, :key?
-
-  def fetch(key, *extras)
-    super(convert_key(key), *extras)
-  end
-
-  def values_at(*indices)
-    indices.collect {|key| self[convert_key(key)]}
-  end
-
-  def dup
-    HashWithIndifferentAccess.new(self)
+  def invert
+    self.class.new.replace(super)
   end
   
-  def merge(hash)
-    self.dup.update(hash)
+  def values_at(*keys)
+    super *keys.map{ |key| convert_key(key) }
   end
-  
+
   protected
     def convert_key(key)
       key.kind_of?(Symbol) ? key.to_s : key
     end
+    
     def convert_value(value)
       value.is_a?(Hash) ? value.with_indifferent_access : value
+    end
+    
+    def convert_hash(hash)
+      hash.is_a?(Hash) ? hash.inject({}){ |h,(k,v)| h[convert_key(k)] = convert_value(v); h } : hash
     end
 end
 
