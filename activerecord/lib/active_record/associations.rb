@@ -1157,7 +1157,7 @@ module ActiveRecord
 
           class JoinBase
             attr_reader :active_record
-            delegate    :table_name, :column_names, :primary_key, :reflections, :to => :active_record
+            delegate    :table_name, :column_names, :primary_key, :reflections, :sanitize_sql, :to => :active_record
 
             def initialize(active_record)
               @active_record = active_record
@@ -1244,7 +1244,7 @@ module ActiveRecord
                   case
                     when reflection.macro == :has_many && reflection.options[:through]
                       through_reflection = parent.active_record.reflect_on_association(reflection.options[:through])
-                      through_conditions = through_reflection.options[:conditions] ? "AND #{eval("%(#{through_reflection.active_record.send :sanitize_sql, through_reflection.options[:conditions]})")}" : ''
+                      through_conditions = through_reflection.options[:conditions] ? "AND #{interpolate_sql(sanitize_sql(through_reflection.options[:conditions]))}" : ''
                       if through_reflection.options[:as] # has_many :through against a polymorphic join
                         polymorphic_foreign_key  = through_reflection.options[:as].to_s + '_id'
                         polymorphic_foreign_type = through_reflection.options[:as].to_s + '_type'
@@ -1296,7 +1296,7 @@ module ActiveRecord
                 aliased_table_name, 
                 reflection.active_record.connection.quote_column_name(reflection.active_record.inheritance_column), 
                 klass.quote(klass.name)] if sti?
-              join << "AND #{eval("%(#{reflection.active_record.send :sanitize_sql, reflection.options[:conditions]})")} " if reflection.options[:conditions]
+              join << "AND #{interpolate_sql(sanitize_sql(reflection.options[:conditions]))} " if reflection.options[:conditions]
               join
             end
             
@@ -1315,6 +1315,10 @@ module ActiveRecord
 
               def table_name_and_alias
                 table_alias_for table_name, @aliased_table_name
+              end
+
+              def interpolate_sql(sql)
+                instance_eval("%@#{sql.gsub('@', '\@')}@")
               end
           end
         end

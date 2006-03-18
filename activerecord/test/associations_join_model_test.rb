@@ -216,6 +216,11 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_raises (ActiveRecord::ActiveRecordError) { authors(:david).nothings }
   end
 
+  def test_has_many_through_join_model_with_conditions
+    assert_equal [], posts(:welcome).invalid_taggings
+    assert_equal [], posts(:welcome).invalid_tags
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)

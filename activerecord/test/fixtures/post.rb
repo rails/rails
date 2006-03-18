@@ -23,8 +23,10 @@ class Post < ActiveRecord::Base
   has_many :taggings, :as => :taggable
   has_many :tags, :through => :taggings
   has_many :super_tags, :through => :taggings
-
   has_one :tagging, :as => :taggable
+
+  has_many :invalid_taggings, :as => :taggable, :class_name => "Tagging", :conditions => 'taggings.id < 0'
+  has_many :invalid_tags, :through => :invalid_taggings, :class_name => "Tag"
 
   has_many :categorizations, :foreign_key => :category_id
   has_many :authors, :through => :categorizations
