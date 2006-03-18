@@ -246,6 +246,14 @@ class TestMailer < ActionMailer::Base
     body         "testing"
   end
 
+  def custom_content_type_attributes
+    recipients   "no.one@nowhere.test"
+    subject      "custom content types"
+    from         "some.one@somewhere.test"
+    content_type "text/plain; format=flowed"
+    body         "testing"
+  end
+
   class <<self
     attr_accessor :received_body
   end
@@ -786,6 +794,12 @@ EOF
   def test_multipart_with_template_path_with_dots
     mail = FunkyPathMailer.create_multipart_with_template_path_with_dots(@recipient)
     assert_equal 2, mail.parts.length
+  end
+
+  def test_custom_content_type_attributes
+    mail = TestMailer.create_custom_content_type_attributes
+    assert_match %r{format=flowed}, mail['content-type'].to_s
+    assert_match %r{charset=utf-8}, mail['content-type'].to_s
   end
 end
 

@@ -56,6 +56,8 @@ module ActionMailer
     def to_mail(defaults)
       part = TMail::Mail.new
 
+      real_content_type, ctype_attrs = parse_content_type(defaults)
+
       if @parts.empty?
         part.content_transfer_encoding = transfer_encoding || "quoted-printable"
         case (transfer_encoding || "").downcase
@@ -71,20 +73,20 @@ module ActionMailer
         # Also don't set filename and name when there is none (like in
         # non-attachment parts)
         if content_disposition == "attachment"
-          part.set_content_type(content_type || defaults.content_type, nil,
-            squish("charset" => nil, "name" => filename))
+          ctype_attrs.delete "charset"
+          part.set_content_type(real_content_type, nil,
+            squish("name" => filename).merge(ctype_attrs))
           part.set_content_disposition(content_disposition,
-            squish("filename" => filename))
+            squish("filename" => filename).merge(ctype_attrs))
         else
-          part.set_content_type(content_type || defaults.content_type, nil,
-            "charset" => (charset || defaults.charset))      
+          part.set_content_type(real_content_type, nil, ctype_attrs)
           part.set_content_disposition(content_disposition) 
         end        
       else
         if String === body
           part = TMail::Mail.new
           part.body = body
-          part.set_content_type content_type, nil, { "charset" => charset }
+          part.set_content_type(real_content_type, nil, ctype_attrs)
           part.set_content_disposition "inline"
           m.parts << part
         end
@@ -94,15 +96,16 @@ module ActionMailer
           part.parts << prt
         end
         
-        part.set_content_type(content_type, nil, { "charset" => charset }) if content_type =~ /multipart/
+        part.set_content_type(real_content_type, nil, ctype_attrs) if real_content_type =~ /multipart/
       end
 
-      @headers.each { |k,v| part[k] = v }
+      headers.each { |k,v| part[k] = v }
 
       part
     end
 
     private
+
       def squish(values={})
         values.delete_if { |k,v| v.nil? }
       end

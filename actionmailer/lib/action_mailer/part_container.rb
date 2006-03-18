@@ -38,5 +38,14 @@ module ActionMailer
       part(params, &block)
     end
 
+    private
+    
+      def parse_content_type(defaults=nil)
+        return [defaults && defaults.content_type, {}] if content_type.blank?
+        ctype, *attrs = content_type.split(/;\s*/)
+        attrs = attrs.inject({}) { |h,s| k,v = s.split(/=/, 2); h[k] = v; h }
+        [ctype, {"charset" => charset || defaults && defaults.charset}.merge(attrs)]
+      end
+
   end
 end

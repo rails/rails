@@ -413,14 +413,16 @@ module ActionMailer
         m.date = sent_on.to_time rescue sent_on if sent_on
         headers.each { |k, v| m[k] = v }
 
+        real_content_type, ctype_attrs = parse_content_type
+
         if @parts.empty?
-          m.set_content_type content_type, nil, { "charset" => charset }
+          m.set_content_type(real_content_type, nil, ctype_attrs)
           m.body = Utils.normalize_new_lines(body)
         else
           if String === body
             part = TMail::Mail.new
             part.body = Utils.normalize_new_lines(body)
-            part.set_content_type content_type, nil, { "charset" => charset }
+            part.set_content_type(real_content_type, nil, ctype_attrs)
             part.set_content_disposition "inline"
             m.parts << part
           end
@@ -430,7 +432,7 @@ module ActionMailer
             m.parts << part
           end
           
-          m.set_content_type(content_type, nil, { "charset" => charset }) if content_type =~ /multipart/
+          m.set_content_type(real_content_type, nil, ctype_attrs) if real_content_type =~ /multipart/
         end
 
         @mail = m
