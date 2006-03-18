@@ -1287,7 +1287,7 @@ module ActiveRecord
                 when :belongs_to
                   " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
                      table_name_and_alias, aliased_table_name, reflection.klass.primary_key,
-                     parent.aliased_table_name, options[:foreign_key] || klass.to_s.classify.foreign_key
+                     parent.aliased_table_name, options[:foreign_key] || klass.to_s.foreign_key
                     ]
                 else
                   ""

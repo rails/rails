@@ -143,6 +143,8 @@
 
 * Stop the MySQL adapter crashing when views are present. #3782 [Jonathan Viney]
 
+* Don't classify the belongs_to class, it is already singular #4117 [keithm@infused.org]
+
 * Allow set_fixture_class to take Classes instead of strings for a class in a module.  Raise FixtureClassNotFound if a fixture can't load.  [Rick Olson]
 
 * Fix quoting of inheritance column for STI eager loading #4098 [Jonathan Viney <jonathan@bluewire.net.nz>]
