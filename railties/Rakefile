@@ -118,6 +118,7 @@ desc "Copy in all the Rails packages to vendor"
 task :copy_vendor_libraries do
   mkdir File.join(PKG_DESTINATION, 'vendor', 'rails')
   VENDOR_LIBS.each { |dir| cp_r File.join('..', dir), File.join(PKG_DESTINATION, 'vendor', 'rails', dir) }
+  FileUtils.rm_r(Dir.glob(File.join(PKG_DESTINATION, 'vendor', 'rails', "**", ".svn")))
 end
 
 desc "Link in all the Rails packages to vendor"
