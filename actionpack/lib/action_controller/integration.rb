@@ -31,6 +31,9 @@ module ActionController
       # The remote_addr used in the last request.
       attr_accessor :remote_addr
 
+      # The Accept header to send.
+      attr_accessor :accept
+
       # A map of the cookies returned by the last response, and which will be
       # sent with the next request.
       attr_reader :cookies
@@ -66,6 +69,7 @@ module ActionController
       
         self.host        = "www.example.test"
         self.remote_addr = "127.0.0.1"
+        self.accept      = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
 
         unless @named_routes_configured
           # install the named routes in this session instance.
@@ -209,7 +213,8 @@ module ActionController
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
             "CONTENT_LENGTH" => data ? data.length.to_s : nil,
             "HTTP_COOKIE"    => encode_cookies,
-            "HTTPS"          => https? ? "on" : "off"
+            "HTTPS"          => https? ? "on" : "off",
+            "HTTP_ACCEPT"    => accept
           )
 
           (headers || {}).each do |key, value|
