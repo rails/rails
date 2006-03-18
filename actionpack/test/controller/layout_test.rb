@@ -70,5 +70,4 @@ class LayoutAutoDiscoveryTest < Test::Unit::TestCase
     assert_equal 'layouts/controller_name_space/nested', @controller.active_layout
     assert_equal 'controller_name_space/nested.rhtml hello.rhtml', @response.body
   end
-
 end

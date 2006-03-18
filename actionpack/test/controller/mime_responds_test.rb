@@ -1,6 +1,8 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
 class RespondToController < ActionController::Base
+  layout :set_layout
+
   def html_xml_or_rss
     respond_to do |type|
       type.html { render :text => "HTML"    }
@@ -44,14 +46,6 @@ class RespondToController < ActionController::Base
     respond_to(:html, :js, :xml)
   end
   
-  def using_argument_defaults
-    person_in_xml = { :name => "David" }.to_xml(:root => "person")
-    respond_to do |type|
-      type.html
-      type.xml(person_in_xml)
-    end
-  end
-
   def made_for_content_type
     respond_to do |type|
       type.rss  { render :text => "RSS"  }
@@ -75,9 +69,23 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def all_types_with_layout
+    respond_to do |type|
+      type.html
+      type.js
+    end
+  end
+
   def rescue_action(e)
     raise
   end
+  
+  protected
+    def set_layout
+      if action_name == "all_types_with_layout"
+        "standard"
+      end
+    end
 end
 
 RespondToController.template_root = File.dirname(__FILE__) + "/../fixtures/"
@@ -173,12 +181,6 @@ class MimeControllerTest < Test::Unit::TestCase
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
   
-  def test_using_argument_defaults
-    @request.env["HTTP_ACCEPT"] = "application/xml"
-    get :using_argument_defaults
-    assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>David</name>\n</person>\n", @response.body
-  end
-  
   def test_with_content_type
     @request.env["CONTENT_TYPE"] = "application/atom+xml"
     get :made_for_content_type
@@ -195,8 +197,8 @@ class MimeControllerTest < Test::Unit::TestCase
     assert_equal 'JS', @response.body
 
     @request.env["HTTP_ACCEPT"] = "application/x-xml"
-    get :using_argument_defaults
-    assert_equal "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>David</name>\n</person>\n", @response.body
+    get :html_xml_or_rss
+    assert_equal "XML", @response.body
   end
   
   def test_custom_types
@@ -233,5 +235,15 @@ class MimeControllerTest < Test::Unit::TestCase
     @request.env["HTTP_ACCEPT"] = "text/xml"
     get :handle_any
     assert_equal 'Either JS or XML', @response.body
+  end
+  
+  def test_all_types_with_layout
+    @request.env["HTTP_ACCEPT"] = "text/javascript"
+    get :all_types_with_layout
+    assert_equal 'RJS for all_types_with_layout', @response.body
+
+    @request.env["HTTP_ACCEPT"] = "text/html"
+    get :all_types_with_layout
+    assert_equal '<html>HTML for all_types_with_layout</html>', @response.body
   end
 end

@@ -218,7 +218,7 @@ module ActionView #:nodoc:
     # it's relative to the template_root, otherwise it's absolute. The hash in <tt>local_assigns</tt> 
     # is made available as local variables.
     def render_file(template_path, use_full_path = true, local_assigns = {})
-      @first_render      = template_path if @first_render.nil?
+      @first_render = template_path if @first_render.nil?
 
       if use_full_path
         template_path_without_extension, template_extension = path_and_extension(template_path)
