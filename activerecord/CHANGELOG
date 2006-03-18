@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that Migration#execute would have the table name prefix appended to its query #4110 [mark.imbriaco@pobox.com]
+
 * Make all tinyint(1) variants act like boolean in mysql (tinyint(1) unsigned, etc.) [Jamis Buck]
 
 * Use association's :conditions when eager loading. [jeremyevans0@gmail.com] #4144

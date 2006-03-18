@@ -266,7 +266,7 @@ module ActiveRecord
 
       def method_missing(method, *arguments, &block)
         say_with_time "#{method}(#{arguments.map { |a| a.inspect }.join(", ")})" do
-          arguments[0] = Migrator.proper_table_name(arguments.first) unless arguments.empty?
+          arguments[0] = Migrator.proper_table_name(arguments.first) unless arguments.empty? || method == :execute
           ActiveRecord::Base.connection.send(method, *arguments, &block)
         end
       end
