@@ -177,7 +177,7 @@
 
 * Fixed that calling HasOneProxy#build_model repeatedly would cause saving to happen #4058 [anna@wota.jp]
 
-* Added Sybase database adapter that relies on the Sybase Open Client bindings (see http://raa.ruby-lang.org/project/sybase-ctlib) #3765 [John Sheets]. It's almost completely Active Record compliant, but has the following caveats:
+* Added Sybase database adapter that relies on the Sybase Open Client bindings (see http://raa.ruby-lang.org/project/sybase-ctlib) #3765 [John Sheets]. It's almost completely Active Record compliant (including migrations), but has the following caveats:
 
     * Does not support DATE SQL column types; use DATETIME instead.
     * Date columns on HABTM join tables are returned as String, not Time.

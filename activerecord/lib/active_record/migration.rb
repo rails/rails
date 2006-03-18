@@ -101,7 +101,7 @@ module ActiveRecord
   # == Database support
   #
   # Migrations are currently supported in MySQL, PostgreSQL, SQLite,
-  # SQL Server, and Oracle (all supported databases except DB2).
+  # SQL Server, Sybase, and Oracle (all supported databases except DB2).
   #
   # == More examples
   #

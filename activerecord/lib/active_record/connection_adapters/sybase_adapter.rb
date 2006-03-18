@@ -3,6 +3,9 @@
 # Date:   01 Mar 2006
 #
 # Based on code from Will Sobel (http://dev.rubyonrails.org/ticket/2030)
+#
+# 17 Mar 2006: Added support for migrations; fixed issues with :boolean columns.
+#
 
 require 'active_record/connection_adapters/abstract_adapter'
 
@@ -49,20 +52,34 @@ module ActiveRecord
     # * <tt>:password</tt>  -- Defaults to empty string.
     #
     # Usage Notes:
-    # * Does not support DATE SQL column types; use DATETIME instead.
-    # * Date columns on HABTM join tables are returned as String, not Time.
-    # * Insertions are potentially broken for :polymorphic join tables
-    # * BLOB column access not yet fully supported
-    # 
+    #
+    # * The sybase-ctlib bindings do not support the DATE SQL column type; use DATETIME instead.
+    # * Table and column names are limited to 30 chars in Sybase 12.5
+    # * :binary columns not yet supported
+    # * :boolean columns use the BIT SQL type, which does not allow nulls or 
+    #   indexes.  If a DEFAULT is not specified for ALTER TABLE commands, the
+    #   column will be declared with DEFAULT 0 (false).
+    #
+    # Migrations:
+    #
+    # The Sybase adapter supports migrations, but for ALTER TABLE commands to
+    # work, the database must have the database option 'select into' set to
+    # 'true' with sp_dboption (see below).  The sp_helpdb command lists the current
+    # options for all databases.
+    #
+    #   1> use mydb
+    #   2> go
+    #   1> master..sp_dboption mydb, "select into", true
+    #   2> go
+    #   1> checkpoint
+    #   2> go
     class SybaseAdapter < AbstractAdapter # :nodoc:
       class ColumnWithIdentity < Column
         attr_reader :identity, :primary
 
         def initialize(name, default, sql_type = nil, nullable = nil, identity = nil, primary = nil)
           super(name, default, sql_type, nullable)
-          @default = type_cast(default)
-          @identity = identity
-          @primary = primary
+          @default, @identity, @primary = type_cast(default), identity, primary
         end
 
         def simplified_type(field_type)
@@ -102,7 +119,7 @@ module ActiveRecord
       def native_database_types
         {
           :primary_key => "numeric(9,0) IDENTITY PRIMARY KEY",
-          :string      => { :name => "varchar", :limit => 255  },
+          :string      => { :name => "varchar", :limit => 255 },
           :text        => { :name => "text" },
           :integer     => { :name => "int" },
           :float       => { :name => "float", :limit => 8 },
@@ -111,7 +128,7 @@ module ActiveRecord
           :time        => { :name => "time" },
           :date        => { :name => "datetime" },
           :binary      => { :name => "image"},
-          :boolean     => { :name => "tinyint", :limit => 1 }
+          :boolean     => { :name => "bit" }
         }
       end
 
@@ -129,7 +146,8 @@ module ActiveRecord
 
       def reconnect!
         raise "Sybase Connection Adapter does not yet support reconnect!"
-        #@connection.close rescue nil
+        # disconnect!
+        # connect! # Not yet implemented
       end
 
       # Check for a limit statement and parse out the limit and
@@ -230,11 +248,6 @@ module ActiveRecord
         indexes
       end
 
-      def remove_index(table_name, options = {})
-        # Override for different Sybase SQL syntax.
-        execute "DROP INDEX #{table_name}.#{index_name(table_name, options)}"
-      end
-
       def quoted_true
         "1"
       end
@@ -253,7 +266,7 @@ module ActiveRecord
             else
               "'#{quote_string(value)}'"
             end
-          when NilClass              then "NULL"
+          when NilClass              then (column && column.type == :boolean) ? '0' : "NULL"
           when TrueClass             then '1'
           when FalseClass            then '0'
           when Float, Fixnum, Bignum then value.to_s
@@ -318,7 +331,70 @@ module ActiveRecord
         end
       end
 
+      def supports_migrations? #:nodoc:
+        true
+      end
+
+      def rename_table(name, new_name)
+        execute "EXEC sp_rename '#{name}', '#{new_name}'"
+      end
+
+      def rename_column(table, column, new_column_name)
+        execute "EXEC sp_rename '#{table}.#{column}', '#{new_column_name}'"
+      end
+
+      def change_column(table_name, column_name, type, options = {}) #:nodoc:
+        sql_commands = ["ALTER TABLE #{table_name} MODIFY #{column_name} #{type_to_sql(type, options[:limit])}"]
+        if options[:default]
+          remove_default_constraint(table_name, column_name)
+          sql_commands << "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{options[:default]} FOR #{column_name}"
+        end
+        sql_commands.each { |c| execute(c) }
+      end
+
+      def remove_column(table_name, column_name)
+        remove_default_constraint(table_name, column_name)
+        execute "ALTER TABLE #{table_name} DROP #{column_name}"
+      end
+
+      def remove_default_constraint(table_name, column_name)
+        defaults = select "select def.name from sysobjects def, syscolumns col, sysobjects tab where col.cdefault = def.id and col.name = '#{column_name}' and tab.name = '#{table_name}' and col.id = tab.id"
+        defaults.each {|constraint|
+          execute "ALTER TABLE #{table_name} DROP CONSTRAINT #{constraint["name"]}"
+        }
+      end
+
+      def remove_index(table_name, options = {})
+        execute "DROP INDEX #{table_name}.#{index_name(table_name, options)}"
+      end
+
+      def add_column_options!(sql, options) #:nodoc:
+        sql << " DEFAULT #{quote(options[:default], options[:column])}" unless options[:default].nil?
+
+        if check_null_for_column?(options[:column], sql)
+          sql << (options[:null] == false ? " NOT NULL" : " NULL")
+        end
+        sql
+      end
+
     private
+      def check_null_for_column?(col, sql)
+        # Sybase columns are NOT NULL by default, so explicitly set NULL
+        # if :null option is omitted.  Disallow NULLs for boolean.
+        type = col.nil? ? "" : col[:type]
+
+        # Ignore :null if a primary key
+        return false if type =~ /PRIMARY KEY/i
+
+        # Ignore :null if a :boolean or BIT column
+        if (sql =~ /\s+bit(\s+DEFAULT)?/i) || type == :boolean
+          # If no default clause found on a boolean column, add one.
+          sql << " DEFAULT 0" if $1.nil?
+          return false
+        end
+        true
+      end
+
       # Return the last value of the identity global value.
       def last_insert_id
         @connection.sql("SELECT @@IDENTITY")
@@ -364,7 +440,7 @@ module ActiveRecord
         log(sql, name) do
           if normal_select?
             # If limit is not explicitly set, return all results.
-            @logger.debug "Setting row count to (#{@limit})" if @logger
+            @logger.debug "Setting row count to (#{@limit || 'off'})" if @logger
 
             # Run a normal select
             @connection.set_rowcount(@limit || 0)

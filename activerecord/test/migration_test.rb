@@ -54,8 +54,11 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
 
-      assert_nothing_raised { Person.connection.add_index("people", %w(last_name first_name administrator), :name => "named_admin") }
-      assert_nothing_raised { Person.connection.remove_index("people", :name => "named_admin") }
+      # Sybase adapter does not support indexes on :boolean columns
+      unless current_adapter?(:SybaseAdapter)
+        assert_nothing_raised { Person.connection.add_index("people", %w(last_name first_name administrator), :name => "named_admin") }
+        assert_nothing_raised { Person.connection.remove_index("people", :name => "named_admin") }
+      end
     end
 
     def test_create_table_adds_id
@@ -110,10 +113,10 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.drop_table :testings rescue nil
     end
   
-    # SQL Server will not allow you to add a NOT NULL column
+    # SQL Server and Sybase will not allow you to add a NOT NULL column
     # to a table without specifying a default value, so the
     # following test must be skipped  
-    unless current_adapter?(:SQLServerAdapter)
+    unless current_adapter?(:SQLServerAdapter) || current_adapter?(:SybaseAdapter)
       def test_add_column_not_null_without_default
         Person.connection.create_table :testings do |t|
           t.column :foo, :string
@@ -165,8 +168,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal Fixnum, bob.age.class
       assert_equal Time, bob.birthday.class
 
-      if current_adapter?(:SQLServerAdapter) or current_adapter?(:OracleAdapter)
-        # SQL Server and Oracle don't differentiate between date/time
+      if current_adapter?(:SQLServerAdapter) || current_adapter?(:OracleAdapter) || current_adapter?(:SybaseAdapter)
+        # SQL Server, Sybase, and Oracle don't differentiate between date/time
         assert_equal Time, bob.favorite_day.class
       else
         assert_equal Date, bob.favorite_day.class

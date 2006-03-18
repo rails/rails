@@ -29,8 +29,8 @@ CREATE TABLE topics (
   bonus_time time NULL,
   last_read datetime NULL,
   content varchar(255) NULL,
-  approved tinyint default 1 NULL,
-  replies_count int default 0 NULL,
+  approved bit default 1,
+  replies_count int default 0,
   parent_id int NULL,
   type varchar(50) NULL
 )
@@ -46,7 +46,7 @@ CREATE TABLE developers (
 CREATE TABLE projects (
   id numeric(9,0) IDENTITY PRIMARY KEY,
   name varchar(100) NULL,
-  type VARCHAR(255) NULL
+  type varchar(255) NULL
 )
 
 CREATE TABLE developers_projects (
@@ -85,18 +85,18 @@ CREATE TABLE subscribers (
 
 CREATE TABLE booleantests (
   id numeric(9,0) IDENTITY PRIMARY KEY,
-  value integer NULL
+  value int NULL
 )
 
 CREATE TABLE auto_id_tests (
   auto_id numeric(9,0) IDENTITY PRIMARY KEY,
-  value integer NULL
+  value int NULL
 )
 
 CREATE TABLE entrants (
   id numeric(9,0) IDENTITY PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  course_id INTEGER NOT NULL
+  name varchar(255) NOT NULL,
+  course_id int NOT NULL
 )
 
 CREATE TABLE colnametests (
@@ -118,8 +118,8 @@ CREATE TABLE mixins (
 
 CREATE TABLE people (
   id numeric(9,0) IDENTITY PRIMARY KEY,
-  first_name VARCHAR(40) NOT NULL,
-  lock_version INTEGER DEFAULT 0
+  first_name varchar(40) NOT NULL,
+  lock_version int DEFAULT 0
 )
 
 CREATE TABLE readers (
@@ -135,28 +135,28 @@ CREATE TABLE binaries (
 
 CREATE TABLE computers (
   id numeric(9,0) IDENTITY PRIMARY KEY,
-  developer INTEGER NOT NULL,
-  extendedWarranty INTEGER NOT NULL
+  developer int NOT NULL,
+  extendedWarranty int NOT NULL
 )
 
 CREATE TABLE posts (
   id numeric(9,0) IDENTITY PRIMARY KEY,
-  author_id INTEGER NULL,
-  title VARCHAR(255) NOT NULL,
-  body VARCHAR(2048) NOT NULL,
-  type VARCHAR(255) NOT NULL
+  author_id int NULL,
+  title varchar(255) NOT NULL,
+  body varchar(2048) NOT NULL,
+  type varchar(255) NOT NULL
 )
 
 CREATE TABLE comments (
   id numeric(9,0) IDENTITY PRIMARY KEY,
-  post_id INTEGER NOT NULL,
-  body VARCHAR(2048) NOT NULL,
-  type VARCHAR(255) NOT NULL
+  post_id int NOT NULL,
+  body varchar(2048) NOT NULL,
+  type varchar(255) NOT NULL
 )
 
 CREATE TABLE authors (
   id numeric(9,0) IDENTITY PRIMARY KEY,
-  name VARCHAR(255) NOT NULL
+  name varchar(255) NOT NULL
 )
 
 CREATE TABLE tasks (
@@ -167,8 +167,8 @@ CREATE TABLE tasks (
 
 CREATE TABLE categories (
   id numeric(9,0) IDENTITY PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  type VARCHAR(255) NOT NULL
+  name varchar(255) NOT NULL,
+  type varchar(255) NOT NULL
 )
 
 CREATE TABLE categories_posts (

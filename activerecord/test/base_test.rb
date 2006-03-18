@@ -569,7 +569,13 @@ class BasicsTest < Test::Unit::TestCase
 
     topic = Topic.find(topic.id)
     assert_nil topic.last_read
-    assert_nil topic.approved
+
+    # Sybase adapter does not allow nulls in boolean columns
+    if current_adapter?(:SybaseAdapter)
+      assert topic.approved == false
+    else
+      assert_nil topic.approved
+    end
   end
 
   def test_equality
@@ -1177,7 +1183,11 @@ class BasicsTest < Test::Unit::TestCase
     assert xml.include?(%(<content>Have a nice day</content>))
     assert xml.include?(%(<author-email-address>david@loudthinking.com</author-email-address>))
     assert xml.include?(%(<parent-id></parent-id>))
-    assert xml.include?(%(<last-read type="date">2004-04-15</last-read>))
+    if current_adapter?(:SybaseAdapter)
+      assert xml.include?(%(<last-read type="datetime">2004-04-15T00:00:00-05:00</last-read>))
+    else
+      assert xml.include?(%(<last-read type="date">2004-04-15</last-read>))
+    end
     # Oracle doesn't have true boolean or time-only fields
     unless current_adapter?(:OracleAdapter)
       assert xml.include?(%(<approved type="boolean">false</approved>)), "Approved should be a boolean"
