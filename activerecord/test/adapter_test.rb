@@ -18,8 +18,9 @@ class AdapterTest < Test::Unit::TestCase
   end
 
   def test_indexes
+    idx_name = "accounts_idx"
+      
     if @connection.respond_to?(:indexes)
-      idx_name = "accounts_idx"
       indexes = @connection.indexes("accounts")
       assert indexes.empty?
 
@@ -34,7 +35,15 @@ class AdapterTest < Test::Unit::TestCase
     end
 
   ensure
-    @connection.remove_index :accounts, :firm_id rescue nil
+    @connection.remove_index(:accounts, :name => idx_name) rescue nil
+  end
+  
+  def test_current_database
+    if @connection.respond_to?(:current_database)
+      assert_equal "activerecord_unittest", @connection.current_database
+    else
+      warn "#{@connection.class} does not respond to #current_database"
+    end
   end
 
   # test resetting sequences in odd tables in postgreSQL

@@ -399,6 +399,10 @@ module ActiveRecord
       def create_database(name)
         execute "CREATE DATABASE #{name}"
       end
+   
+      def current_database
+        @connection.select_one("select DB_NAME()")[0]
+      end
 
       def tables(name = nil)
         execute("SELECT table_name from information_schema.tables WHERE table_type = 'BASE TABLE'", name).inject([]) do |tables, field|

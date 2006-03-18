@@ -261,6 +261,9 @@ module ActiveRecord
         execute "DROP DATABASE IF EXISTS `#{name}`"
       end
 
+      def current_database
+        select_one("SELECT DATABASE() as db")["db"]
+      end
 
       def tables(name = nil) #:nodoc:
         tables = []

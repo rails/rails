@@ -1,5 +1,7 @@
 *SVN*
 
+* Added connection#current_database that'll return of the current database (only works in MySQL, SQL Server, and Oracle so far -- please help implement for the rest of the adapters) #3663 [Tom ward]
+
 * Fixed that Migration#execute would have the table name prefix appended to its query #4110 [mark.imbriaco@pobox.com]
 
 * Make all tinyint(1) variants act like boolean in mysql (tinyint(1) unsigned, etc.) [Jamis Buck]
