@@ -289,6 +289,40 @@ module ActionController #:nodoc:
     def delete() @attributes = {} end
   end
   
+  # Essentially generates a modified Tempfile object similar to the object
+  # you'd get from the standard library CGI module in a multipart
+  # request. This means you can use an ActionController::TestUploadedFile
+  # object in the params of a test request in order to simulate
+  # a file upload.
+  #
+  # Usage example, within a functional test:
+  #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + '/files/spongebob.png', 'image/png')
+  class TestUploadedFile
+    # The filename, *not* including the path, of the "uploaded" file
+    attr_reader :original_filename
+    
+    # The content type of the "uploaded" file
+    attr_reader :content_type
+    
+    def initialize(path, content_type = 'text/plain')
+      raise "file does not exist" unless File.exist?(path)
+      @content_type = content_type
+      @original_filename = path.sub(/^.*#{File::SEPARATOR}([^#{File::SEPARATOR}]+)$/) { $1 }
+      @tempfile = Tempfile.new(@original_filename)
+      FileUtils.copy_file(path, @tempfile.path)
+    end
+    
+    def path #:nodoc:
+      @tempfile.path
+    end
+    
+    alias local_path path
+    
+    def method_missing(method_name, *args, &block) #:nodoc:
+      @tempfile.send(method_name, *args, &block)
+    end
+  end
+  
   module TestProcess
     def self.included(base)
       # execute the request simulating a specific http method and set/volley the response
@@ -392,6 +426,15 @@ module ActionController #:nodoc:
     def method_missing(selector, *args)
       return @controller.send(selector, *args) if ActionController::Routing::NamedRoutes::Helpers.include?(selector)
       return super
+    end
+    
+    # Shortcut for ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + path, type). Example:
+    #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png')
+    def fixture_file_upload(path, mime_type = nil)
+      ActionController::TestUploadedFile.new(
+        Test::Unit::TestCase.respond_to?(:fixture_path) ? Test::Unit::TestCase + path : path, 
+        mime_type
+      )
     end
 
     # A helper to make it easier to test different route configurations.

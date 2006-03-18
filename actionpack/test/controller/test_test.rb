@@ -49,6 +49,10 @@ HTML
     def test_remote_addr
       render :text => (request.remote_addr || "not specified")
     end
+    
+    def test_file_upload
+      render :text => params[:file].size
+    end
 
     def rescue_action(e)
       raise e
@@ -365,5 +369,28 @@ HTML
         end
       end
     end
+  end
+  
+  FILES_DIR = File.dirname(__FILE__) + '/../fixtures/multipart'
+  
+  def test_test_uploaded_file
+    filename = 'mona_lisa.jpg'
+    path = "#{FILES_DIR}/#{filename}"
+    content_type = 'image/png'
+    
+    file = ActionController::TestUploadedFile.new(path, content_type)
+    assert_equal filename, file.original_filename
+    assert_equal content_type, file.content_type
+    assert_equal file.path, file.local_path
+    assert_equal File.read(path), file.read
+  end
+  
+  def test_fixture_file_upload
+    post :test_file_upload, :file => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")
+    assert_equal 159528, @response.body
+  end
+  
+  def test_test_uploaded_file_exception_when_file_doesnt_exist
+    assert_raise(RuntimeError) { ActionController::TestUploadedFile.new('non_existent_file') }
   end
 end

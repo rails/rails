@@ -1,5 +1,10 @@
 *SVN*
 
+* Added easy support for testing file uploads with fixture_file_upload #4105 [turnip@turnipspatch.com]. Example:
+
+    # Looks in Test::Unit::TestCase.fixture_path + '/files/spongebob.png'
+    post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png')
+
 * Fixed UrlHelper#current_page? to behave even when url-escaped entities are present #3929 [jeremy@planetargon.com]
 
 * Add ability for relative_url_root to be specified via an environment variable RAILS_RELATIVE_URL_ROOT. [isaac@reuben.com, Nicholas Seckar]
