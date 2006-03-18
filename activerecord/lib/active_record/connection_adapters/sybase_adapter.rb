@@ -150,6 +150,10 @@ module ActiveRecord
         # connect! # Not yet implemented
       end
 
+      def table_alias_length
+        30
+      end
+
       # Check for a limit statement and parse out the limit and
       # offset if specified. Remove the limit from the sql statement
       # and call select.

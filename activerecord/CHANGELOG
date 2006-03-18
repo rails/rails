@@ -1,5 +1,7 @@
 *SVN*
 
+* Add AbstractAdapter#table_alias_for to create table aliases according to the rules of the current adapter. [Rick]
+
 * Provide access to the underlying database connection through Adapter#raw_connection. Enables the use of db-specific methods without complicating the adapters. #2090 [Koz]
 
 * Remove broken attempts at handling columns with a default of 'now()' in the postgresql adapter. #2257 [Koz]

@@ -191,6 +191,9 @@ begin
           }
         end
 
+        def table_alias_length
+          30
+        end
 
         # QUOTING ==================================================
         #

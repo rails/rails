@@ -46,6 +46,19 @@ class AdapterTest < Test::Unit::TestCase
     end
   end
 
+  def test_table_alias
+    old = @connection.table_alias_length
+    def @connection.table_alias_length() 10; end
+      
+    assert_equal 'posts',      @connection.table_alias_for('posts')
+    assert_equal 'posts',      @connection.table_alias_for('posts', 1)
+    assert_equal 'posts_2',    @connection.table_alias_for('posts', 2)
+    assert_equal 'posts_comm', @connection.table_alias_for('posts_comments')
+    assert_equal 'posts_co_2', @connection.table_alias_for('posts_comments', 2)
+    
+    def @connection.table_alias_length() old; end
+  end
+
   # test resetting sequences in odd tables in postgreSQL
   if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
     require 'fixtures/movie'

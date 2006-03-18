@@ -101,6 +101,9 @@ module ActiveRecord
         true
       end      
       
+      def table_alias_length
+        63
+      end
 
       # QUOTING ==================================================
 

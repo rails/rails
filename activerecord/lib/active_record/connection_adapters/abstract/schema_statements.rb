@@ -8,6 +8,20 @@ module ActiveRecord
         {}
       end
 
+      # This is the maximum length a table alias can be
+      def table_alias_length
+        255
+      end
+
+      # Truncates a table alias according to the limits of the current adapter.  
+      def table_alias_for(table_name, index = 1)
+        if index > 1
+          "#{table_name[0..table_alias_length-3]}_#{index}"
+        else
+          table_name[0..table_alias_length-1]
+        end
+      end
+
       # def tables(name = nil) end
 
       # Returns an array of indexes for the given table.

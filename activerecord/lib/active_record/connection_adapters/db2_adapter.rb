@@ -188,6 +188,10 @@ begin
         def reconnect!
         end
 
+        def table_alias_length
+          128
+        end
+
         private
 
         def with_statement
