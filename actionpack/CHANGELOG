@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :function option to PrototypeHelper#observe_field/observe_form that allows you to call a function instead of submitting an ajax call as the trigger #4268 [jonathan@daikini.com]
+
 * Make Mime::Type.parse consider q values (if any) [Jamis Buck]
 
 * XML-formatted requests are typecast according to "type" attributes for :xml_simple [Jamis Buck]

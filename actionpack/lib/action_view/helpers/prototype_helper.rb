@@ -315,9 +315,11 @@ module ActionView
       # Observes the field with the DOM ID specified by +field_id+ and makes
       # an Ajax call when its contents have changed.
       # 
-      # Required +options+ are:
+      # Required +options+ are either of:
       # <tt>:url</tt>::       +url_for+-style options for the action to call
       #                       when the field has changed.
+      # <tt>:function</tt>::  Instead of making a remote call to a URL, you
+      #                       can specify a function to be called instead.
       # 
       # Additional options are:
       # <tt>:frequency</tt>:: The frequency (in seconds) at which changes to
@@ -702,7 +704,7 @@ module ActionView
           options[:with] ||= 'value' if options[:update]
         end
 
-        callback = remote_function(options)
+        callback = options[:function] || remote_function(options)
         javascript  = "new #{klass}('#{name}', "
         javascript << "#{options[:frequency]}, " if options[:frequency]
         javascript << "function(element, value) {"
