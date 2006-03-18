@@ -134,6 +134,14 @@ class WebServiceTest < Test::Unit::TestCase
     assert_equal [1, "hello", Date.new(1974,7,25)], params[:data][:g]
   end
 
+  def test_entities_unescaped_as_xml_simple
+    ActionController::Base.param_parsers[Mime::XML] = :xml_simple
+    process('POST', 'application/xml', <<-XML)
+      <data>&lt;foo &quot;bar&apos;s&quot; &amp; friends&gt;</data>
+    XML
+    assert_equal %(<foo "bar's" & friends>), @controller.params[:data]
+  end
+
   def test_dasherized_keys_as_yaml
     ActionController::Base.param_parsers[Mime::YAML] = :yaml
     process('POST', 'application/x-yaml', "---\nfirst-key:\n  sub-key: ...\n", true)
