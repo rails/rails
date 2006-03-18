@@ -76,7 +76,7 @@ class RespondToController < ActionController::Base
   end
 
   def rescue_action(e)
-    raise unless ActionController::MissingTemplate === e
+    raise
   end
 end
 
