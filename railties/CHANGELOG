@@ -1,5 +1,7 @@
 *SVN*
 
+* Added 'port open?' check to the spawner when running in repeat mode so we don't needlessly boot the dispatcher if the port is already in use anyway #4089 [guy.naor@famundo.com]
+
 * Add verification to generated scaffolds,  don't allow get for unsafe actions [Michael Koziarski]
 
 * Don't replace application.js in public/javascripts if it already exists [Cody Fauser]

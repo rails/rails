@@ -1,10 +1,20 @@
 require 'optparse'
+require 'socket'
 
 def spawn(port)
-  puts "Starting FCGI on port: #{port}"
-  system("#{OPTIONS[:spawner]} -f #{OPTIONS[:dispatcher]} -p #{port}")
+  print "Checking if something is already running on port #{port}..."
+  begin
+    srv = TCPServer.new('0.0.0.0', port)
+    srv.close
+    srv = nil
+    print "NO\n "
+    print "Starting FCGI on port: #{port}\n  "
+    system("#{OPTIONS[:spawner]} -f #{OPTIONS[:dispatcher]} -p #{port}")
+  rescue
+    print "YES\n"
+  end
 end
-
+				    
 def spawn_all
   OPTIONS[:instances].times { |i| spawn(OPTIONS[:port] + i) }
 end
