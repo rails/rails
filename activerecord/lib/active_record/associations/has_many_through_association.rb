@@ -65,14 +65,17 @@ module ActiveRecord
             raise ActiveRecordError, "Could not find the association '#{@reflection.options[:through]}' in model #{@reflection.klass}"
           end
           
+          # Get the actual primary key of the belongs_to association that the reflection is going through
+          source_primary_key = through_reflection.klass.reflect_on_association(@reflection.name.to_s.singularize.to_sym).primary_key_name
+          
           if through_reflection.options[:as]
             conditions = 
-              "#{@reflection.table_name}.#{@reflection.klass.primary_key} = #{through_reflection.table_name}.#{@reflection.klass.to_s.foreign_key} " +
+              "#{@reflection.table_name}.#{@reflection.klass.primary_key} = #{through_reflection.table_name}.#{source_primary_key} " +
               "AND #{through_reflection.table_name}.#{through_reflection.options[:as]}_id = #{@owner.quoted_id} " + 
               "AND #{through_reflection.table_name}.#{through_reflection.options[:as]}_type = #{@owner.class.quote @owner.class.base_class.name.to_s}"
           else
             conditions = 
-              "#{@reflection.klass.table_name}.#{@reflection.klass.primary_key} = #{through_reflection.table_name}.#{@reflection.klass.to_s.foreign_key} " +
+              "#{@reflection.klass.table_name}.#{@reflection.klass.primary_key} = #{through_reflection.table_name}.#{source_primary_key} " +
               "AND #{through_reflection.table_name}.#{through_reflection.primary_key_name} = #{@owner.quoted_id}"
           end
           

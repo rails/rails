@@ -140,6 +140,10 @@ module ActiveRecord
         end
       end
 
+      def through_reflection
+        @through_reflection ||= options[:through] ? active_record.reflect_on_association(options[:through]) : false
+      end
+
       private
         def name_to_class_name(name)
           if name =~ /::/
@@ -147,6 +151,8 @@ module ActiveRecord
           else
             if options[:class_name]
               options[:class_name]
+            elsif through_reflection # get the class_name of the belongs_to association of the through reflection
+              through_reflection.klass.reflect_on_association(name.to_s.singularize.to_sym).class_name
             else
               class_name = name.to_s.camelize
               class_name = class_name.singularize if [ :has_many, :has_and_belongs_to_many ].include?(macro)

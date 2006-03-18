@@ -1,6 +1,7 @@
 welcome_general:
   id: 1
   tag_id: 1
+  super_tag_id: 2
   taggable_id: 1
   taggable_type: Post
 

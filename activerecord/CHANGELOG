@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix that has_many :through honors the foreign key set by the belongs_to association in the join model (closes #4259) [andylien@gmail.com / Rick]
+
 * SQL Server adapter gets some love #4298 [rtomayko@gmail.com]
 
 * Added OpenBase database adapter that builds on top of the http://www.spice-of-life.net/ruby-openbase/ driver. All functionality except LIMIT/OFFSET is supported #3528 [derrickspell@cdmplus.com]
