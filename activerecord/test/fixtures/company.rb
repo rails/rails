@@ -42,7 +42,7 @@ class Client < Company
   belongs_to :firm, :foreign_key => "client_of"
   belongs_to :firm_with_basic_id, :class_name => "Firm", :foreign_key => "firm_id"
   belongs_to :firm_with_other_name, :class_name => "Firm", :foreign_key => "client_of"
-  belongs_to :firm_with_condition, :class_name => "Firm", :foreign_key => "client_of", :conditions => "1 = 1"
+  belongs_to :firm_with_condition, :class_name => "Firm", :foreign_key => "client_of", :conditions => ["1 = ?", 1]
 
   # Record destruction so we can test whether firm.clients.clear has
   # is calling client.destroy, deleting from the database, or setting
