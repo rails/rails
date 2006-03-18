@@ -26,7 +26,10 @@ module ActionController
       attr_reader :path
 
       # The hostname used in the last request.
-      attr_reader :host
+      attr_accessor :host
+
+      # The remote_addr used in the last request.
+      attr_accessor :remote_addr
 
       # A map of the cookies returned by the last response, and which will be
       # sent with the next request.
@@ -61,7 +64,8 @@ module ActionController
         @cookies = {}
         @controller = @request = @response = nil
       
-        host! "www.example.test"
+        self.host        = "www.example.test"
+        self.remote_addr = "127.0.0.1"
 
         unless @named_routes_configured
           # install the named routes in this session instance.
@@ -98,10 +102,6 @@ module ActionController
       def host!(name)
         @host = name
       end
-
-      # To make setting the host more natural when using a session object
-      # directly: foo.host = "blah"
-      alias_method :host=, :host!
 
       # Follow a single redirect response. If the last response was not a
       # redirect, an exception will be raised. Otherwise, the redirect is
@@ -204,6 +204,7 @@ module ActionController
             "REQUEST_METHOD" => method.to_s.upcase,
             "REQUEST_URI"    => path,
             "HTTP_HOST"      => host,
+            "REMOTE_ADDR"    => remote_addr,
             "SERVER_PORT"    => (https? ? "443" : "80"),
             "CONTENT_TYPE"   => "application/x-www-form-urlencoded",
             "CONTENT_LENGTH" => data ? data.length.to_s : nil,
@@ -429,7 +430,7 @@ module ActionController
     # TestCase, IntegrationTest has already been defined and cannot inherit
     # changes to those variables. So, we make those two attributes copy-on-write.
 
-    class<<self
+    class << self
       def use_transactional_fixtures=(flag) #:nodoc:
         @_use_transactional_fixtures = true
         @use_transactional_fixtures = flag
