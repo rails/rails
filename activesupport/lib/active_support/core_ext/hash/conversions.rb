@@ -21,13 +21,11 @@ module ActiveSupport #:nodoc:
           options[:builder].instruct! unless options.delete(:skip_instruct)
 
           options[:builder].__send__(options[:root].to_s.dasherize) do
-            for key in keys
-              value = self[key]
-
-              case value.class.to_s # TODO: Figure out why I have to to_s the class to do comparisons in order for tests to run
-                when "Hash"
+            each do |key, value|
+              case value
+                when ::Hash
                   value.to_xml(options.merge({ :root => key, :skip_instruct => true }))
-                when "Array"
+                when ::Array
                   value.to_xml(options.merge({ :root => key, :children => key.to_s.singularize, :skip_instruct => true}))
                 else
                   type_name = XML_TYPE_NAMES[value.class.to_s]
