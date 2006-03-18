@@ -1,5 +1,7 @@
 *SVN*
 
+* Add ability for relative_url_root to be specified via an environment variable RAILS_RELATIVE_URL_ROOT. [isaac@reuben.com, Nicholas Seckar]
+
 * Fixed link_to "somewhere", :post => true to produce valid XHTML by using the parentnode instead of document.body for the instant form #3007 [Bob Silva]
 
 * Added :function option to PrototypeHelper#observe_field/observe_form that allows you to call a function instead of submitting an ajax call as the trigger #4268 [jonathan@daikini.com]

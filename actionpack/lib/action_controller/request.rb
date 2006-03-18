@@ -163,9 +163,18 @@ module ActionController
     end
 
     # Returns the path minus the web server relative installation directory.
-    # This method returns nil unless the web server is apache.
+    # This can be set with the environment variable RAILS_RELATIVE_URL_ROOT.
+    # It can be automatically extracted for Apache setups. If the server is not
+    # Apache, this method returns an empty string.
     def relative_url_root
-      @@relative_url_root ||= server_software == 'apache' ? @env["SCRIPT_NAME"].to_s.sub(/\/dispatch\.(fcgi|rb|cgi)$/, '') : ''
+      @@relative_url_root ||= case
+        when @env["RAILS_RELATIVE_URL_ROOT"]
+          @env["RAILS_RELATIVE_URL_ROOT"]
+        when server_software == 'apache'
+          @env["SCRIPT_NAME"].to_s.sub(/\/dispatch\.(fcgi|rb|cgi)$/, '')
+        else
+          ''
+      end
     end
 
     # Returns the port number of this request as an integer.
