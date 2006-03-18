@@ -86,6 +86,13 @@ module ActiveRecord
           @last_verification = now
         end
       end
+      
+      # Provides access to the underlying database connection. Useful for
+      # when you need to call a proprietary method such as postgresql's lo_*
+      # methods
+      def raw_connection
+        @connection
+      end
 
       protected
         def log(sql, name)

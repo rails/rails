@@ -1,6 +1,8 @@
 *SVN*
 
-* Remove broken attempts at handling columns with a a default of 'now()' in the postgresql adapter. #2257 [Koz]
+* Provide access to the underlying database connection through Adapter#raw_connection. Enables the use of db-specific methods without complicating the adapters. #2090 [Koz]
+
+* Remove broken attempts at handling columns with a default of 'now()' in the postgresql adapter. #2257 [Koz]
 
 * Added connection#current_database that'll return of the current database (only works in MySQL, SQL Server, and Oracle so far -- please help implement for the rest of the adapters) #3663 [Tom ward]
 
