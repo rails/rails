@@ -218,6 +218,15 @@ class TestMailer < ActionMailer::Base
     end
     attachment :content_type => "application/octet-stream",:filename => "test.txt", :body => "test abcdefghijklmnopqstuvwxyz"
   end
+  
+  def attachment_with_custom_header(recipient)
+    recipients   recipient
+    subject      "custom header in attachment"
+    from         "test@example.com"
+    content_type "multipart/related"
+    part :content_type => "text/html", :body => 'yo'
+    attachment :content_type => "image/jpeg",:filename => "test.jpeg", :body => "i am not a real picture", :headers => { 'Content-ID' => '<test@test.com>' }
+  end
 
   def unnamed_attachment(recipient)
     recipients   recipient
@@ -282,6 +291,12 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_equal "text/plain", created.parts.first.parts.first.content_type
     assert_equal "text/html", created.parts.first.parts[1].content_type
     assert_equal "application/octet-stream", created.parts[1].content_type
+  end
+
+  def test_attachment_with_custom_header
+    created = nil
+    assert_nothing_raised { created = TestMailer.create_attachment_with_custom_header(@recipient)}
+    assert_equal "<test@test.com>", created.parts[1].header['content-id'].to_s
   end
 
   def test_signed_up

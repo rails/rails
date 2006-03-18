@@ -96,7 +96,9 @@ module ActionMailer
         
         part.set_content_type(content_type, nil, { "charset" => charset }) if content_type =~ /multipart/
       end
-    
+
+      @headers.each { |k,v| part[k] = v }
+
       part
     end
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Make custom headers work in subparts #4034 [elan@bluemandrill.com]
+
 * Template paths with dot chars in them no longer mess up implicit template selection for multipart messages #3332 [Chad Fowler]
 
 * Make sure anything with content-disposition of "attachment" is passed to the attachment presenter when parsing an email body [Jamis Buck]
