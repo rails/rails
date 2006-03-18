@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed UrlHelper#current_page? to behave even when url-escaped entities are present #3929 [jeremy@planetargon.com]
+
 * Add ability for relative_url_root to be specified via an environment variable RAILS_RELATIVE_URL_ROOT. [isaac@reuben.com, Nicholas Seckar]
 
 * Fixed link_to "somewhere", :post => true to produce valid XHTML by using the parentnode instead of document.body for the instant form #3007 [Bob Silva]
