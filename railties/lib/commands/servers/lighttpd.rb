@@ -15,9 +15,13 @@ configuration = Rails::Initializer.run(:initialize_logger).configuration
 default_config_file = config_file = "#{RAILS_ROOT}/config/lighttpd.conf"
 
 require 'optparse'
+
+detach = false
+
 ARGV.options do |opt|
   opt.on('-c', "--config=#{config_file}", 'Specify a different lighttpd config file.') { |path| config_file = path }
   opt.on('-h', '--help', 'Show this message.') { puts opt; exit 0 }
+  opt.on('-d', '-d', 'Call with -d to detach') { detach = true; puts "=> Configuration in config/lighttpd.conf" }
   opt.parse!
 end
 
@@ -43,10 +47,7 @@ puts "=> Rails application started on http://#{ip || default_ip}:#{port || defau
 
 tail_thread = nil
 
-if ARGV.first == "-d"
-  puts "=> Configuration in config/lighttpd.conf"
-  detach = true
-else
+if !detach
   puts "=> Call with -d to detach"
   puts "=> Ctrl-C to shutdown server (see config/lighttpd.conf for options)"
   detach = false
