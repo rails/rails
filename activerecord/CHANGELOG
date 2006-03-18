@@ -1,5 +1,7 @@
 *SVN*
 
+* Added OpenBase database adapter that builds on top of the http://www.spice-of-life.net/ruby-openbase/ driver. All functionality except LIMIT/OFFSET is supported #3528 [derrickspell@cdmplus.com]
+
 * Rework table aliasing to account for truncated table aliases.  Add smarter table aliasing when doing eager loading of STI associations. This allows you to use the association name in the order/where clause. [Jonathan Viney / Rick Olson] #4108 Example (SpecialComment is using STI):
 
     Author.find(:all, :include => { :posts => :special_comments }, :order => 'special_comments.body')

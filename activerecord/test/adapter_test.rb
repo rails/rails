@@ -27,7 +27,9 @@ class AdapterTest < Test::Unit::TestCase
       @connection.add_index :accounts, :firm_id, :name => idx_name
       indexes = @connection.indexes("accounts")
       assert_equal "accounts", indexes.first.table
-      assert_equal idx_name, indexes.first.name
+      # OpenBase does not have the concept of a named index
+      # Indexes are merely properties of columns.
+      assert_equal idx_name, indexes.first.name unless current_adapter?(:OpenBaseAdapter)
       assert !indexes.first.unique
       assert_equal ["firm_id"], indexes.first.columns
     else
@@ -80,4 +82,5 @@ class AdapterTest < Test::Unit::TestCase
       assert_nothing_raised { sub.save! }
     end
   end
+
 end
