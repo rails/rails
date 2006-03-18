@@ -201,16 +201,16 @@ module ActiveRecord
         return unless respond_to?(direction)
 
         case direction
-        when :up then announce "migrating"
-        when :down then announce "reverting"
+          when :up   then announce "migrating"
+          when :down then announce "reverting"
         end
         
         result = nil
         time = Benchmark.measure { result = send("real_#{direction}") }
 
         case direction
-        when :up then announce "migrated (%.4fs)" % time.real; write
-        when :down then announce "reverted (%.4fs)" % time.real; write
+          when :up   then announce "migrated (%.4fs)" % time.real; write
+          when :down then announce "reverted (%.4fs)" % time.real; write
         end
         
         result
@@ -224,11 +224,12 @@ module ActiveRecord
         
         begin
           @ignore_new_methods = true
+
           case sym
-          when :up, :down
-            klass = (class << self; self; end)
-            klass.send(:alias_method, "real_#{sym}", sym)
-            klass.send(:alias_method, sym, "#{sym}_using_benchmarks")
+            when :up, :down
+              klass = (class << self; self; end)
+              klass.send(:alias_method, "real_#{sym}", sym)
+              klass.send(:alias_method, sym, "#{sym}_using_benchmarks")
           end
         ensure
           @ignore_new_methods = false
@@ -277,6 +278,7 @@ module ActiveRecord
     class << self
       def migrate(migrations_path, target_version = nil)
         Base.connection.initialize_schema_information
+
         case
           when target_version.nil?, current_version < target_version
             up(migrations_path, target_version)
