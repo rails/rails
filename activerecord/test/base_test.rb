@@ -809,17 +809,6 @@ class BasicsTest < Test::Unit::TestCase
     def test_default
       default = Default.new
   
-      # CURRENT_TIMESTAMP and NOW() timestamps
-      time_format = "%m/%d/%Y %H:%M"
-      now = Time.now.strftime(time_format)
-      assert_equal now, default.modified_time.strftime(time_format)
-      assert_equal now, default.modified_time_function.strftime(time_format)
-
-      # CURRENT_DATE and NOW() dates
-      today = Date.today
-      assert_equal today, default.modified_date
-      assert_equal today, default.modified_date_function
-  
       # fixed dates / times
       assert_equal Date.new(2004, 1, 1), default.fixed_date
       assert_equal Time.local(2004, 1,1,0,0,0,0), default.fixed_time
