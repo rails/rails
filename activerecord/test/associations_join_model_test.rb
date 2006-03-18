@@ -207,6 +207,10 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert posts(:welcome, :reload)[:taggings_count].zero?
   end
 
+  def test_unavailable_through_reflection
+    assert_raises (ActiveRecord::ActiveRecordError) { authors(:david).nothings }
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)

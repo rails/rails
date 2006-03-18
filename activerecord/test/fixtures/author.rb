@@ -22,6 +22,8 @@ class Author < ActiveRecord::Base
 
   has_many :categorizations
   has_many :categories, :through => :categorizations
+  
+  has_many :nothings, :through => :kateggorisatons, :class_name => 'Category'
 
   attr_accessor :post_log
 

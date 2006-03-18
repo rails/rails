@@ -47,6 +47,8 @@
       has_many :attachments, :as => :attachable, :dependent => :delete_all
     end
 
+* Nicer error message on has_many :through when :through reflection can not be found. #4042 [court3nay@gmail.com]
+
 * Upgrade to Transaction::Simple 1.3 [Jamis Buck]
 
 * Catch FixtureClassNotFound when using instantiated fixtures on a fixture that has no ActiveRecord model [Rick Olson]

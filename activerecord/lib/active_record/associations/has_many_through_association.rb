@@ -61,7 +61,9 @@ module ActiveRecord
         end
 
         def construct_conditions
-          through_reflection = @owner.class.reflections[@reflection.options[:through]]
+          unless through_reflection = @owner.class.reflections[@reflection.options[:through]]
+            raise ActiveRecordError, "Could not find the association '#{@reflection.options[:through]}' in model #{@reflection.klass}"
+          end
           
           if through_reflection.options[:as]
             conditions = 
