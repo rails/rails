@@ -320,6 +320,34 @@ class ValidationsTest < Test::Unit::TestCase
 
     assert_raise(ArgumentError) { Topic.validates_format_of(:title, :content) }
   end
+  
+  # testing ticket #3142
+  def test_validate_format_numeric
+    Topic.validates_format_of(:title, :content, :with => /^[1-9][0-9]*$/, :message => "is bad data")
+
+    t = Topic.create("title" => "72x", "content" => "6789")
+    assert !t.valid?, "Shouldn't be valid"
+    assert !t.save, "Shouldn't save because it's invalid"
+    assert_equal "is bad data", t.errors.on(:title)
+    assert_nil t.errors.on(:content)
+
+    t.title = "-11"
+    assert !t.valid?, "Shouldn't be valid"
+
+    t.title = "03"
+    assert !t.valid?, "Shouldn't be valid"
+
+    t.title = "z44"
+    assert !t.valid?, "Shouldn't be valid"
+
+    t.title = "5v7"
+    assert !t.valid?, "Shouldn't be valid"
+
+    t.title = "1"
+
+    assert t.save
+    assert_nil t.errors.on(:title)
+  end
 
   def test_validates_inclusion_of
     Topic.validates_inclusion_of( :title, :in => %w( a b c d e f g ) )
