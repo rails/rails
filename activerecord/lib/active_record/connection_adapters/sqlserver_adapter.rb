@@ -27,6 +27,7 @@ module ActiveRecord
       mode        = config[:mode] ? config[:mode].to_s.upcase : 'ADO'
       username    = config[:username] ? config[:username].to_s : 'sa'
       password    = config[:password] ? config[:password].to_s : ''
+      autocommit  = config.key?(:autocommit) ? config[:autocommit] : true
       if mode == "ODBC"
         raise ArgumentError, "Missing DSN. Argument ':dsn' must be set in order for this adapter to work." unless config.has_key?(:dsn)
         dsn       = config[:dsn]
@@ -38,8 +39,7 @@ module ActiveRecord
         driver_url = "DBI:ADO:Provider=SQLOLEDB;Data Source=#{host};Initial Catalog=#{database};User Id=#{username};Password=#{password};"
       end
       conn      = DBI.connect(driver_url, username, password)
-
-      conn["AutoCommit"] = true
+      conn["AutoCommit"] = autocommit
       ConnectionAdapters::SQLServerAdapter.new(conn, logger, [driver_url, username, password])
     end
   end # class Base
@@ -48,8 +48,8 @@ module ActiveRecord
     class ColumnWithIdentity < Column# :nodoc:
       attr_reader :identity, :is_special, :scale
 
-      def initialize(name, default, sql_type = nil, is_identity = false, scale_value = 0)
-        super(name, default, sql_type)
+      def initialize(name, default, sql_type = nil, is_identity = false, null = true, scale_value = 0)
+        super(name, default, sql_type, null)
         @identity = is_identity
         @is_special = sql_type =~ /text|ntext|image/i ? true : false
         @scale = scale_value
@@ -243,14 +243,20 @@ module ActiveRecord
         return [] if table_name.blank?
         table_name = table_name.to_s if table_name.is_a?(Symbol)
         table_name = table_name.split('.')[-1] unless table_name.nil?
-        sql = "SELECT COLUMN_NAME as ColName, COLUMN_DEFAULT as DefaultValue, DATA_TYPE as ColType, COL_LENGTH('#{table_name}', COLUMN_NAME) as Length, COLUMNPROPERTY(OBJECT_ID('#{table_name}'), COLUMN_NAME, 'IsIdentity') as IsIdentity, NUMERIC_SCALE as Scale FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '#{table_name}'"
+        sql = "SELECT COLUMN_NAME as ColName, COLUMN_DEFAULT as DefaultValue, DATA_TYPE as ColType, IS_NULLABLE As IsNullable, COL_LENGTH('#{table_name}', COLUMN_NAME) as Length, COLUMNPROPERTY(OBJECT_ID('#{table_name}'), COLUMN_NAME, 'IsIdentity') as IsIdentity, NUMERIC_SCALE as Scale FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '#{table_name}'"
         # Comment out if you want to have the Columns select statment logged.
-        # Personnally, I think it adds unneccessary bloat to the log. 
+        # Personally, I think it adds unnecessary bloat to the log. 
         # If you do comment it out, make sure to un-comment the "result" line that follows
         result = log(sql, name) { @connection.select_all(sql) }
         #result = @connection.select_all(sql)
         columns = []
-        result.each { |field| columns << ColumnWithIdentity.new(field[:ColName], field[:DefaultValue].to_s.gsub!(/[()\']/,"") =~ /null/ ? nil : field[:DefaultValue], "#{field[:ColType]}(#{field[:Length]})", field[:IsIdentity] == 1 ? true : false, field[:Scale]) }
+        result.each do |field|
+          default = field[:DefaultValue].to_s.gsub!(/[()\']/,"") =~ /null/ ? nil : field[:DefaultValue]
+          type = "#{field[:ColType]}(#{field[:Length]})"
+          is_identity = field[:IsIdentity] == 1
+          is_nullable = field[:IsNullable] == 'YES'
+          columns << ColumnWithIdentity.new(field[:ColName], default, type, is_identity, is_nullable, field[:Scale])
+        end
         columns
       end
 
@@ -466,7 +472,7 @@ module ActiveRecord
       def type_to_sql(type, limit = nil) #:nodoc:
         native = native_database_types[type]
         # if there's no :limit in the default type definition, assume that type doesn't support limits
-        limit = native[:limit] ? limit || native[:limit] : nil
+        limit = limit || native[:limit]
         column_type_sql = native[:name]
         column_type_sql << "(#{limit})" if limit
         column_type_sql
@@ -524,11 +530,13 @@ module ActiveRecord
         end
 
         def change_order_direction(order)
-          case order
-            when  /\bDESC\b/i     then order.gsub(/\bDESC\b/i, "ASC")
-            when  /\bASC\b/i      then order.gsub(/\bASC\b/i, "DESC")
-            else                  String.new(order).split(',').join(' DESC,') + ' DESC'
-          end
+          order.split(",").collect {|fragment|
+            case fragment
+              when  /\bDESC\b/i     then fragment.gsub(/\bDESC\b/i, "ASC")
+              when  /\bASC\b/i      then fragment.gsub(/\bASC\b/i, "DESC")
+              else                  String.new(fragment).split(',').join(' DESC,') + ' DESC'
+            end
+          }.join(",")
         end
 
         def get_special_columns(table_name)

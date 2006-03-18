@@ -58,6 +58,11 @@ class FinderTest < Test::Unit::TestCase
     assert_equal(entrants(:third).name, entrants.first.name)
   end
   
+  def test_find_all_with_limit_and_offset_and_multiple_orderings
+    developers = Developer.find(:all, :order => "salary ASC, id DESC", :limit => 3, :offset => 1)
+    assert_equal ["David", "fixture_10", "fixture_9"], developers.collect {|d| d.name}
+  end
+  
   def test_find_with_limit_and_condition
     developers = Developer.find(:all, :order => "id DESC", :conditions => "salary = 100000", :limit => 3, :offset =>7)
     assert_equal(1, developers.size)

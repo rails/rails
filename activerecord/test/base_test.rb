@@ -745,6 +745,18 @@ class BasicsTest < Test::Unit::TestCase
     b_true = Booleantest.find(true_id)
     assert b_true.value?
   end
+
+  def test_boolean_cast_from_string
+    b_false = Booleantest.create({ "value" => "false" })
+    false_id = b_false.id
+    b_true = Booleantest.create({ "value" => "true" })
+    true_id = b_true.id
+
+    b_false = Booleantest.find(false_id)
+    assert !b_false.value?
+    b_true = Booleantest.find(true_id)
+    assert b_true.value?    
+  end
   
   def test_clone
     topic = Topic.find(1)
@@ -1163,6 +1175,7 @@ class BasicsTest < Test::Unit::TestCase
     xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true)
     bonus_time_in_current_timezone = topics(:first).bonus_time.xmlschema
     written_on_in_current_timezone = topics(:first).written_on.xmlschema
+    last_read_in_current_timezone = topics(:first).last_read.xmlschema
     assert_equal "<topic>", xml.first(7)
     assert xml.include?(%(<title>The First Topic</title>))
     assert xml.include?(%(<author-name>David</author-name>))
@@ -1172,8 +1185,8 @@ class BasicsTest < Test::Unit::TestCase
     assert xml.include?(%(<content>Have a nice day</content>))
     assert xml.include?(%(<author-email-address>david@loudthinking.com</author-email-address>))
     assert xml.include?(%(<parent-id></parent-id>))
-    if current_adapter?(:SybaseAdapter)
-      assert xml.include?(%(<last-read type="datetime">2004-04-15T00:00:00-05:00</last-read>))
+    if current_adapter?(:SybaseAdapter) or current_adapter?(:SQLServerAdapter)
+      assert xml.include?(%(<last-read type="datetime">#{last_read_in_current_timezone}</last-read>))
     else
       assert xml.include?(%(<last-read type="date">2004-04-15</last-read>))
     end

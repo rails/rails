@@ -28,7 +28,7 @@ CREATE TABLE topics (
   bonus_time datetime default NULL,
   last_read datetime default NULL,
   content varchar(255) default NULL,
-  approved tinyint default 1,
+  approved bit default 1,
   replies_count int default 0,
   parent_id int default NULL,
   type varchar(50) default NULL

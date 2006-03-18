@@ -14,6 +14,15 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
       assert_match %r{create_table "authors"}, output
       assert_no_match %r{create_table "schema_info"}, output
     end
+    
+    def test_schema_dump_includes_not_null_columns
+      stream = StringIO.new
+      
+      ActiveRecord::SchemaDumper.ignore_tables = [/^[^s]/]
+      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
+      output = stream.string
+      assert_match %r{:null => false}, output
+    end
 
     def test_schema_dump_with_string_ignored_table
       stream = StringIO.new
