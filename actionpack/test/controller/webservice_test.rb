@@ -92,6 +92,12 @@ class WebServiceTest < Test::Unit::TestCase
     assert_equal 'content...', @controller.params["summary"]
     assert_equal 'SimpleXml', @controller.params["title"]
   end
+
+  def test_use_xml_ximple_with_empty_request
+    ActionController::Base.param_parsers[Mime::XML] = :xml_simple
+    assert_nothing_raised { process('POST', 'application/xml', "") }
+    assert_equal "", @controller.response.body
+  end
   
   def test_deprecated_request_methods
     process('POST', 'application/x-yaml')

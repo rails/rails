@@ -63,11 +63,12 @@ class CGIMethods #:nodoc:
         when Proc
           strategy.call(raw_post_data)
         when :xml_simple
-          typecast_xml_value(XmlSimple.xml_in(raw_post_data,
-            'forcearray'   => false,
-            'forcecontent' => true,
-            'keeproot'     => true,
-            'contentkey'   => '__content__'))
+          raw_post_data.blank? ? nil :
+            typecast_xml_value(XmlSimple.xml_in(raw_post_data,
+              'forcearray'   => false,
+              'forcecontent' => true,
+              'keeproot'     => true,
+              'contentkey'   => '__content__'))
         when :yaml
           YAML.load(raw_post_data)
         when :xml_node
