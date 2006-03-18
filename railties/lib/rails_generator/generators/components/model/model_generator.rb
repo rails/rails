@@ -18,8 +18,8 @@ class ModelGenerator < Rails::Generator::NamedBase
 
       unless options[:skip_migration]
         m.migration_template 'migration.rb', 'db/migrate', :assigns => {
-          :migration_name => "Create#{class_name.pluralize}"
-        }, :migration_file_name => "create_#{file_name.pluralize}"
+          :migration_name => "Create#{class_name.pluralize.gsub(/::/, '')}"
+        }, :migration_file_name => "create_#{file_path.gsub(/\//, '_').pluralize}"
       end
     end
   end
