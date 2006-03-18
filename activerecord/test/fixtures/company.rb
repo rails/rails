@@ -9,13 +9,13 @@ end
 
 
 class Firm < Company
-  has_many :clients, :order => "id", :dependent => true, :counter_sql =>
+  has_many :clients, :order => "id", :dependent => :destroy, :counter_sql =>
       "SELECT COUNT(*) FROM companies WHERE firm_id = 1 " +
       "AND (#{QUOTED_TYPE} = 'Client' OR #{QUOTED_TYPE} = 'SpecialClient' OR #{QUOTED_TYPE} = 'VerySpecialClient' )"
   has_many :clients_sorted_desc, :class_name => "Client", :order => "id DESC"
   has_many :clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id"
-  has_many :dependent_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id", :dependent => true
-  has_many :exclusively_dependent_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id", :exclusively_dependent => true
+  has_many :dependent_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id", :dependent => :destroy
+  has_many :exclusively_dependent_clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id", :dependent => :delete_all
   has_many :limited_clients, :class_name => "Client", :order => "id", :limit => 1
   has_many :clients_like_ms, :conditions => "name = 'Microsoft'", :class_name => "Client", :order => "id"
   has_many :clients_using_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE client_of = #{id}'
@@ -29,7 +29,7 @@ class Firm < Company
            :finder_sql  => 'SELECT * FROM companies WHERE client_of = 1000',
            :counter_sql => 'SELECT COUNT(*) FROM companies WHERE client_of = 1000'
 
-  has_one :account, :foreign_key => "firm_id", :dependent => true
+  has_one :account, :foreign_key => "firm_id", :dependent => :destroy
 end
 
 class DependentFirm < Company

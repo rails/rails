@@ -62,7 +62,7 @@ module ActiveRecord
       def clear
         return self if length.zero? # forces load_target if hasn't happened already
 
-        if @reflection.options[:exclusively_dependent]
+        if @reflection.options[:dependent] && @reflection.options[:dependent] == :delete_all
           destroy_all
         else          
           delete_all

@@ -77,7 +77,7 @@ class ReflectionTest < Test::Unit::TestCase
   end
 
   def test_has_many_reflection
-    reflection_for_clients = ActiveRecord::Reflection::AssociationReflection.new(:has_many, :clients, { :order => "id", :dependent => true }, Firm)
+    reflection_for_clients = ActiveRecord::Reflection::AssociationReflection.new(:has_many, :clients, { :order => "id", :dependent => :destroy }, Firm)
 
     assert_equal reflection_for_clients, Firm.reflect_on_association(:clients)
 
@@ -89,7 +89,7 @@ class ReflectionTest < Test::Unit::TestCase
   end
 
   def test_has_one_reflection
-    reflection_for_account = ActiveRecord::Reflection::AssociationReflection.new(:has_one, :account, { :foreign_key => "firm_id", :dependent => true }, Firm)
+    reflection_for_account = ActiveRecord::Reflection::AssociationReflection.new(:has_one, :account, { :foreign_key => "firm_id", :dependent => :destroy }, Firm)
     assert_equal reflection_for_account, Firm.reflect_on_association(:account)
 
     assert_equal Account, Firm.reflect_on_association(:account).klass
