@@ -12,4 +12,4 @@ Example:
     ./script/generate session_migration AddSessionTable
 
     With 4 existing migrations, this will create an AddSessionTable migration in the
-    file db/migrate/5_add_session_table.rb
+    file db/migrate/005_add_session_table.rb
