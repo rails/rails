@@ -106,14 +106,66 @@ class WebServiceTest < Test::Unit::TestCase
     ActionController::Base.param_parsers[Mime::XML] = :xml_simple
     process('POST', 'application/xml', "<first-key>\n<sub-key>...</sub-key>\n</first-key>", true)
     assert_equal 'action, controller, first_key(sub_key), full', @controller.response.body
+    assert_equal "...", @controller.params[:first_key][:sub_key]
+  end
+
+  def test_typecast_as_xml
+    ActionController::Base.param_parsers[Mime::XML] = :xml_simple
+    process('POST', 'application/xml', <<-XML)
+      <data>
+        <a type="integer">15</a>
+        <b type="boolean">false</b>
+        <c type="boolean">true</c>
+        <d type="date">2005-03-17</d>
+        <e type="datetime">2005-03-17T21:41:07Z</e>
+        <f>unparsed</f>
+        <g type="integer">1</g>
+        <g>hello</g>
+        <g type="date">1974-07-25</g>
+      </data>
+    XML
+    params = @controller.params
+    assert_equal 15, params[:data][:a]
+    assert_equal false, params[:data][:b]
+    assert_equal true, params[:data][:c]
+    assert_equal Date.new(2005,3,17), params[:data][:d]
+    assert_equal Time.utc(2005,3,17,21,41,7), params[:data][:e]
+    assert_equal "unparsed", params[:data][:f]
+    assert_equal [1, "hello", Date.new(1974,7,25)], params[:data][:g]
   end
 
   def test_dasherized_keys_as_yaml
     ActionController::Base.param_parsers[Mime::YAML] = :yaml
     process('POST', 'application/x-yaml', "---\nfirst-key:\n  sub-key: ...\n", true)
     assert_equal 'action, controller, first_key(sub_key), full', @controller.response.body
+    assert_equal "...", @controller.params[:first_key][:sub_key]
   end
-  
+
+  def test_typecast_as_yaml
+    ActionController::Base.param_parsers[Mime::YAML] = :yaml
+    process('POST', 'application/x-yaml', <<-YAML)
+      ---
+      data:
+        a: 15
+        b: false
+        c: true
+        d: 2005-03-17
+        e: 2005-03-17T21:41:07Z
+        f: unparsed
+        g:
+          - 1
+          - hello
+          - 1974-07-25
+    YAML
+    params = @controller.params
+    assert_equal 15, params[:data][:a]
+    assert_equal false, params[:data][:b]
+    assert_equal true, params[:data][:c]
+    assert_equal Date.new(2005,3,17), params[:data][:d]
+    assert_equal Time.utc(2005,3,17,21,41,7), params[:data][:e]
+    assert_equal "unparsed", params[:data][:f]
+    assert_equal [1, "hello", Date.new(1974,7,25)], params[:data][:g]
+  end
   
   private  
   

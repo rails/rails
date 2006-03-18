@@ -63,7 +63,11 @@ class CGIMethods #:nodoc:
         when Proc
           strategy.call(raw_post_data)
         when :xml_simple
-          XmlSimple.xml_in(raw_post_data, 'ForceArray' => false, 'keeproot' => true)
+          typecast_xml_value(XmlSimple.xml_in(raw_post_data,
+            'forcearray'   => false,
+            'forcecontent' => true,
+            'keeproot'     => true,
+            'contentkey'   => '__content__'))
         when :yaml
           YAML.load(raw_post_data)
         when :xml_node
@@ -77,7 +81,45 @@ class CGIMethods #:nodoc:
         "raw_post_data" => raw_post_data, "format" => mime_type }
     end
 
+    def self.typecast_xml_value(value)
+      case value
+      when Hash
+        if value.has_key?("__content__")
+          content = translate_xml_entities(value["__content__"])
+          case value["type"]
+          when "integer"  then content.to_i
+          when "boolean"  then content == "true"
+          when "datetime" then Time.parse(content)
+          when "date"     then Date.parse(content)
+          else                 content
+          end
+        else
+          value.empty? ? nil : value.inject({}) do |h,(k,v)|
+            h[k] = typecast_xml_value(v)
+            h
+          end
+        end
+      when Array
+        value.map! { |i| typecast_xml_value(i) }
+        case value.length
+        when 0 then nil
+        when 1 then value.first
+        else value
+        end
+      else
+        raise "can't typecast #{value.inspect}"
+      end
+    end
+
   private
+
+    def self.translate_xml_entities(value)
+      value.gsub(/&lt;/,   "<").
+            gsub(/&gt;/,   ">").
+            gsub(/&quot;/, '"').
+            gsub(/&apos;/, "'").
+            gsub(/&amp;/,  "&")
+    end
 
     def self.dasherize_keys(params)
       case params.class.to_s
