@@ -12,7 +12,7 @@ end
 
 require 'initializer'
 configuration = Rails::Initializer.run(:initialize_logger).configuration
-default_config_file = config_file = "#{RAILS_ROOT}/config/lighttpd.conf"
+default_config_file = config_file = Pathname.new("#{RAILS_ROOT}/config/lighttpd.conf").cleanpath
 
 require 'optparse'
 
