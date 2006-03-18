@@ -246,4 +246,12 @@ class MimeControllerTest < Test::Unit::TestCase
     get :all_types_with_layout
     assert_equal '<html>HTML for all_types_with_layout</html>', @response.body
   end
+
+  def test_xhr
+    xhr :get, :js_or_html
+    assert_equal 'JS', @response.body
+
+    xhr :get, :using_defaults
+    assert_equal '$("body").visualEffect("highlight");', @response.body
+  end
 end
