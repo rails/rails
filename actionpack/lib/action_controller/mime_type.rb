@@ -1,31 +1,85 @@
 module Mime
   class Type
+
+    # A simple helper class used in parsing the accept header
+    class AcceptItem #:nodoc:
+      attr_accessor :order, :name, :q
+
+      def initialize(order, name, q=nil)
+        @order = order
+        @name = name.strip
+        q ||= 0.0 if @name == "*/*" # default "*/*" to end of list
+        @q = ((q || 1.0).to_f * 100).to_i
+      end
+
+      def to_s
+        @name
+      end
+
+      def <=>(item)
+        result = item.q <=> q
+        result = order <=> item.order if result == 0
+        result
+      end
+
+      def ==(item)
+        name == (item.respond_to?(:name) ? item.name : item)
+      end
+    end
+
     class << self
       def lookup(string)
         LOOKUP[string]
       end
 
       def parse(accept_header)
-        mime_types = accept_header.split(",").collect! do |mime_type|
-          mime_type.split(";").first.strip
+        # keep track of creation order to keep the subsequent sort stable
+        index = 0
+        list = accept_header.split(/,/).
+          map! { |i| AcceptItem.new(index += 1, *i.split(/;\s*q=/)) }.sort!
+
+        # Take care of the broken text/xml entry by renaming or deleting it
+  
+        text_xml = list.index("text/xml")
+        app_xml = list.index("application/xml")
+
+        if text_xml && app_xml
+          # set the q value to the max of the two
+          list[app_xml].q = [list[text_xml].q, list[app_xml].q].max
+
+          # make sure app_xml is ahead of text_xml in the list
+          if app_xml > text_xml
+            list[app_xml], list[text_xml] = list[text_xml], list[app_xml]
+            app_xml, text_xml = text_xml, app_xml
+          end
+
+          # delete text_xml from the list
+          list.delete_at(text_xml)
+  
+        elsif text_xml
+          list[text_xml].name = "application/xml"
         end
 
-        reorder_xml_types!(mime_types)
-        mime_types.collect! { |mime_type| Mime::Type.lookup(mime_type) }
-      end
-      
-      private
-        def reorder_xml_types!(mime_types)
-          mime_types.delete("text/xml") if mime_types.include?("application/xml")
+        # Look for more specific xml-based types and sort them ahead of app/xml
 
-          if index_for_generic_xml = mime_types.index("application/xml")
-            specific_xml_types = mime_types[index_for_generic_xml..-1].grep(/application\/[a-z]*\+xml/)
+        if app_xml
+          idx = app_xml
+          app_xml_type = list[app_xml]
 
-            for specific_xml_type in specific_xml_types.reverse
-              mime_types.insert(index_for_generic_xml, mime_types.delete(specific_xml_type))
+          while(idx < list.length)
+            type = list[idx]
+            break if type.q < app_xml_type.q
+            if type.name =~ /\+xml$/
+              list[app_xml], list[idx] = list[idx], list[app_xml]
+              app_xml = idx
             end
+            idx += 1
           end
         end
+
+        list.map! { |i| Mime::Type.lookup(i.name) }.uniq!
+        list
+      end
     end
     
     def initialize(string, symbol = nil, synonyms = [])

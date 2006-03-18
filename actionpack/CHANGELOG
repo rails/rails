@@ -1,5 +1,7 @@
 *SVN*
 
+* Make Mime::Type.parse consider q values (if any) [Jamis Buck]
+
 * XML-formatted requests are typecast according to "type" attributes for :xml_simple [Jamis Buck]
 
 * Added protection against proxy setups treating requests as local even when they're not #3898 [stephen_purcell@yahoo.com]
