@@ -153,7 +153,7 @@ module ActionController #:nodoc:
         
           request.instance_variable_set(
             :@parameters,
-            (options[:params] || {}).with_indifferent_access.regular_update(
+            (options[:params] || {}).with_indifferent_access.update(
               "controller" => controller_name, "action" => options[:action], "id" => options[:id]
             )
           )
