@@ -1,5 +1,7 @@
 *SVN*
 
+* Change url_for to escape the resulting URLs when called from a view. [Nicholas Seckar, eddiewould@paradise.net.nz]
+
 * Added easy support for testing file uploads with fixture_file_upload #4105 [turnip@turnipspatch.com]. Example:
 
     # Looks in Test::Unit::TestCase.fixture_path + '/files/spongebob.png'

@@ -15,7 +15,7 @@ module ActionView
       # http://example.com/controller/action part (makes it harder to parse httpd log files)
       def url_for(options = {}, *parameters_for_method_reference)
         options = { :only_path => true }.update(options.symbolize_keys) if options.kind_of? Hash
-        @controller.send(:url_for, options, *parameters_for_method_reference)
+        html_escape(@controller.send(:url_for, options, *parameters_for_method_reference))
       end
 
       # Creates a link tag of the given +name+ using an URL created by the set of +options+. See the valid options in
@@ -46,8 +46,8 @@ module ActionView
         else
           tag_options = nil
         end
-        url = html_escape(options.is_a?(String) ? options : url_for(options, *parameters_for_method_reference))
-        "<a href=\"#{url}\"#{tag_options}>#{name||url}</a>"
+        url = options.is_a?(String) ? options : self.url_for(options, *parameters_for_method_reference)
+        "<a href=\"#{url}\"#{tag_options}>#{name || url}</a>"
       end
 
       # Generates a form containing a sole button that submits to the
@@ -104,11 +104,10 @@ module ActionView
         if confirm = html_options.delete("confirm")
           html_options["onclick"] = "return #{confirm_javascript_function(confirm)};"
         end
-
-        url, name = options.is_a?(String) ?
-          [ options,  name || options ] :
-          [ url_for(options), name || html_escape(url_for(options)) ]
-
+        
+        url = options.is_a?(String) ? options : url_for(options)
+        name ||= url
+        
         html_options.merge!("type" => "submit", "value" => name)
 
         "<form method=\"post\" action=\"#{h url}\" class=\"button-to\"><div>" +
@@ -197,6 +196,7 @@ module ActionView
       #   mail_to "me@domain.com", "My email", :cc => "ccaddress@domain.com", :bcc => "bccaddress@domain.com", :subject => "This is an example email", :body => "This is the body of the message."   # =>
       #     <a href="mailto:me@domain.com?cc="ccaddress@domain.com"&bcc="bccaddress@domain.com"&body="This%20is%20the%20body%20of%20the%20message."&subject="This%20is%20an%20example%20email">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
+        name = html_escape(name) if name
         html_options = html_options.stringify_keys
         encode = html_options.delete("encode")
         cc, bcc, subject, body = html_options.delete("cc"), html_options.delete("bcc"), html_options.delete("subject"), html_options.delete("body")
