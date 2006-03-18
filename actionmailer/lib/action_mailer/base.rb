@@ -283,8 +283,9 @@ module ActionMailer
           templates = Dir.glob("#{template_path}/#{@template}.*")
           templates.each do |path|
             # TODO: don't hardcode rhtml|rxml
-            next unless md = /^([^\.]+)\.([^\.]+\.[^\+]+)\.(rhtml|rxml)$/.match(File.basename(path))
-            template_name = "#{md.captures[0]}.#{md.captures[1]}"
+            basename = File.basename(path)
+            next unless md = /^([^\.]+)\.([^\.]+\.[^\+]+)\.(rhtml|rxml)$/.match(basename)
+            template_name = basename
             content_type = md.captures[1].gsub('.', '/')
             @parts << Part.new(:content_type => content_type,
               :disposition => "inline", :charset => charset,
