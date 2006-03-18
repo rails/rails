@@ -5,9 +5,11 @@ module ActionController #:nodoc:
     end
 
     module InstanceMethods
-      def respond_to(&block)
+      def respond_to(*types, &block)
+        raise ArgumentError, "respond_to takes either types or a block, never bot" unless types.any? ^ block
+        block ||= lambda { |responder| types.each { |type| responder.send(type) } }
         responder = Responder.new(block.binding)
-        yield responder
+        block.call(responder)
         responder.respond
       end
     end

@@ -40,6 +40,10 @@ class RespondToController < ActionController::Base
     end
   end
   
+  def using_defaults_with_type_list
+    respond_to(:html, :js, :xml)
+  end
+  
   def using_argument_defaults
     person_in_xml = { :name => "David" }.to_xml(:root => "person")
     respond_to do |type|
@@ -152,6 +156,20 @@ class MimeControllerTest < Test::Unit::TestCase
 
     @request.env["HTTP_ACCEPT"] = "application/xml"
     get :using_defaults
+    assert_equal "<p>Hello world!</p>\n", @response.body
+  end
+  
+  def test_using_defaults_with_type_list
+    @request.env["HTTP_ACCEPT"] = "*/*"
+    get :using_defaults_with_type_list
+    assert_equal 'Hello world!', @response.body
+
+    @request.env["HTTP_ACCEPT"] = "text/javascript"
+    get :using_defaults_with_type_list
+    assert_equal '$("body").visualEffect("highlight");', @response.body
+
+    @request.env["HTTP_ACCEPT"] = "application/xml"
+    get :using_defaults_with_type_list
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
   
