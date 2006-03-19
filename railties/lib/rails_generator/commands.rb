@@ -426,8 +426,11 @@ end_message
         # When deleting a migration, it knows to delete every file named "[0-9]*_#{file_name}".
         def migration_template(relative_source, relative_destination, template_options = {})
           migration_directory relative_destination
-          raise "There is no migration named #{file_name}" unless migration_exists?(file_name)
-          existing_migrations(file_name).each do |file_path|
+
+          migration_file_name = template_options[:migration_file_name] || file_name
+          raise "There is no migration named #{migration_file_name}" unless migration_exists?(migration_file_name)
+
+          existing_migrations(migration_file_name).each do |file_path|
             file(relative_source, file_path, template_options)
           end
         end
