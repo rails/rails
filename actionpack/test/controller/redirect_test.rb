@@ -58,6 +58,20 @@ class RedirectTest < Test::Unit::TestCase
     assert_redirected_to :action => "other_host", :only_path => false, :host => 'other.test.host'
   end
 
+  def test_redirect_error_with_pretty_diff
+    get :host_redirect
+    begin
+      assert_redirected_to :action => "other_host", :only_path => true
+    rescue Test::Unit::AssertionFailedError => err
+      redirection_msg, diff_msg = err.message.scan(/<\{[^\}]+\}>/).collect { |s| s[2..-3] }
+      assert_match %r(:only_path=>false),        redirection_msg
+      assert_match %r(:host=>"other.test.host"), redirection_msg
+      assert_match %r(:action=>"other_host"),    redirection_msg
+      assert_match %r(:only_path=>true),         diff_msg
+      assert_match %r(:host=>"other.test.host"), diff_msg
+    end
+  end
+
   def test_module_redirect
     get :module_redirect
     assert_redirect_url "http://test.host/module_test/module_redirect/hello_world"

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Hash#diff to show the difference between two hashes [Chris McGrath]
+
 * Fixed HashWithIndifferentAccess#delete to work with both symbols and strings #2176 [Caio Chassot]
 
 * Added Time#advance to do precise time time calculations for cases where a month being approximated to 30 days won't do #1860 [Rick Olson]

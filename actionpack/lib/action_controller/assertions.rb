@@ -85,8 +85,9 @@ module Test #:nodoc:
             assert_equal(eurl, url, msg) if eurl && url
             assert_equal(epath, path, msg) if epath && path 
           else
-            msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>)",
-                                @response.redirected_to || @response.redirect_url)
+            @response_diff = options.diff(@response.redirected_to) if @response.redirected_to
+            msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>), difference: <?>", 
+                                @response.redirected_to || @response.redirect_url, @response_diff)
 
             assert_block(msg) do
               if options.is_a?(Symbol)

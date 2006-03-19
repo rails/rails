@@ -174,6 +174,10 @@ class HashExtTest < Test::Unit::TestCase
   def test_reverse_merge
     assert_equal({ :a => 1, :b => 2, :c => 10 }, { :a => 1, :b => 2 }.reverse_merge({:a => "x", :b => "y", :c => 10}) )
   end
+
+  def test_diff
+    assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
+  end
 end
 
 class HashToXmlTest < Test::Unit::TestCase
