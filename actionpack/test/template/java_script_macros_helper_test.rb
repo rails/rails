@@ -91,4 +91,11 @@ class JavaScriptMacrosHelperTest < Test::Unit::TestCase
       :load_text_url => { :action => "action_to_get_value" })
   end
   
+  def test_in_place_editor_eval_scripts
+    assert_match "Ajax.InPlaceEditor('id-goes-here', 'http://www.example.com/action_to_set_value', {evalScripts:true})",
+    in_place_editor( 'id-goes-here', 
+      :url => { :action => "action_to_set_value" }, 
+      :script => true )
+  end
+  
 end

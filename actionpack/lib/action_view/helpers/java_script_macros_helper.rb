@@ -39,6 +39,7 @@ module ActionView
       # <tt>:options</tt>::           Pass through options to the AJAX call (see prototype's Ajax.Updater)
       # <tt>:with</tt>::              JavaScript snippet that should return what is to be sent
       #                               in the AJAX call, +form+ is an implicit parameter
+      # <tt>:script</tt>::            Instructs the in-place editor to evaluate the remote JavaScript response (default: false)
       def in_place_editor(field_id, options = {})
         function =  "new Ajax.InPlaceEditor("
         function << "'#{field_id}', "
@@ -54,6 +55,7 @@ module ActionView
         js_options['externalControl'] = "'#{options[:external_control]}'" if options[:external_control]
         js_options['loadTextURL'] = "'#{url_for(options[:load_text_url])}'" if options[:load_text_url]        
         js_options['ajaxOptions'] = options[:options] if options[:options]
+        js_options['evalScripts'] = options[:script] if options[:script]
         js_options['callback']   = "function(form) { return #{options[:with]} }" if options[:with]
         function << (', ' + options_for_javascript(js_options)) unless js_options.empty?
         

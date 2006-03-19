@@ -1,5 +1,7 @@
 *SVN*
 
+* Add :script option to in_place_editor to support evalScripts (closes #4194) [codyfauser@gmail.com]
+
 * Fix mixed case enumerable methods in the JavaScript Collection Proxy (closes #4314) [codyfauser@gmail.com]
 
 * Undo accidental escaping for mail_to; add regression test. [Nicholas Seckar]
