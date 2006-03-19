@@ -4,12 +4,12 @@ namespace :rails do
     task :gems do
       deps = %w(actionpack activerecord actionmailer activesupport actionwebservice)
       require 'rubygems'
+      Gem.manage_gems
 
-      rails = if version = ENV['VERSION']
-                Gem.cache.search('rails', "= #{version}").first
-              else
-                Gem.cache.search('rails').sort_by { |g| g.version }.last
-              end
+      rails = version = ENV['VERSION'] ?
+        Gem.cache.search('rails', "= #{version}").first :
+        Gem.cache.search('rails').sort_by { |g| g.version }.last
+
       version ||= rails.version
 
       unless rails
@@ -21,12 +21,15 @@ namespace :rails do
       rm_rf   "vendor/rails"
       mkdir_p "vendor/rails"
 
-      rails.dependencies.select { |g| deps.include? g.name }.each do |g|
-        system "cd vendor/rails; gem unpack -v '#{g.version_requirements}' #{g.name}; mv #{g.name}* #{g.name}"
+      chdir("vendor/rails") do
+        rails.dependencies.select { |g| deps.include? g.name }.each do |g|
+          Gem::GemRunner.new.run(["unpack", "-v", "#{g.version_requirements}", "#{g.name}"])
+          mv(Dir.glob("#{g.name}*").first, g.name)
+        end
+
+        Gem::GemRunner.new.run(["unpack", "-v", "=#{version}", "rails"])
+        FileUtils.mv(Dir.glob("rails*").first, "railties")
       end
-      system "cd vendor/rails; gem unpack -v '=#{version}' rails"
-  
-      FileUtils.mv(Dir.glob("vendor/rails/rails*").first, "vendor/rails/railties")
     end
 
     desc "Lock this application to latest Edge Rails. Lock a specific revision with REVISION=X"
