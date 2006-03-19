@@ -747,9 +747,9 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_boolean_cast_from_string
-    b_false = Booleantest.create({ "value" => "false" })
+    b_false = Booleantest.create({ "value" => "0" })
     false_id = b_false.id
-    b_true = Booleantest.create({ "value" => "true" })
+    b_true = Booleantest.create({ "value" => "1" })
     true_id = b_true.id
 
     b_false = Booleantest.find(false_id)
