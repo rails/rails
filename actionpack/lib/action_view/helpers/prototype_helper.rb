@@ -807,7 +807,7 @@ module ActionView
     end
 
     class JavaScriptCollectionProxy < JavaScriptProxy #:nodoc:
-      ENUMERABLE_METHODS_WITH_RETURN = [:all, :any, :collect, :map, :detect, :find, :findAll, :select, :max, :min, :partition, :reject, :sortBy]
+      ENUMERABLE_METHODS_WITH_RETURN = [:all, :any, :collect, :map, :detect, :find, :find_all, :select, :max, :min, :partition, :reject, :sort_by]
       ENUMERABLE_METHODS = ENUMERABLE_METHODS_WITH_RETURN + [:each]
       attr_reader :generator
       delegate :arguments_for_call, :to => :generator
@@ -865,7 +865,7 @@ module ActionView
           method_args = arguments_for_call options[:method_args] # foo, bar, function
           method_args << ', ' unless method_args.blank?
           add_variable_assignment!(options[:variable]) if options[:variable]
-          append_enumerable_function!("#{enumerable}(#{method_args}function(#{yield_args}) {")
+          append_enumerable_function!("#{enumerable.to_s.first}#{enumerable.to_s.camelize[1..-1]}(#{method_args}function(#{yield_args}) {")
           # only yield as many params as were passed in the block
           yield *options[:yield_args].collect { |p| JavaScriptVariableProxy.new(@generator, p) }[0..block.arity-1]
           add_return_statement! if options[:return]

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix mixed case enumerable methods in the JavaScript Collection Proxy (closes #4314) [codyfauser@gmail.com]
+
 * Undo accidental escaping for mail_to; add regression test. [Nicholas Seckar]
 
 * Added nicer message for assert_redirected_to (closes #4294) [court3nay]

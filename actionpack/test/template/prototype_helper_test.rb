@@ -391,6 +391,18 @@ return array.reverse();
     EOS
   end
   
+  def test_collection_proxy_with_find_all
+    @generator.select('p').find_all 'a' do |value, index|
+      @generator << '(value.className == "welcome")'
+    end
+
+    assert_equal <<-EOS.strip, @generator.to_s
+var a = $$("p").findAll(function(value, index) {
+return (value.className == "welcome");
+});
+    EOS
+  end
+  
   def test_debug_rjs
     ActionView::Base.debug_rjs = true
     @generator['welcome'].replace_html 'Welcome'
@@ -404,3 +416,4 @@ return array.reverse();
     assert_equal "Form.focus(\"my_field\");", @generator.to_s
   end
 end
+
