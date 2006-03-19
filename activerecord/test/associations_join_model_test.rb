@@ -287,6 +287,13 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     end
   end
 
+  def test_eager_belongs_to_and_has_one_not_singularized
+    assert_nothing_raised do
+      Author.find(:first, :include => :author_address)
+      AuthorAddress.find(:first, :include => :author)
+    end
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)

@@ -28,6 +28,8 @@ class Author < ActiveRecord::Base
   
   has_many :nothings, :through => :kateggorisatons, :class_name => 'Category'
 
+  belongs_to :author_address
+
   attr_accessor :post_log
 
   def after_initialize
@@ -54,4 +56,8 @@ class Author < ActiveRecord::Base
     def raise_exception(object)
       raise Exception.new("You can't add a post")
     end
+end
+
+class AuthorAddress < ActiveRecord::Base
+  has_one :author
 end

@@ -1310,28 +1310,27 @@ module ActiveRecord
                         " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [table_name_and_alias,
                           aliased_table_name, primary_key, aliased_join_table_name, options[:foreign_key] || reflection.klass.to_s.classify.foreign_key
                         ]
-                      elsif source_reflection.macro == :belongs_to # has_many :through against a belongs_to
+                      else
+                        case source_reflection.macro
+                          when :belongs_to
+                            first_key  = primary_key
+                            second_key = options[:foreign_key] || klass.to_s.classify.foreign_key
+                          when :has_many
+                            first_key  = through_reflection.klass.to_s.classify.foreign_key
+                            second_key = options[:foreign_key] || primary_key
+                        end
+
                         " LEFT OUTER JOIN %s ON %s.%s = %s.%s "  % [
                           table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), aliased_join_table_name,
                           through_reflection.primary_key_name,
                           parent.aliased_table_name, parent.primary_key] +
                         " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
                           table_name_and_alias,
-                          aliased_table_name, primary_key, 
-                          aliased_join_table_name, options[:foreign_key] || klass.to_s.classify.foreign_key
-                        ]
-                      elsif source_reflection.macro == :has_many # has_many :through against a has_many
-                        " LEFT OUTER JOIN %s ON %s.%s = %s.%s "  % [
-                          table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), aliased_join_table_name,
-                          through_reflection.primary_key_name,
-                          parent.aliased_table_name, parent.primary_key] +
-                        " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
-                          table_name_and_alias,
-                          aliased_table_name, through_reflection.klass.to_s.classify.foreign_key, 
-                          aliased_join_table_name, options[:foreign_key] || primary_key
+                          aliased_table_name, first_key, 
+                          aliased_join_table_name, second_key
                         ]
                       end
-                      
+                    
                     when reflection.macro == :has_many && reflection.options[:as]
                       " LEFT OUTER JOIN %s ON %s.%s = %s.%s AND %s.%s = %s" % [
                         table_name_and_alias,
@@ -1342,9 +1341,13 @@ module ActiveRecord
                       ]
                       
                     else
+                      foreign_key = options[:foreign_key] || case reflection.macro
+                        when :has_many then reflection.active_record.to_s.classify
+                        when :has_one  then reflection.active_record.to_s
+                      end.foreign_key
                       " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
                         table_name_and_alias,
-                        aliased_table_name, options[:foreign_key] || reflection.active_record.to_s.classify.foreign_key,
+                        aliased_table_name, foreign_key,
                         parent.aliased_table_name, parent.primary_key
                       ]
                   end

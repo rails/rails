@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't classify the has_one class when eager loading, it is already singular. Add tests. (closes #4117) [jonathan@bluewire.net.nz]
+
 * Quit ignoring default :include options in has_many :through calls [Mark James]
 
 * Allow has_many :through associations to find the source association by setting a custom class (closes #4307) [jonathan@bluewire.net.nz]

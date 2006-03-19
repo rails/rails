@@ -19,5 +19,10 @@ ActiveRecord::Schema.define do
   end
 
   add_column :posts, :taggings_count, :integer, :default => 0
+  add_column :authors, :author_address_id, :integer
+
+  create_table :author_addresses, :force => true do |t|
+    t.column :author_address_id, :integer
+  end
 
 end
