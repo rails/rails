@@ -36,8 +36,33 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   end
 
   def test_polymorphic_has_many_going_through_join_model
-    assert_equal tags(:general), posts(:welcome).tags.first
+    assert_equal tags(:general), tag = posts(:welcome).tags.first
+    assert_no_queries do
+      tag.tagging
+    end
   end
+
+  def test_polymorphic_has_many_going_through_join_model_with_find
+    assert_equal tags(:general), tag = posts(:welcome).tags.find(:first)
+    assert_no_queries do
+      tag.tagging
+    end
+  end
+
+  def test_polymorphic_has_many_going_through_join_model_with_include_on_source_reflection
+    assert_equal tags(:general), tag = posts(:welcome).funky_tags.first
+    assert_no_queries do
+      tag.tagging
+    end
+  end
+
+  def test_polymorphic_has_many_going_through_join_model_with_include_on_source_reflection_with_find
+    assert_equal tags(:general), tag = posts(:welcome).funky_tags.find(:first)
+    assert_no_queries do
+      tag.tagging
+    end
+  end
+
 
   def test_polymorphic_has_many_going_through_join_model_with_custom_foreign_key
     assert_equal tags(:misc), taggings(:welcome_general).super_tag

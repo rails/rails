@@ -21,7 +21,7 @@ class Post < ActiveRecord::Base
   has_and_belongs_to_many :special_categories, :join_table => "categories_posts", :association_foreign_key => 'category_id'
 
   has_many :taggings, :as => :taggable
-  has_many :tags, :through => :taggings
+  has_many :tags, :through => :taggings, :include => :tagging
   has_many :funky_tags, :through => :taggings, :class_name => 'Tag'
   has_many :super_tags, :through => :taggings
   has_one :tagging, :as => :taggable

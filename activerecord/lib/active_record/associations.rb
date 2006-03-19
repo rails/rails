@@ -832,12 +832,12 @@ module ActiveRecord
         end
         
         def count_with_associations(options = {})
-          join_dependency = JoinDependency.new(self, options[:include])
+          join_dependency = JoinDependency.new(self, options[:include], options[:joins])
           return count_by_sql(construct_counter_sql_with_included_associations(options, join_dependency))
         end
 
         def find_with_associations(options = {})
-          join_dependency = JoinDependency.new(self, options[:include])
+          join_dependency = JoinDependency.new(self, options[:include], options[:joins])
           rows = select_all_rows(options, join_dependency)
           return join_dependency.instantiate(rows)
         end
@@ -1101,8 +1101,8 @@ module ActiveRecord
         class JoinDependency
           attr_reader :joins, :reflections, :table_aliases
 
-          def initialize(base, associations)
-            @joins                 = [JoinBase.new(base)]
+          def initialize(base, associations, joins)
+            @joins                 = [JoinBase.new(base, joins)]
             @associations          = associations
             @reflections           = []
             @base_records_hash     = {}
@@ -1199,12 +1199,13 @@ module ActiveRecord
             end
 
           class JoinBase
-            attr_reader :active_record
+            attr_reader :active_record, :table_joins
             delegate    :table_name, :column_names, :primary_key, :reflections, :sanitize_sql, :to => :active_record
 
-            def initialize(active_record)
+            def initialize(active_record, joins = nil)
               @active_record = active_record
               @cached_record = {}
+              @table_joins   = joins
             end
 
             def aliased_prefix
@@ -1258,6 +1259,11 @@ module ActiveRecord
               @aliased_prefix     = "t#{ join_dependency.joins.size }"
               @aliased_table_name = sti? ? pluralize(reflection.name) : table_name # start with the table name
               @parent_table_name  = sti? ? pluralize(parent.active_record.name.underscore) : parent.active_record.table_name
+              
+              if !parent.table_joins.blank? && parent.table_joins =~ %r{#{aliased_table_name}}
+                join_dependency.table_aliases[aliased_table_name] += 1
+              end
+              
               unless join_dependency.table_aliases[aliased_table_name].zero?
                 # if the table name has been used, then use an alias
                 @aliased_table_name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}"

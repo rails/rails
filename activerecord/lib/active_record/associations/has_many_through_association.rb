@@ -24,9 +24,10 @@ module ActiveRecord
           options[:order] = @reflection.options[:order]
         end
         
-        options[:select] = construct_select
-        options[:from]   = construct_from
-        options[:joins]  = construct_joins
+        options[:select]    = construct_select
+        options[:from]      = construct_from
+        options[:joins]     = construct_joins
+        options[:include] ||= @reflection.source_reflection.options[:include]
         
         merge_options_from_reflection!(options)
 
@@ -57,7 +58,8 @@ module ActiveRecord
             :joins      => construct_joins,
             :order      => @reflection.options[:order], 
             :limit      => @reflection.options[:limit],
-            :group      => @reflection.options[:group]
+            :group      => @reflection.options[:group],
+            :include    => @reflection.options[:include] || @reflection.source_reflection.options[:include]
           )
         end
 
@@ -96,7 +98,7 @@ module ActiveRecord
           end
           
           "INNER JOIN %s ON %s.%s = %s.%s #{@reflection.options[:joins]}" % [
-            @owner.class.reflections[@reflection.options[:through]].table_name,
+            @reflection.through_reflection.table_name,
             @reflection.table_name, reflection_primary_key,
             @reflection.through_reflection.table_name, source_primary_key
           ]
