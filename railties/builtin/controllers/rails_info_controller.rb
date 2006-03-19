@@ -1,4 +1,7 @@
-class RailsInfoController < ApplicationController
+class RailsInfoController < ActionController::Base
+  
+  def self.reloadable?() false end
+  
   def properties
     if local_request?
       render :inline => Rails::Info.to_html
