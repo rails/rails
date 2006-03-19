@@ -1095,9 +1095,7 @@ class BasicsTest < Test::Unit::TestCase
 
     assert_equal res4, res5 
 
-    unless ActiveRecord::Base.connection.raw_connection.class.name == 'SQLite::Database'
-      res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments c WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=c.post_id"
-    end
+    res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments c WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=c.post_id"
     res7 = nil
     assert_nothing_raised do
       res7 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=c.post_id",

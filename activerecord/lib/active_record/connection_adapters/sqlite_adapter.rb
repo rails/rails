@@ -36,7 +36,7 @@ module ActiveRecord
 
           # "Downgrade" deprecated sqlite API
           if SQLite.const_defined?(:Version)
-            ConnectionAdapters::SQLiteAdapter.new(db, logger)
+            ConnectionAdapters::SQLite2Adapter.new(db, logger)
           else
             ConnectionAdapters::DeprecatedSQLiteAdapter.new(db, logger)
           end
@@ -331,8 +331,27 @@ module ActiveRecord
           end
         end
     end
+    
+    class SQLite2Adapter < SQLiteAdapter # :nodoc:
+      # SQLite 2 does not support COUNT(DISTINCT) queries:
+      #
+      #   select COUNT(DISTINCT ArtistID) from CDs;    
+      #
+      # In order to get  the number of artists we execute the following statement
+      # 
+      #   SELECT COUNT(ArtistID) FROM (SELECT DISTINCT ArtistID FROM CDs);
+      def execute(sql, name = nil) #:nodoc:
+        if sql =~ /count\(distinct ([^\)]+)\)( AS \w+)? (.*)/i
+          distinct_column = $1
+          distinct_query  = $3
+          column_name     = distinct_column.split('.').last
+          sql             = "SELECT COUNT(#{column_name}) FROM (SELECT DISTINCT #{distinct_column} #{distinct_query})"
+        end
+        log(sql, name) { @connection.execute(sql) }
+      end
+    end
 
-    class DeprecatedSQLiteAdapter < SQLiteAdapter # :nodoc:
+    class DeprecatedSQLiteAdapter < SQLite2Adapter # :nodoc:
       def insert(sql, name = nil, pk = nil, id_value = nil)
         execute(sql, name = nil)
         id_value || @connection.last_insert_rowid
