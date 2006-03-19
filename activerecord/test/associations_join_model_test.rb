@@ -231,11 +231,11 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   end
 
   def test_has_many_through_has_many_find_all
-    assert_equal comments(:greetings), authors(:david).comments.find(:all).first
+    assert_equal comments(:greetings), authors(:david).comments.find(:all, :order => 'comments.id').first
   end
 
   def test_has_many_through_has_many_find_first
-    assert_equal comments(:greetings), authors(:david).comments.find(:first)
+    assert_equal comments(:greetings), authors(:david).comments.find(:first, :order => 'comments.id')
   end
 
   def test_has_many_through_has_many_find_conditions
@@ -244,6 +244,14 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
 
   def test_has_many_through_has_many_find_by_id
     assert_equal comments(:more_greetings), authors(:david).comments.find(2)
+  end
+
+  def test_eager_load_has_many_through_has_many
+    author = Author.find :first, :conditions => ['name = ?', 'David'], :include => :comments, :order => 'comments.id'
+    SpecialComment.new; VerySpecialComment.new
+    assert_no_queries do
+      assert_equal [1,2,3,5,6,7,8,9,10], author.comments.collect(&:id)
+    end
   end
 
   private
