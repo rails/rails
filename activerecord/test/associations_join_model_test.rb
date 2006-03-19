@@ -213,12 +213,21 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   end
 
   def test_unavailable_through_reflection
-    assert_raises (ActiveRecord::ActiveRecordError) { authors(:david).nothings }
+    assert_raises (ActiveRecord::HasManyThroughAssociationNotFoundError) { authors(:david).nothings }
   end
 
   def test_has_many_through_join_model_with_conditions
     assert_equal [], posts(:welcome).invalid_taggings
     assert_equal [], posts(:welcome).invalid_tags
+  end
+
+  def test_has_many_polymorphic
+    assert_raises ActiveRecord::HasManyThroughAssociationPolymorphicError do
+      assert_equal [posts(:welcome), posts(:thinking)], tags(:general).taggables
+    end
+    assert_raises ActiveRecord::EagerLoadPolymorphicError do
+      assert_equal [posts(:welcome), posts(:thinking)], tags(:general).taggings.find(:all, :include => :taggable)
+    end
   end
 
   private

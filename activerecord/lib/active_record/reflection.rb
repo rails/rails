@@ -144,6 +144,37 @@ module ActiveRecord
         @through_reflection ||= options[:through] ? active_record.reflect_on_association(options[:through]) : false
       end
 
+      def source_reflection_name
+        @source_reflection_name ||= name.to_s.singularize.to_sym
+      end
+
+      # Gets the source of the through reflection.  (The :tags association on Tagging below)
+      # 
+      #   class Post
+      #     has_many :tags, :through => :taggings
+      #   end
+      #
+      def source_reflection
+        return nil unless through_reflection
+        @source_reflection ||= through_reflection.klass.reflect_on_association(source_reflection_name)
+      end
+
+      def check_validity!
+        if options[:through]
+          if through_reflection.nil?
+            raise HasManyThroughAssociationNotFoundError.new(self)
+          end
+          
+          if source_reflection.nil?
+            raise HasManyThroughSourceAssociationNotFoundError.new(through_reflection, source_reflection_name)
+          end
+          
+          if source_reflection.options[:polymorphic]
+            raise HasManyThroughAssociationPolymorphicError.new(class_name, @reflection, source_reflection)
+          end
+        end
+      end
+
       private
         def name_to_class_name(name)
           if name =~ /::/

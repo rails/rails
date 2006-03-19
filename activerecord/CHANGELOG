@@ -1,5 +1,7 @@
 *SVN*
 
+* Raise error when trying to select many polymorphic objects with has_many :through or :include [Rick Olson]
+
 * Fixed has_many :through to include :conditions set on the :through association. closes #4020 [jonathan@bluewire.net.nz]
 
 * Fix that has_many :through honors the foreign key set by the belongs_to association in the join model (closes #4259) [andylien@gmail.com / Rick]

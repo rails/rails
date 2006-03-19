@@ -9,6 +9,49 @@ require 'active_record/associations/has_and_belongs_to_many_association'
 require 'active_record/deprecated_associations'
 
 module ActiveRecord
+  class HasManyThroughAssociationNotFoundError < ActiveRecordError
+    def initialize(reflection)
+      @reflection = reflection
+    end
+    
+    def message
+      "Could not find the association '#{@reflection.options[:through]}' in model #{@reflection.klass}"
+    end
+  end
+
+  class HasManyThroughAssociationPolymorphicError < ActiveRecordError
+    def initialize(owner_class_name, reflection, source_reflection)
+      @owner_class_name  = owner_class_name
+      @reflection        = reflection
+      @source_reflection = source_reflection
+    end
+    
+    def message
+      "Cannot have a has_many :through association '#{@owner_class_name}##{@reflection.name}' on the polymorphic object '#{@source_reflection.class_name}##{@source_reflection.name}'."
+    end
+  end
+
+  class HasManyThroughSourceAssociationNotFoundError < ActiveRecordError
+    def initialize(through_reflection, source_reflection_name)
+      @through_reflection      = through_reflection
+      @source_reflection_name  = source_reflection_name
+    end
+    
+    def message
+      "Could not find the source association '#{@source_reflection_name}' in model #{@through_reflection.klass}"
+    end
+  end
+
+  class EagerLoadPolymorphicError < ActiveRecordError
+    def initialize(reflection)
+      @reflection = reflection
+    end
+    
+    def message
+      "Can not eagerly load the polymorphic association '#{@reflection.name}'"
+    end
+  end
+
   module Associations # :nodoc:
     def self.append_features(base)
       super
@@ -1204,6 +1247,11 @@ module ActiveRecord
             delegate    :options, :klass, :to => :reflection
 
             def initialize(reflection, join_dependency, parent = nil)
+              reflection.check_validity!
+              if reflection.options[:polymorphic]
+                raise EagerLoadPolymorphicError.new(reflection)
+              end
+
               super(reflection.klass)
               @parent             = parent
               @reflection         = reflection

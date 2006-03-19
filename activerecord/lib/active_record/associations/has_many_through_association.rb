@@ -1,9 +1,9 @@
 module ActiveRecord
   module Associations
     class HasManyThroughAssociation < AssociationProxy #:nodoc:
-
       def initialize(owner, reflection)
         super
+        reflection.check_validity!
         @finder_sql = construct_conditions
         construct_sql
       end
@@ -40,21 +40,6 @@ module ActiveRecord
       end
 
       protected
-        def through_reflection
-          unless @through_reflection ||= @owner.class.reflections[@reflection.options[:through]]
-            raise ActiveRecordError, "Could not find the association '#{@reflection.options[:through]}' in model #{@reflection.klass}"
-          end
-          @through_reflection
-        end
-
-        def source_reflection
-          @source_reflection_name ||= @reflection.name.to_s.singularize.to_sym
-          unless @source_reflection ||= through_reflection.klass.reflect_on_association(@source_reflection_name)
-            raise ActiveRecordError, "Could not find the source association '#{@source_reflection_name}' in model #{@through_reflection.klass}"
-          end
-          @source_reflection
-        end
-
         def method_missing(method, *args, &block)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
             super
@@ -77,17 +62,17 @@ module ActiveRecord
 
         def construct_conditions
           # Get the actual primary key of the belongs_to association that the reflection is going through
-          source_primary_key = source_reflection.primary_key_name
+          source_primary_key = @reflection.source_reflection.primary_key_name
           
-          if through_reflection.options[:as]
+          if @reflection.through_reflection.options[:as]
             conditions = 
-              "#{@reflection.table_name}.#{@reflection.klass.primary_key} = #{through_reflection.table_name}.#{source_primary_key} " +
-              "AND #{through_reflection.table_name}.#{through_reflection.options[:as]}_id = #{@owner.quoted_id} " + 
-              "AND #{through_reflection.table_name}.#{through_reflection.options[:as]}_type = #{@owner.class.quote @owner.class.base_class.name.to_s}"
+              "#{@reflection.table_name}.#{@reflection.klass.primary_key} = #{@reflection.through_reflection.table_name}.#{source_primary_key} " +
+              "AND #{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.options[:as]}_id = #{@owner.quoted_id} " + 
+              "AND #{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.options[:as]}_type = #{@owner.class.quote @owner.class.base_class.name.to_s}"
           else
             conditions = 
-              "#{@reflection.klass.table_name}.#{@reflection.klass.primary_key} = #{through_reflection.table_name}.#{source_primary_key} " +
-              "AND #{through_reflection.table_name}.#{through_reflection.primary_key_name} = #{@owner.quoted_id}"
+              "#{@reflection.klass.table_name}.#{@reflection.klass.primary_key} = #{@reflection.through_reflection.table_name}.#{source_primary_key} " +
+              "AND #{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.primary_key_name} = #{@owner.quoted_id}"
           end
           
           conditions << " AND (#{sql_conditions})" if sql_conditions
@@ -131,7 +116,7 @@ module ActiveRecord
         end
         
         def sql_conditions
-          @conditions ||= interpolate_sql(@reflection.active_record.send(:sanitize_sql, through_reflection.options[:conditions])) if through_reflection.options[:conditions]
+          @conditions ||= interpolate_sql(@reflection.active_record.send(:sanitize_sql, @reflection.through_reflection.options[:conditions])) if @reflection.through_reflection.options[:conditions]
         end
     end
   end

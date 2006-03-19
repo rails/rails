@@ -1,6 +1,7 @@
 module ActiveRecord
   module Associations
     class AssociationProxy #:nodoc:
+      attr_reader :reflection
       alias_method :proxy_respond_to?, :respond_to?
       alias_method :proxy_extend, :extend
       instance_methods.each { |m| undef_method m unless m =~ /(^__|^nil\?|^proxy_respond_to\?|^proxy_extend|^send)/ }
