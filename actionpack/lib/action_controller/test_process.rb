@@ -43,13 +43,17 @@ module ActionController #:nodoc:
     end              
 
     def raw_post
-      params = self.request_parameters.dup
-      %w(controller action only_path).each do |k|
-        params.delete(k)
-        params.delete(k.to_sym)
-      end
+      if raw_post = env['RAW_POST_DATA']
+        raw_post
+      else
+        params = self.request_parameters.dup
+        %w(controller action only_path).each do |k|
+          params.delete(k)
+          params.delete(k.to_sym)
+        end
     
-      params.map { |k,v| [ CGI.escape(k.to_s), CGI.escape(v.to_s) ].join('=') }.sort.join('&')
+        params.map { |k,v| [ CGI.escape(k.to_s), CGI.escape(v.to_s) ].join('=') }.sort.join('&')
+      end
     end
 
     def port=(number)
