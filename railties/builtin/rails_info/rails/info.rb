@@ -1,5 +1,4 @@
 require 'rails_version'
-require File.join(File.dirname(File.dirname(__FILE__)), 'builtin/controllers/rails_info_controller')
 
 module Rails
   module Info

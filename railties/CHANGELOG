@@ -1,5 +1,11 @@
 *SVN*
 
+* Remove explicit loading of RailsInfo and RailsInfoController. [Nicholas Seckar]
+
+* Move RailsInfo and RailsInfoController to Rails::Info and Rails::InfoController. [Nicholas Seckar]
+
+* Extend load path with Railties' builtin directory to make adding support code easy. [Nicholas Seckar]
+
 * Fix the rails_info controller by explicitly loading it, and marking it as not reloadable. [Nicholas Seckar]
 
 * Fixed rails:freeze:gems for Windows #3274 [paul@paulbutcher.com]

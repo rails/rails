@@ -96,7 +96,7 @@ module Rails
       # the individual base class configurations.
       load_environment
       
-      load_framework_info
+      add_support_load_paths
 
       load_plugins
 
@@ -129,10 +129,10 @@ module Rails
       configuration.frameworks.each { |framework| require(framework.to_s) }
     end
     
-    # Loads Rails::VERSION and Rails::Info.
-    # TODO: Make this work via dependencies.rb/const_missing instead.
-    def load_framework_info
-      require 'rails_info'
+    # Add the load paths used by support functions such as the info controller
+    def add_support_load_paths
+      builtins = File.join(File.dirname(File.dirname(__FILE__)), 'builtin', '*')
+      $LOAD_PATH.concat(Dir[builtins])
     end
 
     # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
