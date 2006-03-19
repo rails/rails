@@ -144,11 +144,18 @@ module ActiveRecord
         @through_reflection ||= options[:through] ? active_record.reflect_on_association(options[:through]) : false
       end
 
-      def source_reflection_name
-        @source_reflection_name ||= name.to_s.singularize.to_sym
+      # Gets an array of possible :through reflection names
+      #
+      #   [singularized, pluralized]
+      def source_reflection_names
+        @source_reflection_names ||= (options[:class_name] ? 
+          [options[:class_name].underscore, options[:class_name].underscore.pluralize] : 
+          [name.to_s.singularize, name]
+        ).collect { |n| n.to_sym }
       end
 
-      # Gets the source of the through reflection.  (The :tags association on Tagging below)
+      # Gets the source of the through reflection.  It checks both a singularized and pluralized form for :belongs_to or :has_many.
+      # (The :tags association on Tagging below)
       # 
       #   class Post
       #     has_many :tags, :through => :taggings
@@ -156,9 +163,7 @@ module ActiveRecord
       #
       def source_reflection
         return nil unless through_reflection
-        @source_reflection ||= \
-          through_reflection.klass.reflect_on_association(source_reflection_name) || # has_many :through a :belongs_to
-          through_reflection.klass.reflect_on_association(name)                      # has_many :through a :has_many
+        @source_reflection ||= source_reflection_names.collect { |name| through_reflection.klass.reflect_on_association(name) }.compact.first
       end
 
       def check_validity!
@@ -168,7 +173,7 @@ module ActiveRecord
           end
           
           if source_reflection.nil?
-            raise HasManyThroughSourceAssociationNotFoundError.new(through_reflection, source_reflection_name)
+            raise HasManyThroughSourceAssociationNotFoundError.new(through_reflection, source_reflection_names)
           end
           
           if source_reflection.options[:polymorphic]

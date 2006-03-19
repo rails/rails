@@ -55,7 +55,11 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   def test_polymorphic_has_many_going_through_join_model_with_inheritance
     assert_equal tags(:general), posts(:thinking).tags.first
   end
-  
+
+  def test_polymorphic_has_many_going_through_join_model_with_inheritance_with_custom_class_name
+    assert_equal tags(:general), posts(:thinking).funky_tags.first
+  end
+
   def test_polymorphic_has_many_create_model_with_inheritance
     post = posts(:thinking)
     assert_instance_of SpecialPost, post
@@ -232,6 +236,10 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
 
   def test_has_many_through_has_many_find_all
     assert_equal comments(:greetings), authors(:david).comments.find(:all, :order => 'comments.id').first
+  end
+
+  def test_has_many_through_has_many_find_all_with_custom_class
+    assert_equal comments(:greetings), authors(:david).funky_comments.find(:all, :order => 'comments.id').first
   end
 
   def test_has_many_through_has_many_find_first

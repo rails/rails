@@ -32,13 +32,13 @@ module ActiveRecord
   end
 
   class HasManyThroughSourceAssociationNotFoundError < ActiveRecordError
-    def initialize(through_reflection, source_reflection_name)
+    def initialize(through_reflection, source_reflection_names)
       @through_reflection      = through_reflection
-      @source_reflection_name  = source_reflection_name
+      @source_reflection_names = source_reflection_names
     end
     
     def message
-      "Could not find the source association '#{@source_reflection_name}' in model #{@through_reflection.klass}"
+      "Could not find the source associations #{@source_reflection_names.to_sentence} in model #{@through_reflection.klass}"
     end
   end
 

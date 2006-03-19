@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow has_many :through associations to find the source association by setting a custom class (closes #4307) [jonathan@bluewire.net.nz]
+
 * Eager Loading support added for has_many :through => :has_many associations (see below).  [Rick Olson]
 
 * Allow has_many :through to work on has_many associations (closes #3864) [sco@scottraymond.net]  Example:

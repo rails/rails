@@ -22,6 +22,7 @@ class Post < ActiveRecord::Base
 
   has_many :taggings, :as => :taggable
   has_many :tags, :through => :taggings
+  has_many :funky_tags, :through => :taggings, :class_name => 'Tag'
   has_many :super_tags, :through => :taggings
   has_one :tagging, :as => :taggable
 
