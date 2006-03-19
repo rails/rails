@@ -3,6 +3,7 @@ class Author < ActiveRecord::Base
   has_many :posts_with_comments, :include => :comments, :class_name => "Post"
   has_many :posts_with_categories, :include => :categories, :class_name => "Post"
   has_many :posts_with_comments_and_categories, :include => [ :comments, :categories ], :order => "posts.id", :class_name => "Post"
+  has_many :comments, :through => :posts
 
   has_many :special_posts,        :class_name => "Post"
   has_many :hello_posts,          :class_name => "Post", :conditions=>"\#{aliased_table_name}.body = 'hello'"

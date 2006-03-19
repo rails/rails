@@ -1,5 +1,21 @@
 *SVN*
 
+* Allow has_many :through to work on has_many associations (closes #3864) [sco@scottraymond.net]  Example:
+
+    class Firm < ActiveRecord::Base
+      has_many :clients
+      has_many :invoices, :through => :clients
+    end
+  
+    class Client < ActiveRecord::Base
+      belongs_to :firm
+      has_many   :invoices
+    end
+  
+    class Invoice < ActiveRecord::Base
+      belongs_to :client
+    end
+
 * Raise error when trying to select many polymorphic objects with has_many :through or :include (closes #4226) [josh@hasmanythrough.com]
 
 * Fixed has_many :through to include :conditions set on the :through association. closes #4020 [jonathan@bluewire.net.nz]

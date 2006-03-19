@@ -26,6 +26,7 @@ module ActiveRecord
         
         options[:select] = construct_select
         options[:from]   = construct_from
+        options[:joins]  = construct_joins
         
         merge_options_from_reflection!(options)
 
@@ -53,44 +54,57 @@ module ActiveRecord
             :select     => construct_select,
             :conditions => construct_conditions,
             :from       => construct_from,
+            :joins      => construct_joins,
             :order      => @reflection.options[:order], 
             :limit      => @reflection.options[:limit],
-            :joins      => @reflection.options[:joins],
             :group      => @reflection.options[:group]
           )
         end
 
-        def construct_conditions
-          # Get the actual primary key of the belongs_to association that the reflection is going through
-          source_primary_key = @reflection.source_reflection.primary_key_name
-          
-          if @reflection.through_reflection.options[:as]
-            conditions = 
-              "#{@reflection.table_name}.#{@reflection.klass.primary_key} = #{@reflection.through_reflection.table_name}.#{source_primary_key} " +
-              "AND #{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.options[:as]}_id = #{@owner.quoted_id} " + 
+        def construct_conditions          
+          conditions = if @reflection.through_reflection.options[:as]
+              "#{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.options[:as]}_id = #{@owner.quoted_id} " + 
               "AND #{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.options[:as]}_type = #{@owner.class.quote @owner.class.base_class.name.to_s}"
           else
-            conditions = 
-              "#{@reflection.klass.table_name}.#{@reflection.klass.primary_key} = #{@reflection.through_reflection.table_name}.#{source_primary_key} " +
-              "AND #{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.primary_key_name} = #{@owner.quoted_id}"
+            case @reflection.source_reflection.macro
+              when :belongs_to, :has_many
+                "#{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.primary_key_name} = #{@owner.quoted_id}"
+              else
+                raise ActiveRecordError, "Invalid source reflection macro :#{@reflection.source_reflection.macro} for has_many #{@reflection.name}, :through => #{@reflection.through_reflection.name}"
+            end
           end
-          
           conditions << " AND (#{sql_conditions})" if sql_conditions
           
           return conditions
         end
 
         def construct_from
-          "#{@owner.class.reflections[@reflection.options[:through]].table_name}, #{@reflection.table_name}"
+          @reflection.table_name
         end
         
         def construct_select
           selected = @reflection.options[:select] || "#{@reflection.table_name}.*"          
         end
         
+        def construct_joins
+          if @reflection.through_reflection.options[:as] || @reflection.source_reflection.macro == :belongs_to
+            reflection_primary_key = @reflection.klass.primary_key
+            source_primary_key     = @reflection.source_reflection.primary_key_name
+          else
+            reflection_primary_key = @reflection.source_reflection.primary_key_name
+            source_primary_key     = @reflection.klass.primary_key
+          end
+          
+          "INNER JOIN %s ON %s.%s = %s.%s #{@reflection.options[:joins]}" % [
+            @owner.class.reflections[@reflection.options[:through]].table_name,
+            @reflection.table_name, reflection_primary_key,
+            @reflection.through_reflection.table_name, source_primary_key
+          ]
+        end
+        
         def construct_scope
           {
-            :find   => { :from => construct_from, :conditions => construct_conditions },
+            :find   => { :from => construct_from, :conditions => construct_conditions, :joins => construct_joins },
             :create => { @reflection.primary_key_name => @owner.id }
           }
         end
@@ -115,9 +129,14 @@ module ActiveRecord
           end
         end
         
-        def sql_conditions
-          @conditions ||= interpolate_sql(@reflection.active_record.send(:sanitize_sql, @reflection.through_reflection.options[:conditions])) if @reflection.through_reflection.options[:conditions]
+        def conditions
+          @conditions ||= [
+            (interpolate_sql(@reflection.active_record.send(:sanitize_sql, @reflection.options[:conditions])) if @reflection.options[:conditions]),
+            (interpolate_sql(@reflection.active_record.send(:sanitize_sql, @reflection.through_reflection.options[:conditions])) if @reflection.through_reflection.options[:conditions])
+          ].compact.collect { |condition| "(#{condition})" }.join(' AND ') unless (!@reflection.options[:conditions] && !@reflection.through_reflection.options[:conditions])
         end
+        
+        alias_method :sql_conditions, :conditions
     end
   end
 end

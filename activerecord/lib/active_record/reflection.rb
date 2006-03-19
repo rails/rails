@@ -156,7 +156,9 @@ module ActiveRecord
       #
       def source_reflection
         return nil unless through_reflection
-        @source_reflection ||= through_reflection.klass.reflect_on_association(source_reflection_name)
+        @source_reflection ||= \
+          through_reflection.klass.reflect_on_association(source_reflection_name) || # has_many :through a :belongs_to
+          through_reflection.klass.reflect_on_association(name)                      # has_many :through a :has_many
       end
 
       def check_validity!
@@ -183,7 +185,7 @@ module ActiveRecord
             if options[:class_name]
               options[:class_name]
             elsif through_reflection # get the class_name of the belongs_to association of the through reflection
-              through_reflection.klass.reflect_on_association(name.to_s.singularize.to_sym).class_name
+              source_reflection.class_name
             else
               class_name = name.to_s.camelize
               class_name = class_name.singularize if [ :has_many, :has_and_belongs_to_many ].include?(macro)

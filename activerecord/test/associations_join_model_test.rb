@@ -230,6 +230,22 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     end
   end
 
+  def test_has_many_through_has_many_find_all
+    assert_equal comments(:greetings), authors(:david).comments.find(:all).first
+  end
+
+  def test_has_many_through_has_many_find_first
+    assert_equal comments(:greetings), authors(:david).comments.find(:first)
+  end
+
+  def test_has_many_through_has_many_find_conditions
+    assert_equal comments(:does_it_hurt), authors(:david).comments.find(:first, :conditions => "comments.type='SpecialComment'", :order => 'comments.id')
+  end
+
+  def test_has_many_through_has_many_find_by_id
+    assert_equal comments(:more_greetings), authors(:david).comments.find(2)
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)
