@@ -1,3 +1,4 @@
+DROP SEQUENCE accounts_id_seq;
 DROP TABLE accounts;
 DROP TABLE funny_jokes;
 DROP TABLE companies;
