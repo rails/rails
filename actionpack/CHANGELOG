@@ -1,5 +1,7 @@
 *SVN*
 
+* Undo accidental escaping for mail_to; add regression test. [Nicholas Seckar]
+
 * Added nicer message for assert_redirected_to (closes #4294) [court3nay]
 
     assert_redirected_to :action => 'other_host', :only_path => false
@@ -12,7 +14,7 @@
 
     response is not a redirection to all of the options supplied (redirection is <{:only_path=>false, :host=>"other.test.host", :action=>"other_host"}>), difference: <{:only_path=>"true", :host=>"other.test.host"}>
 
-* Change url_for to escape the resulting URLs when called from a view. [Nicholas Seckar, eddiewould@paradise.net.nz]
+* Change url_for to escape the resulting URLs when called from a view. [Nicholas Seckar, coffee2code]
 
 * Added easy support for testing file uploads with fixture_file_upload #4105 [turnip@turnipspatch.com]. Example:
 

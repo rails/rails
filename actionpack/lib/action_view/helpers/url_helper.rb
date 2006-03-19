@@ -196,7 +196,6 @@ module ActionView
       #   mail_to "me@domain.com", "My email", :cc => "ccaddress@domain.com", :bcc => "bccaddress@domain.com", :subject => "This is an example email", :body => "This is the body of the message."   # =>
       #     <a href="mailto:me@domain.com?cc="ccaddress@domain.com"&bcc="bccaddress@domain.com"&body="This%20is%20the%20body%20of%20the%20message."&subject="This%20is%20an%20example%20email">My email</a>
       def mail_to(email_address, name = nil, html_options = {})
-        name = html_escape(name) if name
         html_options = html_options.stringify_keys
         encode = html_options.delete("encode")
         cc, bcc, subject, body = html_options.delete("cc"), html_options.delete("bcc"), html_options.delete("subject"), html_options.delete("body")

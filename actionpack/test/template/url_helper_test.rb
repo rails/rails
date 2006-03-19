@@ -193,6 +193,10 @@ class UrlHelperTest < Test::Unit::TestCase
       mail_to("me@example.com", "My email", :cc => "ccaddress@example.com", :bcc => "bccaddress@example.com", :subject => "This is an example email", :body => "This is the body of the message.")
     )
   end
+  
+  def test_mail_to_with_img
+    assert_dom_equal %(<a href="mailto:feedback@example.com"><img src="/feedback.png" /></a>), mail_to('feedback@example.com', '<img src="/feedback.png" />')
+  end
 
   def test_mail_to_with_hex
     assert_dom_equal "<a href=\"mailto:%6d%65@%64%6f%6d%61%69%6e.%63%6f%6d\">My email</a>", mail_to("me@domain.com", "My email", :encode => "hex")
