@@ -167,6 +167,14 @@ class TestMailer < ActionMailer::Base
     @implicit_parts_order = order if order
   end
 
+  def implicitly_multipart_with_utf8
+    recipients "no.one@nowhere.test"
+    subject    "Foo áëô îü"
+    from       "some.one@somewhere.test"
+    template   "implicitly_multipart_example"
+    body       ({ "recipient" => "no.one@nowhere.test" })
+  end
+
   def html_mail(recipient)
     recipients   recipient
     subject      "html mail"
@@ -643,6 +651,11 @@ EOF
   
   def test_multipart_with_utf8_subject
     mail = TestMailer.create_multipart_with_utf8_subject(@recipient)
+    assert_match(/\nSubject: =\?utf-8\?Q\?Foo_.*?\?=/, mail.encoded)
+  end
+
+  def test_implicitly_multipart_with_utf8
+    mail = TestMailer.create_implicitly_multipart_with_utf8
     assert_match(/\nSubject: =\?utf-8\?Q\?Foo_.*?\?=/, mail.encoded)
   end
 

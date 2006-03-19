@@ -1,5 +1,7 @@
 *SVN*
 
+* Nil charset caused subject line to be improperly quoted in implicitly multipart messages #2662 [ehalvorsen+rails@runbox.com]
+
 * Parse content-type apart before using it so that sub-parts of the header can be set correctly #2918 [Jamis Buck]
 
 * Make custom headers work in subparts #4034 [elan@bluemandrill.com]

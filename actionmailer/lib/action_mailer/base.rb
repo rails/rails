@@ -293,7 +293,6 @@ module ActionMailer
           end
           unless @parts.empty?
             @content_type = "multipart/alternative"
-            @charset = nil
             @parts = sort_parts(@parts, @implicit_parts_order)
           end
         end
@@ -432,7 +431,10 @@ module ActionMailer
             m.parts << part
           end
           
-          m.set_content_type(real_content_type, nil, ctype_attrs) if real_content_type =~ /multipart/
+          if real_content_type =~ /multipart/
+            ctype_attrs.delete "charset"
+            m.set_content_type(real_content_type, nil, ctype_attrs)
+          end
         end
 
         @mail = m
