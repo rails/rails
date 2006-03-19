@@ -1,5 +1,7 @@
 *SVN*
 
+* Reject Ruby 1.8.3 when loading Rails; extract version checking code. [Chad Fowler]
+
 * Remove explicit loading of RailsInfo and RailsInfoController. [Nicholas Seckar]
 
 * Move RailsInfo and RailsInfoController to Rails::Info and Rails::InfoController. [Nicholas Seckar]

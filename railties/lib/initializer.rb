@@ -74,6 +74,7 @@ module Rails
     # environment could overwrite the defaults directly, instead of via the
     # Configuration instance. 
     def process
+      check_ruby_version
       set_load_path
       set_connection_adapters
 
@@ -106,7 +107,14 @@ module Rails
       # the framework is now fully initialized
       after_initialize
     end
-    
+
+    # Check for valid Ruby version
+    # This is done in an external file, so we can use it
+    # from the `rails` program as well without duplication.
+    def check_ruby_version    
+      require 'ruby_version_check'
+    end
+
     # Set the <tt>$LOAD_PATH</tt> based on the value of
     # Configuration#load_paths. Duplicates are removed.
     def set_load_path
