@@ -7,7 +7,7 @@ class TestTest < Test::Unit::TestCase
       flash["test"] = ">#{flash["test"]}<"
       render :text => 'ignore me'
     end
-    
+
     def render_raw_post
       raise Test::Unit::AssertionFailedError, "#raw_post is blank" if request.raw_post.blank?
       render :text => request.raw_post
@@ -54,9 +54,19 @@ HTML
       render :text => params[:file].size
     end
 
-    def rescue_action(e)
-      raise e
+    def redirect_to_symbol
+      redirect_to :generate_url, :id => 5
     end
+
+    private
+    
+      def rescue_action(e)
+        raise e
+      end
+
+      def generate_url(opts)
+        url_for(opts.merge(:action => "test_uri"))
+      end
   end
 
   def setup
@@ -392,5 +402,10 @@ HTML
   
   def test_test_uploaded_file_exception_when_file_doesnt_exist
     assert_raise(RuntimeError) { ActionController::TestUploadedFile.new('non_existent_file') }
+  end
+
+  def test_assert_redirected_to_symbol
+    get :redirect_to_symbol
+    assert_redirected_to :generate_url
   end
 end
