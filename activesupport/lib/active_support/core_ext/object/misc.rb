@@ -10,8 +10,17 @@ class Object #:nodoc:
   #
   #   foo # => ['bar', 'baz']
   #
+  #   def foo
+  #     returning [] do |values|
+  #       values << 'bar'
+  #       values << 'baz'
+  #     end
+  #   end
+  #
+  #   foo # => ['bar', 'baz']
+  #
   def returning(value)
-    yield
+    yield(value)
     value
   end
 
