@@ -11,13 +11,9 @@ class <%= controller_class_name %>Controller < ApplicationController
   end
 
 <% end -%>
-
-  # GET should only be used for operations which are 'safe', or read-only. So require
-  # post for all actions which change state.
-  #  
-  # http://www.w3.org/2001/tag/doc/whenToUseGet.html
-  verify :method=>:post, :only=>[:destroy<%= suffix %>, :create<%= suffix %>, :update<%= suffix %>],
-         :redirect_to=> {:action=>:list<%= suffix %>}
+  # GETs should be safe (see http://www.w3.org/2001/tag/doc/whenToUseGet.html)
+  verify :method => :post, :only => [ :destroy<%= suffix %>, :create<%= suffix %>, :update<%= suffix %> ],
+         :redirect_to => { :action => :list<%= suffix %> }
 
   def list<%= suffix %>
     @<%= singular_name %>_pages, @<%= plural_name %> = paginate :<%= plural_name %>, :per_page => 10

@@ -99,8 +99,8 @@ module ActionController
         
         module_eval <<-"end_eval", __FILE__, __LINE__
           
-          verify :method=>:post, :only=>[:destroy#{suffix}, :create#{suffix}, :update#{suffix}],
-                 :redirect_to=>{:action=>:list#{suffix}}
+          verify :method => :post, :only => [ :destroy#{suffix}, :create#{suffix}, :update#{suffix} ],
+                 :redirect_to => { :action => :list#{suffix} }
           
         
           def list#{suffix}
