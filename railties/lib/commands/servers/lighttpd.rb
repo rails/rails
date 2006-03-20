@@ -30,13 +30,14 @@ unless File.exist?(config_file)
     puts "=> #{config_file} not found."
     exit 1
   end
+
   require 'fileutils'
+
   source = File.expand_path(File.join(File.dirname(__FILE__),
      "..", "..", "..", "configs", "lighttpd.conf"))
   puts "=> #{config_file} not found, copying from #{source}"
-  config = File.read source
-  config = config.gsub "CWD", File.expand_path(RAILS_ROOT).inspect
-  File.open(config_file, 'w') { |f| f.write config }
+
+  FileUtils.cp(source, config_file)
 end
 
 config = IO.read(config_file)
