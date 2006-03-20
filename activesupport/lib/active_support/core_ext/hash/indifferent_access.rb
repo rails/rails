@@ -1,4 +1,6 @@
-# This implementation is HODEL-HASH-9600 compliant
+# this class has dubious semantics and we only have it so that
+# people can write params[:key] instead of params['key']
+
 class HashWithIndifferentAccess < Hash
   def initialize(constructor = {})
     if constructor.is_a?(Hash)
@@ -24,6 +26,7 @@ class HashWithIndifferentAccess < Hash
     other_hash.each_pair { |key, value| regular_writer(convert_key(key), convert_value(value)) }
     self
   end
+  
   alias_method :merge!, :update
 
   def key?(key)
@@ -49,7 +52,11 @@ class HashWithIndifferentAccess < Hash
   def merge(hash)
     self.dup.update(hash)
   end
-  
+
+  def delete(key)
+    super(convert_key(key))
+  end
+    
   protected
     def convert_key(key)
       key.kind_of?(Symbol) ? key.to_s : key
