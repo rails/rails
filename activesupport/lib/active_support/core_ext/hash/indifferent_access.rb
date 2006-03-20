@@ -21,7 +21,7 @@ class HashWithIndifferentAccess < Hash
   end
 
   def update(other_hash)
-    other_hash.each_pair {|key, value| regular_writer(convert_key(key), convert_value(value))}
+    other_hash.each_pair { |key, value| regular_writer(convert_key(key), convert_value(value)) }
     self
   end
   alias_method :merge!, :update

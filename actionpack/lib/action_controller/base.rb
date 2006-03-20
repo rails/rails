@@ -371,13 +371,13 @@ module ActionController #:nodoc:
         initialize_template_class(response)
         assign_shortcuts(request, response)
         initialize_current_url
-        action_name(:refresh)
+        assign_names
         forget_variables_added_to_assigns
         
         log_processing
         send(method, *arguments)
         
-        return response
+        response
       ensure
         process_cleanup
       end
@@ -467,15 +467,6 @@ module ActionController #:nodoc:
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "neat".
       def controller_name
         self.class.controller_name
-      end
-
-      # Returns the name of the current action
-      def action_name(refresh = false)
-        if @action_name.nil? || refresh
-          @action_name = (params['action'] || 'index')
-        end
-        
-        @action_name
       end
 
       def session_enabled?
@@ -868,12 +859,11 @@ module ActionController #:nodoc:
     
     private
       def self.view_class
-        unless @view_class
+        @view_class ||=
           # create a new class based on the default template class and include helper methods
-          @view_class = Class.new(ActionView::Base)
-          @view_class.send(:include, master_helper_module)
-        end
-        @view_class
+          returning Class.new(ActionView::Base) do |view_class|
+            view_class.send(:include, master_helper_module)
+          end
       end
 
       def self.view_root
@@ -928,6 +918,10 @@ module ActionController #:nodoc:
         @performed_render || @performed_redirect
       end
 
+      def assign_names
+        @action_name = (params['action'] || 'index')
+      end
+      
       def action_methods
         self.class.action_methods
       end
@@ -997,9 +991,7 @@ module ActionController #:nodoc:
       end
 
       def template_exempt_from_layout?(template_name = default_template_name)
-        template_name.last(3) == "rjs" || @template.pick_template_extension(template_name).to_sym == :rjs
-      rescue
-        false
+        template_name =~ /\.rjs$/ || (@template.pick_template_extension(template_name) == :rjs rescue false)
       end
 
       def assert_existance_of_template_file(template_name)
@@ -1010,20 +1002,22 @@ module ActionController #:nodoc:
         end
       end
 
-      def default_template_name(default_action_name = action_name)
-        if default_action_name
-          default_action_name = default_action_name.to_s.dup
-          strip_out_controller!(default_action_name) if template_path_includes_controller?(default_action_name)
+      def default_template_name(action_name = self.action_name)
+        if action_name
+          action_name = action_name.to_s
+          if action_name.include?('/') && template_path_includes_controller?(action_name)
+            action_name = strip_out_controller(action_name)
+          end
         end
-        "#{self.class.controller_path}/#{default_action_name}"
+        "#{self.class.controller_path}/#{action_name}"
       end
       
-      def strip_out_controller!(path)
-        path.replace path.split('/', 2).last
+      def strip_out_controller(path)
+        path.split('/', 2).last
       end
       
       def template_path_includes_controller?(path)
-        path.to_s['/'] && self.class.controller_path.split('/')[-1] == path.split('/')[0]
+        self.class.controller_path.split('/')[-1] == path.split('/')[0]
       end
 
       def process_cleanup

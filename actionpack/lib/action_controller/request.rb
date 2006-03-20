@@ -48,30 +48,30 @@ module ActionController
     # For backward compatibility, the post format is extracted from the
     # X-Post-Data-Format HTTP header if present.
     def content_type
-      return @content_type if @content_type
-
-      @content_type = @env['CONTENT_TYPE'].to_s.downcase
-
-      if @env['HTTP_X_POST_DATA_FORMAT']          
-        case @env['HTTP_X_POST_DATA_FORMAT'].downcase.to_sym
-          when :yaml
-            @content_type = 'application/x-yaml'
-          when :xml
-            @content_type = 'application/xml'
+      @content_type ||=
+        begin
+          content_type = @env['CONTENT_TYPE'].to_s.downcase
+          
+          if x_post_format = @env['HTTP_X_POST_DATA_FORMAT']
+            case x_post_format.to_s.downcase
+            when 'yaml'
+              content_type = 'application/x-yaml'
+            when 'xml'
+              content_type = 'application/xml'
+            end
           end
-      end
-
-      @content_type = Mime::Type.lookup(@content_type)
+          
+          Mime::Type.lookup(content_type)
+        end
     end
 
     def accepts
-      return @accepts if @accepts
-      
-      @accepts = if @env['HTTP_ACCEPT'].to_s.strip.blank?
-        [ content_type, Mime::ALL ]
-      else
-        Mime::Type.parse(@env['HTTP_ACCEPT'])
-      end
+      @accepts ||=
+        if @env['HTTP_ACCEPT'].to_s.strip.empty?
+          [ content_type, Mime::ALL ]
+        else
+          Mime::Type.parse(@env['HTTP_ACCEPT'])
+        end
     end
 
     # Returns true if the request's "X-Requested-With" header contains

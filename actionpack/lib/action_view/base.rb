@@ -182,7 +182,11 @@ module ActionView #:nodoc:
     # map method names to the names passed in local assigns so far
     @@template_args = {}
     # count the number of inline templates
-    @@inline_template_count = 0    
+    @@inline_template_count = 0
+    # maps template paths without extension to their file extension returned by pick_template_extension.
+    # if for a given path, path.ext1 and path.ext2 exist on the file system, the order of extensions
+    # used by pick_template_extension determines whether ext1 or ext2 will be stored
+    @@cached_template_extension = {}
 
     class ObjectWrapper < Struct.new(:value) #:nodoc:
     end
@@ -218,7 +222,7 @@ module ActionView #:nodoc:
     # it's relative to the template_root, otherwise it's absolute. The hash in <tt>local_assigns</tt> 
     # is made available as local variables.
     def render_file(template_path, use_full_path = true, local_assigns = {})
-      @first_render = template_path if @first_render.nil?
+      @first_render ||= template_path
 
       if use_full_path
         template_path_without_extension, template_extension = path_and_extension(template_path)
@@ -226,7 +230,7 @@ module ActionView #:nodoc:
         if template_extension
           template_file_name = full_template_path(template_path_without_extension, template_extension)
         else
-          template_extension = pick_template_extension(template_path)
+          template_extension = pick_template_extension(template_path).to_s
           template_file_name = full_template_path(template_path, template_extension)
         end
       else
@@ -308,14 +312,15 @@ module ActionView #:nodoc:
     end
 
     def pick_template_extension(template_path)#:nodoc:
-      if match = delegate_template_exists?(template_path)
-        match.first
-      elsif erb_template_exists?(template_path):        'rhtml'
-      elsif builder_template_exists?(template_path):    'rxml'
-      elsif javascript_template_exists?(template_path): 'rjs'
-      else
-        raise ActionViewError, "No rhtml, rxml, rjs or delegate template found for #{template_path}"
-      end
+      @@cached_template_extension[template_path] ||=
+        if match = delegate_template_exists?(template_path)
+          match.first.to_sym
+        elsif erb_template_exists?(template_path):        :rhtml
+        elsif builder_template_exists?(template_path):    :rxml
+        elsif javascript_template_exists?(template_path): :rjs
+        else
+          raise ActionViewError, "No rhtml, rxml, rjs or delegate template found for #{template_path}"
+        end
     end
 
     def delegate_template_exists?(template_path)#:nodoc:
@@ -340,9 +345,10 @@ module ActionView #:nodoc:
       if template_file_extension
         template_exists?(template_file_name, template_file_extension)
       else
-        %w(erb builder javascript delegate).any? do |template_type| 
-          send("#{template_type}_template_exists?", template_path)
-        end
+        @@cached_template_extension[template_path] ||
+           %w(erb builder javascript delegate).any? do |template_type| 
+             send("#{template_type}_template_exists?", template_path)
+           end
       end
     end
 

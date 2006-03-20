@@ -283,22 +283,22 @@ module ActionController #:nodoc:
       
       # Returns all the before filters for this class and all its ancestors.
       def before_filters #:nodoc:
-        read_inheritable_attribute("before_filters") || []
+        @before_filters ||= read_inheritable_attribute("before_filters") || []
       end
       
       # Returns all the after filters for this class and all its ancestors.
       def after_filters #:nodoc:
-        read_inheritable_attribute("after_filters") || []
+        @after_filters ||= read_inheritable_attribute("after_filters") || []
       end
       
       # Returns a mapping between filters and the actions that may run them.
       def included_actions #:nodoc:
-        read_inheritable_attribute("included_actions") || {}
+        @included_actions ||= read_inheritable_attribute("included_actions") || {}
       end
       
       # Returns a mapping between filters and actions that may not run them.
       def excluded_actions #:nodoc:
-        read_inheritable_attribute("excluded_actions") || {}
+        @excluded_actions ||= read_inheritable_attribute("excluded_actions") || {}
       end
       
       private

@@ -170,7 +170,11 @@ module ActionController #:nodoc:
       end
 
       def layout_conditions #:nodoc:
-        read_inheritable_attribute("layout_conditions")
+        @layout_conditions ||= read_inheritable_attribute("layout_conditions")
+      end
+      
+      def default_layout #:nodoc:
+        @default_layout ||= read_inheritable_attribute("layout")
       end
 
       private
@@ -205,7 +209,7 @@ module ActionController #:nodoc:
     # object). If the layout was defined without a directory, layouts is assumed. So <tt>layout "weblog/standard"</tt> will return
     # weblog/standard, but <tt>layout "standard"</tt> will return layouts/standard.
     def active_layout(passed_layout = nil)
-      layout = passed_layout || self.class.read_inheritable_attribute("layout")
+      layout = passed_layout || self.class.default_layout
 
       active_layout = case layout
         when String then layout
@@ -249,6 +253,7 @@ module ActionController #:nodoc:
     end
 
     private
+    
       def apply_layout?(template_with_options, options)
         return false if options == :update
         template_with_options ?  candidate_for_layout?(options) : !template_exempt_from_layout?

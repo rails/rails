@@ -44,7 +44,11 @@ module ActionController #:nodoc:
           @controller.send(:render_component_as_string, options)
         end
       end
-
+            
+      # If this controller was instantiated to process a component request,
+      # +parent_controller+ points to the instantiator of this controller.
+      base.send :attr_accessor, :parent_controller
+      
       base.class_eval do
         alias_method :process_cleanup_without_components, :process_cleanup
         alias_method :process_cleanup, :process_cleanup_with_components
@@ -54,11 +58,9 @@ module ActionController #:nodoc:
         
         alias_method :flash_without_components, :flash
         alias_method :flash, :flash_with_components
+
+        alias_method :component_request?, :parent_controller       
       end
-      
-      # If this controller was instantiated to process a component request,
-      # +parent_controller+ points to the instantiator of this controller.
-      base.send :attr_accessor, :parent_controller
     end
 
     module ClassMethods
@@ -170,10 +172,6 @@ module ActionController #:nodoc:
           else
             yield
           end
-        end
-        
-        def component_request?
-          !@parent_controller.nil?
         end
 
         def set_session_options_with_components(request)
