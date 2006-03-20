@@ -143,24 +143,15 @@ namespace :db do
     desc "Creates a sessions table for use with CGI::Session::ActiveRecordStore"
     task :create => :environment do
       raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
-
-      ActiveRecord::Base.connection.create_table(session_table_name) do |t|
-        t.column :session_id, :string
-        t.column :data, :text
-        t.column :updated_at, :datetime
-      end
-  
-      ActiveRecord::Base.connection.add_index(session_table_name, :session_id)
+      require 'rails_generator'
+      require 'rails_generator/scripts/generate'
+      Rails::Generator::Scripts::Generate.new.run(["session_migration", ENV["MIGRATION"] || "AddSessionTable"])
     end
 
-    desc "Drop the sessions table"
-    task :drop => :environment do
+    desc "Clear the sessions table"
+    task :clear => :environment do
       raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
-      ActiveRecord::Base.connection.drop_table(session_table_name)
-    end
-
-    desc "Drop and recreate the session table (much faster than 'DELETE * FROM sessions')"
-    task :recreate => [ "db:sessions:drop", "db:sessions:create" ] do
+      ActiveRecord::Base.connection.execute "DELETE FROM sessions"
     end
   end
 end

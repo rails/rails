@@ -1,5 +1,7 @@
 *SVN*
 
+* Replaced old session rake tasks with db:sessions:create to generate a migration, and db:sessions:clear to remove sessions. [Rick Olson]
+
 * Reject Ruby 1.8.3 when loading Rails; extract version checking code. [Chad Fowler]
 
 * Remove explicit loading of RailsInfo and RailsInfoController. [Nicholas Seckar]
