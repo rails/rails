@@ -433,8 +433,9 @@ module ActionView
           def to_s #:nodoc:
             returning javascript = @lines * $/ do
               if ActionView::Base.debug_rjs
-                javascript.replace "try {\n#{javascript}\n} catch (e) "
-                javascript << "{ alert('RJS error:\\n\\n' + e.toString()); throw e }"
+                source = javascript.dup
+                javascript.replace "try {\n#{source}\n} catch (e) "
+                javascript << "{ alert('RJS error:\\n\\n' + e.toString()); alert('#{source.gsub(/\r\n|\n|\r/, "\\n").gsub(/["']/) { |m| "\\#{m}" }}'); throw e }"
               end
             end
           end
