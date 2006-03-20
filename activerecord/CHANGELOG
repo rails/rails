@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that schema changes while the database was open would break any connections to a SQLite database (now we reconnect if that error is throw) [DHH]
+
 * Don't classify the has_one class when eager loading, it is already singular. Add tests. (closes #4117) [jonathan@bluewire.net.nz]
 
 * Quit ignoring default :include options in has_many :through calls [Mark James]

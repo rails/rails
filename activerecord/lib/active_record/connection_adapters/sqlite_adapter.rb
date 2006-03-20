@@ -135,6 +135,13 @@ module ActiveRecord
 
       def execute(sql, name = nil) #:nodoc:
         log(sql, name) { @connection.execute(sql) }
+      rescue ActiveRecord::StatementInvalid => exception
+        if exception.message =~ /database schema has changed/
+          reconnect!
+          retry
+        else
+          raise
+        end
       end
 
       def update(sql, name = nil) #:nodoc:
@@ -341,13 +348,18 @@ module ActiveRecord
       # 
       #   SELECT COUNT(ArtistID) FROM (SELECT DISTINCT ArtistID FROM CDs);
       def execute(sql, name = nil) #:nodoc:
+        super(rewrite_count_distinct_queries(sql), name)
+      end
+      
+      def rewrite_count_distinct_queries(sql)
         if sql =~ /count\(distinct ([^\)]+)\)( AS \w+)? (.*)/i
           distinct_column = $1
           distinct_query  = $3
           column_name     = distinct_column.split('.').last
-          sql             = "SELECT COUNT(#{column_name}) FROM (SELECT DISTINCT #{distinct_column} #{distinct_query})"
+          "SELECT COUNT(#{column_name}) FROM (SELECT DISTINCT #{distinct_column} #{distinct_query})"
+        else
+          sql
         end
-        log(sql, name) { @connection.execute(sql) }
       end
     end
 
