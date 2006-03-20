@@ -8,12 +8,22 @@ class HashWithIndifferentAccess < Hash
       super(constructor)
     end
   end
- 
-  convert_key_and_hashes_and_call_super = lambda { |key, *args| super(convert_key(key), *args.map{|arg| convert_value(arg) }) }
-  convert_other_hash_and_call_super     = lambda { |other_hash| super(convert_hash(other_hash)) }
 
-  %w( [] []= fetch store delete has_key? include? key? member? ).each{ |method_name| define_method method_name, &convert_key_and_hashes_and_call_super }
-  %w( == eql? replace initialize_copy merge merge! update      ).each{ |method_name| define_method method_name, &convert_other_hash_and_call_super     }
+  %w( [] []= fetch store delete has_key? include? key? member? ).each do |method_name|
+    class_eval %(
+      def #{method_name}(key, *args)
+        super(convert_key(key), *args.map { |arg| convert_value(arg) })
+      end
+    )
+  end
+    #define_method method_name, &convert_key_and_hashes_and_call_super }
+  %w( == eql? replace initialize_copy merge merge! update      ).each do |method_name|
+    class_eval %(
+      def #{method_name}(other_hash)
+        super(convert_hash(other_hash))
+      end
+    )
+  end
 
   def invert
     self.class.new.replace(super)
