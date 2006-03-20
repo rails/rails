@@ -134,14 +134,7 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
 
       def execute(sql, name = nil) #:nodoc:
-        log(sql, name) { @connection.execute(sql) }
-      rescue ActiveRecord::StatementInvalid => exception
-        if exception.message =~ /database schema has changed/
-          reconnect!
-          retry
-        else
-          raise
-        end
+        catch_schema_changes { log(sql, name) { @connection.execute(sql) } }
       end
 
       def update(sql, name = nil) #:nodoc:
@@ -179,15 +172,15 @@ module ActiveRecord
 
 
       def begin_db_transaction #:nodoc:
-        @connection.transaction
+        catch_schema_changes { @connection.transaction }
       end
       
       def commit_db_transaction #:nodoc:
-        @connection.commit
+        catch_schema_changes { @connection.commit }
       end
 
       def rollback_db_transaction #:nodoc:
-        @connection.rollback
+        catch_schema_changes { @connection.rollback }
       end
 
 
@@ -335,6 +328,17 @@ module ActiveRecord
             sql << columns.map {|col| quote row[column_mappings[col]]} * ', '
             sql << ')'
             @connection.execute sql
+          end
+        end
+        
+        def catch_schema_changes
+          return yield
+        rescue ActiveRecord::StatementInvalid => exception
+          if exception.message =~ /database schema has changed/
+            reconnect!
+            retry
+          else
+            raise
           end
         end
     end
