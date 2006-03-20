@@ -266,7 +266,7 @@ class BasicsTest < Test::Unit::TestCase
     if ActiveRecord::Base.generate_read_methods
       assert_readers(Topic,  %w(type replies_count))
       assert_readers(Firm,   %w(type))
-      assert_readers(Client, %w(type))
+      assert_readers(Client, %w(type ruby_type rating?))
     else
       [Topic, Firm, Client].each {|klass| assert_equal klass.read_methods, {}}
     end
@@ -1282,8 +1282,9 @@ class BasicsTest < Test::Unit::TestCase
   
   private
     def assert_readers(model, exceptions)
-      expected_readers = Set.new(model.column_names - (model.serialized_attributes.keys + exceptions + ['id']))
+      expected_readers = Set.new(model.column_names - (model.serialized_attributes.keys + ['id']))
       expected_readers += expected_readers.map { |col| "#{col}?" }
+      expected_readers -= exceptions
       assert_equal expected_readers, model.read_methods
     end
 end

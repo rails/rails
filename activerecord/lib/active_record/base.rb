@@ -1676,8 +1676,9 @@ module ActiveRecord #:nodoc:
       # ActiveRecord::Base.generate_read_methods is set to true.
       def define_read_methods
         self.class.columns_hash.each do |name, column|
-          unless self.class.serialized_attributes[name] || respond_to_without_attributes?(name)
-            define_read_method(name.to_sym, name, column)
+          unless self.class.serialized_attributes[name]
+            define_read_method(name.to_sym, name, column) unless respond_to_without_attributes?(name)
+            define_question_method(name)     unless respond_to_without_attributes?("#{name}?")
           end
         end
       end
@@ -1686,19 +1687,30 @@ module ActiveRecord #:nodoc:
       def define_read_method(symbol, attr_name, column)
         cast_code = column.type_cast_code('v') if column
         access_code = cast_code ? "(v=@attributes['#{attr_name}']) && #{cast_code}" : "@attributes['#{attr_name}']"
-
+        
         unless attr_name.to_s == self.class.primary_key.to_s
           access_code = access_code.insert(0, "raise NoMethodError, 'missing attribute: #{attr_name}', caller unless @attributes.has_key?('#{attr_name}'); ")
           self.class.read_methods << attr_name
+        end
+        
+        evaluate_read_method attr_name, "def #{symbol}; #{access_code}; end"
+      end
+      
+      # Define an attribute ? method.
+      def define_question_method(attr_name)
+        unless attr_name.to_s == self.class.primary_key.to_s
           self.class.read_methods << "#{attr_name}?"
         end
-
+        
+        evaluate_read_method attr_name, "def #{attr_name}?; query_attribute('#{attr_name}'); end"
+      end
+      
+      # Evaluate the definition for an attribute reader or ? method
+      def evaluate_read_method(attr_name, method_definition)
         begin
-          self.class.class_eval("def #{symbol}; #{access_code}; end")
-          self.class.class_eval("def #{symbol}?; query_attribute('#{attr_name}'); end")
+          self.class.class_eval(method_definition)
         rescue SyntaxError => err
           self.class.read_methods.delete(attr_name)
-          self.class.read_methods.delete("#{attr_name}?")
           if logger
             logger.warn "Exception occured during reader method compilation."
             logger.warn "Maybe #{attr_name} is not a valid Ruby identifier?"
