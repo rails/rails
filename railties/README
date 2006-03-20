@@ -27,11 +27,29 @@ link:files/vendor/rails/actionpack/README.html.
 
 == Getting started
 
-1. Run the WEBrick servlet: <tt>ruby script/server</tt> (run with --help for options)
-   ...or if you have lighttpd installed: <tt>ruby script/lighttpd</tt> (it's faster)
-2. Go to http://localhost:3000/ and get "Congratulations, you've put Ruby on Rails!"
-3. Follow the guidelines on the "Congratulations, you've put Ruby on Rails!" screen
+1. Start the web server: <tt>ruby script/server</tt> (run with --help for options)
+2. Go to http://localhost:3000/ and get "Welcome aboard: You’re riding the Rails!"
+3. Follow the guidelines to start developing your application
 
+
+== Web servers
+
+Rails uses the built-in web server in Ruby called WEBrick by default, so you don't
+have to install or configure anything to play around. 
+
+If you have lighttpd installed, though, it'll be used instead when running script/server.
+It's considerably faster than WEBrick and suited for production use, but requires additional
+installation and currently only works well on OS X/Unix (Windows users are encouraged
+to start with WEBrick). We recommend version 1.4.11 and higher. You can download it from
+http://www.lighttpd.net.
+
+If you want something that's halfway between WEBrick and lighttpd, we heartily recommend
+Mongrel. It's a Ruby-based web server with a C-component (so it requires compilation) that
+also works very well with Windows. See more at http://mongrel.rubyforge.org/.
+
+But of course its also possible to run Rails with the premiere open source web server Apache.
+To get decent performance, though, you'll need to install FastCGI. See
+http://wiki.rubyonrails.com/rails/pages/FastCGI for more information on FastCGI.
 
 == Example for Apache conf
 
@@ -102,7 +120,7 @@ You can interact with the domain model by starting the console through script/co
 Here you'll have all parts of the application configured, just like it is when the
 application is running. You can inspect domain models, change values, and save to the
 database. Starting the script without arguments will launch it in the development environment.
-Passing an argument will specify a different environment, like <tt>console production</tt>.
+Passing an argument will specify a different environment, like <tt>script/console production</tt>.
 
 
 == Description of contents
@@ -138,7 +156,7 @@ components
   Self-contained mini-applications that can bundle together controllers, models, and views.
 
 db
-  Contains the SQL dump of your development database.  db/migrate contains all
+  Contains the database schema in schema.rb.  db/migrate contains all
   the sequence of Migrations for your schema.
 
 lib
