@@ -12,8 +12,11 @@ module ActiveSupport #:nodoc:
           Inflector.singularize(self)
         end
 
-        def camelize
-          Inflector.camelize(self)
+        def camelize(first_letter = :upper)
+          case first_letter
+            when :upper then Inflector.camelize(self, true)
+            when :lower then Inflector.camelize(self, false)
+          end
         end
         alias_method :camelcase, :camelize
 

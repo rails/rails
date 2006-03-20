@@ -110,7 +110,14 @@ class InflectorTest < Test::Unit::TestCase
     "Product"               => "product",
     "SpecialGuest"          => "special_guest",
     "ApplicationController" => "application_controller",
-    "Area51Controller"      => "area51_controller",
+    "Area51Controller"      => "area51_controller"
+  }
+
+  UnderscoreToLowerCamel = {
+    "product"                => "product",
+    "special_guest"          => "specialGuest",
+    "application_controller" => "applicationController",
+    "area51_controller"      => "area51Controller"     
   }
   
   CamelToUnderscoreWithoutReverse = {
@@ -306,6 +313,12 @@ class InflectorTest < Test::Unit::TestCase
   def test_underscore_as_reverse_of_dasherize
     UnderscoresToDashes.each do |underscored, dasherized|
       assert_equal(underscored, Inflector.underscore(Inflector.dasherize(underscored)))
+    end
+  end
+
+  def test_underscore_to_lower_camel
+    UnderscoreToLowerCamel.each do |underscored, lower_camel|
+      assert_equal(lower_camel, Inflector.camelize(underscored, false))
     end
   end
 end

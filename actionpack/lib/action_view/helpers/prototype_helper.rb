@@ -738,7 +738,7 @@ module ActionView
           if method.to_s =~ /(.*)=$/
             assign($1, arguments.first)
           else
-            call("#{method.to_s.first}#{method.to_s.camelize[1..-1]}", *arguments)
+            call("#{method.to_s.camelize(:lower)}", *arguments)
           end
         end
       
@@ -865,7 +865,7 @@ module ActionView
           method_args = arguments_for_call options[:method_args] # foo, bar, function
           method_args << ', ' unless method_args.blank?
           add_variable_assignment!(options[:variable]) if options[:variable]
-          append_enumerable_function!("#{enumerable.to_s.first}#{enumerable.to_s.camelize[1..-1]}(#{method_args}function(#{yield_args}) {")
+          append_enumerable_function!("#{enumerable.to_s.camelize(:lower)}(#{method_args}function(#{yield_args}) {")
           # only yield as many params as were passed in the block
           yield *options[:yield_args].collect { |p| JavaScriptVariableProxy.new(@generator, p) }[0..block.arity-1]
           add_return_statement! if options[:return]
