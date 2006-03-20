@@ -17,6 +17,9 @@ module ActionController
     # This tiny piece of code will add all of the following methods to the controller:
     #
     #  class WeblogController < ActionController::Base
+    #    verify :method => :post, :only => [ :destroy, :create, :update ],
+    #           :redirect_to => { :action => :list }
+    #
     #    def index
     #      list
     #    end
