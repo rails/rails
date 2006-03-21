@@ -9,7 +9,7 @@ require 'fixtures/categorization'
 
 class AssociationsJoinModelTest < Test::Unit::TestCase
   self.use_transactional_fixtures = false
-  fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings
+  fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites
 
   def test_has_many
     assert_equal categories(:general), authors(:david).categories.first
@@ -292,6 +292,17 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
       Author.find(:first, :include => :author_address)
       AuthorAddress.find(:first, :include => :author)
     end
+  end
+
+  def test_self_referential_has_many_through
+    assert_equal [authors(:mary)], authors(:david).favorite_authors
+    assert_equal [],               authors(:mary).favorite_authors
+  end
+
+  def test_add_to_self_referential_has_many_through
+    new_author = Author.create(:name => "Bob")
+    authors(:david).author_favorites.create :favorite_author => new_author
+    assert_equal [new_author, authors(:mary)], authors(:david).reload.favorite_authors
   end
 
   private

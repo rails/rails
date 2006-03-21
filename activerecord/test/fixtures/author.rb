@@ -25,8 +25,11 @@ class Author < ActiveRecord::Base
 
   has_many :categorizations
   has_many :categories, :through => :categorizations
-  
+
   has_many :nothings, :through => :kateggorisatons, :class_name => 'Category'
+
+  has_many :author_favorites
+  has_many :favorite_authors, :through => :author_favorites, :order => 'name'
 
   belongs_to :author_address
 
@@ -60,4 +63,9 @@ end
 
 class AuthorAddress < ActiveRecord::Base
   has_one :author
+end
+
+class AuthorFavorite < ActiveRecord::Base
+  belongs_to :author
+  belongs_to :favorite_author, :class_name => "Author", :foreign_key => 'favorite_author_id'
 end

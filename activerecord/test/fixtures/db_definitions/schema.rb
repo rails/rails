@@ -25,4 +25,8 @@ ActiveRecord::Schema.define do
     t.column :author_address_id, :integer
   end
 
+  create_table :author_favorites, :force => true do |t|
+    t.column :author_id, :integer
+    t.column :favorite_author_id, :integer
+  end
 end
