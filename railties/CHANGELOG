@@ -1,5 +1,15 @@
 *SVN*
 
+* Make all ActionView helpers available in the console for debugging purposes.  n.b.: Only an 80% solution. Some stuff won't work, most will. [Marcel Molina Jr.]
+
+  ex.
+
+    >> puts options_for_select([%w(a 1), %w(b 2), %w(c 3)])
+    <option value="1">a</option>
+    <option value="2">b</option>
+    <option value="3">c</option>
+    => nil
+
 * Replaced old session rake tasks with db:sessions:create to generate a migration, and db:sessions:clear to remove sessions. [Rick Olson]
 
 * Reject Ruby 1.8.3 when loading Rails; extract version checking code. [Chad Fowler]
