@@ -24,10 +24,10 @@ module ActiveRecord
           options[:order] = @reflection.options[:order]
         end
         
-        options[:select]    = construct_select
-        options[:from]      = construct_from
-        options[:joins]     = construct_joins
-        options[:include] ||= @reflection.source_reflection.options[:include]
+        options[:select]  = construct_select(options[:select])
+        options[:from]  ||= construct_from
+        options[:joins]   = construct_joins(options[:joins])
+        options[:include] = @reflection.source_reflection.options[:include] if options[:include].nil?
         
         merge_options_from_reflection!(options)
 
@@ -84,11 +84,11 @@ module ActiveRecord
           @reflection.table_name
         end
         
-        def construct_select
-          selected = @reflection.options[:select] || "#{@reflection.table_name}.*"          
+        def construct_select(custom_select = nil)
+          selected = custom_select || @reflection.options[:select] || "#{@reflection.table_name}.*"          
         end
         
-        def construct_joins
+        def construct_joins(custom_joins = nil)
           if @reflection.through_reflection.options[:as] || @reflection.source_reflection.macro == :belongs_to
             reflection_primary_key = @reflection.klass.primary_key
             source_primary_key     = @reflection.source_reflection.primary_key_name
@@ -96,8 +96,8 @@ module ActiveRecord
             reflection_primary_key = @reflection.source_reflection.primary_key_name
             source_primary_key     = @reflection.klass.primary_key
           end
-          
-          "INNER JOIN %s ON %s.%s = %s.%s #{@reflection.options[:joins]}" % [
+
+          "INNER JOIN %s ON %s.%s = %s.%s #{@reflection.options[:joins]} #{custom_joins}" % [
             @reflection.through_reflection.table_name,
             @reflection.table_name, reflection_primary_key,
             @reflection.through_reflection.table_name, source_primary_key

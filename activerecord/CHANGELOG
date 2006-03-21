@@ -1,5 +1,19 @@
 *SVN*
 
+* Allow overriding of find parameters in scoped has_many :through calls [Rick Olson]
+
+  In this example, :include => false disables the default eager association from loading.  :select changes the standard
+  select clause.  :joins specifies a join that is added to the end of the has_many :through query.
+  
+    class Post < ActiveRecord::Base
+      has_many :tags, :through => :taggings, :include => :tagging do
+        def add_joins_and_select
+          find :all, :select => 'tags.*, authors.id as author_id', :include => false,
+            :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'
+        end
+      end
+    end
+    
 * Fixed that schema changes while the database was open would break any connections to a SQLite database (now we reconnect if that error is throw) [DHH]
 
 * Don't classify the has_one class when eager loading, it is already singular. Add tests. (closes #4117) [jonathan@bluewire.net.nz]
