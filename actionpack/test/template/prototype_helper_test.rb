@@ -16,6 +16,8 @@ module BaseTest
       def url_for(options, *parameters_for_method_reference)
         url =  "http://www.example.com/"
         url << options[:action].to_s if options and options[:action]
+        url << "?a=#{options[:a]}" if options && options[:a]
+        url << "&b=#{options[:b]}" if options && options[:a] && options[:b]
         url
       end
     end.new
@@ -40,6 +42,8 @@ class PrototypeHelperTest < Test::Unit::TestCase
       link_to_remote("Remote outpost", :success => "alert(request.reponseText)", :url => { :action => "whatnot"  })
     assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot', {asynchronous:true, evalScripts:true, onFailure:function(request){alert(request.reponseText)}}); return false;\">Remote outpost</a>),
       link_to_remote("Remote outpost", :failure => "alert(request.reponseText)", :url => { :action => "whatnot"  })
+    assert_dom_equal %(<a href=\"#\" onclick=\"new Ajax.Request('http://www.example.com/whatnot?a=10&amp;b=20', {asynchronous:true, evalScripts:true, onFailure:function(request){alert(request.reponseText)}}); return false;\">Remote outpost</a>),
+      link_to_remote("Remote outpost", :failure => "alert(request.reponseText)", :url => { :action => "whatnot", :a => '10', :b => '20' })
   end
   
   def test_periodically_call_remote

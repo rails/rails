@@ -25,6 +25,8 @@ class UrlHelperTest < Test::Unit::TestCase
   def test_url_for_escapes_urls
     @controller.url = "http://www.example.com?a=b&c=d"
     assert_equal "http://www.example.com?a=b&amp;c=d", url_for(:a => 'b', :c => 'd')
+    assert_equal "http://www.example.com?a=b&amp;c=d", url_for(:a => 'b', :c => 'd', :escape => true)
+    assert_equal "http://www.example.com?a=b&c=d", url_for(:a => 'b', :c => 'd', :escape => false)
   end
   
   # todo: missing test cases

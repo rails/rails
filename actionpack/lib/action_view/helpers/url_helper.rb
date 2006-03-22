@@ -13,9 +13,19 @@ module ActionView
       # as url_for. For a list, see the documentation for ActionController::Base#url_for.
       # Note that it'll set :only_path => true so you'll get /controller/action instead of the 
       # http://example.com/controller/action part (makes it harder to parse httpd log files)
+      # 
+      # When called from a view, url_for returns an HTML escaped url. If you need an unescaped
+      # url, pass :escape => false to url_for.
+      # 
       def url_for(options = {}, *parameters_for_method_reference)
-        options = { :only_path => true }.update(options.symbolize_keys) if options.kind_of? Hash
-        html_escape(@controller.send(:url_for, options, *parameters_for_method_reference))
+        if options.kind_of? Hash
+          options = { :only_path => true }.update(options.symbolize_keys)
+          escape = options.key?(:escape) ? options.delete(:escape) : true
+        else
+          escape = true
+        end
+        url = @controller.send(:url_for, options, *parameters_for_method_reference)
+        escape ? html_escape(url) : url
       end
 
       # Creates a link tag of the given +name+ using an URL created by the set of +options+. See the valid options in

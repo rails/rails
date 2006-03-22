@@ -301,7 +301,9 @@ module ActionView
           "new Ajax.Request(" :
           "new Ajax.Updater(#{update}, "
 
-        function << "'#{url_for(options[:url])}'"
+        url_options = options[:url]
+        url_options = url_options.merge(:escape => false) if url_options.is_a? Hash
+        function << "'#{url_for(url_options)}'"
         function << ", #{javascript_options})"
 
         function = "#{options[:before]}; #{function}" if options[:before]
