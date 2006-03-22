@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed DB2 adapter so nullable columns will be determines correctly now and quotes from column default values will be removed #4350 [contact@maik-schmidt.de]
+
 * Allow overriding of find parameters in scoped has_many :through calls [Rick Olson]
 
   In this example, :include => false disables the default eager association from loading.  :select changes the standard

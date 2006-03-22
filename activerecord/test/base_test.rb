@@ -1190,8 +1190,8 @@ class BasicsTest < Test::Unit::TestCase
     else
       assert xml.include?(%(<last-read type="date">2004-04-15</last-read>))
     end
-    # Oracle doesn't have true boolean or time-only fields
-    unless current_adapter?(:OracleAdapter)
+    # Oracle and DB2 don't have true boolean or time-only fields
+    unless current_adapter?(:OracleAdapter) || current_adapter?(:DB2Adapter)
       assert xml.include?(%(<approved type="boolean">false</approved>)), "Approved should be a boolean"
       assert xml.include?(%(<bonus-time type="datetime">#{bonus_time_in_current_timezone}</bonus-time>))
     end
