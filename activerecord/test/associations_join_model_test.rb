@@ -313,7 +313,7 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   def test_add_to_self_referential_has_many_through
     new_author = Author.create(:name => "Bob")
     authors(:david).author_favorites.create :favorite_author => new_author
-    assert_equal [new_author, authors(:mary)], authors(:david).reload.favorite_authors
+    assert_equal new_author, authors(:david).reload.favorite_authors.first
   end
 
   private
