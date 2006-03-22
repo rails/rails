@@ -406,7 +406,7 @@ return (value.className == "welcome");
   def test_debug_rjs
     ActionView::Base.debug_rjs = true
     @generator['welcome'].replace_html 'Welcome'
-    assert_equal "try {\n$(\"welcome\").update(\"Welcome\");\n} catch (e) { alert('RJS error:\\n\\n' + e.toString()); throw e }", @generator.to_s
+    assert_equal "try {\n$(\"welcome\").update(\"Welcome\");\n} catch (e) { alert('RJS error:\\n\\n' + e.toString()); alert('$(\\\"welcome\\\").update(\\\"Welcome\\\");'); throw e }", @generator.to_s
   ensure
     ActionView::Base.debug_rjs = false
   end
