@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix Scaffold Fails with Struct as a Parameter #4363 [joe@mjg2.com]
+
 * Fix soap type registration of multidimensional arrays (#4232)
 
 * Fix that marshaler couldn't handle ActiveRecord models defined in a different namespace (#2392).

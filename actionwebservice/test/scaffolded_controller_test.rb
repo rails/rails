@@ -18,6 +18,7 @@ end
 
 class ScaffoldedControllerTestAPI < ActionWebService::API::Base
   api_method :hello, :expects => [{:integer=>:int}, :string], :returns => [:bool]
+  api_method :hello_struct_param, :expects => [{:person => ScaffoldPerson}], :returns => [:bool]
   api_method :bye,   :returns => [[ScaffoldPerson]]
   api_method :date_diff, :expects => [{:start_date => :date}, {:end_date => :date}], :returns => [:int]
   api_method :time_diff, :expects => [{:start_time => :time}, {:end_time => :time}], :returns => [:int]
@@ -29,6 +30,10 @@ class ScaffoldedController < ActionController::Base
   web_service_scaffold :scaffold_invoke
 
   def hello(int, string)
+    0
+  end
+  
+  def hello_struct_param(person)
     0
   end
 
@@ -67,6 +72,11 @@ class ScaffoldedControllerTest < Test::Unit::TestCase
 
   def test_scaffold_invoke_method_params
     get :scaffold_invoke_method_params, :service => 'scaffolded', :method => 'Hello'
+    assert_rendered_file 'parameters.rhtml'
+  end
+  
+  def test_scaffold_invoke_method_params_with_struct
+    get :scaffold_invoke_method_params, :service => 'scaffolded', :method => 'HelloStructParam'
     assert_rendered_file 'parameters.rhtml'
   end
 

@@ -187,7 +187,8 @@ module ActionWebService
             nested_content = method_parameter_input_fields(
               method,
               member_type,
-              "#{field_name_base}[#{idx}][#{member_name}]")
+              "#{field_name_base}[#{idx}][#{member_name}]",
+              idx)
             if member_type.custom?
               parameters << content_tag('li', label)
               parameters << content_tag('ul', nested_content)
