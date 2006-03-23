@@ -261,9 +261,57 @@ module ActiveRecord
     # in both conditions and orders. So :order => "posts.id DESC" will work while :order => "id DESC" will not. This may require that
     # you alter the :order and :conditions on the association definitions themselves.
     #
-    # It's currently not possible to use eager loading on multiple associations from the same table. Eager loading will also not pull
+    # It's currently not possible to use eager loading on multiple associations from the same table. Eager loading will not pull
     # additional attributes on join tables, so "rich associations" with has_and_belongs_to_many is not a good fit for eager loading.
     #
+    # == Table Aliasing
+    #
+    # ActiveRecord uses table aliasing in the case that a table is referenced multiple times in a join.  If a table is referenced only once,
+    # the standard table name is used.  The second time, the table is aliased as #{reflection_name}_#{parent_table_name}.  Indexes are appended
+    # for any more successive uses of the table name.
+    # 
+    #   Post.find :all, :include => :comments
+    #   # => SELECT ... FROM posts LEFT OUTER JOIN comments ON ...
+    #   Post.find :all, :include => :special_comments # STI
+    #   # => SELECT ... FROM posts LEFT OUTER JOIN comments ON ... AND comments.type = 'SpecialComment'
+    #   Post.find :all, :include => [:comments, :special_comments] # special_comments is the reflection name, posts is the parent table name
+    #   # => SELECT ... FROM posts LEFT OUTER JOIN comments ON ... LEFT OUTER JOIN comments special_comments_posts
+    # 
+    # Acts as tree example:
+    # 
+    #   TreeMixin.find :all, :include => :children
+    #   # => SELECT ... FROM mixins LEFT OUTER JOIN mixins childrens_mixins ...
+    #   TreeMixin.find :all, :include => {:children => :parent} # using cascading eager includes
+    #   # => SELECT ... FROM mixins LEFT OUTER JOIN mixins childrens_mixins ... 
+    #                               LEFT OUTER JOIN parents_mixins ...
+    #   TreeMixin.find :all, :include => {:children => {:parent => :children}} 
+    #   # => SELECT ... FROM mixins LEFT OUTER JOIN mixins childrens_mixins ... 
+    #                               LEFT OUTER JOIN parents_mixins ... 
+    # LEFT OUTER JOIN mixins childrens_mixins_2
+    # 
+    # Has and Belongs to Many join tables use the same idea, but add a _join suffix:
+    # 
+    #   Post.find :all, :include => :categories
+    #   # => SELECT ... FROM posts LEFT OUTER JOIN categories_posts ... LEFT OUTER JOIN categories ...
+    #   Post.find :all, :include => {:categories => :posts}
+    #   # => SELECT ... FROM posts LEFT OUTER JOIN categories_posts ... LEFT OUTER JOIN categories ...
+    #                              LEFT OUTER JOIN categories_posts posts_categories_join LEFT OUTER JOIN posts posts_categories
+    #   Post.find :all, :include => {:categories => {:posts => :categories}}
+    #   # => SELECT ... FROM posts LEFT OUTER JOIN categories_posts ... LEFT OUTER JOIN categories ...
+    #                              LEFT OUTER JOIN categories_posts posts_categories_join LEFT OUTER JOIN posts posts_categories
+    #                              LEFT OUTER JOIN categories_posts categories_posts_join LEFT OUTER JOIN categories categories_posts
+    # 
+    # If you wish to specify your own custom joins using a :joins option, those table names will take precedence over the eager associations..
+    # 
+    #   Post.find :all, :include => :comments, :joins => "inner join comments ..."
+    #   # => SELECT ... FROM posts LEFT OUTER JOIN comments_posts ON ... INNER JOIN comments ...
+    #   Post.find :all, :include => [:comments, :special_comments], :joins => "inner join comments ..."
+    #   # => SELECT ... FROM posts LEFT OUTER JOIN comments comments_posts ON ... 
+    #                              LEFT OUTER JOIN comments special_comments_posts ...
+    #                              INNER JOIN comments ...
+    # 
+    # Table aliases are automatically truncated according to the maximum length of table identifiers according to the specific database.
+    # 
     # == Modules
     #
     # By default, associations will look for objects within the current module scope. Consider:
@@ -1257,10 +1305,10 @@ module ActiveRecord
               @parent             = parent
               @reflection         = reflection
               @aliased_prefix     = "t#{ join_dependency.joins.size }"
-              @aliased_table_name = sti? ? pluralize(reflection.name) : table_name # start with the table name
-              @parent_table_name  = sti? ? pluralize(parent.active_record.name.underscore) : parent.active_record.table_name
+              @aliased_table_name = table_name # start with the table name
+              @parent_table_name  = parent.active_record.table_name
               
-              if !parent.table_joins.blank? && parent.table_joins =~ %r{#{aliased_table_name}}
+              if !parent.table_joins.blank? && parent.table_joins.to_s.downcase =~ %r{join(\s+\w+)?\s+#{aliased_table_name.downcase}\son}
                 join_dependency.table_aliases[aliased_table_name] += 1
               end
               
@@ -1270,6 +1318,7 @@ module ActiveRecord
                 table_index = join_dependency.table_aliases[aliased_table_name]
                 @aliased_table_name = @aliased_table_name[0..active_record.connection.table_alias_length-3] + "_#{table_index+1}" if table_index > 0
               end
+
               if reflection.macro == :has_and_belongs_to_many || (reflection.macro == :has_many && reflection.options[:through])
                 @aliased_join_table_name = reflection.macro == :has_and_belongs_to_many ? reflection.options[:join_table] : parent.active_record.reflect_on_association(reflection.options[:through]).klass.table_name
                 unless join_dependency.table_aliases[aliased_join_table_name].zero?
@@ -1362,16 +1411,12 @@ module ActiveRecord
               join << %(AND %s.%s = %s ) % [
                 aliased_table_name, 
                 reflection.active_record.connection.quote_column_name(reflection.active_record.inheritance_column), 
-                klass.quote(klass.name)] if sti?
+                klass.quote(klass.name)] unless klass.descends_from_active_record?
               join << "AND #{interpolate_sql(sanitize_sql(reflection.options[:conditions]))} " if reflection.options[:conditions]
               join
             end
             
             protected
-              def sti?
-                !klass.descends_from_active_record?
-              end
-              
               def pluralize(table_name)
                 ActiveRecord::Base.pluralize_table_names ? table_name.to_s.pluralize : table_name
               end
