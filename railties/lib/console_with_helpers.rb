@@ -1,4 +1,4 @@
-module Kernel
+class Module
   def include_all_modules_from(parent_module)
     parent_module.constants.each do |const|
       mod = parent_module.const_get(const)
@@ -10,6 +10,14 @@ module Kernel
   end
 end
 
+def helper
+  @helper_proxy ||= Object.new 
+end
+
 require 'application'
+
+class << helper 
+  include_all_modules_from ActionView
+end
+
 @controller = ApplicationController.new
-include_all_modules_from ActionView
