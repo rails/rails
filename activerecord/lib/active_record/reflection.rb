@@ -144,14 +144,11 @@ module ActiveRecord
         @through_reflection ||= options[:through] ? active_record.reflect_on_association(options[:through]) : false
       end
 
-      # Gets an array of possible :through reflection names
+      # Gets an array of possible :through source reflection names
       #
       #   [singularized, pluralized]
       def source_reflection_names
-        @source_reflection_names ||= (options[:class_name] ? 
-          [options[:class_name].underscore, options[:class_name].underscore.pluralize] : 
-          [name.to_s.singularize, name]
-        ).collect { |n| n.to_sym }
+        @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }
       end
 
       # Gets the source of the through reflection.  It checks both a singularized and pluralized form for :belongs_to or :has_many.
@@ -173,7 +170,7 @@ module ActiveRecord
           end
           
           if source_reflection.nil?
-            raise HasManyThroughSourceAssociationNotFoundError.new(through_reflection, source_reflection_names)
+            raise HasManyThroughSourceAssociationNotFoundError.new(self)
           end
           
           if source_reflection.options[:polymorphic]

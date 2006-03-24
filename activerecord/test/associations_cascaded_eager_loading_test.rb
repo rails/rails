@@ -87,7 +87,7 @@ class CascadedEagerLoadingTest < Test::Unit::TestCase
   end
 
   def test_eager_association_loading_with_multiple_stis_and_order
-    author = Author.find(:first, :include => { :posts => [ :special_comments , :very_special_comment ] }, :order => 'authors.name, special_comments.body, very_special_comments.body', :conditions => 'posts.id = 4')
+    author = Author.find(:first, :include => { :posts => [ :special_comments , :very_special_comment ] }, :order => 'authors.name, comments.body, very_special_comments_posts.body', :conditions => 'posts.id = 4')
     assert_equal authors(:david), author
     assert_no_queries do
       author.posts.first.special_comments
@@ -96,7 +96,7 @@ class CascadedEagerLoadingTest < Test::Unit::TestCase
   end
   
   def test_eager_association_loading_of_stis_with_multiple_references
-    authors = Author.find(:all, :include => { :posts => { :special_comments => { :post => [ :special_comments, :very_special_comment ] } } }, :order => 'special_comments.body, very_special_comments.body', :conditions => 'posts.id = 4')
+    authors = Author.find(:all, :include => { :posts => { :special_comments => { :post => [ :special_comments, :very_special_comment ] } } }, :order => 'comments.body, very_special_comments_posts.body', :conditions => 'posts.id = 4')
     assert_equal [authors(:david)], authors
     assert_no_queries do
       authors.first.posts.first.special_comments.first.post.special_comments

@@ -28,12 +28,12 @@ class Post < ActiveRecord::Base
     end
   end
   
-  has_many :funky_tags, :through => :taggings, :class_name => 'Tag'
+  has_many :funky_tags, :through => :taggings, :source => :tag
   has_many :super_tags, :through => :taggings
   has_one :tagging, :as => :taggable
 
   has_many :invalid_taggings, :as => :taggable, :class_name => "Tagging", :conditions => 'taggings.id < 0'
-  has_many :invalid_tags, :through => :invalid_taggings, :class_name => "Tag"
+  has_many :invalid_tags, :through => :invalid_taggings, :source => :tag
 
   has_many :categorizations, :foreign_key => :category_id
   has_many :authors, :through => :categorizations

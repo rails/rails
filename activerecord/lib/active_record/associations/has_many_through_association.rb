@@ -72,7 +72,7 @@ module ActiveRecord
               when :belongs_to, :has_many
                 "#{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.primary_key_name} = #{@owner.quoted_id}"
               else
-                raise ActiveRecordError, "Invalid source reflection macro :#{@reflection.source_reflection.macro} for has_many #{@reflection.name}, :through => #{@reflection.through_reflection.name}"
+                raise ActiveRecordError, "Invalid source reflection macro :#{@reflection.source_reflection.macro} for has_many #{@reflection.name}, :through => #{@reflection.through_reflection.name}.  Use :source to specify the source reflection."
             end
           end
           conditions << " AND (#{sql_conditions})" if sql_conditions

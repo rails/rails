@@ -15,7 +15,7 @@ module ActiveRecord
     end
     
     def message
-      "Could not find the association '#{@reflection.options[:through]}' in model #{@reflection.klass}"
+      "Could not find the association #{@reflection.options[:through].inspect} in model #{@reflection.klass}"
     end
   end
 
@@ -32,13 +32,15 @@ module ActiveRecord
   end
 
   class HasManyThroughSourceAssociationNotFoundError < ActiveRecordError
-    def initialize(through_reflection, source_reflection_names)
-      @through_reflection      = through_reflection
-      @source_reflection_names = source_reflection_names
+    def initialize(reflection)
+      @reflection              = reflection
+      @through_reflection      = reflection.through_reflection
+      @source_reflection_names = reflection.source_reflection_names
+      @source_associations     = reflection.through_reflection.klass.reflect_on_all_associations.collect { |a| a.name.inspect }
     end
     
     def message
-      "Could not find the source associations #{@source_reflection_names.to_sentence} in model #{@through_reflection.klass}"
+      "Could not find the source association(s) #{@source_reflection_names.collect(&:inspect).to_sentence :connector => 'or'} in model #{@through_reflection.klass}.  Try 'has_many #{@reflection.name.inspect}, :through => #{@through_reflection.name.inspect}, :source => <name>'.  Is it one of #{@source_associations.to_sentence :connector => 'or'}?"
     end
   end
 
@@ -48,7 +50,7 @@ module ActiveRecord
     end
     
     def message
-      "Can not eagerly load the polymorphic association '#{@reflection.name}'"
+      "Can not eagerly load the polymorphic association #{@reflection.name.inspect}"
     end
   end
 
@@ -201,6 +203,46 @@ module ActiveRecord
     #     has_many :people, :extend => FindOrCreateByNameExtension
     #   end
     #
+    # == Association Join Models
+    # 
+    # Has Many associations can be configured with the :through option to use an explicit join model to retrieve the data.  This
+    # operates similarly to a <tt>has_and_belongs_to_many</tt> association.  The advantage is that you're able to add validations,
+    # callbacks, and extra attributes on the join model.  Consider the following schema:
+    # 
+    #   class Author < ActiveRecord::Base
+    #     has_many :authorships
+    #     has_many :books, :through => :authorships
+    #   end
+    # 
+    #   class Authorship < ActiveRecord::Base
+    #     belongs_to :author
+    #     belongs_to :book
+    #   end
+    # 
+    #   @author = Author.find :first
+    #   @author.authorships.collect { |a| a.book } # selects all books that the author's authorships belong to.
+    #   @author.books                              # selects all books by using the Authorship join model
+    # 
+    # You can also go through a has_many association on the join model:
+    # 
+    #   class Firm < ActiveRecord::Base
+    #     has_many   :clients
+    #     has_many   :invoices, :through => :clients
+    #   end
+    #   
+    #   class Client < ActiveRecord::Base
+    #     belongs_to :firm
+    #     has_many   :invoices
+    #   end
+    #   
+    #   class Invoice < ActiveRecord::Base
+    #     belongs_to :client
+    #   end
+    #
+    #   @firm = Firm.find :first
+    #   @firm.clients.collect { |c| c.invoices }.flatten # select all invoices for all clients of the firm
+    #   @firm.invoices                                   # selects all invoices by going through the Client join model.
+    #
     # == Caching
     #
     # All of the methods are built on a simple caching principle that will keep the result of the last query around unless specifically
@@ -263,7 +305,7 @@ module ActiveRecord
     #
     # It's currently not possible to use eager loading on multiple associations from the same table. Eager loading will not pull
     # additional attributes on join tables, so "rich associations" with has_and_belongs_to_many is not a good fit for eager loading.
-    #
+    # 
     # == Table Aliasing
     #
     # ActiveRecord uses table aliasing in the case that a table is referenced multiple times in a join.  If a table is referenced only once,
@@ -423,6 +465,12 @@ module ActiveRecord
       # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
       # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you for example want to do a join, but not
       #   include the joined columns.
+      # * <tt>:through</tt>: Specifies a Join Model to perform the query through.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt> 
+      #   are ignored, as the association uses the source reflection.  You can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>
+      #   or <tt>has_many</tt> association.
+      # * <tt>:source</tt>: Specifies the source association name used by <tt>has_many :through</tt> queries.  Only use it if the name cannot be 
+      #   inferred from the association.  <tt>has_many :subscribers, :through => :subscriptions</tt> will look for either +:subscribers+ or
+      #   +:subscriber+ on +Subscription+, unless a +:source+ is given.
       #
       # Option examples:
       #   has_many :comments, :order => "posted_on"
@@ -430,11 +478,15 @@ module ActiveRecord
       #   has_many :people, :class_name => "Person", :conditions => "deleted = 0", :order => "name"
       #   has_many :tracks, :order => "position", :dependent => :destroy
       #   has_many :comments, :dependent => :nullify
+      #   has_many :subscribers, :through => :subscriptions, :source => :user
       #   has_many :subscribers, :class_name => "Person", :finder_sql =>
       #       'SELECT DISTINCT people.* ' +
       #       'FROM people p, post_subscriptions ps ' +
       #       'WHERE ps.post_id = #{id} AND ps.person_id = p.id ' +
       #       'ORDER BY p.first_name'
+      # 
+      # Specifying the :through option
+      # 
       def has_many(association_id, options = {}, &extension)
         reflection = create_has_many_reflection(association_id, options, &extension)
 
@@ -953,7 +1005,7 @@ module ActiveRecord
             :class_name, :table_name, :foreign_key,
             :exclusively_dependent, :dependent,
             :select, :conditions, :include, :order, :group, :limit, :offset,
-            :as, :through, 
+            :as, :through, :source,
             :finder_sql, :counter_sql, 
             :before_add, :after_add, :before_remove, :after_remove, 
             :extend
@@ -1320,7 +1372,7 @@ module ActiveRecord
               end
 
               if reflection.macro == :has_and_belongs_to_many || (reflection.macro == :has_many && reflection.options[:through])
-                @aliased_join_table_name = reflection.macro == :has_and_belongs_to_many ? reflection.options[:join_table] : parent.active_record.reflect_on_association(reflection.options[:through]).klass.table_name
+                @aliased_join_table_name = reflection.macro == :has_and_belongs_to_many ? reflection.options[:join_table] : reflection.through_reflection.klass.table_name
                 unless join_dependency.table_aliases[aliased_join_table_name].zero?
                   @aliased_join_table_name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}_join"
                   table_index = join_dependency.table_aliases[aliased_join_table_name]

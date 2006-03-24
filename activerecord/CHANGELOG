@@ -1,5 +1,18 @@
 *SVN*
 
+* Change has_many :through to use the :source option to specify the source association.  :class_name is now ignored. [Rick Olson]
+
+    class Connection < ActiveRecord::Base
+      belongs_to :user
+      belongs_to :channel
+    end
+
+    class Channel < ActiveRecord::Base
+      has_many :connections
+      has_many :contacts, :through => :connections, :class_name => 'User' # OLD
+      has_many :contacts, :through => :connections, :source => :user      # NEW
+    end
+
 * Fixed DB2 adapter so nullable columns will be determines correctly now and quotes from column default values will be removed #4350 [contact@maik-schmidt.de]
 
 * Allow overriding of find parameters in scoped has_many :through calls [Rick Olson]
