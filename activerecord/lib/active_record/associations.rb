@@ -484,9 +484,6 @@ module ActiveRecord
       #       'FROM people p, post_subscriptions ps ' +
       #       'WHERE ps.post_id = #{id} AND ps.person_id = p.id ' +
       #       'ORDER BY p.first_name'
-      # 
-      # Specifying the :through option
-      # 
       def has_many(association_id, options = {}, &extension)
         reflection = create_has_many_reflection(association_id, options, &extension)
 
