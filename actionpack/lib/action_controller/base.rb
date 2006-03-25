@@ -265,9 +265,11 @@ module ActionController #:nodoc:
     # The param_parsers hash lets you register handlers wich will process the http body and add parameters to the 
     # @params hash. These handlers are invoked for post and put requests.
     #
-    # By default application/xml is enabled. A XmlSimple class with the same param name as the root 
-    # will be instanciated in the @params. This allows XML requests to mask themselves as regular form submissions,
-    # so you can have one action serve both regular forms and web service requests.
+    # By default application/xml and application/x-yaml are enabled. For application/xml, a XmlSimple class with
+    # the same param name as the root will be instanciated in the @params. This allows XML requests to mask themselves
+    # as regular form submissions, so you can have one action serve both regular forms and web service requests. For
+    # application/x-yaml, the YAML document is merged into the parameters and appears to the application as if the
+    # YAML elements were simply form submissions.
     # 
     # Example of doing your own parser for a custom content type:
     #
@@ -279,12 +281,11 @@ module ActionController #:nodoc:
     # Note: Up until release 1.1 of Rails, Action Controller would default to using XmlSimple configured to discard the 
     # root node for such requests. The new default is to keep the root, such that "<r><name>David</name></r>" results
     # in params[:r][:name] for "David" instead of params[:name]. To get the old behavior, you can 
-    # re-register XmlSimple as application/xml handler and enable application/x-yaml like this:
+    # re-register XmlSimple as application/xml handler ike this:
     #
     #   ActionController::Base.param_parsers[Mime::XML]  = 
     #     Proc.new { |data| XmlSimple.xml_in(data, 'ForceArray' => false) }
-    #   ActionController::Base.param_parsers[Mime::YAML] = :yaml
-    @@param_parsers = { Mime::XML => :xml_simple }
+    @@param_parsers = { Mime::XML => :xml_simple, Mime::YAML => :yaml }
     cattr_accessor :param_parsers 
 
     # Template root determines the base from which template references will be made. So a call to render("test/template")
