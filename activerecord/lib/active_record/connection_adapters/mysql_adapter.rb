@@ -43,6 +43,7 @@ module ActiveRecord
       private
         def simplified_type(field_type)
           return :boolean if MysqlAdapter.emulate_booleans && field_type.downcase.index("tinyint(1)")
+          return :string  if field_type =~ /enum/i
           super
         end
     end

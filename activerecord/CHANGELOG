@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that MySQL enums should always be returned as strings #3501 [DHH]
+
 * Change has_many :through to use the :source option to specify the source association.  :class_name is now ignored. [Rick Olson]
 
     class Connection < ActiveRecord::Base
