@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Fixnum#seconds for consistency, so you can say 5.minutes + 30.seconds instead of 5.minutes + 30 #4389 [François Beausoleil]
+
 * Added option to String#camelize to generate lower-cased camel case by passing in :lower, like "super_man".camelize(:lower) # => "superMan" [DHH]
 
 * Added Hash#diff to show the difference between two hashes [Chris McGrath]

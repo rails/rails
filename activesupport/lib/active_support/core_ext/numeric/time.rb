@@ -11,6 +11,11 @@ module ActiveSupport #:nodoc:
       # Time[http://stdlib.rubyonrails.org/libdoc/time/rdoc/index.html] should be used for precision
       # date and time arithmetic
       module Time
+        def seconds
+          self
+        end
+        alias :second :seconds
+
         def minutes
           self * 60
         end
