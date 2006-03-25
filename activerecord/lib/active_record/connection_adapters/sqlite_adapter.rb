@@ -193,9 +193,9 @@ module ActiveRecord
       end
 
       def columns(table_name, name = nil) #:nodoc:
-        table_structure(table_name).map { |field|
+        table_structure(table_name).map do |field|
           SQLiteColumn.new(field['name'], field['dflt_value'], field['type'], field['notnull'] == "0")
-        }
+        end
       end
 
       def indexes(table_name, name = nil) #:nodoc:
