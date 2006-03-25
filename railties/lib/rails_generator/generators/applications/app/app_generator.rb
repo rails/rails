@@ -93,7 +93,7 @@ class AppGenerator < Rails::Generator::Base
     def add_options!(opt)
       opt.separator ''
       opt.separator 'Options:'
-      opt.on("-r", "--ruby", 
+      opt.on("-r", "--ruby", String,
              "Path to the Ruby binary of your choice.",
              "Default: #{DEFAULT_SHEBANG}") { |options[:shebang]| }
 
