@@ -8,7 +8,7 @@ Test::Unit.run = true
 def app(create=false)
   @app_integration_instance = nil if create
   @app_integration_instance ||= new_session do |sess|
-    sess.host! "www.example.test"
+    sess.host! "www.example.com"
   end
 end
 

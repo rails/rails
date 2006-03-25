@@ -67,7 +67,7 @@ module ActionController
         @cookies = {}
         @controller = @request = @response = nil
       
-        self.host        = "www.example.test"
+        self.host        = "www.example.com"
         self.remote_addr = "127.0.0.1"
         self.accept      = "text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5"
 
@@ -102,7 +102,7 @@ module ActionController
 
       # Set the host name to use in the next request.
       #
-      #   session.host! "www.example.test"
+      #   session.host! "www.example.com"
       def host!(name)
         @host = name
       end
