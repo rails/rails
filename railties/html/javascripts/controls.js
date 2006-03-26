@@ -141,8 +141,8 @@ Autocompleter.Base.prototype = {
          return;
       }
      else 
-      if(event.keyCode==Event.KEY_TAB || event.keyCode==Event.KEY_RETURN) 
-        return;
+       if(event.keyCode==Event.KEY_TAB || event.keyCode==Event.KEY_RETURN || 
+         (navigator.appVersion.indexOf('AppleWebKit') > 0 && event.keyCode == 0)) return;
 
     this.changed = true;
     this.hasFocus = true;

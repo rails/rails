@@ -581,7 +581,8 @@ Effect.Puff = function(element) {
       beforeSetupInternal: function(effect) {
         effect.effects[0].element.setStyle({position: 'absolute'}); },
       afterFinishInternal: function(effect) {
-         effect.effects[0].element.hide().setStyle(oldStyle); }
+         effect.effects[0].element.hide();
+         effect.effects[0].element.setStyle(oldStyle); }
      }, arguments[1] || {})
    );
 }
@@ -640,7 +641,7 @@ Effect.SwitchOff = function(element) {
         afterFinishInternal: function(effect) {
           effect.element.hide();
           effect.element.undoClipping();
-          effect.element.undoPositionend();
+          effect.element.undoPositioned();
           effect.element.setStyle({opacity: oldOpacity});
         }
       })
