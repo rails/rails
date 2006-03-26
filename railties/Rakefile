@@ -83,7 +83,7 @@ end
 
 # Make directory structure ----------------------------------------------------------------
 
-def make_dest_dirs(dirs, path = '')
+def make_dest_dirs(dirs, path = nil)
   mkdir_p dirs.map { |dir| File.join(PKG_DESTINATION, path, dir) }
 end
 
