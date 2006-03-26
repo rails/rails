@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to script.aculo.us 1.6 [Thomas Fuchs]
+
 * Add an integration_test generator [Jamis Buck]
 
 * Make all ActionView helpers available in the console from the helper method for debugging purposes. n.b.: Only an 80% solution. Some stuff won't work, most will. [Marcel Molina Jr.]

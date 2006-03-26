@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to script.aculo.us 1.6 [Thomas Fuchs]
+
 * Enable application/x-yaml processing by default [Jamis Buck]
 
 * Fix double url escaping of remote_function. Add :escape => false option to ActionView's url_for. [Nicholas Seckar]

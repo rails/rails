@@ -6,8 +6,6 @@
 // 
 // See scriptaculous.js for full license.  
 
-/* ------------- element ext -------------- */  
- 
 // converts rgb() and #xxx to #xxxxxx format,  
 // returns self (or first argument) if not convertable  
 String.prototype.parseColor = function() {  
@@ -24,6 +22,8 @@ String.prototype.parseColor = function() {
   return(color.length==7 ? color : (arguments[0] || this));  
 }
 
+/*--------------------------------------------------------------------------*/
+
 Element.collectTextNodes = function(element) {  
   return $A($(element).childNodes).collect( function(node) {
     return (node.nodeType==3 ? node.nodeValue : 
@@ -39,14 +39,10 @@ Element.collectTextNodesIgnoreClass = function(element, className) {
   }).flatten().join('');
 }
 
-Element.setStyle = function(element, style) {
-  element = $(element);
-  for(k in style) element.style[k.camelize()] = style[k];
-}
-
-Element.setContentZoom = function(element, percent) {  
+Element.setContentZoom = function(element, percent) {
+  element = $(element);  
   Element.setStyle(element, {fontSize: (percent/100) + 'em'});   
-  if(navigator.appVersion.indexOf('AppleWebKit')>0) window.scrollBy(0,0);  
+  if(navigator.appVersion.indexOf('AppleWebKit')>0) window.scrollBy(0,0);
 }
 
 Element.getOpacity = function(element){  
@@ -73,7 +69,7 @@ Element.setOpacity = function(element, value){
      Element.setStyle(element, 
        { filter: Element.getStyle(element,'filter').replace(/alpha\([^\)]*\)/gi,'') +
                  'alpha(opacity='+value*100+')' });  
-  }   
+  }
 }  
  
 Element.getInlineOpacity = function(element){  
@@ -91,8 +87,15 @@ Element.forceRerendering = function(element) {
     var n = document.createTextNode(' ');
     element.appendChild(n);
     element.removeChild(n);
-  } catch(e) {}
-}
+  } catch(e) { }
+};
+
+['setOpacity','getOpacity','getInlineOpacity','forceRerendering','setContentZoom',
+ 'collectTextNodes','collectTextNodesIgnoreClass','childrenWithClassName'].each( 
+  function(f) { Element.Methods[f] = Element[f]; } 
+);
+
+/*--------------------------------------------------------------------------*/
 
 Array.prototype.call = function() {
   var args = arguments;
@@ -148,7 +151,7 @@ var Effect = {
     var options = Object.extend({
       queue: { position:'end', scope:(element.id || 'global'), limit: 1 }
     }, arguments[2] || {});
-    Effect[Element.visible(element) ? 
+    Effect[element.visible() ? 
       Effect.PAIRS[effect][1] : Effect.PAIRS[effect][0]](element, options);
   }
 };
@@ -352,15 +355,15 @@ Object.extend(Object.extend(Effect.Opacity.prototype, Effect.Base.prototype), {
     this.element = $(element);
     // make this work on IE on elements without 'layout'
     if(/MSIE/.test(navigator.userAgent) && (!this.element.hasLayout))
-      Element.setStyle(this.element, {zoom: 1});
+      this.element.setStyle({zoom: 1});
     var options = Object.extend({
-      from: Element.getOpacity(this.element) || 0.0,
+      from: this.element.getOpacity() || 0.0,
       to:   1.0
     }, arguments[1] || {});
     this.start(options);
   },
   update: function(position) {
-    Element.setOpacity(this.element, position);
+    this.element.setOpacity(position);
   }
 });
 
@@ -380,9 +383,9 @@ Object.extend(Object.extend(Effect.Move.prototype, Effect.Base.prototype), {
     // relative element that does not have top/left explicitly set.
     // ==> Always set top and left for position relative elements in your stylesheets 
     // (to 0 if you do not need them) 
-    Element.makePositioned(this.element);
-    this.originalLeft = parseFloat(Element.getStyle(this.element,'left') || '0');
-    this.originalTop  = parseFloat(Element.getStyle(this.element,'top')  || '0');
+    this.element.makePositioned();
+    this.originalLeft = parseFloat(this.element.getStyle('left') || '0');
+    this.originalTop  = parseFloat(this.element.getStyle('top')  || '0');
     if(this.options.mode == 'absolute') {
       // absolute movement, so we need to calc deltaX and deltaY
       this.options.x = this.options.x - this.originalLeft;
@@ -390,7 +393,7 @@ Object.extend(Object.extend(Effect.Move.prototype, Effect.Base.prototype), {
     }
   },
   update: function(position) {
-    Element.setStyle(this.element, {
+    this.element.setStyle({
       left: this.options.x  * position + this.originalLeft + 'px',
       top:  this.options.y  * position + this.originalTop  + 'px'
     });
@@ -420,7 +423,7 @@ Object.extend(Object.extend(Effect.Scale.prototype, Effect.Base.prototype), {
   },
   setup: function() {
     this.restoreAfterFinish = this.options.restoreAfterFinish || false;
-    this.elementPositioning = Element.getStyle(this.element,'position');
+    this.elementPositioning = this.element.getStyle('position');
     
     this.originalStyle = {};
     ['top','left','width','height','fontSize'].each( function(k) {
@@ -430,7 +433,7 @@ Object.extend(Object.extend(Effect.Scale.prototype, Effect.Base.prototype), {
     this.originalTop  = this.element.offsetTop;
     this.originalLeft = this.element.offsetLeft;
     
-    var fontSize = Element.getStyle(this.element,'font-size') || '100%';
+    var fontSize = this.element.getStyle('font-size') || '100%';
     ['em','px','%'].each( function(fontSizeType) {
       if(fontSize.indexOf(fontSizeType)>0) {
         this.fontSize     = parseFloat(fontSize);
@@ -452,11 +455,11 @@ Object.extend(Object.extend(Effect.Scale.prototype, Effect.Base.prototype), {
   update: function(position) {
     var currentScale = (this.options.scaleFrom/100.0) + (this.factor * position);
     if(this.options.scaleContent && this.fontSize)
-      Element.setStyle(this.element, {fontSize: this.fontSize * currentScale + this.fontSizeType });
+      this.element.setStyle({fontSize: this.fontSize * currentScale + this.fontSizeType });
     this.setDimensions(this.dims[0] * currentScale, this.dims[1] * currentScale);
   },
   finish: function(position) {
-    if (this.restoreAfterFinish) Element.setStyle(this.element, this.originalStyle);
+    if (this.restoreAfterFinish) this.element.setStyle(this.originalStyle);
   },
   setDimensions: function(height, width) {
     var d = {};
@@ -473,7 +476,7 @@ Object.extend(Object.extend(Effect.Scale.prototype, Effect.Base.prototype), {
         if(this.options.scaleX) d.left = -leftd + 'px';
       }
     }
-    Element.setStyle(this.element, d);
+    this.element.setStyle(d);
   }
 });
 
@@ -486,25 +489,25 @@ Object.extend(Object.extend(Effect.Highlight.prototype, Effect.Base.prototype), 
   },
   setup: function() {
     // Prevent executing on elements not in the layout flow
-    if(Element.getStyle(this.element, 'display')=='none') { this.cancel(); return; }
+    if(this.element.getStyle('display')=='none') { this.cancel(); return; }
     // Disable background image during the effect
     this.oldStyle = {
-      backgroundImage: Element.getStyle(this.element, 'background-image') };
-    Element.setStyle(this.element, {backgroundImage: 'none'});
+      backgroundImage: this.element.getStyle('background-image') };
+    this.element.setStyle({backgroundImage: 'none'});
     if(!this.options.endcolor)
-      this.options.endcolor = Element.getStyle(this.element, 'background-color').parseColor('#ffffff');
+      this.options.endcolor = this.element.getStyle('background-color').parseColor('#ffffff');
     if(!this.options.restorecolor)
-      this.options.restorecolor = Element.getStyle(this.element, 'background-color');
+      this.options.restorecolor = this.element.getStyle('background-color');
     // init color calculations
     this._base  = $R(0,2).map(function(i){ return parseInt(this.options.startcolor.slice(i*2+1,i*2+3),16) }.bind(this));
     this._delta = $R(0,2).map(function(i){ return parseInt(this.options.endcolor.slice(i*2+1,i*2+3),16)-this._base[i] }.bind(this));
   },
   update: function(position) {
-    Element.setStyle(this.element,{backgroundColor: $R(0,2).inject('#',function(m,v,i){
+    this.element.setStyle({backgroundColor: $R(0,2).inject('#',function(m,v,i){
       return m+(Math.round(this._base[i]+(this._delta[i]*position)).toColorPart()); }.bind(this)) });
   },
   finish: function() {
-    Element.setStyle(this.element, Object.extend(this.oldStyle, {
+    this.element.setStyle(Object.extend(this.oldStyle, {
       backgroundColor: this.options.restorecolor
     }));
   }
@@ -538,79 +541,82 @@ Object.extend(Object.extend(Effect.ScrollTo.prototype, Effect.Base.prototype), {
 /* ------------- combination effects ------------- */
 
 Effect.Fade = function(element) {
-  var oldOpacity = Element.getInlineOpacity(element);
+  element = $(element);
+  var oldOpacity = element.getInlineOpacity();
   var options = Object.extend({
-  from: Element.getOpacity(element) || 1.0,
+  from: element.getOpacity() || 1.0,
   to:   0.0,
-  afterFinishInternal: function(effect) { with(Element) { 
+  afterFinishInternal: function(effect) { 
     if(effect.options.to!=0) return;
-    hide(effect.element);
-    setStyle(effect.element, {opacity: oldOpacity}); }}
-  }, arguments[1] || {});
+    effect.element.hide();
+    effect.element.setStyle({opacity: oldOpacity}); 
+  }}, arguments[1] || {});
   return new Effect.Opacity(element,options);
 }
 
 Effect.Appear = function(element) {
+  element = $(element);
   var options = Object.extend({
-  from: (Element.getStyle(element, 'display') == 'none' ? 0.0 : Element.getOpacity(element) || 0.0),
+  from: (element.getStyle('display') == 'none' ? 0.0 : element.getOpacity() || 0.0),
   to:   1.0,
   // force Safari to render floated elements properly
   afterFinishInternal: function(effect) {
-    Element.forceRerendering(effect.element);
+    effect.element.forceRerendering();
   },
-  beforeSetup: function(effect) { with(Element) {
-    setOpacity(effect.element, effect.options.from);
-    show(effect.element); }}
-  }, arguments[1] || {});
+  beforeSetup: function(effect) {
+    effect.element.setOpacity(effect.options.from);
+    effect.element.show(); 
+  }}, arguments[1] || {});
   return new Effect.Opacity(element,options);
 }
 
 Effect.Puff = function(element) {
   element = $(element);
-  var oldStyle = { opacity: Element.getInlineOpacity(element), position: Element.getStyle(element, 'position') };
+  var oldStyle = { opacity: element.getInlineOpacity(), position: element.getStyle('position') };
   return new Effect.Parallel(
    [ new Effect.Scale(element, 200, 
       { sync: true, scaleFromCenter: true, scaleContent: true, restoreAfterFinish: true }), 
      new Effect.Opacity(element, { sync: true, to: 0.0 } ) ], 
      Object.extend({ duration: 1.0, 
-      beforeSetupInternal: function(effect) { with(Element) {
-        setStyle(effect.effects[0].element, {position: 'absolute'}); }},
-      afterFinishInternal: function(effect) { with(Element) {
-         hide(effect.effects[0].element);
-         setStyle(effect.effects[0].element, oldStyle); }}
+      beforeSetupInternal: function(effect) {
+        effect.effects[0].element.setStyle({position: 'absolute'}); },
+      afterFinishInternal: function(effect) {
+         effect.effects[0].element.hide().setStyle(oldStyle); }
      }, arguments[1] || {})
    );
 }
 
 Effect.BlindUp = function(element) {
   element = $(element);
-  Element.makeClipping(element);
+  element.makeClipping();
   return new Effect.Scale(element, 0, 
     Object.extend({ scaleContent: false, 
       scaleX: false, 
       restoreAfterFinish: true,
-      afterFinishInternal: function(effect) { with(Element) {
-        [hide, undoClipping].call(effect.element); }} 
+      afterFinishInternal: function(effect) {
+        effect.element.hide();
+        effect.element.undoClipping();
+      } 
     }, arguments[1] || {})
   );
 }
 
 Effect.BlindDown = function(element) {
   element = $(element);
-  var elementDimensions = Element.getDimensions(element);
+  var elementDimensions = element.getDimensions();
   return new Effect.Scale(element, 100, 
     Object.extend({ scaleContent: false, 
       scaleX: false,
       scaleFrom: 0,
       scaleMode: {originalHeight: elementDimensions.height, originalWidth: elementDimensions.width},
       restoreAfterFinish: true,
-      afterSetup: function(effect) { with(Element) {
-        makeClipping(effect.element);
-        setStyle(effect.element, {height: '0px'});
-        show(effect.element); 
-      }},  
+      afterSetup: function(effect) {
+        effect.element.makeClipping();
+        effect.element.setStyle({height: '0px'});
+        effect.element.show(); 
+      },  
       afterFinishInternal: function(effect) {
-        Element.undoClipping(effect.element);
+        effect.element.undoClipping();
       }
     }, arguments[1] || {})
   );
@@ -618,7 +624,7 @@ Effect.BlindDown = function(element) {
 
 Effect.SwitchOff = function(element) {
   element = $(element);
-  var oldOpacity = Element.getInlineOpacity(element);
+  var oldOpacity = element.getInlineOpacity();
   return new Effect.Appear(element, { 
     duration: 0.4,
     from: 0,
@@ -627,13 +633,16 @@ Effect.SwitchOff = function(element) {
       new Effect.Scale(effect.element, 1, { 
         duration: 0.3, scaleFromCenter: true,
         scaleX: false, scaleContent: false, restoreAfterFinish: true,
-        beforeSetup: function(effect) { with(Element) {
-          [makePositioned,makeClipping].call(effect.element);
-        }},
-        afterFinishInternal: function(effect) { with(Element) {
-          [hide,undoClipping,undoPositioned].call(effect.element);
-          setStyle(effect.element, {opacity: oldOpacity});
-        }}
+        beforeSetup: function(effect) { 
+          effect.element.makePositioned();
+          effect.element.makeClipping();
+        },
+        afterFinishInternal: function(effect) {
+          effect.element.hide();
+          effect.element.undoClipping();
+          effect.element.undoPositionend();
+          effect.element.setStyle({opacity: oldOpacity});
+        }
       })
     }
   });
@@ -642,105 +651,110 @@ Effect.SwitchOff = function(element) {
 Effect.DropOut = function(element) {
   element = $(element);
   var oldStyle = {
-    top: Element.getStyle(element, 'top'),
-    left: Element.getStyle(element, 'left'),
-    opacity: Element.getInlineOpacity(element) };
+    top: element.getStyle('top'),
+    left: element.getStyle('left'),
+    opacity: element.getInlineOpacity() };
   return new Effect.Parallel(
     [ new Effect.Move(element, {x: 0, y: 100, sync: true }), 
       new Effect.Opacity(element, { sync: true, to: 0.0 }) ],
     Object.extend(
       { duration: 0.5,
-        beforeSetup: function(effect) { with(Element) {
-          makePositioned(effect.effects[0].element); }},
-        afterFinishInternal: function(effect) { with(Element) {
-          [hide, undoPositioned].call(effect.effects[0].element);
-          setStyle(effect.effects[0].element, oldStyle); }} 
+        beforeSetup: function(effect) {
+          effect.effects[0].element.makePositioned(); 
+        },
+        afterFinishInternal: function(effect) {
+          effect.effects[0].element.hide();
+          effect.effects[0].element.undoPositioned();
+          effect.effects[0].element.setStyle(oldStyle);
+        } 
       }, arguments[1] || {}));
 }
 
 Effect.Shake = function(element) {
   element = $(element);
   var oldStyle = {
-    top: Element.getStyle(element, 'top'),
-    left: Element.getStyle(element, 'left') };
-	  return new Effect.Move(element, 
-	    { x:  20, y: 0, duration: 0.05, afterFinishInternal: function(effect) {
-	  new Effect.Move(effect.element,
-	    { x: -40, y: 0, duration: 0.1,  afterFinishInternal: function(effect) {
-	  new Effect.Move(effect.element,
-	    { x:  40, y: 0, duration: 0.1,  afterFinishInternal: function(effect) {
-	  new Effect.Move(effect.element,
-	    { x: -40, y: 0, duration: 0.1,  afterFinishInternal: function(effect) {
-	  new Effect.Move(effect.element,
-	    { x:  40, y: 0, duration: 0.1,  afterFinishInternal: function(effect) {
-	  new Effect.Move(effect.element,
-	    { x: -20, y: 0, duration: 0.05, afterFinishInternal: function(effect) { with(Element) {
-        undoPositioned(effect.element);
-        setStyle(effect.element, oldStyle);
-  }}}) }}) }}) }}) }}) }});
+    top: element.getStyle('top'),
+    left: element.getStyle('left') };
+    return new Effect.Move(element, 
+      { x:  20, y: 0, duration: 0.05, afterFinishInternal: function(effect) {
+    new Effect.Move(effect.element,
+      { x: -40, y: 0, duration: 0.1,  afterFinishInternal: function(effect) {
+    new Effect.Move(effect.element,
+      { x:  40, y: 0, duration: 0.1,  afterFinishInternal: function(effect) {
+    new Effect.Move(effect.element,
+      { x: -40, y: 0, duration: 0.1,  afterFinishInternal: function(effect) {
+    new Effect.Move(effect.element,
+      { x:  40, y: 0, duration: 0.1,  afterFinishInternal: function(effect) {
+    new Effect.Move(effect.element,
+      { x: -20, y: 0, duration: 0.05, afterFinishInternal: function(effect) {
+        effect.element.undoPositioned();
+        effect.element.setStyle(oldStyle);
+  }}) }}) }}) }}) }}) }});
 }
 
 Effect.SlideDown = function(element) {
   element = $(element);
-  Element.cleanWhitespace(element);
+  element.cleanWhitespace();
   // SlideDown need to have the content of the element wrapped in a container element with fixed height!
-  var oldInnerBottom = Element.getStyle(element.firstChild, 'bottom');
-  var elementDimensions = Element.getDimensions(element);
+  var oldInnerBottom = $(element.firstChild).getStyle('bottom');
+  var elementDimensions = element.getDimensions();
   return new Effect.Scale(element, 100, Object.extend({ 
     scaleContent: false, 
     scaleX: false, 
     scaleFrom: 0,
     scaleMode: {originalHeight: elementDimensions.height, originalWidth: elementDimensions.width},
     restoreAfterFinish: true,
-    afterSetup: function(effect) { with(Element) {
-      makePositioned(effect.element);
-      makePositioned(effect.element.firstChild);
-      if(window.opera) setStyle(effect.element, {top: ''});
-      makeClipping(effect.element);
-      setStyle(effect.element, {height: '0px'});
-      show(element); }},
-    afterUpdateInternal: function(effect) { with(Element) {
-      setStyle(effect.element.firstChild, {bottom:
-        (effect.dims[0] - effect.element.clientHeight) + 'px' }); }},
-    afterFinishInternal: function(effect) { with(Element) {
-      undoClipping(effect.element); 
+    afterSetup: function(effect) {
+      effect.element.makePositioned();
+      effect.element.firstChild.makePositioned();
+      if(window.opera) effect.element.setStyle({top: ''});
+      effect.element.makeClipping();
+      effect.element.setStyle({height: '0px'});
+      effect.element.show(); },
+    afterUpdateInternal: function(effect) {
+      effect.element.firstChild.setStyle({bottom:
+        (effect.dims[0] - effect.element.clientHeight) + 'px' }); 
+    },
+    afterFinishInternal: function(effect) {
+      effect.element.undoClipping(); 
       // IE will crash if child is undoPositioned first
       if(/MSIE/.test(navigator.userAgent)){
-        undoPositioned(effect.element);
-        undoPositioned(effect.element.firstChild);
+        effect.element.undoPositioned();
+        effect.element.firstChild.undoPositioned();
       }else{
-        undoPositioned(effect.element.firstChild);
-        undoPositioned(effect.element);
+        effect.element.firstChild.undoPositioned();
+        effect.element.undoPositioned();
       }
-      setStyle(effect.element.firstChild, {bottom: oldInnerBottom}); }}
+      effect.element.firstChild.setStyle({bottom: oldInnerBottom}); }
     }, arguments[1] || {})
   );
 }
   
 Effect.SlideUp = function(element) {
   element = $(element);
-  Element.cleanWhitespace(element);
-  var oldInnerBottom = Element.getStyle(element.firstChild, 'bottom');
+  element.cleanWhitespace();
+  var oldInnerBottom = $(element.firstChild).getStyle('bottom');
   return new Effect.Scale(element, 0, 
    Object.extend({ scaleContent: false, 
     scaleX: false, 
     scaleMode: 'box',
     scaleFrom: 100,
     restoreAfterFinish: true,
-    beforeStartInternal: function(effect) { with(Element) {
-      makePositioned(effect.element);
-      makePositioned(effect.element.firstChild);
-      if(window.opera) setStyle(effect.element, {top: ''});
-      makeClipping(effect.element);
-      show(element); }},  
-    afterUpdateInternal: function(effect) { with(Element) {
-      setStyle(effect.element.firstChild, {bottom:
-        (effect.dims[0] - effect.element.clientHeight) + 'px' }); }},
-    afterFinishInternal: function(effect) { with(Element) {
-        [hide, undoClipping].call(effect.element); 
-        undoPositioned(effect.element.firstChild);
-        undoPositioned(effect.element);
-        setStyle(effect.element.firstChild, {bottom: oldInnerBottom}); }}
+    beforeStartInternal: function(effect) {
+      effect.element.makePositioned();
+      effect.element.firstChild.makePositioned();
+      if(window.opera) effect.element.setStyle({top: ''});
+      effect.element.makeClipping();
+      effect.element.show(); },  
+    afterUpdateInternal: function(effect) {
+      effect.element.firstChild.setStyle({bottom:
+        (effect.dims[0] - effect.element.clientHeight) + 'px' }); },
+    afterFinishInternal: function(effect) {
+      effect.element.hide();
+      effect.element.undoClipping();
+      effect.element.firstChild.undoPositioned();
+      effect.element.undoPositioned();
+      effect.element.setStyle({bottom: oldInnerBottom}); }
    }, arguments[1] || {})
   );
 }
@@ -749,11 +763,11 @@ Effect.SlideUp = function(element) {
 Effect.Squish = function(element) {
   return new Effect.Scale(element, window.opera ? 1 : 0, 
     { restoreAfterFinish: true,
-      beforeSetup: function(effect) { with(Element) {
-        makeClipping(effect.element); }},  
-      afterFinishInternal: function(effect) { with(Element) {
-        hide(effect.element); 
-        undoClipping(effect.element); }}
+      beforeSetup: function(effect) {
+        effect.element.makeClipping(effect.element); },  
+      afterFinishInternal: function(effect) {
+        effect.element.hide(effect.element); 
+        effect.element.undoClipping(effect.element); }
   });
 }
 
@@ -770,9 +784,9 @@ Effect.Grow = function(element) {
     left: element.style.left,
     height: element.style.height,
     width: element.style.width,
-    opacity: Element.getInlineOpacity(element) };
+    opacity: element.getInlineOpacity() };
 
-  var dims = Element.getDimensions(element);    
+  var dims = element.getDimensions();    
   var initialMoveX, initialMoveY;
   var moveX, moveY;
   
@@ -808,11 +822,11 @@ Effect.Grow = function(element) {
     x: initialMoveX,
     y: initialMoveY,
     duration: 0.01, 
-    beforeSetup: function(effect) { with(Element) {
-      hide(effect.element);
-      makeClipping(effect.element);
-      makePositioned(effect.element);
-    }},
+    beforeSetup: function(effect) {
+      effect.element.hide();
+      effect.element.makeClipping();
+      effect.element.makePositioned();
+    },
     afterFinishInternal: function(effect) {
       new Effect.Parallel(
         [ new Effect.Opacity(effect.element, { sync: true, to: 1.0, from: 0.0, transition: options.opacityTransition }),
@@ -821,12 +835,15 @@ Effect.Grow = function(element) {
             scaleMode: { originalHeight: dims.height, originalWidth: dims.width }, 
             sync: true, scaleFrom: window.opera ? 1 : 0, transition: options.scaleTransition, restoreAfterFinish: true})
         ], Object.extend({
-             beforeSetup: function(effect) { with(Element) {
-               setStyle(effect.effects[0].element, {height: '0px'});
-               show(effect.effects[0].element); }},
-             afterFinishInternal: function(effect) { with(Element) {
-               [undoClipping, undoPositioned].call(effect.effects[0].element); 
-               setStyle(effect.effects[0].element, oldStyle); }}
+             beforeSetup: function(effect) {
+               effect.effects[0].element.setStyle({height: '0px'});
+               effect.effects[0].element.show(); 
+             },
+             afterFinishInternal: function(effect) {
+               effect.effects[0].element.undoClipping();
+               effect.effects[0].element.undoPositioned();
+               effect.effects[0].element.setStyle(oldStyle); 
+             }
            }, options)
       )
     }
@@ -846,9 +863,9 @@ Effect.Shrink = function(element) {
     left: element.style.left,
     height: element.style.height,
     width: element.style.width,
-    opacity: Element.getInlineOpacity(element) };
+    opacity: element.getInlineOpacity() };
 
-  var dims = Element.getDimensions(element);
+  var dims = element.getDimensions();
   var moveX, moveY;
   
   switch (options.direction) {
@@ -878,11 +895,14 @@ Effect.Shrink = function(element) {
       new Effect.Scale(element, window.opera ? 1 : 0, { sync: true, transition: options.scaleTransition, restoreAfterFinish: true}),
       new Effect.Move(element, { x: moveX, y: moveY, sync: true, transition: options.moveTransition })
     ], Object.extend({            
-         beforeStartInternal: function(effect) { with(Element) {
-           [makePositioned, makeClipping].call(effect.effects[0].element) }},
-         afterFinishInternal: function(effect) { with(Element) {
-           [hide, undoClipping, undoPositioned].call(effect.effects[0].element);
-           setStyle(effect.effects[0].element, oldStyle); }}
+         beforeStartInternal: function(effect) {
+           effect.effects[0].element.makePositioned();
+           effect.effects[0].element.makeClipping(); },
+         afterFinishInternal: function(effect) {
+           effect.effects[0].element.hide();
+           effect.effects[0].element.undoClipping();
+           effect.effects[0].element.undoPositioned();
+           effect.effects[0].element.setStyle(oldStyle); }
        }, options)
   );
 }
@@ -890,13 +910,13 @@ Effect.Shrink = function(element) {
 Effect.Pulsate = function(element) {
   element = $(element);
   var options    = arguments[1] || {};
-  var oldOpacity = Element.getInlineOpacity(element);
+  var oldOpacity = element.getInlineOpacity();
   var transition = options.transition || Effect.Transitions.sinoidal;
   var reverser   = function(pos){ return transition(1-Effect.Transitions.pulse(pos)) };
   reverser.bind(transition);
   return new Effect.Opacity(element, 
     Object.extend(Object.extend({  duration: 3.0, from: 0,
-      afterFinishInternal: function(effect) { Element.setStyle(effect.element, {opacity: oldOpacity}); }
+      afterFinishInternal: function(effect) { effect.element.setStyle({opacity: oldOpacity}); }
     }, options), {transition: reverser}));
 }
 
@@ -915,18 +935,17 @@ Effect.Fold = function(element) {
     new Effect.Scale(element, 1, { 
       scaleContent: false, 
       scaleY: false,
-      afterFinishInternal: function(effect) { with(Element) {
-        [hide, undoClipping].call(effect.element); 
-        setStyle(effect.element, oldStyle);
-      }} });
+      afterFinishInternal: function(effect) {
+        effect.element.hide();
+        effect.element.undoClipping(); 
+        effect.element.setStyle(oldStyle);
+      } });
   }}, arguments[1] || {}));
 }
 
-if(Element.Methods) {
-  Element.Methods.visualEffect = function(element, effect, options) {
-    s = effect.gsub(/_/, '-').camelize();
-    effect_class = s.charAt(0).toUpperCase() + s.substring(1);
-    new Effect[effect_class](element, options);
-    return $(element);
-  }
-}
+Element.Methods.visualEffect = function(element, effect, options) {
+  s = effect.gsub(/_/, '-').camelize();
+  effect_class = s.charAt(0).toUpperCase() + s.substring(1);
+  new Effect[effect_class](element, options);
+  return $(element);
+};
