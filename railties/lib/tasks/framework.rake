@@ -44,7 +44,7 @@ namespace :rails do
       rails_svn = 'http://dev.rubyonrails.org/svn/rails/trunk'
 
       if ENV['REVISION'].nil?
-        ENV['REVISION'] = /^r(\d+)/.match(%x{svn -qr HEAD log #{rails_svn}})[1]
+        ENV['REVISION'] = /^r(\d+)/.match(%x{svn log -q --limit 1 #{rails_svn}})[1]
         puts "REVISION not set. Using HEAD, which is revision #{ENV['REVISION']}."
       end
 
