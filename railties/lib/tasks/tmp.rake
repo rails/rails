@@ -4,10 +4,7 @@ namespace :tmp do
 
   desc "Creates tmp directories for sessions, cache, and sockets"
   task :create do
-    FileUtils.mkdir "tmp"
-    FileUtils.mkdir "tmp/sessions"
-    FileUtils.mkdir "tmp/cache"
-    FileUtils.mkdir "tmp/sockets"
+    FileUtils.mkdir_p(%w( tmp/sessions tmp/cache tmp/sockets ))
   end
 
   namespace :sessions do

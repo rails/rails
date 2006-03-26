@@ -1,4 +1,5 @@
 require 'active_support'
+require 'fileutils'
 
 begin
   require_library_or_gem 'fcgi'
@@ -25,10 +26,5 @@ else
   puts "=> Booting lighttpd (use 'script/server webrick' to force WEBrick)"
 end
 
-require_library_or_gem 'rake'
-load File.join(File.dirname(__FILE__), "..", "tasks", "tmp.rake")
-begin
-  Rake::Task['tmp:create'].execute 
-rescue Errno::EEXIST => e 
-end
+FileUtils.mkdir_p(%w( tmp/sessions tmp/cache tmp/sockets ))
 require "commands/servers/#{server}"
