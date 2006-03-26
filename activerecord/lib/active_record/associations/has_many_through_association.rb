@@ -106,7 +106,7 @@ module ActiveRecord
         
         def construct_scope
           {
-            :find   => { :from => construct_from, :conditions => construct_conditions, :joins => construct_joins },
+            :find   => { :from => construct_from, :conditions => construct_conditions, :joins => construct_joins, :select => construct_select },
             :create => { @reflection.primary_key_name => @owner.id }
           }
         end

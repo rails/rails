@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed issue that kept :select options from being scoped [Rick]
+
 * Fixed db_schema_import when binary types are present #3101 [DHH]
 
 * Fixed that MySQL enums should always be returned as strings #3501 [DHH]

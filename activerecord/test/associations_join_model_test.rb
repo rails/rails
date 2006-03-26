@@ -316,6 +316,10 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_equal new_author, authors(:david).reload.favorite_authors.first
   end
 
+  def test_has_many_through_uses_correct_attributes
+    assert_nil posts(:thinking).tags.find_by_name("General").attributes["tag_id"]
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)
