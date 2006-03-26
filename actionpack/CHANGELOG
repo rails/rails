@@ -2,11 +2,11 @@
 
 * Change #form_for and #fields_for so that the second argument is not required [Dave Thomas]
 
-    <% form_for :post, @post do |f| -%>
+    <% form_for :post, @post, :url => { :action => 'create' } do |f| -%>
     
   becomes...
   
-    <% form_for :post do |f| -%>
+    <% form_for :post, :url => { :action => 'create' } do |f| -%>
 
 * Update to script.aculo.us 1.6 [Thomas Fuchs]
 

@@ -215,14 +215,14 @@ class FormHelperTest < Test::Unit::TestCase
   def test_form_for
     _erbout = ''
 
-    form_for(:post, @post) do |f|
+    form_for(:post, @post, :html => { :id => 'create-post' }) do |f|
       _erbout.concat f.text_field(:title)
       _erbout.concat f.text_area(:body)
       _erbout.concat f.check_box(:secret)
     end
 
     expected = 
-      "<form action='http://www.example.com' method='post'>" +
+      "<form action='http://www.example.com' id='create-post' method='post'>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
@@ -235,14 +235,14 @@ class FormHelperTest < Test::Unit::TestCase
   def test_form_for_without_object
     _erbout = ''
 
-    form_for(:post) do |f|
+    form_for(:post, :html => { :id => 'create-post' }) do |f|
       _erbout.concat f.text_field(:title)
       _erbout.concat f.text_area(:body)
       _erbout.concat f.check_box(:secret)
     end
 
     expected = 
-      "<form action='http://www.example.com' method='post'>" +
+      "<form action='http://www.example.com' id='create-post' method='post'>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" +
@@ -294,7 +294,7 @@ class FormHelperTest < Test::Unit::TestCase
   def test_form_for_and_fields_for
     _erbout = ''
 
-    form_for(:post, @post) do |post_form|
+    form_for(:post, @post, :html => { :id => 'create-post' }) do |post_form|
       _erbout.concat post_form.text_field(:title)
       _erbout.concat post_form.text_area(:body)
 
@@ -304,7 +304,7 @@ class FormHelperTest < Test::Unit::TestCase
     end
 
     expected = 
-      "<form action='http://www.example.com' method='post'>" +
+      "<form action='http://www.example.com' id='create-post' method='post'>" +
       "<input name='post[title]' size='30' type='text' id='post_title' value='Hello World' />" +
       "<textarea name='post[body]' id='post_body' rows='20' cols='40'>Back to the hill and over it again!</textarea>" +
       "<input name='parent_post[secret]' checked='checked' type='checkbox' id='parent_post_secret' value='1' />" +
