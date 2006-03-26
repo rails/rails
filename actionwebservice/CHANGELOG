@@ -1,5 +1,11 @@
 *SVN*
 
+* Make ActiveWebService::Struct type reloadable
+
+* Fix scaffolding action when one of the members of a structural type has date or time type
+
+* Remove extra index hash when generating scaffold html for parameters of structural type #4374 [joe@mjg2.com]
+
 * Fix Scaffold Fails with Struct as a Parameter #4363 [joe@mjg2.com]
 
 * Fix soap type registration of multidimensional arrays (#4232)

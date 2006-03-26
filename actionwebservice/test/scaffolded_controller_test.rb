@@ -8,8 +8,9 @@ end
 ActionController::Base.template_root = '.'
 
 class ScaffoldPerson < ActionWebService::Struct
-  member :id,   :int
-  member :name, :string
+  member :id,     :int
+  member :name,   :string
+  member :birth,  :date
 
   def ==(other)
     self.id == other.id && self.name == other.name
@@ -19,6 +20,7 @@ end
 class ScaffoldedControllerTestAPI < ActionWebService::API::Base
   api_method :hello, :expects => [{:integer=>:int}, :string], :returns => [:bool]
   api_method :hello_struct_param, :expects => [{:person => ScaffoldPerson}], :returns => [:bool]
+  api_method :date_of_birth, :expects => [ScaffoldPerson], :returns => [:string]
   api_method :bye,   :returns => [[ScaffoldPerson]]
   api_method :date_diff, :expects => [{:start_date => :date}, {:end_date => :date}], :returns => [:int]
   api_method :time_diff, :expects => [{:start_time => :time}, {:end_time => :time}], :returns => [:int]
@@ -35,6 +37,10 @@ class ScaffoldedController < ActionController::Base
   
   def hello_struct_param(person)
     0
+  end
+  
+  def date_of_birth(person)
+    person.birth.to_s
   end
 
   def bye
@@ -78,6 +84,7 @@ class ScaffoldedControllerTest < Test::Unit::TestCase
   def test_scaffold_invoke_method_params_with_struct
     get :scaffold_invoke_method_params, :service => 'scaffolded', :method => 'HelloStructParam'
     assert_rendered_file 'parameters.rhtml'
+    assert_tag :tag => 'input', :attributes => {:name => "method_params[0][name]"}
   end
 
   def test_scaffold_invoke_submit_hello
@@ -105,6 +112,12 @@ class ScaffoldedControllerTest < Test::Unit::TestCase
     post :scaffold_invoke_submit, :service => 'scaffolded', :method => 'DateDiff', 
          :method_params => {'0' => {'1' => '2006', '2' => '2', '3' => '1'}, '1' => {'1' => '2006', '2' => '2', '3' => '2'}}
     assert_equal 1, @controller.instance_eval{ @method_return_value }
+  end
+  
+  def test_scaffold_struct_date_params
+    post :scaffold_invoke_submit, :service => 'scaffolded', :method => 'DateOfBirth', 
+         :method_params => {'0' => {'birth' => {'1' => '2006', '2' => '2', '3' => '1'}, 'id' => '1', 'name' => 'person'}}
+    assert_equal '2006-02-01', @controller.instance_eval{ @method_return_value }
   end
 
   def test_scaffold_time_params
