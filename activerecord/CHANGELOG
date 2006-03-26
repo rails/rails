@@ -1,5 +1,7 @@
 *SVN*
 
+* Support the use of public synonyms with the Oracle adapter; required ruby-oci8 v0.1.14 #4390 [schoenm@earthlink.net]
+
 * Change periods (.) in table aliases to _'s.  Closes #4251 [jeff@ministrycentered.com]
 
 * Changed has_and_belongs_to_many join to INNER JOIN for Mysql 3.23.x.  Closes #4348 [Rick]

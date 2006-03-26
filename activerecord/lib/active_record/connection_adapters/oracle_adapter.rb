@@ -537,6 +537,7 @@ begin
 
     def describe(name, type)
       @desc ||= @@env.alloc(OCIDescribe)
+      @desc.attrSet(OCI_ATTR_DESC_PUBLIC, -1) if VERSION >= '0.1.14'
       @desc.describeAny(@svc, name, type)
       @desc.attrGet(OCI_ATTR_PARAM)
     end
