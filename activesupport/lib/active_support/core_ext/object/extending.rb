@@ -9,7 +9,6 @@ class Object #:nodoc:
       next if # Exclude this class if
         (k.ancestors & superclasses).empty? || # It's not a subclass of our supers
         superclasses.include?(k) || # It *is* one of the supers
-        subclasses.include?(k) || # We already have it for some obscure reason
         eval("! defined?(::#{k})") || # It's not defined.
         eval("::#{k}").object_id != k.object_id
       subclasses << k

@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove a hack intended to avoid unloading the same class twice, but which would not work anyways. [Nicholas Seckar]
+
 * Update Object.subclasses_of to locate nested classes. This affects Object.remove_subclasses_of in that nested classes will now be unloaded. [Nicholas Seckar]
 
 * Update Object.remove_subclasses_of to use Class.remove_class, reducing duplication. [Nicholas Seckar]
