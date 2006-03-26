@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed has_and_belongs_to_many join to INNER JOIN for Mysql 3.23.x.  Closes #4348 [Rick]
+
 * Fixed issue that kept :select options from being scoped [Rick]
 
 * Fixed db_schema_import when binary types are present #3101 [DHH]
