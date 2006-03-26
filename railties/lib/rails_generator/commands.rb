@@ -428,7 +428,11 @@ end_message
           migration_directory relative_destination
 
           migration_file_name = template_options[:migration_file_name] || file_name
-          raise "There is no migration named #{migration_file_name}" unless migration_exists?(migration_file_name)
+          unless migration_exists?(migration_file_name)
+            puts "There is no migration named #{migration_file_name}"
+            return
+          end
+
 
           existing_migrations(migration_file_name).each do |file_path|
             file(relative_source, file_path, template_options)
