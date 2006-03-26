@@ -1,14 +1,17 @@
 class Object #:nodoc:
   def remove_subclasses_of(*superclasses)
-    subclasses_of(*superclasses).each do |subclass|
-      Object.send(:remove_const, subclass.to_s) rescue nil
-    end
+    Class.remove_class(*subclasses_of(*superclasses))
   end
 
   def subclasses_of(*superclasses)
     subclasses = []
     ObjectSpace.each_object(Class) do |k|
-      next if (k.ancestors & superclasses).empty? || superclasses.include?(k) || k.to_s.include?("::") || subclasses.include?(k) || !Object.const_defined?(k.to_s.to_sym)
+      next if # Exclude this class if
+        (k.ancestors & superclasses).empty? || # It's not a subclass of our supers
+        superclasses.include?(k) || # It *is* one of the supers
+        subclasses.include?(k) || # We already have it for some obscure reason
+        eval("! defined?(::#{k})") || # It's not defined.
+        eval("::#{k}").object_id != k.object_id
       subclasses << k
     end
     subclasses

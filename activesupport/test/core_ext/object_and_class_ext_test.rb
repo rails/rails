@@ -10,6 +10,13 @@ class ClassD < ClassA; end
 class ClassI; end
 class ClassJ < ClassI; end
 
+class ClassK
+end
+module Nested
+  class ClassL < ClassK
+  end
+end
+
 module Bar
   def bar; end
 end
@@ -40,6 +47,22 @@ class ClassExtTest < Test::Unit::TestCase
     ClassI.remove_subclasses
     assert_equal [], Object.subclasses_of(ClassI)
   end
+  
+  def test_subclasses_of_should_find_nested_classes
+    assert Object.subclasses_of(ClassK).include?(Nested::ClassL)
+  end
+  
+  def test_subclasses_of_should_not_return_removed_classes
+    # First create the removed class
+    old_class = Nested.send :remove_const, :ClassL
+    new_class = Class.new(ClassK)
+    Nested.const_set :ClassL, new_class
+    assert_equal "Nested::ClassL", new_class.name # Sanity check
+    
+    subclasses = Object.subclasses_of(ClassK)
+    assert subclasses.include?(new_class)
+    assert ! subclasses.include?(old_class)
+  end
 end
 
 class ObjectTests < Test::Unit::TestCase
@@ -55,9 +78,9 @@ class ObjectTests < Test::Unit::TestCase
  
   def test_extended_by
     foo = Foo.new
-    assert_equal [Bar], foo.extended_by
+    assert foo.extended_by.include?(Bar)
     foo.extend(Baz)
-    assert_equal %w(Bar Baz), foo.extended_by.map {|mod| mod.name}.sort
+    assert ([Bar, Baz] - foo.extended_by).empty?, "Expected Bar, Baz in #{foo.extended_by.inspect}"
   end
   
   def test_extend_with_included_modules_from
