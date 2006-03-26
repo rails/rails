@@ -120,7 +120,7 @@ module ActionView
       #     form_for(name, object, options.merge(:builder => LabellingFormBuiler), &proc)
       #   end
       #
-      def form_for(object_name, object, options = {}, &proc)
+      def form_for(object_name, object = nil, options = {}, &proc)
         raise ArgumentError, "Missing block" unless block_given?
         concat(form_tag(options.delete(:url) || {}, options.delete(:html) || {}), proc.binding)
         fields_for(object_name, object, options, &proc)
@@ -141,7 +141,7 @@ module ActionView
       #
       # Note: This also works for the methods in FormOptionHelper and DateHelper that are designed to work with an object as base.
       # Like collection_select and datetime_select.
-      def fields_for(object_name, object, options = {}, &proc)
+      def fields_for(object_name, object = nil, options = {}, &proc)
         raise ArgumentError, "Missing block" unless block_given?
         yield((options[:builder] || FormBuilder).new(object_name, object, self, options, proc))
       end

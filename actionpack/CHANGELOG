@@ -1,5 +1,13 @@
 *SVN*
 
+* Change #form_for and #fields_for so that the second argument is not required [Dave Thomas]
+
+    <% form_for :post, @post do |f| -%>
+    
+  becomes...
+  
+    <% form_for :post do |f| -%>
+
 * Update to script.aculo.us 1.6 [Thomas Fuchs]
 
 * Enable application/x-yaml processing by default [Jamis Buck]
