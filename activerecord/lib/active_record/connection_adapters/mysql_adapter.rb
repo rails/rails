@@ -116,7 +116,7 @@ module ActiveRecord
       # QUOTING ==================================================
 
       def quote(value, column = nil)
-        if value.kind_of?(String) && column && column.type == :binary
+        if value.kind_of?(String) && column && column.type == :binary && column.class.respond_to?(:string_to_binary)
           s = column.class.string_to_binary(value).unpack("H*")[0]
           "x'#{s}'"
         else

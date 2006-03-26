@@ -210,7 +210,7 @@ begin
         end
 
         def quote(value, column = nil) #:nodoc:
-          if column and column.type == :binary then %Q{empty_#{ column.sql_type }()}
+          if column && column.type == :binary then %Q{empty_#{ column.sql_type }()}
           else case value
             when String       then %Q{'#{quote_string(value)}'}
             when NilClass     then 'null'
