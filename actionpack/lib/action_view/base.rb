@@ -168,7 +168,7 @@ module ActionView #:nodoc:
     @@debug_rjs = false
     cattr_accessor :debug_rjs
 
-    @@template_handlers = {}
+    @@template_handlers = HashWithIndifferentAccess.new
  
     module CompiledTemplates #:nodoc:
       # holds compiled template code
