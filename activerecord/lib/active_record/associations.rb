@@ -1075,6 +1075,7 @@ module ActiveRecord
         end
         
         def construct_counter_sql_with_included_associations(options, join_dependency)
+          scope = scope(:find)
           sql = "SELECT COUNT(DISTINCT #{table_name}.#{primary_key})"
           
           # A (slower) workaround if we're using a backend, like sqlite, that doesn't support COUNT DISTINCT.
@@ -1085,11 +1086,11 @@ module ActiveRecord
           sql << " FROM #{table_name} "
           sql << join_dependency.join_associations.collect{|join| join.association_join }.join
           
-          add_joins!(sql, options)
-          add_conditions!(sql, options[:conditions])
-          add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && (scope(:find, :limit) || options[:limit])
+          add_joins!(sql, options, scope)
+          add_conditions!(sql, options[:conditions], scope)
+          add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
-          add_limit!(sql, options) if using_limitable_reflections?(join_dependency.reflections)
+          add_limit!(sql, options, scope) if using_limitable_reflections?(join_dependency.reflections)
 
           if !Base.connection.supports_count_distinct?
             sql << ")"
@@ -1099,16 +1100,17 @@ module ActiveRecord
         end
 
         def construct_finder_sql_with_included_associations(options, join_dependency)
-          sql = "SELECT #{column_aliases(join_dependency)} FROM #{scope(:find, :from) || options[:from] || table_name} "
+          scope = scope(:find)
+          sql = "SELECT #{column_aliases(join_dependency)} FROM #{(scope && scope[:from]) || options[:from] || table_name} "
           sql << join_dependency.join_associations.collect{|join| join.association_join }.join
  
-          add_joins!(sql, options)
-          add_conditions!(sql, options[:conditions])
+          add_joins!(sql, options, scope)
+          add_conditions!(sql, options[:conditions], scope)
           add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && options[:limit]
 
           sql << "ORDER BY #{options[:order]} " if options[:order]
  
-          add_limit!(sql, options) if using_limitable_reflections?(join_dependency.reflections)
+          add_limit!(sql, options, scope) if using_limitable_reflections?(join_dependency.reflections)
  
           return sanitize_sql(sql)
         end
@@ -1127,6 +1129,7 @@ module ActiveRecord
         end
  
         def construct_finder_sql_for_association_limiting(options, join_dependency)
+          scope = scope(:find)
           #sql = "SELECT DISTINCT #{table_name}.#{primary_key} FROM #{table_name} "
           sql = "SELECT "
           sql << "DISTINCT #{table_name}." if include_eager_conditions?(options) || include_eager_order?(options)
@@ -1134,12 +1137,12 @@ module ActiveRecord
           
           if include_eager_conditions?(options) || include_eager_order?(options)
             sql << join_dependency.join_associations.collect{|join| join.association_join }.join
-            add_joins!(sql, options)
+            add_joins!(sql, options, scope)
           end
           
-          add_conditions!(sql, options[:conditions])
+          add_conditions!(sql, options[:conditions], scope)
           sql << "ORDER BY #{options[:order]} " if options[:order]
-          add_limit!(sql, options)
+          add_limit!(sql, options, scope)
           return sanitize_sql(sql)
         end
 

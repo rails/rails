@@ -144,11 +144,12 @@ module ActiveRecord
 
       protected
       def construct_calculation_sql(aggregate, aggregate_alias, options)
+        scope = scope(:find)
         sql  = ["SELECT #{aggregate} AS #{aggregate_alias}"]
         sql << ", #{options[:group_field]} AS #{options[:group_alias]}" if options[:group]
         sql << " FROM #{table_name} "
-        add_joins!(sql, options)
-        add_conditions!(sql, options[:conditions])
+        add_joins!(sql, options, scope)
+        add_conditions!(sql, options[:conditions], scope)
         sql << " GROUP BY #{options[:group_field]}" if options[:group]
         sql << " HAVING #{options[:having]}" if options[:group] && options[:having]
         sql << " ORDER BY #{options[:order]}" if options[:order]

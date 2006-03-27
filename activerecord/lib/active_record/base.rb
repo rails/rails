@@ -373,53 +373,16 @@ module ActiveRecord #:nodoc:
       #   Person.find(:all, :group => "category")
       def find(*args)
         options = extract_options_from_args!(args)
-
-        # Inherit :readonly from finder scope if set.  Otherwise,
-        # if :joins is not blank then :readonly defaults to true.
-        unless options.has_key?(:readonly)
-          if scoped?(:find, :readonly)
-            options[:readonly] = scope(:find, :readonly)
-          elsif !options[:joins].blank?
-            options[:readonly] = true
-          end
-        end
+        validate_find_options(options)
+        set_readonly_option!(options)
 
         case args.first
-          when :first
-            find(:all, options.merge(options[:include] ? { } : { :limit => 1 })).first
-          when :all
-            records = (scoped?(:find, :include) || options[:include]) ? find_with_associations(options) : find_by_sql(construct_finder_sql(options))
-            records.each { |record| record.readonly! } if options[:readonly]
-            records
-          else
-            return args.first if args.first.kind_of?(Array) && args.first.empty?
-            expects_array = args.first.kind_of?(Array)
-            
-            conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
-
-            ids = args.flatten.compact.uniq
-            case ids.size
-              when 0
-                raise RecordNotFound, "Couldn't find #{name} without an ID#{conditions}"
-              when 1
-                if result = find(:first, options.merge({ :conditions => "#{table_name}.#{primary_key} = #{sanitize(ids.first)}#{conditions}" }))
-                  return expects_array ? [ result ] : result
-                else
-                  raise RecordNotFound, "Couldn't find #{name} with ID=#{ids.first}#{conditions}"
-                end
-              else
-                # Find multiple ids
-                ids_list = ids.map { |id| sanitize(id) }.join(',')
-                result   = find(:all, options.merge({ :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}"}))
-                if result.size == ids.size
-                  return result
-                else
-                  raise RecordNotFound, "Couldn't find all #{name.pluralize} with IDs (#{ids_list})#{conditions}"
-                end
-            end
+          when :first then find_initial(options)
+          when :all   then find_every(options)
+          else             find_from_ids(args, options)
         end
       end
-
+      
       # Works like find(:all), but requires a complete SQL string. Examples:
       #   Post.find_by_sql "SELECT p.*, c.author FROM posts p, comments c WHERE p.id = c.post_id"
       #   Post.find_by_sql ["SELECT * FROM posts WHERE author = ? AND created > ?", author_id, start_date]
@@ -487,7 +450,7 @@ module ActiveRecord #:nodoc:
       #   Billing.update_all "category = 'authorized', approved = 1", "author = 'David'"
       def update_all(updates, conditions = nil)
         sql  = "UPDATE #{table_name} SET #{sanitize_sql(updates)} "
-        add_conditions!(sql, conditions)
+        add_conditions!(sql, conditions, scope(:find))
         connection.update(sql, "#{name} Update")
       end
 
@@ -503,7 +466,7 @@ module ActiveRecord #:nodoc:
       #   Post.delete_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
       def delete_all(conditions = nil)
         sql = "DELETE FROM #{table_name} "
-        add_conditions!(sql, conditions)
+        add_conditions!(sql, conditions, scope(:find))
         connection.delete(sql, "#{name} Delete all")
       end
 
@@ -647,7 +610,7 @@ module ActiveRecord #:nodoc:
       #   class Project < ActiveRecord::Base
       #     set_table_name "project"
       #   end
-      def set_table_name( value=nil, &block )
+      def set_table_name(value = nil, &block)
         define_attr_method :table_name, value, &block
       end
       alias :table_name= :set_table_name
@@ -661,7 +624,7 @@ module ActiveRecord #:nodoc:
       #   class Project < ActiveRecord::Base
       #     set_primary_key "sysid"
       #   end
-      def set_primary_key( value=nil, &block )
+      def set_primary_key(value = nil, &block)
         define_attr_method :primary_key, value, &block
       end
       alias :primary_key= :set_primary_key
@@ -677,7 +640,7 @@ module ActiveRecord #:nodoc:
       #       original_inheritance_column + "_id"
       #     end
       #   end
-      def set_inheritance_column( value=nil, &block )
+      def set_inheritance_column(value = nil, &block)
         define_attr_method :inheritance_column, value, &block
       end
       alias :inheritance_column= :set_inheritance_column
@@ -698,7 +661,7 @@ module ActiveRecord #:nodoc:
       #   class Project < ActiveRecord::Base
       #     set_sequence_name "projectseq"   # default would have been "project_seq"
       #   end
-      def set_sequence_name( value=nil, &block )
+      def set_sequence_name(value = nil, &block)
         define_attr_method :sequence_name, value, &block
       end
       alias :sequence_name= :set_sequence_name
@@ -949,6 +912,63 @@ module ActiveRecord #:nodoc:
       end
 
       private
+        def find_initial(options)
+          options.update(:limit => 1) unless options[:include]
+          find_every(options).first
+        end
+           
+        def find_every(options)
+          records = scoped?(:find, :include) || options[:include] ?
+            find_with_associations(options) : 
+            find_by_sql(construct_finder_sql(options))
+
+          records.each { |record| record.readonly! } if options[:readonly]
+
+          records
+        end
+ 
+        def find_from_ids(ids, options)
+          expects_array = ids.first.kind_of?(Array)       
+          return ids.first if expects_array && ids.first.empty?
+        
+          ids = ids.flatten.compact.uniq
+
+          case ids.size
+            when 0
+              raise RecordNotFound, "Couldn't find #{name} without an ID"
+            when 1
+              result = find_one(ids.first, options)
+              expects_array ? [ result ] : result
+            else
+              find_some(ids, options)
+          end
+        end
+      
+        def find_one(id, options)
+          conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
+          options    = options.merge :conditions => "#{table_name}.#{primary_key} = #{sanitize(id)}#{conditions}"
+
+          if result = find_initial(options)
+            result
+          else
+            raise RecordNotFound, "Couldn't find #{name} with ID=#{id}#{conditions}"
+          end
+        end
+      
+        def find_some(ids, options)
+          conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
+          ids_list   = ids.map { |id| sanitize(id) }.join(',')
+          options    = options.merge :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}"
+
+          result = find_every(options)
+
+          if result.size == ids.size
+            result
+          else
+            raise RecordNotFound, "Couldn't find all #{name.pluralize} with IDs (#{ids_list})#{conditions}"
+          end
+        end
+
         # Finder methods must instantiate through this method to work with the single-table inheritance model
         # that makes it possible to create objects of different types from the same table.
         def instantiate(record)
@@ -983,16 +1003,17 @@ module ActiveRecord #:nodoc:
         end
 
         def construct_finder_sql(options)
-          sql  = "SELECT #{scope(:find, :select) || options[:select] || '*'} "
-          sql << "FROM #{scope(:find, :from) || options[:from] || table_name} "
+          scope = scope(:find)
+          sql  = "SELECT #{(scope && scope[:select]) || options[:select] || '*'} "
+          sql << "FROM #{(scope && scope[:from]) || options[:from] || table_name} "
 
-          add_joins!(sql, options)
-          add_conditions!(sql, options[:conditions])
+          add_joins!(sql, options, scope)
+          add_conditions!(sql, options[:conditions], scope)
 
           sql << " GROUP BY #{options[:group]} " if options[:group]
           sql << " ORDER BY #{options[:order]} " if options[:order]
 
-          add_limit!(sql, options)
+          add_limit!(sql, options, scope)
 
           sql
         end
@@ -1014,20 +1035,23 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def add_limit!(sql, options)
-          options[:limit]  ||= scope(:find, :limit)
-          options[:offset] ||= scope(:find, :offset)
+        def add_limit!(sql, options, scope)
+          if scope
+            options[:limit]  ||= scope[:limit]
+            options[:offset] ||= scope[:offset]
+          end
           connection.add_limit_offset!(sql, options)
         end
 
-        def add_joins!(sql, options)
-          join = scope(:find, :joins) || options[:joins]
+        def add_joins!(sql, options, scope)
+          join = (scope && scope[:joins]) || options[:joins]
           sql << " #{join} " if join
         end
 
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that the passed-in +sql+ string is changed.
-        def add_conditions!(sql, conditions)
-          segments = [sanitize_sql(scope(:find, :conditions))]
+        def add_conditions!(sql, conditions, scope)
+          segments = []
+          segments << sanitize_sql(scope[:conditions]) if scope && scope[:conditions]
           segments << sanitize_sql(conditions) unless conditions.nil?
           segments << type_condition unless descends_from_active_record?        
           segments.compact!
@@ -1058,38 +1082,53 @@ module ActiveRecord #:nodoc:
         # is actually find_all_by_amount(amount, options).
         def method_missing(method_id, *arguments)
           if match = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
-            finder = determine_finder(match)
+            finder, deprecated_finder = determine_finder(match), determine_deprecated_finder(match)
 
             attribute_names = extract_attribute_names_from_match(match)
             super unless all_attributes_exists?(attribute_names)
 
             conditions = construct_conditions_from_arguments(attribute_names, arguments)
 
-            if (extra_options = arguments[attribute_names.size]).is_a?(Hash)
-              finder_options = extra_options.merge(:conditions => conditions)
-              if extra_options[:conditions]
-                with_scope(:find => {:conditions => extra_options[:conditions]}) do
-                  find(finder, finder_options)
+            case extra_options = arguments[attribute_names.size]
+              when nil
+                options = { :conditions => conditions }
+                set_readonly_option!(options)
+                send(finder, options)
+
+              when Hash
+                finder_options = extra_options.merge(:conditions => conditions)
+                validate_find_options(finder_options)
+                set_readonly_option!(finder_options)
+
+                if extra_options[:conditions]
+                  with_scope(:find => { :conditions => extra_options[:conditions] }) do
+                    send(finder, finder_options)
+                  end
+                else
+                  send(finder, finder_options)
                 end
+
               else
-                find(finder, finder_options)
-              end
-            else
-              send("find_#{finder}", conditions, *arguments[attribute_names.length..-1]) # deprecated API
+                send(deprecated_finder, conditions, *arguments[attribute_names.length..-1]) # deprecated API
             end
           elsif match = /find_or_create_by_([_a-zA-Z]\w*)/.match(method_id.to_s)
             attribute_names = extract_attribute_names_from_match(match)
             super unless all_attributes_exists?(attribute_names)
 
-            find(:first, :conditions => construct_conditions_from_arguments(attribute_names, arguments)) || 
-              create(construct_attributes_from_arguments(attribute_names, arguments))
+            options = { :conditions => construct_conditions_from_arguments(attribute_names, arguments) }
+            set_readonly_option!(options)
+            find_initial(options) || create(construct_attributes_from_arguments(attribute_names, arguments))
           else
             super
           end
         end
 
         def determine_finder(match)
-          match.captures.first == 'all_by' ? :all : :first
+          match.captures.first == 'all_by' ? :find_every : :find_initial
+        end
+
+        def determine_deprecated_finder(match)
+          match.captures.first == 'all_by' ? :find_all : :find_first
         end
 
         def extract_attribute_names_from_match(match)
@@ -1158,12 +1197,14 @@ module ActiveRecord #:nodoc:
 
         # Test whether the given method and optional key are scoped.
         def scoped?(method, key = nil)
-          current_scoped_methods && current_scoped_methods.has_key?(method) && (key.nil? || scope(method).has_key?(key))
+          if current_scoped_methods && (scope = current_scoped_methods[method])
+            !key || scope.has_key?(key)
+          end
         end
 
         # Retrieve the scope for the given method and optional key.
         def scope(method, key = nil)
-          if current_scoped_methods && scope = current_scoped_methods[method]
+          if current_scoped_methods && (scope = current_scoped_methods[method])
             key ? scope[key] : scope
           end
         end
@@ -1264,13 +1305,26 @@ module ActiveRecord #:nodoc:
         end
 
         def extract_options_from_args!(args)
-          options = args.last.is_a?(Hash) ? args.pop : {}
-          validate_find_options(options)
-          options
+          args.last.is_a?(Hash) ? args.pop : {}
         end
 
+        VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,
+                               :order, :select, :readonly, :group, :from      ]
+        
         def validate_find_options(options)
-          options.assert_valid_keys [:conditions, :include, :joins, :limit, :offset, :order, :select, :readonly, :group, :from]
+          options.assert_valid_keys(VALID_FIND_OPTIONS)
+        end
+        
+        def set_readonly_option!(options)
+          # Inherit :readonly from finder scope if set.  Otherwise,
+          # if :joins is not blank then :readonly defaults to true.
+          unless options.has_key?(:readonly)
+            if scoped?(:find, :readonly)
+              options[:readonly] = scope(:find, :readonly)
+            elsif !options[:joins].blank?
+              options[:readonly] = true
+            end
+          end
         end
 
         def encode_quoted_value(value)
