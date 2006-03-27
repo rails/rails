@@ -43,8 +43,6 @@ class AdapterTest < Test::Unit::TestCase
   def test_current_database
     if @connection.respond_to?(:current_database)
       assert_equal "activerecord_unittest", @connection.current_database
-    else
-      warn "#{@connection.class} does not respond to #current_database"
     end
   end
 

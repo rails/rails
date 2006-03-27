@@ -929,12 +929,12 @@ module ActiveRecord
         end
         
         def count_with_associations(options = {})
-          join_dependency = JoinDependency.new(self, options[:include], options[:joins])
+          join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
           return count_by_sql(construct_counter_sql_with_included_associations(options, join_dependency))
         end
 
         def find_with_associations(options = {})
-          join_dependency = JoinDependency.new(self, options[:include], options[:joins])
+          join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
           rows = select_all_rows(options, join_dependency)
           return join_dependency.instantiate(rows)
         end
@@ -1084,10 +1084,10 @@ module ActiveRecord
           
           sql << " FROM #{table_name} "
           sql << join_dependency.join_associations.collect{|join| join.association_join }.join
-          sql << "#{options[:joins]} " if options[:joins]
-
+          
+          add_joins!(sql, options)
           add_conditions!(sql, options[:conditions])
-          add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && options[:limit]
+          add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && (scope(:find, :limit) || options[:limit])
 
           add_limit!(sql, options) if using_limitable_reflections?(join_dependency.reflections)
 
@@ -1099,10 +1099,10 @@ module ActiveRecord
         end
 
         def construct_finder_sql_with_included_associations(options, join_dependency)
-          sql = "SELECT #{column_aliases(join_dependency)} FROM #{options[:from] || table_name} "
+          sql = "SELECT #{column_aliases(join_dependency)} FROM #{scope(:find, :from) || options[:from] || table_name} "
           sql << join_dependency.join_associations.collect{|join| join.association_join }.join
-          sql << "#{options[:joins]} " if options[:joins]
  
+          add_joins!(sql, options)
           add_conditions!(sql, options[:conditions])
           add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && options[:limit]
 
@@ -1134,7 +1134,7 @@ module ActiveRecord
           
           if include_eager_conditions?(options) || include_eager_order?(options)
             sql << join_dependency.join_associations.collect{|join| join.association_join }.join
-            sql << "#{options[:joins]} " if options[:joins]
+            add_joins!(sql, options)
           end
           
           add_conditions!(sql, options[:conditions])
@@ -1144,7 +1144,7 @@ module ActiveRecord
         end
 
         def include_eager_conditions?(options)
-          conditions = options[:conditions]
+          conditions = scope(:find, :conditions) || options[:conditions]
           return false unless conditions
           conditions = conditions.first if conditions.is_a?(Array)
           conditions.scan(/(\w+)\.\w+/).flatten.any? do |condition_table_name|

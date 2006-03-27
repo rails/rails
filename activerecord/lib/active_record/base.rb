@@ -388,7 +388,7 @@ module ActiveRecord #:nodoc:
           when :first
             find(:all, options.merge(options[:include] ? { } : { :limit => 1 })).first
           when :all
-            records = options[:include] ? find_with_associations(options) : find_by_sql(construct_finder_sql(options))
+            records = (scoped?(:find, :include) || options[:include]) ? find_with_associations(options) : find_by_sql(construct_finder_sql(options))
             records.each { |record| record.readonly! } if options[:readonly]
             records
           else
@@ -834,7 +834,7 @@ module ActiveRecord #:nodoc:
 
       # Scope parameters to method calls within the block.  Takes a hash of method_name => parameters hash.
       # method_name may be :find or :create. :find parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
-      # <tt>:offset</tt>, <tt>:limit</tt>, and <tt>:readonly</tt> options. :create parameters are an attributes hash.
+      # <tt>:include</tt>, <tt>:offset</tt>, <tt>:limit</tt>, and <tt>:readonly</tt> options. :create parameters are an attributes hash.
       #
       #   Article.with_scope(:find => { :conditions => "blog_id = 1" }, :create => { :blog_id => 1 }) do
       #     Article.find(1) # => SELECT * from articles WHERE blog_id = 1 AND id = 1
@@ -873,7 +873,7 @@ module ActiveRecord #:nodoc:
         method_scoping.assert_valid_keys([ :find, :create ])
 
         if f = method_scoping[:find]
-          f.assert_valid_keys([ :conditions, :joins, :select, :from, :offset, :limit, :readonly ])
+          f.assert_valid_keys([ :conditions, :joins, :select, :include, :from, :offset, :limit, :readonly ])
           f[:readonly] = true if !f[:joins].blank? && !f.has_key?(:readonly)
         end
 
@@ -882,10 +882,13 @@ module ActiveRecord #:nodoc:
           method_scoping = current_scoped_methods.inject(method_scoping) do |hash, (method, params)|
             case hash[method]
               when Hash
-                if method == :find && hash[method][:conditions] && params[:conditions]
+                if method == :find
                   (hash[method].keys + params.keys).uniq.each do |key|
-                    if key == :conditions
+                    merge = hash[method][key] && params[key] # merge if both scopes have the same key
+                    if key == :conditions && merge
                       hash[method][key] = [params[key], hash[method][key]].collect{|sql| "( %s )" % sanitize_sql(sql)}.join(" AND ")
+                    elsif key == :include && merge
+                      hash[method][key] = merge_includes(hash[method][key], params[key]).uniq
                     else
                       hash[method][key] = hash[method][key] || params[key]
                     end
@@ -992,6 +995,23 @@ module ActiveRecord #:nodoc:
           add_limit!(sql, options)
 
           sql
+        end
+
+        # Merges includes so that the result is a valid +include+
+        def merge_includes(first, second)
+         safe_to_array(first) + safe_to_array(second)
+        end
+
+        # Object#to_a is deprecated, though it does have the desired behaviour
+        def safe_to_array(o)
+          case o
+          when NilClass
+            []
+          when Array
+            o
+          else
+            [o]
+          end
         end
 
         def add_limit!(sql, options)

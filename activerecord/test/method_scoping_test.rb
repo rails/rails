@@ -1,11 +1,12 @@
 require 'abstract_unit'
 require 'fixtures/developer'
+require 'fixtures/project'
 require 'fixtures/comment'
 require 'fixtures/post'
 require 'fixtures/category'
 
 class MethodScopingTest < Test::Unit::TestCase
-  fixtures :developers, :comments, :posts
+  fixtures :developers, :projects, :comments, :posts
   
   def test_set_conditions
     Developer.with_scope(:find => { :conditions => 'just a test...' }) do
@@ -60,6 +61,23 @@ class MethodScopingTest < Test::Unit::TestCase
     end        
   end
 
+  def test_scoped_find_include
+    # with the include, will retrieve only developers for the given project
+    scoped_developers = Developer.with_scope(:find => { :include => :projects }) do
+      Developer.find(:all, :conditions => 'projects.id = 2')
+    end
+    assert scoped_developers.include?(developers(:david))
+    assert !scoped_developers.include?(developers(:jamis))
+    assert_equal 1, scoped_developers.size
+  end
+  
+  def test_scoped_count_include
+    # with the include, will retrieve only developers for the given project
+    Developer.with_scope(:find => { :include => :projects }) do
+      assert_equal 1, Developer.count('projects.id = 2')
+    end
+  end
+
   def test_scoped_create
     new_comment = nil
 
@@ -108,7 +126,7 @@ class MethodScopingTest < Test::Unit::TestCase
 end
 
 class NestedScopingTest < Test::Unit::TestCase
-  fixtures :developers, :comments, :posts
+  fixtures :developers, :projects, :comments, :posts
 
   def test_merge_options
     Developer.with_scope(:find => { :conditions => 'salary = 80000' }) do
@@ -158,6 +176,49 @@ class NestedScopingTest < Test::Unit::TestCase
       end
       assert_equal('Jamis', Developer.find(:first).name)
     end
+  end
+
+  def test_nested_scoped_find_include
+    Developer.with_scope(:find => { :include => :projects }) do
+      Developer.with_scope(:find => { :conditions => "projects.id = 2" }) do
+        assert_nothing_raised { Developer.find(1) }
+        assert_equal('David', Developer.find(:first).name)
+      end
+    end  
+  end
+
+  def test_nested_scoped_find_merged_include
+    # :include's remain unique and don't "double up" when merging
+    Developer.with_scope(:find => { :include => :projects, :conditions => "projects.id = 2" }) do
+      Developer.with_scope(:find => { :include => :projects }) do
+        assert_equal 1, Developer.instance_eval('current_scoped_methods')[:find][:include].length
+        assert_equal('David', Developer.find(:first).name)
+      end
+    end  
+    
+    # the nested scope doesn't remove the first :include
+    Developer.with_scope(:find => { :include => :projects, :conditions => "projects.id = 2" }) do
+      Developer.with_scope(:find => { :include => [] }) do
+        assert_equal 1, Developer.instance_eval('current_scoped_methods')[:find][:include].length
+        assert_equal('David', Developer.find(:first).name)
+      end
+    end  
+    
+    # mixing array and symbol include's will merge correctly
+    Developer.with_scope(:find => { :include => [:projects], :conditions => "projects.id = 2" }) do
+      Developer.with_scope(:find => { :include => :projects }) do
+        assert_equal 1, Developer.instance_eval('current_scoped_methods')[:find][:include].length
+        assert_equal('David', Developer.find(:first).name)
+      end
+    end  
+  end
+  
+  def test_nested_scoped_find_replace_include
+    Developer.with_scope(:find => { :include => :projects }) do
+      Developer.with_exclusive_scope(:find => { :include => [] }) do
+        assert_equal 0, Developer.instance_eval('current_scoped_methods')[:find][:include].length
+      end
+    end  
   end
 
   def test_three_level_nested_exclusive_scoped_find

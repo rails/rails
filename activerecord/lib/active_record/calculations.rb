@@ -61,7 +61,7 @@ module ActiveRecord
           raise(ArgumentError, "Unexpected parameters passed to count(*args): expected either count(conditions=nil, joins=nil) or count(options={})")
         end
 
-        options[:include] ? count_with_associations(options) : calculate(:count, :all, options)
+        (scope(:find, :include) || options[:include]) ? count_with_associations(options) : calculate(:count, :all, options)
       end
 
       # Calculates average value on a given column.  The value is returned as a float.  See #calculate for examples with options.
