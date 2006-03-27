@@ -692,7 +692,7 @@ module ActionController #:nodoc:
 
       def render_file(template_path, status = nil, use_full_path = false, locals = {})
         add_variables_to_assigns
-        assert_existance_of_template_file(template_path) if use_full_path
+        assert_existence_of_template_file(template_path) if use_full_path
         logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
         render_text(@template.render_file(template_path, use_full_path, locals), status)
       end
@@ -995,7 +995,7 @@ module ActionController #:nodoc:
         template_name =~ /\.rjs$/ || (@template.pick_template_extension(template_name) == :rjs rescue false)
       end
 
-      def assert_existance_of_template_file(template_name)
+      def assert_existence_of_template_file(template_name)
         unless template_exists?(template_name) || ignore_missing_templates
           full_template_path = @template.send(:full_template_path, template_name, 'rhtml')
           template_type = (template_name =~ /layouts/i) ? 'layout' : 'template'
