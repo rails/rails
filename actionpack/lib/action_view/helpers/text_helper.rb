@@ -77,7 +77,7 @@ module ActionView
       end
 
       begin
-        require "redcloth"
+        require_library_or_gem "redcloth"
 
         # Returns the text with all the Textile codes turned into HTML-tags.
         # <i>This method is only available if RedCloth can be required</i>.
@@ -104,7 +104,7 @@ module ActionView
       end
 
       begin
-        require "bluecloth"
+        require_library_or_gem "bluecloth"
 
         # Returns the text with all the Markdown codes turned into HTML-tags.
         # <i>This method is only available if BlueCloth can be required</i>.
