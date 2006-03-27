@@ -436,7 +436,7 @@ module ActionController #:nodoc:
     #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png')
     def fixture_file_upload(path, mime_type = nil)
       ActionController::TestUploadedFile.new(
-        Test::Unit::TestCase.respond_to?(:fixture_path) ? Test::Unit::TestCase + path : path, 
+        Test::Unit::TestCase.respond_to?(:fixture_path) ? Test::Unit::TestCase.fixture_path + path : path, 
         mime_type
       )
     end
