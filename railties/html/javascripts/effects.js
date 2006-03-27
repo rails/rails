@@ -76,9 +76,10 @@ Element.getInlineOpacity = function(element){
   return $(element).style.opacity || '';
 }  
 
-Element.childrenWithClassName = function(element, className) {  
-  return $A($(element).getElementsByTagName('*')).select(
-    function(c) { return Element.hasClassName(c, className) });
+Element.childrenWithClassName = function(element, className, findFirst) {
+  return [$A($(element).getElementsByTagName('*'))[findFirst ? 'detect' : 'select']( function(c) { 
+    return c.className ? Element.hasClassName(c, className) : false;
+  })].flatten();
 }
 
 Element.forceRerendering = function(element) {
