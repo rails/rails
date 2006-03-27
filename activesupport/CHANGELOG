@@ -1,5 +1,11 @@
 *SVN*
 
+* When possible, avoid incorrectly obtaining constants from parent modules. Fixes #4221. [Nicholas Seckar]
+
+* Add more tests for dependencies; refactor existing cases. [Nicholas Seckar]
+
+* Move Module#parent and Module#as_load_path into core_ext. Add Module#parent. [Nicholas Seckar]
+
 * Add CachingTools::HashCaching to simplify the creation of nested, autofilling hashes. [Nicholas Seckar]
 
 * Remove a hack intended to avoid unloading the same class twice, but which would not work anyways. [Nicholas Seckar]

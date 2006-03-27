@@ -82,4 +82,20 @@ class ModuleTest < Test::Unit::TestCase
     assert_raises(ArgumentError) { eval($nowhere) }
     assert_raises(ArgumentError) { eval($noplace) }
   end
+  
+  def test_parent
+    assert_equal Yz::Zy, Yz::Zy::Cd.parent
+    assert_equal Yz, Yz::Zy.parent
+    assert_equal Object, Yz.parent
+  end
+  
+  def test_parents
+    assert_equal [Yz::Zy, Yz, Object], Yz::Zy::Cd.parents
+    assert_equal [Yz, Object], Yz::Zy.parents
+  end
+  
+  def test_as_load_path
+    assert_equal 'yz/zy', Yz::Zy.as_load_path
+    assert_equal 'yz', Yz.as_load_path
+  end
 end

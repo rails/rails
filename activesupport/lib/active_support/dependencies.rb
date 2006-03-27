@@ -78,23 +78,6 @@ class Module #:nodoc:
   # Rename the original handler so we can chain it to the new one
   alias :rails_original_const_missing :const_missing
   
-  def parent
-    parent_name = name.split('::')[0..-2] * '::'
-    parent_name.empty? ? Object : parent_name.constantize
-  end
-  
-  def as_load_path
-    if self == Object || self == Kernel
-      ''
-    elsif is_a? Class
-      parent == self ? '' : parent.as_load_path
-    else
-      name.split('::').collect do |word|
-        word.underscore
-      end * '/'
-    end
-  end
-  
   # Use const_missing to autoload associations so we don't have to
   # require_association when using single-table inheritance.
   def const_missing(class_id)
@@ -116,7 +99,11 @@ class Module #:nodoc:
         return mod
       end
       
-      if parent && parent != self
+      # Attempt to access the name from the parent, unless we don't have a valid
+      # parent, or the constant is already defined in the parent. If the latter
+      # is the case, then we are being queried via self::class_id, and we should
+      # avoid returning the constant from the parent if possible.
+      if parent && parent != self && ! parents.any? { |p| p.const_defined?(class_id) }
         suppress(NameError) do
           return parent.send(:const_missing, class_id)
         end
