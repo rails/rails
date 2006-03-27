@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to Prototype 1.5.0_pre1 [Sam Stephenson]
+
 * Change #form_for and #fields_for so that the second argument is not required [Dave Thomas]
 
     <% form_for :post, @post, :url => { :action => 'create' } do |f| -%>

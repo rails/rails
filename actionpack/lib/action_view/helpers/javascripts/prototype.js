@@ -1,4 +1,4 @@
-/*  Prototype JavaScript framework, version 1.5.0_pre0
+/*  Prototype JavaScript framework, version 1.5.0_pre1
  *  (c) 2005 Sam Stephenson <sam@conio.net>
  *
  *  Prototype is freely distributable under the terms of an MIT-style license.
@@ -7,7 +7,7 @@
 /*--------------------------------------------------------------------------*/
 
 var Prototype = {
-  Version: '1.5.0_pre0',
+  Version: '1.5.0_pre1',
   ScriptFragment: '(?:<script.*?>)((\n|\r|.)*?)(?:<\/script>)',
 
   emptyFunction: function() {},
@@ -1251,9 +1251,16 @@ Selector.prototype = {
     function abort(message) { throw 'Parse error in selector: ' + message; }
 
     if (this.expression == '')  abort('empty expression');
-    if (this.expression == '*') return this.params.wildcard = true;
 
     var params = this.params, expr = this.expression, match, modifier, clause, rest;
+    while (match = expr.match(/^(.*)\[([a-z0-9_:-]+?)(?:([~\|!]?=)(?:"([^"]*)"|([^\]\s]*)))?\]$/i)) {
+      params.attributes = params.attributes || [];
+      params.attributes.push({name: match[2], operator: match[3], value: match[4] || match[5] || ''});
+      expr = match[1];
+    }
+
+    if (expr == '*') return this.params.wildcard = true;
+
     while (match = expr.match(/^([^a-z0-9_-])?([a-z0-9_-]+)(.*)/i)) {
       modifier = match[1], clause = match[2], rest = match[3];
       switch (modifier) {
@@ -1273,8 +1280,7 @@ Selector.prototype = {
     var params = this.params, conditions = [], clause;
 
     if (params.wildcard)
-      return 'true';
-
+      conditions.push('true');
     if (clause = params.id)
       conditions.push('element.id == ' + clause.inspect());
     if (clause = params.tagName)
@@ -1282,6 +1288,26 @@ Selector.prototype = {
     if ((clause = params.classNames).length > 0)
       for (var i = 0; i < clause.length; i++)
         conditions.push('Element.hasClassName(element, ' + clause[i].inspect() + ')');
+    if (clause = params.attributes) {
+      clause.each(function(attribute) {
+        var value = 'element.getAttribute(' + attribute.name.inspect() + ')';
+        var splitValueBy = function(delimiter) {
+          return value + ' && ' + value + '.split(' + delimiter.inspect() + ')';
+        }
+
+        switch (attribute.operator) {
+          case '=':       conditions.push(value + ' == ' + attribute.value.inspect()); break;
+          case '~=':      conditions.push(splitValueBy(' ') + '.include(' + attribute.value.inspect() + ')'); break;
+          case '|=':      conditions.push(
+                            splitValueBy('-') + '.first().toUpperCase() == ' + attribute.value.toUpperCase().inspect()
+                          ); break;
+          case '!=':      conditions.push(value + ' != ' + attribute.value.inspect()); break;
+          case '':
+          case undefined: conditions.push(value + ' != null'); break;
+          default:        throw 'Unknown operator ' + attribute.operator + ' in selector';
+        }
+      });
+    }
 
     return conditions.join(' && ');
   },
