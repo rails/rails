@@ -1367,7 +1367,8 @@ module ActiveRecord
                 table_index = join_dependency.table_aliases[aliased_table_name]
                 @aliased_table_name = @aliased_table_name[0..active_record.connection.table_alias_length-3] + "_#{table_index+1}" if table_index > 0
               end
-
+              join_dependency.table_aliases[aliased_table_name] += 1
+              
               if reflection.macro == :has_and_belongs_to_many || (reflection.macro == :has_many && reflection.options[:through])
                 @aliased_join_table_name = reflection.macro == :has_and_belongs_to_many ? reflection.options[:join_table] : reflection.through_reflection.klass.table_name
                 unless join_dependency.table_aliases[aliased_join_table_name].zero?
@@ -1377,7 +1378,6 @@ module ActiveRecord
                 end
                 join_dependency.table_aliases[aliased_join_table_name] += 1
               end
-              join_dependency.table_aliases[aliased_table_name] += 1
             end
 
             def association_join

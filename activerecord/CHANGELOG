@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed eager loading so that an aliased table cannot clash with a has_and_belongs_to_many join table [Rick]
+
 * Add support for :include to with_scope [andrew@redlinesoftware.com]
 
 * Support the use of public synonyms with the Oracle adapter; required ruby-oci8 v0.1.14 #4390 [schoenm@earthlink.net]
