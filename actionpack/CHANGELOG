@@ -1,4 +1,4 @@
-*SVN*
+*1.12.0* (March 27th, 2005)
 
 * Add documentation for respond_to. [Jamis Buck]
 
@@ -410,14 +410,14 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Added FormHelper#form_for and FormHelper#fields_for that makes it easier to work with forms for single objects also if they don't reside in instance variables [DHH]. Examples:
 
-  <% form_for :person => @person, :url => { :action => "update" } do |f| %>
+  <% form_for :person, @person, :url => { :action => "update" } do |f| %>
     First name: <%= f.text_field :first_name %>
     Last name : <%= f.text_field :last_name %>
     Biography : <%= f.text_area :biography %>
     Admin?    : <%= f.check_box :admin %>
   <% end %>
 
-  <% form_for :person => person, :url => { :action => "update" } do |person_form| %>
+  <% form_for :person, person, :url => { :action => "update" } do |person_form| %>
     First name: <%= person_form.text_field :first_name %>
     Last name : <%= person_form.text_field :last_name %>
     

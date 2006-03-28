@@ -1,4 +1,4 @@
-*SVN*
+*1.2.0* (March 27th, 2005)
 
 * Nil charset caused subject line to be improperly quoted in implicitly multipart messages #2662 [ehalvorsen+rails@runbox.com]
 
@@ -12,9 +12,11 @@
 
 * Make sure TMail#attachments includes anything with content-disposition of "attachment", regardless of content-type [Jamis Buck]
 
+
 *1.1.5* (December 13th, 2005)
 
 * Become part of Rails 1.0
+
 
 *1.1.4* (December 7th, 2005)
 

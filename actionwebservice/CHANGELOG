@@ -1,4 +1,4 @@
-*SVN*
+*1.1.0* (March 27th, 2005)
 
 * Make ActiveWebService::Struct type reloadable
 
@@ -23,6 +23,7 @@
 * Fix for incorrect casting of TrueClass/FalseClass instances (#2633, #3421).
 
 * Fix for incompatibility problems with SOAP4R 1.5.5 (#2553) [Kent Sibilev]
+
 
 *1.0.0* (December 13th, 2005)
 
