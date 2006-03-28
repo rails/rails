@@ -253,7 +253,7 @@ module ActiveRecord #:nodoc:
       super
     end
     
-    def self.reset_subclasses
+    def self.reset_subclasses #:nodoc:
       nonreloadables = []
       subclasses.each do |klass|
         unless klass.reloadable?
@@ -561,7 +561,7 @@ module ActiveRecord #:nodoc:
         reset_table_name
       end
 
-      def reset_table_name
+      def reset_table_name #:nodoc:
         name = "#{table_name_prefix}#{undecorated_table_name(base_class.name)}#{table_name_suffix}"
         set_table_name(name)
         name
@@ -573,7 +573,7 @@ module ActiveRecord #:nodoc:
         reset_primary_key
       end
 
-      def reset_primary_key
+      def reset_primary_key #:nodoc:
         key = 'id'
         case primary_key_prefix_type
           when :table_name
@@ -592,11 +592,11 @@ module ActiveRecord #:nodoc:
 
       # Lazy-set the sequence name to the connection's default.  This method
       # is only ever called once since set_sequence_name overrides it.
-      def sequence_name
+      def sequence_name #:nodoc:
         reset_sequence_name
       end
 
-      def reset_sequence_name
+      def reset_sequence_name #:nodoc:
         default = connection.default_sequence_name(table_name, primary_key)
         set_sequence_name(default)
         default
@@ -704,6 +704,7 @@ module ActiveRecord #:nodoc:
         @columns_hash ||= columns.inject({}) { |hash, column| hash[column.name] = column; hash }
       end
 
+      # Returns an array of column names as strings.
       def column_names
         @column_names ||= columns.map { |column| column.name }
       end
@@ -717,7 +718,7 @@ module ActiveRecord #:nodoc:
       # Returns a hash of all the methods added to query each of the columns in the table with the name of the method as the key
       # and true as the value. This makes it possible to do O(1) lookups in respond_to? to check if a given method for attribute
       # is available.
-      def column_methods_hash
+      def column_methods_hash #:nodoc:
         @dynamic_methods_hash ||= column_names.inject(Hash.new(false)) do |methods, attr|
           attr_name = attr.to_s
           methods[attr.to_sym]       = attr_name
@@ -729,7 +730,7 @@ module ActiveRecord #:nodoc:
       end
 
       # Contains the names of the generated reader methods.
-      def read_methods
+      def read_methods #:nodoc:
         @read_methods ||= Set.new
       end
 
@@ -1190,20 +1191,20 @@ module ActiveRecord #:nodoc:
         end
 
       protected
-        def subclasses
+        def subclasses #:nodoc:
           @@subclasses[self] ||= []
           @@subclasses[self] + extra = @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
         end
 
         # Test whether the given method and optional key are scoped.
-        def scoped?(method, key = nil)
+        def scoped?(method, key = nil) #:nodoc:
           if current_scoped_methods && (scope = current_scoped_methods[method])
             !key || scope.has_key?(key)
           end
         end
 
         # Retrieve the scope for the given method and optional key.
-        def scope(method, key = nil)
+        def scope(method, key = nil) #:nodoc:
           if current_scoped_methods && (scope = current_scoped_methods[method])
             key ? scope[key] : scope
           end
@@ -1225,7 +1226,7 @@ module ActiveRecord #:nodoc:
           alias_method :scoped_methods, :single_threaded_scoped_methods
         end
         
-        def current_scoped_methods
+        def current_scoped_methods #:nodoc:
           scoped_methods.last
         end
 
@@ -1254,7 +1255,7 @@ module ActiveRecord #:nodoc:
         end
 
         # Returns the name of the class descending directly from ActiveRecord in the inheritance hierarchy.
-        def class_name_of_active_record_descendant(klass)
+        def class_name_of_active_record_descendant(klass) #:nodoc:
           klass.base_class.name
         end
 
@@ -1276,13 +1277,13 @@ module ActiveRecord #:nodoc:
 
         alias_method :sanitize_conditions, :sanitize_sql
 
-        def replace_bind_variables(statement, values)
+        def replace_bind_variables(statement, values) #:nodoc:
           raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
           bound = values.dup
           statement.gsub('?') { quote_bound_value(bound.shift) }
         end
 
-        def replace_named_bind_variables(statement, bind_vars)
+        def replace_named_bind_variables(statement, bind_vars) #:nodoc:
           statement.gsub(/:(\w+)/) do
             match = $1.to_sym
             if bind_vars.include?(match)
@@ -1293,7 +1294,7 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def quote_bound_value(value)
+        def quote_bound_value(value) #:nodoc:
           if (value.respond_to?(:map) && !value.is_a?(String))
             value.map { |v| connection.quote(v) }.join(',')
           else
@@ -1301,24 +1302,24 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def raise_if_bind_arity_mismatch(statement, expected, provided)
+        def raise_if_bind_arity_mismatch(statement, expected, provided) #:nodoc:
           unless expected == provided
             raise PreparedStatementInvalid, "wrong number of bind variables (#{provided} for #{expected}) in: #{statement}"
           end
         end
 
-        def extract_options_from_args!(args)
+        def extract_options_from_args!(args) #:nodoc:
           args.last.is_a?(Hash) ? args.pop : {}
         end
 
         VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,
                                :order, :select, :readonly, :group, :from      ]
         
-        def validate_find_options(options)
+        def validate_find_options(options) #:nodoc:
           options.assert_valid_keys(VALID_FIND_OPTIONS)
         end
         
-        def set_readonly_option!(options)
+        def set_readonly_option!(options) #:nodoc:
           # Inherit :readonly from finder scope if set.  Otherwise,
           # if :joins is not blank then :readonly defaults to true.
           unless options.has_key?(:readonly)
@@ -1330,7 +1331,7 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def encode_quoted_value(value)
+        def encode_quoted_value(value) #:nodoc:
           quoted_value = connection.quote(value)
           quoted_value = "'#{quoted_value[1..-2].gsub(/\'/, "\\\\'")}'" if quoted_value.include?("\\\'") # (for ruby mode) " 
           quoted_value 
@@ -1604,11 +1605,12 @@ module ActiveRecord #:nodoc:
         @attributes.frozen?
       end
 
+      # Records loaded through joins with piggy-back attributes will be marked as read only as they cannot be saved and return true to this query.
       def readonly?
         @readonly == true
       end
 
-      def readonly!
+      def readonly! #:nodoc:
         @readonly = true
       end
 

@@ -1,5 +1,5 @@
 module ActiveRecord
-  module Calculations
+  module Calculations #:nodoc:
     CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct]
     def self.included(base)
       base.extend(ClassMethods)
@@ -143,83 +143,83 @@ module ActiveRecord
       end
 
       protected
-      def construct_calculation_sql(aggregate, aggregate_alias, options)
-        scope = scope(:find)
-        sql  = ["SELECT #{aggregate} AS #{aggregate_alias}"]
-        sql << ", #{options[:group_field]} AS #{options[:group_alias]}" if options[:group]
-        sql << " FROM #{table_name} "
-        add_joins!(sql, options, scope)
-        add_conditions!(sql, options[:conditions], scope)
-        sql << " GROUP BY #{options[:group_field]}" if options[:group]
-        sql << " HAVING #{options[:having]}" if options[:group] && options[:having]
-        sql << " ORDER BY #{options[:order]}" if options[:order]
-        sql.join
-      end
-
-      def execute_simple_calculation(operation, column_name, column, aggregate, aggregate_alias, options)
-        value     = connection.select_value(construct_calculation_sql(aggregate, aggregate_alias, options))
-        type_cast_calculated_value(value, column, operation)
-      end
-
-      def execute_grouped_calculation(operation, column_name, column, aggregate, aggregate_alias, options)
-        group_attr      = options[:group].to_s
-        association     = reflect_on_association(group_attr.to_sym)
-        associated      = association && association.macro == :belongs_to # only count belongs_to associations
-        group_field     = (associated ? "#{options[:group]}_id" : options[:group]).to_s
-        group_alias     = column_alias_for(group_field)
-        group_column    = column_for group_field
-        sql             = construct_calculation_sql(aggregate, aggregate_alias, options.merge(:group_field => group_field, :group_alias => group_alias))
-        calculated_data = connection.select_all(sql)
-
-        if association
-          key_ids     = calculated_data.collect { |row| row[group_alias] }
-          key_records = association.klass.base_class.find(key_ids)
-          key_records = key_records.inject({}) { |hsh, r| hsh.merge(r.id => r) }
+        def construct_calculation_sql(aggregate, aggregate_alias, options) #:nodoc:
+          scope = scope(:find)
+          sql  = ["SELECT #{aggregate} AS #{aggregate_alias}"]
+          sql << ", #{options[:group_field]} AS #{options[:group_alias]}" if options[:group]
+          sql << " FROM #{table_name} "
+          add_joins!(sql, options, scope)
+          add_conditions!(sql, options[:conditions], scope)
+          sql << " GROUP BY #{options[:group_field]}" if options[:group]
+          sql << " HAVING #{options[:having]}" if options[:group] && options[:having]
+          sql << " ORDER BY #{options[:order]}" if options[:order]
+          sql.join
         end
 
-        calculated_data.inject(OrderedHash.new) do |all, row|
-          key   = associated ? key_records[row[group_alias].to_i] : type_cast_calculated_value(row[group_alias], group_column)
-          value = row[aggregate_alias]
-          all << [key, type_cast_calculated_value(value, column, operation)]
+        def execute_simple_calculation(operation, column_name, column, aggregate, aggregate_alias, options) #:nodoc:
+          value     = connection.select_value(construct_calculation_sql(aggregate, aggregate_alias, options))
+          type_cast_calculated_value(value, column, operation)
         end
-      end
+
+        def execute_grouped_calculation(operation, column_name, column, aggregate, aggregate_alias, options) #:nodoc:
+          group_attr      = options[:group].to_s
+          association     = reflect_on_association(group_attr.to_sym)
+          associated      = association && association.macro == :belongs_to # only count belongs_to associations
+          group_field     = (associated ? "#{options[:group]}_id" : options[:group]).to_s
+          group_alias     = column_alias_for(group_field)
+          group_column    = column_for group_field
+          sql             = construct_calculation_sql(aggregate, aggregate_alias, options.merge(:group_field => group_field, :group_alias => group_alias))
+          calculated_data = connection.select_all(sql)
+
+          if association
+            key_ids     = calculated_data.collect { |row| row[group_alias] }
+            key_records = association.klass.base_class.find(key_ids)
+            key_records = key_records.inject({}) { |hsh, r| hsh.merge(r.id => r) }
+          end
+
+          calculated_data.inject(OrderedHash.new) do |all, row|
+            key   = associated ? key_records[row[group_alias].to_i] : type_cast_calculated_value(row[group_alias], group_column)
+            value = row[aggregate_alias]
+            all << [key, type_cast_calculated_value(value, column, operation)]
+          end
+        end
 
       private
-      def validate_calculation_options(operation, options = {})
-        if operation.to_s == 'count'
-          options.assert_valid_keys(CALCULATIONS_OPTIONS + [:include])
-        else
-          options.assert_valid_keys(CALCULATIONS_OPTIONS)
+        def validate_calculation_options(operation, options = {})
+          if operation.to_s == 'count'
+            options.assert_valid_keys(CALCULATIONS_OPTIONS + [:include])
+          else
+            options.assert_valid_keys(CALCULATIONS_OPTIONS)
+          end
         end
-      end
 
-      def select_aggregate(operation, column_name, options)
-        "#{operation}(#{'DISTINCT ' if options[:distinct]}#{column_name})"
-      end
-
-      # converts a given key to the value that the database adapter returns as
-      #
-      #   users.id #=> users_id
-      #   sum(id) #=> sum_id
-      #   count(distinct users.id) #=> count_distinct_users_id
-      #   count(*) #=> count_all
-      def column_alias_for(*keys)
-        keys.join(' ').downcase.gsub(/\*/, 'all').gsub(/\W+/, ' ').strip.gsub(/ +/, '_')
-      end
-
-      def column_for(field)
-        field_name = field.to_s.split('.').last
-        columns.detect { |c| c.name.to_s == field_name }
-      end
-
-      def type_cast_calculated_value(value, column, operation = nil)
-        operation = operation.to_s.downcase
-        case operation
-          when 'count' then value.to_i
-          when 'avg'   then value.to_f
-          else column ? column.type_cast(value) : value
+        def select_aggregate(operation, column_name, options)
+          "#{operation}(#{'DISTINCT ' if options[:distinct]}#{column_name})"
         end
-      end
+
+        # converts a given key to the value that the database adapter returns as
+        #
+        #   users.id #=> users_id
+        #   sum(id) #=> sum_id
+        #   count(distinct users.id) #=> count_distinct_users_id
+        #   count(*) #=> count_all
+        def column_alias_for(*keys)
+          keys.join(' ').downcase.gsub(/\*/, 'all').gsub(/\W+/, ' ').strip.gsub(/ +/, '_')
+        end
+
+        def column_for(field)
+          field_name = field.to_s.split('.').last
+          columns.detect { |c| c.name.to_s == field_name }
+        end
+
+        def type_cast_calculated_value(value, column, operation = nil)
+          operation = operation.to_s.downcase
+          case operation
+            when 'count' then value.to_i
+            when 'avg'   then value.to_f
+            else column ? column.type_cast(value) : value
+          end
+        end
     end
   end
 end

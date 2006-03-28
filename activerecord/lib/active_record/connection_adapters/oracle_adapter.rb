@@ -44,7 +44,11 @@ begin
       # Enable the id column to be bound into the sql later, by the adapter's insert method.
       # This is preferable to inserting the hard-coded value here, because the insert method
       # needs to know the id value explicitly.
-      alias :attributes_with_quotes_pre_oracle :attributes_with_quotes #:nodoc:
+      def attributes_with_quotes_pre_oracle #:nodoc:
+        attributes_with_quotes
+      end
+        
+
       def attributes_with_quotes(creating = true) #:nodoc:
         aq = attributes_with_quotes_pre_oracle creating
         if connection.class == ConnectionAdapters::OracleAdapter
@@ -542,7 +546,7 @@ begin
       @desc.attrGet(OCI_ATTR_PARAM)
     end
 
-    class OraObject
+    class OraObject #:nodoc:
       attr_reader :schema, :name
       def initialize(info)
         case info.attrGet(OCI_ATTR_PTYPE)

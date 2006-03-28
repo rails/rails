@@ -9,7 +9,7 @@ require 'active_record/associations/has_and_belongs_to_many_association'
 require 'active_record/deprecated_associations'
 
 module ActiveRecord
-  class HasManyThroughAssociationNotFoundError < ActiveRecordError
+  class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(reflection)
       @reflection = reflection
     end
@@ -19,7 +19,7 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughAssociationPolymorphicError < ActiveRecordError
+  class HasManyThroughAssociationPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(owner_class_name, reflection, source_reflection)
       @owner_class_name  = owner_class_name
       @reflection        = reflection
@@ -31,7 +31,7 @@ module ActiveRecord
     end
   end
 
-  class HasManyThroughSourceAssociationNotFoundError < ActiveRecordError
+  class HasManyThroughSourceAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(reflection)
       @reflection              = reflection
       @through_reflection      = reflection.through_reflection
@@ -44,7 +44,7 @@ module ActiveRecord
     end
   end
 
-  class EagerLoadPolymorphicError < ActiveRecordError
+  class EagerLoadPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(reflection)
       @reflection = reflection
     end

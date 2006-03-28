@@ -60,15 +60,15 @@ module ActiveRecord
     end
     
     class << self
-      def set_locking_column( value=nil, &block )
+      def set_locking_column(value = nil, &block)
         define_attr_method :locking_column, value, &block
       end
   
-      def locking_column
+      def locking_column #:nodoc:
         reset_locking_column
       end
   
-      def reset_locking_column
+      def reset_locking_column #:nodoc:
         default = 'lock_version'
         set_locking_column(default)
         default

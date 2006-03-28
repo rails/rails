@@ -38,7 +38,7 @@ module ActiveRecord
       end
      
       # set concurrency support flag (not thread safe, like most of the methods in this file)
-      def allow_concurrency=(threaded)
+      def allow_concurrency=(threaded) #:nodoc:
         logger.debug "allow_concurrency=#{threaded}" if logger
         return if @@allow_concurrency == threaded
         clear_all_cached_connections!
@@ -51,7 +51,7 @@ module ActiveRecord
         log_connections if logger
       end
       
-      def active_connection_name
+      def active_connection_name #:nodoc:
         @active_connection_name ||=
            if active_connections[name] || @@defined_connections[name]
              name
@@ -62,7 +62,7 @@ module ActiveRecord
            end
       end
 
-      def clear_active_connection_name
+      def clear_active_connection_name #:nodoc:
         @active_connection_name = nil
         subclasses.each { |klass| klass.clear_active_connection_name }
       end
@@ -88,7 +88,7 @@ module ActiveRecord
       end
 
       # Verify active connections.
-      def verify_active_connections!
+      def verify_active_connections! #:nodoc:
         if @@allow_concurrency
           remove_stale_cached_threads!(@@active_connections) do |name, conn|
             conn.disconnect!
@@ -244,7 +244,7 @@ module ActiveRecord
     end
 
     # Set the connection for the class.
-    def self.connection=(spec)
+    def self.connection=(spec) #:nodoc:
       if spec.kind_of?(ActiveRecord::ConnectionAdapters::AbstractAdapter)
         active_connections[name] = spec
       elsif spec.kind_of?(ConnectionSpecification)
@@ -257,7 +257,7 @@ module ActiveRecord
     end
 
     # connection state logging
-    def self.log_connections
+    def self.log_connections #:nodoc:
       if logger
         logger.info "Defined connections: #{@@defined_connections.inspect}"
         logger.info "Active connections: #{active_connections.inspect}"

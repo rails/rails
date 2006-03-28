@@ -6,7 +6,7 @@ module ActiveRecord
   #   rescue ActiveRecord::RecordInvalid => invalid
   #     puts invalid.record.errors
   #   end
-  class RecordInvalid < ActiveRecordError
+  class RecordInvalid < ActiveRecordError #:nodoc:
     attr_reader :record
     def initialize(record)
       @record = record
