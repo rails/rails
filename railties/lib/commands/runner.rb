@@ -24,4 +24,4 @@ ENV["RAILS_ENV"] = options[:environment]
 RAILS_ENV.replace(options[:environment]) if defined?(RAILS_ENV)
 
 require RAILS_ROOT + '/config/environment'
-eval(ARGV.first)
+ARGV.empty? ? puts("Usage: runner 'code' [options]") : eval(ARGV.first)
