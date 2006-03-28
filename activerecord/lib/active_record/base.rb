@@ -1614,7 +1614,67 @@ module ActiveRecord #:nodoc:
         @readonly = true
       end
 
-      # Turns this record into XML 
+      # Builds an XML document to represent the model.   Some configuration is
+      # availble through +options+, however more complicated cases should use 
+      # Builder.
+      #
+      # By default the generated XML document will include the processing 
+      # instruction and all object's attributes.  For example:
+      #    
+      #   <?xml version="1.0" encoding="UTF-8"?>
+      #   <topic>
+      #     <title>The First Topic</title>
+      #     <author-name>David</author-name>
+      #     <id type="integer">1</id>
+      #     <approved type="boolean">false</approved>
+      #     <replies-count type="integer">0</replies-count>
+      #     <bonus-time type="datetime">2000-01-01T08:28:00+12:00</bonus-time>
+      #     <written-on type="datetime">2003-07-16T09:28:00+1200</written-on>
+      #     <content>Have a nice day</content>
+      #     <author-email-address>david@loudthinking.com</author-email-address>
+      #     <parent-id></parent-id>
+      #     <last-read type="date">2004-04-15</last-read>
+      #   </topic>
+      #
+      # This behaviour can be controlled with :skip_attributes and :skip_instruct 
+      # for instance:
+      #
+      #   topic.to_xml(:skip_instruct => true, :skip_attributes => [ :id, bonus_time, :written_on, replies_count ])
+      #
+      #   <topic>
+      #     <title>The First Topic</title>
+      #     <author-name>David</author-name>
+      #     <approved type="boolean">false</approved>
+      #     <content>Have a nice day</content>
+      #     <author-email-address>david@loudthinking.com</author-email-address>
+      #     <parent-id></parent-id>
+      #     <last-read type="date">2004-04-15</last-read>
+      #   </topic>
+      # 
+      # To include first level associations use :include
+      #
+      #   firm.to_xml :include => [ :account, :clients ]
+      #
+      #   <?xml version="1.0" encoding="UTF-8"?>
+      #   <firm>
+      #     <id type="integer">1</id>
+      #     <rating type="integer">1</rating>
+      #     <name>37signals</name>
+      #     <clients>
+      #       <client>
+      #         <rating type="integer">1</rating>
+      #         <name>Summit</name>
+      #       </client>
+      #       <client>
+      #         <rating type="integer">1</rating>
+      #         <name>Microsoft</name>
+      #       </client>
+      #     </clients>
+      #     <account>
+      #       <id type="integer">1</id>
+      #       <credit-limit type="integer">50</credit-limit>
+      #     </account>
+      #   </firm>
       def to_xml(options = {})
         options[:root]    ||= self.class.to_s.underscore
         options[:except]    = Array(options[:except]) << self.class.inheritance_column unless options[:only] # skip type column
