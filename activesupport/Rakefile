@@ -29,7 +29,7 @@ dist_dirs = [ "lib", "test"]
 Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Active Support -- Utility classes and standard library extensions from Rails"
-  rdoc.options << '--line-numbers' << '--inline-source' << '--main README'
+  rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/active_support.rb')

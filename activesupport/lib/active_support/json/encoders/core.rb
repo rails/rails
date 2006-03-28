@@ -1,6 +1,6 @@
 module ActiveSupport
   module JSON #:nodoc:
-    module Encoders
+    module Encoders #:nodoc:
       define_encoder Object do |object|
         object.instance_values.to_json
       end

@@ -2,11 +2,12 @@ require 'active_support/json/encoders'
 
 module ActiveSupport
   module JSON #:nodoc:
-    class CircularReferenceError < StandardError; end
+    class CircularReferenceError < StandardError #:nodoc:
+    end
     # returns the literal string as its JSON encoded form.  Useful for passing javascript variables into functions.
     #
     # page.call 'Element.show', ActiveSupport::JSON::Variable.new("$$(#items li)")
-    class Variable < String
+    class Variable < String #:nodoc:
       def to_json
         self
       end
