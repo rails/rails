@@ -65,16 +65,13 @@ module ActionWebService
               when :xmlrpc
                 @protocol = Protocol::XmlRpc::XmlRpcProtocol.create(self)
               end
-              @invocation_cgi = request.respond_to?(:cgi) ? request.cgi : nil
               bm = Benchmark.measure do
                 @protocol.register_api(@scaffold_service.api)
                 post_params = params['method_params'] ? params['method_params'].dup : nil
                 params = []
-                if @scaffold_method.expects
-                  @scaffold_method.expects.length.times do |i|
-                    params << post_params[i.to_s]
-                  end
-                end
+                @scaffold_method.expects.each_with_index do |spec, i|
+                  params << post_params[i.to_s]                                            
+                end if @scaffold_method.expects
                 params = @scaffold_method.cast_expects(params)
                 method_name = public_method_name(@scaffold_service.name, @scaffold_method.public_name)
                 @method_request_xml = @protocol.encode_request(method_name, params, @scaffold_method.expects)
@@ -130,14 +127,8 @@ module ActionWebService
             end
 
             def reset_invocation_response
-              template = response.template
-              if @invocation_cgi
-                @response = ::ActionController::CgiResponse.new(@invocation_cgi)
-              else
-                @response = ::ActionController::TestResponse.new
-              end
-              response.template = template
-              @performed_render = false
+              erase_render_results
+              @response.headers = ::ActionController::AbstractResponse::DEFAULT_HEADERS.merge("cookie" => [])
             end
 
             def public_method_name(service_name, method_name)
@@ -173,18 +164,21 @@ module ActionWebService
     end
 
     module Helpers # :nodoc:
-      def method_parameter_input_fields(method, type, field_name_base)
+      def method_parameter_input_fields(method, type, field_name_base, idx, was_structured=false)
         if type.array?
           return content_tag('em', "Typed array input fields not supported yet (#{type.name})")
         end
         if type.structured?
+          return content_tag('em', "Nested structural types not supported yet (#{type.name})") if was_structured
           parameters = ""
           type.each_member do |member_name, member_type|
             label = method_parameter_label(member_name, member_type)
             nested_content = method_parameter_input_fields(
               method,
               member_type,
-              field_name_base + '[' + member_name.to_s + ']')
+              "#{field_name_base}[#{idx}][#{member_name}]",
+              idx,
+              true)
             if member_type.custom?
               parameters << content_tag('li', label)
               parameters << content_tag('ul', nested_content)
@@ -194,20 +188,35 @@ module ActionWebService
           end
           content_tag('ul', parameters)
         else
+          # If the data source was structured previously we already have the index set          
+          field_name_base = "#{field_name_base}[#{idx}]" unless was_structured
+          
           case type.type
           when :int
-            text_field_tag field_name_base
+            text_field_tag "#{field_name_base}"
           when :string
-            text_field_tag field_name_base
+            text_field_tag "#{field_name_base}"
+          when :base64
+            text_area_tag "#{field_name_base}", nil, :size => "40x5"
           when :bool
-            radio_button_tag(field_name_base, "true") + " True" +
-            radio_button_tag(field_name_base, "false") + "False"
+            radio_button_tag("#{field_name_base}", "true") + " True" +
+            radio_button_tag("#{field_name_base}", "false") + "False"
           when :float
-            text_field_tag field_name_base
-          when :time
-            select_datetime Time.now, 'name' => field_name_base
+            text_field_tag "#{field_name_base}"
+          when :time, :datetime
+            time = Time.now
+            i = 0
+            %w|year month day hour minute second|.map do |name|
+              i += 1
+              send("select_#{name}", time, :prefix => "#{field_name_base}[#{i}]", :discard_type => true)
+            end.join
           when :date
-            select_date Date.today, 'name' => field_name_base
+            date = Date.today
+            i = 0
+            %w|year month day|.map do |name|
+              i += 1
+              send("select_#{name}", date, :prefix => "#{field_name_base}[#{i}]", :discard_type => true)
+            end.join
           end
         end
       end

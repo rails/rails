@@ -31,10 +31,13 @@
 #     look like subversion repositories with plugins:
 #     http://wiki.rubyonrails.org/rails/pages/Plugins
 # 
+#   * Unless you specify that you want to use svn, script/plugin uses plain ole
+#     HTTP for downloads.  The following bullets are true if you specify
+#     that you want to use svn.
+#
 #   * If `vendor/plugins` is under subversion control, the script will
 #     modify the svn:externals property and perform an update. You can
-#     use normal subversion commands to keep the plugins up to date or
-#     you can use the built in update command.
+#     use normal subversion commands to keep the plugins up to date.
 # 
 #   * Or, if `vendor/plugins` is not under subversion control, the
 #     plugin is pulled via `svn checkout` or `svn export` but looks
@@ -58,7 +61,7 @@ class RailsEnvironment
   def initialize(dir)
     @root = dir
   end
-  
+
   def self.find(dir=nil)
     dir ||= pwd
     while dir.length > 1
@@ -93,21 +96,22 @@ class RailsEnvironment
   end
  
   def use_svn?
-    `svn --version` rescue nil
+    require 'active_support/core_ext/kernel'
+    silence_stderr {`svn --version` rescue nil}
     !$?.nil? && $?.success?
   end
 
   def use_externals?
-    File.directory?("#{root}/vendor/plugins/.svn")
+    use_svn? && File.directory?("#{root}/vendor/plugins/.svn")
   end
-  
+
   def use_checkout?
     # this is a bit of a guess. we assume that if the rails environment
     # is under subversion than they probably want the plugin checked out
     # instead of exported. This can be overridden on the command line
     File.directory?("#{root}/.svn")
   end
-  
+
   def best_install_method
     return :http unless use_svn?
     case
@@ -119,12 +123,12 @@ class RailsEnvironment
 
   def externals
     return [] unless use_externals?
-    ext = `svn propget svn:externals #{root}/vendor/plugins`
+    ext = `svn propget svn:externals "#{root}/vendor/plugins"`
     ext.reject{ |line| line.strip == '' }.map do |line| 
       line.strip.split(/\s+/, 2) 
     end
   end
-  
+
   def externals=(items)
     unless items.is_a? String
       items = items.map{|name,uri| "#{name.ljust(29)} #{uri.chomp('/')}"}.join("\n")
@@ -132,7 +136,7 @@ class RailsEnvironment
     Tempfile.open("svn-set-prop") do |file|
       file.write(items)
       file.flush
-      system("svn propset -q svn:externals -F #{file.path} #{root}/vendor/plugins")
+      system("svn propset -q svn:externals -F #{file.path} \"#{root}/vendor/plugins\"")
     end
   end
   
@@ -155,40 +159,73 @@ class Plugin
       or rails_env.externals.detect{ |name, repo| self.uri == repo }
   end
   
-  def install(method=nil)
+  def install(method=nil, options = {})
     method ||= rails_env.best_install_method?
+
+    uninstall if installed? and options[:force]
+
     unless installed?
-      send("install_using_#{method}")
+      send("install_using_#{method}", options)
+      run_install_hook
     else
-      puts "already installed: #{name} (#{uri})"
+      puts "already installed: #{name} (#{uri}).  pass --force to reinstall"
     end
   end
-  
+
+  def uninstall
+    path = "#{rails_env.root}/vendor/plugins/#{name}"
+    if File.directory?(path)
+      puts "Removing 'vendor/plugins/#{name}'" if $verbose
+      rm_r path
+    else
+      puts "Plugin doesn't exist: #{path}"
+    end
+    # clean up svn:externals
+    externals = rails_env.externals
+    externals.reject!{|n,u| name == n or name == u}
+    rails_env.externals = externals
+  end
+
   private 
-    def install_using_export
-      root = rails_env.root
-      mkdir_p "#{root}/vendor/plugins"
-      system("svn export #{uri} #{root}/vendor/plugins/#{name}")
+
+    def run_install_hook
+      install_hook_file = "#{rails_env.root}/vendor/plugins/#{name}/install.rb"
+      load install_hook_file if File.exists? install_hook_file
+    end
+
+    def install_using_export(options = {})
+      svn_command :export, options
     end
     
-    def install_using_checkout
-      root = rails_env.root
-      mkdir_p "#{root}/vendor/plugins"
-      system("svn checkout #{uri} #{root}/vendor/plugins/#{name}")
+    def install_using_checkout(options = {})
+      svn_command :checkout, options
     end
     
-    def install_using_externals
+    def install_using_externals(options = {})
       externals = rails_env.externals
       externals.push([@name, uri])
       rails_env.externals = externals
-      install_using_checkout
+      install_using_checkout(options)
     end
 
-    def install_using_http
+    def install_using_http(options = {})
       root = rails_env.root
       mkdir_p "#{root}/vendor/plugins"
       Dir.chdir "#{root}/vendor/plugins"
-      RecursiveHTTPFetcher.new(uri).fetch
+      puts "fetching from '#{uri}'" if $verbose
+      fetcher = RecursiveHTTPFetcher.new(uri)
+      fetcher.quiet = true if options[:quiet]
+      fetcher.fetch
+    end
+
+    def svn_command(cmd, options = {})
+      root = rails_env.root
+      mkdir_p "#{root}/vendor/plugins"
+      base_cmd = "svn #{cmd} #{uri} \"#{root}/vendor/plugins/#{name}\""
+      base_cmd += ' -q' if options[:quiet] and not $verbose
+      base_cmd += " -r #{options[:revision]}" if options[:revision]
+      puts base_cmd if $verbose
+      system(base_cmd)
     end
 
     def guess_name(url)
@@ -239,7 +276,6 @@ class Repositories
         return plugin if plugin.name == name
       end
     end
-    
     return nil
   end
   
@@ -298,8 +334,7 @@ class Repository
   attr_reader :uri, :plugins
   
   def initialize(uri)
-    uri << "/" unless uri =~ /\/$/
-    @uri = uri
+    @uri = uri.chomp('/') << "/"
     @plugins = nil
   end
   
@@ -310,7 +345,7 @@ class Repository
         puts index
       end
 
-      @plugins = index.split(/\n/).reject{ |line| line !~ /\/$/ }
+      @plugins = index.reject{ |line| line !~ /\/$/ }
       @plugins.map! { |name| Plugin.new(File.join(@uri, name), name) }
     end
 
@@ -323,7 +358,7 @@ class Repository
   
   private
     def index
-      @index ||= `svn ls #{@uri}`
+      @index ||= RecursiveHTTPFetcher.new(@uri).ls
     end
 end
 
@@ -411,7 +446,7 @@ module Commands
         command.parse!(sub)
       else
         puts "Unknown command: #{command}"
-        puts "Try: #{$0} --help"
+        puts options
         exit 1
       end
     end
@@ -435,7 +470,6 @@ module Commands
       @sources = []
       @local = false
       @remote = true
-      @details = false
     end
     
     def options
@@ -453,8 +487,6 @@ module Commands
         o.on(         "--remote",
                       "List remotely availabled plugins. This is the default behavior",
                       "unless --local is provided.") {|@remote|}
-        o.on(         "-l", "--long",
-                      "Long listing / details about each plugin.") {|@details|}
       end
     end
     
@@ -469,14 +501,12 @@ module Commands
         @sources.map{|r| r.plugins}.flatten.each do |plugin| 
           if @local or !plugin.installed?
             puts plugin.to_s
-            system "svn info #{plugin.uri}" if @details
           end
         end
       else
         cd "#{@base_command.environment.root}/vendor/plugins"
         Dir["*"].select{|p| File.directory?(p)}.each do |name| 
           puts name
-          system "svn info #{name}" if @details
         end
       end
     end
@@ -644,7 +674,8 @@ module Commands
   class Install
     def initialize(base_command)
       @base_command = base_command
-      @method = :export
+      @method = :http
+      @options = { :quiet => false, :revision => nil, :force => false }
     end
     
     def options
@@ -660,6 +691,14 @@ module Commands
         o.on(         "-o", "--checkout",
                       "Use svn checkout to grab the plugin.",
                       "Enables updating but does not add a svn:externals entry.") { |v| @method = :checkout }
+        o.on(         "-q", "--quiet",
+                      "Suppresses the output from installation.",
+                      "Ignored if -v is passed (./script/plugin -v install ...)") { |v| @options[:quiet] = true }
+        o.on(         "-r REVISION", "--revision REVISION",
+                      "Checks out the given revision from subversion.",
+                      "Ignored if subversion is not used.") { |v| @options[:revision] = v }
+        o.on(         "-f", "--force",
+                      "Reinstalls a plugin if it's already installed.") { |v| @options[:force] = true }
         o.separator   ""
         o.separator   "You can specify plugin names as given in 'plugin list' output or absolute URLs to "
         o.separator   "a plugin repository."
@@ -672,8 +711,8 @@ module Commands
       case
       when (best == :http and @method != :http)
         msg = "Cannot install using subversion because `svn' cannot be found in your PATH"
-      when (best == :export and (@method != :export and method != :http))
-        msg = "Cannot install using #{requested} because this project is not under subversion."
+      when (best == :export and (@method != :export and @method != :http))
+        msg = "Cannot install using #{@method} because this project is not under subversion."
       when (best != :externals and @method == :externals)
         msg = "Cannot install using externals because vendor/plugins is not under subversion."
       end
@@ -691,11 +730,11 @@ module Commands
       puts "Plugins will be installed using #{install_method}" if $verbose
       args.each do |name| 
         if name =~ /\// then
-          ::Plugin.new(name).install(install_method)
+          ::Plugin.new(name).install(install_method, @options)
         else
           plugin = Repositories.instance.find_plugin(name)
           unless plugin.nil?
-            plugin.install(install_method)
+            plugin.install(install_method, @options)
           else
             puts "Plugin not found: #{name}"
             exit 1
@@ -705,6 +744,40 @@ module Commands
     end
   end
 
+  class Update
+    def initialize(base_command)
+      @base_command = base_command
+    end
+   
+    def options
+      OptionParser.new do |o|
+        o.set_summary_indent('  ')
+        o.banner =    "Usage: #{@base_command.script_name} update [name [name]...]"
+        o.on(         "-r REVISION", "--revision REVISION",
+                      "Checks out the given revision from subversion.",
+                      "Ignored if subversion is not used.") { |v| @revision = v }
+        o.define_head "Update plugins."
+      end
+    end
+   
+    def parse!(args)
+      options.parse!(args)
+      root = @base_command.environment.root
+      cd root
+      args = Dir["vendor/plugins/*"].map do |f|
+        File.directory?("#{f}/.svn") ? File.basename(f) : nil
+      end.compact if args.empty?
+      cd "vendor/plugins"
+      args.each do |name|
+        if File.directory?(name)
+          puts "Updating plugin: #{name}"
+          system("svn #{$verbose ? '' : '-q'} up \"#{name}\" #{@revision ? "-r #{@revision}" : ''}")
+        else
+          puts "Plugin doesn't exist: #{name}"
+        end
+      end
+    end
+  end
 
   class Remove
     def initialize(base_command)
@@ -723,47 +796,7 @@ module Commands
       options.parse!(args)
       root = @base_command.environment.root
       args.each do |name|
-        path = "#{root}/vendor/plugins/#{name}"
-        if File.directory?(path)
-          rm_r path
-        else
-          puts "Plugin doesn't exist: #{path}"
-        end
-        # clean up svn:externals
-        externals = @base_command.environment.externals
-        externals.reject!{|n,u| name == n or name == u}
-        @base_command.environment.externals = externals
-      end
-    end
-  end
-
-  class Update
-    def initialize(base_command)
-      @base_command = base_command
-    end
-    
-    def options
-      OptionParser.new do |o|
-        o.set_summary_indent('  ')
-        o.banner =    "Usage: #{@base_command.script_name} update [name [name]...]"
-        o.define_head "Update plugins."
-      end
-    end
-    
-    def parse!(args)
-      options.parse!(args)
-      root = @base_command.environment.root
-      args = Dir["#{root}/vendor/plugins/*"].map do |f|
-        File.directory?("#{f}/.svn") ? File.basename(f) : nil
-      end.compact if args.empty?
-      cd "#{root}/vendor/plugins"
-      args.each do |name|
-        if File.directory?(name)
-          puts "Updating plugin: #{name}"
-          system("svn #{$verbose ? '' : '-q'} up #{name}")
-        else
-          puts "Plugin doesn't exist: #{name}"
-        end
+        ::Plugin.new(name).uninstall
       end
     end
   end
@@ -771,9 +804,19 @@ module Commands
 end
  
 class RecursiveHTTPFetcher
+  attr_accessor :quiet
   def initialize(urls_to_fetch, cwd = ".")
     @cwd = cwd
     @urls_to_fetch = urls_to_fetch.to_a
+    @quiet = false
+  end
+
+  def ls
+    @urls_to_fetch.collect do |url|
+      open(url) do |stream|
+        links("", stream.read)
+      end rescue nil
+    end.flatten
   end
 
   def push_d(dir)
@@ -796,7 +839,7 @@ class RecursiveHTTPFetcher
   end
   
   def download(link)
-    puts "+ #{File.join(@cwd, File.basename(link))}"
+    puts "+ #{File.join(@cwd, File.basename(link))}" unless @quiet
     open(link) do |stream|
       File.open(File.join(@cwd, File.basename(link)), "wb") do |file|
         file.write(stream.read)

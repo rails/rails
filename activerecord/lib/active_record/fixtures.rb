@@ -9,6 +9,9 @@ module YAML #:nodoc:
   end
 end
 
+class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
+end
+
 # Fixtures are a way of organizing data that you want to test against; in short, sample data. They come in 3 flavours:
 #
 #   1.  YAML fixtures
@@ -220,8 +223,10 @@ class Fixtures < YAML::Omap
     if load_instances
       ActiveRecord::Base.silence do
         fixtures.each do |name, fixture|
-          if model = fixture.find
-            object.instance_variable_set "@#{name}", model
+          begin
+            object.instance_variable_set "@#{name}", fixture.find
+          rescue FixtureClassNotFound
+            nil
           end
         end
       end
@@ -237,14 +242,13 @@ class Fixtures < YAML::Omap
   cattr_accessor :all_loaded_fixtures
   self.all_loaded_fixtures = {}
 
-  def self.create_fixtures(fixtures_directory, *table_names)
-    table_names = table_names.flatten.map { |n| n.to_s }
+  def self.create_fixtures(fixtures_directory, table_names, class_names = {})
+    table_names = [table_names].flatten.map { |n| n.to_s }
     connection = block_given? ? yield : ActiveRecord::Base.connection
-
     ActiveRecord::Base.silence do
       fixtures_map = {}
       fixtures = table_names.map do |table_name|
-        fixtures_map[table_name] = Fixtures.new(connection, File.split(table_name.to_s).last, File.join(fixtures_directory, table_name.to_s))
+        fixtures_map[table_name] = Fixtures.new(connection, File.split(table_name.to_s).last, class_names[table_name.to_sym], File.join(fixtures_directory, table_name.to_s))
       end               
       all_loaded_fixtures.merge! fixtures_map  
 
@@ -267,10 +271,10 @@ class Fixtures < YAML::Omap
 
   attr_reader :table_name
 
-  def initialize(connection, table_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
+  def initialize(connection, table_name, class_name, fixture_path, file_filter = DEFAULT_FILTER_RE)
     @connection, @table_name, @fixture_path, @file_filter = connection, table_name, fixture_path, file_filter
-
-    @class_name = ActiveRecord::Base.pluralize_table_names ? @table_name.singularize.camelize : @table_name.camelize
+    @class_name = class_name || 
+                  (ActiveRecord::Base.pluralize_table_names ? @table_name.singularize.camelize : @table_name.camelize)
     @table_name = ActiveRecord::Base.table_name_prefix + @table_name + ActiveRecord::Base.table_name_suffix
     read_fixture_files
   end
@@ -286,11 +290,18 @@ class Fixtures < YAML::Omap
   end
 
   private
+
     def read_fixture_files
       if File.file?(yaml_file_path)
         # YAML fixtures
         begin
-          if yaml = YAML::load(erb_render(IO.read(yaml_file_path)))
+          yaml_string = ""
+          Dir["#{@fixture_path}/**/*.yml"].select {|f| test(?f,f) }.each do |subfixture_path|
+            yaml_string << IO.read(subfixture_path)
+          end
+          yaml_string << IO.read(yaml_file_path)
+
+          if yaml = YAML::load(erb_render(yaml_string))
             yaml = yaml.value if yaml.respond_to?(:type_id) and yaml.respond_to?(:value)
             yaml.each do |name, data|
               self[name] = Fixture.new(data, @class_name)
@@ -385,9 +396,11 @@ class Fixture #:nodoc:
   end
 
   def find
-    if Object.const_defined?(@class_name)
-      klass = Object.const_get(@class_name)
+    klass = @class_name.is_a?(Class) ? @class_name : Object.const_get(@class_name) rescue nil
+    if klass
       klass.find(self[klass.primary_key])
+    else
+      raise FixtureClassNotFound, "The class #{@class_name.inspect} was not found."
     end
   end
 
@@ -416,6 +429,7 @@ module Test #:nodoc:
     class TestCase #:nodoc:
       cattr_accessor :fixture_path
       class_inheritable_accessor :fixture_table_names
+      class_inheritable_accessor :fixture_class_names
       class_inheritable_accessor :use_transactional_fixtures
       class_inheritable_accessor :use_instantiated_fixtures   # true, false, or :no_instances
       class_inheritable_accessor :pre_loaded_fixtures
@@ -424,9 +438,16 @@ module Test #:nodoc:
       self.use_transactional_fixtures = false
       self.use_instantiated_fixtures = true
       self.pre_loaded_fixtures = false
-
+      
+      self.fixture_class_names = {}
+      
       @@already_loaded_fixtures = {}
-
+      self.fixture_class_names = {}
+      
+      def self.set_fixture_class(class_names = {})
+        self.fixture_class_names = self.fixture_class_names.merge(class_names)
+      end
+      
       def self.fixtures(*table_names)
         table_names = table_names.flatten.map { |n| n.to_s }
         self.fixture_table_names |= table_names
@@ -453,7 +474,11 @@ module Test #:nodoc:
             force_reload = optionals.shift
             @fixture_cache[table_name] ||= Hash.new
             @fixture_cache[table_name][fixture] = nil if force_reload
-            @fixture_cache[table_name][fixture] ||= @loaded_fixtures[table_name][fixture.to_s].find
+            if @loaded_fixtures[table_name][fixture.to_s]
+              @fixture_cache[table_name][fixture] ||= @loaded_fixtures[table_name][fixture.to_s].find
+            else
+              raise StandardError, "No fixture with name '#{fixture}' found for table '#{table_name}'"
+            end
           end
         end
       end
@@ -508,7 +533,7 @@ module Test #:nodoc:
           ActiveRecord::Base.connection.rollback_db_transaction
           ActiveRecord::Base.unlock_mutex
         end
-        ActiveRecord::Base.clear_connection_cache!
+        ActiveRecord::Base.verify_active_connections!
       end
 
       alias_method :teardown, :teardown_with_fixtures
@@ -537,7 +562,7 @@ module Test #:nodoc:
       private
         def load_fixtures
           @loaded_fixtures = {}
-          fixtures = Fixtures.create_fixtures(fixture_path, fixture_table_names)
+          fixtures = Fixtures.create_fixtures(fixture_path, fixture_table_names, fixture_class_names)
           unless fixtures.nil?
             if fixtures.instance_of?(Fixtures)
               @loaded_fixtures[fixtures.table_name] = fixtures

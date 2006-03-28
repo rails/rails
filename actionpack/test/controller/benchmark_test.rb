@@ -1,17 +1,14 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 require 'test/unit'
 
-# Provide a static version of the Controllers module instead of the auto-loading version.
-# We don't want these tests to fail when dependencies are to blame.
-module Controllers
-  class BenchmarkedController < ActionController::Base
-    def public_action
-      render :nothing => true
-    end
+# Provide some static controllers.
+class BenchmarkedController < ActionController::Base
+  def public_action
+    render :nothing => true
+  end
 
-    def rescue_action(e)
-      raise e
-    end
+  def rescue_action(e)
+    raise e
   end
 end
 
@@ -22,7 +19,7 @@ class BenchmarkTest < Test::Unit::TestCase
   end
 
   def setup
-    @controller = Controllers::BenchmarkedController.new
+    @controller = BenchmarkedController.new
     # benchmark doesn't do anything unless a logger is set
     @controller.logger = MockLogger.new
     @request, @response = ActionController::TestRequest.new, ActionController::TestResponse.new

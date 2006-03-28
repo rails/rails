@@ -21,6 +21,8 @@ module ActiveRecord #:nodoc:
   end
   class RecordNotFound < ActiveRecordError #:nodoc:
   end
+  class RecordNotSaved < ActiveRecordError #:nodoc:
+  end
   class StatementInvalid < ActiveRecordError #:nodoc:
   end
   class PreparedStatementInvalid < ActiveRecordError #:nodoc:
@@ -242,22 +244,16 @@ module ActiveRecord #:nodoc:
     # Accepts a logger conforming to the interface of Log4r or the default Ruby 1.8+ Logger class, which is then passed
     # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
     cattr_accessor :logger
-
+    
+    include Reloadable::Subclasses
+    
     def self.inherited(child) #:nodoc:
       @@subclasses[self] ||= []
       @@subclasses[self] << child
       super
     end
     
-    # Allow all subclasses of AR::Base to be reloaded in dev mode, unless they
-    # explicitly decline the honor. USE WITH CAUTION. Only AR subclasses kept
-    # in the framework should use the flag, so #reset_subclasses and so forth
-    # leave it alone.
-    def self.reloadable? #:nodoc:
-      true
-    end
-
-    def self.reset_subclasses
+    def self.reset_subclasses #:nodoc:
       nonreloadables = []
       subclasses.each do |klass|
         unless klass.reloadable?
@@ -310,12 +306,12 @@ module ActiveRecord #:nodoc:
     # This is set to :local by default.
     cattr_accessor :default_timezone
     @@default_timezone = :local
-    
+
     # Determines whether or not to use a connection for each thread, or a single shared connection for all threads.
-    # Defaults to true; Railties' WEBrick server sets this to false.
+    # Defaults to false. Set to true if you're writing a threaded application.
     cattr_accessor :allow_concurrency
-    @@allow_concurrency = true
-    
+    @@allow_concurrency = false
+
     # Determines whether to speed up access by generating optimized reader
     # methods to avoid expensive calls to method_missing when accessing
     # attributes by name. You might want to set this to false in development
@@ -330,7 +326,7 @@ module ActiveRecord #:nodoc:
     # supports migrations.  Use :ruby if you want to have different database
     # adapters for, e.g., your development and test environments.
     cattr_accessor :schema_format 
-    @@schema_format = :sql
+    @@schema_format = :ruby
 
     class << self # Class methods
       # Find operates with three different retrieval approaches:
@@ -377,53 +373,16 @@ module ActiveRecord #:nodoc:
       #   Person.find(:all, :group => "category")
       def find(*args)
         options = extract_options_from_args!(args)
-
-        # Inherit :readonly from finder scope if set.  Otherwise,
-        # if :joins is not blank then :readonly defaults to true.
-        unless options.has_key?(:readonly)
-          if scoped?(:find, :readonly)
-            options[:readonly] = scope(:find, :readonly)
-          elsif !options[:joins].blank?
-            options[:readonly] = true
-          end
-        end
+        validate_find_options(options)
+        set_readonly_option!(options)
 
         case args.first
-          when :first
-            find(:all, options.merge(options[:include] ? { } : { :limit => 1 })).first
-          when :all
-            records = options[:include] ? find_with_associations(options) : find_by_sql(construct_finder_sql(options))
-            records.each { |record| record.readonly! } if options[:readonly]
-            records
-          else
-            return args.first if args.first.kind_of?(Array) && args.first.empty?
-            expects_array = args.first.kind_of?(Array)
-            
-            conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
-
-            ids = args.flatten.compact.uniq
-            case ids.size
-              when 0
-                raise RecordNotFound, "Couldn't find #{name} without an ID#{conditions}"
-              when 1
-                if result = find(:first, options.merge({ :conditions => "#{table_name}.#{primary_key} = #{sanitize(ids.first)}#{conditions}" }))
-                  return expects_array ? [ result ] : result
-                else
-                  raise RecordNotFound, "Couldn't find #{name} with ID=#{ids.first}#{conditions}"
-                end
-              else
-                # Find multiple ids
-                ids_list = ids.map { |id| sanitize(id) }.join(',')
-                result   = find(:all, options.merge({ :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}"}))
-                if result.size == ids.size
-                  return result
-                else
-                  raise RecordNotFound, "Couldn't find all #{name.pluralize} with IDs (#{ids_list})#{conditions}"
-                end
-            end
+          when :first then find_initial(options)
+          when :all   then find_every(options)
+          else             find_from_ids(args, options)
         end
       end
-
+      
       # Works like find(:all), but requires a complete SQL string. Examples:
       #   Post.find_by_sql "SELECT p.*, c.author FROM posts p, comments c WHERE p.id = c.post_id"
       #   Post.find_by_sql ["SELECT * FROM posts WHERE author = ? AND created > ?", author_id, start_date]
@@ -444,9 +403,8 @@ module ActiveRecord #:nodoc:
         if attributes.is_a?(Array)
           attributes.collect { |attr| create(attr) }
         else
-          attributes.reverse_merge!(scope(:create)) if scoped?(:create)
-
           object = new(attributes)
+          scope(:create).each { |att,value| object.send("#{att}=", value) } if scoped?(:create)
           object.save
           object
         end
@@ -454,6 +412,16 @@ module ActiveRecord #:nodoc:
 
       # Finds the record from the passed +id+, instantly saves it with the passed +attributes+ (if the validation permits it),
       # and returns it. If the save fails under validations, the unsaved object is still returned.
+      #
+      # The arguments may also be given as arrays in which case the update method is called for each pair of +id+ and 
+      # +attributes+ and an array of objects is returned.
+      #
+      # Example of updating one record:
+      #   Person.update(15, {:user_name => 'Samuel', :group => 'expert'})
+      # 
+      # Example of updating multiple records:
+      #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy"} } 	
+      #   Person.update(people.keys, people.values)
       def update(id, attributes)
         if id.is_a?(Array)
           idx = -1
@@ -482,7 +450,7 @@ module ActiveRecord #:nodoc:
       #   Billing.update_all "category = 'authorized', approved = 1", "author = 'David'"
       def update_all(updates, conditions = nil)
         sql  = "UPDATE #{table_name} SET #{sanitize_sql(updates)} "
-        add_conditions!(sql, conditions)
+        add_conditions!(sql, conditions, scope(:find))
         connection.update(sql, "#{name} Update")
       end
 
@@ -498,17 +466,8 @@ module ActiveRecord #:nodoc:
       #   Post.delete_all "person_id = 5 AND (category = 'Something' OR category = 'Else')"
       def delete_all(conditions = nil)
         sql = "DELETE FROM #{table_name} "
-        add_conditions!(sql, conditions)
+        add_conditions!(sql, conditions, scope(:find))
         connection.delete(sql, "#{name} Delete all")
-      end
-
-      # Returns the number of records that meet the +conditions+. Zero is returned if no records match. Example:
-      #   Product.count "sales > 1"
-      def count(conditions = nil, joins = nil)
-        sql  = "SELECT COUNT(*) FROM #{table_name} "
-        sql << " #{joins} " if joins
-        add_conditions!(sql, conditions)
-        count_by_sql(sql)
       end
 
       # Returns the result of an SQL statement that should only include a COUNT(*) in the SELECT part.
@@ -531,6 +490,7 @@ module ActiveRecord #:nodoc:
       def decrement_counter(counter_name, id)
         update_all "#{counter_name} = #{counter_name} - 1", "#{primary_key} = #{quote(id)}"
       end
+
 
       # Attributes named in this macro are protected from mass-assignment, such as <tt>new(attributes)</tt> and
       # <tt>attributes=(attributes)</tt>. Their assignment will simply be ignored. Instead, you can use the direct writer
@@ -569,6 +529,7 @@ module ActiveRecord #:nodoc:
         read_inheritable_attribute("attr_accessible")
       end
 
+
       # Specifies that the attribute by the name of +attr_name+ should be serialized before saving to the database and unserialized
       # after loading from the database. The serialization is done through YAML. If +class_name+ is specified, the serialized
       # object must be of that class on retrieval or +SerializationTypeMismatch+ will be raised.
@@ -580,6 +541,7 @@ module ActiveRecord #:nodoc:
       def serialized_attributes
         read_inheritable_attribute("attr_serialized") or write_inheritable_attribute("attr_serialized", {})
       end
+
 
       # Guesses the table name (in forced lower-case) based on the name of the class in the inheritance hierarchy descending
       # directly from ActiveRecord. So if the hierarchy looks like: Reply < Message < ActiveRecord, then Message is used
@@ -599,9 +561,9 @@ module ActiveRecord #:nodoc:
         reset_table_name
       end
 
-      def reset_table_name
-        name = "#{table_name_prefix}#{undecorated_table_name(class_name_of_active_record_descendant(self))}#{table_name_suffix}"
-        set_table_name name
+      def reset_table_name #:nodoc:
+        name = "#{table_name_prefix}#{undecorated_table_name(base_class.name)}#{table_name_suffix}"
+        set_table_name(name)
         name
       end
 
@@ -611,13 +573,13 @@ module ActiveRecord #:nodoc:
         reset_primary_key
       end
 
-      def reset_primary_key
+      def reset_primary_key #:nodoc:
         key = 'id'
         case primary_key_prefix_type
           when :table_name
-            key = Inflector.foreign_key(class_name_of_active_record_descendant(self), false)
+            key = Inflector.foreign_key(base_class.name, false)
           when :table_name_with_underscore
-            key = Inflector.foreign_key(class_name_of_active_record_descendant(self))
+            key = Inflector.foreign_key(base_class.name)
         end
         set_primary_key(key)
         key
@@ -630,11 +592,11 @@ module ActiveRecord #:nodoc:
 
       # Lazy-set the sequence name to the connection's default.  This method
       # is only ever called once since set_sequence_name overrides it.
-      def sequence_name
+      def sequence_name #:nodoc:
         reset_sequence_name
       end
 
-      def reset_sequence_name
+      def reset_sequence_name #:nodoc:
         default = connection.default_sequence_name(table_name, primary_key)
         set_sequence_name(default)
         default
@@ -648,7 +610,7 @@ module ActiveRecord #:nodoc:
       #   class Project < ActiveRecord::Base
       #     set_table_name "project"
       #   end
-      def set_table_name( value=nil, &block )
+      def set_table_name(value = nil, &block)
         define_attr_method :table_name, value, &block
       end
       alias :table_name= :set_table_name
@@ -662,7 +624,7 @@ module ActiveRecord #:nodoc:
       #   class Project < ActiveRecord::Base
       #     set_primary_key "sysid"
       #   end
-      def set_primary_key( value=nil, &block )
+      def set_primary_key(value = nil, &block)
         define_attr_method :primary_key, value, &block
       end
       alias :primary_key= :set_primary_key
@@ -678,7 +640,7 @@ module ActiveRecord #:nodoc:
       #       original_inheritance_column + "_id"
       #     end
       #   end
-      def set_inheritance_column( value=nil, &block )
+      def set_inheritance_column(value = nil, &block)
         define_attr_method :inheritance_column, value, &block
       end
       alias :inheritance_column= :set_inheritance_column
@@ -699,7 +661,7 @@ module ActiveRecord #:nodoc:
       #   class Project < ActiveRecord::Base
       #     set_sequence_name "projectseq"   # default would have been "project_seq"
       #   end
-      def set_sequence_name( value=nil, &block )
+      def set_sequence_name(value = nil, &block)
         define_attr_method :sequence_name, value, &block
       end
       alias :sequence_name= :set_sequence_name
@@ -742,6 +704,7 @@ module ActiveRecord #:nodoc:
         @columns_hash ||= columns.inject({}) { |hash, column| hash[column.name] = column; hash }
       end
 
+      # Returns an array of column names as strings.
       def column_names
         @column_names ||= columns.map { |column| column.name }
       end
@@ -755,7 +718,7 @@ module ActiveRecord #:nodoc:
       # Returns a hash of all the methods added to query each of the columns in the table with the name of the method as the key
       # and true as the value. This makes it possible to do O(1) lookups in respond_to? to check if a given method for attribute
       # is available.
-      def column_methods_hash
+      def column_methods_hash #:nodoc:
         @dynamic_methods_hash ||= column_names.inject(Hash.new(false)) do |methods, attr|
           attr_name = attr.to_s
           methods[attr.to_sym]       = attr_name
@@ -767,7 +730,7 @@ module ActiveRecord #:nodoc:
       end
 
       # Contains the names of the generated reader methods.
-      def read_methods
+      def read_methods #:nodoc:
         @read_methods ||= Set.new
       end
 
@@ -834,35 +797,88 @@ module ActiveRecord #:nodoc:
       end
 
       # Scope parameters to method calls within the block.  Takes a hash of method_name => parameters hash.
-      # method_name may be :find or :create.
-      # :find parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
-      # <tt>:offset</tt>, <tt>:limit</tt>, and <tt>:readonly</tt> options.
-      # :create parameters are an attributes hash.
+      # method_name may be :find or :create. :find parameters may include the <tt>:conditions</tt>, <tt>:joins</tt>,
+      # <tt>:include</tt>, <tt>:offset</tt>, <tt>:limit</tt>, and <tt>:readonly</tt> options. :create parameters are an attributes hash.
       #
       #   Article.with_scope(:find => { :conditions => "blog_id = 1" }, :create => { :blog_id => 1 }) do
       #     Article.find(1) # => SELECT * from articles WHERE blog_id = 1 AND id = 1
       #     a = Article.create(1)
-      #     a.blog_id == 1
+      #     a.blog_id # => 1
       #   end
-      def with_scope(method_scoping = {})
+      #
+      # In nested scopings, all previous parameters are overwritten by inner rule
+      # except :conditions in :find, that are merged as hash.
+      #
+      #   Article.with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }, :create => { :blog_id => 1 }) do
+      #     Article.with_scope(:find => { :limit => 10})
+      #       Article.find(:all) # => SELECT * from articles WHERE blog_id = 1 LIMIT 10
+      #     end
+      #     Article.with_scope(:find => { :conditions => "author_id = 3" })
+      #       Article.find(:all) # => SELECT * from articles WHERE blog_id = 1 AND author_id = 3 LIMIT 1
+      #     end
+      #   end
+      #
+      # You can ignore any previous scopings by using <tt>with_exclusive_scope</tt> method.
+      #
+      #   Article.with_scope(:find => { :conditions => "blog_id = 1", :limit => 1 }) do
+      #     Article.with_exclusive_scope(:find => { :limit => 10 })
+      #       Article.find(:all) # => SELECT * from articles LIMIT 10
+      #     end
+      #   end
+      def with_scope(method_scoping = {}, action = :merge, &block)
+        method_scoping = method_scoping.method_scoping if method_scoping.respond_to?(:method_scoping)
+
         # Dup first and second level of hash (method and params).
         method_scoping = method_scoping.inject({}) do |hash, (method, params)|
-          hash[method] = params.dup
+          hash[method] = (params == true) ? params : params.dup
           hash
         end
 
-        method_scoping.assert_valid_keys [:find, :create]
+        method_scoping.assert_valid_keys([ :find, :create ])
+
         if f = method_scoping[:find]
-          f.assert_valid_keys [:conditions, :joins, :offset, :limit, :readonly]
+          f.assert_valid_keys([ :conditions, :joins, :select, :include, :from, :offset, :limit, :readonly ])
           f[:readonly] = true if !f[:joins].blank? && !f.has_key?(:readonly)
         end
 
-        raise ArgumentError, "Nested scopes are not yet supported: #{scoped_methods.inspect}" unless scoped_methods.nil?
+        # Merge scopings
+        if action == :merge && current_scoped_methods
+          method_scoping = current_scoped_methods.inject(method_scoping) do |hash, (method, params)|
+            case hash[method]
+              when Hash
+                if method == :find
+                  (hash[method].keys + params.keys).uniq.each do |key|
+                    merge = hash[method][key] && params[key] # merge if both scopes have the same key
+                    if key == :conditions && merge
+                      hash[method][key] = [params[key], hash[method][key]].collect{|sql| "( %s )" % sanitize_sql(sql)}.join(" AND ")
+                    elsif key == :include && merge
+                      hash[method][key] = merge_includes(hash[method][key], params[key]).uniq
+                    else
+                      hash[method][key] = hash[method][key] || params[key]
+                    end
+                  end
+                else
+                  hash[method] = params.merge(hash[method])
+                end
+              else
+                hash[method] = params
+            end
+            hash
+          end
+        end
 
-        self.scoped_methods = method_scoping
-        yield
-      ensure 
-        self.scoped_methods = nil
+        self.scoped_methods << method_scoping
+
+        begin
+          yield
+        ensure 
+          self.scoped_methods.pop
+        end
+      end
+
+      # Works like with_scope, but discards any nested properties.
+      def with_exclusive_scope(method_scoping = {}, &block)
+        with_scope(method_scoping, :overwrite, &block)
       end
 
       # Overwrite the default class equality method to provide support for association proxies.
@@ -871,17 +887,89 @@ module ActiveRecord #:nodoc:
       end      
 
       # Deprecated 
-      def threaded_connections
+      def threaded_connections #:nodoc:
         allow_concurrency
       end
 
       # Deprecated 
-      def threaded_connections=(value)
+      def threaded_connections=(value) #:nodoc:
         self.allow_concurrency = value
       end
 
-      
+      # Returns the base AR subclass that this class descends from. If A
+      # extends AR::Base, A.base_class will return A. If B descends from A
+      # through some arbitrarily deep hierarchy, B.base_class will return A.
+      def base_class
+        class_of_active_record_descendant(self)
+      end
+
+      # Set this to true if this is an abstract class (see #abstract_class?).
+      attr_accessor :abstract_class
+
+      # Returns whether this class is a base AR class.  If A is a base class and
+      # B descends from A, then B.base_class will return B.
+      def abstract_class?
+        abstract_class == true
+      end
+
       private
+        def find_initial(options)
+          options.update(:limit => 1) unless options[:include]
+          find_every(options).first
+        end
+           
+        def find_every(options)
+          records = scoped?(:find, :include) || options[:include] ?
+            find_with_associations(options) : 
+            find_by_sql(construct_finder_sql(options))
+
+          records.each { |record| record.readonly! } if options[:readonly]
+
+          records
+        end
+ 
+        def find_from_ids(ids, options)
+          expects_array = ids.first.kind_of?(Array)       
+          return ids.first if expects_array && ids.first.empty?
+        
+          ids = ids.flatten.compact.uniq
+
+          case ids.size
+            when 0
+              raise RecordNotFound, "Couldn't find #{name} without an ID"
+            when 1
+              result = find_one(ids.first, options)
+              expects_array ? [ result ] : result
+            else
+              find_some(ids, options)
+          end
+        end
+      
+        def find_one(id, options)
+          conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
+          options    = options.merge :conditions => "#{table_name}.#{primary_key} = #{sanitize(id)}#{conditions}"
+
+          if result = find_initial(options)
+            result
+          else
+            raise RecordNotFound, "Couldn't find #{name} with ID=#{id}#{conditions}"
+          end
+        end
+      
+        def find_some(ids, options)
+          conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
+          ids_list   = ids.map { |id| sanitize(id) }.join(',')
+          options    = options.merge :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}"
+
+          result = find_every(options)
+
+          if result.size == ids.size
+            result
+          else
+            raise RecordNotFound, "Couldn't find all #{name.pluralize} with IDs (#{ids_list})#{conditions}"
+          end
+        end
+
         # Finder methods must instantiate through this method to work with the single-table inheritance model
         # that makes it possible to create objects of different types from the same table.
         def instantiate(record)
@@ -909,36 +997,62 @@ module ActiveRecord #:nodoc:
           object
         end
 
-        # Returns the name of the type of the record using the current module as a prefix. So descendents of
-        # MyApp::Business::Account would appear as "MyApp::Business::AccountSubclass".
+        # Nest the type name in the same module as this class.
+        # Bar is "MyApp::Business::Bar" relative to MyApp::Business::Foo
         def type_name_with_module(type_name)
-          self.name =~ /::/ ? self.name.scan(/(.*)::/).first.first + "::" + type_name : type_name
+          "#{self.name.sub(/(::)?[^:]+$/, '')}#{$1}#{type_name}"
         end
 
         def construct_finder_sql(options)
-          sql  = "SELECT #{options[:select] || '*'} FROM #{table_name} "
-          add_joins!(sql, options)
-          add_conditions!(sql, options[:conditions])
+          scope = scope(:find)
+          sql  = "SELECT #{(scope && scope[:select]) || options[:select] || '*'} "
+          sql << "FROM #{(scope && scope[:from]) || options[:from] || table_name} "
+
+          add_joins!(sql, options, scope)
+          add_conditions!(sql, options[:conditions], scope)
+
           sql << " GROUP BY #{options[:group]} " if options[:group]
           sql << " ORDER BY #{options[:order]} " if options[:order]
-          add_limit!(sql, options)
+
+          add_limit!(sql, options, scope)
+
           sql
         end
 
-        def add_limit!(sql, options)
-          options[:limit]  ||= scope(:find, :limit)
-          options[:offset] ||= scope(:find, :offset)
+        # Merges includes so that the result is a valid +include+
+        def merge_includes(first, second)
+         safe_to_array(first) + safe_to_array(second)
+        end
+
+        # Object#to_a is deprecated, though it does have the desired behaviour
+        def safe_to_array(o)
+          case o
+          when NilClass
+            []
+          when Array
+            o
+          else
+            [o]
+          end
+        end
+
+        def add_limit!(sql, options, scope)
+          if scope
+            options[:limit]  ||= scope[:limit]
+            options[:offset] ||= scope[:offset]
+          end
           connection.add_limit_offset!(sql, options)
         end
 
-        def add_joins!(sql, options)
-          join = scope(:find, :joins) || options[:joins]
+        def add_joins!(sql, options, scope)
+          join = (scope && scope[:joins]) || options[:joins]
           sql << " #{join} " if join
         end
 
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that the passed-in +sql+ string is changed.
-        def add_conditions!(sql, conditions)          
-          segments = [scope(:find, :conditions)]
+        def add_conditions!(sql, conditions, scope)
+          segments = []
+          segments << sanitize_sql(scope[:conditions]) if scope && scope[:conditions]
           segments << sanitize_sql(conditions) unless conditions.nil?
           segments << type_condition unless descends_from_active_record?        
           segments.compact!
@@ -955,7 +1069,7 @@ module ActiveRecord #:nodoc:
         end
 
         # Guesses the table name, but does not decorate it with prefix and suffix information.
-        def undecorated_table_name(class_name = class_name_of_active_record_descendant(self))
+        def undecorated_table_name(class_name = base_class.name)
           table_name = Inflector.underscore(Inflector.demodulize(class_name))
           table_name = Inflector.pluralize(table_name) if pluralize_table_names
           table_name
@@ -969,31 +1083,53 @@ module ActiveRecord #:nodoc:
         # is actually find_all_by_amount(amount, options).
         def method_missing(method_id, *arguments)
           if match = /find_(all_by|by)_([_a-zA-Z]\w*)/.match(method_id.to_s)
-            finder = determine_finder(match)
+            finder, deprecated_finder = determine_finder(match), determine_deprecated_finder(match)
 
             attribute_names = extract_attribute_names_from_match(match)
             super unless all_attributes_exists?(attribute_names)
 
             conditions = construct_conditions_from_arguments(attribute_names, arguments)
 
-            if arguments[attribute_names.length].is_a?(Hash)
-              find(finder, { :conditions => conditions }.update(arguments[attribute_names.length]))
-            else
-              send("find_#{finder}", conditions, *arguments[attribute_names.length..-1]) # deprecated API
+            case extra_options = arguments[attribute_names.size]
+              when nil
+                options = { :conditions => conditions }
+                set_readonly_option!(options)
+                send(finder, options)
+
+              when Hash
+                finder_options = extra_options.merge(:conditions => conditions)
+                validate_find_options(finder_options)
+                set_readonly_option!(finder_options)
+
+                if extra_options[:conditions]
+                  with_scope(:find => { :conditions => extra_options[:conditions] }) do
+                    send(finder, finder_options)
+                  end
+                else
+                  send(finder, finder_options)
+                end
+
+              else
+                send(deprecated_finder, conditions, *arguments[attribute_names.length..-1]) # deprecated API
             end
           elsif match = /find_or_create_by_([_a-zA-Z]\w*)/.match(method_id.to_s)
             attribute_names = extract_attribute_names_from_match(match)
             super unless all_attributes_exists?(attribute_names)
 
-            find(:first, :conditions => construct_conditions_from_arguments(attribute_names, arguments)) || 
-              create(construct_attributes_from_arguments(attribute_names, arguments))
+            options = { :conditions => construct_conditions_from_arguments(attribute_names, arguments) }
+            set_readonly_option!(options)
+            find_initial(options) || create(construct_attributes_from_arguments(attribute_names, arguments))
           else
             super
           end
         end
 
         def determine_finder(match)
-          match.captures.first == 'all_by' ? :all : :first
+          match.captures.first == 'all_by' ? :find_every : :find_initial
+        end
+
+        def determine_deprecated_finder(match)
+          match.captures.first == 'all_by' ? :find_all : :find_first
         end
 
         def extract_attribute_names_from_match(match)
@@ -1055,58 +1191,72 @@ module ActiveRecord #:nodoc:
         end
 
       protected
-        def subclasses
+        def subclasses #:nodoc:
           @@subclasses[self] ||= []
           @@subclasses[self] + extra = @@subclasses[self].inject([]) {|list, subclass| list + subclass.subclasses }
         end
 
         # Test whether the given method and optional key are scoped.
-        def scoped?(method, key = nil)
-          scoped_methods and scoped_methods.has_key?(method) and (key.nil? or scope(method).has_key?(key))
+        def scoped?(method, key = nil) #:nodoc:
+          if current_scoped_methods && (scope = current_scoped_methods[method])
+            !key || scope.has_key?(key)
+          end
         end
 
         # Retrieve the scope for the given method and optional key.
-        def scope(method, key = nil)
-          if scoped_methods and scope = scoped_methods[method]
+        def scope(method, key = nil) #:nodoc:
+          if current_scoped_methods && (scope = current_scoped_methods[method])
             key ? scope[key] : scope
           end
         end
 
-        def scoped_methods
-          if allow_concurrency
-            Thread.current[:scoped_methods] ||= {}
-            Thread.current[:scoped_methods][self] ||= nil
-          else
-            @scoped_methods ||= nil
-          end
+        def thread_safe_scoped_methods #:nodoc:
+          scoped_methods = (Thread.current[:scoped_methods] ||= {})
+          scoped_methods[self] ||= []
         end
-
-        def scoped_methods=(value)
-          if allow_concurrency
-            Thread.current[:scoped_methods] ||= {}
-            Thread.current[:scoped_methods][self] = value
-          else
-            @scoped_methods = value
-          end
+        
+        def single_threaded_scoped_methods #:nodoc:
+          @scoped_methods ||= []
+        end
+        
+        # pick up the correct scoped_methods version from @@allow_concurrency
+        if @@allow_concurrency
+          alias_method :scoped_methods, :thread_safe_scoped_methods
+        else
+          alias_method :scoped_methods, :single_threaded_scoped_methods
+        end
+        
+        def current_scoped_methods #:nodoc:
+          scoped_methods.last
         end
 
         # Returns the class type of the record using the current module as a prefix. So descendents of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
-          type_name_with_module(type_name).split("::").inject(Object) do |final_type, part|
-            final_type.const_get(part)
+          modularized_name = type_name_with_module(type_name)
+          begin
+            instance_eval(modularized_name)
+          rescue NameError => e
+            first_module = modularized_name.split("::").first
+            raise unless e.to_s.include? first_module
+            instance_eval(type_name)
+          end
+        end
+
+        # Returns the class descending directly from ActiveRecord in the inheritance hierarchy.
+        def class_of_active_record_descendant(klass)
+          if klass.superclass == Base || klass.superclass.abstract_class?
+            klass
+          elsif klass.superclass.nil?
+            raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
+          else
+            class_of_active_record_descendant(klass.superclass)
           end
         end
 
         # Returns the name of the class descending directly from ActiveRecord in the inheritance hierarchy.
-        def class_name_of_active_record_descendant(klass)
-          if klass.superclass == Base
-            klass.name
-          elsif klass.superclass.nil?
-            raise ActiveRecordError, "#{name} doesn't belong in a hierarchy descending from ActiveRecord"
-          else
-            class_name_of_active_record_descendant(klass.superclass)
-          end
+        def class_name_of_active_record_descendant(klass) #:nodoc:
+          klass.base_class.name
         end
 
         # Accepts an array or string.  The string is returned untouched, but the array has each value
@@ -1127,14 +1277,13 @@ module ActiveRecord #:nodoc:
 
         alias_method :sanitize_conditions, :sanitize_sql
 
-        def replace_bind_variables(statement, values)
+        def replace_bind_variables(statement, values) #:nodoc:
           raise_if_bind_arity_mismatch(statement, statement.count('?'), values.size)
           bound = values.dup
           statement.gsub('?') { quote_bound_value(bound.shift) }
         end
 
-        def replace_named_bind_variables(statement, bind_vars)
-          raise_if_bind_arity_mismatch(statement, statement.scan(/:(\w+)/).uniq.size, bind_vars.size)
+        def replace_named_bind_variables(statement, bind_vars) #:nodoc:
           statement.gsub(/:(\w+)/) do
             match = $1.to_sym
             if bind_vars.include?(match)
@@ -1145,7 +1294,7 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def quote_bound_value(value)
+        def quote_bound_value(value) #:nodoc:
           if (value.respond_to?(:map) && !value.is_a?(String))
             value.map { |v| connection.quote(v) }.join(',')
           else
@@ -1153,23 +1302,36 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def raise_if_bind_arity_mismatch(statement, expected, provided)
+        def raise_if_bind_arity_mismatch(statement, expected, provided) #:nodoc:
           unless expected == provided
             raise PreparedStatementInvalid, "wrong number of bind variables (#{provided} for #{expected}) in: #{statement}"
           end
         end
 
-        def extract_options_from_args!(args)
-          options = args.last.is_a?(Hash) ? args.pop : {}
-          validate_find_options(options)
-          options
+        def extract_options_from_args!(args) #:nodoc:
+          args.last.is_a?(Hash) ? args.pop : {}
         end
 
-        def validate_find_options(options)
-          options.assert_valid_keys [:conditions, :include, :joins, :limit, :offset, :order, :select, :readonly, :group]
+        VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,
+                               :order, :select, :readonly, :group, :from      ]
+        
+        def validate_find_options(options) #:nodoc:
+          options.assert_valid_keys(VALID_FIND_OPTIONS)
+        end
+        
+        def set_readonly_option!(options) #:nodoc:
+          # Inherit :readonly from finder scope if set.  Otherwise,
+          # if :joins is not blank then :readonly defaults to true.
+          unless options.has_key?(:readonly)
+            if scoped?(:find, :readonly)
+              options[:readonly] = scope(:find, :readonly)
+            elsif !options[:joins].blank?
+              options[:readonly] = true
+            end
+          end
         end
 
-        def encode_quoted_value(value)
+        def encode_quoted_value(value) #:nodoc:
           quoted_value = connection.quote(value)
           quoted_value = "'#{quoted_value[1..-2].gsub(/\'/, "\\\\'")}'" if quoted_value.include?("\\\'") # (for ruby mode) " 
           quoted_value 
@@ -1222,8 +1384,14 @@ module ActiveRecord #:nodoc:
       # * No record exists: Creates a new record with values matching those of the object attributes.
       # * A record does exist: Updates the record with values matching those of the object attributes.
       def save
-        raise ActiveRecord::ReadOnlyRecord if readonly?
+        raise ReadOnlyRecord if readonly?
         create_or_update
+      end
+      
+      # Attempts to save the record, but instead of just returning false if it couldn't happen, it raises a 
+      # RecordNotSaved exception
+      def save!
+        save || raise(RecordNotSaved)
       end
 
       # Deletes the record in the database and freezes this instance to reflect that no changes should
@@ -1328,20 +1496,39 @@ module ActiveRecord #:nodoc:
       # from this form of mass-assignment by using the +attr_protected+ macro. Or you can alternatively
       # specify which attributes *can* be accessed in with the +attr_accessible+ macro. Then all the
       # attributes not included in that won't be allowed to be mass-assigned.
-      def attributes=(attributes)
-        return if attributes.nil?
+      def attributes=(new_attributes)
+        return if new_attributes.nil?
+        attributes = new_attributes.dup
         attributes.stringify_keys!
 
         multi_parameter_attributes = []
         remove_attributes_protected_from_mass_assignment(attributes).each do |k, v|
           k.include?("(") ? multi_parameter_attributes << [ k, v ] : send(k + "=", v)
         end
+
         assign_multiparameter_attributes(multi_parameter_attributes)
       end
 
+
       # Returns a hash of all the attributes with their names as keys and clones of their objects as values.
-      def attributes
-        clone_attributes :read_attribute
+      def attributes(options = nil)
+        attributes = clone_attributes :read_attribute
+        
+        if options.nil?
+          attributes
+        else
+          if except = options[:except]
+            except = Array(except).collect { |attribute| attribute.to_s }
+            except.each { |attribute_name| attributes.delete(attribute_name) }
+            attributes
+          elsif only = options[:only]
+            only = Array(only).collect { |attribute| attribute.to_s }
+            attributes.delete_if { |key, value| !only.include?(key) }
+            attributes
+          else
+            raise ArgumentError, "Options does not specify :except or :only (#{options.keys.inspect})"
+          end
+        end
       end
 
       # Returns a hash of cloned attributes before typecasting and deserialization.
@@ -1418,12 +1605,106 @@ module ActiveRecord #:nodoc:
         @attributes.frozen?
       end
 
+      # Records loaded through joins with piggy-back attributes will be marked as read only as they cannot be saved and return true to this query.
       def readonly?
         @readonly == true
       end
 
-      def readonly!
+      def readonly! #:nodoc:
         @readonly = true
+      end
+
+      # Builds an XML document to represent the model.   Some configuration is
+      # availble through +options+, however more complicated cases should use 
+      # Builder.
+      #
+      # By default the generated XML document will include the processing 
+      # instruction and all object's attributes.  For example:
+      #    
+      #   <?xml version="1.0" encoding="UTF-8"?>
+      #   <topic>
+      #     <title>The First Topic</title>
+      #     <author-name>David</author-name>
+      #     <id type="integer">1</id>
+      #     <approved type="boolean">false</approved>
+      #     <replies-count type="integer">0</replies-count>
+      #     <bonus-time type="datetime">2000-01-01T08:28:00+12:00</bonus-time>
+      #     <written-on type="datetime">2003-07-16T09:28:00+1200</written-on>
+      #     <content>Have a nice day</content>
+      #     <author-email-address>david@loudthinking.com</author-email-address>
+      #     <parent-id></parent-id>
+      #     <last-read type="date">2004-04-15</last-read>
+      #   </topic>
+      #
+      # This behaviour can be controlled with :skip_attributes and :skip_instruct 
+      # for instance:
+      #
+      #   topic.to_xml(:skip_instruct => true, :skip_attributes => [ :id, bonus_time, :written_on, replies_count ])
+      #
+      #   <topic>
+      #     <title>The First Topic</title>
+      #     <author-name>David</author-name>
+      #     <approved type="boolean">false</approved>
+      #     <content>Have a nice day</content>
+      #     <author-email-address>david@loudthinking.com</author-email-address>
+      #     <parent-id></parent-id>
+      #     <last-read type="date">2004-04-15</last-read>
+      #   </topic>
+      # 
+      # To include first level associations use :include
+      #
+      #   firm.to_xml :include => [ :account, :clients ]
+      #
+      #   <?xml version="1.0" encoding="UTF-8"?>
+      #   <firm>
+      #     <id type="integer">1</id>
+      #     <rating type="integer">1</rating>
+      #     <name>37signals</name>
+      #     <clients>
+      #       <client>
+      #         <rating type="integer">1</rating>
+      #         <name>Summit</name>
+      #       </client>
+      #       <client>
+      #         <rating type="integer">1</rating>
+      #         <name>Microsoft</name>
+      #       </client>
+      #     </clients>
+      #     <account>
+      #       <id type="integer">1</id>
+      #       <credit-limit type="integer">50</credit-limit>
+      #     </account>
+      #   </firm>
+      def to_xml(options = {})
+        options[:root]    ||= self.class.to_s.underscore
+        options[:except]    = Array(options[:except]) << self.class.inheritance_column unless options[:only] # skip type column
+        root_only_or_except = { :only => options[:only], :except => options[:except] }
+
+        attributes_for_xml = attributes(root_only_or_except)
+        
+        if include_associations = options.delete(:include)
+          include_has_options = include_associations.is_a?(Hash)
+          
+          for association in include_has_options ? include_associations.keys : Array(include_associations)
+            association_options = include_has_options ? include_associations[association] : root_only_or_except
+
+            case self.class.reflect_on_association(association).macro
+              when :has_many, :has_and_belongs_to_many
+                records = send(association).to_a
+                unless records.empty?
+                  attributes_for_xml[association] = records.collect do |record| 
+                    record.attributes(association_options)
+                  end
+                end
+              when :has_one, :belongs_to
+                if record = send(association)
+                  attributes_for_xml[association] = record.attributes(association_options)
+                end
+            end
+          end
+        end
+
+        attributes_for_xml.to_xml(options)
       end
 
     private
@@ -1439,11 +1720,13 @@ module ActiveRecord #:nodoc:
           "WHERE #{self.class.primary_key} = #{quote(id)}",
           "#{self.class.name} Update"
         )
+        
+        return true
       end
 
       # Creates a new record with values matching those of the instance attributes.
       def create
-        if self.id.nil? and connection.prefetch_primary_key?(self.class.table_name)
+        if self.id.nil? && connection.prefetch_primary_key?(self.class.table_name)
           self.id = connection.next_sequence_value(self.class.sequence_name)
         end
 
@@ -1456,6 +1739,8 @@ module ActiveRecord #:nodoc:
         )
 
         @new_record = false
+        
+        return true
       end
 
       # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord descendent.
@@ -1478,19 +1763,19 @@ module ActiveRecord #:nodoc:
       # table with a master_id foreign key can instantiate master through Client#master.
       def method_missing(method_id, *args, &block)
         method_name = method_id.to_s
-        if @attributes.include?(method_name)
+        if @attributes.include?(method_name) or
+            (md = /\?$/.match(method_name) and
+            @attributes.include?(method_name = md.pre_match))
           define_read_methods if self.class.read_methods.empty? && self.class.generate_read_methods
-          read_attribute(method_name)
+          md ? query_attribute(method_name) : read_attribute(method_name)
         elsif self.class.primary_key.to_s == method_name
           id
-        elsif md = /(=|\?|_before_type_cast)$/.match(method_name)
+        elsif md = /(=|_before_type_cast)$/.match(method_name)
           attribute_name, method_type = md.pre_match, md.to_s
           if @attributes.include?(attribute_name)
             case method_type
               when '='
                 write_attribute(attribute_name, args.first)
-              when '?'
-                query_attribute(attribute_name)
               when '_before_type_cast'
                 read_attribute_before_type_cast(attribute_name)
             end
@@ -1530,8 +1815,9 @@ module ActiveRecord #:nodoc:
       # ActiveRecord::Base.generate_read_methods is set to true.
       def define_read_methods
         self.class.columns_hash.each do |name, column|
-          unless self.class.serialized_attributes[name] || respond_to_without_attributes?(name)
-            define_read_method(name.to_sym, name, column)
+          unless self.class.serialized_attributes[name]
+            define_read_method(name.to_sym, name, column) unless respond_to_without_attributes?(name)
+            define_question_method(name)     unless respond_to_without_attributes?("#{name}?")
           end
         end
       end
@@ -1540,14 +1826,28 @@ module ActiveRecord #:nodoc:
       def define_read_method(symbol, attr_name, column)
         cast_code = column.type_cast_code('v') if column
         access_code = cast_code ? "(v=@attributes['#{attr_name}']) && #{cast_code}" : "@attributes['#{attr_name}']"
-
+        
         unless attr_name.to_s == self.class.primary_key.to_s
           access_code = access_code.insert(0, "raise NoMethodError, 'missing attribute: #{attr_name}', caller unless @attributes.has_key?('#{attr_name}'); ")
           self.class.read_methods << attr_name
         end
-
+        
+        evaluate_read_method attr_name, "def #{symbol}; #{access_code}; end"
+      end
+      
+      # Define an attribute ? method.
+      def define_question_method(attr_name)
+        unless attr_name.to_s == self.class.primary_key.to_s
+          self.class.read_methods << "#{attr_name}?"
+        end
+        
+        evaluate_read_method attr_name, "def #{attr_name}?; query_attribute('#{attr_name}'); end"
+      end
+      
+      # Evaluate the definition for an attribute reader or ? method
+      def evaluate_read_method(attr_name, method_definition)
         begin
-          self.class.class_eval("def #{symbol}; #{access_code}; end")
+          self.class.class_eval(method_definition)
         rescue SyntaxError => err
           self.class.read_methods.delete(attr_name)
           if logger

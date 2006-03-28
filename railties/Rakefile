@@ -28,16 +28,20 @@ RUBY_FORGE_USER    = "webster132"
 # end
 
 
-BASE_DIRS   = %w( app config/environments components db doc log lib lib/tasks public script script/performance script/process test vendor vendor/plugins )
+BASE_DIRS   = %w( 
+  app config/environments components db doc log lib lib/tasks public script script/performance script/process test vendor vendor/plugins
+  tmp/sessions tmp/cache tmp/sockets
+)
+
 APP_DIRS    = %w( models controllers helpers views views/layouts )
 PUBLIC_DIRS = %w( images javascripts stylesheets )
 TEST_DIRS   = %w( fixtures unit functional mocks mocks/development mocks/test )
 
 LOG_FILES    = %w( server.log development.log test.log production.log )
 HTML_FILES   = %w( 404.html 500.html index.html robots.txt favicon.ico images/rails.png
-                   javascripts/prototype.js
+                   javascripts/prototype.js javascripts/application.js
                    javascripts/effects.js javascripts/dragdrop.js javascripts/controls.js )
-BIN_FILES    = %w( about breakpointer console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/spinner runner server plugin )
+BIN_FILES    = %w( about breakpointer console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner runner server plugin )
 
 VENDOR_LIBS = %w( actionpack activerecord actionmailer activesupport actionwebservice railties )
 
@@ -71,7 +75,7 @@ end
 
 desc "Updates railties to the latest version of the javascript spinoffs"
 task :update_js do
-  for js in %w( prototype controls dragdrop effects slider )
+  for js in %w( prototype controls dragdrop effects )
     rm "html/javascripts/#{js}.js"
     cp "./../actionpack/lib/action_view/helpers/javascripts/#{js}.js", "html/javascripts"
   end
@@ -80,7 +84,7 @@ end
 # Make directory structure ----------------------------------------------------------------
 
 def make_dest_dirs(dirs, path = nil)
-  mkdir_p dirs.map { |dir| File.join(PKG_DESTINATION, path, dir) }
+  mkdir_p dirs.map { |dir| File.join(PKG_DESTINATION, path.to_s, dir) }
 end
 
 desc "Make the directory structure for the new Rails application"
@@ -114,6 +118,7 @@ desc "Copy in all the Rails packages to vendor"
 task :copy_vendor_libraries do
   mkdir File.join(PKG_DESTINATION, 'vendor', 'rails')
   VENDOR_LIBS.each { |dir| cp_r File.join('..', dir), File.join(PKG_DESTINATION, 'vendor', 'rails', dir) }
+  FileUtils.rm_r(Dir.glob(File.join(PKG_DESTINATION, 'vendor', 'rails', "**", ".svn")))
 end
 
 desc "Link in all the Rails packages to vendor"
@@ -158,7 +163,7 @@ task :copy_configs do
   app_name = "rails"
   socket = nil
   require 'erb'
-  File.open("#{PKG_DESTINATION}/config/database.yml", 'w') {|f| f.write ERB.new(IO.read("configs/database.yml"), nil, '-').result(binding)}
+  File.open("#{PKG_DESTINATION}/config/database.yml", 'w') {|f| f.write ERB.new(IO.read("configs/databases/mysql.yml"), nil, '-').result(binding)}
   
   cp "configs/routes.rb", "#{PKG_DESTINATION}/config/routes.rb"
 
@@ -233,7 +238,7 @@ end
 Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Railties -- Gluing the Engine to the Rails"
-  rdoc.options << '--line-numbers --inline-source --accessor cattr_accessor=object'
+  rdoc.options << '--line-numbers' << '--inline-source' << '--accessor' << 'cattr_accessor=object'
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/*.rb')
@@ -272,12 +277,12 @@ spec = Gem::Specification.new do |s|
     on top of either MySQL, PostgreSQL, SQLite, DB2, SQL Server, or Oracle with eRuby- or Builder-based templates.
   EOF
 
-  s.add_dependency('rake', '>= 0.6.2')
-  s.add_dependency('activesupport',    '= 1.2.5' + PKG_BUILD)
-  s.add_dependency('activerecord',     '= 1.13.2' + PKG_BUILD)
-  s.add_dependency('actionpack',       '= 1.11.2' + PKG_BUILD)
-  s.add_dependency('actionmailer',     '= 1.1.5' + PKG_BUILD)
-  s.add_dependency('actionwebservice', '= 1.0.0' + PKG_BUILD)
+  s.add_dependency('rake', '>= 0.7.0')
+  s.add_dependency('activesupport',    '= 1.3.0' + PKG_BUILD)
+  s.add_dependency('activerecord',     '= 1.14.0' + PKG_BUILD)
+  s.add_dependency('actionpack',       '= 1.12.0' + PKG_BUILD)
+  s.add_dependency('actionmailer',     '= 1.2.0' + PKG_BUILD)
+  s.add_dependency('actionwebservice', '= 1.1.0' + PKG_BUILD)
 
   s.rdoc_options << '--exclude' << '.'
   s.has_rdoc = false

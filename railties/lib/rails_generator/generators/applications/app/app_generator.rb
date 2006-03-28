@@ -4,15 +4,16 @@ class AppGenerator < Rails::Generator::Base
   DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'],
                               Config::CONFIG['ruby_install_name'])
   
-  default_options   :gem => true, :shebang => DEFAULT_SHEBANG
-  mandatory_options :source  => "#{File.dirname(__FILE__)}/../../../../.."
+  DATABASES = %w( mysql oracle postgresql sqlite2 sqlite3 )
+  
+  default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG
+  mandatory_options :source => "#{File.dirname(__FILE__)}/../../../../.."
 
   def initialize(runtime_args, runtime_options = {})
     super
     usage if args.empty?
+    usage("Databases supported for preconfiguration are: #{DATABASES.join(", ")}") if (options[:db] && !DATABASES.include?(options[:db]))
     @destination_root = args.shift
-    @socket = MYSQL_SOCKET_LOCATIONS.find { |f| File.exists?(f) }
-    @socket = '/path/to/your/mysql.sock' if @socket.blank?
   end
 
   def manifest
@@ -34,9 +35,9 @@ class AppGenerator < Rails::Generator::Base
       m.template "helpers/test_helper.rb",        "test/test_helper.rb"
 
       # database.yml and .htaccess
-      m.template "configs/database.yml", "config/database.yml", :assigns => {
+      m.template "configs/databases/#{options[:db]}.yml", "config/database.yml", :assigns => {
         :app_name => File.basename(File.expand_path(@destination_root)),
-        :socket => @socket
+        :socket   => options[:db] == "mysql" ? mysql_socket_location : nil
       }
       m.template "configs/routes.rb",     "config/routes.rb"
       m.template "configs/apache.conf",   "public/.htaccess"
@@ -49,7 +50,7 @@ class AppGenerator < Rails::Generator::Base
       m.file "environments/test.rb",        "config/environments/test.rb"
 
       # Scripts
-      %w( about breakpointer console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner process/spinner runner server plugin ).each do |file|
+      %w( about breakpointer console destroy generate performance/benchmarker performance/profiler process/reaper process/spawner runner server plugin ).each do |file|
         m.file "bin/#{file}", "script/#{file}", script_options
       end
 
@@ -63,15 +64,16 @@ class AppGenerator < Rails::Generator::Base
         m.template "html/#{file}.html", "public/#{file}.html"
       end
       
-      m.template "html/favicon.ico", "public/favicon.ico"
-      m.template "html/robots.txt", "public/robots.txt"
+      m.template "html/favicon.ico",  "public/favicon.ico"
+      m.template "html/robots.txt",   "public/robots.txt"
       m.file "html/images/rails.png", "public/images/rails.png"
 
       # Javascripts
-      m.file "html/javascripts/prototype.js",     "public/javascripts/prototype.js"
-      m.file "html/javascripts/effects.js",       "public/javascripts/effects.js"
-      m.file "html/javascripts/dragdrop.js",      "public/javascripts/dragdrop.js"
-      m.file "html/javascripts/controls.js",      "public/javascripts/controls.js"
+      m.file "html/javascripts/prototype.js",    "public/javascripts/prototype.js"
+      m.file "html/javascripts/effects.js",      "public/javascripts/effects.js"
+      m.file "html/javascripts/dragdrop.js",     "public/javascripts/dragdrop.js"
+      m.file "html/javascripts/controls.js",     "public/javascripts/controls.js"
+      m.file "html/javascripts/application.js",  "public/javascripts/application.js"
 
       # Docs
       m.file "doc/README_FOR_APP", "doc/README_FOR_APP"
@@ -91,11 +93,17 @@ class AppGenerator < Rails::Generator::Base
     def add_options!(opt)
       opt.separator ''
       opt.separator 'Options:'
-      opt.on("--ruby [#{DEFAULT_SHEBANG}]",
-             "Path to the Ruby binary of your choice.") { |options[:shebang]| }
-      opt.on("--without-gems",
-             "Don't use the Rails gems for your app.",
-             "WARNING: see note below.") { |options[:gem]| }
+      opt.on("-r", "--ruby", String,
+             "Path to the Ruby binary of your choice.",
+             "Default: #{DEFAULT_SHEBANG}") { |options[:shebang]| }
+
+      opt.on("-d", "--database=name", String,
+            "Preconfigure for selected database (options: mysql/oracle/postgresql/sqlite2/sqlite3).",
+            "Default: mysql") { |options[:db]| }
+    end
+    
+    def mysql_socket_location
+      RUBY_PLATFORM =~ /mswin32/ ? MYSQL_SOCKET_LOCATIONS.find { |f| File.exists?(f) } : nil
     end
 
 
@@ -120,11 +128,15 @@ class AppGenerator < Rails::Generator::Base
     script/process
     test/fixtures
     test/functional
+    test/integration
     test/mocks/development
     test/mocks/test
     test/unit
     vendor
     vendor/plugins
+    tmp/sessions
+    tmp/sockets
+    tmp/cache
   )
 
   MYSQL_SOCKET_LOCATIONS = [

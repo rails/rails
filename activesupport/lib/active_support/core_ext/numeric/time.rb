@@ -1,8 +1,21 @@
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Numeric #:nodoc:
-      # Enables the use of time calculations and declarations, like 45.minutes + 2.hours + 4.years
+      # Enables the use of time calculations and declarations, like 45.minutes + 2.hours + 4.years.
+      #
+      # If you need precise date calculations that doesn't just treat months as 30 days, then have
+      # a look at Time#advance.
+      # 
+      # Some of these methods are approximations, Ruby's core 
+      # Date[http://stdlib.rubyonrails.org/libdoc/date/rdoc/index.html] and 
+      # Time[http://stdlib.rubyonrails.org/libdoc/time/rdoc/index.html] should be used for precision
+      # date and time arithmetic
       module Time
+        def seconds
+          self
+        end
+        alias :second :seconds
+
         def minutes
           self * 60
         end

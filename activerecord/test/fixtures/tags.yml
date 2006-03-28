@@ -1,0 +1,7 @@
+general:
+  id: 1
+  name: General
+  
+misc:
+  id: 2
+  name: Misc

@@ -1,12 +1,13 @@
 require 'abstract_unit'
 require 'fixtures/company'
 require 'fixtures/topic'
+require 'fixtures/reply'
 require 'fixtures/entrant'
 require 'fixtures/developer'
 require 'fixtures/post'
 
 class FinderTest < Test::Unit::TestCase
-  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :accounts
 
   def test_find
     assert_equal(topics(:first).title, Topic.find(1).title)
@@ -57,6 +58,11 @@ class FinderTest < Test::Unit::TestCase
     assert_equal(entrants(:third).name, entrants.first.name)
   end
   
+  def test_find_all_with_limit_and_offset_and_multiple_orderings
+    developers = Developer.find(:all, :order => "salary ASC, id DESC", :limit => 3, :offset => 1)
+    assert_equal ["David", "fixture_10", "fixture_9"], developers.collect {|d| d.name}
+  end
+  
   def test_find_with_limit_and_condition
     developers = Developer.find(:all, :order => "id DESC", :conditions => "salary = 100000", :limit => 3, :offset =>7)
     assert_equal(1, developers.size)
@@ -92,7 +98,7 @@ class FinderTest < Test::Unit::TestCase
       Topic.find(1).parent
     }
     
-    Topic.find(2).parent
+    Topic.find(2).topic
   end
   
   def test_find_only_some_columns
@@ -157,22 +163,6 @@ class FinderTest < Test::Unit::TestCase
     assert_nil Company.find(:first, :conditions => ["name = :name", { :name => "37signals!" }])
     assert_nil Company.find(:first, :conditions => ["name = :name", { :name => "37signals!' OR 1=1" }])
     assert_kind_of Time, Topic.find(:first, :conditions => ["id = :id", { :id => 1 }]).written_on
-    assert_raises(ActiveRecord::PreparedStatementInvalid) {
-      Company.find(:first, :conditions => ["id=:id and name=:name", { :id=>3 }])
-    }
-    assert_raises(ActiveRecord::PreparedStatementInvalid) {
-      Company.find(:first, :conditions => ["id=:id", { :id=>3, :name=>"37signals!" }])
-    }
-  end
-
-  def test_named_bind_arity
-    assert_nothing_raised { bind '', {} }
-    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind '', :a => 1 }
-    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind ':a', {} } # ' ruby-mode
-    assert_nothing_raised { bind ':a', :a => 1 } # ' ruby-mode
-    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind ':a', :a => 1, :b => 2 } # ' ruby-mode
-    assert_nothing_raised { bind ':a :a', :a => 1 } # ' ruby-mode
-    assert_raises(ActiveRecord::PreparedStatementInvalid) { bind ':a :a', :a => 1, :b => 2 } # ' ruby-mode
   end
 
   def test_bind_enumerable
@@ -216,6 +206,19 @@ class FinderTest < Test::Unit::TestCase
     assert_nil Topic.find_by_title("The First Topic!")
   end
 
+  def test_find_by_one_attribute_with_order_option
+    assert_equal accounts(:signals37), Account.find_by_credit_limit(50, :order => 'id')
+    assert_equal accounts(:rails_core_account), Account.find_by_credit_limit(50, :order => 'id DESC')
+  end
+
+  def test_find_by_one_attribute_with_conditions
+    assert_equal accounts(:rails_core_account), Account.find_by_credit_limit(50, :conditions => ['firm_id = ?', 6])
+  end
+
+  def test_find_by_one_attribute_with_several_options
+    assert_equal accounts(:unknown), Account.find_by_credit_limit(50, :order => 'id DESC', :conditions => ['id != ?', 3])
+  end
+  
   def test_find_by_one_missing_attribute
     assert_raises(NoMethodError) { Topic.find_by_undertitle("The First Topic!") }
   end
@@ -286,10 +289,10 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_or_create_from_two_attributes
-    number_of_companies = Company.count
-    sig38 = Company.find_or_create_by_name("38signals")
-    assert_equal number_of_companies + 1, Company.count
-    assert_equal sig38, Company.find_or_create_by_name("38signals")
+    number_of_topics = Topic.count
+    another = Topic.find_or_create_by_title_and_author_name("Another topic","John")
+    assert_equal number_of_topics + 1, Topic.count
+    assert_equal another, Topic.find_or_create_by_title_and_author_name("Another topic", "John")
   end
 
   def test_find_with_bad_sql
@@ -341,7 +344,7 @@ class FinderTest < Test::Unit::TestCase
       :joins => 'LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id', 
       :conditions => 'project_id=1'
     )
-    assert_equal 2, developers_on_project_one.length
+    assert_equal 3, developers_on_project_one.length
     developer_names = developers_on_project_one.map { |d| d.name }
     assert developer_names.include?('David')
     assert developer_names.include?('Jamis')

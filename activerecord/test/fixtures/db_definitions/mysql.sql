@@ -5,6 +5,12 @@ CREATE TABLE `accounts` (
   PRIMARY KEY  (`id`)
 ) TYPE=InnoDB;
 
+CREATE TABLE `funny_jokes` (
+  `id` int(11) NOT NULL auto_increment,
+  `name` varchar(50) default NULL,
+  PRIMARY KEY  (`id`)
+) TYPE=InnoDB;
+
 CREATE TABLE `companies` (
   `id` int(11) NOT NULL auto_increment,
   `type` varchar(50) default NULL,
@@ -26,7 +32,7 @@ CREATE TABLE `topics` (
   `bonus_time` time default NULL,
   `last_read` date default NULL,
   `content` text,
-  `approved` tinyint default 1,
+  `approved` tinyint(1) default 1,
   `replies_count` int(11) default 0,
   `parent_id` int(11) default NULL,
   `type` varchar(50) default NULL,
@@ -130,6 +136,12 @@ CREATE TABLE `people` (
   `lock_version` INTEGER NOT NULL DEFAULT 0
 ) TYPE=InnoDB;
 
+CREATE TABLE `readers` (
+    `id` int(11) NOT NULL PRIMARY KEY,
+    `post_id` INTEGER NOT NULL,
+    `person_id` INTEGER NOT NULL
+) TYPE=InnoDB;
+
 CREATE TABLE `binaries` (
   `id` int(11) NOT NULL auto_increment,
   `data` mediumblob,
@@ -197,3 +209,11 @@ CREATE TABLE `keyboards` (
   `key_number` int(11) NOT NULL auto_increment primary key,
   `name` varchar(50) default NULL
 );
+
+-- Altered lock_version column name.
+CREATE TABLE `legacy_things` (
+  `id` int(11) NOT NULL auto_increment,
+  `tps_report_number` int(11) default NULL,
+  `version` int(11) NOT NULL default 0,
+  PRIMARY KEY  (`id`)
+) TYPE=InnoDB;

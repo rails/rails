@@ -45,40 +45,44 @@ module ActiveRecord
           configuration.update(options) if options.is_a?(Hash)
 
           belongs_to :parent, :class_name => name, :foreign_key => configuration[:foreign_key], :counter_cache => configuration[:counter_cache]
-          has_many :children, :class_name => name, :foreign_key => configuration[:foreign_key], :order => configuration[:order], :dependent => true
+          has_many :children, :class_name => name, :foreign_key => configuration[:foreign_key], :order => configuration[:order], :dependent => :destroy
 
-          module_eval <<-END
+          class_eval <<-EOV
+            include ActiveRecord::Acts::Tree::InstanceMethods
+            
             def self.roots
-              self.find(:all, :conditions => "#{configuration[:foreign_key]} IS NULL", :order => #{configuration[:order].nil? ? "nil" : %Q{"#{configuration[:order]}"}})
+              find(:all, :conditions => "#{configuration[:foreign_key]} IS NULL", :order => #{configuration[:order].nil? ? "nil" : %Q{"#{configuration[:order]}"}})
             end
+
             def self.root
-              self.find(:first, :conditions => "#{configuration[:foreign_key]} IS NULL", :order => #{configuration[:order].nil? ? "nil" : %Q{"#{configuration[:order]}"}})
+              find(:first, :conditions => "#{configuration[:foreign_key]} IS NULL", :order => #{configuration[:order].nil? ? "nil" : %Q{"#{configuration[:order]}"}})
             end
-          END
+          EOV
+        end
+      end
 
-          # Returns list of ancestors, starting from parent until root.
-          #
-          #   subchild1.ancestors # => [child1, root]
-          define_method(:ancestors) do
-            node, nodes = self, []
-            nodes << node = node.parent until not node.has_parent?
-            nodes
-          end
+      module InstanceMethods
+        # Returns list of ancestors, starting from parent until root.
+        #
+        #   subchild1.ancestors # => [child1, root]
+        def ancestors
+          node, nodes = self, []
+          nodes << node = node.parent until not node.has_parent?
+          nodes
+        end
 
-          define_method(:root) do
-            node = self
-            node = node.parent until not node.has_parent?
-            node
-          end
+        def root
+          node = self
+          node = node.parent until not node.has_parent?
+          node
+        end
 
-          define_method(:siblings) do
-            self_and_siblings - [self]
-          end
+        def siblings
+          self_and_siblings - [self]
+        end
 
-          define_method(:self_and_siblings) do
-            has_parent? ? parent.children : self.class.roots
-          end
-
+        def self_and_siblings
+          has_parent? ? parent.children : self.class.roots
         end
       end
     end

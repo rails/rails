@@ -4,12 +4,14 @@ require 'fixtures/developer'
 require 'fixtures/company'
 require 'fixtures/task'
 require 'fixtures/reply'
+require 'fixtures/joke'
+require 'fixtures/category'
 
 class FixturesTest < Test::Unit::TestCase
   self.use_instantiated_fixtures = true
   self.use_transactional_fixtures = false
 
-  fixtures :topics, :developers, :accounts, :tasks
+  fixtures :topics, :developers, :accounts, :tasks, :categories, :funny_jokes
 
   FIXTURES = %w( accounts companies customers
                  developers developers_projects entrants
@@ -60,7 +62,7 @@ class FixturesTest < Test::Unit::TestCase
         t.column :written_on, :datetime
         t.column :bonus_time, :time
         t.column :last_read, :date
-        t.column :content, :text
+        t.column :content, :string
         t.column :approved, :boolean, :default => true
         t.column :replies_count, :integer, :default => 0
         t.column :parent_id, :integer
@@ -77,16 +79,16 @@ class FixturesTest < Test::Unit::TestCase
 
       topics = create_fixtures("topics")
 
-      # Restore prefix/suffix to its previous values
-      ActiveRecord::Base.table_name_prefix = old_prefix 
-      ActiveRecord::Base.table_name_suffix = old_suffix 
-
       firstRow = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'David'")
       assert_equal("The First Topic", firstRow["title"])
 
       secondRow = ActiveRecord::Base.connection.select_one("SELECT * FROM prefix_topics_suffix WHERE author_name = 'Mary'")
       assert_nil(secondRow["author_email_address"])        
     ensure
+      # Restore prefix/suffix to its previous values
+      ActiveRecord::Base.table_name_prefix = old_prefix 
+      ActiveRecord::Base.table_name_suffix = old_suffix 
+
       ActiveRecord::Base.connection.drop_table :prefix_topics_suffix rescue nil
     end
   end
@@ -110,7 +112,7 @@ class FixturesTest < Test::Unit::TestCase
 
   def test_deprecated_yaml_extension
     assert_raise(Fixture::FormatError) {
-      Fixtures.new(nil, 'bad_extension', File.join(File.dirname(__FILE__), 'fixtures'))
+      Fixtures.new(nil, 'bad_extension', 'BadExtension', File.join(File.dirname(__FILE__), 'fixtures'))
     }
   end
 
@@ -136,31 +138,31 @@ class FixturesTest < Test::Unit::TestCase
   end
 
   def test_erb_in_fixtures
-    assert_equal 10, @developers.size
+    assert_equal 11, @developers.size
     assert_equal "fixture_5", @dev_5.name
   end
 
   def test_empty_yaml_fixture
-    assert_not_nil Fixtures.new( Account.connection, "accounts", File.dirname(__FILE__) + "/fixtures/naked/yml/accounts")
+    assert_not_nil Fixtures.new( Account.connection, "accounts", 'Account', File.dirname(__FILE__) + "/fixtures/naked/yml/accounts")
   end
 
   def test_empty_yaml_fixture_with_a_comment_in_it
-    assert_not_nil Fixtures.new( Account.connection, "companies", File.dirname(__FILE__) + "/fixtures/naked/yml/companies")
+    assert_not_nil Fixtures.new( Account.connection, "companies", 'Company', File.dirname(__FILE__) + "/fixtures/naked/yml/companies")
   end
 
   def test_dirty_dirty_yaml_file
     assert_raises(Fixture::FormatError) do
-      Fixtures.new( Account.connection, "courses", File.dirname(__FILE__) + "/fixtures/naked/yml/courses")
+      Fixtures.new( Account.connection, "courses", 'Course', File.dirname(__FILE__) + "/fixtures/naked/yml/courses")
     end
   end
 
   def test_empty_csv_fixtures
-    assert_not_nil Fixtures.new( Account.connection, "accounts", File.dirname(__FILE__) + "/fixtures/naked/csv/accounts")
+    assert_not_nil Fixtures.new( Account.connection, "accounts", 'Account', File.dirname(__FILE__) + "/fixtures/naked/csv/accounts")
   end
 
   def test_omap_fixtures
     assert_nothing_raised do
-      fixtures = Fixtures.new(Account.connection, 'categories', File.dirname(__FILE__) + '/fixtures/categories_ordered')
+      fixtures = Fixtures.new(Account.connection, 'categories', 'Category', File.dirname(__FILE__) + '/fixtures/categories_ordered')
 
       i = 0
       fixtures.each do |name, fixture|
@@ -170,6 +172,19 @@ class FixturesTest < Test::Unit::TestCase
       end
     end
   end
+
+
+  def test_yml_file_in_subdirectory
+    assert_equal(categories(:sub_special_1).name, "A special category in a subdir file")
+    assert_equal(categories(:sub_special_1).class, SpecialCategory)
+  end
+
+  def test_subsubdir_file_with_arbitrary_name
+    assert_equal(categories(:sub_special_3).name, "A special category in an arbitrarily named subsubdir file")
+    assert_equal(categories(:sub_special_3).class, SpecialCategory)
+  end
+
+
 end
 
 if Account.connection.respond_to?(:reset_pk_sequence!)
@@ -307,5 +322,24 @@ class ForeignKeyFixturesTest < Test::Unit::TestCase
 
   def test_number2
     assert true
+  end
+end
+
+class SetTableNameFixturesTest < Test::Unit::TestCase
+  set_fixture_class :funny_jokes => 'Joke'
+  fixtures :funny_jokes
+  
+  def test_table_method
+    assert_kind_of Joke, funny_jokes(:a_joke)
+  end
+end
+
+class InvalidTableNameFixturesTest < Test::Unit::TestCase
+  fixtures :funny_jokes
+
+  def test_raises_error
+    assert_raises FixtureClassNotFound do
+      funny_jokes(:a_joke)
+    end
   end
 end

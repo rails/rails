@@ -3,12 +3,19 @@ require 'fixtures/topic'
 require 'fixtures/customer'
 require 'fixtures/company'
 require 'fixtures/company_in_module'
+require 'fixtures/subscriber'
 
 class ReflectionTest < Test::Unit::TestCase
-  fixtures :topics, :customers, :companies
+  fixtures :topics, :customers, :companies, :subscribers
 
   def setup
     @first = Topic.find(1)
+  end
+
+  def test_column_null_not_null
+    subscriber = Subscriber.find(:first)
+    assert subscriber.column_for_attribute("name").null
+    assert !subscriber.column_for_attribute("nick").null
   end
 
   def test_read_attribute_names
@@ -60,10 +67,9 @@ class ReflectionTest < Test::Unit::TestCase
       :composed_of, :gps_location, { }, Customer
     )
 
-    assert_equal(
-      [ reflection_for_address, reflection_for_balance, reflection_for_gps_location ],
-      Customer.reflect_on_all_aggregations
-    )
+    assert Customer.reflect_on_all_aggregations.include?(reflection_for_gps_location)
+    assert Customer.reflect_on_all_aggregations.include?(reflection_for_balance)
+    assert Customer.reflect_on_all_aggregations.include?(reflection_for_address)
 
     assert_equal reflection_for_address, Customer.reflect_on_aggregation(:address)
 
@@ -71,7 +77,7 @@ class ReflectionTest < Test::Unit::TestCase
   end
 
   def test_has_many_reflection
-    reflection_for_clients = ActiveRecord::Reflection::AssociationReflection.new(:has_many, :clients, { :order => "id", :dependent => true }, Firm)
+    reflection_for_clients = ActiveRecord::Reflection::AssociationReflection.new(:has_many, :clients, { :order => "id", :dependent => :destroy }, Firm)
 
     assert_equal reflection_for_clients, Firm.reflect_on_association(:clients)
 
@@ -83,7 +89,7 @@ class ReflectionTest < Test::Unit::TestCase
   end
 
   def test_has_one_reflection
-    reflection_for_account = ActiveRecord::Reflection::AssociationReflection.new(:has_one, :account, { :foreign_key => "firm_id", :dependent => true }, Firm)
+    reflection_for_account = ActiveRecord::Reflection::AssociationReflection.new(:has_one, :account, { :foreign_key => "firm_id", :dependent => :destroy }, Firm)
     assert_equal reflection_for_account, Firm.reflect_on_association(:account)
 
     assert_equal Account, Firm.reflect_on_association(:account).klass
@@ -91,7 +97,55 @@ class ReflectionTest < Test::Unit::TestCase
   end
 
   def test_association_reflection_in_modules
-    assert_equal MyApplication::Business::Client, MyApplication::Business::Firm.reflect_on_association(:clients_of_firm).klass
-    assert_equal MyApplication::Business::Firm, MyApplication::Billing::Account.reflect_on_association(:firm).klass
+    assert_reflection MyApplication::Business::Firm,
+      :clients_of_firm,
+      :klass      => MyApplication::Business::Client,
+      :class_name => 'Client',
+      :table_name => 'companies'
+
+    assert_reflection MyApplication::Billing::Account,
+      :firm,
+      :klass      => MyApplication::Business::Firm,
+      :class_name => 'MyApplication::Business::Firm',
+      :table_name => 'companies'
+
+    assert_reflection MyApplication::Billing::Account,
+      :qualified_billing_firm,
+      :klass      => MyApplication::Billing::Firm,
+      :class_name => 'MyApplication::Billing::Firm',
+      :table_name => 'companies'
+
+    assert_reflection MyApplication::Billing::Account,
+      :unqualified_billing_firm,
+      :klass      => MyApplication::Billing::Firm,
+      :class_name => 'Firm',
+      :table_name => 'companies'
+
+    assert_reflection MyApplication::Billing::Account,
+      :nested_qualified_billing_firm,
+      :klass      => MyApplication::Billing::Nested::Firm,
+      :class_name => 'MyApplication::Billing::Nested::Firm',
+      :table_name => 'companies'
+
+    assert_reflection MyApplication::Billing::Account,
+      :nested_unqualified_billing_firm,
+      :klass      => MyApplication::Billing::Nested::Firm,
+      :class_name => 'Nested::Firm',
+      :table_name => 'companies'
   end
+  
+  def test_reflection_of_all_associations
+    assert_equal 13, Firm.reflect_on_all_associations.size
+    assert_equal 11, Firm.reflect_on_all_associations(:has_many).size
+    assert_equal 2, Firm.reflect_on_all_associations(:has_one).size
+    assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
+  end
+
+  private
+    def assert_reflection(klass, association, options)
+      assert reflection = klass.reflect_on_association(association)
+      options.each do |method, value|
+        assert_equal(value, reflection.send(method))
+      end
+    end
 end

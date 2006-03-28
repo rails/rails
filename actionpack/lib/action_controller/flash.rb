@@ -24,14 +24,21 @@ module ActionController #:nodoc:
   #
   # See docs on the FlashHash class for more details about the flash.
   module Flash
-    def self.append_features(base) #:nodoc:
-      super
-      base.before_filter(:fire_flash)
-      base.after_filter(:sweep_flash)
-    end
+    def self.included(base)
+      base.send :include, InstanceMethods
 
+      base.class_eval do
+        alias_method :assign_shortcuts_without_flash, :assign_shortcuts
+        alias_method :assign_shortcuts, :assign_shortcuts_with_flash
+
+        alias_method :process_cleanup_without_flash, :process_cleanup
+        alias_method :process_cleanup, :process_cleanup_with_flash
+      end
+    end
+    
+    
     class FlashNow #:nodoc:
-      def initialize flash
+      def initialize(flash)
         @flash = flash
       end
       
@@ -47,9 +54,6 @@ module ActionController #:nodoc:
     end
     
     class FlashHash < Hash
-      @@avoid_sweep = false
-      cattr_accessor :avoid_sweep
-      
       def initialize #:nodoc:
         super
         @used = {}
@@ -60,14 +64,14 @@ module ActionController #:nodoc:
         super
       end
       
-      def update h #:nodoc:
-        h.keys.each{|k| discard k }
+      def update(h) #:nodoc:
+        h.keys.each{ |k| discard(k) }
         super
       end
       
-      alias merge! update
+      alias :merge! :update
       
-      def replace h #:nodoc:
+      def replace(h) #:nodoc:
         @used = {}
         super
       end
@@ -106,7 +110,6 @@ module ActionController #:nodoc:
       #
       # This method is called automatically by filters, so you generally don't need to care about it.
       def sweep #:nodoc:
-        return if @@avoid_sweep
         keys.each do |k| 
           unless @used[k]
             use(k)
@@ -133,40 +136,43 @@ module ActionController #:nodoc:
         end
     end
 
-
-    protected 
-      # Access the contents of the flash. Use <tt>flash["notice"]</tt> to read a notice you put there or 
-      # <tt>flash["notice"] = "hello"</tt> to put a new one.
-      # Note that if sessions are disabled only flash.now will work.
-      def flash #:doc:
-        # @session = Hash.new if sessions are disabled
-        if @session.is_a?(Hash)
-          @__flash ||= FlashHash.new
-
-        # otherwise, @session is a CGI::Session or a TestSession
-        else
-          @session['flash'] ||= FlashHash.new
+    module InstanceMethods #:nodoc:
+      def assign_shortcuts_with_flash(request, response) #:nodoc:
+        assign_shortcuts_without_flash(request, response)
+        flash(:refresh)
+      end
+      
+      def process_cleanup_with_flash
+        flash.sweep if @session
+        process_cleanup_without_flash
+      end
+      
+      protected 
+        # Access the contents of the flash. Use <tt>flash["notice"]</tt> to read a notice you put there or 
+        # <tt>flash["notice"] = "hello"</tt> to put a new one.
+        # Note that if sessions are disabled only flash.now will work.
+        def flash(refresh = false) #:doc:
+          if @flash.nil? || refresh
+            @flash = 
+              if @session.is_a?(Hash)
+                # @session is a Hash, if sessions are disabled
+                # we don't put the flash in the session in this case
+                FlashHash.new
+              else
+                # otherwise, @session is a CGI::Session or a TestSession
+                # so make sure it gets retrieved from/saved to session storage after request processing
+                @session["flash"] ||= FlashHash.new
+              end
+          end
+          
+          @flash
         end
-      end
 
-      # deprecated. use <tt>flash.keep</tt> instead
-      def keep_flash #:doc:
-        warn 'keep_flash is deprecated; use flash.keep instead.'
-        flash.keep
-      end
-
-
-    private
-  
-      # marks flash entries as used and expose the flash to the view 
-      def fire_flash
-        flash.discard
-        @assigns["flash"] = flash
-      end
-  
-      # deletes the flash entries that were not marked for keeping
-      def sweep_flash
-        flash.sweep
-      end  
+        # deprecated. use <tt>flash.keep</tt> instead
+        def keep_flash #:doc:
+          warn 'keep_flash is deprecated; use flash.keep instead.'
+          flash.keep
+        end
+    end
   end
 end

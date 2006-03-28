@@ -1,6 +1,7 @@
 require 'test/unit'
 require 'stringio'
 require File.dirname(__FILE__) + '/../lib/active_support/clean_logger'
+require File.dirname(__FILE__) + '/../lib/active_support/core_ext/kernel.rb' unless defined? silence_warnings
 
 class CleanLoggerTest < Test::Unit::TestCase
   def setup
@@ -45,13 +46,15 @@ end
 
 class CleanLogger_182_to_183_Test < Test::Unit::TestCase
   def setup
-    if Logger.method_defined?(:formatter=)
-      Logger.send(:alias_method, :hide_formatter=, :formatter=)
-      Logger.send(:undef_method, :formatter=)
-    else
-      Logger.send(:define_method, :formatter=) { }
+    silence_warnings do
+      if Logger.method_defined?(:formatter=)
+        Logger.send(:alias_method, :hide_formatter=, :formatter=)
+        Logger.send(:undef_method, :formatter=)
+      else
+        Logger.send(:define_method, :formatter=) { }
+      end
+      load File.dirname(__FILE__) + '/../lib/active_support/clean_logger.rb'
     end
-    load File.dirname(__FILE__) + '/../lib/active_support/clean_logger.rb'
 
     @out = StringIO.new
     @logger = Logger.new(@out)
@@ -59,12 +62,14 @@ class CleanLogger_182_to_183_Test < Test::Unit::TestCase
   end
 
   def teardown
-    if Logger.method_defined?(:hide_formatter=)
-      Logger.send(:alias_method, :formatter=, :hide_formatter=)
-    else
-      Logger.send(:undef_method, :formatter=)
+    silence_warnings do
+      if Logger.method_defined?(:hide_formatter=)
+        Logger.send(:alias_method, :formatter=, :hide_formatter=)
+      else
+        Logger.send(:undef_method, :formatter=)
+      end
+      load File.dirname(__FILE__) + '/../lib/active_support/clean_logger.rb'
     end
-    load File.dirname(__FILE__) + '/../lib/active_support/clean_logger.rb'
   end
 
   # Since we've fooled Logger into thinking we're on 1.8.2 if we're on 1.8.3

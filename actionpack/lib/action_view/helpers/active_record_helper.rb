@@ -103,7 +103,7 @@ module ActionView
       def error_messages_for(object_name, options = {})
         options = options.symbolize_keys
         object = instance_variable_get("@#{object_name}")
-        unless object.errors.empty?
+        if object && !object.errors.empty?
           content_tag("div",
             content_tag(
               options[:header_tag] || "h2",
@@ -113,6 +113,8 @@ module ActionView
             content_tag("ul", object.errors.full_messages.collect { |msg| content_tag("li", msg) }),
             "id" => options[:id] || "errorExplanation", "class" => options[:class] || "errorExplanation"
           )
+        else
+          ""
         end
       end
 
@@ -139,7 +141,7 @@ module ActionView
             to_input_field_tag("text", options)
           when :date
             to_date_select_tag(options)
-          when :datetime
+          when :datetime, :timestamp
             to_datetime_select_tag(options)
           when :boolean
             to_boolean_select_tag(options)

@@ -23,6 +23,20 @@ class Net::SMTP
   end
 end
 
+class FunkyPathMailer < ActionMailer::Base
+  def multipart_with_template_path_with_dots(recipient)
+    recipients recipient
+    subject    "Have a lovely picture"
+    from       "Chad Fowler <chad@chadfowler.com>"
+    attachment :content_type => "image/jpeg",
+      :body => "not really a jpeg, we're only testing, after all"
+  end
+
+  def template_path
+    "#{File.dirname(__FILE__)}/fixtures/path.with.dots"
+  end
+end
+
 class TestMailer < ActionMailer::Base
 
   def signed_up(recipient)
@@ -153,6 +167,14 @@ class TestMailer < ActionMailer::Base
     @implicit_parts_order = order if order
   end
 
+  def implicitly_multipart_with_utf8
+    recipients "no.one@nowhere.test"
+    subject    "Foo áëô îü"
+    from       "some.one@somewhere.test"
+    template   "implicitly_multipart_example"
+    body       ({ "recipient" => "no.one@nowhere.test" })
+  end
+
   def html_mail(recipient)
     recipients   recipient
     subject      "html mail"
@@ -204,6 +226,15 @@ class TestMailer < ActionMailer::Base
     end
     attachment :content_type => "application/octet-stream",:filename => "test.txt", :body => "test abcdefghijklmnopqstuvwxyz"
   end
+  
+  def attachment_with_custom_header(recipient)
+    recipients   recipient
+    subject      "custom header in attachment"
+    from         "test@example.com"
+    content_type "multipart/related"
+    part :content_type => "text/html", :body => 'yo'
+    attachment :content_type => "image/jpeg",:filename => "test.jpeg", :body => "i am not a real picture", :headers => { 'Content-ID' => '<test@test.com>' }
+  end
 
   def unnamed_attachment(recipient)
     recipients   recipient
@@ -220,6 +251,14 @@ class TestMailer < ActionMailer::Base
     from         "One: Two <test@example.com>"
     cc           "Three: Four <test@example.com>"
     bcc          "Five: Six <test@example.com>"
+    body         "testing"
+  end
+
+  def custom_content_type_attributes
+    recipients   "no.one@nowhere.test"
+    subject      "custom content types"
+    from         "some.one@somewhere.test"
+    content_type "text/plain; format=flowed"
     body         "testing"
   end
 
@@ -268,6 +307,12 @@ class ActionMailerTest < Test::Unit::TestCase
     assert_equal "text/plain", created.parts.first.parts.first.content_type
     assert_equal "text/html", created.parts.first.parts[1].content_type
     assert_equal "application/octet-stream", created.parts[1].content_type
+  end
+
+  def test_attachment_with_custom_header
+    created = nil
+    assert_nothing_raised { created = TestMailer.create_attachment_with_custom_header(@recipient)}
+    assert_equal "<test@test.com>", created.parts[1].header['content-id'].to_s
   end
 
   def test_signed_up
@@ -573,6 +618,14 @@ EOF
     assert_equal "Photo25.jpg", mail.attachments.first.original_filename
   end
 
+  def test_attachment_with_text_type
+    fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email13")
+    mail = TMail::Mail.parse(fixture)
+    assert mail.has_attachments?
+    assert_equal 1, mail.attachments.length
+    assert_equal "hello.rb", mail.attachments.first.original_filename
+  end
+
   def test_decode_part_without_content_type
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email4")
     mail = TMail::Mail.parse(fixture)
@@ -598,6 +651,11 @@ EOF
   
   def test_multipart_with_utf8_subject
     mail = TestMailer.create_multipart_with_utf8_subject(@recipient)
+    assert_match(/\nSubject: =\?utf-8\?Q\?Foo_.*?\?=/, mail.encoded)
+  end
+
+  def test_implicitly_multipart_with_utf8
+    mail = TestMailer.create_implicitly_multipart_with_utf8
     assert_match(/\nSubject: =\?utf-8\?Q\?Foo_.*?\?=/, mail.encoded)
   end
 
@@ -697,7 +755,7 @@ EOF
   def test_recursive_multipart_processing
     fixture = File.read(File.dirname(__FILE__) + "/fixtures/raw_email7")
     mail = TMail::Mail.parse(fixture)
-    assert_equal "This is the first part.\n\nAttachment: test.pdf\n\n\nAttachment: smime.p7s\n", mail.body
+    assert_equal "This is the first part.\n\nAttachment: test.rb\nAttachment: test.pdf\n\n\nAttachment: smime.p7s\n", mail.body
   end
 
   def test_decode_encoded_attachment_filename
@@ -741,9 +799,20 @@ EOF
   end
 
   def test_deliver_with_mail_object
-    mail = TestMailer::create_headers_with_nonalpha_chars(@recipient)
+    mail = TestMailer.create_headers_with_nonalpha_chars(@recipient)
     assert_nothing_raised { TestMailer.deliver(mail) }
     assert_equal 1, TestMailer.deliveries.length
+  end
+
+  def test_multipart_with_template_path_with_dots
+    mail = FunkyPathMailer.create_multipart_with_template_path_with_dots(@recipient)
+    assert_equal 2, mail.parts.length
+  end
+
+  def test_custom_content_type_attributes
+    mail = TestMailer.create_custom_content_type_attributes
+    assert_match %r{format=flowed}, mail['content-type'].to_s
+    assert_match %r{charset=utf-8}, mail['content-type'].to_s
   end
 end
 

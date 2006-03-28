@@ -1,5 +1,5 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/object_and_class'
+require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/object'
 require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/blank'
 
 class BlankTest < Test::Unit::TestCase

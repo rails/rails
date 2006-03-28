@@ -79,6 +79,7 @@ class HasOneAssociationsTest < Test::Unit::TestCase
 
   def test_triple_equality
     assert Account === companies(:first_firm).account
+    assert companies(:first_firm).account === Account
   end
 
   def test_type_mismatch
@@ -155,6 +156,15 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     account = firm.build_account
     assert !account.save
     assert_equal "can't be empty", account.errors.on("credit_limit")
+  end
+
+  def test_build_association_twice_without_saving_affects_nothing
+    count_of_account = Account.count
+    firm = Firm.find(:first)
+    account1 = firm.build_account("credit_limit" => 1000)
+    account2 = firm.build_account("credit_limit" => 2000)
+
+    assert_equal count_of_account, Account.count
   end
 
   def test_create_association
@@ -278,6 +288,17 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   
   def test_finding
     assert_equal 2, Firm.find(:first).clients.length
+  end
+
+  def test_find_many_with_merged_options
+    assert_equal 1, companies(:first_firm).limited_clients.size
+    assert_equal 1, companies(:first_firm).limited_clients.find(:all).size
+    assert_equal 2, companies(:first_firm).limited_clients.find(:all, :limit => nil).size
+  end
+
+  def test_triple_equality
+    assert !(Array === Firm.find(:first).clients)
+    assert Firm.find(:first).clients === Array
   end
 
   def test_finding_default_orders
@@ -641,7 +662,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   def test_three_levels_of_dependence
     topic = Topic.create "title" => "neat and simple"
     reply = topic.replies.create "title" => "neat and simple", "content" => "still digging it"
-    silly_reply = reply.silly_replies.create "title" => "neat and simple", "content" => "ain't complaining"
+    silly_reply = reply.replies.create "title" => "neat and simple", "content" => "ain't complaining"
     
     assert_nothing_raised { topic.destroy }
   end
@@ -663,7 +684,6 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     companies(:first_firm).destroy
     assert_equal num_accounts - 1, Account.count
   end
-
 
   def test_depends_and_nullify
     num_accounts = Account.count
@@ -747,6 +767,11 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert_nothing_raised { account.firm = account.firm }
   end
 
+  def test_triple_equality
+    assert Client.find(3).firm === Firm
+    assert Firm === Client.find(3).firm
+  end
+
   def test_type_mismatch
     assert_raise(ActiveRecord::AssociationTypeMismatch) { Account.find(1).firm = 1 }
     assert_raise(ActiveRecord::AssociationTypeMismatch) { Account.find(1).firm = Project.find(1) }
@@ -802,6 +827,38 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
 
     trash.destroy
     assert_equal 0, Topic.find(debate.id).send(:read_attribute, "replies_count"), "First reply deleted"
+  end
+
+  def test_belongs_to_counter_with_reassigning
+    t1 = Topic.create("title" => "t1")
+    t2 = Topic.create("title" => "t2")
+    r1 = Reply.new("title" => "r1", "content" => "r1")
+    r1.topic = t1
+
+    assert r1.save
+    assert_equal 1, Topic.find(t1.id).replies.size
+    assert_equal 0, Topic.find(t2.id).replies.size
+
+    r1.topic = Topic.find(t2.id)
+
+    assert r1.save
+    assert_equal 0, Topic.find(t1.id).replies.size
+    assert_equal 1, Topic.find(t2.id).replies.size
+
+    r1.topic = nil
+
+    assert_equal 0, Topic.find(t1.id).replies.size
+    assert_equal 0, Topic.find(t2.id).replies.size
+
+    r1.topic = t1
+
+    assert_equal 1, Topic.find(t1.id).replies.size
+    assert_equal 0, Topic.find(t2.id).replies.size
+
+    r1.destroy
+
+    assert_equal 0, Topic.find(t1.id).replies.size
+    assert_equal 0, Topic.find(t2.id).replies.size
   end
 
   def test_assignment_before_parent_saved
@@ -860,21 +917,32 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     assert_not_nil computer.developer, ":foreign key == attribute didn't lock up" # '
   end
 
-  def xtest_counter_cache
-    apple = Firm.create("name" => "Apple")
-    final_cut = apple.clients.create("name" => "Final Cut")
-
-    apple.clients.to_s
-    assert_equal 1, apple.clients.size, "Created one client"
+  def test_counter_cache
+    topic = Topic.create :title => "Zoom-zoom-zoom"
+    assert_equal 0, topic[:replies_count]
     
-    apple.companies_count = 2
-    apple.save
+    reply = Reply.create(:title => "re: zoom", :content => "speedy quick!")
+    reply.topic = topic
 
-    apple = Firm.find(:first, :conditions => "name = 'Apple'")
-    assert_equal 2, apple.clients.size, "Should use the new cached number"
+    assert_equal 1, topic.reload[:replies_count]
+    assert_equal 1, topic.replies.size
 
-    apple.clients.to_s 
-    assert_equal 1, apple.clients.size, "Should not use the cached number, but go to the database"
+    topic[:replies_count] = 15
+    assert_equal 15, topic.replies.size
+  end
+
+  def test_custom_counter_cache
+    reply = Reply.create(:title => "re: zoom", :content => "speedy quick!")
+    assert_equal 0, reply[:replies_count]
+
+    silly = SillyReply.create(:title => "gaga", :content => "boo-boo")
+    silly.reply = reply
+
+    assert_equal 1, reply.reload[:replies_count]
+    assert_equal 1, reply.replies.size
+
+    reply[:replies_count] = 17
+    assert_equal 17, reply.replies.size
   end
 
   def test_store_two_association_with_one_save
@@ -1022,8 +1090,13 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
 
     active_record = Project.find(1)
     assert !active_record.developers.empty?
-    assert_equal 2, active_record.developers.size
+    assert_equal 3, active_record.developers.size
     assert active_record.developers.include?(david)
+  end
+
+  def test_triple_equality
+    assert !(Array === Developer.find(1).projects)
+    assert Developer.find(1).projects === Array
   end
 
   def test_adding_single
@@ -1149,7 +1222,6 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     no_of_devels = Developer.count
     no_of_projects = Project.count
     now = Date.today
-    sqlnow = Time.now.strftime("%Y/%m/%d 00:00:00")
     ken = Developer.new("name" => "Ken")
     ken.projects.push_with_attributes( Project.find(1), :joined_on => now )
     p = Project.new("name" => "Foomatic")
@@ -1164,13 +1236,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal 2, ken.projects(true).size
 
     kenReloaded = Developer.find_by_name 'Ken'
-    # SQL Server doesn't have a separate column type just for dates, 
-    # so the time is in the string and incorrectly formatted
-    if current_adapter?(:SQLServerAdapter)
-      kenReloaded.projects.each { |prj| assert_equal(sqlnow, prj.joined_on.strftime("%Y/%m/%d 00:00:00")) }
-    else
-      kenReloaded.projects.each { |prj| assert_equal(now.to_s, prj.joined_on.to_s) }
-    end
+    kenReloaded.projects.each {|prj| assert_date_from_db(now, prj.joined_on)}
   end
 
   def test_habtm_saving_multiple_relationships
@@ -1216,7 +1282,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_uniq_before_the_fact
     projects(:active_record).developers << developers(:jamis)
     projects(:active_record).developers << developers(:david)
-    assert_equal 2, projects(:active_record, :reload).developers.size
+    assert_equal 3, projects(:active_record, :reload).developers.size
   end
   
   def test_deleting
@@ -1224,13 +1290,13 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     active_record = Project.find(1)
     david.projects.reload
     assert_equal 2, david.projects.size
-    assert_equal 2, active_record.developers.size
+    assert_equal 3, active_record.developers.size
 
     david.projects.delete(active_record)
     
     assert_equal 1, david.projects.size
     assert_equal 1, david.projects(true).size
-    assert_equal 1, active_record.developers(true).size
+    assert_equal 2, active_record.developers(true).size
   end
 
   def test_deleting_array
@@ -1245,16 +1311,16 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     david = Developer.find(1)
     active_record = Project.find(1)
     active_record.developers.reload
-    assert_equal 2, active_record.developers_by_sql.size
+    assert_equal 3, active_record.developers_by_sql.size
     
     active_record.developers_by_sql.delete(david)
-    assert_equal 1, active_record.developers_by_sql(true).size
+    assert_equal 2, active_record.developers_by_sql(true).size
   end
 
   def test_deleting_array_with_sql
     active_record = Project.find(1)
     active_record.developers.reload
-    assert_equal 2, active_record.developers_by_sql.size
+    assert_equal 3, active_record.developers_by_sql.size
     
     active_record.developers_by_sql.delete(Developer.find(:all))
     assert_equal 0, active_record.developers_by_sql(true).size
@@ -1277,13 +1343,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_additional_columns_from_join_table
-    # SQL Server doesn't have a separate column type just for dates, 
-    # so the time is in the string and incorrectly formatted
-    if current_adapter?(:SQLServerAdapter)
-      assert_equal Time.mktime(2004, 10, 10).strftime("%Y/%m/%d 00:00:00"), Developer.find(1).projects.first.joined_on.strftime("%Y/%m/%d 00:00:00")
-    else
-      assert_equal Date.new(2004, 10, 10).to_s, Developer.find(1).projects.first.joined_on.to_s
-    end
+    assert_date_from_db Date.new(2004, 10, 10), Developer.find(1).projects.first.joined_on
   end
   
   def test_destroy_all
@@ -1298,26 +1358,20 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_rich_association
     jamis = developers(:jamis)
     jamis.projects.push_with_attributes(projects(:action_controller), :joined_on => Date.today)
-    # SQL Server doesn't have a separate column type just for dates, 
-    # so the time is in the string and incorrectly formatted
-    if current_adapter?(:SQLServerAdapter)
-      assert_equal Time.now.strftime("%Y/%m/%d 00:00:00"), jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.strftime("%Y/%m/%d 00:00:00")
-      assert_equal Time.now.strftime("%Y/%m/%d 00:00:00"), developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.strftime("%Y/%m/%d 00:00:00")
-    else
-      assert_equal Date.today.to_s, jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
-      assert_equal Date.today.to_s, developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on.to_s
-    end
+    
+    assert_date_from_db Date.today, jamis.projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on
+    assert_date_from_db Date.today, developers(:jamis).projects.select { |p| p.name == projects(:action_controller).name }.first.joined_on
   end
 
   def test_associations_with_conditions
-    assert_equal 2, projects(:active_record).developers.size
+    assert_equal 3, projects(:active_record).developers.size
     assert_equal 1, projects(:active_record).developers_named_david.size
 
     assert_equal developers(:david), projects(:active_record).developers_named_david.find(developers(:david).id)
     assert_equal developers(:david), projects(:active_record).salaried_developers.find(developers(:david).id)
 
     projects(:active_record).developers_named_david.clear
-    assert_equal 1, projects(:active_record, :reload).developers.size
+    assert_equal 2, projects(:active_record, :reload).developers.size
   end
   
   def test_find_in_association
@@ -1342,6 +1396,11 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert_equal developers(:david), projects(:active_record).developers_with_finder_sql.find(developers(:david).id.to_s), "SQL find"
   end
 
+  def test_find_with_merged_options
+    assert_equal 1, projects(:active_record).limited_developers.size
+    assert_equal 1, projects(:active_record).limited_developers.find(:all).size
+    assert_equal 3, projects(:active_record).limited_developers.find(:all, :limit => nil).size
+  end
 
   def test_new_with_values_in_collection
     jamis = DeveloperForProjectWithAfterCreateHook.find_by_name('Jamis')
@@ -1355,12 +1414,12 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     assert project.developers.include?(david)
   end
 
-  def xtest_find_in_association_with_options
+  def test_find_in_association_with_options
     developers = projects(:active_record).developers.find(:all)
-    assert_equal 2, developers.size
+    assert_equal 3, developers.size
     
-    assert_equal developers(:david), projects(:active_record).developers.find(:first, :conditions => "salary < 10000")
-    assert_equal developers(:jamis), projects(:active_record).developers.find(:first, :order => "salary DESC")
+    assert_equal developers(:poor_jamis), projects(:active_record).developers.find(:first, :conditions => "salary < 10000")
+    assert_equal developers(:jamis),      projects(:active_record).developers.find(:first, :order => "salary DESC")
   end
   
   def test_replace_with_less
@@ -1409,5 +1468,9 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
       WHERE project_id = #{project.id}
       AND developer_id = #{developer.id}
     end_sql
+  end
+
+  def test_join_table_alias
+    assert_equal 3, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL').size
   end
 end

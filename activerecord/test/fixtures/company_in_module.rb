@@ -5,13 +5,13 @@ module MyApplication
     end
     
     class Firm < Company
-      has_many :clients, :order => "id", :dependent => true
+      has_many :clients, :order => "id", :dependent => :destroy
       has_many :clients_sorted_desc, :class_name => "Client", :order => "id DESC"
       has_many :clients_of_firm, :foreign_key => "client_of", :class_name => "Client", :order => "id"
       has_many :clients_like_ms, :conditions => "name = 'Microsoft'", :class_name => "Client", :order => "id"
       has_many :clients_using_sql, :class_name => "Client", :finder_sql => 'SELECT * FROM companies WHERE client_of = #{id}'
 
-      has_one :account, :dependent => true
+      has_one :account, :dependent => :destroy
     end
 
     class Client < Company
@@ -33,11 +33,25 @@ module MyApplication
     end
 
   end
-  
+
   module Billing
+    class Firm < ActiveRecord::Base
+      self.table_name = 'companies'
+    end
+
+    module Nested
+      class Firm < ActiveRecord::Base
+        self.table_name = 'companies'
+      end
+    end
+
     class Account < ActiveRecord::Base
-      belongs_to :firm, :class_name => "MyApplication::Business::Firm"
-      
+      belongs_to :firm, :class_name => 'MyApplication::Business::Firm'
+      belongs_to :qualified_billing_firm, :class_name => 'MyApplication::Billing::Firm'
+      belongs_to :unqualified_billing_firm, :class_name => 'Firm'
+      belongs_to :nested_qualified_billing_firm, :class_name => 'MyApplication::Billing::Nested::Firm'
+      belongs_to :nested_unqualified_billing_firm, :class_name => 'Nested::Firm'
+
       protected
         def validate
           errors.add_on_empty "credit_limit"

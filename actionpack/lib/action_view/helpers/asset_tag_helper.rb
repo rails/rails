@@ -59,11 +59,10 @@ module ActionView
       # <tt>controllers/application.rb</tt> and <tt>helpers/application_helper.rb</tt>.
       def javascript_include_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
-        if sources.first == :defaults
-          sources = @@javascript_default_sources.dup
-          if defined?(RAILS_ROOT) and File.exists?("#{RAILS_ROOT}/public/javascripts/application.js")
-            sources << 'application' 
-          end
+        if sources.include?(:defaults) 
+          sources = sources[0..(sources.index(:defaults))] + @@javascript_default_sources.dup + sources[(sources.index(:defaults) + 1)..sources.length] 
+          sources.delete(:defaults) 
+          sources << "application" if defined?(RAILS_ROOT) and File.exists?("#{RAILS_ROOT}/public/javascripts/application.js") 
         end
         sources.collect { |source|
           source = javascript_path(source)        
@@ -131,7 +130,7 @@ module ActionView
       # * file name, like "rss.gif", that gets expanded to "/images/rss.gif"
       # * file name without extension, like "logo", that gets expanded to "/images/logo.png"
       def image_tag(source, options = {})
-        options.symbolize_keys
+        options.symbolize_keys!
                 
         options[:src] = image_path(source)
         options[:alt] ||= File.basename(options[:src], '.*').split('.').first.capitalize
@@ -147,7 +146,7 @@ module ActionView
       private
         def compute_public_path(source, dir, ext)
           source = "/#{dir}/#{source}" unless source.first == "/" || source.include?(":")
-          source = "#{source}.#{ext}" unless source.include?(".")
+          source = "#{source}.#{ext}" unless source.split("/").last.include?(".")
           source = "#{@controller.request.relative_url_root}#{source}" unless %r{^[-a-z]+://} =~ source
           source = ActionController::Base.asset_host + source unless source.include?(":")
           source

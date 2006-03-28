@@ -1,13 +1,20 @@
 # The filename begins with "aaa" to ensure this is the first test.
 require 'abstract_unit'
 
-class CreateTablesTest < Test::Unit::TestCase
+class AAACreateTablesTest < Test::Unit::TestCase
+  self.use_transactional_fixtures = false
+
   def setup
     @base_path = "#{File.dirname(__FILE__)}/fixtures/db_definitions"
   end
 
   def test_drop_and_create_main_tables
     recreate ActiveRecord::Base
+    assert true
+  end
+
+  def test_load_schema
+    eval(File.read("#{File.dirname(__FILE__)}/fixtures/db_definitions/schema.rb"))
     assert true
   end
   
@@ -25,11 +32,23 @@ class CreateTablesTest < Test::Unit::TestCase
     end
 
     def execute_sql_file(path, connection)
-      File.read(path).split(';').each_with_index do |sql, i|
-        begin
-          connection.execute("\n\n-- statement ##{i}\n#{sql}\n") unless sql.blank?
-        rescue ActiveRecord::StatementInvalid
-          #$stderr.puts "warning: #{$!}"
+      # OpenBase has a different format for sql files
+      if current_adapter?(:OpenBaseAdapter) then
+          File.read(path).split("go").each_with_index do |sql, i|
+            begin
+              # OpenBase does not support comments embedded in sql
+              connection.execute(sql,"SQL statement ##{i}") unless sql.blank?
+            rescue ActiveRecord::StatementInvalid
+              #$stderr.puts "warning: #{$!}"
+            end
+          end
+      else
+        File.read(path).split(';').each_with_index do |sql, i|
+          begin
+            connection.execute("\n\n-- statement ##{i}\n#{sql}\n") unless sql.blank?
+          rescue ActiveRecord::StatementInvalid
+            #$stderr.puts "warning: #{$!}"
+          end
         end
       end
     end

@@ -25,6 +25,8 @@ module ActiveSupport #:nodoc:
         def to_time(form = :local)
           ::Time.send(form, year, month, day)
         end
+        
+        alias :xmlschema :to_s
       end
     end
   end

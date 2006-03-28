@@ -41,6 +41,11 @@ module ActionWebService # :nodoc:
         def cast(value, signature_type) # :nodoc:
           return value if signature_type.nil? # signature.length != params.length
           return nil if value.nil?
+          # XMLRPC protocol doesn't support nil values. It uses false instead.
+          # It should never happen for SOAP.
+          if signature_type.structured? && value.equal?(false)
+            return nil
+          end
           unless signature_type.array? || signature_type.structured?
             return value if canonical_type(value.class) == signature_type.type
           end
@@ -91,10 +96,13 @@ module ActionWebService # :nodoc:
           when :float
             Float(value)
           when :time
+            value = "#{value['2']}/#{value['3']}/#{value['1']} #{value['4']}:#{value['5']}:#{value['6']}" if value.kind_of?(Hash)
             Time.parse(value.to_s)
           when :date
+            value = "#{value['2']}/#{value['3']}/#{value['1']}" if value.kind_of?(Hash)
             Date.parse(value.to_s)
           when :datetime
+            value = "#{value['2']}/#{value['3']}/#{value['1']} #{value['4']}:#{value['5']}:#{value['6']}" if value.kind_of?(Hash)
             DateTime.parse(value.to_s)
           end
         end
@@ -108,6 +116,8 @@ module ActionWebService # :nodoc:
             value.each_pair do |name, val|
               type = klass.respond_to?(:member_type) ? klass.member_type(name) : nil
               val = cast(val, type) if type
+              # See http://dev.rubyonrails.com/ticket/3567
+              val = val.to_time if val.is_a?(XMLRPC::DateTime)
               obj.__send__("#{name}=", val) if obj.respond_to?(name)
             end
           elsif value.respond_to?(:attributes)

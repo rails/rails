@@ -100,6 +100,7 @@ module ActionController
     
       def initialize(key, options = {})
         @key = key.to_sym
+        @optional = false
         default, @condition = options[:default], options[:condition]
         self.default = default if options.key?(:default)
       end
@@ -214,26 +215,45 @@ module ActionController
   
       class << self
         def assign_controller(g, controller)
-          expr = "::Controllers::#{controller.split('/').collect {|c| c.camelize}.join('::')}Controller"
+          expr = "::#{controller.split('/').collect {|c| c.camelize}.join('::')}Controller"
           g.result :controller, expr, true
         end
 
         def traverse_to_controller(segments, start_at = 0)
-          mod = ::Controllers
+          mod = ::Object
           length = segments.length
           index = start_at
           mod_name = controller_name = segment = nil
-      
+          
           while index < length
             return nil unless /^[A-Za-z][A-Za-z\d_]*$/ =~ (segment = segments[index])
             index += 1
-        
+            
             mod_name = segment.camelize
             controller_name = "#{mod_name}Controller"
-        
-            return eval("mod::#{controller_name}", nil, 'routing.rb', __LINE__), (index - start_at) if mod.const_available?(controller_name)
-            return nil unless mod.const_available?(mod_name)
-            mod = eval("mod::#{mod_name}", nil, 'routing.rb', __LINE__)
+            
+            begin
+              # We use eval instead of const_get to avoid obtaining values from parent modules.
+              controller = eval("mod::#{controller_name}", nil, __FILE__, __LINE__)
+              expected_name = "#{mod.name}::#{controller_name}"
+              
+              # Detect the case when const_get returns an object from a parent namespace.
+              if controller.is_a?(Class) && controller.ancestors.include?(ActionController::Base) && (mod == Object || controller.name == expected_name)
+                return controller, (index - start_at)
+              end
+            rescue NameError => e
+              raise unless /^uninitialized constant .*#{controller_name}$/ =~ e.message                            
+            end
+            
+            begin
+              next_mod = eval("mod::#{mod_name}", nil, __FILE__, __LINE__)
+              # Check that we didn't get a module from a parent namespace
+              mod = (mod == Object || next_mod.name == "#{mod.name}::#{mod_name}") ? next_mod : nil
+            rescue NameError => e
+              raise unless /^uninitialized constant .*#{mod_name}$/ =~ e.message
+            end
+            
+            return nil unless mod
           end
         end
       end
@@ -442,7 +462,6 @@ module ActionController
           @generation_methods[controller.to_sym] = method_name
         end
         
-        
         code = generation_code_for('routes', 'generate_default_path').to_s
         eval(code, nil, 'generated_code/routing/generation.rb')
         
@@ -479,7 +498,7 @@ module ActionController
             route.write_recognition(g)
           end
         end
-    
+        
         eval g.to_s, nil, 'generated/routing/recognition.rb'
         return g.to_s
       end

@@ -61,7 +61,7 @@ module Rails
           end
 
           def existing_migrations(file_name)
-            Dir.glob("#{@migration_directory}/[0-9]*_#{file_name}.rb")
+            Dir.glob("#{@migration_directory}/[0-9]*_*.rb").grep(/[0-9]+_#{file_name}.rb$/)
           end
 
           def migration_exists?(file_name)
@@ -163,11 +163,13 @@ module Rails
 
         # Copy a file from source to destination with collision checking.
         #
-        # The file_options hash accepts :chmod and :shebang options.
+        # The file_options hash accepts :chmod and :shebang and :collision options.
         # :chmod sets the permissions of the destination file:
         #   file 'config/empty.log', 'log/test.log', :chmod => 0664
         # :shebang sets the #!/usr/bin/ruby line for scripts
         #   file 'bin/generate.rb', 'script/generate', :chmod => 0755, :shebang => '/usr/bin/env ruby'
+        # :collision sets the collision option only for the destination file: 
+        #   file 'settings/server.yml', 'config/server.yml', :collision => :skip
         #
         # Collisions are handled by checking whether the destination file
         # exists and either skipping the file, forcing overwrite, or asking
@@ -188,7 +190,7 @@ module Rails
 
             # Make a choice whether to overwrite the file.  :force and
             # :skip already have their mind made up, but give :ask a shot.
-            choice = case options[:collision].to_sym #|| :ask
+            choice = case (file_options[:collision] || options[:collision]).to_sym #|| :ask
               when :ask   then force_file_collision?(relative_destination)
               when :force then :force
               when :skip  then :skip
@@ -309,8 +311,9 @@ module Rails
         # When creating a migration, it knows to find the first available file in db/migrate and use the migration.rb template.
         def migration_template(relative_source, relative_destination, template_options = {})
           migration_directory relative_destination
-          raise "Another migration is already named #{file_name}: #{existing_migrations(file_name).first}" if migration_exists?(file_name)
-          template(relative_source, "#{relative_destination}/#{next_migration_string}_#{file_name}.rb", template_options)
+          migration_file_name = template_options[:migration_file_name] || file_name
+          raise "Another migration is already named #{migration_file_name}: #{existing_migrations(migration_file_name).first}" if migration_exists?(migration_file_name)
+          template(relative_source, "#{relative_destination}/#{next_migration_string}_#{migration_file_name}.rb", template_options)
         end
 
         private
@@ -423,8 +426,15 @@ end_message
         # When deleting a migration, it knows to delete every file named "[0-9]*_#{file_name}".
         def migration_template(relative_source, relative_destination, template_options = {})
           migration_directory relative_destination
-          raise "There is no migration named #{file_name}" unless migration_exists?(file_name)
-          existing_migrations(file_name).each do |file_path|
+
+          migration_file_name = template_options[:migration_file_name] || file_name
+          unless migration_exists?(migration_file_name)
+            puts "There is no migration named #{migration_file_name}"
+            return
+          end
+
+
+          existing_migrations(migration_file_name).each do |file_path|
             file(relative_source, file_path, template_options)
           end
         end

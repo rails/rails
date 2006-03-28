@@ -12,11 +12,11 @@ module ActionView
       #
       # A form is automatically created and displayed when the user clicks the element,
       # something like this:
-      # <form id="myElement-in-place-edit-form" target="specified url">
-      #   <input name="value" text="The content of myElement"/>
-      #   <input type="submit" value="ok"/>
-      #   <a onclick="javascript to cancel the editing">cancel</a>
-      # </form>
+      #   <form id="myElement-in-place-edit-form" target="specified url">
+      #     <input name="value" text="The content of myElement"/>
+      #     <input type="submit" value="ok"/>
+      #     <a onclick="javascript to cancel the editing">cancel</a>
+      #   </form>
       # 
       # The form is serialized and sent to the server using an AJAX call, the action on
       # the server should process the value and return the updated value in the body of
@@ -29,12 +29,17 @@ module ActionView
       # 
       # Addtional +options+ are:
       # <tt>:rows</tt>::              Number of rows (more than 1 will use a TEXTAREA)
+      # <tt>:cols</tt>::              Number of characters the text input should span (works for both INPUT and TEXTAREA)
+      # <tt>:size</tt>::              Synonym for :cols when using a single line text input.
       # <tt>:cancel_text</tt>::       The text on the cancel link. (default: "cancel")
       # <tt>:save_text</tt>::         The text on the save link. (default: "ok")
+      # <tt>:loading_text</tt>::      The text to display when submitting to the server (default: "Saving...")
       # <tt>:external_control</tt>::  The id of an external control used to enter edit mode.
+      # <tt>:load_text_url</tt>::     URL where initial value of editor (content) is retrieved.
       # <tt>:options</tt>::           Pass through options to the AJAX call (see prototype's Ajax.Updater)
       # <tt>:with</tt>::              JavaScript snippet that should return what is to be sent
       #                               in the AJAX call, +form+ is an implicit parameter
+      # <tt>:script</tt>::            Instructs the in-place editor to evaluate the remote JavaScript response (default: false)
       def in_place_editor(field_id, options = {})
         function =  "new Ajax.InPlaceEditor("
         function << "'#{field_id}', "
@@ -43,9 +48,14 @@ module ActionView
         js_options = {}
         js_options['cancelText'] = %('#{options[:cancel_text]}') if options[:cancel_text]
         js_options['okText'] = %('#{options[:save_text]}') if options[:save_text]
+        js_options['loadingText'] = %('#{options[:loading_text]}') if options[:loading_text]
         js_options['rows'] = options[:rows] if options[:rows]
-        js_options['externalControl'] = options[:external_control] if options[:external_control]
+        js_options['cols'] = options[:cols] if options[:cols]
+        js_options['size'] = options[:size] if options[:size]
+        js_options['externalControl'] = "'#{options[:external_control]}'" if options[:external_control]
+        js_options['loadTextURL'] = "'#{url_for(options[:load_text_url])}'" if options[:load_text_url]        
         js_options['ajaxOptions'] = options[:options] if options[:options]
+        js_options['evalScripts'] = options[:script] if options[:script]
         js_options['callback']   = "function(form) { return #{options[:with]} }" if options[:with]
         function << (', ' + options_for_javascript(js_options)) unless js_options.empty?
         
@@ -72,8 +82,12 @@ module ActionView
       # or nothing if no entries should be displayed for autocompletion.
       #
       # You'll probably want to turn the browser's built-in autocompletion off,
-      # su be sure to include a autocomplete="off" attribute with your text
+      # so be sure to include a autocomplete="off" attribute with your text
       # input field.
+      #
+      # The autocompleter object is assigned to a Javascript variable named <tt>field_id</tt>_auto_completer.
+      # This object is useful if you for example want to trigger the auto-complete suggestions through
+      # other means than user input (for that specific case, call the <tt>activate</tt> method on that object). 
       # 
       # Required +options+ are:
       # <tt>:url</tt>::       URL to call for autocompletion results
@@ -105,8 +119,11 @@ module ActionView
       #                       innerHTML is replaced.
       # <tt>:on_show</tt>::   Like on_hide, only now the expression is called
       #                       then the div is shown.
+      # <tt>:select</tt>::    Pick the class of the element from which the value for 
+      #                       insertion should be extracted. If this is not specified,
+      #                       the entire element is used.
       def auto_complete_field(field_id, options = {})
-        function =  "new Ajax.Autocompleter("
+        function =  "var #{field_id}_auto_completer = new Ajax.Autocompleter("
         function << "'#{field_id}', "
         function << "'" + (options[:update] || "#{field_id}_auto_complete") + "', "
         function << "'#{url_for(options[:url])}'"
@@ -115,9 +132,12 @@ module ActionView
         js_options[:tokens] = array_or_string_for_javascript(options[:tokens]) if options[:tokens]
         js_options[:callback]   = "function(element, value) { return #{options[:with]} }" if options[:with]
         js_options[:indicator]  = "'#{options[:indicator]}'" if options[:indicator]
-        {:on_show => :onShow, :on_hide => :onHide, :min_chars => :min_chars}.each do |k,v|
+        js_options[:select]     = "'#{options[:select]}'" if options[:select]
+
+        { :on_show => :onShow, :on_hide => :onHide, :min_chars => :minChars }.each do |k,v|
           js_options[v] = options[k] if options[k]
         end
+
         function << (', ' + options_for_javascript(js_options) + ')')
 
         javascript_tag(function)

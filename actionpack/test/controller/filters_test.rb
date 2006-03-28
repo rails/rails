@@ -3,6 +3,7 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 class FilterTest < Test::Unit::TestCase
   class TestController < ActionController::Base
     before_filter :ensure_login
+    after_filter  :clean_up
 
     def show
       render :inline => "ran action"
@@ -12,6 +13,11 @@ class FilterTest < Test::Unit::TestCase
       def ensure_login
         @ran_filter ||= []
         @ran_filter << "ensure_login"
+      end
+      
+      def clean_up
+        @ran_after_filter ||= []
+        @ran_after_filter << "clean_up"
       end
   end
 
@@ -99,7 +105,7 @@ class FilterTest < Test::Unit::TestCase
 
   class PrependingController < TestController
     prepend_before_filter :wonderful_life
-    skip_before_filter :fire_flash
+    # skip_before_filter :fire_flash
 
     private
       def wonderful_life
@@ -107,6 +113,20 @@ class FilterTest < Test::Unit::TestCase
         @ran_filter << "wonderful_life"
       end
   end
+
+  class ConditionalSkippingController < TestController
+    skip_before_filter :ensure_login, :only => [ :login ]
+    skip_after_filter  :clean_up,     :only => [ :login ]
+
+    def login
+      render :inline => "ran action"
+    end
+
+    def change_password
+      render :inline => "ran action"
+    end
+  end
+
 
   class ProcController < PrependingController
     before_filter(proc { |c| c.assigns["ran_proc_filter"] = true })
@@ -169,6 +189,7 @@ class FilterTest < Test::Unit::TestCase
 
   class MixedFilterController < PrependingController
     cattr_accessor :execution_log
+
     def initialize
       @@execution_log = ""
     end
@@ -218,11 +239,11 @@ class FilterTest < Test::Unit::TestCase
   end
 
   def test_added_filter_to_inheritance_graph
-    assert_equal [ :fire_flash, :ensure_login ], TestController.before_filters
+    assert_equal [ :ensure_login ], TestController.before_filters
   end
 
   def test_base_class_in_isolation
-    assert_equal [ :fire_flash ], ActionController::Base.before_filters
+    assert_equal [ ], ActionController::Base.before_filters
   end
   
   def test_prepending_filter
@@ -341,6 +362,14 @@ class FilterTest < Test::Unit::TestCase
       response = DynamicDispatchController.process(request, ActionController::TestResponse.new)
       assert_equal action, response.body
     end
+  end
+
+  def test_conditional_skipping_of_filters
+    assert_nil test_process(ConditionalSkippingController, "login").template.assigns["ran_filter"]
+    assert_equal %w( ensure_login ), test_process(ConditionalSkippingController, "change_password").template.assigns["ran_filter"]
+
+    assert_nil test_process(ConditionalSkippingController, "login").template.controller.instance_variable_get("@ran_after_filter")
+    assert_equal %w( clean_up ), test_process(ConditionalSkippingController, "change_password").template.controller.instance_variable_get("@ran_after_filter")
   end
 
   private

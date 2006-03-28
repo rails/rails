@@ -3,14 +3,18 @@ module ActionController
   class AbstractRequest
     cattr_accessor :relative_url_root
 
+    # Returns the hash of environment variables for this request,
+    # such as { 'RAILS_ENV' => 'production' }.
+    attr_reader :env
+
     # Returns both GET and POST parameters in a single hash.
     def parameters
-      @parameters ||= request_parameters.merge(query_parameters).merge(path_parameters).with_indifferent_access
+      @parameters ||= request_parameters.update(query_parameters).update(path_parameters).with_indifferent_access
     end
 
     # Returns the HTTP request method as a lowercase symbol (:get, for example)
     def method
-      env['REQUEST_METHOD'].downcase.to_sym
+      @request_method ||= @env['REQUEST_METHOD'].downcase.to_sym
     end
 
     # Is this a GET request?  Equivalent to request.method == :get
@@ -38,51 +42,43 @@ module ActionController
       method == :head
     end
 
-    # Determine whether the body of a POST request is URL-encoded (default),
-    # XML, or YAML by checking the Content-Type HTTP header:
-    #
-    #   Content-Type        Post Format
-    #   application/xml     :xml
-    #   text/xml            :xml
-    #   application/x-yaml  :yaml
-    #   text/x-yaml         :yaml
-    #   *                   :url_encoded
+    # Determine whether the body of a HTTP call is URL-encoded (default)
+    # or matches one of the registered param_parsers. 
     #
     # For backward compatibility, the post format is extracted from the
     # X-Post-Data-Format HTTP header if present.
-    def post_format
-      @post_format ||=
-           if env['HTTP_X_POST_DATA_FORMAT']
-             env['HTTP_X_POST_DATA_FORMAT'].downcase.to_sym
-           else
-             case env['CONTENT_TYPE'].to_s.downcase
-             when 'application/xml', 'text/xml'        then :xml
-             when 'application/x-yaml', 'text/x-yaml'  then :yaml
-             else :url_encoded
-             end
-           end
+    def content_type
+      @content_type ||=
+        begin
+          content_type = @env['CONTENT_TYPE'].to_s.downcase
+          
+          if x_post_format = @env['HTTP_X_POST_DATA_FORMAT']
+            case x_post_format.to_s.downcase
+            when 'yaml'
+              content_type = 'application/x-yaml'
+            when 'xml'
+              content_type = 'application/xml'
+            end
+          end
+          
+          Mime::Type.lookup(content_type)
+        end
     end
 
-    # Is this a POST request formatted as XML or YAML?
-    def formatted_post?
-      post? && (post_format == :xml || post_format == :yaml)
-    end
-
-    # Is this a POST request formatted as XML?
-    def xml_post?
-      post? && post_format == :xml
-    end
-
-    # Is this a POST request formatted as YAML?
-    def yaml_post?
-      post? && post_format == :yaml
+    def accepts
+      @accepts ||=
+        if @env['HTTP_ACCEPT'].to_s.strip.empty?
+          [ content_type, Mime::ALL ]
+        else
+          Mime::Type.parse(@env['HTTP_ACCEPT'])
+        end
     end
 
     # Returns true if the request's "X-Requested-With" header contains
     # "XMLHttpRequest". (The Prototype Javascript library sends this header with
     # every Ajax request.)
     def xml_http_request?
-      not /XMLHttpRequest/i.match(env['HTTP_X_REQUESTED_WITH']).nil?
+      not /XMLHttpRequest/i.match(@env['HTTP_X_REQUESTED_WITH']).nil?
     end
     alias xhr? :xml_http_request?
 
@@ -93,17 +89,17 @@ module ActionController
     # delimited list in the case of multiple chained proxies; the first is
     # the originating IP.
     def remote_ip
-      return env['HTTP_CLIENT_IP'] if env.include? 'HTTP_CLIENT_IP'
+      return @env['HTTP_CLIENT_IP'] if @env.include? 'HTTP_CLIENT_IP'
 
-      if env.include? 'HTTP_X_FORWARDED_FOR' then
-        remote_ips = env['HTTP_X_FORWARDED_FOR'].split(',').reject do |ip|
+      if @env.include? 'HTTP_X_FORWARDED_FOR' then
+        remote_ips = @env['HTTP_X_FORWARDED_FOR'].split(',').reject do |ip|
             ip =~ /^unknown$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\./i
         end
 
         return remote_ips.first.strip unless remote_ips.empty?
       end
 
-      env['REMOTE_ADDR']
+      @env['REMOTE_ADDR']
     end
 
     # Returns the domain part of a host, such as rubyonrails.org in "www.rubyonrails.org". You can specify
@@ -127,19 +123,19 @@ module ActionController
     # This is useful for services such as REST, XMLRPC and SOAP
     # which communicate over HTTP POST but don't use the traditional parameter format.
     def raw_post
-      env['RAW_POST_DATA']
+      @env['RAW_POST_DATA']
     end
 
     # Returns the request URI correctly, taking into account the idiosyncracies
     # of the various servers.
     def request_uri
-      if uri = env['REQUEST_URI']
+      if uri = @env['REQUEST_URI']
         (%r{^\w+\://[^/]+(/.*|$)$} =~ uri) ? $1 : uri # Remove domain, which webrick puts into the request_uri.
       else  # REQUEST_URI is blank under IIS - get this from PATH_INFO and SCRIPT_NAME
-        script_filename = env['SCRIPT_NAME'].to_s.match(%r{[^/]+$})
-        uri = env['PATH_INFO']
+        script_filename = @env['SCRIPT_NAME'].to_s.match(%r{[^/]+$})
+        uri = @env['PATH_INFO']
         uri = uri.sub(/#{script_filename}\//, '') unless script_filename.nil?
-        unless (env_qs = env['QUERY_STRING']).nil? || env_qs.empty?
+        unless (env_qs = @env['QUERY_STRING']).nil? || env_qs.empty?
           uri << '?' << env_qs
         end
         uri
@@ -153,7 +149,7 @@ module ActionController
 
     # Is this an SSL request?
     def ssl?
-      env['HTTPS'] == 'on'
+      @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
     end
 
     # Returns the interpreted path to requested resource after all the installation directory of this application was taken into account
@@ -167,15 +163,23 @@ module ActionController
     end
 
     # Returns the path minus the web server relative installation directory.
-    # This method returns nil unless the web server is apache.
+    # This can be set with the environment variable RAILS_RELATIVE_URL_ROOT.
+    # It can be automatically extracted for Apache setups. If the server is not
+    # Apache, this method returns an empty string.
     def relative_url_root
-      @@relative_url_root ||= server_software == 'apache' ? env["SCRIPT_NAME"].to_s.sub(/\/dispatch\.(fcgi|rb|cgi)$/, '') : ''
-      
+      @@relative_url_root ||= case
+        when @env["RAILS_RELATIVE_URL_ROOT"]
+          @env["RAILS_RELATIVE_URL_ROOT"]
+        when server_software == 'apache'
+          @env["SCRIPT_NAME"].to_s.sub(/\/dispatch\.(fcgi|rb|cgi)$/, '')
+        else
+          ''
+      end
     end
 
     # Returns the port number of this request as an integer.
     def port
-      @port_as_int ||= env['SERVER_PORT'].to_i
+      @port_as_int ||= @env['SERVER_PORT'].to_i
     end
 
     # Returns the standard port number for this request's protocol
@@ -213,7 +217,7 @@ module ActionController
 
     # Returns the lowercase name of the HTTP server software.
     def server_software
-      (env['SERVER_SOFTWARE'] && /^([a-zA-Z]+)/ =~ env['SERVER_SOFTWARE']) ? $1.downcase : nil
+      (@env['SERVER_SOFTWARE'] && /^([a-zA-Z]+)/ =~ @env['SERVER_SOFTWARE']) ? $1.downcase : nil
     end
 
     #--
@@ -225,11 +229,6 @@ module ActionController
     def request_parameters #:nodoc:
     end
 
-    # Returns the hash of environment variables for this request,
-    # such as { 'RAILS_ENV' => 'production' }.
-    def env
-    end
-
     # Returns the host for this request, such as example.com.
     def host
     end
@@ -238,6 +237,10 @@ module ActionController
     end
 
     def session #:nodoc:
+    end
+
+    def session=(session) #:nodoc:
+      @session = session
     end
 
     def reset_session #:nodoc:

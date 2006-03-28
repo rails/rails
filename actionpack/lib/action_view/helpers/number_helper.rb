@@ -85,15 +85,15 @@ module ActionView
       #   human_size(1234567)      => 1.2 MB
       #   human_size(1234567890)   => 1.1 GB
       def number_to_human_size(size)
-        begin
-          return "%d Bytes" % size                if size < 1.kilobytes
-          return "%.1f KB" % (size/1.0.kilobytes) if size < 1.megabytes
-          return "%.1f MB" % (size/1.0.megabytes) if size < 1.gigabytes
-          return "%.1f GB" % (size/1.0.gigabytes) if size < 1.terabytes
-          return "%.1f TB" % (size/1.0.terabytes) 
-        rescue
-          # just return nothing
-        end
+        case 
+          when size < 1.kilobyte: '%d Bytes' % size
+          when size < 1.megabyte: '%.1f KB'  % (size / 1.0.kilobyte)
+          when size < 1.gigabyte: '%.1f MB'  % (size / 1.0.megabyte)
+          when size < 1.terabyte: '%.1f GB'  % (size / 1.0.gigabyte)
+          else                    '%.1f TB'  % (size / 1.0.terabyte)
+        end.sub('.0', '')
+      rescue
+        nil
       end
       
       alias_method :human_size, :number_to_human_size # deprecated alias

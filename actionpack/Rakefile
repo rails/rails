@@ -31,18 +31,24 @@ Rake::TestTask.new { |t|
   t.verbose = true
 }
 
+desc 'ActiveRecord Integration Tests'
+Rake::TestTask.new(:test_active_record_integration) do |t|
+  t.libs << "test"
+  t.test_files = Dir.glob("test/activerecord/*_test.rb")
+  t.verbose = true
+end
+
 
 # Genereate the RDoc documentation
 
 Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Action Pack -- On rails from request to response"
-  rdoc.options << '--line-numbers --inline-source --main README'
+  rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
 }
-
 
 # Create compressed packages
 dist_dirs = [ "lib", "test", "examples" ]
@@ -62,7 +68,7 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc = true
   s.requirements << 'none'
 
-  s.add_dependency('activesupport', '= 1.2.5' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 1.3.0' + PKG_BUILD)
 
   s.require_path = 'lib'
   s.autorequire = 'action_controller'
@@ -108,11 +114,13 @@ end
 # Publishing ------------------------------------------------------
 
 task :update_scriptaculous do
-  system("svn export --force http://dev.rubyonrails.org/svn/rails/spinoffs/scriptaculous/src/ #{File.dirname(__FILE__)}/lib/action_view/helpers/javascripts/")
+  for js in %w( controls dragdrop effects )
+    system("svn export --force http://dev.rubyonrails.org/svn/rails/spinoffs/scriptaculous/src/#{js}.js #{File.dirname(__FILE__)}/lib/action_view/helpers/javascripts/#{js}.js")
+  end
 end
 
 desc "Updates actionpack to the latest version of the javascript spinoffs"
-task :update_js => [:update_scriptaculous]
+task :update_js => [ :update_scriptaculous ]
 
 # Publishing ------------------------------------------------------
 

@@ -1,3 +1,5 @@
+require 'set'
+
 module ActiveRecord
   class Base
     class ConnectionSpecification #:nodoc:
@@ -7,22 +9,139 @@ module ActiveRecord
       end
     end
 
+    # Check for activity after at least +verification_timeout+ seconds.
+    # Defaults to 0 (always check.)
+    cattr_accessor :verification_timeout
+    @@verification_timeout = 0
+
     # The class -> [adapter_method, config] map
     @@defined_connections = {}
 
-    # The class -> thread id -> adapter cache.
-    @@connection_cache = Hash.new { |h, k| h[k] = Hash.new }
+    # The class -> thread id -> adapter cache. (class -> adapter if not allow_concurrency)
+    @@active_connections = {}
 
-    # Returns the connection currently associated with the class. This can
-    # also be used to "borrow" the connection to do database work unrelated
-    # to any of the specific Active Records.
-    def self.connection
-      @@connection_cache[Thread.current.object_id][name] ||= retrieve_connection
-    end
+    class << self
+      # Retrieve the connection cache.
+      def thread_safe_active_connections #:nodoc:
+        @@active_connections[Thread.current.object_id] ||= {}
+      end
+     
+      def single_threaded_active_connections #:nodoc:
+        @@active_connections
+      end
+     
+      # pick up the right active_connection method from @@allow_concurrency
+      if @@allow_concurrency
+        alias_method :active_connections, :thread_safe_active_connections
+      else
+        alias_method :active_connections, :single_threaded_active_connections
+      end
+     
+      # set concurrency support flag (not thread safe, like most of the methods in this file)
+      def allow_concurrency=(threaded) #:nodoc:
+        logger.debug "allow_concurrency=#{threaded}" if logger
+        return if @@allow_concurrency == threaded
+        clear_all_cached_connections!
+        @@allow_concurrency = threaded
+        method_prefix = threaded ? "thread_safe" : "single_threaded"
+        sing = (class << self; self; end)
+        [:active_connections, :scoped_methods].each do |method|
+          sing.send(:alias_method, method, "#{method_prefix}_#{method}")
+        end
+        log_connections if logger
+      end
+      
+      def active_connection_name #:nodoc:
+        @active_connection_name ||=
+           if active_connections[name] || @@defined_connections[name]
+             name
+           elsif self == ActiveRecord::Base
+             nil
+           else
+             superclass.active_connection_name
+           end
+      end
 
-    # Clears the cache which maps classes to connections.
-    def self.clear_connection_cache!
-      @@connection_cache.clear
+      def clear_active_connection_name #:nodoc:
+        @active_connection_name = nil
+        subclasses.each { |klass| klass.clear_active_connection_name }
+      end
+
+      # Returns the connection currently associated with the class. This can
+      # also be used to "borrow" the connection to do database work unrelated
+      # to any of the specific Active Records.
+      def connection
+        if @active_connection_name && (conn = active_connections[@active_connection_name])
+          conn
+        else
+          # retrieve_connection sets the cache key.
+          conn = retrieve_connection
+          active_connections[@active_connection_name] = conn
+        end
+      end
+
+      # Clears the cache which maps classes to connections.
+      def clear_active_connections!
+        clear_cache!(@@active_connections) do |name, conn|
+          conn.disconnect!
+        end
+      end
+
+      # Verify active connections.
+      def verify_active_connections! #:nodoc:
+        if @@allow_concurrency
+          remove_stale_cached_threads!(@@active_connections) do |name, conn|
+            conn.disconnect!
+          end
+        end
+        
+        active_connections.each_value do |connection|
+          connection.verify!(@@verification_timeout)
+        end
+      end
+
+      private
+        def clear_cache!(cache, thread_id = nil, &block)
+          if cache
+            if @@allow_concurrency
+              thread_id ||= Thread.current.object_id
+              thread_cache, cache = cache, cache[thread_id]
+              return unless cache
+            end
+
+            cache.each(&block) if block_given?
+            cache.clear
+          end
+        ensure
+          if thread_cache && @@allow_concurrency
+            thread_cache.delete(thread_id)
+          end
+        end
+
+        # Remove stale threads from the cache.
+        def remove_stale_cached_threads!(cache, &block)
+          stale = Set.new(cache.keys)
+
+          Thread.list.each do |thread|
+            stale.delete(thread.object_id) if thread.alive?
+          end
+
+          stale.each do |thread_id|
+            clear_cache!(cache, thread_id, &block)
+          end
+        end
+        
+        def clear_all_cached_connections!
+          if @@allow_concurrency
+            @@active_connections.each_value do |connection_hash_for_thread|
+              connection_hash_for_thread.each_value {|conn| conn.disconnect! }
+              connection_hash_for_thread.clear
+            end
+          else
+            @@active_connections.each_value {|conn| conn.disconnect! }
+          end
+          @@active_connections.clear          
+        end
     end
 
     # Returns the connection currently associated with the class. This can
@@ -65,6 +184,8 @@ module ActiveRecord
           raise AdapterNotSpecified unless defined? RAILS_ENV
           establish_connection(RAILS_ENV)
         when ConnectionSpecification
+          clear_active_connection_name
+          @active_connection_name = name
           @@defined_connections[name] = spec
         when Symbol, String
           if configuration = configurations[spec.to_s]
@@ -82,46 +203,31 @@ module ActiveRecord
       end
     end
 
-    def self.active_connections #:nodoc:
-      if allow_concurrency
-        Thread.current['active_connections'] ||= {}
-      else
-        @@active_connections ||= {}
-      end
-    end
-
     # Locate the connection of the nearest super class. This can be an
     # active or defined connections: if it is the latter, it will be
     # opened and set as the active connection for the class it was defined
     # for (not necessarily the current class).
     def self.retrieve_connection #:nodoc:
-      klass = self
-      ar_super = ActiveRecord::Base.superclass
-      until klass == ar_super
-        if conn = active_connections[klass.name]
-          # Reconnect if the connection is inactive.
-          conn.reconnect! unless conn.active?
-          return conn
-        elsif conn = @@defined_connections[klass.name]
-          klass.connection = conn
-          return self.connection
+      # Name is nil if establish_connection hasn't been called for
+      # some class along the inheritance chain up to AR::Base yet.
+      if name = active_connection_name
+        if conn = active_connections[name]
+          # Verify the connection.
+          conn.verify!(@@verification_timeout)
+        elsif spec = @@defined_connections[name]
+          # Activate this connection specification.
+          klass = name.constantize
+          klass.connection = spec
+          conn = active_connections[name]
         end
-        klass = klass.superclass
       end
-      raise ConnectionNotEstablished
+
+      conn or raise ConnectionNotEstablished
     end
 
     # Returns true if a connection that's accessible to this class have already been opened.
     def self.connected?
-      klass = self
-      until klass == ActiveRecord::Base.superclass
-        if active_connections[klass.name]
-          return true
-        else
-          klass = klass.superclass
-        end
-      end
-      return false
+      active_connections[active_connection_name] ? true : false
     end
 
     # Remove the connection for this class. This will close the active
@@ -132,14 +238,13 @@ module ActiveRecord
       spec = @@defined_connections[klass.name]
       konn = active_connections[klass.name]
       @@defined_connections.delete_if { |key, value| value == spec }
-      @@connection_cache[Thread.current.object_id].delete_if { |key, value| value == konn }
       active_connections.delete_if { |key, value| value == konn }
       konn.disconnect! if konn
       spec.config if spec
     end
 
     # Set the connection for the class.
-    def self.connection=(spec)
+    def self.connection=(spec) #:nodoc:
       if spec.kind_of?(ActiveRecord::ConnectionAdapters::AbstractAdapter)
         active_connections[name] = spec
       elsif spec.kind_of?(ConnectionSpecification)
@@ -148,6 +253,15 @@ module ActiveRecord
         raise ConnectionNotEstablished
       else
         establish_connection spec
+      end
+    end
+
+    # connection state logging
+    def self.log_connections #:nodoc:
+      if logger
+        logger.info "Defined connections: #{@@defined_connections.inspect}"
+        logger.info "Active connections: #{active_connections.inspect}"
+        logger.info "Active connection name: #{@active_connection_name}"
       end
     end
   end

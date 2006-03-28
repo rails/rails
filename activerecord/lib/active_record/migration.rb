@@ -101,7 +101,7 @@ module ActiveRecord
   # == Database support
   #
   # Migrations are currently supported in MySQL, PostgreSQL, SQLite,
-  # SQL Server, and Oracle (all supported databases except DB2).
+  # SQL Server, Sybase, and Oracle (all supported databases except DB2).
   #
   # == More examples
   #
@@ -159,16 +159,118 @@ module ActiveRecord
   #       end
   #     end
   #   end
+  #
+  # == Controlling verbosity
+  #
+  # By default, migrations will describe the actions they are taking, writing
+  # them to the console as they happen, along with benchmarks describing how
+  # long each step took.
+  #
+  # You can quiet them down by setting ActiveRecord::Migration.verbose = false.
+  #
+  # You can also insert your own messages and benchmarks by using the #say_with_time
+  # method:
+  #
+  #   def self.up
+  #     ...
+  #     say_with_time "Updating salaries..." do
+  #       Person.find(:all).each do |p|
+  #         p.salary = SalaryCalculator.compute(p)
+  #       end
+  #     end
+  #     ...
+  #   end
+  #
+  # The phrase "Updating salaries..." would then be printed, along with the
+  # benchmark for the block when the block completes.
   class Migration
-    class << self
-      def up() end
-      def down() end
+    @@verbose = true
+    cattr_accessor :verbose
 
-      private
-        def method_missing(method, *arguments, &block)
-          arguments[0] = Migrator.proper_table_name(arguments.first) unless arguments.empty?
+    class << self
+      def up_using_benchmarks #:nodoc:
+        migrate(:up)
+      end
+
+      def down_using_benchmarks #:nodoc:
+        migrate(:down)
+      end
+
+      # Execute this migration in the named direction
+      def migrate(direction)
+        return unless respond_to?(direction)
+
+        case direction
+          when :up   then announce "migrating"
+          when :down then announce "reverting"
+        end
+        
+        result = nil
+        time = Benchmark.measure { result = send("real_#{direction}") }
+
+        case direction
+          when :up   then announce "migrated (%.4fs)" % time.real; write
+          when :down then announce "reverted (%.4fs)" % time.real; write
+        end
+        
+        result
+      end
+
+      # Because the method added may do an alias_method, it can be invoked
+      # recursively. We use @ignore_new_methods as a guard to indicate whether
+      # it is safe for the call to proceed.
+      def singleton_method_added(sym) #:nodoc:
+        return if @ignore_new_methods
+        
+        begin
+          @ignore_new_methods = true
+
+          case sym
+            when :up, :down
+              klass = (class << self; self; end)
+              klass.send(:alias_method, "real_#{sym}", sym)
+              klass.send(:alias_method, sym, "#{sym}_using_benchmarks")
+          end
+        ensure
+          @ignore_new_methods = false
+        end
+      end
+
+      def write(text="")
+        puts(text) if verbose
+      end
+
+      def announce(message)
+        text = "#{name}: #{message}"
+        write "== %s %s" % [ text, "=" * (75 - text.length) ]
+      end
+
+      def say(message, subitem=false)
+        write "#{subitem ? "   ->" : "--"} #{message}"
+      end
+
+      def say_with_time(message)
+        say(message)
+        result = nil
+        time = Benchmark.measure { result = yield }
+        say "%.4fs" % time.real, :subitem
+        result
+      end
+
+      def suppress_messages
+        save = verbose
+        self.verbose = false
+        yield
+      ensure
+        self.verbose = save
+      end
+
+      def method_missing(method, *arguments, &block)
+        say_with_time "#{method}(#{arguments.map { |a| a.inspect }.join(", ")})" do
+          arguments[0] = Migrator.proper_table_name(arguments.first) unless arguments.empty? || method == :execute
           ActiveRecord::Base.connection.send(method, *arguments, &block)
         end
+      end
     end
   end
 
@@ -176,6 +278,7 @@ module ActiveRecord
     class << self
       def migrate(migrations_path, target_version = nil)
         Base.connection.initialize_schema_information
+
         case
           when target_version.nil?, current_version < target_version
             up(migrations_path, target_version)
@@ -225,7 +328,7 @@ module ActiveRecord
         next if irrelevant_migration?(version)
 
         Base.logger.info "Migrating to #{migration_class} (#{version})"
-        migration_class.send(@direction)
+        migration_class.migrate(@direction)
         set_schema_version(version)
       end
     end

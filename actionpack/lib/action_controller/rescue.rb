@@ -60,7 +60,7 @@ module ActionController #:nodoc:
       # the remote IP being 127.0.0.1. For example, this could include the IP of the developer machine when debugging
       # remotely.
       def local_request? #:doc:
-        @request.remote_addr == "127.0.0.1"
+        [@request.remote_addr, @request.remote_ip] == ["127.0.0.1"] * 2
       end
 
       # Renders a detailed diagnostics screen on action exceptions. 

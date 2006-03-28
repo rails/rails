@@ -1,7 +1,33 @@
+*1.1.0* (March 27th, 2005)
+
+* Make ActiveWebService::Struct type reloadable
+
+* Fix scaffolding action when one of the members of a structural type has date or time type
+
+* Remove extra index hash when generating scaffold html for parameters of structural type #4374 [joe@mjg2.com]
+
+* Fix Scaffold Fails with Struct as a Parameter #4363 [joe@mjg2.com]
+
+* Fix soap type registration of multidimensional arrays (#4232)
+
+* Fix that marshaler couldn't handle ActiveRecord models defined in a different namespace (#2392).
+
+* Fix that marshaler couldn't handle structs with members of ActiveRecord type (#1889).
+
+* Fix that marshaler couldn't handle nil values for inner structs (#3576).
+
+* Fix that changes to ActiveWebService::API::Base required restarting of the server (#2390).
+
+* Fix scaffolding for signatures with :date, :time and :base64 types (#3321, #2769, #2078).
+
+* Fix for incorrect casting of TrueClass/FalseClass instances (#2633, #3421).
+
+* Fix for incompatibility problems with SOAP4R 1.5.5 (#2553) [Kent Sibilev]
+
+
 *1.0.0* (December 13th, 2005)
 
 * Become part of Rails 1.0
-
 
 *0.9.4* (December 7th, 2005)
 
@@ -10,7 +36,6 @@
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
 
 * Fix that XML-RPC date/time values did not have well-defined behaviour (#2516, #2534). This fix has one caveat, in that we can't support pre-1970 dates from XML-RPC clients.
-
 
 *0.9.3* (November 7th, 2005)
 

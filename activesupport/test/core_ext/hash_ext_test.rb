@@ -1,5 +1,5 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/hash'
+require File.dirname(__FILE__) + '/../../lib/active_support'
 
 class HashExtTest < Test::Unit::TestCase
   def setup
@@ -93,6 +93,58 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal hash[3], 3
   end
 
+  def test_indifferent_update
+    hash = HashWithIndifferentAccess.new
+    hash[:a] = 'a'
+    hash['b'] = 'b'
+    
+    updated_with_strings = hash.update(@strings)
+    updated_with_symbols = hash.update(@symbols)
+    updated_with_mixed = hash.update(@mixed)
+
+    assert_equal updated_with_strings[:a], 1
+    assert_equal updated_with_strings['a'], 1
+    assert_equal updated_with_strings['b'], 2
+
+    assert_equal updated_with_symbols[:a], 1
+    assert_equal updated_with_symbols['b'], 2
+    assert_equal updated_with_symbols[:b], 2
+
+    assert_equal updated_with_mixed[:a], 1
+    assert_equal updated_with_mixed['b'], 2
+
+    assert [updated_with_strings, updated_with_symbols, updated_with_mixed].all? {|hash| hash.keys.size == 2}
+  end
+
+  def test_indifferent_merging
+    hash = HashWithIndifferentAccess.new
+    hash[:a] = 'failure'
+    hash['b'] = 'failure'
+   
+    other = { 'a' => 1, :b => 2 }
+  
+    merged = hash.merge(other)
+  
+    assert_equal HashWithIndifferentAccess, merged.class
+    assert_equal 1, merged[:a]
+    assert_equal 2, merged['b']
+  
+    hash.update(other)
+  
+    assert_equal 1, hash[:a]
+    assert_equal 2, hash['b']
+  end
+  
+  def test_indifferent_deleting
+    get_hash = proc{ { :a => 'foo' }.with_indifferent_access }
+    hash = get_hash.call
+    assert_equal hash.delete(:a), 'foo'
+    assert_equal hash.delete(:a), nil
+    hash = get_hash.call
+    assert_equal hash.delete('a'), 'foo'
+    assert_equal hash.delete('a'), nil
+  end
+
   def test_assert_valid_keys
     assert_nothing_raised do
       { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
@@ -121,5 +173,69 @@ class HashExtTest < Test::Unit::TestCase
 
   def test_reverse_merge
     assert_equal({ :a => 1, :b => 2, :c => 10 }, { :a => 1, :b => 2 }.reverse_merge({:a => "x", :b => "y", :c => 10}) )
+  end
+
+  def test_diff
+    assert_equal({ :a => 2 }, { :a => 2, :b => 5 }.diff({ :a => 1, :b => 5 }))
+  end
+end
+
+class HashToXmlTest < Test::Unit::TestCase
+  def setup
+    @xml_options = { :root => :person, :skip_instruct => true, :indent => 0 }
+  end
+
+  def test_one_level
+    xml = { :name => "David", :street => "Paulina" }.to_xml(@xml_options)
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street>Paulina</street>))
+    assert xml.include?(%(<name>David</name>))
+  end
+
+  def test_one_level_with_types
+    xml = { :name => "David", :street => "Paulina", :age => 26, :moved_on => Date.new(2005, 11, 15) }.to_xml(@xml_options)
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street>Paulina</street>))
+    assert xml.include?(%(<name>David</name>))
+    assert xml.include?(%(<age type="integer">26</age>))
+    assert xml.include?(%(<moved-on type="date">2005-11-15</moved-on>))
+  end
+
+  def test_one_level_with_nils
+    xml = { :name => "David", :street => "Paulina", :age => nil }.to_xml(@xml_options)
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street>Paulina</street>))
+    assert xml.include?(%(<name>David</name>))
+    assert xml.include?(%(<age></age>))
+  end
+
+  def test_one_level_with_skipping_types
+    xml = { :name => "David", :street => "Paulina", :age => nil }.to_xml(@xml_options.merge(:skip_types => true))
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street>Paulina</street>))
+    assert xml.include?(%(<name>David</name>))
+    assert xml.include?(%(<age></age>))
+  end
+
+  def test_two_levels
+    xml = { :name => "David", :address => { :street => "Paulina" } }.to_xml(@xml_options)
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<address><street>Paulina</street></address>))
+    assert xml.include?(%(<name>David</name>))
+  end
+  
+  def test_two_levels_with_array
+    xml = { :name => "David", :addresses => [{ :street => "Paulina" }, { :street => "Evergreen" }] }.to_xml(@xml_options)
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<addresses><address>))
+    assert xml.include?(%(<address><street>Paulina</street></address>))
+    assert xml.include?(%(<address><street>Evergreen</street></address>))
+    assert xml.include?(%(<name>David</name>))
+  end
+
+  
+  def test_three_levels_with_array
+    xml = { :name => "David", :addresses => [{ :streets => [ { :name => "Paulina" }, { :name => "Paulina" } ] } ] }.to_xml(@xml_options)
+    assert xml.include?(%(<addresses><address><streets><street><name>))
   end
 end

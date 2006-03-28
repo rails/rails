@@ -34,3 +34,4 @@ end
 
 make_connection(ActiveRecord::Base, sqlite_test_db, 'sqlite.sql')
 make_connection(Course, sqlite_test_db2, 'sqlite2.sql')
+load(File.join(BASE_DIR, 'db_definitions', 'schema.rb'))

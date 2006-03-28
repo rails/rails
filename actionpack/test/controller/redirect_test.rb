@@ -27,6 +27,8 @@ class RedirectController < ActionController::Base
   end
 
   def rescue_errors(e) raise e end
+    
+  def rescue_action(e) raise end
   
   protected
     def dashbord_url(id, message)
@@ -56,6 +58,20 @@ class RedirectTest < Test::Unit::TestCase
     assert_redirected_to :action => "other_host", :only_path => false, :host => 'other.test.host'
   end
 
+  def test_redirect_error_with_pretty_diff
+    get :host_redirect
+    begin
+      assert_redirected_to :action => "other_host", :only_path => true
+    rescue Test::Unit::AssertionFailedError => err
+      redirection_msg, diff_msg = err.message.scan(/<\{[^\}]+\}>/).collect { |s| s[2..-3] }
+      assert_match %r(:only_path=>false),        redirection_msg
+      assert_match %r(:host=>"other.test.host"), redirection_msg
+      assert_match %r(:action=>"other_host"),    redirection_msg
+      assert_match %r(:only_path=>true),         diff_msg
+      assert_match %r(:host=>"other.test.host"), diff_msg
+    end
+  end
+
   def test_module_redirect
     get :module_redirect
     assert_redirect_url "http://test.host/module_test/module_redirect/hello_world"
@@ -75,6 +91,13 @@ class RedirectTest < Test::Unit::TestCase
     @request.env["HTTP_REFERER"] = "http://www.example.com/coming/from"
     get :redirect_to_back
     assert_redirect_url "http://www.example.com/coming/from"
+  end
+  
+  def test_redirect_to_back_with_no_referer
+    assert_raises(ActionController::RedirectBackError) {
+      @request.env["HTTP_REFERER"] = nil
+      get :redirect_to_back
+    }
   end
 end
 

@@ -47,7 +47,7 @@ module ActionView
       #
       # could become:
       #
-      #   <select name="post[person_id">
+      #   <select name="post[person_id]">
       #     <option></option>
       #     <option value="1" selected="selected">David</option>
       #     <option value="2">Sam</option>
@@ -59,18 +59,21 @@ module ActionView
       # to the database. Instead, a second model object is created when the create request is received.
       # This allows the user to submit a form page more than once with the expected results of creating multiple records.
       # In addition, this allows a single partial to be used to generate form inputs for both edit and create forms.
+      #
+      # By default, post.person_id is the selected option.  Specify :selected => value to use a different selection
+      # or :selected => nil to leave all options unselected.
       def select(object, method, choices, options = {}, html_options = {})
-        InstanceTag.new(object, method, self).to_select_tag(choices, options, html_options)
+        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_select_tag(choices, options, html_options)
       end
 
       # Return select and option tags for the given object and method using options_from_collection_for_select to generate the list of option tags.
       def collection_select(object, method, collection, value_method, text_method, options = {}, html_options = {})
-        InstanceTag.new(object, method, self).to_collection_select_tag(collection, value_method, text_method, options, html_options)
+        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_collection_select_tag(collection, value_method, text_method, options, html_options)
       end
 
       # Return select and option tags for the given object and method, using country_options_for_select to generate the list of option tags.
       def country_select(object, method, priority_countries = nil, options = {}, html_options = {})
-        InstanceTag.new(object, method, self).to_country_select_tag(priority_countries, options, html_options)
+        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_country_select_tag(priority_countries, options, html_options)
       end
 
       # Return select and option tags for the given object and method, using
@@ -82,7 +85,7 @@ module ActionView
       # zone model object. (See #time_zone_options_for_select for more
       # information.)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
-        InstanceTag.new(object, method, self).to_time_zone_select_tag(priority_zones, options, html_options)
+        InstanceTag.new(object, method, self, nil, options.delete(:object)).to_time_zone_select_tag(priority_zones, options, html_options)
       end
 
       # Accepts a container (hash, array, enumerable, your type) and returns a string of option tags. Given a container
@@ -209,7 +212,7 @@ module ActionView
       end
 
       # Returns a string of option tags for pretty much any time zone in the
-      # world. Supply a TimeZone object as +selected+ to have it marked as the
+      # world. Supply a TimeZone name as +selected+ to have it marked as the
       # selected option tag. You can also supply an array of TimeZone objects
       # as +priority_zones+, so that they will be listed above the rest of the
       # (long) list. (You can use TimeZone.us_zones as a convenience for
@@ -296,7 +299,8 @@ module ActionView
       def to_select_tag(choices, options, html_options)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
-        content_tag("select", add_options(options_for_select(choices, value), options, value), html_options)
+        selected_value = options.has_key?(:selected) ? options[:selected] : value
+        content_tag("select", add_options(options_for_select(choices, selected_value), options, value), html_options)
       end
 
       def to_collection_select_tag(collection, value_method, text_method, options, html_options)
@@ -334,6 +338,24 @@ module ActionView
             option_tags
           end
         end
+    end
+
+    class FormBuilder
+      def select(method, choices, options = {}, html_options = {})
+        @template.select(@object_name, method, choices, options.merge(:object => @object), html_options)
+      end
+
+      def collection_select(method, collection, value_method, text_method, options = {}, html_options = {})
+        @template.collection_select(@object_name, method, collection, value_method, text_method, options.merge(:object => @object), html_options)
+      end
+
+      def country_select(method, priority_countries = nil, options = {}, html_options = {})
+        @template.country_select(@object_name, method, priority_countries, options.merge(:object => @object), html_options)
+      end
+
+      def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})
+        @template.time_zone_select(@object_name, method, priority_zones, options.merge(:object => @object), html_options)
+      end
     end
   end
 end

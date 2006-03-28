@@ -79,7 +79,7 @@ class ReadOnlyTest < Test::Unit::TestCase
 
     # Oracle barfs on this because the join includes unqualified and
     # conflicting column names
-    unless current_adapter?(:OCIAdapter)
+    unless current_adapter?(:OracleAdapter)
       Post.with_scope(:find => { :joins => ', developers' }) do 
         assert Post.find(1).readonly?
         assert Post.find(1, :readonly => true).readonly?

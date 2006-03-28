@@ -7,6 +7,18 @@ class CaptureController < ActionController::Base
   def content_for
     render :layout => "talk_from_action"
   end
+  
+  def erb_content_for
+    render :layout => "talk_from_action"
+  end
+  
+  def block_content_for
+    render :layout => "talk_from_action"
+  end
+  
+  def non_erb_block_content_for
+    render :layout => "talk_from_action"
+  end
 
   def rescue_action(e) raise end
 end
@@ -34,7 +46,22 @@ class CaptureTest < Test::Unit::TestCase
   
   def test_content_for
     get :content_for
-    assert_equal "<title>Putting stuff in the title!</title>\n\nGreat stuff!", @response.body
+    assert_equal expected_content_for_output, @response.body
+  end
+  
+  def test_erb_content_for
+    get :content_for
+    assert_equal expected_content_for_output, @response.body
+  end
+  
+  def test_block_content_for
+    get :block_content_for
+    assert_equal expected_content_for_output, @response.body
+  end
+  
+  def test_non_erb_block_content_for
+    get :non_erb_block_content_for
+    assert_equal expected_content_for_output, @response.body
   end
 
   def test_update_element_with_capture
@@ -44,5 +71,10 @@ class CaptureTest < Test::Unit::TestCase
         "\n\n$('status').innerHTML = '\\n  <b>You bought something!</b>\\n';", 
       @response.body.strip
     )
+  end
+  
+  private
+  def expected_content_for_output
+    "<title>Putting stuff in the title!</title>\n\nGreat stuff!"
   end
 end

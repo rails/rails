@@ -61,19 +61,20 @@ module Rails
     # * #initialize_logger
     # * #initialize_framework_logging
     # * #initialize_framework_views
-    # * #initialize_routing
     # * #initialize_dependency_mechanism
     # * #initialize_breakpoints
     # * #initialize_whiny_nils
     # * #initialize_framework_settings
     # * #load_environment
     # * #load_plugins
+    # * #initialize_routing
     #
     # (Note that #load_environment is invoked twice, once at the start and
     # once at the end, to support the legacy configuration style where the
     # environment could overwrite the defaults directly, instead of via the
     # Configuration instance. 
     def process
+      check_ruby_version
       set_load_path
       set_connection_adapters
 
@@ -87,7 +88,8 @@ module Rails
       initialize_dependency_mechanism
       initialize_breakpoints
       initialize_whiny_nils
-      
+      initialize_temporary_directories
+
       initialize_framework_settings
       
       # Support for legacy configuration style where the environment
@@ -95,14 +97,24 @@ module Rails
       # the individual base class configurations.
       load_environment
       
-      load_framework_info
+      add_support_load_paths
 
       load_plugins
 
       # Routing must be initialized after plugins to allow the former to extend the routes
       initialize_routing
+      
+      # the framework is now fully initialized
+      after_initialize
     end
-    
+
+    # Check for valid Ruby version
+    # This is done in an external file, so we can use it
+    # from the `rails` program as well without duplication.
+    def check_ruby_version    
+      require 'ruby_version_check'
+    end
+
     # Set the <tt>$LOAD_PATH</tt> based on the value of
     # Configuration#load_paths. Duplicates are removed.
     def set_load_path
@@ -125,10 +137,10 @@ module Rails
       configuration.frameworks.each { |framework| require(framework.to_s) }
     end
     
-    # Loads Rails::VERSION and Rails::Info.
-    # TODO: Make this work via dependencies.rb/const_missing instead.
-    def load_framework_info
-      require 'rails_info'
+    # Add the load paths used by support functions such as the info controller
+    def add_support_load_paths
+      builtins = File.join(File.dirname(File.dirname(__FILE__)), 'builtin', '*')
+      $LOAD_PATH.concat(Dir[builtins])
     end
 
     # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
@@ -141,8 +153,9 @@ module Rails
     # * evaluate <tt>init.rb</tt> if present
     #
     # After all plugins are loaded, duplicates are removed from the load path.
+    # Plugins are loaded in alphabetical order.
     def load_plugins
-      find_plugins(configuration.plugin_paths).each { |path| load_plugin path }
+      find_plugins(configuration.plugin_paths).sort.each { |path| load_plugin path }
       $LOAD_PATH.uniq!
     end
 
@@ -224,7 +237,6 @@ module Rails
     def initialize_routing
       return unless configuration.frameworks.include?(:action_controller)
       ActionController::Routing::Routes.reload
-      Object.const_set "Controllers", Dependencies::LoadingModule.root(*configuration.controller_paths)
     end
     
     # Sets the dependency loading mechanism based on the value of
@@ -245,7 +257,19 @@ module Rails
       require('active_support/whiny_nil') if configuration.whiny_nils
     end
 
-    # Initialize framework-specific settings for each of the loaded frameworks
+    def initialize_temporary_directories
+      if configuration.frameworks.include?(:action_controller)
+        session_path = "#{RAILS_ROOT}/tmp/sessions/"
+        ActionController::Base.session_options[:tmpdir] = File.exist?(session_path) ? session_path : Dir::tmpdir
+        
+        cache_path = "#{RAILS_ROOT}/tmp/cache/"
+        if File.exist?(cache_path)
+          ActionController::Base.fragment_cache_store = :file_store, cache_path
+        end
+      end
+    end
+
+    # Initializes framework-specific settings for each of the loaded frameworks
     # (Configuration#frameworks). The available settings map to the accessors
     # on each of the corresponding Base classes.
     def initialize_framework_settings
@@ -257,12 +281,18 @@ module Rails
         end
       end
     end
+    
+    # Fires the user-supplied after_initialize block (Configuration#after_initialize) 
+    def after_initialize
+      configuration.after_initialize_block.call if configuration.after_initialize_block
+    end
+    
 
     protected
       # Return a list of plugin paths within base_path.  A plugin path is
       # a directory that contains either a lib directory or an init.rb file.
       # This recurses into directories which are not plugin paths, so you
-      # may organize your plugins which the plugin path.
+      # may organize your plugins within the plugin path.
       def find_plugins(*base_paths)
         base_paths.flatten.inject([]) do |plugins, base_path|
           Dir.glob(File.join(base_path, '*')).each do |path|
@@ -301,17 +331,22 @@ module Rails
         has_lib   = File.directory?(lib_path)
         has_init  = File.file?(init_path)
 
-        # Add lib to load path.
-        $LOAD_PATH.unshift(lib_path) if has_lib
-        
+        # Add lib to load path *after* the application lib, to allow
+        # application libraries to override plugin libraries.
+        if has_lib
+          application_lib_index = $LOAD_PATH.index(File.join(RAILS_ROOT, "lib")) || 0  
+          $LOAD_PATH.insert(application_lib_index + 1, lib_path)
+        end
+
         # Allow plugins to reference the current configuration object
         config = configuration 
+	
+        # Add to set of loaded plugins before 'name' collapsed in eval.
+        loaded_plugins << name
 
         # Evaluate init.rb.
         silence_warnings { eval(IO.read(init_path), binding, init_path) } if has_init
 
-        # Add to set of loaded plugins.
-        loaded_plugins << name
         true
       end
   end
@@ -435,10 +470,26 @@ module Rails
     def environment
       ::RAILS_ENV
     end
-
+    
+    # Sets a block which will be executed after rails has been fully initialized.
+    # Useful for per-environment configuration which depends on the framework being 
+    # fully initialized.
+    def after_initialize(&after_initialize_block)
+      @after_initialize_block = after_initialize_block
+    end
+    
+    # Returns the block set in Configuration#after_initialize
+    def after_initialize_block
+      @after_initialize_block
+    end
+    
     private
       def root_path
         ::RAILS_ROOT
+      end
+
+      def framework_root_path
+        defined?(::RAILS_FRAMEWORK_ROOT) ? ::RAILS_FRAMEWORK_ROOT : "#{root_path}/vendor/rails"
       end
 
       def default_frameworks
@@ -447,6 +498,9 @@ module Rails
     
       def default_load_paths
         paths = ["#{root_path}/test/mocks/#{environment}"]
+        
+        # Add the app's controller directory
+        paths.concat(Dir["#{root_path}/app/controllers/"])
 
         # Then model subdirectories.
         # TODO: Don't include .rb models as load paths
@@ -454,7 +508,6 @@ module Rails
         paths.concat(Dir["#{root_path}/components/[_a-z]*"])
 
         # Followed by the standard includes.
-        # TODO: Don't include dirs for frameworks that are not used
         paths.concat %w(
           app 
           app/models 
@@ -466,14 +519,18 @@ module Rails
           config 
           lib 
           vendor 
-          vendor/rails/railties
-          vendor/rails/railties/lib
-          vendor/rails/actionpack/lib
-          vendor/rails/activesupport/lib
-          vendor/rails/activerecord/lib
-          vendor/rails/actionmailer/lib
-          vendor/rails/actionwebservice/lib
         ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+
+        # TODO: Don't include dirs for frameworks that are not used
+        paths.concat %w(
+          railties
+          railties/lib
+          actionpack/lib
+          activesupport/lib
+          activerecord/lib
+          actionmailer/lib
+          actionwebservice/lib
+        ).map { |dir| "#{framework_root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
       end
 
       def default_log_path
@@ -520,10 +577,8 @@ end
 
 # Needs to be duplicated from Active Support since its needed before Active
 # Support is available.
-class OrderedOptions < Array # :nodoc:
-  def []=(key, value)
-    key = key.to_sym
-
+class OrderedHash < Array #:nodoc:
+  def []=(key, value)    
     if pair = find_pair(key)
       pair.pop
       pair << value
@@ -531,10 +586,30 @@ class OrderedOptions < Array # :nodoc:
       self << [key, value]
     end
   end
-
+  
   def [](key)
-    pair = find_pair(key.to_sym)
+    pair = find_pair(key)
     pair ? pair.last : nil
+  end
+
+  def keys
+    self.collect { |i| i.first }
+  end
+
+  private
+    def find_pair(key)
+      self.each { |i| return i if i.first == key }
+      return false
+    end
+end
+
+class OrderedOptions < OrderedHash #:nodoc:
+  def []=(key, value)
+    super(key.to_sym, value)
+  end
+  
+  def [](key)
+    super(key.to_sym)
   end
 
   def method_missing(name, *args)
@@ -544,10 +619,4 @@ class OrderedOptions < Array # :nodoc:
       self[name]
     end
   end
-
-  private
-    def find_pair(key)
-      self.each { |i| return i if i.first == key }
-      return false
-    end
 end

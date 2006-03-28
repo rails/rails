@@ -174,7 +174,7 @@ module ActiveRecord
 
           def bottom_item(except = nil)
             conditions = scope_condition
-            conditions = "#{conditions} AND id != #{except.id}" if except
+            conditions = "#{conditions} AND #{self.class.primary_key} != #{except.id}" if except
             acts_as_list_class.find(:first, :conditions => conditions, :order => "#{position_column} DESC")
           end
 

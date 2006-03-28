@@ -105,6 +105,19 @@ class RequestTest < Test::Unit::TestCase
     @request.relative_url_root = nil
     @request.env['SCRIPT_NAME'] = "/collaboration/hieraki"
     assert_equal "/collaboration/hieraki", @request.relative_url_root    
+    
+    @request.relative_url_root = nil
+    @request.env['SCRIPT_NAME'] = "/hieraki/dispatch.cgi"
+    @request.env['SERVER_SOFTWARE'] = 'lighttpd/1.2.3'
+    @request.env['RAILS_RELATIVE_URL_ROOT'] = "/hieraki"
+    assert_equal "/hieraki", @request.relative_url_root
+    
+    # @env overrides path guess
+    @request.relative_url_root = nil
+    @request.env['SCRIPT_NAME'] = "/hieraki/dispatch.cgi"
+    @request.env['SERVER_SOFTWARE'] = 'apache/1.2.3 some random text'
+    @request.env['RAILS_RELATIVE_URL_ROOT'] = "/real_url"
+    assert_equal "/real_url", @request.relative_url_root
   end
   
   def test_request_uri
@@ -236,6 +249,18 @@ class RequestTest < Test::Unit::TestCase
     @request.env['HTTP_X_REQUESTED_WITH'] = "XMLHttpRequest"
     assert @request.xml_http_request?
     assert @request.xhr?
+  end
+
+  def test_reports_ssl
+    assert !@request.ssl?
+    @request.env['HTTPS'] = 'on'
+    assert @request.ssl?
+  end
+
+  def test_reports_ssl_when_proxied_via_lighttpd
+    assert !@request.ssl?
+    @request.env['HTTP_X_FORWARDED_PROTO'] = 'https'
+    assert @request.ssl?
   end
   
 end

@@ -1,5 +1,5 @@
 require 'test/unit'
-require File.dirname(__FILE__) + '/../lib/active_support/inflector'
+require File.dirname(__FILE__) + '/../lib/active_support/inflector' unless defined? Inflector
 
 module Ace
   module Base
@@ -110,7 +110,14 @@ class InflectorTest < Test::Unit::TestCase
     "Product"               => "product",
     "SpecialGuest"          => "special_guest",
     "ApplicationController" => "application_controller",
-    "Area51Controller"      => "area51_controller",
+    "Area51Controller"      => "area51_controller"
+  }
+
+  UnderscoreToLowerCamel = {
+    "product"                => "product",
+    "special_guest"          => "specialGuest",
+    "application_controller" => "applicationController",
+    "area51_controller"      => "area51Controller"     
   }
   
   CamelToUnderscoreWithoutReverse = {
@@ -186,6 +193,12 @@ class InflectorTest < Test::Unit::TestCase
     "110" => "110th",
     "1000" => "1000th",
     "1001" => "1001st"
+  }
+  
+  UnderscoresToDashes = {
+    "street"                => "street",
+    "street_address"        => "street-address",
+    "person_street_address" => "person-street-address"
   }
 
   def test_pluralize_plurals
@@ -274,7 +287,9 @@ class InflectorTest < Test::Unit::TestCase
   
   def test_constantize
     assert_equal Ace::Base::Case, Inflector.constantize("Ace::Base::Case")
+    assert_equal Ace::Base::Case, Inflector.constantize("::Ace::Base::Case")
     assert_equal InflectorTest, Inflector.constantize("InflectorTest")
+    assert_equal InflectorTest, Inflector.constantize("::InflectorTest")
     assert_raises(NameError) { Inflector.constantize("UnknownClass") }
     assert_raises(NameError) { Inflector.constantize("An invalid string") }
   end
@@ -286,6 +301,24 @@ class InflectorTest < Test::Unit::TestCase
   def test_ordinal
     OrdinalNumbers.each do |number, ordinalized|
       assert_equal(ordinalized, Inflector.ordinalize(number))
+    end
+  end
+
+  def test_dasherize
+    UnderscoresToDashes.each do |underscored, dasherized|
+      assert_equal(dasherized, Inflector.dasherize(underscored))
+    end
+  end
+
+  def test_underscore_as_reverse_of_dasherize
+    UnderscoresToDashes.each do |underscored, dasherized|
+      assert_equal(underscored, Inflector.underscore(Inflector.dasherize(underscored)))
+    end
+  end
+
+  def test_underscore_to_lower_camel
+    UnderscoreToLowerCamel.each do |underscored, lower_camel|
+      assert_equal(lower_camel, Inflector.camelize(underscored, false))
     end
   end
 end

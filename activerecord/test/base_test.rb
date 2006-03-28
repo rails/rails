@@ -17,10 +17,11 @@ class MasterCreditCard < ActiveRecord::Base; end
 class Post < ActiveRecord::Base; end
 class Computer < ActiveRecord::Base; end
 class NonExistentTable < ActiveRecord::Base; end
-class TestOCIDefault < ActiveRecord::Base; end
+class TestOracleDefault < ActiveRecord::Base; end
 
 class LoosePerson < ActiveRecord::Base
   attr_protected :credit_rating, :administrator
+  self.abstract_class = true
 end
 
 class LooseDescendant < LoosePerson
@@ -133,8 +134,24 @@ class BasicsTest < Test::Unit::TestCase
     topic = Topic.new
     topic.title = "New Topic"
     topic.save
-    topicReloaded = Topic.find(topic.id)
-    assert_equal("New Topic", topicReloaded.title)
+    topic_reloaded = Topic.find(topic.id)
+    assert_equal("New Topic", topic_reloaded.title)
+  end
+  
+  def test_save!
+    topic = Topic.new(:title => "New Topic")
+    assert topic.save!
+  end
+    
+  def test_hashes_not_mangled
+    new_topic = { :title => "New Topic" }
+    new_topic_values = { :title => "AnotherTopic" }
+
+    topic = Topic.new(new_topic)
+    assert_equal new_topic[:title], topic.title
+
+    topic.attributes= new_topic_values
+    assert_equal new_topic_values[:title], topic.title
   end
   
   def test_create_many
@@ -249,7 +266,7 @@ class BasicsTest < Test::Unit::TestCase
     if ActiveRecord::Base.generate_read_methods
       assert_readers(Topic,  %w(type replies_count))
       assert_readers(Firm,   %w(type))
-      assert_readers(Client, %w(type))
+      assert_readers(Client, %w(type ruby_type rating?))
     else
       [Topic, Firm, Client].each {|klass| assert_equal klass.read_methods, {}}
     end
@@ -273,10 +290,18 @@ class BasicsTest < Test::Unit::TestCase
     # SQL Server doesn't have a separate column type just for dates, so all are returned as time
     return true if current_adapter?(:SQLServerAdapter)
 
-    assert_kind_of(
-      Date, Topic.find(1).last_read, 
-      "The last_read attribute should be of the Date class"
-    )
+    if current_adapter?(:SybaseAdapter)
+      # Sybase ctlib does not (yet?) support the date type; use datetime instead.
+      assert_kind_of(
+        Time, Topic.find(1).last_read, 
+        "The last_read attribute should be of the Time class"
+      )
+    else
+      assert_kind_of(
+        Date, Topic.find(1).last_read, 
+        "The last_read attribute should be of the Date class"
+      )
+    end
   end
 
   def test_preserving_time_objects
@@ -434,7 +459,7 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal 2, Topic.update_all("content = 'bulk updated!'")
     assert_equal "bulk updated!", Topic.find(1).content
     assert_equal "bulk updated!", Topic.find(2).content
-    assert_equal 2, Topic.update_all(['content = ?', 'bulk updated again!']);
+    assert_equal 2, Topic.update_all(['content = ?', 'bulk updated again!'])
     assert_equal "bulk updated again!", Topic.find(1).content
     assert_equal "bulk updated again!", Topic.find(2).content
   end
@@ -515,8 +540,8 @@ class BasicsTest < Test::Unit::TestCase
 
     # Oracle has some funky default handling, so it requires a bit of 
     # extra testing. See ticket #2788.
-    if current_adapter?(:OCIAdapter)
-      test = TestOCIDefault.new
+    if current_adapter?(:OracleAdapter)
+      test = TestOracleDefault.new
       assert_equal "X", test.test_char
       assert_equal "hello", test.test_string
       assert_equal 3, test.test_int
@@ -525,7 +550,7 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_utc_as_time_zone
     # Oracle and SQLServer do not have a TIME datatype.
-    return true if current_adapter?(:SQLServerAdapter) || current_adapter?(:OCIAdapter)
+    return true if current_adapter?(:SQLServerAdapter) || current_adapter?(:OracleAdapter)
 
     Topic.default_timezone = :utc
     attributes = { "bonus_time" => "5:42:00AM" }
@@ -544,11 +569,17 @@ class BasicsTest < Test::Unit::TestCase
 
     topic = Topic.find(topic.id)
     assert_nil topic.last_read
-    assert_nil topic.approved
+
+    # Sybase adapter does not allow nulls in boolean columns
+    if current_adapter?(:SybaseAdapter)
+      assert topic.approved == false
+    else
+      assert_nil topic.approved
+    end
   end
 
   def test_equality
-    assert_equal Topic.find(1), Topic.find(2).parent
+    assert_equal Topic.find(1), Topic.find(2).topic
   end
   
   def test_equality_of_new_records
@@ -556,7 +587,7 @@ class BasicsTest < Test::Unit::TestCase
   end
   
   def test_hashing
-    assert_equal [ Topic.find(1) ], [ Topic.find(2).parent ] & [ Topic.find(1) ]
+    assert_equal [ Topic.find(1) ], [ Topic.find(2).topic ] & [ Topic.find(1) ]
   end
   
   def test_destroy_new_record
@@ -638,27 +669,21 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_multiparameter_attributes_on_date
-    # SQL Server doesn't have a separate column type just for dates, so all are returned as time
-    return true if current_adapter?(:SQLServerAdapter)
-
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "24" }
     topic = Topic.find(1)
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which 
     # treats dates/times the same
-    assert_equal Date.new(2004, 6, 24).to_s, topic.last_read.to_date.to_s
+    assert_date_from_db Date.new(2004, 6, 24), topic.last_read.to_date
   end
 
   def test_multiparameter_attributes_on_date_with_empty_date
-    # SQL Server doesn't have a separate column type just for dates, so all are returned as time
-    return true if current_adapter?(:SQLServerAdapter)
-
     attributes = { "last_read(1i)" => "2004", "last_read(2i)" => "6", "last_read(3i)" => "" }
     topic = Topic.find(1)
     topic.attributes = attributes
     # note that extra #to_date call allows test to pass for Oracle, which 
     # treats dates/times the same
-    assert_equal Date.new(2004, 6, 1).to_s, topic.last_read.to_date.to_s
+    assert_date_from_db Date.new(2004, 6, 1), topic.last_read.to_date
   end
 
   def test_multiparameter_attributes_on_date_with_all_empty
@@ -699,7 +724,7 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_attributes_on_dummy_time
     # Oracle and SQL Server do not have a TIME datatype.
-    return true if current_adapter?(:SQLServerAdapter) || current_adapter?(:OCIAdapter)
+    return true if current_adapter?(:SQLServerAdapter) || current_adapter?(:OracleAdapter)
 
     attributes = {
       "bonus_time" => "5:42:00AM"
@@ -719,6 +744,18 @@ class BasicsTest < Test::Unit::TestCase
     assert !b_false.value?
     b_true = Booleantest.find(true_id)
     assert b_true.value?
+  end
+
+  def test_boolean_cast_from_string
+    b_false = Booleantest.create({ "value" => "0" })
+    false_id = b_false.id
+    b_true = Booleantest.create({ "value" => "1" })
+    true_id = b_true.id
+
+    b_false = Booleantest.find(false_id)
+    assert !b_false.value?
+    b_true = Booleantest.find(true_id)
+    assert b_true.value?    
   end
   
   def test_clone
@@ -783,17 +820,6 @@ class BasicsTest < Test::Unit::TestCase
   if current_adapter?(:PostgreSQLAdapter)
     def test_default
       default = Default.new
-  
-      # CURRENT_TIMESTAMP and NOW() timestamps
-      time_format = "%m/%d/%Y %H:%M"
-      now = Time.now.strftime(time_format)
-      assert_equal now, default.modified_time.strftime(time_format)
-      assert_equal now, default.modified_time_function.strftime(time_format)
-
-      # CURRENT_DATE and NOW() dates
-      today = Date.today
-      assert_equal today, default.modified_date
-      assert_equal today, default.modified_date_function
   
       # fixed dates / times
       assert_equal Date.new(2004, 1, 1), default.fixed_date
@@ -1045,12 +1071,39 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_count_with_join
     res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.#{QUOTED_TYPE} = 'Post'"
-    res2 = res + 1
+    res2 = nil
     assert_nothing_raised do
       res2 = Post.count("posts.#{QUOTED_TYPE} = 'Post'",
                         "LEFT JOIN comments ON posts.id=comments.post_id")
     end
     assert_equal res, res2
+    
+    res3 = nil
+    assert_nothing_raised do
+      res3 = Post.count(:conditions => "posts.#{QUOTED_TYPE} = 'Post'",
+                        :joins => "LEFT JOIN comments ON posts.id=comments.post_id")
+    end
+    assert_equal res, res3
+    
+    res4 = Post.count_by_sql "SELECT COUNT(p.id) FROM posts p, comments c WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=c.post_id"
+    res5 = nil
+    assert_nothing_raised do
+      res5 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=c.post_id",
+                        :joins => "p, comments c",
+                        :select => "p.id")
+    end
+
+    assert_equal res4, res5 
+
+    res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments c WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=c.post_id"
+    res7 = nil
+    assert_nothing_raised do
+      res7 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=c.post_id",
+                        :joins => "p, comments c",
+                        :select => "p.id",
+                        :distinct => true)
+    end
+    assert_equal res6, res7
   end
   
   def test_clear_association_cache_stored     
@@ -1082,29 +1135,129 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_scoped_find_conditions
-    developers = Developer.with_scope(:find => { :conditions => 'salary > 90000' }) do
+    scoped_developers = Developer.with_scope(:find => { :conditions => 'salary > 90000' }) do
       Developer.find(:all, :conditions => 'id < 5')
     end
-    david = Developer.find(1)
-    assert !developers.include?(david) # David's salary is less than 90,000
-    assert_equal 3, developers.size
+    assert !scoped_developers.include?(developers(:david)) # David's salary is less than 90,000
+    assert_equal 3, scoped_developers.size
   end
   
   def test_scoped_find_limit_offset
-    developers = Developer.with_scope(:find => { :limit => 3, :offset => 2 }) do
+    scoped_developers = Developer.with_scope(:find => { :limit => 3, :offset => 2 }) do
       Developer.find(:all, :order => 'id')
     end    
-    david = Developer.find(1)
-    jamis = Developer.find(1)
-    assert !developers.include?(david) # David has id 1
-    assert !developers.include?(jamis) # Jamis has id 2
-    assert_equal 3, developers.size
+    assert !scoped_developers.include?(developers(:david))
+    assert !scoped_developers.include?(developers(:jamis))
+    assert_equal 3, scoped_developers.size
     
     # Test without scoped find conditions to ensure we get the whole thing
     developers = Developer.find(:all, :order => 'id')
-    assert_equal 10, developers.size
+    assert_equal Developer.count, developers.size
+  end
+
+  def test_base_class
+    assert LoosePerson.abstract_class?
+    assert !LooseDescendant.abstract_class?
+    assert_equal LoosePerson,     LoosePerson.base_class
+    assert_equal LooseDescendant, LooseDescendant.base_class
+    assert_equal TightPerson,     TightPerson.base_class
+    assert_equal TightPerson,     TightDescendant.base_class
+  end
+
+  def test_assert_queries
+    query = lambda { ActiveRecord::Base.connection.execute 'select count(*) from developers' }
+    assert_queries(2) { 2.times { query.call } }
+    assert_queries 1, &query
+    assert_no_queries { assert true }
+  end
+
+  def test_to_xml
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true)
+    bonus_time_in_current_timezone = topics(:first).bonus_time.xmlschema
+    written_on_in_current_timezone = topics(:first).written_on.xmlschema
+    last_read_in_current_timezone = topics(:first).last_read.xmlschema
+    assert_equal "<topic>", xml.first(7)
+    assert xml.include?(%(<title>The First Topic</title>))
+    assert xml.include?(%(<author-name>David</author-name>))
+    assert xml.include?(%(<id type="integer">1</id>))
+    assert xml.include?(%(<replies-count type="integer">0</replies-count>))
+    assert xml.include?(%(<written-on type="datetime">#{written_on_in_current_timezone}</written-on>))
+    assert xml.include?(%(<content>Have a nice day</content>))
+    assert xml.include?(%(<author-email-address>david@loudthinking.com</author-email-address>))
+    assert xml.include?(%(<parent-id></parent-id>))
+    if current_adapter?(:SybaseAdapter) or current_adapter?(:SQLServerAdapter)
+      assert xml.include?(%(<last-read type="datetime">#{last_read_in_current_timezone}</last-read>))
+    else
+      assert xml.include?(%(<last-read type="date">2004-04-15</last-read>))
+    end
+    # Oracle and DB2 don't have true boolean or time-only fields
+    unless current_adapter?(:OracleAdapter) || current_adapter?(:DB2Adapter)
+      assert xml.include?(%(<approved type="boolean">false</approved>)), "Approved should be a boolean"
+      assert xml.include?(%(<bonus-time type="datetime">#{bonus_time_in_current_timezone}</bonus-time>))
+    end
   end
   
+  def test_to_xml_skipping_attributes
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => :title)
+    assert_equal "<topic>", xml.first(7)
+    assert !xml.include?(%(<title>The First Topic</title>))
+    assert xml.include?(%(<author-name>David</author-name>))    
+
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [ :title, :author_name ])
+    assert !xml.include?(%(<title>The First Topic</title>))
+    assert !xml.include?(%(<author-name>David</author-name>))    
+  end
+  
+  def test_to_xml_including_has_many_association
+    xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :include => :replies)
+    assert_equal "<topic>", xml.first(7)
+    assert xml.include?(%(<replies><reply>))
+    assert xml.include?(%(<title>The Second Topic's of the day</title>))
+  end
+
+  def test_to_xml_including_belongs_to_association
+    xml = companies(:first_client).to_xml(:indent => 0, :skip_instruct => true, :include => :firm)
+    assert !xml.include?("<firm>")
+
+    xml = companies(:second_client).to_xml(:indent => 0, :skip_instruct => true, :include => :firm)
+    assert xml.include?("<firm>")
+  end
+  
+  def test_to_xml_including_multiple_associations
+    xml = companies(:first_firm).to_xml(:indent => 0, :skip_instruct => true, :include => [ :clients, :account ])
+    assert_equal "<firm>", xml.first(6)
+    assert xml.include?(%(<account>))
+    assert xml.include?(%(<clients><client>))
+  end
+
+  def test_to_xml_including_multiple_associations_with_options
+    xml = companies(:first_firm).to_xml(
+      :indent  => 0, :skip_instruct => true, 
+      :include => { :clients => { :only => :name } }
+    )
+    
+    assert_equal "<firm>", xml.first(6)
+    assert xml.include?(%(<client><name>Summit</name></client>))
+    assert xml.include?(%(<clients><client>))
+  end
+  
+  def test_except_attributes
+    assert_equal(
+      %w( author_name type id approved replies_count bonus_time written_on content author_email_address parent_id last_read), 
+      topics(:first).attributes(:except => :title).keys
+    )
+
+    assert_equal(
+      %w( replies_count bonus_time written_on content author_email_address parent_id last_read), 
+      topics(:first).attributes(:except => [ :title, :id, :type, :approved, :author_name ]).keys
+    )
+  end
+  
+  def test_include_attributes
+    assert_equal(%w( title ), topics(:first).attributes(:only => :title).keys)
+    assert_equal(%w( title author_name type id approved ), topics(:first).attributes(:only => [ :title, :id, :type, :approved, :author_name ]).keys)
+  end
+
   # FIXME: this test ought to run, but it needs to run sandboxed so that it
   # doesn't b0rk the current test environment by undefing everything.
   #
@@ -1129,7 +1282,9 @@ class BasicsTest < Test::Unit::TestCase
   
   private
     def assert_readers(model, exceptions)
-      expected_readers = model.column_names - (model.serialized_attributes.keys + exceptions + ['id'])
-      assert_equal expected_readers.sort, model.read_methods.to_a.sort
+      expected_readers = Set.new(model.column_names - (model.serialized_attributes.keys + ['id']))
+      expected_readers += expected_readers.map { |col| "#{col}?" }
+      expected_readers -= exceptions
+      assert_equal expected_readers, model.read_methods
     end
 end

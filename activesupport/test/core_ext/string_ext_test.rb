@@ -1,11 +1,7 @@
 require 'test/unit'
 require 'date'
 require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/string'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/kernel'
-
-silence_warnings do
-  require File.dirname(__FILE__) + '/../inflector_test'
-end
+require File.dirname(__FILE__) + '/../inflector_test' unless defined? InflectorTest
 
 class StringInflectionsTest < Test::Unit::TestCase
   def test_pluralize
@@ -81,6 +77,12 @@ class StringInflectionsTest < Test::Unit::TestCase
 
     assert_equal "o", s.last
     assert_equal "llo", s.last(3)
+    
+    assert_equal 'x', 'x'.first
+    assert_equal 'x', 'x'.first(4)
+
+    assert_equal 'x', 'x'.last
+    assert_equal 'x', 'x'.last(4)
   end
 
   def test_starts_ends_with
@@ -92,5 +94,15 @@ class StringInflectionsTest < Test::Unit::TestCase
     assert s.ends_with?('o')    
     assert s.ends_with?('lo')    
     assert !s.ends_with?('el')  
+  end
+
+  def test_each_char_with_utf8_string_when_kcode_is_utf8
+    old_kcode, $KCODE = $KCODE, 'UTF8'
+    '€2.99'.each_char do |char|
+      assert_not_equal 1, char.length
+      break
+    end
+  ensure
+    $KCODE = old_kcode
   end
 end

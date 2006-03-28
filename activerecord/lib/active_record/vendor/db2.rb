@@ -66,7 +66,7 @@ module DB2
     end
 
     def connect(server_name, user_name = '', auth = '')
-      check_rc(SQLConnect(@handle, server_name, user_name, auth))
+      check_rc(SQLConnect(@handle, server_name, user_name.to_s, auth.to_s))
     end
 
     def set_connect_attr(attr, value)
@@ -110,13 +110,18 @@ module DB2
       check_rc(rc)
     end
 
-    def columns(table_name)
-      check_rc(SQLColumns(@handle, "", "%", table_name, "%"))
+    def columns(table_name, schema_name = '%')
+      check_rc(SQLColumns(@handle, '', schema_name.upcase, table_name.upcase, '%'))
       fetch_all
     end
 
-    def tables
-      check_rc(SQLTables(@handle, "", "%", "%", "TABLE"))
+    def tables(schema_name = '%')
+      check_rc(SQLTables(@handle, '', schema_name.upcase, '%', 'TABLE'))
+      fetch_all
+    end
+
+    def indexes(table_name, schema_name = '')
+      check_rc(SQLStatistics(@handle, '', schema_name.upcase, table_name.upcase, SQL_INDEX_ALL, SQL_ENSURE))
       fetch_all
     end
 

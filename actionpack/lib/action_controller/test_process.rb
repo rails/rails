@@ -41,7 +41,21 @@ module ActionController #:nodoc:
     def reset_session
       @session = {}
     end              
+
+    def raw_post
+      if raw_post = env['RAW_POST_DATA']
+        raw_post
+      else
+        params = self.request_parameters.dup
+        %w(controller action only_path).each do |k|
+          params.delete(k)
+          params.delete(k.to_sym)
+        end
     
+        params.map { |k,v| [ CGI.escape(k.to_s), CGI.escape(v.to_s) ].join('=') }.sort.join('&')
+      end
+    end
+
     def port=(number)
       @env["SERVER_PORT"] = number.to_i
       @port_as_int = nil
@@ -102,8 +116,9 @@ module ActionController #:nodoc:
     
     def recycle!
       self.request_parameters = {}
-      self.query_parameters   = {}         
-      self.path_parameters    = {}     
+      self.query_parameters   = {}
+      self.path_parameters    = {}
+      @request_method, @accepts, @content_type = nil, nil, nil
     end    
 
     private
@@ -120,7 +135,9 @@ module ActionController #:nodoc:
       end
   end
 
-  class TestResponse < AbstractResponse #:nodoc:
+  # A refactoring of TestResponse to allow the same behavior to be applied
+  # to the "real" CgiResponse class in integration tests.
+  module TestResponseBehavior #:nodoc:
     # the response code of the request
     def response_code
       headers['Status'][0,3].to_i rescue 0
@@ -248,7 +265,11 @@ module ActionController #:nodoc:
       sio.rewind
       sio.read
     end
-end
+  end
+
+  class TestResponse < AbstractResponse #:nodoc:
+    include TestResponseBehavior
+  end
 
   class TestSession #:nodoc:
     def initialize(attributes = {})
@@ -271,141 +292,191 @@ end
     def close() end
     def delete() @attributes = {} end
   end
+  
+  # Essentially generates a modified Tempfile object similar to the object
+  # you'd get from the standard library CGI module in a multipart
+  # request. This means you can use an ActionController::TestUploadedFile
+  # object in the params of a test request in order to simulate
+  # a file upload.
+  #
+  # Usage example, within a functional test:
+  #   post :change_avatar, :avatar => ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + '/files/spongebob.png', 'image/png')
+  class TestUploadedFile
+    # The filename, *not* including the path, of the "uploaded" file
+    attr_reader :original_filename
+    
+    # The content type of the "uploaded" file
+    attr_reader :content_type
+    
+    def initialize(path, content_type = 'text/plain')
+      raise "file does not exist" unless File.exist?(path)
+      @content_type = content_type
+      @original_filename = path.sub(/^.*#{File::SEPARATOR}([^#{File::SEPARATOR}]+)$/) { $1 }
+      @tempfile = Tempfile.new(@original_filename)
+      FileUtils.copy_file(path, @tempfile.path)
+    end
+    
+    def path #:nodoc:
+      @tempfile.path
+    end
+    
+    alias local_path path
+    
+    def method_missing(method_name, *args, &block) #:nodoc:
+      @tempfile.send(method_name, *args, &block)
+    end
+  end
+  
+  module TestProcess
+    def self.included(base)
+      # execute the request simulating a specific http method and set/volley the response
+      %w( get post put delete head ).each do |method|
+        base.class_eval <<-EOV, __FILE__, __LINE__
+          def #{method}(action, parameters = nil, session = nil, flash = nil)
+            @request.env['REQUEST_METHOD'] = "#{method.upcase}" if @request
+            process(action, parameters, session, flash)
+          end
+        EOV
+      end
+    end
+
+    # execute the request and set/volley the response
+    def process(action, parameters = nil, session = nil, flash = nil)
+      # Sanity check for required instance variables so we can give an
+      # understandable error message.
+      %w(controller request response).each do |iv_name|
+        raise "@#{iv_name} is nil: make sure you set it in your test's setup method." if instance_variable_get("@#{iv_name}").nil?
+      end
+
+      @request.recycle!
+
+      @html_document = nil
+      @request.env['REQUEST_METHOD'] ||= "GET"
+      @request.action = action.to_s
+
+      parameters ||= {}
+      @request.assign_parameters(@controller.class.controller_path, action.to_s, parameters)
+
+      @request.session = ActionController::TestSession.new(session) unless session.nil?
+      @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
+      build_request_uri(action, parameters)
+      @controller.process(@request, @response)
+    end
+
+    def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
+      @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
+      @request.env['HTTP_ACCEPT'] = 'text/javascript, text/html, application/xml, text/xml, */*'
+      returning self.send(request_method, action, parameters, session, flash) do
+        @request.env.delete 'HTTP_X_REQUESTED_WITH'
+        @request.env.delete 'HTTP_ACCEPT'
+      end
+    end
+    alias xhr :xml_http_request
+
+    def follow_redirect
+      if @response.redirected_to[:controller]
+        raise "Can't follow redirects outside of current controller (#{@response.redirected_to[:controller]})"
+      end
+
+      get(@response.redirected_to.delete(:action), @response.redirected_to.stringify_keys)
+    end
+
+    def assigns(key = nil) 
+      if key.nil? 
+        @response.template.assigns 
+      else 
+        @response.template.assigns[key.to_s] 
+      end 
+    end 
+
+    def session
+      @response.session
+    end
+
+    def flash
+      @response.flash
+    end
+
+    def cookies
+      @response.cookies
+    end
+
+    def redirect_to_url
+      @response.redirect_url
+    end
+
+    def build_request_uri(action, parameters)
+      unless @request.env['REQUEST_URI']
+        options = @controller.send(:rewrite_options, parameters)
+        options.update(:only_path => true, :action => action)
+
+        url = ActionController::UrlRewriter.new(@request, parameters)
+        @request.set_REQUEST_URI(url.rewrite(options))
+      end
+    end
+
+    def html_document
+      @html_document ||= HTML::Document.new(@response.body)
+    end
+
+    def find_tag(conditions)
+      html_document.find(conditions)
+    end
+
+    def find_all_tag(conditions)
+      html_document.find_all(conditions)
+    end
+
+    def method_missing(selector, *args)
+      return @controller.send(selector, *args) if ActionController::Routing::NamedRoutes::Helpers.include?(selector)
+      return super
+    end
+    
+    # Shortcut for ActionController::TestUploadedFile.new(Test::Unit::TestCase.fixture_path + path, type). Example:
+    #   post :change_avatar, :avatar => fixture_file_upload('/files/spongebob.png', 'image/png')
+    def fixture_file_upload(path, mime_type = nil)
+      ActionController::TestUploadedFile.new(
+        Test::Unit::TestCase.respond_to?(:fixture_path) ? Test::Unit::TestCase.fixture_path + path : path, 
+        mime_type
+      )
+    end
+
+    # A helper to make it easier to test different route configurations.
+    # This method temporarily replaces ActionController::Routing::Routes
+    # with a new RouteSet instance. 
+    #
+    # The new instance is yielded to the passed block. Typically the block
+    # will create some routes using map.draw { map.connect ... }:
+    #
+    #   with_routing do |set|
+    #     set.draw { set.connect ':controller/:id/:action' }
+    #     assert_equal(
+    #        ['/content/10/show', {}],
+    #        set.generate(:controller => 'content', :id => 10, :action => 'show')
+    #     )
+    #   end
+    #
+    def with_routing
+      real_routes = ActionController::Routing::Routes
+      ActionController::Routing.send :remove_const, :Routes
+
+      temporary_routes = ActionController::Routing::RouteSet.new
+      ActionController::Routing.send :const_set, :Routes, temporary_routes
+  
+      yield temporary_routes
+    ensure
+      if ActionController::Routing.const_defined? :Routes
+        ActionController::Routing.send(:remove_const, :Routes) 
+      end
+      ActionController::Routing.const_set(:Routes, real_routes) if real_routes
+    end
+  end
 end
 
 module Test
   module Unit
     class TestCase #:nodoc:
-      private  
-        # execute the request and set/volley the response
-        def process(action, parameters = nil, session = nil, flash = nil)
-          # Sanity check for required instance variables so we can give an
-          # understandable error message.
-          %w(controller request response).each do |iv_name|
-            raise "@#{iv_name} is nil: make sure you set it in your test's setup method." if instance_variable_get("@#{iv_name}").nil?
-          end
-
-          @request.recycle!
-
-          @html_document = nil
-          @request.env['REQUEST_METHOD'] ||= "GET"
-          @request.action = action.to_s
-
-          parameters ||= {}
-          @request.assign_parameters(@controller.class.controller_path, action.to_s, parameters)
-
-          @request.session = ActionController::TestSession.new(session) unless session.nil?
-          @request.session["flash"] = ActionController::Flash::FlashHash.new.update(flash) if flash
-          build_request_uri(action, parameters)
-          @controller.process(@request, @response)
-        end
-
-        # execute the request simulating a specific http method and set/volley the response
-        %w( get post put delete head ).each do |method|
-          class_eval <<-EOV, __FILE__, __LINE__
-            def #{method}(action, parameters = nil, session = nil, flash = nil)
-              @request.env['REQUEST_METHOD'] = "#{method.upcase}" if @request
-              process(action, parameters, session, flash)
-            end
-          EOV
-        end
-
-        def xml_http_request(request_method, action, parameters = nil, session = nil, flash = nil)
-          @request.env['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
-          returning self.send(request_method, action, parameters, session, flash) do
-            @request.env.delete 'HTTP_X_REQUESTED_WITH'
-          end
-        end
-        alias xhr :xml_http_request
-
-        def follow_redirect
-          if @response.redirected_to[:controller]
-            raise "Can't follow redirects outside of current controller (#{@response.redirected_to[:controller]})"
-          end
-
-          get(@response.redirected_to.delete(:action), @response.redirected_to.stringify_keys)
-        end
-
-        def assigns(key = nil)
-          if key.nil?
-            @response.template.assigns
-          else
-            @response.template.assigns[key.to_s]
-          end
-        end
-
-        def session
-          @response.session
-        end
-
-        def flash
-          @response.flash
-        end
-
-        def cookies
-          @response.cookies
-        end
-
-        def redirect_to_url
-          @response.redirect_url
-        end
-
-        def build_request_uri(action, parameters)
-          unless @request.env['REQUEST_URI']
-            options = @controller.send(:rewrite_options, parameters)
-            options.update(:only_path => true, :action => action)
-
-            url = ActionController::UrlRewriter.new(@request, parameters)
-            @request.set_REQUEST_URI(url.rewrite(options))
-          end
-        end
-
-        def html_document
-          @html_document ||= HTML::Document.new(@response.body)
-        end
-
-        def find_tag(conditions)
-          html_document.find(conditions)
-        end
-
-        def find_all_tag(conditions)
-          html_document.find_all(conditions)
-        end
-
-        def method_missing(selector, *args)
-          return @controller.send(selector, *args) if ActionController::Routing::NamedRoutes::Helpers.include?(selector)
-          return super
-        end
-
-        # A helper to make it easier to test different route configurations.
-        # This method temporarily replaces ActionController::Routing::Routes
-        # with a new RouteSet instance. 
-        #
-        # The new instance is yielded to the passed block. Typically the block
-        # will create some routes using map.draw { map.connect ... }:
-        #
-        #   with_routing do |set|
-        #     set.draw { set.connect ':controller/:id/:action' }
-        #     assert_equal(
-        #        ['/content/10/show', {}],
-        #        set.generate(:controller => 'content', :id => 10, :action => 'show')
-        #     )
-        #   end
-        #
-        def with_routing
-          real_routes = ActionController::Routing::Routes
-          ActionController::Routing.send :remove_const, :Routes
-
-          temporary_routes = ActionController::Routing::RouteSet.new
-          ActionController::Routing.send :const_set, :Routes, temporary_routes
-          
-          yield temporary_routes
-        ensure
-          if ActionController::Routing.const_defined? :Routes
-            ActionController::Routing.send(:remove_const, :Routes) 
-          end
-          ActionController::Routing.const_set(:Routes, real_routes) if real_routes
-        end
+      include ActionController::TestProcess
     end
   end
 end

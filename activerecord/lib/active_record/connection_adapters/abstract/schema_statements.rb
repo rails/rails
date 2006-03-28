@@ -8,6 +8,16 @@ module ActiveRecord
         {}
       end
 
+      # This is the maximum length a table alias can be
+      def table_alias_length
+        255
+      end
+
+      # Truncates a table alias according to the limits of the current adapter.  
+      def table_alias_for(table_name)
+        table_name[0..table_alias_length-1].gsub(/\./, '_')
+      end
+
       # def tables(name = nil) end
 
       # Returns an array of indexes for the given table.
@@ -153,6 +163,13 @@ module ActiveRecord
       # The index will be named after the table and the first column names,
       # unless you pass +:name+ as an option.
       #
+      # When creating an index on multiple columns, the first column is used as a name
+      # for the index. For example, when you specify an index on two columns
+      # [+:first+, +:last+], the DBMS creates an index for both columns as well as an
+      # index for the first colum +:first+. Using just the first name for this index
+      # makes sense, because you will never have to create a singular index with this
+      # name.
+      #
       # ===== Examples
       # ====== Creating a simple index
       #  add_index(:suppliers, :name)
@@ -187,7 +204,10 @@ module ActiveRecord
       #   remove_index :accounts, :column => :branch_id
       # Remove the index named by_branch_party in the accounts table.
       #   remove_index :accounts, :name => :by_branch_party
-      
+      #
+      # You can remove an index on multiple columns by specifying the first column.
+      #   add_index :accounts, [:username, :password]
+      #   remove_index :accounts, :username
       def remove_index(table_name, options = {})
         execute "DROP INDEX #{index_name(table_name, options)} ON #{table_name}"
       end

@@ -324,39 +324,21 @@ class CallbacksTest < Test::Unit::TestCase
   def test_before_save_returning_false
     david = ImmutableDeveloper.find(1)
     assert david.valid?
-    assert david.save
-    assert david.cancelled?
+    assert !david.save
+    assert_raises(ActiveRecord::RecordNotSaved) { david.save! }
 
     david = ImmutableDeveloper.find(1)
     david.salary = 10_000_000
     assert !david.valid?
     assert !david.save
-    assert !david.cancelled?
-
-    david = ImmutableMethodDeveloper.find(1)
-    assert david.valid?
-    assert david.save
-    assert david.cancelled?
-
-    david = ImmutableMethodDeveloper.find(1)
-    david.salary = 10_000_000
-    assert !david.valid?
-    assert !david.save
-    assert !david.cancelled?
+    assert_raises(ActiveRecord::RecordInvalid) { david.save! }
   end
 
   def test_before_destroy_returning_false
     david = ImmutableDeveloper.find(1)
-    david.destroy
-    assert david.cancelled?
+    assert !david.destroy
     assert_not_nil ImmutableDeveloper.find_by_id(1)
-
-    david = ImmutableMethodDeveloper.find(1)
-    david.destroy
-    assert david.cancelled?
-    assert_not_nil ImmutableMethodDeveloper.find_by_id(1)
-  end
-
+  end  
 
   def test_zzz_callback_returning_false # must be run last since we modify CallbackDeveloper
     david = CallbackDeveloper.find(1)

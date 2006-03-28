@@ -1,21 +1,13 @@
-module Object::Controllers
-  def self.const_available?(*args)
-    const_defined?(*args)
-  end
+class << Object; alias_method :const_available?, :const_defined?; end
   
-  class ContentController < ActionController::Base
-  end
-
-  module Admin
-    def self.const_available?(*args)
-      const_defined?(*args)
-    end
-    
-    class UserController < ActionController::Base
-    end
-    class NewsFeedController < ActionController::Base
-    end
-  end
+class ContentController < Class.new(ActionController::Base)
+end
+class NotAController
+end
+module Admin
+  class << self; alias_method :const_available?, :const_defined?; end
+  class UserController < Class.new(ActionController::Base); end
+  class NewsFeedController < Class.new(ActionController::Base); end
 end
 
 ActionController::Routing::Routes.draw do |map|

@@ -15,11 +15,19 @@ end
 class CustomHandlerTest < Test::Unit::TestCase
   def setup
     ActionView::Base.register_template_handler "foo", CustomHandler
+    ActionView::Base.register_template_handler :foo2, CustomHandler
     @view = ActionView::Base.new
   end
 
   def test_custom_render
     result = @view.render_template( "foo", "hello <%= one %>", nil, :one => "two" )
+    assert_equal(
+      [ "hello <%= one %>", { :one => "two" }, @view ],
+      result )
+  end
+
+  def test_custom_render2
+    result = @view.render_template( "foo2", "hello <%= one %>", nil, :one => "two" )
     assert_equal(
       [ "hello <%= one %>", { :one => "two" }, @view ],
       result )

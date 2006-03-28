@@ -24,12 +24,10 @@ class DispatcherTest < Test::Unit::TestCase
   def setup
     @output = StringIO.new
     ENV['REQUEST_METHOD'] = "GET"
-    setup_minimal_environment
   end
 
   def teardown
     ENV['REQUEST_METHOD'] = nil
-    teardown_minimal_environment
   end
 
   def test_ac_subclasses_cleared_on_reset
@@ -90,14 +88,5 @@ class DispatcherTest < Test::Unit::TestCase
   private
     def dispatch
       Dispatcher.dispatch(nil, ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, @output)
-    end
-
-    def setup_minimal_environment
-      value = Dependencies::LoadingModule.root
-      Object.const_set("Controllers", value)
-    end
-
-    def teardown_minimal_environment
-      Object.send(:remove_const, "Controllers")
     end
 end

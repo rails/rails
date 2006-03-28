@@ -1,4 +1,5 @@
 DROP TABLE accounts;
+DROP TABLE funny_jokes;
 DROP TABLE companies;
 DROP TABLE topics;
 DROP TABLE developers;
@@ -14,6 +15,7 @@ DROP TABLE entrants;
 DROP TABLE colnametests;
 DROP TABLE mixins;
 DROP TABLE people;
+DROP TABLE readers;
 DROP TABLE binaries;
 DROP TABLE computers;
 DROP TABLE tasks;
@@ -25,3 +27,4 @@ DROP TABLE categories_posts;
 DROP TABLE fk_test_has_fk;
 DROP TABLE fk_test_has_pk;
 DROP TABLE keyboards;
+DROP TABLE legacy_things;

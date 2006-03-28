@@ -1,15 +1,422 @@
-*SVN*
+*1.14.0* (March 27th, 2005)
+
+* Replace 'rescue Object' with a finer grained rescue. Closes #4431. [Nicholas Seckar]
+
+* Fixed eager loading so that an aliased table cannot clash with a has_and_belongs_to_many join table [Rick]
+
+* Add support for :include to with_scope [andrew@redlinesoftware.com]
+
+* Support the use of public synonyms with the Oracle adapter; required ruby-oci8 v0.1.14 #4390 [schoenm@earthlink.net]
+
+* Change periods (.) in table aliases to _'s.  Closes #4251 [jeff@ministrycentered.com]
+
+* Changed has_and_belongs_to_many join to INNER JOIN for Mysql 3.23.x.  Closes #4348 [Rick]
+
+* Fixed issue that kept :select options from being scoped [Rick]
+
+* Fixed db_schema_import when binary types are present #3101 [DHH]
+
+* Fixed that MySQL enums should always be returned as strings #3501 [DHH]
+
+* Change has_many :through to use the :source option to specify the source association.  :class_name is now ignored. [Rick Olson]
+
+    class Connection < ActiveRecord::Base
+      belongs_to :user
+      belongs_to :channel
+    end
+
+    class Channel < ActiveRecord::Base
+      has_many :connections
+      has_many :contacts, :through => :connections, :class_name => 'User' # OLD
+      has_many :contacts, :through => :connections, :source => :user      # NEW
+    end
+
+* Fixed DB2 adapter so nullable columns will be determines correctly now and quotes from column default values will be removed #4350 [contact@maik-schmidt.de]
+
+* Allow overriding of find parameters in scoped has_many :through calls [Rick Olson]
+
+  In this example, :include => false disables the default eager association from loading.  :select changes the standard
+  select clause.  :joins specifies a join that is added to the end of the has_many :through query.
+  
+    class Post < ActiveRecord::Base
+      has_many :tags, :through => :taggings, :include => :tagging do
+        def add_joins_and_select
+          find :all, :select => 'tags.*, authors.id as author_id', :include => false,
+            :joins => 'left outer join posts on taggings.taggable_id = posts.id left outer join authors on posts.author_id = authors.id'
+        end
+      end
+    end
+    
+* Fixed that schema changes while the database was open would break any connections to a SQLite database (now we reconnect if that error is throw) [DHH]
+
+* Don't classify the has_one class when eager loading, it is already singular. Add tests. (closes #4117) [jonathan@bluewire.net.nz]
+
+* Quit ignoring default :include options in has_many :through calls [Mark James]
+
+* Allow has_many :through associations to find the source association by setting a custom class (closes #4307) [jonathan@bluewire.net.nz]
+
+* Eager Loading support added for has_many :through => :has_many associations (see below).  [Rick Olson]
+
+* Allow has_many :through to work on has_many associations (closes #3864) [sco@scottraymond.net]  Example:
+
+    class Firm < ActiveRecord::Base
+      has_many :clients
+      has_many :invoices, :through => :clients
+    end
+  
+    class Client < ActiveRecord::Base
+      belongs_to :firm
+      has_many   :invoices
+    end
+  
+    class Invoice < ActiveRecord::Base
+      belongs_to :client
+    end
+
+* Raise error when trying to select many polymorphic objects with has_many :through or :include (closes #4226) [josh@hasmanythrough.com]
+
+* Fixed has_many :through to include :conditions set on the :through association. closes #4020 [jonathan@bluewire.net.nz]
+
+* Fix that has_many :through honors the foreign key set by the belongs_to association in the join model (closes #4259) [andylien@gmail.com / Rick]
+
+* SQL Server adapter gets some love #4298 [rtomayko@gmail.com]
+
+* Added OpenBase database adapter that builds on top of the http://www.spice-of-life.net/ruby-openbase/ driver. All functionality except LIMIT/OFFSET is supported #3528 [derrickspell@cdmplus.com]
+
+* Rework table aliasing to account for truncated table aliases.  Add smarter table aliasing when doing eager loading of STI associations. This allows you to use the association name in the order/where clause. [Jonathan Viney / Rick Olson] #4108 Example (SpecialComment is using STI):
+
+    Author.find(:all, :include => { :posts => :special_comments }, :order => 'special_comments.body')
+
+* Add AbstractAdapter#table_alias_for to create table aliases according to the rules of the current adapter. [Rick]
+
+* Provide access to the underlying database connection through Adapter#raw_connection. Enables the use of db-specific methods without complicating the adapters. #2090 [Koz]
+
+* Remove broken attempts at handling columns with a default of 'now()' in the postgresql adapter. #2257 [Koz]
+
+* Added connection#current_database that'll return of the current database (only works in MySQL, SQL Server, and Oracle so far -- please help implement for the rest of the adapters) #3663 [Tom ward]
+
+* Fixed that Migration#execute would have the table name prefix appended to its query #4110 [mark.imbriaco@pobox.com]
+
+* Make all tinyint(1) variants act like boolean in mysql (tinyint(1) unsigned, etc.) [Jamis Buck]
+
+* Use association's :conditions when eager loading. [jeremyevans0@gmail.com] #4144
+
+* Alias the has_and_belongs_to_many join table on eager includes. #4106 [jeremyevans0@gmail.com]
+
+  This statement would normally error because the projects_developers table is joined twice, and therefore joined_on would be ambiguous.
+
+    Developer.find(:all, :include => {:projects => :developers}, :conditions => 'join_project_developers.joined_on IS NOT NULL')
+
+* Oracle adapter gets some love #4230 [schoenm@earthlink.net]
+
+    * Changes :text to CLOB rather than BLOB [Moses Hohman]
+    * Fixes an issue with nil numeric length/scales (several)
+    * Implements support for XMLTYPE columns [wilig / Kubo Takehiro]
+    * Tweaks a unit test to get it all green again
+    * Adds support for #current_database
+
+* Added Base.abstract_class? that marks which classes are not part of the Active Record hierarchy #3704 [Rick Olson]
+
+    class CachedModel < ActiveRecord::Base
+      self.abstract_class = true
+    end
+    
+    class Post < CachedModel
+    end
+    
+    CachedModel.abstract_class?
+    => true
+    
+    Post.abstract_class?
+    => false
+
+    Post.base_class
+    => Post
+    
+    Post.table_name
+    => 'posts'
+
+* Allow :dependent options to be used with polymorphic joins. #3820 [Rick Olson]
+
+    class Foo < ActiveRecord::Base
+      has_many :attachments, :as => :attachable, :dependent => :delete_all
+    end
+
+* Nicer error message on has_many :through when :through reflection can not be found. #4042 [court3nay@gmail.com]
+
+* Upgrade to Transaction::Simple 1.3 [Jamis Buck]
+
+* Catch FixtureClassNotFound when using instantiated fixtures on a fixture that has no ActiveRecord model [Rick Olson]
+
+* Allow ordering of calculated results and/or grouped fields in calculations [solo@gatelys.com]
+
+* Make ActiveRecord::Base#save! return true instead of nil on success.  #4173 [johan@johansorensen.com]
+
+* Dynamically set allow_concurrency.  #4044 [Stefan Kaes]
+
+* Added Base#to_xml that'll turn the current record into a XML representation [DHH]. Example:
+
+    topic.to_xml
+  
+  ...returns:
+  
+    <?xml version="1.0" encoding="UTF-8"?>
+    <topic>
+      <title>The First Topic</title>
+      <author-name>David</author-name>
+      <id type="integer">1</id>
+      <approved type="boolean">false</approved>
+      <replies-count type="integer">0</replies-count>
+      <bonus-time type="datetime">2000-01-01 08:28:00</bonus-time>
+      <written-on type="datetime">2003-07-16 09:28:00</written-on>
+      <content>Have a nice day</content>
+      <author-email-address>david@loudthinking.com</author-email-address>
+      <parent-id></parent-id>
+      <last-read type="date">2004-04-15</last-read>
+    </topic>
+  
+  ...and you can configure with:
+  
+    topic.to_xml(:skip_instruct => true, :skip_attributes => [ :id, bonus_time, :written_on, replies_count ])
+  
+  ...that'll return:
+  
+    <topic>
+      <title>The First Topic</title>
+      <author-name>David</author-name>
+      <approved type="boolean">false</approved>
+      <content>Have a nice day</content>
+      <author-email-address>david@loudthinking.com</author-email-address>
+      <parent-id></parent-id>
+      <last-read type="date">2004-04-15</last-read>
+    </topic>
+  
+  You can even do load first-level associations as part of the document:
+  
+    firm.to_xml :include => [ :account, :clients ]
+  
+  ...that'll return something like:
+  
+    <?xml version="1.0" encoding="UTF-8"?>
+    <firm>
+      <id type="integer">1</id>
+      <rating type="integer">1</rating>
+      <name>37signals</name>
+      <clients>
+        <client>
+          <rating type="integer">1</rating>
+          <name>Summit</name>
+        </client>
+        <client>
+          <rating type="integer">1</rating>
+          <name>Microsoft</name>
+        </client>
+      </clients>
+      <account>
+        <id type="integer">1</id>
+        <credit-limit type="integer">50</credit-limit>
+      </account>
+    </firm>  
+
+* Allow :counter_cache to take a column name for custom counter cache columns [Jamis Buck]
+
+* Documentation fixes for :dependent [robby@planetargon.com]
+
+* Stop the MySQL adapter crashing when views are present. #3782 [Jonathan Viney]
+
+* Don't classify the belongs_to class, it is already singular #4117 [keithm@infused.org]
+
+* Allow set_fixture_class to take Classes instead of strings for a class in a module.  Raise FixtureClassNotFound if a fixture can't load.  [Rick Olson]
+
+* Fix quoting of inheritance column for STI eager loading #4098 [Jonathan Viney <jonathan@bluewire.net.nz>]
+
+* Added smarter table aliasing for eager associations for multiple self joins #3580 [Rick Olson]
+
+    * The first time a table is referenced in a join, no alias is used.
+    * After that, the parent class name and the reflection name are used.
+    
+        Tree.find(:all, :include => :children) # LEFT OUTER JOIN trees AS tree_children ...
+    
+    * Any additional join references get a numerical suffix like '_2', '_3', etc.
+
+* Fixed eager loading problems with single-table inheritance #3580 [Rick Olson]. Post.find(:all, :include => :special_comments) now returns all posts, and any special comments that the posts may have. And made STI work with has_many :through and polymorphic belongs_to.
+
+* Added cascading eager loading that allows for queries like Author.find(:all, :include=> { :posts=> :comments }), which will fetch all authors, their posts, and the comments belonging to those posts in a single query (using LEFT OUTER JOIN) #3913 [anna@wota.jp]. Examples:
+
+    # cascaded in two levels
+    >> Author.find(:all, :include=>{:posts=>:comments})
+    => authors
+         +- posts
+              +- comments
+    
+    # cascaded in two levels and normal association
+    >> Author.find(:all, :include=>[{:posts=>:comments}, :categorizations])
+    => authors
+         +- posts
+              +- comments
+         +- categorizations
+    
+    # cascaded in two levels with two has_many associations
+    >> Author.find(:all, :include=>{:posts=>[:comments, :categorizations]})
+    => authors
+         +- posts
+              +- comments
+              +- categorizations
+    
+    # cascaded in three levels
+    >> Company.find(:all, :include=>{:groups=>{:members=>{:favorites}}})
+    => companies
+         +- groups
+              +- members
+                   +- favorites
+    
+* Make counter cache work when replacing an association #3245 [eugenol@gmail.com]
+
+* Make migrations verbose [Jamis Buck]
+
+* Make counter_cache work with polymorphic belongs_to [Jamis Buck]
+
+* Fixed that calling HasOneProxy#build_model repeatedly would cause saving to happen #4058 [anna@wota.jp]
+
+* Added Sybase database adapter that relies on the Sybase Open Client bindings (see http://raa.ruby-lang.org/project/sybase-ctlib) #3765 [John Sheets]. It's almost completely Active Record compliant (including migrations), but has the following caveats:
+
+    * Does not support DATE SQL column types; use DATETIME instead.
+    * Date columns on HABTM join tables are returned as String, not Time.
+    * Insertions are potentially broken for :polymorphic join tables
+    * BLOB column access not yet fully supported
+
+* Clear stale, cached connections left behind by defunct threads. [Jeremy Kemper]
+
+* CHANGED DEFAULT: set ActiveRecord::Base.allow_concurrency to false.  Most AR usage is in single-threaded applications. [Jeremy Kemper]
+
+* Renamed the "oci" adapter to "oracle", but kept the old name as an alias #4017 [schoenm@earthlink.net]
+
+* Fixed that Base.save should always return false if the save didn't succeed, including if it has halted by before_save's #1861, #2477 [DHH]
+
+* Speed up class -> connection caching and stale connection verification.  #3979 [Stefan Kaes]
+
+* Add set_fixture_class to allow the use of table name accessors with models which use set_table_name. [Kevin Clark]
+
+* Added that fixtures to placed in subdirectories of the main fixture files are also loaded #3937 [dblack@wobblini.net]
+
+* Define attribute query methods to avoid method_missing calls. #3677 [jonathan@bluewire.net.nz]
 
 * ActiveRecord::Base.remove_connection explicitly closes database connections and doesn't corrupt the connection cache. Introducing the disconnect! instance method for the PostgreSQL, MySQL, and SQL Server adapters; implementations for the others are welcome.  #3591 [Simon Stapleton, Tom Ward]
 
+* Added support for nested scopes #3407 [anna@wota.jp]. Examples:
+
+    Developer.with_scope(:find => { :conditions => "salary > 10000", :limit => 10 }) do
+      Developer.find(:all)     # => SELECT * FROM developers WHERE (salary > 10000) LIMIT 10
+
+      # inner rule is used. (all previous parameters are ignored)
+      Developer.with_exclusive_scope(:find => { :conditions => "name = 'Jamis'" }) do
+        Developer.find(:all)   # => SELECT * FROM developers WHERE (name = 'Jamis')
+      end
+
+      # parameters are merged
+      Developer.with_scope(:find => { :conditions => "name = 'Jamis'" }) do
+        Developer.find(:all)   # => SELECT * FROM developers WHERE (( salary > 10000 ) AND ( name = 'Jamis' )) LIMIT 10
+      end
+    end
+
+* Fixed db2 connection with empty user_name and auth options #3622 [phurley@gmail.com]
+
+* Fixed validates_length_of to work on UTF-8 strings by using characters instead of bytes #3699 [Masao Mutoh]
+
+* Fixed that reflections would bleed across class boundaries in single-table inheritance setups #3796 [lars@pind.com]
+
+* Added calculations: Base.count, Base.average, Base.sum, Base.minimum, Base.maxmium, and the generic Base.calculate. All can be used with :group and :having. Calculations and statitics need no longer require custom SQL. #3958 [Rick Olson]. Examples:
+
+    Person.average :age
+    Person.minimum :age
+    Person.maximum :age
+    Person.sum :salary, :group => :last_name
+
+* Renamed Errors#count to Errors#size but kept an alias for the old name (and included an alias for length too) #3920 [contact@lukeredpath.co.uk]
+
+* Reflections don't attempt to resolve module nesting of association classes. Simplify type computation. [Jeremy Kemper]
+
+* Improved the Oracle OCI Adapter with better performance for column reflection (from #3210), fixes to migrations (from #3476 and #3742), tweaks to unit tests (from #3610), and improved documentation (from #2446) #3879 [Aggregated by schoenm@earthlink.net]
+
+* Fixed that the schema_info table used by ActiveRecord::Schema.define should respect table pre- and suffixes #3834 [rubyonrails@atyp.de]
+
+* Added :select option to Base.count that'll allow you to select something else than * to be counted on. Especially important for count queries using DISTINCT #3839 [skaes]
+
+* Correct syntax error in mysql DDL,  and make AAACreateTablesTest run first [Bob Silva]
+
+* Allow :include to be used with has_many :through associations #3611 [Michael Schoen]
+
+* PostgreSQL: smarter schema dumps using pk_and_sequence_for(table).  #2920 [Blair Zajac]
+
+* SQLServer: more compatible limit/offset emulation.  #3779 [Tom Ward]
+
+* Polymorphic join support for has_one associations (has_one :foo, :as => :bar)  #3785 [Rick Olson]
+
 * PostgreSQL: correctly parse negative integer column defaults.  #3776 [bellis@deepthought.org]
+
+* Fix problems with count when used with :include [Jeremy Hopple and Kevin Clark]
+
+* ActiveRecord::RecordInvalid now states which validations failed in its default error message [Tobias Luetke]
+
+* Using AssociationCollection#build with arrays of hashes should call build, not create [DHH]
+
+* Remove definition of reloadable? from ActiveRecord::Base to make way for new Reloadable code. [Nicholas Seckar]
+
+* Fixed schema handling for DB2 adapter that didn't work: an initial schema could be set, but it wasn't used when getting tables and indexes #3678 [Maik Schmidt]
+
+* Support the :column option for remove_index with the PostgreSQL adapter. #3661 [shugo@ruby-lang.org]
+
+* Add documentation for add_index and remove_index. #3600 [Manfred Stienstra <m.stienstra@fngtps.com>]
+
+* If the OCI library is not available, raise an exception indicating as much. #3593 [schoenm@earthlink.net]
+
+* Add explicit :order in finder tests as postgresql orders results differently by default. #3577. [Rick Olson]
+
+* Make dynamic finders honor additional passed in :conditions. #3569 [Oleg Pudeyev <pudeyo@rpi.edu>, Marcel Molina Jr.]
 
 * Show a meaningful error when the DB2 adapter cannot be loaded due to missing dependencies. [Nicholas Seckar]
 
-* Fix case of VERSION option in migration docs. #3521 [Dawnthorn <peterh@sapros.com>]
+* Make .count work for has_many associations with multi line finder sql [schoenm@earthlink.net]
+
+* Add AR::Base.base_class for querying the ancestor AR::Base subclass [Jamis Buck]
+
+* Allow configuration of the column used for optimistic locking [wilsonb@gmail.com]
+
+* Don't hardcode 'id' in acts as list.  [ror@philippeapril.com]
+
+* Fix date errors for SQLServer in association tests. #3406 [kevin.clark@gmal.com]
+
+* Escape database name in MySQL adapter when creating and dropping databases. #3409 [anna@wota.jp]
+
+* Disambiguate table names for columns in validates_uniquness_of's WHERE clause. #3423 [alex.borovsky@gmail.com]
+
+* .with_scope imposed create parameters now bypass attr_protected [Tobias Luetke]
+
+* Don't raise an exception when there are more keys than there are named bind variables when sanitizing conditions. [Marcel Molina Jr.]
+
+* Multiple enhancements and adjustments to DB2 adaptor. #3377 [contact@maik-schmidt.de]
+
+* Sanitize scoped conditions. [Marcel Molina Jr.]
+
+* Added option to Base.reflection_of_all_associations to specify a specific association to scope the call. For example Base.reflection_of_all_associations(:has_many) [DHH]
+
+* Added ActiveRecord::SchemaDumper.ignore_tables which tells SchemaDumper which tables to ignore. Useful for tables with funky column like the ones required for tsearch2. [TobiasLuetke]
+
+* SchemaDumper now doesn't fail anymore when there are unknown column types in the schema. Instead the table is ignored and a Comment is left in the schema.rb. [TobiasLuetke]
 
 * Fixed that saving a model with multiple habtm associations would only save the first one.  #3244 [yanowitz-rubyonrails@quantumfoam.org, Florian Weber]
 
+* Fix change_column to work with PostgreSQL 7.x and 8.x.  #3141 [wejn@box.cz, Rick Olson, Scott Barron] 
+
+* removed :piggyback in favor of just allowing :select on :through associations. [Tobias Luetke] 
+
+* made method missing delegation to class methods on relation target work on :through associations. [Tobias Luetke] 
+
+* made .find() work on :through relations. [Tobias Luetke] 
+
+* Fix typo in association docs. #3296. [Blair Zajac]
+
+* Fixed :through relations when using STI inherited classes would use the inherited class's name as foreign key on the join model [Tobias Luetke] 
 
 *1.13.2* (December 13th, 2005)
 
@@ -17,9 +424,19 @@
 
 * MySQL: allow encoding option for mysql.rb driver.  [Jeremy Kemper]
 
-* MySQL: fixes for the bundled mysql.rb driver.  #3160 [Justin Forder]
+* Added option inheritance for find calls on has_and_belongs_to_many and has_many assosociations [DHH]. Example:
 
-* MySQL, PostgreSQL: reconnect! also reconfigures the connection.  Otherwise, the connection 'loses' its settings if it times out and is reconnected.  #2978 [Shugo Maeda]
+    class Post
+      has_many :recent_comments, :class_name => "Comment", :limit => 10, :include => :author
+    end
+    
+    post.recent_comments.find(:all) # Uses LIMIT 10 and includes authors
+    post.recent_comments.find(:all, :limit => nil) # Uses no limit but include authors
+    post.recent_comments.find(:all, :limit => nil, :include => nil) # Uses no limit and doesn't include authors
+
+* Added option to specify :group, :limit, :offset, and :select options from find on has_and_belongs_to_many and has_many assosociations [DHH]
+
+* MySQL: fixes for the bundled mysql.rb driver.  #3160 [Justin Forder]
 
 * SQLServer: fix obscure optimistic locking bug.  #3068 [kajism@yahoo.com]
 
@@ -33,9 +450,6 @@
 
 * Oracle: active? performs a select instead of a commit.  #3133 [Michael Schoen]
 
-
-*1.13.1* (December 7th, 2005)
-
 * MySQL: more robust test for nullified result hashes.  #3124 [Stefan Kaes]
 
 * Reloading an instance refreshes its aggregations as well as its associations.  #3024 [FranÃ§ois Beausolei]
@@ -48,13 +462,15 @@
 
 * MySQL: work around ruby-mysql/mysql-ruby inconsistency with mysql.stat.  Eliminate usage of mysql.ping because it doesn't guarantee reconnect.  Explicitly close and reopen the connection instead.  [Jeremy Kemper]
 
-* When AbstractAdapter#log rescues an exception, attempt to detect and reconnect to an inactive database connection.  Connection adapter must respond to the active? and reconnect! instance methods.  Initial support for PostgreSQL, MySQL, and SQLite.  Make certain that all statements which may need reconnection are performed within a logged block: for example, this means no avoiding log(sql, name) { } if @logger.nil?  [Jeremy Kemper]
+* Added preliminary support for polymorphic associations [DHH]
+
+* Added preliminary support for join models [DHH]
+
+* Allow validate_uniqueness_of to be scoped by more than just one column.  #1559. [jeremy@jthopple.com, Marcel Molina Jr.]
 
 * Firebird: active? and reconnect! methods for handling stale connections.  #428 [Ken Kunz <kennethkunz@gmail.com>]
 
 * Firebird: updated for FireRuby 0.4.0.  #3009 [Ken Kunz <kennethkunz@gmail.com>]
-
-* Introducing the Firebird adapter.  Quote columns and use attribute_condition more consistently.  Setup guide: http://wiki.rubyonrails.com/rails/pages/Firebird+Adapter  #1874 [Ken Kunz <kennethkunz@gmail.com>]
 
 * MySQL and PostgreSQL: active? compatibility with the pure-Ruby driver.  #428 [Jeremy Kemper]
 
@@ -65,6 +481,10 @@
 * Reloading a model doesn't lose track of its connection.  #2996 [junk@miriamtech.com, Jeremy Kemper]
 
 * Fixed bug where using update_attribute after pushing a record to a habtm association of the object caused duplicate rows in the join table. #2888 [colman@rominato.com, Florian Weber, Michael Schoen]
+
+* MySQL, PostgreSQL: reconnect! also reconfigures the connection.  Otherwise, the connection 'loses' its settings if it times out and is reconnected.  #2978 [Shugo Maeda]
+
+* has_and_belongs_to_many: use JOIN instead of LEFT JOIN.  [Jeremy Kemper]
 
 * MySQL: introduce :encoding option to specify the character set for client, connection, and results.  Only available for MySQL 4.1 and later with the mysql-ruby driver.  Do SHOW CHARACTER SET in mysql client to see available encodings.  #2975 [Shugo Maeda]
 
@@ -80,13 +500,23 @@
 
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
 
+* Introducing the Firebird adapter.  Quote columns and use attribute_condition more consistently.  Setup guide: http://wiki.rubyonrails.com/rails/pages/Firebird+Adapter  #1874 [Ken Kunz <kennethkunz@gmail.com>]
+
+* SQLServer: active? and reconnect! methods for handling stale connections.  #428 [kajism@yahoo.com, Tom Ward <tom@popdog.net>]
+
+* Associations handle case-equality more consistently: item.parts.is_a?(Array) and item.parts === Array.  #1345 [MarkusQ@reality.com]
+
 * SQLServer: insert uses given primary key value if not nil rather than SELECT @@IDENTITY.  #2866 [kajism@yahoo.com, Tom Ward <tom@popdog.net>]
+
+* Oracle: active? and reconnect! methods for handling stale connections.  Optionally retry queries after reconnect.  #428 [Michael Schoen <schoenm@earthlink.net>]
 
 * Correct documentation for Base.delete_all.  #1568 [Newhydra]
 
 * Oracle: test case for column default parsing.  #2788 [Michael Schoen <schoenm@earthlink.net>]
 
 * Update documentation for Migrations.  #2861 [Tom Werner <tom@cube6media.com>]
+
+* When AbstractAdapter#log rescues an exception, attempt to detect and reconnect to an inactive database connection.  Connection adapter must respond to the active? and reconnect! instance methods.  Initial support for PostgreSQL, MySQL, and SQLite.  Make certain that all statements which may need reconnection are performed within a logged block: for example, this means no avoiding log(sql, name) { } if @logger.nil?  #428 [Jeremy Kemper]
 
 * Oracle: Much faster column reflection.  #2848 [Michael Schoen <schoenm@earthlink.net>]
 
@@ -1682,7 +2112,7 @@ in effect.  Added :readonly finder constraint.  Calling an association collectio
         end
     end
     
-  This will add an error to the tune of "is too short (min is 3 characters)" or "is too long (min is 20 characters)" if
+  This will add an error to the tune of "is too short (minimum is 3 characters)" or "is too long (minimum is 20 characters)" if
   the password is outside the boundry. The messages can be changed by passing a third and forth parameter as message strings.
 
 * Implemented a clone method that works properly with AR. It returns a clone of the record that 

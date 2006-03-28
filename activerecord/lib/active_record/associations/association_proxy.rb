@@ -1,29 +1,45 @@
 module ActiveRecord
   module Associations
     class AssociationProxy #:nodoc:
+      attr_reader :reflection
       alias_method :proxy_respond_to?, :respond_to?
       alias_method :proxy_extend, :extend
       instance_methods.each { |m| undef_method m unless m =~ /(^__|^nil\?|^proxy_respond_to\?|^proxy_extend|^send)/ }
 
-      def initialize(owner, association_name, association_class_name, association_class_primary_key_name, options)
-        @owner = owner
-        @options = options
-        @association_name = association_name
-        @association_class = eval(association_class_name, nil, __FILE__, __LINE__)
-        @association_class_primary_key_name = association_class_primary_key_name
-
-        proxy_extend(options[:extend]) if options[:extend]
-
+      def initialize(owner, reflection)
+        @owner, @reflection = owner, reflection
+        proxy_extend(reflection.options[:extend]) if reflection.options[:extend]
         reset
       end
       
+      def respond_to?(symbol, include_priv = false)
+        proxy_respond_to?(symbol, include_priv) || (load_target && @target.respond_to?(symbol, include_priv))
+      end
+      
+      # Explicitly proxy === because the instance method removal above
+      # doesn't catch it.
+      def ===(other)
+        load_target
+        other === @target
+      end
+      
+      def aliased_table_name
+        @reflection.klass.table_name
+      end
+      
+      def conditions
+        @conditions ||= eval("%(#{@reflection.active_record.send :sanitize_sql, @reflection.options[:conditions]})") if @reflection.options[:conditions]
+      end
+      alias :sql_conditions :conditions
+      
+      def reset
+        @target = nil
+        @loaded = false
+      end
+
       def reload
         reset
         load_target
-      end
-
-      def respond_to?(symbol, include_priv = false)
-        proxy_respond_to?(symbol, include_priv) || (load_target && @target.respond_to?(symbol, include_priv))
       end
 
       def loaded?
@@ -38,14 +54,14 @@ module ActiveRecord
         @target
       end
       
-      def target=(t)
-        @target = t
-        @loaded = true
+      def target=(target)
+        @target = target
+        loaded
       end
       
       protected
         def dependent?
-          @options[:dependent] || false
+          @reflection.options[:dependent] || false
         end
         
         def quoted_record_ids(records)
@@ -61,15 +77,34 @@ module ActiveRecord
         end
 
         def sanitize_sql(sql)
-          @association_class.send(:sanitize_sql, sql)
+          @reflection.klass.send(:sanitize_sql, sql)
         end
 
         def extract_options_from_args!(args)
           @owner.send(:extract_options_from_args!, args)
         end
+
+        def set_belongs_to_association_for(record)
+          if @reflection.options[:as]
+            record["#{@reflection.options[:as]}_id"]   = @owner.id unless @owner.new_record?
+            record["#{@reflection.options[:as]}_type"] = @owner.class.base_class.name.to_s
+          else
+            record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
+          end
+        end
+
+        def merge_options_from_reflection!(options)
+          options.reverse_merge!(
+            :group   => @reflection.options[:group],
+            :limit   => @reflection.options[:limit],
+            :offset  => @reflection.options[:offset],
+            :joins   => @reflection.options[:joins],
+            :include => @reflection.options[:include],
+            :select  => @reflection.options[:select]
+          )
+        end
         
       private
-        
         def method_missing(method, *args, &block)
           load_target
           @target.send(method, *args, &block)
@@ -78,13 +113,14 @@ module ActiveRecord
         def load_target
           if !@owner.new_record? || foreign_key_present
             begin
-              @target = find_target if not loaded?
+              @target = find_target if !loaded?
             rescue ActiveRecord::RecordNotFound
               reset
             end
           end
-          @loaded = true if @target
-          @target
+
+          loaded if target
+          target
         end
 
         # Can be overwritten by associations that might have the foreign key available for an association without
@@ -94,7 +130,9 @@ module ActiveRecord
         end
 
         def raise_on_type_mismatch(record)
-          raise ActiveRecord::AssociationTypeMismatch, "#{@association_class} expected, got #{record.class}" unless record.is_a?(@association_class)
+          unless record.is_a?(@reflection.klass)
+            raise ActiveRecord::AssociationTypeMismatch, "#{@reflection.class_name} expected, got #{record.class}"
+          end
         end
     end
   end

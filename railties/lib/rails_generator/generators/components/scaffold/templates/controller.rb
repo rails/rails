@@ -11,6 +11,10 @@ class <%= controller_class_name %>Controller < ApplicationController
   end
 
 <% end -%>
+  # GETs should be safe (see http://www.w3.org/2001/tag/doc/whenToUseGet.html)
+  verify :method => :post, :only => [ :destroy<%= suffix %>, :create<%= suffix %>, :update<%= suffix %> ],
+         :redirect_to => { :action => :list<%= suffix %> }
+
   def list<%= suffix %>
     @<%= singular_name %>_pages, @<%= plural_name %> = paginate :<%= plural_name %>, :per_page => 10
   end

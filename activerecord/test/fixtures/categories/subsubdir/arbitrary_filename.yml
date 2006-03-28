@@ -1,0 +1,4 @@
+sub_special_3:
+  id: 102
+  name: A special category in an arbitrarily named subsubdir file
+  type: SpecialCategory

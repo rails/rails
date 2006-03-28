@@ -1,9 +1,5 @@
-require 'test/unit'
+require File.dirname(__FILE__) + '/../abstract_unit'
 require "#{File.dirname(__FILE__)}/../testing_sandbox"
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/text_helper'
-require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/numeric'  # for human_size
-require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/hash' # for stringify_keys
-require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/object_and_class.rb' # for blank?
 
 class TextHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TextHelper
@@ -24,17 +20,18 @@ class TextHelperTest < Test::Unit::TestCase
 
   def test_truncate
     assert_equal "Hello World!", truncate("Hello World!", 12)
-    assert_equal "Hello Worl...", truncate("Hello World!!", 12)
+    assert_equal "Hello Wor...", truncate("Hello World!!", 12)
   end
 
   def test_truncate_multibyte_without_kcode
     result = execute_in_sandbox(<<-'CODE')
+      require File.dirname(__FILE__) + '/../../activesupport/lib/active_support/core_ext/kernel'
       require "#{File.dirname(__FILE__)}/../lib/action_view/helpers/text_helper"
       include ActionView::Helpers::TextHelper
       truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10)
     CODE
 
-    assert_equal "\354\225\210\353\205\225\355\225...", result
+    assert_equal "\354\225\210\353\205\225\355...", result
   end
 
   def test_truncate_multibyte_with_kcode
@@ -42,12 +39,13 @@ class TextHelperTest < Test::Unit::TestCase
       $KCODE = "u"
       require 'jcode'
 
+      require File.dirname(__FILE__) + '/../../activesupport/lib/active_support/core_ext/kernel'
       require "#{File.dirname(__FILE__)}/../lib/action_view/helpers/text_helper"
       include ActionView::Helpers::TextHelper
       truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 \354\225\204\353\235\274\353\246\254\354\230\244", 10)
     CODE
 
-    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 \354\225\204...", result
+    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 ...", result
   end
 
   def test_strip_links
@@ -128,6 +126,8 @@ class TextHelperTest < Test::Unit::TestCase
     link3_result = %{<a href="#{link3_raw}">#{link3_raw}</a>}
     link4_raw    = 'http://foo.example.com/controller/action?parm=value&p2=v2#anchor123'
     link4_result = %{<a href="#{link4_raw}">#{link4_raw}</a>}
+    link5_raw    = 'http://foo.example.com:3000/controller/action'
+    link5_result = %{<a href="#{link5_raw}">#{link5_raw}</a>}
 
     assert_equal %(hello #{email_result}), auto_link("hello #{email_raw}", :email_addresses)
     assert_equal %(Go to #{link_result}), auto_link("Go to #{link_raw}", :urls)
@@ -152,6 +152,7 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal %(<p>Go to #{link3_result}. seriously, #{link3_result}? i think I'll say hello to #{email_result}. instead.</p>), auto_link(%(<p>Go to #{link3_raw}. seriously, #{link3_raw}? i think I'll say hello to #{email_raw}. instead.</p>))
     assert_equal %(<p>Link #{link4_result}</p>), auto_link("<p>Link #{link4_raw}</p>")
     assert_equal %(<p>#{link4_result} Link</p>), auto_link("<p>#{link4_raw} Link</p>")
+    assert_equal %(<p>#{link5_result} Link</p>), auto_link("<p>#{link5_raw} Link</p>")
     assert_equal '', auto_link(nil)
     assert_equal '', auto_link('')
   end
@@ -167,7 +168,7 @@ class TextHelperTest < Test::Unit::TestCase
     url = "http://api.rubyonrails.com/Foo.html"
     email = "fantabulous@shiznadel.ic"
 
-    assert_equal %(<p><a href="#{url}">#{url[0..7]}...</a><br /><a href="mailto:#{email}">#{email[0..7]}...</a><br /></p>), auto_link("<p>#{url}<br />#{email}<br /></p>") { |url| truncate(url, 10) }
+    assert_equal %(<p><a href="#{url}">#{url[0...7]}...</a><br /><a href="mailto:#{email}">#{email[0...7]}...</a><br /></p>), auto_link("<p>#{url}<br />#{email}<br /></p>") { |url| truncate(url, 10) }
   end
 
   def test_sanitize_form

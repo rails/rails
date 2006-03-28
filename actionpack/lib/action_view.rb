@@ -22,8 +22,6 @@
 #++
 
 $:.unshift(File.dirname(__FILE__) + "/action_view/vendor")
-require 'action_view/vendor/builder'
-
 require 'action_view/base'
 require 'action_view/partials'
 

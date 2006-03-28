@@ -54,7 +54,11 @@ module ActionView
       add_counter_to_local_assigns!(partial_name, local_assigns)
       add_object_to_local_assigns!(partial_name, local_assigns, object)
 
-      ActionController::Base.benchmark("Rendered #{path}/_#{partial_name}", Logger::DEBUG, false) do
+      if logger
+        ActionController::Base.benchmark("Rendered #{path}/_#{partial_name}", Logger::DEBUG, false) do
+          render("#{path}/_#{partial_name}", local_assigns)
+        end
+      else
         render("#{path}/_#{partial_name}", local_assigns)
       end
     end
@@ -111,10 +115,14 @@ module ActionView
         counter_name = partial_counter_name(partial_name)
         local_assigns[counter_name] = 1 unless local_assigns.has_key?(counter_name)
       end
-      
+
       def add_object_to_local_assigns!(partial_name, local_assigns, object)
-        local_assigns[partial_name.intern] ||= object.is_a?(ActionView::Base::ObjectWrapper) ? object.value : object
-        local_assigns[partial_name.intern] ||= controller.instance_variable_get("@#{partial_name}")
+        local_assigns[partial_name.intern] ||=
+          if object.is_a?(ActionView::Base::ObjectWrapper)
+            object.value
+          else
+            object
+          end || controller.instance_variable_get("@#{partial_name}")
       end
   end
 end

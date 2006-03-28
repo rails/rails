@@ -12,17 +12,49 @@ module ClientTest
       firstnames == other.firstnames && lastname == other.lastname
     end
   end
+  
+  class Inner < ActionWebService::Struct
+    member :name, :string
+  end
+  
+  class Outer < ActionWebService::Struct
+    member :name, :string
+    member :inner, Inner
+  end
+
+  class User < ActiveRecord::Base
+  end
+  
+  module Accounting
+    class User < ActiveRecord::Base
+    end
+  end
+  
+  class WithModel < ActionWebService::Struct
+    member :user, User
+    member :users, [User]
+  end
+  
+  class WithMultiDimArray < ActionWebService::Struct
+    member :pref, [[:string]]
+  end
 
   class API < ActionWebService::API::Base
     api_method :void
-    api_method :normal,         :expects => [:int, :int], :returns => [:int]
-    api_method :array_return,   :returns => [[Person]]
-    api_method :struct_pass,    :expects => [[Person]], :returns => [:bool]
-    api_method :client_container, :returns => [:int]
-    api_method :named_parameters, :expects => [{:key=>:string}, {:id=>:int}]
+    api_method :normal,               :expects => [:int, :int], :returns => [:int]
+    api_method :array_return,         :returns => [[Person]]
+    api_method :struct_pass,          :expects => [[Person]], :returns => [:bool]
+    api_method :nil_struct_return,    :returns => [Person] 
+    api_method :inner_nil,            :returns => [Outer]
+    api_method :client_container,     :returns => [:int]
+    api_method :named_parameters,     :expects => [{:key=>:string}, {:id=>:int}]
     api_method :thrower
+    api_method :user_return,          :returns => [User]
+    api_method :with_model_return,    :returns => [WithModel]
+    api_method :scoped_model_return,  :returns => [Accounting::User]
+    api_method :multi_dim_return,     :returns => [WithMultiDimArray]
   end
-
+  
   class NullLogOut
     def <<(*args); end
   end
@@ -65,6 +97,14 @@ module ClientTest
       @value_struct_pass = @method_params
       true
     end
+    
+    def nil_struct_return
+      nil
+    end
+    
+    def inner_nil
+      Outer.new :name => 'outer', :inner => nil
+    end
 
     def client_container
       50
@@ -76,6 +116,22 @@ module ClientTest
 
     def thrower
       raise "Hi"
+    end
+    
+    def user_return
+      User.find(1)
+    end
+    
+    def with_model_return
+      WithModel.new :user => User.find(1), :users => User.find(:all)
+    end
+    
+    def scoped_model_return
+      Accounting::User.find(1)
+    end
+    
+    def multi_dim_return
+      WithMultiDimArray.new :pref => [%w{pref1 value1}, %w{pref2 value2}]
     end
   end
 

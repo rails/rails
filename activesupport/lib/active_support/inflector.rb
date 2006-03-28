@@ -109,8 +109,12 @@ module Inflector
     end
   end
 
-  def camelize(lower_case_and_underscored_word)
-    lower_case_and_underscored_word.to_s.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }
+  def camelize(lower_case_and_underscored_word, first_letter_in_uppercase = true)
+    if first_letter_in_uppercase
+      lower_case_and_underscored_word.to_s.gsub(/\/(.?)/) { "::" + $1.upcase }.gsub(/(^|_)(.)/) { $2.upcase }
+    else
+      lower_case_and_underscored_word.first + camelize(lower_case_and_underscored_word)[1..-1]
+    end
   end
 
   def titleize(word)
@@ -118,7 +122,15 @@ module Inflector
   end
   
   def underscore(camel_cased_word)
-    camel_cased_word.to_s.gsub(/::/, '/').gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').gsub(/([a-z\d])([A-Z])/,'\1_\2').downcase
+    camel_cased_word.to_s.gsub(/::/, '/').
+      gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+      gsub(/([a-z\d])([A-Z])/,'\1_\2').
+      tr("-", "_").
+      downcase
+  end
+  
+  def dasherize(underscored_word)
+    underscored_word.gsub(/_/, '-')
   end
 
   def humanize(lower_case_and_underscored_word)
@@ -143,9 +155,9 @@ module Inflector
 
   def constantize(camel_cased_word)
     raise NameError, "#{camel_cased_word.inspect} is not a valid constant name!" unless
-      camel_cased_word.split("::").all? { |part| /^[A-Z]\w*$/ =~ part }
+      /^(::)?([A-Z]\w*)(::[A-Z]\w*)*$/ =~ camel_cased_word
     
-    camel_cased_word = "::#{camel_cased_word}" unless camel_cased_word[0, 2] == '::'
+    camel_cased_word = "::#{camel_cased_word}" unless $1
     Object.module_eval(camel_cased_word, __FILE__, __LINE__)
   end
 

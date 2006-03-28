@@ -1,12 +1,12 @@
 class Topic < ActiveRecord::Base
-  has_many :replies, :dependent => true, :foreign_key => "parent_id"
+  has_many :replies, :dependent => :destroy, :foreign_key => "parent_id"
   serialize :content
   
   before_create  :default_written_on
   before_destroy :destroy_children
 
   def parent
-    self.class.find(parent_id)
+    Topic.find(parent_id)
   end
   
   protected

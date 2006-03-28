@@ -42,7 +42,8 @@ module ActiveRecord
     class MysqlColumn < Column #:nodoc:
       private
         def simplified_type(field_type)
-          return :boolean if MysqlAdapter.emulate_booleans && field_type.downcase == "tinyint(1)"
+          return :boolean if MysqlAdapter.emulate_booleans && field_type.downcase.index("tinyint(1)")
+          return :string  if field_type =~ /enum/i
           super
         end
     end
@@ -115,7 +116,7 @@ module ActiveRecord
       # QUOTING ==================================================
 
       def quote(value, column = nil)
-        if value.kind_of?(String) && column && column.type == :binary
+        if value.kind_of?(String) && column && column.type == :binary && column.class.respond_to?(:string_to_binary)
           s = column.class.string_to_binary(value).unpack("H*")[0]
           "x'#{s}'"
         else
@@ -236,7 +237,14 @@ module ActiveRecord
       # SCHEMA STATEMENTS ========================================
 
       def structure_dump #:nodoc:
-        select_all("SHOW TABLES").inject("") do |structure, table|
+        if supports_views?
+          sql = "SHOW FULL TABLES WHERE Table_type = 'BASE TABLE'"
+        else
+          sql = "SHOW TABLES"
+        end
+        
+        select_all(sql).inject("") do |structure, table|
+          table.delete('Table_type')
           structure += select_one("SHOW CREATE TABLE #{table.to_a.first.last}")["Create Table"] + ";\n\n"
         end
       end
@@ -247,13 +255,16 @@ module ActiveRecord
       end
 
       def create_database(name) #:nodoc:
-        execute "CREATE DATABASE #{name}"
+        execute "CREATE DATABASE `#{name}`"
       end
       
       def drop_database(name) #:nodoc:
-        execute "DROP DATABASE IF EXISTS #{name}"
+        execute "DROP DATABASE IF EXISTS `#{name}`"
       end
 
+      def current_database
+        select_one("SELECT DATABASE() as db")["db"]
+      end
 
       def tables(name = nil) #:nodoc:
         tables = []
@@ -333,6 +344,14 @@ module ActiveRecord
           end
           result.free
           rows
+        end
+        
+        def supports_views?
+          version[0] >= 5
+        end
+        
+        def version
+          @version ||= @connection.server_info.scan(/^(\d+)\.(\d+)\.(\d+)/).flatten.map { |v| v.to_i }
         end
     end
   end

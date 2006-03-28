@@ -9,6 +9,14 @@ CREATE TABLE accounts (
 CREATE GENERATOR accounts_seq;
 SET GENERATOR accounts_seq TO 10000;
 
+CREATE TABLE funny_jokes (
+  id BIGINT NOT NULL,
+  name VARCHAR(50),
+  PRIMARY KEY (id)
+);
+CREATE GENERATOR funny_jokes_seq;
+SET GENERATOR funny_jokes_seq TO 10000;
+
 CREATE TABLE companies (
   id BIGINT NOT NULL,
   "TYPE" VARCHAR(50),
@@ -161,6 +169,15 @@ CREATE TABLE people (
 CREATE GENERATOR people_seq;
 SET GENERATOR people_seq TO 10000;
 
+CREATE TABLE readers (
+    id BIGINT NOT NULL,
+    post_id BIGINT NOT NULL,
+    person_id BIGINT NOT NULL,
+    PRIMARY KEY (id)
+);
+CREATE GENERATOR readers_seq;
+SET GENERATOR readers_seq TO 10000;
+
 CREATE TABLE binaries (
   id BIGINT NOT NULL,
   data BLOB,
@@ -257,3 +274,12 @@ CREATE TABLE defaults (
 );
 CREATE GENERATOR defaults_seq;
 SET GENERATOR defaults_seq TO 10000;
+
+CREATE TABLE legacy_things (
+  id BIGINT NOT NULL,
+  tps_report_number INTEGER,
+  version INTEGER DEFAULT 0 NOT NULL,
+  PRIMARY KEY (id)
+);
+CREATE GENERATOR legacy_things_seq;
+SET GENERATOR legacy_things_seq TO 10000;

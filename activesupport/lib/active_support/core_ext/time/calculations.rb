@@ -44,6 +44,15 @@ module ActiveSupport #:nodoc:
             options[:usec]  || ((options[:hour] || options[:min] || options[:sec]) ? 0 : self.usec)
           )
         end
+        
+        # Uses Date to provide precise Time calculations for years, months, and days.  The +options+ parameter takes a hash with 
+        # any of these keys: :months, :days, :years.
+        def advance(options)
+          d = ::Date.new(year + (options.delete(:years) || 0), month, day)
+          d = d >> options.delete(:months) if options[:months]
+          d = d +  options.delete(:days)   if options[:days]
+          change(options.merge(:year => d.year, :month => d.month, :mday => d.day))
+        end
 
         # Returns a new Time representing the time a number of seconds ago, this is basically a wrapper around the Numeric extension
         # Do not use this method in combination with x.months, use months_ago instead!
@@ -152,6 +161,12 @@ module ActiveSupport #:nodoc:
           change(:mday => last_day,:hour => 0, :min => 0, :sec => 0, :usec => 0)
         end
         alias :at_end_of_month :end_of_month
+		  
+        # Returns  a new Time representing the start of the quarter (1st of january, april, july, october, 0:00)
+        def beginning_of_quarter
+          beginning_of_month.change(:month => [10, 7, 4, 1].detect { |m| m <= self.month })
+        end
+        alias :at_beginning_of_quarter :beginning_of_quarter
         
         # Returns  a new Time representing the start of the year (1st of january, 0:00)
         def beginning_of_year

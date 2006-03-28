@@ -4,6 +4,11 @@ CREATE TABLE accounts (
   credit_limit int default NULL
 );
 
+CREATE TABLE funny_jokes (
+  id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+  name varchar(50) default NULL
+);
+
 CREATE TABLE companies (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
   type varchar(50) default NULL,
@@ -23,7 +28,7 @@ CREATE TABLE topics (
   bonus_time datetime default NULL,
   last_read datetime default NULL,
   content varchar(255) default NULL,
-  approved tinyint default 1,
+  approved bit default 1,
   replies_count int default 0,
   parent_id int default NULL,
   type varchar(50) default NULL
@@ -118,6 +123,13 @@ CREATE TABLE people (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE readers (
+    id int NOT NULL IDENTITY(1, 1),
+    post_id int NOT NULL,
+    person_id int NOT NULL,
+    primary key (id)
+);
+
 CREATE TABLE binaries (
   id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
   data image NULL
@@ -180,4 +192,12 @@ CREATE TABLE fk_test_has_fk (
 CREATE TABLE keyboards (
   key_number int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
   name varchar(50) default NULL
+);
+
+--This table has an altered lock_version column name.
+CREATE TABLE legacy_things (
+  id int NOT NULL IDENTITY(1, 1),
+  tps_report_number int default NULL,
+  version int default 0,
+  PRIMARY KEY (id)
 );

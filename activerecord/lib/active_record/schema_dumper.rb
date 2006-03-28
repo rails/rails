@@ -3,6 +3,12 @@ module ActiveRecord
   # output format (i.e., ActiveRecord::Schema).
   class SchemaDumper #:nodoc:
     private_class_method :new
+    
+    # A list of tables which should not be dumped to the schema. 
+    # Acceptable values are strings as well as regexp.
+    # This setting is only used if ActiveRecord::Base.schema_format == :ruby
+    cattr_accessor :ignore_tables 
+    @@ignore_tables = []
 
     def self.dump(connection=ActiveRecord::Base.connection, stream=STDOUT)
       new(connection).dump(stream)
@@ -43,32 +49,63 @@ HEADER
 
       def tables(stream)
         @connection.tables.sort.each do |tbl|
-          next if tbl == "schema_info"
+          next if ["schema_info", ignore_tables].flatten.any? do |ignored|
+            case ignored
+            when String: tbl == ignored
+            when Regexp: tbl =~ ignored
+            else
+              raise StandardError, 'ActiveRecord::SchemaDumper.ignore_tables accepts an array of String and / or Regexp values.'
+            end
+          end 
           table(tbl, stream)
         end
       end
 
       def table(table, stream)
         columns = @connection.columns(table)
+        begin
+          tbl = StringIO.new
 
-        stream.print "  create_table #{table.inspect}"
-        stream.print ", :id => false" if !columns.detect { |c| c.name == "id" }
-        stream.print ", :force => true"
-        stream.puts " do |t|"
+          if @connection.respond_to?(:pk_and_sequence_for)
+            pk, pk_seq = @connection.pk_and_sequence_for(table)
+          end
+          pk ||= 'id'
 
-        columns.each do |column|
-          next if column.name == "id"
-          stream.print "    t.column #{column.name.inspect}, #{column.type.inspect}"
-          stream.print ", :limit => #{column.limit.inspect}" if column.limit != @types[column.type][:limit] 
-          stream.print ", :default => #{column.default.inspect}" if !column.default.nil?
-          stream.print ", :null => false" if !column.null
+          tbl.print "  create_table #{table.inspect}"
+          if columns.detect { |c| c.name == pk }
+            if pk != 'id'
+              tbl.print %Q(, :primary_key => "#{pk}")
+            end
+          else
+            tbl.print ", :id => false"
+          end
+          tbl.print ", :force => true"
+          tbl.puts " do |t|"
+
+          columns.each do |column|
+            raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" if @types[column.type].nil?
+            next if column.name == pk
+            tbl.print "    t.column #{column.name.inspect}, #{column.type.inspect}"
+            tbl.print ", :limit => #{column.limit.inspect}" if column.limit != @types[column.type][:limit] 
+            tbl.print ", :default => #{column.default.inspect}" if !column.default.nil?
+            tbl.print ", :null => false" if !column.null
+            tbl.puts
+          end
+
+          tbl.puts "  end"
+          tbl.puts
+          
+          indexes(table, tbl)
+
+          tbl.rewind
+          stream.print tbl.read
+        rescue => e
+          stream.puts "# Could not dump table #{table.inspect} because of following #{e.class}"
+          stream.puts "#   #{e.message}"
           stream.puts
         end
-
-        stream.puts "  end"
-        stream.puts
-
-        indexes(table, stream)
+        
+        stream
       end
 
       def indexes(table, stream)

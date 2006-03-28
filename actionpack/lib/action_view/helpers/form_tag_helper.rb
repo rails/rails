@@ -15,16 +15,11 @@ module ActionView
       # Options:
       # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
       # * <tt>:method</tt> - The method to use when submitting the form, usually either "get" or "post".
-      def form_tag(url_for_options = {}, options = {}, *parameters_for_url)
+      def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &proc)
         html_options = { "method" => "post" }.merge(options.stringify_keys)
-
-        if html_options["multipart"]
-          html_options["enctype"] = "multipart/form-data"
-          html_options.delete("multipart")
-        end
-
+        html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
         html_options["action"] = url_for(url_for_options, *parameters_for_url)
-        tag("form", html_options, true)
+        tag :form, html_options, true
       end
 
       alias_method :start_form_tag, :form_tag
@@ -47,7 +42,7 @@ module ActionView
       # Options:
       # * <tt>:multiple</tt> - If set to true the selection will allow multiple choices.
       def select_tag(name, option_tags = nil, options = {})
-        content_tag("select", option_tags, { "name" => name, "id" => name }.update(options.stringify_keys))
+        content_tag :select, option_tags, { "name" => name, "id" => name }.update(options.stringify_keys)
       end
 
       # Creates a standard text field.
@@ -59,7 +54,7 @@ module ActionView
       # 
       # A hash of standard HTML options for the tag.
       def text_field_tag(name, value = nil, options = {})
-        tag("input", { "type" => "text", "name" => name, "id" => name, "value" => value }.update(options.stringify_keys))
+        tag :input, { "type" => "text", "name" => name, "id" => name, "value" => value }.update(options.stringify_keys)
       end
 
       # Creates a hidden field.
@@ -97,39 +92,46 @@ module ActionView
       #     # Outputs <textarea name="body" id="body" cols="25" rows="10"></textarea>
       #     <%= text_area_tag "body", nil, :size => "25x10" %>
       def text_area_tag(name, content = nil, options = {})
-        options = options.stringify_keys
-        if options["size"]
-          options["cols"], options["rows"] = options["size"].split("x")
-          options.delete("size")
+        options.stringify_keys!
+
+        if size = options.delete("size")
+          options["cols"], options["rows"] = size.split("x")
         end
 
-        content_tag("textarea", content, { "name" => name, "id" => name }.update(options.stringify_keys))
+        content_tag :textarea, content, { "name" => name, "id" => name }.update(options.stringify_keys)
       end
 
       # Creates a check box.
       def check_box_tag(name, value = "1", checked = false, options = {})
         html_options = { "type" => "checkbox", "name" => name, "id" => name, "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
-        tag("input", html_options)
+        tag :input, html_options
       end
 
       # Creates a radio button.
       def radio_button_tag(name, value, checked = false, options = {})
         html_options = { "type" => "radio", "name" => name, "id" => name, "value" => value }.update(options.stringify_keys)
         html_options["checked"] = "checked" if checked
-        tag("input", html_options)
+        tag :input, html_options
       end
 
-      # Creates a submit button with the text <tt>value</tt> as the caption.
+      # Creates a submit button with the text <tt>value</tt> as the caption. If options contains a pair with the key of "disable_with",
+      # then the value will be used to rename a disabled version of the submit button.
       def submit_tag(value = "Save changes", options = {})
-        tag("input", { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys))
+        options.stringify_keys!
+        
+        if disable_with = options.delete("disable_with")
+          options["onclick"] = "this.disabled=true;this.value='#{disable_with}';this.form.submit();#{options["onclick"]}"
+        end
+          
+        tag :input, { "type" => "submit", "name" => "commit", "value" => value }.update(options.stringify_keys)
       end
       
       # Displays an image which when clicked will submit the form.
       #
       # <tt>source</tt> is passed to AssetTagHelper#image_path
       def image_submit_tag(source, options = {})
-        tag("input", { "type" => "image", "src" => image_path(source) }.update(options.stringify_keys))
+        tag :input, { "type" => "image", "src" => image_path(source) }.update(options.stringify_keys)
       end
     end
   end

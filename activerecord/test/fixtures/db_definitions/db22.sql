@@ -1,5 +1,5 @@
 CREATE TABLE courses (
- id int NOT NULL PRIMARY KEY,
- name varchar(255) NOT NULL
+ id INT NOT NULL PRIMARY KEY,
+ name VARCHAR(255) NOT NULL
 );
 

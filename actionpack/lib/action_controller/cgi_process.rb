@@ -36,25 +36,26 @@ module ActionController #:nodoc:
 
     DEFAULT_SESSION_OPTIONS = {
       :database_manager => CGI::Session::PStore,
-      :prefix => "ruby_sess.",
-      :session_path => "/"
+      :prefix           => "ruby_sess.",
+      :session_path     => "/"
     } unless const_defined?(:DEFAULT_SESSION_OPTIONS)
 
     def initialize(cgi, session_options = {})
       @cgi = cgi
       @session_options = session_options
+      @env = @cgi.send(:env_table)
       super()
     end
 
     def query_string
       if (qs = @cgi.query_string) && !qs.empty?
         qs
-      elsif uri = env['REQUEST_URI']
+      elsif uri = @env['REQUEST_URI']
         parts = uri.split('?')  
         parts.shift
         parts.join('?')
       else
-        env['QUERY_STRING'] || ''
+        @env['QUERY_STRING'] || ''
       end
     end
 
@@ -63,31 +64,39 @@ module ActionController #:nodoc:
     end
 
     def request_parameters
-      if formatted_post?
-        CGIMethods.parse_formatted_request_parameters(post_format, env['RAW_POST_DATA'])
+      if ActionController::Base.param_parsers.has_key?(content_type)
+        CGIMethods.parse_formatted_request_parameters(content_type, @env['RAW_POST_DATA'])
       else
         CGIMethods.parse_request_parameters(@cgi.params)
       end
     end
-    
-    def env
-      @cgi.send(:env_table)
-    end
-
+   
     def cookies
       @cgi.cookies.freeze
     end
 
+    def host_with_port
+      if forwarded = env["HTTP_X_FORWARDED_HOST"]
+        forwarded.split(/,\s?/).last
+      elsif http_host = env['HTTP_HOST']
+        http_host
+      elsif server_name = env['SERVER_NAME']
+        server_name
+      else
+        "#{env['SERVER_ADDR']}:#{env['SERVER_PORT']}"
+      end
+    end
+
     def host
-      env["HTTP_X_FORWARDED_HOST"] || ($1 if env['HTTP_HOST'] && /^(.*):\d+$/ =~ env['HTTP_HOST']) || @cgi.host.to_s.split(":").first || ''
+      host_with_port[/^[^:]+/]
     end
-    
+
     def port
-      env["HTTP_X_FORWARDED_HOST"] ? standard_port : (port_from_http_host || super)
-    end
-    
-    def port_from_http_host
-      $1.to_i if env['HTTP_HOST'] && /:(\d+)$/ =~ env['HTTP_HOST']
+      if host_with_port =~ /:(\d+)$/
+        $1.to_i
+      else
+        standard_port
+      end
     end
 
     def session
@@ -136,7 +145,7 @@ module ActionController #:nodoc:
             Module.const_missing($1)
           rescue LoadError, NameError => const_error
             raise ActionController::SessionRestoreError, <<end_msg
-Session contains objects whose class definition isn't available.
+Session contains objects whose class definition isn\'t available.
 Remember to require the classes for all objects kept in the session.
 (Original exception: #{const_error.message} [#{const_error.class}])
 end_msg
@@ -183,11 +192,14 @@ end_msg
 
     private
       def convert_content_type!(headers)
-        %w( Content-Type Content-type content-type ).each do |ct|
-          if headers[ct]
-            headers["type"] = headers[ct]
-            headers.delete(ct)
-          end
+        if header = headers.delete("Content-Type")
+          headers["type"] = header
+        end
+        if header = headers.delete("Content-type")
+          headers["type"] = header
+        end
+        if header = headers.delete("content-type")
+          headers["type"] = header
         end
       end
   end

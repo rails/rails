@@ -4,7 +4,7 @@ require 'action_mailer/part_container'
 require 'action_mailer/utils'
 require 'tmail/net'
 
-module ActionMailer
+module ActionMailer #:nodoc:
   # Usage:
   #
   #   class ApplicationMailer < ActionMailer::Base
@@ -121,6 +121,10 @@ module ActionMailer
   class Base
     include AdvAttrAccessor, PartContainer
 
+    # Action Mailer subclasses should be reloaded by the dispatcher in Rails
+    # when Dependencies.mechanism = :load.
+    include Reloadable::Subclasses
+    
     private_class_method :new #:nodoc:
 
     cattr_accessor :template_root
@@ -278,15 +282,17 @@ module ActionMailer
         if @parts.empty?
           templates = Dir.glob("#{template_path}/#{@template}.*")
           templates.each do |path|
-            type = (File.basename(path).split(".")[1..-2] || []).join("/")
-            next if type.empty?
-            @parts << Part.new(:content_type => type,
+            # TODO: don't hardcode rhtml|rxml
+            basename = File.basename(path)
+            next unless md = /^([^\.]+)\.([^\.]+\.[^\+]+)\.(rhtml|rxml)$/.match(basename)
+            template_name = basename
+            content_type = md.captures[1].gsub('.', '/')
+            @parts << Part.new(:content_type => content_type,
               :disposition => "inline", :charset => charset,
-              :body => render_message(File.basename(path).split(".")[0..-2].join('.'), @body))
+              :body => render_message(template_name, @body))
           end
           unless @parts.empty?
             @content_type = "multipart/alternative"
-            @charset = nil
             @parts = sort_parts(@parts, @implicit_parts_order)
           end
         end
@@ -296,7 +302,7 @@ module ActionMailer
         # normal template exists (or if there were no implicit parts) we render
         # it.
         template_exists = @parts.empty?
-        template_exists ||= Dir.glob("#{template_path}/#{@template}.*").any? { |i| i.split(".").length == 2 }
+        template_exists ||= Dir.glob("#{template_path}/#{@template}.*").any? { |i| File.basename(i).split(".").length == 2 }
         @body = render_message(@template, @body) if template_exists
 
         # Finally, if there are other message parts and a textual body exists,
@@ -406,14 +412,16 @@ module ActionMailer
         m.date = sent_on.to_time rescue sent_on if sent_on
         headers.each { |k, v| m[k] = v }
 
+        real_content_type, ctype_attrs = parse_content_type
+
         if @parts.empty?
-          m.set_content_type content_type, nil, { "charset" => charset }
+          m.set_content_type(real_content_type, nil, ctype_attrs)
           m.body = Utils.normalize_new_lines(body)
         else
           if String === body
             part = TMail::Mail.new
             part.body = Utils.normalize_new_lines(body)
-            part.set_content_type content_type, nil, { "charset" => charset }
+            part.set_content_type(real_content_type, nil, ctype_attrs)
             part.set_content_disposition "inline"
             m.parts << part
           end
@@ -423,7 +431,10 @@ module ActionMailer
             m.parts << part
           end
           
-          m.set_content_type(content_type, nil, { "charset" => charset }) if content_type =~ /multipart/
+          if real_content_type =~ /multipart/
+            ctype_attrs.delete "charset"
+            m.set_content_type(real_content_type, nil, ctype_attrs)
+          end
         end
 
         @mail = m

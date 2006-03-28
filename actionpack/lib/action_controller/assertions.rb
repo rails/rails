@@ -85,8 +85,9 @@ module Test #:nodoc:
             assert_equal(eurl, url, msg) if eurl && url
             assert_equal(epath, path, msg) if epath && path 
           else
-            msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>)",
-                                @response.redirected_to || @response.redirect_url)
+            @response_diff = options.diff(@response.redirected_to) if options.is_a?(Hash) && @response.redirected_to.is_a?(Hash)
+            msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>)#{', difference: <?>' if @response_diff}", 
+                                @response.redirected_to || @response.redirect_url, @response_diff)
 
             assert_block(msg) do
               if options.is_a?(Symbol)
@@ -302,19 +303,17 @@ module Test #:nodoc:
       end
 
       # ensures that the passed record is valid by active record standards. returns the error messages if not
-      def assert_valid(record)                                   
+      def assert_valid(record)
         clean_backtrace do
-          assert record.valid?, record.errors.full_messages        
+          assert record.valid?, record.errors.full_messages.join("\n")
         end
       end             
       
       def clean_backtrace(&block)
-        begin
-          yield
-        rescue AssertionFailedError => e         
-          path = File.expand_path(__FILE__)
-          raise AssertionFailedError, e.message, e.backtrace.reject { |line| File.expand_path(line) =~ /#{path}/ }
-        end           
+        yield
+      rescue AssertionFailedError => e         
+        path = File.expand_path(__FILE__)
+        raise AssertionFailedError, e.message, e.backtrace.reject { |line| File.expand_path(line) =~ /#{path}/ }
       end
     end
   end

@@ -9,7 +9,7 @@ class MixinNestedSetTest < Test::Unit::TestCase
 	def test_mixing_in_methods
 	  ns = NestedSet.new
 		assert( ns.respond_to?( :all_children ) )
-		assert_equal( ns.scope_condition, "ROOT_ID IS NULL" )
+		assert_equal( ns.scope_condition, "root_id IS NULL" )
 		
 		check_method_mixins ns
 	end

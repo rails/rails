@@ -9,6 +9,16 @@ class ThreadedConnectionsTest < Test::Unit::TestCase
   def setup
     @connection = ActiveRecord::Base.remove_connection
     @connections = []
+    @allow_concurrency = ActiveRecord::Base.allow_concurrency
+  end
+  
+  def teardown
+    # clear the connection cache
+    ActiveRecord::Base.send(:clear_all_cached_connections!)
+    # set allow_concurrency to saved value
+    ActiveRecord::Base.allow_concurrency = @allow_concurrency
+    # reestablish old connection
+    ActiveRecord::Base.establish_connection(@connection)
   end
   
   def gather_connections(use_threaded_connections)

@@ -207,10 +207,12 @@ class VerificationTest < Test::Unit::TestCase
     assert_redirected_to :action => "unguarded"
   end
   
-  def test_guarded_post_and_calls_render    
+  def test_guarded_post_and_calls_render_succeeds
     post :must_be_post
     assert_equal "Was a post!", @response.body
+  end
     
+  def test_guarded_post_and_calls_render_fails
     get :must_be_post
     assert_response 500
     assert_equal "Must be post", @response.body

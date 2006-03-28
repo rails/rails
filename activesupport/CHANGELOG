@@ -1,12 +1,171 @@
+*1.3.0* (March 27th, 2005)
+
+* When possible, avoid incorrectly obtaining constants from parent modules. Fixes #4221. [Nicholas Seckar]
+
+* Add more tests for dependencies; refactor existing cases. [Nicholas Seckar]
+
+* Move Module#parent and Module#as_load_path into core_ext. Add Module#parent. [Nicholas Seckar]
+
+* Add CachingTools::HashCaching to simplify the creation of nested, autofilling hashes. [Nicholas Seckar]
+
+* Remove a hack intended to avoid unloading the same class twice, but which would not work anyways. [Nicholas Seckar]
+
+* Update Object.subclasses_of to locate nested classes. This affects Object.remove_subclasses_of in that nested classes will now be unloaded. [Nicholas Seckar]
+
+* Update Object.remove_subclasses_of to use Class.remove_class, reducing duplication. [Nicholas Seckar]
+
+* Added Fixnum#seconds for consistency, so you can say 5.minutes + 30.seconds instead of 5.minutes + 30 #4389 [François Beausoleil]
+
+* Added option to String#camelize to generate lower-cased camel case by passing in :lower, like "super_man".camelize(:lower) # => "superMan" [DHH]
+
+* Added Hash#diff to show the difference between two hashes [Chris McGrath]
+
+* Added Time#advance to do precise time time calculations for cases where a month being approximated to 30 days won't do #1860 [Rick Olson]
+
+* Enhance Inflector.underscore to convert '-' into '_' (as the inverse of Inflector.dasherize) [Jamis Buck]
+
+* Switched to_xml to use the xml schema format for datetimes.  This allows the encoding of time zones and should improve operability. [Koz]
+
+* Added a note to the documentation for the Date related Numeric extensions to indicate that they're
+approximations and shouldn't be used for critical calculations. [Koz]
+
+* Added Hash#to_xml and Array#to_xml that makes it much easier to produce XML from basic structures [DHH]. Examples:
+
+    { :name => "David", :street_name => "Paulina", :age => 26, :moved_on => Date.new(2005, 11, 15) }.to_xml
+    
+  ...returns:
+
+      <person>
+        <street-name>Paulina</street-name>
+        <name>David</name>
+        <age type="integer">26</age>
+        <moved-on type="date">2005-11-15</moved-on>
+      </person>
+
+* Moved Jim Weirich's wonderful Builder from Action Pack to Active Support (it's simply too useful to be stuck in AP) [DHH]
+
+* Fixed that Array#to_sentence will return "" on an empty array instead of ", and" #3842, #4031 [rubyonrails@beautifulpixel.com]
+
+* Add Enumerable#group_by for grouping collections based on the result of some
+  block. Useful, for example, for grouping records by date.
+
+  ex.
+
+     latest_transcripts.group_by(&:day).each do |day, transcripts| 
+       p "#{day} -> #{transcripts.map(&:class) * ', '}"
+     end
+     "2006-03-01 -> Transcript"
+     "2006-02-28 -> Transcript"
+     "2006-02-27 -> Transcript, Transcript"
+     "2006-02-26 -> Transcript, Transcript"
+
+  Add Array#in_groups_of, for iterating over an array in groups of a certain
+  size.
+
+  ex.
+
+     %w(1 2 3 4 5 6 7).in_groups_of(3) {|g| p g}
+     ["1", "2", "3"]
+     ["4", "5", "6"]
+     ["7", nil, nil]
+
+  [Marcel Molina Jr., Sam Stephenson]
+
+* Added Kernel#daemonize to turn the current process into a daemon that can be killed with a TERM signal [DHH]
+
+* Add 'around' methods to Logger,  to make it easy to log before and after messages for a given block as requested in #3809. [Michael Koziarski]  Example:
+
+  logger.around_info("Start rendering component (#{options.inspect}): ", 
+                     "\n\nEnd of component rendering") { yield }
+
+* Added Time#beginning_of_quarter #3607 [cohen.jeff@gmail.com]
+
+* Fix Object.subclasses_of to only return currently defined objects [Jonathan Viney <jonathan@bluewire.net.nz>]
+
+* Fix constantize to properly handle names beginning with '::'. [Nicholas Seckar]
+
+* Make String#last return the string instead of nil when it is shorter than the limit [Scott Barron].
+
+* Added delegation support to Module that allows multiple delegations at once (unlike Forwardable in the stdlib) [DHH]. Example:
+
+    class Account < ActiveRecord::Base
+      has_one :subscription
+      delegate :free?, :paying?, :to => :subscription
+      delegate :overdue?, :to => "subscription.last_payment"
+    end
+    
+    account.free?    # => account.subscription.free?
+    account.overdue? # => account.subscription.last_payment.overdue?
+
+* Fix Reloadable to handle the case where a class that has been 'removed' has not yet been garbage collected. [Nicholas Seckar]
+
+* Don't allow Reloadable to be included into Modules.
+
+* Remove LoadingModule. [Nicholas Seckar]
+
+* Add documentation for Reloadable::Subclasses. [Nicholas Seckar]
+
+* Add Reloadable::Subclasses which handles the common case where a base class should not be reloaded, but its subclasses should be. [Nicholas Seckar]
+
+* Further improvements to reloading code [Nicholas Seckar, Trevor Squires]
+  
+  - All classes/modules which include Reloadable can define reloadable? for fine grained control of reloading
+  - Class.remove_class uses Module#parent to access the parent module
+  - Class.remove_class expanded to handle multiple classes in a single call
+  - LoadingModule.clear! has been removed as it is no longer required
+  - Module#remove_classes_including has been removed in favor of Reloadable.reloadable_classes
+
+* Added reusable reloading support through the inclusion of the Relodable module that all subclasses of ActiveRecord::Base, ActiveRecord::Observer, ActiveController::Base, and ActionMailer::Base automatically gets. This means that these classes will be reloaded by the dispatcher when Dependencies.mechanism = :load. You can make your own models reloadable easily:
+
+    class Setting
+      include Reloadable
+    end
+  
+  Reloading a class is done by removing its constant which will cause it to be loaded again on the next reference. [DHH]
+
+* Added auto-loading support for classes in modules, so Conductor::Migration will look for conductor/migration.rb and Conductor::Database::Settings will look for conductor/database/settings.rb [Nicholas Seckar]
+
+* Add Object#instance_exec, like instance_eval but passes its arguments to the block.  (Active Support will not override the Ruby 1.9 implementation of this method.) [Sam Stephenson]
+
+* Add Proc#bind(object) for changing a proc or block's self by returning a Method bound to the given object. Based on why the lucky stiff's "cloaker" method. [Sam Stephenson]
+
+* Fix merge and dup for hashes with indifferent access #3404 [kenneth.miller@bitfield.net]
+
+* Fix the requires in option_merger_test to unbreak AS tests. [Sam Stephenson]
+
+* Make HashWithIndifferentAccess#update behave like Hash#update by returning the hash. #3419, #3425 [asnem@student.ethz.ch, JanPrill@blauton.de, Marcel Molina Jr.]
+
+* Add ActiveSupport::JSON and Object#to_json for converting Ruby objects to JSON strings. [Sam Stephenson]
+
+* Add Object#with_options for DRYing up multiple calls to methods having shared options. [Sam Stephenson]  Example:
+
+  ActionController::Routing::Routes.draw do |map|
+    # Account routes
+    map.with_options(:controller => 'account') do |account|
+      account.home   '',       :action => 'dashboard'
+      account.signup 'signup', :action => 'new'
+      account.logout 'logout', :action => 'logout'
+    end
+  end
+
+* Introduce Dependencies.warnings_on_first_load setting.  If true, enables warnings on first load of a require_dependency.  Otherwise, loads without warnings.  Disabled (set to false) by default.  [Jeremy Kemper]
+
+* Active Support is warnings-safe.  #1792 [Eric Hodel]
+
+* Introduce enable_warnings counterpart to silence_warnings.  Turn warnings on when loading a file for the first time if Dependencies.mechanism == :load.  Common mistakes such as redefined methods will print warnings to stderr.  [Jeremy Kemper]
+
+* Add Symbol#to_proc, which allows for, e.g. [:foo, :bar].map(&:to_s). [Marcel Molina Jr.]
+
+* Added the following methods [Marcel Molina Jr., Sam Stephenson]:
+  * Object#copy_instance_variables_from(object) to copy instance variables from one object to another 
+  * Object#extended_by to get an instance's included/extended modules
+  * Object#extend_with_included_modules_from(object) to extend an instance with the modules from another instance
+
 *1.2.5* (December 13th, 2005)
 
 * Become part of Rails 1.0
 
-
-*1.2.4* (December 7th, 2005)
-
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
-
 
 *1.2.3* (November 7th, 2005)
 

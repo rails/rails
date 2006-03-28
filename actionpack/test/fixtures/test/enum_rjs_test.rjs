@@ -1,0 +1,6 @@
+page.select('.product').each do |value|
+  page.visual_effect :highlight
+  page.visual_effect :highlight, value
+  page.sortable(value, :url => { :action => "order" })
+  page.draggable(value)
+end

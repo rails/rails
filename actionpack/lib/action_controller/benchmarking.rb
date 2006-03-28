@@ -4,9 +4,9 @@ module ActionController #:nodoc:
   # The benchmarking module times the performance of actions and reports to the logger. If the Active Record
   # package has been included, a separate timing section for database calls will be added as well.
   module Benchmarking #:nodoc:
-    def self.append_features(base)
-      super
+    def self.included(base)
       base.extend(ClassMethods)
+
       base.class_eval do
         alias_method :perform_action_without_benchmark, :perform_action
         alias_method :perform_action, :perform_action_with_benchmark
@@ -43,14 +43,14 @@ module ActionController #:nodoc:
       end
     end
 
-    def render_with_benchmark(options = nil, deprecated_status = nil)
+    def render_with_benchmark(options = nil, deprecated_status = nil, &block)
       unless logger
-        render_without_benchmark(options, deprecated_status)
+        render_without_benchmark(options, deprecated_status, &block)
       else
         db_runtime = ActiveRecord::Base.connection.reset_runtime if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
 
         render_output = nil
-        @rendering_runtime = Benchmark::measure{ render_output = render_without_benchmark(options, deprecated_status) }.real
+        @rendering_runtime = Benchmark::measure{ render_output = render_without_benchmark(options, deprecated_status, &block) }.real
 
         if Object.const_defined?("ActiveRecord") && ActiveRecord::Base.connected?
           @db_rt_before_render = db_runtime

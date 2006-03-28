@@ -31,7 +31,7 @@ class FragmentCacheStoreSettingTest < Test::Unit::TestCase
       ActionController::Caching::Fragments::MemCacheStore,
       ActionController::Base.fragment_cache_store
     )
-    assert_equal "localhost", ActionController::Base.fragment_cache_store.address
+    assert_equal %w(localhost), ActionController::Base.fragment_cache_store.addresses
   end
 
   def test_object_assigned_fragment_cache_store

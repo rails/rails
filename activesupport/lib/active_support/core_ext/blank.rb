@@ -1,4 +1,16 @@
-# The methods here are provided to speed up function blank? in class Object
+class Object #:nodoc:
+  # "", "   ", nil, [], and {} are blank
+  def blank?
+    if respond_to?(:empty?) && respond_to?(:strip)
+      empty? or strip.empty?
+    elsif respond_to?(:empty?)
+      empty?
+    else
+      !self
+    end
+  end
+end
+
 class NilClass #:nodoc:
   def blank?
     true

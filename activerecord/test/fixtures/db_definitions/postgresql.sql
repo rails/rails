@@ -7,6 +7,11 @@ CREATE TABLE accounts (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE funny_jokes (
+  id serial,
+  name character varying(50)
+);
+
 CREATE SEQUENCE companies_nonstd_seq START 101;
 
 CREATE TABLE companies (
@@ -153,6 +158,13 @@ CREATE TABLE people (
   PRIMARY KEY  (id)
 );
 
+CREATE TABLE readers (
+    id serial,
+    post_id integer NOT NULL,
+    person_id integer NOT NULL,
+    primary key (id)
+);
+
 CREATE TABLE binaries ( 
   id serial , 
   data bytea,
@@ -226,4 +238,11 @@ CREATE TABLE geometrics (
 CREATE TABLE keyboards (
   key_number serial primary key,
   "name" character varying(50)
+);
+
+--Altered lock_version column name.
+CREATE TABLE legacy_things (
+  id serial primary key,
+  tps_report_number integer,
+  version integer default 0
 );

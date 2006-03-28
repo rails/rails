@@ -1,5 +1,6 @@
 require 'cgi'
 require 'action_controller/vendor/xml_simple'
+require 'action_controller/vendor/xml_node'
 
 # Static methods for parsing the query and request parameters that can be used in
 # a CGI extension class or testing in isolation.
@@ -57,19 +58,83 @@ class CGIMethods #:nodoc:
       parsed_params
     end
 
-    def self.parse_formatted_request_parameters(format, raw_post_data)
-      case format
-        when :xml
-          return XmlSimple.xml_in(raw_post_data, 'ForceArray' => false)
+    def self.parse_formatted_request_parameters(mime_type, raw_post_data)
+      params = case strategy = ActionController::Base.param_parsers[mime_type]
+        when Proc
+          strategy.call(raw_post_data)
+        when :xml_simple
+          raw_post_data.blank? ? nil :
+            typecast_xml_value(XmlSimple.xml_in(raw_post_data,
+              'forcearray'   => false,
+              'forcecontent' => true,
+              'keeproot'     => true,
+              'contentkey'   => '__content__'))
         when :yaml
-          return YAML.load(raw_post_data)
+          YAML.load(raw_post_data)
+        when :xml_node
+          node = XmlNode.from_xml(raw_post_data)
+          { node.node_name => node }
       end
+      
+      dasherize_keys(params || {})
     rescue Object => e
       { "exception" => "#{e.message} (#{e.class})", "backtrace" => e.backtrace, 
-        "raw_post_data" => raw_post_data, "format" => format }
+        "raw_post_data" => raw_post_data, "format" => mime_type }
+    end
+
+    def self.typecast_xml_value(value)
+      case value
+      when Hash
+        if value.has_key?("__content__")
+          content = translate_xml_entities(value["__content__"])
+          case value["type"]
+          when "integer"  then content.to_i
+          when "boolean"  then content == "true"
+          when "datetime" then Time.parse(content)
+          when "date"     then Date.parse(content)
+          else                 content
+          end
+        else
+          value.empty? ? nil : value.inject({}) do |h,(k,v)|
+            h[k] = typecast_xml_value(v)
+            h
+          end
+        end
+      when Array
+        value.map! { |i| typecast_xml_value(i) }
+        case value.length
+        when 0 then nil
+        when 1 then value.first
+        else value
+        end
+      else
+        raise "can't typecast #{value.inspect}"
+      end
     end
 
   private
+
+    def self.translate_xml_entities(value)
+      value.gsub(/&lt;/,   "<").
+            gsub(/&gt;/,   ">").
+            gsub(/&quot;/, '"').
+            gsub(/&apos;/, "'").
+            gsub(/&amp;/,  "&")
+    end
+
+    def self.dasherize_keys(params)
+      case params.class.to_s
+      when "Hash"
+        params.inject({}) do |h,(k,v)|
+          h[k.to_s.tr("-", "_")] = dasherize_keys(v)
+          h
+        end
+      when "Array"
+        params.map { |v| dasherize_keys(v) }
+      else
+        params
+      end
+    end
 
     # Splits the given key into several pieces. Example keys are 'name', 'person[name]',
     # 'person[name][first]', and 'people[]'. In each instance, an Array instance is returned.

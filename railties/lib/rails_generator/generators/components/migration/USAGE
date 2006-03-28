@@ -11,4 +11,4 @@ Example:
     ./script/generate migration AddSslFlag
 
     With 4 existing migrations, this will create an AddSslFlag migration in the
-    file db/migrate/5_add_ssl_flag.rb
+    file db/migrate/005_add_ssl_flag.rb

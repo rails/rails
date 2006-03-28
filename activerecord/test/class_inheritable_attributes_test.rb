@@ -1,6 +1,6 @@
 require 'test/unit'
 require 'abstract_unit'
-require 'active_support/class_inheritable_attributes'
+require 'active_support/core_ext/class/inheritable_attributes'
 
 class A
   include ClassInheritableAttributes

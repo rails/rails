@@ -11,3 +11,13 @@ rails_core_account:
   id: 3
   firm_id: 6
   credit_limit: 50
+
+last_account:
+  id: 4
+  firm_id: 2
+  credit_limit: 60
+
+rails_core_account_2:
+  id: 5
+  firm_id: 6
+  credit_limit: 55

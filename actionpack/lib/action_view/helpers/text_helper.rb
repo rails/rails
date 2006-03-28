@@ -20,12 +20,12 @@ module ActionView
       # if the +text+ is longer than +length+.
       def truncate(text, length = 30, truncate_string = "...")
         if text.nil? then return end
-
+        l = length - truncate_string.length
         if $KCODE == "NONE"
-          text.length > length ? text[0..(length - 3)] + truncate_string : text
+          text.length > length ? text[0...l] + truncate_string : text
         else
           chars = text.split(//)
-          chars.length > length ? chars[0..(length-3)].join + truncate_string : text
+          chars.length > length ? chars[0...l].join + truncate_string : text
         end
       end
 
@@ -77,7 +77,7 @@ module ActionView
       end
 
       begin
-        require "redcloth"
+        require_library_or_gem "redcloth"
 
         # Returns the text with all the Textile codes turned into HTML-tags.
         # <i>This method is only available if RedCloth can be required</i>.
@@ -104,7 +104,7 @@ module ActionView
       end
 
       begin
-        require "bluecloth"
+        require_library_or_gem "bluecloth"
 
         # Returns the text with all the Markdown codes turned into HTML-tags.
         # <i>This method is only available if BlueCloth can be required</i>.
@@ -325,7 +325,7 @@ module ActionView
                           (?:www\.)             # www.*
                         ) 
                         (
-                          ([\w]+[=?&\/.-]?)*    # url segment
+                          ([\w]+:?[=?&\/.-]?)*    # url segment
                           \w+[\/]?              # url tail
                           (?:\#\w*)?            # trailing anchor
                         )

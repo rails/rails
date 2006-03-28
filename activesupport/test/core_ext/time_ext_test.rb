@@ -30,6 +30,13 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2005,2,1,0,0,0), Time.local(2005,2,22,10,10,10).beginning_of_month
   end
   
+  def test_beginning_of_quarter
+    assert_equal Time.local(2005,1,1,0,0,0), Time.local(2005,2,15,10,10,10).beginning_of_quarter
+    assert_equal Time.local(2005,1,1,0,0,0), Time.local(2005,1,1,0,0,0).beginning_of_quarter
+    assert_equal Time.local(2005,10,1,0,0,0), Time.local(2005,12,31,10,10,10).beginning_of_quarter
+    assert_equal Time.local(2005,4,1,0,0,0), Time.local(2005,6,30,23,59,59).beginning_of_quarter
+  end
+  
   def test_end_of_month
     assert_equal Time.local(2005,3,31,0,0,0), Time.local(2005,3,20,10,10,10).end_of_month
     assert_equal Time.local(2005,2,28,0,0,0), Time.local(2005,2,20,10,10,10).end_of_month
@@ -122,7 +129,21 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.utc(2005,2,22,16,45),    Time.utc(2005,2,22,15,15,10).change(:hour => 16, :min => 45)
     assert_equal Time.utc(2005,2,22,15,45),    Time.utc(2005,2,22,15,15,10).change(:min => 45)
   end
+
+  def test_plus
+    assert_equal Time.local(2006,2,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(:years => 1)
+    assert_equal Time.local(2005,6,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(:months => 4)
+    assert_equal Time.local(2012,9,28,15,15,10), Time.local(2005,2,28,15,15,10).advance(:years => 7, :months => 7)
+    assert_equal Time.local(2013,10,3,15,15,10), Time.local(2005,2,28,15,15,10).advance(:years => 7, :months => 19, :days => 5)
+  end
   
+  def test_utc_plus
+    assert_equal Time.utc(2006,2,22,15,15,10), Time.utc(2005,2,22,15,15,10).advance(:years => 1)
+    assert_equal Time.utc(2005,6,22,15,15,10), Time.utc(2005,2,22,15,15,10).advance(:months => 4)
+    assert_equal Time.utc(2012,9,22,15,15,10), Time.utc(2005,2,22,15,15,10).advance(:years => 7, :months => 7)
+    assert_equal Time.utc(2013,10,3,15,15,10), Time.utc(2005,2,22,15,15,10).advance(:years => 7, :months => 19, :days => 11)
+  end
+
   def test_next_week
     assert_equal Time.local(2005,2,28), Time.local(2005,2,22,15,15,10).next_week
     assert_equal Time.local(2005,2,29), Time.local(2005,2,22,15,15,10).next_week(:tuesday)
@@ -180,5 +201,9 @@ class TimeExtCalculationsTest < Test::Unit::TestCase
 
   def test_last_month_on_31st
     assert_equal Time.local(2004, 2, 29), Time.local(2004, 3, 31).last_month
+  end
+  
+  def test_xmlschema_is_available
+    assert_nothing_raised { Time.now.xmlschema }
   end
 end

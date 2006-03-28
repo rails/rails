@@ -1,5 +1,6 @@
 class Project < ActiveRecord::Base
   has_and_belongs_to_many :developers, :uniq => true
+  has_and_belongs_to_many :limited_developers, :class_name => "Developer", :limit => 1
   has_and_belongs_to_many :developers_named_david, :class_name => "Developer", :conditions => "name = 'David'", :uniq => true
   has_and_belongs_to_many :salaried_developers, :class_name => "Developer", :conditions => "salary > 0"
   has_and_belongs_to_many :developers_with_finder_sql, :class_name => "Developer", :finder_sql => 'SELECT t.*, j.* FROM developers_projects j, developers t WHERE t.id = j.developer_id AND j.project_id = #{id}'

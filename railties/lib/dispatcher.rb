@@ -38,7 +38,7 @@ class Dispatcher
         ActionController::Routing::Routes.recognize!(request).process(request, response).out(output)
       end
     rescue Object => exception
-      failsafe_response(output, '500 Internal Server Error') do
+      failsafe_response(output, '500 Internal Server Error', exception) do
         ActionController::Base.process_with_exception(request, response, exception).out(output)
       end
     ensure
@@ -50,11 +50,9 @@ class Dispatcher
     # mailers, and so forth. This allows them to be loaded again without having
     # to restart the server (WEBrick, FastCGI, etc.).
     def reset_application!
-      Controllers.clear!
       Dependencies.clear
       ActiveRecord::Base.reset_subclasses
-      Dependencies.remove_subclasses_for(ActiveRecord::Base, ActiveRecord::Observer, ActionController::Base)
-      Dependencies.remove_subclasses_for(ActionMailer::Base) if defined?(ActionMailer::Base)
+      Class.remove_class(*Reloadable.reloadable_classes)
     end
 
     private
@@ -68,12 +66,12 @@ class Dispatcher
       def prepare_application
         ActionController::Routing::Routes.reload if Dependencies.load?
         prepare_breakpoint
-        Controllers.const_load!(:ApplicationController, "application") unless Controllers.const_defined?(:ApplicationController)
+        require_dependency('application.rb') unless Object.const_defined?(:ApplicationController)
+        ActiveRecord::Base.verify_active_connections!
       end
-    
+
       def reset_after_dispatch
         reset_application! if Dependencies.load?
-        ActiveRecord::Base.clear_connection_cache!
         Breakpoint.deactivate_drb if defined?(BREAKPOINT_SERVER_PORT)
       end
 
@@ -87,11 +85,13 @@ class Dispatcher
       end
 
       # If the block raises, send status code as a last-ditch response.
-      def failsafe_response(output, status)
+      def failsafe_response(output, status, exception = nil)
         yield
       rescue Object
         begin
           output.write "Status: #{status}\r\n"
+          output.write "Content-Type: text/plain\r\n\r\n"
+          output.write exception.to_s + "\r\n" + exception.backtrace.join("\r\n") if exception
         rescue Object
         end
       end

@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
-require File.dirname(__FILE__) + '/fake_controllers'
 require 'test/unit'
+require File.dirname(__FILE__) + '/fake_controllers'
 require 'stringio'
 
 RunTimeTests = ARGV.include? 'time'
@@ -12,7 +12,7 @@ class SourceTests < Test::Unit::TestCase
   def setup
     @source = Source.new
   end
-  
+    
   def test_initial_state
     assert_equal [], source.lines
     assert_equal 0, source.indentation_level
@@ -54,7 +54,7 @@ class CodeGeneratorTests < Test::Unit::TestCase
   def setup
     @generator = CodeGenerator.new
   end
-
+  
   def test_initial_state
     assert_equal [], generator.source.lines
     assert_equal [], generator.locals
@@ -124,7 +124,7 @@ class RecognitionTests < Test::Unit::TestCase
   def test_all_static
     c = %w(hello world how are you).collect {|str| Static.new(str)}
     
-    g.result :controller, "::Controllers::ContentController", true
+    g.result :controller, "::ContentController", true
     g.constant_result :action, 'index' 
     
     go c
@@ -133,19 +133,19 @@ class RecognitionTests < Test::Unit::TestCase
     assert_nil execute('hello/world/how')
     assert_nil execute('hello/world/how/are')
     assert_nil execute('hello/world/how/are/you/today')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, execute('hello/world/how/are/you'))
+    assert_equal({:controller => ::ContentController, :action => 'index'}, execute('hello/world/how/are/you'))
   end
 
   def test_basic_dynamic
     c = [Static.new("hi"), Dynamic.new(:action)]
-    g.result :controller, "::Controllers::ContentController", true
+    g.result :controller, "::ContentController", true
     go c
     
     assert_nil execute('boo')
     assert_nil execute('boo/blah')
     assert_nil execute('hi')
     assert_nil execute('hi/dude/what')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'dude'}, execute('hi/dude'))
+    assert_equal({:controller => ::ContentController, :action => 'dude'}, execute('hi/dude'))
   end 
 
   def test_basic_dynamic_backwards
@@ -163,33 +163,33 @@ class RecognitionTests < Test::Unit::TestCase
 
   def test_dynamic_with_default
     c = [Static.new("hi"), Dynamic.new(:action, :default => 'index')]
-    g.result :controller, "::Controllers::ContentController", true
+    g.result :controller, "::ContentController", true
     go c
     
     assert_nil execute('boo')
     assert_nil execute('boo/blah')
     assert_nil execute('hi/dude/what')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, execute('hi'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, execute('hi/index'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'dude'}, execute('hi/dude'))
+    assert_equal({:controller => ::ContentController, :action => 'index'}, execute('hi'))
+    assert_equal({:controller => ::ContentController, :action => 'index'}, execute('hi/index'))
+    assert_equal({:controller => ::ContentController, :action => 'dude'}, execute('hi/dude'))
   end 
 
   def test_dynamic_with_string_condition
     c = [Static.new("hi"), Dynamic.new(:action, :condition => 'index')]
-    g.result :controller, "::Controllers::ContentController", true
+    g.result :controller, "::ContentController", true
     go c
 
     assert_nil execute('boo')
     assert_nil execute('boo/blah')
     assert_nil execute('hi')
     assert_nil execute('hi/dude/what')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, execute('hi/index'))
+    assert_equal({:controller => ::ContentController, :action => 'index'}, execute('hi/index'))
     assert_nil execute('hi/dude')
   end
 
   def test_dynamic_with_string_condition_backwards
     c = [Dynamic.new(:action, :condition => 'index'), Static.new("hi")]
-    g.result :controller, "::Controllers::ContentController", true
+    g.result :controller, "::ContentController", true
     go c
 
     assert_nil execute('boo')
@@ -197,13 +197,13 @@ class RecognitionTests < Test::Unit::TestCase
     assert_nil execute('hi')
     assert_nil execute('dude/what/hi')
     assert_nil execute('index/what')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, execute('index/hi'))
+    assert_equal({:controller => ::ContentController, :action => 'index'}, execute('index/hi'))
     assert_nil execute('dude/hi')
   end
 
   def test_dynamic_with_regexp_condition
     c = [Static.new("hi"), Dynamic.new(:action, :condition => /^[a-z]+$/)]
-    g.result :controller, "::Controllers::ContentController", true
+    g.result :controller, "::ContentController", true
     go c
     
     assert_nil execute('boo')
@@ -213,13 +213,13 @@ class RecognitionTests < Test::Unit::TestCase
     assert_nil execute('hi/138708jkhdf')
     assert_nil execute('hi/dkjfl8792343dfsf')
     assert_nil execute('hi/dude/what')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, execute('hi/index'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'dude'}, execute('hi/dude'))
+    assert_equal({:controller => ::ContentController, :action => 'index'}, execute('hi/index'))
+    assert_equal({:controller => ::ContentController, :action => 'dude'}, execute('hi/dude'))
   end 
   
   def test_dynamic_with_regexp_and_default
     c = [Static.new("hi"), Dynamic.new(:action, :condition => /^[a-z]+$/, :default => 'index')]
-    g.result :controller, "::Controllers::ContentController", true
+    g.result :controller, "::ContentController", true
     go c
     
     assert_nil execute('boo')
@@ -227,39 +227,39 @@ class RecognitionTests < Test::Unit::TestCase
     assert_nil execute('hi/FOXY')
     assert_nil execute('hi/138708jkhdf')
     assert_nil execute('hi/dkjfl8792343dfsf')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, execute('hi'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, execute('hi/index'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'dude'}, execute('hi/dude'))
+    assert_equal({:controller => ::ContentController, :action => 'index'}, execute('hi'))
+    assert_equal({:controller => ::ContentController, :action => 'index'}, execute('hi/index'))
+    assert_equal({:controller => ::ContentController, :action => 'dude'}, execute('hi/dude'))
     assert_nil execute('hi/dude/what')
   end
 
   def test_path
     c = [Static.new("hi"), Path.new(:file)]
-    g.result :controller, "::Controllers::ContentController", true
+    g.result :controller, "::ContentController", true
     g.constant_result :action, "download"
     
     go c
     
     assert_nil execute('boo')
     assert_nil execute('boo/blah')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'download', :file => []}, execute('hi'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'download', :file => %w(books agile_rails_dev.pdf)},
+    assert_equal({:controller => ::ContentController, :action => 'download', :file => []}, execute('hi'))
+    assert_equal({:controller => ::ContentController, :action => 'download', :file => %w(books agile_rails_dev.pdf)},
                  execute('hi/books/agile_rails_dev.pdf'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'download', :file => ['dude']}, execute('hi/dude'))
+    assert_equal({:controller => ::ContentController, :action => 'download', :file => ['dude']}, execute('hi/dude'))
     assert_equal 'dude/what', execute('hi/dude/what')[:file].to_s
   end
 
   def test_path_with_dynamic
     c = [Dynamic.new(:action), Path.new(:file)]
-    g.result :controller, "::Controllers::ContentController", true
+    g.result :controller, "::ContentController", true
 
     go c
 
     assert_nil execute('')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'download', :file => []}, execute('download'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'download', :file => %w(books agile_rails_dev.pdf)},
+    assert_equal({:controller => ::ContentController, :action => 'download', :file => []}, execute('download'))
+    assert_equal({:controller => ::ContentController, :action => 'download', :file => %w(books agile_rails_dev.pdf)},
                  execute('download/books/agile_rails_dev.pdf'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'download', :file => ['dude']}, execute('download/dude'))
+    assert_equal({:controller => ::ContentController, :action => 'download', :file => ['dude']}, execute('download/dude'))
     assert_equal 'dude/what', execute('hi/dude/what')[:file].to_s
   end
 
@@ -287,8 +287,8 @@ class RecognitionTests < Test::Unit::TestCase
     assert_nil execute('hi/13870948')
     assert_nil execute('hi/content/dog')
     assert_nil execute('hi/admin/user/foo')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'hi'}, execute('hi/content'))
-    assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'hi'}, execute('hi/admin/user'))
+    assert_equal({:controller => ::ContentController, :action => 'hi'}, execute('hi/content'))
+    assert_equal({:controller => ::Admin::UserController, :action => 'hi'}, execute('hi/admin/user'))
   end
   
   def test_controller_with_regexp
@@ -300,8 +300,8 @@ class RecognitionTests < Test::Unit::TestCase
     assert_nil execute('hi')
     assert_nil execute('hi/x')
     assert_nil execute('hi/content')
-    assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'hi'}, execute('hi/admin/user'))
-    assert_equal({:controller => ::Controllers::Admin::NewsFeedController, :action => 'hi'}, execute('hi/admin/news_feed'))
+    assert_equal({:controller => ::Admin::UserController, :action => 'hi'}, execute('hi/admin/user'))
+    assert_equal({:controller => ::Admin::NewsFeedController, :action => 'hi'}, execute('hi/admin/news_feed'))
     assert_nil execute('hi/admin/user/foo')
   end
   
@@ -310,13 +310,13 @@ class RecognitionTests < Test::Unit::TestCase
     go c
     
     # Make sure we get the right answers
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, execute('content'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'list'}, execute('content/list'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'show', :id => '10'}, execute('content/show/10'))
+    assert_equal({:controller => ::ContentController, :action => 'index'}, execute('content'))
+    assert_equal({:controller => ::ContentController, :action => 'list'}, execute('content/list'))
+    assert_equal({:controller => ::ContentController, :action => 'show', :id => '10'}, execute('content/show/10'))
     
-    assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'index'}, execute('admin/user'))
-    assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'list'}, execute('admin/user/list'))
-    assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'show', :id => 'nseckar'}, execute('admin/user/show/nseckar'))
+    assert_equal({:controller => ::Admin::UserController, :action => 'index'}, execute('admin/user'))
+    assert_equal({:controller => ::Admin::UserController, :action => 'list'}, execute('admin/user/list'))
+    assert_equal({:controller => ::Admin::UserController, :action => 'show', :id => 'nseckar'}, execute('admin/user/show/nseckar'))
     
     assert_nil execute('content/show/10/20')
     assert_nil execute('food')
@@ -357,7 +357,7 @@ class RecognitionTests < Test::Unit::TestCase
   end
 
   def test_default_route
-    g.result :controller, "::Controllers::ContentController", true
+    g.result :controller, "::ContentController", true
     g.constant_result :action, 'index' 
     
     go []
@@ -366,7 +366,7 @@ class RecognitionTests < Test::Unit::TestCase
     assert_nil execute('hello/world/how')
     assert_nil execute('hello/world/how/are')
     assert_nil execute('hello/world/how/are/you/today')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, execute([]))
+    assert_equal({:controller => ::ContentController, :action => 'index'}, execute([]))
   end
 end
 
@@ -534,6 +534,8 @@ not_expired = true
 end
 
 class RouteTests < Test::Unit::TestCase
+  
+  
   def route(*args)
     @route = ::ActionController::Routing::Route.new(*args) unless args.empty?
     return @route
@@ -566,7 +568,7 @@ class RouteTests < Test::Unit::TestCase
     assert_nil rec('hello/turn')
     assert_nil rec('turn/world')
     assert_equal(
-      {:known => 'known_value', :controller => ::Controllers::ContentController, :action => 'index'},
+      {:known => 'known_value', :controller => ::ContentController, :action => 'index'},
       rec('hello/world')
     )
     
@@ -582,8 +584,8 @@ class RouteTests < Test::Unit::TestCase
     
     assert_nil rec('hello')
     assert_nil rec('foo/bar')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'show_person', :name => 'rails'}, rec('hello/rails'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'show_person', :name => 'Nicholas Seckar'}, rec('hello/Nicholas+Seckar'))
+    assert_equal({:controller => ::ContentController, :action => 'show_person', :name => 'rails'}, rec('hello/rails'))
+    assert_equal({:controller => ::ContentController, :action => 'show_person', :name => 'Nicholas Seckar'}, rec('hello/Nicholas+Seckar'))
     
     assert_nil gen(:controller => 'content', :action => 'show_dude', :name => 'rails')
     assert_nil gen(:controller => 'content', :action => 'show_person')
@@ -596,15 +598,15 @@ class RouteTests < Test::Unit::TestCase
     route ':controller/:action/:id', :action => 'index', :id => nil
     assert_nil rec('hello')
     assert_nil rec('foo bar')
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}, rec('content'))
-    assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'index'}, rec('admin/user'))
+    assert_equal({:controller => ::ContentController, :action => 'index'}, rec('content'))
+    assert_equal({:controller => ::Admin::UserController, :action => 'index'}, rec('admin/user'))
     
-    assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'index'}, rec('admin/user/index'))
-    assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'list'}, rec('admin/user/list'))
-    assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'show', :id => '10'}, rec('admin/user/show/10'))
+    assert_equal({:controller => ::Admin::UserController, :action => 'index'}, rec('admin/user/index'))
+    assert_equal({:controller => ::Admin::UserController, :action => 'list'}, rec('admin/user/list'))
+    assert_equal({:controller => ::Admin::UserController, :action => 'show', :id => '10'}, rec('admin/user/show/10'))
     
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'list'}, rec('content/list'))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'show', :id => '10'}, rec('content/show/10'))
+    assert_equal({:controller => ::ContentController, :action => 'list'}, rec('content/list'))
+    assert_equal({:controller => ::ContentController, :action => 'show', :id => '10'}, rec('content/show/10'))
     
     
     assert_equal '/content', gen(:controller => 'content', :action => 'index')
@@ -627,11 +629,11 @@ class RouteSetTests < Test::Unit::TestCase
   end
   
   def test_default_setup
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'index'}.stringify_keys, rs.recognize_path(%w(content)))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'list'}.stringify_keys, rs.recognize_path(%w(content list)))
-    assert_equal({:controller => ::Controllers::ContentController, :action => 'show', :id => '10'}.stringify_keys, rs.recognize_path(%w(content show 10)))
+    assert_equal({:controller => ::ContentController, :action => 'index'}.stringify_keys, rs.recognize_path(%w(content)))
+    assert_equal({:controller => ::ContentController, :action => 'list'}.stringify_keys, rs.recognize_path(%w(content list)))
+    assert_equal({:controller => ::ContentController, :action => 'show', :id => '10'}.stringify_keys, rs.recognize_path(%w(content show 10)))
     
-    assert_equal({:controller => ::Controllers::Admin::UserController, :action => 'show', :id => '10'}.stringify_keys, rs.recognize_path(%w(admin user show 10)))
+    assert_equal({:controller => ::Admin::UserController, :action => 'show', :id => '10'}.stringify_keys, rs.recognize_path(%w(admin user show 10)))
     
     assert_equal ['/admin/user/show/10', []], rs.generate({:controller => 'admin/user', :action => 'show', :id => 10})
     
@@ -641,7 +643,7 @@ class RouteSetTests < Test::Unit::TestCase
     assert_equal ['/admin/stuff', []], rs.generate({:controller => 'stuff'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
     assert_equal ['/stuff', []], rs.generate({:controller => '/stuff'}, {:controller => 'admin/user', :action => 'list', :id => '10'})
   end
-
+  
   def test_ignores_leading_slash
     @rs.draw {|m| m.connect '/:controller/:action/:id'}
     test_default_setup
@@ -718,9 +720,9 @@ class RouteSetTests < Test::Unit::TestCase
       map.connect ':controller/:admintoken/:action/:id', :controller => /admin\/.+/
       map.connect ':controller/:action/:id'
     end
-    assert_equal({:controller => ::Controllers::Admin::UserController, :admintoken => "foo", :action => "index"}.stringify_keys,
+    assert_equal({:controller => ::Admin::UserController, :admintoken => "foo", :action => "index"}.stringify_keys,
         rs.recognize_path(%w(admin user foo)))
-    assert_equal({:controller => ::Controllers::ContentController, :action => "foo"}.stringify_keys,
+    assert_equal({:controller => ::ContentController, :action => "foo"}.stringify_keys,
         rs.recognize_path(%w(content foo)))
     assert_equal ['/admin/user/foo', []], rs.generate(:controller => "admin/user", :admintoken => "foo", :action => "index")
     assert_equal ['/content/foo',[]], rs.generate(:controller => "content", :action => "foo")
@@ -792,7 +794,6 @@ class RouteSetTests < Test::Unit::TestCase
       rs.path 'file/*path', :controller => 'content', :action => 'show_file'
       rs.connect ':controller/:action/:id'
     end
-    
     results = rs.recognize_path %w(file hello+world how+are+you%3F)
     assert results, "Recognition should have succeeded"
     assert_equal ['hello world', 'how are you?'], results['path']
@@ -800,6 +801,13 @@ class RouteSetTests < Test::Unit::TestCase
     results = rs.recognize_path %w(file)
     assert results, "Recognition should have succeeded"
     assert_equal [], results['path']
+  end
+  
+  def test_non_controllers_cannot_be_matched
+    rs.draw do
+      rs.connect ':controller/:action/:id'
+    end
+    assert_nil rs.recognize_path(%w(not_a show 10)), "Shouldn't recognize non-controllers as controllers!"
   end
 
   def test_paths_do_not_accept_defaults
@@ -838,7 +846,7 @@ class RouteSetTests < Test::Unit::TestCase
     assert_equal ['/page', []], rs.generate(:controller => 'content', :action => 'show_page', :id => '1')
     assert_equal ['/page/10', []], rs.generate(:controller => 'content', :action => 'show_page', :id => 10)
 
-    ctrl = ::Controllers::ContentController
+    ctrl = ::ContentController
 
     assert_equal({'controller' => ctrl, 'action' => 'show_page', 'id' => 1}, rs.recognize_path(%w(page)))
     assert_equal({'controller' => ctrl, 'action' => 'show_page', 'id' => '1'}, rs.recognize_path(%w(page 1)))
@@ -850,12 +858,12 @@ class RouteSetTests < Test::Unit::TestCase
   end
 
   def test_recognition_with_uppercase_controller_name
-    assert_equal({'controller' => ::Controllers::ContentController, 'action' => 'index'}, rs.recognize_path(%w(Content)))
-    assert_equal({'controller' => ::Controllers::ContentController, 'action' => 'list'}, rs.recognize_path(%w(Content list)))
-    assert_equal({'controller' => ::Controllers::ContentController, 'action' => 'show', 'id' => '10'}, rs.recognize_path(%w(Content show 10)))
+    assert_equal({'controller' => ::ContentController, 'action' => 'index'}, rs.recognize_path(%w(Content)))
+    assert_equal({'controller' => ::ContentController, 'action' => 'list'}, rs.recognize_path(%w(Content list)))
+    assert_equal({'controller' => ::ContentController, 'action' => 'show', 'id' => '10'}, rs.recognize_path(%w(Content show 10)))
 
-    assert_equal({'controller' => ::Controllers::Admin::NewsFeedController, 'action' => 'index'}, rs.recognize_path(%w(Admin NewsFeed)))
-    assert_equal({'controller' => ::Controllers::Admin::NewsFeedController, 'action' => 'index'}, rs.recognize_path(%w(Admin News_Feed)))
+    assert_equal({'controller' => ::Admin::NewsFeedController, 'action' => 'index'}, rs.recognize_path(%w(Admin NewsFeed)))
+    assert_equal({'controller' => ::Admin::NewsFeedController, 'action' => 'index'}, rs.recognize_path(%w(Admin News_Feed)))
   end
 
   def test_both_requirement_and_optional

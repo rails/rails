@@ -156,11 +156,11 @@ class ValidationsTest < Test::Unit::TestCase
   def test_errors_on_boundary_breaking
     developer = Developer.new("name" => "xs")
     assert !developer.save
-    assert_equal "is too short (min is 3 characters)", developer.errors.on("name")
+    assert_equal "is too short (minimum is 3 characters)", developer.errors.on("name")
 
     developer.name = "All too very long for this boundary, it really is"
     assert !developer.save
-    assert_equal "is too long (max is 20 characters)", developer.errors.on("name")
+    assert_equal "is too long (maximum is 20 characters)", developer.errors.on("name")
 
     developer.name = "Just right"
     assert developer.save
@@ -280,6 +280,30 @@ class ValidationsTest < Test::Unit::TestCase
     assert r3.valid?, "Saving r3"
   end
 
+  def test_validate_uniqueness_with_scope_array
+    Reply.validates_uniqueness_of(:author_name, :scope => [:author_email_address, :parent_id])
+
+    t = Topic.create("title" => "The earth is actually flat!")
+ 
+    r1 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're crazy!", "content" => "Crazy reply"
+    assert r1.valid?, "Saving r1"
+    
+    r2 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're crazy!", "content" => "Crazy reply again..."
+    assert !r2.valid?, "Saving r2. Double reply by same author." 
+    
+    r2.author_email_address = "jeremy_alt_email@rubyonrails.com"
+    assert r2.save, "Saving r2 the second time." 
+    
+    r3 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy_alt_email@rubyonrails.com", "title" => "You're wrong", "content" => "It's cubic"
+    assert !r3.valid?, "Saving r3"
+    
+    r3.author_name = "jj"
+    assert r3.save, "Saving r3 the second time."
+    
+    r3.author_name = "jeremy"
+    assert !r3.save, "Saving r3 the third time."
+  end
+
   def test_validate_format
     Topic.validates_format_of(:title, :content, :with => /^Validation\smacros \w+!$/, :message => "is bad data")
 
@@ -295,6 +319,34 @@ class ValidationsTest < Test::Unit::TestCase
     assert_nil t.errors.on(:title)
 
     assert_raise(ArgumentError) { Topic.validates_format_of(:title, :content) }
+  end
+  
+  # testing ticket #3142
+  def test_validate_format_numeric
+    Topic.validates_format_of(:title, :content, :with => /^[1-9][0-9]*$/, :message => "is bad data")
+
+    t = Topic.create("title" => "72x", "content" => "6789")
+    assert !t.valid?, "Shouldn't be valid"
+    assert !t.save, "Shouldn't save because it's invalid"
+    assert_equal "is bad data", t.errors.on(:title)
+    assert_nil t.errors.on(:content)
+
+    t.title = "-11"
+    assert !t.valid?, "Shouldn't be valid"
+
+    t.title = "03"
+    assert !t.valid?, "Shouldn't be valid"
+
+    t.title = "z44"
+    assert !t.valid?, "Shouldn't be valid"
+
+    t.title = "5v7"
+    assert !t.valid?, "Shouldn't be valid"
+
+    t.title = "1"
+
+    assert t.save
+    assert_nil t.errors.on(:title)
   end
 
   def test_validates_inclusion_of
@@ -350,17 +402,17 @@ class ValidationsTest < Test::Unit::TestCase
     t.title = "not"
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is too short (min is 5 characters)", t.errors["title"]
+    assert_equal "is too short (minimum is 5 characters)", t.errors["title"]
 
     t.title = ""
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is too short (min is 5 characters)", t.errors["title"]
+    assert_equal "is too short (minimum is 5 characters)", t.errors["title"]
 
     t.title = nil
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is too short (min is 5 characters)", t.errors["title"]
+    assert_equal "is too short (minimum is 5 characters)", t.errors["title"]
   end
 
   def test_optionally_validates_length_of_using_minimum
@@ -382,7 +434,7 @@ class ValidationsTest < Test::Unit::TestCase
     t.title = "notvalid"
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is too long (max is 5 characters)", t.errors["title"]
+    assert_equal "is too long (maximum is 5 characters)", t.errors["title"]
 
     t.title = ""
     assert t.valid?
@@ -406,14 +458,14 @@ class ValidationsTest < Test::Unit::TestCase
 
     t = Topic.new("title" => "a!", "content" => "I'm ooooooooh so very long")
     assert !t.valid?
-    assert_equal "is too short (min is 3 characters)", t.errors.on(:title)
-    assert_equal "is too long (max is 5 characters)", t.errors.on(:content)
+    assert_equal "is too short (minimum is 3 characters)", t.errors.on(:title)
+    assert_equal "is too long (maximum is 5 characters)", t.errors.on(:content)
 
     t.title = nil
     t.content = nil
     assert !t.valid?
-    assert_equal "is too short (min is 3 characters)", t.errors.on(:title)
-    assert_equal "is too short (min is 3 characters)", t.errors.on(:content)
+    assert_equal "is too short (minimum is 3 characters)", t.errors.on(:title)
+    assert_equal "is too short (minimum is 3 characters)", t.errors.on(:content)
 
     t.title = "abe"
     t.content  = "mad"
@@ -588,6 +640,141 @@ class ValidationsTest < Test::Unit::TestCase
     assert !t.valid?
     assert t.errors.on(:title)
     assert_equal "hoo 5", t.errors["title"]
+  end
+
+  def kcode_scope(kcode)
+    orig_kcode = $KCODE
+    $KCODE = kcode
+    begin
+      yield
+    ensure
+      $KCODE = orig_kcode
+    end
+  end
+
+  def test_validates_length_of_using_minimum_utf8
+    kcode_scope('UTF8') do
+      Topic.validates_length_of :title, :minimum => 5
+
+      t = Topic.create("title" => "一二三四五", "content" => "whatever")
+      assert t.valid?
+
+      t.title = "一二三四"
+      assert !t.valid?
+      assert t.errors.on(:title)
+      assert_equal "is too short (minimum is 5 characters)", t.errors["title"]
+    end
+  end
+
+  def test_validates_length_of_using_maximum_utf8
+    kcode_scope('UTF8') do
+      Topic.validates_length_of :title, :maximum => 5
+
+      t = Topic.create("title" => "一二三四五", "content" => "whatever")
+      assert t.valid?
+      
+      t.title = "一二34五六"
+      assert !t.valid?
+      assert t.errors.on(:title)
+      assert_equal "is too long (maximum is 5 characters)", t.errors["title"]
+    end
+  end
+
+  def test_validates_length_of_using_within_utf8
+    kcode_scope('UTF8') do
+      Topic.validates_length_of(:title, :content, :within => 3..5)
+
+      t = Topic.new("title" => "一二", "content" => "12三四五六七")
+      assert !t.valid?
+      assert_equal "is too short (minimum is 3 characters)", t.errors.on(:title)
+      assert_equal "is too long (maximum is 5 characters)", t.errors.on(:content)
+      t.title = "一二三"
+      t.content  = "12三"
+      assert t.valid?
+    end
+  end
+
+  def test_optionally_validates_length_of_using_within_utf8
+    kcode_scope('UTF8') do
+      Topic.validates_length_of :title, :content, :within => 3..5, :allow_nil => true
+
+      t = Topic.create('title' => '一二三', 'content' => '一二三四五')
+      assert t.valid?
+
+      t.title = nil
+      assert t.valid?
+    end
+  end
+
+  def test_optionally_validates_length_of_using_within_on_create_utf8
+    kcode_scope('UTF8') do
+      Topic.validates_length_of :title, :content, :within => 5..10, :on => :create, :too_long => "長すぎます: %d"
+
+      t = Topic.create("title" => "一二三四五六七八九十A", "content" => "whatever")
+      assert !t.save
+      assert t.errors.on(:title)
+      assert_equal "長すぎます: 10", t.errors[:title]
+      
+      t.title = "一二三四五六七八九"
+      assert t.save
+      
+      t.title = "一二3"
+      assert t.save
+      
+      t.content = "一二三四五六七八九十"
+      assert t.save
+      
+      t.content = t.title = "一二三四五六"
+      assert t.save
+    end
+  end
+
+  def test_optionally_validates_length_of_using_within_on_update_utf8
+    kcode_scope('UTF8') do    
+      Topic.validates_length_of :title, :content, :within => 5..10, :on => :update, :too_short => "短すぎます: %d"
+
+      t = Topic.create("title" => "一二三4", "content" => "whatever")
+      assert !t.save
+      assert t.errors.on(:title)
+      
+      t.title = "1二三4"
+      assert !t.save
+      assert t.errors.on(:title)
+      assert_equal "短すぎます: 5", t.errors[:title]
+      
+      t.title = "valid"
+      t.content = "一二三四五六七八九十A"
+      assert !t.save
+      assert t.errors.on(:content)
+      
+      t.content = "一二345"
+      assert t.save
+    end
+  end
+
+  def test_validates_length_of_using_is_utf8
+    kcode_scope('UTF8') do
+      Topic.validates_length_of :title, :is => 5
+
+      t = Topic.create("title" => "一二345", "content" => "whatever")
+      assert t.valid?
+
+      t.title = "一二345六"
+      assert !t.valid?
+      assert t.errors.on(:title)
+      assert_equal "is the wrong length (should be 5 characters)", t.errors["title"]
+    end
+  end
+
+  def test_validates_size_of_association_utf8
+    kcode_scope('UTF8') do
+      assert_nothing_raised { Topic.validates_size_of :replies, :minimum => 1 }
+      t = Topic.new('title' => 'あいうえお', 'content' => 'かきくけこ')
+      assert !t.save
+      assert t.errors.on(:replies)
+      t.replies.create('title' => 'あいうえお', 'content' => 'かきくけこ')
+      assert t.valid?
+    end
   end
 
   def test_validates_associated_many

@@ -10,7 +10,7 @@ module ActionView
   #
   # To use a compiled template module, create a new instance and include it into the class
   # in which you want the template to be rendered.
-  class CompiledTemplates < Module
+  class CompiledTemplates < Module #:nodoc:
     attr_reader :method_names
 
     def initialize

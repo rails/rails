@@ -96,8 +96,8 @@ module Rails
 
         # Raise a usage error.  Override usage_message to provide a blurb
         # after the option parser summary.
-        def usage
-          raise UsageError, "#{@option_parser}\n#{usage_message}"
+        def usage(message = usage_message)
+          raise UsageError, "#{@option_parser}\n#{message}"
         end
 
         def usage_message

@@ -43,24 +43,30 @@ module ActionView
       # instance variable. You can use this instance variable anywhere
       # in your templates and even in your layout. 
       # 
-      # Example:
+      # Example of capture being used in a .rhtml page:
       # 
       #   <% @greeting = capture do %>
       #     Welcome To my shiny new web page!
-      #   <% end %>      
+      #   <% end %>
+      #
+      # Example of capture being used in a .rxml page:
+      # 
+      #   @greeting = capture do
+      #     'Welcome To my shiny new web page!'
+      #   end
       def capture(*args, &block)
         # execute the block
-        buffer = eval("_erbout", block.binding)
-        pos = buffer.length
-        block.call(*args)
+        begin
+          buffer = eval("_erbout", block.binding)
+        rescue
+          buffer = nil
+        end
         
-        # extract the block 
-        data = buffer[pos..-1]
-        
-        # replace it in the original with empty string
-        buffer[pos..-1] = ''
-        
-        data
+        if buffer.nil?
+          capture_block(*args, &block)
+        else
+          capture_erb_with_buffer(buffer, *args, &block)
+        end
       end
       
       # Content_for will store the given block
@@ -84,6 +90,37 @@ module ActionView
       def content_for(name, &block)
         eval "@content_for_#{name} = (@content_for_#{name} || '') + capture(&block)"
       end
+
+      private
+        def capture_block(*args, &block)
+          block.call(*args)
+        end
+      
+        def capture_erb(*args, &block)
+          buffer = eval("_erbout", block.binding)
+          capture_erb_with_buffer(buffer, *args, &block)
+        end
+      
+        def capture_erb_with_buffer(buffer, *args, &block)
+          pos = buffer.length
+          block.call(*args)
+        
+          # extract the block 
+          data = buffer[pos..-1]
+        
+          # replace it in the original with empty string
+          buffer[pos..-1] = ''
+        
+          data
+        end
+      
+        def erb_content_for(name, &block)
+          eval "@content_for_#{name} = (@content_for_#{name} || '') + capture_erb(&block)"
+        end
+      
+        def block_content_for(name, &block)
+          eval "@content_for_#{name} = (@content_for_#{name} || '') + capture_block(&block)"
+        end
     end
   end
 end

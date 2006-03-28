@@ -27,7 +27,7 @@ task :default => [ :test_mysql, :test_sqlite, :test_postgresql ]
 
 # Run the unit tests
 
-for adapter in %w( mysql postgresql sqlite sqlite3 firebird sqlserver sqlserver_odbc db2 oci )
+for adapter in %w( mysql postgresql sqlite sqlite3 firebird sqlserver sqlserver_odbc db2 oracle sybase openbase )
   Rake::TestTask.new("test_#{adapter}") { |t|
     t.libs << "test" << "test/connections/native_#{adapter}"
     t.pattern = "test/*_test{,_#{adapter}}.rb"
@@ -59,7 +59,7 @@ task :build_postgresql_databases do
   %x( createdb activerecord_unittest )
   %x( createdb activerecord_unittest2 )
   %x( psql activerecord_unittest -f #{File.join(SCHEMA_PATH, 'postgresql.sql')} )
-  %x( psql activerecord_unittest -f #{File.join(SCHEMA_PATH, 'postgresql2.sql')} )
+  %x( psql activerecord_unittest2 -f #{File.join(SCHEMA_PATH, 'postgresql2.sql')} )
 end
 
 desc 'Drop the PostgreSQL test databases'
@@ -76,7 +76,7 @@ task :rebuild_postgresql_databases => [:drop_postgresql_databases, :build_postgr
 Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Active Record -- Object-relation mapping put on rails"
-  rdoc.options << '--line-numbers --inline-source --accessor cattr_accessor=object'
+  rdoc.options << '--line-numbers' << '--inline-source' << '-A cattr_accessor=object'
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README', 'RUNNING_UNIT_TESTS', 'CHANGELOG')
   rdoc.rdoc_files.include('lib/**/*.rb')
@@ -106,7 +106,7 @@ spec = Gem::Specification.new do |s|
     s.files = s.files + Dir.glob( "#{dir}/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   end
   
-  s.add_dependency('activesupport', '= 1.2.5' + PKG_BUILD)
+  s.add_dependency('activesupport', '= 1.3.0' + PKG_BUILD)
 
   s.files.delete "test/fixtures/fixture_database.sqlite"
   s.files.delete "test/fixtures/fixture_database_2.sqlite"

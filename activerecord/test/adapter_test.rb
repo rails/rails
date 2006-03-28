@@ -18,14 +18,18 @@ class AdapterTest < Test::Unit::TestCase
   end
 
   def test_indexes
+    idx_name = "accounts_idx"
+      
     if @connection.respond_to?(:indexes)
       indexes = @connection.indexes("accounts")
       assert indexes.empty?
 
-      @connection.add_index :accounts, :firm_id
+      @connection.add_index :accounts, :firm_id, :name => idx_name
       indexes = @connection.indexes("accounts")
       assert_equal "accounts", indexes.first.table
-      assert_equal "accounts_firm_id_index", indexes.first.name
+      # OpenBase does not have the concept of a named index
+      # Indexes are merely properties of columns.
+      assert_equal idx_name, indexes.first.name unless current_adapter?(:OpenBaseAdapter)
       assert !indexes.first.unique
       assert_equal ["firm_id"], indexes.first.columns
     else
@@ -33,7 +37,29 @@ class AdapterTest < Test::Unit::TestCase
     end
 
   ensure
-    @connection.remove_index :accounts, :firm_id rescue nil
+    @connection.remove_index(:accounts, :name => idx_name) rescue nil
+  end
+  
+  def test_current_database
+    if @connection.respond_to?(:current_database)
+      assert_equal "activerecord_unittest", @connection.current_database
+    end
+  end
+
+  def test_table_alias
+    def @connection.test_table_alias_length() 10; end
+    class << @connection
+      alias_method :old_table_alias_length, :table_alias_length
+      alias_method :table_alias_length,     :test_table_alias_length
+    end
+      
+    assert_equal 'posts',      @connection.table_alias_for('posts')
+    assert_equal 'posts_comm', @connection.table_alias_for('posts_comments')
+    assert_equal 'dbo_posts',  @connection.table_alias_for('dbo.posts')
+    
+    class << @connection
+      alias_method :table_alias_length, :old_table_alias_length
+    end
   end
 
   # test resetting sequences in odd tables in postgreSQL
@@ -52,7 +78,8 @@ class AdapterTest < Test::Unit::TestCase
 
       sub = Subscriber.new(:name => 'robert drake')
       sub.id = 'bob drake'
-      assert sub.save!
+      assert_nothing_raised { sub.save! }
     end
   end
+
 end

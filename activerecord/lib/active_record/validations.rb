@@ -6,11 +6,11 @@ module ActiveRecord
   #   rescue ActiveRecord::RecordInvalid => invalid
   #     puts invalid.record.errors
   #   end
-  class RecordInvalid < ActiveRecordError
+  class RecordInvalid < ActiveRecordError #:nodoc:
     attr_reader :record
-    def initialize(record, *args)
+    def initialize(record)
       @record = record
-      super(*args)
+      super("Validation failed: #{@record.errors.full_messages.join(", ")}")
     end
   end
 
@@ -31,8 +31,8 @@ module ActiveRecord
       :accepted  => "must be accepted",
       :empty => "can't be empty",
       :blank => "can't be blank",
-      :too_long => "is too long (max is %d characters)",
-      :too_short => "is too short (min is %d characters)",
+      :too_long => "is too long (maximum is %d characters)",
+      :too_short => "is too short (minimum is %d characters)",
       :wrong_length => "is the wrong length (should be %d characters)",
       :taken => "has already been taken",
       :not_a_number => "is not a number"
@@ -147,7 +147,7 @@ module ActiveRecord
     def empty?
       return @errors.empty?
     end
-
+    
     # Removes all the errors that have been added.
     def clear
       @errors = {}
@@ -155,11 +155,14 @@ module ActiveRecord
 
     # Returns the total number of errors added. Two errors added to the same attribute will be counted as such
     # with this as well.
-    def count
+    def size
       error_count = 0
       @errors.each_value { |attribute| error_count += attribute.length }
       error_count
     end
+    
+    alias_method :count, :size
+    alias_method :length, :size
   end
 
 
@@ -212,6 +215,9 @@ module ActiveRecord
       base.class_eval do
         alias_method :save_without_validation, :save
         alias_method :save, :save_with_validation
+
+        alias_method :save_without_validation!, :save!
+        alias_method :save!, :save_with_validation!
 
         alias_method :update_attribute_without_validation_skipping, :update_attribute
         alias_method :update_attribute, :update_attribute_with_validation_skipping
@@ -361,8 +367,14 @@ module ActiveRecord
         end
       end
 
-      # Validates that the specified attributes are not blank (as defined by Object#blank?). Happens by default on save.
+      # Validates that the specified attributes are not blank (as defined by Object#blank?). Happens by default on save. Example:
       #
+      #   class Person < ActiveRecord::Base
+      #     validates_presence_of :first_name
+      #   end
+      #
+      # The first_name attribute must be in the object and it cannot be blank.
+      #      
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "can't be blank")
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
@@ -403,7 +415,7 @@ module ActiveRecord
       # * <tt>in</tt> - A synonym(or alias) for :within
       # * <tt>allow_nil</tt> - Attribute may be nil; skip validation.
       #
-      # * <tt>too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (max is %d characters)")
+      # * <tt>too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (maximum is %d characters)")
       # * <tt>too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)")
       # * <tt>wrong_length</tt> - The error message if using the :is method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)")
       # * <tt>message</tt> - The error message to use for a :minimum, :maximum, or :is violation.  An alias of the appropriate too_long/too_short/wrong_length message
@@ -436,31 +448,35 @@ module ActiveRecord
         option_value = options[range_options.first]
 
         case option
-        when :within, :in
-          raise ArgumentError, ":#{option} must be a Range" unless option_value.is_a?(Range)
+          when :within, :in
+            raise ArgumentError, ":#{option} must be a Range" unless option_value.is_a?(Range)
 
-          too_short = options[:too_short] % option_value.begin
-          too_long  = options[:too_long]  % option_value.end
+            too_short = options[:too_short] % option_value.begin
+            too_long  = options[:too_long]  % option_value.end
 
-          validates_each(attrs, options) do |record, attr, value|
-            if value.nil? or value.size < option_value.begin
-              record.errors.add(attr, too_short)
-            elsif value.size > option_value.end
-              record.errors.add(attr, too_long)
+            validates_each(attrs, options) do |record, attr, value|
+              if value.nil? or value.split(//).size < option_value.begin
+                record.errors.add(attr, too_short)
+              elsif value.split(//).size > option_value.end
+                record.errors.add(attr, too_long)
+              end
             end
-          end
-        when :is, :minimum, :maximum
-          raise ArgumentError, ":#{option} must be a nonnegative Integer" unless option_value.is_a?(Integer) and option_value >= 0
+          when :is, :minimum, :maximum
+            raise ArgumentError, ":#{option} must be a nonnegative Integer" unless option_value.is_a?(Integer) and option_value >= 0
 
-          # Declare different validations per option.
-          validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
-          message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
+            # Declare different validations per option.
+            validity_checks = { :is => "==", :minimum => ">=", :maximum => "<=" }
+            message_options = { :is => :wrong_length, :minimum => :too_short, :maximum => :too_long }
 
-          message = (options[:message] || options[message_options[option]]) % option_value
+            message = (options[:message] || options[message_options[option]]) % option_value
 
-          validates_each(attrs, options) do |record, attr, value|
-            record.errors.add(attr, message) unless !value.nil? and value.size.method(validity_checks[option])[option_value]
-          end
+            validates_each(attrs, options) do |record, attr, value|
+              if value.kind_of?(String)
+                record.errors.add(attr, message) unless !value.nil? and value.split(//).size.method(validity_checks[option])[option_value]
+              else
+                record.errors.add(attr, message) unless !value.nil? and value.size.method(validity_checks[option])[option_value]
+              end
+            end
         end
       end
 
@@ -471,7 +487,14 @@ module ActiveRecord
       # can be named "davidhh".
       #
       #   class Person < ActiveRecord::Base
-      #     validates_uniqueness_of :user_name, :scope => "account_id"
+      #     validates_uniqueness_of :user_name, :scope => :account_id
+      #   end
+      #
+      # It can also validate whether the value of the specified attributes are unique based on multiple scope parameters.  For example,
+      # making sure that a teacher can only be on the schedule once per semester for a particular class. 
+      #
+      #   class TeacherSchedule < ActiveRecord::Base
+      #     validates_uniqueness_of :teacher_id, :scope => [:semester_id, :class_id] 
       #   end
       #
       # When the record is created, a check is performed to make sure that no record exists in the database with the given value for the specified
@@ -479,24 +502,27 @@ module ActiveRecord
       #
       # Configuration options:
       # * <tt>message</tt> - Specifies a custom error message (default is: "has already been taken")
-      # * <tt>scope</tt> - Ensures that the uniqueness is restricted to a condition of "scope = record.scope"
+      # * <tt>scope</tt> - One or more columns by which to limit the scope of the uniquness constraint.
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
+       
       def validates_uniqueness_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken] }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
-          condition_sql = "#{attr_name} #{attribute_condition(value)}"
+          condition_sql = "#{record.class.table_name}.#{attr_name} #{attribute_condition(value)}"
           condition_params = [value]
           if scope = configuration[:scope]
-            scope_value = record.send(scope)
-            condition_sql << " AND #{scope} #{attribute_condition(scope_value)}"
-            condition_params << scope_value
+            Array(scope).map do |scope_item|
+              scope_value = record.send(scope_item)
+              condition_sql << " AND #{record.class.table_name}.#{scope_item} #{attribute_condition(scope_value)}"
+              condition_params << scope_value
+            end
           end
           unless record.new_record?
-            condition_sql << " AND #{record.class.primary_key} <> ?"
+            condition_sql << " AND #{record.class.table_name}.#{record.class.primary_key} <> ?"
             condition_params << record.send(:id)
           end
           if record.class.find(:first, :conditions => [condition_sql, *condition_params])
@@ -696,7 +722,6 @@ module ActiveRecord
     def save_with_validation(perform_validation = true)
       if perform_validation && valid? || !perform_validation
         save_without_validation
-        true
       else
         false
       end
@@ -704,9 +729,9 @@ module ActiveRecord
 
     # Attempts to save the record just like Base#save but will raise a RecordInvalid exception instead of returning false
     # if the record is not valid.
-    def save!
+    def save_with_validation!
       if valid?
-        save(false)
+        save_without_validation!
       else
         raise RecordInvalid.new(self)
       end

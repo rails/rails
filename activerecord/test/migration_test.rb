@@ -6,10 +6,22 @@ require File.dirname(__FILE__) + '/fixtures/migrations/2_we_need_reminders'
 if ActiveRecord::Base.connection.supports_migrations? 
   class Reminder < ActiveRecord::Base; end
 
+  class ActiveRecord::Migration
+    class <<self
+      attr_accessor :message_count
+      def puts(text="")
+        self.message_count ||= 0
+        self.message_count += 1
+      end
+    end
+  end
+
   class MigrationTest < Test::Unit::TestCase
     self.use_transactional_fixtures = false
 
     def setup
+      ActiveRecord::Migration.verbose = true
+      PeopleHaveLastNames.message_count = 0
     end
 
     def teardown
@@ -31,7 +43,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.remove_column("people", "administrator") rescue nil
       Person.reset_column_information
     end
-    
+
     def test_add_index
       Person.connection.add_column "people", "last_name", :string        
       Person.connection.add_column "people", "administrator", :boolean
@@ -42,8 +54,11 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
 
-      assert_nothing_raised { Person.connection.add_index("people", %w(last_name first_name administrator), :name => "named_admin") }
-      assert_nothing_raised { Person.connection.remove_index("people", :name => "named_admin") }
+      # Sybase adapter does not support indexes on :boolean columns
+      unless current_adapter?(:SybaseAdapter)
+        assert_nothing_raised { Person.connection.add_index("people", %w(last_name first_name administrator), :name => "named_admin") }
+        assert_nothing_raised { Person.connection.remove_index("people", :name => "named_admin") }
+      end
     end
 
     def test_create_table_adds_id
@@ -84,7 +99,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       four = columns.detect { |c| c.name == "four" }
 
       assert_equal "hello", one.default
-      if current_adapter?(:OCIAdapter)
+      if current_adapter?(:OracleAdapter)
         # Oracle doesn't support native booleans
         assert_equal true, two.default == 1
         assert_equal false, three.default != 0
@@ -98,10 +113,10 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.drop_table :testings rescue nil
     end
   
-    # SQL Server will not allow you to add a NOT NULL column
+    # SQL Server and Sybase will not allow you to add a NOT NULL column
     # to a table without specifying a default value, so the
     # following test must be skipped  
-    unless current_adapter?(:SQLServerAdapter)
+    unless current_adapter?(:SQLServerAdapter) || current_adapter?(:SybaseAdapter)
       def test_add_column_not_null_without_default
         Person.connection.create_table :testings do |t|
           t.column :foo, :string
@@ -153,8 +168,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal Fixnum, bob.age.class
       assert_equal Time, bob.birthday.class
 
-      if current_adapter?(:SQLServerAdapter) or current_adapter?(:OCIAdapter)
-        # SQL Server and Oracle don't differentiate between date/time
+      if current_adapter?(:SQLServerAdapter) || current_adapter?(:OracleAdapter) || current_adapter?(:SybaseAdapter)
+        # SQL Server, Sybase, and Oracle don't differentiate between date/time
         assert_equal Time, bob.favorite_day.class
       else
         assert_equal Date, bob.favorite_day.class
@@ -241,7 +256,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         ActiveRecord::Base.connection.rename_table :octopuses, :octopi
 
         assert_nothing_raised do
-          if current_adapter?(:OCIAdapter)
+          if current_adapter?(:OracleAdapter)
             # Oracle requires the explicit sequence for the pk
             ActiveRecord::Base.connection.execute "INSERT INTO octopi (id, url) VALUES (octopi_seq.nextval, 'http://www.foreverflying.com/octopus-black7.jpg')"
           else
@@ -258,8 +273,15 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_change_column
-      Person.connection.add_column "people", "bio", :string
-      assert_nothing_raised { Person.connection.change_column "people", "bio", :text }
+      Person.connection.add_column 'people', 'age', :integer
+      old_columns = Person.connection.columns(Person.table_name, "#{name} Columns")
+      assert old_columns.find { |c| c.name == 'age' and c.type == :integer }
+
+      assert_nothing_raised { Person.connection.change_column "people", "age", :string }
+      
+      new_columns = Person.connection.columns(Person.table_name, "#{name} Columns")
+      assert_nil new_columns.find { |c| c.name == 'age' and c.type == :integer }
+      assert new_columns.find { |c| c.name == 'age' and c.type == :string }
     end    
 
     def test_change_column_with_new_default
@@ -338,6 +360,24 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Reminder.table_exists?
     end
     
+    def test_migrator_verbosity
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
+      assert PeopleHaveLastNames.message_count > 0
+      PeopleHaveLastNames.message_count = 0
+
+      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
+      assert PeopleHaveLastNames.message_count > 0
+      PeopleHaveLastNames.message_count = 0
+    end
+    
+    def test_migrator_verbosity_off
+      PeopleHaveLastNames.verbose = false
+      ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
+      assert PeopleHaveLastNames.message_count.zero?
+      ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
+      assert PeopleHaveLastNames.message_count.zero?
+    end
+    
     def test_migrator_going_down_due_to_version_target
       ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
       ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
@@ -413,6 +453,23 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.table_name_suffix = ''
       Reminder.reset_table_name
       Reminder.reset_sequence_name
+    end
+
+    def test_create_table_with_binary_column
+      Person.connection.drop_table :binary_testings rescue nil
+    
+      assert_nothing_raised {
+        Person.connection.create_table :binary_testings do |t|
+          t.column "data", :binary, :default => "", :null => false
+        end
+      }
+      
+      columns = Person.connection.columns(:binary_testings)
+      data_column = columns.detect { |c| c.name == "data" }
+      
+      assert_equal "", data_column.default
+      
+      Person.connection.drop_table :binary_testings rescue nil
     end
 
     def test_migrator_with_duplicates

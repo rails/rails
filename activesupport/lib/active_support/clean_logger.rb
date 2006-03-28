@@ -1,5 +1,5 @@
 require 'logger'
-require File.dirname(__FILE__) + '/class_attribute_accessors'
+require File.dirname(__FILE__) + '/core_ext/class/attribute_accessors'
 
 class Logger #:nodoc:
   cattr_accessor :silencer
@@ -20,6 +20,8 @@ class Logger #:nodoc:
   end
 
   private
+    alias old_format_message format_message
+
     # Ruby 1.8.3 transposed the msg and progname arguments to format_message.
     # We can't test RUBY_VERSION because some distributions don't keep Ruby
     # and its standard library in sync, leading to installations of Ruby 1.8.2

@@ -150,6 +150,11 @@ module HTML #:nodoc:
             end
           end
 
+          if scanner.skip(/!\[CDATA\[/)
+            scanner.scan_until(/\]\]>/)
+            return CDATA.new(parent, line, pos, scanner.pre_match)
+          end
+          
           closing = ( scanner.scan(/\//) ? :close : nil )
           return Text.new(parent, line, pos, content) unless name = scanner.scan(/[\w:]+/)
           name.downcase!
@@ -254,6 +259,14 @@ module HTML #:nodoc:
     def ==(node)
       return false unless super
       content == node.content
+    end
+  end
+  
+  # A CDATA node is simply a text node with a specialized way of displaying
+  # itself.
+  class CDATA < Text #:nodoc:
+    def to_s
+      "<![CDATA[#{super}]>"
     end
   end
 
@@ -399,7 +412,13 @@ module HTML #:nodoc:
       conditions = validate_conditions(conditions)
 
       # check content of child nodes
-      return false unless children.find { |child| child.match(conditions[:content]) } if conditions[:content]
+      if conditions[:content]
+        if children.empty?
+          return false unless match_condition("", conditions[:content])
+        else
+          return false unless children.find { |child| child.match(conditions[:content]) }
+        end
+      end
 
       # test the name
       return false unless match_condition(@name, conditions[:tag]) if conditions[:tag]

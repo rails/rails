@@ -7,7 +7,12 @@ class TestTest < Test::Unit::TestCase
       flash["test"] = ">#{flash["test"]}<"
       render :text => 'ignore me'
     end
-    
+
+    def render_raw_post
+      raise Test::Unit::AssertionFailedError, "#raw_post is blank" if request.raw_post.blank?
+      render :text => request.raw_post
+    end
+
     def test_params
       render :text => params.inspect
     end                         
@@ -44,6 +49,24 @@ HTML
     def test_remote_addr
       render :text => (request.remote_addr || "not specified")
     end
+    
+    def test_file_upload
+      render :text => params[:file].size
+    end
+
+    def redirect_to_symbol
+      redirect_to :generate_url, :id => 5
+    end
+
+    private
+    
+      def rescue_action(e)
+        raise e
+      end
+
+      def generate_url(opts)
+        url_for(opts.merge(:action => "test_uri"))
+      end
   end
 
   def setup
@@ -55,6 +78,14 @@ HTML
 
   def teardown
     ActionController::Routing::Routes.reload
+  end
+
+  def test_raw_post_handling
+    params = {:page => {:name => 'page name'}, 'some key' => 123}
+    get :render_raw_post, params.dup
+
+    raw_post = params.map {|k,v| [CGI::escape(k.to_s), CGI::escape(v.to_s)].join('=')}.sort.join('&')
+    assert_equal raw_post, @response.body
   end
 
   def test_process_without_flash
@@ -327,6 +358,12 @@ HTML
     assert_nil @request.env['HTTP_X_REQUESTED_WITH']
   end
 
+   def test_header_properly_reset_after_get_request
+    get :test_params
+    @request.recycle!
+    assert_nil @request.instance_variable_get("@request_method")
+  end
+
   %w(controller response request).each do |variable|
     %w(get post put delete head process).each do |method|
       define_method("test_#{variable}_missing_for_#{method}_raises_error") do
@@ -342,5 +379,33 @@ HTML
         end
       end
     end
+  end
+  
+  FILES_DIR = File.dirname(__FILE__) + '/../fixtures/multipart'
+  
+  def test_test_uploaded_file
+    filename = 'mona_lisa.jpg'
+    path = "#{FILES_DIR}/#{filename}"
+    content_type = 'image/png'
+    
+    file = ActionController::TestUploadedFile.new(path, content_type)
+    assert_equal filename, file.original_filename
+    assert_equal content_type, file.content_type
+    assert_equal file.path, file.local_path
+    assert_equal File.read(path), file.read
+  end
+  
+  def test_fixture_file_upload
+    post :test_file_upload, :file => fixture_file_upload(FILES_DIR + "/mona_lisa.jpg", "image/jpg")
+    assert_equal 159528, @response.body
+  end
+  
+  def test_test_uploaded_file_exception_when_file_doesnt_exist
+    assert_raise(RuntimeError) { ActionController::TestUploadedFile.new('non_existent_file') }
+  end
+
+  def test_assert_redirected_to_symbol
+    get :redirect_to_symbol
+    assert_redirected_to :generate_url
   end
 end

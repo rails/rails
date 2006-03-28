@@ -6,7 +6,7 @@ module ActiveRecord
       def quote(value, column = nil)
         case value
           when String
-            if column && column.type == :binary
+            if column && column.type == :binary && column.class.respond_to?(:string_to_binary)
               "'#{quote_string(column.class.string_to_binary(value))}'" # ' (for ruby-mode)
             elsif column && [:integer, :float].include?(column.type) 
               value.to_s

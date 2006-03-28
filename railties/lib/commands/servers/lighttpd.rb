@@ -1,3 +1,5 @@
+require 'rbconfig'
+
 unless RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `lighttpd -version` }.blank?
   puts "PROBLEM: Lighttpd is not available on your system (or not in your path)"
   exit 1
@@ -10,15 +12,32 @@ end
 
 require 'initializer'
 configuration = Rails::Initializer.run(:initialize_logger).configuration
+default_config_file = config_file = Pathname.new("#{RAILS_ROOT}/config/lighttpd.conf").cleanpath
 
-config_file = "#{RAILS_ROOT}/config/lighttpd.conf"
+require 'optparse'
+
+detach = false
+
+ARGV.options do |opt|
+  opt.on('-c', "--config=#{config_file}", 'Specify a different lighttpd config file.') { |path| config_file = path }
+  opt.on('-h', '--help', 'Show this message.') { puts opt; exit 0 }
+  opt.on('-d', '-d', 'Call with -d to detach') { detach = true; puts "=> Configuration in config/lighttpd.conf" }
+  opt.parse!
+end
 
 unless File.exist?(config_file)
+  if config_file != default_config_file
+    puts "=> #{config_file} not found."
+    exit 1
+  end
+
   require 'fileutils'
+
   source = File.expand_path(File.join(File.dirname(__FILE__),
      "..", "..", "..", "configs", "lighttpd.conf"))
   puts "=> #{config_file} not found, copying from #{source}"
-  FileUtils.cp source, config_file
+
+  FileUtils.cp(source, config_file)
 end
 
 config = IO.read(config_file)
@@ -29,11 +48,8 @@ puts "=> Rails application started on http://#{ip || default_ip}:#{port || defau
 
 tail_thread = nil
 
-if ARGV.first == "-d"
-  puts "=> Configure in config/lighttpd.conf"
-  detach = true
-else
-  puts "=> Call with -d to detach (requires absolute paths in config/lighttpd.conf)"
+if !detach
+  puts "=> Call with -d to detach"
   puts "=> Ctrl-C to shutdown server (see config/lighttpd.conf for options)"
   detach = false
 
@@ -56,5 +72,21 @@ else
 end
 
 trap(:INT) { exit }
-`lighttpd #{!detach ? "-D " : ""}-f #{config_file}`
-tail_thread.kill if tail_thread
+
+begin
+  `rake tmp:sockets:clear` # Needed if lighttpd crashes or otherwise leaves FCGI sockets around
+  `lighttpd #{!detach ? "-D " : ""}-f #{config_file}`
+ensure
+  unless detach
+    tail_thread.kill if tail_thread
+    puts 'Exiting'
+  
+    # Ensure FCGI processes are reaped
+    silence_stream(STDOUT) do
+      ARGV.replace ['-a', 'kill']
+      require 'commands/process/reaper'
+    end
+
+    `rake tmp:sockets:clear` # Remove sockets on clean shutdown
+  end
+end

@@ -8,16 +8,16 @@ module ActionController #:nodoc:
   #
   # Note: To turn off all caching and sweeping, set Base.perform_caching = false.
   module Caching
-    def self.append_features(base) #:nodoc:
-      super
+    def self.included(base) #:nodoc:
       base.send(:include, Pages, Actions, Fragments, Sweeping)
+
       base.class_eval do
         @@perform_caching = true
         cattr_accessor :perform_caching
       end
     end
 
-    # Page caching is an approach to caching where the entire action output of is stored as a HTML file that the web server 
+    # Page caching is an approach to caching where the entire action output of is stored as a HTML file that the web server
     # can serve without going through the Action Pack. This can be as much as 100 times faster than going through the process of dynamically
     # generating the content. Unfortunately, this incredible speed-up is only available to stateless pages where all visitors
     # are treated the same. Content management systems -- including weblogs and wikis -- have many pages that are a great fit
@@ -78,7 +78,7 @@ module ActionController #:nodoc:
             File.delete(page_cache_path(path)) if File.exists?(page_cache_path(path))
           end
         end
-        
+
         # Manually cache the +content+ in the key determined by +path+. Example:
         #   cache_page "I'm the cached content", "/lists/show"
         def cache_page(content, path)
@@ -94,18 +94,18 @@ module ActionController #:nodoc:
         # matches the triggering url.
         def caches_page(*actions)
           return unless perform_caching
-          actions.each do |action| 
+          actions.each do |action|
             class_eval "after_filter { |c| c.cache_page if c.action_name == '#{action}' }"
           end
         end
-        
+
         private
           def page_cache_file(path)
             name = ((path.empty? || path == "/") ? "/index" : URI.unescape(path))
             name << page_cache_extension unless (name.split('/').last || name).include? '.'
             return name
           end
-        
+
           def page_cache_path(path)
             page_cache_directory + page_cache_file(path)
           end
@@ -134,11 +134,11 @@ module ActionController #:nodoc:
 
       private
         def caching_allowed
-          !@request.post?
+          !@request.post? && @response.headers['Status'] && @response.headers['Status'].to_i < 400
         end
     end
 
-    # Action caching is similar to page caching by the fact that the entire output of the response is cached, but unlike page caching, 
+    # Action caching is similar to page caching by the fact that the entire output of the response is cached, but unlike page caching,
     # every request still goes through the Action Pack. The key benefit of this is that filters are run before the cache is served, which
     # allows for authentication and other restrictions on whether someone is allowed to see the cache. Example:
     #
@@ -184,7 +184,7 @@ module ActionController #:nodoc:
         def initialize(*actions)
           @actions = actions
         end
-        
+
         def before(controller)
           return unless @actions.include?(controller.action_name.intern)
           if cache = controller.read_fragment(controller.url_for.split("://").last)
@@ -193,7 +193,7 @@ module ActionController #:nodoc:
             false
           end
         end
-        
+
         def after(controller)
           return if !@actions.include?(controller.action_name.intern) || controller.rendered_action_cache
           controller.write_fragment(controller.url_for.split("://").last, controller.response.body)
@@ -211,7 +211,7 @@ module ActionController #:nodoc:
     #     <%= render_collection_of_partials "topic", Topic.find_all %>
     #   <% end %>
     #
-    # This cache will bind to the name of action that called it. So you would be able to invalidate it using 
+    # This cache will bind to the name of action that called it. So you would be able to invalidate it using
     # <tt>expire_fragment(:controller => "topics", :action => "list")</tt> -- if that was the controller/action used. This is not too helpful
     # if you need to cache multiple fragments per action or if the action itself is cached using <tt>caches_action</tt>. So instead we should
     # qualify the name of the action used with something like:
@@ -272,7 +272,7 @@ module ActionController #:nodoc:
       # Called by CacheHelper#cache
       def cache_erb_fragment(block, name = {}, options = nil)
         unless perform_caching then block.call; return end
-        
+
         buffer = eval("_erbout", block.binding)
 
         if cache = read_fragment(name, options)
@@ -283,7 +283,7 @@ module ActionController #:nodoc:
           write_fragment(name, buffer[pos..-1], options)
         end
       end
-      
+
       def write_fragment(name, content, options = nil)
         return unless perform_caching
 
@@ -293,7 +293,7 @@ module ActionController #:nodoc:
         end
         content
       end
-      
+
       def read_fragment(name, options = nil)
         return unless perform_caching
 
@@ -302,11 +302,11 @@ module ActionController #:nodoc:
           fragment_cache_store.read(key, options)
         end
       end
-      
+
       # Name can take one of three forms:
       # * String: This would normally take the form of a path like "pages/45/notes"
       # * Hash: Is treated as an implicit call to url_for, like { :controller => "pages", :action => "notes", :id => 45 }
-      # * Regexp: Will destroy all the matched fragments, example: %r{pages/\d*/notes}
+      # * Regexp: Will destroy all the matched fragments, example: %r{pages/\d*/notes} Ensure you do not specify start and finish in the regex (^$) because the actual filename matched looks like ./cache/filename/path.cache
       def expire_fragment(name, options = nil)
         return unless perform_caching
 
@@ -355,15 +355,15 @@ module ActionController #:nodoc:
         def read(name, options=nil) #:nodoc:
           @mutex.synchronize { super }
         end
-        
+
         def write(name, value, options=nil) #:nodoc:
           @mutex.synchronize { super }
         end
-        
+
         def delete(name, options=nil) #:nodoc:
           @mutex.synchronize { super }
         end
-        
+
         def delete_matched(matcher, options=nil) #:nodoc:
           @mutex.synchronize { super }
         end
@@ -386,26 +386,28 @@ module ActionController #:nodoc:
           super()
           @address = address
           @data = DRbObject.new(nil, address)
-        end    
+        end
       end
 
       class MemCacheStore < MemoryStore #:nodoc:
-        attr_reader :address
+        attr_reader :addresses
 
-        def initialize(address = 'localhost')
+        def initialize(*addresses)
           super()
-          @address = address
-          @data = MemCache.new(address)
-        end    
+          addresses = addresses.flatten
+          addresses = ["localhost"] if addresses.empty?
+          @addresses = addresses
+          @data = MemCache.new(*addresses)
+        end
       end
 
       class UnthreadedFileStore #:nodoc:
         attr_reader :cache_path
-        
+
         def initialize(cache_path)
           @cache_path = cache_path
         end
-    
+
         def write(name, value, options = nil) #:nodoc:
           ensure_cache_path(File.dirname(real_file_path(name)))
           File.open(real_file_path(name), "wb+") { |f| f.write(value) }
@@ -426,7 +428,7 @@ module ActionController #:nodoc:
         def delete_matched(matcher, options) #:nodoc:
           search_dir(@cache_path) do |f|
             if f =~ matcher
-              begin 
+              begin
                 File.delete(f)
               rescue Object => e
                 # If there's no cache, then there's nothing to complain about
@@ -434,12 +436,12 @@ module ActionController #:nodoc:
             end
           end
         end
-    
+
         private
           def real_file_path(name)
             '%s/%s.cache' % [@cache_path, name.gsub('?', '.').gsub(':', '.')]
           end
-        
+
           def ensure_cache_path(path)
             FileUtils.makedirs(path) unless File.exists?(path)
           end
@@ -470,10 +472,10 @@ module ActionController #:nodoc:
 
     # Sweepers are the terminators of the caching world and responsible for expiring caches when model objects change.
     # They do this by being half-observers, half-filters and implementing callbacks for both roles. A Sweeper example:
-    # 
+    #
     #   class ListSweeper < ActionController::Caching::Sweeper
     #     observe List, Item
-    #   
+    #
     #     def after_save(record)
     #       list = record.is_a?(List) ? record : record.list
     #       expire_page(:controller => "lists", :action => %w( show public feed ), :id => list.id)
@@ -518,6 +520,10 @@ module ActionController #:nodoc:
     if defined?(ActiveRecord) and defined?(ActiveRecord::Observer)
       class Sweeper < ActiveRecord::Observer #:nodoc:
         attr_accessor :controller
+
+        # ActiveRecord::Observer will mark this class as reloadable even though it should not be.
+        # However, subclasses of ActionController::Caching::Sweeper should be Reloadable
+        include Reloadable::Subclasses
         
         def before(controller)
           self.controller = controller
@@ -526,17 +532,19 @@ module ActionController #:nodoc:
 
         def after(controller)
           callback(:after)
+          # Clean up, so that the controller can be collected after this request
+          self.controller = nil
         end
-        
+
         private
           def callback(timing)
             controller_callback_method_name = "#{timing}_#{controller.controller_name.underscore}"
             action_callback_method_name     = "#{controller_callback_method_name}_#{controller.action_name}"
-            
+
             send(controller_callback_method_name) if respond_to?(controller_callback_method_name)
             send(action_callback_method_name)     if respond_to?(action_callback_method_name)
           end
-        
+
           def method_missing(method, *arguments)
             return if @controller.nil?
             @controller.send(method, *arguments)

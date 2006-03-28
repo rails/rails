@@ -1,0 +1,11 @@
+david_welcome_general:
+  id: 1
+  author_id: 1
+  post_id: 1
+  category_id: 1
+  
+mary_thinking_sti:
+  id: 2
+  author_id: 2
+  post_id: 2
+  category_id: 3

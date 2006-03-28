@@ -1,12 +1,13 @@
 STATS_DIRECTORIES = [
-  %w(Helpers           app/helpers), 
-  %w(Controllers       app/controllers), 
-  %w(APIs              app/apis),
-  %w(Components        components),
-  %w(Functional\ tests test/functional),
-  %w(Models            app/models),
-  %w(Unit\ tests       test/unit),
-  %w(Libraries         lib/)
+  %w(Helpers            app/helpers), 
+  %w(Controllers        app/controllers), 
+  %w(APIs               app/apis),
+  %w(Components         components),
+  %w(Functional\ tests  test/functional),
+  %w(Models             app/models),
+  %w(Unit\ tests        test/unit),
+  %w(Libraries          lib/),
+  %w(Integration\ tests test/integration)
 ].collect { |name, dir| [ name, "#{RAILS_ROOT}/#{dir}" ] }.select { |name, dir| File.directory?(dir) }
 
 desc "Report code statistics (KLOCs, etc) from the application"

@@ -17,6 +17,9 @@ module ActionController
     # This tiny piece of code will add all of the following methods to the controller:
     #
     #  class WeblogController < ActionController::Base
+    #    verify :method => :post, :only => [ :destroy, :create, :update ],
+    #           :redirect_to => { :action => :list }
+    #
     #    def index
     #      list
     #    end
@@ -98,6 +101,11 @@ module ActionController
         end
         
         module_eval <<-"end_eval", __FILE__, __LINE__
+          
+          verify :method => :post, :only => [ :destroy#{suffix}, :create#{suffix}, :update#{suffix} ],
+                 :redirect_to => { :action => :list#{suffix} }
+          
+        
           def list#{suffix}
             @#{singular_name}_pages, @#{plural_name} = paginate :#{plural_name}, :per_page => 10
             render#{suffix}_scaffold "list#{suffix}"

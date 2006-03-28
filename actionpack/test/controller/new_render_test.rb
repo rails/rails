@@ -9,6 +9,12 @@ module Fun
   end
 end
 
+module NewRenderTestHelper
+  def rjs_helper_method_from_module
+    page.visual_effect :highlight
+  end
+end
+
 class NewRenderTestController < ActionController::Base
   layout :determine_layout
 
@@ -30,6 +36,10 @@ class NewRenderTestController < ActionController::Base
   def render_action_hello_world
     render :action => "hello_world"
   end
+
+  def render_action_hello_world_as_symbol
+    render :action => :hello_world
+  end
   
   def render_text_hello_world
     render :text => "hello world"
@@ -38,6 +48,10 @@ class NewRenderTestController < ActionController::Base
   def render_text_hello_world_with_layout
     @variable_for_layout = ", I'm here!"
     render :text => "hello world", :layout => true
+  end
+
+  def hello_world_with_layout_false
+    render :layout => false
   end
 
   def render_custom_code
@@ -59,7 +73,17 @@ class NewRenderTestController < ActionController::Base
     @secret = 'in the sauce'
     render :file => 'test/render_file_with_ivar', :use_full_path => true
   end
+ 
+  def render_file_not_using_full_path_with_relative_path
+    @secret = 'in the sauce'
+    render :file => 'test/../test/render_file_with_ivar', :use_full_path => true
+  end
   
+  def render_file_not_using_full_path_with_dot_in_path
+    @secret = 'in the sauce'
+    render :file => 'test/dot.directory/render_file_with_ivar', :use_full_path => true
+  end
+
   def render_xml_hello
     @name = "David"
     render :template => "test/hello"
@@ -170,6 +194,62 @@ class NewRenderTestController < ActionController::Base
     render :action => "potential_conflicts"
   end
 
+  def hello_world_from_rxml_using_action
+    render :action => "hello_world.rxml"
+  end
+
+  def hello_world_from_rxml_using_template
+    render :template => "test/hello_world.rxml"
+  end
+
+  helper NewRenderTestHelper
+  helper do 
+    def rjs_helper_method(value)
+      page.visual_effect :highlight, value
+    end
+  end
+
+  def enum_rjs_test
+    render :update do |page|
+      page.select('.product').each do |value|
+        page.rjs_helper_method_from_module
+        page.rjs_helper_method(value)
+        page.sortable(value, :url => { :action => "order" })
+        page.draggable(value)
+      end
+    end
+  end
+
+  def delete_with_js
+    @project_id = 4
+  end
+
+  def render_js_with_explicit_template
+    @project_id = 4
+    render :template => 'test/delete_with_js'
+  end
+
+  def render_js_with_explicit_action_template
+    @project_id = 4
+    render :action => 'delete_with_js'
+  end
+
+  def update_page
+    render :update do |page|
+      page.replace_html 'balance', '$37,000,000.00'
+      page.visual_effect :highlight, 'balance'
+    end
+  end
+  
+  def update_page_with_instance_variables
+    @money = '$37,000,000.00'
+    @div_id = 'balance'
+    render :update do |page|
+      page.replace_html @div_id, @money
+      page.visual_effect :highlight, @div_id
+    end
+  end
+
   def action_talk_to_layout
     # Action template sets variable that's picked up by layout
   end
@@ -191,10 +271,15 @@ class NewRenderTestController < ActionController::Base
         when "hello_world", "layout_test", "rendering_without_layout",
              "rendering_nothing_on_layout", "render_text_hello_world",
              "render_text_hello_world_with_layout",
+             "hello_world_with_layout_false",
              "partial_only", "partial_only_with_layout",
              "accessing_params_in_template",
              "accessing_params_in_template_with_layout",
-             "render_with_explicit_template"
+             "render_with_explicit_template",
+             "render_js_with_explicit_template",
+             "render_js_with_explicit_action_template",
+             "delete_with_js", "update_page", "update_page_with_instance_variables"
+    
           "layouts/standard"
         when "builder_layout_test"
           "layouts/builder"
@@ -243,6 +328,11 @@ class NewRenderTest < Test::Unit::TestCase
     assert_template "test/hello_world"
   end
 
+  def test_do_with_render_action_as_symbol
+    get :render_action_hello_world_as_symbol
+    assert_template "test/hello_world"
+  end
+
   def test_do_with_render_text
     get :render_text_hello_world
     assert_equal "hello world", @response.body
@@ -251,6 +341,11 @@ class NewRenderTest < Test::Unit::TestCase
   def test_do_with_render_text_and_layout
     get :render_text_hello_world_with_layout
     assert_equal "<html>hello world, I'm here!</html>", @response.body
+  end
+
+  def test_do_with_render_action_and_layout_false
+    get :hello_world_with_layout_false
+    assert_equal 'Hello world!', @response.body
   end
 
   def test_do_with_render_custom_code
@@ -265,6 +360,16 @@ class NewRenderTest < Test::Unit::TestCase
 
   def test_render_file_not_using_full_path
     get :render_file_not_using_full_path 
+    assert_equal "The secret is in the sauce\n", @response.body
+  end
+
+  def test_render_file_not_using_full_path_with_relative_path
+    get :render_file_not_using_full_path_with_relative_path
+    assert_equal "The secret is in the sauce\n", @response.body
+  end
+
+  def test_render_file_not_using_full_path_with_dot_in_path
+    get :render_file_not_using_full_path_with_dot_in_path
     assert_equal "The secret is in the sauce\n", @response.body
   end
 
@@ -305,9 +410,36 @@ class NewRenderTest < Test::Unit::TestCase
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
   end
 
+  def test_enum_rjs_test
+    get :enum_rjs_test
+    assert_equal <<-EOS.strip, @response.body
+$$(".product").each(function(value, index) {
+new Effect.Highlight(element,{});
+new Effect.Highlight(value,{});
+Sortable.create(value, {onUpdate:function(){new Ajax.Request('/test/order', {asynchronous:true, evalScripts:true, parameters:Sortable.serialize(value)})}});
+new Draggable(value, {});
+});
+EOS
+  end
+
   def test_render_xml_with_default
     get :greeting
     assert_equal "<p>This is grand!</p>\n", @response.body
+  end
+
+  def test_render_rjs_with_default
+    get :delete_with_js
+    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight(\"project-4\",{});!, @response.body
+  end
+
+  def test_render_rjs_template_explicitly
+    get :render_js_with_explicit_template
+    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight(\"project-4\",{});!, @response.body
+  end
+
+  def test_rendering_rjs_action_explicitly
+    get :render_js_with_explicit_action_template
+    assert_equal %!["person"].each(Element.remove);\nnew Effect.Highlight(\"project-4\",{});!, @response.body
   end
 
   def test_layout_rendering
@@ -437,8 +569,32 @@ class NewRenderTest < Test::Unit::TestCase
     assert_equal "world", assigns["hello"]
   end
   
+  def test_update_page
+    get :update_page
+    assert_template nil
+    assert_equal 'text/javascript; charset=UTF-8', @response.headers['Content-Type']
+    assert_equal 2, @response.body.split($/).length
+  end
+  
+  def test_update_page_with_instance_variables
+    get :update_page_with_instance_variables
+    assert_template nil
+    assert_equal 'text/javascript; charset=UTF-8', @response.headers['Content-Type']
+    assert_match /balance/, @response.body
+    assert_match /\$37/, @response.body
+  end
+  
   def test_yield_content_for
     get :yield_content_for
     assert_equal "<title>Putting stuff in the title!</title>\n\nGreat stuff!\n", @response.body
+  end
+
+
+  def test_overwritting_rendering_relative_file_with_extension
+    get :hello_world_from_rxml_using_template
+    assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
+
+    get :hello_world_from_rxml_using_action
+    assert_equal "<html>\n  <p>Hello</p>\n</html>\n", @response.body
   end
 end

@@ -1,36 +1,7 @@
 module ActiveRecord
   module Reflection # :nodoc:
-    def self.append_features(base)
-      super
+    def self.included(base)
       base.extend(ClassMethods)
-
-      base.class_eval do
-        class << self
-          alias_method :composed_of_without_reflection, :composed_of
-
-          def composed_of_with_reflection(part_id, options = {})
-            composed_of_without_reflection(part_id, options)
-            reflect_on_all_aggregations << AggregateReflection.new(:composed_of, part_id, options, self)
-          end
-
-          alias_method :composed_of, :composed_of_with_reflection
-        end
-      end
-
-      for association_type in %w( belongs_to has_one has_many has_and_belongs_to_many )
-        base.module_eval <<-"end_eval"
-          class << self
-            alias_method :#{association_type}_without_reflection, :#{association_type}
-      
-            def #{association_type}_with_reflection(association_id, options = {}, &block)
-              #{association_type}_without_reflection(association_id, options, &block)      
-              reflect_on_all_associations << AssociationReflection.new(:#{association_type}, association_id, options, self)
-            end
-      
-            alias_method :#{association_type}, :#{association_type}_with_reflection
-          end
-        end_eval
-      end
     end
 
     # Reflection allows you to interrogate Active Record classes and objects about their associations and aggregations.
@@ -39,26 +10,46 @@ module ActiveRecord
     #
     # You can find the interface for the AggregateReflection and AssociationReflection classes in the abstract MacroReflection class.
     module ClassMethods
+      def create_reflection(macro, name, options, active_record)
+        case macro
+          when :has_many, :belongs_to, :has_one, :has_and_belongs_to_many
+            reflection = AssociationReflection.new(macro, name, options, active_record)
+          when :composed_of
+            reflection = AggregateReflection.new(macro, name, options, active_record)
+        end
+        write_inheritable_hash :reflections, name => reflection
+        reflection
+      end
+      
+      def reflections
+        read_inheritable_attribute(:reflections) or write_inheritable_attribute(:reflections, {})
+      end
+      
       # Returns an array of AggregateReflection objects for all the aggregations in the class.
       def reflect_on_all_aggregations
-        read_inheritable_attribute(:aggregations) or write_inheritable_attribute(:aggregations, [])
+        reflections.values.select { |reflection| reflection.is_a?(AggregateReflection) }
       end
 
       # Returns the AggregateReflection object for the named +aggregation+ (use the symbol). Example:
       #   Account.reflect_on_aggregation(:balance) # returns the balance AggregateReflection
       def reflect_on_aggregation(aggregation)
-        reflect_on_all_aggregations.find { |reflection| reflection.name == aggregation } unless reflect_on_all_aggregations.nil?
+        reflections[aggregation].is_a?(AggregateReflection) ? reflections[aggregation] : nil
       end
 
-      # Returns an array of AssociationReflection objects for all the aggregations in the class.
-      def reflect_on_all_associations
-        read_inheritable_attribute(:associations) or write_inheritable_attribute(:associations, [])
+      # Returns an array of AssociationReflection objects for all the aggregations in the class. If you only want to reflect on a
+      # certain association type, pass in the symbol (:has_many, :has_one, :belongs_to) for that as the first parameter. Example:
+      # Account.reflect_on_all_associations             # returns an array of all associations
+      # Account.reflect_on_all_associations(:has_many)  # returns an array of all has_many associations
+      def reflect_on_all_associations(macro = nil)
+        association_reflections = reflections.values.select { |reflection| reflection.is_a?(AssociationReflection) }
+        macro ? association_reflections.select { |reflection| reflection.macro == macro } : association_reflections
       end
 
       # Returns the AssociationReflection object for the named +aggregation+ (use the symbol). Example:
       #   Account.reflect_on_association(:owner) # returns the owner AssociationReflection
+      #   Invoice.reflect_on_association(:line_items).macro  # returns :has_many
       def reflect_on_association(association)
-        reflect_on_all_associations.find { |reflection| reflection.name == association }
+        reflections[association].is_a?(AssociationReflection) ? reflections[association] : nil
       end
     end
 
@@ -92,6 +83,10 @@ module ActiveRecord
       # Returns the class for the macro, so "composed_of :balance, :class_name => 'Money'" would return the Money class and
       # "has_many :clients" would return the Client class.
       def klass() end
+        
+      def class_name
+        @class_name ||= name_to_class_name(name.id2name)
+      end
 
       def ==(other_aggregation)
         name == other_aggregation.name && other_aggregation.options && active_record == other_aggregation.active_record
@@ -102,7 +97,7 @@ module ActiveRecord
     # Holds all the meta-data about an aggregation as it was specified in the Active Record class.
     class AggregateReflection < MacroReflection #:nodoc:
       def klass
-        Object.const_get(options[:class_name] || name_to_class_name(name.id2name))
+        @klass ||= Object.const_get(class_name)
       end
 
       private
@@ -114,11 +109,74 @@ module ActiveRecord
     # Holds all the meta-data about an association as it was specified in the Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
       def klass
-        @klass ||= active_record.send(:compute_type, (name_to_class_name(name.id2name)))
+        @klass ||= active_record.send(:compute_type, class_name)
       end
 
       def table_name
         @table_name ||= klass.table_name
+      end
+
+      def primary_key_name
+        return @primary_key_name if @primary_key_name
+        case
+          when macro == :belongs_to
+            @primary_key_name = options[:foreign_key] || class_name.foreign_key
+          when options[:as]
+            @primary_key_name = options[:foreign_key] || "#{options[:as]}_id"
+          else
+            @primary_key_name = options[:foreign_key] || active_record.name.foreign_key
+        end
+      end
+      
+      def association_foreign_key
+        @association_foreign_key ||= @options[:association_foreign_key] || class_name.foreign_key
+      end
+
+      def counter_cache_column
+        if options[:counter_cache] == true
+          "#{active_record.name.underscore.pluralize}_count"
+        elsif options[:counter_cache]
+          options[:counter_cache]
+        end
+      end
+
+      def through_reflection
+        @through_reflection ||= options[:through] ? active_record.reflect_on_association(options[:through]) : false
+      end
+
+      # Gets an array of possible :through source reflection names
+      #
+      #   [singularized, pluralized]
+      def source_reflection_names
+        @source_reflection_names ||= (options[:source] ? [options[:source]] : [name.to_s.singularize, name]).collect { |n| n.to_sym }
+      end
+
+      # Gets the source of the through reflection.  It checks both a singularized and pluralized form for :belongs_to or :has_many.
+      # (The :tags association on Tagging below)
+      # 
+      #   class Post
+      #     has_many :tags, :through => :taggings
+      #   end
+      #
+      def source_reflection
+        return nil unless through_reflection
+        @source_reflection ||= source_reflection_names.collect { |name| through_reflection.klass.reflect_on_association(name) }.compact.first
+      end
+
+      def check_validity!
+        if options[:through]
+          if through_reflection.nil?
+            raise HasManyThroughAssociationNotFoundError.new(self)
+          end
+          
+          if source_reflection.nil?
+            raise HasManyThroughSourceAssociationNotFoundError.new(self)
+          end
+          
+          if source_reflection.options[:polymorphic]
+            raise HasManyThroughAssociationPolymorphicError.new(class_name, @reflection, source_reflection)
+          end
+        end
       end
 
       private
@@ -126,11 +184,15 @@ module ActiveRecord
           if name =~ /::/
             name
           else
-            unless class_name = options[:class_name]
+            if options[:class_name]
+              options[:class_name]
+            elsif through_reflection # get the class_name of the belongs_to association of the through reflection
+              source_reflection.class_name
+            else
               class_name = name.to_s.camelize
-              class_name = class_name.singularize if [:has_many, :has_and_belongs_to_many].include?(macro)
+              class_name = class_name.singularize if [ :has_many, :has_and_belongs_to_many ].include?(macro)
+              class_name
             end
-            active_record.send(:type_name_with_module, class_name)
           end
         end
     end

@@ -4,6 +4,11 @@ CREATE TABLE 'accounts' (
   'credit_limit' INTEGER DEFAULT NULL
 );
 
+CREATE TABLE 'funny_jokes' (
+  'id' INTEGER PRIMARY KEY NOT NULL,
+  'name' TEXT DEFAULT NULL
+);
+
 CREATE TABLE 'companies' (
   'id' INTEGER PRIMARY KEY NOT NULL,
   'type' VARCHAR(255) DEFAULT NULL,
@@ -118,6 +123,12 @@ CREATE TABLE 'people' (
   'lock_version' INTEGER NOT NULL DEFAULT 0
 );
 
+CREATE TABLE 'readers' (
+    'id' INTEGER NOT NULL PRIMARY KEY,
+    'post_id' INTEGER NOT NULL,
+    'person_id' INTEGER NOT NULL
+);
+
 CREATE TABLE 'binaries' (
   'id' INTEGER NOT NULL PRIMARY KEY,
   'data' BLOB DEFAULT NULL
@@ -181,3 +192,10 @@ CREATE TABLE 'keyboards' (
   'key_number' INTEGER PRIMARY KEY NOT NULL,
   'name' VARCHAR(255) DEFAULT NULL
 );
+
+--Altered lock_version column name.
+CREATE TABLE 'legacy_things' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'tps_report_number' INTEGER DEFAULT NULL,
+  'version' INTEGER NOT NULL DEFAULT 0
+)

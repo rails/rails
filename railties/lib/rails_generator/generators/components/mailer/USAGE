@@ -13,6 +13,6 @@ Example:
     This will create a Notifications mailer class:
         Mailer:     app/models/notifications.rb
         Views:      app/views/notifications/signup.rhtml [...]
-        Test:       test/unit/credit_card_controller_test.rb
+        Test:       test/unit/test/unit/notifications_test.rb
         Fixtures:   test/fixtures/notifications/signup [...]
 

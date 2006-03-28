@@ -21,10 +21,11 @@ module ActiveRecord
     class AbstractAdapter
       include Quoting, DatabaseStatements, SchemaStatements
       @@row_even = true
-
+      
       def initialize(connection, logger = nil) #:nodoc:
         @connection, @logger = connection, logger
         @runtime = 0
+        @last_verification = 0
       end
 
       # Returns the human-readable name of the adapter.  Use mixed case - one
@@ -37,6 +38,12 @@ module ActiveRecord
       # abstract adapter always returns +false+.
       def supports_migrations?
         false
+      end
+      
+      # Does this adapter support using DISTINCT within COUNT?  This is +true+
+      # for all adapters except sqlite.
+      def supports_count_distinct?
+        true
       end
 
       # Should primary key values be selected from their corresponding
@@ -70,6 +77,22 @@ module ActiveRecord
         @active = false
       end
 
+      # Lazily verify this connection, calling +active?+ only if it hasn't
+      # been called for +timeout+ seconds.       
+      def verify!(timeout)
+        now = Time.now.to_i
+        if (now - @last_verification) > timeout
+          reconnect! unless active?
+          @last_verification = now
+        end
+      end
+      
+      # Provides access to the underlying database connection. Useful for
+      # when you need to call a proprietary method such as postgresql's lo_*
+      # methods
+      def raw_connection
+        @connection
+      end
 
       protected
         def log(sql, name)
@@ -89,6 +112,9 @@ module ActiveRecord
           end
         rescue Exception => e
           # Log message and raise exception.
+          # Set last_verfication to 0, so that connection gets verified
+          # upon reentering the request loop
+          @last_verification = 0
           message = "#{e.class.name}: #{e.message}: #{sql}"
           log_info(message, name, 0)
           raise ActiveRecord::StatementInvalid, message

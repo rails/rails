@@ -36,7 +36,7 @@ module ActiveRecord
 
           # "Downgrade" deprecated sqlite API
           if SQLite.const_defined?(:Version)
-            ConnectionAdapters::SQLiteAdapter.new(db, logger)
+            ConnectionAdapters::SQLite2Adapter.new(db, logger)
           else
             ConnectionAdapters::DeprecatedSQLiteAdapter.new(db, logger)
           end
@@ -98,6 +98,10 @@ module ActiveRecord
       def supports_migrations? #:nodoc:
         true
       end
+      
+      def supports_count_distinct? #:nodoc:
+        false
+      end
 
       def native_database_types #:nodoc:
         {
@@ -130,7 +134,7 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
 
       def execute(sql, name = nil) #:nodoc:
-        log(sql, name) { @connection.execute(sql) }
+        catch_schema_changes { log(sql, name) { @connection.execute(sql) } }
       end
 
       def update(sql, name = nil) #:nodoc:
@@ -168,15 +172,15 @@ module ActiveRecord
 
 
       def begin_db_transaction #:nodoc:
-        @connection.transaction
+        catch_schema_changes { @connection.transaction }
       end
       
       def commit_db_transaction #:nodoc:
-        @connection.commit
+        catch_schema_changes { @connection.commit }
       end
 
       def rollback_db_transaction #:nodoc:
-        @connection.rollback
+        catch_schema_changes { @connection.rollback }
       end
 
 
@@ -189,9 +193,9 @@ module ActiveRecord
       end
 
       def columns(table_name, name = nil) #:nodoc:
-        table_structure(table_name).map { |field|
+        table_structure(table_name).map do |field|
           SQLiteColumn.new(field['name'], field['dflt_value'], field['type'], field['notnull'] == "0")
-        }
+        end
       end
 
       def indexes(table_name, name = nil) #:nodoc:
@@ -326,9 +330,44 @@ module ActiveRecord
             @connection.execute sql
           end
         end
+        
+        def catch_schema_changes
+          return yield
+        rescue ActiveRecord::StatementInvalid => exception
+          if exception.message =~ /database schema has changed/
+            reconnect!
+            retry
+          else
+            raise
+          end
+        end
+    end
+    
+    class SQLite2Adapter < SQLiteAdapter # :nodoc:
+      # SQLite 2 does not support COUNT(DISTINCT) queries:
+      #
+      #   select COUNT(DISTINCT ArtistID) from CDs;    
+      #
+      # In order to get  the number of artists we execute the following statement
+      # 
+      #   SELECT COUNT(ArtistID) FROM (SELECT DISTINCT ArtistID FROM CDs);
+      def execute(sql, name = nil) #:nodoc:
+        super(rewrite_count_distinct_queries(sql), name)
+      end
+      
+      def rewrite_count_distinct_queries(sql)
+        if sql =~ /count\(distinct ([^\)]+)\)( AS \w+)? (.*)/i
+          distinct_column = $1
+          distinct_query  = $3
+          column_name     = distinct_column.split('.').last
+          "SELECT COUNT(#{column_name}) FROM (SELECT DISTINCT #{distinct_column} #{distinct_query})"
+        else
+          sql
+        end
+      end
     end
 
-    class DeprecatedSQLiteAdapter < SQLiteAdapter # :nodoc:
+    class DeprecatedSQLiteAdapter < SQLite2Adapter # :nodoc:
       def insert(sql, name = nil, pk = nil, id_value = nil)
         execute(sql, name = nil)
         id_value || @connection.last_insert_rowid

@@ -41,60 +41,45 @@ class FlashTest < Test::Unit::TestCase
   end
 
   def setup
-    initialize_request_and_response
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+    @controller = TestController.new
   end
 
   def test_flash
-    @request.action = "set_flash"
-    response = process_request
+    get :set_flash
 
-    @request.action = "use_flash"
-    first_response = process_request
-    assert_equal "hello", first_response.template.assigns["flash_copy"]["that"]
-    assert_equal "hello", first_response.template.assigns["flashy"]
+    get :use_flash
+    assert_equal "hello", @response.template.assigns["flash_copy"]["that"]
+    assert_equal "hello", @response.template.assigns["flashy"]
 
-    second_response = process_request
-    assert_nil second_response.template.assigns["flash_copy"]["that"], "On second flash"
+    get :use_flash
+    assert_nil @response.template.assigns["flash_copy"]["that"], "On second flash"
   end
 
   def test_keep_flash
-    @request.action = "set_flash"
-    response = process_request
+    get :set_flash
     
-    @request.action = "use_flash_and_keep_it"
-    first_response = process_request
-    assert_equal "hello", first_response.template.assigns["flash_copy"]["that"]
-    assert_equal "hello", first_response.template.assigns["flashy"]
+    get :use_flash_and_keep_it
+    assert_equal "hello", @response.template.assigns["flash_copy"]["that"]
+    assert_equal "hello", @response.template.assigns["flashy"]
 
-    @request.action = "use_flash"
-    second_response = process_request
-    assert_equal "hello", second_response.template.assigns["flash_copy"]["that"], "On second flash"
+    get :use_flash
+    assert_equal "hello", @response.template.assigns["flash_copy"]["that"], "On second flash"
 
-    third_response = process_request
-    assert_nil third_response.template.assigns["flash_copy"]["that"], "On third flash"
+    get :use_flash
+    assert_nil @response.template.assigns["flash_copy"]["that"], "On third flash"
   end
   
   def test_flash_now
-    @request.action = "set_flash_now"
-    response = process_request
-    assert_equal "hello", response.template.assigns["flash_copy"]["that"]
-    assert_equal "bar"  , response.template.assigns["flash_copy"]["foo"]
-    assert_equal "hello", response.template.assigns["flashy"]
+    get :set_flash_now
+    assert_equal "hello", @response.template.assigns["flash_copy"]["that"]
+    assert_equal "bar"  , @response.template.assigns["flash_copy"]["foo"]
+    assert_equal "hello", @response.template.assigns["flashy"]
 
-    @request.action = "attempt_to_use_flash_now"
-    first_response = process_request
-    assert_nil first_response.template.assigns["flash_copy"]["that"]
-    assert_nil first_response.template.assigns["flash_copy"]["foo"]
-    assert_nil first_response.template.assigns["flashy"]
+    get :attempt_to_use_flash_now
+    assert_nil @response.template.assigns["flash_copy"]["that"]
+    assert_nil @response.template.assigns["flash_copy"]["foo"]
+    assert_nil @response.template.assigns["flashy"]
   end 
-  
-  private
-    def initialize_request_and_response
-      @request  = ActionController::TestRequest.new
-      @response = ActionController::TestResponse.new
-    end
-  
-    def process_request
-      TestController.process(@request, @response)
-    end
 end

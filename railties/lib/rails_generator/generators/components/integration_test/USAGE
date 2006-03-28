@@ -1,0 +1,14 @@
+Description:
+    The model generator creates a stub for a new integration test.
+
+    The generator takes an integration test name as its argument.  The test
+    name may be given in CamelCase or under_score and should not be suffixed
+    with 'Test'.
+
+    The generator creates an integration test class in test/integration.
+
+Example:
+    ./script/generate integration_test GeneralStories
+
+    This will create a GeneralStores integration test:
+        test/integration/general_stories_test.rb

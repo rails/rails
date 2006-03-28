@@ -59,10 +59,8 @@ class CGI
         cattr_accessor :data_column_name
         self.data_column_name = 'data'
 
-        # Don't try to save if we haven't loaded the session.
-        before_update :loaded?
-        before_save   :marshal_data!
-        before_save   :raise_on_session_data_overflow!
+        before_save :marshal_data!
+        before_save :raise_on_session_data_overflow!
 
         class << self
           # Don't try to reload ARStore::Session in dev mode.
@@ -122,22 +120,24 @@ class CGI
           @data ||= self.class.unmarshal(read_attribute(@@data_column_name)) || {}
         end
 
+        # Has the session been loaded yet?
+        def loaded?
+          !! @data
+        end
+
         private
           attr_writer :data
 
           def marshal_data!
+            return false if !loaded?
             write_attribute(@@data_column_name, self.class.marshal(self.data))
-          end
-
-          # Has the session been loaded yet?
-          def loaded?
-            !! @data
           end
 
           # Ensures that the data about to be stored in the database is not
           # larger than the data storage column. Raises
           # ActionController::SessionOverflowError.
           def raise_on_session_data_overflow!
+            return false if !loaded?
             limit = self.class.data_column_size_limit
             if loaded? and limit and read_attribute(@@data_column_name).size > limit
               raise ActionController::SessionOverflowError
@@ -232,7 +232,12 @@ class CGI
           @data
         end
 
+        def loaded?
+          !! @data
+        end
+
         def save
+          return false if !loaded?
           marshaled_data = self.class.marshal(data)
 
           if @new_record
@@ -278,7 +283,9 @@ class CGI
             raise CGI::Session::NoSession, 'uninitialized session'
           end
           @session = @@session_class.new(:session_id => session_id, :data => {})
-          @session.save
+          # session saving can be lazy again, because of improved component implementation
+          # therefore next line gets commented out:
+          # @session.save
         end
       end
 
@@ -317,6 +324,10 @@ class CGI
         end
       end
 
+      protected
+        def logger
+          ActionController::Base.logger rescue nil
+        end
     end
   end
 end

@@ -1,8 +1,145 @@
+*1.1.0* (March 27th, 2005)
+
+* Allow db:fixtures:load to load a subset of the applications fixtures. [Chad Fowler]
+
+  ex.
+
+   rake db:fixtures:load FIXTURES=customers,plans
+
+* Update to Prototype 1.5.0_pre1 [Sam Stephenson]
+
+* Update to script.aculo.us 1.6 [Thomas Fuchs]
+
+* Add an integration_test generator [Jamis Buck]
+
+* Make all ActionView helpers available in the console from the helper method for debugging purposes. n.b.: Only an 80% solution. Some stuff won't work, most will. [Marcel Molina Jr.]
+
+  ex.
+
+    >> puts helper.options_for_select([%w(a 1), %w(b 2), %w(c 3)])
+    <option value="1">a</option>
+    <option value="2">b</option>
+    <option value="3">c</option>
+    => nil
+
+* Replaced old session rake tasks with db:sessions:create to generate a migration, and db:sessions:clear to remove sessions. [Rick Olson]
+
+* Reject Ruby 1.8.3 when loading Rails; extract version checking code. [Chad Fowler]
+
+* Remove explicit loading of RailsInfo and RailsInfoController. [Nicholas Seckar]
+
+* Move RailsInfo and RailsInfoController to Rails::Info and Rails::InfoController. [Nicholas Seckar]
+
+* Extend load path with Railties' builtin directory to make adding support code easy. [Nicholas Seckar]
+
+* Fix the rails_info controller by explicitly loading it, and marking it as not reloadable. [Nicholas Seckar]
+
+* Fixed rails:freeze:gems for Windows #3274 [paul@paulbutcher.com]
+
+* Added 'port open?' check to the spawner when running in repeat mode so we don't needlessly boot the dispatcher if the port is already in use anyway #4089 [guy.naor@famundo.com]
+
+* Add verification to generated scaffolds,  don't allow get for unsafe actions [Michael Koziarski]
+
+* Don't replace application.js in public/javascripts if it already exists [Cody Fauser]
+
+* Change test:uncommitted to delay execution of `svn status` by using internal Rake API's. [Nicholas Seckar]
+
+* Use require_library_or_gem to load rake in commands/server.rb.  Closes #4205.  [rob.rasmussen@gmail.com]
+
+* Use the Rake API instead of shelling out to create the tmp directory in commands/server.rb. [Chad Fowler]
+
+* Added a backtrace to the evil WSOD (White Screen of Death).  Closes #4073. TODO: Clearer exceptions [Rick Olson]
+
+* Added tracking of database and framework versions in script/about #4088 [charles.gerungan@gmail.com/Rick Olson]
+
+* Added public/javascripts/application.js as a sample since it'll automatically be included in javascript_include_tag :defaults [DHH]
+
+* Added socket cleanup for lighttpd, both before and after [DHH]
+
+* Added automatic creation of tmp/ when running script/server [DHH]
+
+* Added silence_stream that'll work on both STDERR or STDOUT or any other stream and deprecated silence_stderr in the process [DHH]
+
+* Added reload! method to script/console to reload all models and others that include Reloadable without quitting the console #4056 [esad@esse.at]
+
+* Added that rake rails:freeze:edge will now just export all the contents of the frameworks instead of just lib, so stuff like rails:update:scripts, rails:update:javascripts, and script/server on lighttpd still just works #4047 [DHH]
+
+* Added fix for upload problems with lighttpd from Safari/IE to config/lighttpd.conf #3999 [thijs@fngtps.com]
+
+* Added test:uncommitted to test changes since last checkin to Subversion #4035 [technomancy@gmail.com]
+
+* Help script/about print the correct svn revision when in a non-English locale.  #4026 [babie7a0@ybb.ne.jp]
+
+* Add 'app' accessor to script/console as an instance of Integration::Session [Jamis Buck]
+
+* Generator::Base#usage takes an optional message argument which defaults to Generator::Base#usage_message. [Jeremy Kemper]
+
+* Remove the extraneous AR::Base.threaded_connections setting from the webrick server. [Jeremy Kemper]
+
+* Add integration test support to app generation and testing [Jamis Buck]
+
+* Added namespaces to all tasks, so for example load_fixtures is now db:fixtures:load. All the old task names are still valid, they just point to the new namespaced names. "rake -T" will only show the namespaced ones, though [DHH]
+
+* CHANGED DEFAULT: ActiveRecord::Base.schema_format is now :ruby by default instead of :sql. This means that we'll assume you want to live in the world of db/schema.rb where the grass is green and the girls are pretty. If your schema contains un-dumpable elements, such as constraints or database-specific column types, you just got an invitation to either 1) patch the dumper to include foreign key support, 2) stop being db specific, or 3) just change the default in config/environment.rb to config.active_record.schema_format = :sql -- we even include an example for that on new Rails skeletons now. Brought to you by the federation of opinionated framework builders! [DHH]
+
+* Added -r/--repeat option to script/process/spawner that offers the same loop protection as the spinner did. This deprecates the script/process/spinner, so it's no longer included in the default Rails skeleton, but still available for backwards compatibility #3461 [ror@andreas-s.net]
+
+* Added collision option to template generation in generators #3329 [anna@wota.jp]. Examples:
+
+    m.template "stuff.config" , "config/stuff.config" , :collision => :skip
+    m.template "auto-stamping", "config/generator.log", :collision => :force
+
+* Added more information to script/plugin's doings to ease debugging #3755 [Rick Olson]
+
+* Changed the default configuration for lighttpd to use tmp/sockets instead of log/ for the FastCGI sockets [DHH]
+
+* Added a default configuration of the FileStore for fragment caching if tmp/cache is available, which makes action/fragment caching ready to use out of the box with no additional configuration [DHH]
+
+* Changed the default session configuration to place sessions in tmp/sessions, if that directory is available, instead of /tmp (this essentially means a goodbye to 9/10 White Screen of Death errors and should have web hosting firms around the world cheering) [DHH]
+
+* Added tmp/sessions, tmp/cache, and tmp/sockets as default directories in the Rails skeleton [DHH] 
+
+* Added that script/generate model will now automatically create a migration file for the model created. This can be turned off by calling the generator with --skip-migration [DHH]
+
+* Added -d/--database option to the rails command, so you can do "rails --database=sqlite2 myapp" to start a new application preconfigured to use SQLite2 as the database. Removed the configuration examples from SQLite and PostgreSQL from the default MySQL configuration [DHH]
+
+* Allow script/server -c /path/to/lighttpd.conf [Jeremy Kemper]
+
+* Remove hardcoded path to reaper script in script/server [Jeremy Kemper]
+
+* Update script.aculo.us to V1.5.3 [Thomas Fuchs]
+
+* Added SIGTRAP signal handler to RailsFCGIHandler that'll force the process into a breakpoint after the next request. This breakpoint can then be caught with script/breakpointer and give you access to the Ruby image inside that process. Useful for debugging memory leaks among other things [DHH]
+
+* Changed default lighttpd.conf to use CWD from lighttpd 1.4.10 that allows the same configuration to be used for both detach and not. Also ensured that auto-repeaping of FCGIs only happens when lighttpd is not detached. [DHH]
+
+* Added Configuration#after_initialize for registering a block which gets called after the framework is fully initialized.  Useful for things like per-environment configuration of plugins. [Michael Koziarski]
+
+* Added check for RAILS_FRAMEWORK_ROOT constant that allows the Rails framework to be found in a different place than vendor/rails. Should be set in boot.rb. [DHH]
+
+* Fixed that static requests could unlock the mutex guarding dynamic requests in the WEBrick servlet #3433 [tom@craz8.com]
+
+* Fixed documentation tasks to work with Rake 0.7.0 #3563 [kazuhiko@fdiary.net]
+
+* Update to Prototype 1.5.0_pre0 [Sam Stephenson]
+
+* Sort the list of plugins so we load in a consistent order [Rick Olson]
+
+* Show usage when script/plugin is called without arguments [tom@craz8.com]
+
+* Corrected problems with plugin loader where plugins set 'name' incorrectly #3297 [anna@wota.jp]
+
+* Make migration generator only report on exact duplicate names, not partial dupliate names. #3442 [jeremy@planetargon.com Marcel Molina Jr.]
+
+* Fix typo in mailer generator USAGE. #3458 [chriztian.steinmeier@gmail.com]
+
+* Ignore version mismatch between pg_dump and the database server. #3457 [simon.stapleton@gmail.com]
+
+* Reap FCGI processes after lighttpd exits. [Sam Stephenson]
+
+* Honor ActiveRecord::Base.pluralize_table_names when creating and destroying session store table. #3204. [rails@bencurtis.com, Marcel Molina Jr.]
+
 *1.0.0* (December 13th, 2005)
-
-* Update to script.aculo.us 1.5.0 final (equals 1.5.0_rc6) [Thomas Fuchs]
-
-* Update to Prototype 1.4.0 final [Sam Stephenson]
 
 * Update instructions on how to find and install generators. #3172. [Chad Fowler]
 
@@ -10,10 +147,9 @@
 
 * Generator copies files in binary mode.  #3156 [minimudboy@gmail.com]
 
-
-*0.14.4 (RC5)* (December 7th, 2005)
-
 * Add builtin/ to the gemspec. Closes #3047. [Nicholas Seckar, Sam Stephenson]
+
+* Add install.rb file to plugin generation which is loaded, if it exists, when you install a plugin. [Marcel Molina Jr.]
 
 * Run initialize_logger in script/lighttpd to ensure the log file exists before tailing it. [Sam Stephenson]
 
@@ -21,9 +157,15 @@
 
 * Fix freeze_gems so that the latest rails version is dumped by default. [Nicholas Seckar]
 
+* script/plugin: handle root paths and plugin names which contain spaces.  #2995 [justin@aspect.net]
+
 * Model generator: correct relative path to test_helper in unit test.  [Jeremy Kemper]
 
 * Make the db_schema_dump task honor the SCHEMA environment variable if present the way db_schema_import does. #2931. [Blair Zajac]
+
+* Have the lighttpd server script report the actual ip to which the server is bound. #2903. [Adam]
+
+* Add plugin library directories to the load path after the lib directory so that libraries in the lib directory get precedence. #2910. [james.adam@gmail.com]
 
 * Make help for the console command more explicit about how to specify the desired environment in which to run the console. #2911. [anonymous]
 
@@ -31,15 +173,15 @@
 
 * Introducing the session_migration generator.  Creates an add_session_table migration.  Allows generator to specify migrations directory.  #2958, #2960 [Rick Olson]
 
-* Update to Prototype 1.4.0_rc4. Closes #2943 (old Array.prototype.reverse behavior can be obtained by passing false as an argument). [Sam Stephenson]
+* script/console uses RAILS_ENV environment variable if present.  #2932 [Blair Zajac <blair@orcaware.com>
+
+* Windows: eliminate the socket option in database.yml.  #2924 [Wayne Vucenic <waynev@gmail.com>]
 
 * Eliminate nil from newly generated logfiles.  #2927 [Blair Zajac <blair@orcaware.com>]
 
-* Update to Prototype 1.4.0_rc3. Closes #1893, #2505, #2550, #2748, #2783. [Sam Stephenson]
-
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
 
-* Update to latest script.aculo.us version (as of [3031])
+* Eliminate Subversion dependencies in scripts/plugin.  Correct install options.  Introduce --force option to reinstall a plugin.  Remove useless --long option for list.  Use --quiet to quiet the download output and --revision to update to a specific svn revision.  #2842 [Chad Fowler, Rick Olson]
 
 * SQLite: the clone_structure_to_test and purge_test_database Rake tasks should always use the test environment.  #2846 [Rick Olson]
 

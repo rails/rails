@@ -38,10 +38,10 @@ require 'active_record/base'
 require 'active_record/observer'
 require 'active_record/validations'
 require 'active_record/callbacks'
+require 'active_record/reflection'
 require 'active_record/associations'
 require 'active_record/aggregations'
 require 'active_record/transactions'
-require 'active_record/reflection'
 require 'active_record/timestamp'
 require 'active_record/acts/list'
 require 'active_record/acts/tree'
@@ -49,6 +49,7 @@ require 'active_record/acts/nested_set'
 require 'active_record/locking'
 require 'active_record/migration'
 require 'active_record/schema'
+require 'active_record/calculations'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
@@ -63,10 +64,11 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Acts::Tree
   include ActiveRecord::Acts::List
   include ActiveRecord::Acts::NestedSet
+  include ActiveRecord::Calculations
 end
 
 unless defined?(RAILS_CONNECTION_ADAPTERS)
-  RAILS_CONNECTION_ADAPTERS = %w(mysql postgresql sqlite firebird sqlserver db2 oci)
+  RAILS_CONNECTION_ADAPTERS = %w( mysql postgresql sqlite firebird sqlserver db2 oracle sybase openbase )
 end
 
 RAILS_CONNECTION_ADAPTERS.each do |adapter|
@@ -74,3 +76,4 @@ RAILS_CONNECTION_ADAPTERS.each do |adapter|
 end
 
 require 'active_record/query_cache'
+require 'active_record/schema_dumper'

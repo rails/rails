@@ -101,6 +101,9 @@ module ActiveRecord
         true
       end      
       
+      def table_alias_length
+        63
+      end
 
       # QUOTING ==================================================
 
@@ -301,19 +304,23 @@ module ActiveRecord
       end
             
       def add_column(table_name, column_name, type, options = {})
-        native_type = native_database_types[type]
-        sql_commands = ["ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type, options[:limit])}"]
-        if options[:default]
-          sql_commands << "ALTER TABLE #{table_name} ALTER #{column_name} SET DEFAULT '#{options[:default]}'"
-        end
-        if options[:null] == false
-          sql_commands << "ALTER TABLE #{table_name} ALTER #{column_name} SET NOT NULL"
-        end
-        sql_commands.each { |cmd| execute(cmd) }
+        execute("ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type, options[:limit])}")
+        execute("ALTER TABLE #{table_name} ALTER #{column_name} SET NOT NULL") if options[:null] == false
+        change_column_default(table_name, column_name, options[:default]) unless options[:default].nil?
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
-        execute = "ALTER TABLE #{table_name} ALTER  #{column_name} TYPE #{type}"
+        begin
+          execute "ALTER TABLE #{table_name} ALTER  #{column_name} TYPE #{type_to_sql(type, options[:limit])}"
+        rescue ActiveRecord::StatementInvalid
+          # This is PG7, so we use a more arcane way of doing it.
+          begin_db_transaction
+          add_column(table_name, "#{column_name}_ar_tmp", type, options)
+          execute "UPDATE #{table_name} SET #{column_name}_ar_tmp = CAST(#{column_name} AS #{type_to_sql(type, options[:limit])})"
+          remove_column(table_name, column_name)
+          rename_column(table_name, "#{column_name}_ar_tmp", column_name)
+          commit_db_transaction
+        end
         change_column_default(table_name, column_name, options[:default]) unless options[:default].nil?
       end      
 
@@ -326,13 +333,7 @@ module ActiveRecord
       end
 
       def remove_index(table_name, options) #:nodoc:
-        if Hash === options
-          index_name = options[:name]
-        else
-          index_name = "#{table_name}_#{options}_index"
-        end
-
-        execute "DROP INDEX #{index_name}"
+        execute "DROP INDEX #{index_name(table_name, options)}"
       end      
 
 
@@ -476,9 +477,6 @@ module ActiveRecord
           
           # Numeric values
           return value if value =~ /^-?[0-9]+(\.[0-9]*)?/
-
-          # Date / Time magic values
-          return Time.now.to_s if value =~ /^now\(\)|^\('now'::text\)::(date|timestamp)/i
 
           # Fixed dates / times
           return $1 if value =~ /^'(.+)'::(date|timestamp)/
