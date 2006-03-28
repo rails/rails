@@ -1,5 +1,7 @@
 *SVN*
 
+* Replace 'rescue Object' with a finer grained rescue. Closes #4431. [Nicholas Seckar]
+
 * Fixed eager loading so that an aliased table cannot clash with a has_and_belongs_to_many join table [Rick]
 
 * Add support for :include to with_scope [andrew@redlinesoftware.com]

@@ -1232,9 +1232,12 @@ module ActiveRecord #:nodoc:
         # Returns the class type of the record using the current module as a prefix. So descendents of
         # MyApp::Business::Account would appear as MyApp::Business::AccountSubclass.
         def compute_type(type_name)
+          modularized_name = type_name_with_module(type_name)
           begin
-            instance_eval(type_name_with_module(type_name))
-          rescue Object
+            instance_eval(modularized_name)
+          rescue NameError => e
+            first_module = modularized_name.split("::").first
+            raise unless e.to_s.include? first_module
             instance_eval(type_name)
           end
         end
