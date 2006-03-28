@@ -42,6 +42,11 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     end
   end
 
+  def test_count_polymorphic_has_many
+    assert_equal 1, posts(:welcome).taggings.count
+    assert_equal 1, posts(:welcome).tags.count
+  end
+
   def test_polymorphic_has_many_going_through_join_model_with_find
     assert_equal tags(:general), tag = posts(:welcome).tags.find(:first)
     assert_no_queries do
