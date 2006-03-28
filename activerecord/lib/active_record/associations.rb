@@ -203,7 +203,7 @@ module ActiveRecord
     #     has_many :people, :extend => FindOrCreateByNameExtension
     #   end
     #
-    # == Association Join Models
+    # === Association Join Models
     # 
     # Has Many associations can be configured with the :through option to use an explicit join model to retrieve the data.  This
     # operates similarly to a <tt>has_and_belongs_to_many</tt> association.  The advantage is that you're able to add validations,
@@ -242,6 +242,24 @@ module ActiveRecord
     #   @firm = Firm.find :first
     #   @firm.clients.collect { |c| c.invoices }.flatten # select all invoices for all clients of the firm
     #   @firm.invoices                                   # selects all invoices by going through the Client join model.
+    #
+    # === Polymorphic Associations
+    # 
+    # Polymorphic associations on models are not restricted on what types of models they can be associated with.  Rather, they 
+    # specify an interface that a has_many association must adhere to.
+    # 
+    #   class Asset < ActiveRecord::Base
+    #     belongs_to :attachable, :polymorphic => true
+    #   end
+    # 
+    #   class Post < ActiveRecord::Base
+    #     has_many :assets, :as => :attachable         # The <tt>:as</tt> option specifies the polymorphic interface to use.
+    #   end
+    #
+    #   @asset.attachable = @post
+    # 
+    # This works by using a type column in addition to a foreign key to specify the associated record.  In the Asset example, you'd need
+    # an attachable_id integer column and an attachable_type string column.
     #
     # == Caching
     #
@@ -465,6 +483,7 @@ module ActiveRecord
       # * <tt>:offset</tt>: An integer determining the offset from where the rows should be fetched. So at 5, it would skip the first 4 rows.
       # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you for example want to do a join, but not
       #   include the joined columns.
+      # * <tt>:as</tt>: Specifies a polymorphic interface (See #belongs_to).
       # * <tt>:through</tt>: Specifies a Join Model to perform the query through.  Options for <tt>:class_name</tt> and <tt>:foreign_key</tt> 
       #   are ignored, as the association uses the source reflection.  You can only use a <tt>:through</tt> query through a <tt>belongs_to</tt>
       #   or <tt>has_many</tt> association.
@@ -478,6 +497,7 @@ module ActiveRecord
       #   has_many :people, :class_name => "Person", :conditions => "deleted = 0", :order => "name"
       #   has_many :tracks, :order => "position", :dependent => :destroy
       #   has_many :comments, :dependent => :nullify
+      #   has_many :tags, :as => :taggable
       #   has_many :subscribers, :through => :subscriptions, :source => :user
       #   has_many :subscribers, :class_name => "Person", :finder_sql =>
       #       'SELECT DISTINCT people.* ' +
@@ -603,12 +623,14 @@ module ActiveRecord
       #   is used on the associate class (such as a Post class). You can also specify a custom counter cache column by given that
       #   name instead of a true/false value to this option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
       # * <tt>:include</tt>  - specify second-order associations that should be eager loaded when this object is loaded.
+      # # <tt>:polymorphic</tt> - specify this association is a polymorphic association by passing true.
       #
       # Option examples:
       #   belongs_to :firm, :foreign_key => "client_of"
       #   belongs_to :author, :class_name => "Person", :foreign_key => "author_id"
       #   belongs_to :valid_coupon, :class_name => "Coupon", :foreign_key => "coupon_id", 
       #              :conditions => 'discounts > #{payments_count}'
+      #   belongs_to :attachable, :polymorphic => true
       def belongs_to(association_id, options = {})
         reflection = create_belongs_to_reflection(association_id, options)
         
