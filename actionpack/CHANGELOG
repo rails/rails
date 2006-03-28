@@ -1,5 +1,7 @@
 *SVN*
 
+* Add documentation for respond_to. [Jamis Buck]
+
 * Fixed require of bluecloth and redcloth when gems haven't been loaded #4446 [murphy@cYcnus.de]
 
 * Update to Prototype 1.5.0_pre1 [Sam Stephenson]

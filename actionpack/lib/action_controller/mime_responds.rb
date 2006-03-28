@@ -5,6 +5,93 @@ module ActionController #:nodoc:
     end
 
     module InstanceMethods
+      # Without web-service support, an action which collects the data for displaying a list of people
+      # might look something like this:
+      #
+      #   def list
+      #     @people = Person.find(:all)
+      #   end
+      # 
+      # Here's the same action, with web-service support baked in:
+      # 
+      #   def list
+      #     @people = Person.find(:all)
+      # 
+      #     respond_to do |wants|
+      #       wants.html
+      #       wants.xml { render :xml => @people.to_xml }
+      #     end
+      #   end
+      # 
+      # What that says is, "if the client wants HTML in response to this action, just respond as we 
+      # would have before, but if the client wants XML, return them the list of people in XML format." 
+      # (Rails determines the desired response format from the HTTP Accept header submitted by the client.)
+      # 
+      # Supposing you have an action that adds a new person, optionally creating their company 
+      # (by name) if it does not already exist, without web-services, it might look like this:
+      # 
+      #   def add
+      #     @company = Company.find_or_create_by_name(params[:company][:name])
+      #     @person  = @company.people.create(params[:person])
+      # 
+      #     redirect_to(person_list_url)
+      #   end
+      # 
+      # Here's the same action, with web-service support baked in:
+      # 
+      #   def add
+      #     company  = params[:person].delete(:company)
+      #     @company = Company.find_or_create_by_name(company[:name])
+      #     @person  = @company.people.create(params[:person])
+      # 
+      #     respond_to do |wants|
+      #       wants.html { redirect_to(person_list_url) }
+      #       wants.js
+      #       wants.xml  { render :xml => @person.to_xml(:include => @company) }
+      #     end
+      #   end
+      # 
+      # If the client wants HTML, we just redirect them back to the person list. If they want Javascript 
+      # (wants.js), then it is an RJS request and we render the RJS template associated with this action. 
+      # Lastly, if the client wants XML, we render the created person as XML, but with a twist: we also 
+      # include the person’s company in the rendered XML, so you get something like this:
+      # 
+      #   <person>
+      #     <id>...</id>
+      #     ...
+      #     <company>
+      #       <id>...</id>
+      #       <name>...</name>
+      #       ...
+      #     </company>
+      #   </person>
+      # 
+      # Note, however, the extra bit at the top of that action:
+      # 
+      #   company  = params[:person].delete(:company)
+      #   @company = Company.find_or_create_by_name(company[:name])
+      # 
+      # This is because the incoming XML document (if a web-service request is in process) can only contain a 
+      # single root-node. So, we have to rearrange things so that the request looks like this (url-encoded):
+      # 
+      #   person[name]=...&person[company][name]=...&...
+      # 
+      # And, like this (xml-encoded):
+      # 
+      #   <person>
+      #     <name>...</name>
+      #     <company>
+      #       <name>...</name>
+      #     </company>
+      #   </person>
+      # 
+      # In other words, we make the request so that it operates on a single entity—a person. Then, in the action, 
+      # we extract the company data from the request, find or create the company, and then create the new person 
+      # with the remaining data.
+      # 
+      # Note that you can define your own XML parameter parser which would allow you to describe multiple entities 
+      # in a single request (i.e., by wrapping them all in a single root note), but if you just go with the flow 
+      # and accept Rails' defaults, life will be much easier.
       def respond_to(*types, &block)
         raise ArgumentError, "respond_to takes either types or a block, never bot" unless types.any? ^ block
         block ||= lambda { |responder| types.each { |type| responder.send(type) } }
