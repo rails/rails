@@ -161,6 +161,10 @@ approximations and shouldn't be used for critical calculations. [Koz]
   * Object#extended_by to get an instance's included/extended modules
   * Object#extend_with_included_modules_from(object) to extend an instance with the modules from another instance
 
+*1.2.5* (December 13th, 2005)
+
+* Become part of Rails 1.0
+
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
 
 *1.2.3* (November 7th, 2005)

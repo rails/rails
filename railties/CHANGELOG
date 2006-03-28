@@ -139,6 +139,8 @@
 
 * Honor ActiveRecord::Base.pluralize_table_names when creating and destroying session store table. #3204. [rails@bencurtis.com, Marcel Molina Jr.]
 
+*1.0.0* (December 13th, 2005)
+
 * Update instructions on how to find and install generators. #3172. [Chad Fowler]
 
 * Generator looks in vendor/generators also.  [Chad Fowler]

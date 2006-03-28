@@ -24,6 +24,12 @@
 
 * Fix for incompatibility problems with SOAP4R 1.5.5 (#2553) [Kent Sibilev]
 
+*1.0.0* (December 13th, 2005)
+
+* Become part of Rails 1.0
+
+*0.9.4* (December 7th, 2005)
+
 * Update from LGPL to MIT license as per Minero Aoki's permission. [Marcel Molina Jr.]
 
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]

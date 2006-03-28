@@ -320,6 +320,10 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
 
 * Don't include a layout when rendering an rjs template using render's :template option. [Marcel Molina Jr.]
 
+*1.1.2* (December 13th, 2005)
+
+* Become part of Rails 1.0
+
 * Update to script.aculo.us 1.5.0 final (equals 1.5.0_rc6) [Thomas Fuchs]
 
 * Update to Prototype 1.4.0 final [Sam Stephenson]

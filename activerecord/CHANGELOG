@@ -418,6 +418,10 @@
 
 * Fixed :through relations when using STI inherited classes would use the inherited class's name as foreign key on the join model [Tobias Luetke] 
 
+*1.13.2* (December 13th, 2005)
+
+* Become part of Rails 1.0
+
 * MySQL: allow encoding option for mysql.rb driver.  [Jeremy Kemper]
 
 * Added option inheritance for find calls on has_and_belongs_to_many and has_many assosociations [DHH]. Example:

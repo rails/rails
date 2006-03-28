@@ -12,6 +12,12 @@
 
 * Make sure TMail#attachments includes anything with content-disposition of "attachment", regardless of content-type [Jamis Buck]
 
+*1.1.5* (December 13th, 2005)
+
+* Become part of Rails 1.0
+
+*1.1.4* (December 7th, 2005)
+
 * Rename Version constant to VERSION. #2802 [Marcel Molina Jr.]
 
 * Stricter matching for implicitly multipart filenames excludes files ending in unsupported extensions (such as foo.rhtml.bak) and without a two-part content type (such as foo.text.rhtml or foo.text.really.plain.rhtml).  #2398 [Dave Burt <dave@burt.id.au>, Jeremy Kemper]
