@@ -136,7 +136,7 @@ module ActionController #:nodoc:
         end
     end
 
-    module InstanceMethods
+    module InstanceMethods #:nodoc:
       def assign_shortcuts_with_flash(request, response) #:nodoc:
         assign_shortcuts_without_flash(request, response)
         flash(:refresh)

@@ -115,7 +115,7 @@ module ActionController #:nodoc:
           end
         end
 
-        def flash_with_components(refresh = false)
+        def flash_with_components(refresh = false) #:nodoc:
           if @flash.nil? || refresh
             @flash = 
               if @parent_controller

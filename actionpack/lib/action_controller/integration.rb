@@ -3,8 +3,7 @@ require 'stringio'
 require 'uri'
 
 module ActionController
-  module Integration
-
+  module Integration #:nodoc:
     # An integration Session instance represents a set of requests and responses
     # performed sequentially by some virtual user. Becase you can instantiate
     # multiple sessions and run them side-by-side, you can also mimic (to some
@@ -169,7 +168,7 @@ module ActionController
       end
 
       private
-  
+
         class MockCGI < CGI #:nodoc:
           attr_accessor :stdinput, :stdoutput, :env_table
 
@@ -319,7 +318,7 @@ module ActionController
         end
       end
 
-      module ClassMethods
+      module ClassMethods #:nodoc:
         mattr_accessor :last_instantiation
 
         def clear_last_instantiation!

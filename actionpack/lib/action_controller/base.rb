@@ -681,7 +681,7 @@ module ActionController #:nodoc:
         result
       end    
 
-      def render_action(action_name, status = nil, with_layout = true)
+      def render_action(action_name, status = nil, with_layout = true) #:nodoc:
         template = default_template_name(action_name.to_s)
         if with_layout && !template_exempt_from_layout?(template) 
           render_with_layout(template, status)
@@ -690,69 +690,68 @@ module ActionController #:nodoc:
         end
       end
 
-      def render_file(template_path, status = nil, use_full_path = false, locals = {})
+      def render_file(template_path, status = nil, use_full_path = false, locals = {}) #:nodoc:
         add_variables_to_assigns
         assert_existence_of_template_file(template_path) if use_full_path
         logger.info("Rendering #{template_path}" + (status ? " (#{status})" : '')) if logger
         render_text(@template.render_file(template_path, use_full_path, locals), status)
       end
 
-      def render_template(template, status = nil, type = :rhtml, local_assigns = {})
+      def render_template(template, status = nil, type = :rhtml, local_assigns = {}) #:nodoc:
         add_variables_to_assigns
         render_text(@template.render_template(type, template, nil, local_assigns), status)
       end
 
-      def render_text(text = nil, status = nil)
+      def render_text(text = nil, status = nil) #:nodoc:
         @performed_render = true
         @response.headers['Status'] = (status || DEFAULT_RENDER_STATUS_CODE).to_s
         @response.body = text
       end
 
-      def render_javascript(javascript, status = nil)
+      def render_javascript(javascript, status = nil) #:nodoc:
         @response.headers['Content-Type'] = 'text/javascript; charset=UTF-8'
         render_text(javascript, status)
       end
 
-      def render_xml(xml, status = nil)
+      def render_xml(xml, status = nil) #:nodoc:
         @response.headers['Content-Type'] = 'application/xml'
         render_text(xml, status)
       end
 
-      def render_nothing(status = nil)
+      def render_nothing(status = nil) #:nodoc:
         render_text(' ', status)
       end
 
-      def render_partial(partial_path = default_template_name, object = nil, local_assigns = nil, status = nil)
+      def render_partial(partial_path = default_template_name, object = nil, local_assigns = nil, status = nil) #:nodoc:
         add_variables_to_assigns
         render_text(@template.render_partial(partial_path, object, local_assigns), status)
       end
 
-      def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = nil, status = nil)
+      def render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = nil, status = nil) #:nodoc:
         add_variables_to_assigns
         render_text(@template.render_partial_collection(partial_name, collection, partial_spacer_template, local_assigns), status)
       end
 
-      def render_with_layout(template_name = default_template_name, status = nil, layout = nil)
+      def render_with_layout(template_name = default_template_name, status = nil, layout = nil) #:nodoc:
         render_with_a_layout(template_name, status, layout)
       end
 
-      def render_without_layout(template_name = default_template_name, status = nil)
+      def render_without_layout(template_name = default_template_name, status = nil) #:nodoc:
         render_with_no_layout(template_name, status)
       end
 
 
       # Clears the rendered results, allowing for another render to be performed.
-      def erase_render_results
+      def erase_render_results #:nodoc:
         @response.body = nil
         @performed_render = false
       end
-      
       
       # Clears the redirected results from the headers, resets the status to 200 and returns 
       # the URL that was used to redirect or nil if there was no redirected URL
       # Note that +redirect_to+ will change the body of the response to indicate a redirection.
       # The response body is not reset here, see +erase_render_results+
-      def erase_redirect_results
+      def erase_redirect_results #:nodoc:
         @performed_redirect = false
         response.redirected_to = nil
         response.redirected_to_method_params = nil
@@ -761,12 +760,12 @@ module ActionController #:nodoc:
       end
 
       # Erase both render and redirect results
-      def erase_results
+      def erase_results #:nodoc:
         erase_render_results
         erase_redirect_results
       end
 
-      def rewrite_options(options)
+      def rewrite_options(options) #:nodoc:
         if defaults = default_url_options(options)
           defaults.merge(options)
         else

@@ -221,7 +221,7 @@ module ActionView #:nodoc:
     # Renders the template present at <tt>template_path</tt>. If <tt>use_full_path</tt> is set to true, 
     # it's relative to the template_root, otherwise it's absolute. The hash in <tt>local_assigns</tt> 
     # is made available as local variables.
-    def render_file(template_path, use_full_path = true, local_assigns = {})
+    def render_file(template_path, use_full_path = true, local_assigns = {}) #:nodoc:
       @first_render ||= template_path
 
       if use_full_path
@@ -254,7 +254,7 @@ module ActionView #:nodoc:
 
     # Renders the template present at <tt>template_path</tt> (relative to the template_root). 
     # The hash in <tt>local_assigns</tt> is made available as local variables.
-    def render(options = {}, old_local_assigns = {}, &block)
+    def render(options = {}, old_local_assigns = {}, &block) #:nodoc:
       if options.is_a?(String)
         render_file(options, true, old_local_assigns)
       elsif options == :update
@@ -277,7 +277,7 @@ module ActionView #:nodoc:
 
     # Renders the +template+ which is given as a string as either rhtml or rxml depending on <tt>template_extension</tt>.
     # The hash in <tt>local_assigns</tt> is made available as local variables.
-    def render_template(template_extension, template, file_path = nil, local_assigns = {})
+    def render_template(template_extension, template, file_path = nil, local_assigns = {}) #:nodoc:
       if handler = @@template_handlers[template_extension]
         template ||= read_template_file(file_path, template_extension) # Make sure that a lazyily-read template is loaded.
         delegate_render(handler, template, local_assigns)
@@ -293,7 +293,7 @@ module ActionView #:nodoc:
     # Either, but not both, of template and file_path may be nil. If file_path is given, the template
     # will only be read if it has to be compiled.
     #
-    def compile_and_render_template(extension, template = nil, file_path = nil, local_assigns = {})
+    def compile_and_render_template(extension, template = nil, file_path = nil, local_assigns = {}) #:nodoc:
       # compile the given template, if necessary
       if compile_template?(template, file_path, local_assigns)
         template ||= read_template_file(file_path, extension)

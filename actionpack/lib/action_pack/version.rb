@@ -1,4 +1,4 @@
-module ActionPack
+module ActionPack #:nodoc:
   module VERSION #:nodoc:
     MAJOR = 1
     MINOR = 11

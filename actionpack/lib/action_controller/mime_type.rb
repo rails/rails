@@ -1,6 +1,5 @@
 module Mime
-  class Type
-
+  class Type #:nodoc:
     # A simple helper class used in parsing the accept header
     class AcceptItem #:nodoc:
       attr_accessor :order, :name, :q

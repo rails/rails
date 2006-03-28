@@ -1,7 +1,7 @@
 require 'rexml/document'
 
 # SimpleXML like xml parser. Written by leon breet from the ruby on rails Mailing list
-class XmlNode
+class XmlNode #:nodoc:
   attr :node
 
   def initialize(node, options = {})
@@ -81,7 +81,7 @@ class XmlNode
   end
 end
 
-class XmlNodeList < Array
+class XmlNodeList < Array #:nodoc:
   def [](i)
     i.is_a?(String) ? super(0)[i] : super(i)
   end
