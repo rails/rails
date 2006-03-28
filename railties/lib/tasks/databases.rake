@@ -5,16 +5,16 @@ namespace :db do
     Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby
   end
 
-  namespace :fixtures do
-    desc "Load fixtures into the current environment's database"
-    task :load => :environment do
-      require 'active_record/fixtures'
-      ActiveRecord::Base.establish_connection(RAILS_ENV.to_sym)
-      Dir.glob(File.join(RAILS_ROOT, 'test', 'fixtures', '*.{yml,csv}')).each do |fixture_file|
-        Fixtures.create_fixtures('test/fixtures', File.basename(fixture_file, '.*'))
-      end
-    end
-  end
+	namespace :fixtures do
+	  desc "Load fixtures into the current environment's database.  Load a single fixture using FIXTURE=x"
+	  task :load => :environment do
+	    require 'active_record/fixtures'
+	    ActiveRecord::Base.establish_connection(RAILS_ENV.to_sym)
+	    (ENV['FIXTURES'] ? ENV['FIXTURES'].split(/,/) : Dir.glob(File.join(RAILS_ROOT, 'test', 'fixtures', '*.{yml,csv}'))).each do |fixture_file|
+	      Fixtures.create_fixtures('test/fixtures', File.basename(fixture_file, '.*'))
+	    end
+	  end
+	end
 
   namespace :schema do
     desc "Create a db/schema.rb file that can be portably used against any DB supported by AR"
