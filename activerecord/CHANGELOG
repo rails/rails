@@ -2106,7 +2106,7 @@ in effect.  Added :readonly finder constraint.  Calling an association collectio
         end
     end
     
-  This will add an error to the tune of "is too short (min is 3 characters)" or "is too long (min is 20 characters)" if
+  This will add an error to the tune of "is too short (minimum is 3 characters)" or "is too long (minimum is 20 characters)" if
   the password is outside the boundry. The messages can be changed by passing a third and forth parameter as message strings.
 
 * Implemented a clone method that works properly with AR. It returns a clone of the record that 

@@ -1,9 +1,5 @@
-require 'test/unit'
+require File.dirname(__FILE__) + '/../abstract_unit'
 require "#{File.dirname(__FILE__)}/../testing_sandbox"
-require File.dirname(__FILE__) + '/../../lib/action_view/helpers/text_helper'
-require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/numeric'  # for human_size
-require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/hash' # for stringify_keys
-require File.dirname(__FILE__) + '/../../../activesupport/lib/active_support/core_ext/object.rb' # for blank?
 
 class TextHelperTest < Test::Unit::TestCase
   include ActionView::Helpers::TextHelper
@@ -29,6 +25,7 @@ class TextHelperTest < Test::Unit::TestCase
 
   def test_truncate_multibyte_without_kcode
     result = execute_in_sandbox(<<-'CODE')
+      require File.dirname(__FILE__) + '/../../activesupport/lib/active_support/core_ext/kernel'
       require "#{File.dirname(__FILE__)}/../lib/action_view/helpers/text_helper"
       include ActionView::Helpers::TextHelper
       truncate("\354\225\210\353\205\225\355\225\230\354\204\270\354\232\224", 10)
@@ -42,6 +39,7 @@ class TextHelperTest < Test::Unit::TestCase
       $KCODE = "u"
       require 'jcode'
 
+      require File.dirname(__FILE__) + '/../../activesupport/lib/active_support/core_ext/kernel'
       require "#{File.dirname(__FILE__)}/../lib/action_view/helpers/text_helper"
       include ActionView::Helpers::TextHelper
       truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254\353\236 \354\225\204\353\235\274\353\246\254\354\230\244", 10)

@@ -156,11 +156,11 @@ class ValidationsTest < Test::Unit::TestCase
   def test_errors_on_boundary_breaking
     developer = Developer.new("name" => "xs")
     assert !developer.save
-    assert_equal "is too short (min is 3 characters)", developer.errors.on("name")
+    assert_equal "is too short (minimum is 3 characters)", developer.errors.on("name")
 
     developer.name = "All too very long for this boundary, it really is"
     assert !developer.save
-    assert_equal "is too long (max is 20 characters)", developer.errors.on("name")
+    assert_equal "is too long (maximum is 20 characters)", developer.errors.on("name")
 
     developer.name = "Just right"
     assert developer.save
@@ -402,17 +402,17 @@ class ValidationsTest < Test::Unit::TestCase
     t.title = "not"
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is too short (min is 5 characters)", t.errors["title"]
+    assert_equal "is too short (minimum is 5 characters)", t.errors["title"]
 
     t.title = ""
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is too short (min is 5 characters)", t.errors["title"]
+    assert_equal "is too short (minimum is 5 characters)", t.errors["title"]
 
     t.title = nil
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is too short (min is 5 characters)", t.errors["title"]
+    assert_equal "is too short (minimum is 5 characters)", t.errors["title"]
   end
 
   def test_optionally_validates_length_of_using_minimum
@@ -434,7 +434,7 @@ class ValidationsTest < Test::Unit::TestCase
     t.title = "notvalid"
     assert !t.valid?
     assert t.errors.on(:title)
-    assert_equal "is too long (max is 5 characters)", t.errors["title"]
+    assert_equal "is too long (maximum is 5 characters)", t.errors["title"]
 
     t.title = ""
     assert t.valid?
@@ -458,14 +458,14 @@ class ValidationsTest < Test::Unit::TestCase
 
     t = Topic.new("title" => "a!", "content" => "I'm ooooooooh so very long")
     assert !t.valid?
-    assert_equal "is too short (min is 3 characters)", t.errors.on(:title)
-    assert_equal "is too long (max is 5 characters)", t.errors.on(:content)
+    assert_equal "is too short (minimum is 3 characters)", t.errors.on(:title)
+    assert_equal "is too long (maximum is 5 characters)", t.errors.on(:content)
 
     t.title = nil
     t.content = nil
     assert !t.valid?
-    assert_equal "is too short (min is 3 characters)", t.errors.on(:title)
-    assert_equal "is too short (min is 3 characters)", t.errors.on(:content)
+    assert_equal "is too short (minimum is 3 characters)", t.errors.on(:title)
+    assert_equal "is too short (minimum is 3 characters)", t.errors.on(:content)
 
     t.title = "abe"
     t.content  = "mad"
@@ -662,7 +662,7 @@ class ValidationsTest < Test::Unit::TestCase
       t.title = "一二三四"
       assert !t.valid?
       assert t.errors.on(:title)
-      assert_equal "is too short (min is 5 characters)", t.errors["title"]
+      assert_equal "is too short (minimum is 5 characters)", t.errors["title"]
     end
   end
 
@@ -676,7 +676,7 @@ class ValidationsTest < Test::Unit::TestCase
       t.title = "一二34五六"
       assert !t.valid?
       assert t.errors.on(:title)
-      assert_equal "is too long (max is 5 characters)", t.errors["title"]
+      assert_equal "is too long (maximum is 5 characters)", t.errors["title"]
     end
   end
 
@@ -686,8 +686,8 @@ class ValidationsTest < Test::Unit::TestCase
 
       t = Topic.new("title" => "一二", "content" => "12三四五六七")
       assert !t.valid?
-      assert_equal "is too short (min is 3 characters)", t.errors.on(:title)
-      assert_equal "is too long (max is 5 characters)", t.errors.on(:content)
+      assert_equal "is too short (minimum is 3 characters)", t.errors.on(:title)
+      assert_equal "is too long (maximum is 5 characters)", t.errors.on(:content)
       t.title = "一二三"
       t.content  = "12三"
       assert t.valid?

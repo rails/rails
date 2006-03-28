@@ -31,8 +31,8 @@ module ActiveRecord
       :accepted  => "must be accepted",
       :empty => "can't be empty",
       :blank => "can't be blank",
-      :too_long => "is too long (max is %d characters)",
-      :too_short => "is too short (min is %d characters)",
+      :too_long => "is too long (maximum is %d characters)",
+      :too_short => "is too short (minimum is %d characters)",
       :wrong_length => "is the wrong length (should be %d characters)",
       :taken => "has already been taken",
       :not_a_number => "is not a number"
@@ -415,7 +415,7 @@ module ActiveRecord
       # * <tt>in</tt> - A synonym(or alias) for :within
       # * <tt>allow_nil</tt> - Attribute may be nil; skip validation.
       #
-      # * <tt>too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (max is %d characters)")
+      # * <tt>too_long</tt> - The error message if the attribute goes over the maximum (default is: "is too long (maximum is %d characters)")
       # * <tt>too_short</tt> - The error message if the attribute goes under the minimum (default is: "is too short (min is %d characters)")
       # * <tt>wrong_length</tt> - The error message if using the :is method and the attribute is the wrong size (default is: "is the wrong length (should be %d characters)")
       # * <tt>message</tt> - The error message to use for a :minimum, :maximum, or :is violation.  An alias of the appropriate too_long/too_short/wrong_length message
