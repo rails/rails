@@ -27,4 +27,3 @@ end
 # Upload rails tgz/zip
 
 # Create SVN tag
-`cd ..; svn cp trunk tags/rel_#{ARGV[1]}`
