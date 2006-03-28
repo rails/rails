@@ -43,7 +43,7 @@ end
 Rake::RDocTask.new { |rdoc|
   rdoc.rdoc_dir = 'doc'
   rdoc.title    = "Action Web Service -- Web services for Action Pack"
-  rdoc.options << '--line-numbers' << '--inline-source' << '--main README' << '--accessor class_inheritable_option=RW'
+  rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.template = "#{ENV['template']}.rb" if ENV['template']
   rdoc.rdoc_files.include('README')
   rdoc.rdoc_files.include('CHANGELOG')
