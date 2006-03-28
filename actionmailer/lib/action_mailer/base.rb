@@ -4,7 +4,7 @@ require 'action_mailer/part_container'
 require 'action_mailer/utils'
 require 'tmail/net'
 
-module ActionMailer
+module ActionMailer #:nodoc:
   # Usage:
   #
   #   class ApplicationMailer < ActionMailer::Base
