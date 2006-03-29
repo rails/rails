@@ -1,3 +1,8 @@
+*SVN*
+
+* Added gzip compression for JavaScript, CSS, and HTML to default lighttpd.conf [DHH]
+
+
 *1.1.0* (March 27th, 2005)
 
 * Allow db:fixtures:load to load a subset of the applications fixtures. [Chad Fowler]
