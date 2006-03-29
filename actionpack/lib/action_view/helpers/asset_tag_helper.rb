@@ -59,11 +59,16 @@ module ActionView
       # <tt>controllers/application.rb</tt> and <tt>helpers/application_helper.rb</tt>.
       def javascript_include_tag(*sources)
         options = sources.last.is_a?(Hash) ? sources.pop.stringify_keys : { }
+
         if sources.include?(:defaults) 
-          sources = sources[0..(sources.index(:defaults))] + @@javascript_default_sources.dup + sources[(sources.index(:defaults) + 1)..sources.length] 
+          sources = sources[0..(sources.index(:defaults))] + 
+            @@javascript_default_sources.dup + 
+            sources[(sources.index(:defaults) + 1)..sources.length]
+
           sources.delete(:defaults) 
-          sources << "application" if defined?(RAILS_ROOT) and File.exists?("#{RAILS_ROOT}/public/javascripts/application.js") 
+          sources << "application" if defined?(RAILS_ROOT) && File.exists?("#{RAILS_ROOT}/public/javascripts/application.js") 
         end
+
         sources.collect { |source|
           source = javascript_path(source)        
           content_tag("script", "", { "type" => "text/javascript", "src" => source }.merge(options))
@@ -145,11 +150,17 @@ module ActionView
       
       private
         def compute_public_path(source, dir, ext)
-          source = "/#{dir}/#{source}" unless source.first == "/" || source.include?(":")
-          source = "#{source}.#{ext}" unless source.split("/").last.include?(".")
-          source = "#{@controller.request.relative_url_root}#{source}" unless %r{^[-a-z]+://} =~ source
+          source  = "/#{dir}/#{source}" unless source.first == "/" || source.include?(":")
+          source << ".#{ext}" unless source.split("/").last.include?(".")
+          source << '?' + rails_asset_id(source) if defined?(RAILS_ROOT)
+          source  = "#{@controller.request.relative_url_root}#{source}" unless %r{^[-a-z]+://} =~ source
           source = ActionController::Base.asset_host + source unless source.include?(":")
           source
+        end
+        
+        def rails_asset_id(source)
+          ENV["RAILS_ASSET_ID"] || 
+            File.stat(RAILS_ROOT + "/public/#{source}").mtime.to_i.to_s
         end
     end
   end

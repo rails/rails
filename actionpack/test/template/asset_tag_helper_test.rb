@@ -27,6 +27,11 @@ class AssetTagHelperTest < Test::Unit::TestCase
     ActionView::Helpers::AssetTagHelper::reset_javascript_include_default
   end
 
+  def teardown
+    Object.send(:remove_const, :RAILS_ROOT) if defined?(RAILS_ROOT)
+    ENV["RAILS_ASSET_ID"] = nil
+  end
+
   AutoDiscoveryToTag = {
     %(auto_discovery_link_tag) => %(<link href="http://www.example.com" rel="alternate" title="RSS" type="application/rss+xml" />),
     %(auto_discovery_link_tag(:atom)) => %(<link href="http://www.example.com" rel="alternate" title="ATOM" type="application/atom+xml" />),
@@ -115,6 +120,17 @@ class AssetTagHelperTest < Test::Unit::TestCase
     ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
   
+  def test_timebased_asset_id
+    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
+    expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
+    assert_equal %(<img alt="Rails" src="/images/rails.png?#{expected_time}" />), image_tag("rails.png")
+  end
+  
+  def test_preset_asset_id
+    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
+    ENV["RAILS_ASSET_ID"] = "4500"
+    assert_equal %(<img alt="Rails" src="/images/rails.png?4500" />), image_tag("rails.png")
+  end
 end
 
 class AssetTagHelperNonVhostTest < Test::Unit::TestCase
