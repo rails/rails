@@ -51,8 +51,8 @@ module Rails
       def to_html
         returning table = '<table>' do
           properties.each do |(name, value)|
-            table << %(<tr><td class="name">#{CGI.escapeHTML(name)}</td>)
-            table << %(<td class="value">#{CGI.escapeHTML(value)}</td></tr>)
+            table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
+            table << %(<td class="value">#{CGI.escapeHTML(value.to_s)}</td></tr>)
           end
           table << '</table>'
         end
