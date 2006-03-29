@@ -125,6 +125,11 @@ class AssetTagHelperTest < Test::Unit::TestCase
     expected_time = File.stat(File.expand_path(File.dirname(__FILE__) + "/../fixtures/public/images/rails.png")).mtime.to_i.to_s
     assert_equal %(<img alt="Rails" src="/images/rails.png?#{expected_time}" />), image_tag("rails.png")
   end
+
+  def test_skipping_asset_id_on_complete_url
+    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
+    assert_equal %(<img alt="Rails" src="http://www.example.com/rails.png" />), image_tag("http://www.example.com/rails.png")
+  end
   
   def test_preset_asset_id
     Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
