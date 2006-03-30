@@ -1,10 +1,10 @@
 *SVN*
 
-* Avoid passing escapeHTML non-string in Rails' info controller. [Nicholas Seckar]
-
-* Fix Rails info controller's tests. [Nicholas Seckar]
+* Added expiration settings for JavaScript, CSS, HTML, and images to default lighttpd.conf [DHH]
 
 * Added gzip compression for JavaScript, CSS, and HTML to default lighttpd.conf [DHH]
+
+* Avoid passing escapeHTML non-string in Rails' info controller [Nicholas Seckar]
 
 
 *1.1.0* (March 27th, 2005)

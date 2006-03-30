@@ -44,15 +44,11 @@ begin
       # Enable the id column to be bound into the sql later, by the adapter's insert method.
       # This is preferable to inserting the hard-coded value here, because the insert method
       # needs to know the id value explicitly.
-      def attributes_with_quotes_pre_oracle #:nodoc:
-        attributes_with_quotes
-      end
-        
-
-      def attributes_with_quotes(creating = true) #:nodoc:
-        aq = attributes_with_quotes_pre_oracle creating
+      alias :attributes_with_quotes_pre_oracle :attributes_with_quotes
+      def attributes_with_quotes(include_primary_key = true) #:nodoc:
+        aq = attributes_with_quotes_pre_oracle(include_primary_key)
         if connection.class == ConnectionAdapters::OracleAdapter
-          aq[self.class.primary_key] = ":id" if creating && aq[self.class.primary_key].nil?
+          aq[self.class.primary_key] = ":id" if include_primary_key && aq[self.class.primary_key].nil?
         end
         aq
       end

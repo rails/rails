@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed broken OCIAdapter #4457 [schoenm@earthlink.net]
+
+
 *1.14.0* (March 27th, 2005)
 
 * Replace 'rescue Object' with a finer grained rescue. Closes #4431. [Nicholas Seckar]
