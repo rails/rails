@@ -160,7 +160,7 @@ module ActionView
         
         def rails_asset_id(source)
           ENV["RAILS_ASSET_ID"] || 
-            File.stat(RAILS_ROOT + "/public/#{source}").mtime.to_i.to_s
+            File.mtime("#{RAILS_ROOT}/public/#{source}").to_i.to_s rescue ""
         end
     end
   end
