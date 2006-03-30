@@ -174,7 +174,7 @@ module ActiveRecord
           end
           
           if source_reflection.options[:polymorphic]
-            raise HasManyThroughAssociationPolymorphicError.new(class_name, @reflection, source_reflection)
+            raise HasManyThroughAssociationPolymorphicError.new(class_name, self, source_reflection)
           end
         end
       end
