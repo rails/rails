@@ -1,5 +1,7 @@
 *SVN*
 
+* Do not implicitly mark recordss of has_many :through as readonly but do mark habtm records as readonly (eventually only on join tables without rich attributes). [Marcel Mollina Jr.]
+
 * Fixed broken OCIAdapter #4457 [schoenm@earthlink.net]
 
 

@@ -41,7 +41,7 @@ module ActiveRecord
 
           options[:conditions] = conditions
           options[:joins] = @join_sql
-          options[:readonly] ||= false
+          options[:readonly] ||= !options[:joins].nil?
 
           if options[:order] && @reflection.options[:order]
             options[:order] = "#{options[:order]}, #{@reflection.options[:order]}"

@@ -1325,7 +1325,7 @@ module ActiveRecord #:nodoc:
           unless options.has_key?(:readonly)
             if scoped?(:find, :readonly)
               options[:readonly] = scope(:find, :readonly)
-            elsif !options[:joins].blank?
+            elsif !options[:joins].blank? && !options[:select]
               options[:readonly] = true
             end
           end
