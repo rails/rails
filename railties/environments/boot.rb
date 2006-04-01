@@ -13,7 +13,12 @@ if File.directory?("#{RAILS_ROOT}/vendor/rails")
   require "#{RAILS_ROOT}/vendor/rails/railties/lib/initializer"
 else
   require 'rubygems'
-  require 'initializer'
+  required_version = '<%= Rails::VERSION::STRING %>'
+  rails_gem = Gem.cache.search('rails', "=#{required_version}").first
+  unless rails_gem
+    STDERR.puts "Cannot find gem for Rails =#{required_version}. Install missing gem or change config/boot.rb."
+  end
+  require rails_gem.full_gem_path + '/lib/initializer'
 end
 
 Rails::Initializer.run(:set_load_path)

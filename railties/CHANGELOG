@@ -1,5 +1,7 @@
 *SVN*
 
+* Teach Rails apps to only load gems of the same Rails version they were generated with. [Nicholas Seckar]
+
 * Added expiration settings for JavaScript, CSS, HTML, and images to default lighttpd.conf [DHH]
 
 * Added gzip compression for JavaScript, CSS, and HTML to default lighttpd.conf [DHH]
