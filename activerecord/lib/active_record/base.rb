@@ -1636,10 +1636,10 @@ module ActiveRecord #:nodoc:
       #     <last-read type="date">2004-04-15</last-read>
       #   </topic>
       #
-      # This behaviour can be controlled with :skip_attributes and :skip_instruct 
+      # This behaviour can be controlled with :only, :except, and :skip_instruct 
       # for instance:
       #
-      #   topic.to_xml(:skip_instruct => true, :skip_attributes => [ :id, bonus_time, :written_on, replies_count ])
+      #   topic.to_xml(:skip_instruct => true, :except => [ :id, bonus_time, :written_on, replies_count ])
       #
       #   <topic>
       #     <title>The First Topic</title>

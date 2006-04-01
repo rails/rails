@@ -188,7 +188,7 @@
   
   ...and you can configure with:
   
-    topic.to_xml(:skip_instruct => true, :skip_attributes => [ :id, bonus_time, :written_on, replies_count ])
+    topic.to_xml(:skip_instruct => true, :except => [ :id, bonus_time, :written_on, replies_count ])
   
   ...that'll return:
   
