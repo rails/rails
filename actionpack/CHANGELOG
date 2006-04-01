@@ -15,6 +15,7 @@
 
   This can be used by deployment managers to set the asset id by application revision
 
+
 *1.12.0* (March 27th, 2005)
 
 * Add documentation for respond_to. [Jamis Buck]
