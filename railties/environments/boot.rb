@@ -24,7 +24,11 @@ else
     if rails_gem
       require rails_gem.full_gem_path + '/lib/initializer'
     else
-      STDERR.puts "Cannot find gem for Rails =#{RAILS_GEM_VERSION}. Install missing gem or change config/boot.rb."
+      STDERR.puts %(Cannot find gem for Rails =#{RAILS_GEM_VERSION}:
+  Install the missing gem with 'gem install -v=#{RAILS_GEM_VERSION} rails', or
+  change environment.rb to define RAILS_GEM_VERSION with your desired version.
+)
+      exit 1
     end
   else
     require 'initializer'
