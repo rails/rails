@@ -1,5 +1,7 @@
 *SVN*
 
+* Use --simple-prompt instead of --prompt-mode simple for console compatibility with Windows/Ruby 1.8.2 #4532 [starr@starrnhorne.com]
+
 * Make Rails::VERSION implicitly loadable #4491. [Nicholas Seckar]
 
 * Fixed rake rails:freeze:gems #4518 [benji@silverinsanity.com]
