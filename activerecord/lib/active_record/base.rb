@@ -1036,21 +1036,26 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def add_limit!(sql, options, scope)
-          if scope
+        # The optional scope argument is for the current :find scope.
+        def add_limit!(sql, options, scope = nil)
+          if scope ||= scope(:find)
             options[:limit]  ||= scope[:limit]
             options[:offset] ||= scope[:offset]
           end
           connection.add_limit_offset!(sql, options)
         end
 
-        def add_joins!(sql, options, scope)
+        # The optional scope argument is for the current :find scope.
+        def add_joins!(sql, options, scope = nil)
+          scope ||= scope(:find)
           join = (scope && scope[:joins]) || options[:joins]
           sql << " #{join} " if join
         end
 
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that the passed-in +sql+ string is changed.
-        def add_conditions!(sql, conditions, scope)
+        # The optional scope argument is for the current :find scope.
+        def add_conditions!(sql, conditions, scope = nil)
+          scope  ||= scope(:find)
           segments = []
           segments << sanitize_sql(scope[:conditions]) if scope && scope[:conditions]
           segments << sanitize_sql(conditions) unless conditions.nil?
