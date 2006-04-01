@@ -1,5 +1,7 @@
 *SVN*
 
+* Applied Prototype $() performance patches (#4465, #4477) and updated script.aculo.us [Sam Stephenson, Thomas Fuchs]
+
 * Added automated timestamping to AssetTagHelper methods for stylesheets, javascripts, and images when Action Controller is run under Rails [DHH]. Example:
 
     image_tag("rails.png") # => '<img alt="Rails" src="/images/rails.png?1143664135" />'

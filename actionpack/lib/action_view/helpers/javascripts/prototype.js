@@ -900,18 +900,27 @@ if (!window.Element)
 
 Element.extend = function(element) {
   if (!element) return;
+  if (_nativeExtensions) return element;
 
   if (!element._extended && element.tagName && element != window) {
-    var methods = Element.Methods;
+    var methods = Element.Methods, cache = Element.extend.cache;
     for (property in methods) {
       var value = methods[property];
       if (typeof value == 'function')
-        element[property] = value.bind(null, element);
+        element[property] = cache.findOrStore(value);
     }
   }
 
   element._extended = true;
   return element;
+}
+
+Element.extend.cache = { 
+  findOrStore: function(value) { 
+    return this[value] = this[value] || function() { 
+      return value.apply(null, [this].concat($A(arguments))); 
+    } 
+  }
 }
 
 Element.Methods = {
@@ -1104,6 +1113,30 @@ Element.Methods = {
 }
 
 Object.extend(Element, Element.Methods);
+
+var _nativeExtensions = false;
+
+if(!HTMLElement && /Konqueror|Safari|KHTML/.test(navigator.userAgent)) {
+  var HTMLElement = {}
+  HTMLElement.prototype = document.createElement('div').__proto__;
+}
+
+Element.addMethods = function(methods) {
+  Object.extend(Element.Methods, methods || {});
+  
+  if(typeof HTMLElement != 'undefined') {
+    var methods = Element.Methods, cache = Element.extend.cache;
+    for (property in methods) {
+      var value = methods[property];
+      if (typeof value == 'function') {
+        HTMLElement.prototype[property] = cache.findOrStore(value);
+      }
+    }
+    _nativeExtensions = true;
+  }
+}
+
+Element.addMethods();
 
 var Toggle = new Object();
 Toggle.display = Element.toggle;

@@ -77,9 +77,12 @@ Element.getInlineOpacity = function(element){
 }  
 
 Element.childrenWithClassName = function(element, className, findFirst) {
-  return [$A($(element).getElementsByTagName('*'))[findFirst ? 'detect' : 'select']( function(c) { 
-    return c.className ? Element.hasClassName(c, className) : false;
-  })].flatten();
+  var classNameRegExp = new RegExp("(^|\\s)" + className + "(\\s|$)");
+  var results = $A($(element).getElementsByTagName('*'))[findFirst ? 'detect' : 'select']( function(c) { 
+    return (c.className && c.className.match(classNameRegExp));
+  });
+  if(!results) results = [];
+  return results;
 }
 
 Element.forceRerendering = function(element) {
@@ -90,11 +93,6 @@ Element.forceRerendering = function(element) {
     element.removeChild(n);
   } catch(e) { }
 };
-
-['setOpacity','getOpacity','getInlineOpacity','forceRerendering','setContentZoom',
- 'collectTextNodes','collectTextNodesIgnoreClass','childrenWithClassName'].each( 
-  function(f) { Element.Methods[f] = Element[f]; } 
-);
 
 /*--------------------------------------------------------------------------*/
 
@@ -943,7 +941,12 @@ Effect.Fold = function(element) {
         effect.element.setStyle(oldStyle);
       } });
   }}, arguments[1] || {}));
-}
+};
+
+['setOpacity','getOpacity','getInlineOpacity','forceRerendering','setContentZoom',
+ 'collectTextNodes','collectTextNodesIgnoreClass','childrenWithClassName'].each( 
+  function(f) { Element.Methods[f] = Element[f]; }
+);
 
 Element.Methods.visualEffect = function(element, effect, options) {
   s = effect.gsub(/_/, '-').camelize();
@@ -951,3 +954,5 @@ Element.Methods.visualEffect = function(element, effect, options) {
   new Effect[effect_class](element, options);
   return $(element);
 };
+
+Element.addMethods();
