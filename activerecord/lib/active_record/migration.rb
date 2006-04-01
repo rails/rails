@@ -61,6 +61,7 @@ module ActiveRecord
   #   that can then add columns to it, following the same format as add_column. See example above. The options hash is for
   #   fragments like "DEFAULT CHARSET=UTF-8" that are appended to the create table definition.
   # * <tt>drop_table(name)</tt>: Drops the table called +name+.
+  # * <tt>rename_table(old_name, new_name)</tt>: Renames the table called +old_name+ to +new_name+.
   # * <tt>add_column(table_name, column_name, type, options)</tt>: Adds a new column to the table called +table_name+
   #   named +column_name+ specified to be one of the following types:
   #   :string, :text, :integer, :float, :datetime, :timestamp, :time, :date, :binary, :boolean. A default value can be specified
