@@ -6,7 +6,7 @@ class AppGenerator < Rails::Generator::Base
   
   DATABASES = %w( mysql oracle postgresql sqlite2 sqlite3 )
   
-  default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG
+  default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG, :freeze => false
   mandatory_options :source => "#{File.dirname(__FILE__)}/../../../../.."
 
   def initialize(runtime_args, runtime_options = {})
@@ -44,7 +44,7 @@ class AppGenerator < Rails::Generator::Base
 
       # Environments
       m.file "environments/boot.rb",    "config/boot.rb"
-      m.template "environments/environment.rb", "config/environment.rb"
+      m.template "environments/environment.rb", "config/environment.rb", :assigns => { :freeze => options[:freeze] }
       m.file "environments/production.rb",  "config/environments/production.rb"
       m.file "environments/development.rb", "config/environments/development.rb"
       m.file "environments/test.rb",        "config/environments/test.rb"
@@ -100,6 +100,10 @@ class AppGenerator < Rails::Generator::Base
       opt.on("-d", "--database=name", String,
             "Preconfigure for selected database (options: mysql/oracle/postgresql/sqlite2/sqlite3).",
             "Default: mysql") { |options[:db]| }
+
+      opt.on("-f", "--freeze", 
+            "Freeze Rails in vendor/rails from the gems generating the skeleton",
+            "Default: false") { |options[:freeze]| }
     end
     
     def mysql_socket_location

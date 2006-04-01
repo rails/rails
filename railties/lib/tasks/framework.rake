@@ -6,7 +6,7 @@ namespace :rails do
       require 'rubygems'
       Gem.manage_gems
 
-      rails = version = ENV['VERSION'] ?
+      rails = (version = ENV['VERSION']) ?
         Gem.cache.search('rails', "= #{version}").first :
         Gem.cache.search('rails').sort_by { |g| g.version }.last
 
