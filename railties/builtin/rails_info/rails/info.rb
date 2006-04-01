@@ -1,5 +1,3 @@
-require 'rails_version'
-
 module Rails
   module Info
     mattr_accessor :properties
