@@ -1,5 +1,9 @@
 *SVN*
 
+* DEPRECATED: Using additional attributes on has_and_belongs_to_many associations. Instead upgrade your association to be a real join model [DHH]
+
+* Fixed that records returned from has_and_belongs_to_many associations with additional attributes should be marked as read only (fixes #4512) [DHH]
+
 * Do not implicitly mark recordss of has_many :through as readonly but do mark habtm records as readonly (eventually only on join tables without rich attributes). [Marcel Mollina Jr.]
 
 * Fixed broken OCIAdapter #4457 [schoenm@earthlink.net]

@@ -698,11 +698,10 @@ module ActiveRecord
       # an option, it is guessed using the lexical order of the class names. So a join between Developer and Project
       # will give the default join table name of "developers_projects" because "D" outranks "P".
       #
-      # Any additional fields added to the join table will be placed as attributes when pulling records out through
-      # has_and_belongs_to_many associations. This is helpful when have information about the association itself
-      # that you want available on retrieval. Note that any fields in the join table will override matching field names
-      # in the two joined tables. As a consequence, having an "id" field in the join table usually has the undesirable
-      # result of clobbering the "id" fields in either of the other two tables.
+      # Deprecated: Any additional fields added to the join table will be placed as attributes when pulling records out through
+      # has_and_belongs_to_many associations. Records returned from join tables with additional attributes will be marked as
+      # ReadOnly (because we can't save changes to the additional attrbutes). It's strongly recommended that you upgrade any
+      # associations with attributes to a real join model (see introduction).
       #
       # Adds the following methods for retrieval and query.
       # +collection+ is replaced with the symbol passed as the first argument, so 
@@ -714,7 +713,7 @@ module ActiveRecord
       # * <tt>collection.push_with_attributes(object, join_attributes)</tt> - adds one to the collection by creating an association in the join table that
       #   also holds the attributes from <tt>join_attributes</tt> (should be a hash with the column names as keys). This can be used to have additional
       #   attributes on the join, which will be injected into the associated objects when they are retrieved through the collection.
-      #   (collection.concat_with_attributes is an alias to this method).
+      #   (collection.concat_with_attributes is an alias to this method). This method is now deprecated.
       # * <tt>collection.delete(object, ...)</tt> - removes one or more objects from the collection by removing their associations from the join table.  
       #   This does not destroy the objects.
       # * <tt>collection=objects</tt> - replaces the collections content by deleting and adding objects as appropriate.

@@ -850,7 +850,7 @@ module ActiveRecord #:nodoc:
                   (hash[method].keys + params.keys).uniq.each do |key|
                     merge = hash[method][key] && params[key] # merge if both scopes have the same key
                     if key == :conditions && merge
-                      hash[method][key] = [params[key], hash[method][key]].collect{|sql| "( %s )" % sanitize_sql(sql)}.join(" AND ")
+                      hash[method][key] = [params[key], hash[method][key]].collect{ |sql| "( %s )" % sanitize_sql(sql) }.join(" AND ")
                     elsif key == :include && merge
                       hash[method][key] = merge_includes(hash[method][key], params[key]).uniq
                     else

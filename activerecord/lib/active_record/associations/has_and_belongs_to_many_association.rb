@@ -40,8 +40,8 @@ module ActiveRecord
           end
 
           options[:conditions] = conditions
-          options[:joins] = @join_sql
-          options[:readonly] ||= !options[:joins].nil?
+          options[:joins]      = @join_sql
+          options[:readonly]   = finding_with_ambigious_select?(options[:select])
 
           if options[:order] && @reflection.options[:order]
             options[:order] = "#{options[:order]}, #{@reflection.options[:order]}"
@@ -157,7 +157,13 @@ module ActiveRecord
 
           @join_sql = "INNER JOIN #{@reflection.options[:join_table]} ON #{@reflection.klass.table_name}.#{@reflection.klass.primary_key} = #{@reflection.options[:join_table]}.#{@reflection.association_foreign_key}"
         end
-        
+
+        # Join tables with additional columns on top of the two foreign keys must be considered ambigious unless a select
+        # clause has been explicitly defined. Otherwise you can get broken records back, if, say, the join column also has
+        # and id column, which will then overwrite the id column of the records coming back.
+        def finding_with_ambigious_select?(select_clause)
+          !select_clause && @owner.connection.columns(@reflection.options[:join_table], "Join Table Columns").size != 2
+        end
     end
   end
 end
