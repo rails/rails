@@ -7,7 +7,7 @@ require 'rake/contrib/rubyforgepublisher'
 require 'date'
 require 'rbconfig'
 
-require File.join(File.dirname(__FILE__), 'lib', 'rails_version')
+require File.join(File.dirname(__FILE__), 'lib/rails', 'version')
 
 PKG_BUILD       = ENV['PKG_BUILD'] ? '.' + ENV['PKG_BUILD'] : ''
 PKG_NAME        = 'rails'
