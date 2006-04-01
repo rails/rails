@@ -947,7 +947,7 @@ module ActiveRecord #:nodoc:
       
         def find_one(id, options)
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
-          options    = options.merge :conditions => "#{table_name}.#{primary_key} = #{sanitize(id)}#{conditions}"
+          options.update :conditions => "#{table_name}.#{primary_key} = #{sanitize(id)}#{conditions}"
 
           if result = find_initial(options)
             result
@@ -959,7 +959,7 @@ module ActiveRecord #:nodoc:
         def find_some(ids, options)
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
           ids_list   = ids.map { |id| sanitize(id) }.join(',')
-          options    = options.merge :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}"
+          options.update :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}"
 
           result = find_every(options)
 
