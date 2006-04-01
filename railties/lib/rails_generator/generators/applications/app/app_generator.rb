@@ -43,8 +43,8 @@ class AppGenerator < Rails::Generator::Base
       m.template "configs/apache.conf",   "public/.htaccess"
 
       # Environments
-      m.template "environments/boot.rb",    "config/boot.rb"
-      m.file "environments/environment.rb", "config/environment.rb"
+      m.file "environments/boot.rb",    "config/boot.rb"
+      m.template "environments/environment.rb", "config/environment.rb"
       m.file "environments/production.rb",  "config/environments/production.rb"
       m.file "environments/development.rb", "config/environments/development.rb"
       m.file "environments/test.rb",        "config/environments/test.rb"
