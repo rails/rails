@@ -1,5 +1,7 @@
 *SVN*
 
+* Add additional autocompleter options [aballai, Thomas Fuchs]
+
 * Fixed fragment caching of binary data on Windows #4493 [bellis@deepthought.org]
 
 * Applied Prototype $() performance patches (#4465, #4477) and updated script.aculo.us [Sam Stephenson, Thomas Fuchs]
