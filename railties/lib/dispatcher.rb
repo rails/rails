@@ -91,7 +91,7 @@ class Dispatcher
         begin
           output.write "Status: #{status}\r\n"
           output.write "Content-Type: text/plain\r\n\r\n"
-          output.write exception.to_s + "\r\n" + exception.backtrace.join("\r\n") if exception
+          output.write(exception.to_s + "\r\n" + exception.backtrace.join("\r\n")) if exception
         rescue Object
         end
       end

@@ -2,7 +2,10 @@ require File.dirname(__FILE__) + '/../lib/ruby_version_check'
 Signal.trap("INT") { puts; exit }
 
 require File.dirname(__FILE__) + '/../lib/rails/version'
-abort "Rails #{Rails::VERSION::STRING}" if %w(--version -v).include? ARGV.first
+if %w(--version -v).include? ARGV.first
+  puts "Rails #{Rails::VERSION::STRING}"
+  exit(0)
+end
 
 freeze   = ARGV.any? { |option| %w(--freeze -f).include?(option) }
 app_path = ARGV.first
