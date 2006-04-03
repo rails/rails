@@ -22,7 +22,7 @@ namespace :tmp do
   end
 
   namespace :sockets do
-    desc "Clears all ruby_sess.* files in tmp/sessions"
+    desc "Clears all files in tmp/sockets"
     task :clear do
       FileUtils.rm(Dir['tmp/sockets/[^.]*'])
     end

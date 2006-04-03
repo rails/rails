@@ -1,6 +1,17 @@
 require 'optparse'
 require 'socket'
 
+def daemonize #:nodoc:
+  exit if fork                   # Parent exits, child continues.
+  Process.setsid                 # Become session leader.
+  exit if fork                   # Zap session leader. See [1].
+  Dir.chdir "/"                  # Release old working directory.
+  File.umask 0000                # Ensure sensible umask. Adjust as needed.
+  STDIN.reopen "/dev/null"       # Free file descriptors and
+  STDOUT.reopen "/dev/null", "a" # point them somewhere sensible.
+  STDERR.reopen STDOUT           # STDOUT/ERR should better go to a logfile.
+end
+
 def spawn(port)
   print "Checking if something is already running on port #{port}..."
   begin
@@ -71,10 +82,12 @@ end
 ENV["RAILS_ENV"] = OPTIONS[:environment]
 
 if OPTIONS[:repeat]
+  daemonize
+  trap("TERM") { exit }
+
   loop do
     spawn_all
-    puts "Sleeping for #{OPTIONS[:repeat]} seconds"
-    sleep OPTIONS[:repeat]
+    sleep(OPTIONS[:repeat])
   end
 else
   spawn_all
