@@ -1,5 +1,7 @@
 *SVN*
 
+* Install alias so Rails::InfoController is accessible at /rails_info. Closes #4546. [Nicholas Seckar]
+
 * Fixed that spawner should daemonize if running in repeat mode [DHH]
 
 * Added TAG option for rake rails:freeze:edge, so you can say rake rails:freeze:edge TAG=rel_1-1-0 to lock to the 1.1.0 release [DHH]
