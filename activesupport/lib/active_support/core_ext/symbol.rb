@@ -1,5 +1,5 @@
 class Symbol
-  # Turns the symbol into a simpel proc, which is especially useful for enumerations. Examples:
+  # Turns the symbol into a simple proc, which is especially useful for enumerations. Examples:
   #
   #   # The same as people.collect { |p| p.name }
   #   people.collect(&:name)
