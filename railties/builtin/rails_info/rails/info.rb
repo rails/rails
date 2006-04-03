@@ -36,7 +36,7 @@ module Rails
           begin
             Dir[File.join(rails_vendor_root, 'REVISION_*')].first.scan(/_(\d+)$/).first.first
           rescue
-            Dir[File.join(rails_vendor_root, 'TAG_*')].first.scan(/_(\w+)$/).first.first rescue 'unknown'
+            Dir[File.join(rails_vendor_root, 'TAG_*')].first.scan(/_(.+)$/).first.first rescue 'unknown'
           end
         end
       end
