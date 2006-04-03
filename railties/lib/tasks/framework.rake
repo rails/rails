@@ -32,7 +32,7 @@ namespace :rails do
       end
     end
 
-    desc "Lock this application to latest Edge Rails. Lock a specific revision with REVISION=X"
+    desc "Lock to latest Edge Rails or a specific revision with REVISION=X (ex: REVISION=4021) or a tag with TAG=Y (ex: TAG=rel_1-1-0)"
     task :edge do
       $verbose = false
       `svn --version` rescue nil
@@ -41,20 +41,25 @@ namespace :rails do
         exit 1
       end
 
-      rails_svn = 'http://dev.rubyonrails.org/svn/rails/trunk'
-
-      if ENV['REVISION'].nil?
-        ENV['REVISION'] = /^r(\d+)/.match(%x{svn log -q --limit 1 #{rails_svn}})[1]
-        puts "REVISION not set. Using HEAD, which is revision #{ENV['REVISION']}."
-      end
-
       rm_rf   "vendor/rails"
       mkdir_p "vendor/rails"
 
-      touch   "vendor/rails/REVISION_#{ENV['REVISION']}"
+      if ENV['TAG']
+        rails_svn = "http://dev.rubyonrails.org/svn/rails/tags/#{ENV['TAG']}"
+        touch "vendor/rails/TAG_#{ENV['TAG']}"
+      else
+        rails_svn = 'http://dev.rubyonrails.org/svn/rails/trunk'
+
+        if ENV['REVISION'].nil?
+          ENV['REVISION'] = /^r(\d+)/.match(%x{svn log -q --limit 1 #{rails_svn}})[1]
+          puts "REVISION not set. Using HEAD, which is revision #{ENV['REVISION']}."
+        end
+
+        touch "vendor/rails/REVISION_#{ENV['REVISION']}"
+      end
       
       for framework in %w( railties actionpack activerecord actionmailer activesupport actionwebservice )
-        system "svn export #{rails_svn}/#{framework} vendor/rails/#{framework} -r #{ENV['REVISION']}"
+        system "svn export #{rails_svn}/#{framework} vendor/rails/#{framework}" + (ENV['REVISION'] ? " -r #{ENV['REVISION']}" : "")
       end
     end
   end

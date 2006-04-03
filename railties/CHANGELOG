@@ -1,5 +1,7 @@
 *SVN*
 
+* Added TAG option for rake rails:freeze:edge, so you can say rake rails:freeze:edge TAG=rel_1-1-0 to lock to the 1.1.0 release [DHH]
+
 * Applied Prototype $() performance patches (#4465, #4477) and updated script.aculo.us [Sam Stephenson, Thomas Fuchs]
 
 * Use --simple-prompt instead of --prompt-mode simple for console compatibility with Windows/Ruby 1.8.2 #4532 [starr@starrnhorne.com]
