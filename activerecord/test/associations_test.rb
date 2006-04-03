@@ -550,6 +550,25 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 0, companies(:first_firm).clients_of_firm.size
     assert_equal 0, companies(:first_firm).clients_of_firm(true).size
   end
+  
+  def test_delete_all
+    force_signal37_to_load_all_clients_of_firm
+    companies(:first_firm).clients_of_firm.create("name" => "Another Client")
+    assert_equal 2, companies(:first_firm).clients_of_firm.size
+    companies(:first_firm).clients_of_firm.delete_all
+    assert_equal 0, companies(:first_firm).clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+  end
+
+  def test_delete_all_with_not_yet_loaded_association_collection
+    force_signal37_to_load_all_clients_of_firm
+    companies(:first_firm).clients_of_firm.create("name" => "Another Client")
+    assert_equal 2, companies(:first_firm).clients_of_firm.size
+    companies(:first_firm).clients_of_firm.reset
+    companies(:first_firm).clients_of_firm.delete_all
+    assert_equal 0, companies(:first_firm).clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+  end
 
   def test_clearing_an_association_collection
     firm = companies(:first_firm)

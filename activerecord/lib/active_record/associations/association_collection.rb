@@ -37,6 +37,7 @@ module ActiveRecord
                       
       # Remove all records from this association
       def delete_all
+        load_target
         delete(@target)
         @target = []
       end
