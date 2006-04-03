@@ -1242,8 +1242,6 @@ module ActiveRecord #:nodoc:
           begin
             instance_eval(modularized_name)
           rescue NameError => e
-            first_module = modularized_name.split("::").first
-            raise unless e.to_s.include? first_module
             instance_eval(type_name)
           end
         end
