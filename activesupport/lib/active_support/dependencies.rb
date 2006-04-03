@@ -68,6 +68,17 @@ module Dependencies #:nodoc:
     # Record history *after* loading so first load gets warnings.
     history << file_name
   end
+  
+  class LoadingModule
+    # Old style environment.rb referenced this method directly.  Please note, it doesn't
+    # actualy *do* anything any more.
+    def self.root(*args)
+      if defined?(RAILS_DEFAULT_LOGGER)
+        RAILS_DEFAULT_LOGGER.warn "Your environment.rb uses the old syntax, it may not continue to work in future releases."
+        RAILS_DEFAULT_LOGGER.warn "For upgrade instructions please see: http://manuals.rubyonrails.com/read/book/19"
+      end
+    end
+  end
 end
 
 Object.send(:define_method, :require_or_load)     { |file_name| Dependencies.require_or_load(file_name) } unless Object.respond_to?(:require_or_load)
