@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed those private ActiveRecord methods to take optional third argument :auto instead of nil for performance optimizations.  (closes #4456) [Stefan]
+
 * Private ActiveRecord methods add_limit!, add_joins!, and add_conditions! take an OPTIONAL third argument 'scope' (closes #4456) [Rick]
 
 * DEPRECATED: Using additional attributes on has_and_belongs_to_many associations. Instead upgrade your association to be a real join model [DHH]

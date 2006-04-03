@@ -871,7 +871,7 @@ module ActiveRecord #:nodoc:
 
         begin
           yield
-        ensure 
+        ensure
           self.scoped_methods.pop
         end
       end
@@ -1037,8 +1037,9 @@ module ActiveRecord #:nodoc:
         end
 
         # The optional scope argument is for the current :find scope.
-        def add_limit!(sql, options, scope = nil)
-          if scope ||= scope(:find)
+        def add_limit!(sql, options, scope = :auto)
+          scope = scope(:find) if :auto == scope
+          if scope
             options[:limit]  ||= scope[:limit]
             options[:offset] ||= scope[:offset]
           end
@@ -1046,16 +1047,16 @@ module ActiveRecord #:nodoc:
         end
 
         # The optional scope argument is for the current :find scope.
-        def add_joins!(sql, options, scope = nil)
-          scope ||= scope(:find)
+        def add_joins!(sql, options, scope = :auto)
+          scope = scope(:find) if :auto == scope
           join = (scope && scope[:joins]) || options[:joins]
           sql << " #{join} " if join
         end
 
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that the passed-in +sql+ string is changed.
         # The optional scope argument is for the current :find scope.
-        def add_conditions!(sql, conditions, scope = nil)
-          scope  ||= scope(:find)
+        def add_conditions!(sql, conditions, scope = :auto)
+          scope = scope(:find) if :auto == scope
           segments = []
           segments << sanitize_sql(scope[:conditions]) if scope && scope[:conditions]
           segments << sanitize_sql(conditions) unless conditions.nil?
