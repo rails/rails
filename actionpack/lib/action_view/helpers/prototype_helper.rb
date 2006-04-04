@@ -425,7 +425,7 @@ module ActionView
         #
         #   # Controller action
         #   def poll
-        #     render :update { |page| page.update_time }
+        #     render(:update) { |page| page.update_time }
         #   end
         #
         # You can also use PrototypeHelper#update_page_tag instead of 
