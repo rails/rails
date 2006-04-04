@@ -1,5 +1,7 @@
 *SVN*
 
+* CHANGED DEFAULT: Don't parse YAML input by default, but keep it available as an easy option [DHH]
+
 * Add additional autocompleter options [aballai, Thomas Fuchs]
 
 * Fixed fragment caching of binary data on Windows #4493 [bellis@deepthought.org]
