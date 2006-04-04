@@ -1,5 +1,7 @@
 *SVN*
 
+* Multiple fixes and optimizations in PostgreSQL adapter, allowing ruby-postgres gem to work properly. [ruben.nine@gmail.com]
+
 * Fixed that AssociationCollection#delete_all should work even if the records of the association are not loaded yet. [Florian Weber]
 
 * Changed those private ActiveRecord methods to take optional third argument :auto instead of nil for performance optimizations.  (closes #4456) [Stefan]
