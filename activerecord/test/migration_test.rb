@@ -257,8 +257,8 @@ if ActiveRecord::Base.connection.supports_migrations?
 
         assert_nothing_raised do
           if current_adapter?(:OracleAdapter)
-            # Oracle requires the explicit sequence for the pk
-            ActiveRecord::Base.connection.execute "INSERT INTO octopi (id, url) VALUES (octopi_seq.nextval, 'http://www.foreverflying.com/octopus-black7.jpg')"
+            # Oracle requires the explicit sequence value for the pk
+            ActiveRecord::Base.connection.execute "INSERT INTO octopi (id, url) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
           else
             ActiveRecord::Base.connection.execute "INSERT INTO octopi (url) VALUES ('http://www.foreverflying.com/octopus-black7.jpg')"
           end
@@ -466,9 +466,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       
       columns = Person.connection.columns(:binary_testings)
       data_column = columns.detect { |c| c.name == "data" }
-      
-      assert_equal "", data_column.default
-      
+
+      if current_adapter?(:OracleAdapter)
+        assert_equal "empty_blob()", data_column.default
+      else
+        assert_equal "", data_column.default
+      end
+
       Person.connection.drop_table :binary_testings rescue nil
     end
 

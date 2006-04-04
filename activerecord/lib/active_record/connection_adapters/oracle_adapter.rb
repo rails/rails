@@ -210,15 +210,17 @@ begin
         end
 
         def quote(value, column = nil) #:nodoc:
-          if column && column.type == :binary then %Q{empty_#{ column.sql_type }()}
-          else case value
-            when String       then %Q{'#{quote_string(value)}'}
-            when NilClass     then 'null'
-            when TrueClass    then '1'
-            when FalseClass   then '0'
-            when Numeric      then value.to_s
-            when Date, Time   then %Q{'#{value.strftime("%Y-%m-%d %H:%M:%S")}'}
-            else                   %Q{'#{quote_string(value.to_yaml)}'}
+          if column && column.type == :binary
+            %Q{empty_#{ column.sql_type rescue 'blob' }()}
+          else
+            case value
+            when String     : %Q{'#{quote_string(value)}'}
+            when NilClass   : 'null'
+            when TrueClass  : '1'
+            when FalseClass : '0'
+            when Numeric    : value.to_s
+            when Date, Time : %Q{'#{value.strftime("%Y-%m-%d %H:%M:%S")}'}
+            else              %Q{'#{quote_string(value.to_yaml)}'}
             end
           end
         end
@@ -356,7 +358,7 @@ begin
         end
 
         def columns(table_name, name = nil) #:nodoc:
-          table_info = @connection.object_info(table_name)
+          (owner, table_name) = @connection.describe(table_name)
 
           table_cols = %Q{
             select column_name, data_type, data_default, nullable,
@@ -365,13 +367,16 @@ begin
                                       null) as length,
                    decode(data_type, 'NUMBER', data_scale, null) as scale
               from all_tab_columns
-             where owner      = '#{table_info.schema}'
-               and table_name = '#{table_info.name}'
+             where owner      = '#{owner}'
+               and table_name = '#{table_name}'
              order by column_id
           }
 
           select_all(table_cols, name).map do |row|
-            row['data_default'].sub!(/^'(.*)'\s*$/, '\1') if row['data_default']
+            if row['data_default']
+              row['data_default'].sub!(/^(.*?)\s*$/, '\1')
+              row['data_default'].sub!(/^'(.*)'$/, '\1')
+            end
             OracleColumn.new(
               oracle_downcase(row['column_name']),
               row['data_default'],
@@ -385,7 +390,7 @@ begin
 
         def create_table(name, options = {}) #:nodoc:
           super(name, options)
-          execute "CREATE SEQUENCE #{name}_seq" unless options[:id] == false
+          execute "CREATE SEQUENCE #{name}_seq START WITH 10000" unless options[:id] == false
         end
 
         def rename_table(name, new_name) #:nodoc:
@@ -465,7 +470,7 @@ begin
         private
 
         def select(sql, name = nil)
-          cursor = log(sql, name) { @connection.exec sql }
+          cursor = execute(sql, name)
           cols = cursor.get_col_names.map { |x| oracle_downcase(x) }
           rows = []
 
@@ -531,30 +536,27 @@ begin
     # missing constant from oci8 < 0.1.14
     OCI_PTYPE_UNK = 0 unless defined?(OCI_PTYPE_UNK)
 
-    def object_info(name)
-      OraObject.new describe(name.to_s, OCI_PTYPE_UNK)
-    end
-
-    def describe(name, type)
+    # Uses the describeAny OCI call to find the target owner and table_name
+    # indicated by +name+, parsing through synonynms as necessary. Returns
+    # an array of [owner, table_name].
+    def describe(name)
       @desc ||= @@env.alloc(OCIDescribe)
       @desc.attrSet(OCI_ATTR_DESC_PUBLIC, -1) if VERSION >= '0.1.14'
-      @desc.describeAny(@svc, name, type)
-      @desc.attrGet(OCI_ATTR_PARAM)
-    end
+      @desc.describeAny(@svc, name.to_s, OCI_PTYPE_UNK)
+      info = @desc.attrGet(OCI_ATTR_PARAM)
 
-    class OraObject #:nodoc:
-      attr_reader :schema, :name
-      def initialize(info)
-        case info.attrGet(OCI_ATTR_PTYPE)
-        when OCI_PTYPE_TABLE, OCI_PTYPE_VIEW
-          @schema = info.attrGet(OCI_ATTR_OBJ_SCHEMA)
-          @name   = info.attrGet(OCI_ATTR_OBJ_NAME)
-        when OCI_PTYPE_SYN
-          @schema = info.attrGet(OCI_ATTR_SCHEMA_NAME)
-          @name   = info.attrGet(OCI_ATTR_NAME)
-        end
+      case info.attrGet(OCI_ATTR_PTYPE)
+      when OCI_PTYPE_TABLE, OCI_PTYPE_VIEW
+        owner      = info.attrGet(OCI_ATTR_OBJ_SCHEMA)
+        table_name = info.attrGet(OCI_ATTR_OBJ_NAME)
+        [owner, table_name]
+      when OCI_PTYPE_SYN
+        schema = info.attrGet(OCI_ATTR_SCHEMA_NAME)
+        name   = info.attrGet(OCI_ATTR_NAME)
+        describe(schema + '.' + name)
       end
     end
+
   end
 
 

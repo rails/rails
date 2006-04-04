@@ -42,7 +42,7 @@ class AdapterTest < Test::Unit::TestCase
   
   def test_current_database
     if @connection.respond_to?(:current_database)
-      assert_equal "activerecord_unittest", @connection.current_database
+      assert_equal ENV['ARUNIT_DB_NAME'] || "activerecord_unittest", @connection.current_database
     end
   end
 

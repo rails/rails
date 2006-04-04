@@ -6,7 +6,7 @@ ActiveRecord::Base.logger = Logger.new STDOUT
 ActiveRecord::Base.logger.level = Logger::WARN
 
 # Set these to your database connection strings
-db = 'activerecord_unit_tests'
+db = ENV['ARUNIT_DB'] || 'activerecord_unittest'
 
 ActiveRecord::Base.establish_connection(
   :adapter  => 'oracle',
