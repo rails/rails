@@ -1,5 +1,7 @@
 *SVN*
 
+* Delegate xml_http_request in integration tests to the session instance. [Jamis Buck]
+
 * Update the diagnostics template skip the useless '<controller not set>' text. [Nicholas Seckar]
 
 * CHANGED DEFAULT: Don't parse YAML input by default, but keep it available as an easy option [DHH]

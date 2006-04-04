@@ -464,7 +464,7 @@ module ActionController
       @integration_session = open_session
     end
 
-    %w(get post cookies assigns).each do |method|
+    %w(get post cookies assigns xml_http_request).each do |method|
       define_method(method) do |*args|
         reset! unless @integration_session
         returning @integration_session.send(method, *args) do
