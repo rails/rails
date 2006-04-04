@@ -35,30 +35,25 @@ namespace :rails do
     desc "Lock to latest Edge Rails or a specific revision with REVISION=X (ex: REVISION=4021) or a tag with TAG=Y (ex: TAG=rel_1-1-0)"
     task :edge do
       $verbose = false
-      svn_version = `svn --version -q` rescue nil
+      `svn --version` rescue nil
       unless !$?.nil? && $?.success?
         $stderr.puts "ERROR: Must have subversion (svn) available in the PATH to lock this application to Edge Rails"
         exit 1
       end
-      
-      major, minor, sub = svn_version.strip.split '.'
-      if ENV['REVISION'].nil? && major.to_i == 1 && minor.to_i < 2
-        puts "The --limit option is not available in your version of svn."
-        puts "Please try this syntax:  rake rails:freeze:edge REVISION=4145"
-        exit 1
-      end
-      
+            
       rm_rf   "vendor/rails"
       mkdir_p "vendor/rails"
+      
+      svn_root = "http://dev.rubyonrails.org/svn/rails/"
 
       if ENV['TAG']
-        rails_svn = "http://dev.rubyonrails.org/svn/rails/tags/#{ENV['TAG']}"
+        rails_svn = "#{svn_root}/tags/#{ENV['TAG']}"
         touch "vendor/rails/TAG_#{ENV['TAG']}"
       else
-        rails_svn = 'http://dev.rubyonrails.org/svn/rails/trunk'
+        rails_svn = "#{svn_root}/trunk"
 
         if ENV['REVISION'].nil?
-          ENV['REVISION'] = /^r(\d+)/.match(%x{svn log -q --limit 1 #{rails_svn}})[1]
+          ENV['REVISION'] = /^r(\d+)/.match(%x{svn -qr HEAD log #{svn_root}})[1]
           puts "REVISION not set. Using HEAD, which is revision #{ENV['REVISION']}."
         end
 
