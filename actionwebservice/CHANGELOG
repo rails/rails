@@ -1,3 +1,7 @@
+*SVN*
+
+* Do not convert driver options to strings (#4499)
+
 *1.1.0* (March 27th, 2005)
 
 * Make ActiveWebService::Struct type reloadable

@@ -50,7 +50,7 @@ module ActionWebService # :nodoc:
         @soap_action_base ||= URI.parse(endpoint_uri).path
         @driver = create_soap_rpc_driver(api, endpoint_uri)
         @driver_options.each do |name, value|
-          @driver.options[name.to_s] = value.to_s
+          @driver.options[name.to_s] = value
         end
       end
 
