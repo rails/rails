@@ -1445,24 +1445,38 @@ module ActiveRecord
                           aliased_table_name, primary_key, aliased_join_table_name, options[:foreign_key] || reflection.klass.to_s.classify.foreign_key
                         ]
                       else
-                        case source_reflection.macro
-                          when :belongs_to
-                            first_key  = primary_key
-                            second_key = options[:foreign_key] || klass.to_s.classify.foreign_key
-                          when :has_many
-                            first_key  = through_reflection.klass.to_s.classify.foreign_key
-                            second_key = options[:foreign_key] || primary_key
+                        if source_reflection.macro == :has_many && source_reflection.options[:as]
+                          " LEFT OUTER JOIN %s ON %s.%s = %s.%s "  % [
+                            table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), aliased_join_table_name,
+                            through_reflection.primary_key_name,
+                            parent.aliased_table_name, parent.primary_key] +
+                          " LEFT OUTER JOIN %s ON %s.%s = %s.%s AND %s.%s = %s " % [
+                            table_name_and_alias,
+                            aliased_table_name, "#{source_reflection.options[:as]}_id", 
+                            aliased_join_table_name, options[:foreign_key] || primary_key,
+                            aliased_table_name, "#{source_reflection.options[:as]}_type", 
+                            klass.quote(source_reflection.active_record.base_class.name)
+                          ]
+                        else
+                          case source_reflection.macro
+                            when :belongs_to
+                              first_key  = primary_key
+                              second_key = options[:foreign_key] || klass.to_s.classify.foreign_key
+                            when :has_many
+                              first_key  = through_reflection.klass.to_s.classify.foreign_key
+                              second_key = options[:foreign_key] || primary_key
+                          end
+                          
+                          " LEFT OUTER JOIN %s ON %s.%s = %s.%s "  % [
+                            table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), aliased_join_table_name,
+                            through_reflection.primary_key_name,
+                            parent.aliased_table_name, parent.primary_key] +
+                          " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
+                            table_name_and_alias,
+                            aliased_table_name, first_key, 
+                            aliased_join_table_name, second_key
+                          ]
                         end
-
-                        " LEFT OUTER JOIN %s ON %s.%s = %s.%s "  % [
-                          table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), aliased_join_table_name,
-                          through_reflection.primary_key_name,
-                          parent.aliased_table_name, parent.primary_key] +
-                        " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
-                          table_name_and_alias,
-                          aliased_table_name, first_key, 
-                          aliased_join_table_name, second_key
-                        ]
                       end
                     
                     when reflection.macro == :has_many && reflection.options[:as]
@@ -1479,7 +1493,7 @@ module ActiveRecord
                         aliased_table_name, "#{reflection.options[:as]}_id",
                         parent.aliased_table_name, parent.primary_key,
                         aliased_table_name, "#{reflection.options[:as]}_type",
-                        klass.quote(reflection.active_record.name)
+                        klass.quote(reflection.active_record.base_class.name)
                       ]
                     else
                       foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key

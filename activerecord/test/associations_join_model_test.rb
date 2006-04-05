@@ -311,7 +311,7 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_equal [taggings(:welcome_general), taggings(:thinking_general)], authors(:david).taggings.uniq.sort_by { |t| t.id }
   end
 
-  def test_has_many_through_polymorphic_has_many_with_eager_loading
+  def test_include_has_many_through_polymorphic_has_many
     author            = Author.find_by_id(authors(:david).id, :include => :taggings)
     expected_taggings = [taggings(:welcome_general), taggings(:thinking_general)]
     assert_no_queries do
