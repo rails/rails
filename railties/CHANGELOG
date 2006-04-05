@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that rake clone_structure_to_test should quit on pgsql if the dump is unsuccesful #4585 [augustz@augustz.com]
+
 * Fixed that rails --version should have the return code of 0 (success) #4560 [blair@orcaware.com]
 
 * Install alias so Rails::InfoController is accessible at /rails_info. Closes #4546. [Nicholas Seckar]
