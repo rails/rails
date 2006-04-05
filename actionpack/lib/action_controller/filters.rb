@@ -255,6 +255,7 @@ module ActionController #:nodoc:
       # just like when you apply the filters.
       def skip_before_filter(*filters)
         if conditions = extract_conditions!(filters)
+          remove_contradicting_conditions!(filters, conditions)
           conditions[:only], conditions[:except] = conditions[:except], conditions[:only]
           add_action_conditions(filters, conditions)
         else
@@ -272,6 +273,7 @@ module ActionController #:nodoc:
       # just like when you apply the filters.
       def skip_after_filter(*filters)
         if conditions = extract_conditions!(filters)
+          remove_contradicting_conditions!(filters, conditions)
           conditions[:only], conditions[:except] = conditions[:except], conditions[:only]
           add_action_conditions(filters, conditions)
         else
@@ -331,6 +333,17 @@ module ActionController #:nodoc:
 
         def condition_hash(filters, *actions)
           filters.inject({}) {|hash, filter| hash.merge(filter => actions.flatten.map {|action| action.to_s})}
+        end
+        
+        def remove_contradicting_conditions!(filters, conditions)
+          return unless conditions[:only]
+          filters.each do |filter|
+            next unless included_actions_for_filter = included_actions[filter]
+            [*conditions[:only]].each do |conditional_action|
+              conditional_action = conditional_action.to_s
+              included_actions_for_filter.delete(conditional_action) if included_actions_for_filter.include?(conditional_action)
+            end
+          end
         end
     end
 

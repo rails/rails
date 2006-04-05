@@ -126,7 +126,23 @@ class FilterTest < Test::Unit::TestCase
       render :inline => "ran action"
     end
   end
-
+  
+  class ConditionalParentOfConditionalSkippingController < ConditionalFilterController
+    before_filter :conditional_in_parent, :only => [:show, :another_action]
+    after_filter  :conditional_in_parent, :only => [:show, :another_action]
+    
+    private
+      
+      def conditional_in_parent
+        @ran_filter ||= []
+        @ran_filter << 'conditional_in_parent'
+      end
+  end
+  
+  class ChildOfConditionalParentController < ConditionalParentOfConditionalSkippingController
+    skip_before_filter :conditional_in_parent, :only => :another_action
+    skip_after_filter  :conditional_in_parent, :only => :another_action
+  end
 
   class ProcController < PrependingController
     before_filter(proc { |c| c.assigns["ran_proc_filter"] = true })
@@ -372,6 +388,11 @@ class FilterTest < Test::Unit::TestCase
     assert_equal %w( clean_up ), test_process(ConditionalSkippingController, "change_password").template.controller.instance_variable_get("@ran_after_filter")
   end
 
+  def test_conditional_skipping_of_filters_when_parent_filter_is_also_conditional
+    assert_equal %w( conditional_in_parent conditional_in_parent ), test_process(ChildOfConditionalParentController).template.assigns['ran_filter']
+    assert_nil test_process(ChildOfConditionalParentController, 'another_action').template.assigns['ran_filter']
+  end
+  
   private
     def test_process(controller, action = "show")
       request = ActionController::TestRequest.new
