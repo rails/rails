@@ -1392,7 +1392,7 @@ module ActiveRecord
               @aliased_prefix     = "t#{ join_dependency.joins.size }"
               @aliased_table_name = table_name # start with the table name
               @parent_table_name  = parent.active_record.table_name
-              
+
               if !parent.table_joins.blank? && parent.table_joins.to_s.downcase =~ %r{join(\s+\w+)?\s+#{aliased_table_name.downcase}\son}
                 join_dependency.table_aliases[aliased_table_name] += 1
               end
@@ -1473,12 +1473,16 @@ module ActiveRecord
                         aliased_table_name, "#{reflection.options[:as]}_type",
                         klass.quote(parent.active_record.base_class.name)
                       ]
-                      
+                    when reflection.macro == :has_one && reflection.options[:as]
+                      " LEFT OUTER JOIN %s ON %s.%s = %s.%s AND %s.%s = %s " % [
+                        table_name_and_alias,
+                        aliased_table_name, "#{reflection.options[:as]}_id",
+                        parent.aliased_table_name, parent.primary_key,
+                        aliased_table_name, "#{reflection.options[:as]}_type",
+                        klass.quote(reflection.active_record.name)
+                      ]
                     else
-                      foreign_key = options[:foreign_key] || case reflection.macro
-                        when :has_many then reflection.active_record.to_s.classify
-                        when :has_one  then reflection.active_record.to_s
-                      end.foreign_key
+                      foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
                       " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
                         table_name_and_alias,
                         aliased_table_name, foreign_key,

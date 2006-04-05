@@ -208,6 +208,14 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     end
   end
 
+  def test_include_polymorphic_has_one
+    post    = Post.find_by_id(posts(:welcome).id, :include => :tagging)
+    tagging = taggings(:welcome_general)
+    assert_no_queries do
+      assert_equal tagging, post.tagging
+    end
+  end
+
   def test_include_polymorphic_has_many_through
     posts           = Post.find(:all, :order => 'posts.id')
     posts_with_tags = Post.find(:all, :include => :tags, :order => 'posts.id')
@@ -301,6 +309,14 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
 
   def test_has_many_through_polymorphic_has_many
     assert_equal [taggings(:welcome_general), taggings(:thinking_general)], authors(:david).taggings.uniq.sort_by { |t| t.id }
+  end
+
+  def test_has_many_through_polymorphic_has_many_with_eager_loading
+    author            = Author.find_by_id(authors(:david).id, :include => :taggings)
+    expected_taggings = [taggings(:welcome_general), taggings(:thinking_general)]
+    assert_no_queries do
+      assert_equal expected_taggings, author.taggings.uniq.sort_by { |t| t.id }
+    end
   end
 
   def test_has_many_through_has_many_through

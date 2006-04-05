@@ -1,5 +1,13 @@
 *SVN*
 
+* Added support for eagerly including polymorphic has_one associations. (closes #4525) [Rick]
+
+    class Post < ActiveRecord::Base
+      has_one :tagging, :as => :taggable
+    end
+    
+    Post.find :all, :include => :tagging
+
 * Added descriptive error messages for invalid has_many :through associations: going through :has_one or :has_and_belongs_to_many [Rick]
 
 * Added support for going through a polymorphic has_many association: (closes #4401) [Rick]
