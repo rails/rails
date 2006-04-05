@@ -48,8 +48,10 @@ Mongrel. It's a Ruby-based web server with a C-component (so it requires compila
 also works very well with Windows. See more at http://mongrel.rubyforge.org/.
 
 But of course its also possible to run Rails with the premiere open source web server Apache.
-To get decent performance, though, you'll need to install FastCGI. See
-http://wiki.rubyonrails.com/rails/pages/FastCGI for more information on FastCGI.
+To get decent performance, though, you'll need to install FastCGI. For Apache 1.3, you want
+to use mod_fastcgi. For Apache 2.0+, you want to use mod_fcgid.
+
+See http://wiki.rubyonrails.com/rails/pages/FastCGI for more information on FastCGI.
 
 == Example for Apache conf
 
