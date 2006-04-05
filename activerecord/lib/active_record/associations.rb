@@ -44,6 +44,18 @@ module ActiveRecord
     end
   end
 
+  class HasManyThroughSourceAssociationMacroError < ActiveRecordError #:nodoc
+    def initialize(reflection)
+      @reflection         = reflection
+      @through_reflection = reflection.through_reflection
+      @source_reflection  = reflection.source_reflection
+    end
+    
+    def message
+      "Invalid source reflection macro :#{@source_reflection.macro}#{" :through" if @source_reflection.options[:through]} for has_many #{@reflection.name.inspect}, :through => #{@through_reflection.name.inspect}.  Use :source to specify the source reflection."
+    end
+  end
+
   class EagerLoadPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(reflection)
       @reflection = reflection

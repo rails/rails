@@ -295,6 +295,22 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_equal comments(:more_greetings), authors(:david).comments.find(2)
   end
 
+  def test_has_many_through_polymorphic_has_one
+    assert_raise(ActiveRecord::HasManyThroughSourceAssociationMacroError) { authors(:david).tagging }
+  end
+
+  def test_has_many_through_polymorphic_has_many
+    assert_equal [taggings(:welcome_general), taggings(:thinking_general)], authors(:david).taggings.uniq.sort_by { |t| t.id }
+  end
+
+  def test_has_many_through_has_many_through
+    assert_raise(ActiveRecord::HasManyThroughSourceAssociationMacroError) { authors(:david).tags }
+  end
+
+  def test_has_many_through_habtm
+    assert_raise(ActiveRecord::HasManyThroughSourceAssociationMacroError) { authors(:david).post_categories }
+  end
+
   def test_eager_load_has_many_through_has_many
     author = Author.find :first, :conditions => ['name = ?', 'David'], :include => :comments, :order => 'comments.id'
     SpecialComment.new; VerySpecialComment.new
