@@ -90,8 +90,26 @@ class Dispatcher
       rescue Object
         begin
           output.write "Status: #{status}\r\n"
-          output.write "Content-Type: text/plain\r\n\r\n"
-          output.write(exception.to_s + "\r\n" + exception.backtrace.join("\r\n")) if exception
+          
+          if exception
+            message    = exception.to_s + "\r\n" + exception.backtrace.join("\r\n")
+            error_path = File.join(RAILS_ROOT, 'public', '500.html')
+
+            if defined?(RAILS_DEFAULT_LOGGER) && !RAILS_DEFAULT_LOGGER.nil?
+              RAILS_DEFAULT_LOGGER.fatal(message)
+
+              output.write "Content-Type: text/html\r\n\r\n"
+
+              if File.exists?(error_path)
+                output.write(IO.read(error_path))
+              else
+                output.write("<html><body><h1>Application error (Rails)</h1></body></html>")
+              end
+            else
+              output.write "Content-Type: text/plain\r\n\r\n"
+              output.write(message)
+            end
+          end
         rescue Object
         end
       end

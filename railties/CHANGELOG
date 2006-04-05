@@ -1,5 +1,7 @@
 *SVN*
 
+* Added that Dispatcher exceptions should not be shown to the user unless a default log has not been configured. Instead show public/500.html [DHH]
+
 * Fixed that rake clone_structure_to_test should quit on pgsql if the dump is unsuccesful #4585 [augustz@augustz.com]
 
 * Fixed that rails --version should have the return code of 0 (success) #4560 [blair@orcaware.com]
