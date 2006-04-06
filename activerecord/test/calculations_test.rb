@@ -48,6 +48,18 @@ class CalculationsTest < Test::Unit::TestCase
     assert_equal [6, 2, 1], c.keys.compact
   end
 
+  def test_should_limit_calculation
+    c = Account.sum(:credit_limit, :conditions => "firm_id IS NOT NULL",
+                    :group => :firm_id, :order => "firm_id", :limit => 2)
+    assert_equal [1, 2], c.keys.compact
+  end
+
+  def test_should_limit_calculation_with_offset
+    c = Account.sum(:credit_limit, :conditions => "firm_id IS NOT NULL",
+                    :group => :firm_id, :order => "firm_id", :limit => 2, :offset => 1)
+    assert_equal [2, 6], c.keys.compact
+  end
+
   def test_should_group_by_summed_field_having_condition
     c = Account.sum(:credit_limit, :group => :firm_id, 
                                    :having => 'sum(credit_limit) > 50')

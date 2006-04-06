@@ -1,5 +1,7 @@
 *1.14.1* (April 6th, 2005)
 
+* Enable Limit/Offset in Calculations (closes #4558) [lmarlow@yahoo.com]
+
 * Fixed that loading including associations returns all results if Load IDs For Limited Eager Loading returns none (closes #4528) [Rick]
 
 * Fixed HasManyAssociation#find bugs when :finder_sql is set #4600 [lagroue@free.fr]

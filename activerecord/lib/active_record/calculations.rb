@@ -1,6 +1,6 @@
 module ActiveRecord
   module Calculations #:nodoc:
-    CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct]
+    CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct, :limit, :offset]
     def self.included(base)
       base.extend(ClassMethods)
     end
@@ -153,6 +153,7 @@ module ActiveRecord
           sql << " GROUP BY #{options[:group_field]}" if options[:group]
           sql << " HAVING #{options[:having]}" if options[:group] && options[:having]
           sql << " ORDER BY #{options[:order]}" if options[:order]
+          add_limit!(sql, options)
           sql.join
         end
 
