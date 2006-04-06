@@ -1,6 +1,8 @@
+*1.14.1* (April 6th, 2005)
+
 * Fix type_name_with_module to handle type names that begin with '::'. Closes #4614. [Nicholas Seckar]
 
-*1.14.1* (April 6th, 2005)
+* Fixed that that multiparameter assignment doesn't work with aggregations (closes #4620) [Lars Pind]
 
 * Enable Limit/Offset in Calculations (closes #4558) [lmarlow@yahoo.com]
 

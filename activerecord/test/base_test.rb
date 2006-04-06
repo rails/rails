@@ -2,6 +2,7 @@ require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/company'
+require 'fixtures/customer'
 require 'fixtures/developer'
 require 'fixtures/project'
 require 'fixtures/default'
@@ -720,6 +721,14 @@ class BasicsTest < Test::Unit::TestCase
     attributes = { "starting(1i)" => "2004", "starting(2i)" => "6", "starting(3i)" => "24" }
     task.attributes = attributes
     assert_equal time, task.starting
+  end
+  
+  def test_multiparameter_assignment_of_aggregation
+    customer = Customer.new
+    address = Address.new("The Street", "The City", "The Country")
+    attributes = { "address(1)" => address.street, "address(2)" => address.city, "address(3)" => address.country }
+    customer.attributes = attributes
+    assert_equal address, customer.address
   end
 
   def test_attributes_on_dummy_time

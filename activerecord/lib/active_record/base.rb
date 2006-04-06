@@ -1988,7 +1988,7 @@ module ActiveRecord #:nodoc:
       def execute_callstack_for_multiparameter_attributes(callstack)
         errors = []
         callstack.each do |name, values|
-          klass = (self.class.reflect_on_aggregation(name) || column_for_attribute(name)).klass
+          klass = (self.class.reflect_on_aggregation(name.to_sym) || column_for_attribute(name)).klass
           if values.empty?
             send(name + "=", nil)
           else
