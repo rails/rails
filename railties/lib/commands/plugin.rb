@@ -31,7 +31,7 @@
 #     look like subversion repositories with plugins:
 #     http://wiki.rubyonrails.org/rails/pages/Plugins
 # 
-#   * Unless you specify that you want to use svn, script/plugin uses plain ole
+#   * Unless you specify that you want to use svn, script/plugin uses plain old
 #     HTTP for downloads.  The following bullets are true if you specify
 #     that you want to use svn.
 #
@@ -107,7 +107,7 @@ class RailsEnvironment
 
   def use_checkout?
     # this is a bit of a guess. we assume that if the rails environment
-    # is under subversion than they probably want the plugin checked out
+    # is under subversion then they probably want the plugin checked out
     # instead of exported. This can be overridden on the command line
     File.directory?("#{root}/.svn")
   end
@@ -161,6 +161,7 @@ class Plugin
   
   def install(method=nil, options = {})
     method ||= rails_env.best_install_method?
+    method = :export if method == :http and @uri =~ /svn:\/\/*/
 
     uninstall if installed? and options[:force]
 
@@ -655,7 +656,7 @@ module Commands
       puts "Scraping #{uri}" if $verbose
       dupes = []
       content = open(uri).each do |line|
-        if line =~ /<a[^>]*href=['"]([^'"]*)['"]/
+        if line =~ /<a[^>]*href=['"]([^'"]*)['"]/ or line =~ /(svn:\/\/[^<|\n]*)/
           uri = $1
           if uri =~ /\/plugins\// and uri !~ /\/browser\//
             uri = extract_repository_uri(uri)
@@ -813,9 +814,13 @@ class RecursiveHTTPFetcher
 
   def ls
     @urls_to_fetch.collect do |url|
-      open(url) do |stream|
-        links("", stream.read)
-      end rescue nil
+      if url =~ /^svn:\/\/.*/
+        `svn ls #{url}`.split("\n").map {|entry| "/#{entry}"} rescue nil
+      else
+        open(url) do |stream|
+          links("", stream.read)
+        end rescue nil
+      end
     end.flatten
   end
 

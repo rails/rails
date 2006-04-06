@@ -1,5 +1,7 @@
 *1.1.1* (April 6th, 2005)
 
+* Enhances plugin#discover allowing it to discover svn:// like URIs (closes #4565) [ruben.nine@gmail.com]
+
 * Update to Prototype 1.5.0_rc0 [Sam Stephenson]
 
 * Fixed that the -r/--ruby path option of the rails command was not being respected #4549 [ryan.raaum@gmail.com]
