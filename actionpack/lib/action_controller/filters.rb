@@ -338,7 +338,7 @@ module ActionController #:nodoc:
         def remove_contradicting_conditions!(filters, conditions)
           return unless conditions[:only]
           filters.each do |filter|
-            next unless included_actions_for_filter = included_actions[filter]
+            next unless included_actions_for_filter = (read_inheritable_attribute('included_actions') || {})[filter]
             [*conditions[:only]].each do |conditional_action|
               conditional_action = conditional_action.to_s
               included_actions_for_filter.delete(conditional_action) if included_actions_for_filter.include?(conditional_action)
