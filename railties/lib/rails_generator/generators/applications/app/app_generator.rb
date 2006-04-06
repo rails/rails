@@ -17,7 +17,8 @@ class AppGenerator < Rails::Generator::Base
   end
 
   def manifest
-    script_options     = { :chmod => 0755 }
+    # Use /usr/bin/env if no special shebang was specified
+    script_options     = { :chmod => 0755, :shebang => options[:shebang] == DEFAULT_SHEBANG ? nil : options[:shebang] }
     dispatcher_options = { :chmod => 0755, :shebang => options[:shebang] }
 
     record do |m|
@@ -93,8 +94,8 @@ class AppGenerator < Rails::Generator::Base
     def add_options!(opt)
       opt.separator ''
       opt.separator 'Options:'
-      opt.on("-r", "--ruby", String,
-             "Path to the Ruby binary of your choice.",
+      opt.on("-r", "--ruby=path", String,
+             "Path to the Ruby binary of your choice (otherwise scripts use env, dispatchers current path).",
              "Default: #{DEFAULT_SHEBANG}") { |options[:shebang]| }
 
       opt.on("-d", "--database=name", String,
