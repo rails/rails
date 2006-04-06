@@ -1587,7 +1587,9 @@ module ActiveRecord #:nodoc:
       # A Person object with a name attribute can ask person.respond_to?("name"), person.respond_to?("name="), and
       # person.respond_to?("name?") which will all return true.
       def respond_to?(method, include_priv = false)
-        if attr_name = self.class.column_methods_hash[method.to_sym]
+        if @attributes.nil?
+          return super 
+        elsif attr_name = self.class.column_methods_hash[method.to_sym]
           return true if @attributes.include?(attr_name) || attr_name == self.class.primary_key
           return false if self.class.read_methods.include?(attr_name)
         elsif @attributes.include?(method_name = method.to_s)

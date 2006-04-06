@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow AR::Base#respond_to? to behave when @attributes is nil [zenspider]
+
 * Support eager includes when going through a polymorphic has_many association. [Rick]
 
 * Added support for eagerly including polymorphic has_one associations. (closes #4525) [Rick]
