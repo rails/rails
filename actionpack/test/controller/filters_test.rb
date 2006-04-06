@@ -117,6 +117,8 @@ class FilterTest < Test::Unit::TestCase
   class ConditionalSkippingController < TestController
     skip_before_filter :ensure_login, :only => [ :login ]
     skip_after_filter  :clean_up,     :only => [ :login ]
+    
+    before_filter :find_user, :only => [ :change_password ]
 
     def login
       render :inline => "ran action"
@@ -125,6 +127,12 @@ class FilterTest < Test::Unit::TestCase
     def change_password
       render :inline => "ran action"
     end
+    
+    protected
+      def find_user
+        @ran_filter ||= []
+        @ran_filter << "find_user"
+      end
   end
   
   class ConditionalParentOfConditionalSkippingController < ConditionalFilterController
@@ -382,7 +390,7 @@ class FilterTest < Test::Unit::TestCase
 
   def test_conditional_skipping_of_filters
     assert_nil test_process(ConditionalSkippingController, "login").template.assigns["ran_filter"]
-    assert_equal %w( ensure_login ), test_process(ConditionalSkippingController, "change_password").template.assigns["ran_filter"]
+    assert_equal %w( ensure_login find_user ), test_process(ConditionalSkippingController, "change_password").template.assigns["ran_filter"]
 
     assert_nil test_process(ConditionalSkippingController, "login").template.controller.instance_variable_get("@ran_after_filter")
     assert_equal %w( clean_up ), test_process(ConditionalSkippingController, "change_password").template.controller.instance_variable_get("@ran_after_filter")
@@ -392,7 +400,7 @@ class FilterTest < Test::Unit::TestCase
     assert_equal %w( conditional_in_parent conditional_in_parent ), test_process(ChildOfConditionalParentController).template.assigns['ran_filter']
     assert_nil test_process(ChildOfConditionalParentController, 'another_action').template.assigns['ran_filter']
   end
-  
+
   private
     def test_process(controller, action = "show")
       request = ActionController::TestRequest.new
