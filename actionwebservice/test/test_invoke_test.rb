@@ -76,4 +76,25 @@ class TestInvokeTest < Test::Unit::TestCase
       end
     end
   end
+  
+  def test_layered_fail_with_wrong_number_of_arguments
+    [:soap, :xmlrpc].each do |protocol|
+      @protocol = protocol
+      [:one, :two].each do |service|
+        @controller = TestInvokeLayeredController.new
+        assert_raise(ArgumentError) { invoke_layered service, :add, 1 }
+      end
+    end
+  end
+
+  def test_delegated_fail_with_wrong_number_of_arguments
+    @controller = TestInvokeDelegatedController.new
+    assert_raise(ArgumentError) { invoke_delegated :service, :add, 1 }
+  end
+  
+  def test_direct_fail_with_wrong_number_of_arguments
+    @controller = TestInvokeDirectController.new
+    assert_raise(ArgumentError) { invoke :add, 1 }
+  end
+  
 end

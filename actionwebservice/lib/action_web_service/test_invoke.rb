@@ -52,6 +52,7 @@ module Test # :nodoc:
           end
           protocol.register_api(api)
           method = api.api_methods[api_method_name.to_sym]
+          raise ArgumentError, "wrong number of arguments for rpc call (#{args.length} for #{method.expects.length})" unless args.length == method.expects.length
           protocol.encode_request(public_method_name(service_name, api_method_name), args.dup, method.expects)
         end
 
