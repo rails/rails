@@ -962,14 +962,20 @@ module ActiveRecord
         end
         
         def count_with_associations(options = {})
-          join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
-          return count_by_sql(construct_counter_sql_with_included_associations(options, join_dependency))
+          catch :invalid_query do
+            join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
+            return count_by_sql(construct_counter_sql_with_included_associations(options, join_dependency))
+          end
+          0
         end
 
         def find_with_associations(options = {})
-          join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
-          rows = select_all_rows(options, join_dependency)
-          return join_dependency.instantiate(rows)
+          catch :invalid_query do
+            join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
+            rows = select_all_rows(options, join_dependency)
+            return join_dependency.instantiate(rows)
+          end
+          []
         end
 
         def configure_dependency_for_has_many(reflection)
@@ -1151,6 +1157,8 @@ module ActiveRecord
         def add_limited_ids_condition!(sql, options, join_dependency)
           unless (id_list = select_limited_ids_list(options, join_dependency)).empty?
             sql << "#{condition_word(sql)} #{table_name}.#{primary_key} IN (#{id_list}) "
+          else
+            throw :invalid_query
           end
         end
  
