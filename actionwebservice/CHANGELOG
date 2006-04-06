@@ -1,6 +1,7 @@
-*SVN*
+*1.1.1* (April 6th, 2005)
 
 * Do not convert driver options to strings (#4499)
+
 
 *1.1.0* (March 27th, 2005)
 
