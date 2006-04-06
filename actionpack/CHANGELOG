@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to Prototype 1.5.0_rc0 [Sam Stephenson]
+
 * Honor skipping filters conditionally for only certain actions even when the parent class sets that filter to conditionally be executed only for the same actions. #4522 [Marcel Molina Jr.]
 
 * Delegate xml_http_request in integration tests to the session instance. [Jamis Buck]
