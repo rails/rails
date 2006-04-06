@@ -97,7 +97,7 @@ module ActiveRecord
     # Holds all the meta-data about an aggregation as it was specified in the Active Record class.
     class AggregateReflection < MacroReflection #:nodoc:
       def klass
-        @klass ||= Object.const_get(class_name)
+        @klass ||= Object.const_get(options[:class_name] || class_name)
       end
 
       private
