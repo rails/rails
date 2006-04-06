@@ -59,7 +59,7 @@ module ActiveRecord
           if ids.size == 1
             id = ids.first
             record = load_target.detect { |record| id == record.id }
-            expects_array? ? [record] : record
+            expects_array ? [ record ] : record
           else
             load_target.select { |record| ids.include?(record.id) }
           end

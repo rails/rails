@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed HasManyAssociation#find bugs when :finder_sql is set #4600 [lagroue@free.fr]
+
 * Allow AR::Base#respond_to? to behave when @attributes is nil [zenspider]
 
 * Support eager includes when going through a polymorphic has_many association. [Rick]
