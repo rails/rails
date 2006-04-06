@@ -1,5 +1,7 @@
 *1.12.1* (April 6th, 2005)
 
+* Fixed that template extensions would be cached development mode #4624 [Stefan Kaes]
+
 * Update to Prototype 1.5.0_rc0 [Sam Stephenson]
 
 * Honor skipping filters conditionally for only certain actions even when the parent class sets that filter to conditionally be executed only for the same actions. #4522 [Marcel Molina Jr.]
