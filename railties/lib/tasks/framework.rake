@@ -108,7 +108,7 @@ namespace :rails do
       require 'railties_path'  
       project_dir = RAILS_ROOT + '/public/javascripts/'
       scripts = Dir[RAILTIES_PATH + '/html/javascripts/*.js']
-      FileUtils.cp(RAILTIES_PATH + '/environments/boot.rb', RAILTIES_PATH + '/environments/boot.rb')
+      FileUtils.cp(RAILTIES_PATH + '/environments/boot.rb', RAILS_ROOT + '/config/boot.rb')
     end
   end
 end
