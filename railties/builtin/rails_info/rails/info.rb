@@ -1,5 +1,3 @@
-require 'rails_version'
-
 module Rails
   module Info
     mattr_accessor :properties
@@ -35,7 +33,11 @@ module Rails
 
       def freeze_edge_version
         if File.exists?(rails_vendor_root)
-          Dir[File.join(rails_vendor_root, 'REVISION_*')].first.scan(/_(\d+)$/).first.first rescue 'unknown'
+          begin
+            Dir[File.join(rails_vendor_root, 'REVISION_*')].first.scan(/_(\d+)$/).first.first
+          rescue
+            Dir[File.join(rails_vendor_root, 'TAG_*')].first.scan(/_(.+)$/).first.first rescue 'unknown'
+          end
         end
       end
 
@@ -51,8 +53,8 @@ module Rails
       def to_html
         returning table = '<table>' do
           properties.each do |(name, value)|
-            table << %(<tr><td class="name">#{CGI.escapeHTML(name)}</td>)
-            table << %(<td class="value">#{CGI.escapeHTML(value)}</td></tr>)
+            table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
+            table << %(<td class="value">#{CGI.escapeHTML(value.to_s)}</td></tr>)
           end
           table << '</table>'
         end

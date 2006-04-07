@@ -208,6 +208,14 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     end
   end
 
+  def test_include_polymorphic_has_one
+    post    = Post.find_by_id(posts(:welcome).id, :include => :tagging)
+    tagging = taggings(:welcome_general)
+    assert_no_queries do
+      assert_equal tagging, post.tagging
+    end
+  end
+
   def test_include_polymorphic_has_many_through
     posts           = Post.find(:all, :order => 'posts.id')
     posts_with_tags = Post.find(:all, :include => :tags, :order => 'posts.id')
@@ -293,6 +301,30 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
 
   def test_has_many_through_has_many_find_by_id
     assert_equal comments(:more_greetings), authors(:david).comments.find(2)
+  end
+
+  def test_has_many_through_polymorphic_has_one
+    assert_raise(ActiveRecord::HasManyThroughSourceAssociationMacroError) { authors(:david).tagging }
+  end
+
+  def test_has_many_through_polymorphic_has_many
+    assert_equal [taggings(:welcome_general), taggings(:thinking_general)], authors(:david).taggings.uniq.sort_by { |t| t.id }
+  end
+
+  def test_include_has_many_through_polymorphic_has_many
+    author            = Author.find_by_id(authors(:david).id, :include => :taggings)
+    expected_taggings = [taggings(:welcome_general), taggings(:thinking_general)]
+    assert_no_queries do
+      assert_equal expected_taggings, author.taggings.uniq.sort_by { |t| t.id }
+    end
+  end
+
+  def test_has_many_through_has_many_through
+    assert_raise(ActiveRecord::HasManyThroughSourceAssociationMacroError) { authors(:david).tags }
+  end
+
+  def test_has_many_through_habtm
+    assert_raise(ActiveRecord::HasManyThroughSourceAssociationMacroError) { authors(:david).post_categories }
   end
 
   def test_eager_load_has_many_through_has_many

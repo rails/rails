@@ -1,3 +1,42 @@
+*1.1.1* (April 6th, 2005)
+
+* Enhances plugin#discover allowing it to discover svn:// like URIs (closes #4565) [ruben.nine@gmail.com]
+
+* Update to Prototype 1.5.0_rc0 [Sam Stephenson]
+
+* Fixed that the -r/--ruby path option of the rails command was not being respected #4549 [ryan.raaum@gmail.com]
+
+* Added that Dispatcher exceptions should not be shown to the user unless a default log has not been configured. Instead show public/500.html [DHH]
+
+* Fixed that rake clone_structure_to_test should quit on pgsql if the dump is unsuccesful #4585 [augustz@augustz.com]
+
+* Fixed that rails --version should have the return code of 0 (success) #4560 [blair@orcaware.com]
+
+* Install alias so Rails::InfoController is accessible at /rails_info. Closes #4546. [Nicholas Seckar]
+
+* Fixed that spawner should daemonize if running in repeat mode [DHH]
+
+* Added TAG option for rake rails:freeze:edge, so you can say rake rails:freeze:edge TAG=rel_1-1-0 to lock to the 1.1.0 release [DHH]
+
+* Applied Prototype $() performance patches (#4465, #4477) and updated script.aculo.us [Sam Stephenson, Thomas Fuchs]
+
+* Use --simple-prompt instead of --prompt-mode simple for console compatibility with Windows/Ruby 1.8.2 #4532 [starr@starrnhorne.com]
+
+* Make Rails::VERSION implicitly loadable #4491. [Nicholas Seckar]
+
+* Fixed rake rails:freeze:gems #4518 [benji@silverinsanity.com]
+
+* Added -f/--freeze option to rails command for freezing the application to the Rails version it was generated with [DHH]
+
+* Added gem binding of apps generated through the rails command to the gems of they were generated with [Nicholas Seckar]
+
+* Added expiration settings for JavaScript, CSS, HTML, and images to default lighttpd.conf [DHH]
+
+* Added gzip compression for JavaScript, CSS, and HTML to default lighttpd.conf [DHH]
+
+* Avoid passing escapeHTML non-string in Rails' info controller [Nicholas Seckar]
+
+
 *1.1.0* (March 27th, 2005)
 
 * Allow db:fixtures:load to load a subset of the applications fixtures. [Chad Fowler]

@@ -31,6 +31,11 @@ class Author < ActiveRecord::Base
   has_many :author_favorites
   has_many :favorite_authors, :through => :author_favorites, :order => 'name'
 
+  has_many :tagging,  :through => :posts # through polymorphic has_one
+  has_many :taggings, :through => :posts, :source => :taggings # through polymorphic has_many
+  has_many :tags,     :through => :posts # through has_many :through
+  has_many :post_categories, :through => :posts, :source => :categories
+
   belongs_to :author_address
 
   attr_accessor :post_log

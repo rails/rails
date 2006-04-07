@@ -24,6 +24,8 @@ module ActiveRecord
         PGconn.connect(host, port, "", "", database, username, password), logger, config
       )
 
+      PGconn.translate_results = false if PGconn.respond_to? :translate_results=
+
       pga.schema_search_path = config[:schema_search_path] || config[:schema_order]
 
       pga
@@ -63,8 +65,9 @@ module ActiveRecord
           @connection.query 'SELECT 1'
           true
         end
-      rescue PGError
-        false
+      # postgres-pr raises a NoMethodError when querying if no conn is available
+      rescue PGError, NoMethodError
+        false      
       end
 
       # Close then reopen the connection.
@@ -339,6 +342,8 @@ module ActiveRecord
 
       private
         BYTEA_COLUMN_TYPE_OID = 17
+        TIMESTAMPOID = 1114
+        TIMESTAMPTZOID = 1184
 
         def configure_connection
           if @config[:encoding]
@@ -355,7 +360,7 @@ module ActiveRecord
 
         def select(sql, name = nil)
           res = execute(sql, name)
-          results = res.result           
+          results = res.result
           rows = []
           if results.length > 0
             fields = res.fields
@@ -363,9 +368,14 @@ module ActiveRecord
               hashed_row = {}
               row.each_index do |cel_index|
                 column = row[cel_index]
-                if res.type(cel_index) == BYTEA_COLUMN_TYPE_OID
-                  column = unescape_bytea(column)
+                
+                case res.type(cel_index)
+                  when BYTEA_COLUMN_TYPE_OID
+                    column = unescape_bytea(column)
+                  when TIMESTAMPTZOID, TIMESTAMPOID
+                    column = cast_to_time(column)
                 end
+
                 hashed_row[fields[cel_index]] = column
               end
               rows << hashed_row
@@ -472,8 +482,8 @@ module ActiveRecord
           return "t" if value =~ /true/i
           return "f" if value =~ /false/i
           
-          # Char/String type values
-          return $1 if value =~ /^'(.*)'::(bpchar|text|character varying)$/
+          # Char/String/Bytea type values
+          return $1 if value =~ /^'(.*)'::(bpchar|text|character varying|bytea)$/
           
           # Numeric values
           return value if value =~ /^-?[0-9]+(\.[0-9]*)?/
@@ -484,6 +494,14 @@ module ActiveRecord
           # Anything else is blank, some user type, or some function
           # and we can't know the value of that, so return nil.
           return nil
+        end
+
+        # Only needed for DateTime instances
+        def cast_to_time(value)
+          return value unless value.class == DateTime
+          v = value
+          time_array = [v.year, v.month, v.day, v.hour, v.min, v.sec]
+          Time.send(Base.default_timezone, *time_array) rescue nil
         end
     end
   end

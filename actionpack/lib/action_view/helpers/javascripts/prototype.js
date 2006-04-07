@@ -1,4 +1,4 @@
-/*  Prototype JavaScript framework, version 1.5.0_pre1
+/*  Prototype JavaScript framework, version 1.5.0_rc0
  *  (c) 2005 Sam Stephenson <sam@conio.net>
  *
  *  Prototype is freely distributable under the terms of an MIT-style license.
@@ -7,7 +7,7 @@
 /*--------------------------------------------------------------------------*/
 
 var Prototype = {
-  Version: '1.5.0_pre1',
+  Version: '1.5.0_rc0',
   ScriptFragment: '(?:<script.*?>)((\n|\r|.)*?)(?:<\/script>)',
 
   emptyFunction: function() {},
@@ -25,7 +25,7 @@ var Class = {
 var Abstract = new Object();
 
 Object.extend = function(destination, source) {
-  for (property in source) {
+  for (var property in source) {
     destination[property] = source[property];
   }
   return destination;
@@ -176,7 +176,7 @@ Object.extend(String.prototype, {
   },
 
   evalScripts: function() {
-    return this.extractScripts().map(eval);
+    return this.extractScripts().map(function(script) { return eval(script) });
   },
 
   escapeHTML: function() {
@@ -355,7 +355,7 @@ var Enumerable = {
     var result;
     this.each(function(value, index) {
       value = (iterator || Prototype.K)(value, index);
-      if (value >= (result || value))
+      if (result == undefined || value >= result)
         result = value;
     });
     return result;
@@ -365,7 +365,7 @@ var Enumerable = {
     var result;
     this.each(function(value, index) {
       value = (iterator || Prototype.K)(value, index);
-      if (value <= (result || value))
+      if (result == undefined || value < result)
         result = value;
     });
     return result;
@@ -447,7 +447,8 @@ var $A = Array.from = function(iterable) {
 
 Object.extend(Array.prototype, Enumerable);
 
-Array.prototype._reverse = Array.prototype.reverse;
+if (!Array.prototype._reverse)
+  Array.prototype._reverse = Array.prototype.reverse;
 
 Object.extend(Array.prototype, {
   _each: function(iterator) {
@@ -476,7 +477,7 @@ Object.extend(Array.prototype, {
 
   flatten: function() {
     return this.inject([], function(array, value) {
-      return array.concat(value.constructor == Array ?
+      return array.concat(value && value.constructor == Array ?
         value.flatten() : [value]);
     });
   },
@@ -498,21 +499,13 @@ Object.extend(Array.prototype, {
     return (inline !== false ? this : this.toArray())._reverse();
   },
 
-  shift: function() {
-    var result = this[0];
-    for (var i = 0; i < this.length - 1; i++)
-      this[i] = this[i + 1];
-    this.length--;
-    return result;
-  },
-
   inspect: function() {
     return '[' + this.map(Object.inspect).join(', ') + ']';
   }
 });
 var Hash = {
   _each: function(iterator) {
-    for (key in this) {
+    for (var key in this) {
       var value = this[key];
       if (typeof value == 'function') continue;
 
@@ -590,9 +583,9 @@ var $R = function(start, end, exclusive) {
 var Ajax = {
   getTransport: function() {
     return Try.these(
+      function() {return new XMLHttpRequest()},
       function() {return new ActiveXObject('Msxml2.XMLHTTP')},
-      function() {return new ActiveXObject('Microsoft.XMLHTTP')},
-      function() {return new XMLHttpRequest()}
+      function() {return new ActiveXObject('Microsoft.XMLHTTP')}
     ) || false;
   },
 
@@ -644,6 +637,7 @@ Ajax.Base.prototype = {
     this.options = {
       method:       'post',
       asynchronous: true,
+      contentType:  'application/x-www-form-urlencoded',
       parameters:   ''
     }
     Object.extend(this.options, options || {});
@@ -707,8 +701,7 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
        'Accept', 'text/javascript, text/html, application/xml, text/xml, */*'];
 
     if (this.options.method == 'post') {
-      requestHeaders.push('Content-type',
-        'application/x-www-form-urlencoded');
+      requestHeaders.push('Content-type', this.options.contentType);
 
       /* Force "Connection: close" for Mozilla browsers to work around
        * a bug where XMLHttpReqeuest sends an incorrect Content-length
@@ -739,7 +732,7 @@ Ajax.Request.prototype = Object.extend(new Ajax.Base(), {
 
   evalJSON: function() {
     try {
-      return eval(this.header('X-JSON'));
+      return eval('(' + this.header('X-JSON') + ')');
     } catch (e) {}
   },
 
@@ -900,18 +893,27 @@ if (!window.Element)
 
 Element.extend = function(element) {
   if (!element) return;
+  if (_nativeExtensions) return element;
 
   if (!element._extended && element.tagName && element != window) {
-    var methods = Element.Methods;
+    var methods = Element.Methods, cache = Element.extend.cache;
     for (property in methods) {
       var value = methods[property];
       if (typeof value == 'function')
-        element[property] = value.bind(null, element);
+        element[property] = cache.findOrStore(value);
     }
   }
 
   element._extended = true;
   return element;
+}
+
+Element.extend.cache = {
+  findOrStore: function(value) {
+    return this[value] = this[value] || function() {
+      return value.apply(null, [this].concat($A(arguments)));
+    }
+  }
 }
 
 Element.Methods = {
@@ -1035,7 +1037,7 @@ Element.Methods = {
 
   setStyle: function(element, style) {
     element = $(element);
-    for (name in style)
+    for (var name in style)
       element.style[name.camelize()] = style[name];
   },
 
@@ -1105,6 +1107,29 @@ Element.Methods = {
 
 Object.extend(Element, Element.Methods);
 
+var _nativeExtensions = false;
+
+if(!HTMLElement && /Konqueror|Safari|KHTML/.test(navigator.userAgent)) {
+  var HTMLElement = {}
+  HTMLElement.prototype = document.createElement('div').__proto__;
+}
+
+Element.addMethods = function(methods) {
+  Object.extend(Element.Methods, methods || {});
+
+  if(typeof HTMLElement != 'undefined') {
+    var methods = Element.Methods, cache = Element.extend.cache;
+    for (property in methods) {
+      var value = methods[property];
+      if (typeof value == 'function')
+        HTMLElement.prototype[property] = cache.findOrStore(value);
+    }
+    _nativeExtensions = true;
+  }
+}
+
+Element.addMethods();
+
 var Toggle = new Object();
 Toggle.display = Element.toggle;
 
@@ -1123,7 +1148,8 @@ Abstract.Insertion.prototype = {
       try {
         this.element.insertAdjacentHTML(this.adjacency, this.content);
       } catch (e) {
-        if (this.element.tagName.toLowerCase() == 'tbody') {
+        var tagName = this.element.tagName.toLowerCase();
+        if (tagName == 'tbody' || tagName == 'tr') {
           this.insertContent(this.contentFromAnonymousTable());
         } else {
           throw e;
@@ -1396,7 +1422,7 @@ var Form = {
     form = $(form);
     var elements = new Array();
 
-    for (tagName in Form.Element.Serializers) {
+    for (var tagName in Form.Element.Serializers) {
       var tagElements = form.getElementsByTagName(tagName);
       for (var j = 0; j < tagElements.length; j++)
         elements.push(tagElements[j]);
@@ -1518,23 +1544,17 @@ Form.Element.Serializers = {
     var value = '', opt, index = element.selectedIndex;
     if (index >= 0) {
       opt = element.options[index];
-      value = opt.value;
-      if (!value && !('value' in opt))
-        value = opt.text;
+      value = opt.value || opt.text;
     }
     return [element.name, value];
   },
 
   selectMany: function(element) {
-    var value = new Array();
+    var value = [];
     for (var i = 0; i < element.length; i++) {
       var opt = element.options[i];
-      if (opt.selected) {
-        var optValue = opt.value;
-        if (!optValue && !('value' in opt))
-          optValue = opt.text;
-        value.push(optValue);
-      }
+      if (opt.selected)
+        value.push(opt.value || opt.text);
     }
     return [element.name, value];
   }
@@ -1751,7 +1771,8 @@ Object.extend(Event, {
 });
 
 /* prevent memory leaks in IE */
-Event.observe(window, 'unload', Event.unloadCache, false);
+if (navigator.appVersion.match(/\bMSIE\b/))
+  Event.observe(window, 'unload', Event.unloadCache, false);
 var Position = {
   // set to true if needed, warning: firefox performance problems
   // NOT neeeded for page scrolling, only if draggable contained in

@@ -44,6 +44,18 @@ module ActiveRecord
     end
   end
 
+  class HasManyThroughSourceAssociationMacroError < ActiveRecordError #:nodoc
+    def initialize(reflection)
+      @reflection         = reflection
+      @through_reflection = reflection.through_reflection
+      @source_reflection  = reflection.source_reflection
+    end
+    
+    def message
+      "Invalid source reflection macro :#{@source_reflection.macro}#{" :through" if @source_reflection.options[:through]} for has_many #{@reflection.name.inspect}, :through => #{@through_reflection.name.inspect}.  Use :source to specify the source reflection."
+    end
+  end
+
   class EagerLoadPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(reflection)
       @reflection = reflection
@@ -623,7 +635,7 @@ module ActiveRecord
       #   is used on the associate class (such as a Post class). You can also specify a custom counter cache column by given that
       #   name instead of a true/false value to this option (e.g., <tt>:counter_cache => :my_custom_counter</tt>.)
       # * <tt>:include</tt>  - specify second-order associations that should be eager loaded when this object is loaded.
-      # # <tt>:polymorphic</tt> - specify this association is a polymorphic association by passing true.
+      # * <tt>:polymorphic</tt> - specify this association is a polymorphic association by passing true.
       #
       # Option examples:
       #   belongs_to :firm, :foreign_key => "client_of"
@@ -698,11 +710,10 @@ module ActiveRecord
       # an option, it is guessed using the lexical order of the class names. So a join between Developer and Project
       # will give the default join table name of "developers_projects" because "D" outranks "P".
       #
-      # Any additional fields added to the join table will be placed as attributes when pulling records out through
-      # has_and_belongs_to_many associations. This is helpful when have information about the association itself
-      # that you want available on retrieval. Note that any fields in the join table will override matching field names
-      # in the two joined tables. As a consequence, having an "id" field in the join table usually has the undesirable
-      # result of clobbering the "id" fields in either of the other two tables.
+      # Deprecated: Any additional fields added to the join table will be placed as attributes when pulling records out through
+      # has_and_belongs_to_many associations. Records returned from join tables with additional attributes will be marked as
+      # ReadOnly (because we can't save changes to the additional attrbutes). It's strongly recommended that you upgrade any
+      # associations with attributes to a real join model (see introduction).
       #
       # Adds the following methods for retrieval and query.
       # +collection+ is replaced with the symbol passed as the first argument, so 
@@ -714,7 +725,7 @@ module ActiveRecord
       # * <tt>collection.push_with_attributes(object, join_attributes)</tt> - adds one to the collection by creating an association in the join table that
       #   also holds the attributes from <tt>join_attributes</tt> (should be a hash with the column names as keys). This can be used to have additional
       #   attributes on the join, which will be injected into the associated objects when they are retrieved through the collection.
-      #   (collection.concat_with_attributes is an alias to this method).
+      #   (collection.concat_with_attributes is an alias to this method). This method is now deprecated.
       # * <tt>collection.delete(object, ...)</tt> - removes one or more objects from the collection by removing their associations from the join table.  
       #   This does not destroy the objects.
       # * <tt>collection=objects</tt> - replaces the collections content by deleting and adding objects as appropriate.
@@ -951,14 +962,20 @@ module ActiveRecord
         end
         
         def count_with_associations(options = {})
-          join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
-          return count_by_sql(construct_counter_sql_with_included_associations(options, join_dependency))
+          catch :invalid_query do
+            join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
+            return count_by_sql(construct_counter_sql_with_included_associations(options, join_dependency))
+          end
+          0
         end
 
         def find_with_associations(options = {})
-          join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
-          rows = select_all_rows(options, join_dependency)
-          return join_dependency.instantiate(rows)
+          catch :invalid_query do
+            join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
+            rows = select_all_rows(options, join_dependency)
+            return join_dependency.instantiate(rows)
+          end
+          []
         end
 
         def configure_dependency_for_has_many(reflection)
@@ -1140,6 +1157,8 @@ module ActiveRecord
         def add_limited_ids_condition!(sql, options, join_dependency)
           unless (id_list = select_limited_ids_list(options, join_dependency)).empty?
             sql << "#{condition_word(sql)} #{table_name}.#{primary_key} IN (#{id_list}) "
+          else
+            throw :invalid_query
           end
         end
  
@@ -1381,7 +1400,7 @@ module ActiveRecord
               @aliased_prefix     = "t#{ join_dependency.joins.size }"
               @aliased_table_name = table_name # start with the table name
               @parent_table_name  = parent.active_record.table_name
-              
+
               if !parent.table_joins.blank? && parent.table_joins.to_s.downcase =~ %r{join(\s+\w+)?\s+#{aliased_table_name.downcase}\son}
                 join_dependency.table_aliases[aliased_table_name] += 1
               end
@@ -1434,24 +1453,38 @@ module ActiveRecord
                           aliased_table_name, primary_key, aliased_join_table_name, options[:foreign_key] || reflection.klass.to_s.classify.foreign_key
                         ]
                       else
-                        case source_reflection.macro
-                          when :belongs_to
-                            first_key  = primary_key
-                            second_key = options[:foreign_key] || klass.to_s.classify.foreign_key
-                          when :has_many
-                            first_key  = through_reflection.klass.to_s.classify.foreign_key
-                            second_key = options[:foreign_key] || primary_key
+                        if source_reflection.macro == :has_many && source_reflection.options[:as]
+                          " LEFT OUTER JOIN %s ON %s.%s = %s.%s "  % [
+                            table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), aliased_join_table_name,
+                            through_reflection.primary_key_name,
+                            parent.aliased_table_name, parent.primary_key] +
+                          " LEFT OUTER JOIN %s ON %s.%s = %s.%s AND %s.%s = %s " % [
+                            table_name_and_alias,
+                            aliased_table_name, "#{source_reflection.options[:as]}_id", 
+                            aliased_join_table_name, options[:foreign_key] || primary_key,
+                            aliased_table_name, "#{source_reflection.options[:as]}_type", 
+                            klass.quote(source_reflection.active_record.base_class.name)
+                          ]
+                        else
+                          case source_reflection.macro
+                            when :belongs_to
+                              first_key  = primary_key
+                              second_key = options[:foreign_key] || klass.to_s.classify.foreign_key
+                            when :has_many
+                              first_key  = through_reflection.klass.to_s.classify.foreign_key
+                              second_key = options[:foreign_key] || primary_key
+                          end
+                          
+                          " LEFT OUTER JOIN %s ON %s.%s = %s.%s "  % [
+                            table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), aliased_join_table_name,
+                            through_reflection.primary_key_name,
+                            parent.aliased_table_name, parent.primary_key] +
+                          " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
+                            table_name_and_alias,
+                            aliased_table_name, first_key, 
+                            aliased_join_table_name, second_key
+                          ]
                         end
-
-                        " LEFT OUTER JOIN %s ON %s.%s = %s.%s "  % [
-                          table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), aliased_join_table_name,
-                          through_reflection.primary_key_name,
-                          parent.aliased_table_name, parent.primary_key] +
-                        " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
-                          table_name_and_alias,
-                          aliased_table_name, first_key, 
-                          aliased_join_table_name, second_key
-                        ]
                       end
                     
                     when reflection.macro == :has_many && reflection.options[:as]
@@ -1462,12 +1495,16 @@ module ActiveRecord
                         aliased_table_name, "#{reflection.options[:as]}_type",
                         klass.quote(parent.active_record.base_class.name)
                       ]
-                      
+                    when reflection.macro == :has_one && reflection.options[:as]
+                      " LEFT OUTER JOIN %s ON %s.%s = %s.%s AND %s.%s = %s " % [
+                        table_name_and_alias,
+                        aliased_table_name, "#{reflection.options[:as]}_id",
+                        parent.aliased_table_name, parent.primary_key,
+                        aliased_table_name, "#{reflection.options[:as]}_type",
+                        klass.quote(reflection.active_record.base_class.name)
+                      ]
                     else
-                      foreign_key = options[:foreign_key] || case reflection.macro
-                        when :has_many then reflection.active_record.to_s.classify
-                        when :has_one  then reflection.active_record.to_s
-                      end.foreign_key
+                      foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
                       " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
                         table_name_and_alias,
                         aliased_table_name, foreign_key,

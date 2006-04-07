@@ -277,8 +277,8 @@ module ActiveRecord
       # Validates each attribute against a block.
       #
       #   class Person < ActiveRecord::Base
-      #     validates_each :first_name, :last_name do |record, attr|
-      #       record.errors.add attr, 'starts with z.' if attr[0] == ?z
+      #     validates_each :first_name, :last_name do |record, attr, value|
+      #       record.errors.add attr, 'starts with z.' if value[0] == ?z
       #     end
       #   end
       #

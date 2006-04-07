@@ -6,7 +6,7 @@ class AppGenerator < Rails::Generator::Base
   
   DATABASES = %w( mysql oracle postgresql sqlite2 sqlite3 )
   
-  default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG
+  default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG, :freeze => false
   mandatory_options :source => "#{File.dirname(__FILE__)}/../../../../.."
 
   def initialize(runtime_args, runtime_options = {})
@@ -17,7 +17,8 @@ class AppGenerator < Rails::Generator::Base
   end
 
   def manifest
-    script_options     = { :chmod => 0755 }
+    # Use /usr/bin/env if no special shebang was specified
+    script_options     = { :chmod => 0755, :shebang => options[:shebang] == DEFAULT_SHEBANG ? nil : options[:shebang] }
     dispatcher_options = { :chmod => 0755, :shebang => options[:shebang] }
 
     record do |m|
@@ -43,8 +44,8 @@ class AppGenerator < Rails::Generator::Base
       m.template "configs/apache.conf",   "public/.htaccess"
 
       # Environments
-      m.file "environments/boot.rb",        "config/boot.rb"
-      m.file "environments/environment.rb", "config/environment.rb"
+      m.file "environments/boot.rb",    "config/boot.rb"
+      m.template "environments/environment.rb", "config/environment.rb", :assigns => { :freeze => options[:freeze] }
       m.file "environments/production.rb",  "config/environments/production.rb"
       m.file "environments/development.rb", "config/environments/development.rb"
       m.file "environments/test.rb",        "config/environments/test.rb"
@@ -93,13 +94,17 @@ class AppGenerator < Rails::Generator::Base
     def add_options!(opt)
       opt.separator ''
       opt.separator 'Options:'
-      opt.on("-r", "--ruby", String,
-             "Path to the Ruby binary of your choice.",
+      opt.on("-r", "--ruby=path", String,
+             "Path to the Ruby binary of your choice (otherwise scripts use env, dispatchers current path).",
              "Default: #{DEFAULT_SHEBANG}") { |options[:shebang]| }
 
       opt.on("-d", "--database=name", String,
             "Preconfigure for selected database (options: mysql/oracle/postgresql/sqlite2/sqlite3).",
             "Default: mysql") { |options[:db]| }
+
+      opt.on("-f", "--freeze", 
+            "Freeze Rails in vendor/rails from the gems generating the skeleton",
+            "Default: false") { |options[:freeze]| }
     end
     
     def mysql_socket_location

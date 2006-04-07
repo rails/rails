@@ -1,3 +1,58 @@
+*1.14.1* (April 6th, 2005)
+
+* Fix type_name_with_module to handle type names that begin with '::'. Closes #4614. [Nicholas Seckar]
+
+* Fixed that that multiparameter assignment doesn't work with aggregations (closes #4620) [Lars Pind]
+
+* Enable Limit/Offset in Calculations (closes #4558) [lmarlow@yahoo.com]
+
+* Fixed that loading including associations returns all results if Load IDs For Limited Eager Loading returns none (closes #4528) [Rick]
+
+* Fixed HasManyAssociation#find bugs when :finder_sql is set #4600 [lagroue@free.fr]
+
+* Allow AR::Base#respond_to? to behave when @attributes is nil [zenspider]
+
+* Support eager includes when going through a polymorphic has_many association. [Rick]
+
+* Added support for eagerly including polymorphic has_one associations. (closes #4525) [Rick]
+
+    class Post < ActiveRecord::Base
+      has_one :tagging, :as => :taggable
+    end
+    
+    Post.find :all, :include => :tagging
+
+* Added descriptive error messages for invalid has_many :through associations: going through :has_one or :has_and_belongs_to_many [Rick]
+
+* Added support for going through a polymorphic has_many association: (closes #4401) [Rick]
+
+    class PhotoCollection < ActiveRecord::Base
+      has_many :photos, :as => :photographic
+      belongs_to :firm
+    end
+     
+    class Firm < ActiveRecord::Base
+      has_many :photo_collections
+      has_many :photos, :through => :photo_collections
+    end
+
+* Multiple fixes and optimizations in PostgreSQL adapter, allowing ruby-postgres gem to work properly. [ruben.nine@gmail.com]
+
+* Fixed that AssociationCollection#delete_all should work even if the records of the association are not loaded yet. [Florian Weber]
+
+* Changed those private ActiveRecord methods to take optional third argument :auto instead of nil for performance optimizations.  (closes #4456) [Stefan]
+
+* Private ActiveRecord methods add_limit!, add_joins!, and add_conditions! take an OPTIONAL third argument 'scope' (closes #4456) [Rick]
+
+* DEPRECATED: Using additional attributes on has_and_belongs_to_many associations. Instead upgrade your association to be a real join model [DHH]
+
+* Fixed that records returned from has_and_belongs_to_many associations with additional attributes should be marked as read only (fixes #4512) [DHH]
+
+* Do not implicitly mark recordss of has_many :through as readonly but do mark habtm records as readonly (eventually only on join tables without rich attributes). [Marcel Mollina Jr.]
+
+* Fixed broken OCIAdapter #4457 [schoenm@earthlink.net]
+
+
 *1.14.0* (March 27th, 2005)
 
 * Replace 'rescue Object' with a finer grained rescue. Closes #4431. [Nicholas Seckar]
@@ -177,7 +232,7 @@
   
   ...and you can configure with:
   
-    topic.to_xml(:skip_instruct => true, :skip_attributes => [ :id, bonus_time, :written_on, replies_count ])
+    topic.to_xml(:skip_instruct => true, :except => [ :id, bonus_time, :written_on, replies_count ])
   
   ...that'll return:
   

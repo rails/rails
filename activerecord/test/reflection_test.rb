@@ -74,6 +74,8 @@ class ReflectionTest < Test::Unit::TestCase
     assert_equal reflection_for_address, Customer.reflect_on_aggregation(:address)
 
     assert_equal Address, Customer.reflect_on_aggregation(:address).klass
+    
+    assert_equal Money, Customer.reflect_on_aggregation(:balance).klass
   end
 
   def test_has_many_reflection

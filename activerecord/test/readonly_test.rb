@@ -3,6 +3,8 @@ require 'fixtures/post'
 require 'fixtures/comment'
 require 'fixtures/developer'
 require 'fixtures/project'
+require 'fixtures/reader'
+require 'fixtures/person'
 
 # Dummy class methods to test implicit association scoping.
 def Comment.foo() find :first end
@@ -50,19 +52,23 @@ class ReadOnlyTest < Test::Unit::TestCase
   def test_habtm_find_readonly
     dev = Developer.find(1)
     assert !dev.projects.empty?
-    dev.projects.each { |p| assert !p.readonly? }
-    dev.projects.find(:all) { |p| assert !p.readonly? }
-    dev.projects.find(:all, :readonly => true) { |p| assert p.readonly? }
+    assert dev.projects.all?(&:readonly?)
+    assert dev.projects.find(:all).all?(&:readonly?)
+    assert dev.projects.find(:all, :readonly => true).all?(&:readonly?)
   end
 
   def test_has_many_find_readonly
     post = Post.find(1)
     assert !post.comments.empty?
-    post.comments.each { |r| assert !r.readonly? }
-    post.comments.find(:all) { |r| assert !r.readonly? }
-    post.comments.find(:all, :readonly => true) { |r| assert r.readonly? }
+    assert !post.comments.any?(&:readonly?)
+    assert !post.comments.find(:all).any?(&:readonly?)
+    assert post.comments.find(:all, :readonly => true).all?(&:readonly?)
   end
 
+  def test_has_many_with_through_is_not_implicitly_marked_readonly
+    assert people = Post.find(1).people
+    assert !people.any?(&:readonly?)
+  end
 
   def test_readonly_scoping
     Post.with_scope(:find => { :conditions => '1=1' }) do 

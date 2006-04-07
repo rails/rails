@@ -6,7 +6,7 @@ namespace :rails do
       require 'rubygems'
       Gem.manage_gems
 
-      rails = version = ENV['VERSION'] ?
+      rails = (version = ENV['VERSION']) ?
         Gem.cache.search('rails', "= #{version}").first :
         Gem.cache.search('rails').sort_by { |g| g.version }.last
 
@@ -32,7 +32,7 @@ namespace :rails do
       end
     end
 
-    desc "Lock this application to latest Edge Rails. Lock a specific revision with REVISION=X"
+    desc "Lock to latest Edge Rails or a specific revision with REVISION=X (ex: REVISION=4021) or a tag with TAG=Y (ex: TAG=rel_1-1-0)"
     task :edge do
       $verbose = false
       `svn --version` rescue nil
@@ -40,21 +40,28 @@ namespace :rails do
         $stderr.puts "ERROR: Must have subversion (svn) available in the PATH to lock this application to Edge Rails"
         exit 1
       end
-
-      rails_svn = 'http://dev.rubyonrails.org/svn/rails/trunk'
-
-      if ENV['REVISION'].nil?
-        ENV['REVISION'] = /^r(\d+)/.match(%x{svn log -q --limit 1 #{rails_svn}})[1]
-        puts "REVISION not set. Using HEAD, which is revision #{ENV['REVISION']}."
-      end
-
+            
       rm_rf   "vendor/rails"
       mkdir_p "vendor/rails"
+      
+      svn_root = "http://dev.rubyonrails.org/svn/rails/"
 
-      touch   "vendor/rails/REVISION_#{ENV['REVISION']}"
+      if ENV['TAG']
+        rails_svn = "#{svn_root}/tags/#{ENV['TAG']}"
+        touch "vendor/rails/TAG_#{ENV['TAG']}"
+      else
+        rails_svn = "#{svn_root}/trunk"
+
+        if ENV['REVISION'].nil?
+          ENV['REVISION'] = /^r(\d+)/.match(%x{svn -qr HEAD log #{svn_root}})[1]
+          puts "REVISION not set. Using HEAD, which is revision #{ENV['REVISION']}."
+        end
+
+        touch "vendor/rails/REVISION_#{ENV['REVISION']}"
+      end
       
       for framework in %w( railties actionpack activerecord actionmailer activesupport actionwebservice )
-        system "svn export #{rails_svn}/#{framework} vendor/rails/#{framework} -r #{ENV['REVISION']}"
+        system "svn export #{rails_svn}/#{framework} vendor/rails/#{framework}" + (ENV['REVISION'] ? " -r #{ENV['REVISION']}" : "")
       end
     end
   end

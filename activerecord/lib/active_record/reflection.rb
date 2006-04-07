@@ -97,7 +97,7 @@ module ActiveRecord
     # Holds all the meta-data about an aggregation as it was specified in the Active Record class.
     class AggregateReflection < MacroReflection #:nodoc:
       def klass
-        @klass ||= Object.const_get(class_name)
+        @klass ||= Object.const_get(options[:class_name] || class_name)
       end
 
       private
@@ -174,7 +174,11 @@ module ActiveRecord
           end
           
           if source_reflection.options[:polymorphic]
-            raise HasManyThroughAssociationPolymorphicError.new(class_name, @reflection, source_reflection)
+            raise HasManyThroughAssociationPolymorphicError.new(class_name, self, source_reflection)
+          end
+          
+          unless [:belongs_to, :has_many].include?(source_reflection.macro) && source_reflection.options[:through].nil?
+            raise HasManyThroughSourceAssociationMacroError.new(self)
           end
         end
       end

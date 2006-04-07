@@ -1,3 +1,8 @@
+*1.2.1* (April 6th, 2005)
+
+* Be part of Rails 1.1.1
+
+
 *1.2.0* (March 27th, 2005)
 
 * Nil charset caused subject line to be improperly quoted in implicitly multipart messages #2662 [ehalvorsen+rails@runbox.com]

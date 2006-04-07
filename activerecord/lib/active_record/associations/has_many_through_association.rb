@@ -63,17 +63,12 @@ module ActiveRecord
           )
         end
 
-        def construct_conditions          
+        def construct_conditions
           conditions = if @reflection.through_reflection.options[:as]
               "#{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.options[:as]}_id = #{@owner.quoted_id} " + 
               "AND #{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.options[:as]}_type = #{@owner.class.quote @owner.class.base_class.name.to_s}"
           else
-            case @reflection.source_reflection.macro
-              when :belongs_to, :has_many
-                "#{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.primary_key_name} = #{@owner.quoted_id}"
-              else
-                raise ActiveRecordError, "Invalid source reflection macro :#{@reflection.source_reflection.macro} for has_many #{@reflection.name}, :through => #{@reflection.through_reflection.name}.  Use :source to specify the source reflection."
-            end
+            "#{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.primary_key_name} = #{@owner.quoted_id}"
           end
           conditions << " AND (#{sql_conditions})" if sql_conditions
           
@@ -88,19 +83,27 @@ module ActiveRecord
           selected = custom_select || @reflection.options[:select] || "#{@reflection.table_name}.*"          
         end
         
-        def construct_joins(custom_joins = nil)
+        def construct_joins(custom_joins = nil)          
+          polymorphic_join = nil
           if @reflection.through_reflection.options[:as] || @reflection.source_reflection.macro == :belongs_to
             reflection_primary_key = @reflection.klass.primary_key
             source_primary_key     = @reflection.source_reflection.primary_key_name
           else
             reflection_primary_key = @reflection.source_reflection.primary_key_name
             source_primary_key     = @reflection.klass.primary_key
+            if @reflection.source_reflection.options[:as]
+              polymorphic_join = "AND %s.%s = %s" % [
+                @reflection.table_name, "#{@reflection.source_reflection.options[:as]}_type",
+                @owner.class.quote(@reflection.through_reflection.klass.name)
+              ]
+            end
           end
 
-          "INNER JOIN %s ON %s.%s = %s.%s #{@reflection.options[:joins]} #{custom_joins}" % [
+          "INNER JOIN %s ON %s.%s = %s.%s %s #{@reflection.options[:joins]} #{custom_joins}" % [
             @reflection.through_reflection.table_name,
             @reflection.table_name, reflection_primary_key,
-            @reflection.through_reflection.table_name, source_primary_key
+            @reflection.through_reflection.table_name, source_primary_key,
+            polymorphic_join
           ]
         end
         

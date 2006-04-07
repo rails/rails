@@ -2,6 +2,7 @@ require 'abstract_unit'
 require 'fixtures/topic'
 require 'fixtures/reply'
 require 'fixtures/company'
+require 'fixtures/customer'
 require 'fixtures/developer'
 require 'fixtures/project'
 require 'fixtures/default'
@@ -721,6 +722,14 @@ class BasicsTest < Test::Unit::TestCase
     task.attributes = attributes
     assert_equal time, task.starting
   end
+  
+  def test_multiparameter_assignment_of_aggregation
+    customer = Customer.new
+    address = Address.new("The Street", "The City", "The Country")
+    attributes = { "address(1)" => address.street, "address(2)" => address.city, "address(3)" => address.country }
+    customer.attributes = attributes
+    assert_equal address, customer.address
+  end
 
   def test_attributes_on_dummy_time
     # Oracle and SQL Server do not have a TIME datatype.
@@ -1256,6 +1265,11 @@ class BasicsTest < Test::Unit::TestCase
   def test_include_attributes
     assert_equal(%w( title ), topics(:first).attributes(:only => :title).keys)
     assert_equal(%w( title author_name type id approved ), topics(:first).attributes(:only => [ :title, :id, :type, :approved, :author_name ]).keys)
+  end
+  
+  def test_type_name_with_module_should_handle_beginning
+    assert_equal 'ActiveRecord::Person', ActiveRecord::Base.send(:type_name_with_module, 'Person')
+    assert_equal '::Person', ActiveRecord::Base.send(:type_name_with_module, '::Person')
   end
 
   # FIXME: this test ought to run, but it needs to run sandboxed so that it

@@ -14,6 +14,10 @@ class Address
   def close_to?(other_address)
     city == other_address.city && country == other_address.country
   end
+
+  def ==(other)
+    other.is_a?(self.class) && other.street == street && other.city == city && other.country == country
+  end  
 end
 
 class Money

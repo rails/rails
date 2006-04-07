@@ -1,18 +1,21 @@
 $:.unshift File.dirname(__FILE__) + "/../lib"
-$:.unshift File.dirname(__FILE__) + "/../builtin/controllers"
+$:.unshift File.dirname(__FILE__) + "/../builtin/rails_info"
 $:.unshift File.dirname(__FILE__) + "/../../actionpack/lib"
 $:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
 
 require 'test/unit'
 require 'action_controller'
 require 'action_controller/test_process'
-require 'rails_info'
 
-class ApplicationController < ActionController::Base
+require_dependency 'rails/info_controller'
+class Rails::InfoController < ActionController::Base
   @local_request = false
   class << self
     cattr_accessor :local_request
   end
+  
+  # Re-raise errors caught by the controller.
+  def rescue_action(e) raise e end;
   
 protected
   def local_request?
@@ -24,27 +27,22 @@ ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
 
-require 'rails_info_controller'
-
-# Re-raise errors caught by the controller.
-class RailsInfoController; def rescue_action(e) raise e end; end
-
-class RailsInfoControllerTest < Test::Unit::TestCase
+class Rails::InfoControllerTest < Test::Unit::TestCase
   def setup
-    @controller = RailsInfoController.new
+    @controller = Rails::InfoController.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
   end
 
   def test_rails_info_properties_table_rendered_for_local_request
-    RailsInfoController.local_request = true
+    Rails::InfoController.local_request = true
     get :properties
     assert_tag :tag => 'table'
     assert_response :success
   end
   
   def test_rails_info_properties_error_rendered_for_non_local_request
-    RailsInfoController.local_request = false
+    Rails::InfoController.local_request = false
     get :properties
     assert_tag :tag => 'p'
     assert_response 500

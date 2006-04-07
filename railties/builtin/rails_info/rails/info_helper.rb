@@ -1,0 +1,2 @@
+module Rails::InfoHelper
+end

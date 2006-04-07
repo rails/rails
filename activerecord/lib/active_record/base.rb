@@ -850,7 +850,7 @@ module ActiveRecord #:nodoc:
                   (hash[method].keys + params.keys).uniq.each do |key|
                     merge = hash[method][key] && params[key] # merge if both scopes have the same key
                     if key == :conditions && merge
-                      hash[method][key] = [params[key], hash[method][key]].collect{|sql| "( %s )" % sanitize_sql(sql)}.join(" AND ")
+                      hash[method][key] = [params[key], hash[method][key]].collect{ |sql| "( %s )" % sanitize_sql(sql) }.join(" AND ")
                     elsif key == :include && merge
                       hash[method][key] = merge_includes(hash[method][key], params[key]).uniq
                     else
@@ -871,7 +871,7 @@ module ActiveRecord #:nodoc:
 
         begin
           yield
-        ensure 
+        ensure
           self.scoped_methods.pop
         end
       end
@@ -947,7 +947,7 @@ module ActiveRecord #:nodoc:
       
         def find_one(id, options)
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
-          options    = options.merge :conditions => "#{table_name}.#{primary_key} = #{sanitize(id)}#{conditions}"
+          options.update :conditions => "#{table_name}.#{primary_key} = #{sanitize(id)}#{conditions}"
 
           if result = find_initial(options)
             result
@@ -959,7 +959,7 @@ module ActiveRecord #:nodoc:
         def find_some(ids, options)
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
           ids_list   = ids.map { |id| sanitize(id) }.join(',')
-          options    = options.merge :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}"
+          options.update :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}"
 
           result = find_every(options)
 
@@ -1000,7 +1000,7 @@ module ActiveRecord #:nodoc:
         # Nest the type name in the same module as this class.
         # Bar is "MyApp::Business::Bar" relative to MyApp::Business::Foo
         def type_name_with_module(type_name)
-          "#{self.name.sub(/(::)?[^:]+$/, '')}#{$1}#{type_name}"
+          (/^::/ =~ type_name) ? type_name : "#{parent.name}::#{type_name}"
         end
 
         def construct_finder_sql(options)
@@ -1036,7 +1036,9 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        def add_limit!(sql, options, scope)
+        # The optional scope argument is for the current :find scope.
+        def add_limit!(sql, options, scope = :auto)
+          scope = scope(:find) if :auto == scope
           if scope
             options[:limit]  ||= scope[:limit]
             options[:offset] ||= scope[:offset]
@@ -1044,13 +1046,17 @@ module ActiveRecord #:nodoc:
           connection.add_limit_offset!(sql, options)
         end
 
-        def add_joins!(sql, options, scope)
+        # The optional scope argument is for the current :find scope.
+        def add_joins!(sql, options, scope = :auto)
+          scope = scope(:find) if :auto == scope
           join = (scope && scope[:joins]) || options[:joins]
           sql << " #{join} " if join
         end
 
         # Adds a sanitized version of +conditions+ to the +sql+ string. Note that the passed-in +sql+ string is changed.
-        def add_conditions!(sql, conditions, scope)
+        # The optional scope argument is for the current :find scope.
+        def add_conditions!(sql, conditions, scope = :auto)
+          scope = scope(:find) if :auto == scope
           segments = []
           segments << sanitize_sql(scope[:conditions]) if scope && scope[:conditions]
           segments << sanitize_sql(conditions) unless conditions.nil?
@@ -1237,8 +1243,6 @@ module ActiveRecord #:nodoc:
           begin
             instance_eval(modularized_name)
           rescue NameError => e
-            first_module = modularized_name.split("::").first
-            raise unless e.to_s.include? first_module
             instance_eval(type_name)
           end
         end
@@ -1325,7 +1329,7 @@ module ActiveRecord #:nodoc:
           unless options.has_key?(:readonly)
             if scoped?(:find, :readonly)
               options[:readonly] = scope(:find, :readonly)
-            elsif !options[:joins].blank?
+            elsif !options[:joins].blank? && !options[:select]
               options[:readonly] = true
             end
           end
@@ -1583,7 +1587,9 @@ module ActiveRecord #:nodoc:
       # A Person object with a name attribute can ask person.respond_to?("name"), person.respond_to?("name="), and
       # person.respond_to?("name?") which will all return true.
       def respond_to?(method, include_priv = false)
-        if attr_name = self.class.column_methods_hash[method.to_sym]
+        if @attributes.nil?
+          return super 
+        elsif attr_name = self.class.column_methods_hash[method.to_sym]
           return true if @attributes.include?(attr_name) || attr_name == self.class.primary_key
           return false if self.class.read_methods.include?(attr_name)
         elsif @attributes.include?(method_name = method.to_s)
@@ -1636,10 +1642,10 @@ module ActiveRecord #:nodoc:
       #     <last-read type="date">2004-04-15</last-read>
       #   </topic>
       #
-      # This behaviour can be controlled with :skip_attributes and :skip_instruct 
+      # This behaviour can be controlled with :only, :except, and :skip_instruct 
       # for instance:
       #
-      #   topic.to_xml(:skip_instruct => true, :skip_attributes => [ :id, bonus_time, :written_on, replies_count ])
+      #   topic.to_xml(:skip_instruct => true, :except => [ :id, bonus_time, :written_on, replies_count ])
       #
       #   <topic>
       #     <title>The First Topic</title>
@@ -1982,7 +1988,7 @@ module ActiveRecord #:nodoc:
       def execute_callstack_for_multiparameter_attributes(callstack)
         errors = []
         callstack.each do |name, values|
-          klass = (self.class.reflect_on_aggregation(name) || column_for_attribute(name)).klass
+          klass = (self.class.reflect_on_aggregation(name.to_sym) || column_for_attribute(name)).klass
           if values.empty?
             send(name + "=", nil)
           else

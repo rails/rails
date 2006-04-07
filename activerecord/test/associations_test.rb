@@ -7,6 +7,7 @@ require 'fixtures/reply'
 require 'fixtures/computer'
 require 'fixtures/customer'
 require 'fixtures/order'
+require 'fixtures/category'
 require 'fixtures/post'
 require 'fixtures/author'
 
@@ -549,6 +550,25 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 0, companies(:first_firm).clients_of_firm.size
     assert_equal 0, companies(:first_firm).clients_of_firm(true).size
   end
+  
+  def test_delete_all
+    force_signal37_to_load_all_clients_of_firm
+    companies(:first_firm).clients_of_firm.create("name" => "Another Client")
+    assert_equal 2, companies(:first_firm).clients_of_firm.size
+    companies(:first_firm).clients_of_firm.delete_all
+    assert_equal 0, companies(:first_firm).clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+  end
+
+  def test_delete_all_with_not_yet_loaded_association_collection
+    force_signal37_to_load_all_clients_of_firm
+    companies(:first_firm).clients_of_firm.create("name" => "Another Client")
+    assert_equal 2, companies(:first_firm).clients_of_firm.size
+    companies(:first_firm).clients_of_firm.reset
+    companies(:first_firm).clients_of_firm.delete_all
+    assert_equal 0, companies(:first_firm).clients_of_firm.size
+    assert_equal 0, companies(:first_firm).clients_of_firm(true).size
+  end
 
   def test_clearing_an_association_collection
     firm = companies(:first_firm)
@@ -1080,7 +1100,7 @@ end
 
 
 class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
-  fixtures :accounts, :companies, :developers, :projects, :developers_projects
+  fixtures :accounts, :companies, :categories, :posts, :categories_posts, :developers, :projects, :developers_projects
   
   def test_has_and_belongs_to_many
     david = Developer.find(1)
@@ -1468,6 +1488,25 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
       WHERE project_id = #{project.id}
       AND developer_id = #{developer.id}
     end_sql
+  end
+  
+  def test_updating_attributes_on_non_rich_associations
+    welcome = categories(:technology).posts.first
+    welcome.title = "Something else"
+    assert welcome.save!
+  end
+  
+  def test_updating_attributes_on_rich_associations
+    david = projects(:action_controller).developers.first
+    david.name = "DHH"
+    assert_raises(ActiveRecord::ReadOnlyRecord) { david.save! }
+  end
+
+  
+  def test_updating_attributes_on_rich_associations_with_limited_find
+    david = projects(:action_controller).developers.find(:all, :select => "developers.*").first
+    david.name = "DHH"
+    assert david.save!
   end
 
   def test_join_table_alias

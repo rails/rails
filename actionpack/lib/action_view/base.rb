@@ -157,6 +157,11 @@ module ActionView #:nodoc:
     @@cache_template_loading = false
     cattr_accessor :cache_template_loading
 
+    # Specify whether file extension lookup should be cached.
+    # Should be +false+ for development environments. Defaults to +true+.
+    @@cache_template_extensions = true
+    cattr_accessor :cache_template_extensions
+
     # Specify whether local_assigns should be able to use string keys.
     # Defaults to +true+. String keys are deprecated and will be removed
     # shortly.
@@ -312,15 +317,11 @@ module ActionView #:nodoc:
     end
 
     def pick_template_extension(template_path)#:nodoc:
-      @@cached_template_extension[template_path] ||=
-        if match = delegate_template_exists?(template_path)
-          match.first.to_sym
-        elsif erb_template_exists?(template_path):        :rhtml
-        elsif builder_template_exists?(template_path):    :rxml
-        elsif javascript_template_exists?(template_path): :rjs
-        else
-          raise ActionViewError, "No rhtml, rxml, rjs or delegate template found for #{template_path}"
-        end
+      if @@cache_template_extensions
+        @@cached_template_extension[template_path] ||= find_template_extension_for(template_path)
+      else
+        find_template_extension_for(template_path)
+      end
     end
 
     def delegate_template_exists?(template_path)#:nodoc:
@@ -345,7 +346,7 @@ module ActionView #:nodoc:
       if template_file_extension
         template_exists?(template_file_name, template_file_extension)
       else
-        @@cached_template_extension[template_path] ||
+        cached_template_extension(template_path) ||
            %w(erb builder javascript delegate).any? do |template_type| 
              send("#{template_type}_template_exists?", template_path)
            end
@@ -370,6 +371,21 @@ module ActionView #:nodoc:
       def path_and_extension(template_path)
         template_path_without_extension = template_path.sub(/\.(\w+)$/, '')
         [ template_path_without_extension, $1 ]
+      end
+      
+      def cached_template_extension(template_path)
+        @@cache_template_extensions && @@cached_template_extension[template_path]
+      end      
+          
+      def find_template_extension_for(template_path)
+        if match = delegate_template_exists?(template_path)
+          match.first.to_sym
+        elsif erb_template_exists?(template_path):        :rhtml
+        elsif builder_template_exists?(template_path):    :rxml
+        elsif javascript_template_exists?(template_path): :rjs
+        else
+          raise ActionViewError, "No rhtml, rxml, rjs or delegate template found for #{template_path}"
+        end
       end
 
       # This method reads a template file.

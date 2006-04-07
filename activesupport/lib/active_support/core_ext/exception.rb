@@ -1,25 +1,30 @@
-class Exception
-  alias :clean_message :message
+class Exception # :nodoc:
+  def clean_message
+    Pathname.clean_within message
+  end
   
   TraceSubstitutions = []
-  FrameworkRegexp = /generated_code|vendor|dispatch|ruby|script\/\w+/
+  FrameworkRegexp = /generated|vendor|dispatch|ruby|script\/\w+/
   
   def clean_backtrace
     backtrace.collect do |line|
-      TraceSubstitutions.inject(line) do |line, (regexp, sub)|
+      Pathname.clean_within(TraceSubstitutions.inject(line) do |line, (regexp, sub)|
         line.gsub regexp, sub
-      end
+      end)
     end
   end
   
   def application_backtrace
     before_application_frame = true
     
-    clean_backtrace.reject do |line|
-      non_app_frame = !! (line =~ FrameworkRegexp)
+    trace = clean_backtrace.reject do |line|
+      non_app_frame = (line =~ FrameworkRegexp)
       before_application_frame = false unless non_app_frame
       non_app_frame && ! before_application_frame
     end
+    
+    # If we didn't find any application frames, return an empty app trace.
+    before_application_frame ? [] : trace
   end
   
   def framework_backtrace

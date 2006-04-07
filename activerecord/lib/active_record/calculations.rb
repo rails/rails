@@ -1,6 +1,6 @@
 module ActiveRecord
   module Calculations #:nodoc:
-    CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct]
+    CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct, :limit, :offset]
     def self.included(base)
       base.extend(ClassMethods)
     end
@@ -145,7 +145,7 @@ module ActiveRecord
       protected
         def construct_calculation_sql(aggregate, aggregate_alias, options) #:nodoc:
           scope = scope(:find)
-          sql  = ["SELECT #{aggregate} AS #{aggregate_alias}"]
+          sql  = "SELECT #{aggregate} AS #{aggregate_alias}"
           sql << ", #{options[:group_field]} AS #{options[:group_alias]}" if options[:group]
           sql << " FROM #{table_name} "
           add_joins!(sql, options, scope)
@@ -153,7 +153,8 @@ module ActiveRecord
           sql << " GROUP BY #{options[:group_field]}" if options[:group]
           sql << " HAVING #{options[:having]}" if options[:group] && options[:having]
           sql << " ORDER BY #{options[:order]}" if options[:order]
-          sql.join
+          add_limit!(sql, options)
+          sql
         end
 
         def execute_simple_calculation(operation, column_name, column, aggregate, aggregate_alias, options) #:nodoc:

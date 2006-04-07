@@ -416,7 +416,7 @@ module ActionController #:nodoc:
         end
 
         def read(name, options = nil) #:nodoc:
-          IO.read(real_file_path(name)) rescue nil
+          File.open(real_file_path(name), 'rb') { |f| f.read } rescue nil
         end
 
         def delete(name, options) #:nodoc:

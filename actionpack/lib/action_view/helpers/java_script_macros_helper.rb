@@ -101,6 +101,8 @@ module ActionView
       # <tt>:with</tt>::      A JavaScript expression specifying the
       #                       parameters for the XMLHttpRequest. This defaults
       #                       to 'fieldname=value'.
+      # <tt>:frequency</tt>:: Determines the time to wait after the last keystroke
+      #                       for the AJAX request to be initiated.
       # <tt>:indicator</tt>:: Specifies the DOM ID of an element which will be
       #                       displayed while autocomplete is running.
       # <tt>:tokens</tt>::    A string or an array of strings containing
@@ -119,6 +121,11 @@ module ActionView
       #                       innerHTML is replaced.
       # <tt>:on_show</tt>::   Like on_hide, only now the expression is called
       #                       then the div is shown.
+      # <tt>:after_update_element</tt>::   A Javascript expression that is called when the
+      #                       user has selected one of the proposed values. 
+      #                       The expression should take two variables: element and value.
+      #                       Element is a DOM element for the field, value
+      #                       is the value selected by the user.
       # <tt>:select</tt>::    Pick the class of the element from which the value for 
       #                       insertion should be extracted. If this is not specified,
       #                       the entire element is used.
@@ -133,8 +140,10 @@ module ActionView
         js_options[:callback]   = "function(element, value) { return #{options[:with]} }" if options[:with]
         js_options[:indicator]  = "'#{options[:indicator]}'" if options[:indicator]
         js_options[:select]     = "'#{options[:select]}'" if options[:select]
+        js_options[:frequency]  = "#{options[:frequency]}" if options[:frequency]
 
-        { :on_show => :onShow, :on_hide => :onHide, :min_chars => :minChars }.each do |k,v|
+        { :after_update_element => :afterUpdateElement, 
+          :on_show => :onShow, :on_hide => :onHide, :min_chars => :minChars }.each do |k,v|
           js_options[v] = options[k] if options[k]
         end
 

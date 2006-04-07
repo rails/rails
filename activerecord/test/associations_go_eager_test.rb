@@ -138,6 +138,16 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_equal count, posts.size
   end
 
+  def test_eager_with_has_many_and_limit_ond_high_offset
+    posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :offset => 10, :conditions => [ "authors.name = ?", 'David' ])
+    assert_equal 0, posts.size
+  end
+
+  def test_count_eager_with_has_many_and_limit_ond_high_offset
+    posts = Post.count(:all, :include => [ :author, :comments ], :limit => 2, :offset => 10, :conditions => [ "authors.name = ?", 'David' ])
+    assert_equal 0, posts
+  end
+
   def test_eager_with_has_many_and_limit_with_no_results
     posts = Post.find(:all, :include => [ :author, :comments ], :limit => 2, :conditions => "posts.title = 'magic forest'")
     assert_equal 0, posts.size
