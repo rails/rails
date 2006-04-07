@@ -14,7 +14,7 @@ if File.directory?("#{RAILS_ROOT}/vendor/rails")
 else
   require 'rubygems'
 
-  if !defined?(RAILS_GEM_VERSION) && File.read(File.dirname(__FILE__) + '/environment.rb') =~ /RAILS_GEM_VERSION = '([\d.]+)'/
+  if !defined?(RAILS_GEM_VERSION) && File.read(File.dirname(__FILE__) + '/environment.rb') =~ /^\s*RAILS_GEM_VERSION = '([\d.]+)'/
     RAILS_GEM_VERSION = $1
   end
 

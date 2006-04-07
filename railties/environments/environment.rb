@@ -5,7 +5,7 @@
 # ENV['RAILS_ENV'] ||= 'production'
 
 # Specifies gem version of Rails to use when vendor/rails is not present
-<%= '# ' if freeze %>RAILS_GEM_VERSION = '<%= Rails::VERSION::STRING %>'
+<%= '# ' if freeze %>RAILS_GEM_VERSION = '<%= Rails::VERSION::STRING %>' unless defined? RAILS_GEM_VERSION
 
 # Bootstrap the Rails environment, frameworks, and default configuration
 require File.join(File.dirname(__FILE__), 'boot')

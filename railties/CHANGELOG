@@ -1,3 +1,7 @@
+* Don't match commented out RAILS_GEM_VERSIONs. [Nicholas Seckar]
+
+* Avoid "Constant already defined" warnings for RAILS_GEM_VERSION. [Chad Fowler]
+
 *1.1.1* (April 6th, 2005)
 
 * Enhances plugin#discover allowing it to discover svn:// like URIs (closes #4565) [ruben.nine@gmail.com]
