@@ -1,6 +1,9 @@
-* Don't match commented out RAILS_GEM_VERSIONs. [Nicholas Seckar]
+*SVN*
 
-* Avoid "Constant already defined" warnings for RAILS_GEM_VERSION. [Chad Fowler]
+* Added rake rails:update:configs to update config/boot.rb from the latest (also included in rake rails:update) [DHH]
+
+* Fixed that boot.rb would set RAILS_GEM_VERSION twice, not respect an uncommented RAILS_GEM_VERSION line, and not use require_gem [DHH]
+
 
 *1.1.1* (April 6th, 2005)
 
