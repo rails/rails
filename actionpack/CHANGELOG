@@ -1,3 +1,8 @@
+*SVN*
+
+* Added ActionController.filter_parameter_logging that makes it easy to remove passwords, credit card numbers, and other sensitive information from being logged when a request is handled #1897 [jeremye@bsa.ca.gov]
+
+
 *1.12.1* (April 6th, 2005)
 
 * Fixed that template extensions would be cached development mode #4624 [Stefan Kaes]

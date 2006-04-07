@@ -366,6 +366,53 @@ module ActionController #:nodoc:
       def hide_action(*names)
         write_inheritable_attribute(:hidden_actions, hidden_actions | names.collect { |n| n.to_s })
       end
+      
+      # Replace sensitive paramater data from the request log.
+      # Filters paramaters that have any of the arguments as a substring.
+      # Looks in all subhashes of the param hash for keys to filter.
+      # If a block is given, each key and value of the paramater hash and all
+      # subhashes is passed to it, the value or key
+      # can be replaced using String#replace or similar method.
+      #
+      # Examples:
+      #   filter_parameter_logging
+      #   => Does nothing, just slows the logging process down
+      #
+      #   filter_parameter_logging :password
+      #   => replaces the value to all keys matching /password/i with "[FILTERED]"
+      #
+      #   filter_parameter_logging :foo, "bar"
+      #   => replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
+      #
+      #   filter_parameter_logging { |k,v| v.reverse! if k =~ /secret/i }
+      #   => reverses the value to all keys matching /secret/i
+      #
+      #   filter_parameter_logging(:foo, "bar") { |k,v| v.reverse! if k =~ /secret/i }
+      #   => reverses the value to all keys matching /secret/i, and 
+      #      replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
+      def filter_parameter_logging(*filter_words, &block)
+        parameter_filter = Regexp.new(filter_words.collect{ |s| s.to_s }.join('|'), true) if filter_words.length > 0
+
+        define_method(:filter_parameters) do |unfiltered_parameters|
+          filtered_parameters = {}
+
+          unfiltered_parameters.each do |key, value|
+            if key =~ parameter_filter
+              filtered_parameters[key] = '[FILTERED]'
+            elsif value.is_a?(Hash)
+              filtered_parameters[key] = filter_parameters(value) 
+            elsif block_given?
+              key, value = key.dup, value.dup
+              yield key, value
+              filtered_parameters[key] = value
+            else 
+              filtered_parameters[key] = value
+            end
+          end
+
+          filtered_parameters
+        end
+      end
     end
 
     public      
@@ -901,7 +948,7 @@ module ActionController #:nodoc:
         if logger
           logger.info "\n\nProcessing #{controller_class_name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
           logger.info "  Session ID: #{@session.session_id}" if @session and @session.respond_to?(:session_id)
-          logger.info "  Parameters: #{@params.inspect}"
+          logger.info "  Parameters: #{respond_to?(:filter_parameters) ? filter_parameters(@params).inspect : @params.inspect}"
         end
       end
     
