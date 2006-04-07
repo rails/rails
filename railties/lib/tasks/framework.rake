@@ -71,8 +71,8 @@ namespace :rails do
     rm_rf "vendor/rails"
   end
 
-  desc "Update both scripts and public/javascripts from Rails"
-  task :update => [ "update:scripts", "update:javascripts" ]
+  desc "Update both configs, scripts and public/javascripts from Rails"
+  task :update => [ "update:scripts", "update:javascripts", "update:configs" ]
 
   namespace :update do
     desc "Add new scripts to the application script/ directory"
@@ -101,6 +101,14 @@ namespace :rails do
       scripts = Dir[RAILTIES_PATH + '/html/javascripts/*.js']
       scripts.reject!{|s| File.basename(s) == 'application.js'} if File.exists?(project_dir + 'application.js')
       FileUtils.cp(scripts, project_dir)
+    end
+
+    desc "Update boot/config.rb from your current rails install"
+    task :configs do
+      require 'railties_path'  
+      project_dir = RAILS_ROOT + '/public/javascripts/'
+      scripts = Dir[RAILTIES_PATH + '/html/javascripts/*.js']
+      FileUtils.cp(RAILTIES_PATH + '/environments/boot.rb', RAILTIES_PATH + '/environments/boot.rb')
     end
   end
 end

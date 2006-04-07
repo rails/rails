@@ -1,3 +1,8 @@
+*SVN*
+
+* Fixed that boot.rb would set RAILS_GEM_VERSION twice, not respect an uncommented RAILS_GEM_VERSION line, and not use require_gem [DHH]
+
+
 *1.1.1* (April 6th, 2005)
 
 * Enhances plugin#discover allowing it to discover svn:// like URIs (closes #4565) [ruben.nine@gmail.com]
