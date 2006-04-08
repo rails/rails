@@ -51,6 +51,9 @@ module ActionController #:nodoc:
       #   from an Ajax call or not. 
       # * <tt>:add_flash</tt>: a hash of name/value pairs that should be merged
       #   into the session's flash if the prerequisites cannot be satisfied.
+      # * <tt>:add_headers</tt>: a hash of name/value pairs that should be
+      #   merged into the response's headers hash if the prerequisites cannot
+      #   be satisfied.
       # * <tt>:redirect_to</tt>: the redirection parameters to be used when
       #   redirecting if the prerequisites cannot be satisfied.
       # * <tt>:render</tt>: the render parameters to be used when
@@ -82,6 +85,7 @@ module ActionController #:nodoc:
       
       if prereqs_invalid
         flash.update(options[:add_flash]) if options[:add_flash]
+        response.headers.update(options[:add_headers]) if options[:add_headers]
         unless performed?
           render(options[:render]) if options[:render]
           redirect_to(options[:redirect_to]) if options[:redirect_to]

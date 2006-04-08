@@ -31,7 +31,7 @@ class VerificationTest < Test::Unit::TestCase
     verify :only => :two_redirects, :method => :post,
            :redirect_to => { :action => "unguarded" }
 
-    verify :only => :must_be_post, :method => :post, :render => { :status => 500, :text => "Must be post"}
+    verify :only => :must_be_post, :method => :post, :render => { :status => 405, :text => "Must be post" }, :add_headers => { "Allow" => "POST" }
 
     def guarded_one
       render :text => "#{@params["one"]}"
@@ -212,13 +212,13 @@ class VerificationTest < Test::Unit::TestCase
     assert_equal "Was a post!", @response.body
   end
     
-  def test_guarded_post_and_calls_render_fails
+  def test_guarded_post_and_calls_render_fails_and_sets_allow_header
     get :must_be_post
-    assert_response 500
+    assert_response 405
     assert_equal "Must be post", @response.body
+    assert_equal "POST", @response.headers["Allow"]
   end
   
-
   def test_second_redirect
     assert_nothing_raised { get :two_redirects }
   end
