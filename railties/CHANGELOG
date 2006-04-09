@@ -1,4 +1,4 @@
-*SVN*
+*1.1.2* (April 9th, 2005)
 
 * Added rake rails:update:configs to update config/boot.rb from the latest (also included in rake rails:update) [DHH]
 
