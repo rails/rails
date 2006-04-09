@@ -1,3 +1,8 @@
+*1.14.2* (April 9th, 2005)
+
+* Fixed calculations for the Oracle Adapter (closes #4626) [Michael Schoen]
+
+
 *1.14.1* (April 6th, 2005)
 
 * Fix type_name_with_module to handle type names that begin with '::'. Closes #4614. [Nicholas Seckar]

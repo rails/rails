@@ -1,3 +1,8 @@
+*1.1.2* (April 9th, 2005)
+
+* Rely on Active Record 1.14.2
+
+
 *1.1.1* (April 6th, 2005)
 
 * Do not convert driver options to strings (#4499)
