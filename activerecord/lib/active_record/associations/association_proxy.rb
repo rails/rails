@@ -8,7 +8,7 @@ module ActiveRecord
 
       def initialize(owner, reflection)
         @owner, @reflection = owner, reflection
-        proxy_extend(reflection.options[:extend]) if reflection.options[:extend]
+        Array(reflection.options[:extend]).each { |ext| proxy_extend(ext) }
         reset
       end
       

@@ -1,3 +1,12 @@
+*SVN*
+
+* Allow multiple association extensions with :extend option (closes #4666) [Josh Susser]
+
+    class Account < ActiveRecord::Base
+      has_many :people, :extend => [FindOrCreateByNameExtension, FindRecentExtension]
+    end
+
+
 *1.14.2* (April 9th, 2005)
 
 * Fixed calculations for the Oracle Adapter (closes #4626) [Michael Schoen]

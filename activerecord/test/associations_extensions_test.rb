@@ -18,6 +18,11 @@ class AssociationsExtensionsTest < Test::Unit::TestCase
   def test_named_extension_on_habtm
     assert_equal projects(:action_controller), developers(:david).projects_extended_by_name.find_most_recent
   end
+
+  def test_named_two_extensions_on_habtm
+    assert_equal projects(:action_controller), developers(:david).projects_extended_by_name_twice.find_most_recent
+    assert_equal projects(:active_record), developers(:david).projects_extended_by_name_twice.find_least_recent
+  end
   
   def test_marshalling_extensions
     david = developers(:david)

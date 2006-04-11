@@ -215,6 +215,14 @@ module ActiveRecord
     #     has_many :people, :extend => FindOrCreateByNameExtension
     #   end
     #
+    # If you need to use multiple named extension modules, you can specify an array of modules with the :extend option.
+    # In the case of name conflicts between methods in the modules, methods in modules later in the array supercede
+    # those earlier in the array. Example:
+    #
+    #   class Account < ActiveRecord::Base
+    #     has_many :people, :extend => [FindOrCreateByNameExtension, FindRecentExtension]
+    #   end
+    #
     # === Association Join Models
     # 
     # Has Many associations can be configured with the :through option to use an explicit join model to retrieve the data.  This

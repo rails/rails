@@ -4,6 +4,12 @@ module DeveloperProjectsAssociationExtension
   end
 end
 
+module DeveloperProjectsAssociationExtension2
+  def find_least_recent
+    find(:first, :order => "id ASC")
+  end
+end
+
 class Developer < ActiveRecord::Base
   has_and_belongs_to_many :projects do
     def find_most_recent
@@ -16,6 +22,12 @@ class Developer < ActiveRecord::Base
       :join_table => "developers_projects", 
       :association_foreign_key => "project_id",
       :extend => DeveloperProjectsAssociationExtension
+
+  has_and_belongs_to_many :projects_extended_by_name_twice, 
+      :class_name => "Project", 
+      :join_table => "developers_projects", 
+      :association_foreign_key => "project_id",
+      :extend => [DeveloperProjectsAssociationExtension, DeveloperProjectsAssociationExtension2]
 
   has_and_belongs_to_many :special_projects, :join_table => 'developers_projects', :association_foreign_key => 'project_id'
 
