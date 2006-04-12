@@ -1,5 +1,11 @@
 *SVN*
 
+* Add :case_sensitive option to validates_uniqueness_of (closes #3090) [Rick]
+
+    class Account < ActiveRecord::Base
+      validates_uniqueness_of :email, :case_sensitive => false
+    end
+
 * Allow multiple association extensions with :extend option (closes #4666) [Josh Susser]
 
     class Account < ActiveRecord::Base

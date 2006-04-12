@@ -304,6 +304,37 @@ class ValidationsTest < Test::Unit::TestCase
     assert !r3.save, "Saving r3 the third time."
   end
 
+  def test_validate_case_insensitive_uniqueness
+    Topic.validates_uniqueness_of(:title, :parent_id, :case_sensitive => false, :allow_nil => true)
+
+    t = Topic.new("title" => "I'm unique!", :parent_id => 2)
+    assert t.save, "Should save t as unique"
+
+    t.content = "Remaining unique"
+    assert t.save, "Should still save t as unique"
+
+    t2 = Topic.new("title" => "I'm UNIQUE!", :parent_id => 1)
+    assert !t2.valid?, "Shouldn't be valid"
+    assert !t2.save, "Shouldn't save t2 as unique"
+    assert t2.errors.on(:title)
+    assert t2.errors.on(:parent_id)
+    assert_equal "has already been taken", t2.errors.on(:title)
+
+    t2.title = "I'm truly UNIQUE!"
+    assert !t2.valid?, "Shouldn't be valid"
+    assert !t2.save, "Shouldn't save t2 as unique"
+    assert_nil t2.errors.on(:title)
+    assert t2.errors.on(:parent_id)
+
+    t2.parent_id = 3
+    assert t2.save, "Should now save t2 as unique"
+
+    t2.parent_id = nil
+    t2.title = nil
+    assert t2.valid?, "should validate with nil"
+    assert t2.save, "should save with nil"
+  end
+
   def test_validate_format
     Topic.validates_format_of(:title, :content, :with => /^Validation\smacros \w+!$/, :message => "is bad data")
 

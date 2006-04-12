@@ -503,17 +503,23 @@ module ActiveRecord
       # Configuration options:
       # * <tt>message</tt> - Specifies a custom error message (default is: "has already been taken")
       # * <tt>scope</tt> - One or more columns by which to limit the scope of the uniquness constraint.
+      # * <tt>case_sensitive</tt> - Looks for an exact match.  Ignored by non-text columns (true by default).
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
        
       def validates_uniqueness_of(*attr_names)
-        configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken] }
+        configuration = { :message => ActiveRecord::Errors.default_error_messages[:taken], :case_sensitive => true }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)
 
         validates_each(attr_names,configuration) do |record, attr_name, value|
-          condition_sql = "#{record.class.table_name}.#{attr_name} #{attribute_condition(value)}"
-          condition_params = [value]
+          if value.nil? || (configuration[:case_sensitive] || !columns_hash[attr_name.to_s].text?)
+            condition_sql = "#{record.class.table_name}.#{attr_name} #{attribute_condition(value)}"
+            condition_params = [value]
+          else
+            condition_sql = "UPPER(#{record.class.table_name}.#{attr_name}) #{attribute_condition(value)}"
+            condition_params = [value.upcase]
+          end
           if scope = configuration[:scope]
             Array(scope).map do |scope_item|
               scope_value = record.send(scope_item)
@@ -530,6 +536,8 @@ module ActiveRecord
           end
         end
       end
+
+      
 
       # Validates whether the value of the specified attribute is of the correct form by matching it against the regular expression
       # provided.
