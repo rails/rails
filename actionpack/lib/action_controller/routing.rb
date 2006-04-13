@@ -306,6 +306,7 @@ module ActionController
         initialize_components path
         defaults, conditions = initialize_hashes options.dup
         @defaults = defaults.dup
+        @request_method = conditions.delete(:method)
         configure_components(defaults, conditions)
         add_default_requirements
         initialize_keys
@@ -342,8 +343,12 @@ module ActionController
           else g.constant_result(key, value)
           end
         end
-    
-        g.go
+
+        if @request_method
+          g.if("@request.method == :#{@request_method}") { |gp| gp.go }
+        else
+          g.go
+        end
     
         generator
       end
@@ -469,17 +474,19 @@ module ActionController
       end
 
       def recognize(request)
-        string_path = request.path  
+        @request = request
+
+        string_path = @request.path
         string_path.chomp! if string_path[0] == ?/  
         path = string_path.split '/'  
         path.shift  
    
         hash = recognize_path(path)  
-        return recognition_failed(request) unless hash && hash['controller']  
+        return recognition_failed(@request) unless hash && hash['controller']  
    
         controller = hash['controller']  
         hash['controller'] = controller.controller_path  
-        request.path_parameters = hash  
+        @request.path_parameters = hash  
         controller.new 
       end
       alias :recognize! :recognize
