@@ -1,3 +1,5 @@
+* Correct spurious documentation example code which results in a SyntaxError. [Marcel Molina Jr.]
+
 *1.2.1* (April 6th, 2005)
 
 * Be part of Rails 1.1.1
