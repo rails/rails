@@ -69,7 +69,28 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
   end
 end
 
-class ArraToXmlTests < Test::Unit::TestCase
+class ArraySplitTests < Test::Unit::TestCase
+  def test_split_with_empty_array
+    assert_equal [[]], [].split(0)
+  end
+  
+  def test_split_with_argument
+    assert_equal [[1, 2], [4, 5]],  [1, 2, 3, 4, 5].split(3)
+    assert_equal [[1, 2, 3, 4, 5]], [1, 2, 3, 4, 5].split(0)
+  end
+  
+  def test_split_with_block
+    assert_equal [[1, 2], [4, 5], [7, 8], [10]], (1..10).to_a.split { |i| i % 3 == 0 }
+  end
+  
+  def test_split_with_edge_values
+    assert_equal [[], [2, 3, 4, 5]],  [1, 2, 3, 4, 5].split(1)
+    assert_equal [[1, 2, 3, 4], []],  [1, 2, 3, 4, 5].split(5)
+    assert_equal [[], [2, 3, 4], []], [1, 2, 3, 4, 5].split { |i| i == 1 || i == 5 }
+  end
+end
+
+class ArrayToXmlTests < Test::Unit::TestCase
   def test_to_xml
     xml = [
       { :name => "David", :age => 26 }, { :name => "Jason", :age => 31 }
