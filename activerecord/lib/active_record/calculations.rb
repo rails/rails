@@ -42,26 +42,29 @@ module ActiveRecord
       #
       # Note: Person.count(:all) will not work because it will use :all as the condition.  Use Person.count instead.
       def count(*args)
-        options    = {}
-        
-        #For backwards compatibility, we need to handle both count(conditions=nil, joins=nil) or count(options={}).
-        if args.size >= 0 and args.size <= 2
+        options     = {}
+        column_name = :all
+        # For backwards compatibility, we need to handle both count(conditions=nil, joins=nil) or count(options={}) or count(column_name=:all, options={}).
+        if args.size >= 0 && args.size <= 2
           if args.first.is_a?(Hash)
-            options = args.first
-            #should we verify the options hash???
+            options     = args.first
           elsif args[1].is_a?(Hash)
+            options     = args[1]
             column_name = args.first
-            options    = args[1]
           else
-            # Handle legacy paramter options: def count(conditions=nil, joins=nil) 
+            # Handle legacy paramter options: def count(conditions=nil, joins=nil)
             options.merge!(:conditions => args[0]) if args.length > 0
-            options.merge!(:joins => args[1]) if args.length > 1
+            options.merge!(:joins => args[1])      if args.length > 1
           end
         else
           raise(ArgumentError, "Unexpected parameters passed to count(*args): expected either count(conditions=nil, joins=nil) or count(options={})")
         end
 
-        (scope(:find, :include) || options[:include]) ? count_with_associations(options) : calculate(:count, :all, options)
+        if options[:include] || scope(:find, :include)
+          count_with_associations(options)
+        else
+          calculate(:count, column_name, options)
+        end
       end
 
       # Calculates average value on a given column.  The value is returned as a float.  See #calculate for examples with options.
