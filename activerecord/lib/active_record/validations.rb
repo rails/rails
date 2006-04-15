@@ -97,13 +97,9 @@ module ActiveRecord
     # * Returns the error message, if one error is associated with the specified +attribute+.
     # * Returns an array of error messages, if more than one error is associated with the specified +attribute+.
     def on(attribute)
-      if @errors[attribute.to_s].nil?
-        nil
-      elsif @errors[attribute.to_s].length == 1
-        @errors[attribute.to_s].first
-      else
-        @errors[attribute.to_s]
-      end
+      errors = @errors[attribute.to_s]
+      return nil if errors.nil?
+      errors.size == 1 ? errors.first : errors
     end
 
     alias :[] :on
@@ -139,13 +135,12 @@ module ActiveRecord
           end
         end
       end
-
-      return full_messages
+      full_messages
     end
 
     # Returns true if no errors have been added.
     def empty?
-      return @errors.empty?
+      @errors.empty?
     end
     
     # Removes all the errors that have been added.
@@ -156,9 +151,7 @@ module ActiveRecord
     # Returns the total number of errors added. Two errors added to the same attribute will be counted as such
     # with this as well.
     def size
-      error_count = 0
-      @errors.each_value { |attribute| error_count += attribute.length }
-      error_count
+      @errors.values.inject(0) { |error_count, attribute| error_count + attribute.size }
     end
     
     alias_method :count, :size
@@ -290,7 +283,7 @@ module ActiveRecord
       # method, proc or string should return or evaluate to a true or false value.
       def validates_each(*attrs)
         options = attrs.last.is_a?(Hash) ? attrs.pop.symbolize_keys : {}
-        attrs = attrs.flatten
+        attrs   = attrs.flatten
 
         # Declare the validation.
         send(validation_method(options[:on] || :save)) do |record|
