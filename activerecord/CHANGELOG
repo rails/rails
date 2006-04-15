@@ -1,5 +1,9 @@
 *SVN*
 
+* DRY up association collection reader method generation. [Marcel Molina Jr.]
+
+* DRY up and tweak style of the validation error object. [Marcel Molina Jr.]
+
 * Add :case_sensitive option to validates_uniqueness_of (closes #3090) [Rick]
 
     class Account < ActiveRecord::Base

@@ -895,11 +895,8 @@ module ActiveRecord
           collection_reader_method(reflection, association_proxy_class)
 
           define_method("#{reflection.name}=") do |new_value|
-            association = instance_variable_get("@#{reflection.name}")
-            unless association.respond_to?(:loaded?)
-              association = association_proxy_class.new(self, reflection)
-              instance_variable_set("@#{reflection.name}", association)
-            end
+            # Loads proxy class instance (defined in collection_reader_method) if not already loaded
+            association = send(reflection.name) 
             association.replace(new_value)
             association
           end
@@ -1224,7 +1221,7 @@ module ActiveRecord
         def add_association_callbacks(association_name, options)
           callbacks = %w(before_add after_add before_remove after_remove)
           callbacks.each do |callback_name|
-            full_callback_name = "#{callback_name.to_s}_for_#{association_name.to_s}"
+            full_callback_name = "#{callback_name}_for_#{association_name}"
             defined_callbacks = options[callback_name.to_sym]
             if options.has_key?(callback_name.to_sym)
               class_inheritable_reader full_callback_name.to_sym
