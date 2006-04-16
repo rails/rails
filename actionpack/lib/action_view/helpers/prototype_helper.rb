@@ -171,9 +171,10 @@ module ActionView
       end
 
       # Works like form_remote_tag, but uses form_for semantics.
-      def remote_form_for(object_name, object, options = {}, &proc)
+      def remote_form_for(object_name, *args, &proc)
+        options = args.last.is_a?(Hash) ? args.pop : {}
         concat(form_remote_tag(options), proc.binding)
-        fields_for(object_name, object, options, &proc)
+        fields_for(object_name, *(args << options), &proc)
         concat('</form>', proc.binding)
       end
       alias_method :form_remote_for, :remote_form_for
