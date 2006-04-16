@@ -2,7 +2,7 @@
 
 * Add Array#split for dividing arrays into one or more subarrays by value or block. [Sam Stephenson]
 
-*1.3.1* (April 6th, 2005)
+*1.3.1* (April 6th, 2006)
 
 * Clean paths inside of exception messages and traces. [Nicholas Seckar]
 
@@ -11,7 +11,7 @@
 * provide an empty Dependencies::LoadingModule.load which prints deprecation warnings.  Lets 1.0 applications function with .13-style environment.rb.
 
 
-*1.3.0* (March 27th, 2005)
+*1.3.0* (March 27th, 2006)
 
 * When possible, avoid incorrectly obtaining constants from parent modules. Fixes #4221. [Nicholas Seckar]
 

@@ -22,7 +22,7 @@
 * Fixed calculations for the Oracle Adapter (closes #4626) [Michael Schoen]
 
 
-*1.14.1* (April 6th, 2005)
+*1.14.1* (April 6th, 2006)
 
 * Fix type_name_with_module to handle type names that begin with '::'. Closes #4614. [Nicholas Seckar]
 
@@ -77,7 +77,7 @@
 * Fixed broken OCIAdapter #4457 [schoenm@earthlink.net]
 
 
-*1.14.0* (March 27th, 2005)
+*1.14.0* (March 27th, 2006)
 
 * Replace 'rescue Object' with a finer grained rescue. Closes #4431. [Nicholas Seckar]
 

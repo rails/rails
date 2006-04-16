@@ -5,7 +5,7 @@
 * Fixed that boot.rb would set RAILS_GEM_VERSION twice, not respect an uncommented RAILS_GEM_VERSION line, and not use require_gem [DHH]
 
 
-*1.1.1* (April 6th, 2005)
+*1.1.1* (April 6th, 2006)
 
 * Enhances plugin#discover allowing it to discover svn:// like URIs (closes #4565) [ruben.nine@gmail.com]
 
@@ -44,7 +44,7 @@
 * Avoid passing escapeHTML non-string in Rails' info controller [Nicholas Seckar]
 
 
-*1.1.0* (March 27th, 2005)
+*1.1.0* (March 27th, 2006)
 
 * Allow db:fixtures:load to load a subset of the applications fixtures. [Chad Fowler]
 
