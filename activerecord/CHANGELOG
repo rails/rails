@@ -1,5 +1,7 @@
 *SVN*
 
+* Associations#select_limited_ids_list adds the ORDER BY columns to the SELECT DISTINCT List for postgresql. [Rick]
+
 * DRY up association collection reader method generation. [Marcel Molina Jr.]
 
 * DRY up and tweak style of the validation error object. [Marcel Molina Jr.]

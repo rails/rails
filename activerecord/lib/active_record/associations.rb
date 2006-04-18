@@ -1168,18 +1168,19 @@ module ActiveRecord
         end
  
         def select_limited_ids_list(options, join_dependency)
-          connection.select_values(
+          connection.select_all(
             construct_finder_sql_for_association_limiting(options, join_dependency),
             "#{name} Load IDs For Limited Eager Loading"
-          ).collect { |id| connection.quote(id) }.join(", ")
+          ).collect { |row| connection.quote(row[primary_key]) }.join(", ")
         end
  
         def construct_finder_sql_for_association_limiting(options, join_dependency)
           scope = scope(:find)
-          #sql = "SELECT DISTINCT #{table_name}.#{primary_key} FROM #{table_name} "
           sql = "SELECT "
           sql << "DISTINCT #{table_name}." if include_eager_conditions?(options) || include_eager_order?(options)
-          sql << "#{primary_key} FROM #{table_name} "
+          sql << primary_key
+          sql << ", #{options[:order].split(',').collect { |s| s.split.first } * ', '}" if options[:order] && (include_eager_conditions?(options) || include_eager_order?(options))
+          sql << " FROM #{table_name} "
           
           if include_eager_conditions?(options) || include_eager_order?(options)
             sql << join_dependency.join_associations.collect{|join| join.association_join }.join
