@@ -1645,7 +1645,7 @@ module ActiveRecord #:nodoc:
       # This behaviour can be controlled with :only, :except, and :skip_instruct 
       # for instance:
       #
-      #   topic.to_xml(:skip_instruct => true, :except => [ :id, bonus_time, :written_on, replies_count ])
+      #   topic.to_xml(:skip_instruct => true, :except => [ :id, :bonus_time, :written_on, :replies_count ])
       #
       #   <topic>
       #     <title>The First Topic</title>
