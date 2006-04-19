@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/tag_helper'
+require File.dirname(__FILE__) + '/prototype_helper'
 
 module ActionView
   module Helpers
@@ -40,15 +41,26 @@ module ActionView
       unless const_defined? :JAVASCRIPT_PATH
         JAVASCRIPT_PATH = File.join(File.dirname(__FILE__), 'javascripts')
       end
+
+      include PrototypeHelper
       
       # Returns a link that'll trigger a JavaScript +function+ using the 
       # onclick handler and return false after the fact.
       #
+      # The +function+ argument can be omitted in favor of an +update_page+
+      # block, which evaluates to a string when the template is rendered
+      # (instead of making an Ajax request first).      
+      #
       # Examples:
       #   link_to_function "Greeting", "alert('Hello world!')"
-      #   link_to_function(image_tag("delete"), "if confirm('Really?'){ do_delete(); }")
-      def link_to_function(name, function, html_options = {})
+      #   link_to_function(image_tag("delete"), "if (confirm('Really?')) do_delete()")
+      #   link_to_function("Show me more", nil, :id => "more_link") do |page|
+      #     page[:details].visual_effect  :toggle_blind
+      #     page[:more_link].replace_html "Show me less"
+      #   end
+      def link_to_function(name, function = '', html_options = {}, &block)
         html_options.symbolize_keys!
+        function = update_page(&block) if block_given?
         content_tag(
           "a", name, 
           html_options.merge({ 
@@ -58,14 +70,22 @@ module ActionView
         )
       end
       
-      # Returns a link that'll trigger a JavaScript +function+ using the 
+      # Returns a button that'll trigger a JavaScript +function+ using the 
       # onclick handler.
+      #
+      # The +function+ argument can be omitted in favor of an +update_page+
+      # block, which evaluates to a string when the template is rendered
+      # (instead of making an Ajax request first).      
       #
       # Examples:
       #   button_to_function "Greeting", "alert('Hello world!')"
-      #   button_to_function "Delete", "if confirm('Really?'){ do_delete(); }")
-      def button_to_function(name, function, html_options = {})
+      #   button_to_function "Delete", "if (confirm('Really?')) do_delete()"
+      #   button_to_function "Details" do |page|
+      #     page[:details].visual_effect :toggle_slide
+      #   end
+      def button_to_function(name, function = '', html_options = {}, &block)
         html_options.symbolize_keys!
+        function = update_page(&block) if block_given?
         tag(:input, html_options.merge({ 
           :type => "button", :value => name, 
           :onclick => (html_options[:onclick] ? "#{html_options[:onclick]}; " : "") + "#{function};" 
