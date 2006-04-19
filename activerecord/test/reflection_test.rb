@@ -137,8 +137,8 @@ class ReflectionTest < Test::Unit::TestCase
   end
   
   def test_reflection_of_all_associations
-    assert_equal 13, Firm.reflect_on_all_associations.size
-    assert_equal 11, Firm.reflect_on_all_associations(:has_many).size
+    assert_equal 14, Firm.reflect_on_all_associations.size
+    assert_equal 12, Firm.reflect_on_all_associations(:has_many).size
     assert_equal 2, Firm.reflect_on_all_associations(:has_one).size
     assert_equal 0, Firm.reflect_on_all_associations(:belongs_to).size
   end

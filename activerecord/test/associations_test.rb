@@ -283,10 +283,26 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     companies(:first_firm).clients_of_firm.each {|f| }
   end
 
-  def test_counting
+  def test_counting_with_counter_sql
     assert_equal 2, Firm.find(:first).clients.count
   end
-  
+
+  def test_counting
+    assert_equal 2, Firm.find(:first).plain_clients.count
+  end
+
+  def test_counting_with_single_conditions
+    assert_equal 2, Firm.find(:first).plain_clients.count('1=1')
+  end
+
+  def test_counting_with_single_hash
+    assert_equal 2, Firm.find(:first).plain_clients.count(:conditions => '1=1')
+  end
+
+  def test_counting_with_column_name_and_hash
+    assert_equal 2, Firm.find(:first).plain_clients.count(:all, :conditions => '1=1')
+  end
+
   def test_finding
     assert_equal 2, Firm.find(:first).clients.length
   end

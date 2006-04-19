@@ -42,23 +42,7 @@ module ActiveRecord
       #
       # Note: Person.count(:all) will not work because it will use :all as the condition.  Use Person.count instead.
       def count(*args)
-        options     = {}
-        column_name = :all
-        # For backwards compatibility, we need to handle both count(conditions=nil, joins=nil) or count(options={}) or count(column_name=:all, options={}).
-        if args.size >= 0 && args.size <= 2
-          if args.first.is_a?(Hash)
-            options     = args.first
-          elsif args[1].is_a?(Hash)
-            options     = args[1]
-            column_name = args.first
-          else
-            # Handle legacy paramter options: def count(conditions=nil, joins=nil)
-            options.merge!(:conditions => args[0]) if args.length > 0
-            options.merge!(:joins => args[1])      if args.length > 1
-          end
-        else
-          raise(ArgumentError, "Unexpected parameters passed to count(*args): expected either count(conditions=nil, joins=nil) or count(options={})")
-        end
+        column_name, options = construct_count_options_from_legacy_args(*args)
 
         if options[:include] || scope(:find, :include)
           count_with_associations(options)
@@ -146,6 +130,27 @@ module ActiveRecord
       end
 
       protected
+        def construct_count_options_from_legacy_args(*args)
+          options     = {}
+          column_name = :all
+          # For backwards compatibility, we need to handle both count(conditions=nil, joins=nil) or count(options={}) or count(column_name=:all, options={}).
+          if args.size >= 0 && args.size <= 2
+            if args.first.is_a?(Hash)
+              options     = args.first
+            elsif args[1].is_a?(Hash)
+              options     = args[1]
+              column_name = args.first
+            else
+              # Handle legacy paramter options: def count(conditions=nil, joins=nil)
+              options.merge!(:conditions => args[0]) if args.length > 0
+              options.merge!(:joins => args[1])      if args.length > 1
+            end
+          else
+            raise(ArgumentError, "Unexpected parameters passed to count(*args): expected either count(conditions=nil, joins=nil) or count(options={})")
+          end
+          [column_name, options]
+        end
+      
         def construct_calculation_sql(aggregate, aggregate_alias, options) #:nodoc:
           scope = scope(:find)
           sql  = "SELECT #{aggregate} AS #{aggregate_alias}"

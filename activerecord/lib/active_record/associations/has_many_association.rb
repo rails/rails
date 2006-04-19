@@ -36,15 +36,18 @@ module ActiveRecord
       end
 
       # Count the number of associated records. All arguments are optional.
-      def count(runtime_conditions = nil)
+      def count(*args)
         if @reflection.options[:counter_sql]
           @reflection.klass.count_by_sql(@counter_sql)
         elsif @reflection.options[:finder_sql]
           @reflection.klass.count_by_sql(@finder_sql)
         else
-          sql = @finder_sql
-          sql += " AND (#{sanitize_sql(runtime_conditions)})" if runtime_conditions
-          @reflection.klass.count(sql)
+          column_name, options = @reflection.klass.send(:construct_count_options_from_legacy_args, *args)          
+          options[:conditions] = options[:conditions].nil? ?
+            @finder_sql :
+            @finder_sql + " AND (#{sanitize_sql(options[:conditions])})"
+
+          @reflection.klass.count(column_name, options)
         end
       end
 
