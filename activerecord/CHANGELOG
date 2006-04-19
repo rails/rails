@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix the HasManyAssociation#count method so it uses the new ActiveRecord::Base#count syntax, while maintaining backwards compatibility.  [Rick]
+
 * Ensure that Associations#include_eager_conditions? checks both scoped and explicit conditions [Rick]
 
 * Associations#select_limited_ids_list adds the ORDER BY columns to the SELECT DISTINCT List for postgresql. [Rick]
