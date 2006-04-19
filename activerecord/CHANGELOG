@@ -1,3 +1,8 @@
+*SVN*
+
+* Associations#select_limited_ids_list adds the ORDER BY columns to the SELECT DISTINCT List for postgresql. [Rick]
+
+
 *1.14.2* (April 9th, 2005)
 
 * Fixed calculations for the Oracle Adapter (closes #4626) [Michael Schoen]
