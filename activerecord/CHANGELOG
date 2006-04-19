@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure that Associations#include_eager_conditions? checks both scoped and explicit conditions [Rick]
+
 * Associations#select_limited_ids_list adds the ORDER BY columns to the SELECT DISTINCT List for postgresql. [Rick]
 
 * DRY up association collection reader method generation. [Marcel Molina Jr.]

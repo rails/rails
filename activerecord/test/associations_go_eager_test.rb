@@ -179,6 +179,42 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_equal count, posts.size
   end
 
+  def test_eager_with_has_many_and_limit_and_scoped_conditions_on_the_eagers
+    posts = nil
+    Post.with_scope(:find => {
+      :include    => :comments, 
+      :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'"
+    }) do
+      posts = authors(:david).posts.find(:all, :limit => 2)
+      assert_equal 2, posts.size
+    end
+    
+    Post.with_scope(:find => {
+      :include    => [ :comments, :author ], 
+      :conditions => "authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')"
+    }) do
+      count = Post.count(:limit => 2)
+      assert_equal count, posts.size
+    end
+  end
+
+  def test_eager_with_has_many_and_limit_and_scoped_and_explicit_conditions_on_the_eagers
+    Post.with_scope(:find => { :conditions => "1=1" }) do
+      posts = authors(:david).posts.find(:all, 
+        :include    => :comments, 
+        :conditions => "comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment'",
+        :limit      => 2
+      )
+      assert_equal 2, posts.size
+      
+      count = Post.count(
+        :include    => [ :comments, :author ], 
+        :conditions => "authors.name = 'David' AND (comments.body like 'Normal%' OR comments.#{QUOTED_TYPE}= 'SpecialComment')",
+        :limit      => 2
+      )
+      assert_equal count, posts.size
+    end
+  end
   def test_eager_association_loading_with_habtm
     posts = Post.find(:all, :include => :categories, :order => "posts.id")
     assert_equal 2, posts[0].categories.size
