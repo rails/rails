@@ -213,13 +213,7 @@ module ActiveRecord
       end
 
       def remove_index(table_name, options={}) #:nodoc:
-        if Hash === options
-          index_name = options[:name]
-        else
-          index_name = "#{table_name}_#{options}_index"
-        end
-
-        execute "DROP INDEX #{index_name}"
+        execute "DROP INDEX #{quote_column_name(index_name(table_name, options))}"
       end
       
       def rename_table(name, new_name)

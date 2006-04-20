@@ -119,7 +119,7 @@ module ActiveRecord
       # Adds a new column to the named table.
       # See TableDefinition#column for details of the options you can use.
       def add_column(table_name, column_name, type, options = {})
-        add_column_sql = "ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type, options[:limit])}"
+        add_column_sql = "ALTER TABLE #{table_name} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit])}"
         add_column_options!(add_column_sql, options)
         execute(add_column_sql)
       end
@@ -128,7 +128,7 @@ module ActiveRecord
       # ===== Examples
       #  remove_column(:suppliers, :qualification)
       def remove_column(table_name, column_name)
-        execute "ALTER TABLE #{table_name} DROP #{column_name}"
+        execute "ALTER TABLE #{table_name} DROP #{quote_column_name(column_name)}"
       end
 
       # Changes the column's definition according to the new options.
@@ -184,7 +184,8 @@ module ActiveRecord
       # generates
       #  CREATE UNIQUE INDEX by_branch_party ON accounts(branch_id, party_id)
       def add_index(table_name, column_name, options = {})
-        index_name = "#{table_name}_#{Array(column_name).first}_index"
+        column_names = Array(column_name)
+        index_name   = index_name(table_name, :column => column_names.first)
 
         if Hash === options # legacy support, since this param was a string
           index_type = options[:unique] ? "UNIQUE" : ""
@@ -192,8 +193,8 @@ module ActiveRecord
         else
           index_type = options
         end
-
-        execute "CREATE #{index_type} INDEX #{index_name} ON #{table_name} (#{Array(column_name).join(", ")})"
+        quoted_column_names = column_names.map { |e| quote_column_name(e) }.join(", ")
+        execute "CREATE #{index_type} INDEX #{quote_column_name(index_name)} ON #{table_name} (#{quoted_column_names})"
       end
 
       # Remove the given index from the table.
@@ -209,7 +210,7 @@ module ActiveRecord
       #   add_index :accounts, [:username, :password]
       #   remove_index :accounts, :username
       def remove_index(table_name, options = {})
-        execute "DROP INDEX #{index_name(table_name, options)} ON #{table_name}"
+        execute "DROP INDEX #{quote_column_name(index_name(table_name, options))} ON #{table_name}"
       end
 
       def index_name(table_name, options) #:nodoc:

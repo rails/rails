@@ -18,7 +18,6 @@ module ActiveRecord
         end
       end
 
-
       config = config.symbolize_keys
       host     = config[:host]
       port     = config[:port]

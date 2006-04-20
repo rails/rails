@@ -34,6 +34,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       Reminder.reset_column_information
 
       Person.connection.remove_column("people", "last_name") rescue nil
+      Person.connection.remove_column("people", "key") rescue nil
       Person.connection.remove_column("people", "bio") rescue nil
       Person.connection.remove_column("people", "age") rescue nil
       Person.connection.remove_column("people", "height") rescue nil
@@ -47,12 +48,17 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_add_index
       Person.connection.add_column "people", "last_name", :string        
       Person.connection.add_column "people", "administrator", :boolean
+      Person.connection.add_column "people", "key", :string
       
       assert_nothing_raised { Person.connection.add_index("people", "last_name") }
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
 
       assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
+      
+      # quoting
+      assert_nothing_raised { Person.connection.add_index("people", ["key"], :name => "key", :unique => true) }
+      assert_nothing_raised { Person.connection.remove_index("people", :name => "key") }
 
       # Sybase adapter does not support indexes on :boolean columns
       unless current_adapter?(:SybaseAdapter)

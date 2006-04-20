@@ -337,8 +337,7 @@ module ActiveRecord
 
       def remove_index(table_name, options) #:nodoc:
         execute "DROP INDEX #{index_name(table_name, options)}"
-      end      
-
+      end
 
       private
         BYTEA_COLUMN_TYPE_OID = 17

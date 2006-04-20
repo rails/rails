@@ -1,5 +1,7 @@
 *SVN*
 
+* Properly quote index names in migrations (closes #4764) [John Long]
+
 * Fix the HasManyAssociation#count method so it uses the new ActiveRecord::Base#count syntax, while maintaining backwards compatibility.  [Rick]
 
 * Ensure that Associations#include_eager_conditions? checks both scoped and explicit conditions [Rick]
