@@ -78,10 +78,11 @@ module ActionController
 
       def write_recognition(g)
         raise RoutingError, "Subpath components must occur last" unless g.after.empty?
-        g.next_segment
-        g.line "subindex, subpath = 0, #{g.next_segment}.split(/;/)"
-        tweak_recognizer(g).go
-        g.move_forward { |gg| gg.continue }
+        g.if("#{g.next_segment(true)} && #{g.next_segment}.include?(';')") do |gp|
+          gp.line "subindex, subpath = 0, #{gp.next_segment}.split(/;/)"
+          tweak_recognizer(gp).go
+          gp.move_forward { |gpp| gpp.continue }
+        end
       end
 
       def write_generation(g)
