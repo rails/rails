@@ -970,6 +970,82 @@ class RouteSetTests < Test::Unit::TestCase
 
     assert_equal ['/journal', []], rs.generate(:controller => 'content', :action => 'list_journal', :date => nil, :user_id => nil)
   end
+
+  def setup_request_method_routes_for(method)
+    @request = ActionController::TestRequest.new
+    @request.env["REQUEST_METHOD"] = method
+    @request.request_uri = "/match"
+
+    rs.draw do |r|
+      r.connect '/match', :controller => 'books', :action => 'get', :require => { :method => :get }
+      r.connect '/match', :controller => 'books', :action => 'post', :require => { :method => :post }
+      r.connect '/match', :controller => 'books', :action => 'put', :require => { :method => :put }
+      r.connect '/match', :controller => 'books', :action => 'delete', :require => { :method => :delete }
+    end
+  end
+
+  %w(GET POST PUT DELETE).each do |request_method|
+    define_method("test_request_method_recognized_with_#{request_method}") do
+      begin
+        Object.const_set(:BooksController, Class.new(ActionController::Base))
+
+        setup_request_method_routes_for(request_method)
+
+        assert_nothing_raised { rs.recognize(@request) }
+        assert_equal request_method.downcase, @request.path_parameters["action"]
+      ensure
+        Object.send(:remove_const, :BooksController) rescue nil
+      end
+    end
+  end
+
+  def test_subpath_recognized
+    Object.const_set(:SubpathBooksController, Class.new(ActionController::Base))
+
+    rs.draw do |r|
+      r.connect '/books/:id;edit', :controller => 'subpath_books', :action => 'edit'
+      r.connect '/items/:id;:action', :controller => 'subpath_books'
+      r.connect '/posts/new;:action', :controller => 'subpath_books'
+    end
+
+    hash = rs.recognize_path %w(books 17;edit)
+    assert_not_nil hash
+    assert_equal %w(subpath_books 17 edit), [hash["controller"].controller_name, hash["id"], hash["action"]]
+    
+    hash = rs.recognize_path %w(items 3;complete)
+    assert_not_nil hash
+    assert_equal %w(subpath_books 3 complete), [hash["controller"].controller_name, hash["id"], hash["action"]]
+    
+    hash = rs.recognize_path %w(posts new;preview)
+    assert_not_nil hash
+    assert_equal %w(subpath_books preview), [hash["controller"].controller_name, hash["action"]]
+
+    # for now, low-hanging fruit only. We don't allow subpath components anywhere
+    # except at the end of the path
+    assert_raises(ActionController::RoutingError) do
+      rs.draw do |r|
+        r.connect '/books;german/new', :controller => 'subpath_books', :action => "new"
+      end
+    end
+  ensure
+    Object.send(:remove_const, :SubpathBooksController) rescue nil
+  end
+
+  def test_subpath_generated
+    Object.const_set(:SubpathBooksController, Class.new(ActionController::Base))
+
+    rs.draw do |r|
+      r.connect '/books/:id;edit', :controller => 'subpath_books', :action => 'edit'
+      r.connect '/items/:id;:action', :controller => 'subpath_books'
+      r.connect '/posts/new;:action', :controller => 'subpath_books'
+    end
+
+    assert_equal ["/books/7;edit", []], rs.generate(:controller => "subpath_books", :id => 7, :action => "edit")
+    assert_equal ["/items/15;complete", []], rs.generate(:controller => "subpath_books", :id => 15, :action => "complete")
+    assert_equal ["/posts/new;preview", []], rs.generate(:controller => "subpath_books", :action => "preview")
+  ensure
+    Object.send(:remove_const, :SubpathBooksController) rescue nil
+  end
 end
 
 end

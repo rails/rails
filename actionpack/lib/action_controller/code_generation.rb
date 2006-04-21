@@ -65,7 +65,7 @@ module ActionController
         copy = self.class.new(source)
         self.class::FieldsToDuplicate.each do |sym|
           value = self.send(sym)
-          value = value.dup unless value.nil? || value.is_a?(Numeric)
+          value = value.dup unless value.nil? || value.is_a?(Numeric) || value.is_a?(Symbol)
           copy.send("#{sym}=", value)
         end
         return copy
@@ -73,7 +73,7 @@ module ActionController
     end
 
     class RecognitionGenerator < CodeGenerator #:nodoc:
-      Attributes = [:after, :before, :current, :results, :constants, :depth, :move_ahead, :finish_statement]
+      Attributes = [:after, :before, :current, :results, :constants, :depth, :move_ahead, :finish_statement, :path_name, :base_segment_name, :base_index_name]
       attr_accessor(*Attributes)
       FieldsToDuplicate = CodeGenerator::FieldsToDuplicate + Attributes
     
@@ -85,6 +85,9 @@ module ActionController
         @depth = 0
         @move_ahead = nil
         @finish_statement = Proc.new {|hash_expr| hash_expr}
+        @path_name = :path
+        @base_segment_name = :segment
+        @base_index_name = :index
       end
     
       def if_next_matches(string, &block)
@@ -118,11 +121,10 @@ module ActionController
         return code.to_s
       end
     
-      def segment_name() "segment#{depth}".to_sym end
-      def path_name() :path end
+      def segment_name() "#{base_segment_name}#{depth}".to_sym end
       def index_name
         move_ahead, @move_ahead = @move_ahead, nil
-        move_ahead ? "index += #{move_ahead}" : 'index'
+        move_ahead ? "#{base_index_name} += #{move_ahead}" : base_index_name
       end
     
       def continue
@@ -162,9 +164,9 @@ module ActionController
         end
       end
     end
-  
+
     class GenerationGenerator < CodeGenerator #:nodoc:
-      Attributes = [:after, :before, :current, :segments]
+      Attributes = [:after, :before, :current, :segments, :subpath_at]
       attr_accessor(*Attributes)
       FieldsToDuplicate = CodeGenerator::FieldsToDuplicate + Attributes
     
@@ -173,6 +175,7 @@ module ActionController
         @after, @before = [], []
         @current = nil
         @segments = []
+        @subpath_at = nil
       end
     
       def hash_name() 'hash' end
@@ -202,7 +205,7 @@ module ActionController
         d.segments.concat segments
         yield d
       end
-    
+
       def go
         if current then current.write_generation(self)
         else self.finish
@@ -215,8 +218,13 @@ module ActionController
         d.current = d.after.shift
         d.go
       end
-    
+
+      def start_subpath!
+        @subpath_at ||= segments.length
+      end
+
       def finish
+        segments[subpath_at..-1] = [segments[subpath_at..-1].join(";")] if subpath_at
         line %("/#{segments.join('/')}")
       end
 

@@ -60,12 +60,60 @@ module ActionController
       def self.new(string, *args)
         return super(string, *args) unless self == Component
         case string
+          when /.*;.*/       then SubpathComponent.new(string.split(/;/), *args)
           when ':controller' then ControllerComponent.new(:controller, *args)
           when /^:(\w+)$/    then DynamicComponent.new($1, *args)
           when /^\*(\w+)$/   then PathComponent.new($1, *args)
           else StaticComponent.new(string, *args)
         end
       end 
+    end
+
+    class SubpathComponent < Component #:nodoc:
+      attr_reader :parts
+
+      def initialize(parts, *args)
+        @parts = parts.map { |part| Component.new(part, *args) }
+      end
+
+      def write_recognition(g)
+        raise RoutingError, "Subpath components must occur last" unless g.after.empty?
+        g.next_segment
+        g.line "subindex, subpath = 0, #{g.next_segment}.split(/;/)"
+        tweak_recognizer(g).go
+        g.move_forward { |gg| gg.continue }
+      end
+
+      def write_generation(g)
+        raise RoutingError, "Subpath components must occur last" unless g.after.empty?
+        tweak_generator(g).go
+      end
+
+      def key
+        parts.map { |p| p.key }
+      end
+
+      private
+
+        def tweak_recognizer(g)
+          gg = g.dup
+
+          gg.path_name = :subpath
+          gg.base_segment_name = :subsegment
+          gg.base_index_name = :subindex
+          gg.depth = 0
+
+          gg.before, gg.current, gg.after = [], parts.first, (parts[1..-1] || [])
+
+          gg
+        end
+
+        def tweak_generator(g)
+          gg = g.dup
+          gg.before, gg.current, gg.after = [], parts.first, (parts[1..-1] || [])
+          gg.start_subpath!
+          gg
+        end
     end
 
     class StaticComponent < Component #:nodoc:
@@ -337,7 +385,7 @@ module ActionController
         g = generator.dup
         g.share_locals_with generator
         g.before, g.current, g.after = [], components.first, (components[1..-1] || [])
-    
+
         known.each do |key, value|
           if key == :controller then ControllerComponent.assign_controller(g, value)
           else g.constant_result(key, value)
@@ -354,7 +402,7 @@ module ActionController
       end
 
       def initialize_keys
-        @keys = (components.collect {|c| c.key} + known.keys).compact
+        @keys = (components.collect {|c| c.key} + known.keys).flatten.compact
         @keys.freeze
       end
   
@@ -379,12 +427,12 @@ module ActionController
         end
     
         def initialize_hashes(options)
-          path_keys = components.collect {|c| c.key }.compact 
+          path_keys = components.collect {|c| c.key }.flatten.compact
           self.known = {}
           defaults = options.delete(:defaults) || {}
           conditions = options.delete(:require) || {}
           conditions.update(options.delete(:requirements) || {})
-      
+
           options.each do |k, v|
             if path_keys.include?(k) then (v.is_a?(Regexp) ? conditions : defaults)[k] = v
             else known[k] = v
@@ -394,7 +442,8 @@ module ActionController
         end
     
         def configure_components(defaults, conditions)
-          components.each do |component|
+          all_components = components.map { |c| SubpathComponent === c ? c.parts : c }.flatten
+          all_components.each do |component|
             if defaults.key?(component.key) then component.default = defaults[component.key]
             elsif component.key == :action  then component.default = 'index'
             elsif component.key == :id      then component.default = nil
@@ -405,7 +454,7 @@ module ActionController
         end
         
         def add_default_requirements
-          component_keys = components.collect {|c| c.key}
+          component_keys = components.collect {|c| c.key}.flatten
           known[:action] ||= 'index' unless component_keys.include? :action
         end
     end
@@ -505,7 +554,7 @@ module ActionController
             route.write_recognition(g)
           end
         end
-        
+
         eval g.to_s, nil, 'generated/routing/recognition.rb'
         return g.to_s
       end
