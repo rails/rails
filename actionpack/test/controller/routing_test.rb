@@ -1003,23 +1003,23 @@ class RouteSetTests < Test::Unit::TestCase
     Object.const_set(:SubpathBooksController, Class.new(ActionController::Base))
 
     rs.draw do |r|
-      #r.connect '/books/:id;edit', :controller => 'subpath_books', :action => 'edit'
-      #r.connect '/items/:id;:action', :controller => 'subpath_books'
+      r.connect '/books/:id;edit', :controller => 'subpath_books', :action => 'edit'
+      r.connect '/items/:id;:action', :controller => 'subpath_books'
       r.connect '/posts/new;:action', :controller => 'subpath_books'
       r.connect '/posts/:id', :controller => 'subpath_books', :action => "show"
     end
 
-    # hash = rs.recognize_path %w(books 17;edit)
-    # assert_not_nil hash
-    # assert_equal %w(subpath_books 17 edit), [hash["controller"].controller_name, hash["id"], hash["action"]]
-   #  
-    # hash = rs.recognize_path %w(items 3;complete)
-    # assert_not_nil hash
-    # assert_equal %w(subpath_books 3 complete), [hash["controller"].controller_name, hash["id"], hash["action"]]
-   #  
-    # hash = rs.recognize_path %w(posts new;preview)
-    # assert_not_nil hash
-    # assert_equal %w(subpath_books preview), [hash["controller"].controller_name, hash["action"]]
+    hash = rs.recognize_path %w(books 17;edit)
+    assert_not_nil hash
+    assert_equal %w(subpath_books 17 edit), [hash["controller"].controller_name, hash["id"], hash["action"]]
+    
+    hash = rs.recognize_path %w(items 3;complete)
+    assert_not_nil hash
+    assert_equal %w(subpath_books 3 complete), [hash["controller"].controller_name, hash["id"], hash["action"]]
+    
+    hash = rs.recognize_path %w(posts new;preview)
+    assert_not_nil hash
+    assert_equal %w(subpath_books preview), [hash["controller"].controller_name, hash["action"]]
 
     hash = rs.recognize_path %w(posts 7)
     assert_not_nil hash
