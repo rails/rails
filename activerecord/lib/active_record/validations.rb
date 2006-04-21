@@ -156,6 +156,18 @@ module ActiveRecord
     
     alias_method :count, :size
     alias_method :length, :size
+
+    # Return an XML representation of this error object.
+    def to_xml(options={})
+      options[:root] ||= "errors"
+      options[:indent] ||= 2
+      options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+
+      options[:builder].instruct! unless options.delete(:skip_instruct)
+      options[:builder].errors do |e|
+        full_messages.each { |msg| e.error(msg) }
+      end
+    end
   end
 
 

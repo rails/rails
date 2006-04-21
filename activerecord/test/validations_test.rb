@@ -995,6 +995,15 @@ class ValidationsTest < Test::Unit::TestCase
     r.topic = Topic.find :first
     assert r.valid?
   end
+
+  def test_errors_to_xml
+    r = Reply.new :title => "Wrong Create"
+    assert !r.valid?
+    xml = r.errors.to_xml(:skip_instruct => true)
+    assert_equal "<errors>", xml.first(8)
+    assert xml.include?("<error>Title is Wrong Create</error>")
+    assert xml.include?("<error>Content Empty</error>")
+  end
 end
 
 
