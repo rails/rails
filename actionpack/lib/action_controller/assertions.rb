@@ -92,10 +92,10 @@ module Test #:nodoc:
               
               value.stringify_keys! if value.is_a?(Hash)
               if value.respond_to?(:[]) && value['controller']
-                if key == :actual && value['controller'][0..0] != '/'
+                if key == :actual && value['controller'].first != '/'
                   value['controller'] = ActionController::Routing.controller_relative_to(value['controller'], @controller.class.controller_path) 
                 end
-                value['controller'] = value['controller'][1..-1] if value['controller'][0..0] == '/' # strip leading hash
+                value['controller'] = value['controller'][1..-1] if value['controller'].first == '/' # strip leading hash
               end
               url[key] = value
             end
@@ -116,7 +116,7 @@ module Test #:nodoc:
             url_regexp = %r{^(\w+://.*?(/|$|\?))(.*)$}
             eurl, epath, url, path = [options, @response.redirect_url].collect do |url|
               u, p = (url_regexp =~ url) ? [$1, $3] : [nil, url]
-              [u, (p[0..0] == '/') ? p : '/' + p]
+              [u, (p.first == '/') ? p : '/' + p]
             end.flatten
 
             assert_equal(eurl, url, msg) if eurl && url
@@ -333,7 +333,7 @@ module Test #:nodoc:
       
       private
         def recognized_request_for(path)
-          path = "/#{path}" unless path[0..0] == '/'
+          path = "/#{path}" unless path.first == '/'
 
           # Assume given controller
           request = ActionController::TestRequest.new({}, {}, nil)
