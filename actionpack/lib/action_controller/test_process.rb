@@ -112,6 +112,7 @@ module ActionController #:nodoc:
           path_parameters[key.to_s] = value
         end
       end
+      @parameters = nil # reset TestRequest#parameters to use the new path_parameters
     end                        
     
     def recycle!
