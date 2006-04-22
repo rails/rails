@@ -73,8 +73,45 @@ module Test #:nodoc:
       def assert_redirected_to(options = {}, message=nil)
         clean_backtrace do
           assert_response(:redirect, message)
+          ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
+          
+          begin
+            url = {}
+            f={
+              :expected => options.is_a?(Symbol)                 ?  @controller.send("hash_for_#{options}_url")                 : options.dup, 
+              :actual   => @response.redirected_to.is_a?(Symbol) ?  @controller.send("hash_for_#{@response.redirected_to}_url") : @response.redirected_to.dup 
+            }.each do |key, value|
+              unless value.is_a?(Hash)
+                request = case value
+                  when NilClass    then nil
+                  when /^\w+:\/\// then recognized_request_for(%r{^(\w+://.*?(/|$|\?))(.*)$} =~ value ? $3 : nil)
+                  else                  recognized_request_for(value)
+                end
+                value = request.path_parameters if request
+              end
+              
+              value.stringify_keys! if value.is_a?(Hash)
+              if value.respond_to?(:[]) && value['controller']
+                if key == :actual && value['controller'][0..0] != '/'
+                  value['controller'] = ActionController::Routing.controller_relative_to(value['controller'], @controller.class.controller_path) 
+                end
+                value['controller'] = value['controller'][1..-1] if value['controller'][0..0] == '/' # strip leading hash
+              end
+              url[key] = value
+            end
 
-          if options.is_a?(String)
+            @response_diff = url[:expected].diff(url[:actual]) if url[:actual]
+            msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>), difference: <?>", 
+                                url[:actual], @response_diff)
+            
+            assert_block(msg) do
+              url[:expected].keys.all? do |k|
+                if k == :controller then url[:expected][k] == ActionController::Routing.controller_relative_to(url[:actual][k], @controller.class.controller_path)
+                else parameterize(url[:expected][k]) == parameterize(url[:actual][k])
+                end
+              end
+            end
+          rescue ActionController::RoutingError # routing failed us, so match the strings only.
             msg = build_message(message, "expected a redirect to <?>, found one to <?>", options, @response.redirect_url)
             url_regexp = %r{^(\w+://.*?(/|$|\?))(.*)$}
             eurl, epath, url, path = [options, @response.redirect_url].collect do |url|
@@ -84,22 +121,6 @@ module Test #:nodoc:
 
             assert_equal(eurl, url, msg) if eurl && url
             assert_equal(epath, path, msg) if epath && path 
-          else
-            @response_diff = options.diff(@response.redirected_to) if options.is_a?(Hash) && @response.redirected_to.is_a?(Hash)
-            msg = build_message(message, "response is not a redirection to all of the options supplied (redirection is <?>)#{', difference: <?>' if @response_diff}", 
-                                @response.redirected_to || @response.redirect_url, @response_diff)
-
-            assert_block(msg) do
-              if options.is_a?(Symbol)
-                @response.redirected_to == options
-              else
-                options.keys.all? do |k|
-                  if k == :controller then options[k] == ActionController::Routing.controller_relative_to(@response.redirected_to[k], @controller.class.controller_path)
-                  else options[k] == (@response.redirected_to[k].respond_to?(:to_param) ? @response.redirected_to[k].to_param : @response.redirected_to[k] unless @response.redirected_to[k].nil?)
-                  end
-                end
-              end
-            end
           end
         end
       end
@@ -122,14 +143,8 @@ module Test #:nodoc:
       # Asserts that the routing of the given path was handled correctly and that the parsed options match.
       def assert_recognizes(expected_options, path, extras={}, message=nil)
         clean_backtrace do 
-          path = "/#{path}" unless path[0..0] == '/'
-          # Load routes.rb if it hasn't been loaded.
           ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
-      
-          # Assume given controller
-          request = ActionController::TestRequest.new({}, {}, nil)
-          request.path = path
-          ActionController::Routing::Routes.recognize!(request)
+          request = recognized_request_for(path)
       
           expected_options = expected_options.clone
           extras.each_key { |key| expected_options.delete key } unless extras.nil?
@@ -296,7 +311,7 @@ module Test #:nodoc:
       def assert_dom_not_equal(expected, actual, message="")
         clean_backtrace do
           expected_dom = HTML::Document.new(expected).root
-          actual_dom = HTML::Document.new(actual).root
+          actual_dom   = HTML::Document.new(actual).root
           full_message = build_message(message, "<?> expected to be != to\n<?>.", expected_dom.to_s, actual_dom.to_s)
           assert_block(full_message) { expected_dom != actual_dom }
         end
@@ -315,6 +330,21 @@ module Test #:nodoc:
         path = File.expand_path(__FILE__)
         raise AssertionFailedError, e.message, e.backtrace.reject { |line| File.expand_path(line) =~ /#{path}/ }
       end
+      
+      private
+        def recognized_request_for(path)
+          path = "/#{path}" unless path[0..0] == '/'
+
+          # Assume given controller
+          request = ActionController::TestRequest.new({}, {}, nil)
+          request.path = path
+          ActionController::Routing::Routes.recognize!(request)
+          request
+        end
+        
+        def parameterize(value)
+          value.respond_to?(:to_param) ? value.to_param : value
+        end
     end
   end
 end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Diff compared options with #assert_redirected_to [Rick]
+
 * Add support in routes for semicolon delimited "subpaths", like /books/:id;:action [Jamis Buck]
 
 * Change link_to_function and button_to_function to (optionally) take an update_page block instead of a JavaScript string. Closes #4804. [zraii@comcast.net, Sam Stephenson]

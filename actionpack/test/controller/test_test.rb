@@ -405,7 +405,14 @@ HTML
   end
 
   def test_assert_redirected_to_symbol
-    get :redirect_to_symbol
-    assert_redirected_to :generate_url
+    with_routing do |set|
+      set.draw do
+        set.generate_url 'foo', :controller => 'test'
+        set.connect      ':controller/:action/:id'
+      end
+      
+      get :redirect_to_symbol
+      assert_redirected_to :generate_url
+    end
   end
 end
