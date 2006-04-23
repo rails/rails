@@ -1,5 +1,7 @@
 *SVN*
 
+* Cache CgiRequest#request_parameters so that multiple calls don't re-parse multipart data. [Rick]
+
 * Diff compared routing options.  Allow #assert_recognizes to take a second arg as a hash to specify optional request method [Rick]
 
     assert_recognizes({:controller => 'users', :action => 'index'}, 'users')

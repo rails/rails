@@ -64,11 +64,12 @@ module ActionController #:nodoc:
     end
 
     def request_parameters
-      if ActionController::Base.param_parsers.has_key?(content_type)
-        CGIMethods.parse_formatted_request_parameters(content_type, @env['RAW_POST_DATA'])
-      else
-        CGIMethods.parse_request_parameters(@cgi.params)
-      end
+      @request_parameters ||=
+        if ActionController::Base.param_parsers.has_key?(content_type)
+          CGIMethods.parse_formatted_request_parameters(content_type, @env['RAW_POST_DATA'])
+        else
+          CGIMethods.parse_request_parameters(@cgi.params)
+        end
     end
    
     def cookies
