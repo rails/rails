@@ -1,5 +1,10 @@
 *SVN*
 
+* Diff compared routing options.  Allow #assert_recognizes to take a second arg as a hash to specify optional request method [Rick]
+
+    assert_recognizes({:controller => 'users', :action => 'index'}, 'users')
+    assert_recognizes({:controller => 'users', :action => 'create'}, {:path => 'users', :method => :post})
+
 * Diff compared options with #assert_redirected_to [Rick]
 
 * Add support in routes for semicolon delimited "subpaths", like /books/:id;:action [Jamis Buck]

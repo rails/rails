@@ -141,17 +141,33 @@ module Test #:nodoc:
       end
 
       # Asserts that the routing of the given path was handled correctly and that the parsed options match.
+      #
+      #   assert_recognizes({:controller => 'items', :action => 'index'}, 'items')
+      #
+      # Pass a hash in the second argument to specify the request method.  This is useful for routes
+      # requiring a specific method.
+      #
+      #   assert_recognizes({:controller => 'items', :action => 'create'}, {:path => 'items', :method => :post})
+      #
       def assert_recognizes(expected_options, path, extras={}, message=nil)
+        if path.is_a? Hash
+          request_method = path[:method]
+          path           = path[:path]
+        else
+          request_method = nil
+        end
+
         clean_backtrace do 
           ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
-          request = recognized_request_for(path)
+          request = recognized_request_for(path, request_method)
       
           expected_options = expected_options.clone
           extras.each_key { |key| expected_options.delete key } unless extras.nil?
       
           expected_options.stringify_keys!
-          msg = build_message(message, "The recognized options <?> did not match <?>", 
-              request.path_parameters, expected_options)
+          routing_diff = expected_options.diff(request.path_parameters)
+          msg = build_message(message, "The recognized options <?> did not match <?>, difference: <?>", 
+              request.path_parameters, expected_options, expected_options.diff(request.path_parameters))
           assert_block(msg) { request.path_parameters == expected_options }
         end
       end
@@ -332,12 +348,13 @@ module Test #:nodoc:
       end
       
       private
-        def recognized_request_for(path)
+        def recognized_request_for(path, request_method = nil)
           path = "/#{path}" unless path.first == '/'
 
           # Assume given controller
           request = ActionController::TestRequest.new({}, {}, nil)
-          request.path = path
+          request.env["REQUEST_METHOD"] = request_method.to_s.upcase if request_method
+          request.path   = path
           ActionController::Routing::Routes.recognize!(request)
           request
         end
