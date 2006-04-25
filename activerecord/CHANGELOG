@@ -1,6 +1,6 @@
 *SVN*
 
-* Raise error when trying to add to a has_many :through association. [Rick]
+* Raise error when trying to add to a has_many :through association.  Use the Join Model instead. [Rick]
 
     @post.tags << @tag                  # BAD
     @post.taggings.create(:tag => @tag) # GOOD
