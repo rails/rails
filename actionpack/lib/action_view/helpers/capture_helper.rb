@@ -1,6 +1,6 @@
 module ActionView
   module Helpers
-    # Capture lets you extract parts of code into instance variables which
+    # Capture lets you extract parts of code which
     # can be used in other points of the template or even layout file.
     #
     # == Capturing a block into an instance variable
@@ -8,12 +8,11 @@ module ActionView
     #   <% @script = capture do %>
     #     [some html...]
     #   <% end %>
-    #  
     #
     # == Add javascript to header using content_for
     #
-    # content_for("name") is a wrapper for capture which will store the 
-    # fragment in a instance variable similar to @content_for_layout.
+    # content_for("name") is a wrapper for capture which will 
+    # make the fragment available by name to a yielding layout or template.
     #
     # layout.rhtml:
     #
@@ -21,11 +20,11 @@ module ActionView
     #   <head>
     #	    <title>layout with js</title>
     #	    <script type="text/javascript">
-    #	    <%= @content_for_script %>
+    #	    <%= yield :script %>
     #   	</script>
     #   </head>
     #   <body>
-    #     <%= @content_for_layout %>
+    #     <%= yield %>
     #   </body>
     #   </html>
     #
@@ -69,13 +68,9 @@ module ActionView
         end
       end
       
-      # Content_for will store the given block
-      # in an instance variable for later use in another template
-      # or in the layout. 
-      # 
-      # The name of the instance variable is content_for_<name> 
-      # to stay consistent with @content_for_layout which is used 
-      # by ActionView's layouts
+      # Calling content_for stores the block of markup for later use.
+      # Subsequently, you can make calls to it by name with <tt>yield</tt>
+      # in another template or in the layout. 
       # 
       # Example:
       # 
@@ -83,10 +78,17 @@ module ActionView
       #     alert('hello world')
       #   <% end %>
       #
-      # You can use @content_for_header anywhere in your templates.
+      # You can use yield :header anywhere in your templates.
+      #
+      #   <%= yield :header %>
       #
       # NOTE: Beware that content_for is ignored in caches. So you shouldn't use it
-      # for elements that are going to be fragment cached. 
+      # for elements that are going to be fragment cached.
+      #
+      # The deprecated way of accessing a content_for block was to use a instance variable
+      # named @content_for_#{name_of_the_content_block}. So <tt><% content_for('footer') %></tt>
+      # would be avaiable as <tt><%= @content_for_footer %></tt>. The preferred notation now is
+      # <tt><%= yield :footer %></tt>.
       def content_for(name, &block)
         eval "@content_for_#{name} = (@content_for_#{name} || '') + capture(&block)"
       end
