@@ -850,6 +850,10 @@ module ActionController #:nodoc:
       #   redirect_to :back
       #
       # The redirection happens as a "302 Moved" header.
+      #
+      # When using <tt>redirect_to :back</tt>, if there is no referrer,
+      # RedirectBackError will be raised. You may specify some fallback
+      # behavior for this case by rescueing RedirectBackError.
       def redirect_to(options = {}, *parameters_for_method_reference) #:doc:
         case options
           when %r{^\w+://.*}

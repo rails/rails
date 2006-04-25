@@ -1,5 +1,7 @@
 *SVN*
 
+* Add documentation for redirect_to :back's RedirectBackError exception.  [Marcel Molina Jr.]
+
 * Update layout and content_for documentation to use yield rather than magic @content_for instance variables. [Marcel Molina Jr.]
 
 * Fix assert_redirected_to tests according to real-world usage.  Also, don't fail if you add an extra :controller option: [Rick]
