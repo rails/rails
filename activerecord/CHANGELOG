@@ -1,5 +1,10 @@
 *SVN*
 
+* Raise error when trying to add to a has_many :through association. [Rick]
+
+    @post.tags << @tag                  # BAD
+    @post.taggings.create(:tag => @tag) # GOOD
+
 * Allow all calculations to take the :include option, not just COUNT (closes #4840) [Rick]
 
 * Update inconsistent migrations documentation. #4683 [machomagna@gmail.com]

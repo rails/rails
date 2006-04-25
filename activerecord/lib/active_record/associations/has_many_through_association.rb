@@ -8,7 +8,6 @@ module ActiveRecord
         construct_sql
       end
 
-
       def find(*args)
         options = Base.send(:extract_options_from_args!, args)
 
@@ -39,6 +38,14 @@ module ActiveRecord
       def reset
         @target = []
         @loaded = false
+      end
+
+      def <<(*args)
+        raise ActiveRecord::ReadOnlyAssociation, @reflection
+      end
+
+      [:push, :concat, :create, :build].each do |method|
+        alias_method method, :<<
       end
 
       protected

@@ -66,6 +66,16 @@ module ActiveRecord
     end
   end
 
+  class ReadOnlyAssociation < ActiveRecordError #:nodoc:
+    def initialize(reflection)
+      @reflection = reflection
+    end
+  
+    def message
+      "Can not add to a has_many :through association.  Try adding to #{@reflection.through_reflection.name.inspect}."
+    end
+  end
+
   module Associations # :nodoc:
     def self.append_features(base)
       super

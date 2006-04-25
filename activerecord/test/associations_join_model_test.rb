@@ -357,6 +357,14 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_nil posts(:thinking).tags.find_by_name("General").attributes["tag_id"]
   end
 
+  def test_raise_error_when_adding_to_has_many_through
+    assert_raise(ActiveRecord::ReadOnlyAssociation) { posts(:thinking).tags <<     tags(:general)  }
+    assert_raise(ActiveRecord::ReadOnlyAssociation) { posts(:thinking).tags.push   tags(:general)  }
+    assert_raise(ActiveRecord::ReadOnlyAssociation) { posts(:thinking).tags.concat tags(:general)  }
+    assert_raise(ActiveRecord::ReadOnlyAssociation) { posts(:thinking).tags.build(:name => 'foo')  }
+    assert_raise(ActiveRecord::ReadOnlyAssociation) { posts(:thinking).tags.create(:name => 'foo') }
+  end
+
   private
     # create dynamic Post models to allow different dependency options
     def find_post_with_dependency(post_id, association, association_name, dependency)
