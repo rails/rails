@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow all calculations to take the :include option, not just COUNT (closes #4840) [Rick]
+
 * Update inconsistent migrations documentation. #4683 [machomagna@gmail.com]
 
 * Add ActiveRecord::Errors#to_xml [Jamis Buck]

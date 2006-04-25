@@ -21,6 +21,16 @@ class CalculationsTest < Test::Unit::TestCase
     assert_equal 60, Account.maximum(:credit_limit)
   end
 
+  def test_should_get_maximum_of_field_with_include
+    assert_equal 50, Account.maximum(:credit_limit, :include => :firm, :conditions => "companies.name != 'Summit'")
+  end
+
+  def test_should_get_maximum_of_field_with_scoped_include
+    Account.with_scope :find => { :include => :firm, :conditions => "companies.name != 'Summit'" } do
+      assert_equal 50, Account.maximum(:credit_limit)
+    end
+  end
+
   def test_should_get_minimum_of_field
     assert_equal 50, Account.minimum(:credit_limit)
   end
@@ -174,7 +184,6 @@ class CalculationsTest < Test::Unit::TestCase
       Company.send(:validate_calculation_options, :count, :include => true)
     end
     
-    assert_raises(ArgumentError) { Company.send(:validate_calculation_options, :sum,   :include => :posts) }
     assert_raises(ArgumentError) { Company.send(:validate_calculation_options, :sum,   :foo => :bar) }
     assert_raises(ArgumentError) { Company.send(:validate_calculation_options, :count, :foo => :bar) }
   end

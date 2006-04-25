@@ -1,6 +1,6 @@
 module ActiveRecord
   module Calculations #:nodoc:
-    CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct, :limit, :offset]
+    CALCULATIONS_OPTIONS = [:conditions, :joins, :order, :select, :group, :having, :distinct, :limit, :offset, :include]
     def self.included(base)
       base.extend(ClassMethods)
     end
@@ -42,13 +42,7 @@ module ActiveRecord
       #
       # Note: Person.count(:all) will not work because it will use :all as the condition.  Use Person.count instead.
       def count(*args)
-        column_name, options = construct_count_options_from_legacy_args(*args)
-
-        if options[:include] || scope(:find, :include)
-          count_with_associations(options)
-        else
-          calculate(:count, column_name, options)
-        end
+        calculate(:count, *construct_count_options_from_legacy_args(*args))
       end
 
       # Calculates average value on a given column.  The value is returned as a float.  See #calculate for examples with options.
@@ -120,13 +114,14 @@ module ActiveRecord
         column_name     = options[:select] if options[:select]
         column_name     = '*' if column_name == :all
         column          = column_for column_name
-        aggregate       = select_aggregate(operation, column_name, options)
-        aggregate_alias = column_alias_for(operation, column_name)
-        if options[:group]
-          execute_grouped_calculation(operation, column_name, column, aggregate, aggregate_alias, options)
-        else
-          execute_simple_calculation(operation, column_name, column, aggregate, aggregate_alias, options)
+        catch :invalid_query do
+          if options[:group]
+            return execute_grouped_calculation(operation, column_name, column, options)
+          else
+            return execute_simple_calculation(operation, column_name, column, options)
+          end
         end
+        0
       end
 
       protected
@@ -143,7 +138,7 @@ module ActiveRecord
             else
               # Handle legacy paramter options: def count(conditions=nil, joins=nil)
               options.merge!(:conditions => args[0]) if args.length > 0
-              options.merge!(:joins => args[1])      if args.length > 1
+              options.merge!(:joins      => args[1]) if args.length > 1
             end
           else
             raise(ArgumentError, "Unexpected parameters passed to count(*args): expected either count(conditions=nil, joins=nil) or count(options={})")
@@ -151,34 +146,56 @@ module ActiveRecord
           [column_name, options]
         end
       
-        def construct_calculation_sql(aggregate, aggregate_alias, options) #:nodoc:
-          scope = scope(:find)
-          sql  = "SELECT #{aggregate} AS #{aggregate_alias}"
+        def construct_calculation_sql(operation, column_name, options) #:nodoc:
+          scope           = scope(:find)
+          merged_includes = merge_includes(scope ? scope[:include] : [], options[:include])
+          aggregate_alias = column_alias_for(operation, column_name)
+          use_workaround  = !Base.connection.supports_count_distinct? && options[:distinct] && operation.to_s.downcase == 'count'
+          join_dependency = nil
+
+          if merged_includes.any? && operation.to_s.downcase == 'count'
+            options[:distinct] = true
+            column_name = [table_name, primary_key] * '.'
+          end
+
+          sql  = "SELECT #{operation}(#{'DISTINCT ' if options[:distinct]}#{column_name}) AS #{aggregate_alias}"
+
+          # A (slower) workaround if we're using a backend, like sqlite, that doesn't support COUNT DISTINCT.
+          sql = "SELECT COUNT(*) AS #{aggregate_alias}" if use_workaround
+          
           sql << ", #{options[:group_field]} AS #{options[:group_alias]}" if options[:group]
+          sql << " FROM (SELECT DISTINCT #{column_name}" if use_workaround
           sql << " FROM #{table_name} "
+          if merged_includes.any?
+            join_dependency = ActiveRecord::Associations::ClassMethods::JoinDependency.new(self, merged_includes, options[:joins])
+            sql << join_dependency.join_associations.collect{|join| join.association_join }.join
+          end
           add_joins!(sql, options, scope)
           add_conditions!(sql, options[:conditions], scope)
           sql << " GROUP BY #{options[:group_field]}" if options[:group]
-          sql << " HAVING #{options[:having]}" if options[:group] && options[:having]
-          sql << " ORDER BY #{options[:order]}" if options[:order]
-          add_limit!(sql, options)
+          sql << " HAVING #{options[:having]}"        if options[:group] && options[:having]
+          sql << " ORDER BY #{options[:order]}"       if options[:order]
+          add_limited_ids_condition!(sql, options, join_dependency) if join_dependency && !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
+          add_limit!(sql, options, scope)
+          sql << ')' if use_workaround
           sql
         end
 
-        def execute_simple_calculation(operation, column_name, column, aggregate, aggregate_alias, options) #:nodoc:
-          value     = connection.select_value(construct_calculation_sql(aggregate, aggregate_alias, options))
+        def execute_simple_calculation(operation, column_name, column, options) #:nodoc:
+          value = connection.select_value(construct_calculation_sql(operation, column_name, options))
           type_cast_calculated_value(value, column, operation)
         end
 
-        def execute_grouped_calculation(operation, column_name, column, aggregate, aggregate_alias, options) #:nodoc:
+        def execute_grouped_calculation(operation, column_name, column, options) #:nodoc:
           group_attr      = options[:group].to_s
           association     = reflect_on_association(group_attr.to_sym)
           associated      = association && association.macro == :belongs_to # only count belongs_to associations
           group_field     = (associated ? "#{options[:group]}_id" : options[:group]).to_s
           group_alias     = column_alias_for(group_field)
           group_column    = column_for group_field
-          sql             = construct_calculation_sql(aggregate, aggregate_alias, options.merge(:group_field => group_field, :group_alias => group_alias))
+          sql             = construct_calculation_sql(operation, column_name, options.merge(:group_field => group_field, :group_alias => group_alias))
           calculated_data = connection.select_all(sql)
+          aggregate_alias = column_alias_for(operation, column_name)
 
           if association
             key_ids     = calculated_data.collect { |row| row[group_alias] }
@@ -195,15 +212,7 @@ module ActiveRecord
 
       private
         def validate_calculation_options(operation, options = {})
-          if operation.to_s == 'count'
-            options.assert_valid_keys(CALCULATIONS_OPTIONS + [:include])
-          else
-            options.assert_valid_keys(CALCULATIONS_OPTIONS)
-          end
-        end
-
-        def select_aggregate(operation, column_name, options)
-          "#{operation}(#{'DISTINCT ' if options[:distinct]}#{column_name})"
+          options.assert_valid_keys(CALCULATIONS_OPTIONS)
         end
 
         # converts a given key to the value that the database adapter returns as

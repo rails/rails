@@ -966,14 +966,6 @@ module ActiveRecord
           end
         end
         
-        def count_with_associations(options = {})
-          catch :invalid_query do
-            join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
-            return count_by_sql(construct_counter_sql_with_included_associations(options, join_dependency))
-          end
-          0
-        end
-
         def find_with_associations(options = {})
           catch :invalid_query do
             join_dependency = JoinDependency.new(self, merge_includes(scope(:find, :include), options[:include]), options[:joins])
@@ -1116,31 +1108,6 @@ module ActiveRecord
             construct_finder_sql_with_included_associations(options, join_dependency),
             "#{name} Load Including Associations"
           )
-        end
-        
-        def construct_counter_sql_with_included_associations(options, join_dependency)
-          scope = scope(:find)
-          sql = "SELECT COUNT(DISTINCT #{table_name}.#{primary_key})"
-          
-          # A (slower) workaround if we're using a backend, like sqlite, that doesn't support COUNT DISTINCT.
-          if !Base.connection.supports_count_distinct?
-            sql = "SELECT COUNT(*) FROM (SELECT DISTINCT #{table_name}.#{primary_key}"
-          end
-          
-          sql << " FROM #{table_name} "
-          sql << join_dependency.join_associations.collect{|join| join.association_join }.join
-          
-          add_joins!(sql, options, scope)
-          add_conditions!(sql, options[:conditions], scope)
-          add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
-
-          add_limit!(sql, options, scope) if using_limitable_reflections?(join_dependency.reflections)
-
-          if !Base.connection.supports_count_distinct?
-            sql << ")"
-          end
-
-          return sanitize_sql(sql)          
         end
 
         def construct_finder_sql_with_included_associations(options, join_dependency)
