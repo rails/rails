@@ -37,7 +37,7 @@ module ActionController #:nodoc:
       # is a hash consisting of the following key/value pairs:
       #
       # * <tt>:params</tt>: a single key or an array of keys that must
-      #   be in the @params hash in order for the action(s) to be safely
+      #   be in the <tt>params</tt> hash in order for the action(s) to be safely
       #   called.
       # * <tt>:session</tt>: a single key or an array of keys that must
       #   be in the @session in order for the action(s) to be safely called.

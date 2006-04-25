@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove all remaining references to @params in the documentation. [Marcel Molina Jr.]
+
 * Add documentation for redirect_to :back's RedirectBackError exception.  [Marcel Molina Jr.]
 
 * Update layout and content_for documentation to use yield rather than magic @content_for instance variables. [Marcel Molina Jr.]

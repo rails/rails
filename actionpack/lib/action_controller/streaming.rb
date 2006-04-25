@@ -14,7 +14,7 @@ module ActionController #:nodoc:
       # it feasible to send even large files.
       #
       # Be careful to sanitize the path parameter if it coming from a web
-      # page.  send_file(@params['path']) allows a malicious user to
+      # page.  send_file(params[:path]) allows a malicious user to
       # download any file on your server.
       #
       # Options:

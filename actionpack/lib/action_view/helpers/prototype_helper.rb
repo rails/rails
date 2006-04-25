@@ -143,7 +143,7 @@ module ActionView
       # background instead of the regular reloading POST arrangement. Even 
       # though it's using JavaScript to serialize the form elements, the form
       # submission will work just like a regular submission as viewed by the
-      # receiving side (all elements available in @params). The options for 
+      # receiving side (all elements available in <tt>params</tt>). The options for 
       # specifying the target with :url and defining callbacks is the same as
       # link_to_remote.
       #

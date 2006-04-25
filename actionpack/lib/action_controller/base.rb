@@ -263,10 +263,10 @@ module ActionController #:nodoc:
 
     # Modern REST web services often need to submit complex data to the web application. 
     # The param_parsers hash lets you register handlers wich will process the http body and add parameters to the 
-    # @params hash. These handlers are invoked for post and put requests.
+    # <tt>params</tt> hash. These handlers are invoked for post and put requests.
     #
     # By default application/xml is enabled. A XmlSimple class with the same param name as the root will be instanciated 
-    # in the @params. This allows XML requests to mask themselves as regular form submissions, so you can have one
+    # in the <tt>params</tt>. This allows XML requests to mask themselves as regular form submissions, so you can have one
     # action serve both regular forms and web service requests.
     # 
     # Example of doing your own parser for a custom content type:
