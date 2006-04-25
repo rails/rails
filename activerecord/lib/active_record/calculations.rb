@@ -172,10 +172,10 @@ module ActiveRecord
           end
           add_joins!(sql, options, scope)
           add_conditions!(sql, options[:conditions], scope)
-          sql << " GROUP BY #{options[:group_field]}" if options[:group]
-          sql << " HAVING #{options[:having]}"        if options[:group] && options[:having]
-          sql << " ORDER BY #{options[:order]}"       if options[:order]
           add_limited_ids_condition!(sql, options, join_dependency) if join_dependency && !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
+          sql << " GROUP BY #{options[:group_field]} " if options[:group]
+          sql << " HAVING #{options[:having]} "        if options[:group] && options[:having]
+          sql << " ORDER BY #{options[:order]} "       if options[:order]
           add_limit!(sql, options, scope)
           sql << ')' if use_workaround
           sql
@@ -222,7 +222,7 @@ module ActiveRecord
         #   count(distinct users.id) #=> count_distinct_users_id
         #   count(*) #=> count_all
         def column_alias_for(*keys)
-          keys.join(' ').downcase.gsub(/\*/, 'all').gsub(/\W+/, ' ').strip.gsub(/ +/, '_')
+          connection.table_alias_for(keys.join(' ').downcase.gsub(/\*/, 'all').gsub(/\W+/, ' ').strip.gsub(/ +/, '_'))
         end
 
         def column_for(field)
