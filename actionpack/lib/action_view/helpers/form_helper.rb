@@ -250,7 +250,7 @@ module ActionView
           options.delete("size")
         end
         options["type"] = field_type
-        options["value"] ||= value_before_type_cast unless field_type == "file"
+        options["value"] ||= value_before_type_cast(object) unless field_type == "file"
         add_default_name_and_id(options)
         tag("input", options)
       end
@@ -259,7 +259,13 @@ module ActionView
         options = DEFAULT_RADIO_OPTIONS.merge(options.stringify_keys)
         options["type"]     = "radio"
         options["value"]    = tag_value
-        options["checked"]  = "checked" if value.to_s == tag_value.to_s
+        if options.has_key?("checked")
+          cv = options.delete "checked"
+          checked = cv == true || cv == "checked"
+        else
+          checked = self.class.radio_button_checked?(value(object), tag_value)
+        end
+        options["checked"] = "checked" if checked
         pretty_tag_value    = tag_value.to_s.gsub(/\s/, "_").gsub(/\W/, "").downcase
         options["id"]       = @auto_index ?             
           "#{@object_name}_#{@auto_index}_#{@method_name}_#{pretty_tag_value}" :
@@ -271,14 +277,77 @@ module ActionView
       def to_text_area_tag(options = {})
         options = DEFAULT_TEXT_AREA_OPTIONS.merge(options.stringify_keys)
         add_default_name_and_id(options)
-        content_tag("textarea", html_escape(options.delete('value') || value_before_type_cast), options)
+        content_tag("textarea", html_escape(options.delete('value') || value_before_type_cast(object)), options)
       end
 
       def to_check_box_tag(options = {}, checked_value = "1", unchecked_value = "0")
         options = options.stringify_keys
         options["type"]     = "checkbox"
         options["value"]    = checked_value
-        checked = case value
+        if options.has_key?("checked")
+          cv = options.delete "checked"
+          checked = cv == true || cv == "checked"
+        else
+          checked = self.class.check_box_checked?(value(object), checked_value)
+        end
+        options["checked"] = "checked" if checked
+        add_default_name_and_id(options)
+        tag("input", options) << tag("input", "name" => options["name"], "type" => "hidden", "value" => unchecked_value)
+      end
+
+      def to_date_tag()
+        defaults = DEFAULT_DATE_OPTIONS.dup
+        date     = value(object) || Date.today
+        options  = Proc.new { |position| defaults.merge(:prefix => "#{@object_name}[#{@method_name}(#{position}i)]") }
+        html_day_select(date, options.call(3)) +
+        html_month_select(date, options.call(2)) +
+        html_year_select(date, options.call(1))
+      end
+
+      def to_boolean_select_tag(options = {})
+        options = options.stringify_keys
+        add_default_name_and_id(options)
+        value = value(object)
+        tag_text = "<select"
+        tag_text << tag_options(options)
+        tag_text << "><option value=\"false\""
+        tag_text << " selected" if value == false
+        tag_text << ">False</option><option value=\"true\""
+        tag_text << " selected" if value
+        tag_text << ">True</option></select>"
+      end
+      
+      def to_content_tag(tag_name, options = {})
+        content_tag(tag_name, value(object), options)
+      end
+      
+      def object
+        @object || @template_object.instance_variable_get("@#{@object_name}")
+      end
+
+      def value(object)
+        self.class.value(object, @method_name)
+      end
+
+      def value_before_type_cast(object)
+        self.class.value_before_type_cast(object, @method_name)
+      end
+      
+      class << self
+        def value(object, method_name)
+          object.send method_name unless object.nil?
+        end
+        
+        def value_before_type_cast(object, method_name)
+          unless object.nil?
+            object.respond_to?(method_name + "_before_type_cast") ?
+            object.send(method_name + "_before_type_cast") :
+            object.send(method_name)
+          end
+        end
+        
+        def check_box_checked?(value, checked_value)
+          case value
           when TrueClass, FalseClass
             value
           when NilClass
@@ -290,55 +359,10 @@ module ActionView
           else
             value.to_i != 0
           end
-        if checked || options["checked"] == "checked"
-          options["checked"] = "checked"
-        else
-          options.delete("checked")
         end
-        add_default_name_and_id(options)
-        tag("input", options) << tag("input", "name" => options["name"], "type" => "hidden", "value" => unchecked_value)
-      end
-
-      def to_date_tag()
-        defaults = DEFAULT_DATE_OPTIONS.dup
-        date     = value || Date.today
-        options  = Proc.new { |position| defaults.merge(:prefix => "#{@object_name}[#{@method_name}(#{position}i)]") }
-        html_day_select(date, options.call(3)) +
-        html_month_select(date, options.call(2)) +
-        html_year_select(date, options.call(1))
-      end
-
-      def to_boolean_select_tag(options = {})
-        options = options.stringify_keys
-        add_default_name_and_id(options)
-        tag_text = "<select"
-        tag_text << tag_options(options)
-        tag_text << "><option value=\"false\""
-        tag_text << " selected" if value == false
-        tag_text << ">False</option><option value=\"true\""
-        tag_text << " selected" if value
-        tag_text << ">True</option></select>"
-      end
-      
-      def to_content_tag(tag_name, options = {})
-        content_tag(tag_name, value, options)
-      end
-      
-      def object
-        @object || @template_object.instance_variable_get("@#{@object_name}")
-      end
-
-      def value
-        unless object.nil?
-          object.send(@method_name)
-        end
-      end
-
-      def value_before_type_cast
-        unless object.nil?
-          object.respond_to?(@method_name + "_before_type_cast") ?
-            object.send(@method_name + "_before_type_cast") :
-            object.send(@method_name)
+        
+        def radio_button_checked?(value, checked_value)
+          value.to_s == checked_value.to_s
         end
       end
 

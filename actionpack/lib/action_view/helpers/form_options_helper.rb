@@ -299,6 +299,7 @@ module ActionView
       def to_select_tag(choices, options, html_options)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
+        value = value(object)
         selected_value = options.has_key?(:selected) ? options[:selected] : value
         content_tag("select", add_options(options_for_select(choices, selected_value), options, value), html_options)
       end
@@ -306,6 +307,7 @@ module ActionView
       def to_collection_select_tag(collection, value_method, text_method, options, html_options)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
+        value = value(object)
         content_tag(
           "select", add_options(options_from_collection_for_select(collection, value_method, text_method, value), options, value), html_options
         )
@@ -314,12 +316,14 @@ module ActionView
       def to_country_select_tag(priority_countries, options, html_options)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
+        value = value(object)
         content_tag("select", add_options(country_options_for_select(value, priority_countries), options, value), html_options)
       end
 
       def to_time_zone_select_tag(priority_zones, options, html_options)
         html_options = html_options.stringify_keys
         add_default_name_and_id(html_options)
+        value = value(object)
         content_tag("select",
           add_options(
             time_zone_options_for_select(value, priority_zones, options[:model] || TimeZone),

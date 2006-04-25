@@ -1,5 +1,7 @@
 *SVN*
 
+* Refactor various InstanceTag instance method to class methods. Closes #4800. [skaes@web.de]
+
 * Remove all remaining references to @params in the documentation. [Marcel Molina Jr.]
 
 * Add documentation for redirect_to :back's RedirectBackError exception.  [Marcel Molina Jr.]

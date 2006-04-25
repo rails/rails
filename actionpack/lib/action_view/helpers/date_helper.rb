@@ -258,6 +258,7 @@ module ActionView
         defaults = { :discard_type => true }
         options  = defaults.merge(options)
         options_with_prefix = Proc.new { |position| options.merge(:prefix => "#{@object_name}[#{@method_name}(#{position}i)]") }
+        value = value(object)
         date     = options[:include_blank] ? (value || 0) : (value || Date.today)
 
         date_select = ''
@@ -282,6 +283,7 @@ module ActionView
         defaults = { :discard_type => true }
         options  = defaults.merge(options)
         options_with_prefix = Proc.new { |position| options.merge(:prefix => "#{@object_name}[#{@method_name}(#{position}i)]") }
+        value = value(object)
         datetime = options[:include_blank] ? (value || nil) : (value || Time.now)
 
         datetime_select  = select_year(datetime, options_with_prefix.call(1))
