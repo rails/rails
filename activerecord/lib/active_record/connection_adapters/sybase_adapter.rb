@@ -1,10 +1,12 @@
 # sybase_adaptor.rb
 # Author: John Sheets <dev@metacasa.net>
-# Date:   01 Mar 2006
+# 
+# 01 Mar 2006: Initial version.
+# 17 Mar 2006: Added support for migrations; fixed issues with :boolean columns.
+# 13 Apr 2006: Improved column type support to properly handle dates and user-defined
+#              types; fixed quoting of integer columns.
 #
 # Based on code from Will Sobel (http://dev.rubyonrails.org/ticket/2030)
-#
-# 17 Mar 2006: Added support for migrations; fixed issues with :boolean columns.
 #
 
 require 'active_record/connection_adapters/abstract_adapter'
@@ -35,7 +37,7 @@ module ActiveRecord
 
       ConnectionAdapters::SybaseAdapter.new(
         SybSQL.new({'S' => host, 'U' => username, 'P' => password},
-          ConnectionAdapters::SybaseAdapterContext), database, logger)
+          ConnectionAdapters::SybaseAdapterContext), database, config, logger)
     end
   end # class Base
 
@@ -48,7 +50,7 @@ module ActiveRecord
     #
     # * <tt>:host</tt> -- The name of the database server. No default, must be provided.
     # * <tt>:database</tt> -- The name of the database. No default, must be provided.
-    # * <tt>:username</tt>  -- Defaults to sa.
+    # * <tt>:username</tt>  -- Defaults to "sa".
     # * <tt>:password</tt>  -- Defaults to empty string.
     #
     # Usage Notes:
@@ -95,6 +97,16 @@ module ActiveRecord
           end
         end
 
+        def self.string_to_time(string)
+          return string unless string.is_a?(String)
+
+          # Since Sybase doesn't handle DATE or TIME, handle it here.
+          # Populate nil year/month/day with string_to_dummy_time() values.
+          time_array = ParseDate.parsedate(string)[0..5]
+          time_array[0] ||= 2000; time_array[1] ||= 1; time_array[2] ||= 1;
+          Time.send(Base.default_timezone, *time_array) rescue nil
+        end
+
         def self.string_to_binary(value)
           "0x#{value.unpack("H*")[0]}"
         end
@@ -106,10 +118,12 @@ module ActiveRecord
       end # class ColumnWithIdentity
 
       # Sybase adapter
-      def initialize(connection, database, logger = nil)
+      def initialize(connection, database, config = {}, logger = nil)
         super(connection, logger)
         context = connection.context
         context.init(logger)
+        @config = config
+        @numconvert = config.has_key?(:numconvert) ? config[:numconvert] : true
         @limit = @offset = 0
         unless connection.sql_norow("USE #{database}")
           raise "Cannot USE #{database}"
@@ -154,16 +168,10 @@ module ActiveRecord
         30
       end
 
-      # Check for a limit statement and parse out the limit and
-      # offset if specified. Remove the limit from the sql statement
-      # and call select.
       def select_all(sql, name = nil)
         select(sql, name)
       end
 
-      # Remove limit clause from statement. This will almost always
-      # contain LIMIT 1 from the caller. set the rowcount to 1 before
-      # calling select.
       def select_one(sql, name = nil)
         result = select(sql, name)
         result.nil? ? nil : result.first
@@ -186,7 +194,7 @@ module ActiveRecord
           if col != nil
             if query_contains_identity_column(sql, col)
               begin
-                execute enable_identity_insert(table_name, true)
+                enable_identity_insert(table_name, true)
                 ii_enabled = true
               rescue Exception => e
                 raise ActiveRecordError, "IDENTITY_INSERT could not be turned ON"
@@ -202,7 +210,7 @@ module ActiveRecord
         ensure
           if ii_enabled
             begin
-              execute enable_identity_insert(table_name, false)
+              enable_identity_insert(table_name, false)
             rescue Exception => e
               raise ActiveRecordError, "IDENTITY_INSERT could not be turned OFF"
             end
@@ -230,6 +238,10 @@ module ActiveRecord
       def begin_db_transaction()    execute "BEGIN TRAN" end
       def commit_db_transaction()   execute "COMMIT TRAN" end
       def rollback_db_transaction() execute "ROLLBACK TRAN" end
+
+      def current_database
+        select_one("select DB_NAME() as name")["name"]
+      end
 
       def tables(name = nil)
         tables = []
@@ -265,7 +277,7 @@ module ActiveRecord
           when String                
             if column && column.type == :binary && column.class.respond_to?(:string_to_binary)
               "#{quote_string(column.class.string_to_binary(value))}"
-            elsif value =~ /^[+-]?[0-9]+$/o
+            elsif @numconvert && force_numeric?(column) && value =~ /^[+-]?[0-9]+$/o
               value
             else
               "'#{quote_string(value)}'"
@@ -273,39 +285,18 @@ module ActiveRecord
           when NilClass              then (column && column.type == :boolean) ? '0' : "NULL"
           when TrueClass             then '1'
           when FalseClass            then '0'
-          when Float, Fixnum, Bignum then value.to_s
+          when Float, Fixnum, Bignum
+            force_numeric?(column) ? value.to_s : "'#{value.to_s}'"
           when Date                  then "'#{value.to_s}'" 
           when Time, DateTime        then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
           else                            "'#{quote_string(value.to_yaml)}'"
         end
       end
 
-      def quote_column(type, value)
-        case type
-          when :boolean
-            case value
-              when String then value =~ /^[ty]/o ? 1 : 0
-              when true   then 1
-              when false  then 0
-              else             value.to_i
-            end
-          when :integer then value.to_i
-          when :float   then value.to_f
-          when :text, :string, :enum
-            case value
-              when String, Symbol, Fixnum, Float, Bignum, TrueClass, FalseClass 
-                "'#{quote_string(value.to_s)}'"
-              else
-                "'#{quote_string(value.to_yaml)}'"
-            end
-          when :date, :datetime, :time
-            case value
-              when Time, DateTime then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
-              when Date           then "'#{value.to_s}'"
-              else                     "'#{quote_string(value)}'"
-            end
-          else "'#{quote_string(value.to_yaml)}'"
-        end
+      # True if column is explicitly declared non-numeric, or
+      # if column is nil (not specified).
+      def force_numeric?(column)
+        (column.nil? || [:integer, :float].include?(column.type))
       end
 
       def quote_string(s)
@@ -313,7 +304,9 @@ module ActiveRecord
       end
 
       def quote_column_name(name)
-        "[#{name}]"
+        # If column name is close to max length, skip the quotes, since they
+        # seem to count as part of the length.
+        ((name.to_s.length + 2) <= table_alias_length) ? "[#{name}]" : name.to_s
       end
 
       def add_limit_offset!(sql, options) # :nodoc:
@@ -348,12 +341,17 @@ module ActiveRecord
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
-        sql_commands = ["ALTER TABLE #{table_name} MODIFY #{column_name} #{type_to_sql(type, options[:limit])}"]
+        begin
+          execute "ALTER TABLE #{table_name} MODIFY #{column_name} #{type_to_sql(type, options[:limit])}"
+        rescue StatementInvalid => e
+          # Swallow exception if no-op.
+          raise e unless e.message =~ /no columns to drop, add or modify/
+        end
+
         if options[:default]
           remove_default_constraint(table_name, column_name)
-          sql_commands << "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{options[:default]} FOR #{column_name}"
+          execute "ALTER TABLE #{table_name} REPLACE #{column_name} DEFAULT #{options[:default]}"
         end
-        sql_commands.each { |c| execute(c) }
       end
 
       def remove_column(table_name, column_name)
@@ -379,6 +377,12 @@ module ActiveRecord
           sql << (options[:null] == false ? " NOT NULL" : " NULL")
         end
         sql
+      end
+
+      def enable_identity_insert(table_name, enable = true)
+        if has_identity_column(table_name)
+          execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
+        end
       end
 
     private
@@ -426,7 +430,7 @@ module ActiveRecord
 
       def normal_select?
         # If limit is not set at all, we can ignore offset;
-        # If limit *is* set but offset is zero, use normal select
+        # if limit *is* set but offset is zero, use normal select
         # with simple SET ROWCOUNT.  Thus, only use the temp table
         # if limit is set and offset > 0.
         has_limit = !@limit.nil?
@@ -468,7 +472,7 @@ module ActiveRecord
         else
           results = @connection.top_row_result
           if results && results.rows.length > 0
-            fields = fixup_column_names(results.columns)
+            fields = results.columns.map { |column| column.sub(/_$/, '') }
             results.rows.each do |row|
               hashed_row = {}
               row.zip(fields) { |cell, column| hashed_row[column] = cell }
@@ -479,12 +483,6 @@ module ActiveRecord
         @connection.sql_norow("drop table #artemp") if !normal_select?
         @limit = @offset = nil
         return rows
-      end
-
-      def enable_identity_insert(table_name, enable = true)
-        if has_identity_column(table_name)
-          "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}"
-        end
       end
 
       def get_table_name(sql)
@@ -502,22 +500,16 @@ module ActiveRecord
       end
 
       def get_identity_column(table_name)
-        @table_columns = {} unless @table_columns
-        @table_columns[table_name] = columns(table_name) if @table_columns[table_name] == nil
+        @table_columns ||= {}
+        @table_columns[table_name] ||= columns(table_name)
         @table_columns[table_name].each do |col|
           return col.name if col.identity
         end
-
-        return nil
+        nil
       end
 
       def query_contains_identity_column(sql, col)
         sql =~ /\[#{col}\]/
-      end
-
-      # Remove trailing _ from names.
-      def fixup_column_names(columns)
-        columns.map { |column| column.sub(/_$/, '') }
       end
 
       def table_structure(table_name)
@@ -558,18 +550,23 @@ SQLTEXT
         end
       end
 
+      # Resolve all user-defined types (udt) to their fundamental types.
+      def resolve_type(field_type)
+        (@udts ||= {})[field_type] ||= select_one("sp_help #{field_type}")["Storage_type"].strip
+      end
+
       def normalize_type(field_type, prec, scale, length)
         if field_type =~ /numeric/i and (scale.nil? or scale == 0)
           type = 'int'
         elsif field_type =~ /money/i
           type = 'numeric'
         else
-          type = field_type
+          type = resolve_type(field_type.strip)
         end
         size = ''
         if prec
           size = "(#{prec})"
-        elsif length
+        elsif length && !(type =~ /date|time/)
           size = "(#{length})"
         end
         return type + size
@@ -668,14 +665,10 @@ class Fixtures
 
   def insert_fixtures
     values.each do |fixture|
-      allow_identity_inserts table_name, true
+      @connection.enable_identity_insert(table_name, true)
       @connection.execute "INSERT INTO #{@table_name} (#{fixture.key_list}) VALUES (#{fixture.value_list})", 'Fixture Insert'
-      allow_identity_inserts table_name, false
+      @connection.enable_identity_insert(table_name, false)
     end
-  end
-
-  def allow_identity_inserts(table_name, enable)
-      @connection.execute "SET IDENTITY_INSERT #{table_name} #{enable ? 'ON' : 'OFF'}" rescue nil
   end
 end
 

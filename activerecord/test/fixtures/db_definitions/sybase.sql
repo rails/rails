@@ -26,7 +26,7 @@ CREATE TABLE topics (
   author_name varchar(255) NULL,
   author_email_address varchar(255) NULL,
   written_on datetime NULL,
-  bonus_time time NULL,
+  bonus_time datetime NULL,
   last_read datetime NULL,
   content varchar(255) NULL,
   approved bit default 1,
@@ -118,7 +118,7 @@ CREATE TABLE mixins (
 
 CREATE TABLE people (
   id numeric(9,0) IDENTITY PRIMARY KEY,
-  first_name varchar(40) NOT NULL,
+  first_name varchar(40) NULL,
   lock_version int DEFAULT 0
 )
 
