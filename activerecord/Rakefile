@@ -58,8 +58,8 @@ desc 'Build the PostgreSQL test databases'
 task :build_postgresql_databases do 
   %x( createdb activerecord_unittest )
   %x( createdb activerecord_unittest2 )
-  %x( psql activerecord_unittest -f #{File.join(SCHEMA_PATH, 'postgresql.sql')} )
-  %x( psql activerecord_unittest2 -f #{File.join(SCHEMA_PATH, 'postgresql2.sql')} )
+  %x( psql activerecord_unittest -f #{File.join(SCHEMA_PATH, 'postgresql.sql')} postgres )
+  %x( psql activerecord_unittest2 -f #{File.join(SCHEMA_PATH, 'postgresql2.sql')}  postgres )
 end
 
 desc 'Drop the PostgreSQL test databases'

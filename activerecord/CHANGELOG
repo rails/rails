@@ -1,5 +1,6 @@
 *SVN*
 
+* Make build_postgresql_databases task make databases owned by the postgres user. Closes #4790. [mlaster@metavillage.com]
 * Sybase Adapter type conversion cleanup. Closes #4736. [dev@metacasa.net]
 
 * Fix bug where calculations with long alias names return null. [Rick]
