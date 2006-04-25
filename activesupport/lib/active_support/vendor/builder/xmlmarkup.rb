@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 #--
-# Copyright 2004 by Jim Weirich (jim@weirichhouse.org).
+# Copyright 2004, 2005 by Jim Weirich (jim@weirichhouse.org).
 # All rights reserved.
 
 # Permission is granted for use, copying, modification, distribution,
@@ -165,12 +165,22 @@ module Builder
     # :target=><em>target_object</em>::
     #    Object receiving the markup.  +out+ must respond to the
     #    <tt><<</tt> operator.  The default is a plain string target.
+    #    
     # :indent=><em>indentation</em>::
     #    Number of spaces used for indentation.  The default is no
     #    indentation and no line breaks.
+    #    
     # :margin=><em>initial_indentation_level</em>::
     #    Amount of initial indentation (specified in levels, not
     #    spaces).
+    #    
+    # :escape_attrs=><b>OBSOLETE</em>::
+    #    The :escape_attrs option is no longer supported by builder
+    #    (and will be quietly ignored).  String attribute values are
+    #    now automatically escaped.  If you need unescaped attribute
+    #    values (perhaps you are using entities in the attribute
+    #    values), then give the value as a Symbol.  This allows much
+    #    finer control over escaping attribute values.
     #    
     def initialize(options={})
       indent = options[:indent] || 0
@@ -239,12 +249,13 @@ module Builder
 	[:version, :encoding, :standalone])
     end
 
-    # Surrounds the given text with a CDATA tag
+    # Insert a CDATA section into the XML markup.
     #
     # For example:
     #
-    #   xml.cdata! "blah blah blah"
-    #       # => <![CDATA[blah blah blah]]>
+    #    xml.cdata!("text to be included in cdata")
+    #        #=> <![CDATA[text to be included in cdata]]>
+    #
     def cdata!(text)
       _ensure_no_block block_given?
       _special("<![CDATA[", "]]>", text, nil)
@@ -289,10 +300,19 @@ module Builder
       return if attrs.nil?
       order.each do |k|
 	v = attrs[k]
-	@target << %{ #{k}="#{v}"} if v
+	@target << %{ #{k}="#{_attr_value(v)}"} if v
       end
       attrs.each do |k, v|
-	@target << %{ #{k}="#{v}"} unless order.member?(k)
+	@target << %{ #{k}="#{_attr_value(v)}"} unless order.member?(k)
+      end
+    end
+
+    def _attr_value(value)
+      case value
+      when Symbol
+	value.to_s
+      else
+	_escape_quote(value.to_s)
       end
     end
 

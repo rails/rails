@@ -2,7 +2,7 @@
 
 require 'builder/blankslate'
 
-module Builder #:nodoc:
+module Builder
 
   # Generic error for builder
   class IllegalBlockError < RuntimeError #:nodoc:
@@ -14,7 +14,7 @@ module Builder #:nodoc:
 
     # Create an XML markup builder.
     #
-    # out::     Object receiving the markup.1  +out+ must respond to
+    # out::     Object receiving the markup.  +out+ must respond to
     #           <tt><<</tt>.
     # indent::  Number of spaces used for indentation (0 implies no
     #           indentation and no line breaks).
@@ -76,15 +76,15 @@ module Builder #:nodoc:
     end
 
     # Append text to the output target.  Escape any markup.  May be
-    # used within the markup brackets as:
+    # used within the markup brakets as:
     #
-    #   builder.p { br; text! "HI" }   #=>  <p><br/>HI</p>
+    #   builder.p { |b| b.br; b.text! "HI" }   #=>  <p><br/>HI</p>
     def text!(text)
       _text(_escape(text))
     end
     
     # Append text to the output target without escaping any markup.
-    # May be used within the markup brackets as:
+    # May be used within the markup brakets as:
     #
     #   builder.p { |x| x << "<br/>HI" }   #=>  <p><br/>HI</p>
     #
@@ -112,11 +112,13 @@ module Builder #:nodoc:
 
     private
     
+    require 'builder/xchar'
     def _escape(text)
-      text.
-	gsub(%r{&}, '&amp;').
-	gsub(%r{<}, '&lt;').
-	gsub(%r{>}, '&gt;')
+      text.to_xs
+    end
+
+    def _escape_quote(text)
+      _escape(text).gsub(%r{"}, '&quot;')  # " WART
     end
 
     def _capture_outer_self(block)
