@@ -73,14 +73,16 @@ module Test #:nodoc:
       def assert_redirected_to(options = {}, message=nil)
         clean_backtrace do
           assert_response(:redirect, message)
-          ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
-          
+          return true if options == @response.redirected_to
+          ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty?
+
           begin
-            url = {}
-            f={
-              :expected => options.is_a?(Symbol)                 ?  @controller.send("hash_for_#{options}_url")                 : options.dup, 
-              :actual   => @response.redirected_to.is_a?(Symbol) ?  @controller.send("hash_for_#{@response.redirected_to}_url") : @response.redirected_to.dup 
-            }.each do |key, value|
+            url  = {}
+            original = { :expected => options, :actual => @response.redirected_to.dup }
+            original.each do |key, value|
+              if value.is_a?(Symbol)
+                value = @controller.respond_to?(value, true) ? @controller.send(value) : @controller.send("hash_for_#{option}")
+              end
               unless value.is_a?(Hash)
                 request = case value
                   when NilClass    then nil
@@ -90,7 +92,15 @@ module Test #:nodoc:
                 value = request.path_parameters if request
               end
               
-              value.stringify_keys! if value.is_a?(Hash)
+              if value.is_a?(Hash) # stringify 2 levels of hash keys
+                value.stringify_keys!
+                value.values.select { |v| v.is_a?(Hash) }.collect { |v| v.stringify_keys! }
+                if key == :expected && value['controller'] == @controller.controller_name && original[:actual].is_a?(Hash)
+                  original[:actual].stringify_keys!
+                  value.delete('controller') if original[:actual]['controller'].nil? || original[:actual]['controller'] == value['controller']
+                end
+              end
+
               if value.respond_to?(:[]) && value['controller']
                 if key == :actual && value['controller'].first != '/'
                   value['controller'] = ActionController::Routing.controller_relative_to(value['controller'], @controller.class.controller_path) 

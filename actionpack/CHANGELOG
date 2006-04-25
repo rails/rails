@@ -1,5 +1,10 @@
 *SVN*
 
+* Fix assert_redirected_to tests according to real-world usage.  Also, don't fail if you add an extra :controller option: [Rick]
+
+    redirect_to :action => 'new'
+    assert_redirected_to :controller => 'monkeys', :action => 'new'
+
 * Cache CgiRequest#request_parameters so that multiple calls don't re-parse multipart data. [Rick]
 
 * Diff compared routing options.  Allow #assert_recognizes to take a second arg as a hash to specify optional request method [Rick]

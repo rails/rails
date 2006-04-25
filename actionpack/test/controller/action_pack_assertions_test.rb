@@ -234,7 +234,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
       process :redirect_to_named_route
       assert_redirected_to 'http://test.host/route_one'
       assert_redirected_to route_one_url
-      assert_redirected_to :route_one
+      assert_redirected_to :route_one_url
     end
   end
 
@@ -256,7 +256,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
         assert_redirected_to route_two_url
       end
       assert_raise(Test::Unit::AssertionFailedError) do
-        assert_redirected_to :route_two
+        assert_redirected_to :route_two_url
       end
     end
   end
@@ -456,12 +456,24 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
 
     assert "Inconceivable!", @response.body
   end
-  
+
   def test_follow_redirect_outside_current_action
     process :redirect_to_controller
     assert_redirected_to :controller => "elsewhere", :action => "flash_me"
 
     assert_raises(RuntimeError, "Can't follow redirects outside of current controller (elsewhere)") { follow_redirect }
+  end
+
+  def test_assert_redirection_fails_with_incorrect_controller
+    process :redirect_to_controller
+    assert_raise(Test::Unit::AssertionFailedError) do
+      assert_redirected_to :controller => "action_pack_assertions", :action => "flash_me"
+    end
+  end
+
+  def test_assert_redirection_with_extra_controller_option
+    get :redirect_to_action
+    assert_redirected_to :controller => 'action_pack_assertions', :action => "flash_me", :id => 1, :params => { :panda => 'fun' }
   end
 
   def test_redirected_to_url_leadling_slash
