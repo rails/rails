@@ -1,5 +1,7 @@
 *SVN*
 
+* Add warning about the proper way to validate the presence of a foreign key. Closes #4147. [Francois Beausoleil <francois.beausoleil@gmail.com>]
+
 * Fix syntax error in documentation. Closes #4679. [mislav@nippur.irb.hr] 
 
 * Add Oracle support for CLOB inserts. Closes #4748. [schoenm@earthlink.net sandra.metz@duke.edu] 
