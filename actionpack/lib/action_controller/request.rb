@@ -1,5 +1,6 @@
 module ActionController
-  # These methods are available in both the production and test Request objects.
+  # Subclassing AbstractRequest makes these methods available to the request objects used in production and testing,
+  # CgiRequest and TestRequest
   class AbstractRequest
     cattr_accessor :relative_url_root
 
@@ -65,6 +66,7 @@ module ActionController
         end
     end
 
+    # Returns the accepted MIME type for the request
     def accepts
       @accepts ||=
         if @env['HTTP_ACCEPT'].to_s.strip.empty?
@@ -202,15 +204,21 @@ module ActionController
       host + port_string
     end
 
-    def path_parameters=(parameters)
+    def path_parameters=(parameters) #:nodoc:
       @path_parameters = parameters
       @symbolized_path_parameters = @parameters = nil
     end
 
-    def symbolized_path_parameters
+    # The same as <tt>path_parameters</tt> with explicitly symbolized keys 
+    def symbolized_path_parameters 
       @symbolized_path_parameters ||= path_parameters.symbolize_keys
     end
 
+    # Returns a hash with the parameters used to form the path of the request 
+    #
+    # Example: 
+    #
+    #   {:action => 'my_action', :controller => 'my_controller'}
     def path_parameters
       @path_parameters ||= {}
     end

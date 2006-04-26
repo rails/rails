@@ -1,5 +1,7 @@
 *SVN*
 
+* Documentation for AbstractRequest. Closes #4895. [kevin.clark@gmail.com] 
+
 * Refactor various InstanceTag instance method to class methods. Closes #4800. [skaes@web.de]
 
 * Remove all remaining references to @params in the documentation. [Marcel Molina Jr.]
