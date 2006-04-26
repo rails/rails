@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Oracle support for CLOB inserts. Closes #4748. [schoenm@earthlink.net sandra.metz@duke.edu] 
+
 * Various fixes for sqlserver_adapter (odbc statement finishing, ado schema dumper, drop index). Closes #4831. [kajism@yahoo.com]
 
 * Add support for :order option to with_scope. Closes #3887. [eric.daspet@survol.net]

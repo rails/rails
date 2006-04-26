@@ -58,11 +58,11 @@ begin
       after_save :write_lobs 
       def write_lobs() #:nodoc:
         if connection.is_a?(ConnectionAdapters::OracleAdapter)
-          self.class.columns.select { |c| c.type == :binary }.each { |c|
+          self.class.columns.select { |c| c.sql_type =~ /LOB$/i }.each { |c|
             value = self[c.name]
             next if value.nil?  || (value == '')
             lob = connection.select_one(
-              "SELECT #{ c.name} FROM #{ self.class.table_name } WHERE #{ self.class.primary_key} = #{quote(id)}",
+              "SELECT #{c.name} FROM #{self.class.table_name} WHERE #{self.class.primary_key} = #{quote(id)}",
               'Writable Large Object')[c.name]
             lob.write value
           }
@@ -210,7 +210,7 @@ begin
         end
 
         def quote(value, column = nil) #:nodoc:
-          if column && column.type == :binary
+          if column && column.sql_type =~ /LOB$/i
             %Q{empty_#{ column.sql_type rescue 'blob' }()}
           else
             case value
