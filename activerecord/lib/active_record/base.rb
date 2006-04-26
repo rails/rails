@@ -175,7 +175,7 @@ module ActiveRecord #:nodoc:
   #     serialize :preferences
   #   end
   #
-  #   user = User.create(:preferences) => { "background" => "black", "display" => large })
+  #   user = User.create(:preferences => { "background" => "black", "display" => large })
   #   User.find(user.id).preferences # => { "background" => "black", "display" => large }
   #
   # You can also specify a class option as the second parameter that'll raise an exception if a serialized object is retrieved as a
