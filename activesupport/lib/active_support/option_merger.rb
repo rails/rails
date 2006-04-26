@@ -15,8 +15,8 @@ module ActiveSupport
       end
       
       def merge_argument_options!(arguments)
-        arguments << if arguments.last.respond_to? :merge!
-          arguments.pop.dup.merge!(@options)
+        arguments << if arguments.last.respond_to? :to_hash
+          @options.merge(arguments.pop)
         else
           @options.dup
         end  

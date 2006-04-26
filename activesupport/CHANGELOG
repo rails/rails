@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow default options in with_options to be overridden. Closes #4480. [murphy@cYcnus.de] 
+
 * Added Module#alias_method_chain [Jamis Buck]
 
 * Updated to Builder 2.0 [DHH]
