@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Module#alias_method_chain [Jamis Buck]
+
 * Updated to Builder 2.0 [DHH]
 
 * Add Array#split for dividing arrays into one or more subarrays by value or block. [Sam Stephenson]
