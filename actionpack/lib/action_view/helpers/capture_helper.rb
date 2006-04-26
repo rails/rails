@@ -20,8 +20,8 @@ module ActionView
     #   <head>
     #	    <title>layout with js</title>
     #	    <script type="text/javascript">
-    #	    <%= yield :script %>
-    #   	</script>
+    #	      <%= yield :script %>
+    #     </script>
     #   </head>
     #   <body>
     #     <%= yield %>
@@ -86,7 +86,7 @@ module ActionView
       # for elements that are going to be fragment cached.
       #
       # The deprecated way of accessing a content_for block was to use a instance variable
-      # named @content_for_#{name_of_the_content_block}. So <tt><% content_for('footer') %></tt>
+      # named @@content_for_#{name_of_the_content_block}@. So <tt><%= content_for('footer') %></tt>
       # would be avaiable as <tt><%= @content_for_footer %></tt>. The preferred notation now is
       # <tt><%= yield :footer %></tt>.
       def content_for(name, &block)
