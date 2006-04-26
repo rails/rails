@@ -210,7 +210,7 @@ begin
         end
 
         def quote(value, column = nil) #:nodoc:
-          if column && column.sql_type =~ /LOB$/i
+          if column && [:text, :binary].include?(column.type)
             %Q{empty_#{ column.sql_type rescue 'blob' }()}
           else
             case value
