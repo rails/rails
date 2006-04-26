@@ -1,5 +1,7 @@
 *SVN*
 
+* Add support for :order option to with_scope. Closes #3887. [eric.daspet@survol.net]
+
 * Prettify output of schema_dumper by making things line up. Closes #4241 [Caio  Chassot <caio@v2studio.com>]
 
 * Make build_postgresql_databases task make databases owned by the postgres user. Closes #4790. [mlaster@metavillage.com]

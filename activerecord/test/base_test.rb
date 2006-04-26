@@ -1164,6 +1164,29 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal Developer.count, developers.size
   end
 
+  def test_scoped_find_order   
+    # Test order in scope   
+    scoped_developers = Developer.with_scope(:find => { :limit => 1, :order => 'salary DESC' }) do
+      Developer.find(:all)
+    end   
+    assert_equal 'Jamis', scoped_developers.first.name
+    assert scoped_developers.include?(developers(:jamis))
+    # Test scope without order and order in find
+    scoped_developers = Developer.with_scope(:find => { :limit => 1 }) do
+      Developer.find(:all, :order => 'salary DESC')
+    end   
+    # Test scope order + find order, find has priority
+    scoped_developers = Developer.with_scope(:find => { :limit => 3, :order => 'id DESC' }) do
+      Developer.find(:all, :order => 'salary ASC')
+    end
+    assert scoped_developers.include?(developers(:poor_jamis))
+    assert scoped_developers.include?(developers(:david))
+    assert scoped_developers.include?(developers(:dev_10))
+    # Test without scoped find conditions to ensure we get the right thing
+    developers = Developer.find(:all, :order => 'id', :limit => 1)
+    assert scoped_developers.include?(developers(:david))
+  end
+
   def test_base_class
     assert LoosePerson.abstract_class?
     assert !LooseDescendant.abstract_class?

@@ -837,7 +837,7 @@ module ActiveRecord #:nodoc:
         method_scoping.assert_valid_keys([ :find, :create ])
 
         if f = method_scoping[:find]
-          f.assert_valid_keys([ :conditions, :joins, :select, :include, :from, :offset, :limit, :readonly ])
+          f.assert_valid_keys([ :conditions, :joins, :select, :include, :from, :offset, :limit, :order, :readonly ])
           f[:readonly] = true if !f[:joins].blank? && !f.has_key?(:readonly)
         end
 
@@ -1012,8 +1012,8 @@ module ActiveRecord #:nodoc:
           add_conditions!(sql, options[:conditions], scope)
 
           sql << " GROUP BY #{options[:group]} " if options[:group]
-          sql << " ORDER BY #{options[:order]} " if options[:order]
 
+          add_order!(sql, options[:order])
           add_limit!(sql, options, scope)
 
           sql
@@ -1033,6 +1033,15 @@ module ActiveRecord #:nodoc:
             o
           else
             [o]
+          end
+        end
+
+        def add_order!(sql, order)
+          if order
+            sql << " ORDER BY #{order}"
+            sql << ", #{scope(:find, :order)}" if scoped?(:find, :order)
+          else
+            sql << " ORDER BY #{scope(:find, :order)}" if scoped?(:find, :order)
           end
         end
 
