@@ -140,14 +140,18 @@ module ActionController
 
       # Performs a GET request with the given parameters. The parameters may
       # be +nil+, a Hash, or a string that is appropriately encoded
-      # (application/x-www-form-urlencoded or multipart/form-data).
+      # (application/x-www-form-urlencoded or multipart/form-data).  The headers
+      # should be a hash.  The keys will automatically be upcased, with the 
+      # prefix 'HTTP_' added if needed.
       def get(path, parameters=nil, headers=nil)
         process :get, path, parameters, headers
       end
 
       # Performs a POST request with the given parameters. The parameters may
       # be +nil+, a Hash, or a string that is appropriately encoded
-      # (application/x-www-form-urlencoded or multipart/form-data).
+      # (application/x-www-form-urlencoded or multipart/form-data).  The headers
+      # should be a hash.  The keys will automatically be upcased, with the 
+      # prefix 'HTTP_' added if needed.
       def post(path, parameters=nil, headers=nil)
         process :post, path, parameters, headers
       end
@@ -155,7 +159,9 @@ module ActionController
       # Performs an XMLHttpRequest request with the given parameters, mimicing
       # the request environment created by the Prototype library. The parameters
       # may be +nil+, a Hash, or a string that is appropriately encoded
-      # (application/x-www-form-urlencoded or multipart/form-data).
+      # (application/x-www-form-urlencoded or multipart/form-data).  The headers
+      # should be a hash.  The keys will automatically be upcased, with the 
+      # prefix 'HTTP_' added if needed.
       def xml_http_request(path, parameters=nil, headers=nil)
         headers = (headers || {}).merge("X-Requested-With" => "XMLHttpRequest")
         post(path, parameters, headers)
@@ -218,7 +224,7 @@ module ActionController
 
           (headers || {}).each do |key, value|
             key = key.to_s.upcase.gsub(/-/, "_")
-            key = "HTTP_#{key}" unless env.has_key?(key)
+            key = "HTTP_#{key}" unless env.has_key?(key) || env =~ /^X|HTTP/
             env[key] = value
           end
 

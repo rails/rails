@@ -1,5 +1,7 @@
 *SVN*
 
+* Enhance documentation for setting headers in integration tests. Skip auto HTTP prepending when its already there. Closes #4079. [Rick Olson]
+
 * Documentation for AbstractRequest. Closes #4895. [kevin.clark@gmail.com] 
 
 * Refactor various InstanceTag instance method to class methods. Closes #4800. [skaes@web.de]
