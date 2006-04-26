@@ -1,5 +1,7 @@
 *1.1.2* (April 9th, 2005)
 
+* Mention in docs that config.frameworks doesn't work when getting Rails via Gems. Closes #4857. [Alisdair McDiarmid]
+
 * Change the scaffolding layout to use yield rather than @content_for_layout. [Marcel Molina Jr.]
 
 * Added rake rails:update:configs to update config/boot.rb from the latest (also included in rake rails:update) [DHH]
