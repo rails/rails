@@ -90,9 +90,6 @@ module ActiveRecord
       def cast_to_time(value)
         return value if value.is_a?(Time)
         time_array = ParseDate.parsedate(value)
-        time_array[0] ||= 2000
-        time_array[1] ||= 1
-        time_array[2] ||= 1
         Time.send(Base.default_timezone, *time_array) rescue nil
       end
 
@@ -208,7 +205,7 @@ module ActiveRecord
 
       # Returns true if the connection is active.
       def active?
-        @connection.execute("SELECT 1") { }
+        @connection.execute("SELECT 1").finish
         true
       rescue DBI::DatabaseError, DBI::InterfaceError
         false
@@ -277,7 +274,7 @@ module ActiveRecord
             end
           end
           log(sql, name) do
-            @connection.execute(sql)
+            @connection.execute(sql).finish
             id_value || select_one("SELECT @@IDENTITY AS Ident")["Ident"]
           end
         ensure
@@ -296,11 +293,19 @@ module ActiveRecord
           insert(sql, name)
         elsif sql =~ /^\s*UPDATE|^\s*DELETE/i
           log(sql, name) do
-            @connection.execute(sql)
+            ret = @connection.execute(sql).finish
             retVal = select_one("SELECT @@ROWCOUNT AS AffectedRows")["AffectedRows"]
           end
         else
-          log(sql, name) { @connection.execute(sql) }
+          log(sql, name) do
+            if block_given?
+              @connection.execute(sql) do |sth|
+                yield(sth)
+              end
+            else
+              @connection.execute(sql).finish
+            end
+          end
         end
       end
 
@@ -411,23 +416,30 @@ module ActiveRecord
       end
 
       def tables(name = nil)
-        execute("SELECT table_name from information_schema.tables WHERE table_type = 'BASE TABLE'", name).inject([]) do |tables, field|
-          table_name = field[0]
-          tables << table_name unless table_name == 'dtproperties'
-          tables
+        execute("SELECT table_name from information_schema.tables WHERE table_type = 'BASE TABLE'", name) do |sth|
+          sth.inject([]) do |tables, field|
+            table_name = field[0]
+            tables << table_name unless table_name == 'dtproperties'
+            tables
+          end
         end
       end
 
       def indexes(table_name, name = nil)
-        indexes = []
-        execute("EXEC sp_helpindex #{table_name}", name).each do |index| 
-          unique = index[1] =~ /unique/
-          primary = index[1] =~ /primary key/
-          if !primary
-            indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", "))
+        ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = false
+        indexes = []        
+        execute("EXEC sp_helpindex #{table_name}", name) do |sth|
+          sth.each do |index| 
+            unique = index[1] =~ /unique/
+            primary = index[1] =~ /primary key/
+            if !primary
+              indexes << IndexDefinition.new(table_name, index[0], unique, index[2].split(", "))
+            end
           end
         end
         indexes
+        ensure
+          ActiveRecord::Base.connection.instance_variable_get("@connection")["AutoCommit"] = true
       end
             
       def rename_table(name, new_name)
@@ -466,7 +478,7 @@ module ActiveRecord
       end
       
       def remove_index(table_name, options = {})
-        execute "DROP INDEX #{table_name}.#{index_name(table_name, options)}"
+        execute "DROP INDEX #{table_name}.#{quote_column_name(index_name(table_name, options))}"
       end
 
       def type_to_sql(type, limit = nil) #:nodoc:

@@ -1,5 +1,7 @@
 *SVN*
 
+* Various fixes for sqlserver_adapter (odbc statement finishing, ado schema dumper, drop index). Closes #4831. [kajism@yahoo.com]
+
 * Add support for :order option to with_scope. Closes #3887. [eric.daspet@survol.net]
 
 * Prettify output of schema_dumper by making things line up. Closes #4241 [Caio  Chassot <caio@v2studio.com>]
