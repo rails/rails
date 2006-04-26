@@ -1,5 +1,9 @@
 *SVN*
 
+* Allow error_messages_for to report errors for multiple objects, as well as support for customizing the name of the object in the error summary header. Closes #4186. [andrew@redlinesoftware.com, Marcel Molina Jr.]
+  
+  error_messages_for :account, :user, :subscription, :object_name => :account
+
 * Enhance documentation for setting headers in integration tests. Skip auto HTTP prepending when its already there. Closes #4079. [Rick Olson]
 
 * Documentation for AbstractRequest. Closes #4895. [kevin.clark@gmail.com] 

@@ -22,10 +22,16 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
       alias_method :body_before_type_cast, :body unless respond_to?(:body_before_type_cast)
       alias_method :author_name_before_type_cast, :author_name unless respond_to?(:author_name_before_type_cast)
     end
+    
+    User = Struct.new("User", :email)
+    User.class_eval do
+      alias_method :email_before_type_cast, :email unless respond_to?(:email_before_type_cast)
+    end
+    
     Column = Struct.new("Column", :type, :name, :human_name)
   end
 
-  def setup
+  def setup_post
     @post = Post.new    
     def @post.errors
       Class.new {
@@ -50,6 +56,34 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
     @post.body        = "Back to the hill and over it again!"
     @post.secret = 1
     @post.written_on  = Date.new(2004, 6, 15)
+  end
+  
+  def setup_user
+    @user = User.new    
+    def @user.errors
+      Class.new {
+        def on(field) field == "email" end
+        def empty?() false end 
+        def count() 1 end 
+        def full_messages() [ "User email can't be empty" ] end
+      }.new
+    end
+    
+    def @user.new_record?() true end
+    def @user.to_param() nil end
+
+    def @user.column_for_attribute(attr_name)
+      User.content_columns.select { |column| column.name == attr_name }.first
+    end
+
+    def User.content_columns() [ Column.new(:string, "email", "Email") ] end
+
+    @user.email = ""
+  end
+
+  def setup
+    setup_post
+    setup_user
 
     @controller = Object.new
     def @controller.url_for(options, *parameters_for_method_reference)
@@ -122,6 +156,22 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
   
   def test_error_messages_for_handles_nil
     assert_equal "", error_messages_for("notthere")
+  end
+
+  def test_error_messages_for_many_objects
+    assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>2 errors prohibited this post from being saved</h2><p>There were problems with the following fields:</p><ul><li>Author name can't be empty</li><li>User email can't be empty</li></ul></div>), error_messages_for("post", "user")
+
+    # reverse the order, error order changes and so does the title
+    assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>2 errors prohibited this user from being saved</h2><p>There were problems with the following fields:</p><ul><li>User email can't be empty</li><li>Author name can't be empty</li></ul></div>), error_messages_for("user", "post")
+
+    # add the default to put post back in the title
+    assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>2 errors prohibited this post from being saved</h2><p>There were problems with the following fields:</p><ul><li>User email can't be empty</li><li>Author name can't be empty</li></ul></div>), error_messages_for("user", "post", :object_name => "post")
+    
+    # symbols work as well
+    assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>2 errors prohibited this post from being saved</h2><p>There were problems with the following fields:</p><ul><li>User email can't be empty</li><li>Author name can't be empty</li></ul></div>), error_messages_for(:user, :post, :object_name => :post)
+    
+    # any default works too
+    assert_dom_equal %(<div class="errorExplanation" id="errorExplanation"><h2>2 errors prohibited this monkey from being saved</h2><p>There were problems with the following fields:</p><ul><li>User email can't be empty</li><li>Author name can't be empty</li></ul></div>), error_messages_for(:user, :post, :object_name => "monkey")
   end
 
   def test_form_with_string_multipart
