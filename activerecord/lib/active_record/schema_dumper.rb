@@ -82,13 +82,25 @@ HEADER
           tbl.print ", :force => true"
           tbl.puts " do |t|"
 
-          columns.each do |column|
+          column_specs = columns.map do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" if @types[column.type].nil?
             next if column.name == pk
-            tbl.print "    t.column #{column.name.inspect}, #{column.type.inspect}"
-            tbl.print ", :limit => #{column.limit.inspect}" if column.limit != @types[column.type][:limit] 
-            tbl.print ", :default => #{column.default.inspect}" if !column.default.nil?
-            tbl.print ", :null => false" if !column.null
+            spec = {}
+            spec[:name]    = column.name.inspect
+            spec[:type]    = column.type.inspect
+            spec[:limit]   = column.limit.inspect if column.limit != @types[column.type][:limit] 
+            spec[:default] = column.default.inspect if !column.default.nil?
+            spec[:null]    = 'false' if !column.null
+            (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k.inspect} => ")}
+            spec
+          end.compact
+          keys = [:name, :type, :limit, :default, :null] & column_specs.map{ |spec| spec.keys }.inject([]){ |a,b| a | b }
+          lengths = keys.map{ |key| column_specs.map{ |spec| spec[key] ? spec[key].length + 2 : 0 }.max }
+          format_string = lengths.map{ |len| "%-#{len}s" }.join("")
+          column_specs.each do |colspec|
+            values = keys.zip(lengths).map{ |key, len| colspec.key?(key) ? colspec[key] + ", " : " " * len }
+            tbl.print "    t.column "
+            tbl.print((format_string % values).gsub(/,\s*$/, ''))
             tbl.puts
           end
 
