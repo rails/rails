@@ -58,7 +58,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       
       # quoting
       assert_nothing_raised { Person.connection.add_index("people", ["key"], :name => "key", :unique => true) }
-      assert_nothing_raised { Person.connection.remove_index("people", :name => "key") }
+      assert_nothing_raised { Person.connection.remove_index("people", :name => "key", :unique => true) }
 
       # Sybase adapter does not support indexes on :boolean columns
       unless current_adapter?(:SybaseAdapter)
@@ -461,27 +461,29 @@ if ActiveRecord::Base.connection.supports_migrations?
       Reminder.reset_sequence_name
     end
 
-    def test_create_table_with_binary_column
-      Person.connection.drop_table :binary_testings rescue nil
+#   FrontBase does not support default values on BLOB/CLOB columns  
+    unless current_adapter?(:FrontBaseAdapter)
+      def test_create_table_with_binary_column
+        Person.connection.drop_table :binary_testings rescue nil
     
-      assert_nothing_raised {
-        Person.connection.create_table :binary_testings do |t|
-          t.column "data", :binary, :default => "", :null => false
-        end
-      }
+        assert_nothing_raised {
+          Person.connection.create_table :binary_testings do |t|
+            t.column "data", :binary, :default => "", :null => false
+          end
+        }
       
-      columns = Person.connection.columns(:binary_testings)
-      data_column = columns.detect { |c| c.name == "data" }
+        columns = Person.connection.columns(:binary_testings)
+        data_column = columns.detect { |c| c.name == "data" }
 
-      if current_adapter?(:OracleAdapter)
-        assert_equal "empty_blob()", data_column.default
-      else
-        assert_equal "", data_column.default
+        if current_adapter?(:OracleAdapter)
+          assert_equal "empty_blob()", data_column.default
+        else
+          assert_equal "", data_column.default
+        end
+
+        Person.connection.drop_table :binary_testings rescue nil
       end
-
-      Person.connection.drop_table :binary_testings rescue nil
     end
-
     def test_migrator_with_duplicates
       assert_raises(ActiveRecord::DuplicateMigrationVersionError) do
         ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations_with_duplicate/', nil)

@@ -392,7 +392,13 @@ class Fixture #:nodoc:
   end
 
   def value_list
-    @fixture.values.map { |v| ActiveRecord::Base.connection.quote(v).gsub('\\n', "\n").gsub('\\r', "\r") }.join(", ")
+    klass = @class_name.constantize rescue nil
+
+    list = @fixture.inject([]) do |fixtures, (key, value)|
+      col = klass.columns_hash[key] unless klass.nil?
+      fixtures << ActiveRecord::Base.connection.quote(value, col).gsub('\\n', "\n").gsub('\\r', "\r")
+    end
+    list * ', '
   end
 
   def find

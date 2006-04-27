@@ -66,19 +66,21 @@ class AdapterTest < Test::Unit::TestCase
   if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
     require 'fixtures/movie'
     require 'fixtures/subscriber'
+    
     def test_reset_empty_table_with_custom_pk
       Movie.delete_all
       Movie.connection.reset_pk_sequence! 'movies'
       assert_equal 1, Movie.create(:name => 'fight club').id
     end
 
-    def test_reset_table_with_non_integer_pk
-      Subscriber.delete_all
-      Subscriber.connection.reset_pk_sequence! 'subscribers'
-
-      sub = Subscriber.new(:name => 'robert drake')
-      sub.id = 'bob drake'
-      assert_nothing_raised { sub.save! }
+    if ActiveRecord::Base.connection.adapter_name != "FrontBase"
+      def test_reset_table_with_non_integer_pk
+        Subscriber.delete_all
+        Subscriber.connection.reset_pk_sequence! 'subscribers'
+        sub = Subscriber.new(:name => 'robert drake')
+        sub.id = 'bob drake'
+        assert_nothing_raised { sub.save! }
+      end
     end
   end
 

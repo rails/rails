@@ -68,7 +68,7 @@ ActiveRecord::Base.class_eval do
 end
 
 unless defined?(RAILS_CONNECTION_ADAPTERS)
-  RAILS_CONNECTION_ADAPTERS = %w( mysql postgresql sqlite firebird sqlserver db2 oracle sybase openbase )
+  RAILS_CONNECTION_ADAPTERS = %w( mysql postgresql sqlite firebird sqlserver db2 oracle sybase openbase frontbase )
 end
 
 RAILS_CONNECTION_ADAPTERS.each do |adapter|

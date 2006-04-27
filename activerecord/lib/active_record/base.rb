@@ -755,8 +755,8 @@ module ActiveRecord #:nodoc:
         superclass == Base || !columns_hash.include?(inheritance_column)
       end
 
-      def quote(object) #:nodoc:
-        connection.quote(object)
+      def quote(value, column = nil) #:nodoc:
+        connection.quote(value,column)
       end
 
       # Used to sanitize objects before they're used in an SELECT SQL-statement. Delegates to <tt>connection.quote</tt>.
@@ -947,7 +947,7 @@ module ActiveRecord #:nodoc:
       
         def find_one(id, options)
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
-          options.update :conditions => "#{table_name}.#{primary_key} = #{sanitize(id)}#{conditions}"
+          options.update :conditions => "#{table_name}.#{primary_key} = #{quote(id,columns_hash[primary_key])}#{conditions}"
 
           if result = find_initial(options)
             result
@@ -958,7 +958,7 @@ module ActiveRecord #:nodoc:
       
         def find_some(ids, options)
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
-          ids_list   = ids.map { |id| sanitize(id) }.join(',')
+          ids_list   = ids.map { |id| quote(id,columns_hash[primary_key]) }.join(',')
           options.update :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}"
 
           result = find_every(options)

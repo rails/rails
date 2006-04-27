@@ -1,5 +1,7 @@
 *SVN*
 
+* Add support for FrontBase (http://www.frontbase.com/) with a new adapter thanks to the hard work of one Mike Laster. Closes #4093. [mlaster@metavillage.com]
+
 * Add warning about the proper way to validate the presence of a foreign key. Closes #4147. [Francois Beausoleil <francois.beausoleil@gmail.com>]
 
 * Fix syntax error in documentation. Closes #4679. [mislav@nippur.irb.hr] 

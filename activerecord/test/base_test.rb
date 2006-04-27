@@ -1094,21 +1094,21 @@ class BasicsTest < Test::Unit::TestCase
     end
     assert_equal res, res3
     
-    res4 = Post.count_by_sql "SELECT COUNT(p.id) FROM posts p, comments c WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=c.post_id"
+    res4 = Post.count_by_sql "SELECT COUNT(p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
     res5 = nil
     assert_nothing_raised do
-      res5 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=c.post_id",
-                        :joins => "p, comments c",
+      res5 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id",
+                        :joins => "p, comments co",
                         :select => "p.id")
     end
 
     assert_equal res4, res5 
 
-    res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments c WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=c.post_id"
+    res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
     res7 = nil
     assert_nothing_raised do
-      res7 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=c.post_id",
-                        :joins => "p, comments c",
+      res7 = Post.count(:conditions => "p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id",
+                        :joins => "p, comments co",
                         :select => "p.id",
                         :distinct => true)
     end

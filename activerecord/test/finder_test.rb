@@ -13,6 +13,12 @@ class FinderTest < Test::Unit::TestCase
     assert_equal(topics(:first).title, Topic.find(1).title)
   end
   
+  # find should handle strings that come from URLs
+  # (example: Category.find(params[:id]))
+  def test_find_with_string
+    assert_equal(Topic.find(1).title,Topic.find("1").title)
+  end
+  
   def test_exists
     assert (Topic.exists?(1))
     assert !(Topic.exists?(45))

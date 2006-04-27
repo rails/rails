@@ -1,5 +1,6 @@
 require "#{File.dirname(__FILE__)}/abstract_unit"
 require 'fixtures/topic'
+require 'fixtures/reply'
 require 'fixtures/subscriber'
 require 'fixtures/movie'
 require 'fixtures/keyboard'

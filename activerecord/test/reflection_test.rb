@@ -45,6 +45,12 @@ class ReflectionTest < Test::Unit::TestCase
     assert_equal :string, @first.column_for_attribute("title").type
     assert_equal 255, @first.column_for_attribute("title").limit
   end
+  
+  def test_column_null_not_null
+    subscriber = Subscriber.find(:first)
+    assert subscriber.column_for_attribute("name").null
+    assert !subscriber.column_for_attribute("nick").null
+  end
 
   def test_human_name_for_column
     assert_equal "Author name", @first.column_for_attribute("author_name").human_name

@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'fixtures/topic'
+require 'fixtures/reply'
 require 'fixtures/developer'
 
 class TransactionTest < Test::Unit::TestCase
