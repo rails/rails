@@ -347,7 +347,6 @@ module ActionController
   # using the get/post methods:
   #
   #   require "#{File.dirname(__FILE__)}/test_helper"
-  #   require "integration_test"
   #
   #   class ExampleTest < ActionController::IntegrationTest
   #     fixtures :people
@@ -372,7 +371,6 @@ module ActionController
   # reference any named routes you happen to have defined!
   #
   #   require "#{File.dirname(__FILE__)}/test_helper"
-  #   require "integration_test"
   #
   #   class AdvancedTest < ActionController::IntegrationTest
   #     fixtures :people, :rooms
