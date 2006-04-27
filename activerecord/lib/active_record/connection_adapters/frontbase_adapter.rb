@@ -2,7 +2,6 @@
 # svn://rubyforge.org/var/svn/frontbase-rails/trunk/ruby-frontbase
 
 require 'active_record/connection_adapters/abstract_adapter'
-require 'frontbase'
 
 FB_TRACE = false
 
@@ -31,7 +30,7 @@ module ActiveRecord
         # Turn off colorization since it makes tail/less output difficult
         self.colorize_logging = false
         
-        
+        require 'frontbase'
         connection = FBSQL_Connect.connect(host, port, database, username, password, dbpassword, session_name)
         ConnectionAdapters::FrontBaseAdapter.new(connection, logger, [host, port, database, username, password, dbpassword, session_name], config)
       end            
