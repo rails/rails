@@ -49,13 +49,15 @@ module ActionController #:nodoc:
     end
   end
 
-  # Action Controllers are made up of one or more actions that performs its purpose and then either renders a template or
-  # redirects to another action. An action is defined as a public method on the controller, which will automatically be 
-  # made accessible to the web-server through a mod_rewrite mapping. A sample controller could look like this:
+  # Action Controllers are the core of a web request in Rails. They are made up of one or more actions that are executed 
+  # on request and then either render a template or redirect to another action. An action is defined as a public method
+  # on the controller, which will automatically be made accessible to the web-server through Rails Routes. 
+  #
+  # A sample controller could look like this:
   #
   #   class GuestBookController < ActionController::Base
   #     def index
-  #       @entries = Entry.find_all
+  #       @entries = Entry.find(:all)
   #     end
   #     
   #     def sign
@@ -64,25 +66,16 @@ module ActionController #:nodoc:
   #     end
   #   end
   #
-  #   GuestBookController.template_root = "templates/"
-  #   GuestBookController.process_cgi
+  # Actions, by default, render a template in the <tt>app/views</tt> directory corresponding to the name of the controller and action
+  # after executing code in the action. For example, the +index+ action of the +GuestBookController+  would render the 
+  # template <tt>app/views/guestbook/index.rhtml</tt> by default after populating the <tt>@entries</tt> instance variable.
   #
-  # All actions assume that you want to render a template matching the name of the action at the end of the performance
-  # unless you tell it otherwise. The index action complies with this assumption, so after populating the @entries instance
-  # variable, the GuestBookController will render "templates/guestbook/index.rhtml".
-  #
-  # Unlike index, the sign action isn't interested in rendering a template. So after performing its main purpose (creating a 
-  # new entry in the guest book), it sheds the rendering assumption and initiates a redirect instead. This redirect works by
-  # returning an external "302 Moved" HTTP response that takes the user to the index action.
+  # Unlike index, the sign action will not render a template. After performing its main purpose (creating a 
+  # new entry in the guest book), it initiates a redirect instead. This redirect works by returning an external 
+  # "302 Moved" HTTP response that takes the user to the index action.
   #
   # The index and sign represent the two basic action archetypes used in Action Controllers. Get-and-show and do-and-redirect.
   # Most actions are variations of these themes.
-  #
-  # Also note that it's the final call to <tt>process_cgi</tt> that actually initiates the action performance. It will extract
-  # request and response objects from the CGI
-  #
-  # When Action Pack is used inside of Rails, the template_root is automatically configured and you don't need to call process_cgi
-  # yourself.
   #
   # == Requests
   #
@@ -101,9 +94,9 @@ module ActionController #:nodoc:
   #
   # == Parameters
   #
-  # All request parameters, whether they come from a GET or POST request, or from the URL, are available through the params hash.
-  # So an action that was performed through /weblog/list?category=All&limit=5 will include { "category" => "All", "limit" => 5 }
-  # in params.
+  # All request parameters, whether they come from a GET or POST request, or from the URL, are available through the params method
+  # which returns a hash. For example, an action that was performed through <tt>/weblog/list?category=All&limit=5</tt> will include 
+  # <tt>{ "category" => "All", "limit" => 5 }</tt> in params.
   #
   # It's also possible to construct multi-dimensional parameter hashes by specifying keys using brackets, such as:
   #
@@ -116,12 +109,12 @@ module ActionController #:nodoc:
   #
   # == Sessions
   #
-  # Sessions allows you to store objects in memory between requests. This is useful for objects that are not yet ready to be persisted,
+  # Sessions allows you to store objects in between requests. This is useful for objects that are not yet ready to be persisted,
   # such as a Signup object constructed in a multi-paged process, or objects that don't change much and are needed all the time, such
   # as a User object for a system that requires login. The session should not be used, however, as a cache for objects where it's likely 
   # they could be changed unknowingly. It's usually too much work to keep it all synchronized -- something databases already excel at.
   #
-  # You can place objects in the session by using the <tt>session</tt> hash accessor:
+  # You can place objects in the session by using the <tt>session</tt> method, which accesses a hash:
   #
   #   session[:person] = Person.authenticate(user_name, password)
   #
@@ -129,17 +122,24 @@ module ActionController #:nodoc:
   #
   #   Hello #{session[:person]}
   #
-  # Any object can be placed in the session (as long as it can be Marshalled). But remember that 1000 active sessions each storing a
-  # 50kb object could lead to a 50MB memory overhead. In other words, think carefully about size and caching before resorting to the use
-  # of the session.
-  #
   # For removing objects from the session, you can either assign a single key to nil, like <tt>session[:person] = nil</tt>, or you can
   # remove the entire session with reset_session.
+  #
+  # By default, sessions are stored on the file system in <tt>RAILS_ROOT/tmp/sessions</tt>. Any object can be placed in the session 
+  # (as long as it can be Marshalled). But remember that 1000 active sessions each storing a 50kb object could lead to a 50MB store on the filesystem.
+  # In other words, think carefully about size and caching before resorting to the use of the session on the filesystem.
+  #
+  # An alternative to storing sessions on disk is to use ActiveRecordStore to store sessions in your database, which can solve problems
+  # caused by storing sessions in the file system and may speed up your application. To use ActiveRecordStore, uncomment the line:
+  #   
+  #   config.action_controller.session_store = :active_record_store
+  #
+  # in your <tt>environment.rb</tt> and run <tt>rake db:sessions:create</tt>.
   #
   # == Responses
   #
   # Each action results in a response, which holds the headers and document to be sent to the user's browser. The actual response
-  # object is generated automatically through the use of renders and redirects, so it's normally nothing you'll need to be concerned about.
+  # object is generated automatically through the use of renders and redirects and requires no user intervention.
   #
   # == Renders
   #
@@ -161,9 +161,9 @@ module ActionController #:nodoc:
   #   def search
   #     @results = Search.find(params[:query])
   #     case @results
-  #       when 0 then render :action=> "no_results"
-  #       when 1 then render :action=> "show"
-  #       when 2..10 then render :action=> "show_many"
+  #       when 0 then render :action => "no_results"
+  #       when 1 then render :action => "show"
+  #       when 2..10 then render :action => "show_many"
   #     end
   #   end
   #
@@ -171,32 +171,21 @@ module ActionController #:nodoc:
   #
   # == Redirects
   #
-  # Redirecting is what actions that update the model do when they're done. The <tt>save_post</tt> method shouldn't be responsible for also
-  # showing the post once it's saved -- that's the job for <tt>show_post</tt>. So once <tt>save_post</tt> has completed its business, it'll
-  # redirect to <tt>show_post</tt>. All redirects are external, which means that when the user refreshes his browser, it's not going to save
-  # the post again, but rather just show it one more time.
-  # 
-  # This sounds fairly simple, but the redirection is complicated by the quest for a phenomenon known as "pretty urls". Instead of accepting
-  # the dreadful being that is "weblog_controller?action=show&post_id=5", Action Controller goes out of its way to represent the former as
-  # "/weblog/show/5". And this is even the simple case. As an example of a more advanced pretty url consider
-  # "/library/books/ISBN/0743536703/show", which can be mapped to books_controller?action=show&type=ISBN&id=0743536703.
-  # 
-  # Redirects work by rewriting the URL of the current action. So if the show action was called by "/library/books/ISBN/0743536703/show", 
-  # we can redirect to an edit action simply by doing <tt>redirect_to(:action => "edit")</tt>, which could throw the user to 
-  # "/library/books/ISBN/0743536703/edit". Naturally, you'll need to setup the routes configuration file to point to the proper controller
-  # and action in the first place, but once you have, it can be rewritten with ease.
-  # 
-  # Let's consider a bunch of examples on how to go from "/clients/37signals/basecamp/project/dash" to somewhere else:
+  # Redirects are used to move from one action to another. For example, after a <tt>create</tt> action, which stores a blog entry to a database,
+  # we might like to show the user the new entry. Because we're following good DRY principles (Don't Repeat Yourself), we're going to reuse (and redirect to)
+  # a <tt>show</tt> action that we'll assume has already been created. The code might look like this:
   #
-  #   redirect_to(:action => "edit") =>
-  #     /clients/37signals/basecamp/project/dash
-  #   
-  #   redirect_to(:client_name => "nextangle", :project_name => "rails") =>
-  #     /clients/nextangle/rails/project/dash
+  #   def create
+  #     @entry = Entry.new(params[:entry])
+  #     if @entry.save
+  #       # The entry was saved correctly, redirect to show
+  #       redirect_to :action => 'show', :id => @entry.id
+  #     else
+  #       # things didn't go so well, do something else
+  #     end
+  #   end
   #
-  # Those redirects happen under the configuration of:
-  #
-  #   map.connect 'clients/:client_name/:project_name/:controller/:action'
+  # In this case, after saving our new entry to the database, the user is redirected to the <tt>show</tt> method which is then executed.
   #
   # == Calling multiple redirects or renders
   #
@@ -214,15 +203,6 @@ module ActionController #:nodoc:
   #     render :action => "overthere" # won't be called unless monkeys is nil
   #   end
   #
-  # == Environments
-  #
-  # Action Controller works out of the box with CGI, FastCGI, and mod_ruby. CGI and mod_ruby controllers are triggered just the same using:
-  #
-  #   WeblogController.process_cgi
-  #
-  # FastCGI controllers are triggered using:
-  #
-  #   FCGI.each_cgi{ |cgi| WeblogController.process_cgi(cgi) }
   class Base
     DEFAULT_RENDER_STATUS_CODE = "200 OK"
     

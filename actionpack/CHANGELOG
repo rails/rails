@@ -1,5 +1,7 @@
 *SVN*
 
+* ActionController::Base Summary documentation rewrite. Closes #4900. [kevin.clark@gmail.com]
+
 * Fix text_helper.rb documentation rendering. Closes #4725. [Frederick Ros]
 
 * Fixes bad rendering of JavaScriptMacrosHelper rdoc (closes #4910) [Frederick Ros]
