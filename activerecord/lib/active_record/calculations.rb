@@ -173,7 +173,11 @@ module ActiveRecord
           add_joins!(sql, options, scope)
           add_conditions!(sql, options[:conditions], scope)
           add_limited_ids_condition!(sql, options, join_dependency) if join_dependency && !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
-          sql << " GROUP BY #{options[:group_alias]} " if options[:group]
+
+          if options[:group]
+            group_key = Base.connection.adapter_name == 'FrontBase' ?  :group_alias : :group_field
+            sql << " GROUP BY #{options[group_key]} "
+          end
 
           if options[:group] && options[:having]
             # FrontBase requires identifiers in the HAVING clause and chokes on function calls

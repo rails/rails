@@ -1,5 +1,7 @@
 *SVN*
 
+* When grouping, use the appropriate option key. [Marcel Molina Jr.]
+
 * Only modify the sequence name in the FrontBase adapter if the FrontBase adapter is actually being used. [Marcel Molina Jr.]
 
 * Add support for FrontBase (http://www.frontbase.com/) with a new adapter thanks to the hard work of one Mike Laster. Closes #4093. [mlaster@metavillage.com]
