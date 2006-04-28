@@ -1,5 +1,7 @@
 *SVN*
 
+* Update FrontBase adapter to check binding version. Closes #4920. [mlaster@metavillage.com] 
+
 * New Frontbase connections don't start in auto-commit mode. Closes #4922. [mlaster@metavillage.com]
 
 * When grouping, use the appropriate option key. [Marcel Molina Jr.]

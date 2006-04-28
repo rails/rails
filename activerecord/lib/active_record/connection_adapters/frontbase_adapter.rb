@@ -1,5 +1,4 @@
-# Requires FrontBase Ruby bindings from: 
-# svn://rubyforge.org/var/svn/frontbase-rails/trunk/ruby-frontbase
+# Requires FrontBase Ruby bindings (gem install ruby-frontbase)
 
 require 'active_record/connection_adapters/abstract_adapter'
 
@@ -27,12 +26,22 @@ module ActiveRecord
         
         # Turn off colorization since it makes tail/less output difficult
         self.colorize_logging = false
+
+        require_library_or_gem 'frontbase' unless self.class.const_defined? :FBSQL_Connect
         
-        require 'frontbase'
+        # Check bindings version
+        version = "0.0.0"
+        version = FBSQL_Connect::FB_BINDINGS_VERSION if defined? FBSQL_Connect::FB_BINDINGS_VERSION
+        
+        if ActiveRecord::ConnectionAdapters::FrontBaseAdapter.compare_versions(version,"1.0.0") == -1
+          raise AdapterNotFound,
+            'The FrontBase adapter requires ruby-frontbase version 1.0.0 or greater; you appear ' <<
+            "to be running an older version (#{version}) -- please update ruby-frontbase (gem install ruby-frontbase)."
+        end
         connection = FBSQL_Connect.connect(host, port, database, username, password, dbpassword, session_name)
         ConnectionAdapters::FrontBaseAdapter.new(connection, logger, [host, port, database, username, password, dbpassword, session_name], config)
       end            
-    end
+    end    
   end
   
   module ConnectionAdapters
@@ -223,6 +232,18 @@ module ActiveRecord
     end
 
     class FrontBaseAdapter < AbstractAdapter
+        
+      class << self
+        def compare_versions(v1, v2)
+          v1_seg  = v1.split(".")
+          v2_seg  = v2.split(".")
+          0.upto([v1_seg.length,v2_seg.length].min) do |i|
+            step  = (v1_seg[i].to_i <=> v2_seg[i].to_i)
+            return step unless step == 0
+          end
+          return v1_seg.length <=> v2_seg.length
+        end    
+      end
             
       def initialize(connection, logger, connection_options, config)
         super(connection, logger)
