@@ -8,14 +8,12 @@ FB_TRACE = false
 module ActiveRecord
 
   class Base
-
     class << self
-      # FrontBase only supports one unnamed sequence per table
-      def set_sequence_name( value=nil, &block )
-      end
-      
       # Establishes a connection to the database that's used by all Active Record objects.
       def frontbase_connection(config) # :nodoc:
+        # FrontBase only supports one unnamed sequence per table
+        define_attr_method(:set_sequence_name, :sequence_name, &Proc.new {|*args| nil})
+
         config = config.symbolize_keys
         database     = config[:database]
         port         = config[:port]
