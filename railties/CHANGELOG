@@ -1,3 +1,8 @@
+*SVN*
+
+* Added pid file usage to script/process/spawner and script/process/reaper along with a directive in default config/lighttpd.conf file to record the pid. They will all save their pid file in tmp/pids [DHH]
+
+
 *1.1.2* (April 9th, 2005)
 
 * Mention in docs that config.frameworks doesn't work when getting Rails via Gems. Closes #4857. [Alisdair McDiarmid]

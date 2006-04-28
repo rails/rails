@@ -142,6 +142,7 @@ class AppGenerator < Rails::Generator::Base
     tmp/sessions
     tmp/sockets
     tmp/cache
+    tmp/pids
   )
 
   MYSQL_SOCKET_LOCATIONS = [

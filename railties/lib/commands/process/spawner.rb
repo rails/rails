@@ -1,5 +1,6 @@
 require 'optparse'
 require 'socket'
+require 'fileutils'
 
 def daemonize #:nodoc:
   exit if fork                   # Parent exits, child continues.
@@ -12,28 +13,52 @@ def daemonize #:nodoc:
   STDERR.reopen STDOUT           # STDOUT/ERR should better go to a logfile.
 end
 
-def spawn(port)
-  print "Checking if something is already running on port #{port}..."
-  begin
-    srv = TCPServer.new('0.0.0.0', port)
-    srv.close
-    srv = nil
-    print "NO\n "
-    print "Starting FCGI on port: #{port}\n  "
-    system("#{OPTIONS[:spawner]} -f #{OPTIONS[:dispatcher]} -p #{port}")
-  rescue
-    print "YES\n"
+class Spawner
+  def self.record_pid(name = "spawner", id = Process.pid)
+    FileUtils.mkdir_p(OPTIONS[:pids])
+    File.open(File.expand_path(OPTIONS[:pids] + "/#{name}.pid"), "w+") { |f| f.write(id) }
+  end
+
+  def self.spawn_all
+    OPTIONS[:instances].times do |i|
+      port = OPTIONS[:port] + i
+      print "Checking if something is already running on port #{port}..."
+
+      begin
+        srv = TCPServer.new('0.0.0.0', port)
+        srv.close
+        srv = nil
+
+        print "NO\n "
+        print "Starting FCGI on port: #{port}\n  "
+
+        FileUtils.mkdir_p(OPTIONS[:pids])
+        spawn(port)
+      rescue
+        print "YES\n"
+      end
+    end
   end
 end
-				    
-def spawn_all
-  OPTIONS[:instances].times { |i| spawn(OPTIONS[:port] + i) }
+
+class FcgiSpawner < Spawner
+  def self.spawn(port)
+    system("#{OPTIONS[:spawner]} -f #{OPTIONS[:dispatcher]} -p #{port} -P #{OPTIONS[:pids]}/dispatch.#{port}.pid")
+  end
 end
+
+# TODO:
+# class MongrelSpawner < Spawner
+#   def self.spawn(port)
+#   end
+# end
+
 
 OPTIONS = {
   :environment => "production",
   :spawner     => '/usr/bin/env spawn-fcgi',
   :dispatcher  => File.expand_path(RAILS_ROOT + '/public/dispatch.fcgi'),
+  :pids        => File.expand_path(RAILS_ROOT + "/tmp/pids"),
   :port        => 8000,
   :instances   => 3,
   :repeat      => nil
@@ -84,11 +109,12 @@ ENV["RAILS_ENV"] = OPTIONS[:environment]
 if OPTIONS[:repeat]
   daemonize
   trap("TERM") { exit }
+  FcgiSpawner.record_pid
 
   loop do
-    spawn_all
+    FcgiSpawner.spawn_all
     sleep(OPTIONS[:repeat])
   end
 else
-  spawn_all
+  FcgiSpawner.spawn_all
 end
