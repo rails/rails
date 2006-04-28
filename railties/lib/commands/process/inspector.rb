@@ -44,11 +44,12 @@ ARGV.options do |opts|
 
   opts.on <<-EOF
   Description:
-    Get the lowdown on processes.
+    Displays system information about Rails dispatchers (or other processes that use pid files) through
+    the ps command.
 
   Examples:
-    inspector
-    inspector -s 'ps -o user,start,majflt,pcpu,vsz -p %s'
+    inspector                                             # default ps on all tmp/pids/dispatch.*.pid files
+    inspector -s 'ps -o user,start,majflt,pcpu,vsz -p %s' # custom ps, %s is where the pid is interleaved
   EOF
 
   opts.on("  Options:")

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added script/process/inspector to do simple process status information on Rails dispatchers keeping pid files in tmp/pids [DHH]
+
 * Added pid file usage to script/process/spawner and script/process/reaper along with a directive in default config/lighttpd.conf file to record the pid. They will all save their pid file in tmp/pids [DHH]
 
 
