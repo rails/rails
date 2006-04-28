@@ -229,6 +229,9 @@ module ActiveRecord
         @connection_options, @config = connection_options, config
         @transaction_mode = :pessimistic
         
+        # Start out in auto-commit mode
+        self.rollback_db_transaction
+        
         # threaded_connections_test.rb will fail unless we set the session
         # to optimistic locking mode
 #         set_pessimistic_transactions

@@ -1,5 +1,7 @@
 *SVN*
 
+* New Frontbase connections don't start in auto-commit mode. Closes #4922. [mlaster@metavillage.com]
+
 * When grouping, use the appropriate option key. [Marcel Molina Jr.]
 
 * Only modify the sequence name in the FrontBase adapter if the FrontBase adapter is actually being used. [Marcel Molina Jr.]
