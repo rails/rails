@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow AR::Base#to_xml to include methods too. Closes #4921. [johan@textdrive.com] 
+
 * Replace superfluous name_to_class_name variant with camelize. [Marcel Molina Jr.]
 
 * Replace alias method chaining with Module#alias_method_chain. [Marcel Molina Jr.]

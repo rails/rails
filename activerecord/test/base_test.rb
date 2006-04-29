@@ -1273,6 +1273,12 @@ class BasicsTest < Test::Unit::TestCase
     assert xml.include?(%(<clients><client>))
   end
   
+  def test_to_xml_including_methods
+    xml = Company.new.to_xml(:methods => :arbitrary_method, :skip_instruct => true)
+    assert_equal "<company>", xml.first(9)
+    assert xml.include?(%(<arbitrary-method>I am Jack's profound disappointment</arbitrary-method>))
+  end
+  
   def test_except_attributes
     assert_equal(
       %w( author_name type id approved replies_count bonus_time written_on content author_email_address parent_id last_read), 

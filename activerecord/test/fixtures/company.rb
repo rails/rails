@@ -5,6 +5,10 @@ class Company < ActiveRecord::Base
   validates_presence_of :name
 
   has_one :dummy_account, :foreign_key => "firm_id", :class_name => "Account"
+  
+  def arbitrary_method
+    "I am Jack's profound disappointment"
+  end
 end
 
 

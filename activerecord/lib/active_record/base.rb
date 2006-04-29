@@ -1690,12 +1690,28 @@ module ActiveRecord #:nodoc:
       #       <credit-limit type="integer">50</credit-limit>
       #     </account>
       #   </firm>
+      #
+      # To include any methods on the object(s) being called use :methods
+      #
+      # firm.to_xml :methods => [ :calculated_earnings, :real_earnings ]
+      #
+      #   <firm>
+      #     # ... normal attributes as shown above ...
+      #     <calculated-earnings>100000000000000000</calculated-earnings>
+      #     <real-earnings>5</real-earnings>
+      #   </firm>
       def to_xml(options = {})
         options[:root]    ||= self.class.to_s.underscore
         options[:except]    = Array(options[:except]) << self.class.inheritance_column unless options[:only] # skip type column
         root_only_or_except = { :only => options[:only], :except => options[:except] }
 
         attributes_for_xml = attributes(root_only_or_except)
+        
+        if methods_to_call = options.delete(:methods)
+          [*methods_to_call].each do |meth|
+            attributes_for_xml[meth] = send(meth) 
+          end
+        end
         
         if include_associations = options.delete(:include)
           include_has_options = include_associations.is_a?(Hash)
