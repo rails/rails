@@ -34,8 +34,8 @@ SCHEMA_PATH = File.join(File.dirname(__FILE__), *%w(test fixtures db_definitions
 
 desc 'Build the MySQL test database'
 task :build_database do 
-  %x( mysqladmin  create activewebservice_unittest )
-  %x( mysql  activewebservice_unittest < #{File.join(SCHEMA_PATH, 'mysql.sql')} )
+  %x( mysqladmin  create actionwebservice_unittest )
+  %x( mysql  actionwebservice_unittest < #{File.join(SCHEMA_PATH, 'mysql.sql')} )
 end
 
 

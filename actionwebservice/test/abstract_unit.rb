@@ -24,7 +24,7 @@ ActiveRecord::Base.establish_connection(
   :adapter  => "mysql",
   :username => "rails",
   :encoding => "utf8",
-  :database => "activewebservice_unittest"
+  :database => "actionwebservice_unittest"
 )
 ActiveRecord::Base.connection
 
