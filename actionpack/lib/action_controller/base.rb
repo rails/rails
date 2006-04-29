@@ -373,24 +373,26 @@ module ActionController #:nodoc:
       def filter_parameter_logging(*filter_words, &block)
         parameter_filter = Regexp.new(filter_words.collect{ |s| s.to_s }.join('|'), true) if filter_words.length > 0
 
-        define_method(:filter_parameters) do |unfiltered_parameters|
-          filtered_parameters = {}
+        class << self
+          define_method(:filter_parameters) do |unfiltered_parameters|
+            filtered_parameters = {}
 
-          unfiltered_parameters.each do |key, value|
-            if key =~ parameter_filter
-              filtered_parameters[key] = '[FILTERED]'
-            elsif value.is_a?(Hash)
-              filtered_parameters[key] = filter_parameters(value) 
-            elsif block_given?
-              key, value = key.dup, value.dup
-              yield key, value
-              filtered_parameters[key] = value
-            else 
-              filtered_parameters[key] = value
+            unfiltered_parameters.each do |key, value|
+              if key =~ parameter_filter
+                filtered_parameters[key] = '[FILTERED]'
+              elsif value.is_a?(Hash)
+                filtered_parameters[key] = filter_parameters(value) 
+              elsif block_given?
+                key, value = key.dup, value.dup
+                yield key, value
+                filtered_parameters[key] = value
+              else 
+                filtered_parameters[key] = value
+              end
             end
-          end
 
-          filtered_parameters
+            filtered_parameters
+          end
         end
       end
     end

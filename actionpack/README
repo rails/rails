@@ -139,7 +139,7 @@ A short rundown of the major features:
     end
 
     Layout file (called weblog_layout):
-      <html><body><%= @content_for_layout %></body></html>
+      <html><body><%= yield %></body></html>
     
     Template for hello_world action:
       <h1>Hello world</h1>
@@ -155,7 +155,7 @@ A short rundown of the major features:
     map.connect 'clients/:client_name/:project_name/:controller/:action'
 
     Accessing /clients/37signals/basecamp/project/dash calls ProjectController#dash with
-    { "client_name" => "37signals", "project_name" => "basecamp" } in @params["params"]
+    { "client_name" => "37signals", "project_name" => "basecamp" } in params[:params]
     
     From that URL, you can rewrite the redirect in a number of ways:
     
@@ -338,7 +338,7 @@ A short rundown of the major features:
       <input type="submit" value="Create">
     </form>
 
-    This form generates a @params["post"] array that can be used directly in a save action:
+    This form generates a params[:post] array that can be used directly in a save action:
     
     class WeblogController < ActionController::Base
       def save
@@ -370,7 +370,7 @@ methods:
     end
     
     def display
-      @post = Post.find(:params[:id])
+      @post = Post.find(params[:id])
     end
     
     def new
@@ -394,7 +394,7 @@ And the templates look like this:
 
   weblog/layout.rhtml:
     <html><body>
-    <%= @content_for_layout %>
+    <%= yield %>
     </body></html>
 
   weblog/index.rhtml:
