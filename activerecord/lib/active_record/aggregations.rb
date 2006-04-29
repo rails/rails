@@ -128,7 +128,7 @@ module ActiveRecord
         options.assert_valid_keys(:class_name, :mapping)
 
         name        = part_id.id2name
-        class_name  = options[:class_name] || name_to_class_name(name)
+        class_name  = options[:class_name] || name.camelize
         mapping     = options[:mapping] || [ name, name ]
 
         reader_method(name, class_name, mapping)
@@ -138,9 +138,6 @@ module ActiveRecord
       end
 
       private
-        def name_to_class_name(name)
-          name.capitalize.gsub(/_(.)/) { |s| $1.capitalize }
-        end
         
         def reader_method(name, class_name, mapping)
           module_eval <<-end_eval

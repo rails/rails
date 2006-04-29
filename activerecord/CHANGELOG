@@ -1,5 +1,7 @@
 *SVN*
 
+* Replace superfluous name_to_class_name variant with camelize. [Marcel Molina Jr.]
+
 * Replace alias method chaining with Module#alias_method_chain. [Marcel Molina Jr.]
 
 * Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
