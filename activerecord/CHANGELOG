@@ -1,5 +1,7 @@
 *SVN*
 
+* Replace alias method chaining with Module#alias_method_chain. [Marcel Molina Jr.]
+
 * Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
 
 * Remove duplicate fixture entry in comments.yml. Closes #4923. [Blair Zajac <blair@orcaware.com>]

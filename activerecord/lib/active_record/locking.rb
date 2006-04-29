@@ -23,8 +23,7 @@ module ActiveRecord
   module Locking
     def self.included(base) #:nodoc:
       base.class_eval do
-        alias_method :update_without_lock, :update
-        alias_method :update, :update_with_lock
+        alias_method_chain :update, :lock
       end
     end
 

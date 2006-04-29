@@ -12,8 +12,7 @@ module ActionController #:nodoc:
       base.class_eval do
         # Wrap inherited to create a new master helper module for subclasses.
         class << self
-          alias_method :inherited_without_helper, :inherited
-          alias_method :inherited, :inherited_with_helper
+          alias_method_chain :inherited, :helper
         end
       end
     end

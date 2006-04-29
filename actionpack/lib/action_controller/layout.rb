@@ -3,12 +3,13 @@ module ActionController #:nodoc:
     def self.included(base)
       base.extend(ClassMethods)
       base.class_eval do
+        # NOTE: Can't use alias_method_chain here because +render_without_layout+ is already
+        # defined as a publicly exposed method
         alias_method :render_with_no_layout, :render
         alias_method :render, :render_with_a_layout
 
         class << self
-          alias_method :inherited_without_layout, :inherited
-          alias_method :inherited, :inherited_with_layout
+          alias_method_chain :inherited, :layout
         end
       end
     end

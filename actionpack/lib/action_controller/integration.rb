@@ -317,9 +317,8 @@ module ActionController
       def self.included(base)
         base.extend(ClassMethods)
         base.class_eval do
-          class <<self
-            alias_method :new_without_capture, :new
-            alias_method :new, :new_with_capture
+          class << self
+            alias_method_chain :new, :capture
           end
         end
       end

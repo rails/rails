@@ -9,8 +9,7 @@ module ActionController #:nodoc:
     def self.included(base) #:nodoc:
       base.extend(ClassMethods)
       base.class_eval do
-        alias_method :perform_action_without_rescue, :perform_action
-        alias_method :perform_action, :perform_action_with_rescue
+        alias_method_chain :perform_action, :rescue
       end
     end
 

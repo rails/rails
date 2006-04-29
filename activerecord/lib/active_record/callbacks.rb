@@ -175,27 +175,12 @@ module ActiveRecord
       base.class_eval do
         class << self
           include Observable
-          alias_method :instantiate_without_callbacks, :instantiate
-          alias_method :instantiate, :instantiate_with_callbacks
+          alias_method_chain :instantiate, :callbacks
         end
 
-        alias_method :initialize_without_callbacks, :initialize
-        alias_method :initialize, :initialize_with_callbacks
-
-        alias_method :create_or_update_without_callbacks, :create_or_update
-        alias_method :create_or_update, :create_or_update_with_callbacks
-
-        alias_method :valid_without_callbacks, :valid?
-        alias_method :valid?, :valid_with_callbacks
-
-        alias_method :create_without_callbacks, :create
-        alias_method :create, :create_with_callbacks
-
-        alias_method :update_without_callbacks, :update
-        alias_method :update, :update_with_callbacks
-
-        alias_method :destroy_without_callbacks, :destroy
-        alias_method :destroy, :destroy_with_callbacks
+        [:initialize, :create_or_update, :valid?, :create, :update, :destroy].each do |method|
+          alias_method_chain method, :callbacks
+        end
       end
 
       CALLBACKS.each do |method|

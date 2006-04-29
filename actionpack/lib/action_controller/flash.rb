@@ -28,11 +28,8 @@ module ActionController #:nodoc:
       base.send :include, InstanceMethods
 
       base.class_eval do
-        alias_method :assign_shortcuts_without_flash, :assign_shortcuts
-        alias_method :assign_shortcuts, :assign_shortcuts_with_flash
-
-        alias_method :process_cleanup_without_flash, :process_cleanup
-        alias_method :process_cleanup, :process_cleanup_with_flash
+        alias_method_chain :assign_shortcuts, :flash
+        alias_method_chain :process_cleanup, :flash
       end
     end
     

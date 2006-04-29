@@ -13,11 +13,9 @@ module ActiveRecord
       base.extend(ClassMethods)
 
       base.class_eval do
-        alias_method :destroy_without_transactions, :destroy
-        alias_method :destroy, :destroy_with_transactions
-
-        alias_method :save_without_transactions, :save
-        alias_method :save, :save_with_transactions
+        [:destroy, :save].each do |method|
+          alias_method_chain method, :transactions
+        end
       end
     end
 

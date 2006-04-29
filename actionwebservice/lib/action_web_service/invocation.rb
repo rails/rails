@@ -126,8 +126,7 @@ module ActionWebService # :nodoc:
     module InstanceMethods # :nodoc:
       def self.included(base)
         base.class_eval do
-          alias_method :perform_invocation_without_interception, :perform_invocation
-          alias_method :perform_invocation, :perform_invocation_with_interception
+          alias_method_chain :perform_invocation, :interception
         end
       end
 

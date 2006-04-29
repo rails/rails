@@ -50,14 +50,9 @@ module ActionController #:nodoc:
       base.send :attr_accessor, :parent_controller
       
       base.class_eval do
-        alias_method :process_cleanup_without_components, :process_cleanup
-        alias_method :process_cleanup, :process_cleanup_with_components
-        
-        alias_method :set_session_options_without_components, :set_session_options
-        alias_method :set_session_options, :set_session_options_with_components
-        
-        alias_method :flash_without_components, :flash
-        alias_method :flash, :flash_with_components
+        alias_method_chain :process_cleanup, :components
+        alias_method_chain :set_session_options, :components
+        alias_method_chain :flash, :components
 
         alias_method :component_request?, :parent_controller       
       end

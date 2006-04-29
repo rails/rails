@@ -8,11 +8,8 @@ module ActionController #:nodoc:
       base.extend(ClassMethods)
 
       base.class_eval do
-        alias_method :perform_action_without_benchmark, :perform_action
-        alias_method :perform_action, :perform_action_with_benchmark
-
-        alias_method :render_without_benchmark, :render
-        alias_method :render, :render_with_benchmark
+        alias_method_chain :perform_action, :benchmark
+        alias_method_chain :render, :benchmark
       end
     end
 

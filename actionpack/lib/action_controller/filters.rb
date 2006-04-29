@@ -350,14 +350,9 @@ module ActionController #:nodoc:
     module InstanceMethods # :nodoc:
       def self.included(base)
         base.class_eval do
-          alias_method :perform_action_without_filters, :perform_action
-          alias_method :perform_action, :perform_action_with_filters
-
-          alias_method :process_without_filters, :process
-          alias_method :process, :process_with_filters
-
-          alias_method :process_cleanup_without_filters, :process_cleanup
-          alias_method :process_cleanup, :process_cleanup_with_filters
+          alias_method_chain :perform_action, :filters
+          alias_method_chain :process, :filters
+          alias_method_chain :process_cleanup, :filters
         end
       end
 

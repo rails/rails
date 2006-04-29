@@ -11,14 +11,12 @@ module ActionMailer
       base.class_eval do
         # Wrap inherited to create a new master helper module for subclasses.
         class << self
-          alias_method :inherited_without_helper, :inherited
-          alias_method :inherited, :inherited_with_helper
+          alias_method_chain :inherited, :helper
         end
 
         # Wrap initialize_template_class to extend new template class
         # instances with the master helper module.
-        alias_method :initialize_template_class_without_helper, :initialize_template_class
-        alias_method :initialize_template_class, :initialize_template_class_with_helper
+        alias_method_chain :initialize_template_class, :helper
       end
     end
 

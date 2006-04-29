@@ -3,8 +3,7 @@ module ActiveSupport #:nodoc:
     module Time #:nodoc:
       # Enables the use of time calculations within Time itself
       module Calculations
-        def self.append_features(base) #:nodoc:
-          super
+        def self.included(base) #:nodoc:
           base.extend(ClassMethods)
         end
 

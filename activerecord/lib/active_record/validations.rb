@@ -217,14 +217,9 @@ module ActiveRecord
     def self.included(base) # :nodoc:
       base.extend ClassMethods
       base.class_eval do
-        alias_method :save_without_validation, :save
-        alias_method :save, :save_with_validation
-
-        alias_method :save_without_validation!, :save!
-        alias_method :save!, :save_with_validation!
-
-        alias_method :update_attribute_without_validation_skipping, :update_attribute
-        alias_method :update_attribute, :update_attribute_with_validation_skipping
+        alias_method_chain :save, :validation
+        alias_method_chain :save!, :validation!       
+        alias_method_chain :update_attribute, :validation_skipping
       end
     end
 

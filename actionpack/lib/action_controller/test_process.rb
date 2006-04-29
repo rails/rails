@@ -18,8 +18,7 @@ module ActionController #:nodoc:
       end
     end
 
-    alias_method :process_without_test, :process
-    alias_method :process, :process_with_test
+    alias_method_chain :process, :test
   end
 
   class TestRequest < AbstractRequest #:nodoc:

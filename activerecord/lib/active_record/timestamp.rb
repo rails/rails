@@ -8,11 +8,9 @@ module ActiveRecord
   module Timestamp
     def self.included(base) # :nodoc:
       base.class_eval do
-        alias_method :create_without_timestamps, :create
-        alias_method :create, :create_with_timestamps
-
-        alias_method :update_without_timestamps, :update
-        alias_method :update, :update_with_timestamps
+        [:create, :update].each do |method|
+          alias_method_chain method, :timestamps
+        end
       end
     end
 
