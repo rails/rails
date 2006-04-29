@@ -4,8 +4,7 @@ require 'builder/xmlmarkup'
 module ActionWebService # :nodoc:
   module Dispatcher # :nodoc:
     module ActionController # :nodoc:
-      def self.append_features(base) # :nodoc:
-        super
+      def self.included(base) # :nodoc:
         class << base
           include ClassMethods
           alias_method :inherited_without_action_controller, :inherited

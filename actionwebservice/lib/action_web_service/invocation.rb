@@ -3,8 +3,7 @@ module ActionWebService # :nodoc:
     class InvocationError < ActionWebService::ActionWebServiceError # :nodoc:
     end
 
-    def self.append_features(base) # :nodoc:
-      super
+    def self.included(base) # :nodoc:
       base.extend(ClassMethods)
       base.send(:include, ActionWebService::Invocation::InstanceMethods)
     end
@@ -125,8 +124,7 @@ module ActionWebService # :nodoc:
     end
 
     module InstanceMethods # :nodoc:
-      def self.append_features(base)
-        super
+      def self.included(base)
         base.class_eval do
           alias_method :perform_invocation_without_interception, :perform_invocation
           alias_method :perform_invocation, :perform_invocation_with_interception

@@ -1,8 +1,7 @@
 module ActionController
   module Macros
     module InPlaceEditing #:nodoc:
-      def self.append_features(base) #:nodoc:
-        super
+      def self.included(base) #:nodoc:
         base.extend(ClassMethods)
       end
 

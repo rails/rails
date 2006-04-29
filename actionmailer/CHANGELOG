@@ -1,3 +1,7 @@
+*SVN*
+
+* Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
+
 * Correct spurious documentation example code which results in a SyntaxError. [Marcel Molina Jr.]
 
 *1.2.1* (April 6th, 2006)

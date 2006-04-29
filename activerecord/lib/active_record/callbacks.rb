@@ -170,9 +170,7 @@ module ActiveRecord
       after_validation_on_update before_destroy after_destroy
     )
 
-    def self.append_features(base) #:nodoc:
-      super
-
+    def self.included(base) #:nodoc:
       base.extend(ClassMethods)
       base.class_eval do
         class << self

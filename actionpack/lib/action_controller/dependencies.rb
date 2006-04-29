@@ -1,7 +1,6 @@
 module ActionController #:nodoc:
   module Dependencies #:nodoc:
-    def self.append_features(base)
-      super
+    def self.included(base)
       base.extend(ClassMethods)
     end
 

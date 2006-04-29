@@ -48,8 +48,7 @@ module Rails
     # the generator and how to create it.  A source is anything that
     # yields generators from #each.  PathSource and GemSource are provided.
     module Lookup
-      def self.append_features(base)
-        super
+      def self.included(base)
         base.extend(ClassMethods)
         base.use_component_sources!
       end

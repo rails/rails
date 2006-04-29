@@ -4,8 +4,7 @@ module ActionController
   # backing.
   module Macros
     module AutoComplete #:nodoc:
-      def self.append_features(base) #:nodoc:
-        super
+      def self.included(base) #:nodoc:
         base.extend(ClassMethods)
       end
 

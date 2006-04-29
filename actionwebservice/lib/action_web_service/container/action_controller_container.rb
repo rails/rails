@@ -1,7 +1,7 @@
 module ActionWebService # :nodoc:
   module Container # :nodoc:
     module ActionController # :nodoc:
-      def self.append_features(base) # :nodoc:
+      def self.included(base) # :nodoc:
         class << base
           include ClassMethods
           alias_method :inherited_without_api, :inherited

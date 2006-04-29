@@ -9,8 +9,7 @@ module ActiveRecord
       end
     end
 
-    def self.append_features(base)
-      super
+    def self.included(base)
       base.extend(ClassMethods)
     end
 

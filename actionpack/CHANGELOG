@@ -1,5 +1,7 @@
 *SVN*
 
+* Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
+
 * Use #flush between switching from #write to #syswrite. Closes #4907. [Blair Zajac <blair@orcaware.com>]
 
 * Documentation fix: integration test scripts don't require integration_test. Closes #4914. [Frederick Ros <sl33p3r@free.fr>]
@@ -1930,7 +1932,7 @@ Default YAML web services were retired, ActionController::Base.param_parsers car
   Before:
 
     module WeblogHelper
-      def self.append_features(controller) #:nodoc:
+      def self.included(controller) #:nodoc:
         controller.ancestors.include?(ActionController::Base) ? controller.add_template_helper(self) : super
       end
     end

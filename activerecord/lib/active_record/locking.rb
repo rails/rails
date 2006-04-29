@@ -21,8 +21,7 @@ module ActiveRecord
   # To override the name of the lock_version column, invoke the <tt>set_locking_column</tt> method.
   # This method uses the same syntax as <tt>set_table_name</tt>
   module Locking
-    def self.append_features(base) #:nodoc:
-      super
+    def self.included(base) #:nodoc:
       base.class_eval do
         alias_method :update_without_lock, :update
         alias_method :update, :update_with_lock

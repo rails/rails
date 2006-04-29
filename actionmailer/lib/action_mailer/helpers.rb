@@ -1,8 +1,6 @@
 module ActionMailer
   module Helpers #:nodoc:
-    def self.append_features(base) #:nodoc:
-      super
-
+    def self.included(base) #:nodoc:
       # Initialize the base module to aggregate its helpers.
       base.class_inheritable_accessor :master_helper_module
       base.master_helper_module = Module.new

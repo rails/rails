@@ -4,8 +4,7 @@ module ActionWebService # :nodoc:
       class ContainerError < ActionWebServiceError # :nodoc:
       end
   
-      def self.append_features(base) # :nodoc:
-        super
+      def self.included(base) # :nodoc:
         base.extend(ClassMethods)
         base.send(:include, ActionWebService::Container::Delegated::InstanceMethods)
       end

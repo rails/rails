@@ -16,7 +16,7 @@ module Rails
       # Even more convenient access to commands.  Include Commands in
       # the generator Base class to get a nice #command instance method
       # which returns a delegate for the requested command.
-      def self.append_features(base)
+      def self.included(base)
         base.send(:define_method, :command) do |command|
           Commands.instance(command, self)
         end

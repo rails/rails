@@ -9,8 +9,7 @@ module ActiveRecord
     class TransactionError < ActiveRecordError # :nodoc:
     end
 
-    def self.append_features(base)
-      super
+    def self.included(base)
       base.extend(ClassMethods)
 
       base.class_eval do

@@ -6,9 +6,7 @@ module ActiveRecord
   # This behavior can be turned off by setting <tt>ActiveRecord::Base.record_timestamps = false</tt>.
   # This behavior by default uses local time, but can use UTC by setting <tt>ActiveRecord::Base.default_timezone = :utc</tt>
   module Timestamp
-    def self.append_features(base) # :nodoc:
-      super
-
+    def self.included(base) # :nodoc:
       base.class_eval do
         alias_method :create_without_timestamps, :create
         alias_method :create, :create_with_timestamps

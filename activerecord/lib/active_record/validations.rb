@@ -214,8 +214,7 @@ module ActiveRecord
   module Validations
     VALIDATIONS = %w( validate validate_on_create validate_on_update )
 
-    def self.append_features(base) # :nodoc:
-      super
+    def self.included(base) # :nodoc:
       base.extend ClassMethods
       base.class_eval do
         alias_method :save_without_validation, :save

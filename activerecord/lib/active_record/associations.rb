@@ -77,8 +77,7 @@ module ActiveRecord
   end
 
   module Associations # :nodoc:
-    def self.append_features(base)
-      super
+    def self.included(base)
       base.extend(ClassMethods)
     end
 

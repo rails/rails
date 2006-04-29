@@ -1,5 +1,7 @@
 *SVN*
 
+* Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
+
 * Allow default options in with_options to be overridden. Closes #4480. [murphy@cYcnus.de] 
 
 * Added Module#alias_method_chain [Jamis Buck]

@@ -3,8 +3,7 @@ require 'optparse'
 module Rails
   module Generator
     module Options
-      def self.append_features(base)
-        super
+      def self.included(base)
         base.extend(ClassMethods)
         class << base
           if respond_to?(:inherited)

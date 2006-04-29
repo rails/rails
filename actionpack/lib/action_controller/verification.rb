@@ -1,7 +1,6 @@
 module ActionController #:nodoc:
   module Verification #:nodoc:
-    def self.append_features(base) #:nodoc:
-      super
+    def self.included(base) #:nodoc:
       base.extend(ClassMethods)
     end
 

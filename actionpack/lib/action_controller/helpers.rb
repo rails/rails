@@ -1,7 +1,6 @@
 module ActionController #:nodoc:
   module Helpers #:nodoc:
-    def self.append_features(base)
-      super
+    def self.included(base)
 
       # Initialize the base module to aggregate its helpers.
       base.class_inheritable_accessor :master_helper_module

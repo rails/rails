@@ -1,5 +1,7 @@
 *SVN*
 
+* Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
+
 * Fix test database name typo. [Marcel Molina Jr.]
 
 *1.1.2* (April 9th, 2005)

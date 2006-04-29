@@ -156,8 +156,7 @@ module ActionController #:nodoc:
     # "david.somewhere.com/lists/show/1". This allows the cacher to differentiate between "david.somewhere.com/lists/" and
     # "jamis.somewhere.com/lists/" -- which is a helpful way of assisting the subdomain-as-account-key pattern.
     module Actions
-      def self.append_features(base) #:nodoc:
-        super
+      def self.included(base) #:nodoc:
         base.extend(ClassMethods)
         base.send(:attr_accessor, :rendered_action_cache)
       end
@@ -246,8 +245,7 @@ module ActionController #:nodoc:
     #   ActionController::Base.fragment_cache_store = :mem_cache_store, "localhost"
     #   ActionController::Base.fragment_cache_store = MyOwnStore.new("parameter")
     module Fragments
-      def self.append_features(base) #:nodoc:
-        super
+      def self.included(base) #:nodoc:
         base.class_eval do
           @@fragment_cache_store = MemoryStore.new
           cattr_reader :fragment_cache_store
@@ -493,8 +491,7 @@ module ActionController #:nodoc:
     #
     # In the example above, four actions are cached and three actions are responsible for expiring those caches.
     module Sweeping
-      def self.append_features(base) #:nodoc:
-        super
+      def self.included(base) #:nodoc:
         base.extend(ClassMethods)
       end
 

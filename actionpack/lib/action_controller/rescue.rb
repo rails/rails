@@ -6,8 +6,7 @@ module ActionController #:nodoc:
   #
   # You can tailor the rescuing behavior and appearance by overwriting the following two stub methods.
   module Rescue
-    def self.append_features(base) #:nodoc:
-      super
+    def self.included(base) #:nodoc:
       base.extend(ClassMethods)
       base.class_eval do
         alias_method :perform_action_without_rescue, :perform_action

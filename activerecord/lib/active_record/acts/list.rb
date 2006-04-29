@@ -1,8 +1,7 @@
 module ActiveRecord
   module Acts #:nodoc:
     module List #:nodoc:
-      def self.append_features(base)
-        super
+      def self.included(base)
         base.extend(ClassMethods)
       end
       
