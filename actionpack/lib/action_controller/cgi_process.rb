@@ -180,6 +180,9 @@ end_msg
         if @cgi.send(:env_table)['REQUEST_METHOD'] == 'HEAD'
           return
         elsif @body.respond_to?(:call)
+          # Flush the output now in case the @body Proc uses
+          # #syswrite.
+          output.flush if output.respond_to?(:flush)
           @body.call(self, output)
         else
           output.write(@body)

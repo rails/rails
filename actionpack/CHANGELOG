@@ -1,5 +1,7 @@
 *SVN*
 
+* Use #flush between switching from #write to #syswrite. Closes #4907. [Blair Zajac <blair@orcaware.com>]
+
 * Documentation fix: integration test scripts don't require integration_test. Closes #4914. [Frederick Ros <sl33p3r@free.fr>]
 
 * ActionController::Base Summary documentation rewrite. Closes #4900. [kevin.clark@gmail.com]
