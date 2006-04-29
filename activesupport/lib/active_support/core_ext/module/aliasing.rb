@@ -10,7 +10,10 @@ class Module
   #
   # And both aliases are set up for you.
   def alias_method_chain(target, feature)
-    alias_method "#{target}_without_#{feature}", target
-    alias_method target, "#{target}_with_#{feature}"
+    # Strip out punctuation on predicates or bang methods since
+    # e.g. target?_without_feature is not a valid method name.
+    aliased_target = target.to_s.sub(/[?!]/, '')
+    alias_method "#{aliased_target}_without_#{feature}", target
+    alias_method target, "#{aliased_target}_with_#{feature}"
   end
 end

@@ -99,3 +99,61 @@ class ModuleTest < Test::Unit::TestCase
     assert_equal 'yz', Yz.as_load_path
   end
 end
+
+module BarMethodAliaser
+  def self.included(foo_class)
+    foo_class.alias_method_chain :bar, :baz
+  end
+
+  def bar_with_baz
+    bar_without_baz << '_with_baz'
+  end
+
+  def quux_with_baz
+    quux_without_baz << '_with_baz'
+  end
+end
+
+class MethodAliasingTest < Test::Unit::TestCase
+
+  def setup
+    Object.const_set(:FooClassWithBarMethod, Class.new)
+    FooClassWithBarMethod.send(:define_method, 'bar', Proc.new { 'bar' })
+    @instance = FooClassWithBarMethod.new
+  end
+
+  def teardown
+    Object.send(:remove_const, :FooClassWithBarMethod)
+  end
+
+  def test_alias_method_chain
+    assert @instance.respond_to? :bar
+    feature_aliases = [:bar_with_baz, :bar_without_baz]
+
+    feature_aliases.each do |method|
+      assert !@instance.respond_to?(method)
+    end
+
+    assert_equal 'bar', @instance.bar
+
+    FooClassWithBarMethod.send(:include, BarMethodAliaser)
+
+    feature_aliases.each do |method|
+      assert @instance.respond_to?(method)
+    end
+
+    assert_equal 'bar_with_baz', @instance.bar
+    assert_equal 'bar', @instance.bar_without_baz
+  end
+
+  def test_alias_method_chain_with_punctuation_method
+    FooClassWithBarMethod.send(:define_method, 'quux!', Proc.new { 'quux' })
+    assert !@instance.respond_to?(:quux_with_baz)
+    FooClassWithBarMethod.send(:include, BarMethodAliaser)
+    FooClassWithBarMethod.alias_method_chain :quux!, :baz
+    assert @instance.respond_to?(:quux_with_baz)
+    
+    assert_equal 'quux_with_baz', @instance.quux!
+    assert_equal 'quux', @instance.quux_without_baz
+  end
+end
