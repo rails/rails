@@ -1,3 +1,5 @@
+require 'stringio'
+
 module ActiveRecord
   # This class is used to dump the database schema for some connection to some
   # output format (i.e., ActiveRecord::Schema).
