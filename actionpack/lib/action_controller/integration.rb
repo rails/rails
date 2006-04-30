@@ -143,17 +143,20 @@ module ActionController
       # (application/x-www-form-urlencoded or multipart/form-data).  The headers
       # should be a hash.  The keys will automatically be upcased, with the 
       # prefix 'HTTP_' added if needed.
+      #
+      # You can also perform POST, PUT, DELETE, and HEAD requests with #post, 
+      # #put, #delete, and #head.
       def get(path, parameters=nil, headers=nil)
         process :get, path, parameters, headers
       end
 
-      # Performs a POST request with the given parameters. The parameters may
-      # be +nil+, a Hash, or a string that is appropriately encoded
-      # (application/x-www-form-urlencoded or multipart/form-data).  The headers
-      # should be a hash.  The keys will automatically be upcased, with the 
-      # prefix 'HTTP_' added if needed.
-      def post(path, parameters=nil, headers=nil)
-        process :post, path, parameters, headers
+      # keep the docs for #get
+      %w( post put delete head ).each do |method|
+        class_eval <<-EOV, __FILE__, __LINE__
+          def #{method}(path, parameters=nil, headers=nil)
+            process :#{method}, path, parameters, headers
+          end
+        EOV
       end
 
       # Performs an XMLHttpRequest request with the given parameters, mimicing
