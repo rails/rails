@@ -217,7 +217,7 @@ module ActiveRecord
             key_records = key_records.inject({}) { |hsh, r| hsh.merge(r.id => r) }
           end
 
-          calculated_data.inject(OrderedHash.new) do |all, row|
+          calculated_data.inject(ActiveSupport::OrderedHash.new) do |all, row|
             key   = associated ? key_records[row[group_alias].to_i] : type_cast_calculated_value(row[group_alias], group_column)
             value = row[aggregate_alias]
             all << [key, type_cast_calculated_value(value, column, operation)]

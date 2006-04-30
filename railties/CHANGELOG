@@ -1,5 +1,7 @@
 *SVN*
 
+* Namespaced OrderedHash so the Rails implementation does not clash with any others. (fixes #4911) [Julian Tarkhanov]
+
 * Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
 
 * Added script/process/inspector to do simple process status information on Rails dispatchers keeping pid files in tmp/pids [DHH]

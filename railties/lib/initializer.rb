@@ -448,7 +448,7 @@ module Rails
       self.database_configuration_file  = default_database_configuration_file
 
       for framework in default_frameworks
-        self.send("#{framework}=", OrderedOptions.new)
+        self.send("#{framework}=", Rails::OrderedOptions.new)
       end
     end
     
@@ -576,9 +576,12 @@ module Rails
 end
 
 # Needs to be duplicated from Active Support since its needed before Active
-# Support is available.
-class OrderedHash < Array #:nodoc:
-  def []=(key, value)    
+# Support is available. Here both Options and Hash are namespaced to prevent
+# conflicts with other implementations AND with the classes residing in ActiveSupport.
+class Rails::OrderedOptions < Array #:nodoc:
+  def []=(key, value)
+    key = key.to_sym
+
     if pair = find_pair(key)
       pair.pop
       pair << value
@@ -586,30 +589,10 @@ class OrderedHash < Array #:nodoc:
       self << [key, value]
     end
   end
-  
+
   def [](key)
-    pair = find_pair(key)
+    pair = find_pair(key.to_sym)
     pair ? pair.last : nil
-  end
-
-  def keys
-    self.collect { |i| i.first }
-  end
-
-  private
-    def find_pair(key)
-      self.each { |i| return i if i.first == key }
-      return false
-    end
-end
-
-class OrderedOptions < OrderedHash #:nodoc:
-  def []=(key, value)
-    super(key.to_sym, value)
-  end
-  
-  def [](key)
-    super(key.to_sym)
   end
 
   def method_missing(name, *args)
@@ -619,4 +602,10 @@ class OrderedOptions < OrderedHash #:nodoc:
       self[name]
     end
   end
+
+  private
+    def find_pair(key)
+      self.each { |i| return i if i.first == key }
+      return false
+    end
 end

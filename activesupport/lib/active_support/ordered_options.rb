@@ -1,4 +1,5 @@
-class OrderedHash < Array #:nodoc:
+# OrderedHash is namespaced to prevent conflicts with other implementations
+class ActiveSupport::OrderedHash < Array #:nodoc:
   def []=(key, value)    
     if pair = find_pair(key)
       pair.pop
@@ -24,7 +25,7 @@ class OrderedHash < Array #:nodoc:
     end
 end
 
-class OrderedOptions < OrderedHash #:nodoc:
+class OrderedOptions < ActiveSupport::OrderedHash #:nodoc:
   def []=(key, value)
     super(key.to_sym, value)
   end
