@@ -329,8 +329,8 @@ module ActionController
       def write_recognition(g)
         raise RoutingError, "Path components must occur last" unless g.after.empty?
     
-        start = g.index_name
-        start = "(#{start})" unless /^\w+$/ =~ start
+        start = g.index_name.to_s
+        start = "(#{start})" unless /^\w+$/ =~ start.to_s
     
         value_expr = "#{g.path_name}[#{start}..-1] || []"
         g.result key, "ActionController::Routing::PathComponent::Result.new_escaped(#{value_expr})"

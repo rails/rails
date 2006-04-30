@@ -823,7 +823,15 @@ class RouteSetTests < Test::Unit::TestCase
       rs.connect ':controller/:action/:id'
     end
   end
-  
+
+  def test_dynamic_path_allowed
+    rs.draw do |map|
+      rs.connect '*path', :controller => 'content', :action => 'show_file'
+    end
+
+    assert_equal ['/pages/boo', []], rs.generate(:controller => 'content', :action => 'show_file', :path => %w(pages boo))
+  end
+
   def test_backwards
     rs.draw do |map|
       rs.connect 'page/:id/:action', :controller => 'pages', :action => 'show'
