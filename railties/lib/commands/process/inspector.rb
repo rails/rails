@@ -18,7 +18,7 @@ class Inspector
   end
 
   def inspect
-    header = `#{OPTIONS[:ps] % 0}`.split("\n")[0] + "\n"
+    header = `#{OPTIONS[:ps] % 1}`.split("\n")[0] + "\n"
     lines  = pids.collect { |pid| `#{OPTIONS[:ps] % pid}`.split("\n")[1] }
     
     puts(header + lines.join("\n"))
