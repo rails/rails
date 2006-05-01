@@ -43,7 +43,7 @@ spec = Gem::Specification.new do |s|
   s.summary = "Support and utility classes used by the Rails framework."
   s.description = %q{Utility library which carries commonly used classes and goodies from the Rails framework}
 
-  s.files = [ "CHANGELOG" ] + Dir.glob( "lib/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
+  s.files = [ "CHANGELOG", "README" ] + Dir.glob( "lib/**/*" ).delete_if { |item| item.include?( "\.svn" ) }
   s.require_path = 'lib'
   s.has_rdoc = true
 
