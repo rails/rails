@@ -14,7 +14,7 @@ def daemonize #:nodoc:
 end
 
 class Spawner
-  def self.record_pid(name = "spawner", id = Process.pid)
+  def self.record_pid(name = "#{OPTIONS[:process]}.spawner", id = Process.pid)
     FileUtils.mkdir_p(OPTIONS[:pids])
     File.open(File.expand_path(OPTIONS[:pids] + "/#{name}.pid"), "w+") { |f| f.write(id) }
   end

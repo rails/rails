@@ -1,5 +1,7 @@
 *SVN*
 
+* Distinguish the spawners for different processes [DHH]
+
 * Added -n/--process to script/process/spawner name the process pid (default is dispatch) [DHH]
 
 * Namespaced OrderedHash so the Rails implementation does not clash with any others. (fixes #4911) [Julian Tarkhanov]
