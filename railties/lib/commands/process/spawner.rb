@@ -43,7 +43,7 @@ end
 
 class FcgiSpawner < Spawner
   def self.spawn(port)
-    system("#{OPTIONS[:spawner]} -f #{OPTIONS[:dispatcher]} -p #{port} -P #{OPTIONS[:pids]}/dispatch.#{port}.pid")
+    system("#{OPTIONS[:spawner]} -f #{OPTIONS[:dispatcher]} -p #{port} -P #{OPTIONS[:pids]}/#{OPTIONS[:process]}.#{port}.pid")
   end
 end
 
@@ -59,6 +59,7 @@ OPTIONS = {
   :spawner     => '/usr/bin/env spawn-fcgi',
   :dispatcher  => File.expand_path(RAILS_ROOT + '/public/dispatch.fcgi'),
   :pids        => File.expand_path(RAILS_ROOT + "/tmp/pids"),
+  :process     => "dispatch",
   :port        => 8000,
   :instances   => 3,
   :repeat      => nil
@@ -94,6 +95,7 @@ ARGV.options do |opts|
   opts.on("-i", "--instances=number", Integer, "Number of instances (default: #{OPTIONS[:instances]})")            { |OPTIONS[:instances]| }
   opts.on("-r", "--repeat=seconds",   Integer, "Repeat spawn attempts every n seconds (default: off)")             { |OPTIONS[:repeat]| }
   opts.on("-e", "--environment=name", String,  "test|development|production (default: #{OPTIONS[:environment]})")  { |OPTIONS[:environment]| }
+  opts.on("-n", "--process=name",     String,  "default: #{OPTIONS[:process]})")                                   { |OPTIONS[:process]| }
   opts.on("-s", "--spawner=path",     String,  "default: #{OPTIONS[:spawner]}")                                    { |OPTIONS[:spawner]| }
   opts.on("-d", "--dispatcher=path",  String,  "default: #{OPTIONS[:dispatcher]}") { |dispatcher| OPTIONS[:dispatcher] = File.expand_path(dispatcher) }
 
