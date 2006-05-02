@@ -95,7 +95,7 @@ ARGV.options do |opts|
   opts.on("-i", "--instances=number", Integer, "Number of instances (default: #{OPTIONS[:instances]})")            { |OPTIONS[:instances]| }
   opts.on("-r", "--repeat=seconds",   Integer, "Repeat spawn attempts every n seconds (default: off)")             { |OPTIONS[:repeat]| }
   opts.on("-e", "--environment=name", String,  "test|development|production (default: #{OPTIONS[:environment]})")  { |OPTIONS[:environment]| }
-  opts.on("-n", "--process=name",     String,  "default: #{OPTIONS[:process]})")                                   { |OPTIONS[:process]| }
+  opts.on("-n", "--process=name",     String,  "default: #{OPTIONS[:process]}")                                    { |OPTIONS[:process]| }
   opts.on("-s", "--spawner=path",     String,  "default: #{OPTIONS[:spawner]}")                                    { |OPTIONS[:spawner]| }
   opts.on("-d", "--dispatcher=path",  String,  "default: #{OPTIONS[:dispatcher]}") { |dispatcher| OPTIONS[:dispatcher] = File.expand_path(dispatcher) }
 
