@@ -106,14 +106,6 @@ module ActiveRecord
             end
           end
         end
-            
-        def find_target
-          if @reflection.options[:finder_sql]
-            @reflection.klass.find_by_sql(@finder_sql)
-          else
-            find(:all)
-          end
-        end
 
         def count_records
           count = if has_cached_counter?

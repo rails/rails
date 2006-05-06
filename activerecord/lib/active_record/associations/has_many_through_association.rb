@@ -56,9 +56,9 @@ module ActiveRecord
             @reflection.klass.with_scope(construct_scope) { @reflection.klass.send(method, *args, &block) }
           end
         end
-            
+
         def find_target
-          @reflection.klass.find(:all, 
+          records = @reflection.klass.find(:all, 
             :select     => construct_select,
             :conditions => construct_conditions,
             :from       => construct_from,
@@ -68,6 +68,8 @@ module ActiveRecord
             :group      => @reflection.options[:group],
             :include    => @reflection.options[:include] || @reflection.source_reflection.options[:include]
           )
+
+          @reflection.options[:uniq] ? records.to_set.to_a : records
         end
 
         def construct_conditions

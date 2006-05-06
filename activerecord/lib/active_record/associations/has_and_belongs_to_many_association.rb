@@ -68,13 +68,9 @@ module ActiveRecord
 
         self
       end
-      
+
       alias :concat_with_attributes :push_with_attributes
 
-      def size
-        @reflection.options[:uniq] ? count_records : super
-      end
-      
       protected
         def method_missing(method, *args, &block)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
@@ -85,17 +81,7 @@ module ActiveRecord
             end
           end
         end
-            
-        def find_target
-          if @reflection.options[:finder_sql]
-            records = @reflection.klass.find_by_sql(@finder_sql)
-          else
-            records = find(:all)
-          end
-          
-          @reflection.options[:uniq] ? uniq(records) : records
-        end
-        
+
         def count_records
           load_target.size
         end

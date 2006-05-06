@@ -12,21 +12,26 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites
 
   def test_has_many
-    assert_equal categories(:general), authors(:david).categories.first
+    assert authors(:david).categories.include?(categories(:general))
   end
-  
+
   def test_has_many_inherited
-    assert_equal categories(:sti_test), authors(:mary).categories.first
+    assert authors(:mary).categories.include?(categories(:sti_test))
   end
 
   def test_inherited_has_many
-    assert_equal authors(:mary), categories(:sti_test).authors.first
+    assert categories(:sti_test).authors.include?(authors(:mary))
   end
-  
+
+  def test_has_many_uniq_through_join_model
+    assert_equal 2, authors(:mary).categorized_posts.size
+    assert_equal 1, authors(:mary).unique_categorized_posts.size
+  end
+
   def test_polymorphic_has_many
-    assert_equal taggings(:welcome_general), posts(:welcome).taggings.first
+    assert posts(:welcome).taggings.include?(taggings(:welcome_general))
   end
-  
+
   def test_polymorphic_has_one
     assert_equal taggings(:welcome_general), posts(:welcome).tagging
   end

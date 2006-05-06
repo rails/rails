@@ -519,6 +519,7 @@ module ActiveRecord
       # * <tt>:source</tt>: Specifies the source association name used by <tt>has_many :through</tt> queries.  Only use it if the name cannot be 
       #   inferred from the association.  <tt>has_many :subscribers, :through => :subscriptions</tt> will look for either +:subscribers+ or
       #   +:subscriber+ on +Subscription+, unless a +:source+ is given.
+      # * <tt>:uniq</tt> - if set to true, duplicates will be omitted from the collection. Useful in conjunction with :through.
       #
       # Option examples:
       #   has_many :comments, :order => "posted_on"
@@ -1048,6 +1049,7 @@ module ActiveRecord
             :exclusively_dependent, :dependent,
             :select, :conditions, :include, :order, :group, :limit, :offset,
             :as, :through, :source,
+            :uniq,
             :finder_sql, :counter_sql, 
             :before_add, :after_add, :before_remove, :after_remove, 
             :extend
@@ -1085,7 +1087,8 @@ module ActiveRecord
           options.assert_valid_keys(
             :class_name, :table_name, :join_table, :foreign_key, :association_foreign_key, 
             :select, :conditions, :include, :order, :group, :limit, :offset,
-            :finder_sql, :delete_sql, :insert_sql, :uniq, 
+            :uniq, 
+            :finder_sql, :delete_sql, :insert_sql,
             :before_add, :after_add, :before_remove, :after_remove, 
             :extend
           )

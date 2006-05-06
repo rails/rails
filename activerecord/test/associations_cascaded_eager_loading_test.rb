@@ -28,7 +28,7 @@ class CascadedEagerLoadingTest < Test::Unit::TestCase
     assert_equal 1, authors[1].posts.size
     assert_equal 9, authors[0].posts.collect{|post| post.comments.size }.inject(0){|sum,i| sum+i}
     assert_equal 1, authors[0].categorizations.size
-    assert_equal 1, authors[1].categorizations.size
+    assert_equal 2, authors[1].categorizations.size
   end
 
   def test_eager_association_loading_with_cascaded_two_levels_with_two_has_many_associations

@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow :uniq => true with has_many :through associations. [Jeremy Kemper]
+
 * Ensure that StringIO is always available for the Schema dumper. [Marcel Molina Jr.]
 
 * Allow AR::Base#to_xml to include methods too. Closes #4921. [johan@textdrive.com] 

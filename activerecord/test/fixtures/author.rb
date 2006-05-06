@@ -26,6 +26,9 @@ class Author < ActiveRecord::Base
   has_many :categorizations
   has_many :categories, :through => :categorizations
 
+  has_many :categorized_posts, :through => :categorizations, :source => :post
+  has_many :unique_categorized_posts, :through => :categorizations, :source => :post, :uniq => true
+
   has_many :nothings, :through => :kateggorisatons, :class_name => 'Category'
 
   has_many :author_favorites

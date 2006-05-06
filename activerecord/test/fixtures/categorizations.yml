@@ -3,9 +3,15 @@ david_welcome_general:
   author_id: 1
   post_id: 1
   category_id: 1
-  
+
 mary_thinking_sti:
   id: 2
   author_id: 2
   post_id: 2
   category_id: 3
+
+mary_thinking_general:
+  id: 3
+  author_id: 2
+  post_id: 2
+  category_id: 1
