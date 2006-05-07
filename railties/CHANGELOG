@@ -1,5 +1,7 @@
 *SVN*
 
+* The app generator sets a session key in application.rb so apps running on the same host may distinguish their cookies. #2967 [rcoder, rails-bug@owl.me.uk]
+
 * Distinguish the spawners for different processes [DHH]
 
 * Added -n/--process to script/process/spawner name the process pid (default is dispatch) [DHH]

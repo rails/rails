@@ -14,6 +14,7 @@ class AppGenerator < Rails::Generator::Base
     usage if args.empty?
     usage("Databases supported for preconfiguration are: #{DATABASES.join(", ")}") if (options[:db] && !DATABASES.include?(options[:db]))
     @destination_root = args.shift
+    @app_name = File.basename(File.expand_path(@destination_root))
   end
 
   def manifest
@@ -31,13 +32,13 @@ class AppGenerator < Rails::Generator::Base
       m.file "README",         "README"
 
       # Application
-      m.template "helpers/application.rb",        "app/controllers/application.rb"
+      m.template "helpers/application.rb",        "app/controllers/application.rb", :assigns => { :app_name => @app_name }
       m.template "helpers/application_helper.rb", "app/helpers/application_helper.rb"
       m.template "helpers/test_helper.rb",        "test/test_helper.rb"
 
       # database.yml and .htaccess
       m.template "configs/databases/#{options[:db]}.yml", "config/database.yml", :assigns => {
-        :app_name => File.basename(File.expand_path(@destination_root)),
+        :app_name => @app_name,
         :socket   => options[:db] == "mysql" ? mysql_socket_location : nil
       }
       m.template "configs/routes.rb",     "config/routes.rb"
