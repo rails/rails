@@ -115,6 +115,7 @@ module ActiveRecord
 
       def self.string_to_dummy_time(string)
         return string unless string.is_a?(String)
+        return nil if string.empty?
         time_array = ParseDate.parsedate(string)
         # pad the resulting array with dummy date information
         time_array[0] = 2000; time_array[1] = 1; time_array[2] = 1;
@@ -175,7 +176,7 @@ module ActiveRecord
       private
         def type_to_sql(name, limit)
           base.type_to_sql(name, limit) rescue name
-        end   
+        end
 
         def add_column_options!(sql, options)
           base.add_column_options!(sql, options.merge(:column => self))

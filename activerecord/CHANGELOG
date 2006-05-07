@@ -1,5 +1,7 @@
 *SVN*
 
+* Dates and times interpret empty strings as nil rather than 2000-01-01. #4830 [kajism@yahoo.com]
+
 * Allow :uniq => true with has_many :through associations. [Jeremy Kemper]
 
 * Ensure that StringIO is always available for the Schema dumper. [Marcel Molina Jr.]
