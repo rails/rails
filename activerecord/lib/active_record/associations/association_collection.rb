@@ -109,7 +109,14 @@ module ActiveRecord
       end
 
       def uniq(collection = self)
-        collection.to_set.to_a
+        seen = Set.new
+        collection.inject([]) do |kept, record|
+          unless seen.include?(record.id)
+            kept << record
+            seen << record.id
+          end
+          kept
+        end
       end
 
       # Replace this collection with +other_array+
