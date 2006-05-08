@@ -1,5 +1,7 @@
 *SVN*
 
+* Document Module::delegate. #5002 [pergesu@gmail.com]
+
 * Replace alias method chaining with Module#alias_method_chain. [Marcel Molina Jr.]
 
 * Strip out punctuation on predicates or bang methods being aliased with alias_method_chain since target?_without_feature is not a valid method name. Add tests for Module#alias_method_chain. [Marcel Molina Jr.]
