@@ -18,7 +18,7 @@ class Module
   #   Foo.new.hello   # => "hello"
   #   Foo.new.goodbye # => NoMethodError: undefined method `goodbye' for #<Foo:0x1af30c>
   #
-  # With multiple delegates to the same target are allowed:
+  # Multiple delegates to the same target are allowed:
   #   class Foo < ActiveRecord::Base
   #     delegate :hello, :goodbye, :to => :greeter
   #   end
