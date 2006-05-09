@@ -1,5 +1,7 @@
 *SVN*
 
+* Excise ingrown code from FormOptionsHelper#options_for_select. #5008 [anonymous]
+
 * Small fix in routing to allow dynamic routes (broken after [4242]) [Rick]
 
     map.connect '*path', :controller => 'files', :action => 'show'

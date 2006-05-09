@@ -103,6 +103,10 @@ class FormOptionsHelperTest < Test::Unit::TestCase
         "<option value=\"ruby\" selected=\"selected\">ruby</option>\n<option value=\"rubyonrails\">rubyonrails</option>",
         options_for_select([ "ruby", "rubyonrails" ], "ruby")
       )
+      assert_dom_equal(
+        %(<option value="ruby" selected="selected">ruby</option>\n<option value="rubyonrails">rubyonrails</option>\n<option value=""></option>),
+        options_for_select([ "ruby", "rubyonrails", nil ], "ruby")
+      )
   end
 
   def test_hash_options_for_select
