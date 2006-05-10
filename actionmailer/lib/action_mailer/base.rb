@@ -5,20 +5,92 @@ require 'action_mailer/utils'
 require 'tmail/net'
 
 module ActionMailer #:nodoc:
-  # Usage:
+  # ActionMailer allows you to send email from your application using a mailer model and views.
   #
-  #   class ApplicationMailer < ActionMailer::Base
-  #     # Set up properties
-  #     # Properties can also be specified via accessor methods
-  #     # (i.e. self.subject = "foo") and instance variables (@subject = "foo").
+  # = Mailer Models
+  # To use ActionMailer, you need to create a mailer model.
+  #   
+  #   $ script/generate mailer Notifier
+  #
+  # The generated model inherits from ActionMailer::Base. Emails are defined by creating methods within the model which are then 
+  # used to set variables to be used in the mail template, to change options on the mail, or 
+  # to add attachments.
+  #
+  # Examples:
+  #
+  #  class Notifier < ActionMailer::Base
+  #    def signup_notification(recipient)
+  #      recipients recipient.email_address_with_name
+  #      from       "system@example.com"
+  #      subject    "New account information"
+  #      body       "account" => recipient
+  #    end
+  #  end
+  #
+  # Mailer methods have the following configuration methods available.
+  #
+  # * <tt>recipients</tt> - Takes one or more email addresses. These addresses are where your email will be delivered to. Sets the <tt>To:</tt> header.
+  # * <tt>subject</tt> - The subject of your email. Sets the <tt>Subject:</tt> header.
+  # * <tt>from</tt> - Who the email you are sending is from. Sets the <tt>From:</tt> header.
+  # * <tt>cc</tt> - Takes one or more email addresses. These addresses will receive a carbon copy of your email. Sets the <tt>Cc:</tt> header.
+  # * <tt>bcc</tt> - Takes one or more email address. These addresses will receive a blind carbon copy of your email. Sets the <tt>Bcc</tt> header.
+  # * <tt>sent_on</tt> - The date on which the message was sent. If not set, the header wil be set by the delivery agent.
+  # * <tt>content_type</tt> - Specify the content type of the message. Defaults to <tt>text/plain</tt>.
+  # * <tt>headers</tt> - Specify additional headers to be set for the message, e.g. <tt>headers 'X-Mail-Count' => 107370</tt>.
+  #
+  # The <tt>body</tt> method has special behavior. It takes a hash which generates an instance variable
+  # named after each key in the hash containing the value that that key points to.
+  #
+  # So, for example, <tt>body "account" => recipient</tt> would result
+  # in an instance variable <tt>@account</tt> with the value of <tt>recipient</tt> being accessible in the 
+  # view.
+  #
+  # = Mailer Views
+  # Like ActionController, each mailer class has a corresponding view directory
+  # in which each method of the class looks for a template with its name.
+  # To define a template to be used with a mailing, create an <tt>.rhtml</tt> file with the same name as the method
+  # in your mailer model. For example, in the mailer defined above, the template at 
+  # <tt>app/views/notifier/signup_notification.rhtml</tt> would be used to generate the email.
+  #
+  # Variables defined in the model are accessible as instance variables in the view.
+  #
+  # Emails by default are sent in plain text, so a sample view for our model example might look like this:
+  #
+  #   Hi <%= @account.name %>,
+  #   Thanks for joining our service! Please check back often.
+  #
+  # = Sending Mail
+  # Once a mailer action and template are defined, you can deliver your message or create it and save it 
+  # for delivery later:
+  #
+  #   Notifier.deliver_signup_notification(david) # sends the email
+  #   mail = Notifier.create_signup_notification(david)  # => a tmail object
+  #   Notifier.deliver(mail)
+  # 
+  # You never instantiate your mailer class. Rather, your delivery instance
+  # methods are automatically wrapped in class methods that start with the word
+  # <tt>deliver_</tt> followed by the name of the mailer method that you would
+  # like to deliver. The <tt>signup_notification</tt> method defined above is
+  # delivered by invoking <tt>Notifier.deliver_signup_notification</tt>.
+  #
+  # = HTML Email
+  # To send mail as HTML, make sure your view (the <tt>.rhtml</tt> file) generates HTML and
+  # set the content type to html.
+  #
+  #   class MyMailer < ActionMailer::Base
   #     def signup_notification(recipient)
   #       recipients recipient.email_address_with_name
   #       subject    "New account information"
   #       body       "account" => recipient
   #       from       "system@example.com"
+  #       content_type "text/html"   #    Here's where the magic happens
   #     end
+  #   end  
   #
-  #     # explicitly specify multipart messages
+  # = Multipart Email
+  # You can explicitly specify multipart messages:
+  #
+  #   class ApplicationMailer < ActionMailer::Base
   #     def signup_notification(recipient)
   #       recipients      recipient.email_address_with_name
   #       subject         "New account information"
@@ -32,7 +104,28 @@ module ActionMailer #:nodoc:
   #         p.transfer_encoding = "base64"
   #       end
   #     end
+  #   end
+  #  
+  # Multipart messages can also be used implicitly because ActionMailer will automatically
+  # detect and use multipart templates, where each template is named after the name of the action, followed
+  # by the content type. Each such detected template will be added as separate part to the message.
+  # 
+  # For example, if the following templates existed:
+  # * signup_notification.text.plain.rhtml
+  # * signup_notification.text.html.rhtml
+  # * signup_notification.text.xml.rxml
+  # * signup_notification.text.x-yaml.rhtml
+  #  
+  # Each would be rendered and added as a separate part to the message,
+  # with the corresponding content type. The same body hash is passed to
+  # each template.
   #
+  # = Attachments
+  # Attachments can be added by using the +attachment+ method.
+  #
+  # Example:
+  #
+  #   class ApplicationMailer < ActionMailer::Base
   #     # attachments
   #     def signup_notification(recipient)
   #       recipients      recipient.email_address_with_name
@@ -46,36 +139,7 @@ module ActionMailer #:nodoc:
   #         a.body = generate_your_pdf_here()
   #       end
   #     end
-  #
-  #     # implicitly multipart messages
-  #     def signup_notification(recipient)
-  #       recipients      recipient.email_address_with_name
-  #       subject         "New account information"
-  #       from            "system@example.com"
-  #       body(:account => "recipient")
-  #
-  #       # ActionMailer will automatically detect and use multipart templates,
-  #       # where each template is named after the name of the action, followed
-  #       # by the content type. Each such detected template will be added as
-  #       # a separate part to the message.
-  #       #
-  #       # for example, if the following templates existed:
-  #       #   * signup_notification.text.plain.rhtml
-  #       #   * signup_notification.text.html.rhtml
-  #       #   * signup_notification.text.xml.rxml
-  #       #   * signup_notification.text.x-yaml.rhtml
-  #       #
-  #       # Each would be rendered and added as a separate part to the message,
-  #       # with the corresponding content type. The same body hash is passed to
-  #       # each template.
-  #     end
-  #   end
-  #
-  #   # After this, post_notification will look for "templates/application_mailer/post_notification.rhtml"
-  #   ApplicationMailer.template_root = "templates"
-  #  
-  #   ApplicationMailer.create_comment_notification(david, hello_world)  # => a tmail object
-  #   ApplicationMailer.deliver_comment_notification(david, hello_world) # sends the email
+  #   end 
   #
   # = Configuration options
   #
