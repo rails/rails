@@ -1,5 +1,7 @@
 *SVN*
 
+* form.text_area handles the :size option just like the original text_area (:size => '60x10' becomes cols="60" rows="10").  [Jeremy Kemper]
+
 * Excise ingrown code from FormOptionsHelper#options_for_select. #5008 [anonymous]
 
 * Small fix in routing to allow dynamic routes (broken after [4242]) [Rick]

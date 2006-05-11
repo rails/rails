@@ -277,6 +277,11 @@ module ActionView
       def to_text_area_tag(options = {})
         options = DEFAULT_TEXT_AREA_OPTIONS.merge(options.stringify_keys)
         add_default_name_and_id(options)
+
+        if size = options.delete("size")
+          options["cols"], options["rows"] = size.split("x")
+        end
+
         content_tag("textarea", html_escape(options.delete('value') || value_before_type_cast(object)), options)
       end
 

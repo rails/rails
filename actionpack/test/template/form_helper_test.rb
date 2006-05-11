@@ -143,6 +143,13 @@ class FormHelperTest < Test::Unit::TestCase
     )
   end
   
+  def test_text_area_with_size_option
+    assert_dom_equal(
+      '<textarea cols="183" id="post_body" name="post[body]" rows="820">Back to the hill and over it again!</textarea>',
+      text_area("post", "body", :size => "183x820")
+    )
+  end
+  
   def test_date_selects
     assert_dom_equal(
       '<textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea>',
