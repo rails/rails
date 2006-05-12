@@ -4,10 +4,25 @@ TEST_CHANGES_SINCE = Time.now - 600
 def recent_tests(source_pattern, test_path, touched_since = 10.minutes.ago)
   FileList[source_pattern].map do |path|
     if File.mtime(path) > touched_since
-      test = "#{test_path}/#{File.basename(path, '.rb')}_test.rb"
-      test if File.exists?(test)
+      tests = []
+      source_dir = File.dirname(path).split("/")
+      source_file = File.basename(path, '.rb')
+      
+      # Support subdirs in app/models and app/controllers
+      modified_test_path = source_dir.length > 2 ? "#{test_path}/" << source_dir[1..source_dir.length].join('/') : test_path
+
+      # For modified files in app/ run the tests for it. ex. /test/functional/account_controller.rb
+      test = "#{modified_test_path}/#{source_file}_test.rb"
+      tests.push test if File.exists?(test)
+
+      # For modified files in app, run tests in subdirs too. ex. /test/functional/account/*_test.rb
+      test = "#{modified_test_path}/#{File.basename(path, '.rb').sub("_controller","")}"
+      FileList["#{test}/*_test.rb"].each { |f| tests.push f } if File.exists?(test)
+		
+      return tests
+
     end
-  end.compact
+  end.flatten.compact
 end
 
 
@@ -40,8 +55,8 @@ namespace :test do
   Rake::TestTask.new(:recent => "db:test:prepare") do |t|
     since = TEST_CHANGES_SINCE
     touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
-      recent_tests('app/models/*.rb', 'test/unit', since) +
-      recent_tests('app/controllers/*.rb', 'test/functional', since)
+      recent_tests('app/models/**/*.rb', 'test/unit', since) +
+      recent_tests('app/controllers/**/*.rb', 'test/functional', since)
 
     t.libs << 'test'
     t.verbose = true
