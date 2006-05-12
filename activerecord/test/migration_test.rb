@@ -120,14 +120,16 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_create_table_with_limits
-      Person.connection.create_table :testings do |t|
-        t.column :foo, :string, :limit => 255
+      assert_nothing_raised do
+        Person.connection.create_table :testings do |t|
+          t.column :foo, :string, :limit => 255
 
-        t.column :default_int, :integer
+          t.column :default_int, :integer
 
-        t.column :one_int,   :integer, :limit => 1
-        t.column :four_int,  :integer, :limit => 4
-        t.column :eight_int, :integer, :limit => 8
+          t.column :one_int,   :integer, :limit => 1
+          t.column :four_int,  :integer, :limit => 4
+          t.column :eight_int, :integer, :limit => 8
+        end
       end
 
       columns = Person.connection.columns(:testings)
@@ -144,16 +146,6 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_equal 'smallint', one.sql_type
         assert_equal 'integer', four.sql_type
         assert_equal 'bigint', eight.sql_type
-      elsif current_adapter?(:MysqlAdapter)
-        assert_equal 'int(11)', default.sql_type
-        assert_equal 'int(1)', one.sql_type
-        assert_equal 'int(4)', four.sql_type
-        assert_equal 'int(8)', eight.sql_type
-      else
-        assert_equal 'integer', default.sql_type
-        assert_equal 'integer(1)', one.sql_type
-        assert_equal 'integer(4)', four.sql_type
-        assert_equal 'integer(8)', eight.sql_type
       end
     ensure
       Person.connection.drop_table :testings rescue nil
