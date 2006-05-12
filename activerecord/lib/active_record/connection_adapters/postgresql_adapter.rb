@@ -339,6 +339,18 @@ module ActiveRecord
         execute "DROP INDEX #{index_name(table_name, options)}"
       end
 
+      def type_to_sql(type, limit = nil) #:nodoc:
+        return super unless type.to_s == 'integer'
+
+        if limit.nil? || limit == 4
+          'integer'
+        elsif limit < 4
+          'smallint'
+        else
+          'bigint'
+        end
+      end
+
       private
         BYTEA_COLUMN_TYPE_OID = 17
         TIMESTAMPOID = 1114

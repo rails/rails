@@ -118,6 +118,46 @@ if ActiveRecord::Base.connection.supports_migrations?
     ensure
       Person.connection.drop_table :testings rescue nil
     end
+
+    def test_create_table_with_limits
+      Person.connection.create_table :testings do |t|
+        t.column :foo, :string, :limit => 255
+
+        t.column :default_int, :integer
+
+        t.column :one_int,   :integer, :limit => 1
+        t.column :four_int,  :integer, :limit => 4
+        t.column :eight_int, :integer, :limit => 8
+      end
+
+      columns = Person.connection.columns(:testings)
+      foo = columns.detect { |c| c.name == "foo" }
+      assert_equal 255, foo.limit
+
+      default = columns.detect { |c| c.name == "default_int" }
+      one     = columns.detect { |c| c.name == "one_int"     }
+      four    = columns.detect { |c| c.name == "four_int"    }
+      eight   = columns.detect { |c| c.name == "eight_int"   }
+
+      if current_adapter?(:PostgreSQLAdapter)
+        assert_equal 'integer', default.sql_type
+        assert_equal 'smallint', one.sql_type
+        assert_equal 'integer', four.sql_type
+        assert_equal 'bigint', eight.sql_type
+      elsif current_adapter?(:MysqlAdapter)
+        assert_equal 'int(11)', default.sql_type
+        assert_equal 'int(1)', one.sql_type
+        assert_equal 'int(4)', four.sql_type
+        assert_equal 'int(8)', eight.sql_type
+      else
+        assert_equal 'integer', default.sql_type
+        assert_equal 'integer(1)', one.sql_type
+        assert_equal 'integer(4)', four.sql_type
+        assert_equal 'integer(8)', eight.sql_type
+      end
+    ensure
+      Person.connection.drop_table :testings rescue nil
+    end
   
     # SQL Server and Sybase will not allow you to add a NOT NULL column
     # to a table without specifying a default value, so the

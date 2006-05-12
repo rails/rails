@@ -1,5 +1,7 @@
 *SVN*
 
+* PostgreSQL: migrations support :limit with :integer columns by mapping limit < 4 to smallint, > 4 to bigint, and anything else to integer. #2900 [keegan@thebasement.org]
+
 * Dates and times interpret empty strings as nil rather than 2000-01-01. #4830 [kajism@yahoo.com]
 
 * Allow :uniq => true with has_many :through associations. [Jeremy Kemper]
