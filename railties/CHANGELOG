@@ -1,5 +1,7 @@
 *SVN*
 
+* The app generator detects the XAMPP package's MySQL socket location. #3832 [elliot@townx.org]
+
 * The app generator sets a session key in application.rb so apps running on the same host may distinguish their cookies. #2967 [rcoder, rails-bug@owl.me.uk]
 
 * Distinguish the spawners for different processes [DHH]
