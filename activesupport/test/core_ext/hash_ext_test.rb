@@ -145,6 +145,17 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal hash.delete('a'), nil
   end
 
+  def test_stringify_and_symbolize_keys_on_indifferent_preserves_hash
+    h = HashWithIndifferentAccess.new
+    h[:first] = 1
+    h.stringify_keys!
+    assert_equal 1, h['first']
+    h = HashWithIndifferentAccess.new
+    h['first'] = 1
+    h.symbolize_keys!
+    assert_equal 1, h[:first]
+  end
+
   def test_assert_valid_keys
     assert_nothing_raised do
       { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])

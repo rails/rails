@@ -56,6 +56,9 @@ class HashWithIndifferentAccess < Hash
   def delete(key)
     super(convert_key(key))
   end
+
+  def stringify_keys!; self end
+  def symbolize_keys!; self end
     
   protected
     def convert_key(key)
