@@ -243,7 +243,7 @@ module ActiveRecord
           definition[column_name].instance_eval do
             self.type    = type
             self.limit   = options[:limit] if options[:limit]
-            self.default = options[:default] if options[:default]
+            self.default = options[:default] unless options[:default].nil?
           end
         end
       end

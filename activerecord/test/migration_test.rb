@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'fixtures/person'
+require 'fixtures/topic'
 require File.dirname(__FILE__) + '/fixtures/migrations/1_people_have_last_names'
 require File.dirname(__FILE__) + '/fixtures/migrations/2_we_need_reminders'
 
@@ -320,6 +321,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       new_columns = Person.connection.columns(Person.table_name, "#{name} Columns")
       assert_nil new_columns.find { |c| c.name == 'age' and c.type == :integer }
       assert new_columns.find { |c| c.name == 'age' and c.type == :string }
+
+      old_columns = Topic.connection.columns(Topic.table_name, "#{name} Columns")
+      assert old_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
+      assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => false }
+      new_columns = Topic.connection.columns(Topic.table_name, "#{name} Columns")
+      assert_nil new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
+      assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }
     end    
 
     def test_change_column_with_new_default
