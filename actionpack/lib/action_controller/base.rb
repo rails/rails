@@ -421,7 +421,7 @@ module ActionController #:nodoc:
       # * <tt>:anchor</tt> -- specifies the anchor name to be appended to the path. For example, 
       #   <tt>url_for :controller => 'posts', :action => 'show', :id => 10, :anchor => 'comments'</tt> 
       #   will produce "/posts/show/10#comments".
-      # * <tt>:only_path</tt> --  if true, returns the absolute URL (omitting the protocol, host name, and port)
+      # * <tt>:only_path</tt> --  if true, returns the relative URL (omitting the protocol, host name, and port) (<tt>false</tt> by default)
       # * <tt>:trailing_slash</tt> --  if true, adds a trailing slash, as in "/archive/2005/". Note that this
       #   is currently not recommended since it breaks caching.
       # * <tt>:host</tt> -- overrides the default (current) host if provided
