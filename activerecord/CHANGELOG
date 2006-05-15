@@ -1,5 +1,7 @@
 *SVN*
 
+* Call Inflector#demodulize on the class name when eagerly including an STI model.  Closes #5077 [info@loobmedia.com]
+
 * Preserve MySQL boolean column defaults when changing a column in a migration. Closes #5015. [pdcawley@bofh.org.uk] 
 
 * PostgreSQL: migrations support :limit with :integer columns by mapping limit < 4 to smallint, > 4 to bigint, and anything else to integer. #2900 [keegan@thebasement.org]
