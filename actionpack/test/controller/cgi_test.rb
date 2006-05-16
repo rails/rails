@@ -227,6 +227,12 @@ class CGITest < Test::Unit::TestCase
     expected  = { "a/b@" => { "c" => { "d[e" => ["f"] }}}
     assert_equal expected, CGIMethods.parse_request_parameters(input)
   end
+  
+  def test_parse_params_with_nil_key
+    input = { nil => nil, "test2" => %w(value1) }
+    expected = { "test2" => "value1" }
+    assert_equal expected, CGIMethods.parse_request_parameters(input)
+  end
 end
 
 class MultipartCGITest < Test::Unit::TestCase

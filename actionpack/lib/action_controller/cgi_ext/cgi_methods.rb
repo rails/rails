@@ -45,6 +45,7 @@ class CGIMethods #:nodoc:
       parsed_params = {}
 
       for key, value in params
+        next if key.nil?
         value = [value] if key =~ /.*\[\]$/
         unless key.include?('[')
           # much faster to test for the most common case first (GET)

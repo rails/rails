@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix NoMethodError when parsing params like &&. [Adam Greenfield]
+
 * Fix flip flopped logic in docs for url_for's :only_path option. Closes #4998. [esad@esse.at]
 
 * form.text_area handles the :size option just like the original text_area (:size => '60x10' becomes cols="60" rows="10").  [Jeremy Kemper]
