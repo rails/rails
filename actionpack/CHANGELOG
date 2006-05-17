@@ -1,5 +1,7 @@
 *SVN*
 
+* Add layout attribute to response object with the name of the layout that was rendered, or nil if none rendered. [Kevin Clark kevin.clark@gmail.com]
+
 * Fix NoMethodError when parsing params like &&. [Adam Greenfield]
 
 * Fix flip flopped logic in docs for url_for's :only_path option. Closes #4998. [esad@esse.at]

@@ -71,3 +71,54 @@ class LayoutAutoDiscoveryTest < Test::Unit::TestCase
     assert_equal 'controller_name_space/nested.rhtml hello.rhtml', @response.body
   end
 end
+
+
+class DefaultLayoutController < LayoutTest
+end
+
+class HasOwnLayoutController < LayoutTest
+  layout 'item'
+end
+
+class SetsLayoutInRenderController < LayoutTest
+  def hello
+    render :layout => 'third_party_template_library'
+  end
+end
+
+class RendersNoLayoutController < LayoutTest
+  def hello
+    render :layout => false
+  end
+end
+
+class LayoutSetInResponseTest < Test::Unit::TestCase
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+  end
+
+  def test_layout_set_when_using_default_layout
+    @controller = DefaultLayoutController.new
+    get :hello
+    assert_equal 'layouts/layout_test', @response.layout
+  end
+  
+  def test_layout_set_when_set_in_controller
+    @controller = HasOwnLayoutController.new
+    get :hello
+    assert_equal 'layouts/item', @response.layout
+  end
+  
+  def test_layout_set_when_using_render
+    @controller = SetsLayoutInRenderController.new
+    get :hello
+    assert_equal 'layouts/third_party_template_library', @response.layout
+  end
+  
+  def test_layout_is_not_set_when_none_rendered
+    @controller = RendersNoLayoutController.new
+    get :hello
+    assert_nil @response.layout
+  end
+end

@@ -1,7 +1,7 @@
 module ActionController
   class AbstractResponse #:nodoc:
     DEFAULT_HEADERS = { "Cache-Control" => "no-cache" }
-    attr_accessor :body, :headers, :session, :cookies, :assigns, :template, :redirected_to, :redirected_to_method_params
+    attr_accessor :body, :headers, :session, :cookies, :assigns, :template, :redirected_to, :redirected_to_method_params, :layout
 
     def initialize
       @body, @headers, @session, @assigns = "", DEFAULT_HEADERS.merge("cookie" => []), [], []
