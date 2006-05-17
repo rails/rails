@@ -47,6 +47,7 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
     end
 
     assert_equal [%w(a b c), %w(d e f), %w(g h i)], groups
+    assert_equal [%w(a b c), %w(d e f), %w(g h i)], ('a'..'i').to_a.in_groups_of(3)
   end
 
   def test_group_by_with_padding

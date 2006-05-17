@@ -16,7 +16,11 @@ class Array #:nodoc:
     require 'enumerator'
     collection = dup
     collection << fill_with until collection.size.modulo(number).zero?
-    collection.each_slice(number, &block)
+    grouped_collection = [] unless block_given?
+    collection.each_slice(number) do |group|
+      block_given? ? yield(group) : grouped_collection << group
+    end
+    grouped_collection unless block_given?
   end
   
   # Divide the array into one or more subarrays based on a delimiting +value+

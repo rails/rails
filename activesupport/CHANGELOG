@@ -1,5 +1,7 @@
 *SVN*
 
+* Make Array#in_groups_of just return the grouped collection if a block isn't given. [Marcel Molina Jr.] 
+
 * Don't destroy a HashWithIndifferentAccess if symbolize_keys! or  stringify_keys! is called on it. Closes #5076. [Marcel Molina Jr., guy.naor@famundo.com]
 
 * Document Module::delegate. #5002 [pergesu@gmail.com]
