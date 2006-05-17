@@ -87,9 +87,9 @@ module ActionController #:nodoc:
   # The full request object is available with the request accessor and is primarily used to query for http headers. These queries
   # are made by accessing the environment hash, like this:
   #
-  #   def hello_ip
-  #     location = request.env["REMOTE_IP"]
-  #     render :text => "Hello stranger from #{location}"
+  #   def server_ip
+  #     location = request.env["SERVER_ADDR"]
+  #     render :text => "This server hosted at #{location}"
   #   end
   #
   # == Parameters
