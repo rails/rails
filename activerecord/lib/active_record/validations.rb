@@ -712,6 +712,7 @@ module ActiveRecord
         if attributes.is_a?(Array)
           attributes.collect { |attr| create!(attr) }
         else
+          attributes ||= {}
           attributes.reverse_merge!(scope(:create)) if scoped?(:create)
 
           object = new(attributes)

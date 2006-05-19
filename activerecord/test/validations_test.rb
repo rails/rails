@@ -88,6 +88,12 @@ class ValidationsTest < Test::Unit::TestCase
     end
   end
 
+  def test_scoped_create_without_attributes
+    Reply.with_scope(:create => {}) do
+      assert_raises(ActiveRecord::RecordInvalid) { Reply.create! }
+    end
+  end
+
   def test_single_error_per_attr_iteration
     r = Reply.new
     r.save

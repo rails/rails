@@ -1,5 +1,7 @@
 *SVN*
 
+* create! no longer blows up when no attributes are passed and a :create scope is in effect (e.g. foo.bars.create! failed whereas foo.bars.create!({}) didn't.) [Jeremy Kemper]
+
 * Call Inflector#demodulize on the class name when eagerly including an STI model.  Closes #5077 [info@loobmedia.com]
 
 * Preserve MySQL boolean column defaults when changing a column in a migration. Closes #5015. [pdcawley@bofh.org.uk] 
