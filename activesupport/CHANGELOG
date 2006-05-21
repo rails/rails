@@ -1,5 +1,18 @@
 *SVN*
 
+* Remove Enumerable#first_match since break(value) handles the use case well enough. [Nicholas Seckar]
+  Enumerable#first_match was like detect, but instead of returning the matching element, the yielded value returned. For example:
+  
+    user_xml = adapters(:from => User, :to => Xml).first_match do |adapter|
+      adapter.adapt @user
+    end
+  
+  But this is just as easily done with:
+  
+    user_xml = adapters(:from => User, :to => Xml).each do
+      break adapter.adapt(@user)
+    end
+  
 * Make Array#in_groups_of just return the grouped collection if a block isn't given. [Marcel Molina Jr.] 
 
 * Don't destroy a HashWithIndifferentAccess if symbolize_keys! or  stringify_keys! is called on it. Closes #5076. [Marcel Molina Jr., guy.naor@famundo.com]

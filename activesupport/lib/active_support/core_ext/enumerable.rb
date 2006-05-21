@@ -1,12 +1,4 @@
 module Enumerable #:nodoc:
-  def first_match
-    match = nil
-    each do |items|
-      break if match = yield(items)
-    end
-    match
-  end
-
   # Collect an enumerable into sets, grouped by the result of a block. Useful,
   # for example, for grouping records by date.
   #
