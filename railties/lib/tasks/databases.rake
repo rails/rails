@@ -37,7 +37,7 @@ namespace :db do
     task :dump => :environment do
       abcs = ActiveRecord::Base.configurations
       case abcs[RAILS_ENV]["adapter"] 
-        when "mysql", "oci"
+        when "mysql", "oci", "oracle"
           ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
           File.open("db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
         when "postgresql"
@@ -93,7 +93,7 @@ namespace :db do
           `#{abcs["test"]["adapter"]} #{dbfile} < db/#{RAILS_ENV}_structure.sql`
         when "sqlserver"
           `osql -E -S #{abcs["test"]["host"]} -d #{abcs["test"]["database"]} -i db\\#{RAILS_ENV}_structure.sql`
-        when "oci"
+        when "oci", "oracle"
           ActiveRecord::Base.establish_connection(:test)
           IO.readlines("db/#{RAILS_ENV}_structure.sql").join.split(";\n\n").each do |ddl|
             ActiveRecord::Base.connection.execute(ddl)
@@ -124,7 +124,7 @@ namespace :db do
           dropfkscript = "#{abcs["test"]["host"]}.#{abcs["test"]["database"]}.DP1".gsub(/\\/,'-')
           `osql -E -S #{abcs["test"]["host"]} -d #{abcs["test"]["database"]} -i db\\#{dropfkscript}`
           `osql -E -S #{abcs["test"]["host"]} -d #{abcs["test"]["database"]} -i db\\#{RAILS_ENV}_structure.sql`
-        when "oci"
+        when "oci", "oracle"
           ActiveRecord::Base.establish_connection(:test)
           ActiveRecord::Base.connection.structure_drop.split(";\n\n").each do |ddl|
             ActiveRecord::Base.connection.execute(ddl)
