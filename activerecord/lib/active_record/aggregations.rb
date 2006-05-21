@@ -118,46 +118,73 @@ module ActiveRecord
       #   if the real class name is +CompanyAddress+, you'll have to specify it with this option.
       # * <tt>:mapping</tt> - specifies a number of mapping arrays (attribute, parameter) that bind an attribute name
       #   to a constructor parameter on the value class.
+      # * <tt>:allow_nil</tt> - specifies that the aggregate object will not be instantiated when all mapped
+      #   attributes are nil.  Setting the aggregate class to nil has the effect of writing nil to all mapped attributes.
+      #   This defaults to false.
       #
       # Option examples:
       #   composed_of :temperature, :mapping => %w(reading celsius)
       #   composed_of :balance, :class_name => "Money", :mapping => %w(balance amount)
       #   composed_of :address, :mapping => [ %w(address_street street), %w(address_city city) ]
       #   composed_of :gps_location
+      #   composed_of :gps_location, :allow_nil => true
+      #
       def composed_of(part_id, options = {})
-        options.assert_valid_keys(:class_name, :mapping)
+        options.assert_valid_keys(:class_name, :mapping, :allow_nil)
 
         name        = part_id.id2name
         class_name  = options[:class_name] || name.camelize
-        mapping     = options[:mapping] || [ name, name ]
+        mapping     = options[:mapping]    || [ name, name ]
+        allow_nil   = options[:allow_nil]  || false
 
-        reader_method(name, class_name, mapping)
-        writer_method(name, class_name, mapping)
+        reader_method(name, class_name, mapping, allow_nil)
+        writer_method(name, class_name, mapping, allow_nil)
         
         create_reflection(:composed_of, part_id, options, self)
       end
 
       private
-        
-        def reader_method(name, class_name, mapping)
+        def reader_method(name, class_name, mapping, allow_nil)
+          mapping = (Array === mapping.first ? mapping : [ mapping ])
+
+          allow_nil_condition = if allow_nil
+            mapping.collect { |pair| "!read_attribute(\"#{pair.first}\").nil?"}.join(" && ")
+          else
+            "true"
+          end
+
           module_eval <<-end_eval
             def #{name}(force_reload = false)
-              if @#{name}.nil? || force_reload
-                @#{name} = #{class_name}.new(#{(Array === mapping.first ? mapping : [ mapping ]).collect{ |pair| "read_attribute(\"#{pair.first}\")"}.join(", ")})
+              if (@#{name}.nil? || force_reload) && #{allow_nil_condition}
+                @#{name} = #{class_name}.new(#{mapping.collect { |pair| "read_attribute(\"#{pair.first}\")"}.join(", ")})
               end
-              
               return @#{name}
             end
           end_eval
         end        
         
-        def writer_method(name, class_name, mapping)
-          module_eval <<-end_eval
-            def #{name}=(part)
-              @#{name} = part.freeze
-              #{(Array === mapping.first ? mapping : [ mapping ]).collect{ |pair| "@attributes[\"#{pair.first}\"] = part.#{pair.last}" }.join("\n")}
-            end
-          end_eval
+        def writer_method(name, class_name, mapping, allow_nil)
+          mapping = (Array === mapping.first ? mapping : [ mapping ])
+
+          if allow_nil
+            module_eval <<-end_eval
+              def #{name}=(part)
+                if part.nil?
+                  #{mapping.collect { |pair| "@attributes[\"#{pair.first}\"] = nil" }.join("\n")}
+                else
+                  @#{name} = part.freeze
+                  #{mapping.collect { |pair| "@attributes[\"#{pair.first}\"] = part.#{pair.last}" }.join("\n")}
+                end
+              end
+            end_eval
+          else
+            module_eval <<-end_eval
+              def #{name}=(part)
+                @#{name} = part.freeze
+                #{mapping.collect{ |pair| "@attributes[\"#{pair.first}\"] = part.#{pair.last}" }.join("\n")}
+              end
+            end_eval
+          end
         end
     end
   end

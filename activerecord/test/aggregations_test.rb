@@ -63,4 +63,33 @@ class AggregationsTest < Test::Unit::TestCase
   def test_gps_inequality
     assert GpsLocation.new('39x110') != GpsLocation.new('39x111')
   end
+  
+  def test_allow_nil_gps_is_nil
+    assert_equal nil, customers(:zaphod).gps_location
+  end
+  
+  def test_allow_nil_gps_set_to_nil
+    customers(:david).gps_location = nil
+    customers(:david).save
+    customers(:david).reload
+    assert_equal nil, customers(:david).gps_location
+  end
+  
+  def test_allow_nil_set_address_attributes_to_nil
+    customers(:zaphod).address = nil
+    assert_equal nil, customers(:zaphod).attributes[:address_street]
+    assert_equal nil, customers(:zaphod).attributes[:address_city]
+    assert_equal nil, customers(:zaphod).attributes[:address_country]
+  end
+  
+  def test_allow_nil_address_set_to_nil
+    customers(:zaphod).address = nil
+    customers(:zaphod).save
+    customers(:zaphod).reload
+    assert_equal nil, customers(:zaphod).address
+  end
+  
+  def test_nil_raises_error_when_allow_nil_is_false
+    assert_raises(NoMethodError) { customers(:david).balance = nil }
+  end
 end

@@ -6,3 +6,12 @@ david:
   address_city: Scary Town
   address_country: Loony Land
   gps_location: 35.544623640962634x-105.9309951055148
+  
+zaphod:
+  id: 2
+  name: Zaphod
+  balance: 62
+  address_street: Avenue Road
+  address_city: Hamlet Town
+  address_country: Nation Land
+  gps_location: NULL

@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :allow_nil option for aggregations #5091 [ian.w.white@gmail.com]
+
 * Fix Oracle boolean support and tests. Closes #5139. [schoenm@earthlink.net]
 
 * create! no longer blows up when no attributes are passed and a :create scope is in effect (e.g. foo.bars.create! failed whereas foo.bars.create!({}) didn't.) [Jeremy Kemper]
