@@ -98,8 +98,8 @@ module ActiveRecord
         if loaded? && !@reflection.options[:uniq]
           @target.size
         elsif !loaded? && !@reflection.options[:uniq] && @target.is_a?(Array)
-          unsaved_records = Array(@target.detect { |r| r.new_record? }).size
-          unsaved_records + count_records
+          unsaved_records = Array(@target.detect { |r| r.new_record? })
+          unsaved_records.size + count_records
         else
           count_records
         end

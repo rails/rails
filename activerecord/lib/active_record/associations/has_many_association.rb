@@ -13,12 +13,8 @@ module ActiveRecord
           record = @reflection.klass.new(attributes)
           set_belongs_to_association_for(record)
           
-          if loaded?
-            @target << record
-          else
-            @target ||= []
-            @target << record
-          end
+          @target ||= [] unless loaded?
+          @target << record
           
           record
         end
