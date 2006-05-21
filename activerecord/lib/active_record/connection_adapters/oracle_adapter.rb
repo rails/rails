@@ -75,19 +75,13 @@ begin
 
     module ConnectionAdapters #:nodoc:
       class OracleColumn < Column #:nodoc:
-        attr_reader :sql_type
 
+        alias_method :super_initialize, :initialize
         # overridden to add the concept of scale, required to differentiate
         # between integer and float fields
-        def initialize(name, default, sql_type, limit, scale, null)
-          @name, @limit, @sql_type, @scale, @null = name, limit, sql_type, scale, null
-
-          @type = simplified_type(sql_type)
-          @default = type_cast(default)
-
-          @primary = nil
-          @text    = [:string, :text].include? @type
-          @number  = [:float, :integer].include? @type
+        def initialize(name, default, sql_type = nil, null = true, scale = nil)
+          @scale = scale
+          super_initialize(name, default, sql_type, null)
         end
 
         def type_cast(value)
@@ -95,6 +89,7 @@ begin
           case type
           when :string   then value
           when :integer  then defined?(value.to_i) ? value.to_i : (value ? 1 : 0)
+          when :boolean  then cast_to_boolean(value)
           when :float    then value.to_f
           when :datetime then cast_to_date_or_time(value)
           when :time     then cast_to_time(value)
@@ -104,19 +99,25 @@ begin
 
         private
         def simplified_type(field_type)
+          return :boolean if (OracleAdapter.emulate_booleans && field_type =~ /num/i && @limit == 1)
           case field_type
           when /char/i                          : :string
           when /num|float|double|dec|real|int/i : @scale == 0 ? :integer : :float
           when /date|time/i                     : @name =~ /_at$/ ? :time : :datetime
-          when /clob/i                           : :text
-          when /blob/i                           : :binary
+          when /clob/i                          : :text
+          when /blob/i                          : :binary
           end
+        end
+
+        def cast_to_boolean(value)
+          return value if value.is_a? TrueClass or value.is_a? FalseClass
+          value.to_i == 0 ? false : true
         end
 
         def cast_to_date_or_time(value)
           return value if value.is_a? Date
           return nil if value.blank?
-          guess_date_or_time (value.is_a? Time) ? value : cast_to_time(value)
+          guess_date_or_time((value.is_a? Time) ? value : cast_to_time(value))
         end
 
         def cast_to_time(value)
@@ -166,6 +167,9 @@ begin
       # * <tt>:password</tt>
       # * <tt>:database</tt>
       class OracleAdapter < AbstractAdapter
+
+        @@emulate_booleans = true
+        cattr_accessor :emulate_booleans
 
         def adapter_name #:nodoc:
           'Oracle'
@@ -277,8 +281,8 @@ begin
           elsif id_value # Pre-assigned id
             log(sql, name) { @connection.exec sql }
           else # Assume the sql contains a bind-variable for the id
-            id_value = select_one("select #{sequence_name}.nextval id from dual")['id']
-            log(sql, name) { @connection.exec sql, id_value }
+            id_value = select_one("select #{sequence_name}.nextval id from dual")['id'].to_i
+            log(sql.sub(/\B:id\b/, id_value.to_s), name) { @connection.exec sql, id_value }
           end
 
           id_value
@@ -361,10 +365,10 @@ begin
           (owner, table_name) = @connection.describe(table_name)
 
           table_cols = %Q{
-            select column_name, data_type, data_default, nullable,
+            select column_name as name, data_type as sql_type, data_default, nullable,
                    decode(data_type, 'NUMBER', data_precision,
                                      'VARCHAR2', data_length,
-                                      null) as length,
+                                      null) as limit,
                    decode(data_type, 'NUMBER', data_scale, null) as scale
               from all_tab_columns
              where owner      = '#{owner}'
@@ -373,18 +377,16 @@ begin
           }
 
           select_all(table_cols, name).map do |row|
+            row['sql_type'] += "(#{row['limit'].to_i})" if row['limit']
             if row['data_default']
               row['data_default'].sub!(/^(.*?)\s*$/, '\1')
               row['data_default'].sub!(/^'(.*)'$/, '\1')
             end
-            OracleColumn.new(
-              oracle_downcase(row['column_name']),
-              row['data_default'],
-              row['data_type'],
-              (l = row['length']).nil? ? nil : l.to_i,
-              (s = row['scale']).nil? ? nil : s.to_i,
-              row['nullable'] == 'Y'
-            )
+            OracleColumn.new(oracle_downcase(row['name']),
+                             row['data_default'],
+                             row['sql_type'],
+                             row['nullable'] == 'Y',
+                             (s = row['scale']).nil? ? nil : s.to_i)
           end
         end
 

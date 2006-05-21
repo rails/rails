@@ -106,14 +106,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       four = columns.detect { |c| c.name == "four" }
 
       assert_equal "hello", one.default
-      if current_adapter?(:OracleAdapter)
-        # Oracle doesn't support native booleans
-        assert_equal true, two.default == 1
-        assert_equal false, three.default != 0
-      else
-        assert_equal true, two.default
-        assert_equal false, three.default
-      end
+      assert_equal true, two.default
+      assert_equal false, three.default
       assert_equal 1, four.default
 
     ensure
@@ -147,6 +141,11 @@ if ActiveRecord::Base.connection.supports_migrations?
         assert_equal 'smallint', one.sql_type
         assert_equal 'integer', four.sql_type
         assert_equal 'bigint', eight.sql_type
+      elsif current_adapter?(:OracleAdapter)
+        assert_equal 'NUMBER(38)', default.sql_type
+        assert_equal 'NUMBER(1)', one.sql_type
+        assert_equal 'NUMBER(4)', four.sql_type
+        assert_equal 'NUMBER(8)', eight.sql_type
       end
     ensure
       Person.connection.drop_table :testings rescue nil
@@ -328,6 +327,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       new_columns = Topic.connection.columns(Topic.table_name, "#{name} Columns")
       assert_nil new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
       assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }
+      assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => true }
     end    
 
     def test_change_column_with_new_default

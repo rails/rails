@@ -1183,7 +1183,7 @@ module ActiveRecord
             end
           end
           return false unless conditions.any?
-          conditions.join(' ').scan(/(\w+)\.\w+/).flatten.any? do |condition_table_name|
+          conditions.join(' ').scan(/([\.\w]+)\.\w+/).flatten.any? do |condition_table_name|
             condition_table_name != table_name
           end
         end
@@ -1192,7 +1192,7 @@ module ActiveRecord
         def include_eager_order?(options)
           order = options[:order]
           return false unless order
-          order.scan(/(\w+)\.\w+/).flatten.any? do |order_table_name|
+          order.scan(/([\.\w]+)\.\w+/).flatten.any? do |order_table_name|
             order_table_name != table_name
           end
         end
@@ -1391,7 +1391,7 @@ module ActiveRecord
               @parent             = parent
               @reflection         = reflection
               @aliased_prefix     = "t#{ join_dependency.joins.size }"
-              @aliased_table_name = table_name # start with the table name
+              @aliased_table_name = table_name #.tr('.', '_') # start with the table name, sub out any .'s
               @parent_table_name  = parent.active_record.table_name
 
               if !parent.table_joins.blank? && parent.table_joins.to_s.downcase =~ %r{join(\s+\w+)?\s+#{aliased_table_name.downcase}\son}

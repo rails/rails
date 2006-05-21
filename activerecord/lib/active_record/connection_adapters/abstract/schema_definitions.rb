@@ -14,11 +14,12 @@ module ActiveRecord
       # +sql_type+ is only used to extract the column's length, if necessary.  For example, <tt>company_name varchar(<b>60</b>)</tt>.
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type = nil, null = true)
-        @name, @type, @null = name, simplified_type(sql_type), null
-        @sql_type = sql_type
-        # have to do this one separately because type_cast depends on #type
+        @name, @sql_type, @null, @limit = name, sql_type, null, extract_limit(sql_type)
+
+        # simplified_type may depend on #limit, type_cast depends on #type
+        @type = simplified_type(sql_type)
         @default = type_cast(default)
-        @limit   = extract_limit(sql_type) unless sql_type.nil?
+
         @primary = nil
         @text    = [:string, :text].include? @type
         @number  = [:float, :integer].include? @type
@@ -133,6 +134,7 @@ module ActiveRecord
 
     private
         def extract_limit(sql_type)
+          return unless sql_type
           $1.to_i if sql_type =~ /\((.*)\)/
         end
 
