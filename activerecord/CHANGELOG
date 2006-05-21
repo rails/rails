@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that has_many collections shouldn't load the entire association to do build or create [DHH]
+
 * Added :allow_nil option for aggregations #5091 [ian.w.white@gmail.com]
 
 * Fix Oracle boolean support and tests. Closes #5139. [schoenm@earthlink.net]

@@ -512,6 +512,35 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 3, companies(:first_firm).clients_of_firm(true).size
   end
 
+  def test_build_without_loading_association
+    first_topic = Topic.find(:first)
+    Reply.column_names
+
+    assert_equal 1, first_topic.replies.length
+    
+    assert_no_queries do
+      first_topic.replies.build(:title => "Not saved", :content => "Superstars")
+      assert_equal 2, first_topic.replies.size
+    end
+
+    assert_equal 2, first_topic.replies.to_ary.size
+  end
+
+  def test_create_without_loading_association
+    first_firm  = companies(:first_firm)
+    Firm.column_names
+    Client.column_names
+
+    assert_equal 1, first_firm.clients_of_firm.size
+    first_firm.clients_of_firm.reset
+    
+    assert_queries(1) do
+      first_firm.clients_of_firm.create(:name => "Superstars")
+    end
+    
+    assert_equal 2, first_firm.clients_of_firm.size
+  end
+
   def test_invalid_build
     new_client = companies(:first_firm).clients_of_firm.build
     assert new_client.new_record?

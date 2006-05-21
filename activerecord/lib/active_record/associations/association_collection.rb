@@ -95,7 +95,14 @@ module ActiveRecord
       # calling collection.size if it has. If it's more likely than not that the collection does have a size larger than zero
       # and you need to fetch that collection afterwards, it'll take one less SELECT query if you use length.
       def size
-        if loaded? && !@reflection.options[:uniq] then @target.size else count_records end
+        if loaded? && !@reflection.options[:uniq]
+          @target.size
+        elsif !loaded? && !@reflection.options[:uniq] && @target.is_a?(Array)
+          unsaved_records = Array(@target.detect { |r| r.new_record? }).size
+          unsaved_records + count_records
+        else
+          count_records
+        end
       end
 
       # Returns the size of the collection by loading it and calling size on the array. If you want to use this method to check

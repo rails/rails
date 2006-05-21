@@ -10,10 +10,16 @@ module ActiveRecord
         if attributes.is_a?(Array)
           attributes.collect { |attr| build(attr) }
         else
-          load_target
           record = @reflection.klass.new(attributes)
           set_belongs_to_association_for(record)
-          @target << record
+          
+          if loaded?
+            @target << record
+          else
+            @target ||= []
+            @target << record
+          end
+          
           record
         end
       end
@@ -105,6 +111,25 @@ module ActiveRecord
               @reflection.klass.send(method, *args, &block)
             end
           end
+        end
+
+        def load_target
+          if !@owner.new_record? || foreign_key_present
+            begin
+              if !loaded?
+                if @target.is_a?(Array) && @target.any?
+                  @target = find_target + @target
+                else
+                  @target = find_target
+                end
+              end
+            rescue ActiveRecord::RecordNotFound
+              reset
+            end
+          end
+
+          loaded if target
+          target
         end
 
         def count_records
