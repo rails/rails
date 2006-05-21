@@ -1,6 +1,9 @@
 *SVN*
 
+* Strip out leading schema name in classify. References #5139. [schoenm@earthlink.net]
+
 * Remove Enumerable#first_match since break(value) handles the use case well enough. [Nicholas Seckar]
+
   Enumerable#first_match was like detect, but instead of returning the matching element, the yielded value returned. For example:
   
     user_xml = adapters(:from => User, :to => Xml).first_match do |adapter|
