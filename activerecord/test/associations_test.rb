@@ -513,7 +513,7 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   end
 
   def test_build_without_loading_association
-    first_topic = Topic.find(:first)
+    first_topic = topics(:first)
     Reply.column_names
 
     assert_equal 1, first_topic.replies.length
