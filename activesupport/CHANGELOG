@@ -1,5 +1,7 @@
 *SVN*
 
+* Normalize classify's argument to a String so that it plays nice with Symbols. [Marcel Molina Jr.] 
+
 * Strip out leading schema name in classify. References #5139. [schoenm@earthlink.net]
 
 * Remove Enumerable#first_match since break(value) handles the use case well enough. [Nicholas Seckar]

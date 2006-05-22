@@ -278,6 +278,12 @@ class InflectorTest < Test::Unit::TestCase
       assert_equal(class_name, Inflector.classify(table_name))
     end
   end
+
+  def test_classify_with_symbol
+    assert_nothing_raised do
+      assert_equal 'FooBar', Inflector.classify(:foo_bar)
+    end
+  end
   
   def test_humanize
     UnderscoreToHuman.each do |underscore, human|
