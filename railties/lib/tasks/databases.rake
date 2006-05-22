@@ -151,7 +151,9 @@ namespace :db do
 
     desc "Clear the sessions table"
     task :clear => :environment do
-      ActiveRecord::Base.connection.execute "DELETE FROM sessions"
+      session_table = 'session'
+      session_table = Inflector.pluralize(session_table) if ActiveRecord::Base.pluralize_table_names
+      ActiveRecord::Base.connection.execute "DELETE FROM #{session_table}"
     end
   end
 end
