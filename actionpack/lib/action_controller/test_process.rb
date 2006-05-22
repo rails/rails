@@ -374,8 +374,9 @@ module ActionController #:nodoc:
     alias xhr :xml_http_request
 
     def follow_redirect
-      if @response.redirected_to[:controller]
-        raise "Can't follow redirects outside of current controller (#{@response.redirected_to[:controller]})"
+      redirected_controller = @response.redirected_to[:controller]
+      if redirected_controller && redirected_controller != @controller.controller_name
+        raise "Can't follow redirects outside of current controller (from #{@controller.controller_name} to #{redirected_controller})"
       end
 
       get(@response.redirected_to.delete(:action), @response.redirected_to.stringify_keys)

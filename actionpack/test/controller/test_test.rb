@@ -58,8 +58,15 @@ HTML
       redirect_to :generate_url, :id => 5
     end
 
+    def redirect_to_same_controller
+      redirect_to :controller => 'test', :action => 'test_uri', :id => 5
+    end
+
+    def redirect_to_different_controller
+      redirect_to :controller => 'fail', :id => 5
+    end
+
     private
-    
       def rescue_action(e)
         raise e
       end
@@ -405,14 +412,39 @@ HTML
   end
 
   def test_assert_redirected_to_symbol
-    with_routing do |set|
-      set.draw do
-        set.generate_url 'foo', :controller => 'test'
-        set.connect      ':controller/:action/:id'
-      end
-      
+    with_foo_routing do |set|
       get :redirect_to_symbol
+      assert_response :redirect
       assert_redirected_to :generate_url
     end
   end
+
+  def test_assert_follow_redirect_to_same_controller
+    with_foo_routing do |set|
+      get :redirect_to_same_controller
+      assert_response :redirect
+      assert_redirected_to :controller => 'test_test/test', :action => 'test_uri', :id => 5
+      assert_nothing_raised { follow_redirect }
+    end
+  end
+
+  def test_assert_follow_redirect_to_different_controller
+    with_foo_routing do |set|
+      get :redirect_to_different_controller
+      assert_response :redirect
+      assert_redirected_to :controller => 'fail', :id => 5
+      assert_raise(RuntimeError) { follow_redirect }
+    end
+  end
+
+  protected
+    def with_foo_routing
+      with_routing do |set|
+        set.draw do
+          set.generate_url 'foo', :controller => 'test'
+          set.connect      ':controller/:action/:id'
+        end
+        yield set
+      end
+    end
 end
