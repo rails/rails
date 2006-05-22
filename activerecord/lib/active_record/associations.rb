@@ -586,12 +586,14 @@ module ActiveRecord
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_one association will use "person_id"
       #   as the default foreign_key.
       # * <tt>:include</tt>  - specify second-order associations that should be eager loaded when this object is loaded.
-      #
+      # * <tt>:as</tt>: Specifies a polymorphic interface (See #belongs_to).
+            #
       # Option examples:
       #   has_one :credit_card, :dependent => :destroy  # destroys the associated credit card
       #   has_one :credit_card, :dependent => :nullify  # updates the associated records foriegn key value to null rather than destroying it
       #   has_one :last_comment, :class_name => "Comment", :order => "posted_on"
       #   has_one :project_manager, :class_name => "Person", :conditions => "role = 'project_manager'"
+      #   has_one :attachment, :as => :attachable
       def has_one(association_id, options = {})
         reflection = create_has_one_reflection(association_id, options)
 

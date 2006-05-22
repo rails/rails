@@ -1,5 +1,7 @@
 *SVN*
 
+* Add docs for the :as option in has_one associations.  Closes #5144 [cdcarter@gmail.com]
+
 * Fixed that has_many collections shouldn't load the entire association to do build or create [DHH]
 
 * Added :allow_nil option for aggregations #5091 [ian.w.white@gmail.com]
