@@ -1,5 +1,7 @@
 *SVN*
 
+* Add observer generator. Closes #5167. [francois.beausoleil@gmail.com]
+
 * Session migration generator obeys pluralize_table_names. #5145 [james.adam@gmail.com]
 
 * rake test:recent understands subdirectories. #2925 [jerrett@bravenet.com]
