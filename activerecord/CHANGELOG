@@ -1,5 +1,7 @@
 *SVN*
 
+* Add a quick note about :select and eagerly included associations. [Rick]
+
 * Add docs for the :as option in has_one associations.  Closes #5144 [cdcarter@gmail.com]
 
 * Fixed that has_many collections shouldn't load the entire association to do build or create [DHH]

@@ -348,7 +348,8 @@ module ActiveRecord
     #
     # Also have in mind that since the eager loading is pulling from multiple tables, you'll have to disambiguate any column references
     # in both conditions and orders. So :order => "posts.id DESC" will work while :order => "id DESC" will not. This may require that
-    # you alter the :order and :conditions on the association definitions themselves.
+    # you alter the :order and :conditions on the association definitions themselves.  Because eager loading generates the SELECT statement too,
+    # the :select option is ignored.
     #
     # It's currently not possible to use eager loading on multiple associations from the same table. Eager loading will not pull
     # additional attributes on join tables, so "rich associations" with has_and_belongs_to_many is not a good fit for eager loading.
