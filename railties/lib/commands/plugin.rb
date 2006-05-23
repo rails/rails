@@ -150,8 +150,16 @@ class Plugin
     guess_name(uri)
   end
   
+  def self.find(name)
+    name =~ /\// ? new(name) : Repositories.instance.find_plugin(name)
+  end
+  
   def to_s
     "#{@name.ljust(30)}#{@uri}"
+  end
+  
+  def svn_url?
+    @uri =~ /svn:\/\/*/
   end
   
   def installed?
@@ -161,7 +169,7 @@ class Plugin
   
   def install(method=nil, options = {})
     method ||= rails_env.best_install_method?
-    method = :export if method == :http and @uri =~ /svn:\/\/*/
+    method   = :export if method == :http and svn_url?
 
     uninstall if installed? and options[:force]
 
@@ -185,6 +193,20 @@ class Plugin
     externals = rails_env.externals
     externals.reject!{|n,u| name == n or name == u}
     rails_env.externals = externals
+  end
+
+  def info
+    tmp = "#{rails_env.root}/_tmp_meta.yml"
+    if svn_url?
+      cmd = "svn export #{@uri} \"#{rails_env.root}/#{tmp}\""
+      puts cmd if $verbose
+      system(cmd)
+    end
+    open(svn_url? ? tmp : File.join(@uri, 'meta.yml')) do |stream|
+      stream.read
+    end rescue "No meta.yml found in #{uri}"
+  ensure
+    FileUtils.rm_rf tmp if svn_url?
   end
 
   private 
@@ -442,7 +464,7 @@ module Commands
       options.parse!(general)
       
       command = general.shift
-      if command =~ /^(list|discover|install|source|unsource|sources|remove|update)$/
+      if command =~ /^(list|discover|install|source|unsource|sources|remove|update|info)$/
         command = Commands.const_get(command.capitalize).new(self)
         command.parse!(sub)
       else
@@ -729,19 +751,12 @@ module Commands
       environment = @base_command.environment
       install_method = determine_install_method
       puts "Plugins will be installed using #{install_method}" if $verbose
-      args.each do |name| 
-        if name =~ /\// then
-          ::Plugin.new(name).install(install_method, @options)
-        else
-          plugin = Repositories.instance.find_plugin(name)
-          unless plugin.nil?
-            plugin.install(install_method, @options)
-          else
-            puts "Plugin not found: #{name}"
-            exit 1
-          end
-        end
+      args.each do |name|
+        ::Plugin.find(name).install(install_method, @options)
       end
+    rescue
+      puts "Plugin not found: #{name}"
+      exit 1
     end
   end
 
@@ -802,6 +817,27 @@ module Commands
     end
   end
 
+  class Info
+    def initialize(base_command)
+      @base_command = base_command
+    end
+
+    def options
+      OptionParser.new do |o|
+        o.set_summary_indent('  ')
+        o.banner =    "Usage: #{@base_command.script_name} info name [name]..."
+        o.define_head "Shows plugin info at {url}/meta.yml."
+      end
+    end
+
+    def parse!(args)
+      options.parse!(args)
+      args.each do |name|
+        puts ::Plugin.find(name).info
+        puts
+      end
+    end
+  end
 end
  
 class RecursiveHTTPFetcher
