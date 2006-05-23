@@ -1,0 +1,15 @@
+Description:
+    The observer generator creates stubs for a new observer.
+
+    The generator takes a observer name as its argument.  The observer name may be
+    given in CamelCase or under_score and should not be suffixed with 'Observer'.
+
+    The generator creates a observer class in app/models and a test suite in
+    test/unit.
+
+Example:
+    ./script/generate observer Account
+
+    This will create an Account observer:
+        Observer:   app/models/account_observer.rb
+        Test:       test/unit/account_observer_test.rb
