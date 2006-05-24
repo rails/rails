@@ -55,7 +55,7 @@ module ActiveRecord
     #
     # Caveat: Operations involving LIMIT and OFFSET do not yet work!
     #
-    # Maintainer: derrickspell@cdmplus.com
+    # Maintainer: derrick.spell@gmail.com
     class OpenBaseAdapter < AbstractAdapter
       def adapter_name
         'OpenBase'

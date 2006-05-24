@@ -1,5 +1,7 @@
 *SVN*
 
+* Update OpenBase adaterp's maintainer's email address. Closes #5176. [Derrick Spell]
+
 * Add a quick note about :select and eagerly included associations. [Rick]
 
 * Add docs for the :as option in has_one associations.  Closes #5144 [cdcarter@gmail.com]
