@@ -6,6 +6,7 @@ namespace :doc do
     rdoc.options << '--line-numbers' << '--inline-source'
     rdoc.rdoc_files.include('doc/README_FOR_APP')
     rdoc.rdoc_files.include('app/**/*.rb')
+    rdoc.rdoc_files.include('lib/**/*.rb')
   }
 
   desc "Generate documentation for the Rails framework"
