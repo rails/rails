@@ -38,16 +38,17 @@ module ActionView
       # Another for creating a popup window, which is done by either passing :popup with true or the options of the window in 
       # Javascript form.
       #
-      # And a third for making the link do a POST request (instead of the regular GET) through a dynamically added form element that
-      # is instantly submitted. Note that if the user has turned off Javascript, the request will fall back on the GET. So its
-      # your responsibility to determine what the action should be once it arrives at the controller. The POST form is turned on by
-      # passing :post as true. Note, it's not possible to use POST requests and popup targets at the same time (an exception will be thrown).
+      # And a third for making the link do a non-GET request through a dynamically added form element that is instantly submitted. 
+      # Note that if the user has turned off Javascript, the request will fall back on the GET. So its
+      # your responsibility to determine what the action should be once it arrives at the controller. The form is turned on by
+      # passing :method with the option of either :post, :delete, or :put as the value. Usually only :post or :delete will make sense, though.
+      # Note, it's not possible to use method request and popup targets at the same time (an exception will be thrown).
       #
       # Examples:
       #   link_to "Delete this page", { :action => "destroy", :id => @page.id }, :confirm => "Are you sure?"
       #   link_to "Help", { :action => "help" }, :popup => true
       #   link_to "Busy loop", { :action => "busy" }, :popup => ['new_window', 'height=300,width=600']
-      #   link_to "Destroy account", { :action => "destroy" }, :confirm => "Are you sure?", :post => true
+      #   link_to "Destroy account", { :action => "destroy" }, :confirm => "Are you sure?", :method => :delete
       def link_to(name, options = {}, html_options = nil, *parameters_for_method_reference)
         if html_options
           html_options = html_options.stringify_keys
@@ -249,19 +250,23 @@ module ActionView
 
       private
         def convert_options_to_javascript!(html_options)
-          confirm, popup, post = html_options.delete("confirm"), html_options.delete("popup"), html_options.delete("post")
+          confirm, popup = html_options.delete("confirm"), html_options.delete("popup")
+
+          # post is deprecated, but if its specified and method is not, assume that method = :post
+          method, post   = html_options.delete("method"), html_options.delete("post")
+          method = :post if !method && post
         
           html_options["onclick"] = case
-            when popup && post
+            when popup && method
               raise ActionView::ActionViewError, "You can't use :popup and :post in the same link"
             when confirm && popup
               "if (#{confirm_javascript_function(confirm)}) { #{popup_javascript_function(popup)} };return false;"
-            when confirm && post
-              "if (#{confirm_javascript_function(confirm)}) { #{post_javascript_function} };return false;"
+            when confirm && method
+              "if (#{confirm_javascript_function(confirm)}) { #{method_javascript_function(method)} };return false;"
             when confirm
               "return #{confirm_javascript_function(confirm)};"
-            when post
-              "#{post_javascript_function}return false;"
+            when method
+              "#{method_javascript_function(method)}return false;"
             when popup
               popup_javascript_function(popup) + 'return false;'
             else
@@ -277,8 +282,17 @@ module ActionView
           popup.is_a?(Array) ? "window.open(this.href,'#{popup.first}','#{popup.last}');" : "window.open(this.href);"
         end
         
-        def post_javascript_function
-          "var f = document.createElement('form'); this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href; f.submit();"
+        def method_javascript_function(method)
+          submit_function = 
+            "var f = document.createElement('form'); f.style.display = 'none'; " +
+            "this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;"
+          
+          unless method == :post
+            submit_function << "var m = document.createElement('input'); m.setAttribute('type', 'hidden'); "
+            submit_function << "m.setAttribute('name', '_method'); m.setAttribute('value', '#{method}'); f.appendChild(m);"
+          end
+          
+          submit_function << "f.submit();"
         end
 
         # Processes the _html_options_ hash, converting the boolean

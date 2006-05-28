@@ -127,14 +127,21 @@ class UrlHelperTest < Test::Unit::TestCase
   
   def test_link_tag_using_post_javascript
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"var f = document.createElement('form'); this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href; f.submit();return false;\">Hello</a>",
+      "<a href='http://www.example.com' onclick=\"var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;f.submit();return false;\">Hello</a>",
       link_to("Hello", "http://www.example.com", :post => true)
+    )
+  end
+
+  def test_link_tag_using_delete_javascript
+    assert_dom_equal(
+      "<a href='http://www.example.com' onclick=\"var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;var m = document.createElement('input'); m.setAttribute('type', 'hidden'); m.setAttribute('name', '_method'); m.setAttribute('value', 'delete'); f.appendChild(m);f.submit();return false;\">Destroy</a>",
+      link_to("Destroy", "http://www.example.com", :method => :delete)
     )
   end
   
   def test_link_tag_using_post_javascript_and_confirm
     assert_dom_equal(
-      "<a href=\"http://www.example.com\" onclick=\"if (confirm('Are you serious?')) { var f = document.createElement('form'); this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href; f.submit(); };return false;\">Hello</a>",
+      "<a href=\"http://www.example.com\" onclick=\"if (confirm('Are you serious?')) { var f = document.createElement('form'); f.style.display = 'none'; this.parentNode.appendChild(f); f.method = 'POST'; f.action = this.href;f.submit(); };return false;\">Hello</a>",
       link_to("Hello", "http://www.example.com", :post => true, :confirm => "Are you serious?")
     )    
   end

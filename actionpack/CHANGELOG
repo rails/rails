@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :method option to UrlHelper#link_to, which allows for using other verbs than GET for the link. This replaces the :post option, which is now deprecated. Example: link_to "Destroy", person_url(:id => person), :method => :delete [DHH]
+
 * follow_redirect doesn't complain about being redirected to the same controller. #5153 [dymo@mk.ukrtelecom.ua]
 
 * Add layout attribute to response object with the name of the layout that was rendered, or nil if none rendered. [Kevin Clark kevin.clark@gmail.com]
