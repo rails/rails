@@ -164,10 +164,8 @@ module ActionView
 
         options[:html] ||= {}
         options[:html][:onsubmit] = "#{remote_function(options)}; return false;"
-        options[:html][:action] = options[:html][:action] || url_for(options[:url])
-        options[:html][:method] = options[:html][:method] || "post"
 
-        tag("form", options[:html], true)
+        form_tag(options[:html].delete(:action) || url_for(options[:url]), options[:html])
       end
 
       # Works like form_remote_tag, but uses form_for semantics.

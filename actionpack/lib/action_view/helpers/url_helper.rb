@@ -24,6 +24,7 @@ module ActionView
         else
           escape = true
         end
+
         url = @controller.send(:url_for, options, *parameters_for_method_reference)
         escape ? html_escape(url) : url
       end
@@ -57,6 +58,7 @@ module ActionView
         else
           tag_options = nil
         end
+
         url = options.is_a?(String) ? options : self.url_for(options, *parameters_for_method_reference)
         "<a href=\"#{url}\"#{tag_options}>#{name || url}</a>"
       end

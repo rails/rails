@@ -20,8 +20,8 @@ module ActionView
       def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &proc)
         html_options = options.stringify_keys
         html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
-        html_options["action"] = url_for(url_for_options, *parameters_for_url)
-        
+        html_options["action"]  = url_for(url_for_options, *parameters_for_url)
+
         method_tag = ""
         
         case method = html_options.delete("method")

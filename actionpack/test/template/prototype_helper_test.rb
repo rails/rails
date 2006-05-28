@@ -8,17 +8,22 @@ module BaseTest
   include ActionView::Helpers::UrlHelper
   include ActionView::Helpers::TagHelper
   include ActionView::Helpers::TextHelper
+  include ActionView::Helpers::FormTagHelper
   include ActionView::Helpers::FormHelper
   include ActionView::Helpers::CaptureHelper
   
   def setup
     @controller = Class.new do
       def url_for(options, *parameters_for_method_reference)
-        url =  "http://www.example.com/"
-        url << options[:action].to_s if options and options[:action]
-        url << "?a=#{options[:a]}" if options && options[:a]
-        url << "&b=#{options[:b]}" if options && options[:a] && options[:b]
-        url
+        if options.is_a?(String)
+          options
+        else
+          url =  "http://www.example.com/"
+          url << options[:action].to_s if options and options[:action]
+          url << "?a=#{options[:a]}" if options && options[:a]
+          url << "&b=#{options[:b]}" if options && options[:a] && options[:b]
+          url
+        end
       end
     end.new
   end
@@ -60,6 +65,11 @@ class PrototypeHelperTest < Test::Unit::TestCase
       form_remote_tag(:update => { :failure => "glass_of_water" }, :url => { :action => :fast  })
     assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater({success:'glass_of_beer',failure:'glass_of_water'}, 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\">),
       form_remote_tag(:update => { :success => 'glass_of_beer', :failure => "glass_of_water" }, :url => { :action => :fast  })
+  end
+
+  def test_form_remote_tag_with_method
+    assert_dom_equal %(<form action=\"http://www.example.com/fast\" method=\"post\" onsubmit=\"new Ajax.Updater('glass_of_beer', 'http://www.example.com/fast', {asynchronous:true, evalScripts:true, parameters:Form.serialize(this)}); return false;\"><input name='_method' type='hidden' value='put' />),
+      form_remote_tag(:update => "glass_of_beer", :url => { :action => :fast  }, :html => { :method => :put })
   end
   
   def test_on_callbacks
