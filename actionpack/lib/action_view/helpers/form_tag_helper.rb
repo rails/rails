@@ -14,12 +14,27 @@ module ActionView
       #
       # Options:
       # * <tt>:multipart</tt> - If set to true, the enctype is set to "multipart/form-data".
-      # * <tt>:method</tt> - The method to use when submitting the form, usually either "get" or "post".
+      # * <tt>:method</tt>    - The method to use when submitting the form, usually either "get" or "post".
+      #                         If "put", "delete", or another verb is used, a hidden input with name _method 
+      #                         is added to simulate the verb over post.
       def form_tag(url_for_options = {}, options = {}, *parameters_for_url, &proc)
-        html_options = { "method" => "post" }.merge(options.stringify_keys)
+        html_options = options.stringify_keys
         html_options["enctype"] = "multipart/form-data" if html_options.delete("multipart")
         html_options["action"] = url_for(url_for_options, *parameters_for_url)
-        tag :form, html_options, true
+        
+        method_tag = ""
+        
+        case method = html_options.delete("method")
+          when /^get$/i # must be case-insentive, but can't use downcase as might be nil
+            html_options["method"] = "get"
+          when /^post$/i, nil
+            html_options["method"] = "post"
+          else
+            html_options["method"] = "post"
+            method_tag = tag(:input, :type => "hidden", :name => "_method", :value => method)
+        end
+        
+        tag(:form, html_options, true) + method_tag
       end
 
       alias_method :start_form_tag, :form_tag

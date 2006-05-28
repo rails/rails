@@ -33,6 +33,12 @@ class FormTagHelperTest < Test::Unit::TestCase
     assert_dom_equal expected, actual
   end
 
+  def test_form_tag_with_method
+    actual = form_tag({}, { :method => :put })
+    expected = %(<form action="http://www.example.com" method="post"><input type="hidden" name="_method" value="put" />)
+    assert_dom_equal expected, actual
+  end
+
   def test_hidden_field_tag
     actual = hidden_field_tag "id", 3
     expected = %(<input id="id" name="id" type="hidden" value="3" />)
