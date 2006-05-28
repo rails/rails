@@ -65,6 +65,29 @@ class AssociationsTest < Test::Unit::TestCase
   end
 end
 
+class AssociationProxyTest < Test::Unit::TestCase
+  fixtures :authors, :posts
+  
+  def test_proxy_accessors
+    welcome = posts(:welcome)
+    assert_equal  welcome, welcome.author.proxy_owner
+    assert_equal  welcome.class.reflect_on_association(:author), welcome.author.proxy_reflection
+    welcome.author.class  # force load target
+    assert_equal  welcome.author, welcome.author.proxy_target
+
+    david = authors(:david)
+    assert_equal  david, david.posts.proxy_owner
+    assert_equal  david.class.reflect_on_association(:posts), david.posts.proxy_reflection
+    david.posts.first   # force load target
+    assert_equal  david.posts, david.posts.proxy_target
+    
+    assert_equal  david, david.posts_with_extension.testing_proxy_owner
+    assert_equal  david.class.reflect_on_association(:posts_with_extension), david.posts_with_extension.testing_proxy_reflection
+    david.posts_with_extension.first   # force load target
+    assert_equal  david.posts_with_extension, david.posts_with_extension.testing_proxy_target
+  end
+end
+
 class HasOneAssociationsTest < Test::Unit::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects
   

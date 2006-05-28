@@ -1,5 +1,8 @@
 *SVN*
 
+* Provide Association Extensions access to the instance that the association is being accessed from.  
+  Closes #4433 [josh@hasmanythrough.com]
+
 * Update OpenBase adaterp's maintainer's email address. Closes #5176. [Derrick Spell]
 
 * Add a quick note about :select and eagerly included associations. [Rick]

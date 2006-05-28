@@ -232,6 +232,13 @@ module ActiveRecord
     #     has_many :people, :extend => [FindOrCreateByNameExtension, FindRecentExtension]
     #   end
     #
+    # Some extensions can only be made to work with knowledge of the association proxy's internals.
+    # Extensions can access relevant state using accessors on the association proxy:
+    # 
+    # * +proxy_owner+ - Returns the object the association is part of.
+    # * +proxy_reflection+ - Returns the reflection object that describes the association.
+    # * +proxy_target+ - Returns the associated object for belongs_to and has_one, or the collection of associated objects for has_many and has_and_belongs_to_many.
+    #
     # === Association Join Models
     # 
     # Has Many associations can be configured with the :through option to use an explicit join model to retrieve the data.  This

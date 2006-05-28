@@ -4,12 +4,24 @@ module ActiveRecord
       attr_reader :reflection
       alias_method :proxy_respond_to?, :respond_to?
       alias_method :proxy_extend, :extend
-      instance_methods.each { |m| undef_method m unless m =~ /(^__|^nil\?|^proxy_respond_to\?|^proxy_extend|^send)/ }
+      instance_methods.each { |m| undef_method m unless m =~ /(^__|^nil\?$|^send$|proxy_)/ }
 
       def initialize(owner, reflection)
         @owner, @reflection = owner, reflection
         Array(reflection.options[:extend]).each { |ext| proxy_extend(ext) }
         reset
+      end
+      
+      def proxy_owner
+        @owner
+      end
+      
+      def proxy_reflection
+        @reflection
+      end
+      
+      def proxy_target
+        @target
       end
       
       def respond_to?(symbol, include_priv = false)
