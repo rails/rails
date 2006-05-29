@@ -1354,6 +1354,20 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     devel.save
     assert !proj.new_record?
     assert_equal devel.projects.last, proj
+    assert_equal Developer.find(1).projects.last, proj  # prove join table is updated
+  end
+  
+  def test_build_by_new_record
+    devel = Developer.new(:name => "Marcel", :salary => 75000)
+    proj1 = devel.projects.build(:name => "Make bed")
+    proj2 = devel.projects.build(:name => "Lie in it")
+    assert_equal devel.projects.last, proj2
+    assert proj2.new_record?
+    devel.save
+    assert !devel.new_record?
+    assert !proj2.new_record?
+    assert_equal devel.projects.last, proj2
+    assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
   end
   
   def test_create
@@ -1361,6 +1375,20 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     proj = devel.projects.create("name" => "Projekt")
     assert_equal devel.projects.last, proj
     assert !proj.new_record?
+    assert_equal Developer.find(1).projects.last, proj  # prove join table is updated
+  end
+  
+  def test_create_by_new_record
+    devel = Developer.new(:name => "Marcel", :salary => 75000)
+    proj1 = devel.projects.create(:name => "Make bed")
+    proj2 = devel.projects.create(:name => "Lie in it")
+    assert_equal devel.projects.last, proj2
+    assert proj2.new_record?
+    devel.save
+    assert !devel.new_record?
+    assert !proj2.new_record?
+    assert_equal devel.projects.last, proj2
+    assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
   end
   
   def test_uniq_after_the_fact

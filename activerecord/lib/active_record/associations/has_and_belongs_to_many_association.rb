@@ -13,6 +13,17 @@ module ActiveRecord
         record
       end
 
+      def create(attributes = {})
+        # Can't use Base.create since the foreign key may be a protected attribute.
+        if attributes.is_a?(Array)
+          attributes.collect { |attr| create(attr) }
+        else
+          record = build(attributes)
+          insert_record(record) unless @owner.new_record?
+          record
+        end
+      end
+
       def find_first
         load_target.first
       end

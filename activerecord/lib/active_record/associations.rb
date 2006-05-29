@@ -763,6 +763,10 @@ module ActiveRecord
       # * <tt>collection.size</tt> - returns the number of associated objects.
       # * <tt>collection.find(id)</tt> - finds an associated object responding to the +id+ and that
       #   meets the condition that it has to be associated with this object.
+      # * <tt>collection.build(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
+      #   with +attributes+ and linked to this object through the join table but has not yet been saved.
+      # * <tt>collection.create(attributes = {})</tt> - returns a new object of the collection type that has been instantiated
+      #   with +attributes+ and linked to this object through the join table and that has already been saved (if it passed the validation).
       #
       # Example: An Developer class declares <tt>has_and_belongs_to_many :projects</tt>, which will add:
       # * <tt>Developer#projects</tt>
@@ -775,6 +779,8 @@ module ActiveRecord
       # * <tt>Developer#projects.empty?</tt>
       # * <tt>Developer#projects.size</tt>
       # * <tt>Developer#projects.find(id)</tt>
+      # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("project_id" => id)</tt>)
+      # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("project_id" => id); c.save; c</tt>)
       # The declaration may include an options hash to specialize the behavior of the association.
       # 
       # Options are:
