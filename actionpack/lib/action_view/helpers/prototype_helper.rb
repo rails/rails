@@ -39,7 +39,7 @@ module ActionView
       # XMLHttpRequest. The result of that request can then be inserted into a
       # DOM object whose id can be specified with <tt>options[:update]</tt>. 
       # Usually, the result would be a partial prepared by the controller with
-      # either render_partial or render_partial_collection. 
+      # render :partial. 
       #
       # Examples:
       #   link_to_remote "Delete this post", :update => "posts", 
@@ -59,6 +59,12 @@ module ActionView
       # Optionally, you can use the <tt>options[:position]</tt> parameter to 
       # influence how the target DOM element is updated. It must be one of 
       # <tt>:before</tt>, <tt>:top</tt>, <tt>:bottom</tt>, or <tt>:after</tt>.
+      #
+      # The method used is by default POST. You can also specify GET or you
+      # can simulate PUT or DELETE over POST. All specified with <tt>options[:method]</tt>
+      #
+      # Example:
+      #   link_to_remote "Destroy", person_url(:id => person), :method => :delete
       #
       # By default, these remote requests are processed asynchronous during 
       # which various JavaScript callbacks can be triggered (for progress 
