@@ -1354,7 +1354,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     devel.save
     assert !proj.new_record?
     assert_equal devel.projects.last, proj
-    assert_equal Developer.find(1).projects.last, proj  # prove join table is updated
+    assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
   end
   
   def test_build_by_new_record
@@ -1375,7 +1375,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     proj = devel.projects.create("name" => "Projekt")
     assert_equal devel.projects.last, proj
     assert !proj.new_record?
-    assert_equal Developer.find(1).projects.last, proj  # prove join table is updated
+    assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
   end
   
   def test_create_by_new_record
