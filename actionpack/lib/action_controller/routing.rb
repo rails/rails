@@ -713,7 +713,7 @@ module ActionController
           define_hash_access_method(route, name)
           
           module_eval(%{def #{url_helper_name name}(options = {})
-            url_for(#{hash_access_name(name)}.merge(options))
+            url_for(#{hash_access_name(name)}.merge(options.is_a?(Hash) ? options : { :id => options }))
           end}, "generated/routing/named_routes/#{name}.rb")
       
           protected url_helper_name(name), hash_access_name(name)
