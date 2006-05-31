@@ -13,7 +13,7 @@ class ArrayExtToParamTests < Test::Unit::TestCase
   end
 end
 
-class ArrayExtConversionTests < Test::Unit::TestCase
+class ArrayExtToSentenceTests < Test::Unit::TestCase
   def test_plain_array_to_sentence
     assert_equal "", [].to_sentence
     assert_equal "one", ['one'].to_sentence
@@ -36,6 +36,19 @@ class ArrayExtConversionTests < Test::Unit::TestCase
   
   def test_one_element
     assert_equal "one", ['one'].to_sentence
+  end
+end
+
+class ArrayExtToSTests < Test::Unit::TestCase
+  def test_to_s_db
+    collection = [
+      Class.new { def id() 1 end }.new,
+      Class.new { def id() 2 end }.new,
+      Class.new { def id() 3 end }.new
+    ]
+    
+    assert_equal "null", [].to_s(:db)
+    assert_equal "1,2,3", collection.to_s(:db)
   end
 end
 

@@ -932,6 +932,14 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal(41, c2.references)
   end
 
+  def test_quoting_arrays
+    replies = Reply.find(:all, :conditions => [ "id IN (?)", topics(:first).replies.to_s(:db) ])
+    assert_equal topics(:first).replies.size, replies.size
+
+    replies = Reply.find(:all, :conditions => [ "id IN (?)", [].to_s(:db) ])
+    assert_equal 0, replies.size
+  end
+
   MyObject = Struct.new :attribute1, :attribute2
   
   def test_serialized_attribute

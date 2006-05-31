@@ -26,6 +26,24 @@ module ActiveSupport #:nodoc:
           join '/'
         end
         
+        def self.included(klass) #:nodoc:
+          klass.send(:alias_method, :to_default_s, :to_s)
+          klass.send(:alias_method, :to_s, :to_formatted_s)
+        end
+        
+        def to_formatted_s(format = :default)
+          case format
+            when :db
+              if respond_to?(:empty?) && self.empty?
+                "null"
+              else
+                collect { |element| element.id }.join(",")
+              end
+            else
+              to_default_s
+          end
+        end
+        
         def to_xml(options = {})
           raise "Not all elements respond to to_xml" unless all? { |e| e.respond_to? :to_xml }
 

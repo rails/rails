@@ -1,5 +1,9 @@
 *SVN*
 
+* Added Array#to_s(:db) that'll produce a comma-separated list of ids [DHH]. Example:
+    
+    Purchase.find(:all, :conditions => [ "product_id IN (?)", shop.products.to_s(:db) ])
+
 * Normalize classify's argument to a String so that it plays nice with Symbols. [Marcel Molina Jr.] 
 
 * Strip out leading schema name in classify. References #5139. [schoenm@earthlink.net]
