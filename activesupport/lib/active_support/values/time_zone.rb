@@ -169,7 +169,7 @@ class TimeZone
 
     # A regular expression that matches the names of all time zones in
     # the USA.
-    US_ZONES = /US|Arizona|Indiana|Hawaii|Alaska/
+    US_ZONES = /US|Arizona|Indiana|Hawaii|Alaska/ unless defined?(US_ZONES)
 
     # A convenience method for returning a collection of TimeZone objects
     # for time zones in the USA.

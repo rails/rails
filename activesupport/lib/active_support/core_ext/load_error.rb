@@ -8,7 +8,7 @@ class MissingSourceFile < LoadError #:nodoc:
   def is_missing?(path)
     path.gsub(/\.rb$/, '') == self.path.gsub(/\.rb$/, '')
   end
-  
+
   def self.from_message(message)
     REGEXPS.each do |regexp, capture|
       match = regexp.match(message)
@@ -16,12 +16,12 @@ class MissingSourceFile < LoadError #:nodoc:
     end
     nil
   end
-  
+
   REGEXPS = [
     [/^no such file to load -- (.+)$/i, 1],
     [/^Missing \w+ (file\s*)?([^\s]+.rb)$/i, 2],
     [/^Missing API definition file in (.+)$/i, 1]
-  ]
+  ] unless defined?(REGEXPS)
 end
 
 module ActiveSupport #:nodoc:

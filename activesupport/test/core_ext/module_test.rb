@@ -127,7 +127,7 @@ class MethodAliasingTest < Test::Unit::TestCase
   end
 
   def test_alias_method_chain
-    assert @instance.respond_to? :bar
+    assert @instance.respond_to?(:bar)
     feature_aliases = [:bar_with_baz, :bar_without_baz]
 
     feature_aliases.each do |method|
@@ -152,7 +152,7 @@ class MethodAliasingTest < Test::Unit::TestCase
     FooClassWithBarMethod.send(:include, BarMethodAliaser)
     FooClassWithBarMethod.alias_method_chain :quux!, :baz
     assert @instance.respond_to?(:quux_with_baz)
-    
+
     assert_equal 'quux_with_baz', @instance.quux!
     assert_equal 'quux', @instance.quux_without_baz
   end
