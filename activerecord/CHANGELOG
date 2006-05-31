@@ -1,5 +1,7 @@
 *SVN*
 
+* Add a list of regexes assert_queries skips in the ActiveRecord test suite.  [Rick]
+
 * Fix the has_and_belongs_to_many #create doesn't populate the join for new records.  Closes #3692 [josh@hasmanythrough.com]
 
 * Provide Association Extensions access to the instance that the association is being accessed from.  
