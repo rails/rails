@@ -159,7 +159,7 @@ class Plugin
   end
   
   def svn_url?
-    @uri =~ /svn:\/\/*/
+    @uri =~ /svn(?:\+ssh)?:\/\/*/
   end
   
   def installed?

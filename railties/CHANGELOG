@@ -1,5 +1,7 @@
 *SVN*
 
+* Make "script/plugin install" work with svn+ssh URLs. [Sam Stephenson]
+
 * Added lib/ to the directories that will get application docs generated [DHH]
 
 * Add observer generator. Closes #5167. [francois.beausoleil@gmail.com]
