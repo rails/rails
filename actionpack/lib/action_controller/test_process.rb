@@ -78,6 +78,10 @@ module ActionController #:nodoc:
       @path = uri.split("?").first
     end
 
+    def accept=(mime_types)
+      @env["HTTP_ACCEPT"] = Array(mime_types).collect { |mime_types| mime_types.to_s }.join(",")
+    end
+
     def remote_addr=(addr)
       @env['REMOTE_ADDR'] = addr
     end
