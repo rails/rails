@@ -110,7 +110,12 @@ module ActionController #:nodoc:
       
       def initialize(block_binding)
         @block_binding = block_binding
-        @mime_type_priority = eval("request.accepts", block_binding)
+        @mime_type_priority = eval(
+          "(params[:format] && Mime::EXTENSION_LOOKUP[params[:format]]) ? " +
+          "[ Mime::EXTENSION_LOOKUP[params[:format]] ] : request.accepts", 
+          block_binding
+        )
+
         @order     = []
         @responses = {}
       end

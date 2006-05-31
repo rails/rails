@@ -1,5 +1,39 @@
 *SVN*
 
+* Added interrogation of params[:format] to determine Accept type. If :format is specified and matches a declared extension, like "rss" or "xml", that mime type will be put in front of the accept handler. This means you can link to the same action from different extensions and use that fact to determine output [DHH]. Example:
+
+  class WeblogController < ActionController::Base
+    def index
+      @posts = Post.find :all
+      
+      respond_to do |format|
+        format.html
+        format.xml { render :xml => @posts.to_xml }
+        format.rss { render :action => "feed.rxml" }
+      end
+    end
+  end
+  
+  # returns HTML when requested by a browser, since the browser
+  # has the HTML mimetype at the top of its priority list
+  Accept: text/html
+  GET /weblog 
+  
+  # returns the XML 
+  Accept: application/xml
+  GET /weblog 
+
+  # returns the HTML 
+  Accept: application/xml
+  GET /weblog.html
+
+  # returns the XML
+  Accept: text/html
+  GET /weblog.xml
+  
+  All this relies on the fact that you have a route that includes .:format.
+  
+
 * Expanded :method option in FormTagHelper#form_tag, FormHelper#form_for, PrototypeHelper#remote_form_for, PrototypeHelper#remote_form_tag, and PrototypeHelper#link_to_remote to allow for verbs other than GET and POST by automatically creating a hidden form field named _method, which will simulate the other verbs over post [DHH]
 
 * Added :method option to UrlHelper#link_to, which allows for using other verbs than GET for the link. This replaces the :post option, which is now deprecated. Example: link_to "Destroy", person_url(:id => person), :method => :delete [DHH]

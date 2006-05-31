@@ -119,6 +119,7 @@ module Mime
   ATOM  = Type.new "application/atom+xml", :atom
   YAML  = Type.new "application/x-yaml", :yaml, %w( text/yaml )
 
+
   LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) }
 
   LOOKUP["*/*"]                      = ALL
@@ -139,4 +140,20 @@ module Mime
 
   LOOKUP["application/rss+xml"]      = RSS
   LOOKUP["application/atom+xml"]     = ATOM
+
+  
+  EXTENSION_LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) }
+
+  EXTENSION_LOOKUP["html"]  = HTML
+  EXTENSION_LOOKUP["xhtml"] = HTML
+
+  EXTENSION_LOOKUP["xml"]   = XML
+
+  EXTENSION_LOOKUP["js"]    = JS
+
+  EXTENSION_LOOKUP["yml"]   = YAML
+  EXTENSION_LOOKUP["yaml"]  = YAML
+
+  EXTENSION_LOOKUP["rss"]   = RSS
+  EXTENSION_LOOKUP["atom"]  = ATOM
 end

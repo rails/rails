@@ -254,4 +254,18 @@ class MimeControllerTest < Test::Unit::TestCase
     xhr :get, :using_defaults
     assert_equal '$("body").visualEffect("highlight");', @response.body
   end
+  
+  def test_forced_format
+    get :html_xml_or_rss
+    assert_equal "HTML", @response.body
+
+    get :html_xml_or_rss, :format => "html"
+    assert_equal "HTML", @response.body
+
+    get :html_xml_or_rss, :format => "xml"
+    assert_equal "XML", @response.body
+
+    get :html_xml_or_rss, :format => "rss"
+    assert_equal "RSS", @response.body
+  end
 end
