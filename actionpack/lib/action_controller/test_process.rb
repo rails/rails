@@ -106,7 +106,7 @@ module ActionController #:nodoc:
         if value.is_a? Fixnum
           value = value.to_s
         elsif value.is_a? Array
-          value = ActionController::Routing::PathComponent::Result.new(value)
+          value = ActionController::Routing::PathSegment::Result.new(value)
         end
 
         if extra_keys.include?(key.to_sym)
@@ -433,7 +433,7 @@ module ActionController #:nodoc:
     end
 
     def method_missing(selector, *args)
-      return @controller.send(selector, *args) if ActionController::Routing::NamedRoutes::Helpers.include?(selector)
+      return @controller.send(selector, *args) if ActionController::Routing::Routes.named_routes.helpers.include?(selector)
       return super
     end
     

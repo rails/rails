@@ -81,6 +81,7 @@ HTML
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
     ActionController::Routing::Routes.reload
+    ActionController::Routing.use_controllers! %w(content admin/user)
   end
 
   def teardown
@@ -317,9 +318,9 @@ HTML
 
   def test_array_path_parameter_handled_properly
     with_routing do |set|
-      set.draw do 
-        set.connect 'file/*path', :controller => 'test_test/test', :action => 'test_params'
-        set.connect ':controller/:action/:id'
+      set.draw do |map|
+        map.connect 'file/*path', :controller => 'test_test/test', :action => 'test_params'
+        map.connect ':controller/:action/:id'
       end
       
       get :test_params, :path => ['hello', 'world']
@@ -440,9 +441,9 @@ HTML
   protected
     def with_foo_routing
       with_routing do |set|
-        set.draw do
-          set.generate_url 'foo', :controller => 'test'
-          set.connect      ':controller/:action/:id'
+        set.draw do |map|
+          map.generate_url 'foo', :controller => 'test'
+          map.connect      ':controller/:action/:id'
         end
         yield set
       end

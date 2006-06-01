@@ -41,34 +41,9 @@ module ActionController
           options.update(overwrite)
         end
         RESERVED_OPTIONS.each {|k| options.delete k}
-        path, extra_keys = Routing::Routes.generate(options.dup, @request) # Warning: Routes will mutate and violate the options hash
 
-        path << build_query_string(options, extra_keys) unless extra_keys.empty?
-        
-        path
-      end
-
-      # Returns a query string with escaped keys and values from the passed hash. If the passed hash contains an "id" it'll
-      # be added as a path element instead of a regular parameter pair.
-      def build_query_string(hash, only_keys = nil)
-        elements = []
-        query_string = ""
-
-        only_keys ||= hash.keys
-        
-        only_keys.each do |key|
-          value = hash[key] 
-          key = CGI.escape key.to_s
-          if value.class == Array
-            key <<  '[]'
-          else
-            value = [ value ]
-          end
-          value.each { |val| elements << "#{key}=#{Routing.extract_parameter_value(val)}" }
-        end
-        
-        query_string << ("?" + elements.join("&")) unless elements.empty?
-        query_string
+        # Generates the query string, too
+        Routing::Routes.generate(options, @request.parameters)
       end
   end
 end

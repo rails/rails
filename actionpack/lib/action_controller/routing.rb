@@ -1,736 +1,1035 @@
+require 'cgi'
+require 'pathname'
+
+class Object
+  def to_param
+    to_s
+  end
+end
+
+class TrueClass
+  def to_param
+    self
+  end
+end
+
+class FalseClass
+  def to_param
+    self
+  end
+end
+
+class NilClass
+  def to_param
+    self
+  end
+end
+
+class Regexp
+  def number_of_captures
+    Regexp.new("|#{source}").match('').captures.length
+  end
+  
+  class << self
+    def optionalize(pattern)
+      case unoptionalize(pattern)
+        when /\A(.|\(.*\))\Z/ then "#{pattern}?"
+        else "(?:#{pattern})?"
+      end
+    end
+    
+    def unoptionalize(pattern)
+      [/\A\(\?:(.*)\)\?\Z/, /\A(.|\(.*\))\?\Z/].each do |regexp|
+        return $1 if regexp =~ pattern
+      end
+      return pattern
+    end
+  end
+end
+
 module ActionController
-  module Routing #:nodoc:
+  module Routing
+    SEPARATORS = %w( / ; . , ? )
+
     class << self
-      def expiry_hash(options, recall)
-        k = v = nil
-        expire_on = {}
-        options.each {|k, v| expire_on[k] = ((rcv = recall[k]) && (rcv != v))}
-        expire_on
+      def with_controllers(names)
+        use_controllers! names
+        yield
+      ensure
+        use_controllers! nil
+      end
+    
+      def possible_controllers
+        unless @possible_controllers
+          @possible_controllers = []
+        
+          paths = $LOAD_PATH.select { |path| File.directory? path }
+          paths.collect! { |path| Pathname.new(path).realpath.to_s }
+          paths = paths.sort_by { |path| - path.length }
+        
+          seen_paths = Hash.new {|h, k| h[k] = true; false}
+          paths.each do |load_path|
+            Dir["#{load_path}/**/*_controller.rb"].collect do |path|
+              next if seen_paths[path]
+            
+              controller_name = path[(load_path.length + 1)..-1]
+              controller_name.gsub!(/_controller\.rb\Z/, '')
+              @possible_controllers << controller_name
+            end
+          end
+        end
+        @possible_controllers
       end
 
-      def extract_parameter_value(parameter) #:nodoc:
-        CGI.escape((parameter.respond_to?(:to_param) ? parameter.to_param : parameter).to_s) 
+      def use_controllers!(controller_names)
+        @possible_controllers = controller_names
       end
+
       def controller_relative_to(controller, previous)
         if controller.nil?           then previous
         elsif controller[0] == ?/    then controller[1..-1]
         elsif %r{^(.*)/} =~ previous then "#{$1}/#{controller}"
         else controller
-        end
+        end     
+      end     
+    end
+  
+    class Route
+      attr_accessor :segments, :requirements, :conditions
+  
+      def initialize
+        @segments = []
+        @requirements = {}
+        @conditions = {}
       end
+  
+      # Write and compile a +generate+ method for this Route.
+      def write_generation
+        # Build the main body of the generation
+        body = "not_expired = true\n#{generation_extraction}\n#{generation_structure}"
+    
+        # If we have conditions that must be tested first, nest the body inside an if
+        body = "if #{generation_requirements}\n#{body}\nend" if generation_requirements
+        args = "options, hash, expire_on = {}"
 
-      def treat_hash(hash, keys_to_delete = [])
-        k = v = nil
-        hash.each do |k, v|
-          if v then hash[k] = (v.respond_to? :to_param) ? v.to_param.to_s : v.to_s
+        # Nest the body inside of a def block, and then compile it.
+        method_decl = "def generate_raw(#{args})\path = begin\n#{body}\nend\n[path, hash]\nend"
+# puts "\n======================"
+# puts
+# p self
+# puts
+# puts method_decl
+# puts
+        instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
+
+        method_decl = "def generate(#{args})\nappend_query_string(*generate_raw(options, hash, expire_on))\nend"
+        instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
+
+        method_decl = "def generate_extras(#{args})\npath, hash = generate_raw(options, hash, expire_on)\n[path, hash.keys.map(&:to_sym) - significant_keys]\nend"
+        instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
+      end
+  
+      # Build several lines of code that extract values from the options hash. If any
+      # of the values are missing or rejected then a return will be executed.
+      def generation_extraction
+        segments.collect do |segment|
+          segment.extraction_code
+        end.compact * "\n"
+      end
+  
+      # Produce a condition expression that will check the requirements of this route
+      # upon generation.
+      def generation_requirements
+        requirement_conditions = requirements.collect do |key, req|
+          if req.is_a? Regexp
+            value_regexp = Regexp.new "\\A#{req.source}\\Z"
+            "hash[:#{key}] && #{value_regexp.inspect} =~ options[:#{key}]"
           else
-            hash.delete k
-            keys_to_delete << k
+            "hash[:#{key}] == #{req.inspect}"
           end
         end
-        hash
+        requirement_conditions * ' && ' unless requirement_conditions.empty?
       end
-      
-      def test_condition(expression, condition)
-        case condition
-          when String then "(#{expression} == #{condition.inspect})"
-          when Regexp then
-            condition = Regexp.new("^#{condition.source}$") unless /^\^.*\$$/ =~ condition.source 
-            "(#{condition.inspect} =~ #{expression})"
-          when Array then
-            conds = condition.collect do |condition|
-              cond = test_condition(expression, condition)
-              (cond[0, 1] == '(' && cond[-1, 1] == ')') ? cond : "(#{cond})"
-            end
-            "(#{conds.join(' || ')})"
-          when true then expression
-          when nil then "! #{expression}"
-          else
-            raise ArgumentError, "Valid criteria are strings, regular expressions, true, or nil"
-        end
+      def generation_structure
+        segments.last.string_structure segments[0..-2]
       end
-    end
-
-    class Component #:nodoc:
-      def dynamic?()  false end
-      def optional?() false end
-
-      def key() nil end
   
-      def self.new(string, *args)
-        return super(string, *args) unless self == Component
-        case string
-          when /.*;.*/       then SubpathComponent.new(string.split(/;/), *args)
-          when ':controller' then ControllerComponent.new(:controller, *args)
-          when /^:(\w+)$/    then DynamicComponent.new($1, *args)
-          when /^\*(\w+)$/   then PathComponent.new($1, *args)
-          else StaticComponent.new(string, *args)
-        end
-      end 
-    end
-
-    class SubpathComponent < Component #:nodoc:
-      attr_reader :parts
-
-      def initialize(parts, *args)
-        @parts = parts.map { |part| Component.new(part, *args) }
-      end
-
-      def write_recognition(g)
-        raise RoutingError, "Subpath components must occur last" unless g.after.empty?
-        g.if("#{g.next_segment(true)} && #{g.next_segment}.include?(';')") do |gp|
-          gp.line "subindex, subpath = 0, #{gp.next_segment}.split(/;/)"
-          tweak_recognizer(gp).go
-          gp.move_forward { |gpp| gpp.continue }
-        end
-      end
-
-      def write_generation(g)
-        raise RoutingError, "Subpath components must occur last" unless g.after.empty?
-        tweak_generator(g).go
-      end
-
-      def key
-        parts.map { |p| p.key }
-      end
-
-      private
-
-        def tweak_recognizer(g)
-          gg = g.dup
-
-          gg.path_name = :subpath
-          gg.base_segment_name = :subsegment
-          gg.base_index_name = :subindex
-          gg.depth = 0
-
-          gg.before, gg.current, gg.after = [], parts.first, (parts[1..-1] || [])
-
-          gg
-        end
-
-        def tweak_generator(g)
-          gg = g.dup
-          gg.before, gg.current, gg.after = [], parts.first, (parts[1..-1] || [])
-          gg.start_subpath!
-          gg
-        end
-    end
-
-    class StaticComponent < Component #:nodoc:
-      attr_reader :value
-  
-      def initialize(value)
-        @value = value
-      end
-
-      def write_recognition(g)
-        g.if_next_matches(value) do |gp|
-          gp.move_forward {|gpp| gpp.continue}
-        end
-      end
-
-      def write_generation(g)
-        g.add_segment(value) {|gp| gp.continue }
-      end
-    end
-
-    class DynamicComponent < Component #:nodoc:
-      attr_reader :key, :default
-      attr_accessor :condition
-  
-      def dynamic?()  true      end
-      def optional?() @optional end
-
-      def default=(default)
-        @optional = true
-        @default = default
-      end
+      # Write and compile a +recognize+ method for this Route.
+      def write_recognition
+        # Create an if structure to extract the params from a match if it occurs.
+        body = "params = parameter_shell.dup\n#{recognition_extraction * "\n"}\nparams"
+        body = "if #{recognition_conditions.join(" && ")}\n#{body}\nend"
     
-      def initialize(key, options = {})
-        @key = key.to_sym
-        @optional = false
-        default, @condition = options[:default], options[:condition]
-        self.default = default if options.key?(:default)
+        # Build the method declaration and compile it
+        method_decl = "def recognize(path, env={})\n#{body}\nend"
+# puts "\n======================"
+# puts
+# p self
+# puts
+# puts method_decl
+# puts
+        instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
+        method_decl
       end
 
-      def default_check(g)
-        presence = "#{g.hash_value(key, !! default)}"
-        if default
-           "!(#{presence} && #{g.hash_value(key, false)} != #{default.to_s.inspect})"
-        else
-          "! #{presence}"
+      # Plugins may override this method to add other conditions, like checks on
+      # host, subdomain, and so forth. Note that changes here only affect route
+      # recognition, not generation.
+      def recognition_conditions
+        result = ["(match = #{Regexp.new(recognition_pattern).inspect}.match(path))"]
+        result << "conditions[:method] === env[:method]" if conditions[:method]
+        result
+      end
+
+      # Build the regular expression pattern that will match this route.
+      def recognition_pattern(wrap = true)
+        pattern = ''
+        segments.reverse_each do |segment|
+          pattern = segment.build_pattern pattern
         end
+        wrap ? ("\\A" + pattern + "\\Z") : pattern
       end
   
-      def write_generation(g)
-        wrote_dropout = write_dropout_generation(g)
-        write_continue_generation(g, wrote_dropout)
+      # Write the code to extract the parameters from a matched route.
+      def recognition_extraction
+        next_capture = 1
+        extraction = segments.collect do |segment|
+          x = segment.match_extraction next_capture
+          next_capture += Regexp.new(segment.regexp_chunk).number_of_captures
+          x
+        end
+        extraction.compact
+      end
+  
+      # Write the real generation implementation and then resend the message.
+      def generate(options, hash, expire_on = {})
+        write_generation
+        generate options, hash, expire_on
       end
 
-      def write_dropout_generation(g)
-        return false unless optional? && g.after.all? {|c| c.optional?}
-    
-        check = [default_check(g)]
-        gp = g.dup # Use another generator to write the conditions after the first &&
-        # We do this to ensure that the generator will not assume x_value is set. It will
-        # not be set if it follows a false condition -- for example, false && (x = 2)
+      def generate_extras(options, hash, expire_on = {})
+        write_generation
+        generate_extras options, hash, expire_on
+      end
+
+      # Generate the query string with any extra keys in the hash and append
+      # it to the given path, returning the new path.
+      def append_query_string(path, hash)
+        return nil unless path
+        query = hash.keys.map(&:to_sym) - significant_keys
+        "#{path}#{build_query_string(hash, query)}"
+      end
+
+      # Build a query string from the keys of the given hash. If +only_keys+
+      # is given (as an array), only the keys indicated will be used to build
+      # the query string. The query string will correctly build array parameter
+      # values.
+      def build_query_string(hash, only_keys=nil)
+        elements = []
+
+        only_keys ||= hash.keys
         
-        check += gp.after.map {|c| c.default_check gp}
-        gp.if(check.join(' && ')) { gp.finish } # If this condition is met, we stop here
-        true 
-      end
-
-      def write_continue_generation(g, use_else)
-        test  = Routing.test_condition(g.hash_value(key, true, default), condition || true)
-        check = (use_else && condition.nil? && default) ? [:else] : [use_else ? :elsif : :if, test]
-    
-        g.send(*check) do |gp|
-          gp.expire_for_keys(key) unless gp.after.empty?
-          add_segments_to(gp) {|gpp| gpp.continue}
-        end
-      end
-
-      def add_segments_to(g)
-        g.add_segment(%(\#{CGI.escape(#{g.hash_value(key, true, default)})})) {|gp| yield gp}
+        only_keys.each do |key|
+          value = hash[key] 
+          key = CGI.escape key.to_s
+          if value.class == Array
+            key <<  '[]'
+          else    
+            value = [ value ] 
+          end     
+          value.each { |val| elements << "#{key}=#{CGI.escape(val.to_param.to_s)}" }
+        end     
+        
+        query_string = "?#{elements.join("&")}" unless elements.empty?
+        query_string || ""
       end
   
-      def recognition_check(g)
-        test_type = [true, nil].include?(condition) ? :presence : :constraint
-    
-        prefix = condition.is_a?(Regexp) ? "#{g.next_segment(true)} && " : ''
-        check = prefix + Routing.test_condition(g.next_segment(true), condition || true)
-    
-        g.if(check) {|gp| yield gp, test_type}
+      # Write the real recognition implementation and then resend the message.
+      def recognize(path, environment={})
+        write_recognition
+        recognize path, environment
       end
   
-      def write_recognition(g)
-        test_type = nil
-        recognition_check(g) do |gp, test_type|
-          assign_result(gp) {|gpp| gpp.continue}
-        end
-    
-        if optional? && g.after.all? {|c| c.optional?}
-          call = (test_type == :presence) ? [:else] : [:elsif, "! #{g.next_segment(true)}"]
-       
-          g.send(*call) do |gp|
-            assign_default(gp)
-            gp.after.each {|c| c.assign_default(gp)}
-            gp.finish(false)
+      # A route's parameter shell contains parameter values that are not in the
+      # route's path, but should be placed in the recognized hash.
+      # 
+      # For example, +{:controller => 'pages', :action => 'show'} is the shell for the route:
+      # 
+      #   map.connect '/page/:id', :controller => 'pages', :action => 'show', :id => /\d+/
+      # 
+      def parameter_shell
+        @parameter_shell ||= returning({}) do |shell|
+          requirements.each do |key, requirement|
+            shell[key] = requirement unless requirement.is_a? Regexp
           end
         end
       end
-
-      def assign_result(g, with_default = false)
-        g.result key, "CGI.unescape(#{g.next_segment(true, with_default ? default : nil)})"
-        g.move_forward {|gp| yield gp}
+  
+      # Return an array containing all the keys that are used in this route. This
+      # includes keys that appear inside the path, and keys that have requirements
+      # placed upon them.
+      def significant_keys
+        @significant_keys ||= returning [] do |sk|
+          segments.each { |segment| sk << segment.key if segment.respond_to? :key }
+          sk.concat requirements.keys
+          sk.uniq!
+        end
       end
 
-      def assign_default(g)
-        g.constant_result key, default unless default.nil?
+      # Return a hash of key/value pairs representing the keys in the route that
+      # have defaults, or which are specified by non-regexp requirements.
+      def defaults
+        @defaults ||= returning({}) do |hash|
+          segments.each do |segment|
+            next unless segment.respond_to? :default
+            hash[segment.key] = segment.default unless segment.default.nil?
+          end
+          requirements.each do |key,req|
+            next if Regexp === req || req.nil?
+            hash[key] = req
+          end
+        end
+      end
+  
+      def matches_controller_and_action?(controller, action)
+        unless @matching_prepared
+          @controller_requirement = requirement_for(:controller)
+          @action_requirement = requirement_for(:action)
+          @matching_prepared = true
+        end
+
+        (@controller_requirement.nil? || @controller_requirement === controller) &&
+        (@action_requirement.nil? || @action_requirement === action)
+      end
+
+      def to_s
+        @to_s ||= segments.inject("") { |str,s| str << s.to_s }
+      end
+  
+    protected
+  
+      def requirement_for(key)
+        return requirements[key] if requirements.key? key
+        segments.each do |segment|
+          return segment.regexp if segment.respond_to?(:key) && segment.key == key
+        end
+        nil
+      end
+  
+    end
+
+    class Segment
+      attr_accessor :is_optional
+      alias_method :optional?, :is_optional
+
+      def initialize
+        self.is_optional = false
+      end
+
+      def extraction_code
+        nil
+      end
+  
+      # Continue generating string for the prior segments.
+      def continue_string_structure(prior_segments)
+        if prior_segments.empty?
+          interpolation_statement(prior_segments)
+        else
+          new_priors = prior_segments[0..-2]
+          prior_segments.last.string_structure(new_priors)
+        end
+      end
+  
+      # Return a string interpolation statement for this segment and those before it.
+      def interpolation_statement(prior_segments)
+        chunks = prior_segments.collect { |s| s.interpolation_chunk }
+        chunks << interpolation_chunk
+        "\"#{chunks * ''}\"#{all_optionals_available_condition(prior_segments)}"
+      end
+  
+      def string_structure(prior_segments)
+        optional? ? continue_string_structure(prior_segments) : interpolation_statement(prior_segments)
+      end
+  
+      # Return an if condition that is true if all the prior segments can be generated.
+      # If there are no optional segments before this one, then nil is returned.
+      def all_optionals_available_condition(prior_segments)
+        optional_locals = prior_segments.collect { |s| s.local_name if s.optional? && s.respond_to?(:local_name) }.compact
+        optional_locals.empty? ? nil : " if #{optional_locals * ' && '}"
+      end
+  
+      # Recognition
+  
+      def match_extraction(next_capture)
+        nil
+      end
+  
+      # Warning
+  
+      # Returns true if this segment is optional? because of a default. If so, then
+      # no warning will be emitted regarding this segment.
+      def optionality_implied?
+        false
+      end
+  
+    end
+
+    class StaticSegment < Segment
+      attr_accessor :value, :raw
+      alias_method :raw?, :raw
+  
+      def initialize(value = nil)
+        super()
+        self.value = value
+      end
+  
+      def interpolation_chunk
+        raw? ? value : CGI.escape(value)
+      end
+  
+      def regexp_chunk
+        chunk = Regexp.escape value
+        optional? ? Regexp.optionalize(chunk) : chunk
+      end
+  
+      def build_pattern(pattern)
+        escaped = Regexp.escape(value)
+        if optional? && ! pattern.empty?
+          "(?:#{Regexp.optionalize escaped}\\Z|#{escaped}#{Regexp.unoptionalize pattern})"
+        elsif optional?
+          Regexp.optionalize escaped
+        else
+          escaped + pattern
+        end
+      end
+  
+      def to_s
+        value
+      end
+  
+    end
+
+    class DividerSegment < StaticSegment
+  
+      def initialize(value = nil)
+        super(value)
+        self.raw = true
+        self.is_optional = true
+      end
+  
+      def optionality_implied?
+        true
+      end
+  
+    end
+
+    class DynamicSegment < Segment
+      attr_accessor :key, :default, :regexp
+  
+      def initialize(key = nil, options = {})
+        super()
+        self.key = key
+        self.default = options[:default] if options.key? :default
+        self.is_optional = true if options[:optional] || options.key?(:default)
+      end
+  
+      def to_s
+        ":#{key}"
+      end
+  
+      # The local variable name that the value of this segment will be extracted to.
+      def local_name
+        "#{key}_value"
+      end
+  
+      def extract_value
+        "#{local_name} = hash[:#{key}] #{"|| #{default.inspect}" if default}"
+      end
+      def value_check
+        if default # Then we know it won't be nil
+          "#{value_regexp.inspect} =~ #{local_name}" if regexp
+        elsif optional?
+          # If we have a regexp check that the value is not given, or that it matches.
+          # If we have no regexp, return nil since we do not require a condition.
+          "#{local_name}.nil? || #{value_regexp.inspect} =~ #{local_name}" if regexp
+        else # Then it must be present, and if we have a regexp, it must match too.
+          "#{local_name} #{"&& #{value_regexp.inspect} =~ #{local_name}" if regexp}"
+        end
+      end
+      def expiry_statement
+        "not_expired, hash = false, options if not_expired && expire_on[:#{key}]"
+      end
+  
+      def extraction_code
+        s = extract_value
+        vc = value_check
+        s << "\nreturn [nil,nil] unless #{vc}" if vc
+        s << "\n#{expiry_statement}"
+      end
+  
+      def interpolation_chunk
+        "\#{CGI.escape(#{local_name}.to_s)}"
+      end
+  
+      def string_structure(prior_segments)
+        if optional? # We have a conditional to do...
+          # If we should not appear in the url, just write the code for the prior
+          # segments. This occurs if our value is the default value, or, if we are
+          # optional, if we have nil as our value.
+          "if #{local_name} == #{default.inspect}\n" + 
+            continue_string_structure(prior_segments) + 
+          "\nelse\n" + # Otherwise, write the code up to here
+            "#{interpolation_statement(prior_segments)}\nend"
+        else
+          interpolation_statement(prior_segments)
+        end
+      end
+  
+      def value_regexp
+        Regexp.new "\\A#{regexp.source}\\Z" if regexp
+      end
+      def regexp_chunk
+        regexp ? regexp.source : "([^#{Routing::SEPARATORS.join}]+)"
+      end
+  
+      def build_pattern(pattern)
+        chunk = regexp_chunk
+        chunk = "(#{chunk})" if Regexp.new(chunk).number_of_captures == 0
+        pattern = "#{chunk}#{pattern}"
+        optional? ? Regexp.optionalize(pattern) : pattern
+      end
+      def match_extraction(next_capture)
+        hangon = (default ? "|| #{default.inspect}" : "if match[#{next_capture}]")
+        "params[:#{key}] = match[#{next_capture}] #{hangon}"
+      end
+  
+      def optionality_implied?
+        [:action, :id].include? key
+      end
+  
+    end
+
+    class ControllerSegment < DynamicSegment
+      def regexp_chunk
+        possible_names = Routing.possible_controllers.collect { |name| Regexp.escape name }
+        "(?i-:(#{(regexp || Regexp.union(*possible_names)).source}))"
+      end
+
+      # Don't CGI.escape the controller name, since it may have slashes in it,
+      # like admin/foo.
+      def interpolation_chunk
+        "\#{#{local_name}.to_s}"
+      end
+
+      # Make sure controller names like Admin/Content are correctly normalized to
+      # admin/content
+      def extract_value
+        "#{local_name} = (hash[:#{key}] #{"|| #{default.inspect}" if default}).downcase"
+      end
+
+      def match_extraction(next_capture)
+        hangon = (default ? "|| #{default.inspect}" : "if match[#{next_capture}]")
+        "params[:#{key}] = match[#{next_capture}].downcase #{hangon}"
       end
     end
 
-    class ControllerComponent < DynamicComponent #:nodoc:
-      def key() :controller end
-
-      def add_segments_to(g)
-        g.add_segment(%(\#{#{g.hash_value(key, true, default)}})) {|gp| yield gp}
-      end
-    
-      def recognition_check(g)
-        g << "controller_result = ::ActionController::Routing::ControllerComponent.traverse_to_controller(#{g.path_name}, #{g.index_name})" 
-        g.if('controller_result') do |gp|
-          gp << 'controller_value, segments_to_controller = controller_result'
-          if condition
-            gp << "controller_path = #{gp.path_name}[#{gp.index_name},segments_to_controller].join('/')"
-            gp.if(Routing.test_condition("controller_path", condition)) do |gpp|
-              gpp.move_forward('segments_to_controller') {|gppp| yield gppp, :constraint}
-            end
-          else
-            gp.move_forward('segments_to_controller') {|gpp| yield gpp, :constraint}
-          end
-        end
+    class PathSegment < DynamicSegment
+      EscapedSlash = CGI.escape("/")
+      def interpolation_chunk
+        "\#{CGI.escape(#{local_name}).gsub(#{EscapedSlash.inspect}, '/')}"
       end
 
-      def assign_result(g)
-        g.result key, 'controller_value'
-        yield g
+      def default
+        ''
       end
 
-      def assign_default(g)
-        ControllerComponent.assign_controller(g, default)
+      def default=(path)
+        raise RoutingError, "paths cannot have non-empty default values" unless path.blank?
       end
-  
-      class << self
-        def assign_controller(g, controller)
-          expr = "::#{controller.split('/').collect {|c| c.camelize}.join('::')}Controller"
-          g.result :controller, expr, true
-        end
 
-        def traverse_to_controller(segments, start_at = 0)
-          mod = ::Object
-          length = segments.length
-          index = start_at
-          mod_name = controller_name = segment = nil
-          
-          while index < length
-            return nil unless /^[A-Za-z][A-Za-z\d_]*$/ =~ (segment = segments[index])
-            index += 1
-            
-            mod_name = segment.camelize
-            controller_name = "#{mod_name}Controller"
-            
-            begin
-              # We use eval instead of const_get to avoid obtaining values from parent modules.
-              controller = eval("mod::#{controller_name}", nil, __FILE__, __LINE__)
-              expected_name = "#{mod.name}::#{controller_name}"
-              
-              # Detect the case when const_get returns an object from a parent namespace.
-              if controller.is_a?(Class) && controller.ancestors.include?(ActionController::Base) && (mod == Object || controller.name == expected_name)
-                return controller, (index - start_at)
-              end
-            rescue NameError => e
-              raise unless /^uninitialized constant .*#{controller_name}$/ =~ e.message                            
-            end
-            
-            begin
-              next_mod = eval("mod::#{mod_name}", nil, __FILE__, __LINE__)
-              # Check that we didn't get a module from a parent namespace
-              mod = (mod == Object || next_mod.name == "#{mod.name}::#{mod_name}") ? next_mod : nil
-            rescue NameError => e
-              raise unless /^uninitialized constant .*#{mod_name}$/ =~ e.message
-            end
-            
-            return nil unless mod
-          end
-        end
+      def match_extraction(next_capture)
+        "params[:#{key}] = PathSegment::Result.new_escaped((match[#{next_capture}]#{" || " + default.inspect if default}).split('/'))#{" if match[" + next_capture + "]" if !default}"
       end
-    end
 
-    class PathComponent < DynamicComponent #:nodoc:
-      def optional?() true end
-      def default()   []  end
-      def condition() nil  end
+      def regexp_chunk
+        regexp || "(.*)"
+      end
 
-      def default=(value)
-        raise RoutingError, "All path components have an implicit default of []" unless value == []
-      end
-  
-      def write_generation(g)
-        raise RoutingError, 'Path components must occur last' unless g.after.empty?
-        g.if("#{g.hash_value(key, true)} && ! #{g.hash_value(key, true)}.empty?") do
-          g << "#{g.hash_value(key, true)} = #{g.hash_value(key, true)}.join('/') unless #{g.hash_value(key, true)}.is_a?(String)"
-          g.add_segment("\#{CGI.escape_skipping_slashes(#{g.hash_value(key, true)})}") {|gp| gp.finish }
-        end
-        g.else { g.finish }
-      end
-  
-      def write_recognition(g)
-        raise RoutingError, "Path components must occur last" unless g.after.empty?
-    
-        start = g.index_name.to_s
-        start = "(#{start})" unless /^\w+$/ =~ start.to_s
-    
-        value_expr = "#{g.path_name}[#{start}..-1] || []"
-        g.result key, "ActionController::Routing::PathComponent::Result.new_escaped(#{value_expr})"
-        g.finish(false)
-      end
-  
       class Result < ::Array #:nodoc:
-        def to_s() join '/' end
+        def to_s() join '/' end 
         def self.new_escaped(strings)
           new strings.collect {|str| CGI.unescape str}
-        end
-      end
+        end     
+      end     
     end
 
-    class Route #:nodoc:
-      attr_accessor :components, :known
-      attr_reader :path, :options, :keys, :defaults
+    class RouteBuilder
+      attr_accessor :separators, :optional_separators
   
-      def initialize(path, options = {})
-        @path, @options = path, options
-    
-        initialize_components path
-        defaults, conditions = initialize_hashes options.dup
-        @defaults = defaults.dup
-        @request_method = conditions.delete(:method)
-        configure_components(defaults, conditions)
-        add_default_requirements
-        initialize_keys
-      end
-  
-      def inspect
-        "<#{self.class} #{path.inspect}, #{options.inspect[1..-1]}>"
-      end
-  
-      def write_generation(generator = CodeGeneration::GenerationGenerator.new)
-        generator.before, generator.current, generator.after = [], components.first, (components[1..-1] || [])
-
-        if known.empty? then generator.go
-        else
-          # Alter the conditions to allow :action => 'index' to also catch :action => nil
-          altered_known = known.collect do |k, v|
-            if k == :action && v== 'index' then [k, [nil, 'index']]
-            else [k, v]
-            end
-          end
-          generator.if(generator.check_conditions(altered_known)) {|gp| gp.go }
-        end
-        
-        generator
-      end
-  
-      def write_recognition(generator = CodeGeneration::RecognitionGenerator.new)
-        g = generator.dup
-        g.share_locals_with generator
-        g.before, g.current, g.after = [], components.first, (components[1..-1] || [])
-
-        known.each do |key, value|
-          if key == :controller then ControllerComponent.assign_controller(g, value)
-          else g.constant_result(key, value)
-          end
-        end
-
-        if @request_method
-          g.if("@request.method == :#{@request_method}") { |gp| gp.go }
-        else
-          g.go
-        end
-    
-        generator
-      end
-
-      def initialize_keys
-        @keys = (components.collect {|c| c.key} + known.keys).flatten.compact
-        @keys.freeze
-      end
-  
-      def extra_keys(options)
-        options.keys - @keys
-      end
-    
-      def matches_controller?(controller)
-        if known[:controller] then known[:controller] == controller
-        else
-          c = components.find {|c| c.key == :controller}
-          return false unless c
-          return c.condition.nil? || eval(Routing.test_condition('controller', c.condition))
-        end
-      end
-  
-      protected
-        def initialize_components(path)
-          path = path.split('/') if path.is_a? String
-          path.shift if path.first.blank?
-          self.components = path.collect {|str| Component.new str}
-        end
-    
-        def initialize_hashes(options)
-          path_keys = components.collect {|c| c.key }.flatten.compact
-          self.known = {}
-          defaults = options.delete(:defaults) || {}
-          conditions = options.delete(:require) || {}
-          conditions.update(options.delete(:requirements) || {})
-
-          options.each do |k, v|
-            if path_keys.include?(k) then (v.is_a?(Regexp) ? conditions : defaults)[k] = v
-            else known[k] = v
-            end
-          end
-          [defaults, conditions]
-        end
-    
-        def configure_components(defaults, conditions)
-          all_components = components.map { |c| SubpathComponent === c ? c.parts : c }.flatten
-          all_components.each do |component|
-            if defaults.key?(component.key) then component.default = defaults[component.key]
-            elsif component.key == :action  then component.default = 'index'
-            elsif component.key == :id      then component.default = nil
-            end
-        
-            component.condition = conditions[component.key] if conditions.key?(component.key)
-          end
-        end
-        
-        def add_default_requirements
-          component_keys = components.collect {|c| c.key}.flatten
-          known[:action] ||= 'index' unless component_keys.include? :action
-        end
-    end
-
-    class RouteSet #:nodoc:
-      attr_reader :routes, :categories, :controller_to_selector
       def initialize
-        @routes = []
-        @generation_methods = Hash.new(:generate_default_path)
-      end
-      
-      def generate(options, request_or_recall_hash = {})
-        recall = request_or_recall_hash.is_a?(Hash) ? request_or_recall_hash : request_or_recall_hash.symbolized_path_parameters
-        use_recall = true
-        
-        controller = options[:controller]
-        options[:action] ||= 'index' if controller
-        recall_controller = recall[:controller]
-        if (recall_controller && recall_controller.include?(?/)) || (controller && controller.include?(?/)) 
-          recall = {} if controller && controller[0] == ?/
-          options[:controller] = Routing.controller_relative_to(controller, recall_controller)
-        end
-        options = recall.dup if options.empty? # XXX move to url_rewriter?
-        
-        keys_to_delete = []
-        Routing.treat_hash(options, keys_to_delete)
-        
-        merged = recall.merge(options)
-        keys_to_delete.each {|key| merged.delete key}
-        expire_on = Routing.expiry_hash(options, recall)
-    
-        generate_path(merged, options, expire_on)
-      end
-      
-      def generate_path(merged, options, expire_on)
-        send @generation_methods[merged[:controller]], merged, options, expire_on
-      end
-      def generate_default_path(*args)
-        write_generation
-        generate_default_path(*args)
+        self.separators = Routing::SEPARATORS
+        self.optional_separators = %w( / )
       end
   
-      def write_generation
-        method_sources = []
-        @generation_methods = Hash.new(:generate_default_path)
-        categorize_routes.each do |controller, routes|
-          next unless routes.length < @routes.length
-      
-          ivar = controller.gsub('/', '__')
-          method_name = "generate_path_for_#{ivar}".to_sym
-          instance_variable_set "@#{ivar}", routes
-          code = generation_code_for(ivar, method_name).to_s
-          method_sources << code
-          
-          filename = "generated_code/routing/generation_for_controller_#{controller}.rb"
-          eval(code, nil, filename)
-      
-          @generation_methods[controller.to_s]   = method_name
-          @generation_methods[controller.to_sym] = method_name
-        end
-        
-        code = generation_code_for('routes', 'generate_default_path').to_s
-        eval(code, nil, 'generated_code/routing/generation.rb')
-        
-        return (method_sources << code)
+      def separator_pattern(inverted = false)
+        "[#{'^' if inverted}#{Regexp.escape(separators.join)}]"
       end
-
-      def recognize(request)
-        @request = request
-
-        string_path = @request.path
-        string_path.chomp! if string_path[0] == ?/  
-        path = string_path.split '/'  
-        path.shift  
-   
-        hash = recognize_path(path)  
-        return recognition_failed(@request) unless hash && hash['controller']  
-   
-        controller = hash['controller']  
-        hash['controller'] = controller.controller_path  
-        @request.path_parameters = hash  
-        controller.new 
-      end
-      alias :recognize! :recognize
   
-      def recognition_failed(request)
-        raise ActionController::RoutingError, "Recognition failed for #{request.path.inspect}"
+      def interval_regexp
+        Regexp.new "(.*?)(#{separators.source}|$)"
+      end
+  
+      # Accepts a "route path" (a string defining a route), and returns the array
+      # of segments that corresponds to it. Note that the segment array is only
+      # partially initialized--the defaults and requirements, for instance, need
+      # to be set separately, via the #assign_route_options method, and the
+      # #optional? method for each segment will not be reliable until after
+      # #assign_route_options is called, as well.
+      def segments_for_route_path(path)
+        rest, segments = path, []
+    
+        until rest.empty?
+          segment, rest = segment_for rest
+          segments << segment
+        end
+        segments
       end
 
-      def write_recognition
-        g = generator = CodeGeneration::RecognitionGenerator.new
-        g.finish_statement = Proc.new {|hash_expr| "return #{hash_expr}"}
+      # A factory method that returns a new segment instance appropriate for the
+      # format of the given string.
+      def segment_for(string)
+        segment = case string
+          when /\A:(\w+)/
+            key = $1.to_sym
+            case key
+              when :action then DynamicSegment.new(key, :default => 'index')
+              when :id then DynamicSegment.new(key, :optional => true)
+              when :controller then ControllerSegment.new(key)
+              else DynamicSegment.new key
+            end
+          when /\A\*(\w+)/ then PathSegment.new($1.to_sym, :optional => true)
+          when /\A\?(.*?)\?/
+            returning segment = StaticSegment.new($1) do
+              segment.is_optional = true
+            end
+          when /\A(#{separator_pattern(:inverted)}+)/ then StaticSegment.new($1)
+          when Regexp.new(separator_pattern) then
+            returning segment = DividerSegment.new($&) do
+              segment.is_optional = (optional_separators.include? $&)
+            end
+        end
+        [segment, $~.post_match]
+      end
+  
+      # Split the given hash of options into requirement and default hashes. The
+      # segments are passed alongside in order to distinguish between default values
+      # and requirements.
+      def divide_route_options(segments, options)
+        requirements = options.delete(:requirements) || {}
+        defaults     = options.delete(:defaults)     || {}
+        conditions   = options.delete(:conditions)   || {}
+
+        path_keys = segments.collect { |segment| segment.key if segment.respond_to?(:key) }.compact
+        options.each do |key, value|
+          hash = (path_keys.include?(key) && ! value.is_a?(Regexp)) ? defaults : requirements
+          hash[key] = value
+        end
     
-        g.def "self.recognize_path(path)" do
-          each do |route|
-            g << 'index = 0'
-            route.write_recognition(g)
+        [defaults, requirements, conditions]
+      end
+  
+      # Takes a hash of defaults and a hash of requirements, and assigns them to
+      # the segments. Any unused requirements (which do not correspond to a segment)
+      # are returned as a hash.
+      def assign_route_options(segments, defaults, requirements)
+        route_requirements = {} # Requirements that do not belong to a segment
+    
+        segment_named = Proc.new do |key|
+          segments.detect { |segment| segment.key == key if segment.respond_to?(:key) }
+        end
+    
+        requirements.each do |key, requirement|
+          segment = segment_named[key]
+          if segment
+            raise TypeError, "#{key}: requirements on a path segment must be regular expressions" unless requirement.is_a?(Regexp)
+            segment.regexp = requirement
+          else
+            route_requirements[key] = requirement
+          end
+        end
+    
+        defaults.each do |key, default|
+          segment = segment_named[key]
+          raise ArgumentError, "#{key}: No matching segment exists; cannot assign default" unless segment
+          segment.is_optional = true
+          segment.default = default.to_param if default
+        end
+
+        ensure_required_segments(segments)
+        route_requirements
+      end
+  
+      # Makes sure that there are no optional segments that precede a required
+      # segment. If any are found that precede a required segment, they are
+      # made required.
+      def ensure_required_segments(segments)
+        allow_optional = true
+        segments.reverse_each do |segment|
+          allow_optional &&= segment.optional?
+          if !allow_optional && segment.optional?
+            unless segment.optionality_implied?
+              warn "Route segment \"#{segment.to_s}\" cannot be optional because it precedes a required segment. This segment will be required."
+            end
+            segment.is_optional = false
+          elsif allow_optional & segment.respond_to?(:default) && segment.default
+            # if a segment has a default, then it is optional
+            segment.is_optional = true
+          end
+        end
+      end
+
+      # Construct and return a route with the given path and options.
+      def build(path, options)
+        # Wrap the path with slashes
+        path = "/#{path}" unless path[0] == ?/
+        path = "#{path}/" unless path[-1] == ?/
+    
+        segments = segments_for_route_path(path)
+        defaults, requirements, conditions = divide_route_options(segments, options)
+        requirements = assign_route_options(segments, defaults, requirements)
+
+        route = Route.new
+        route.segments = segments
+        route.requirements = requirements
+        route.conditions = conditions
+
+        if !route.significant_keys.include?(:action) && !route.requirements[:action]
+          route.requirements[:action] = "index"
+          route.significant_keys << :action
+        end
+
+        route
+      end
+    end
+
+    class RouteSet
+  
+      # Mapper instances are used to build routes. The object passed to the draw
+      # block in config/routes.rb is a Mapper instance.
+      # 
+      # Mapper instances have relatively few instance methods, in order to avoid
+      # clashes with named routes.
+      class Mapper
+        def initialize(set)
+          @set = set
+        end
+    
+        # Create an unnamed route with the provided +path+ and +options+. See 
+        # SomeHelpfulUrl for an introduction to routes.
+        def connect(path, options = {})
+          @set.add_route(path, options)
+        end
+    
+        def method_missing(route_name, *args, &proc)
+          super unless args.length >= 1 && proc.nil?
+          @set.add_named_route(route_name, *args)
+        end
+      end
+
+      # A NamedRouteCollection instance is a collection of named routes, and also
+      # maintains an anonymous module that can be used to install helpers for the
+      # named routes.
+      class NamedRouteCollection
+        include Enumerable
+
+        attr_reader :routes, :helpers
+
+        def initialize
+          clear!
+        end
+
+        def clear!
+          @routes = {}
+          @helpers = []
+          @module = Module.new
+        end
+
+        def add(name, route)
+          routes[name.to_sym] = route
+          define_hash_access_method(name, route)
+          define_url_helper_method(name, route)
+        end
+
+        def get(name)
+          routes[name.to_sym]
+        end
+
+        alias []=   add
+        alias []    get
+        alias clear clear!
+
+        def each
+          routes.each { |name, route| yield name, route }
+          self
+        end
+
+        def names
+          routes.keys
+        end
+
+        def length
+          routes.length
+        end
+
+        def install(dest = ActionController::Base)
+          dest.send :include, @module
+          if dest.respond_to? :helper_method
+            helpers.each { |name| dest.send :helper_method, name }
           end
         end
 
-        eval g.to_s, nil, 'generated/routing/recognition.rb'
-        return g.to_s
-      end
-        
-      def generation_code_for(ivar = 'routes', method_name = nil)
-        routes = instance_variable_get('@' + ivar)
-        key_ivar = "@keys_for_#{ivar}"
-        instance_variable_set(key_ivar, routes.collect {|route| route.keys})
-    
-        g = generator = CodeGeneration::GenerationGenerator.new
-        g.def "self.#{method_name}(merged, options, expire_on)" do
-          g << 'unused_count = options.length + 1'
-          g << "unused_keys = keys = options.keys"
-          g << 'path = nil'
-      
-          routes.each_with_index do |route, index|
-            g << "new_unused_keys = keys - #{key_ivar}[#{index}]"
-            g << 'new_path = ('
-            g.source.indent do
-              if index.zero?
-                g << "new_unused_count = new_unused_keys.length"
-                g << "hash = merged; not_expired = true"
-                route.write_generation(g.dup)
+        private
+
+          def url_helper_name(name)
+            :"#{name}_url"
+          end
+
+          def hash_access_name(name)
+            :"hash_for_#{name}_url"
+          end
+
+          def define_hash_access_method(name, route)
+            method_name = hash_access_name(name)
+
+            @module.send(:define_method, method_name) do |*args|
+              hash = route.defaults.merge(:use_route => name)
+              args.first ? hash.merge(args.first) : hash
+            end
+
+            @module.send(:protected, method_name)
+            helpers << method_name
+          end
+
+          def define_url_helper_method(name, route)
+            hash_access_method = hash_access_name(name)
+            method_name = url_helper_name(name)
+
+            @module.send(:define_method, method_name) do |*args|
+              opts = if args.empty? || Hash === args.first
+                args.first || {}
               else
-                g.if "(new_unused_count = new_unused_keys.length) < unused_count" do |gp|
-                  gp << "hash = merged; not_expired = true"
-                  route.write_generation(gp)
+                # allow ordered parameters to be associated with corresponding
+                # dynamic segments, so you can do
+                #
+                #   foo_url(bar, baz, bang)
+                #
+                # instead of
+                #
+                #   foo_url(:bar => bar, :baz => baz, :bang => bang)
+                route.segments.inject({}) do |opts, seg|
+                  next opts unless seg.respond_to?(:key) && seg.key
+                  opts[seg.key] = args.shift
+                  break opts if args.empty?
+                  opts
                 end
               end
+
+              url_for(send(hash_access_method, opts))
             end
-            g.source.lines.last << ' )' # Add the closing brace to the end line
-            g.if 'new_path' do
-              g << 'return new_path, [] if new_unused_count.zero?'
-              g << 'path = new_path; unused_keys = new_unused_keys; unused_count = new_unused_count'
-            end
+
+            @module.send(:protected, method_name)
+            helpers << method_name
           end
-        
-          g << "raise RoutingError, \"No url can be generated for the hash \#{options.inspect}\" unless path"
-          g << "return path, unused_keys"
-        end
-        
-        return g
       end
-      
-      def categorize_routes
-        @categorized_routes = by_controller = Hash.new(self)
-      
-        known_controllers.each do |name|
-          set = by_controller[name] = []
-          each do |route|
-            set << route if route.matches_controller? name
-          end
-        end
-    
-        @categorized_routes
-      end
-      
-      def known_controllers
-        @routes.inject([]) do |known, route|
-          if (controller = route.known[:controller])
-            if controller.is_a?(Regexp)
-              known << controller.source.scan(%r{[\w\d/]+}).select {|word| controller =~ word} 
-            else known << controller
-            end
-          end
-          known
-        end.uniq
+  
+      attr_accessor :routes, :named_routes
+  
+      def initialize
+        self.routes = []
+        self.named_routes = NamedRouteCollection.new
       end
 
-      def reload
-        NamedRoutes.clear
-        
-        if defined?(RAILS_ROOT) then load(File.join(RAILS_ROOT, 'config', 'routes.rb'))
-        else connect(':controller/:action/:id', :action => 'index', :id => nil)
-        end
-
-        NamedRoutes.install
-      end
-
-      def connect(*args)
-        new_route = Route.new(*args)
-        @routes << new_route
-        return new_route
+      # Subclasses and plugins may override this method to specify a different
+      # RouteBuilder instance, so that other route DSL's can be created.
+      def builder
+        @builder ||= RouteBuilder.new
       end
 
       def draw
-        old_routes = @routes
-        @routes = []
-        
-        begin yield self
-        rescue
-          @routes = old_routes
-          raise
-        end
-        write_generation
-        write_recognition
+        clear!
+        yield Mapper.new(self)
+        named_routes.install
       end
-      
-      def empty?() @routes.empty? end
   
-      def each(&block) @routes.each(&block) end
-      
-      # Defines a new named route with the provided name and arguments.
-      # This method need only be used when you wish to use a name that a RouteSet instance
-      # method exists for, such as categories.
-      #
-      # For example, map.categories '/categories', :controller => 'categories' will not work
-      # due to RouteSet#categories.
-      def named_route(name, path, hash = {})
-        route = connect(path, hash)
-        NamedRoutes.name_route(route, name)
+      def clear!
+        routes.clear
+        named_routes.clear
+        @combined_regexp = nil
+        @routes_by_controller = nil
+      end
+
+      def empty?
+        routes.empty?
+      end
+  
+      def load!
+        clear!
+        load_routes!
+        named_routes.install
+      end
+
+      alias reload load!
+
+      def load_routes!
+        if defined?(RAILS_ROOT) && defined?(::ActionController::Routing::Routes) && self == ::ActionController::Routing::Routes
+          load File.join("#{RAILS_ROOT}/config/routes.rb")
+        else
+          add_route ":controller/:action/:id"
+        end
+      end
+  
+      def add_route(path, options = {})
+        route = builder.build(path, options)
+        routes << route
         route
       end
-      
-      def method_missing(name, *args)
-        (1..2).include?(args.length) ? named_route(name, *args) : super(name, *args)
-      end
-
-      def extra_keys(options, recall = {})
-        generate(options.dup, recall).last
-      end
-    end
-
-    module NamedRoutes #:nodoc:
-      Helpers = []
-      class << self
-        def clear() Helpers.clear end
   
-        def hash_access_name(name)
-          "hash_for_#{name}_url"
+      def add_named_route(name, path, options = {})
+        named_routes[name] = add_route(path, options)
+      end
+  
+      def options_as_params(options)
+        # If an explicit :controller was given, always make :action explicit
+        # too, so that action expiry works as expected for things like
+        #
+        #   generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
+        #
+        # (the above is from the unit tests). In the above case, because the
+        # controller was explicitly given, but no action, the action is implied to
+        # be "index", not the recalled action of "show".
+        #
+        # great fun, eh?
+
+        options_as_params = options[:controller] ? { :action => "index" } : {}
+        options.each do |k, value|
+          options_as_params[k] = value.to_param
+        end
+        options_as_params
+      end
+  
+      def build_expiry(options, recall)
+        recall.inject({}) do |expiry, (key, recalled_value)|
+          expiry[key] = (options.key?(key) && options[key] != recalled_value)
+          expiry
+        end
+      end
+
+      # Generate the path indicated by the arguments, and return an array of
+      # the keys that were not used to generate it.
+      def extra_keys(options, recall={})
+        generate_extras(options, recall).last
+      end
+
+      def generate_extras(options, recall={})
+        generate(options, recall, :generate_extras)
+      end
+
+      def generate(options, recall = {}, method=:generate)
+        if options[:use_route]
+          options = options.dup
+          named_route = named_routes[options.delete(:use_route)]
+          options = named_route.parameter_shell.merge(options)
         end
 
-        def url_helper_name(name)
-          "#{name}_url"
+        options = options_as_params(options)
+        expire_on = build_expiry(options, recall)
+
+        # if the controller has changed, make sure it changes relative to the
+        # current controller module, if any. In other words, if we're currently
+        # on admin/get, and the new controller is 'set', the new controller
+        # should really be admin/set.
+        if expire_on[:controller] && options[:controller] && options[:controller][0] != ?/
+          parts = recall[:controller].split('/')[0..-2] + [options[:controller]]
+          options[:controller] = parts.join('/')
         end
-        
-        def known_hash_for_route(route)
-          hash = route.known.symbolize_keys
-          route.defaults.each do |key, value|
-            hash[key.to_sym] ||= value if value
+
+        # drop the leading '/' on the controller name
+        options[:controller] = options[:controller][1..-1] if options[:controller] && options[:controller][0] == ?/
+        merged = recall.merge(options)
+    
+        if named_route
+          return named_route.generate(options, merged, expire_on)
+        else
+          merged[:action] ||= 'index'
+          options[:action] ||= 'index'
+  
+          controller = merged[:controller]
+          action = merged[:action]
+
+          raise "Need controller and action!" unless controller && action
+          routes = routes_by_controller[controller][action][merged.keys.sort_by { |x| x.object_id }]
+
+          routes.each do |route|
+            results = route.send(method, options, merged, expire_on)
+            return results if results
           end
-          hash[:controller] = "/#{hash[:controller]}"
-          
-          hash
-        end
-        
-        def define_hash_access_method(route, name)
-          hash = known_hash_for_route(route)
-          define_method(hash_access_name(name)) do |*args|
-            args.first ? hash.merge(args.first) : hash
-          end
-        end
-        
-        def name_route(route, name)
-          define_hash_access_method(route, name)
-          
-          module_eval(%{def #{url_helper_name name}(options = {})
-            url_for(#{hash_access_name(name)}.merge(options.is_a?(Hash) ? options : { :id => options }))
-          end}, "generated/routing/named_routes/#{name}.rb")
-      
-          protected url_helper_name(name), hash_access_name(name)
-      
-          Helpers << url_helper_name(name).to_sym
-          Helpers << hash_access_name(name).to_sym
-          Helpers.uniq!
         end
     
-        def install(cls = ActionController::Base)
-          cls.send :include, self
-          if cls.respond_to? :helper_method
-            Helpers.each do |helper_name|
-              cls.send :helper_method, helper_name
+        raise RoutingError, "No route matches #{options.inspect}"
+      end
+  
+      def recognize(request)
+        params = recognize_path(request.path, extract_request_environment(request))
+        request.path_parameters = params.with_indifferent_access
+        "#{params[:controller].camelize}Controller".constantize
+      end
+  
+      def recognize_path(path, environment={})
+        routes.each do |route|
+          result = route.recognize(path, environment) and return result
+        end
+        raise RoutingError, "no route found to match #{path.inspect} with #{environment.inspect}"
+      end
+  
+      def routes_by_controller
+        @routes_by_controller ||= Hash.new do |controller_hash, controller|
+          controller_hash[controller] = Hash.new do |action_hash, action|
+            action_hash[action] = Hash.new do |key_hash, keys|
+              key_hash[keys] = routes_for_controller_and_action_and_keys(controller, action, keys)
             end
           end
         end
+      end
+  
+      def routes_for(options, merged, expire_on)
+        raise "Need controller and action!" unless controller && action
+        controller = merged[:controller]
+        merged = options if expire_on[:controller]
+        action = merged[:action] || 'index'
+    
+        routes_by_controller[controller][action][merged.keys]
+      end
+  
+      def routes_for_controller_and_action(controller, action)
+        selected = routes.select do |route|
+          route.matches_controller_and_action? controller, action
+        end
+        (selected.length == routes.length) ? routes : selected
+      end
+  
+      def routes_for_controller_and_action_and_keys(controller, action, keys)
+        selected = routes.select do |route|
+          route.matches_controller_and_action? controller, action
+        end
+        selected.sort_by do |route|
+          (keys - route.significant_keys).length
+        end
+      end
+
+      # Subclasses and plugins may override this method to extract further attributes
+      # from the request, for use by route conditions and such.
+      def extract_request_environment(request)
+        { :method => request.method }
       end
     end
 

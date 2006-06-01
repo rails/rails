@@ -35,7 +35,7 @@ class Dispatcher
       if cgi ||= new_cgi(output)
         request, response = ActionController::CgiRequest.new(cgi, session_options), ActionController::CgiResponse.new(cgi)
         prepare_application
-        ActionController::Routing::Routes.recognize!(request).process(request, response).out(output)
+        ActionController::Routing::Routes.recognize(request).process(request, response).out(output)
       end
     rescue Object => exception
       failsafe_response(output, '500 Internal Server Error', exception) do

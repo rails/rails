@@ -227,10 +227,12 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # test the redirection to a named route
   def test_assert_redirect_to_named_route
     with_routing do |set|
-      set.draw do
-        set.route_one 'route_one', :controller => 'action_pack_assertions', :action => 'nothing'
-        set.connect   ':controller/:action/:id'
+      set.draw do |map|
+        map.route_one 'route_one', :controller => 'action_pack_assertions', :action => 'nothing'
+        map.connect   ':controller/:action/:id'
       end
+      set.named_routes.install
+
       process :redirect_to_named_route
       assert_redirected_to 'http://test.host/route_one'
       assert_redirected_to route_one_url
@@ -240,10 +242,10 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
 
   def test_assert_redirect_to_named_route_failure
     with_routing do |set|
-      set.draw do
-        set.route_one 'route_one', :controller => 'action_pack_assertions', :action => 'nothing', :id => 'one'
-        set.route_two 'route_two', :controller => 'action_pack_assertions', :action => 'nothing', :id => 'two'
-        set.connect   ':controller/:action/:id'
+      set.draw do |map|
+        map.route_one 'route_one', :controller => 'action_pack_assertions', :action => 'nothing', :id => 'one'
+        map.route_two 'route_two', :controller => 'action_pack_assertions', :action => 'nothing', :id => 'two'
+        map.connect   ':controller/:action/:id'
       end
       process :redirect_to_named_route
       assert_raise(Test::Unit::AssertionFailedError) do

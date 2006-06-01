@@ -189,7 +189,7 @@ module Test #:nodoc:
           # Load routes.rb if it hasn't been loaded.
           ActionController::Routing::Routes.reload if ActionController::Routing::Routes.empty? 
       
-          generated_path, extra_keys = ActionController::Routing::Routes.generate(options, extras)
+          generated_path, extra_keys = ActionController::Routing::Routes.generate_extras(options, extras)
           found_extras = options.reject {|k, v| ! extra_keys.include? k}
 
           msg = build_message(message, "found extras <?>, not <?>", found_extras, extras)
@@ -365,7 +365,8 @@ module Test #:nodoc:
           request = ActionController::TestRequest.new({}, {}, nil)
           request.env["REQUEST_METHOD"] = request_method.to_s.upcase if request_method
           request.path   = path
-          ActionController::Routing::Routes.recognize!(request)
+
+          ActionController::Routing::Routes.recognize(request)
           request
         end
         

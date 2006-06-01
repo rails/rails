@@ -5,6 +5,7 @@ class MimeTypeTest < Test::Unit::TestCase
   Mime::PLAIN = Mime::Type.new("text/plain")
 
   def test_parse_single
+p Mime::LOOKUP.keys.sort
     Mime::LOOKUP.keys.each do |mime_type|
       assert_equal [Mime::Type.lookup(mime_type)], Mime::Type.parse(mime_type)
     end

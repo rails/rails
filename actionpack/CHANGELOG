@@ -1,5 +1,11 @@
 *SVN*
 
+* Routing rewrite. Simpler, faster, easier to understand. The published API for config/routes.rb is unchanged, but nearly everything else is different, so expect breakage in plugins and libs that try to fiddle with routes. [Nicholas Seckar, Jamis Buck]
+
+  map.connect '/foo/:id', :controller => '...', :action => '...'
+  map.connect '/foo/:id.:format', :controller => '...', :action => '...'
+  map.connect '/foo/:id', ..., :conditions => { :method => :get }
+
 * Cope with missing content type and length headers. Parse parameters from multipart and urlencoded request bodies only. [Jeremy Kemper]
 
 * Accept multipart PUT parameters. #5235 [guy.naor@famundo.com]
@@ -37,7 +43,6 @@
   
   All this relies on the fact that you have a route that includes .:format.
   
-
 * Expanded :method option in FormTagHelper#form_tag, FormHelper#form_for, PrototypeHelper#remote_form_for, PrototypeHelper#remote_form_tag, and PrototypeHelper#link_to_remote to allow for verbs other than GET and POST by automatically creating a hidden form field named _method, which will simulate the other verbs over post [DHH]
 
 * Added :method option to UrlHelper#link_to, which allows for using other verbs than GET for the link. This replaces the :post option, which is now deprecated. Example: link_to "Destroy", person_url(:id => person), :method => :delete [DHH]

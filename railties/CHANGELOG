@@ -1,5 +1,7 @@
 *SVN*
 
+* Minor tweak to dispatcher to use recognize instead of recognize!, as per the new routes. [Jamis Buck]
+
 * Make "script/plugin install" work with svn+ssh URLs. [Sam Stephenson]
 
 * Added lib/ to the directories that will get application docs generated [DHH]
