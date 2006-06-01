@@ -294,8 +294,10 @@ module ActiveRecord
       # Quotes the column value to help prevent
       # {SQL injection attacks}[http://en.wikipedia.org/wiki/SQL_injection].
       def quote(value, column = nil)
+        return value.quoted_id if value.respond_to?(:quoted_id)
+
         retvalue = "<INVALID>"
-   
+
         puts "quote(#{value.inspect}(#{value.class}),#{column.type.inspect})" if FB_TRACE
         # If a column was passed in, use column type information
         unless value.nil?

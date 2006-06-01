@@ -387,13 +387,9 @@ class FinderTest < Test::Unit::TestCase
   end
 
   def test_find_by_records
-    p1, p2 = Post.find(1, 2)
-    assert_equal [p1, p2], Post.find(:all, :conditions => ['id in (?)', [p1, p2]]).sort_by { |p| p.id }
-  end
-
-  def test_find_by_records_and_ids
-    p1, p2 = Post.find(1, 2)
-    assert_equal [p1, p2], Post.find(:all, :conditions => ['id in (?)', [p1, p2.id]]).sort_by { |p| p.id }
+    p1, p2 = Post.find(:all, :limit => 2, :order => 'id asc')
+    assert_equal [p1, p2], Post.find(:all, :conditions => ['id in (?)', [p1, p2]], :order => 'id asc')
+    assert_equal [p1, p2], Post.find(:all, :conditions => ['id in (?)', [p1, p2.id]], :order => 'id asc')
   end
 
   def test_select_value

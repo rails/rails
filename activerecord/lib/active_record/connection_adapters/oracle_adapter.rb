@@ -214,6 +214,8 @@ begin
         end
 
         def quote(value, column = nil) #:nodoc:
+          return value.quoted_id if value.respond_to?(:quoted_id)
+
           if column && [:text, :binary].include?(column.type)
             %Q{empty_#{ column.sql_type rescue 'blob' }()}
           else

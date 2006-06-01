@@ -333,6 +333,8 @@ module ActiveRecord
       end
 
       def quote(value, column = nil)
+        return value.quoted_id if value.respond_to?(:quoted_id)
+
         case value
           when String                
             if column && column.type == :binary && column.class.respond_to?(:string_to_binary)
