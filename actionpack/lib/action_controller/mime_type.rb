@@ -34,11 +34,11 @@ module Mime
       def parse(accept_header)
         # keep track of creation order to keep the subsequent sort stable
         index = 0
-        list = accept_header.split(/,/).
-          map! { |i| AcceptItem.new(index += 1, *i.split(/;\s*q=/)) }.sort!
+        list = accept_header.split(/,/).map! do |i| 
+          AcceptItem.new(index += 1, *i.split(/;\s*q=/))
+        end.sort!
 
         # Take care of the broken text/xml entry by renaming or deleting it
-  
         text_xml = list.index("text/xml")
         app_xml = list.index("application/xml")
 
@@ -120,7 +120,7 @@ module Mime
   YAML  = Type.new "application/x-yaml", :yaml, %w( text/yaml )
 
 
-  LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) }
+  LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k == "" }
 
   LOOKUP["*/*"]                      = ALL
 
@@ -142,7 +142,7 @@ module Mime
   LOOKUP["application/atom+xml"]     = ATOM
 
   
-  EXTENSION_LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) }
+  EXTENSION_LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k == "" }
 
   EXTENSION_LOOKUP["html"]  = HTML
   EXTENSION_LOOKUP["xhtml"] = HTML
