@@ -490,12 +490,13 @@ module Test #:nodoc:
       end
 
       def self.uses_transaction(*methods)
-        @uses_transaction ||= []
-        @uses_transaction.concat methods.map { |m| m.to_s }
+        @uses_transaction = [] unless defined?(@uses_transaction)
+        @uses_transaction.concat methods.map(&:to_s)
       end
 
       def self.uses_transaction?(method)
-        @uses_transaction && @uses_transaction.include?(method.to_s)
+        @uses_transaction = [] unless defined?(@uses_transaction)
+        @uses_transaction.include?(method.to_s)
       end
 
       def use_transactional_fixtures?
