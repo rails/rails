@@ -43,7 +43,7 @@ module ActionController
         RESERVED_OPTIONS.each {|k| options.delete k}
 
         # Generates the query string, too
-        Routing::Routes.generate(options, @request.parameters)
+        Routing::Routes.generate(options, @request.symbolized_path_parameters)
       end
   end
 end
