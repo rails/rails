@@ -1,5 +1,9 @@
 *SVN*
 
+* Records and arrays of records are bound as quoted ids. [Jeremy Kemper]
+    Foo.find(:all, :conditions => ['bar_id IN (?)', bars])
+    Foo.find(:first, :conditions => ['bar_id = ?', bar])
+
 * Fixed that Base.find :all, :conditions => [ "id IN (?)", collection ] would fail if collection was empty [DHH]
 
 * Add a list of regexes assert_queries skips in the ActiveRecord test suite.  [Rick]

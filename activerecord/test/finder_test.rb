@@ -186,8 +186,23 @@ class FinderTest < Test::Unit::TestCase
     assert_equal %('a','b','c'), bind(':a', :a => Set.new(%w(a b c))) # '
   end
 
+  def test_bind_empty_enumerable
+    quoted_nil = ActiveRecord::Base.connection.quote(nil)
+    assert_equal quoted_nil, bind('?', [])
+    assert_equal " in (#{quoted_nil})", bind(' in (?)', [])
+    assert_equal "foo in (#{quoted_nil})", bind('foo in (?)', [])
+  end
+
   def test_bind_string
     assert_equal "''", bind('?', '')
+  end
+
+  def test_bind_record
+    o = Struct.new(:quoted_id).new(1)
+    assert_equal '1', bind('?', o)
+
+    os = [o] * 3
+    assert_equal '1,1,1', bind('?', os)
   end
 
   def test_string_sanitation
@@ -361,6 +376,24 @@ class FinderTest < Test::Unit::TestCase
       Post.find([1,2,3],
         :conditions => "posts.id <= 3 OR posts.#{QUOTED_TYPE} = 'Post'")
     end
+  end
+
+  def test_find_by_empty_ids
+    assert_equal [], Post.find([])
+  end
+
+  def test_find_by_empty_in_condition
+    assert_equal [], Post.find(:all, :conditions => ['id in (?)', []])
+  end
+
+  def test_find_by_records
+    p1, p2 = Post.find(1, 2)
+    assert_equal [p1, p2], Post.find(:all, :conditions => ['id in (?)', [p1, p2]]).sort_by { |p| p.id }
+  end
+
+  def test_find_by_records_and_ids
+    p1, p2 = Post.find(1, 2)
+    assert_equal [p1, p2], Post.find(:all, :conditions => ['id in (?)', [p1, p2.id]]).sort_by { |p| p.id }
   end
 
   def test_select_value
