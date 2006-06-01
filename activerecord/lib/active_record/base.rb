@@ -1309,7 +1309,11 @@ module ActiveRecord #:nodoc:
 
         def quote_bound_value(value) #:nodoc:
           if (value.respond_to?(:map) && !value.is_a?(String))
-            value.map { |v| connection.quote(v) }.join(',')
+            if value.empty?
+              "null"
+            else
+              value.map { |v| connection.quote(v) }.join(',')
+            end
           else
             connection.quote(value)
           end

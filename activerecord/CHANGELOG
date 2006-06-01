@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that Base.find :all, :conditions => [ "id IN (?)", collection ] would fail if collection was empty [DHH]
+
 * Add a list of regexes assert_queries skips in the ActiveRecord test suite.  [Rick]
 
 * Fix the has_and_belongs_to_many #create doesn't populate the join for new records.  Closes #3692 [josh@hasmanythrough.com]

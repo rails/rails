@@ -35,7 +35,7 @@ module ActiveSupport #:nodoc:
           case format
             when :db
               if respond_to?(:empty?) && self.empty?
-                "0"
+                "null"
               else
                 collect { |element| element.id }.join(",")
               end

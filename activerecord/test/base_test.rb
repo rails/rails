@@ -933,10 +933,10 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_quoting_arrays
-    replies = Reply.find(:all, :conditions => [ "id IN (?)", topics(:first).replies.to_s(:db) ])
+    replies = Reply.find(:all, :conditions => [ "id IN (?)", topics(:first).replies.collect(&:id) ])
     assert_equal topics(:first).replies.size, replies.size
 
-    replies = Reply.find(:all, :conditions => [ "id IN (?)", [].to_s(:db) ])
+    replies = Reply.find(:all, :conditions => [ "id IN (?)", [] ])
     assert_equal 0, replies.size
   end
 
