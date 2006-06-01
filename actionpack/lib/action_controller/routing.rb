@@ -729,7 +729,11 @@ module ActionController
         def connect(path, options = {})
           @set.add_route(path, options)
         end
-    
+
+        def named_route(name, path, options = {})
+          @set.add_named_route(name, path, options)
+        end
+
         def method_missing(route_name, *args, &proc)
           super unless args.length >= 1 && proc.nil?
           @set.add_named_route(route_name, *args)
