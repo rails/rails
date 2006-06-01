@@ -1,27 +1,48 @@
 class CGI #:nodoc:
-  # Add @request.env['RAW_POST_DATA'] for the vegans.
   module QueryExtension
     # Initialize the data from the query.
     #
     # Handles multipart forms (in particular, forms that involve file uploads).
     # Reads query parameters in the @params field, and cookies into @cookies.
-    def initialize_query()
+    def initialize_query
       @cookies = CGI::Cookie::parse(env_table['HTTP_COOKIE'] || env_table['COOKIE'])
 
-      #fix some strange request environments
+      # Fix some strange request environments.
       if method = env_table['REQUEST_METHOD']
         method = method.to_s.downcase.intern
       else
         method = :get
       end
 
-      if method == :post && (boundary = multipart_form_boundary)
-        @multipart = true
-        @params = read_multipart(boundary, Integer(env_table['CONTENT_LENGTH']))
-      else
-        @multipart = false
-        @params = CGI::parse(read_query_params(method) || "")
+      # POST assumes missing Content-Type is application/x-www-form-urlencoded.
+      content_type = env_table['CONTENT_TYPE']
+      if content_type.blank? && method == :post
+        content_type = 'application/x-www-form-urlencoded'
       end
+
+      # Force content length to zero if missing.
+      content_length = env_table['CONTENT_LENGTH'].to_i
+
+      # Set multipart to false by default.
+      @multipart = false
+
+      # POST and PUT may have params in entity body. If content type is
+      # missing for POST, assume urlencoded. If content type is missing
+      # for PUT, don't assume anything and don't parse the parameters:
+      # it's likely binary data.
+      #
+      # The other HTTP methods have their params in the query string.
+      if method == :post || method == :put
+        if boundary = extract_multipart_form_boundary(content_type)
+          @multipart = true
+          @params = read_multipart(boundary, content_length)
+        elsif content_type.downcase != 'application/x-www-form-urlencoded'
+          read_params(method, content_length)
+          @params = {}
+        end
+      end
+
+      @params ||= CGI.parse(read_params(method, content_length))
     end
 
     private
@@ -29,16 +50,16 @@ class CGI #:nodoc:
         MULTIPART_FORM_BOUNDARY_RE = %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n #"
       end
 
-      def multipart_form_boundary
-        MULTIPART_FORM_BOUNDARY_RE.match(env_table['CONTENT_TYPE']).to_a.pop
+      def extract_multipart_form_boundary(content_type)
+        MULTIPART_FORM_BOUNDARY_RE.match(content_type).to_a.pop
       end
 
       if defined? MOD_RUBY
-        def read_params_from_query
+        def read_query
           Apache::request.args || ''
         end
       else
-        def read_params_from_query
+        def read_query
           # fixes CGI querystring parsing for lighttpd
           env_qs = env_table['QUERY_STRING']
           if env_qs.blank? && !(uri = env_table['REQUEST_URI']).blank?
@@ -49,25 +70,25 @@ class CGI #:nodoc:
         end
       end
 
-      def read_params_from_post
+      def read_body(content_length)
         stdinput.binmode if stdinput.respond_to?(:binmode)
-        content = stdinput.read(Integer(env_table['CONTENT_LENGTH'])) || ''
-        # fix for Safari Ajax postings that always append \000
+        content = stdinput.read(content_length) || ''
+        # Fix for Safari Ajax postings that always append \000
         content.chop! if content[-1] == 0
         content.gsub! /&_=$/, ''
         env_table['RAW_POST_DATA'] = content.freeze
       end
 
-      def read_query_params(method)
+      def read_params(method, content_length)
         case method
           when :get
-            read_params_from_query
+            read_query
           when :post, :put
-            read_params_from_post
+            read_body(content_length)
           when :cmd
             read_from_cmdline
-          else # when :head, :delete, :options
-            read_params_from_query
+          else # :head, :delete, :options, :trace, :connect
+            read_query
         end
       end
   end # module QueryExtension

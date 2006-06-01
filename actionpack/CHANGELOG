@@ -1,5 +1,9 @@
 *SVN*
 
+* Cope with missing content type and length headers. Parse parameters from multipart and urlencoded request bodies only. [Jeremy Kemper]
+
+* Accept multipart PUT parameters. #5235 [guy.naor@famundo.com]
+
 * Added interrogation of params[:format] to determine Accept type. If :format is specified and matches a declared extension, like "rss" or "xml", that mime type will be put in front of the accept handler. This means you can link to the same action from different extensions and use that fact to determine output [DHH]. Example:
 
   class WeblogController < ActionController::Base

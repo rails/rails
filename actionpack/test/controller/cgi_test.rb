@@ -235,6 +235,7 @@ class CGITest < Test::Unit::TestCase
   end
 end
 
+
 class MultipartCGITest < Test::Unit::TestCase
   FIXTURE_PATH = File.dirname(__FILE__) + '/../fixtures/multipart'
 
@@ -313,6 +314,14 @@ class MultipartCGITest < Test::Unit::TestCase
     ensure
       $stdin = old_stdin
     end
+end
+
+# Ensures that PUT works with multipart as well as POST.
+class PutMultipartCGITest < MultipartCGITest
+  def setup
+    super
+    ENV['REQUEST_METHOD'] = 'PUT'
+  end
 end
 
 
