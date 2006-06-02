@@ -85,11 +85,25 @@ class SendFileTest < Test::Unit::TestCase
     assert_equal 'type', h['Content-Type']
     assert_equal 'disposition; filename="filename"', h['Content-Disposition']
     assert_equal 'binary', h['Content-Transfer-Encoding']
-    
+
     # test overriding Cache-Control: no-cache header to fix IE open/save dialog
     @controller.headers = { 'Cache-Control' => 'no-cache' }
     @controller.send(:send_file_headers!, options)
     h = @controller.headers
     assert_equal 'private', h['Cache-Control']
+  end
+
+  %w(file data).each do |method|
+    define_method "test_send_#{method}_status" do
+      @controller.options = { :stream => false, :status => 500 }
+      assert_nothing_raised { assert_not_nil process(method) }
+      assert_equal '500', @controller.headers['Status']
+    end
+
+    define_method "test_default_send_#{method}_status" do
+      @controller.options = { :stream => false }
+      assert_nothing_raised { assert_not_nil process(method) }
+      assert_equal ActionController::Base::DEFAULT_RENDER_STATUS_CODE, @controller.headers['Status']
+    end
   end
 end
