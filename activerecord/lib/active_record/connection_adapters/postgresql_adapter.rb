@@ -8,7 +8,7 @@ module ActiveRecord
 
       config = config.symbolize_keys
       host     = config[:host]
-      port     = config[:port]     || 5432 unless host.nil?
+      port     = config[:port] || 5432
       username = config[:username].to_s
       password = config[:password].to_s
 

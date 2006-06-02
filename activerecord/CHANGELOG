@@ -1,5 +1,7 @@
 *SVN*
 
+* PostgreSQL: don't ignore port when host is nil since it's often used to label the domain socket.  #5247 [shimbo@is.naist.jp]
+
 * Records and arrays of records are bound as quoted ids. [Jeremy Kemper]
     Foo.find(:all, :conditions => ['bar_id IN (?)', bars])
     Foo.find(:first, :conditions => ['bar_id = ?', bar])
