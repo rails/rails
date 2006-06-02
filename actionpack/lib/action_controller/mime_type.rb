@@ -33,7 +33,8 @@ module Mime
 
       def register(string, symbol, synonyms = [])
         Mime.send :const_set, symbol.to_s.upcase, Type.new(string, symbol, synonyms)
-        LOOKUP[string] = Mime.send :const_get, symbol.to_s.upcase
+        SET << Mime.send(:const_get, symbol.to_s.upcase)
+        LOOKUP[string] = EXTENSION_LOOKUP[symbol.to_s] = SET.last
       end
 
       def parse(accept_header)
@@ -126,6 +127,7 @@ module Mime
   ATOM  = Type.new "application/atom+xml", :atom
   YAML  = Type.new "application/x-yaml", :yaml, %w( text/yaml )
 
+  SET   = [ ALL, TEXT, HTML, JS, ICS, XML, RSS, ATOM, YAML ]
 
   LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k == "" }
 

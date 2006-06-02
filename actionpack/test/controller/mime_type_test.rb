@@ -24,7 +24,10 @@ class MimeTypeTest < Test::Unit::TestCase
   
   def test_custom_type
     Mime::Type.register("image/gif", :gif)
-    assert_nothing_raised { Mime::GIF }
+    assert_nothing_raised do 
+      Mime::GIF
+      assert_equal Mime::GIF, Mime::SET.last
+    end
     Mime.send :remove_const, :GIF
   end
 end

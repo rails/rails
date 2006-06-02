@@ -94,7 +94,7 @@ module ActionController #:nodoc:
       # and accept Rails' defaults, life will be much easier.
       def respond_to(*types, &block)
         raise ArgumentError, "respond_to takes either types or a block, never bot" unless types.any? ^ block
-        block ||= lambda { |responder| types.each { |type| responder.send(type) } }
+        block ||= lambda { |responder| types.each { |type| responder.known(type) } }
         responder = Responder.new(block.binding)
         block.call(responder)
         responder.respond
@@ -132,12 +132,8 @@ module ActionController #:nodoc:
         end
       end
       
-      for mime_type in %w( all html js xml rss atom yaml )
-        eval <<-EOT
-          def #{mime_type}(&block)
-            custom(Mime::#{mime_type.upcase}, &block)
-          end
-        EOT
+      def known(mime_type_extension, &block)
+        custom(Mime.const_get(mime_type_extension.to_s.upcase), &block)
       end
 
       def any(*args, &block)
