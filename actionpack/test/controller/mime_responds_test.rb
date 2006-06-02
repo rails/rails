@@ -61,6 +61,17 @@ class RespondToController < ActionController::Base
       type.all  { render :text => "Nothing" }
     end
   end
+  
+  def custom_constant_handling
+    Mime::Type.register("text/x-mobile", :mobile)
+
+    respond_to do |type|
+      type.html   { render :text => "HTML"   }
+      type.mobile { render :text => "Mobile" }
+    end
+    
+    Mime.send :remove_const, :MOBILE
+  end
 
   def handle_any
     respond_to do |type|
@@ -253,6 +264,11 @@ class MimeControllerTest < Test::Unit::TestCase
 
     xhr :get, :using_defaults
     assert_equal '$("body").visualEffect("highlight");', @response.body
+  end
+  
+  def test_custom_constant
+    get :custom_constant_handling, :format => "mobile"
+    assert_equal "Mobile", @response.body
   end
   
   def test_forced_format
