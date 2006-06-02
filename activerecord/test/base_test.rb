@@ -44,7 +44,7 @@ class Task < ActiveRecord::Base
 end
 
 class BasicsTest < Test::Unit::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts
 
   def test_table_exists
     assert !NonExistentTable.table_exists?
