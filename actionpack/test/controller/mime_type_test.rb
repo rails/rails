@@ -21,4 +21,10 @@ class MimeTypeTest < Test::Unit::TestCase
     expect = [Mime::HTML, Mime::XML, Mime::PNG, Mime::PLAIN, Mime::YAML, Mime::ALL]
     assert_equal expect, Mime::Type.parse(accept)
   end
+  
+  def test_custom_type
+    Mime::Type.register("image/gif", :gif)
+    assert_nothing_raised { Mime::GIF }
+    Mime.send :remove_const, :GIF
+  end
 end

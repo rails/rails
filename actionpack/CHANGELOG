@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Mime::Type.register(string, symbol, synonyms = []) for adding new custom mime types [DHH]. Example: Mime::Type.register("image/gif", :gif)
+
 * Added support for Mime objects in render :content_type option [DHH]. Example: render :text => some_atom, :content_type => Mime::ATOM
 
 * Add :status option to send_data and send_file. Defaults to '200 OK'.  #5243 [Manfred Stienstra <m.stienstra@fngtps.com>]

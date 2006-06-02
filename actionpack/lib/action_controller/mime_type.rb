@@ -31,6 +31,11 @@ module Mime
         LOOKUP[string]
       end
 
+      def register(string, symbol, synonyms = [])
+        Mime.send :const_set, symbol.to_s.upcase, Type.new(string, symbol, synonyms)
+        LOOKUP[string] = Mime.send :const_get, symbol.to_s.upcase
+      end
+
       def parse(accept_header)
         # keep track of creation order to keep the subsequent sort stable
         index = 0
@@ -114,6 +119,7 @@ module Mime
   ALL   = Type.new "*/*", :all
   HTML  = Type.new "text/html", :html, %w( application/xhtml+xml )
   JS    = Type.new "text/javascript", :js, %w( application/javascript application/x-javascript )
+  ICS   = Type.new "text/calendar", :ics
   XML   = Type.new "application/xml", :xml, %w( text/xml application/x-xml )
   RSS   = Type.new "application/rss+xml", :rss
   ATOM  = Type.new "application/atom+xml", :atom
@@ -127,13 +133,15 @@ module Mime
   LOOKUP["text/html"]                = HTML
   LOOKUP["application/xhtml+xml"]    = HTML
 
-  LOOKUP["application/xml"]          = XML
-  LOOKUP["text/xml"]                 = XML
-  LOOKUP["application/x-xml"]        = XML
-
   LOOKUP["text/javascript"]          = JS
   LOOKUP["application/javascript"]   = JS
   LOOKUP["application/x-javascript"] = JS
+
+  LOOKUP["text/calendar"]            = ICS
+
+  LOOKUP["application/xml"]          = XML
+  LOOKUP["text/xml"]                 = XML
+  LOOKUP["application/x-xml"]        = XML
 
   LOOKUP["text/yaml"]                = YAML
   LOOKUP["application/x-yaml"]       = YAML
