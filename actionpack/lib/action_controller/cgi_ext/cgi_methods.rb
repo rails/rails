@@ -183,7 +183,9 @@ class CGIMethods #:nodoc:
 
       elsif value.respond_to?(:read)
         # Value as part of a multipart request
-        value.read
+        result = value.read
+        value.rewind
+        result
       elsif value.class == Array
         value.collect { |v| CGIMethods.get_typed_value(v) }
       else

@@ -1,5 +1,7 @@
 *SVN*
 
+* Rewind readable CGI params so others may reread them (such as CGI::Session when passing the session id in a multipart form).  #210 [mklame@atxeu.com, matthew@walker.wattle.id.au]
+
 * Added Mime::TEXT (text/plain) and Mime::ICS (text/calendar) as new default types [DHH]
 
 * Added Mime::Type.register(string, symbol, synonyms = []) for adding new custom mime types [DHH]. Example: Mime::Type.register("image/gif", :gif)

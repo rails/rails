@@ -303,13 +303,21 @@ class MultipartCGITest < Test::Unit::TestCase
     assert_equal 19756, params['files'].size
   end
 
+  # Rewind readable cgi params so others may reread them (such as CGI::Session
+  # when passing the session id in a multipart form).
+  def test_multipart_param_rewound
+    params = process('text_file')
+    assert_equal 'bar', @cgi.params['foo'][0].read
+  end
+
   private
     def process(name)
       old_stdin = $stdin
       File.open(File.join(FIXTURE_PATH, name), 'rb') do |file|
         ENV['CONTENT_LENGTH'] = file.stat.size.to_s
         $stdin = file
-        CGIMethods.parse_request_parameters CGI.new.params
+        @cgi = CGI.new
+        CGIMethods.parse_request_parameters @cgi.params
       end
     ensure
       $stdin = old_stdin
