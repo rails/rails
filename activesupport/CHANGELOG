@@ -1,5 +1,7 @@
 *SVN*
 
+* Add OrderedHash#values. [Sam Stephenson]
+
 * Added Array#to_s(:db) that'll produce a comma-separated list of ids [DHH]. Example:
     
     Purchase.find(:all, :conditions => "product_id IN (#{shops.products.to_s(:db)})"

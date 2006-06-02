@@ -16,7 +16,11 @@ module ActiveSupport
     end
 
     def keys
-      self.collect { |i| i.first }
+      collect { |key, value| key }
+    end
+
+    def values
+      collect { |key, value| value }
     end
 
     private
