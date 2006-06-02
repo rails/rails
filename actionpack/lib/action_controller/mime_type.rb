@@ -117,6 +117,7 @@ module Mime
   end
 
   ALL   = Type.new "*/*", :all
+  TEXT  = Type.new "text/plain", :text
   HTML  = Type.new "text/html", :html, %w( application/xhtml+xml )
   JS    = Type.new "text/javascript", :js, %w( application/javascript application/x-javascript )
   ICS   = Type.new "text/calendar", :ics
@@ -129,6 +130,8 @@ module Mime
   LOOKUP = Hash.new { |h, k| h[k] = Type.new(k) unless k == "" }
 
   LOOKUP["*/*"]                      = ALL
+
+  LOOKUP["text/plain"]               = TEXT
 
   LOOKUP["text/html"]                = HTML
   LOOKUP["application/xhtml+xml"]    = HTML
@@ -154,6 +157,8 @@ module Mime
 
   EXTENSION_LOOKUP["html"]  = HTML
   EXTENSION_LOOKUP["xhtml"] = HTML
+
+  EXTENSION_LOOKUP["txt"]   = TEXT
 
   EXTENSION_LOOKUP["xml"]   = XML
 

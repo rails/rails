@@ -1,5 +1,7 @@
 *SVN*
 
+* Added Mime::TEXT (text/plain) and Mime::ICS (text/calendar) as new default types [DHH]
+
 * Added Mime::Type.register(string, symbol, synonyms = []) for adding new custom mime types [DHH]. Example: Mime::Type.register("image/gif", :gif)
 
 * Added support for Mime objects in render :content_type option [DHH]. Example: render :text => some_atom, :content_type => Mime::ATOM
