@@ -1,5 +1,7 @@
 *SVN*
 
+* Added support for Mime objects in render :content_type option [DHH]. Example: render :text => some_atom, :content_type => Mime::ATOM
+
 * Add :status option to send_data and send_file. Defaults to '200 OK'.  #5243 [Manfred Stienstra <m.stienstra@fngtps.com>]
 
 * Routing rewrite. Simpler, faster, easier to understand. The published API for config/routes.rb is unchanged, but nearly everything else is different, so expect breakage in plugins and libs that try to fiddle with routes. [Nicholas Seckar, Jamis Buck]

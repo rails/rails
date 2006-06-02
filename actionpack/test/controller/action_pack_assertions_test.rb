@@ -61,6 +61,10 @@ class ActionPackAssertionsController < ActionController::Base
     render_text "<div>#{url_for(:action => 'flash_me', :only_path => true)}</div>"
   end
 
+  def render_text_with_custom_content_type
+    render :text => "Hello!", :content_type => Mime::RSS
+  end
+
   # puts something in the session
   def session_stuffing
     session['xmas'] = 'turkey'
@@ -531,5 +535,11 @@ class ActionPackHeaderTest < Test::Unit::TestCase
     @response.headers['Content-Type'] = 'application/pdf'
     process :hello_xml_world
     assert_equal('application/pdf', @controller.headers['Content-Type'])
+  end
+
+  
+  def test_render_text_with_custom_content_type
+    get :render_text_with_custom_content_type
+    assert_equal 'application/rss+xml', @response.headers['Content-Type']
   end
 end

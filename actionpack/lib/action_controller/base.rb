@@ -649,7 +649,7 @@ module ActionController #:nodoc:
         end
 
         if content_type = options[:content_type]
-          headers["Content-Type"] = content_type
+          headers["Content-Type"] = content_type.to_s
         end
 
         if text = options[:text]
