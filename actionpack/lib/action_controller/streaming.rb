@@ -69,17 +69,8 @@ module ActionController #:nodoc:
             logger.info "Streaming file #{path}" unless logger.nil?
             len = options[:buffer_size] || 4096
             File.open(path, 'rb') do |file|
-              if output.respond_to?(:syswrite)
-                begin
-                  while true
-                    output.syswrite(file.sysread(len))
-                  end
-                rescue EOFError
-                end
-              else
-                while buf = file.read(len)
-                  output.write(buf)
-                end
+              while buf = file.read(len)
+                output.write(buf)
               end
             end
           }
@@ -125,7 +116,7 @@ module ActionController #:nodoc:
         end
 
         disposition = options[:disposition].dup || 'attachment'
-        
+
         disposition <<= %(; filename="#{options[:filename]}") if options[:filename]
 
         @headers.update(
