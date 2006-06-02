@@ -137,7 +137,7 @@ module ActionController #:nodoc:
       end
 
       def any(*args, &block)
-        args.each { |type| send(type, &block) }
+        args.each { |type| known(type, &block) }
       end
       
       def respond
