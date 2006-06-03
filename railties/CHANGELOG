@@ -1,5 +1,7 @@
 *SVN*
 
+* Added uninstall.rb hook to plugin handling, such that plugins have a way of removing assets and other artifacts on removal #5003 [takiuchi@drecom.co.jp]
+
 * Create temporary dirs relative to RAILS_ROOT when running script/server #5014 [elliot@townx.org]
 
 * Minor tweak to dispatcher to use recognize instead of recognize!, as per the new routes. [Jamis Buck]

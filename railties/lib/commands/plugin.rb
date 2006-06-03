@@ -185,6 +185,7 @@ class Plugin
     path = "#{rails_env.root}/vendor/plugins/#{name}"
     if File.directory?(path)
       puts "Removing 'vendor/plugins/#{name}'" if $verbose
+      run_uninstall_hook
       rm_r path
     else
       puts "Plugin doesn't exist: #{path}"
@@ -214,6 +215,11 @@ class Plugin
     def run_install_hook
       install_hook_file = "#{rails_env.root}/vendor/plugins/#{name}/install.rb"
       load install_hook_file if File.exists? install_hook_file
+    end
+
+    def run_uninstall_hook
+      uninstall_hook_file = "#{rails_env.root}/vendor/plugins/#{name}/uninstall.rb"
+      load uninstall_hook_file if File.exists? uninstall_hook_file
     end
 
     def install_using_export(options = {})

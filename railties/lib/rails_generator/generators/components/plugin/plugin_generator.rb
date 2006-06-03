@@ -17,6 +17,7 @@ class PluginGenerator < Rails::Generator::NamedBase
       m.template 'Rakefile',      "#{plugin_path}/Rakefile"
       m.template 'init.rb',       "#{plugin_path}/init.rb"
       m.template 'install.rb',    "#{plugin_path}/install.rb"
+      m.template 'uninstall.rb',  "#{plugin_path}/uninstall.rb"
       m.template 'plugin.rb',     "#{plugin_path}/lib/#{file_name}.rb"
       m.template 'tasks.rake',    "#{plugin_path}/tasks/#{file_name}_tasks.rake"
       m.template 'unit_test.rb',  "#{plugin_path}/test/#{file_name}_test.rb"
