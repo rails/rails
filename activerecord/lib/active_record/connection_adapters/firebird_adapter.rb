@@ -294,8 +294,12 @@ module ActiveRecord
         not @connection.closed?
       end
 
+      def disconnect!
+        @connection.close rescue nil
+      end
+
       def reconnect!
-        @connection.close
+        disconnect!
         @connection = @connection.database.connect(*@connection_params)
       end
 
