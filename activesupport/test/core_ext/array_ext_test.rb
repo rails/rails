@@ -136,4 +136,24 @@ class ArrayToXmlTests < Test::Unit::TestCase
     assert xml.include?(%(<street-address>Evergreen</street-address>))
     assert xml.include?(%(<name>Jason</name>))
   end
+
+  def test_to_xml_with_dasherize_false
+    xml = [ 
+      { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
+    ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0, :dasherize => false)
+
+    assert_equal "<records><record>", xml.first(17)
+    assert xml.include?(%(<street_address>Paulina</street_address>))
+    assert xml.include?(%(<street_address>Evergreen</street_address>))
+  end
+
+  def test_to_xml_with_dasherize_true
+    xml = [ 
+      { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
+    ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0, :dasherize => true)
+
+    assert_equal "<records><record>", xml.first(17)
+    assert xml.include?(%(<street-address>Paulina</street-address>))
+    assert xml.include?(%(<street-address>Evergreen</street-address>))
+  end
 end

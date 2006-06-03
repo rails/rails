@@ -1,3 +1,4 @@
+require 'base64'
 require 'yaml'
 require 'set'
 require 'active_record/deprecated_finders'
@@ -84,7 +85,7 @@ module ActiveRecord #:nodoc:
   # The array form is to be used when the condition input is tainted and requires sanitization. The string form can
   # be used for statements that don't involve tainted data. Examples:
   #
-  #   User < ActiveRecord::Base
+  #   class User < ActiveRecord::Base
   #     def self.authenticate_unsafely(user_name, password)
   #       find(:first, :conditions => "user_name = '#{user_name}' AND password = '#{password}'")
   #     end
@@ -1024,7 +1025,7 @@ module ActiveRecord #:nodoc:
          safe_to_array(first) + safe_to_array(second)
         end
 
-        # Object#to_a is deprecated, though it does have the desired behaviour
+        # Object#to_a is deprecated, though it does have the desired behavior
         def safe_to_array(o)
           case o
           when NilClass
@@ -1635,7 +1636,7 @@ module ActiveRecord #:nodoc:
 
       # Builds an XML document to represent the model.   Some configuration is
       # availble through +options+, however more complicated cases should use 
-      # Builder.
+      # override ActiveRecord's to_xml.
       #
       # By default the generated XML document will include the processing 
       # instruction and all object's attributes.  For example:
@@ -1655,8 +1656,14 @@ module ActiveRecord #:nodoc:
       #     <last-read type="date">2004-04-15</last-read>
       #   </topic>
       #
-      # This behaviour can be controlled with :only, :except, and :skip_instruct 
-      # for instance:
+      # This behavior can be controlled with :only, :except,
+      # :skip_instruct, :skip_types and :dasherize.  The :only and
+      # :except options are the same as for the #attributes method.
+      # The default is to dasherize all column names, to disable this,
+      # set :dasherize to false.  To not have the column type included
+      # in the XML output, set :skip_types to false.
+      #
+      # For instance:
       #
       #   topic.to_xml(:skip_instruct => true, :except => [ :id, :bonus_time, :written_on, :replies_count ])
       #
@@ -1697,49 +1704,198 @@ module ActiveRecord #:nodoc:
       #
       # To include any methods on the object(s) being called use :methods
       #
-      # firm.to_xml :methods => [ :calculated_earnings, :real_earnings ]
+      #   firm.to_xml :methods => [ :calculated_earnings, :real_earnings ]
       #
       #   <firm>
       #     # ... normal attributes as shown above ...
       #     <calculated-earnings>100000000000000000</calculated-earnings>
       #     <real-earnings>5</real-earnings>
       #   </firm>
+      #
+      # To call any Proc's on the object(s) use :procs.  The Proc's
+      # are passed a modified version of the options hash that was
+      # given to #to_xml.
+      #
+      #   proc = Proc.new { |options| options[:builder].tag!('abc', 'def') }
+      #   firm.to_xml :procs => [ proc ]
+      #
+      #   <firm>
+      #     # ... normal attributes as shown above ...
+      #     <abc>def</abc>
+      #   </firm>
+      #
+      # You may override the to_xml method in your ActiveRecord::Base
+      # subclasses if you need to.  The general form of doing this is
+      #
+      #   class IHaveMyOwnXML < ActiveRecord::Base
+      #     def to_xml(options = {})
+      #       options[:indent] ||= 2
+      #       xml = options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+      #       xml.instruct! unless options[:skip_instruct]
+      #       xml.level_one do
+      #         xml.tag!(:second_level, 'content')
+      #       end
+      #     end
+      #   end
       def to_xml(options = {})
-        options[:root]    ||= self.class.to_s.underscore
-        options[:except]    = Array(options[:except]) << self.class.inheritance_column unless options[:only] # skip type column
-        root_only_or_except = { :only => options[:only], :except => options[:except] }
+        options[:indent] ||= 2
+        builder = options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
 
-        attributes_for_xml = attributes(root_only_or_except)
-        
-        if methods_to_call = options.delete(:methods)
-          [*methods_to_call].each do |meth|
-            attributes_for_xml[meth] = send(meth) 
-          end
+        unless options[:skip_instruct]
+          builder.instruct!
+          options[:skip_instruct] = true
         end
-        
-        if include_associations = options.delete(:include)
-          include_has_options = include_associations.is_a?(Hash)
-          
-          for association in include_has_options ? include_associations.keys : Array(include_associations)
-            association_options = include_has_options ? include_associations[association] : root_only_or_except
 
-            case self.class.reflect_on_association(association).macro
+        root = (options[:root] || self.class.to_s.underscore).to_s
+        if dasherize = !options.has_key?(:dasherize) || options[:dasherize]
+          root = root.dasherize
+        end
+
+        builder.tag!(root) do
+          # To replicate the behavior in ActiveRecord#attributes,
+          # :except takes precedence over :only.  If :only is not set
+          # for a N level model but is set for the N+1 level models,
+          # then because :except is set to a default value, the second
+          # level model can have both :except and :only set.  So if
+          # :only is set, always delete :except.
+
+          a_names = self.attribute_names
+          if options[:only]
+            options.delete(:except)
+            a_names = a_names & Array(options[:only]).collect { |n| n.to_s }
+          else
+            options[:except] = Array(options[:except]) | Array(self.class.inheritance_column)
+            a_names = a_names - options[:except].collect { |n| n.to_s }
+          end
+
+          columns_hash = self.class.columns_hash
+          a_names.each do |name|
+
+            # To be consistent with the ActiveRecord instance being
+            # converted into a Hash using #attributes, convert SQL
+            # type names.  Map the different "string" types all to
+            # "string", as the client of the XML does not care if a
+            # TEXT or VARCHAR column stores the value.
+
+            type = columns_hash[name].type
+            case type
+            when :text
+              type = :string
+            when :time
+              type = :datetime
+            end
+
+            attributes = options[:skip_types] ? { } : { :type => type }
+
+            value = self.send(name)
+            if dasherize
+              name = name.dasherize
+            end
+
+            # There is a significant speed improvement if the value
+            # does not need to be escaped, as #tag! escapes all values
+            # to ensure that valid XML is generated.  For known binary
+            # values, it is at least an order of magnitude faster to
+            # Base64 encode binary values and directly put them in the
+            # output XML than to pass the original value or the Base64
+            # encoded value to the #tag! method. It definitely makes
+            # no sense to Base64 encode the value and then give it to
+            # #tag!, since that just adds additional overhead.
+            if value.nil?
+              attributes[:nil] = 'true'
+              builder.tag!(name, attributes)
+            else
+              value_needs_no_encoding = false
+              case type
+              when :binary
+                value = Base64.encode64(value)
+                attributes[:encoding] = 'base64'
+                value_needs_no_encoding = true
+              when :date
+                value = value.to_s(:db)
+                value_needs_no_encoding = true
+              when :datetime
+                value = value.xmlschema
+                value_needs_no_encoding = true
+              when :boolean, :float, :integer
+                value = value.to_s
+                value_needs_no_encoding = true
+              end
+
+              if value_needs_no_encoding
+                builder.tag!(name, attributes) do
+                  builder << value
+                end
+              else
+                builder.tag!(name, value, attributes)
+              end
+            end
+          end
+
+          if methods_to_call = options.delete(:methods)
+            [ *methods_to_call ].each do |meth|
+              value = self.send(meth)
+
+              tag = dasherize ? meth.to_s.dasherize : meth.to_s
+
+              type_name = ActiveSupport::CoreExtensions::Hash::Conversions::XML_TYPE_NAMES[value.class]
+
+              if formatter = ActiveSupport::CoreExtensions::Hash::Conversions::XML_FORMATTING[type_name]
+                value = formatter.call(value)
+              end
+
+              if value.nil?
+                attributes = { :nil => true }
+              else
+                if !options[:skip_types] && !type_name.nil?
+                  attributes = { :type => type_name }
+                else
+                  attributes = { }
+                end
+              end
+
+              builder.tag!(tag, value, attributes)
+            end
+          end
+
+          if include_associations = options.delete(:include)
+            root_only_or_except = { :except => options[:except],
+                                    :only => options[:only] }
+
+            include_has_options = include_associations.is_a?(Hash)
+
+            for association in include_has_options ? include_associations.keys : Array(include_associations)
+              association_options = include_has_options ? include_associations[association] : root_only_or_except
+
+              opts = options.merge(association_options)
+
+              case self.class.reflect_on_association(association).macro
               when :has_many, :has_and_belongs_to_many
                 records = send(association).to_a
                 unless records.empty?
-                  attributes_for_xml[association] = records.collect do |record| 
-                    record.attributes(association_options)
+                  tag = records.first.class.to_s.underscore.pluralize
+                  if dasherize
+                    tag = tag.dasherize
+                  end
+                  builder.tag!(tag) do
+                    records.each { |r| r.to_xml(opts) }
                   end
                 end
               when :has_one, :belongs_to
                 if record = send(association)
-                  attributes_for_xml[association] = record.attributes(association_options)
+                  record.to_xml(opts.merge(:root => association))
                 end
+              end
             end
           end
-        end
 
-        attributes_for_xml.to_xml(options)
+          if procs = options.delete(:procs)
+            [ *procs ].each do |proc|
+              proc.call(options)
+            end
+          end
+
+        end
       end
 
     private

@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow models to override to_xml.  #4989 [Blair Zajac <blair@orcaware.com>]
+
 * PostgreSQL: don't ignore port when host is nil since it's often used to label the domain socket.  #5247 [shimbo@is.naist.jp]
 
 * Records and arrays of records are bound as quoted ids. [Jeremy Kemper]

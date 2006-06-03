@@ -3,7 +3,6 @@ require File.dirname(__FILE__) + '/../../lib/active_support'
 
 class HashExtTest < Test::Unit::TestCase
   def setup
-    
     @strings = { 'a' => 1, 'b' => 2 }
     @symbols = { :a  => 1, :b  => 2 }
     @mixed   = { :a  => 1, 'b' => 2 }
@@ -191,6 +190,17 @@ class HashExtTest < Test::Unit::TestCase
   end
 end
 
+class IWriteMyOwnXML
+  def to_xml(options = {})
+    options[:indent] ||= 2
+    xml = options[:builder] ||= Builder::XmlMarkup.new(:indent => options[:indent])
+    xml.instruct! unless options[:skip_instruct]
+    xml.level_one do
+      xml.tag!(:second_level, 'content')
+    end
+  end
+end
+
 class HashToXmlTest < Test::Unit::TestCase
   def setup
     @xml_options = { :root => :person, :skip_instruct => true, :indent => 0 }
@@ -200,6 +210,20 @@ class HashToXmlTest < Test::Unit::TestCase
     xml = { :name => "David", :street => "Paulina" }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
     assert xml.include?(%(<street>Paulina</street>))
+    assert xml.include?(%(<name>David</name>))
+  end
+
+  def test_one_level_dasherize_false
+    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:dasherize => false))
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street_name>Paulina</street_name>))
+    assert xml.include?(%(<name>David</name>))
+  end
+
+  def test_one_level_dasherize_true
+    xml = { :name => "David", :street_name => "Paulina" }.to_xml(@xml_options.merge(:dasherize => true))
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<street-name>Paulina</street-name>))
     assert xml.include?(%(<name>David</name>))
   end
 
@@ -217,7 +241,7 @@ class HashToXmlTest < Test::Unit::TestCase
     assert_equal "<person>", xml.first(8)
     assert xml.include?(%(<street>Paulina</street>))
     assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age></age>))
+    assert xml.include?(%(<age nil="true"></age>))
   end
 
   def test_one_level_with_skipping_types
@@ -225,7 +249,7 @@ class HashToXmlTest < Test::Unit::TestCase
     assert_equal "<person>", xml.first(8)
     assert xml.include?(%(<street>Paulina</street>))
     assert xml.include?(%(<name>David</name>))
-    assert xml.include?(%(<age></age>))
+    assert xml.include?(%(<age nil="true"></age>))
   end
 
   def test_two_levels
@@ -233,6 +257,13 @@ class HashToXmlTest < Test::Unit::TestCase
     assert_equal "<person>", xml.first(8)
     assert xml.include?(%(<address><street>Paulina</street></address>))
     assert xml.include?(%(<name>David</name>))
+  end
+
+  def test_two_levels_with_second_level_overriding_to_xml
+    xml = { :name => "David", :address => { :street => "Paulina" }, :child => IWriteMyOwnXML.new }.to_xml(@xml_options)
+    assert_equal "<person>", xml.first(8)
+    assert xml.include?(%(<address><street>Paulina</street></address>))
+    assert xml.include?(%(<level_one><second_level>content</second_level></level_one>))
   end
   
   def test_two_levels_with_array
@@ -243,10 +274,10 @@ class HashToXmlTest < Test::Unit::TestCase
     assert xml.include?(%(<address><street>Evergreen</street></address>))
     assert xml.include?(%(<name>David</name>))
   end
-
   
   def test_three_levels_with_array
     xml = { :name => "David", :addresses => [{ :streets => [ { :name => "Paulina" }, { :name => "Paulina" } ] } ] }.to_xml(@xml_options)
     assert xml.include?(%(<addresses><address><streets><street><name>))
   end
+
 end

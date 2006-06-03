@@ -52,12 +52,20 @@ module ActiveSupport #:nodoc:
           options[:indent]   ||= 2
           options[:builder]  ||= Builder::XmlMarkup.new(:indent => options[:indent])
 
-          root     = options.delete(:root)
+          root     = options.delete(:root).to_s
           children = options.delete(:children)
 
+          if !options.has_key?(:dasherize) || options[:dasherize]
+            root = root.dasherize
+          end
+
           options[:builder].instruct! unless options.delete(:skip_instruct)
-          options[:builder].tag!(root.to_s.dasherize) { each { |e| e.to_xml(options.merge({ :skip_instruct => true, :root => children })) } }
+
+          opts = options.merge({ :skip_instruct => true, :root => children })
+
+          options[:builder].tag!(root) { each { |e| e.to_xml(opts) } }
         end
+
       end
     end
   end

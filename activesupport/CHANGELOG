@@ -1,5 +1,7 @@
 *SVN*
 
+* to_xml fixes, features, and speedup: introduce :dasherize option that converts updated_at to updated-at if true (the existing default); binary columns get encoding="base64" attribute; nil values get nil="true" attribute to distinguish empty values; add type information for float columns; allow arbitrarily deep :include; include SQL type information as the type attribute.  #4989 [Blair Zajac <blair@orcaware.com>]
+
 * Add OrderedHash#values. [Sam Stephenson]
 
 * Added Array#to_s(:db) that'll produce a comma-separated list of ids [DHH]. Example:

@@ -439,18 +439,18 @@ class BasicsTest < Test::Unit::TestCase
   
   def test_increment_counter
     Topic.increment_counter("replies_count", 1)
-    assert_equal 1, Topic.find(1).replies_count
+    assert_equal 2, Topic.find(1).replies_count
 
     Topic.increment_counter("replies_count", 1)
-    assert_equal 2, Topic.find(1).replies_count
+    assert_equal 3, Topic.find(1).replies_count
   end
   
   def test_decrement_counter
     Topic.decrement_counter("replies_count", 2)
-    assert_equal 1, Topic.find(2).replies_count
+    assert_equal -1, Topic.find(2).replies_count
 
     Topic.decrement_counter("replies_count", 2)
-    assert_equal 0, Topic.find(1).replies_count
+    assert_equal -2, Topic.find(2).replies_count
   end
   
   def test_update_all
@@ -987,12 +987,12 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_increment_attribute
-    assert_equal 0, topics(:first).replies_count
+    assert_equal 1, topics(:first).replies_count
     topics(:first).increment! :replies_count
-    assert_equal 1, topics(:first, :reload).replies_count
+    assert_equal 2, topics(:first, :reload).replies_count
     
     topics(:first).increment(:replies_count).increment!(:replies_count)
-    assert_equal 3, topics(:first, :reload).replies_count
+    assert_equal 4, topics(:first, :reload).replies_count
   end
   
   def test_increment_nil_attribute
@@ -1003,13 +1003,13 @@ class BasicsTest < Test::Unit::TestCase
   
   def test_decrement_attribute
     topics(:first).increment(:replies_count).increment!(:replies_count)
-    assert_equal 2, topics(:first).replies_count
+    assert_equal 3, topics(:first).replies_count
     
     topics(:first).decrement!(:replies_count)
-    assert_equal 1, topics(:first, :reload).replies_count
+    assert_equal 2, topics(:first, :reload).replies_count
 
     topics(:first).decrement(:replies_count).decrement!(:replies_count)
-    assert_equal -1, topics(:first, :reload).replies_count
+    assert_equal 0, topics(:first, :reload).replies_count
   end
   
   def test_toggle_attribute
@@ -1217,14 +1217,14 @@ class BasicsTest < Test::Unit::TestCase
     written_on_in_current_timezone = topics(:first).written_on.xmlschema
     last_read_in_current_timezone = topics(:first).last_read.xmlschema
     assert_equal "<topic>", xml.first(7)
-    assert xml.include?(%(<title>The First Topic</title>))
-    assert xml.include?(%(<author-name>David</author-name>))
+    assert xml.include?(%(<title type="string">The First Topic</title>))
+    assert xml.include?(%(<author-name type="string">David</author-name>))
     assert xml.include?(%(<id type="integer">1</id>))
-    assert xml.include?(%(<replies-count type="integer">0</replies-count>))
+    assert xml.include?(%(<replies-count type="integer">1</replies-count>))
     assert xml.include?(%(<written-on type="datetime">#{written_on_in_current_timezone}</written-on>))
-    assert xml.include?(%(<content>Have a nice day</content>))
-    assert xml.include?(%(<author-email-address>david@loudthinking.com</author-email-address>))
-    assert xml.include?(%(<parent-id></parent-id>))
+    assert xml.include?(%(<content type="string">Have a nice day</content>))
+    assert xml.include?(%(<author-email-address type="string">david@loudthinking.com</author-email-address>))
+    assert xml.match(%r{<parent-id (type="integer"\s*|nil="true"\s*){2}/>})
     if current_adapter?(:SybaseAdapter) or current_adapter?(:SQLServerAdapter)
       assert xml.include?(%(<last-read type="datetime">#{last_read_in_current_timezone}</last-read>))
     else
@@ -1236,23 +1236,23 @@ class BasicsTest < Test::Unit::TestCase
       assert xml.include?(%(<bonus-time type="datetime">#{bonus_time_in_current_timezone}</bonus-time>))
     end
   end
-  
+
   def test_to_xml_skipping_attributes
     xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => :title)
     assert_equal "<topic>", xml.first(7)
-    assert !xml.include?(%(<title>The First Topic</title>))
-    assert xml.include?(%(<author-name>David</author-name>))    
+    assert !xml.include?(%(<title type="string">The First Topic</title>))
+    assert xml.include?(%(<author-name type="string">David</author-name>))    
 
     xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [ :title, :author_name ])
-    assert !xml.include?(%(<title>The First Topic</title>))
-    assert !xml.include?(%(<author-name>David</author-name>))    
+    assert !xml.include?(%(<title type="string">The First Topic</title>))
+    assert !xml.include?(%(<author-name type="string">David</author-name>))    
   end
   
   def test_to_xml_including_has_many_association
     xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :include => :replies)
     assert_equal "<topic>", xml.first(7)
     assert xml.include?(%(<replies><reply>))
-    assert xml.include?(%(<title>The Second Topic's of the day</title>))
+    assert xml.include?(%(<title type="string">The Second Topic's of the day</title>))
   end
 
   def test_to_xml_including_belongs_to_association
@@ -1277,7 +1277,7 @@ class BasicsTest < Test::Unit::TestCase
     )
     
     assert_equal "<firm>", xml.first(6)
-    assert xml.include?(%(<client><name>Summit</name></client>))
+    assert xml.include?(%(<client><name type="string">Summit</name></client>))
     assert xml.include?(%(<clients><client>))
   end
   

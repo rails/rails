@@ -8,7 +8,7 @@ first:
   bonus_time: 2005-01-30t15:28:00.00+01:00
   content: Have a nice day
   approved: false
-  replies_count: 0
+  replies_count: 1
 
 second:
   id: 2
@@ -17,6 +17,6 @@ second:
   written_on: 2003-07-15t15:28:00.00+01:00
   content: Have a nice day
   approved: true
-  replies_count: 2
+  replies_count: 0
   parent_id: 1
   type: Reply
