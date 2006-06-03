@@ -370,11 +370,11 @@ module ActiveRecord
 
       def add_limit_offset!(sql, options)
         if options[:limit] and options[:offset]
-          total_rows = @connection.select_all("SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT\b/i, "SELECT TOP 1000000000")}) tally")[0][:TotalRows].to_i
+          total_rows = @connection.select_all("SELECT count(*) as TotalRows from (#{sql.gsub(/\bSELECT(\s+DISTINCT)?\b/i, "SELECT#{$1} TOP 1000000000")}) tally")[0][:TotalRows].to_i
           if (options[:limit] + options[:offset]) >= total_rows
             options[:limit] = (total_rows - options[:offset] >= 0) ? (total_rows - options[:offset]) : 0
           end
-          sql.sub!(/^\s*SELECT/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT TOP #{options[:limit] + options[:offset]} ")
+          sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i, "SELECT * FROM (SELECT TOP #{options[:limit]} * FROM (SELECT#{$1} TOP #{options[:limit] + options[:offset]} ")
           sql << ") AS tmp1"
           if options[:order]
             options[:order] = options[:order].split(',').map do |field|
@@ -385,7 +385,9 @@ module ActiveRecord
                 tc << '\\]'
               end
               if sql =~ /#{tc} AS (t\d_r\d\d?)/
-                  parts[0] = $1
+                parts[0] = $1
+              elsif parts[0] =~ /\w+\.(\w+)/
+                parts[0] = $1
               end
               parts.join(' ')
             end.join(', ')
@@ -394,7 +396,7 @@ module ActiveRecord
             sql << " ) AS tmp2"
           end
         elsif sql !~ /^\s*SELECT (@@|COUNT\()/i
-          sql.sub!(/^\s*SELECT([\s]*distinct)?/i) do
+          sql.sub!(/^\s*SELECT(\s+DISTINCT)?/i) do
             "SELECT#{$1} TOP #{options[:limit]}"
           end unless options[:limit].nil?
         end
