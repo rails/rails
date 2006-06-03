@@ -1,5 +1,7 @@
 *SVN*
 
+* Create temporary dirs relative to RAILS_ROOT when running script/server #5014 [elliot@townx.org]
+
 * Minor tweak to dispatcher to use recognize instead of recognize!, as per the new routes. [Jamis Buck]
 
 * Make "script/plugin install" work with svn+ssh URLs. [Sam Stephenson]

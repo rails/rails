@@ -26,5 +26,5 @@ else
   puts "=> Booting lighttpd (use 'script/server webrick' to force WEBrick)"
 end
 
-FileUtils.mkdir_p(%w( tmp/sessions tmp/cache tmp/sockets ))
+['sessions', 'cache', 'sockets'].each { |dir_to_make| FileUtils.mkdir_p(File.join(RAILS_ROOT, 'tmp', dir_to_make)) }
 require "commands/servers/#{server}"
