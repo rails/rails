@@ -109,8 +109,12 @@ module BarMethodAliaser
     bar_without_baz << '_with_baz'
   end
 
-  def quux_with_baz
-    quux_without_baz << '_with_baz'
+  def quux_with_baz!
+    quux_without_baz! << '_with_baz!'
+  end
+
+  def quux_with_baz?
+    false
   end
 end
 
@@ -148,12 +152,30 @@ class MethodAliasingTest < Test::Unit::TestCase
 
   def test_alias_method_chain_with_punctuation_method
     FooClassWithBarMethod.send(:define_method, 'quux!', Proc.new { 'quux' })
-    assert !@instance.respond_to?(:quux_with_baz)
+    assert !@instance.respond_to?(:quux_with_baz!)
     FooClassWithBarMethod.send(:include, BarMethodAliaser)
     FooClassWithBarMethod.alias_method_chain :quux!, :baz
-    assert @instance.respond_to?(:quux_with_baz)
+    assert @instance.respond_to?(:quux_with_baz!)
+    
+    assert_equal 'quux_with_baz!', @instance.quux!
+    assert_equal 'quux', @instance.quux_without_baz!
+  end
 
-    assert_equal 'quux_with_baz', @instance.quux!
-    assert_equal 'quux', @instance.quux_without_baz
+  def test_alias_method_chain_with_same_names_between_predicates_and_bang_methods
+    FooClassWithBarMethod.send(:define_method, 'quux!', Proc.new { 'quux' })
+    FooClassWithBarMethod.send(:define_method, 'quux?', Proc.new { true })
+    assert !@instance.respond_to?(:quux_with_baz!)
+    assert !@instance.respond_to?(:quux_with_baz?)
+  
+    FooClassWithBarMethod.send(:include, BarMethodAliaser)
+    FooClassWithBarMethod.alias_method_chain :quux!, :baz
+    FooClassWithBarMethod.alias_method_chain :quux?, :baz
+  
+    assert @instance.respond_to?(:quux_with_baz!)
+    assert @instance.respond_to?(:quux_with_baz?)
+    assert_equal 'quux_with_baz!', @instance.quux!
+    assert_equal 'quux', @instance.quux_without_baz!
+    assert_equal false, @instance.quux?
+    assert_equal true,  @instance.quux_without_baz?
   end
 end

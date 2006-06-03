@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that Module#alias_method_chain should work with both foo? foo! and foo at the same time #4954 [anna@wota.jp]
+
 * to_xml fixes, features, and speedup: introduce :dasherize option that converts updated_at to updated-at if true (the existing default); binary columns get encoding="base64" attribute; nil values get nil="true" attribute to distinguish empty values; add type information for float columns; allow arbitrarily deep :include; include SQL type information as the type attribute.  #4989 [Blair Zajac <blair@orcaware.com>]
 
 * Add OrderedHash#values. [Sam Stephenson]
