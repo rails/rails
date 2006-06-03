@@ -12,7 +12,8 @@ ActiveRecord::Base.establish_connection(
   :host     => "localhost",
   :username => "rails",
   :password => "rails",
-  :database => db1
+  :database => db1,
+  :charset  => "UTF8"
 )
 
 Course.establish_connection(

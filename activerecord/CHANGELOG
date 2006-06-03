@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed issues with BLOB limits, charsets, and booleans for Firebird #5194, #5191, #5189 [kennethkunz@gmail.com]
+
 * Fixed usage of :limit and with_scope when the association in scope is a 1:m #5208 [alex@purefiction.net]
 
 * Fixed migration trouble with SQLite when NOT NULL is used in the new definition #5215 [greg@lapcominc.com]

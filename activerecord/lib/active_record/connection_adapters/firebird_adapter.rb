@@ -4,15 +4,12 @@ require 'active_record/connection_adapters/abstract_adapter'
 
 module FireRuby # :nodoc: all
   class Database
-    def self.new_from_params(database, host, port, service)
-      db_string = ""
-      if host
-        db_string << host
-        db_string << "/#{service || port}" if service || port
-        db_string << ":"
-      end
-      db_string << database
-      new(db_string)
+    def self.new_from_params(database, host, port, service, charset)
+      host_string = [host, service, port].compact.first(2).join("/") if host
+      db_string = [host_string, database].join(":")
+      db = new(db_string)
+      db.character_set = charset
+      db
     end
   end
 end
@@ -26,13 +23,13 @@ module ActiveRecord
           'The Firebird adapter requires FireRuby version 0.4.0 or greater; you appear ' <<
           'to be running an older version -- please update FireRuby (gem install fireruby).'
       end
-      config = config.symbolize_keys
+      config.symbolize_keys!
       unless config.has_key?(:database)
         raise ArgumentError, "No database specified. Missing argument: database."
       end
-      options = config[:charset] ? { CHARACTER_SET => config[:charset] } : {}
-      connection_params = [config[:username], config[:password], options]
-      db = FireRuby::Database.new_from_params(*config.values_at(:database, :host, :port, :service))
+      db_params = config.values_at(:database, :host, :port, :service, :charset)
+      connection_params = config.values_at(:username, :password)
+      db = FireRuby::Database.new_from_params(*db_params)
       connection = db.connect(*connection_params)
       ConnectionAdapters::FirebirdAdapter.new(connection, logger, connection_params)
     end
@@ -47,7 +44,7 @@ module ActiveRecord
         @firebird_type = FireRuby::SQLType.to_base_type(type, sub_type).to_s
         super(name.downcase, nil, @firebird_type, !null_flag)
         @default = parse_default(default_source) if default_source
-        @limit = type == 'BLOB' ? BLOB_MAX_LENGTH : length
+        @limit = @firebird_type == 'BLOB' ? BLOB_MAX_LENGTH : length
         @domain, @sub_type, @precision, @scale = domain, sub_type, precision, scale
       end
 
@@ -76,12 +73,8 @@ module ActiveRecord
         end
       end
 
-      def type_cast(value)
-        if type == :boolean
-          value == true or value == ActiveRecord::ConnectionAdapters::FirebirdAdapter.boolean_domain[:true]
-        else
-          super
-        end
+      def self.value_to_boolean(value)
+        %W(#{FirebirdAdapter.boolean_domain[:true]} true t 1).include? value.to_s.downcase
       end
 
       private
