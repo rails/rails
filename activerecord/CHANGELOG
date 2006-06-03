@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that count distinct should use the selected column even when using :include #5251 [anna@wota.jp]
+
 * Fixed that :includes merged from with_scope won't cause the same association to be loaded more than once if repetition occurs in the clauses #5253 [alex@purefiction.net]
 
 * Allow models to override to_xml.  #4989 [Blair Zajac <blair@orcaware.com>]

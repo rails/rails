@@ -187,4 +187,9 @@ class CalculationsTest < Test::Unit::TestCase
     assert_raises(ArgumentError) { Company.send(:validate_calculation_options, :sum,   :foo => :bar) }
     assert_raises(ArgumentError) { Company.send(:validate_calculation_options, :count, :foo => :bar) }
   end
+
+  def test_should_count_selected_field_with_include
+    assert_equal 5, Account.count(:distinct => true, :include => :firm)
+    assert_equal 3, Account.count(:distinct => true, :include => :firm, :select => :credit_limit)
+  end
 end

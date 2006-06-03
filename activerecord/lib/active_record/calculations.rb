@@ -155,7 +155,7 @@ module ActiveRecord
 
           if merged_includes.any? && operation.to_s.downcase == 'count'
             options[:distinct] = true
-            column_name = [table_name, primary_key] * '.'
+            column_name = options[:select] || [table_name, primary_key] * '.'
           end
 
           sql  = "SELECT #{operation}(#{'DISTINCT ' if options[:distinct]}#{column_name}) AS #{aggregate_alias}"
