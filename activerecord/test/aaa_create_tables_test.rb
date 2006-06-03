@@ -14,7 +14,11 @@ class AAACreateTablesTest < Test::Unit::TestCase
   end
 
   def test_load_schema
-    eval(File.read("#{File.dirname(__FILE__)}/fixtures/db_definitions/schema.rb"))
+    if ActiveRecord::Base.connection.supports_migrations?
+      eval(File.read("#{File.dirname(__FILE__)}/fixtures/db_definitions/schema.rb"))
+    else
+      recreate ActiveRecord::Base, '3'
+    end
     assert true
   end
   

@@ -58,7 +58,7 @@ ActiveRecord::Base.connection.class.class_eval do
   cattr_accessor :query_count
   
   # Array of regexes of queries that are not counted against query_count
-  @@ignore_list = [/^SELECT currval/]
+  @@ignore_list = [/^SELECT currval/, /^SELECT CAST/]
   
   alias_method :execute_without_query_counting, :execute
   def execute_with_query_counting(sql, name = nil)

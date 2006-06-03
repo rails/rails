@@ -56,3 +56,4 @@ DROP GENERATOR tasks_seq;
 DROP GENERATOR categories_seq;
 DROP GENERATOR keyboards_seq;
 DROP GENERATOR defaults_seq;
+DROP GENERATOR legacy_things_seq;

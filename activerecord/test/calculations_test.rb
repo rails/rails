@@ -133,7 +133,7 @@ class CalculationsTest < Test::Unit::TestCase
   end
 
   def test_should_calculate_grouped_by_function
-    c = Company.count(:all, :group => 'UPPER(type)')
+    c = Company.count(:all, :group => "UPPER(#{QUOTED_TYPE})")
     assert_equal 2, c[nil]
     assert_equal 1, c['DEPENDENTFIRM']
     assert_equal 3, c['CLIENT']
@@ -141,7 +141,7 @@ class CalculationsTest < Test::Unit::TestCase
   end
   
   def test_should_calculate_grouped_by_function_with_table_alias
-    c = Company.count(:all, :group => 'UPPER(companies.type)')
+    c = Company.count(:all, :group => "UPPER(companies.#{QUOTED_TYPE})")
     assert_equal 2, c[nil]
     assert_equal 1, c['DEPENDENTFIRM']
     assert_equal 3, c['CLIENT']

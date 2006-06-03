@@ -301,7 +301,8 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   end
 
   def test_has_many_through_has_many_find_conditions
-    assert_equal comments(:does_it_hurt), authors(:david).comments.find(:first, :conditions => "comments.type='SpecialComment'", :order => 'comments.id')
+    options = { :conditions => "comments.#{QUOTED_TYPE}='SpecialComment'", :order => 'comments.id' }
+    assert_equal comments(:does_it_hurt), authors(:david).comments.find(:first, options)
   end
 
   def test_has_many_through_has_many_find_by_id
