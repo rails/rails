@@ -173,7 +173,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.create_table :testings do |t|
         t.column :foo, :string
       end
-      Person.connection.add_column :testings, :bar, :string, :null => false, :default => "default"
+      Person.connection.execute "insert into testings (foo) values ('hello')"
+      assert_nothing_raised {Person.connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
 
       assert_raises(ActiveRecord::StatementInvalid) do
         Person.connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
