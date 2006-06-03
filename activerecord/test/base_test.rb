@@ -1195,6 +1195,14 @@ class BasicsTest < Test::Unit::TestCase
     assert scoped_developers.include?(developers(:david))
   end
 
+  def test_scoped_find_limit_offset_including_has_many_association
+    topics = Topic.with_scope(:find => {:limit => 1, :offset => 1, :include => :replies}) do
+      Topic.find(:all, :order => "topics.id")
+    end
+    assert_equal 1, topics.size
+    assert_equal 2, topics.first.id
+  end
+
   def test_base_class
     assert LoosePerson.abstract_class?
     assert !LooseDescendant.abstract_class?
