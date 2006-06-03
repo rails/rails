@@ -114,7 +114,7 @@ module ActiveRecord
             begin
               if !loaded?
                 if @target.is_a?(Array) && @target.any?
-                  @target = find_target + @target
+                  @target = (find_target + @target).uniq
                 else
                   @target = find_target
                 end

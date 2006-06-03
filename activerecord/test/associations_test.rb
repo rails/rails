@@ -460,6 +460,14 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal 2, companies(:first_firm).clients_of_firm(true).size # checking using the db
     assert_equal natural, companies(:first_firm).clients_of_firm.last
   end
+
+  def test_adding_using_create
+    first_firm = companies(:first_firm)
+    assert_equal 2, first_firm.plain_clients.size
+    natural = first_firm.plain_clients.create(:name => "Natural Company")
+    assert_equal 3, first_firm.plain_clients.length
+    assert_equal 3, first_firm.plain_clients.size
+  end
   
   def test_adding_a_mismatch_class
     assert_raises(ActiveRecord::AssociationTypeMismatch) { companies(:first_firm).clients_of_firm << nil }
