@@ -1,9 +1,12 @@
 *SVN*
 
+* Fixed that :includes merged from with_scope won't cause the same association to be loaded more than once if repetition occurs in the clauses #5253 [alex@purefiction.net]
+
 * Allow models to override to_xml.  #4989 [Blair Zajac <blair@orcaware.com>]
 
 * PostgreSQL: don't ignore port when host is nil since it's often used to label the domain socket.  #5247 [shimbo@is.naist.jp]
 
+>>>>>>> .r4414
 * Records and arrays of records are bound as quoted ids. [Jeremy Kemper]
     Foo.find(:all, :conditions => ['bar_id IN (?)', bars])
     Foo.find(:first, :conditions => ['bar_id = ?', bar])

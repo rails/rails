@@ -1022,7 +1022,7 @@ module ActiveRecord #:nodoc:
 
         # Merges includes so that the result is a valid +include+
         def merge_includes(first, second)
-         safe_to_array(first) + safe_to_array(second)
+         (safe_to_array(first) + safe_to_array(second)).uniq
         end
 
         # Object#to_a is deprecated, though it does have the desired behavior
