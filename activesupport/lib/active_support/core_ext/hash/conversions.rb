@@ -1,3 +1,5 @@
+require 'date'
+
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
     module Hash #:nodoc:
