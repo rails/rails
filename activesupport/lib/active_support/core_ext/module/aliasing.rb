@@ -9,17 +9,11 @@ class Module
   #   alias_method_chain :foo, :feature
   #
   # And both aliases are set up for you.
-  #
-  # A punctuation is moved to the end on predicates or bang methods.
-  #
-  #   alias_method_chain :foo?, :feature
-  # 
-  # generates "foo_without_feature?" method for old one,
-  # and expects "foo_with_feature?" method for new one.
   def alias_method_chain(target, feature)
-    punctuation    = target.to_s.scan(/[?!]/).first
+    # Strip out punctuation on predicates or bang methods since
+    # e.g. target?_without_feature is not a valid method name.
     aliased_target = target.to_s.sub(/[?!]/, '')
-    alias_method "#{aliased_target}_without_#{feature}#{punctuation}", target
-    alias_method target, "#{aliased_target}_with_#{feature}#{punctuation}"
+    alias_method "#{aliased_target}_without_#{feature}", target
+    alias_method target, "#{aliased_target}_with_#{feature}"
   end
 end
