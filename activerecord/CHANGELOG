@@ -1,5 +1,16 @@
 *SVN*
 
+* Added simple hash conditions to find that'll just convert hash to an AND-based condition string #5143 [hcatlin@gmail.com]. Example:
+
+    Person.find(:all, :conditions => { :last_name => "Catlin", :status => 1 }, :limit => 2) 
+
+...is the same as:
+
+    Person.find(:all, :conditions => [ "last_name = ? and status = ?", "Catlin", 1 ], :limit => 2)
+  
+  This makes it easier to pass in the options from a form or otherwise outside.
+    
+
 * Fixed issues with BLOB limits, charsets, and booleans for Firebird #5194, #5191, #5189 [kennethkunz@gmail.com]
 
 * Fixed usage of :limit and with_scope when the association in scope is a 1:m #5208 [alex@purefiction.net]

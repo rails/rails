@@ -117,16 +117,45 @@ class FinderTest < Test::Unit::TestCase
     assert topic.respond_to?("author_name")
   end
 
-  def test_find_on_conditions
+  def test_find_on_array_conditions
     assert Topic.find(1, :conditions => ["approved = ?", false])
     assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => ["approved = ?", true]) }
   end
   
-  def test_condition_interpolation
+  def test_find_on_hash_conditions
+    assert Topic.find(1, :conditions => { :approved => false })
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :approved => true }) }
+  end
+  
+  def test_find_on_multiple_hash_conditions
+    assert Topic.find(1, :conditions => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => false })
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => true }) }
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :author_name => "David", :title => "HHC", :replies_count => 1, :approved => false }) }
+    assert_raises(ActiveRecord::RecordNotFound) { Topic.find(1, :conditions => { :author_name => "David", :title => "The First Topic", :replies_count => 1, :approved => true }) }
+  end
+  
+  def test_condition_array_interpolation
     assert_kind_of Firm, Company.find(:first, :conditions => ["name = '%s'", "37signals"])
     assert_nil Company.find(:first, :conditions => ["name = '%s'", "37signals!"])
     assert_nil Company.find(:first, :conditions => ["name = '%s'", "37signals!' OR 1=1"])
     assert_kind_of Time, Topic.find(:first, :conditions => ["id = %d", 1]).written_on
+  end
+  
+  def test_condition_hash_interpolation
+    assert_kind_of Firm, Company.find(:first, :conditions => { :name => "37signals"})
+    assert_nil Company.find(:first, :conditions => { :name => "37signals!"})
+    assert_kind_of Time, Topic.find(:first, :conditions => {:id => 1}).written_on
+  end
+  
+  def test_hash_condition_find_malformed
+    assert_raises(ActiveRecord::StatementInvalid) {
+      Company.find(:first, :conditions => { :id => 2, :dhh => true })
+    }
+  end
+  
+  def test_hash_condition_find_with_escaped_characters
+    Company.create("name" => "Ain't noth'n like' \#stuff")
+    assert Company.find(:first, :conditions => { :name => "Ain't noth'n like' \#stuff"})
   end
 
   def test_bind_variables

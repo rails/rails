@@ -81,9 +81,10 @@ module ActiveRecord #:nodoc:
   #
   # == Conditions
   #
-  # Conditions can either be specified as a string or an array representing the WHERE-part of an SQL statement.
+  # Conditions can either be specified as a string, array, or hash representing the WHERE-part of an SQL statement.
   # The array form is to be used when the condition input is tainted and requires sanitization. The string form can
-  # be used for statements that don't involve tainted data. Examples:
+  # be used for statements that don't involve tainted data. The hash form works much like the array form, except
+  # only equality is possible. Examples:
   #
   #   class User < ActiveRecord::Base
   #     def self.authenticate_unsafely(user_name, password)
@@ -93,12 +94,16 @@ module ActiveRecord #:nodoc:
   #     def self.authenticate_safely(user_name, password)
   #       find(:first, :conditions => [ "user_name = ? AND password = ?", user_name, password ])
   #     end
+  #
+  #     def self.authenticate_safely_simply(user_name, password)
+  #       find(:first, :conditions => { :user_name => user_name, :password => password })
+  #     end
   #   end
   #
   # The <tt>authenticate_unsafely</tt> method inserts the parameters directly into the query and is thus susceptible to SQL-injection
-  # attacks if the <tt>user_name</tt> and +password+ parameters come directly from a HTTP request. The <tt>authenticate_safely</tt> method,
-  # on the other hand, will sanitize the <tt>user_name</tt> and +password+ before inserting them in the query, which will ensure that
-  # an attacker can't escape the query and fake the login (or worse).
+  # attacks if the <tt>user_name</tt> and +password+ parameters come directly from a HTTP request. The <tt>authenticate_safely</tt>  and
+  # <tt>authenticate_safely_simply</tt> both will sanitize the <tt>user_name</tt> and +password+ before inserting them in the query, 
+  # which will ensure that an attacker can't escape the query and fake the login (or worse).
   #
   # When using multiple parameters in the conditions, it can easily become hard to read exactly what the fourth or fifth
   # question mark is supposed to represent. In those cases, you can resort to named bind variables instead. That's done by replacing
@@ -108,6 +113,13 @@ module ActiveRecord #:nodoc:
   #     "id = :id AND name = :name AND division = :division AND created_at > :accounting_date",
   #     { :id => 3, :name => "37signals", :division => "First", :accounting_date => '2005-01-01' }
   #   ])
+  #
+  # Similarly, a simple hash without a statement will generate conditions based on equality with the SQL AND
+  # operator. For instance:
+  #
+  #   Student.find(:all, :conditions => { :first_name => "Harvey", :status => 1 })
+  #   Student.find(:all, :conditions => params[:student])
+  #
   #
   # == Overwriting default accessors
   #
@@ -1273,12 +1285,30 @@ module ActiveRecord #:nodoc:
           klass.base_class.name
         end
 
-        # Accepts an array or string.  The string is returned untouched, but the array has each value
+        #Accepts an array, hash, or string of sql conditions and 
+        #deals with them accordingly
+        #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
+        #   { :name => "foo'bar", :group_id => 4 }  returns "name='foo''bar' and group_id='4'"
+        #   "name='foo''bar' and group_id='4'" returns "name='foo''bar' and group_id='4'"
+        def sanitize_sql(condition)
+          return sanitize_sql_array(condition) if condition.is_a?(Array)
+          return sanitize_sql_hash(condition) if condition.is_a?(Hash)
+          condition
+        end
+        
+        # Accepts a hash of conditions.  The hash has each key/value or attribute/value pair
+        # sanitized and interpolated into the sql statement.
+        #   { :name => "foo'bar", :group_id => 4 }  returns "name='foo''bar' and group_id= 4"
+        def sanitize_sql_hash(hash)
+          hash.collect { |attrib, value|
+            "#{table_name}.#{connection.quote_column_name(attrib)} = #{quote(value)}"
+          }.join(" AND ")
+        end
+        
+        # Accepts an array of conditions.  The array has each value
         # sanitized and interpolated into the sql statement.
         #   ["name='%s' and group_id='%s'", "foo'bar", 4]  returns  "name='foo''bar' and group_id='4'"
-        def sanitize_sql(ary)
-          return ary unless ary.is_a?(Array)
-
+        def sanitize_sql_array(ary)
           statement, *values = ary
           if values.first.is_a?(Hash) and statement =~ /:\w+/
             replace_named_bind_variables(statement, values.first)
