@@ -16,7 +16,8 @@ module ActiveSupport #:nodoc:
 
         XML_FORMATTING = {
           "date"     => Proc.new { |date| date.to_s(:db) },
-          "datetime" => Proc.new { |time| time.xmlschema }
+          "datetime" => Proc.new { |time| time.xmlschema },
+          "binary"   => Proc.new { |binary| Base64.encode64(binary) }
         }
 
         def to_xml(options = {})
