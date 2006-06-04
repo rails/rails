@@ -1,5 +1,7 @@
 *SVN*
 
+* Refactored ActiveRecord::Base.to_xml to become a delegate for XmlSerializer, which restores sanity to the mega method. This refactoring also reinstates the opinions that type="string" is redundant and ugly and nil-differentiation is not a concern of serialization [DHH]
+
 * Added simple hash conditions to find that'll just convert hash to an AND-based condition string #5143 [hcatlin@gmail.com]. Example:
 
     Person.find(:all, :conditions => { :last_name => "Catlin", :status => 1 }, :limit => 2) 

@@ -50,6 +50,7 @@ require 'active_record/locking'
 require 'active_record/migration'
 require 'active_record/schema'
 require 'active_record/calculations'
+require 'active_record/xml_serialization'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
@@ -65,6 +66,7 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Acts::List
   include ActiveRecord::Acts::NestedSet
   include ActiveRecord::Calculations
+  include ActiveRecord::XmlSerialization
 end
 
 unless defined?(RAILS_CONNECTION_ADAPTERS)

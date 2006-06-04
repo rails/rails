@@ -1225,14 +1225,14 @@ class BasicsTest < Test::Unit::TestCase
     written_on_in_current_timezone = topics(:first).written_on.xmlschema
     last_read_in_current_timezone = topics(:first).last_read.xmlschema
     assert_equal "<topic>", xml.first(7)
-    assert xml.include?(%(<title type="string">The First Topic</title>))
-    assert xml.include?(%(<author-name type="string">David</author-name>))
+    assert xml.include?(%(<title>The First Topic</title>))
+    assert xml.include?(%(<author-name>David</author-name>))
     assert xml.include?(%(<id type="integer">1</id>))
     assert xml.include?(%(<replies-count type="integer">1</replies-count>))
     assert xml.include?(%(<written-on type="datetime">#{written_on_in_current_timezone}</written-on>))
-    assert xml.include?(%(<content type="string">Have a nice day</content>))
-    assert xml.include?(%(<author-email-address type="string">david@loudthinking.com</author-email-address>))
-    assert xml.match(%r{<parent-id (type="integer"\s*|nil="true"\s*){2}/>})
+    assert xml.include?(%(<content>Have a nice day</content>))
+    assert xml.include?(%(<author-email-address>david@loudthinking.com</author-email-address>))
+    assert xml.match(%(<parent-id type="integer"></parent-id>))
     if current_adapter?(:SybaseAdapter) or current_adapter?(:SQLServerAdapter)
       assert xml.include?(%(<last-read type="datetime">#{last_read_in_current_timezone}</last-read>))
     else
@@ -1248,19 +1248,19 @@ class BasicsTest < Test::Unit::TestCase
   def test_to_xml_skipping_attributes
     xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => :title)
     assert_equal "<topic>", xml.first(7)
-    assert !xml.include?(%(<title type="string">The First Topic</title>))
-    assert xml.include?(%(<author-name type="string">David</author-name>))    
+    assert !xml.include?(%(<title>The First Topic</title>))
+    assert xml.include?(%(<author-name>David</author-name>))    
 
     xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :except => [ :title, :author_name ])
-    assert !xml.include?(%(<title type="string">The First Topic</title>))
-    assert !xml.include?(%(<author-name type="string">David</author-name>))    
+    assert !xml.include?(%(<title>The First Topic</title>))
+    assert !xml.include?(%(<author-name>David</author-name>))    
   end
   
   def test_to_xml_including_has_many_association
     xml = topics(:first).to_xml(:indent => 0, :skip_instruct => true, :include => :replies)
     assert_equal "<topic>", xml.first(7)
     assert xml.include?(%(<replies><reply>))
-    assert xml.include?(%(<title type="string">The Second Topic's of the day</title>))
+    assert xml.include?(%(<title>The Second Topic's of the day</title>))
   end
 
   def test_to_xml_including_belongs_to_association
@@ -1285,7 +1285,7 @@ class BasicsTest < Test::Unit::TestCase
     )
     
     assert_equal "<firm>", xml.first(6)
-    assert xml.include?(%(<client><name type="string">Summit</name></client>))
+    assert xml.include?(%(<client><name>Summit</name></client>))
     assert xml.include?(%(<clients><client>))
   end
   
