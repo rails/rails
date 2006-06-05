@@ -453,13 +453,15 @@ module ActionController #:nodoc:
     # The new instance is yielded to the passed block. Typically the block
     # will create some routes using map.draw { map.connect ... }:
     #
-    #   with_routing do |set|
-    #     set.draw { set.connect ':controller/:id/:action' }
-    #     assert_equal(
-    #        ['/content/10/show', {}],
-    #        set.generate(:controller => 'content', :id => 10, :action => 'show')
-    #     )
-    #   end
+    #  with_routing do |set|
+    #    set.draw do |map|
+    #      map.connect ':controller/:action/:id'
+    #        assert_equal(
+    #          ['/content/10/show', {}],
+    #          map.generate(:controller => 'content', :id => 10, :action => 'show')
+    #      end
+    #    end
+    #  end
     #
     def with_routing
       real_routes = ActionController::Routing::Routes
