@@ -241,6 +241,23 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal({:controller => "content", :action => 'show_page', :id => '10'}, rs.recognize_path("/page/10"))
   end
 
+  # For newer revision
+  def test_route_with_text_default
+    rs.draw do |map|
+      map.connect 'page/:id', :controller => 'content', :action => 'show_page', :id => 1
+      map.connect ':controller/:action/:id'
+    end
+
+    assert_equal '/page/foo', rs.generate(:controller => 'content', :action => 'show_page', :id => 'foo')
+    assert_equal({:controller => "content", :action => 'show_page', :id => 'foo'}, rs.recognize_path("/page/foo"))
+
+    token = "\321\202\320\265\320\272\321\201\321\202" # 'text' in russian
+    escaped_token = CGI::escape(token)
+
+    assert_equal '/page/' + escaped_token, rs.generate(:controller => 'content', :action => 'show_page', :id => token)
+    assert_equal({:controller => "content", :action => 'show_page', :id => token}, rs.recognize_path("/page/#{escaped_token}"))
+  end
+  
   def test_action_expiry
     assert_equal '/content', rs.generate({:controller => 'content'}, {:controller => 'content', :action => 'show'})
   end

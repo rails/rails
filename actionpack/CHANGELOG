@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure :id and friends are unescaped properly. #5275 [me@julik.nl]
+
 * Fix documentation for with_routing to reflect new reality. #5281 [rramdas@gmail.com]
 
 * Rewind readable CGI params so others may reread them (such as CGI::Session when passing the session id in a multipart form).  #210 [mklame@atxeu.com, matthew@walker.wattle.id.au]

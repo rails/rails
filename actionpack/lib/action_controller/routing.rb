@@ -500,7 +500,9 @@ module ActionController
       end
       def match_extraction(next_capture)
         hangon = (default ? "|| #{default.inspect}" : "if match[#{next_capture}]")
-        "params[:#{key}] = match[#{next_capture}] #{hangon}"
+        
+        # All non code-related keys (such as :id, :slug) have to be unescaped as other CGI params
+        "params[:#{key}] = match[#{next_capture}] && CGI.unescape(match[#{next_capture}]) #{hangon}"
       end
   
       def optionality_implied?
