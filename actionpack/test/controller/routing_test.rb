@@ -1330,6 +1330,13 @@ class RouteSetTest < Test::Unit::TestCase
     url = set.generate(:controller => "people", :action => "index", :ws => true)
     assert_equal "/ws/people", url
   end
+
+  def test_generate_changes_controller_module
+    set.draw { |map| map.connect ':controller/:action/:id' }
+    current = { :controller => "bling/bloop", :action => "bap", :id => 9 }
+    url = set.generate({:controller => "foo/bar", :action => "baz", :id => 7}, current)
+    assert_equal "/foo/bar/baz/7", url
+  end
 end
 
 class RoutingTest < Test::Unit::TestCase

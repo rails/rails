@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure changing the controller from foo/bar to bing/bang does not change relative to foo. [Jamis Buck]
+
 * Escape the path before routing recognition. #3671
 
 * Make sure :id and friends are unescaped properly. #5275 [me@julik.nl]
