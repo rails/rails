@@ -1230,6 +1230,29 @@ class RouteSetTest < Test::Unit::TestCase
   ensure
     Object.send(:remove_const, :PeopleController)
   end
+  
+  def test_typo_recognition
+    Object.const_set(:ArticlesController, Class.new)
+
+    set.draw do |map|
+      map.connect 'articles/:year/:month/:day/:title',
+             :controller => 'articles', :action => 'permalink',
+             :year => /\d{4}/, :day => /\d{1,2}/, :month => /\d{1,2}/
+    end
+  
+    request.path = "/articles/2005/11/05/a-very-interesting-article"
+    request.method = :get
+    assert_nothing_raised { set.recognize(request) }
+    assert_equal("permalink", request.path_parameters[:action])
+    assert_equal("2005", request.path_parameters[:year])
+    assert_equal("11", request.path_parameters[:month])
+    assert_equal("05", request.path_parameters[:day])
+    assert_equal("a-very-interesting-article", request.path_parameters[:title])
+    
+  ensure
+    Object.send(:remove_const, :ArticlesController)
+  end
+
 
   def test_recognize_with_conditions_and_format
     Object.const_set(:PeopleController, Class.new)

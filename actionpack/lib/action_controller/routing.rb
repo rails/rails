@@ -489,7 +489,7 @@ module ActionController
         Regexp.new "\\A#{regexp.source}\\Z" if regexp
       end
       def regexp_chunk
-        regexp ? regexp.source : "([^#{Routing::SEPARATORS.join}]+)"
+        regexp ? "(#{regexp.source})" : "([^#{Routing::SEPARATORS.join}]+)"
       end
   
       def build_pattern(pattern)
