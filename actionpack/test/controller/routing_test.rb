@@ -1207,6 +1207,15 @@ class RouteSetTest < Test::Unit::TestCase
     end
   end
 
+  def test_recognize_with_encoded_id_and_regex
+    set.draw do |map|
+      map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /[a-zA-Z0-9 ]+/
+    end
+    
+    assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/page/10'))
+    assert_equal({:controller => 'pages', :action => 'show', :id => 'hello world'}, set.recognize_path('/page/hello+world'))
+  end
+
   def test_recognize_with_conditions
     Object.const_set(:PeopleController, Class.new)
 

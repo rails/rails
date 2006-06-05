@@ -1,5 +1,7 @@
 *SVN*
 
+* Escape the path before routing recognition. #3671
+
 * Make sure :id and friends are unescaped properly. #5275 [me@julik.nl]
 
 * Fix documentation for with_routing to reflect new reality. #5281 [rramdas@gmail.com]

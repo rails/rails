@@ -502,7 +502,7 @@ module ActionController
         hangon = (default ? "|| #{default.inspect}" : "if match[#{next_capture}]")
         
         # All non code-related keys (such as :id, :slug) have to be unescaped as other CGI params
-        "params[:#{key}] = match[#{next_capture}] && CGI.unescape(match[#{next_capture}]) #{hangon}"
+        "params[:#{key}] = match[#{next_capture}] #{hangon}"
       end
   
       def optionality_implied?
@@ -991,6 +991,7 @@ module ActionController
       end
   
       def recognize_path(path, environment={})
+        path = CGI.unescape(path)
         routes.each do |route|
           result = route.recognize(path, environment) and return result
         end
