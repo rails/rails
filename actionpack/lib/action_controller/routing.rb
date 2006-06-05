@@ -1,5 +1,4 @@
 require 'cgi'
-require 'pathname'
 
 class Object
   def to_param
@@ -64,7 +63,6 @@ module ActionController
           @possible_controllers = []
         
           paths = $LOAD_PATH.select { |path| File.directory? path }
-          paths.collect! { |path| Pathname.new(path).realpath.to_s }
           paths = paths.sort_by { |path| - path.length }
         
           seen_paths = Hash.new {|h, k| h[k] = true; false}
