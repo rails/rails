@@ -120,10 +120,16 @@ module ActionController
 # puts
         instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
 
-        method_decl = "def generate(#{args})\nappend_query_string(*generate_raw(options, hash, expire_on))\nend"
+        # expire_on.keys == recall.keys; in other words, the keys in the expire_on hash
+        # are the same as the keys that were recalled from the previous request. Thus,
+        # we can use the expire_on.keys to determine which keys ought to be used to build
+        # the query string. (Never use keys from the recalled request when building the
+        # query string.)
+
+        method_decl = "def generate(#{args})\npath, hash = generate_raw(options, hash, expire_on)\nappend_query_string(path, hash, extra_keys(hash, expire_on))\nend"
         instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
 
-        method_decl = "def generate_extras(#{args})\npath, hash = generate_raw(options, hash, expire_on)\n[path, hash.keys.map(&:to_sym) - significant_keys]\nend"
+        method_decl = "def generate_extras(#{args})\npath, hash = generate_raw(options, hash, expire_on)\n[path, extra_keys(hash, expire_on)]\nend"
         instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
       end
   
@@ -212,10 +218,20 @@ module ActionController
 
       # Generate the query string with any extra keys in the hash and append
       # it to the given path, returning the new path.
-      def append_query_string(path, hash)
+      def append_query_string(path, hash, query_keys=nil)
         return nil unless path
-        query = hash.keys.map(&:to_sym) - significant_keys
-        "#{path}#{build_query_string(hash, query)}"
+        query_keys ||= extra_keys(hash)
+        "#{path}#{build_query_string(hash, query_keys)}"
+      end
+
+      # Determine which keys in the given hash are "extra". Extra keys are
+      # those that were not used to generate a particular route. The extra
+      # keys also do not include those recalled from the prior request, nor
+      # do they include any keys that were implied in the route (like a
+      # :controller that is required, but not explicitly used in the text of
+      # the route.)
+      def extra_keys(hash, recall={})
+        (hash || {}).keys.map { |k| k.to_sym } - (recall || {}).keys - significant_keys
       end
 
       # Build a query string from the keys of the given hash. If +only_keys+
@@ -228,7 +244,7 @@ module ActionController
         only_keys ||= hash.keys
         
         only_keys.each do |key|
-          value = hash[key] 
+          value = hash[key] or next
           key = CGI.escape key.to_s
           if value.class == Array
             key <<  '[]'
@@ -301,8 +317,11 @@ module ActionController
       end
 
       def to_s
-        @to_s ||= segments.inject("") { |str,s| str << s.to_s }
-      end
+        @to_s ||= begin
+            segs = segments.inject("") { |str,s| str << s.to_s }
+            "%-6s %-40s %s" % [(conditions[:method] || :any).to_s.upcase, segs, requirements.inspect]
+          end     
+      end     
   
     protected
   
@@ -973,7 +992,8 @@ module ActionController
           action = merged[:action]
 
           raise "Need controller and action!" unless controller && action
-          routes = routes_by_controller[controller][action][merged.keys.sort_by { |x| x.object_id }]
+          # don't use the recalled keys when determining which routes to check
+          routes = routes_by_controller[controller][action][options.keys.sort_by { |x| x.object_id }]
 
           routes.each do |route|
             results = route.send(method, options, merged, expire_on)

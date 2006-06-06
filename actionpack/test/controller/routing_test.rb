@@ -837,6 +837,10 @@ class RouteTest < Test::Unit::TestCase
     assert_equal '', @route.build_query_string({})
   end
 
+  def test_build_query_string_with_nil_value
+    assert_equal '', @route.build_query_string({:x => nil})
+  end
+
   def test_simple_build_query_string
     assert_equal '?x=1&y=2', @route.build_query_string(:x => '1', :y => '2')
   end
@@ -1336,6 +1340,37 @@ class RouteSetTest < Test::Unit::TestCase
     current = { :controller => "bling/bloop", :action => "bap", :id => 9 }
     url = set.generate({:controller => "foo/bar", :action => "baz", :id => 7}, current)
     assert_equal "/foo/bar/baz/7", url
+  end
+
+  def test_id_is_not_impossibly_sticky
+    set.draw do |map|
+      map.connect 'foo/:number', :controller => "people", :action => "index"
+      map.connect ':controller/:action/:id'
+    end
+
+    url = set.generate({:controller => "people", :action => "index", :number => 3},
+      {:controller => "people", :action => "index", :id => "21"})
+    assert_equal "/foo/3", url
+  end
+
+  def test_id_is_sticky_when_it_ought_to_be
+    set.draw do |map|
+      map.connect ':controller/:id/:action'
+    end
+
+    url = set.generate({:action => "destroy"}, {:controller => "people", :action => "show", :id => "7"})
+    assert_equal "/people/7/destroy", url
+  end
+
+  def test_use_static_path_when_possible
+    set.draw do |map|
+      map.connect 'about', :controller => "welcome", :action => "about"
+      map.connect ':controller/:action/:id'
+    end
+
+    url = set.generate({:controller => "welcome", :action => "about"},
+      {:controller => "welcome", :action => "get", :id => "7"})
+    assert_equal "/about", url
   end
 end
 
