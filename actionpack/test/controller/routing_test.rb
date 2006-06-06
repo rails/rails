@@ -1372,6 +1372,29 @@ class RouteSetTest < Test::Unit::TestCase
       {:controller => "welcome", :action => "get", :id => "7"})
     assert_equal "/about", url
   end
+
+  def test_generate_extras
+    set.draw { |map| map.connect ':controller/:action/:id' }
+
+    args = { :controller => "foo", :action => "bar", :id => "7", :x => "y" }
+    assert_equal "/foo/bar/7?x=y", set.generate(args)
+    assert_equal ["/foo/bar/7", [:x]], set.generate_extras(args)
+    assert_equal [:x], set.extra_keys(args)
+  end
+
+  def test_named_routes_are_never_relative_to_modules
+    set.draw do |map|
+      map.connect "/connection/manage/:action", :controller => 'connection/manage'
+      map.connect "/connection/connection", :controller => "connection/connection"
+      map.family_connection "/connection", :controller => "connection"
+    end
+
+    url = set.generate({:controller => "connection"}, {:controller => 'connection/manage'})
+    assert_equal "/connection/connection", url
+
+    url = set.generate({:use_route => :family_connection, :controller => "connection"}, {:controller => 'connection/manage'})
+    assert_equal "/connection", url
+  end
 end
 
 class RoutingTest < Test::Unit::TestCase

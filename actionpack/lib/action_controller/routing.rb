@@ -111,7 +111,7 @@ module ActionController
         args = "options, hash, expire_on = {}"
 
         # Nest the body inside of a def block, and then compile it.
-        method_decl = "def generate_raw(#{args})\path = begin\n#{body}\nend\n[path, hash]\nend"
+        method_decl = "def generate_raw(#{args})\npath = begin\n#{body}\nend\n[path, hash]\nend"
 # puts "\n======================"
 # puts
 # p self
@@ -971,7 +971,7 @@ module ActionController
         # current controller module, if any. In other words, if we're currently
         # on admin/get, and the new controller is 'set', the new controller
         # should really be admin/set.
-        if expire_on[:controller] && options[:controller] && options[:controller][0] != ?/
+        if !named_route && expire_on[:controller] && options[:controller] && options[:controller][0] != ?/
           old_parts = recall[:controller].split('/')
           new_parts = options[:controller].split('/')
           parts = old_parts[0..-(new_parts.length + 1)] + new_parts
