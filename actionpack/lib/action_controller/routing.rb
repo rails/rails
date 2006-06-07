@@ -670,9 +670,10 @@ module ActionController
       # segments are passed alongside in order to distinguish between default values
       # and requirements.
       def divide_route_options(segments, options)
-        requirements = options.delete(:requirements) || {}
-        defaults     = options.delete(:defaults)     || {}
-        conditions   = options.delete(:conditions)   || {}
+        options = options.dup
+        requirements = (options.delete(:requirements) || {}).dup
+        defaults     = (options.delete(:defaults)     || {}).dup
+        conditions   = (options.delete(:conditions)   || {}).dup
 
         path_keys = segments.collect { |segment| segment.key if segment.respond_to?(:key) }.compact
         options.each do |key, value|

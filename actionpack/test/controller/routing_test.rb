@@ -863,11 +863,29 @@ class RouteTest < Test::Unit::TestCase
 end
 
 class RouteBuilderTest < Test::Unit::TestCase
-  
+
   def builder
-    @bulider ||= ROUTING::RouteBuilder.new
+    @builder ||= ROUTING::RouteBuilder.new
   end
-  
+
+  def build(path, options)
+    builder.build(path, options)
+  end
+
+  def test_options_should_not_be_modified
+    requirements1 = { :id => /\w+/, :controller => /(?:[a-z](?:-?[a-z]+)*)/ }
+    requirements2 = requirements1.dup
+
+    assert_equal requirements1, requirements2
+
+    with_options(:controller => 'folder',
+                 :requirements => requirements2) do |m|
+      m.build 'folders/new', :action => 'new'
+    end
+
+    assert_equal requirements1, requirements2
+  end
+
   def test_segment_for_static
     segment, rest = builder.segment_for 'ulysses'
     assert_equal '', rest

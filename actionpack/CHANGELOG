@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure passed routing options are not mutated by routing code. #5314 [Blair Zajac]
+
 * Make sure changing the controller from foo/bar to bing/bang does not change relative to foo. [Jamis Buck]
 
 * Escape the path before routing recognition. #3671
