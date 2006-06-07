@@ -57,26 +57,52 @@ module ActionController
       ensure
         use_controllers! nil
       end
-    
+
+      def normalize_paths(paths=$LOAD_PATH)
+        # do the hokey-pokey of path normalization...
+        paths = paths.collect do |path|
+          path = path.
+            gsub("//", "/").           # replace double / chars with a single
+            gsub("\\\\", "\\").        # replace double \ chars with a single
+            gsub(%r{(.)[\\/]$}, '\1')  # drop final / or \ if path ends with it
+
+          # eliminate .. paths where possible
+          re = %r{\w+[/\\]\.\.[/\\]}
+          path.gsub!(%r{\w+[/\\]\.\.[/\\]}, "") while path.match(re)
+          path
+        end
+
+        # start with longest path, first
+        paths = paths.uniq.sort_by { |path| - path.length }
+      end
+
       def possible_controllers
         unless @possible_controllers
           @possible_controllers = []
         
           paths = $LOAD_PATH.select { |path| File.directory? path }
-          paths = paths.sort_by { |path| - path.length }
-        
+
           seen_paths = Hash.new {|h, k| h[k] = true; false}
-          paths.each do |load_path|
+          normalize_paths(paths).each do |load_path|
             Dir["#{load_path}/**/*_controller.rb"].collect do |path|
-              next if seen_paths[path]
+              next if seen_paths[path.gsub(%r{^\.[/\\]}, "")]
             
               controller_name = path[(load_path.length + 1)..-1]
+              next unless path_may_be_controller?(controller_name)
+
               controller_name.gsub!(/_controller\.rb\Z/, '')
               @possible_controllers << controller_name
             end
           end
+
+          # remove duplicates
+          @possible_controllers.uniq!
         end
         @possible_controllers
+      end
+
+      def path_may_be_controller?(path)
+        path !~ /(?:rails\/.*\/(?:examples|test))|(?:actionpack\/lib\/action_controller.rb$)|(?:app\/controllers)/o
       end
 
       def use_controllers!(controller_names)
