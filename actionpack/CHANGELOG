@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove problematic control chars in rescue template. #5316 [Stefan Kaes]
+
 * Make sure passed routing options are not mutated by routing code. #5314 [Blair Zajac]
 
 * Make sure changing the controller from foo/bar to bing/bang does not change relative to foo. [Jamis Buck]
