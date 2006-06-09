@@ -761,7 +761,7 @@ module Commands
         ::Plugin.find(name).install(install_method, @options)
       end
     rescue
-      puts "Plugin not found: #{name}"
+      puts "Plugin not found: #{args.inspect}"
       exit 1
     end
   end
