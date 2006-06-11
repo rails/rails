@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix plugin install bug at dir with space. (closes #5359) [Yoshimasa NIWA]
+
 * Fix bug with 'script/plugin install' so it reports unknown plugin names correctly.  [Rick]
 
 * Added uninstall.rb hook to plugin handling, such that plugins have a way of removing assets and other artifacts on removal #5003 [takiuchi@drecom.co.jp]
