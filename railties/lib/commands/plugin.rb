@@ -684,13 +684,17 @@ module Commands
       puts "Scraping #{uri}" if $verbose
       dupes = []
       content = open(uri).each do |line|
-        if line =~ /<a[^>]*href=['"]([^'"]*)['"]/ or line =~ /(svn:\/\/[^<|\n]*)/
-          uri = $1
-          if uri =~ /\/plugins\// and uri !~ /\/browser\//
-            uri = extract_repository_uri(uri)
-            yield uri unless dupes.include?(uri) or Repositories.instance.exist?(uri)
-            dupes << uri
+        begin
+          if line =~ /<a[^>]*href=['"]([^'"]*)['"]/ || line =~ /(svn:\/\/[^<|\n]*)/
+            uri = $1
+            if uri =~ /^\w+:\/\// && uri =~ /\/plugins\// && uri !~ /\/browser\// && uri !~ /^http:\/\/wiki\.rubyonrails/ && uri !~ /http:\/\/instiki/
+              uri = extract_repository_uri(uri)
+              yield uri unless dupes.include?(uri) || Repositories.instance.exist?(uri)
+              dupes << uri
+            end
           end
+        rescue
+          puts "Problems scraping '#{uri}': #{$!.to_s}"
         end
       end
     end
