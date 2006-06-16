@@ -842,24 +842,29 @@ class RouteTest < Test::Unit::TestCase
   end
 
   def test_simple_build_query_string
-    assert_equal '?x=1&y=2', @route.build_query_string(:x => '1', :y => '2')
+    assert_equal '?x=1&y=2', order_query_string(@route.build_query_string(:x => '1', :y => '2'))
   end
 
   def test_convert_ints_build_query_string
-    assert_equal '?x=1&y=2', @route.build_query_string(:x => 1, :y => 2)
+    assert_equal '?x=1&y=2', order_query_string(@route.build_query_string(:x => 1, :y => 2))
   end
 
   def test_escape_spaces_build_query_string
-    assert_equal '?x=hello+world&y=goodbye+world', @route.build_query_string(:x => 'hello world', :y => 'goodbye world')
+    assert_equal '?x=hello+world&y=goodbye+world', order_query_string(@route.build_query_string(:x => 'hello world', :y => 'goodbye world'))
   end
 
   def test_expand_array_build_query_string
-    assert_equal '?x[]=1&x[]=2', @route.build_query_string(:x => [1, 2])
+    assert_equal '?x[]=1&x[]=2', order_query_string(@route.build_query_string(:x => [1, 2]))
   end
 
   def test_escape_spaces_build_query_string_selected_keys
-    assert_equal '?x=hello+world', @route.build_query_string({:x => 'hello world', :y => 'goodbye world'}, [:x])
+    assert_equal '?x=hello+world', order_query_string(@route.build_query_string({:x => 'hello world', :y => 'goodbye world'}, [:x]))
   end
+  
+  private
+    def order_query_string(qs)
+      '?' + qs[1..-1].split('&').sort.join('&')
+    end
 end
 
 class RouteBuilderTest < Test::Unit::TestCase
@@ -1301,6 +1306,18 @@ class RouteSetTest < Test::Unit::TestCase
     Object.send(:remove_const, :ArticlesController)
   end
 
+  def test_routing_traversal_does_not_load_extra_classes
+    assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
+    set.draw do |map|
+      map.connect '/profile', :controller => 'profile'
+    end
+
+    request.path = '/profile'
+
+    set.recognize(request) rescue nil
+    
+    assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
+  end
 
   def test_recognize_with_conditions_and_format
     Object.const_set(:PeopleController, Class.new)
