@@ -148,13 +148,6 @@ class WebServiceTest < Test::Unit::TestCase
     assert_equal %(<foo "bar's" & friends>), @controller.params[:data]
   end
 
-  def test_dasherized_keys_as_yaml
-    ActionController::Base.param_parsers[Mime::YAML] = :yaml
-    process('POST', 'application/x-yaml', "---\nfirst-key:\n  sub-key: ...\n", true)
-    assert_equal 'action, controller, first_key(sub_key), full', @controller.response.body
-    assert_equal "...", @controller.params[:first_key][:sub_key]
-  end
-
   def test_typecast_as_yaml
     ActionController::Base.param_parsers[Mime::YAML] = :yaml
     process('POST', 'application/x-yaml', <<-YAML)

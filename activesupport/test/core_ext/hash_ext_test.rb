@@ -280,4 +280,81 @@ class HashToXmlTest < Test::Unit::TestCase
     assert xml.include?(%(<addresses><address><streets><street><name>))
   end
 
+  def test_single_record_from_xml
+    topic_xml = <<-EOT
+      <topic>
+        <title>The First Topic</title>
+        <author-name>David</author-name>
+        <id type="integer">1</id>
+        <approved type="boolean">false</approved>
+        <replies-count type="integer">0</replies-count>
+        <written-on type="date">2003-07-16</written-on>
+        <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
+        <content>Have a nice day</content>
+        <author-email-address>david@loudthinking.com</author-email-address>
+        <parent-id></parent-id>
+      </topic>
+    EOT
+    
+    expected_topic_hash = {
+      :title => "The First Topic",
+      :author_name => "David",
+      :id => 1,
+      :approved => false,
+      :replies_count => 0,
+      :written_on => Date.new(2003, 7, 16),
+      :viewed_at => Time.utc(2003, 7, 16, 9, 28),
+      :content => "Have a nice day",
+      :author_email_address => "david@loudthinking.com",
+      :parent_id => nil
+    }.stringify_keys
+    
+    assert_equal expected_topic_hash, Hash.create_from_xml(topic_xml)["topic"]
+  end
+
+  def test_multiple_records_from_xml
+    topics_xml = <<-EOT
+      <topics>
+        <topic>
+          <title>The First Topic</title>
+          <author-name>David</author-name>
+          <id type="integer">1</id>
+          <approved type="boolean">false</approved>
+          <replies-count type="integer">0</replies-count>
+          <written-on type="date">2003-07-16</written-on>
+          <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
+          <content>Have a nice day</content>
+          <author-email-address>david@loudthinking.com</author-email-address>
+          <parent-id></parent-id>
+        </topic>
+        <topic>
+          <title>The Second Topic</title>
+          <author-name>Jason</author-name>
+          <id type="integer">1</id>
+          <approved type="boolean">false</approved>
+          <replies-count type="integer">0</replies-count>
+          <written-on type="date">2003-07-16</written-on>
+          <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
+          <content>Have a nice day</content>
+          <author-email-address>david@loudthinking.com</author-email-address>
+          <parent-id></parent-id>
+        </topic>
+      </topics>
+    EOT
+    
+    expected_topic_hash = {
+      :title => "The First Topic",
+      :author_name => "David",
+      :id => 1,
+      :approved => false,
+      :replies_count => 0,
+      :written_on => Date.new(2003, 7, 16),
+      :viewed_at => Time.utc(2003, 7, 16, 9, 28),
+      :content => "Have a nice day",
+      :author_email_address => "david@loudthinking.com",
+      :parent_id => nil
+    }.stringify_keys
+    
+    assert_equal expected_topic_hash, Hash.create_from_xml(topics_xml)["topics"]["topic"].first
+  end
 end

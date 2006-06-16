@@ -1,4 +1,5 @@
 require 'date'
+require 'xml_simple'
 
 module ActiveSupport #:nodoc:
   module CoreExtensions #:nodoc:
@@ -19,6 +20,10 @@ module ActiveSupport #:nodoc:
           "datetime" => Proc.new { |time| time.xmlschema },
           "binary"   => Proc.new { |binary| Base64.encode64(binary) }
         }
+
+        def self.included(klass)
+          klass.extend(ClassMethods)
+        end
 
         def to_xml(options = {})
           options[:indent] ||= 2
@@ -69,6 +74,71 @@ module ActiveSupport #:nodoc:
             end
           end
 
+        end
+
+        module ClassMethods
+          def create_from_xml(xml)
+            # TODO: Refactor this into something much cleaner that doesn't rely on XmlSimple
+            undasherize_keys(typecast_xml_value(XmlSimple.xml_in(xml,
+              'forcearray'   => false,
+              'forcecontent' => true,
+              'keeproot'     => true,
+              'contentkey'   => '__content__')
+            ))
+          end
+
+          private
+            def typecast_xml_value(value)
+              case value.class.to_s
+                when "Hash"
+                  if value.has_key?("__content__")
+                    content = translate_xml_entities(value["__content__"])
+                    case value["type"]
+                      when "integer"  then content.to_i
+                      when "boolean"  then content == "true"
+                      when "datetime" then ::Time.parse(content).utc
+                      when "date"     then ::Date.parse(content)
+                      else                 content
+                    end
+                  else
+                    value.empty? ? nil : value.inject({}) do |h,(k,v)|
+                      h[k] = typecast_xml_value(v)
+                      h
+                    end
+                  end
+                when "Array"
+                  value.map! { |i| typecast_xml_value(i) }
+                  case value.length
+                    when 0 then nil
+                    when 1 then value.first
+                    else value
+                  end
+                else
+                  raise "can't typecast #{value.inspect}"
+              end
+            end
+
+            def translate_xml_entities(value)
+              value.gsub(/&lt;/,   "<").
+                    gsub(/&gt;/,   ">").
+                    gsub(/&quot;/, '"').
+                    gsub(/&apos;/, "'").
+                    gsub(/&amp;/,  "&")
+            end
+
+            def undasherize_keys(params)
+              case params.class.to_s
+                when "Hash"
+                  params.inject({}) do |h,(k,v)|
+                    h[k.to_s.tr("-", "_")] = undasherize_keys(v)
+                    h
+                  end
+                when "Array"
+                  params.map { |v| undasherize_keys(v) }
+                else
+                  params
+              end
+            end
         end
       end
     end

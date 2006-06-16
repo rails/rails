@@ -1,5 +1,18 @@
 *SVN*
 
+* Added Hash.create_from_xml(string) which will create a hash from a XML string and even typecast if possible [DHH]. Example:
+
+    Hash.create_from_xml <<-EOT
+      <note>
+        <title>This is a note</title>
+        <created-at type="date">2004-10-10</created-at>
+      </note>
+    EOT
+  
+  ...would return:
+  
+    { :note => { :title => "This is a note", :created_at => Date.new(2004, 10, 10) } }
+
 * Added Jim Weirich's excellent FlexMock class to vendor (Copyright 2003, 2004 by Jim Weirich (jim@weriichhouse.org)) -- it's not automatically required, though, so require 'flexmock' is still necessary [DHH]
 
 * Fixed that Module#alias_method_chain should work with both foo? foo! and foo at the same time #4954 [anna@wota.jp]
