@@ -581,7 +581,7 @@ module ActionController
     class PathSegment < DynamicSegment
       EscapedSlash = CGI.escape("/")
       def interpolation_chunk
-        "\#{CGI.escape(#{local_name}).gsub(#{EscapedSlash.inspect}, '/')}"
+        "\#{CGI.escape(#{local_name}.to_s).gsub(#{EscapedSlash.inspect}, '/')}"
       end
 
       def default

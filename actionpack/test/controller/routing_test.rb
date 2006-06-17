@@ -214,6 +214,15 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal '/pages/boo', rs.generate(:controller => 'content', :action => 'show_file', :path => %w(pages boo))
   end
 
+  def test_dynamic_recall_paths_allowed
+    rs.draw do |map|
+      map.connect '*path', :controller => 'content', :action => 'show_file'
+    end
+    
+    recall_path = ActionController::Routing::PathSegment::Result.new(%w(pages boo))
+    assert_equal '/pages/boo', rs.generate({}, :controller => 'content', :action => 'show_file', :path => recall_path)
+  end
+
   def test_backwards
     rs.draw do |map|
       map.connect 'page/:id/:action', :controller => 'pages', :action => 'show'

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix that routes with *path segments in the recall can generate URLs. [Rick]
+
 * Fix strip_links so that it doesn't hang on multiline <acronym> tags [Jamis Buck]
 
 * Remove problematic control chars in rescue template. #5316 [Stefan Kaes]
