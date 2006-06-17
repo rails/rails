@@ -1,5 +1,10 @@
 *SVN*
 
+* Enhance Symbol#to_proc so it works with list objects, such as multi-dimensional arrays. Closes #5295 [nov@yo.rim.or.jp].  Example:
+
+    {1 => "one", 2 => "two", 3 => "three"}.sort_by(&:first).map(&:last)
+    #=> ["one", "two", "three"]
+
 * Added Hash.create_from_xml(string) which will create a hash from a XML string and even typecast if possible [DHH]. Example:
 
     Hash.create_from_xml <<-EOT

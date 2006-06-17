@@ -7,6 +7,6 @@ class Symbol
   #   # The same as people.select { |p| p.manager? }.collect { |p| p.salary }
   #   people.select(&:manager?).collect(&:salary)
   def to_proc
-    Proc.new { |obj, *args| obj.send(self, *args) }
+    Proc.new { |*args| args.shift.__send__(self, *args) }
   end
 end
