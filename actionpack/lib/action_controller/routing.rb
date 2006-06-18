@@ -226,7 +226,7 @@ module ActionController
           mod_name = controller_name = segment = nil
           
           while index < length
-            return nil unless /^[A-Za-z][A-Za-z\d_]*$/ =~ (segment = segments[index])
+            return nil unless /\A[A-Za-z][A-Za-z\d_]*\Z/ =~ (segment = segments[index])
             index += 1
             
             mod_name = segment.camelize
