@@ -6,6 +6,7 @@ class NotAController
 end
 module Admin
   class << self; alias_method :const_available?, :const_defined?; end
+  SomeConstant = 10
   class UserController < Class.new(ActionController::Base); end
   class NewsFeedController < Class.new(ActionController::Base); end
 end

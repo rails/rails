@@ -247,6 +247,7 @@ module ActionController
             
             if mod.const_defined? mod_name
               next_mod = mod.send(:const_get, mod_name)
+              next_mod = nil unless next_mod.is_a?(Module)
             else
               suffix = File.join(segments[start_at..index])
               $:.each do |base|

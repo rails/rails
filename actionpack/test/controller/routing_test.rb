@@ -982,6 +982,10 @@ class ControllerComponentTest < Test::Unit::TestCase
     $:[0..-1] = load_path
   end
   
+  def test_traverse_should_not_trip_on_non_module_constants
+    assert_equal nil, ActionController::Routing::ControllerComponent.traverse_to_controller(%w(admin some_constant a))
+  end
+  
 end
 
 end
