@@ -535,7 +535,6 @@ end
 
 class RouteTests < Test::Unit::TestCase
   
-  
   def route(*args)
     @route = ::ActionController::Routing::Route.new(*args) unless args.empty?
     return @route
@@ -970,6 +969,19 @@ class RouteSetTests < Test::Unit::TestCase
 
     assert_equal ['/journal', []], rs.generate(:controller => 'content', :action => 'list_journal', :date => nil, :user_id => nil)
   end
+end
+
+class ControllerComponentTest < Test::Unit::TestCase
+  
+  def test_traverse_to_controller_should_not_load_arbitrary_files
+    load_path = $:.dup
+    base = File.dirname(File.dirname(File.expand_path(__FILE__)))
+    $: << File.join(base, 'fixtures')
+    assert_equal nil, ActionController::Routing::ControllerComponent.traverse_to_controller(%w(dont_load pretty please))
+  ensure
+    $:[0..-1] = load_path
+  end
+  
 end
 
 end

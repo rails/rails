@@ -245,13 +245,19 @@ module ActionController
               raise unless /^uninitialized constant .*#{controller_name}$/ =~ e.message                            
             end
             
-            begin
-              next_mod = eval("mod::#{mod_name}", nil, __FILE__, __LINE__)
-              # Check that we didn't get a module from a parent namespace
-              mod = (mod == Object || next_mod.name == "#{mod.name}::#{mod_name}") ? next_mod : nil
-            rescue NameError => e
-              raise unless /^uninitialized constant .*#{mod_name}$/ =~ e.message
+            if mod.const_defined? mod_name
+              next_mod = mod.send(:const_get, mod_name)
+            else
+              suffix = File.join(segments[start_at..index])
+              $:.each do |base|
+                path = File.join(base, suffix)
+                next unless File.directory? path
+                next_mod = Module.new
+                mod.send(:const_set, mod_name, next_mod)
+                break
+              end
             end
+            mod = next_mod
             
             return nil unless mod
           end

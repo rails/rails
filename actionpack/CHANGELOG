@@ -1,5 +1,7 @@
 *1.12.1* (April 6th, 2005)
 
+* (Hackish) Fix loading of arbitrary files in Ruby's load path by traverse_to_controller. [Nicholas Seckar]
+
 * Fixed that template extensions would be cached development mode #4624 [Stefan Kaes]
 
 * Update to Prototype 1.5.0_rc0 [Sam Stephenson]
