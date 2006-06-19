@@ -1316,6 +1316,10 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal 'ActiveRecord::Person', ActiveRecord::Base.send(:type_name_with_module, 'Person')
     assert_equal '::Person', ActiveRecord::Base.send(:type_name_with_module, '::Person')
   end
+  
+  def test_to_param_should_return_string
+    assert_kind_of String, Client.find(:first).to_param
+  end
 
   # FIXME: this test ought to run, but it needs to run sandboxed so that it
   # doesn't b0rk the current test environment by undefing everything.

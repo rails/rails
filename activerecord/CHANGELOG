@@ -1,5 +1,7 @@
 *SVN*
 
+* Change AR::Base#to_param to return a String instead of a Fixnum. Closes #5320. [Nicholas Seckar]
+
 * Use explicit delegation instead of method aliasing for AR::Base.to_param -> AR::Base.id. #5299 (skaes@web.de)
 
 * Refactored ActiveRecord::Base.to_xml to become a delegate for XmlSerializer, which restores sanity to the mega method. This refactoring also reinstates the opinions that type="string" is redundant and ugly and nil-differentiation is not a concern of serialization [DHH]
