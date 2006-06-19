@@ -184,6 +184,12 @@ module ActiveRecord
       end
 
 
+      # SELECT ... FOR UPDATE is redundant since the table is locked.
+      def add_lock!(sql, options) #:nodoc:
+        sql
+      end
+
+
       # SCHEMA STATEMENTS ========================================
 
       def tables(name = nil) #:nodoc:

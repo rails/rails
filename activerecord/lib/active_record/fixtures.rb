@@ -519,7 +519,7 @@ module Test #:nodoc:
             load_fixtures
             @@already_loaded_fixtures[self.class] = @loaded_fixtures
           end
-          ActiveRecord::Base.lock_mutex
+          ActiveRecord::Base.send :increment_open_transactions
           ActiveRecord::Base.connection.begin_db_transaction
 
         # Load fixtures for every test.
@@ -538,7 +538,7 @@ module Test #:nodoc:
         # Rollback changes.
         if use_transactional_fixtures?
           ActiveRecord::Base.connection.rollback_db_transaction
-          ActiveRecord::Base.unlock_mutex
+          ActiveRecord::Base.send :decrement_open_transactions
         end
         ActiveRecord::Base.verify_active_connections!
       end

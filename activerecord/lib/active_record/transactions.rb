@@ -4,8 +4,6 @@ require 'thread'
 
 module ActiveRecord
   module Transactions # :nodoc:
-    TRANSACTION_MUTEX = Mutex.new
-
     class TransactionError < ActiveRecordError # :nodoc:
     end
 
@@ -79,8 +77,8 @@ module ActiveRecord
     module ClassMethods
       def transaction(*objects, &block)
         previous_handler = trap('TERM') { raise TransactionError, "Transaction aborted" }
-        lock_mutex
-        
+        increment_open_transactions
+
         begin
           objects.each { |o| o.extend(Transaction::Simple) }
           objects.each { |o| o.start_transaction }
@@ -93,22 +91,21 @@ module ActiveRecord
           objects.each { |o| o.abort_transaction }
           raise
         ensure
-          unlock_mutex
+          decrement_open_transactions
           trap('TERM', previous_handler)
         end
       end
-      
-      def lock_mutex#:nodoc:
-        Thread.current['open_transactions'] ||= 0
-        TRANSACTION_MUTEX.lock if Thread.current['open_transactions'] == 0
-        Thread.current['start_db_transaction'] = (Thread.current['open_transactions'] == 0)
-        Thread.current['open_transactions'] += 1
-      end
-      
-      def unlock_mutex#:nodoc:
-        Thread.current['open_transactions'] -= 1
-        TRANSACTION_MUTEX.unlock if Thread.current['open_transactions'] == 0
-      end
+
+      private
+        def increment_open_transactions #:nodoc:
+          open = Thread.current['open_transactions'] ||= 0
+          Thread.current['start_db_transaction'] = open.zero?
+          Thread.current['open_transactions'] = open + 1
+        end
+
+        def decrement_open_transactions #:nodoc:
+          Thread.current['open_transactions'] -= 1
+        end
     end
 
     def transaction(*objects, &block)

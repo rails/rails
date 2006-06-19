@@ -1,5 +1,18 @@
 *SVN*
 
+* Row locking. Provide a locking clause with the :lock finder option or true for the default "FOR UPDATE". [Shugo Maeda]
+    # Obtain an exclusive lock on person 1 so we can safely increment visits.
+    Person.transaction do
+      # select * from people where id=1 for update
+      person = Person.find(1, :lock => true)
+      person.visits += 1
+      person.save!
+    end
+
+* PostgreSQL: introduce allow_concurrency option which determines whether to use blocking or asynchronous #execute. Adapters with blocking #execute will deadlock Ruby threads. The default value is ActiveRecord::Base.allow_concurrency. [Jeremy Kemper]
+
+* Use a per-thread (rather than global) transaction mutex so you may execute concurrent transactions on separate connections. [Jeremy Kemper]
+
 * Change AR::Base#to_param to return a String instead of a Fixnum. Closes #5320. [Nicholas Seckar]
 
 * Use explicit delegation instead of method aliasing for AR::Base.to_param -> AR::Base.id. #5299 (skaes@web.de)

@@ -248,7 +248,8 @@ module ActiveRecord
       if spec.kind_of?(ActiveRecord::ConnectionAdapters::AbstractAdapter)
         active_connections[name] = spec
       elsif spec.kind_of?(ConnectionSpecification)
-        self.connection = self.send(spec.adapter_method, spec.config)
+        config = spec.config.reverse_merge(:allow_concurrency => @@allow_concurrency)
+        self.connection = self.send(spec.adapter_method, config)
       elsif spec.nil?
         raise ConnectionNotEstablished
       else

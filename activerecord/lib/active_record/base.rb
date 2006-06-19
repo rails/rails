@@ -365,6 +365,8 @@ module ActiveRecord #:nodoc:
       # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you for example want to do a join, but not
       #   include the joined columns.
       # * <tt>:readonly</tt>: Mark the returned records read-only so they cannot be saved or updated.
+      # * <tt>:lock</tt>: An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
+      #   :lock => true gives connection's default exclusive lock, usually "FOR UPDATE".
       #
       # Examples for find by id:
       #   Person.find(1)       # returns the object for ID = 1
@@ -384,6 +386,17 @@ module ActiveRecord #:nodoc:
       #   Person.find(:all, :offset => 10, :limit => 10)
       #   Person.find(:all, :include => [ :account, :friends ])
       #   Person.find(:all, :group => "category")
+      #
+      # Example for find with a lock. Imagine two concurrent transactions:
+      # each will read person.visits == 2, add 1 to it, and save, resulting
+      # in two saves of person.visits = 3.  By locking the row, the second
+      # transaction has to wait until the first is finished; we get the
+      # expected person.visits == 4.
+      #   Person.transaction do
+      #     person = Person.find(1, :lock => true)
+      #     person.visits += 1
+      #     person.save!
+      #   end
       def find(*args)
         options = extract_options_from_args!(args)
         validate_find_options(options)
@@ -850,7 +863,7 @@ module ActiveRecord #:nodoc:
         method_scoping.assert_valid_keys([ :find, :create ])
 
         if f = method_scoping[:find]
-          f.assert_valid_keys([ :conditions, :joins, :select, :include, :from, :offset, :limit, :order, :readonly ])
+          f.assert_valid_keys([ :conditions, :joins, :select, :include, :from, :offset, :limit, :order, :readonly, :lock ])
           f[:readonly] = true if !f[:joins].blank? && !f.has_key?(:readonly)
         end
 
@@ -1028,6 +1041,7 @@ module ActiveRecord #:nodoc:
 
           add_order!(sql, options[:order])
           add_limit!(sql, options, scope)
+          add_lock!(sql, options, scope)
 
           sql
         end
@@ -1061,11 +1075,16 @@ module ActiveRecord #:nodoc:
         # The optional scope argument is for the current :find scope.
         def add_limit!(sql, options, scope = :auto)
           scope = scope(:find) if :auto == scope
-          if scope
-            options[:limit]  ||= scope[:limit]
-            options[:offset] ||= scope[:offset]
-          end
+          options = options.reverse_merge(:limit => scope[:limit], :offset => scope[:offset]) if scope
           connection.add_limit_offset!(sql, options)
+        end
+
+        # The optional scope argument is for the current :find scope.
+        # The :lock option has precedence over a scoped :lock.
+        def add_lock!(sql, options, scope = :auto)
+          scope = scope(:find) if :auto == :scope
+          options = options.reverse_merge(:lock => scope[:lock]) if scope
+          connection.add_lock!(sql, options)
         end
 
         # The optional scope argument is for the current :find scope.
@@ -1361,12 +1380,12 @@ module ActiveRecord #:nodoc:
         end
 
         VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,
-                               :order, :select, :readonly, :group, :from      ]
-        
+                               :order, :select, :readonly, :group, :from, :lock ]
+
         def validate_find_options(options) #:nodoc:
           options.assert_valid_keys(VALID_FIND_OPTIONS)
         end
-        
+
         def set_readonly_option!(options) #:nodoc:
           # Inherit :readonly from finder scope if set.  Otherwise,
           # if :joins is not blank then :readonly defaults to true.

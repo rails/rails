@@ -46,6 +46,7 @@ module ActiveRecord
     # * <tt>:schema_search_path</tt> -- An optional schema search path for the connection given as a string of comma-separated schema names.  This is backward-compatible with the :schema_order option.
     # * <tt>:encoding</tt> -- An optional client encoding that is using in a SET client_encoding TO <encoding> call on connection.
     # * <tt>:min_messages</tt> -- An optional client min messages that is using in a SET client_min_messages TO <min_messages> call on connection.
+    # * <tt>:allow_concurrency</tt> -- If true, use async query methods so Ruby threads don't deadlock; otherwise, use blocking query methods.
     class PostgreSQLAdapter < AbstractAdapter
       def adapter_name
         'PostgreSQL'
@@ -54,6 +55,7 @@ module ActiveRecord
       def initialize(connection, logger, config = {})
         super(connection, logger)
         @config = config
+        @async = config[:allow_concurrency]
         configure_connection
       end
 
@@ -67,7 +69,7 @@ module ActiveRecord
         end
       # postgres-pr raises a NoMethodError when querying if no conn is available
       rescue PGError, NoMethodError
-        false      
+        false
       end
 
       # Close then reopen the connection.
@@ -78,7 +80,7 @@ module ActiveRecord
           configure_connection
         end
       end
-      
+
       def disconnect!
         # Both postgres and postgres-pr respond to :close
         @connection.close rescue nil
@@ -99,11 +101,11 @@ module ActiveRecord
           :boolean     => { :name => "boolean" }
         }
       end
-      
+
       def supports_migrations?
         true
-      end      
-      
+      end
+
       def table_alias_length
         63
       end
@@ -141,11 +143,23 @@ module ActiveRecord
       end
 
       def query(sql, name = nil) #:nodoc:
-        log(sql, name) { @connection.query(sql) }
+        log(sql, name) do
+          if @async
+            @connection.async_query(sql)
+          else
+            @connection.query(sql)
+          end
+        end
       end
 
       def execute(sql, name = nil) #:nodoc:
-        log(sql, name) { @connection.exec(sql) }
+        log(sql, name) do
+          if @async
+            @connection.async_exec(sql)
+          else
+            @connection.exec(sql)
+          end
+        end
       end
 
       def update(sql, name = nil) #:nodoc:
@@ -162,7 +176,7 @@ module ActiveRecord
       def commit_db_transaction #:nodoc:
         execute "COMMIT"
       end
-      
+
       def rollback_db_transaction #:nodoc:
         execute "ROLLBACK"
       end
@@ -261,7 +275,7 @@ module ActiveRecord
       def pk_and_sequence_for(table)
         # First try looking for a sequence with a dependency on the
         # given table's primary key.
-        result = execute(<<-end_sql, 'PK and serial sequence')[0]
+        result = query(<<-end_sql, 'PK and serial sequence')[0]
           SELECT attr.attname, name.nspname, seq.relname
           FROM pg_class      seq,
                pg_attribute  attr,
@@ -284,7 +298,7 @@ module ActiveRecord
           # Support the 7.x and 8.0 nextval('foo'::text) as well as
           # the 8.1+ nextval('foo'::regclass).
           # TODO: assumes sequence is in same schema as table.
-          result = execute(<<-end_sql, 'PK and custom sequence')[0]
+          result = query(<<-end_sql, 'PK and custom sequence')[0]
             SELECT attr.attname, name.nspname, split_part(def.adsrc, '\\\'', 2)
             FROM pg_class       t
             JOIN pg_namespace   name ON (t.relnamespace = name.oid)
@@ -305,7 +319,7 @@ module ActiveRecord
       def rename_table(name, new_name)
         execute "ALTER TABLE #{name} RENAME TO #{new_name}"
       end
-            
+
       def add_column(table_name, column_name, type, options = {})
         execute("ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type, options[:limit])}")
         execute("ALTER TABLE #{table_name} ALTER #{column_name} SET NOT NULL") if options[:null] == false
@@ -325,12 +339,12 @@ module ActiveRecord
           commit_db_transaction
         end
         change_column_default(table_name, column_name, options[:default]) unless options[:default].nil?
-      end      
+      end
 
       def change_column_default(table_name, column_name, default) #:nodoc:
         execute "ALTER TABLE #{table_name} ALTER COLUMN #{column_name} SET DEFAULT '#{default}'"
       end
-      
+
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
         execute "ALTER TABLE #{table_name} RENAME COLUMN #{column_name} TO #{new_column_name}"
       end
@@ -379,7 +393,7 @@ module ActiveRecord
               hashed_row = {}
               row.each_index do |cel_index|
                 column = row[cel_index]
-                
+
                 case res.type(cel_index)
                   when BYTEA_COLUMN_TYPE_OID
                     column = unescape_bytea(column)
@@ -392,6 +406,7 @@ module ActiveRecord
               rows << hashed_row
             end
           end
+          res.clear
           return rows
         end
 
@@ -442,7 +457,7 @@ module ActiveRecord
           end
           unescape_bytea(s)
         end
-        
+
         # Query a table's column names, default values, and types.
         #
         # The underlying query is roughly:
@@ -482,7 +497,7 @@ module ActiveRecord
             when /^real|^money/i  then 'float'
             when /^interval/i     then 'string'
             # geometric types (the line type is currently not implemented in postgresql)
-            when /^(?:point|lseg|box|"?path"?|polygon|circle)/i  then 'string' 
+            when /^(?:point|lseg|box|"?path"?|polygon|circle)/i  then 'string'
             when /^bytea/i        then 'binary'
             else field_type       # Pass through standard types.
           end
@@ -492,16 +507,16 @@ module ActiveRecord
           # Boolean types
           return "t" if value =~ /true/i
           return "f" if value =~ /false/i
-          
+
           # Char/String/Bytea type values
           return $1 if value =~ /^'(.*)'::(bpchar|text|character varying|bytea)$/
-          
+
           # Numeric values
           return value if value =~ /^-?[0-9]+(\.[0-9]*)?/
 
           # Fixed dates / times
           return $1 if value =~ /^'(.+)'::(date|timestamp)/
-          
+
           # Anything else is blank, some user type, or some function
           # and we can't know the value of that, so return nil.
           return nil

@@ -1,5 +1,6 @@
 require 'abstract_unit'
 require 'fixtures/topic'
+require 'fixtures/reply'
 
 unless %w(FrontBase).include? ActiveRecord::Base.connection.adapter_name
   class ThreadedConnectionsTest < Test::Unit::TestCase

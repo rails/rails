@@ -5,12 +5,9 @@ require 'fixtures/developer'
 
 class TransactionTest < Test::Unit::TestCase
   self.use_transactional_fixtures = false
-
   fixtures :topics, :developers
 
   def setup
-    # sqlite does not seem to return these in the right order, so we sort them
-    # explicitly for sqlite's sake. sqlite3 does fine.
     @first, @second = Topic.find(1, 2).sort_by { |t| t.id }
   end
 
@@ -137,75 +134,6 @@ class TransactionTest < Test::Unit::TestCase
     assert !Topic.find(2).approved?, "Second should have been unapproved"
   end
 
-  # This will cause transactions to overlap and fail unless they are
-  # performed on separate database connections.
-  def test_transaction_per_thread
-    assert_nothing_raised do
-      threads = (1..20).map do
-        Thread.new do
-          Topic.transaction do
-            topic = Topic.find(:first)
-            topic.approved = !topic.approved?
-            topic.save!
-            topic.approved = !topic.approved?
-            topic.save!
-          end
-        end
-      end
-
-      threads.each { |t| t.join }
-    end
-  end
-
-  # Test for dirty reads among simultaneous transactions.
-  def test_transaction_isolation__read_committed
-    # Should be invariant.
-    original_salary = Developer.find(1).salary
-    temporary_salary = 200000
-
-    assert_nothing_raised do
-      threads = (1..20).map do
-        Thread.new do
-          Developer.transaction do
-            # Expect original salary.
-            dev = Developer.find(1)
-            assert_equal original_salary, dev.salary
-
-            dev.salary = temporary_salary
-            dev.save!
-
-            # Expect temporary salary.
-            dev = Developer.find(1)
-            assert_equal temporary_salary, dev.salary
-
-            dev.salary = original_salary
-            dev.save!
-
-            # Expect original salary.
-            dev = Developer.find(1)
-            assert_equal original_salary, dev.salary
-          end
-        end
-      end
-
-      # Keep our eyes peeled.
-      threads << Thread.new do
-        10.times do
-          sleep 0.05
-          Developer.transaction do
-            # Always expect original salary.
-            assert_equal original_salary, Developer.find(1).salary
-          end
-        end
-      end
-
-      threads.each { |t| t.join }
-    end
-
-    assert_equal original_salary, Developer.find(1).salary
-  end
-
-
   private
     def add_exception_raising_after_save_callback_to_topic
       Topic.class_eval { def after_save() raise "Make the transaction rollback" end }
@@ -214,4 +142,87 @@ class TransactionTest < Test::Unit::TestCase
     def remove_exception_raising_after_save_callback_to_topic
       Topic.class_eval { remove_method :after_save }
     end
+end
+
+if current_adapter?(:PostgreSQLAdapter)
+  class ConcurrentTransactionTest < TransactionTest
+    def setup
+      @allow_concurrency = ActiveRecord::Base.allow_concurrency
+      ActiveRecord::Base.allow_concurrency = true
+      super
+    end
+
+    def teardown
+      super
+      ActiveRecord::Base.allow_concurrency = @allow_concurrency
+    end
+
+    # This will cause transactions to overlap and fail unless they are performed on
+    # separate database connections.
+    def test_transaction_per_thread
+      assert_nothing_raised do
+        threads = (1..3).map do
+          Thread.new do
+            Topic.transaction do
+              topic = Topic.find(1)
+              topic.approved = !topic.approved?
+              topic.save!
+              topic.approved = !topic.approved?
+              topic.save!
+            end
+          end
+        end
+
+        threads.each { |t| t.join }
+      end
+    end
+
+    # Test for dirty reads among simultaneous transactions.
+    def test_transaction_isolation__read_committed
+      # Should be invariant.
+      original_salary = Developer.find(1).salary
+      temporary_salary = 200000
+
+      assert_nothing_raised do
+        threads = (1..3).map do
+          Thread.new do
+            Developer.transaction do
+              # Expect original salary.
+              dev = Developer.find(1)
+              assert_equal original_salary, dev.salary
+
+              dev.salary = temporary_salary
+              dev.save!
+
+              # Expect temporary salary.
+              dev = Developer.find(1)
+              assert_equal temporary_salary, dev.salary
+
+              dev.salary = original_salary
+              dev.save!
+
+              # Expect original salary.
+              dev = Developer.find(1)
+              assert_equal original_salary, dev.salary
+            end
+          end
+        end
+
+        # Keep our eyes peeled.
+        threads << Thread.new do
+          10.times do
+            sleep 0.05
+            Developer.transaction do
+              # Always expect original salary.
+              assert_equal original_salary, Developer.find(1).salary
+            end
+          end
+        end
+
+        threads.each { |t| t.join }
+      end
+
+      assert_equal original_salary, Developer.find(1).salary
+    end
+  end
 end
