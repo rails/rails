@@ -82,6 +82,18 @@ class PessimisticLockingTest < Test::Unit::TestCase
     end
   end
 
+  # Locking a record reloads it.
+  def test_sane_lock_method
+    assert_nothing_raised do
+      Person.transaction do
+        person = Person.find 1
+        old, person.first_name = person.first_name, 'fooman'
+        person.lock!
+        assert_equal old, person.first_name
+      end
+    end
+  end
+
   if current_adapter?(:PostgreSQLAdapter)
     def test_no_locks_no_wait
       first, second = duel { Person.find 1 }

@@ -46,7 +46,8 @@ require 'active_record/timestamp'
 require 'active_record/acts/list'
 require 'active_record/acts/tree'
 require 'active_record/acts/nested_set'
-require 'active_record/locking'
+require 'active_record/locking/optimistic'
+require 'active_record/locking/pessimistic'
 require 'active_record/migration'
 require 'active_record/schema'
 require 'active_record/calculations'
@@ -55,6 +56,7 @@ require 'active_record/xml_serialization'
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
   include ActiveRecord::Locking::Optimistic
+  include ActiveRecord::Locking::Pessimistic
   include ActiveRecord::Callbacks
   include ActiveRecord::Observing
   include ActiveRecord::Timestamp

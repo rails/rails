@@ -49,8 +49,8 @@ module ActiveRecord
         affected_rows = connection.update(<<-end_sql, "#{self.class.name} Update with optimistic locking")
           UPDATE #{self.class.table_name}
           SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))}
-          WHERE #{self.class.primary_key} = #{quote(id)} 
-          AND #{lock_col} = #{quote(previous_value)}
+          WHERE #{self.class.primary_key} = #{quote(id)}
+          AND #{self.class.quoted_locking_column} = #{quote(previous_value)}
         end_sql
 
         unless affected_rows == 1
@@ -72,6 +72,11 @@ module ActiveRecord
         # The version column used for optimistic locking. Defaults to lock_version.
         def locking_column
           reset_locking_column
+        end
+
+        # Quote the column name used for optimistic locking.
+        def quoted_locking_column
+          connection.quote_column_name(locking_column)
         end
 
         # Reset the column used for optimistic locking back to the lock_version default.

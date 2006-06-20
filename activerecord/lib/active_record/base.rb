@@ -1541,10 +1541,13 @@ module ActiveRecord #:nodoc:
       end
 
       # Reloads the attributes of this object from the database.
-      def reload
+      # The optional options argument is passed to find when reloading so you
+      # may do e.g. record.reload(:lock => true) to reload the same record with
+      # an exclusive row lock.
+      def reload(options = nil)
         clear_aggregation_cache
         clear_association_cache
-        @attributes.update(self.class.find(self.id).instance_variable_get('@attributes'))
+        @attributes.update(self.class.find(self.id, options).instance_variable_get('@attributes'))
         self
       end
 
