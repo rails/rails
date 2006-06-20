@@ -179,6 +179,12 @@ module ActiveRecord #:nodoc:
   #   # Now the 'Summer' tag does exist
   #   Tag.find_or_create_by_name("Summer") # equal to Tag.find_by_name("Summer")
   #
+  # Use the <tt>find_or_initialize_by_</tt> finder if you want to return a new record without saving it first. Example:
+  #
+  #   # No 'Winter' tag exists
+  #   winter = Tag.find_or_initialize_by_name("Winter")
+  #   winter.new_record? # true
+  #
   # == Saving arrays, hashes, and other non-mappable objects in text columns
   #
   # Active Record can serialize any object in text columns using YAML. To do so, you must specify this with a call to the class method +serialize+.
@@ -1159,13 +1165,14 @@ module ActiveRecord #:nodoc:
               else
                 send(deprecated_finder, conditions, *arguments[attribute_names.length..-1]) # deprecated API
             end
-          elsif match = /find_or_create_by_([_a-zA-Z]\w*)/.match(method_id.to_s)
+          elsif match = /find_or_(initialize|create)_by_([_a-zA-Z]\w*)/.match(method_id.to_s)
+            instantiator = determine_instantiator(match)
             attribute_names = extract_attribute_names_from_match(match)
             super unless all_attributes_exists?(attribute_names)
 
             options = { :conditions => construct_conditions_from_arguments(attribute_names, arguments) }
             set_readonly_option!(options)
-            find_initial(options) || create(construct_attributes_from_arguments(attribute_names, arguments))
+            find_initial(options) || send(instantiator, construct_attributes_from_arguments(attribute_names, arguments))
           else
             super
           end
@@ -1177,6 +1184,10 @@ module ActiveRecord #:nodoc:
 
         def determine_deprecated_finder(match)
           match.captures.first == 'all_by' ? :find_all : :find_first
+        end
+
+        def determine_instantiator(match)
+          match.captures.first == 'initialize' ? :new : :create
         end
 
         def extract_attribute_names_from_match(match)
