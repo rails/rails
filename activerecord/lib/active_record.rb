@@ -54,7 +54,7 @@ require 'active_record/xml_serialization'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
-  include ActiveRecord::Locking
+  include ActiveRecord::Locking::Optimistic
   include ActiveRecord::Callbacks
   include ActiveRecord::Observing
   include ActiveRecord::Timestamp
