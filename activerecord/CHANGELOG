@@ -1,6 +1,6 @@
 *SVN*
 
-* Row locking. Provide a locking clause with the :lock finder option or true for the default "FOR UPDATE". Use the #lock method to obtain a row lock on a single reload (reloads the record with :lock => true). [Shugo Maeda]
+* Row locking. Provide a locking clause with the :lock finder option or true for the default "FOR UPDATE". Use the #lock! method to obtain a row lock on a single record (reloads the record with :lock => true). [Shugo Maeda]
     # Obtain an exclusive lock on person 1 so we can safely increment visits.
     Person.transaction do
       # select * from people where id=1 for update
