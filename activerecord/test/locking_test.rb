@@ -8,39 +8,53 @@ class OptimisticLockingTest < Test::Unit::TestCase
   def test_lock_existing
     p1 = Person.find(1)
     p2 = Person.find(1)
+    assert_equal 0, p1.lock_version
+    assert_equal 0, p2.lock_version
 
-    p1.first_name = "Michael"
-    p1.save
+    p1.save!
+    assert_equal 1, p1.lock_version
+    assert_equal 0, p2.lock_version
 
-    assert_raises(ActiveRecord::StaleObjectError) {
-      p2.first_name = "should fail"
-      p2.save
-    }
+    assert_raises(ActiveRecord::StaleObjectError) { p2.save! }
   end
 
   def test_lock_new
-    p1 = Person.create({ "first_name"=>"anika"})
-    p2 = Person.find(p1.id)
-    assert_equal p1.id, p2.id
-    p1.first_name = "Anika"
-    p1.save
+    p1 = Person.new(:first_name => 'anika')
+    assert_equal 0, p1.lock_version
 
-    assert_raises(ActiveRecord::StaleObjectError) {
-      p2.first_name = "should fail"
-      p2.save
-    }
+    p1.save!
+    p2 = Person.find(p1.id)
+    assert_equal 0, p1.lock_version
+    assert_equal 0, p2.lock_version
+
+    p1.save!
+    assert_equal 1, p1.lock_version
+    assert_equal 0, p2.lock_version
+
+    assert_raises(ActiveRecord::StaleObjectError) { p2.save! }
   end
 
   def test_lock_column_name_existing
     t1 = LegacyThing.find(1)
     t2 = LegacyThing.find(1)
-    t1.tps_report_number = 400
-    t1.save
+    assert_equal 0, t1.version
+    assert_equal 0, t2.version
 
-    assert_raises(ActiveRecord::StaleObjectError) {
-      t2.tps_report_number = 300
-      t2.save
-    }
+    t1.save!
+    assert_equal 1, t1.version
+    assert_equal 0, t2.version
+
+    assert_raises(ActiveRecord::StaleObjectError) { t2.save! }
+  end
+
+  def test_lock_column_is_mass_assignable
+    p1 = Person.create(:first_name => 'bianca')
+    assert_equal 0, p1.lock_version
+    assert_equal p1.lock_version, Person.new(p1.attributes).lock_version
+
+    p1.save!
+    assert_equal 1, p1.lock_version
+    assert_equal p1.lock_version, Person.new(p1.attributes).lock_version
   end
 end
 
