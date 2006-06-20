@@ -118,6 +118,11 @@ module Rails
         # Adds general options like -h and --quiet.  Usually don't override.
         def add_general_options!(opt)
           opt.separator ''
+          opt.separator 'Rails Info:'
+          opt.on('-v', '--version', 'Show the Rails version number and quit.')
+          opt.on('-h', '--help', 'Show this help message and quit.') { |options[:help]| }
+
+          opt.separator ''
           opt.separator 'General Options:'
 
           opt.on('-p', '--pretend', 'Run but do not make any changes.') { |options[:pretend]| }
@@ -125,7 +130,6 @@ module Rails
           opt.on('-s', '--skip', 'Skip files that already exist.') { options[:collision] = :skip }
           opt.on('-q', '--quiet', 'Suppress normal output.') { |options[:quiet]| }
           opt.on('-t', '--backtrace', 'Debugging: show backtrace on errors.') { |options[:backtrace]| }
-          opt.on('-h', '--help', 'Show this help message.') { |options[:help]| }
           opt.on('-c', '--svn', 'Modify files with subversion. (Note: svn must be in path)') do
             options[:svn] = `svn status`.inject({}) do |opt, e|
               opt[e.chomp[7..-1]] = true
