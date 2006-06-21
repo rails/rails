@@ -104,8 +104,7 @@ module ActionController
     # ClassMethods#paginate.
     #
     # +options+ are:
-    # <tt>:singular_name</tt>:: the singular name to use, if it can't be inferred by
-    #                        singularizing the collection name
+    # <tt>:singular_name</tt>:: the singular name to use, if it can't be inferred by singularizing the collection name
     # <tt>:class_name</tt>:: the class name to use, if it can't be inferred by
     #                        camelizing the singular name
     # <tt>:per_page</tt>::   the maximum number of items to include in a 
