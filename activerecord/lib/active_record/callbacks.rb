@@ -286,7 +286,7 @@ module ActiveRecord
       if new_record? then result = callback(:before_validation_on_create) else result = callback(:before_validation_on_update) end
       return false if result == false
 
-      result = valid_without_callbacks
+      result = valid_without_callbacks?
 
       callback(:after_validation)
       if new_record? then callback(:after_validation_on_create) else callback(:after_validation_on_update) end
