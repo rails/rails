@@ -218,7 +218,7 @@ module ActiveRecord
       base.extend ClassMethods
       base.class_eval do
         alias_method_chain :save, :validation
-        alias_method_chain :save!, :validation!       
+        alias_method_chain :save!, :validation
         alias_method_chain :update_attribute, :validation_skipping
       end
     end
