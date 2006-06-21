@@ -103,11 +103,9 @@ namespace :rails do
       FileUtils.cp(scripts, project_dir)
     end
 
-    desc "Update boot/config.rb from your current rails install"
+    desc "Update config/boot.rb from your current rails install"
     task :configs do
       require 'railties_path'  
-      project_dir = RAILS_ROOT + '/public/javascripts/'
-      scripts = Dir[RAILTIES_PATH + '/html/javascripts/*.js']
       FileUtils.cp(RAILTIES_PATH + '/environments/boot.rb', RAILS_ROOT + '/config/boot.rb')
     end
   end
