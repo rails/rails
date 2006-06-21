@@ -281,7 +281,7 @@ module ActiveRecord
     # existing objects that have a record.
     def after_validation_on_update()  end
 
-    def valid_with_callbacks #:nodoc:
+    def valid_with_callbacks? #:nodoc:
       return false if callback(:before_validation) == false
       if new_record? then result = callback(:before_validation_on_create) else result = callback(:before_validation_on_update) end
       return false if result == false
