@@ -228,14 +228,14 @@ module ActiveRecord
       # This method returns <tt>self</tt>.
       #
       # ===== Examples
-      #  # Assuming def is an instance of TableDefinition
-      #  def.column(:granted, :boolean)
+      #  # Assuming td is an instance of TableDefinition
+      #  td.column(:granted, :boolean)
       #    #=> granted BOOLEAN
       #
-      #  def.column(:picture, :binary, :limit => 2.megabytes)
+      #  td.column(:picture, :binary, :limit => 2.megabytes)
       #    #=> picture BLOB(2097152)
       #
-      #  def.column(:sales_stage, :string, :limit => 20, :default => 'new', :null => false)
+      #  td.column(:sales_stage, :string, :limit => 20, :default => 'new', :null => false)
       #    #=> sales_stage VARCHAR(20) DEFAULT 'new' NOT NULL
       def column(name, type, options = {})
         column = self[name] || ColumnDefinition.new(@base, name, type)
