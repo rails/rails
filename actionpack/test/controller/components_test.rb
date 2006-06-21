@@ -127,3 +127,22 @@ class ComponentsTest < Test::Unit::TestCase
     assert_equal "Lady of the House, speaking", @response.body
   end
 end
+
+module A
+  module B
+    module C
+      class NestedController < ActionController::Base
+        # Stub for uses_component_template_root
+        def self.caller
+          ['./test/fixtures/a/b/c/nested_controller.rb']
+        end
+      end
+    end
+  end
+end
+
+class UsesComponentTemplateRootTest < Test::Unit::TestCase
+  def test_uses_component_template_root
+    assert_equal './test/fixtures/', A::B::C::NestedController.uses_component_template_root
+  end
+end

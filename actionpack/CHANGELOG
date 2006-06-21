@@ -1,5 +1,7 @@
 *SVN*
 
+* Determine the correct template_root for deeply nested components.  #2841 [s.brink@web.de]
+
 * Fix that routes with *path segments in the recall can generate URLs. [Rick]
 
 * Fix strip_links so that it doesn't hang on multiline <acronym> tags [Jamis Buck]
