@@ -161,7 +161,7 @@ module ActionView
       #     @items = Item.find(:all, 
       #       :conditions => [ 'LOWER(description) LIKE ?', 
       #       '%' + request.raw_post.downcase + '%' ])
-      #     render :inline => '<%= auto_complete_result(@items, 'description') %>'
+      #     render :inline => "<%= auto_complete_result(@items, 'description') %>"
       #   end
       #
       # The auto_complete_result can of course also be called from a view belonging to the 
