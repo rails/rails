@@ -17,14 +17,18 @@ module ActionController #:nodoc:
     # Usage:
     #
     #   class GlobalController < ActionController::Base
-    #     # prevent the #update_settings action from being invoked unless
-    #     # the 'admin_privileges' request parameter exists.
+    #     # Prevent the #update_settings action from being invoked unless
+    #     # the 'admin_privileges' request parameter exists. The
+    #     # settings action will be redirected to in current controller
+    #     # if verification fails.
     #     verify :params => "admin_privileges", :only => :update_post,
     #            :redirect_to => { :action => "settings" }
     #
-    #     # disallow a post from being updated if there was no information
+    #     # Disallow a post from being updated if there was no information
     #     # submitted with the post, and if there is no active post in the
-    #     # session, and if there is no "note" key in the flash.
+    #     # session, and if there is no "note" key in the flash. The route
+    #     # named category_url will be redirected to if verification fails.
+    #
     #     verify :params => "post", :session => "post", "flash" => "note",
     #            :only => :update_post,
     #            :add_flash => { "alert" => "Failed to create your message" },
@@ -54,7 +58,8 @@ module ActionController #:nodoc:
       #   merged into the response's headers hash if the prerequisites cannot
       #   be satisfied.
       # * <tt>:redirect_to</tt>: the redirection parameters to be used when
-      #   redirecting if the prerequisites cannot be satisfied.
+      #   redirecting if the prerequisites cannot be satisfied. You can 
+      #   redirect either to named route or to the action in some controller.
       # * <tt>:render</tt>: the render parameters to be used when
       #   the prerequisites cannot be satisfied.
       # * <tt>:only</tt>: only apply this verification to the actions specified
