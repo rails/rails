@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct and clarify Array#to_sentence docs.  #5458 [brad@madriska.com]
+
 * alias_method_chain preserves method punctuation so foo, foo?, and foo! may be chained with the same feature. [Jeremy Kemper]
     Example:
       alias_method_chain :save!, :validation
