@@ -1,5 +1,7 @@
 *SVN*
 
+* Mongrel support for script/server.  #5475 [jeremydurham@gmail.com]
+
 * Fix script/plugin so it doesn't barf on invalid URLs [Rick]
 
 * Fix plugin install bug at dir with space. (closes #5359) [Yoshimasa NIWA]

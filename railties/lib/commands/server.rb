@@ -8,22 +8,25 @@ rescue Exception
 end
 
 server = case ARGV.first
-  when "lighttpd"
-    ARGV.shift
-  when "webrick"
+  when "lighttpd", "mongrel", "webrick"
     ARGV.shift
   else
     if RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `lighttpd -version` }.blank? && defined?(FCGI)
       "lighttpd"
+    elsif !silence_stderr { `mongrel_rails -v` }.blank?
+      "mongrel"
     else
       "webrick"
     end
 end
 
-if server == "webrick"
-  puts "=> Booting WEBrick..."
-else
-  puts "=> Booting lighttpd (use 'script/server webrick' to force WEBrick)"
+case server
+  when "webrick"
+    puts "=> Booting WEBrick..."
+  when "lighttpd"
+    puts "=> Booting lighttpd (use 'script/server webrick' to force WEBrick)"
+  when "mongrel"
+    puts "=> Booting Mongrel (use 'script/server webrick' to force WEBrick)"
 end
 
 ['sessions', 'cache', 'sockets'].each { |dir_to_make| FileUtils.mkdir_p(File.join(RAILS_ROOT, 'tmp', dir_to_make)) }
