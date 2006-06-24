@@ -1,3 +1,8 @@
+*1.1.3* (June 24th, 2006)
+
+* Rely on Action Pack 1.12.2 and Active Record 1.14.3
+
+
 *1.1.2* (April 9th, 2005)
 
 * Rely on Active Record 1.14.2

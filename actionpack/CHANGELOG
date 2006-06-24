@@ -1,8 +1,11 @@
-*1.12.1* (April 6th, 2005)
+*1.12.2* (June 24th, 2006)
 
 * Refinement to avoid exceptions in traverse_to_controller.
 
 * (Hackish) Fix loading of arbitrary files in Ruby's load path by traverse_to_controller. [Nicholas Seckar]
+
+
+*1.12.1* (April 6th, 2006)
 
 * Fixed that template extensions would be cached development mode #4624 [Stefan Kaes]
 
@@ -34,7 +37,7 @@
   This can be used by deployment managers to set the asset id by application revision
 
 
-*1.12.0* (March 27th, 2005)
+*1.12.0* (March 27th, 2006)
 
 * Add documentation for respond_to. [Jamis Buck]
 

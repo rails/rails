@@ -1,4 +1,4 @@
-*SVN*
+*1.14.3* (June 24th, 2006)
 
 * Properly quote index names in migrations (closes #4764) [John Long]
 
@@ -7,12 +7,12 @@
 * Associations#select_limited_ids_list adds the ORDER BY columns to the SELECT DISTINCT List for postgresql. [Rick]
 
 
-*1.14.2* (April 9th, 2005)
+*1.14.2* (April 9th, 2006)
 
 * Fixed calculations for the Oracle Adapter (closes #4626) [Michael Schoen]
 
 
-*1.14.1* (April 6th, 2005)
+*1.14.1* (April 6th, 2006)
 
 * Fix type_name_with_module to handle type names that begin with '::'. Closes #4614. [Nicholas Seckar]
 
@@ -67,7 +67,7 @@
 * Fixed broken OCIAdapter #4457 [schoenm@earthlink.net]
 
 
-*1.14.0* (March 27th, 2005)
+*1.14.0* (March 27th, 2006)
 
 * Replace 'rescue Object' with a finer grained rescue. Closes #4431. [Nicholas Seckar]
 
@@ -486,6 +486,7 @@
 * Fix typo in association docs. #3296. [Blair Zajac]
 
 * Fixed :through relations when using STI inherited classes would use the inherited class's name as foreign key on the join model [Tobias Luetke] 
+
 
 *1.13.2* (December 13th, 2005)
 
