@@ -30,4 +30,19 @@ module Enumerable #:nodoc:
   def sum
     inject(0) { |sum, element| sum + yield(element) }
   end
+  
+  # Convert an enumerable to a hash. Examples:
+  # 
+  #   people.index_by(&:login)
+  #     => { "nextangle" => <Person ...>, "chade-" => <Person ...>, ...}
+  #   people.index_by { |person| "#{person.first_name} #{person.last_name}" }
+  #     => { "Chade- Fowlersburg-e" => <Person ...>, "David Heinemeier Hansson" => <Person ...>, ...}
+  # 
+  def index_by
+    inject({}) do |accum, elem|
+      accum[yield(elem)] = elem
+      accum
+    end
+  end
+  
 end

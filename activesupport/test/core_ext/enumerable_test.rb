@@ -1,4 +1,5 @@
 require 'test/unit'
+require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/symbol'
 require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/enumerable'
 
 Payment = Struct.new(:price)
@@ -24,4 +25,13 @@ class EnumerableTests < Test::Unit::TestCase
     assert_equal 30, payments.sum(&:price)
     assert_equal 60, payments.sum { |p| p.price * 2 }
   end
+  
+  def test_index_by
+    payments = [ Payment.new(5), Payment.new(15), Payment.new(10) ]
+    assert_equal(
+      {5 => payments[0], 15 => payments[1], 10 => payments[2]},
+      payments.index_by(&:price)
+    )
+  end
+  
 end
