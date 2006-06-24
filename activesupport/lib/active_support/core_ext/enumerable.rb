@@ -1,5 +1,3 @@
-require File.dirname(__FILE__) + '/enumerable/injections'
-
 module Enumerable #:nodoc:
   # Collect an enumerable into sets, grouped by the result of a block. Useful,
   # for example, for grouping records by date.
