@@ -1,5 +1,12 @@
 *SVN*
 
+* Added Enumerable#sum for calculating a sum from the elements [DHH]. Examples:
+
+    payments.sum { |p| p.price * p.tax_rate }
+    payments.sum(&:price)
+  
+  This is instead of payments.inject(0) { |sum, p| sum + p.price }
+
 * Correct and clarify Array#to_sentence docs.  #5458 [brad@madriska.com]
 
 * alias_method_chain preserves method punctuation so foo, foo?, and foo! may be chained with the same feature. [Jeremy Kemper]

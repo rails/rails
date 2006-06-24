@@ -1,3 +1,5 @@
+require File.dirname(__FILE__) + '/enumerable/injections'
+
 module Enumerable #:nodoc:
   # Collect an enumerable into sets, grouped by the result of a block. Useful,
   # for example, for grouping records by date.
@@ -20,4 +22,14 @@ module Enumerable #:nodoc:
       groups
     end
   end 
+
+  # Calculates a sum from the elements. Examples:
+  #
+  #  payments.sum { |p| p.price * p.tax_rate }
+  #  payments.sum(&:price)
+  #
+  # This is instead of payments.inject(0) { |sum, p| sum + p.price }
+  def sum
+    inject(0) { |sum, element| sum + yield(element) }
+  end
 end
