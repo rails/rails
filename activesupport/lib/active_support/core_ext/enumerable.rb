@@ -26,11 +26,18 @@ module Enumerable #:nodoc:
   #  payments.sum { |p| p.price * p.tax_rate }
   #  payments.sum(&:price)
   #
-  # This is instead of payments.inject(0) { |sum, p| sum + p.price }
-  def sum
-    inject(0) { |sum, element| sum + yield(element) }
+  # This is instead of payments.inject { |sum, p| sum + p.price }
+  #
+  # Also calculates sums without the use of a block:
+  #   [5, 15, 10].sum # => 30
+  def sum(&block)
+    if block_given?
+      map(&block).sum
+    else
+      inject { |sum, element| sum + element }
+    end
   end
-  
+
   # Convert an enumerable to a hash. Examples:
   # 
   #   people.index_by(&:login)

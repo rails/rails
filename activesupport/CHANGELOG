@@ -1,10 +1,11 @@
 *SVN*
 
-* Added Enumerable#sum for calculating a sum from the elements [DHH]. Examples:
+* Added Enumerable#sum for calculating a sum from the elements [DHH, jonathan@daikini.com]. Examples:
 
+    [1, 2, 3].sum
     payments.sum { |p| p.price * p.tax_rate }
     payments.sum(&:price)
-  
+
   This is instead of payments.inject(0) { |sum, p| sum + p.price }
 
 * Correct and clarify Array#to_sentence docs.  #5458 [brad@madriska.com]
