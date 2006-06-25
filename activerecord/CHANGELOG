@@ -1,5 +1,7 @@
 *SVN*
 
+* Add AssociationCollection#sum since the method_missing invokation has been shadowed by Enumerable#sum.
+
 * Added find_or_initialize_by_X which works like find_or_create_by_X but doesn't save the newly instantiated record. [Sam Stephenson]
 
 * Row locking. Provide a locking clause with the :lock finder option or true for the default "FOR UPDATE". Use the #lock! method to obtain a row lock on a single record (reloads the record with :lock => true). [Shugo Maeda]

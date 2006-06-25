@@ -147,6 +147,10 @@ class CalculationsTest < Test::Unit::TestCase
     assert_equal 3, c['CLIENT']
     assert_equal 2, c['FIRM']
   end
+  
+  def test_should_not_overshadow_enumerable_sum
+    assert_equal 6, [1, 2, 3].sum(&:abs)
+  end
 
   def test_should_sum_scoped_field
     assert_equal 15, companies(:rails_core).companies.sum(:id)

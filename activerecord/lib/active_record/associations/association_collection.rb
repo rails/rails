@@ -42,6 +42,11 @@ module ActiveRecord
         reset_target!
       end
 
+      # Calculate sum using SQL, not Enumerable
+      def sum(*args, &block)
+        calculate(:sum, *args, &block)
+      end
+
       # Remove +records+ from this association.  Does not destroy +records+.
       def delete(*records)
         records = flatten_deeper(records)
