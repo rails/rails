@@ -1,4 +1,4 @@
-require 'parsedate'
+require 'date'
 
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
@@ -109,7 +109,9 @@ module ActiveRecord
 
       def self.string_to_time(string)
         return string unless string.is_a?(String)
-        time_array = ParseDate.parsedate(string)[0..5]
+        time_hash = Date._parse(string)
+        time_hash[:sec_fraction] = microseconds(time_hash)
+        time_array = time_hash.values_at(:year, :mon, :mday, :hour, :min, :sec, :sec_fraction)
         # treat 0000-00-00 00:00:00 as nil
         Time.send(Base.default_timezone, *time_array) rescue nil
       end
@@ -117,9 +119,11 @@ module ActiveRecord
       def self.string_to_dummy_time(string)
         return string unless string.is_a?(String)
         return nil if string.empty?
-        time_array = ParseDate.parsedate(string)
+        time_hash = Date._parse(string)
+        time_hash[:sec_fraction] = microseconds(time_hash)
         # pad the resulting array with dummy date information
-        time_array[0] = 2000; time_array[1] = 1; time_array[2] = 1;
+        time_array = [2000, 1, 1]
+        time_array += time_hash.values_at(:hour, :min, :sec, :sec_fraction)
         Time.send(Base.default_timezone, *time_array) rescue nil
       end
 
@@ -132,7 +136,13 @@ module ActiveRecord
         end
       end
 
-    private
+      private
+        # '0.123456' -> 123456
+        # '1.123456' -> 123456
+        def self.microseconds(time)
+          ((time[:sec_fraction].to_f % 1) * 1_000_000).to_i
+        end
+
         def extract_limit(sql_type)
           return unless sql_type
           $1.to_i if sql_type =~ /\((.*)\)/

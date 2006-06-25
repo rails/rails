@@ -124,6 +124,10 @@ module ActiveRecord
         %("#{name}")
       end
 
+      def quoted_date(value)
+        value.strftime("%Y-%m-%d %H:%M:%S.#{value.usec}")
+      end
+
 
       # DATABASE STATEMENTS ======================================
 
@@ -526,7 +530,7 @@ module ActiveRecord
         def cast_to_time(value)
           return value unless value.class == DateTime
           v = value
-          time_array = [v.year, v.month, v.day, v.hour, v.min, v.sec]
+          time_array = [v.year, v.month, v.day, v.hour, v.min, v.sec, v.usec]
           Time.send(Base.default_timezone, *time_array) rescue nil
         end
     end

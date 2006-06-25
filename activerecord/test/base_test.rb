@@ -315,6 +315,12 @@ class BasicsTest < Test::Unit::TestCase
       Time, Topic.find(1).written_on,
       "The written_on attribute should be of the Time class"
     )
+
+    # For adapters which support microsecond resolution.
+    if current_adapter?(:PostgreSQLAdapter)
+      assert_equal 11, Topic.find(1).written_on.sec
+      assert_equal 223300, Topic.find(1).written_on.usec
+    end
   end
   
   def test_destroy
