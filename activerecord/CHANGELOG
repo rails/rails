@@ -1,4 +1,4 @@
-*1.14.3* (June 24th, 2006)
+*1.14.3* (June 27th, 2006)
 
 * Properly quote index names in migrations (closes #4764) [John Long]
 

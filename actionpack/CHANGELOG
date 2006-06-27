@@ -1,4 +1,4 @@
-*1.12.2* (June 24th, 2006)
+*1.12.2* (June 27th, 2006)
 
 * Refinement to avoid exceptions in traverse_to_controller.
 
