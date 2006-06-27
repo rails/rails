@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix invoke_layered since api_method didn't declare :expects. Closes #4720. [Kevin Ballard <kevin@sb.org>, Kent Sibilev]
+
 * Replace alias method chaining with Module#alias_method_chain. [Marcel Molina Jr.]
 
 * Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]

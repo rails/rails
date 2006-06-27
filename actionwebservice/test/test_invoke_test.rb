@@ -2,6 +2,7 @@ require File.dirname(__FILE__) + '/abstract_unit'
 require 'action_web_service/test_invoke'
 
 class TestInvokeAPI < ActionWebService::API::Base
+  api_method :null
   api_method :add, :expects => [:int, :int], :returns => [:int]
 end
 
@@ -13,6 +14,9 @@ class TestInvokeService < ActionWebService::Base
   def add(a, b)
     @invoked = true
     a + b
+  end
+  
+  def null
   end
 end
 
@@ -28,6 +32,9 @@ class TestInvokeDirectController < TestController
   def add
     @invoked = true
     @method_params[0] + @method_params[1]
+  end
+
+  def null
   end
 end
 
@@ -95,6 +102,11 @@ class TestInvokeTest < Test::Unit::TestCase
   def test_direct_fail_with_wrong_number_of_arguments
     @controller = TestInvokeDirectController.new
     assert_raise(ArgumentError) { invoke :add, 1 }
+  end
+  
+  def test_with_no_parameters_declared
+    @controller = TestInvokeDirectController.new
+    assert_nil invoke(:null)
   end
   
 end
