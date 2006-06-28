@@ -30,13 +30,13 @@ ARGV.options do |opts|
     "connections from the server.",
     "Default: Find a good URI automatically.",
     "Example: -c druby://localhost:12345"
-  ) { |Options[:ClientURI]| }
+  ) { |v| Options[:ClientURI] = v }
 
   opts.on("-s", "--server-uri=uri",
     "Connect to the server specified at the",
     "specified uri.",
     "Default: druby://localhost:42531"
-  ) { |Options[:ServerURI]| }
+  ) { |v| Options[:ServerURI] = v }
 
   opts.on("-R", "--retry-delay=delay", Integer,
     "Automatically try to reconnect to the",
@@ -45,14 +45,14 @@ ARGV.options do |opts|
     "A value of 0 disables automatical",
     "reconnecting completely.",
     "Default: 10"
-  ) { |Options[:RetryDelay]| }
+  ) { |v| Options[:RetryDelay] = v }
 
   opts.on("-P", "--[no-]permanent",
     "Run the breakpoint client in permanent mode.",
     "This means that the client will keep continue",
     "running even after the server has closed the",
     "connection. Useful for example in Rails."
-  ) { |Options[:Permanent]| }
+  ) { |v| Options[:Permanent] = v }
 
   opts.on("-V", "--[no-]verbose",
     "Run the breakpoint client in verbose mode.",
@@ -60,7 +60,7 @@ ARGV.options do |opts|
     "individual breakpoints. This might help in seeing",
     "that the breakpoint client is still alive, but adds",
     "quite a bit of clutter."
-  ) { |Options[:Verbose]| }
+  ) { |v| Options[:Verbose] = v }
 
   opts.separator ""
 

@@ -121,9 +121,9 @@ ARGV.options do |opts|
 
   opts.on("  Options:")
 
-  opts.on("-a", "--action=name", "reload|graceful|kill (default: #{OPTIONS[:action]})", String)  { |OPTIONS[:action]| }
-  opts.on("-p", "--pidpath=path", "default: #{OPTIONS[:pid_path]}", String)                      { |OPTIONS[:pid_path]| }
-  opts.on("-r", "--pattern=pattern", "default: #{OPTIONS[:pattern]}", String)                    { |OPTIONS[:pattern]| }
+  opts.on("-a", "--action=name", "reload|graceful|kill (default: #{OPTIONS[:action]})", String)  { |v| OPTIONS[:action] = v }
+  opts.on("-p", "--pidpath=path", "default: #{OPTIONS[:pid_path]}", String)                      { |v| OPTIONS[:pid_path] = v }
+  opts.on("-r", "--pattern=pattern", "default: #{OPTIONS[:pattern]}", String)                    { |v| OPTIONS[:pattern] = v }
 
   opts.separator ""
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove opts.on { |options[:option_name] } style hash assignment. Closes #4440. [nicksieger@gmail.com]
+
 * Mongrel support for script/server.  #5475 [jeremydurham@gmail.com]
 
 * Fix script/plugin so it doesn't barf on invalid URLs [Rick]

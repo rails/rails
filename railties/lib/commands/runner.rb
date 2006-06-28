@@ -10,7 +10,7 @@ ARGV.options do |opts|
 
   opts.on("-e", "--environment=name", String,
           "Specifies the environment for the runner to operate under (test/development/production).",
-          "Default: development") { |options[:environment]| }
+          "Default: development") { |v| options[:environment] = v }
 
   opts.separator ""
 

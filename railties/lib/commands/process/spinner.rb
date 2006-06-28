@@ -36,9 +36,9 @@ ARGV.options do |opts|
 
   opts.on("  Options:")
 
-  opts.on("-c", "--command=path",    String) { |OPTIONS[:command]| }
-  opts.on("-i", "--interval=seconds", Float) { |OPTIONS[:interval]| }
-  opts.on("-d", "--daemon")                  { |OPTIONS[:daemon]| }
+  opts.on("-c", "--command=path",    String) { |v| OPTIONS[:command] = v }
+  opts.on("-i", "--interval=seconds", Float) { |v| OPTIONS[:interval] = v }
+  opts.on("-d", "--daemon")                  { |v| OPTIONS[:daemon] = v }
 
   opts.separator ""
 
