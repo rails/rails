@@ -36,7 +36,7 @@ class CGI #:nodoc:
         if boundary = extract_multipart_form_boundary(content_type)
           @multipart = true
           @params = read_multipart(boundary, content_length)
-        elsif content_type.downcase != 'application/x-www-form-urlencoded'
+        elsif content_type.blank? || content_type.downcase != 'application/x-www-form-urlencoded'
           read_params(method, content_length)
           @params = {}
         end
