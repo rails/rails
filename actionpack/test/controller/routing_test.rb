@@ -977,13 +977,71 @@ class ControllerComponentTest < Test::Unit::TestCase
     load_path = $:.dup
     base = File.dirname(File.dirname(File.expand_path(__FILE__)))
     $: << File.join(base, 'fixtures')
+    Object.send :const_set, :RAILS_ROOT, File.join(base, 'fixtures/application_root')
     assert_equal nil, ActionController::Routing::ControllerComponent.traverse_to_controller(%w(dont_load pretty please))
   ensure
     $:[0..-1] = load_path
+    Object.send :remove_const, :RAILS_ROOT
   end
   
   def test_traverse_should_not_trip_on_non_module_constants
     assert_equal nil, ActionController::Routing::ControllerComponent.traverse_to_controller(%w(admin some_constant a))
+  end
+  
+  # This is evil, but people do it.
+  def test_traverse_to_controller_should_pass_thru_classes
+    load_path = $:.dup
+    base = File.dirname(File.dirname(File.expand_path(__FILE__)))
+    $: << File.join(base, 'fixtures')
+    $: << File.join(base, 'fixtures/application_root/app/controllers')
+    $: << File.join(base, 'fixtures/application_root/app/models')
+    Object.send :const_set, :RAILS_ROOT, File.join(base, 'fixtures/application_root')
+    pair = ActionController::Routing::ControllerComponent.traverse_to_controller(%w(a_class_that_contains_a_controller poorly_placed))
+    
+    # Make sure the container class was loaded properly
+    assert defined?(AClassThatContainsAController)
+    assert_kind_of Class, AClassThatContainsAController
+    assert_equal :you_know_it, AClassThatContainsAController.is_special?
+    
+    # Make sure the controller was too
+    assert_kind_of Array, pair
+    assert_equal 2, pair[1]
+    klass = pair.first
+    assert_kind_of Class, klass
+    assert_equal :decidedly_so, klass.is_evil?
+    assert klass.ancestors.include?(ActionController::Base)
+    assert defined?(AClassThatContainsAController::PoorlyPlacedController)
+    assert_equal klass, AClassThatContainsAController::PoorlyPlacedController
+  ensure
+    $:[0..-1] = load_path
+    Object.send :remove_const, :RAILS_ROOT
+  end
+  
+  def test_traverse_to_nested_controller
+    load_path = $:.dup
+    base = File.dirname(File.dirname(File.expand_path(__FILE__)))
+    $: << File.join(base, 'fixtures')
+    $: << File.join(base, 'fixtures/application_root/app/controllers')
+    Object.send :const_set, :RAILS_ROOT, File.join(base, 'fixtures/application_root')
+    pair = ActionController::Routing::ControllerComponent.traverse_to_controller(%w(module_that_holds_controllers nested))
+    
+    assert_not_equal nil, pair
+    
+    # Make sure that we created a module for the dir
+    assert defined?(ModuleThatHoldsControllers)
+    assert_kind_of Module, ModuleThatHoldsControllers
+
+    # Make sure the controller is ok
+    assert_kind_of Array, pair
+    assert_equal 2, pair[1]
+    klass = pair.first
+    assert_kind_of Class, klass
+    assert klass.ancestors.include?(ActionController::Base)
+    assert defined?(ModuleThatHoldsControllers::NestedController)
+    assert_equal klass, ModuleThatHoldsControllers::NestedController
+  ensure
+    $:[0..-1] = load_path
+    Object.send :remove_const, :RAILS_ROOT
   end
   
 end

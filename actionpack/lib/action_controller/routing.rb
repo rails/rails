@@ -224,44 +224,71 @@ module ActionController
           length = segments.length
           index = start_at
           mod_name = controller_name = segment = nil
-          
           while index < length
             return nil unless /\A[A-Za-z][A-Za-z\d_]*\Z/ =~ (segment = segments[index])
             index += 1
             
             mod_name = segment.camelize
             controller_name = "#{mod_name}Controller"
+            path_suffix = File.join(segments[start_at..(index - 1)])
+            next_mod = nil
             
-            begin
-              # We use eval instead of const_get to avoid obtaining values from parent modules.
-              controller = eval("mod::#{controller_name}", nil, __FILE__, __LINE__)
-              expected_name = "#{mod.name}::#{controller_name}"
-              
-              # Detect the case when const_get returns an object from a parent namespace.
-              if controller.is_a?(Class) && controller.ancestors.include?(ActionController::Base) && (mod == Object || controller.name == expected_name)
-                return controller, (index - start_at)
-              end
-            rescue NameError => e
-              raise unless /^uninitialized constant .*#{controller_name}$/ =~ e.message                            
+            # If the controller is already present, or if we load it, return it.
+            if mod.const_defined?(controller_name) || attempt_load(mod, controller_name, path_suffix + "_controller") == :defined
+              controller = mod.const_get(controller_name)
+              return nil unless controller.is_a?(Class) && controller.ancestors.include?(ActionController::Base) # it's not really a controller?
+              return [controller, (index - start_at)]
             end
             
+            # No controller? Look for the module
             if mod.const_defined? mod_name
               next_mod = mod.send(:const_get, mod_name)
               next_mod = nil unless next_mod.is_a?(Module)
             else
-              suffix = File.join(segments[start_at..index])
-              $:.each do |base|
-                path = File.join(base, suffix)
-                next unless File.directory? path
-                next_mod = Module.new
-                mod.send(:const_set, mod_name, next_mod)
-                break
+              # Try to load a file that defines the module we want.
+              case attempt_load(mod, mod_name, path_suffix)
+                when :defined then next_mod = mod.const_get mod_name
+                when :dir then # We didn't find a file, but there's a dir.
+                  next_mod = Module.new # So create a module for the directory
+                  mod.send :const_set, mod_name, next_mod
+                else
+                  return nil
               end
             end
             mod = next_mod
             
-            return nil unless mod
+            return nil unless mod && mod.is_a?(Module)
           end
+          nil
+        end
+        
+      protected
+        
+        def safe_load_paths #:nodoc:
+          if defined?(RAILS_ROOT)
+            $LOAD_PATH.select do |base|
+              base = File.expand_path(base)
+              extended_root = File.expand_path(RAILS_ROOT)
+              base[0, extended_root.length] == extended_root
+            end
+          else
+            $LOAD_PATH
+          end
+        end
+        
+        def attempt_load(mod, const_name, path)
+          has_dir = false
+          safe_load_paths.each do |load_path|
+            full_path = File.join(load_path, path)
+            file_path = full_path + '.rb'
+            if File.file?(file_path) # Found a .rb file? Load it up
+              require_dependency(file_path)
+              return :defined if mod.const_defined? const_name
+            else
+              has_dir ||= File.directory?(full_path)
+            end
+          end
+          return (has_dir ? :dir : nil)
         end
       end
     end

@@ -1,3 +1,10 @@
+* Fix broken traverse_to_controller. We now:
+  Look for a _controller.rb file under RAILS_ROOT to load.
+  If we find it, we require_dependency it and return the controller it defined. (If none was defined we stop looking.)
+  If we don't find it, we look for a .rb file under RAILS_ROOT to load. If we find it, and it loads a constant we keep looking.
+  Otherwise we check to see if a directory of the same name exists, and if it does we create a module for it.
+
+
 *1.12.2* (June 27th, 2006)
 
 * Refinement to avoid exceptions in traverse_to_controller.
