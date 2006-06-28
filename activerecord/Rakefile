@@ -41,6 +41,8 @@ desc 'Build the MySQL test databases'
 task :build_mysql_databases do 
   %x( mysqladmin  create activerecord_unittest )
   %x( mysqladmin  create activerecord_unittest2 )
+  %x( mysql -e "grant all on activerecord_unittest.* to rails@localhost" )
+  %x( mysql -e "grant all on activerecord_unittest2.* to rails@localhost" )
   %x( mysql  activerecord_unittest < #{File.join(SCHEMA_PATH, 'mysql.sql')} )
   %x( mysql  activerecord_unittest < #{File.join(SCHEMA_PATH, 'mysql2.sql')} )
 end

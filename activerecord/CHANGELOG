@@ -1,5 +1,7 @@
 *SVN*
 
+* rake build_mysql_database grants permissions to rails@localhost. #5501 [brianegge@yahoo.com]
+
 * PostgreSQL: support microsecond time resolution. #5492 [alex@msgpad.com]
 
 * Add AssociationCollection#sum since the method_missing invokation has been shadowed by Enumerable#sum.
