@@ -1,6 +1,6 @@
 require 'rbconfig'
 
-unless RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `mongrel_rails` }.blank?
+unless defined?(Mongrel) 
   puts "PROBLEM: Mongrel is not available on your system (or not in your path)"
   exit 1
 end
@@ -11,11 +11,11 @@ detach = false
 ip = nil
 port = nil
 
-ARGV.options do |opt|
+ARGV.clone.options do |opt|
   opt.on("-p", "--port=port", Integer,
           "Runs Rails on the specified port.",
           "Default: 3000") { |p| port = p }
-  opt.on("-b", "--binding=ip", String,
+  opt.on("-a", "--binding=ip", String,
           "Binds Rails to the specified ip.",
           "Default: 0.0.0.0") { |i| ip = i }
   opt.on('-h', '--help', 'Show this message.') { puts opt; exit 0 }
@@ -37,7 +37,8 @@ trap(:INT) { exit }
 tail_thread = nil
 
 begin
-  `mongrel_rails start #{detach ? "-d " : ""} -p #{port || default_port} -a #{ip || default_ip}`
+  ARGV.unshift("start")
+  load 'mongrel_rails'
 ensure
   unless detach
     tail_thread.kill if tail_thread

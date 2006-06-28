@@ -7,13 +7,19 @@ rescue Exception
   # FCGI not available
 end
 
+begin
+  require_library_or_gem 'mongrel'
+rescue Exception
+  # Mongrel not available
+end
+
 server = case ARGV.first
   when "lighttpd", "mongrel", "webrick"
     ARGV.shift
   else
     if RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `lighttpd -version` }.blank? && defined?(FCGI)
       "lighttpd"
-    elsif !silence_stderr { `mongrel_rails -v` }.blank?
+    elsif defined?(Mongrel) 
       "mongrel"
     else
       "webrick"
