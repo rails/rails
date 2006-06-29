@@ -1,5 +1,7 @@
 *SVN*
 
+* Avoid naming collision among compiled view methods. [Jeremy Kemper]
+
 * Fix CGI extensions when they expect string but get nil in Windows. Closes #5276 [mislav@nippur.irb.hr]
 
 * Determine the correct template_root for deeply nested components.  #2841 [s.brink@web.de]

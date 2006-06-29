@@ -15,7 +15,7 @@ class RenderMailer < ActionMailer::Base
     recipients recipient
     subject    "using helpers"
     from       "tester@example.com"
-    body       render(:file => "#{mailer_name}/signed_up", :body => { :recipient => recipient })
+    body       render(:file => "signed_up", :body => { :recipient => recipient })
   end
 
   def initialize_defaults(method_name)

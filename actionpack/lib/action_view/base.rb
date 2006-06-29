@@ -307,7 +307,7 @@ module ActionView #:nodoc:
 
       # Get the method name for this template and run it
       method_name = @@method_names[file_path || template]
-      evaluate_assigns                                    
+      evaluate_assigns
 
       local_assigns = local_assigns.symbolize_keys if @@local_assigns_support_string_keys
 
@@ -335,14 +335,14 @@ module ActionView #:nodoc:
     def builder_template_exists?(template_path)#:nodoc:
       template_exists?(template_path, :rxml)
     end
-    
+
     def javascript_template_exists?(template_path)#:nodoc:
       template_exists?(template_path, :rjs)
     end
 
     def file_exists?(template_path)#:nodoc:
       template_file_name, template_file_extension = path_and_extension(template_path)
-      
+
       if template_file_extension
         template_exists?(template_file_name, template_file_extension)
       else
@@ -372,11 +372,11 @@ module ActionView #:nodoc:
         template_path_without_extension = template_path.sub(/\.(\w+)$/, '')
         [ template_path_without_extension, $1 ]
       end
-      
+
       def cached_template_extension(template_path)
         @@cache_template_extensions && @@cached_template_extension[template_path]
-      end      
-          
+      end
+
       def find_template_extension_for(template_path)
         if match = delegate_template_exists?(template_path)
           match.first.to_sym
@@ -384,7 +384,7 @@ module ActionView #:nodoc:
         elsif builder_template_exists?(template_path):    :rxml
         elsif javascript_template_exists?(template_path): :rjs
         else
-          raise ActionViewError, "No rhtml, rxml, rjs or delegate template found for #{template_path}"
+          raise ActionViewError, "No rhtml, rxml, rjs or delegate template found for #{template_path} in #{@base_path}"
         end
       end
 
@@ -414,7 +414,7 @@ module ActionView #:nodoc:
         local_assigns.empty? ||
           ((args = @@template_args[render_symbol]) && local_assigns.all? { |k,_| args.has_key?(k) })
       end
-      
+
       # Check whether compilation is necessary.
       # Compile if the inline template or file has not been compiled yet.
       # Or if local_assigns has a new key, which isn't supported by the compiled code yet.
@@ -468,35 +468,21 @@ module ActionView #:nodoc:
         %w(rxml rjs)
       end
 
-      def assign_method_name(extension, template, file_name)
-        method_name = '_run_'
-        method_name << "#{extension}_" if extension
+      def compiled_method_name(extension, template, file_name)
+        ['_run', extension, compiled_method_name_file_path_segment(file_name)].compact.join('_')
+      end
 
+      def compiled_method_name_file_path_segment(file_name)
         if file_name
-          file_path = File.expand_path(file_name)
-          base_path = File.expand_path(@base_path)
-
-          i = file_path.index(base_path)
-          l = base_path.length
-
-          method_name_file_part = i ? file_path[i+l+1,file_path.length-l-1] : file_path.clone
-          method_name_file_part.sub!(/\.r(html|xml|js)$/,'')
-          method_name_file_part.tr!('/:-', '_')
-          method_name_file_part.gsub!(/[^a-zA-Z0-9_]/){|s| s[0].to_s}
-
-          method_name += method_name_file_part
+          File.expand_path(file_name).gsub(/[^a-zA-Z0-9_]/, '_')
         else
-          @@inline_template_count += 1
-          method_name << @@inline_template_count.to_s
+          (@@inline_template_count += 1).to_s
         end
-
-        @@method_names[file_name || template] = method_name.intern
       end
 
       def compile_template(extension, template, file_name, local_assigns)
         method_key = file_name || template
-
-        render_symbol = @@method_names[method_key] || assign_method_name(extension, template, file_name)
+        render_symbol = @@method_names[method_key] ||= compiled_method_name(extension, template, file_name)
         render_source = create_template_source(extension, template, render_symbol, local_assigns.keys)
 
         line_offset = @@template_args[render_symbol].size

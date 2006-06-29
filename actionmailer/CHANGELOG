@@ -1,6 +1,6 @@
 *SVN*
 
-* Resolve conflict among mailer actions with the same name. #5520 [ssinghi@kreeti.com]
+* Resolve action naming collision. #5520 [ssinghi@kreeti.com]
 
 * ActionMailer::Base documentation rewrite. Closes #4991 [Kevin Clark, Marcel Molina Jr.]
 
