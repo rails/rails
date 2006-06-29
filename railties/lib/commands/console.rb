@@ -4,8 +4,8 @@ require 'optparse'
 options = { :sandbox => false, :irb => irb }
 OptionParser.new do |opt|
   opt.banner = "Usage: console [environment] [options]"
-  opt.on('-s', '--sandbox', 'Rollback database modifications on exit.') { |options[:sandbox]| }
-  opt.on("--irb=[#{irb}]", 'Invoke a different irb.') { |options[:irb]| }
+  opt.on('-s', '--sandbox', 'Rollback database modifications on exit.') { |v| options[:sandbox] = v }
+  opt.on("--irb=[#{irb}]", 'Invoke a different irb.') { |v| options[:irb] = v }
   opt.parse!(ARGV)
 end
 

@@ -96,15 +96,15 @@ class AppGenerator < Rails::Generator::Base
       opt.separator 'Options:'
       opt.on("-r", "--ruby=path", String,
              "Path to the Ruby binary of your choice (otherwise scripts use env, dispatchers current path).",
-             "Default: #{DEFAULT_SHEBANG}") { |options[:shebang]| }
+             "Default: #{DEFAULT_SHEBANG}") { |v| options[:shebang] = v }
 
       opt.on("-d", "--database=name", String,
             "Preconfigure for selected database (options: mysql/oracle/postgresql/sqlite2/sqlite3).",
-            "Default: mysql") { |options[:db]| }
+            "Default: mysql") { |v| options[:db] = v }
 
       opt.on("-f", "--freeze", 
             "Freeze Rails in vendor/rails from the gems generating the skeleton",
-            "Default: false") { |options[:freeze]| }
+            "Default: false") { |v| options[:freeze] = v }
     end
     
     def mysql_socket_location

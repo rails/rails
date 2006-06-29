@@ -65,11 +65,11 @@ ARGV.options do |opts|
 
   opts.on("  Options:")
 
-  opts.on("-p", "--port=number",      Integer, "Starting port number (default: #{OPTIONS[:port]})")                { |OPTIONS[:port]| }
-  opts.on("-i", "--instances=number", Integer, "Number of instances (default: #{OPTIONS[:instances]})")            { |OPTIONS[:instances]| }
-  opts.on("-r", "--repeat=seconds",   Integer, "Repeat spawn attempts every n seconds (default: off)")             { |OPTIONS[:repeat]| }
-  opts.on("-e", "--environment=name", String,  "test|development|production (default: #{OPTIONS[:environment]})")  { |OPTIONS[:environment]| }
-  opts.on("-s", "--spawner=path",     String,  "default: #{OPTIONS[:spawner]}")                                    { |OPTIONS[:spawner]| }
+  opts.on("-p", "--port=number",      Integer, "Starting port number (default: #{OPTIONS[:port]})")                { |v| OPTIONS[:port] = v }
+  opts.on("-i", "--instances=number", Integer, "Number of instances (default: #{OPTIONS[:instances]})")            { |v| OPTIONS[:instances] = v }
+  opts.on("-r", "--repeat=seconds",   Integer, "Repeat spawn attempts every n seconds (default: off)")             { |v| OPTIONS[:repeat] = v }
+  opts.on("-e", "--environment=name", String,  "test|development|production (default: #{OPTIONS[:environment]})")  { |v| OPTIONS[:environment] = v }
+  opts.on("-s", "--spawner=path",     String,  "default: #{OPTIONS[:spawner]}")                                    { |v| OPTIONS[:spawner] = v }
   opts.on("-d", "--dispatcher=path",  String,  "default: #{OPTIONS[:dispatcher]}") { |dispatcher| OPTIONS[:dispatcher] = File.expand_path(dispatcher) }
 
   opts.separator ""

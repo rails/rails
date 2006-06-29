@@ -19,13 +19,13 @@ ARGV.options do |opts|
 
   opts.on("-p", "--port=port", Integer,
           "Runs Rails on the specified port.",
-          "Default: 3000") { |OPTIONS[:port]| }
+          "Default: 3000") { |v| OPTIONS[:port] = v }
   opts.on("-b", "--binding=ip", String,
           "Binds Rails to the specified ip.",
-          "Default: 0.0.0.0") { |OPTIONS[:ip]| }
+          "Default: 0.0.0.0") { |v| OPTIONS[:ip] = v }
   opts.on("-e", "--environment=name", String,
           "Specifies the environment to run this server under (test/development/production).",
-          "Default: development") { |OPTIONS[:environment]| }
+          "Default: development") { |v| OPTIONS[:environment] = v }
   opts.on("-m", "--mime-types=filename", String,
                   "Specifies an Apache style mime.types configuration file to be used for mime types",
                   "Default: none") { |mime_types_file| OPTIONS[:mime_types] = WEBrick::HTTPUtils::load_mime_types(mime_types_file) }
@@ -36,7 +36,7 @@ ARGV.options do |opts|
 
   opts.on("-c", "--charset=charset", String,
           "Set default charset for output.",
-          "Default: UTF-8") { |OPTIONS[:charset]| }
+          "Default: UTF-8") { |v| OPTIONS[:charset] = v }
 
   opts.separator ""
 
