@@ -17,10 +17,10 @@ server = case ARGV.first
   when "lighttpd", "mongrel", "webrick"
     ARGV.shift
   else
-    if RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `lighttpd -version` }.blank? && defined?(FCGI)
-      "lighttpd"
-    elsif defined?(Mongrel) 
+    if defined?(Mongrel)
       "mongrel"
+    elsif RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `lighttpd -version` }.blank? && defined?(FCGI)
+      "lighttpd"
     else
       "webrick"
     end

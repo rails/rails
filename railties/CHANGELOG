@@ -1,6 +1,6 @@
 *SVN*
 
-* Mongrel: script/server tails the rails log like it does with lighttpd. #5541 [mike@clarkware.com]
+* Mongrel: script/server tails the rails log like it does with lighttpd. Prefer mongrel over lighttpd. #5541 [mike@clarkware.com]
 
 * Don't assume Active Record is available. #5497 [bob@sporkmonger.com]
 
