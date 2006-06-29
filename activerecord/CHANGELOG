@@ -1,5 +1,7 @@
 *SVN*
 
+* Removed deprecated timestamps_gmt class methods. [Jeremy Kemper]
+
 * rake build_mysql_database grants permissions to rails@localhost. #5501 [brianegge@yahoo.com]
 
 * PostgreSQL: support microsecond time resolution. #5492 [alex@msgpad.com]

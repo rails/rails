@@ -1,22 +1,26 @@
 module ActiveRecord
-  # Active Records will automatically record creation and/or update timestamps of database objects
-  # if fields of the names created_at/created_on or updated_at/updated_on are present. This module is
-  # automatically included, so you don't need to do that manually.
+  # Active Record automatically timestamps create and update if the table has fields
+  # created_at/created_on or updated_at/updated_on.
   #
-  # This behavior can be turned off by setting <tt>ActiveRecord::Base.record_timestamps = false</tt>.
-  # This behavior by default uses local time, but can use UTC by setting <tt>ActiveRecord::Base.default_timezone = :utc</tt>
+  # Timestamping can be turned off by setting
+  #   <tt>ActiveRecord::Base.record_timestamps = false</tt>
+  #
+  # Timestamps are in the local timezone by default but can use UTC by setting
+  #   <tt>ActiveRecord::Base.default_timezone = :utc</tt>
   module Timestamp
-    def self.included(base) # :nodoc:
-      base.class_eval do
-        [:create, :update].each do |method|
-          alias_method_chain method, :timestamps
-        end
-      end
+    def self.included(base) #:nodoc:
+      super
+
+      base.alias_method_chain :create, :timestamps
+      base.alias_method_chain :update, :timestamps
+
+      base.cattr_accessor :record_timestamps
+      base.record_timestamps = true
     end
 
     def create_with_timestamps #:nodoc:
       if record_timestamps
-      t = ( self.class.default_timezone == :utc ? Time.now.utc : Time.now )
+        t = self.class.default_timezone == :utc ? Time.now.utc : Time.now
         write_attribute('created_at', t) if respond_to?(:created_at) && created_at.nil?
         write_attribute('created_on', t) if respond_to?(:created_on) && created_on.nil?
 
@@ -28,31 +32,11 @@ module ActiveRecord
 
     def update_with_timestamps #:nodoc:
       if record_timestamps
-      t = ( self.class.default_timezone == :utc ? Time.now.utc : Time.now )
+        t = self.class.default_timezone == :utc ? Time.now.utc : Time.now
         write_attribute('updated_at', t) if respond_to?(:updated_at)
         write_attribute('updated_on', t) if respond_to?(:updated_on)
       end
       update_without_timestamps
-    end
-  end
-
-  class Base
-    # Records the creation date and possibly time in created_on (date only) or created_at (date and time) and the update date and possibly
-    # time in updated_on and updated_at. This only happens if the object responds to either of these messages, which they will do automatically
-    # if the table has columns of either of these names. This feature is turned on by default.
-    @@record_timestamps = true
-    cattr_accessor :record_timestamps
-
-    # deprecated: use ActiveRecord::Base.default_timezone instead.
-    @@timestamps_gmt = false
-    def self.timestamps_gmt=( gmt ) #:nodoc:
-      warn "timestamps_gmt= is deprecated. use default_timezone= instead"
-      self.default_timezone = ( gmt ? :utc : :local )
-    end
-
-    def self.timestamps_gmt #:nodoc:
-      warn "timestamps_gmt is deprecated. use default_timezone instead"
-      self.default_timezone == :utc
     end
   end
 end
