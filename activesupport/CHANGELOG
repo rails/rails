@@ -1,5 +1,7 @@
 *SVN*
 
+* More compatible Hash.create_from_xml. #5523 [nunemaker@gmail.com]
+
 * Added Enumerable#sum for calculating a sum from the elements [DHH, jonathan@daikini.com]. Examples:
 
     [1, 2, 3].sum

@@ -357,4 +357,27 @@ class HashToXmlTest < Test::Unit::TestCase
     
     assert_equal expected_topic_hash, Hash.create_from_xml(topics_xml)["topics"]["topic"].first
   end
+  
+  def test_single_record_from_xml_with_attributes_other_than_type
+    topic_xml = <<-EOT
+    <rsp stat="ok">
+    	<photos page="1" pages="1" perpage="100" total="16">
+    		<photo id="175756086" owner="55569174@N00" secret="0279bf37a1" server="76" title="Colored Pencil PhotoBooth Fun" ispublic="1" isfriend="0" isfamily="0"/>
+    	</photos>
+    </rsp>
+    EOT
+    
+    expected_topic_hash = {
+      :id => "175756086",
+      :owner => "55569174@N00",
+      :secret => "0279bf37a1",
+      :server => "76",
+      :title => "Colored Pencil PhotoBooth Fun",
+      :ispublic => "1",
+      :isfriend => "0",
+      :isfamily => "0",
+    }.stringify_keys
+    
+    assert_equal expected_topic_hash, Hash.create_from_xml(topic_xml)["rsp"]["photos"]["photo"]
+  end
 end
