@@ -15,12 +15,28 @@ class RenderMailer < ActionMailer::Base
     recipients recipient
     subject    "using helpers"
     from       "tester@example.com"
-    body       render(:file => "signed_up", :body => { :recipient => recipient })
+    body       render(:file => "#{mailer_name}/signed_up", :body => { :recipient => recipient })
   end
 
   def initialize_defaults(method_name)
     super
     mailer_name "test_mailer"
+  end
+end
+
+class FirstMailer < ActionMailer::Base
+  def share(recipient)
+    recipients recipient
+    subject    "using helpers"
+    from       "tester@example.com"
+  end
+end
+
+class SecondMailer < ActionMailer::Base
+  def share(recipient)
+    recipients recipient
+    subject    "using helpers"
+    from       "tester@example.com"
   end
 end
 
@@ -46,3 +62,23 @@ class RenderHelperTest < Test::Unit::TestCase
   end
 end
 
+class FirstSecondHelperTest < Test::Unit::TestCase
+  def setup
+    ActionMailer::Base.delivery_method = :test
+    ActionMailer::Base.perform_deliveries = true
+    ActionMailer::Base.deliveries = []
+
+    @recipient = 'test@localhost'
+  end
+
+  def test_ordering
+    mail = FirstMailer.create_share(@recipient)
+    assert_equal "first mail", mail.body.strip
+    mail = SecondMailer.create_share(@recipient)
+    assert_equal "second mail", mail.body.strip
+    mail = FirstMailer.create_share(@recipient)
+    assert_equal "first mail", mail.body.strip
+    mail = SecondMailer.create_share(@recipient)
+    assert_equal "second mail", mail.body.strip
+  end
+end

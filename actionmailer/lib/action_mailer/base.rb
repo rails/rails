@@ -353,7 +353,7 @@ module ActionMailer #:nodoc:
             content_type = md.captures[1].gsub('.', '/')
             @parts << Part.new(:content_type => content_type,
               :disposition => "inline", :charset => charset,
-              :body => render_message(template_name, @body))
+              :body => render_message("#{mailer_name}/#{template_name}", @body))
           end
           unless @parts.empty?
             @content_type = "multipart/alternative"
@@ -367,7 +367,7 @@ module ActionMailer #:nodoc:
         # it.
         template_exists = @parts.empty?
         template_exists ||= Dir.glob("#{template_path}/#{@template}.*").any? { |i| File.basename(i).split(".").length == 2 }
-        @body = render_message(@template, @body) if template_exists
+        @body = render_message("#{mailer_name}/#{@template}", @body) if template_exists
 
         # Finally, if there are other message parts and a textual body exists,
         # we shift it onto the front of the parts and set the body to nil (so
@@ -432,7 +432,7 @@ module ActionMailer #:nodoc:
       end
 
       def initialize_template_class(assigns)
-        ActionView::Base.new(template_path, assigns, self)
+        ActionView::Base.new(template_root, assigns, self)
       end
 
       def sort_parts(parts, order = [])

@@ -32,7 +32,7 @@ class FunkyPathMailer < ActionMailer::Base
       :body => "not really a jpeg, we're only testing, after all"
   end
 
-  def template_path
+  def template_root
     "#{File.dirname(__FILE__)}/fixtures/path.with.dots"
   end
 end

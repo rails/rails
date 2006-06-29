@@ -1,5 +1,7 @@
 *SVN*
 
+* Resolve conflict among mailer actions with the same name. #5520 [ssinghi@kreeti.com]
+
 * ActionMailer::Base documentation rewrite. Closes #4991 [Kevin Clark, Marcel Molina Jr.]
 
 * Replace alias method chaining with Module#alias_method_chain. [Marcel Molina Jr.] 
