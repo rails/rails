@@ -474,7 +474,10 @@ module ActionView #:nodoc:
 
       def compiled_method_name_file_path_segment(file_name)
         if file_name
-          File.expand_path(file_name).gsub(/[^a-zA-Z0-9_]/, '_')
+          s = File.expand_path(file_name)
+          s.sub!(/^#{Regexp.escape(File.expand_path(RAILS_ROOT))}/, '') if defined?(RAILS_ROOT)
+          s.gsub!(/([^a-zA-Z0-9_])/) { $1[0].to_s }
+          s
         else
           (@@inline_template_count += 1).to_s
         end
