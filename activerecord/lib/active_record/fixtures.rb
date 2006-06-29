@@ -505,7 +505,8 @@ module Test #:nodoc:
       end
 
       def setup_with_fixtures
-        return if !defined?(ActiveRecord::Base) || ActiveRecord::Base.configurations.blank?
+        return unless defined?(ActiveRecord::Base)
+
         if pre_loaded_fixtures && !use_transactional_fixtures
           raise RuntimeError, 'pre_loaded_fixtures requires use_transactional_fixtures' 
         end
@@ -536,7 +537,8 @@ module Test #:nodoc:
       alias_method :setup, :setup_with_fixtures
 
       def teardown_with_fixtures
-        return if !defined?(ActiveRecord::Base) || ActiveRecord::Base.configurations.blank?
+        return unless defined?(ActiveRecord::Base)
+
         # Rollback changes.
         if use_transactional_fixtures?
           ActiveRecord::Base.connection.rollback_db_transaction
