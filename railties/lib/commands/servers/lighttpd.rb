@@ -1,4 +1,5 @@
 require 'rbconfig'
+require 'commands/servers/base'
 
 unless RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `lighttpd -version` }.blank?
   puts "PROBLEM: Lighttpd is not available on your system (or not in your path)"
@@ -52,23 +53,7 @@ if !detach
   puts "=> Call with -d to detach"
   puts "=> Ctrl-C to shutdown server (see config/lighttpd.conf for options)"
   detach = false
-
-  cursor = File.size(configuration.log_path)
-  last_checked = Time.now
-  tail_thread = Thread.new do
-    File.open(configuration.log_path, 'r') do |f|
-      loop do
-        f.seek cursor
-        if f.mtime > last_checked
-          last_checked = f.mtime
-          contents = f.read
-          cursor += contents.length
-          print contents
-        end
-        sleep 1
-      end
-    end
-  end
+  tail_thread = tail(configuration.log_path)
 end
 
 trap(:INT) { exit }

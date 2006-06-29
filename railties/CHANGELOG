@@ -1,5 +1,7 @@
 *SVN*
 
+* Mongrel: script/server tails the rails log like it does with lighttpd. #5541 [mike@clarkware.com]
+
 * Don't assume Active Record is available. #5497 [bob@sporkmonger.com]
 
 * Mongrel: script/server works on Win32. #5499 [jeremydurham@gmail.com]

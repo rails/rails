@@ -1,4 +1,5 @@
 require 'rbconfig'
+require 'commands/servers/base'
 
 unless defined?(Mongrel) 
   puts "PROBLEM: Mongrel is not available on your system (or not in your path)"
@@ -26,15 +27,18 @@ end
 default_port, default_ip = 3000, '0.0.0.0'
 puts "=> Rails application started on http://#{ip || default_ip}:#{port || default_port}"
 
+log_file = Pathname.new("#{RAILS_ROOT}/log/#{RAILS_ENV}.log").cleanpath
+
+tail_thread = nil
+
 if !detach
   puts "=> Call with -d to detach"
   puts "=> Ctrl-C to shutdown server"
   detach = false
+  tail_thread = tail(log_file)
 end
 
 trap(:INT) { exit }
-
-tail_thread = nil
 
 begin
   ARGV.unshift("start")
