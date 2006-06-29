@@ -468,8 +468,13 @@ module ActionView #:nodoc:
         %w(rxml rjs)
       end
 
+      def assign_method_name(extension, template, file_name)
+        method_key = file_name || template
+        @@method_names[method_key] ||= compiled_method_name(extension, template, file_name)
+      end
+
       def compiled_method_name(extension, template, file_name)
-        ['_run', extension, compiled_method_name_file_path_segment(file_name)].compact.join('_')
+        ['_run', extension, compiled_method_name_file_path_segment(file_name)].compact.join('_').to_sym
       end
 
       def compiled_method_name_file_path_segment(file_name)
@@ -484,8 +489,7 @@ module ActionView #:nodoc:
       end
 
       def compile_template(extension, template, file_name, local_assigns)
-        method_key = file_name || template
-        render_symbol = @@method_names[method_key] ||= compiled_method_name(extension, template, file_name)
+        render_symbol = assign_method_name(extension, template, file_name)
         render_source = create_template_source(extension, template, render_symbol, local_assigns.keys)
 
         line_offset = @@template_args[render_symbol].size
