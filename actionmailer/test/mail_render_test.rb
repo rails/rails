@@ -1,7 +1,4 @@
-$:.unshift(File.dirname(__FILE__) + "/../lib/")
-
-require 'test/unit'
-require 'action_mailer'
+require "#{File.dirname(__FILE__)}/abstract_unit"
 
 class RenderMailer < ActionMailer::Base
   def inline_template(recipient)
@@ -39,8 +36,6 @@ class SecondMailer < ActionMailer::Base
     from       "tester@example.com"
   end
 end
-
-RenderMailer.template_root = File.dirname(__FILE__) + "/fixtures"
 
 class RenderHelperTest < Test::Unit::TestCase
   def setup

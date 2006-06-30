@@ -1,8 +1,4 @@
-$:.unshift(File.dirname(__FILE__) + "/../lib/")
-$:.unshift File.dirname(__FILE__) + "/fixtures/helpers"
-
-require 'test/unit'
-require 'action_mailer'
+require "#{File.dirname(__FILE__)}/abstract_unit"
 
 class TMailMailTest < Test::Unit::TestCase
   def test_body

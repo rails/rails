@@ -1,7 +1,4 @@
-$:.unshift(File.dirname(__FILE__) + "/../lib/")
-$:.unshift(File.dirname(__FILE__) + "/../lib/action_mailer/vendor")
-
-require 'test/unit'
+require "#{File.dirname(__FILE__)}/abstract_unit"
 require 'tmail'
 require 'tempfile'
 

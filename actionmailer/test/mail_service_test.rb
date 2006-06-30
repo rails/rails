@@ -1,7 +1,4 @@
-$:.unshift(File.dirname(__FILE__) + "/../lib/")
-
-require 'test/unit'
-require 'action_mailer'
+require "#{File.dirname(__FILE__)}/abstract_unit"
 
 class MockSMTP
   def self.deliveries
@@ -24,6 +21,8 @@ class Net::SMTP
 end
 
 class FunkyPathMailer < ActionMailer::Base
+  self.template_root = "#{File.dirname(__FILE__)}/fixtures/path.with.dots"
+
   def multipart_with_template_path_with_dots(recipient)
     recipients recipient
     subject    "Have a lovely picture"
@@ -31,14 +30,9 @@ class FunkyPathMailer < ActionMailer::Base
     attachment :content_type => "image/jpeg",
       :body => "not really a jpeg, we're only testing, after all"
   end
-
-  def template_root
-    "#{File.dirname(__FILE__)}/fixtures/path.with.dots"
-  end
 end
 
 class TestMailer < ActionMailer::Base
-
   def signed_up(recipient)
     @recipients   = recipient
     @subject      = "[Signed up] Welcome #{recipient}"
@@ -270,8 +264,6 @@ class TestMailer < ActionMailer::Base
     self.class.received_body = mail.body
   end
 end
-
-TestMailer.template_root = File.dirname(__FILE__) + "/fixtures"
 
 class ActionMailerTest < Test::Unit::TestCase
   include ActionMailer::Quoting
@@ -816,3 +808,15 @@ EOF
   end
 end
 
+class InheritableTemplateRootTest < Test::Unit::TestCase
+  def test_attr
+    expected = "#{File.dirname(__FILE__)}/fixtures/path.with.dots"
+    assert_equal expected, FunkyPathMailer.template_root
+
+    sub = Class.new(FunkyPathMailer)
+    sub.template_root = 'test/path'
+
+    assert_equal 'test/path', sub.template_root
+    assert_equal expected, FunkyPathMailer.template_root
+  end
+end

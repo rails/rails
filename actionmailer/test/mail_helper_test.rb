@@ -1,8 +1,4 @@
-$:.unshift(File.dirname(__FILE__) + "/../lib/")
-$:.unshift File.dirname(__FILE__) + "/fixtures/helpers"
-
-require 'test/unit'
-require 'action_mailer'
+require "#{File.dirname(__FILE__)}/abstract_unit"
 
 module MailerHelper
   def person_name
@@ -55,8 +51,6 @@ class HelperMailer < ActionMailer::Base
     end
     helper_method :name_of_the_mailer_class
 end
-
-HelperMailer.template_root = File.dirname(__FILE__) + "/fixtures"
 
 class MailerHelperTest < Test::Unit::TestCase
   def new_mail( charset="utf-8" )

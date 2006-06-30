@@ -1,5 +1,7 @@
 *SVN*
 
+* Mailer template root applies to a class and its subclasses rather than acting globally. #5555 [somekool@gmail.com]
+
 * Resolve action naming collision. #5520 [ssinghi@kreeti.com]
 
 * ActionMailer::Base documentation rewrite. Closes #4991 [Kevin Clark, Marcel Molina Jr.]
