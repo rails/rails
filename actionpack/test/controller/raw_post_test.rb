@@ -11,7 +11,7 @@ class RawPostDataTest < Test::Unit::TestCase
 
   def test_post_with_urlencoded_body
     ENV['REQUEST_METHOD'] = 'POST'
-    ENV['CONTENT_TYPE'] = 'application/x-www-form-urlencoded'
+    ENV['CONTENT_TYPE'] = ' apPlication/x-Www-form-urlEncoded; charset=utf-8'
     assert_equal ['1'], cgi_params['a']
     assert_has_raw_post_data
   end
