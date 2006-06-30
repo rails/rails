@@ -1,4 +1,8 @@
+*1.1.4* (June 29th, 2006)
+
 * Remove use of opts.on { |options[:name] } style hash assignment. References #4440. [headius@headius.com]
+
+* Updated to Action Pack 1.12.3, ActionWebService 1.1.4, ActionMailer 1.2.3
 
 
 *1.1.3* (June 27th, 2006)
