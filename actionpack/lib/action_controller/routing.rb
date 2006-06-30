@@ -263,13 +263,12 @@ module ActionController
         end
         
       protected
-        
         def safe_load_paths #:nodoc:
           if defined?(RAILS_ROOT)
             $LOAD_PATH.select do |base|
               base = File.expand_path(base)
               extended_root = File.expand_path(RAILS_ROOT)
-              base[0, extended_root.length] == extended_root
+              base[0, extended_root.length] == extended_root || base =~ %r{rails-[\d.]+/builtin}
             end
           else
             $LOAD_PATH
