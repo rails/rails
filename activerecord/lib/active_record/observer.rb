@@ -1,4 +1,5 @@
 require 'singleton'
+require 'set'
 
 module ActiveRecord
   module Observing # :nodoc:
@@ -12,18 +13,30 @@ module ActiveRecord
       #   # Calls PersonObserver.instance
       #   ActiveRecord::Base.observers = :person_observer
       #
-      #   # Calls Cacher.instance and GarbageCollector.instance 
+      #   # Calls Cacher.instance and GarbageCollector.instance
       #   ActiveRecord::Base.observers = :cacher, :garbage_collector
       #
       #   # Same as above, just using explicit class references
       #   ActiveRecord::Base.observers = Cacher, GarbageCollector
       def observers=(*observers)
-        observers = [ observers ].flatten.each do |observer| 
-          observer.is_a?(Symbol) ? 
-            observer.to_s.camelize.constantize.instance :
+        observers.flatten.each do |observer|
+          if observer.respond_to?(:to_sym) # Symbol or String
+            observer.to_s.camelize.constantize.instance
+          elsif observer.respond_to?(:instance)
             observer.instance
+          else
+            raise ArgumentError, "#{observer} must be a lowercase, underscored class name (or an instance of the class itself) responding to the instance method. Example: Person.observers = :big_brother # calls BigBrother.instance"
+          end
         end
       end
+
+      protected
+        # Notify observers when the observed class is subclassed.
+        def inherited(subclass)
+          super
+          changed
+          notify_observers :observed_class_inherited, subclass
+        end
     end
   end
 
@@ -84,12 +97,12 @@ module ActiveRecord
   # The observer can implement callback methods for each of the methods described in the Callbacks module.
   #
   # == Storing Observers in Rails
-  # 
+  #
   # If you're using Active Record within Rails, observer classes are usually stored in app/models with the
   # naming convention of app/models/audit_observer.rb.
   #
   # == Configuration
-  # 
+  #
   # In order to activate an observer, list it in the <tt>config.active_record.observers</tt> configuration setting in your
   # <tt>config/environment.rb</tt> file.
   #
@@ -103,36 +116,49 @@ module ActiveRecord
     # Observer subclasses should be reloaded by the dispatcher in Rails
     # when Dependencies.mechanism = :load.
     include Reloadable::Subclasses
-    
-    # Attaches the observer to the supplied model classes.
-    def self.observe(*models)
-      define_method(:observed_class) { models }
+
+    class << self
+      # Attaches the observer to the supplied model classes.
+      def observe(*models)
+        define_method(:observed_classes) { Set.new(models) }
+      end
+
+      # The class observed by default is inferred from the observer's class name:
+      #   assert_equal [Person], PersonObserver.observed_class
+      def observed_class
+        name.scan(/(.*)Observer/)[0][0].constantize
+      end
     end
 
+    # Start observing the declared classes and their subclasses.
     def initialize
-      observed_classes = [ observed_class ].flatten
-      observed_subclasses_class = observed_classes.collect {|c| c.send(:subclasses) }.flatten!
-      (observed_classes + observed_subclasses_class).each do |klass| 
+      Set.new(observed_classes + observed_subclasses).each { |klass| add_observer! klass }
+    end
+
+    # Send observed_method(object) if the method exists.
+    def update(observed_method, object) #:nodoc:
+      send(observed_method, object) if respond_to?(observed_method)
+    end
+
+    # Special method sent by the observed class when it is inherited.
+    # Passes the new subclass.
+    def observed_class_inherited(subclass) #:nodoc:
+      self.class.observe(observed_classes + [subclass])
+      add_observer!(subclass)
+    end
+
+    protected
+      def observed_classes
+        Set.new([self.class.observed_class].flatten)
+      end
+
+      def observed_subclasses
+        observed_classes.sum(&:subclasses)
+      end
+
+      def add_observer!(klass)
         klass.add_observer(self)
-        klass.send(:define_method, :after_find) unless klass.respond_to?(:after_find)
-      end
-    end
-  
-    def update(callback_method, object) #:nodoc:
-      send(callback_method, object) if respond_to?(callback_method)
-    end
-    
-    private
-      def observed_class
-        if self.class.respond_to? "observed_class"
-          self.class.observed_class
-        else
-          Object.const_get(infer_observed_class_name)
-        end
-      end
-      
-      def infer_observed_class_name
-        self.class.name.scan(/(.*)Observer/)[0][0]
+        klass.class_eval 'def after_find() end' unless klass.respond_to?(:after_find)
       end
   end
 end

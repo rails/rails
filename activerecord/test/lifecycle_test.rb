@@ -46,13 +46,22 @@ end
 
 class MultiObserver < ActiveRecord::Observer
   attr_reader :record
-  
+
   def self.observed_class() [ Topic, Developer ] end
+
+  cattr_reader :last_inherited
+  @@last_inherited = nil
+
+  def observed_class_inherited_with_testing(subclass)
+    observed_class_inherited_without_testing(subclass)
+    @@last_inherited = subclass
+  end
+
+  alias_method_chain :observed_class_inherited, :testing
 
   def after_find(record)
     @record = record
   end
-
 end
 
 class LifecycleTest < Test::Unit::TestCase
@@ -63,54 +72,64 @@ class LifecycleTest < Test::Unit::TestCase
     Topic.find(1).destroy
     assert_equal 0, Topic.count
   end
-  
+
   def test_after_save
     ActiveRecord::Base.observers = :topic_manual_observer
 
     topic = Topic.find(1)
     topic.title = "hello"
     topic.save
-    
+
     assert TopicManualObserver.instance.has_been_notified?
     assert_equal :after_save, TopicManualObserver.instance.callbacks.last["callback_method"]
   end
-  
+
   def test_observer_update_on_save
     ActiveRecord::Base.observers = TopicManualObserver
 
-    topic = Topic.find(1)    
+    topic = Topic.find(1)
     assert TopicManualObserver.instance.has_been_notified?
     assert_equal :after_find, TopicManualObserver.instance.callbacks.first["callback_method"]
   end
-  
+
   def test_auto_observer
     topic_observer = TopicaObserver.instance
 
-    topic = Topic.find(1)    
-    assert_equal topic_observer.topic.title, topic.title
+    topic = Topic.find(1)
+    assert_equal topic.title, topic_observer.topic.title
   end
-  
-  def test_infered_auto_observer
+
+  def test_inferred_auto_observer
     topic_observer = TopicObserver.instance
 
-    topic = Topic.find(1)    
-    assert_equal topic_observer.topic.title, topic.title
+    topic = Topic.find(1)
+    assert_equal topic.title, topic_observer.topic.title
   end
-  
+
   def test_observing_two_classes
     multi_observer = MultiObserver.instance
 
     topic = Topic.find(1)
-    assert_equal multi_observer.record.title, topic.title
+    assert_equal topic.title, multi_observer.record.title
 
-    developer = Developer.find(1)    
-    assert_equal multi_observer.record.name, developer.name
+    developer = Developer.find(1)
+    assert_equal developer.name, multi_observer.record.name
   end
-  
+
   def test_observing_subclasses
     multi_observer = MultiObserver.instance
 
     developer = SpecialDeveloper.find(1)
-    assert_equal multi_observer.record.name, developer.name
+    assert_equal developer.name, multi_observer.record.name
+
+    klass = Class.new(Developer)
+    assert_equal klass, multi_observer.last_inherited
+
+    developer = klass.find(1)
+    assert_equal developer.name, multi_observer.record.name
+  end
+
+  def test_invalid_observer
+    assert_raise(ArgumentError) { Topic.observers = Object.new }
   end
 end
