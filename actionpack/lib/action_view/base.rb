@@ -513,11 +513,11 @@ module ActionView #:nodoc:
             logger.debug "Backtrace: #{e.backtrace.join("\n")}"
           end
 
-          raise TemplateError.new(@base_path, method_key, @assigns, template, e)
+          raise TemplateError.new(@base_path, file_name || template, @assigns, template, e)
         end
 
         @@compile_time[render_symbol] = Time.now
-        # logger.debug "Compiled template #{method_key}\n  ==> #{render_symbol}" if logger
+        # logger.debug "Compiled template #{file_name || template}\n  ==> #{render_symbol}" if logger
       end
   end
 end
