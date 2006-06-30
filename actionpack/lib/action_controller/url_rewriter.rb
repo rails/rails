@@ -7,7 +7,7 @@ module ActionController
       @request, @parameters = request, parameters
     end
     
-    def rewrite(options = {})      
+    def rewrite(options = {})
       rewrite_url(rewrite_path(options), options)
     end
 

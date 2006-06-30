@@ -120,7 +120,7 @@ module ActionController
   
     class Route
       attr_accessor :segments, :requirements, :conditions
-  
+      
       def initialize
         @segments = []
         @requirements = {}
@@ -137,7 +137,7 @@ module ActionController
         args = "options, hash, expire_on = {}"
 
         # Nest the body inside of a def block, and then compile it.
-        method_decl = "def generate_raw(#{args})\npath = begin\n#{body}\nend\n[path, hash]\nend"
+        raw_method = method_decl = "def generate_raw(#{args})\npath = begin\n#{body}\nend\n[path, hash]\nend"
 # puts "\n======================"
 # puts
 # p self
@@ -157,6 +157,7 @@ module ActionController
 
         method_decl = "def generate_extras(#{args})\npath, hash = generate_raw(options, hash, expire_on)\n[path, extra_keys(hash, expire_on)]\nend"
         instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
+        raw_method
       end
   
       # Build several lines of code that extract values from the options hash. If any
@@ -219,7 +220,7 @@ module ActionController
         end
         wrap ? ("\\A" + pattern + "\\Z") : pattern
       end
-  
+      
       # Write the code to extract the parameters from a matched route.
       def recognition_extraction
         next_capture = 1
@@ -344,10 +345,10 @@ module ActionController
 
       def to_s
         @to_s ||= begin
-            segs = segments.inject("") { |str,s| str << s.to_s }
-            "%-6s %-40s %s" % [(conditions[:method] || :any).to_s.upcase, segs, requirements.inspect]
-          end     
-      end     
+          segs = segments.inject("") { |str,s| str << s.to_s }
+          "%-6s %-40s %s" % [(conditions[:method] || :any).to_s.upcase, segs, requirements.inspect]
+        end
+      end
   
     protected
   
@@ -806,8 +807,7 @@ module ActionController
 
         def add(name, route)
           routes[name.to_sym] = route
-          define_hash_access_method(name, route)
-          define_url_helper_method(name, route)
+          define_named_route_methods(name, route)
         end
 
         def get(name)
@@ -840,31 +840,41 @@ module ActionController
 
         private
 
-          def url_helper_name(name)
-            :"#{name}_url"
+          def url_helper_name(name, kind = :url)
+            :"#{name}_#{kind}"
           end
 
-          def hash_access_name(name)
-            :"hash_for_#{name}_url"
+          def hash_access_name(name, kind = :url)
+            :"hash_for_#{name}_#{kind}"
           end
 
-          def define_hash_access_method(name, route)
-            method_name = hash_access_name(name)
-
-            @module.send(:define_method, method_name) do |*args|
-              hash = route.defaults.merge(:use_route => name)
-              args.first ? hash.merge(args.first) : hash
+          def define_named_route_methods(name, route)
+            {:url => {}, :path => {:only_path => true}}.each do |kind, opts|
+              hash = route.defaults.merge(:use_route => name).merge(opts)
+              define_hash_access route, name, kind, hash
+              define_url_helper route, name, kind, hash
             end
-
-            @module.send(:protected, method_name)
-            helpers << method_name
           end
-
-          def define_url_helper_method(name, route)
-            hash_access_method = hash_access_name(name)
-            method_name = url_helper_name(name)
-
-            @module.send(:define_method, method_name) do |*args|
+          
+          def define_hash_access(route, name, kind, options)
+            selector = hash_access_name(name, kind)
+            @module.send(:define_method, selector) do |*args|
+              args.first ? options.merge(args.first) : options
+            end
+            @module.send(:protected, selector)
+            helpers << selector
+          end
+          
+          def define_url_helper(route, name, kind, options)
+            selector = url_helper_name(name, kind)
+            
+            # The segment keys used for positional paramters
+            segment_keys = route.segments.collect do |segment|
+              segment.key if segment.respond_to? :key
+            end.compact
+            hash_access_method = hash_access_name(name, kind)
+            
+            @module.send(:define_method, selector) do |*args|
               opts = if args.empty? || Hash === args.first
                 args.first || {}
               else
@@ -876,20 +886,18 @@ module ActionController
                 # instead of
                 #
                 #   foo_url(:bar => bar, :baz => baz, :bang => bang)
-                route.segments.inject({}) do |opts, seg|
-                  next opts unless seg.respond_to?(:key) && seg.key
-                  opts[seg.key] = args.shift
-                  break opts if args.empty?
-                  opts
+                args.zip(segment_keys).inject({}) do |h, (v, k)|
+                  h[k] = v
+                  h
                 end
               end
 
               url_for(send(hash_access_method, opts))
             end
-
-            @module.send(:protected, method_name)
-            helpers << method_name
+            @module.send(:protected, selector)
+            helpers << selector
           end
+          
       end
   
       attr_accessor :routes, :named_routes

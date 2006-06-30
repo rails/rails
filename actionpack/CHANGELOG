@@ -1,5 +1,7 @@
 *SVN*
 
+* Add route_name_path method to generate only the path for a named routes. For example, map.person will add person_path. [Nicholas Seckar]
+
 * Avoid naming collision among compiled view methods. [Jeremy Kemper]
 
 * Fix CGI extensions when they expect string but get nil in Windows. Closes #5276 [mislav@nippur.irb.hr]

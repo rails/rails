@@ -1108,8 +1108,9 @@ class RouteSetTest < Test::Unit::TestCase
     end
 
     def url_for(options)
+      only_path = options.delete(:only_path)
       path = routes.generate(options)
-      "http://named.route.test#{path}"
+      only_path ? path : "http://named.route.test#{path}"
     end
   end
 
@@ -1193,13 +1194,21 @@ class RouteSetTest < Test::Unit::TestCase
     assert_equal(
       { :controller => 'people', :action => 'index', :use_route => :index },
       controller.send(:hash_for_index_url))
+    
+    assert_equal(
+      { :controller => 'people', :action => 'show', :id => 5, :use_route => :show, :only_path => true },
+      controller.send(:hash_for_show_path, :id => 5)
+    )
   end
 
   def test_named_route_url_method
     controller = setup_named_route_test
-
+    
     assert_equal "http://named.route.test/people/5", controller.send(:show_url, :id => 5)
+    assert_equal "/people/5", controller.send(:show_path, :id => 5)
+    
     assert_equal "http://named.route.test/people", controller.send(:index_url)
+    assert_equal "/people", controller.send(:index_path)
   end
 
   def test_namd_route_url_method_with_ordered_parameters
