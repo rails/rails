@@ -115,7 +115,11 @@ class ScaffoldGenerator < Rails::Generator::NamedBase
                             "#{controller_file_name}_helper.rb")
 
       # Layout and stylesheet.
-      m.template 'layout.rhtml',  "app/views/layouts/#{controller_file_name}.rhtml"
+      m.template 'layout.rhtml',
+                  File.join('app/views/layouts',
+                            controller_class_path,
+                            "#{controller_file_name}.rhtml")
+
       m.template 'style.css',     'public/stylesheets/scaffold.css'
 
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Generate scaffold layout in subdirectory appropriate to its module nesting. #5511 [nils@alumni.rice.edu]
+
 * Mongrel: script/server tails the rails log like it does with lighttpd. Prefer mongrel over lighttpd. #5541 [mike@clarkware.com]
 
 * Don't assume Active Record is available. #5497 [bob@sporkmonger.com]
