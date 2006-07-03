@@ -1441,7 +1441,7 @@ module ActiveRecord #:nodoc:
       # Enables Active Record objects to be used as URL parameters in Action Pack automatically.
       def to_param
         # We can't use alias_method here, because method 'id' optimizes itself on the fly.
-        id.to_s if id # Be sure to stringify the id for routes
+        (id = self.id) ? id.to_s : nil # Be sure to stringify the id for routes
       end
 
       def id_before_type_cast #:nodoc:
