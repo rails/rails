@@ -17,7 +17,7 @@ class Module
   # is equivalent to
   #
   #   alias_method :foo_without_feature?, :foo?
-  #   alias_method :foo?, :foo_without_feature?
+  #   alias_method :foo?, :foo_with_feature?
   #
   # so you can safely chain foo, foo?, and foo! with the same feature.
   def alias_method_chain(target, feature)
