@@ -5,8 +5,9 @@
 # On MacOS X:
 #   gem install mysql -- --include=/usr/local/lib
 # On Windows:
-#   There is no gem for Windows.  Install mysql.so from RubyForApache.
-#   http://rubyforge.org/projects/rubyforapache
+#   gem install mysql
+#       Choose the win32 build.
+#       Install MySQL and put its /bin directory on your path.
 #
 # And be sure to use new-style password hashing:
 #   http://dev.mysql.com/doc/refman/5.0/en/old-client.html
