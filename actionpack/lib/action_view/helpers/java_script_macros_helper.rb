@@ -27,7 +27,6 @@ module ActionView
       # <tt>:url</tt>::       Specifies the url where the updated value should
       #                       be sent after the user presses "ok".
       # 
-      #
       # Addtional +options+ are:
       # <tt>:rows</tt>::              Number of rows (more than 1 will use a TEXTAREA)
       # <tt>:cols</tt>::              Number of characters the text input should span (works for both INPUT and TEXTAREA)
@@ -79,11 +78,11 @@ module ActionView
       # Adds AJAX autocomplete functionality to the text input field with the 
       # DOM ID specified by +field_id+.
       #
-      # This function expects that the called action returns a HTML <ul> list,
+      # This function expects that the called action returns an HTML <ul> list,
       # or nothing if no entries should be displayed for autocompletion.
       #
       # You'll probably want to turn the browser's built-in autocompletion off,
-      # so be sure to include a autocomplete="off" attribute with your text
+      # so be sure to include an <tt>autocomplete="off"</tt> attribute with your text
       # input field.
       #
       # The autocompleter object is assigned to a Javascript variable named <tt>field_id</tt>_auto_completer.
@@ -91,45 +90,45 @@ module ActionView
       # other means than user input (for that specific case, call the <tt>activate</tt> method on that object). 
       # 
       # Required +options+ are:
-      # <tt>:url</tt>::       URL to call for autocompletion results
-      #                       in url_for format.
+      # <tt>:url</tt>::                  URL to call for autocompletion results
+      #                                  in url_for format.
       # 
       # Addtional +options+ are:
-      # <tt>:update</tt>::    Specifies the DOM ID of the element whose 
-      #                       innerHTML should be updated with the autocomplete
-      #                       entries returned by the AJAX request. 
-      #                       Defaults to field_id + '_auto_complete'
-      # <tt>:with</tt>::      A JavaScript expression specifying the
-      #                       parameters for the XMLHttpRequest. This defaults
-      #                       to 'fieldname=value'.
-      # <tt>:frequency</tt>:: Determines the time to wait after the last keystroke
-      #                       for the AJAX request to be initiated.
-      # <tt>:indicator</tt>:: Specifies the DOM ID of an element which will be
-      #                       displayed while autocomplete is running.
-      # <tt>:tokens</tt>::    A string or an array of strings containing
-      #                       separator tokens for tokenized incremental 
-      #                       autocompletion. Example: <tt>:tokens => ','</tt> would
-      #                       allow multiple autocompletion entries, separated
-      #                       by commas.
-      # <tt>:min_chars</tt>:: The minimum number of characters that should be
-      #                       in the input field before an Ajax call is made
-      #                       to the server.
-      # <tt>:on_hide</tt>::   A Javascript expression that is called when the
-      #                       autocompletion div is hidden. The expression
-      #                       should take two variables: element and update.
-      #                       Element is a DOM element for the field, update
-      #                       is a DOM element for the div from which the
-      #                       innerHTML is replaced.
-      # <tt>:on_show</tt>::   Like on_hide, only now the expression is called
-      #                       then the div is shown.
-      # <tt>:after_update_element</tt>::   A Javascript expression that is called when the
-      #                                    user has selected one of the proposed values. 
-      #                                    The expression should take two variables: element and value.
-      #                                    Element is a DOM element for the field, value
-      #                                    is the value selected by the user.
-      # <tt>:select</tt>::    Pick the class of the element from which the value for 
-      #                       insertion should be extracted. If this is not specified,
-      #                       the entire element is used.
+      # <tt>:update</tt>::               Specifies the DOM ID of the element whose 
+      #                                  innerHTML should be updated with the autocomplete
+      #                                  entries returned by the AJAX request. 
+      #                                  Defaults to <tt>field_id</tt> + '_auto_complete'
+      # <tt>:with</tt>::                 A JavaScript expression specifying the
+      #                                  parameters for the XMLHttpRequest. This defaults
+      #                                  to 'fieldname=value'.
+      # <tt>:frequency</tt>::            Determines the time to wait after the last keystroke
+      #                                  for the AJAX request to be initiated.
+      # <tt>:indicator</tt>::            Specifies the DOM ID of an element which will be
+      #                                  displayed while autocomplete is running.
+      # <tt>:tokens</tt>::               A string or an array of strings containing
+      #                                  separator tokens for tokenized incremental 
+      #                                  autocompletion. Example: <tt>:tokens => ','</tt> would
+      #                                  allow multiple autocompletion entries, separated
+      #                                  by commas.
+      # <tt>:min_chars</tt>::            The minimum number of characters that should be
+      #                                  in the input field before an Ajax call is made
+      #                                  to the server.
+      # <tt>:on_hide</tt>::              A Javascript expression that is called when the
+      #                                  autocompletion div is hidden. The expression
+      #                                  should take two variables: element and update.
+      #                                  Element is a DOM element for the field, update
+      #                                  is a DOM element for the div from which the
+      #                                  innerHTML is replaced.
+      # <tt>:on_show</tt>::              Like on_hide, only now the expression is called
+      #                                  then the div is shown.
+      # <tt>:after_update_element</tt>:: A Javascript expression that is called when the
+      #                                  user has selected one of the proposed values. 
+      #                                  The expression should take two variables: element and value.
+      #                                  Element is a DOM element for the field, value
+      #                                  is the value selected by the user.
+      # <tt>:select</tt>::               Pick the class of the element from which the value for 
+      #                                  insertion should be extracted. If this is not specified,
+      #                                  the entire element is used.
       def auto_complete_field(field_id, options = {})
         function =  "var #{field_id}_auto_completer = new Ajax.Autocompleter("
         function << "'#{field_id}', "

@@ -1248,7 +1248,7 @@ module ActiveRecord
           extension_module_name.constantize
         end
 
-        class JoinDependency
+        class JoinDependency # :nodoc:
           attr_reader :joins, :reflections, :table_aliases
 
           def initialize(base, associations, joins)
@@ -1348,7 +1348,7 @@ module ActiveRecord
               return association
             end
 
-          class JoinBase
+          class JoinBase # :nodoc:
             attr_reader :active_record, :table_joins
             delegate    :table_name, :column_names, :primary_key, :reflections, :sanitize_sql, :to => :active_record
 
@@ -1393,7 +1393,7 @@ module ActiveRecord
             end
           end
 
-          class JoinAssociation < JoinBase
+          class JoinAssociation < JoinBase # :nodoc:
             attr_reader :reflection, :parent, :aliased_table_name, :aliased_prefix, :aliased_join_table_name, :parent_table_name
             delegate    :options, :klass, :through_reflection, :source_reflection, :to => :reflection
 
