@@ -1147,6 +1147,7 @@ module ActiveRecord
           add_conditions!(sql, options[:conditions], scope)
           add_limited_ids_condition!(sql, options, join_dependency) if !using_limitable_reflections?(join_dependency.reflections) && ((scope && scope[:limit]) || options[:limit])
 
+          sql << "GROUP BY #{options[:group]} " if options[:group]
           sql << "ORDER BY #{options[:order]} " if options[:order]
  
           add_limit!(sql, options, scope) if using_limitable_reflections?(join_dependency.reflections)

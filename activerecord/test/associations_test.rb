@@ -1619,4 +1619,8 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_join_table_alias
     assert_equal 3, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL').size
   end
+  
+  def test_join_with_group
+    assert_equal 2, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL', :group => "developers.name").size
+  end
 end
