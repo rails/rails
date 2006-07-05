@@ -39,7 +39,7 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
   end
 
   def test_show<%= suffix %>
-    get :show<%= suffix %>, :id => 1
+    get :show<%= suffix %>, :id => <%= plural_name %>(:first)
 
     assert_response :success
     assert_template 'show'
@@ -69,7 +69,7 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
   end
 
   def test_edit<%= suffix %>
-    get :edit<%= suffix %>, :id => 1
+    get :edit<%= suffix %>, :id => <%= plural_name %>(:first)
 
     assert_response :success
     assert_template 'edit<%= suffix %>'
@@ -79,13 +79,13 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
   end
 
   def test_update<%= suffix %>
-    post :update<%= suffix %>, :id => 1
+    post :update<%= suffix %>, :id => <%= plural_name %>(:first)
     assert_response :redirect
     assert_redirected_to :action => 'show<%= suffix %>', :id => 1
   end
 
   def test_destroy<%= suffix %>
-    assert_not_nil <%= model_name %>.find(1)
+    assert_not_nil <%= model_name %>.find(<%= plural_name %>(:first))
 
     post :destroy, :id => 1
     assert_response :redirect

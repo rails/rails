@@ -1,5 +1,7 @@
 *SVN*
 
+* Update scaffolding functional tests to use :id => people(:first) instead of :id => 1. #5612 [evan@protest.net]
+
 * db:test:clone should remove existing tables before reloading the schema. #5607 [sveit@tradeharbor.com]
 
 * Fixed migration generation for class names like ACLController #5197 [brad@madriska.com]
