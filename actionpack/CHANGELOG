@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that real files and symlinks should be treated the same when compiling templates #5438 [zachary@panandscan.com]
+
 * Fixed that the flash should be reset when reset_session is called #5584 [shugo@ruby-lang.org]
 
 * Added special case for "1 Byte" in NumberHelper#number_to_human_size #5593 [murpyh@rubychan.de]
