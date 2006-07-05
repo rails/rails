@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed migration generation for class names like ACLController #5197 [brad@madriska.com]
+
 * Added show_source_list and show_call_stack to breakpoints to make it easier to get context #5476 [takiuchi@drecom.co.jp]. Examples:
 
     irb(#<TopController:0x40822a68>):002:0> show_source_list
