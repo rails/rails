@@ -1,5 +1,7 @@
 *SVN*
 
+* HashWithIndifferentAccess shouldn't confuse false and nil. #5601 [shugo@ruby-lang.org]
+
 * Fixed HashWithIndifferentAccess#default #5586 [chris@seagul.co.uk]
 
 * More compatible Hash.create_from_xml. #5523 [nunemaker@gmail.com]

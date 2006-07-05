@@ -50,18 +50,18 @@ class HashExtTest < Test::Unit::TestCase
     @strings = @strings.with_indifferent_access
     @symbols = @symbols.with_indifferent_access
     @mixed   = @mixed.with_indifferent_access
-   
+
     assert_equal 'a', @strings.send(:convert_key, :a)
-  
+
     assert_equal 1, @strings.fetch('a')
     assert_equal 1, @strings.fetch(:a.to_s)
     assert_equal 1, @strings.fetch(:a)
-  
+
     hashes = { :@strings => @strings, :@symbols => @symbols, :@mixed => @mixed }
     method_map = { :'[]' => 1, :fetch => 1, :values_at => [1],
       :has_key? => true, :include? => true, :key? => true,
       :member? => true }
-  
+
     hashes.each do |name, hash|
       method_map.sort_by { |m| m.to_s }.each do |meth, expected|
         assert_equal(expected, hash.send(meth, 'a'),
@@ -70,7 +70,7 @@ class HashExtTest < Test::Unit::TestCase
                      "Calling #{name}.#{meth} :a")
       end
     end
-  
+
     assert_equal [1, 2], @strings.values_at('a', 'b')
     assert_equal [1, 2], @strings.values_at(:a, :b)
     assert_equal [1, 2], @symbols.values_at('a', 'b')
@@ -78,13 +78,41 @@ class HashExtTest < Test::Unit::TestCase
     assert_equal [1, 2], @mixed.values_at('a', 'b')
     assert_equal [1, 2], @mixed.values_at(:a, :b)
   end
-  
+
+  def test_indifferent_reading
+    hash = HashWithIndifferentAccess.new
+    hash["a"] = 1
+    hash["b"] = true
+    hash["c"] = false
+    hash["d"] = nil
+
+    assert_equal 1, hash[:a]
+    assert_equal true, hash[:b]
+    assert_equal false, hash[:c]
+    assert_equal nil, hash[:d]
+    assert_equal nil, hash[:e]
+  end
+
+  def test_indifferent_reading_with_nonnil_default
+    hash = HashWithIndifferentAccess.new(1)
+    hash["a"] = 1
+    hash["b"] = true
+    hash["c"] = false
+    hash["d"] = nil
+
+    assert_equal 1, hash[:a]
+    assert_equal true, hash[:b]
+    assert_equal false, hash[:c]
+    assert_equal nil, hash[:d]
+    assert_equal 1, hash[:e]
+  end
+
   def test_indifferent_writing
     hash = HashWithIndifferentAccess.new
     hash[:a] = 1
     hash['b'] = 2
     hash[3] = 3
-    
+
     assert_equal hash['a'], 1
     assert_equal hash['b'], 2
     assert_equal hash[:a], 1
@@ -96,7 +124,7 @@ class HashExtTest < Test::Unit::TestCase
     hash = HashWithIndifferentAccess.new
     hash[:a] = 'a'
     hash['b'] = 'b'
-    
+
     updated_with_strings = hash.update(@strings)
     updated_with_symbols = hash.update(@symbols)
     updated_with_mixed = hash.update(@mixed)
@@ -119,21 +147,21 @@ class HashExtTest < Test::Unit::TestCase
     hash = HashWithIndifferentAccess.new
     hash[:a] = 'failure'
     hash['b'] = 'failure'
-   
+
     other = { 'a' => 1, :b => 2 }
-  
+
     merged = hash.merge(other)
-  
+
     assert_equal HashWithIndifferentAccess, merged.class
     assert_equal 1, merged[:a]
     assert_equal 2, merged['b']
-  
+
     hash.update(other)
-  
+
     assert_equal 1, hash[:a]
     assert_equal 2, hash['b']
   end
-  
+
   def test_indifferent_deleting
     get_hash = proc{ { :a => 'foo' }.with_indifferent_access }
     hash = get_hash.call
@@ -160,7 +188,7 @@ class HashExtTest < Test::Unit::TestCase
       { :failure => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
       { :failure => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
     end
-    
+
     assert_raises(ArgumentError, "Unknown key(s): failore") do
       { :failore => "stuff", :funny => "business" }.assert_valid_keys([ :failure, :funny ])
       { :failore => "stuff", :funny => "business" }.assert_valid_keys(:failure, :funny)
@@ -170,7 +198,7 @@ class HashExtTest < Test::Unit::TestCase
   def test_indifferent_subhashes
     h = {'user' => {'id' => 5}}.with_indifferent_access
     ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
-    
+
     h = {:user => {:id => 5}}.with_indifferent_access
     ['user', :user].each {|user| [:id, 'id'].each {|id| assert_equal 5, h[user][id], "h[#{user.inspect}][#{id.inspect}] should be 5"}}
   end
@@ -265,7 +293,7 @@ class HashToXmlTest < Test::Unit::TestCase
     assert xml.include?(%(<address><street>Paulina</street></address>))
     assert xml.include?(%(<level_one><second_level>content</second_level></level_one>))
   end
-  
+
   def test_two_levels_with_array
     xml = { :name => "David", :addresses => [{ :street => "Paulina" }, { :street => "Evergreen" }] }.to_xml(@xml_options)
     assert_equal "<person>", xml.first(8)
@@ -274,7 +302,7 @@ class HashToXmlTest < Test::Unit::TestCase
     assert xml.include?(%(<address><street>Evergreen</street></address>))
     assert xml.include?(%(<name>David</name>))
   end
-  
+
   def test_three_levels_with_array
     xml = { :name => "David", :addresses => [{ :streets => [ { :name => "Paulina" }, { :name => "Paulina" } ] } ] }.to_xml(@xml_options)
     assert xml.include?(%(<addresses><address><streets><street><name>))
@@ -295,7 +323,7 @@ class HashToXmlTest < Test::Unit::TestCase
         <parent-id></parent-id>
       </topic>
     EOT
-    
+
     expected_topic_hash = {
       :title => "The First Topic",
       :author_name => "David",
@@ -308,7 +336,7 @@ class HashToXmlTest < Test::Unit::TestCase
       :author_email_address => "david@loudthinking.com",
       :parent_id => nil
     }.stringify_keys
-    
+
     assert_equal expected_topic_hash, Hash.create_from_xml(topic_xml)["topic"]
   end
 
@@ -341,7 +369,7 @@ class HashToXmlTest < Test::Unit::TestCase
         </topic>
       </topics>
     EOT
-    
+
     expected_topic_hash = {
       :title => "The First Topic",
       :author_name => "David",
@@ -354,10 +382,10 @@ class HashToXmlTest < Test::Unit::TestCase
       :author_email_address => "david@loudthinking.com",
       :parent_id => nil
     }.stringify_keys
-    
+
     assert_equal expected_topic_hash, Hash.create_from_xml(topics_xml)["topics"]["topic"].first
   end
-  
+
   def test_single_record_from_xml_with_attributes_other_than_type
     topic_xml = <<-EOT
     <rsp stat="ok">
@@ -366,7 +394,7 @@ class HashToXmlTest < Test::Unit::TestCase
     	</photos>
     </rsp>
     EOT
-    
+
     expected_topic_hash = {
       :id => "175756086",
       :owner => "55569174@N00",
@@ -377,29 +405,28 @@ class HashToXmlTest < Test::Unit::TestCase
       :isfriend => "0",
       :isfamily => "0",
     }.stringify_keys
-    
+
     assert_equal expected_topic_hash, Hash.create_from_xml(topic_xml)["rsp"]["photos"]["photo"]
   end
-  
+
   def test_should_use_default_value_for_unknown_key
     hash_wia = HashWithIndifferentAccess.new(3)
     assert_equal 3, hash_wia[:new_key]
   end
-  
+
   def test_should_use_default_value_if_no_key_is_supplied
     hash_wia = HashWithIndifferentAccess.new(3)
     assert_equal 3, hash_wia.default
   end
-  
+
   def test_should_nil_if_no_default_value_is_supplied
     hash_wia = HashWithIndifferentAccess.new
     assert_nil hash_wia.default
   end
-  
+
   def test_should_copy_the_default_value_when_converting_to_hash_with_indifferent_access
     hash = Hash.new(3)
     hash_wia = hash.with_indifferent_access
     assert_equal 3, hash_wia.default
   end
-  
 end
