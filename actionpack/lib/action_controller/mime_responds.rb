@@ -93,7 +93,7 @@ module ActionController #:nodoc:
       # in a single request (i.e., by wrapping them all in a single root note), but if you just go with the flow 
       # and accept Rails' defaults, life will be much easier.
       def respond_to(*types, &block)
-        raise ArgumentError, "respond_to takes either types or a block, never bot" unless types.any? ^ block
+        raise ArgumentError, "respond_to takes either types or a block, never both" unless types.any? ^ block
         block ||= lambda { |responder| types.each { |type| responder.send(type) } }
         responder = Responder.new(block.binding)
         block.call(responder)
