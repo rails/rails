@@ -1,5 +1,7 @@
 *SVN*
 
+* db:test:clone should remove existing tables before reloading the schema. #5607 [sveit@tradeharbor.com]
+
 * Fixed migration generation for class names like ACLController #5197 [brad@madriska.com]
 
 * Added show_source_list and show_call_stack to breakpoints to make it easier to get context #5476 [takiuchi@drecom.co.jp]. Examples:

@@ -36,7 +36,7 @@ namespace :db do
     desc "Dump the database structure to a SQL file"
     task :dump => :environment do
       abcs = ActiveRecord::Base.configurations
-      case abcs[RAILS_ENV]["adapter"] 
+      case abcs[RAILS_ENV]["adapter"]
         when "mysql", "oci", "oracle"
           ActiveRecord::Base.establish_connection(abcs[RAILS_ENV])
           File.open("db/#{RAILS_ENV}_structure.sql", "w+") { |f| f << ActiveRecord::Base.connection.structure_dump }
@@ -54,7 +54,7 @@ namespace :db do
         when "sqlserver"
           `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /f db\\#{RAILS_ENV}_structure.sql /q /A /r`
           `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /F db\ /q /A /r`
-        else 
+        else
           raise "Task not supported by '#{abcs["test"]["adapter"]}'"
       end
 
@@ -66,13 +66,13 @@ namespace :db do
 
   namespace :test do
     desc "Recreate the test database from the current environment's database schema"
-    task :clone => "db:schema:dump" do
+    task :clone => %w(db:schema:dump db:test:purge) do
       ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations['test'])
       ActiveRecord::Schema.verbose = false
       Rake::Task["db:schema:load"].invoke
     end
 
-  
+
     desc "Recreate the test databases from the development structure"
     task :clone_structure => [ "db:structure:dump", "db:test:purge" ] do
       abcs = ActiveRecord::Base.configurations
@@ -98,7 +98,7 @@ namespace :db do
           IO.readlines("db/#{RAILS_ENV}_structure.sql").join.split(";\n\n").each do |ddl|
             ActiveRecord::Base.connection.execute(ddl)
           end
-        else 
+        else
           raise "Task not supported by '#{abcs["test"]["adapter"]}'"
       end
     end
