@@ -21,7 +21,7 @@ class ActiveSchemaTest < Test::Unit::TestCase
   end
   
   def test_add_column_with_limit
-    assert_equal "ALTER TABLE `people` ADD key varchar(32)", add_column(:people, :key, :string, :limit => 32)
+    assert_equal "ALTER TABLE people ADD `key` varchar(32)", add_column(:people, :key, :string, :limit => 32)
   end
   
   private
