@@ -170,7 +170,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
     
     def test_add_column_not_null_with_default
-      Person.connection.create_table :testings do |t|
+      Person.connection.create_table :testings, :id => false do |t|
         t.column :foo, :string
       end
       Person.connection.execute "insert into testings (foo) values ('hello')"

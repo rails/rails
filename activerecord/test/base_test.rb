@@ -1239,7 +1239,7 @@ class BasicsTest < Test::Unit::TestCase
     assert xml.include?(%(<content>Have a nice day</content>))
     assert xml.include?(%(<author-email-address>david@loudthinking.com</author-email-address>))
     assert xml.match(%(<parent-id type="integer"></parent-id>))
-    if current_adapter?(:SybaseAdapter) or current_adapter?(:SQLServerAdapter)
+    if current_adapter?(:SybaseAdapter) or current_adapter?(:SQLServerAdapter) or current_adapter?(:OracleAdapter)
       assert xml.include?(%(<last-read type="datetime">#{last_read_in_current_timezone}</last-read>))
     else
       assert xml.include?(%(<last-read type="date">2004-04-15</last-read>))

@@ -635,11 +635,11 @@ begin
     # Adds auto-recovery functionality.
     #
     # See: http://www.jiubao.org/ruby-oci8/api.en.html#label-11
-    def exec(sql, *bindvars)
+    def exec(sql, *bindvars, &block)
       should_retry = self.class.auto_retry? && autocommit?
 
       begin
-        @connection.exec(sql, *bindvars)
+        @connection.exec(sql, *bindvars, &block)
       rescue OCIException => e
         raise unless LOST_CONNECTION_ERROR_CODES.include?(e.code)
         @active = false
