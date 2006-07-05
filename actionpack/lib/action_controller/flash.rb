@@ -30,6 +30,7 @@ module ActionController #:nodoc:
       base.class_eval do
         alias_method_chain :assign_shortcuts, :flash
         alias_method_chain :process_cleanup, :flash
+        alias_method_chain :reset_session, :flash
       end
     end
     
@@ -142,6 +143,11 @@ module ActionController #:nodoc:
       def process_cleanup_with_flash
         flash.sweep if @session
         process_cleanup_without_flash
+      end
+
+      def reset_session_with_flash
+        reset_session_without_flash
+        @flash = nil
       end
       
       protected 
