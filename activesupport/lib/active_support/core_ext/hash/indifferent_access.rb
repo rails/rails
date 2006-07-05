@@ -11,9 +11,10 @@ class HashWithIndifferentAccess < Hash
     end
   end
  
-  def default(key)
-    self[key.to_s] if key.is_a?(Symbol)
-  end  
+  def default(key = nil)
+    value = self[key.to_s] if key.is_a?(Symbol)
+    value ? value : super
+  end
 
   alias_method :regular_writer, :[]= unless method_defined?(:regular_writer)
   alias_method :regular_update, :update unless method_defined?(:regular_update)
@@ -74,7 +75,9 @@ module ActiveSupport #:nodoc:
     module Hash #:nodoc:
       module IndifferentAccess #:nodoc:
         def with_indifferent_access
-          HashWithIndifferentAccess.new(self)
+          hash = HashWithIndifferentAccess.new(self)
+          hash.default = self.default
+          hash
         end
       end
     end

@@ -380,4 +380,26 @@ class HashToXmlTest < Test::Unit::TestCase
     
     assert_equal expected_topic_hash, Hash.create_from_xml(topic_xml)["rsp"]["photos"]["photo"]
   end
+  
+  def test_should_use_default_value_for_unknown_key
+    hash_wia = HashWithIndifferentAccess.new(3)
+    assert_equal 3, hash_wia[:new_key]
+  end
+  
+  def test_should_use_default_value_if_no_key_is_supplied
+    hash_wia = HashWithIndifferentAccess.new(3)
+    assert_equal 3, hash_wia.default
+  end
+  
+  def test_should_nil_if_no_default_value_is_supplied
+    hash_wia = HashWithIndifferentAccess.new
+    assert_nil hash_wia.default
+  end
+  
+  def test_should_copy_the_default_value_when_converting_to_hash_with_indifferent_access
+    hash = Hash.new(3)
+    hash_wia = hash.with_indifferent_access
+    assert_equal 3, hash_wia.default
+  end
+  
 end

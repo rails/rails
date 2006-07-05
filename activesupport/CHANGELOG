@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed HashWithIndifferentAccess#default #5586 [chris@seagul.co.uk]
+
 * More compatible Hash.create_from_xml. #5523 [nunemaker@gmail.com]
 
 * Added Enumerable#sum for calculating a sum from the elements [DHH, jonathan@daikini.com]. Examples:
