@@ -178,6 +178,30 @@ module Breakpoint
       end
     end
 
+    # Prints the source code surrounding the location where the
+    # breakpoint was issued.
+    def show_source_list(context = 5)
+      start_line, break_line, result = source_lines(context, true)
+      offset = [(break_line + context).to_s.length, 4].max
+      result.each_with_index do |line, i|
+        mark = (start_line + i == break_line ? '->' : '  ')
+        client.puts("%0#{offset}d%s#{line}" % [start_line + i, mark])
+      end
+      Pathname.new(@__bp_file).cleanpath.to_s
+    end
+
+    # Prints the call stack.
+    def show_call_stack(depth = 10)
+      base = Pathname.new(RAILS_ROOT).cleanpath.to_s
+      caller[1..depth].each do |line|
+        line.sub!(/^[^:]*/) do |path|
+          Pathname.new(path).cleanpath.to_s
+        end
+        client.puts(line.index(base) == 0 ? line[(base.length + 1)..-1] : line)
+      end
+      "#{Pathname.new(@__bp_file).cleanpath.to_s}:#{@__bp_line}"
+    end
+
     # Lets an object that will forward method calls to the breakpoint
     # client. This is useful for outputting longer things at the client
     # and so on. You can for example do these things:

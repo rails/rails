@@ -1,5 +1,24 @@
 *SVN*
 
+* Added show_source_list and show_call_stack to breakpoints to make it easier to get context #5476 [takiuchi@drecom.co.jp]. Examples:
+
+    irb(#<TopController:0x40822a68>):002:0> show_source_list
+    0001  class TopController < ApplicationController
+    0002    def show
+    0003->    breakpoint
+    0004    end
+    0005    
+    0006    def index
+    0007    end
+    0008    
+    => "/path/to/rails/root/app/controllers/top_controller.rb"
+
+    irb(#<TopController:0x40822a68>):004:0> show_call_stack 3
+    vendor/rails/railties/lib/breakpoint.rb:536:in `breakpoint'
+    vendor/rails/railties/lib/breakpoint.rb:536:in `breakpoint'
+    app/controllers/top_controller.rb:3:in `show'
+    => "/path/to/rails/root/app/controllers/top_controller.rb:3"
+
 * Generate scaffold layout in subdirectory appropriate to its module nesting. #5511 [nils@alumni.rice.edu]
 
 * Mongrel: script/server tails the rails log like it does with lighttpd. Prefer mongrel over lighttpd. #5541 [mike@clarkware.com]
