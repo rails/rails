@@ -1,5 +1,7 @@
 *SVN*
 
+* Added :group to available options for finds done on associations #5516 [mike@michaeldewey.org]
+
 * Minor tweak to improve performance of ActiveRecord::Base#to_param.
 
 * Observers also watch subclasses created after they are declared. #5535 [daniels@pronto.com.au]
