@@ -1,5 +1,7 @@
 *SVN*
 
+* Added exception handling of missing layouts #5373 [chris@ozmm.org]
+
 * Fixed that real files and symlinks should be treated the same when compiling templates #5438 [zachary@panandscan.com]
 
 * Fixed that the flash should be reset when reset_session is called #5584 [shugo@ruby-lang.org]

@@ -236,6 +236,8 @@ module ActionController #:nodoc:
       template_with_options = options.is_a?(Hash)
 
       if apply_layout?(template_with_options, options) && (layout = pick_layout(template_with_options, options, deprecated_layout))
+        assert_existence_of_template_file(layout)
+
         options = options.merge :layout => false if template_with_options
         logger.info("Rendering #{options} within #{layout}") if logger
 

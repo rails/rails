@@ -122,3 +122,22 @@ class LayoutSetInResponseTest < Test::Unit::TestCase
     assert_nil @response.layout
   end
 end
+
+
+class SetsNonExistentLayoutFile < LayoutTest
+  layout "nofile.rhtml"
+end
+
+class LayoutExceptionRaised < Test::Unit::TestCase
+  def setup
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+  end
+
+  def test_exception_raised_when_layout_file_not_found
+    @controller = SetsNonExistentLayoutFile.new
+    get :hello
+    @response.template.class.module_eval { attr_accessor :exception }
+    assert_equal ActionController::MissingTemplate, @response.template.exception.class
+  end
+end
