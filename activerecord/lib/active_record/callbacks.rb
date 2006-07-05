@@ -158,6 +158,12 @@ module ActiveRecord
   # after_initialize will only be run if an explicit implementation is defined (<tt>def after_find</tt>). In that case, all of the
   # callback types will be called.
   #
+  # == before_validation* returning statements
+  #
+  # If the returning value of a before_validation callback can be evaluated to false, the process will be aborted and Base#save will return false.
+  # If Base#save! is called it will raise a RecordNotSave error.
+  # Nothing will be appended to the errors object.
+  #
   # == Cancelling callbacks
   #
   # If a before_* callback returns false, all the later callbacks and the associated action are cancelled. If an after_* callback returns
