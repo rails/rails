@@ -597,6 +597,13 @@ module ActionController #:nodoc:
       #   # placed in "app/views/layouts/special.r(html|xml)"
       #   render :text => "Explosion!", :layout => "special"
       #
+      # The :text option can also accept a Proc object, which can be used to manually control the page generation. This should
+      # generally be avoided, as it violates the separation between code and content, and because almost everything that can be
+      # done with this method can also be done more cleanly using one of the other rendering methods, most notably templates.
+      #
+      #   # Renders "Hello from code!"
+      #   render :text => proc { |response, output| output.write("Hello from code!") }
+      #
       # _Deprecation_ _notice_: This used to have the signature <tt>render_text("text", status = 200)</tt>
       #
       # === Rendering an inline template
