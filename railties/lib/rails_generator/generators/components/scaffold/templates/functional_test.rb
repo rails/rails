@@ -11,6 +11,8 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
     @controller = <%= controller_class_name %>Controller.new
     @request    = ActionController::TestRequest.new
     @response   = ActionController::TestResponse.new
+
+    @first_id = <%= plural_name %>(:first).id
   end
 
 <% for action in unscaffolded_actions -%>
@@ -39,7 +41,7 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
   end
 
   def test_show<%= suffix %>
-    get :show<%= suffix %>, :id => <%= plural_name %>(:first)
+    get :show<%= suffix %>, :id => @first_id
 
     assert_response :success
     assert_template 'show'
@@ -69,7 +71,7 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
   end
 
   def test_edit<%= suffix %>
-    get :edit<%= suffix %>, :id => <%= plural_name %>(:first)
+    get :edit<%= suffix %>, :id => @first_id
 
     assert_response :success
     assert_template 'edit<%= suffix %>'
@@ -79,20 +81,22 @@ class <%= controller_class_name %>ControllerTest < Test::Unit::TestCase
   end
 
   def test_update<%= suffix %>
-    post :update<%= suffix %>, :id => <%= plural_name %>(:first)
+    post :update<%= suffix %>, :id => @first_id
     assert_response :redirect
-    assert_redirected_to :action => 'show<%= suffix %>', :id => 1
+    assert_redirected_to :action => 'show<%= suffix %>', :id => @first_id
   end
 
   def test_destroy<%= suffix %>
-    assert_not_nil <%= model_name %>.find(<%= plural_name %>(:first))
+    assert_nothing_raised {
+      <%= model_name %>.find(@first_id)
+    }
 
-    post :destroy, :id => 1
+    post :destroy, :id => @first_id
     assert_response :redirect
     assert_redirected_to :action => 'list<%= suffix %>'
 
     assert_raise(ActiveRecord::RecordNotFound) {
-      <%= model_name %>.find(1)
+      <%= model_name %>.find(@first_id)
     }
   end
 end
