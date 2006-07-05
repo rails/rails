@@ -3,7 +3,6 @@ module ActionView
     # Provides methods for converting a number into a formatted string that currently represents
     # one of the following forms: phone number, percentage, money, or precision level.
     module NumberHelper
-
       # Formats a +number+ into a US phone number string. The +options+ can be a hash used to customize the format of the output.
       # The area code can be surrounded by parentheses by setting +:area_code+ to true; default is false
       # The delimiter can be set using +:delimiter+; default is "-"
@@ -86,6 +85,7 @@ module ActionView
       #   human_size(1234567890)   => 1.1 GB
       def number_to_human_size(size)
         case 
+          when size == 1        : '1 Byte'
           when size < 1.kilobyte: '%d Bytes' % size
           when size < 1.megabyte: '%.1f KB'  % (size / 1.0.kilobyte)
           when size < 1.gigabyte: '%.1f MB'  % (size / 1.0.megabyte)

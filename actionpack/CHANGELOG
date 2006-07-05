@@ -1,5 +1,7 @@
 *SVN*
 
+* Added special case for "1 Byte" in NumberHelper#number_to_human_size #5593 [murpyh@rubychan.de]
+
 * Fixed proper form-encoded parameter parsing for requests with "Content-Type: application/x-www-form-urlencoded; charset=utf-8" (note the presence of a charset directive) [DHH]
 
 * Add route_name_path method to generate only the path for a named routes. For example, map.person will add person_path. [Nicholas Seckar]

@@ -35,6 +35,7 @@ class NumberHelperTest < Test::Unit::TestCase
 
   def test_number_to_human_size
     assert_equal '0 Bytes',   human_size(0)
+    assert_equal '1 Byte',    human_size(1)
     assert_equal '3 Bytes',   human_size(3.14159265)
     assert_equal '123 Bytes', human_size(123.0)
     assert_equal '123 Bytes', human_size(123)
