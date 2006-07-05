@@ -186,7 +186,7 @@ module ActionView
       
       private
         def auto_complete_stylesheet
-          content_tag("style", <<-EOT
+          content_tag('style', <<-EOT, :type => 'text/css')
             div.auto_complete {
               width: 350px;
               background: #fff;
@@ -211,7 +211,6 @@ module ActionView
               padding:0;
             }
           EOT
-          )
         end
       
     end
