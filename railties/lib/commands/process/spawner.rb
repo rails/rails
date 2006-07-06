@@ -1,3 +1,4 @@
+require 'active_support'
 require 'optparse'
 require 'socket'
 require 'fileutils'
@@ -29,13 +30,13 @@ class Spawner
         srv.close
         srv = nil
 
-        print "NO\n "
-        print "Starting FCGI on port: #{port}\n  "
+        puts "NO"
+        puts "Starting dispatcher on port: #{port}"
 
         FileUtils.mkdir_p(OPTIONS[:pids])
         spawn(port)
       rescue
-        print "YES\n"
+        puts "YES"
       end
     end
   end
@@ -47,11 +48,48 @@ class FcgiSpawner < Spawner
   end
 end
 
-# TODO:
-# class MongrelSpawner < Spawner
-#   def self.spawn(port)
-#   end
-# end
+class MongrelSpawner < Spawner
+  def self.spawn(port)
+    system("mongrel_rails start -d -p #{port} -P #{OPTIONS[:pids]}/#{OPTIONS[:process]}.#{port}.pid -e #{OPTIONS[:environment]}")
+  end
+end
+
+
+begin
+  require_library_or_gem 'fcgi'
+rescue Exception
+  # FCGI not available
+end
+
+begin
+  require_library_or_gem 'mongrel'
+rescue Exception
+  # Mongrel not available
+end
+
+server = case ARGV.first
+  when "fcgi", "mongrel"
+    ARGV.shift
+  else
+    if defined?(Mongrel)
+      "mongrel"
+    elsif RUBY_PLATFORM !~ /mswin/ && !silence_stderr { `spawn-fcgi -version` }.blank? && defined?(FCGI)
+      "fcgi"
+    end
+end
+
+case server
+  when "fcgi"
+    puts "=> Starting FCGI dispatchers"
+    spawner_class = FcgiSpawner
+  when "mongrel"
+    puts "=> Starting mongrel dispatchers"
+    spawner_class = MongrelSpawner
+  else
+    puts "Neither FCGI (spawn-fcgi) nor Mongrel was installed and available!"
+    exit(0)
+end
+
 
 
 OPTIONS = {
@@ -66,26 +104,32 @@ OPTIONS = {
 }
 
 ARGV.options do |opts|
-  opts.banner = "Usage: spawner [options]"
+  opts.banner = "Usage: spawner [platform] [options]"
 
   opts.separator ""
 
   opts.on <<-EOF
   Description:
-    The spawner is a wrapper for spawn-fcgi that makes it easier to start multiple FCGI
+    The spawner is a wrapper for spawn-fcgi and mongrel that makes it easier to start multiple
     processes running the Rails dispatcher. The spawn-fcgi command is included with the lighttpd 
     web server, but can be used with both Apache and lighttpd (and any other web server supporting
-    externally managed FCGI processes).
+    externally managed FCGI processes). Mongrel automatically ships with with mongrel_rails for starting
+    dispatchers.
+    
+    The first choice you need to make is whether to spawn the Rails dispatchers as FCGI or Mongrel. By default,
+    this spawner will prefer Mongrel, so if that's installed, and no platform choice is made, Mongrel is used.
 
-    You decide a starting port (default is 8000) and the number of FCGI process instances you'd 
+    Then decide a starting port (default is 8000) and the number of FCGI process instances you'd 
     like to run. So if you pick 9100 and 3 instances, you'll start processes on 9100, 9101, and 9102.
 
     By setting the repeat option, you get a protection loop, which will attempt to restart any FCGI processes
     that might have been exited or outright crashed. 
 
   Examples:
-    spawner               # starts instances on 8000, 8001, and 8002
-    spawner -p 9100 -i 10 # starts 10 instances counting from 9100 to 9109
+    spawner               # starts instances on 8000, 8001, and 8002 using Mongrel if available
+    spawner fcgi          # starts instances on 8000, 8001, and 8002 using FCGI
+    spawner mongrel -i 5  # starts instances on 8000, 8001, 8002, 8003, and 8004 using Mongrel
+    spawner -p 9100 -i 10 # starts 10 instances counting from 9100 to 9109 using Mongrel if available
     spawner -p 9100 -r 5  # starts 3 instances counting from 9100 to 9102 and attempts start them every 5 seconds
   EOF
 
@@ -111,12 +155,12 @@ ENV["RAILS_ENV"] = OPTIONS[:environment]
 if OPTIONS[:repeat]
   daemonize
   trap("TERM") { exit }
-  FcgiSpawner.record_pid
+  spawner_class.record_pid
 
   loop do
-    FcgiSpawner.spawn_all
+    spawner_class.spawn_all
     sleep(OPTIONS[:repeat])
   end
 else
-  FcgiSpawner.spawn_all
+  spawner_class.spawn_all
 end
