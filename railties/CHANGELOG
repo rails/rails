@@ -1,5 +1,15 @@
 *SVN*
 
+* Added Mongrel-spawning capabilities to script/process/spawner. Mongrel will be the default choice if installed, otherwise FCGI is tried [DHH]. Examples:
+
+    spawner               # starts instances on 8000, 8001, and 8002 using Mongrel if available
+    spawner fcgi          # starts instances on 8000, 8001, and 8002 using FCGI
+    spawner mongrel -i 5  # starts instances on 8000, 8001, 8002, 8003, and 8004 using Mongrel
+    spawner -p 9100 -i 10 # starts 10 instances counting from 9100 to 9109 using Mongrel if available
+    spawner -p 9100 -r 5  # starts 3 instances counting from 9100 to 9102 and attempts start them every 5 seconds
+
+  Also note that script/process/reaper is Mongrel capable. So the combination of spawner and reaper is a built-in alternative to something like mongrel_cluster.
+
 * Update scaffolding functional tests to use :id => people(:first) instead of :id => 1. #5612 [evan@protest.net]
 
 * db:test:clone should remove existing tables before reloading the schema. #5607 [sveit@tradeharbor.com]
