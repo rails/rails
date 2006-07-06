@@ -1,5 +1,7 @@
 *SVN*
 
+* Ensure the logger is initialized. #5629 [mike@clarkware.com]
+
 * Added Mongrel-spawning capabilities to script/process/spawner. Mongrel will be the default choice if installed, otherwise FCGI is tried [DHH]. Examples:
 
     spawner               # starts instances on 8000, 8001, and 8002 using Mongrel if available

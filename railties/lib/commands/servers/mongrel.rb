@@ -1,10 +1,13 @@
 require 'rbconfig'
 require 'commands/servers/base'
 
-unless defined?(Mongrel) 
+unless defined?(Mongrel)
   puts "PROBLEM: Mongrel is not available on your system (or not in your path)"
   exit 1
 end
+
+require 'initializer'
+Rails::Initializer.run(:initialize_logger)
 
 require 'optparse'
 
