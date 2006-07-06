@@ -109,8 +109,8 @@ module ActiveRecord
     # Read more about value objects on http://c2.com/cgi/wiki?ValueObject and on the dangers of not keeping value objects
     # immutable on http://c2.com/cgi/wiki?ValueObjectsShouldBeImmutable
     module ClassMethods
-      # Adds the a reader and writer method for manipulating a value object, so
-      # <tt>composed_of :address</tt> would add <tt>address</tt> and <tt>address=(new_address)</tt>.
+      # Adds reader and writer methods for manipulating a value object:
+      # <tt>composed_of :address</tt> adds <tt>address</tt> and <tt>address=(new_address)</tt> methods.
       #
       # Options are:
       # * <tt>:class_name</tt>  - specify the class name of the association. Use it only if that name can't be inferred
