@@ -320,6 +320,7 @@ class BasicsTest < Test::Unit::TestCase
     if current_adapter?(:PostgreSQLAdapter)
       assert_equal 11, Topic.find(1).written_on.sec
       assert_equal 223300, Topic.find(1).written_on.usec
+      assert_equal 9900, Topic.find(2).written_on.usec
     end
   end
   

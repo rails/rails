@@ -14,7 +14,7 @@ second:
   id: 2
   title: The Second Topic's of the day
   author_name: Mary
-  written_on: 2003-07-15t15:28:00.00+01:00
+  written_on: 2003-07-15t15:28:00.0099+01:00
   content: Have a nice day
   approved: true
   replies_count: 0

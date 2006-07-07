@@ -1,5 +1,7 @@
 *SVN*
 
+* PostgreSQL: correctly quote microseconds in timestamps. #5641 [rick@rickbradley.com]
+
 * Clearer has_one/belongs_to model names (account has_one :user). #5632 [matt@mattmargolis.net]
 
 * Oracle: use nonblocking queries if allow_concurrency is set, fix pessimistic locking, don't guess date vs. time by default (set OracleAdapter.emulate_dates = true for the old behavior), adapter cleanup. #5635 [schoenm@earthlink.net]
