@@ -303,7 +303,7 @@ module ActiveRecord
           # the 8.1+ nextval('foo'::regclass).
           # TODO: assumes sequence is in same schema as table.
           result = query(<<-end_sql, 'PK and custom sequence')[0]
-            SELECT attr.attname, name.nspname, split_part(def.adsrc, '\\\'', 2)
+            SELECT attr.attname, name.nspname, split_part(def.adsrc, '''', 2)
             FROM pg_class       t
             JOIN pg_namespace   name ON (t.relnamespace = name.oid)
             JOIN pg_attribute   attr ON (t.oid = attrelid)

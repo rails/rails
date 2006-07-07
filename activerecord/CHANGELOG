@@ -1,5 +1,7 @@
 *SVN*
 
+* PostgreSQL: correctly quote the ' in pk_and_sequence_for. #5462 [tietew@tietew.net]
+
 * PostgreSQL: correctly quote microseconds in timestamps. #5641 [rick@rickbradley.com]
 
 * Clearer has_one/belongs_to model names (account has_one :user). #5632 [matt@mattmargolis.net]
