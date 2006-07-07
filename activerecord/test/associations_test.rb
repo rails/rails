@@ -1621,6 +1621,12 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   end
   
   def test_join_with_group
-    assert_equal 2, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL', :group => "developers.name").size
+    group = Developer.columns.inject([]) do |g, c|
+      g << "developers.#{c.name}"
+      g << "developers_projects_2.#{c.name}"
+    end
+    Project.columns.each { |c| group << "projects.#{c.name}" }
+
+    assert_equal 3, Developer.find(:all, :include => {:projects => :developers}, :conditions => 'developers_projects_join.joined_on IS NOT NULL', :group => group.join(",")).size
   end
 end

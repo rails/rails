@@ -1,5 +1,7 @@
 *SVN*
 
+* Oracle: use nonblocking queries if allow_concurrency is set, fix pessimistic locking, don't guess date vs. time by default (set OracleAdapter.emulate_dates = true for the old behavior), adapter cleanup. #5635 [schoenm@earthlink.net]
+
 * Fixed a few Oracle issues: Allows Oracle's odd date handling to still work consistently within #to_xml, Passes test that hardcode insert statement by dropping the :id column, Updated RUNNING_UNIT_TESTS with Oracle instructions, Corrects method signature for #exec #5294 [schoenm@earthlink.net]
 
 * Added :group to available options for finds done on associations #5516 [mike@michaeldewey.org]

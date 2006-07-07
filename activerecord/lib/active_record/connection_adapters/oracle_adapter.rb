@@ -76,55 +76,27 @@ begin
     module ConnectionAdapters #:nodoc:
       class OracleColumn < Column #:nodoc:
 
-        alias_method :super_initialize, :initialize
         # overridden to add the concept of scale, required to differentiate
         # between integer and float fields
         def initialize(name, default, sql_type = nil, null = true, scale = nil)
           @scale = scale
-          super_initialize(name, default, sql_type, null)
+          super(name, default, sql_type, null)
         end
 
         def type_cast(value)
-          return nil if value.nil? || value =~ /^\s*null\s*$/i
-          case type
-          when :string   then value
-          when :integer  then defined?(value.to_i) ? value.to_i : (value ? 1 : 0)
-          when :boolean  then cast_to_boolean(value)
-          when :float    then value.to_f
-          when :datetime then cast_to_date_or_time(value)
-          when :time     then cast_to_time(value)
-          else value
-          end
+          return nil if value =~ /^\s*null\s*$/i
+          return guess_date_or_time(value) if type == :datetime && OracleAdapter.emulate_dates
+          super
         end
 
         private
         def simplified_type(field_type)
-          return :boolean if (OracleAdapter.emulate_booleans && field_type =~ /num/i && @limit == 1)
+          return :boolean if OracleAdapter.emulate_booleans && field_type == 'NUMBER(1)'
           case field_type
-          when /char/i                          : :string
-          when /num|float|double|dec|real|int/i : @scale == 0 ? :integer : :float
-          when /date|time/i                     : @name =~ /_at$/ ? :time : :datetime
-          when /clob/i                          : :text
-          when /blob/i                          : :binary
+          when /num/i       : @scale == 0 ? :integer : :float
+          when /date|time/i : :datetime
+          else super
           end
-        end
-
-        def cast_to_boolean(value)
-          return value if value.is_a? TrueClass or value.is_a? FalseClass
-          value.to_i == 0 ? false : true
-        end
-
-        def cast_to_date_or_time(value)
-          return value if value.is_a? Date
-          return nil if value.blank?
-          guess_date_or_time((value.is_a? Time) ? value : cast_to_time(value))
-        end
-
-        def cast_to_time(value)
-          return value if value.is_a? Time
-          time_array = ParseDate.parsedate value
-          time_array[0] ||= 2000; time_array[1] ||= 1; time_array[2] ||= 1;
-          Time.send(Base.default_timezone, *time_array) rescue nil
         end
 
         def guess_date_or_time(value)
@@ -171,6 +143,9 @@ begin
         @@emulate_booleans = true
         cattr_accessor :emulate_booleans
 
+        @@emulate_dates = false
+        cattr_accessor :emulate_dates
+
         def adapter_name #:nodoc:
           'Oracle'
         end
@@ -209,26 +184,24 @@ begin
           name =~ /[A-Z]/ ? "\"#{name}\"" : name
         end
 
-        def quote_string(string) #:nodoc:
-          string.gsub(/'/, "''")
+        def quote_string(s) #:nodoc:
+          s.gsub(/'/, "''")
         end
 
         def quote(value, column = nil) #:nodoc:
-          return value.quoted_id if value.respond_to?(:quoted_id)
-
           if column && [:text, :binary].include?(column.type)
             %Q{empty_#{ column.sql_type rescue 'blob' }()}
           else
-            case value
-            when String     : %Q{'#{quote_string(value)}'}
-            when NilClass   : 'null'
-            when TrueClass  : '1'
-            when FalseClass : '0'
-            when Numeric    : value.to_s
-            when Date, Time : %Q{'#{value.strftime("%Y-%m-%d %H:%M:%S")}'}
-            else              %Q{'#{quote_string(value.to_yaml)}'}
-            end
+            super
           end
+        end
+
+        def quoted_true
+          "1"
+        end
+      
+        def quoted_false
+          "0"
         end
 
 
@@ -567,11 +540,12 @@ begin
   # The OracleConnectionFactory factors out the code necessary to connect and
   # configure an Oracle/OCI connection.
   class OracleConnectionFactory #:nodoc:
-    def new_connection(username, password, database)
+    def new_connection(username, password, database, async)
       conn = OCI8.new username, password, database
       conn.exec %q{alter session set nls_date_format = 'YYYY-MM-DD HH24:MI:SS'}
       conn.exec %q{alter session set nls_timestamp_format = 'YYYY-MM-DD HH24:MI:SS'} rescue nil
       conn.autocommit = true
+      conn.non_blocking = true if async
       conn
     end
   end
@@ -596,9 +570,10 @@ begin
 
     def initialize(config, factory = OracleConnectionFactory.new)
       @active = true
-      @username, @password, @database = config[:username], config[:password], config[:database]
+      @username, @password, @database, = config[:username], config[:password], config[:database]
+      @async = config[:allow_concurrency]
       @factory = factory
-      @connection  = @factory.new_connection @username, @password, @database
+      @connection  = @factory.new_connection @username, @password, @database, @async
       super @connection
     end
 
@@ -617,7 +592,7 @@ begin
     def reset!
       logoff rescue nil
       begin
-        @connection = @factory.new_connection @username, @password, @database
+        @connection = @factory.new_connection @username, @password, @database, @async
         __setobj__ @connection
         @active = true
       rescue
