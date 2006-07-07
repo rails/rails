@@ -108,7 +108,7 @@ class PessimisticLockingTest < Test::Unit::TestCase
     end
   end
 
-  if current_adapter?(:PostgreSQLAdapter)
+  if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
     def test_no_locks_no_wait
       first, second = duel { Person.find 1 }
       assert first.end > second.end
@@ -120,7 +120,7 @@ class PessimisticLockingTest < Test::Unit::TestCase
     end
 
     protected
-      def duel(zzz = 0.2)
+      def duel(zzz = 1.0)
         t0, t1, t2, t3 = nil, nil, nil, nil
 
         a = Thread.new do

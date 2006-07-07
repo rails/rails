@@ -4,7 +4,7 @@ require 'fixtures/topic'
 require File.dirname(__FILE__) + '/fixtures/migrations/1_people_have_last_names'
 require File.dirname(__FILE__) + '/fixtures/migrations/2_we_need_reminders'
 
-if ActiveRecord::Base.connection.supports_migrations? 
+if ActiveRecord::Base.connection.supports_migrations?
   class Reminder < ActiveRecord::Base; end
 
   class ActiveRecord::Migration
@@ -47,16 +47,16 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_add_index
-      Person.connection.add_column "people", "last_name", :string        
+      Person.connection.add_column "people", "last_name", :string
       Person.connection.add_column "people", "administrator", :boolean
       Person.connection.add_column "people", "key", :string
-      
+
       assert_nothing_raised { Person.connection.add_index("people", "last_name") }
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
 
       assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
-      
+
       # quoting
       assert_nothing_raised { Person.connection.add_index("people", ["key"], :name => "key", :unique => true) }
       assert_nothing_raised { Person.connection.remove_index("people", :name => "key", :unique => true) }
@@ -150,17 +150,17 @@ if ActiveRecord::Base.connection.supports_migrations?
     ensure
       Person.connection.drop_table :testings rescue nil
     end
-  
+
     # SQL Server and Sybase will not allow you to add a NOT NULL column
     # to a table without specifying a default value, so the
-    # following test must be skipped  
-    unless current_adapter?(:SQLServerAdapter) || current_adapter?(:SybaseAdapter)
+    # following test must be skipped
+    unless current_adapter?(:SQLServerAdapter, :SybaseAdapter)
       def test_add_column_not_null_without_default
         Person.connection.create_table :testings do |t|
           t.column :foo, :string
         end
         Person.connection.add_column :testings, :bar, :string, :null => false
-  
+
         assert_raises(ActiveRecord::StatementInvalid) do
           Person.connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
         end
@@ -168,7 +168,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.connection.drop_table :testings rescue nil
       end
     end
-    
+
     def test_add_column_not_null_with_default
       Person.connection.create_table :testings, :id => false do |t|
         t.column :foo, :string
@@ -182,7 +182,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     ensure
       Person.connection.drop_table :testings rescue nil
     end
-  
+
     def test_native_types
       Person.delete_all
       Person.connection.add_column "people", "last_name", :string
@@ -194,20 +194,20 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.add_column "people", "male", :boolean
       assert_nothing_raised { Person.create :first_name => 'bob', :last_name => 'bobsen', :bio => "I was born ....", :age => 18, :height => 1.78, :birthday => 18.years.ago, :favorite_day => 10.days.ago, :male => true }
       bob = Person.find(:first)
-        
+
       assert_equal bob.first_name, 'bob'
       assert_equal bob.last_name, 'bobsen'
       assert_equal bob.bio, "I was born ...."
       assert_equal bob.age, 18
       assert_equal bob.male?, true
-    
+
       assert_equal String, bob.first_name.class
       assert_equal String, bob.last_name.class
       assert_equal String, bob.bio.class
       assert_equal Fixnum, bob.age.class
       assert_equal Time, bob.birthday.class
 
-      if current_adapter?(:SQLServerAdapter) || current_adapter?(:OracleAdapter) || current_adapter?(:SybaseAdapter)
+      if current_adapter?(:SQLServerAdapter, :OracleAdapter, :SybaseAdapter)
         # SQL Server, Sybase, and Oracle don't differentiate between date/time
         assert_equal Time, bob.favorite_day.class
       else
@@ -224,7 +224,7 @@ if ActiveRecord::Base.connection.supports_migrations?
 
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
-    
+
       ActiveRecord::Migration.remove_column 'people', 'last_name'
 
       Person.reset_column_information
@@ -244,27 +244,27 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.reset_column_information
       assert !Person.column_methods_hash.include?(:last_name)
     end
-    
+
     def test_add_rename
       Person.delete_all
-           
+
       begin
-        Person.connection.add_column "people", "girlfriend", :string      
-        Person.create :girlfriend => 'bobette'      
-      
+        Person.connection.add_column "people", "girlfriend", :string
+        Person.create :girlfriend => 'bobette'
+
         Person.connection.rename_column "people", "girlfriend", "exgirlfriend"
-      
-        Person.reset_column_information      
+
+        Person.reset_column_information
         bob = Person.find(:first)
-      
+
         assert_equal "bobette", bob.exgirlfriend
       ensure
         Person.connection.remove_column("people", "girlfriend") rescue nil
         Person.connection.remove_column("people", "exgirlfriend") rescue nil
       end
-      
+
     end
-    
+
     def test_rename_column_using_symbol_arguments
       begin
         Person.connection.rename_column :people, :first_name, :nick_name
@@ -275,7 +275,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.connection.add_column("people","first_name", :string)
       end
     end
-    
+
     def test_rename_column
       begin
         Person.connection.rename_column "people", "first_name", "nick_name"
@@ -286,7 +286,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.connection.add_column("people","first_name", :string)
       end
     end
-    
+
     def test_rename_table
       begin
         ActiveRecord::Base.connection.create_table :octopuses do |t|
@@ -317,7 +317,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert old_columns.find { |c| c.name == 'age' and c.type == :integer }
 
       assert_nothing_raised { Person.connection.change_column "people", "age", :string }
-      
+
       new_columns = Person.connection.columns(Person.table_name, "#{name} Columns")
       assert_nil new_columns.find { |c| c.name == 'age' and c.type == :integer }
       assert new_columns.find { |c| c.name == 'age' and c.type == :string }
@@ -329,26 +329,26 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nil new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
       assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }
       assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => true }
-    end    
+    end
 
     def test_change_column_with_new_default
       Person.connection.add_column "people", "administrator", :boolean, :default => 1
-      Person.reset_column_information            
+      Person.reset_column_information
       assert Person.new.administrator?
-      
+
       assert_nothing_raised { Person.connection.change_column "people", "administrator", :boolean, :default => 0 }
-      Person.reset_column_information            
+      Person.reset_column_information
       assert !Person.new.administrator?
-    end    
+    end
 
     def test_add_table
       assert !Reminder.table_exists?
-      
+
       WeNeedReminders.up
-    
+
       assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
       assert_equal "hello world", Reminder.find(:first).content
-    
+
       WeNeedReminders.down
       assert_raises(ActiveRecord::StatementInvalid) { Reminder.find(:first) }
     end
@@ -376,7 +376,7 @@ if ActiveRecord::Base.connection.supports_migrations?
     def test_migrator_one_up
       assert !Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
-      
+
       ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
 
       Person.reset_column_information
@@ -388,17 +388,17 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert Reminder.create("content" => "hello world", "remind_at" => Time.now)
       assert_equal "hello world", Reminder.find(:first).content
     end
-  
+
     def test_migrator_one_down
       ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/')
-    
+
       ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
 
       Person.reset_column_information
       assert Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
     end
-  
+
     def test_migrator_one_up_one_down
       ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
       ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
@@ -406,7 +406,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert !Person.column_methods_hash.include?(:last_name)
       assert !Reminder.table_exists?
     end
-    
+
     def test_migrator_verbosity
       ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
       assert PeopleHaveLastNames.message_count > 0
@@ -416,7 +416,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert PeopleHaveLastNames.message_count > 0
       PeopleHaveLastNames.message_count = 0
     end
-    
+
     def test_migrator_verbosity_off
       PeopleHaveLastNames.verbose = false
       ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
@@ -424,7 +424,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Migrator.down(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
       assert PeopleHaveLastNames.message_count.zero?
     end
-    
+
     def test_migrator_going_down_due_to_version_target
       ActiveRecord::Migrator.up(File.dirname(__FILE__) + '/fixtures/migrations/', 1)
       ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations/', 0)
@@ -453,14 +453,14 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.table_name_prefix = ""
       ActiveRecord::Base.table_name_suffix = ""
     end
-  
+
     def test_proper_table_name
       assert_equal "table", ActiveRecord::Migrator.proper_table_name('table')
       assert_equal "table", ActiveRecord::Migrator.proper_table_name(:table)
       assert_equal "reminders", ActiveRecord::Migrator.proper_table_name(Reminder)
       Reminder.reset_table_name
       assert_equal Reminder.table_name, ActiveRecord::Migrator.proper_table_name(Reminder)
-  
+
       # Use the model's own prefix/suffix if a model is given
       ActiveRecord::Base.table_name_prefix = "ARprefix_"
       ActiveRecord::Base.table_name_suffix = "_ARsuffix"
@@ -471,8 +471,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       Reminder.table_name_prefix = ''
       Reminder.table_name_suffix = ''
       Reminder.reset_table_name
-      
-      # Use AR::Base's prefix/suffix if string or symbol is given      
+
+      # Use AR::Base's prefix/suffix if string or symbol is given
       ActiveRecord::Base.table_name_prefix = "prefix_"
       ActiveRecord::Base.table_name_suffix = "_suffix"
       Reminder.reset_table_name
@@ -481,7 +481,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       ActiveRecord::Base.table_name_prefix = ""
       ActiveRecord::Base.table_name_suffix = ""
       Reminder.reset_table_name
-    end  
+    end
 
     def test_add_drop_table_with_prefix_and_suffix
       assert !Reminder.table_exists?
@@ -502,17 +502,17 @@ if ActiveRecord::Base.connection.supports_migrations?
       Reminder.reset_sequence_name
     end
 
-#   FrontBase does not support default values on BLOB/CLOB columns  
+#   FrontBase does not support default values on BLOB/CLOB columns
     unless current_adapter?(:FrontBaseAdapter)
       def test_create_table_with_binary_column
         Person.connection.drop_table :binary_testings rescue nil
-    
+
         assert_nothing_raised {
           Person.connection.create_table :binary_testings do |t|
             t.column "data", :binary, :default => "", :null => false
           end
         }
-      
+
         columns = Person.connection.columns(:binary_testings)
         data_column = columns.detect { |c| c.name == "data" }
 

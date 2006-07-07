@@ -557,7 +557,7 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_utc_as_time_zone
     # Oracle and SQLServer do not have a TIME datatype.
-    return true if current_adapter?(:SQLServerAdapter) || current_adapter?(:OracleAdapter)
+    return true if current_adapter?(:SQLServerAdapter, :OracleAdapter)
 
     Topic.default_timezone = :utc
     attributes = { "bonus_time" => "5:42:00AM" }
@@ -739,7 +739,7 @@ class BasicsTest < Test::Unit::TestCase
 
   def test_attributes_on_dummy_time
     # Oracle and SQL Server do not have a TIME datatype.
-    return true if current_adapter?(:SQLServerAdapter) || current_adapter?(:OracleAdapter)
+    return true if current_adapter?(:SQLServerAdapter, :OracleAdapter)
 
     attributes = {
       "bonus_time" => "5:42:00AM"
@@ -1239,13 +1239,13 @@ class BasicsTest < Test::Unit::TestCase
     assert xml.include?(%(<content>Have a nice day</content>))
     assert xml.include?(%(<author-email-address>david@loudthinking.com</author-email-address>))
     assert xml.match(%(<parent-id type="integer"></parent-id>))
-    if current_adapter?(:SybaseAdapter) or current_adapter?(:SQLServerAdapter) or current_adapter?(:OracleAdapter)
+    if current_adapter?(:SybaseAdapter, :SQLServerAdapter, :OracleAdapter)
       assert xml.include?(%(<last-read type="datetime">#{last_read_in_current_timezone}</last-read>))
     else
       assert xml.include?(%(<last-read type="date">2004-04-15</last-read>))
     end
     # Oracle and DB2 don't have true boolean or time-only fields
-    unless current_adapter?(:OracleAdapter) || current_adapter?(:DB2Adapter)
+    unless current_adapter?(:OracleAdapter, :DB2Adapter)
       assert xml.include?(%(<approved type="boolean">false</approved>)), "Approved should be a boolean"
       assert xml.include?(%(<bonus-time type="datetime">#{bonus_time_in_current_timezone}</bonus-time>))
     end
