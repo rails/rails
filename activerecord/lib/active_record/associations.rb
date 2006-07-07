@@ -118,25 +118,27 @@ module ActiveRecord
     # Both express a 1-1 relationship, the difference is mostly where to place the foreign key, which goes on the table for the class
     # saying belongs_to. Example:
     #
-    #   class Post < ActiveRecord::Base
-    #     has_one :author
+    #   class User < ActiveRecord::Base
+    #     # I reference an account.
+    #     belongs_to :account
     #   end
     #
-    #   class Author < ActiveRecord::Base
-    #     belongs_to :post
+    #   class Account < ActiveRecord::Base
+    #     # One user references me.
+    #     has_one :user
     #   end
     #
     # The tables for these classes could look something like:
     #
-    #   CREATE TABLE posts (
+    #   CREATE TABLE users (
     #     id int(11) NOT NULL auto_increment,
-    #     title varchar default NULL,
+    #     account_id int(11) default NULL,
+    #     name varchar default NULL,
     #     PRIMARY KEY  (id)
     #   )
     #
-    #   CREATE TABLE authors (
+    #   CREATE TABLE accounts (
     #     id int(11) NOT NULL auto_increment,
-    #     post_id int(11) default NULL,
     #     name varchar default NULL,
     #     PRIMARY KEY  (id)
     #   )
