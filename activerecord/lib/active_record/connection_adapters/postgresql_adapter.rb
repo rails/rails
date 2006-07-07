@@ -325,9 +325,23 @@ module ActiveRecord
       end
 
       def add_column(table_name, column_name, type, options = {})
-        execute("ALTER TABLE #{table_name} ADD #{column_name} #{type_to_sql(type, options[:limit])}")
-        execute("ALTER TABLE #{table_name} ALTER #{column_name} SET NOT NULL") if options[:null] == false
-        change_column_default(table_name, column_name, options[:default]) unless options[:default].nil?
+        default = options[:default]
+        notnull = options[:null] == false
+
+        # Add the column.
+        execute("ALTER TABLE #{table_name} ADD COLUMN #{column_name} #{type_to_sql(type, options[:limit])}")
+
+        # Set optional default. If not null, update nulls to the new default.
+        unless default.nil?
+          change_column_default(table_name, column_name, default)
+          if notnull
+            execute("UPDATE #{table_name} SET #{column_name}='#{default}' WHERE #{column_name} IS NULL")
+          end
+        end
+
+        if notnull
+          execute("ALTER TABLE #{table_name} ALTER #{column_name} SET NOT NULL")
+        end
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
