@@ -981,7 +981,10 @@ module ActiveRecord #:nodoc:
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
           options.update :conditions => "#{table_name}.#{primary_key} = #{quote(id,columns_hash[primary_key])}#{conditions}"
 
-          if result = find_initial(options)
+          # Use find_every(options).first since the primary key condition
+          # already ensures we have a single record. Using find_initial adds
+          # a superfluous :limit => 1.
+          if result = find_every(options).first
             result
           else
             raise RecordNotFound, "Couldn't find #{name} with ID=#{id}#{conditions}"
