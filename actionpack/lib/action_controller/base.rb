@@ -549,6 +549,9 @@ module ActionController #:nodoc:
       #   # each win partial.
       #   render :partial => "win", :collection => @wins, :spacer_template => "win_divider"
       #
+      # Note that the partial filename must also be a valid Ruby variable name,
+      # so e.g. 2005 and register-user are invalid.
+      #
       # _Deprecation_ _notice_: This used to have the signatures 
       # <tt>render_partial(partial_path = default_template_name, object = nil, local_assigns = {})</tt> and
       # <tt>render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {})</tt>.
