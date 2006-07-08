@@ -1,5 +1,7 @@
 *SVN*
 
+* Pass :id => nil or :class => nil to error_messages_for to supress that html attribute. #3586 [olivier_ansaldi@yahoo.com, sebastien@goetzilla.info]
+
 * Reset @html_document between requests so assert_tag works. #4810 [jarkko@jlaine.net, easleydp@gmail.com]
 
 * Update render :partial documentation. #5646 [matt@mattmargolis.net]
