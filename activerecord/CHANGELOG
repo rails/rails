@@ -1,5 +1,7 @@
 *SVN*
 
+* Update callbacks documentation. #3970 [Robby Russell <robby@planetargon.com>]
+
 * Don't modify options parameters in-place. #3819 [mpalmer@hezmatt.org]
 
 * PostgreSQL: correctly quote the ' in pk_and_sequence_for. #5462 [tietew@tietew.net]
