@@ -1,5 +1,7 @@
 *SVN*
 
+* Integration tests behave well with render_component. #4632 [edward.frederick@revolution.com, dev.rubyonrails@maxdunn.com]
+
 * Added exception handling of missing layouts #5373 [chris@ozmm.org]
 
 * Fixed that real files and symlinks should be treated the same when compiling templates #5438 [zachary@panandscan.com]

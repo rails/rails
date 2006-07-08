@@ -332,9 +332,11 @@ module ActionController
         def clear_last_instantiation!
           self.last_instantiation = nil
         end
-    
+
         def new_with_capture(*args)
-          self.last_instantiation ||= new_without_capture(*args)
+          controller = new_without_capture(*args)
+          self.last_instantiation ||= controller
+          controller
         end
       end
     end
