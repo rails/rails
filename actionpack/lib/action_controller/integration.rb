@@ -250,6 +250,8 @@ module ActionController
           # tests.
           @response.extend(TestResponseBehavior)
 
+          @html_document = nil
+
           parse_result
           return status
         end

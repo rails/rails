@@ -1,5 +1,7 @@
 *SVN*
 
+* Reset @html_document between requests so assert_tag works. #4810 [jarkko@jlaine.net, easleydp@gmail.com]
+
 * Update render :partial documentation. #5646 [matt@mattmargolis.net]
 
 * Integration tests behave well with render_component. #4632 [edward.frederick@revolution.com, dev.rubyonrails@maxdunn.com]
