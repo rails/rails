@@ -119,7 +119,7 @@ module ActiveRecord
       # Adds a new column to the named table.
       # See TableDefinition#column for details of the options you can use.
       def add_column(table_name, column_name, type, options = {})
-        add_column_sql = "ALTER TABLE #{table_name} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit])}"
+        add_column_sql = "ALTER TABLE #{table_name} ADD #{quote_column_name(column_name)} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         add_column_options!(add_column_sql, options)
         execute(add_column_sql)
       end
@@ -254,12 +254,27 @@ module ActiveRecord
       end
 
 
-      def type_to_sql(type, limit = nil) #:nodoc:
+      def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
         native = native_database_types[type]
-        limit ||= native[:limit]
         column_type_sql = native[:name]
-        column_type_sql << "(#{limit})" if limit
-        column_type_sql
+        if type == :decimal # ignore limit, use precison and scale
+          precision ||= native[:precision]
+          scale ||= native[:scale]
+          if precision
+            if scale
+              column_type_sql << "(#{precision},#{scale})"
+            else
+              column_type_sql << "(#{precision})"
+            end
+          else
+            raise ArgumentError, "Error adding decimal column: precision cannot be empty if scale if specifed" if scale
+          end
+          column_type_sql
+        else
+          limit ||= native[:limit]
+          column_type_sql << "(#{limit})" if limit
+          column_type_sql
+        end
       end            
     
       def add_column_options!(sql, options) #:nodoc:

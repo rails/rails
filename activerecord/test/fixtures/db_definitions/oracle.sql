@@ -290,3 +290,13 @@ create table legacy_things (
     version integer default 0
 );
 create sequence legacy_things_seq minvalue 10000;
+
+CREATE TABLE numeric_data (
+  id integer NOT NULL PRIMARY KEY,
+  bank_balance decimal(10,2),
+  big_bank_balance decimal(15,2),
+  world_population decimal(10),
+  my_house_population decimal(2),
+  decimal_number_with_default decimal(3,2) DEFAULT 2.78
+);
+create sequence numeric_data_seq minvalue 10000;

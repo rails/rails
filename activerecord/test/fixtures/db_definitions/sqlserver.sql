@@ -88,6 +88,24 @@ CREATE TABLE booleantests (
   value bit default NULL
 );
 
+CREATE TABLE defaults (
+    id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
+-- these brought from the PostgreSQL defaults_test.rb but
+-- tests only exist for integers and decimals, currently
+--    modified_date date default CURRENT_DATE,
+--    modified_date_function date default now(),
+--    fixed_date date default '2004-01-01',
+--    modified_time timestamp default CURRENT_TIMESTAMP,
+--    modified_time_function timestamp default now(),
+--    fixed_time timestamp default '2004-01-01 00:00:00.000000-00',
+--    char1 char(1) default 'Y',
+--    char2 character varying(50) default 'a varchar field',
+--    char3 text default 'a text field',
+    positive_integer integer default 1,
+    negative_integer integer default -1,
+    decimal_number decimal(3,2) default 2.78
+);
+
 CREATE TABLE auto_id_tests (
   auto_id int NOT NULL IDENTITY(1, 1) PRIMARY KEY,
   value int default NULL
@@ -200,4 +218,13 @@ CREATE TABLE legacy_things (
   tps_report_number int default NULL,
   version int default 0,
   PRIMARY KEY (id)
+);
+
+CREATE TABLE numeric_data (
+  id int NOT NULL IDENTITY(1, 1),
+  bank_balance decimal(10,2),
+  big_bank_balance decimal(15,2),
+  world_population decimal(10),
+  my_house_population decimal(2),
+  decimal_number_with_default decimal(3,2) DEFAULT 2.78
 );

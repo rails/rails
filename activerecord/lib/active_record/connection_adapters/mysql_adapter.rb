@@ -102,6 +102,7 @@ module ActiveRecord
           :text        => { :name => "text" },
           :integer     => { :name => "int", :limit => 11 },
           :float       => { :name => "float" },
+          :decimal     => { :name => "decimal" },
           :datetime    => { :name => "datetime" },
           :timestamp   => { :name => "datetime" },
           :time        => { :name => "time" },
@@ -118,6 +119,8 @@ module ActiveRecord
         if value.kind_of?(String) && column && column.type == :binary && column.class.respond_to?(:string_to_binary)
           s = column.class.string_to_binary(value).unpack("H*")[0]
           "x'#{s}'"
+        elsif value.kind_of?(BigDecimal)
+          "'#{value.to_s("F")}'"
         else
           super
         end
@@ -312,7 +315,7 @@ module ActiveRecord
           options[:default] = select_one("SHOW COLUMNS FROM #{table_name} LIKE '#{column_name}'")["Default"]
         end
         
-        change_column_sql = "ALTER TABLE #{table_name} CHANGE #{column_name} #{column_name} #{type_to_sql(type, options[:limit])}"
+        change_column_sql = "ALTER TABLE #{table_name} CHANGE #{column_name} #{column_name} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         add_column_options!(change_column_sql, options)
         execute(change_column_sql)
       end

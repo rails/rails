@@ -249,3 +249,14 @@ create table "legacy_things"
   primary key ("id")
 );
 SET UNIQUE FOR legacy_things(id);
+
+CREATE TABLE "numeric_data" (
+  "id" integer NOT NULL
+  "bank_balance" DECIMAL(10,2),
+  "big_bank_balance" DECIMAL(15,2),
+  "world_population" DECIMAL(10),
+  "my_house_population" DECIMAL(2),
+  "decimal_number_with_default" DECIMAL(3,2) DEFAULT 2.78,
+  primary key ("id")
+);
+SET UNIQUE FOR numeric_data(id);

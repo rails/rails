@@ -93,6 +93,7 @@ module ActiveRecord
           :text        => { :name => "text" },
           :integer     => { :name => "integer" },
           :float       => { :name => "float" },
+          :decimal     => { :name => "decimal" },
           :datetime    => { :name => "timestamp" },
           :timestamp   => { :name => "timestamp" },
           :time        => { :name => "time" },
@@ -232,9 +233,9 @@ module ActiveRecord
       end
 
       def columns(table_name, name = nil) #:nodoc:
-        column_definitions(table_name).collect do |name, type, default, notnull|
-          Column.new(name, default_value(default), translate_field_type(type),
-            notnull == "f")
+        column_definitions(table_name).collect do |name, type, default, notnull, typmod|
+          # typmod now unused as limit, precision, scale all handled by superclass
+          Column.new(name, default_value(default), translate_field_type(type), notnull == "f") 
         end
       end
 
@@ -346,12 +347,12 @@ module ActiveRecord
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
         begin
-          execute "ALTER TABLE #{table_name} ALTER  #{column_name} TYPE #{type_to_sql(type, options[:limit])}"
+          execute "ALTER TABLE #{table_name} ALTER COLUMN #{column_name} TYPE #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
         rescue ActiveRecord::StatementInvalid
           # This is PG7, so we use a more arcane way of doing it.
           begin_db_transaction
           add_column(table_name, "#{column_name}_ar_tmp", type, options)
-          execute "UPDATE #{table_name} SET #{column_name}_ar_tmp = CAST(#{column_name} AS #{type_to_sql(type, options[:limit])})"
+          execute "UPDATE #{table_name} SET #{column_name}_ar_tmp = CAST(#{column_name} AS #{type_to_sql(type, options[:limit], options[:precision], options[:scale])})"
           remove_column(table_name, column_name)
           rename_column(table_name, "#{column_name}_ar_tmp", column_name)
           commit_db_transaction
@@ -360,18 +361,18 @@ module ActiveRecord
       end
 
       def change_column_default(table_name, column_name, default) #:nodoc:
-        execute "ALTER TABLE #{table_name} ALTER COLUMN #{column_name} SET DEFAULT '#{default}'"
+        execute "ALTER TABLE #{table_name} ALTER COLUMN #{quote_column_name(column_name)} SET DEFAULT '#{default}'"
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
-        execute "ALTER TABLE #{table_name} RENAME COLUMN #{column_name} TO #{new_column_name}"
+        execute "ALTER TABLE #{table_name} RENAME COLUMN #{quote_column_name(column_name)} TO #{quote_column_name(new_column_name)}"
       end
 
       def remove_index(table_name, options) #:nodoc:
         execute "DROP INDEX #{index_name(table_name, options)}"
       end
 
-      def type_to_sql(type, limit = nil) #:nodoc:
+      def type_to_sql(type, limit = nil, precision = nil, scale = nil) #:nodoc:
         return super unless type.to_s == 'integer'
 
         if limit.nil? || limit == 4
@@ -385,6 +386,7 @@ module ActiveRecord
 
       private
         BYTEA_COLUMN_TYPE_OID = 17
+        NUMERIC_COLUMN_TYPE_OID = 1700
         TIMESTAMPOID = 1114
         TIMESTAMPTZOID = 1184
 
@@ -417,6 +419,8 @@ module ActiveRecord
                     column = unescape_bytea(column)
                   when TIMESTAMPTZOID, TIMESTAMPOID
                     column = cast_to_time(column)
+                  when NUMERIC_COLUMN_TYPE_OID
+                    column = column.to_d if column.respond_to?(:to_d)
                 end
 
                 hashed_row[fields[cel_index]] = column

@@ -283,3 +283,15 @@ CREATE TABLE legacy_things (
 );
 CREATE GENERATOR legacy_things_seq;
 SET GENERATOR legacy_things_seq TO 10000;
+
+CREATE TABLE numeric_data (
+  id BIGINT NOT NULL,
+  bank_balance DECIMAL(10,2),
+  big_bank_balance DECIMAL(15,2),
+  world_population DECIMAL(10),
+  my_house_population DECIMAL(2),
+  decimal_number_with_default DECIMAL(3,2) DEFAULT 2.78,
+  PRIMARY KEY (id)
+);
+CREATE GENERATOR numeric_data_seq;
+SET GENERATOR numeric_data_seq TO 10000;

@@ -1,10 +1,12 @@
 require 'date'
+require 'bigdecimal'
+require 'bigdecimal/util'
 
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
     # An abstract definition of a column in a table.
     class Column
-      attr_reader :name, :default, :type, :limit, :null, :sql_type
+      attr_reader :name, :default, :type, :limit, :null, :sql_type, :precision, :scale
       attr_accessor :primary
 
       # Instantiates a new column in the table.
@@ -15,6 +17,7 @@ module ActiveRecord
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type = nil, null = true)
         @name, @sql_type, @null, @limit = name, sql_type, null, extract_limit(sql_type)
+        @precision, @scale  = extract_precision(sql_type), extract_scale(sql_type) 
 
         # simplified_type may depend on #limit, type_cast depends on #type
         @type = simplified_type(sql_type)
@@ -28,7 +31,7 @@ module ActiveRecord
       end
 
       def number?
-        [:float, :integer].include? type
+        [:float, :integer, :decimal].include? type
       end
 
       # Returns the Ruby class that corresponds to the abstract data type.
@@ -36,6 +39,7 @@ module ActiveRecord
         case type
           when :integer       then Fixnum
           when :float         then Float
+          when :decimal       then BigDecimal
           when :datetime      then Time
           when :date          then Date
           when :timestamp     then Time
@@ -54,6 +58,7 @@ module ActiveRecord
           when :text      then value
           when :integer   then value.to_i rescue value ? 1 : 0
           when :float     then value.to_f
+          when :decimal   then self.class.value_to_decimal(value)
           when :datetime  then self.class.string_to_time(value)
           when :timestamp then self.class.string_to_time(value)
           when :time      then self.class.string_to_dummy_time(value)
@@ -70,6 +75,7 @@ module ActiveRecord
           when :text      then nil
           when :integer   then "(#{var_name}.to_i rescue #{var_name} ? 1 : 0)"
           when :float     then "#{var_name}.to_f"
+          when :decimal   then "#{self.class.name}.value_to_decimal(#{var_name})"
           when :datetime  then "#{self.class.name}.string_to_time(#{var_name})"
           when :timestamp then "#{self.class.name}.string_to_time(#{var_name})"
           when :time      then "#{self.class.name}.string_to_dummy_time(#{var_name})"
@@ -127,10 +133,21 @@ module ActiveRecord
 
       # convert something to a boolean
       def self.value_to_boolean(value)
-        return value if value==true || value==false
-        case value.to_s.downcase
-        when "true", "t", "1" then true
-        else false
+        if value == true || value == false
+          value
+        else
+          %w(true t 1).include?(value.to_s.downcase)
+        end
+      end
+
+      # convert something to a BigDecimal
+      def self.value_to_decimal(value)
+        if value.is_a?(BigDecimal)
+          value
+        elsif value.respond_to?(:to_d)
+          value.to_d
+        else
+          value.to_s.to_d
         end
       end
 
@@ -142,16 +159,28 @@ module ActiveRecord
         end
 
         def extract_limit(sql_type)
-          return unless sql_type
           $1.to_i if sql_type =~ /\((.*)\)/
+        end
+
+        def extract_precision(sql_type)
+          $2.to_i if sql_type =~ /^(numeric|decimal)\((\d+)(,\d+)?\)/i
+        end
+
+        def extract_scale(sql_type)
+          case sql_type
+            when /^(numeric|decimal)\((\d+)\)/i then 0
+            when /^(numeric|decimal)\((\d+)(,(\d+))\)/i then $4.to_i
+          end
         end
 
         def simplified_type(field_type)
           case field_type
             when /int/i
               :integer
-            when /float|double|decimal|numeric/i
+            when /float|double/i
               :float
+            when /decimal|numeric/i
+              extract_scale(field_type) == 0 ? :integer : :decimal
             when /datetime/i
               :datetime
             when /timestamp/i
@@ -175,17 +204,17 @@ module ActiveRecord
     class IndexDefinition < Struct.new(:table, :name, :unique, :columns) #:nodoc:
     end
 
-    class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :default, :null) #:nodoc:
+    class ColumnDefinition < Struct.new(:base, :name, :type, :limit, :precision, :scale, :default, :null) #:nodoc:
       def to_sql
-        column_sql = "#{base.quote_column_name(name)} #{type_to_sql(type.to_sym, limit)}"
+        column_sql = "#{base.quote_column_name(name)} #{type_to_sql(type.to_sym, limit, precision, scale)}"
         add_column_options!(column_sql, :null => null, :default => default)
         column_sql
       end
       alias to_s :to_sql
 
       private
-        def type_to_sql(name, limit)
-          base.type_to_sql(name, limit) rescue name
+        def type_to_sql(name, limit, precision, scale)
+          base.type_to_sql(name, limit, precision, scale) rescue name
         end
 
         def add_column_options!(sql, options)
@@ -217,9 +246,9 @@ module ActiveRecord
       # Instantiates a new column for the table.
       # The +type+ parameter must be one of the following values:
       # <tt>:primary_key</tt>, <tt>:string</tt>, <tt>:text</tt>,
-      # <tt>:integer</tt>, <tt>:float</tt>, <tt>:datetime</tt>,
-      # <tt>:timestamp</tt>, <tt>:time</tt>, <tt>:date</tt>,
-      # <tt>:binary</tt>, <tt>:boolean</tt>.
+      # <tt>:integer</tt>, <tt>:float</tt>, <tt>:decimal</tt>,
+      # <tt>:datetime</tt>, <tt>:timestamp</tt>, <tt>:time</tt>,
+      # <tt>:date</tt>, <tt>:binary</tt>, <tt>:boolean</tt>.
       #
       # Available options are (none of these exists by default):
       # * <tt>:limit</tt>:
@@ -232,6 +261,39 @@ module ActiveRecord
       # * <tt>:null</tt>:
       #   Allows or disallows +NULL+ values in the column.  This option could
       #   have been named <tt>:null_allowed</tt>.
+      # * <tt>:precision</tt>:
+      #   Specifies the precision for a <tt>:decimal</tt> column. 
+      # * <tt>:scale</tt>:
+      #   Specifies the scale for a <tt>:decimal</tt> column. 
+      #
+      # Please be aware of different RDBMS implementations behavior with
+      # <tt>:decimal</tt> columns:
+      # * The SQL standard says the default scale should be 0, <tt>:scale</tt> <=
+      #   <tt>:precision</tt>, and makes no comments about the requirements of
+      #   <tt>:precision</tt>.
+      # * MySQL: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..30]. 
+      #   Default is (10,0).
+      # * PostGres?: <tt>:precision</tt> [1..infinity], 
+      #   <tt>:scale</tt> [0..infinity]. No default.
+      # * Sqlite2: Any <tt>:precision</tt> and <tt>:scale</tt> may be used. 
+      #   Internal storage as strings. No default.
+      # * Sqlite3: No restrictions on <tt>:precision</tt> and <tt>:scale</tt>,
+      #   but the maximum supported <tt>:precision</tt> is 16. No default.
+      # * Oracle: <tt>:precision</tt> [1..38], <tt>:scale</tt> [-84..127]. 
+      #   Default is (38,0).
+      # * DB2: <tt>:precision</tt> [1..63], <tt>:scale</tt> [0..62]. 
+      #   Default unknown.
+      # * Firebird: <tt>:precision</tt> [1..18], <tt>:scale</tt> [0..18]. 
+      #   Default (9,0). Internal types NUMERIC and DECIMAL have different
+      #   storage rules, decimal being better.
+      # * FrontBase?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38]. 
+      #   Default (38,0). WARNING Max <tt>:precision</tt>/<tt>:scale</tt> for
+      #   NUMERIC is 19, and DECIMAL is 38.
+      # * SqlServer?: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38]. 
+      #   Default (38,0).
+      # * Sybase: <tt>:precision</tt> [1..38], <tt>:scale</tt> [0..38]. 
+      #   Default (38,0).
+      # * OpenBase?: Documentation unclear. Claims storage in <tt>double</tt>.
       #
       # This method returns <tt>self</tt>.
       #
@@ -245,9 +307,22 @@ module ActiveRecord
       #
       #  td.column(:sales_stage, :string, :limit => 20, :default => 'new', :null => false)
       #    #=> sales_stage VARCHAR(20) DEFAULT 'new' NOT NULL
+      #
+      #  def.column(:bill_gates_money, :decimal, :precision => 15, :scale => 2)
+      #    #=> bill_gates_money DECIMAL(15,2)
+      #
+      #  def.column(:sensor_reading, :decimal, :precision => 30, :scale => 20)
+      #    #=> sensor_reading DECIMAL(30,20)
+      #
+      #  # While <tt>:scale</tt> defaults to zero on most databases, it
+      #  # probably wouldn't hurt to include it.
+      #  def.column(:huge_integer, :decimal, :precision => 30)
+      #    #=> huge_integer DECIMAL(30)
       def column(name, type, options = {})
         column = self[name] || ColumnDefinition.new(@base, name, type)
         column.limit = options[:limit] || native[type.to_sym][:limit] if options[:limit] or native[type.to_sym]
+        column.precision = options[:precision]
+        column.scale = options[:scale]
         column.default = options[:default]
         column.null = options[:null]
         @columns << column unless @columns.include? column

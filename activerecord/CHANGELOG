@@ -1,5 +1,7 @@
 *SVN*
 
+* Numeric and decimal columns map to BigDecimal instead of Float. Those with scale 0 map to Integer. #5454 [robbat2@gentoo.org, work@ashleymoran.me.uk]
+
 * Firebird migrations support. #5337 [Ken Kunz <kennethkunz@gmail.com>]
 
 * PostgreSQL: create/drop as postgres user. #4790 [mail@matthewpainter.co.uk, mlaster@metavillage.com]

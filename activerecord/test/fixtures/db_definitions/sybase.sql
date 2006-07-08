@@ -200,5 +200,14 @@ CREATE TABLE legacy_things (
   version int default 0,
 )
 
-go
 
+CREATE TABLE numeric_data (
+  id numeric((9,0) IDENTITY PRIMARY KEY,
+  bank_balance numeric(10,2),
+  big_bank_balance numeric(15,2),
+  world_population numeric(10),
+  my_house_population numeric(2),
+  decimal_number_with_default numeric(3,2) DEFAULT 2.78
+)
+
+go

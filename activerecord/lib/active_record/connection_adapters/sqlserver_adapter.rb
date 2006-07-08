@@ -1,5 +1,8 @@
 require 'active_record/connection_adapters/abstract_adapter'
 
+require 'bigdecimal'
+require 'bigdecimal/util'
+
 # sqlserver_adapter.rb -- ActiveRecord adapter for Microsoft SQL Server
 #
 # Author: Joey Gibson <joey@joeygibson.com>
@@ -45,45 +48,37 @@ module ActiveRecord
   end # class Base
 
   module ConnectionAdapters
-    class ColumnWithIdentity < Column# :nodoc:
-      attr_reader :identity, :is_special, :scale
+    class SQLServerColumn < Column# :nodoc:
+      attr_reader :identity, :is_special
 
-      def initialize(name, default, sql_type = nil, is_identity = false, null = true, scale_value = 0)
+      def initialize(name, default, sql_type = nil, identity = false, null = true) # TODO: check ok to remove scale_value = 0
         super(name, default, sql_type, null)
-        @identity = is_identity
-        @is_special = sql_type =~ /text|ntext|image/i ? true : false
-        @scale = scale_value
+        @identity = identity
+        @is_special = sql_type =~ /text|ntext|image/i
+        # TODO: check ok to remove @scale = scale_value
         # SQL Server only supports limits on *char and float types
         @limit = nil unless @type == :float or @type == :string
       end
 
       def simplified_type(field_type)
         case field_type
-          when /int|bigint|smallint|tinyint/i                        then :integer
-          when /float|double|decimal|money|numeric|real|smallmoney/i then @scale == 0 ? :integer : :float
-          when /datetime|smalldatetime/i                             then :datetime
-          when /timestamp/i                                          then :timestamp
-          when /time/i                                               then :time
-          when /text|ntext/i                                         then :text
-          when /binary|image|varbinary/i                             then :binary
-          when /char|nchar|nvarchar|string|varchar/i                 then :string
-          when /bit/i                                                then :boolean
-          when /uniqueidentifier/i                                   then :string
+          when /money/i             then :decimal
+          when /image/i             then :binary
+          when /bit/i               then :boolean
+          when /uniqueidentifier/i  then :string
+          else super
         end
       end
 
       def type_cast(value)
         return nil if value.nil? || value =~ /^\s*null\s*$/i
         case type
-        when :string    then value
-        when :integer   then value == true || value == false ? value == true ? 1 : 0 : value.to_i
-        when :float     then value.to_f
         when :datetime  then cast_to_datetime(value)
         when :timestamp then cast_to_time(value)
         when :time      then cast_to_time(value)
         when :date      then cast_to_datetime(value)
         when :boolean   then value == true or (value =~ /^t(rue)?$/i) == 0 or value.to_s == '1'
-        else value
+        else super
         end
       end
 
@@ -184,12 +179,13 @@ module ActiveRecord
           :text        => { :name => "text" },
           :integer     => { :name => "int" },
           :float       => { :name => "float", :limit => 8 },
+          :decimal     => { :name => "decimal" },
           :datetime    => { :name => "datetime" },
           :timestamp   => { :name => "datetime" },
           :time        => { :name => "datetime" },
           :date        => { :name => "datetime" },
-          :binary      => { :name => "image"},
-          :boolean     => { :name => "bit"}
+          :binary      => { :name => "image" },
+          :boolean     => { :name => "bit" }
         }
       end
 
@@ -240,7 +236,16 @@ module ActiveRecord
         return [] if table_name.blank?
         table_name = table_name.to_s if table_name.is_a?(Symbol)
         table_name = table_name.split('.')[-1] unless table_name.nil?
-        sql = "SELECT COLUMN_NAME as ColName, COLUMN_DEFAULT as DefaultValue, DATA_TYPE as ColType, IS_NULLABLE As IsNullable, COL_LENGTH('#{table_name}', COLUMN_NAME) as Length, COLUMNPROPERTY(OBJECT_ID('#{table_name}'), COLUMN_NAME, 'IsIdentity') as IsIdentity, NUMERIC_SCALE as Scale FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = '#{table_name}'"
+        sql = "SELECT COLUMN_NAME as ColName,
+                      COLUMN_DEFAULT as DefaultValue,
+                       DATA_TYPE as ColType,
+                       IS_NULLABLE As IsNullable,
+                       COL_LENGTH('#{table_name}', COLUMN_NAME) as Length,
+                       COLUMNPROPERTY(OBJECT_ID('#{table_name}'), COLUMN_NAME, 'IsIdentity') as IsIdentity,
+                       NUMERIC_PRECISION as [Precision],
+                       NUMERIC_SCALE as Scale
+               FROM INFORMATION_SCHEMA.COLUMNS
+               WHERE TABLE_NAME = '#{table_name}'"
         # Comment out if you want to have the Columns select statment logged.
         # Personally, I think it adds unnecessary bloat to the log. 
         # If you do comment it out, make sure to un-comment the "result" line that follows
@@ -249,10 +254,14 @@ module ActiveRecord
         columns = []
         result.each do |field|
           default = field[:DefaultValue].to_s.gsub!(/[()\']/,"") =~ /null/ ? nil : field[:DefaultValue]
-          type = "#{field[:ColType]}(#{field[:Length]})"
+          if field[:ColType] =~ /numeric|decimal/i
+            type = "#{field[:ColType]}(#{field[:Precision]},#{field[:Scale]})"
+          else
+            type = "#{field[:ColType]}(#{field[:Length]})"
+          end
           is_identity = field[:IsIdentity] == 1
           is_nullable = field[:IsNullable] == 'YES'
-          columns << ColumnWithIdentity.new(field[:ColName], default, type, is_identity, is_nullable, field[:Scale])
+          columns << SQLServerColumn.new(field[:ColName], default, type, is_identity, is_nullable)
         end
         columns
       end
@@ -336,19 +345,10 @@ module ActiveRecord
         return value.quoted_id if value.respond_to?(:quoted_id)
 
         case value
-          when String                
-            if column && column.type == :binary && column.class.respond_to?(:string_to_binary)
-              "'#{quote_string(column.class.string_to_binary(value))}'"
-            else
-              "'#{quote_string(value)}'"
-            end
-          when NilClass              then "NULL"
           when TrueClass             then '1'
           when FalseClass            then '0'
-          when Float, Fixnum, Bignum then value.to_s
-          when Date                  then "'#{value.to_s}'" 
           when Time, DateTime        then "'#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
-          else                            "'#{quote_string(value.to_yaml)}'"
+          else                       super
         end
       end
 
@@ -459,7 +459,7 @@ module ActiveRecord
       end
       
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
-        sql_commands = ["ALTER TABLE #{table_name} ALTER COLUMN #{column_name} #{type_to_sql(type, options[:limit])}"]
+        sql_commands = ["ALTER TABLE #{table_name} ALTER COLUMN #{column_name} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"]
         if options[:default]
           remove_default_constraint(table_name, column_name)
           sql_commands << "ALTER TABLE #{table_name} ADD CONSTRAINT DF_#{table_name}_#{column_name} DEFAULT #{options[:default]} FOR #{column_name}"
@@ -483,15 +483,6 @@ module ActiveRecord
       
       def remove_index(table_name, options = {})
         execute "DROP INDEX #{table_name}.#{quote_column_name(index_name(table_name, options))}"
-      end
-
-      def type_to_sql(type, limit = nil) #:nodoc:
-        native = native_database_types[type]
-        # if there's no :limit in the default type definition, assume that type doesn't support limits
-        limit = limit || native[:limit]
-        column_type_sql = native[:name]
-        column_type_sql << "(#{limit})" if limit
-        column_type_sql
       end
 
       private

@@ -160,7 +160,7 @@ module ActiveRecord
         @default    = default
         @null       = nullable == "YES"
         @text       = [:string, :text].include? @type
-        @number     = [:float, :integer].include? @type
+        @number     = [:float, :integer, :decimal].include? @type
         @fb_autogen = false
 
         if @default
@@ -278,6 +278,7 @@ module ActiveRecord
           :text           => { :name => "CLOB" },
           :integer        => { :name => "INTEGER" },
           :float          => { :name => "FLOAT" },
+          :decimal        => { :name => "DECIMAL" },
           :datetime       => { :name => "TIMESTAMP" },
           :timestamp      => { :name => "TIMESTAMP" },
           :time           => { :name => "TIME" },
@@ -319,6 +320,8 @@ module ActiveRecord
                 end
               when :float
                 value.to_f.to_s
+              when :decimal
+                value.to_d.to_s("F")
               when :datetime, :timestamp
                 "TIMESTAMP '#{value.strftime("%Y-%m-%d %H:%M:%S")}'"
               when :time
@@ -359,7 +362,7 @@ module ActiveRecord
                 if column && column.type == :binary
                   s = value.unpack("H*").first
                   "X'#{s}'"
-                elsif column && [:integer, :float].include?(column.type) 
+                elsif column && [:integer, :float, :decimal].include?(column.type) 
                   value.to_s
                 else
                   "'#{quote_string(value)}'" # ' (for ruby-mode)
@@ -370,7 +373,7 @@ module ActiveRecord
                 (column && column.type == :integer ? '1' : quoted_true)
               when FalseClass
                 (column && column.type == :integer ? '0' : quoted_false)
-              when Float, Fixnum, Bignum
+              when Float, Fixnum, Bignum, BigDecimal
                 value.to_s
               when Time, Date, DateTime
                 if column

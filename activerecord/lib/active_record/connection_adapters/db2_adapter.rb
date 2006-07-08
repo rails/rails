@@ -162,6 +162,7 @@ begin
             :text        => { :name => 'clob', :limit => 32768 },
             :integer     => { :name => 'int' },
             :float       => { :name => 'float' },
+            :decimal     => { :name => 'decimal' },
             :datetime    => { :name => 'timestamp' },
             :timestamp   => { :name => 'timestamp' },
             :time        => { :name => 'time' },

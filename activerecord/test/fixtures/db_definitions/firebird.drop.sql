@@ -29,6 +29,7 @@ DROP TABLE fk_test_has_pk;
 DROP TABLE keyboards;
 DROP TABLE defaults;
 DROP TABLE legacy_things;
+DROP TABLE numeric_data;
 
 DROP DOMAIN D_BOOLEAN;
 
@@ -57,3 +58,4 @@ DROP GENERATOR categories_seq;
 DROP GENERATOR keyboards_seq;
 DROP GENERATOR defaults_seq;
 DROP GENERATOR legacy_things_seq;
+DROP GENERATOR numeric_data_seq;

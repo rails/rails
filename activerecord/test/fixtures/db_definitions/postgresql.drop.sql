@@ -1,5 +1,5 @@
-DROP SEQUENCE accounts_id_seq;
 DROP TABLE accounts;
+DROP SEQUENCE accounts_id_seq;
 DROP TABLE funny_jokes;
 DROP TABLE companies;
 DROP SEQUENCE companies_nonstd_seq;
@@ -32,3 +32,5 @@ DROP TABLE fk_test_has_pk;
 DROP TABLE geometrics;
 DROP TABLE keyboards;
 DROP TABLE legacy_things;
+DROP TABLE numeric_data;
+DROP TABLE column_data;

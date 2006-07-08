@@ -13,8 +13,8 @@ class CalculationsTest < Test::Unit::TestCase
 
   def test_should_average_field
     value = Account.average(:credit_limit)
-    assert_equal 53, value
     assert_kind_of Float, value
+    assert_in_delta 53.0, value, 0.001
   end
 
   def test_should_get_maximum_of_field

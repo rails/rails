@@ -93,9 +93,8 @@ begin
         def simplified_type(field_type)
           return :boolean if OracleAdapter.emulate_booleans && field_type == 'NUMBER(1)'
           case field_type
-          when /num/i       : @scale == 0 ? :integer : :float
-          when /date|time/i : :datetime
-          else super
+            when /date|time/i then :datetime
+            else super
           end
         end
 
@@ -161,6 +160,7 @@ begin
             :text        => { :name => "CLOB" },
             :integer     => { :name => "NUMBER", :limit => 38 },
             :float       => { :name => "NUMBER" },
+            :decimal     => { :name => "DECIMAL" },
             :datetime    => { :name => "DATE" },
             :timestamp   => { :name => "DATE" },
             :time        => { :name => "DATE" },

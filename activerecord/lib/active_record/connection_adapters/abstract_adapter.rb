@@ -1,5 +1,7 @@
 require 'benchmark'
 require 'date'
+require 'bigdecimal'
+require 'bigdecimal/util'
 
 require 'active_record/connection_adapters/abstract/schema_definitions'
 require 'active_record/connection_adapters/abstract/schema_statements'

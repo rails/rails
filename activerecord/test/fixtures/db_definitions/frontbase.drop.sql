@@ -28,3 +28,4 @@ DROP TABLE fk_test_has_fk CASCADE;
 DROP TABLE fk_test_has_pk CASCADE;
 DROP TABLE keyboards CASCADE;
 DROP TABLE legacy_things CASCADE;
+DROP TABLE numeric_data CASCADE;

@@ -118,7 +118,8 @@ CREATE TABLE defaults (
     char2 character varying(50) default 'a varchar field',
     char3 text default 'a text field',
     positive_integer integer default 1,
-    negative_integer integer default -1
+    negative_integer integer default -1,
+    decimal_number decimal(3,2) default 2.78
 );
 
 CREATE TABLE auto_id_tests (
@@ -245,4 +246,13 @@ CREATE TABLE legacy_things (
   id serial primary key,
   tps_report_number integer,
   version integer default 0
+);
+
+CREATE TABLE numeric_data (
+  id serial primary key,
+  bank_balance decimal(10,2),
+  big_bank_balance decimal(15,2),
+  world_population decimal(10),
+  my_house_population decimal(2),
+  decimal_number_with_default decimal(3,2) default 2.78
 );

@@ -7,6 +7,7 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
   class SchemaDumperTest < Test::Unit::TestCase
     def standard_dump
       stream = StringIO.new
+      ActiveRecord::SchemaDumper.ignore_tables = []
       ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
       stream.string
     end
@@ -30,7 +31,7 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
     def test_arguments_line_up
       output  = standard_dump
       output.scan(/^( *)create_table.*?\n(.*?)^\1end/m).map{ |m| m.last.split(/\n/) }.each do |column_set|
-        assert_line_up(column_set, /:(?:integer|float|datetime|timestamp|time|date|text|binary|string|boolean)/, true)
+        assert_line_up(column_set, /:(?:integer|decimal|float|datetime|timestamp|time|date|text|binary|string|boolean)/, true)
         assert_line_up(column_set, /:default => /)
         assert_line_up(column_set, /:limit => /)
         assert_line_up(column_set, /:null => /)
@@ -81,6 +82,14 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
       assert_raise(StandardError) do
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
       end
+    end
+
+    def test_schema_dump_includes_decimal_options
+      stream = StringIO.new      
+      ActiveRecord::SchemaDumper.ignore_tables = [/^[^n]/]
+      ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
+      output = stream.string
+      assert_match %r{:precision => 3,[[:space:]]+:scale => 2,[[:space:]]+:default => 0.278E1}, output
     end
   end
 

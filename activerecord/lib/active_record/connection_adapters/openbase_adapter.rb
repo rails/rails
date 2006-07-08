@@ -32,7 +32,7 @@ module ActiveRecord
       private
         def simplified_type(field_type)
           return :integer if field_type.downcase =~ /long/
-          return :float   if field_type.downcase == "money"
+          return :decimal if field_type.downcase == "money"
           return :binary  if field_type.downcase == "object"
           super
         end
@@ -68,6 +68,7 @@ module ActiveRecord
           :text        => { :name => "text" },
           :integer     => { :name => "integer" },
           :float       => { :name => "float" },
+          :decimal     => { :name => "decimal" },
           :datetime    => { :name => "datetime" },
           :timestamp   => { :name => "timestamp" },
           :time        => { :name => "time" },

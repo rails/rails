@@ -115,12 +115,14 @@ class PessimisticLockingTest < Test::Unit::TestCase
     end
 
     def test_second_lock_waits
-      first, second = duel { Person.find 1, :lock => true }
-      assert second.end > first.end
+      assert [0.2, 1, 5].any? { |zzz|
+        first, second = duel(zzz) { Person.find 1, :lock => true }
+        second.end > first.end
+      }
     end
 
     protected
-      def duel(zzz = 1.0)
+      def duel(zzz = 5)
         t0, t1, t2, t3 = nil, nil, nil, nil
 
         a = Thread.new do

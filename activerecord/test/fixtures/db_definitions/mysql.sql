@@ -217,3 +217,12 @@ CREATE TABLE `legacy_things` (
   `version` int(11) NOT NULL default 0,
   PRIMARY KEY  (`id`)
 ) TYPE=InnoDB;
+
+CREATE TABLE `numeric_data` (
+  `id` INTEGER NOT NULL PRIMARY KEY,
+  `bank_balance` decimal(10,2),
+  `big_bank_balance` decimal(15,2),
+  `world_population` decimal(10),
+  `my_house_population` decimal(2),
+  `decimal_number_with_default` decimal(3,2) DEFAULT 2.78
+) TYPE=InnoDB;

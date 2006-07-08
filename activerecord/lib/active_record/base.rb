@@ -1726,7 +1726,7 @@ module ActiveRecord #:nodoc:
         if self.id.nil? && connection.prefetch_primary_key?(self.class.table_name)
           self.id = connection.next_sequence_value(self.class.sequence_name)
         end
-
+        
         self.id = connection.insert(
           "INSERT INTO #{self.class.table_name} " +
           "(#{quoted_column_names.join(', ')}) " +

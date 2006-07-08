@@ -1015,10 +1015,12 @@ end
 
 class ValidatesNumericalityTest
   NIL = [nil, "", " ", " \t \r \n"]
-  FLOAT_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 -10.5 -0.0001 -090.1)
+  BIGDECIMAL_STRINGS = %w(12345678901234567890.1234567890) # 30 significent digits
+  FLOAT_STRINGS = %w(0.0 +0.0 -0.0 10.0 10.5 -10.5 -0.0001 -090.1 90.1e1 -90.1e5 -90.1e-5 90e-5)
   INTEGER_STRINGS = %w(0 +0 -0 10 +10 -10 0090 -090)
   FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001] + FLOAT_STRINGS
   INTEGERS = [0, 10, -10] + INTEGER_STRINGS
+  BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal.new(bd) }
   JUNK = ["not a number", "42 not a number", "0xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12"]
 
   def setup
@@ -1031,27 +1033,27 @@ class ValidatesNumericalityTest
     Topic.validates_numericality_of :approved
 
     invalid!(NIL + JUNK)
-    valid!(FLOATS + INTEGERS)
+    valid!(FLOATS + INTEGERS + BIGDECIMAL)
   end
 
   def test_validates_numericality_of_with_nil_allowed
     Topic.validates_numericality_of :approved, :allow_nil => true
 
     invalid!(JUNK)
-    valid!(NIL + FLOATS + INTEGERS)
+    valid!(NIL + FLOATS + INTEGERS + BIGDECIMAL)
   end
 
   def test_validates_numericality_of_with_integer_only
     Topic.validates_numericality_of :approved, :only_integer => true
 
-    invalid!(NIL + JUNK + FLOATS)
+    invalid!(NIL + JUNK + FLOATS + BIGDECIMAL)
     valid!(INTEGERS)
   end
 
   def test_validates_numericality_of_with_integer_only_and_nil_allowed
     Topic.validates_numericality_of :approved, :only_integer => true, :allow_nil => true
 
-    invalid!(JUNK + FLOATS)
+    invalid!(JUNK + FLOATS + BIGDECIMAL)
     valid!(NIL + INTEGERS)
   end
 

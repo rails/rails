@@ -110,6 +110,7 @@ module ActiveRecord
           :text        => { :name => "text" },
           :integer     => { :name => "integer" },
           :float       => { :name => "float" },
+          :decimal     => { :name => "decimal" },
           :datetime    => { :name => "datetime" },
           :timestamp   => { :name => "datetime" },
           :time        => { :name => "datetime" },

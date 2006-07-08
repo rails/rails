@@ -198,4 +198,13 @@ CREATE TABLE 'legacy_things' (
   'id' INTEGER NOT NULL PRIMARY KEY,
   'tps_report_number' INTEGER DEFAULT NULL,
   'version' INTEGER NOT NULL DEFAULT 0
-)
+);
+
+CREATE TABLE 'numeric_data' (
+  'id' INTEGER NOT NULL PRIMARY KEY,
+  'bank_balance' DECIMAL(10,2),
+  'big_bank_balance' DECIMAL(15,2),
+  'world_population' DECIMAL(10),
+  'my_house_population' DECIMAL(2),
+  'decimal_number_with_default' DECIMAL(3,2) DEFAULT 2.78
+);
