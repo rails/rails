@@ -1,10 +1,7 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../lib/active_support/core_ext/class'
-require File.dirname(__FILE__) + '/../lib/active_support/core_ext/module'
-require File.dirname(__FILE__) + '/../lib/active_support/reloadable'
+require File.dirname(__FILE__) + '/abstract_unit'
 
 module ReloadableTestSandbox
-  
+
   class AReloadableClass
     include Reloadable
   end
@@ -24,17 +21,17 @@ module ReloadableTestSandbox
     end
     include Reloadable
   end
-  
+
   class SubclassesReloadable
     include Reloadable::Subclasses
   end
   class ASubclassOfSubclassesReloadable < SubclassesReloadable
   end
-  
+
   class AnOnlySubclassReloadableClassSubclassingAReloadableClass
     include Reloadable::Subclasses
   end
-  
+
   class ASubclassofAOnlySubclassReloadableClassWhichWasSubclassingAReloadableClass < AnOnlySubclassReloadableClassSubclassingAReloadableClass
   end
 end
@@ -49,17 +46,17 @@ class ReloadableTest < Test::Unit::TestCase
   def test_reloadable_is_not_overwritten_if_present
     assert_equal 10, ReloadableTestSandbox::AClassWhichDefinesItsOwnReloadable.reloadable?
   end
-  
+
   def test_only_subclass_reloadable
     assert ! ReloadableTestSandbox::SubclassesReloadable.reloadable?
     assert ReloadableTestSandbox::ASubclassOfSubclassesReloadable.reloadable?
   end
-  
+
   def test_inside_hierarchy_only_subclass_reloadable
     assert ! ReloadableTestSandbox::AnOnlySubclassReloadableClassSubclassingAReloadableClass.reloadable?
     assert ReloadableTestSandbox::ASubclassofAOnlySubclassReloadableClassWhichWasSubclassingAReloadableClass.reloadable?
   end
-  
+
   def test_removable_classes
     reloadables = %w(
       AReloadableClass
@@ -72,7 +69,7 @@ class ReloadableTest < Test::Unit::TestCase
       ANonReloadableSubclass
       SubclassesReloadable
     )
-    
+
     results = Reloadable.reloadable_classes
     reloadables.each do |name|
       assert results.include?(ReloadableTestSandbox.const_get(name)), "Expected #{name} to be reloadable"

@@ -1,6 +1,4 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/object'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/blank'
+require File.dirname(__FILE__) + '/../abstract_unit'
 
 class BlankTest < Test::Unit::TestCase
   BLANK = [nil, false, '', '   ', "  \n\t  \r ", [], {}]

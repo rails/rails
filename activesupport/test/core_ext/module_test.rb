@@ -1,6 +1,4 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/class'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/module'
+require File.dirname(__FILE__) + '/../abstract_unit'
 
 module One
 end
@@ -67,33 +65,33 @@ class ModuleTest < Test::Unit::TestCase
     assert_equal "Paulina", david.street
     assert_equal "Chicago", david.city
   end
-  
+
   def test_delegation_down_hierarchy
     david = Someone.new("David", Somewhere.new("Paulina", "Chicago"))
     assert_equal "CHICAGO", david.upcase
   end
-  
+
   def test_delegation_to_instance_variable
     david = Name.new("David", "Hansson")
     assert_equal "DAVID HANSSON", david.upcase
   end
-  
+
   def test_missing_delegation_target
     assert_raises(ArgumentError) { eval($nowhere) }
     assert_raises(ArgumentError) { eval($noplace) }
   end
-  
+
   def test_parent
     assert_equal Yz::Zy, Yz::Zy::Cd.parent
     assert_equal Yz, Yz::Zy.parent
     assert_equal Object, Yz.parent
   end
-  
+
   def test_parents
     assert_equal [Yz::Zy, Yz, Object], Yz::Zy::Cd.parents
     assert_equal [Yz, Object], Yz::Zy.parents
   end
-  
+
   def test_as_load_path
     assert_equal 'yz/zy', Yz::Zy.as_load_path
     assert_equal 'yz', Yz.as_load_path
@@ -156,7 +154,7 @@ class MethodAliasingTest < Test::Unit::TestCase
     FooClassWithBarMethod.send(:include, BarMethodAliaser)
     FooClassWithBarMethod.alias_method_chain :quux!, :baz
     assert @instance.respond_to?(:quux_with_baz!)
-    
+
     assert_equal 'quux_with_baz!', @instance.quux!
     assert_equal 'quux', @instance.quux_without_baz!
   end
@@ -166,11 +164,11 @@ class MethodAliasingTest < Test::Unit::TestCase
     FooClassWithBarMethod.send(:define_method, 'quux?', Proc.new { true })
     assert !@instance.respond_to?(:quux_with_baz!)
     assert !@instance.respond_to?(:quux_with_baz?)
-  
+
     FooClassWithBarMethod.send(:include, BarMethodAliaser)
     FooClassWithBarMethod.alias_method_chain :quux!, :baz
     FooClassWithBarMethod.alias_method_chain :quux?, :baz
-  
+
     assert @instance.respond_to?(:quux_with_baz!)
     assert @instance.respond_to?(:quux_with_baz?)
     assert_equal 'quux_with_baz!', @instance.quux!

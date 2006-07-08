@@ -155,8 +155,8 @@ module ActionController #:nodoc:
         # <tt>flash["notice"] = "hello"</tt> to put a new one.
         # Note that if sessions are disabled only flash.now will work.
         def flash(refresh = false) #:doc:
-          if @flash.nil? || refresh
-            @flash = 
+          if !defined?(@flash) || refresh
+            @flash =
               if @session.is_a?(Hash)
                 # @session is a Hash, if sessions are disabled
                 # we don't put the flash in the session in this case

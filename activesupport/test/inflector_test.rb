@@ -1,5 +1,4 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../lib/active_support/inflector' unless defined? Inflector
+require File.dirname(__FILE__) + '/abstract_unit'
 
 module Ace
   module Base
@@ -63,14 +62,14 @@ class InflectorTest < Test::Unit::TestCase
 
     "old_news"    => "old_news",
     "news"        => "news",
-    
+
     "series"      => "series",
     "species"     => "species",
 
     "quiz"        => "quizzes",
 
     "perspective" => "perspectives",
-    
+
     "ox" => "oxen",
     "photo" => "photos",
     "buffalo" => "buffaloes",
@@ -79,7 +78,7 @@ class InflectorTest < Test::Unit::TestCase
     "elf" => "elves",
     "information" => "information",
     "equipment" => "equipment",
-    "bus" => "buses", 
+    "bus" => "buses",
     "status" => "statuses",
     "status_code" => "status_codes",
     "mouse" => "mice",
@@ -90,17 +89,17 @@ class InflectorTest < Test::Unit::TestCase
     "virus" => "viri",
     "alias" => "aliases",
     "portfolio" => "portfolios",
-    
+
     "vertex" => "vertices",
     "matrix" => "matrices",
-    
+
     "axis" => "axes",
     "testis" => "testes",
     "crisis" => "crises",
-    
+
     "rice" => "rice",
     "shoe" => "shoes",
-    
+
     "horse" => "horses",
     "prize" => "prizes",
     "edge" => "edges"
@@ -117,16 +116,16 @@ class InflectorTest < Test::Unit::TestCase
     "product"                => "product",
     "special_guest"          => "specialGuest",
     "application_controller" => "applicationController",
-    "area51_controller"      => "area51Controller"     
+    "area51_controller"      => "area51Controller"
   }
-  
+
   CamelToUnderscoreWithoutReverse = {
     "HTMLTidy"              => "html_tidy",
     "HTMLTidyGenerator"     => "html_tidy_generator",
     "FreeBSD"               => "free_bsd",
     "HTML"                  => "html",
   }
-  
+
   CamelWithModuleToUnderscoreWithSlash = {
     "Admin::Product" => "admin/product",
     "Users::Commission::Department" => "users/commission/department",
@@ -142,12 +141,12 @@ class InflectorTest < Test::Unit::TestCase
     "Person" => "personid",
     "MyApplication::Billing::Account" => "accountid"
   }
-  
+
   ClassNameToTableName = {
     "PrimarySpokesman" => "primary_spokesmen",
     "NodeChild"        => "node_children"
   }
-  
+
   UnderscoreToHuman = {
     "employee_salary" => "Employee salary",
     "employee_id"     => "Employee",
@@ -194,7 +193,7 @@ class InflectorTest < Test::Unit::TestCase
     "1000" => "1000th",
     "1001" => "1001st"
   }
-  
+
   UnderscoresToDashes = {
     "street"                => "street",
     "street_address"        => "street-address",
@@ -246,7 +245,7 @@ class InflectorTest < Test::Unit::TestCase
       assert_equal(camel, Inflector.camelize(underscore))
     end
   end
-  
+
   def test_underscore_with_slashes
     CamelWithModuleToUnderscoreWithSlash.each do |camel, underscore|
       assert_equal(underscore, Inflector.underscore(camel))
@@ -284,13 +283,13 @@ class InflectorTest < Test::Unit::TestCase
       assert_equal 'FooBar', Inflector.classify(:foo_bar)
     end
   end
-  
+
   def test_humanize
     UnderscoreToHuman.each do |underscore, human|
       assert_equal(human, Inflector.humanize(underscore))
     end
   end
-  
+
   def test_constantize
     assert_equal Ace::Base::Case, Inflector.constantize("Ace::Base::Case")
     assert_equal Ace::Base::Case, Inflector.constantize("::Ace::Base::Case")
@@ -299,7 +298,7 @@ class InflectorTest < Test::Unit::TestCase
     assert_raises(NameError) { Inflector.constantize("UnknownClass") }
     assert_raises(NameError) { Inflector.constantize("An invalid string") }
   end
-  
+
   def test_constantize_doesnt_look_in_parent
     assert_raises(NameError) { Inflector.constantize("Ace::Base::InflectorTest") }
   end

@@ -1,6 +1,4 @@
-$:.unshift File.dirname(__FILE__) + '/../lib'
-require 'active_support'
-require 'test/unit'
+require File.dirname(__FILE__) + '/abstract_unit'
 
 class Foo
   def initialize(a, b)
@@ -14,15 +12,15 @@ class TestJSONEmitters < Test::Unit::TestCase
   NilTests      = [[ nil,   %(null)  ]]
   NumericTests  = [[ 1,     %(1)     ],
                    [ 2.5,   %(2.5)   ]]
-                    
+
   StringTests   = [[ 'this is the string',     %("this is the string")         ],
                    [ 'a "string" with quotes', %("a \\"string\\" with quotes") ]]
-                 
+
   ArrayTests    = [[ ['a', 'b', 'c'],          %([\"a\", \"b\", \"c\"])          ],
                    [ [1, 'a', :b, nil, false], %([1, \"a\", \"b\", null, false]) ]]
-  
+
   HashTests     = [[ {:a => :b, :c => :d}, %({\"c\": \"d\", \"a\": \"b\"}) ]]
-                  
+
   SymbolTests   = [[ :a,     %("a")    ],
                    [ :this,  %("this") ],
                    [ :"a b", %("a b")  ]]
@@ -40,7 +38,7 @@ class TestJSONEmitters < Test::Unit::TestCase
       end
     end
   end
-  
+
   def test_utf8_string_encoded_properly_when_kcode_is_utf8
     old_kcode, $KCODE = $KCODE, 'UTF8'
     assert_equal '"\\u20ac2.99"', '€2.99'.to_json
@@ -48,7 +46,7 @@ class TestJSONEmitters < Test::Unit::TestCase
   ensure
     $KCODE = old_kcode
   end
-  
+
   def test_exception_raised_when_encoding_circular_reference
     a = [1]
     a << a

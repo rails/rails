@@ -13,6 +13,7 @@ module BaseTest
   include ActionView::Helpers::CaptureHelper
   
   def setup
+    @template = nil
     @controller = Class.new do
       def url_for(options, *parameters_for_method_reference)
         if options.is_a?(String)

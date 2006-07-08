@@ -1,5 +1,4 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support'
+require File.dirname(__FILE__) + '/../abstract_unit'
 
 class HashExtTest < Test::Unit::TestCase
   def setup

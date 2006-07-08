@@ -101,7 +101,7 @@ module ActionController #:nodoc:
     end
 
     def session
-      unless @session
+      unless defined?(@session)
         if @session_options == false
           @session = Hash.new
         else
@@ -119,7 +119,7 @@ module ActionController #:nodoc:
     end
 
     def reset_session
-      @session.delete if CGI::Session === @session
+      @session.delete if defined?(@session) && @session.is_a?(CGI::Session)
       @session = new_session
     end
 

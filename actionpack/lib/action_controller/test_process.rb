@@ -337,7 +337,7 @@ module ActionController #:nodoc:
       %w( get post put delete head ).each do |method|
         base.class_eval <<-EOV, __FILE__, __LINE__
           def #{method}(action, parameters = nil, session = nil, flash = nil)
-            @request.env['REQUEST_METHOD'] = "#{method.upcase}" if @request
+            @request.env['REQUEST_METHOD'] = "#{method.upcase}" if defined?(@request)
             process(action, parameters, session, flash)
           end
         EOV
@@ -348,8 +348,10 @@ module ActionController #:nodoc:
     def process(action, parameters = nil, session = nil, flash = nil)
       # Sanity check for required instance variables so we can give an
       # understandable error message.
-      %w(controller request response).each do |iv_name|
-        raise "@#{iv_name} is nil: make sure you set it in your test's setup method." if instance_variable_get("@#{iv_name}").nil?
+      %w(@controller @request @response).each do |iv_name|
+        if !instance_variables.include?(iv_name) || instance_variable_get(iv_name).nil?
+          raise "#{iv_name} is nil: make sure you set it in your test's setup method."
+        end
       end
 
       @request.recycle!

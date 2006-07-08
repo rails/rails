@@ -1,5 +1,4 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/kernel' unless defined? silence_warnings
+require File.dirname(__FILE__) + '/../abstract_unit'
 
 class KernelTest < Test::Unit::TestCase
   def test_silence_warnings

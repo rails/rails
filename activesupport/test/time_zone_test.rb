@@ -1,5 +1,4 @@
-require 'test/unit'
-require File.dirname(__FILE__)+'/../lib/active_support/values/time_zone'
+require File.dirname(__FILE__) + '/abstract_unit'
 
 class TimeZoneTest < Test::Unit::TestCase
   class MockTime

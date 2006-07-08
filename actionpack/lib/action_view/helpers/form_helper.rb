@@ -267,7 +267,7 @@ module ActionView
         end
         options["checked"] = "checked" if checked
         pretty_tag_value    = tag_value.to_s.gsub(/\s/, "_").gsub(/\W/, "").downcase
-        options["id"]       = @auto_index ?             
+        options["id"]       = defined?(@auto_index) ?             
           "#{@object_name}_#{@auto_index}_#{@method_name}_#{pretty_tag_value}" :
           "#{@object_name}_#{@method_name}_#{pretty_tag_value}"
         add_default_name_and_id(options)
@@ -377,7 +377,7 @@ module ActionView
             options["name"] ||= tag_name_with_index(options["index"])
             options["id"]   ||= tag_id_with_index(options["index"])
             options.delete("index")
-          elsif @auto_index
+          elsif defined?(@auto_index)
             options["name"] ||= tag_name_with_index(@auto_index)
             options["id"]   ||= tag_id_with_index(@auto_index)
           else

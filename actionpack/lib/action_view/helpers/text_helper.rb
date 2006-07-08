@@ -277,8 +277,7 @@ module ActionView
       # the next time it is used.
       def reset_cycle(name = "default")
         cycle = get_cycle(name)
-        return if cycle.nil?
-        cycle.reset
+        cycle.reset unless cycle.nil?
       end
 
       class Cycle #:nodoc:
@@ -305,12 +304,12 @@ module ActionView
         # guaranteed to be reset every time a page is rendered, so it
         # uses an instance variable of ActionView::Base.
         def get_cycle(name)
-          @_cycles = Hash.new if @_cycles.nil?
+          @_cycles = Hash.new unless defined?(@_cycles)
           return @_cycles[name]
         end
         
         def set_cycle(name, cycle_object)
-          @_cycles = Hash.new if @_cycles.nil?
+          @_cycles = Hash.new unless defined?(@_cycles)
           @_cycles[name] = cycle_object
         end
       

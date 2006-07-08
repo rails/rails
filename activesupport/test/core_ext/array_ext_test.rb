@@ -1,5 +1,4 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support'
+require File.dirname(__FILE__) + '/../abstract_unit'
 
 class ArrayExtToParamTests < Test::Unit::TestCase
   def test_string_array
@@ -7,7 +6,7 @@ class ArrayExtToParamTests < Test::Unit::TestCase
     assert_equal 'hello/world', %w(hello world).to_param
     assert_equal 'hello/10', %w(hello 10).to_param
   end
-  
+
   def test_number_array
     assert_equal '10/20', [10, 20].to_param
   end
@@ -19,13 +18,13 @@ class ArrayExtToSentenceTests < Test::Unit::TestCase
     assert_equal "one", ['one'].to_sentence
     assert_equal "one and two", ['one', 'two'].to_sentence
     assert_equal "one, two, and three", ['one', 'two', 'three'].to_sentence
-    
+
   end
-  
+
   def test_to_sentence_with_connector
     assert_equal "one, two, and also three", ['one', 'two', 'three'].to_sentence(:connector => 'and also')
   end
-  
+
   def test_to_sentence_with_skip_last_comma
     assert_equal "one, two, and three", ['one', 'two', 'three'].to_sentence(:skip_last_comma => false)
   end
@@ -33,7 +32,7 @@ class ArrayExtToSentenceTests < Test::Unit::TestCase
   def test_two_elements
     assert_equal "one and two", ['one', 'two'].to_sentence
   end
-  
+
   def test_one_element
     assert_equal "one", ['one'].to_sentence
   end
@@ -46,7 +45,7 @@ class ArrayExtToSTests < Test::Unit::TestCase
       Class.new { def id() 2 end }.new,
       Class.new { def id() 3 end }.new
     ]
-    
+
     assert_equal "null", [].to_s(:db)
     assert_equal "1,2,3", collection.to_s(:db)
   end
@@ -87,16 +86,16 @@ class ArraySplitTests < Test::Unit::TestCase
   def test_split_with_empty_array
     assert_equal [[]], [].split(0)
   end
-  
+
   def test_split_with_argument
     assert_equal [[1, 2], [4, 5]],  [1, 2, 3, 4, 5].split(3)
     assert_equal [[1, 2, 3, 4, 5]], [1, 2, 3, 4, 5].split(0)
   end
-  
+
   def test_split_with_block
     assert_equal [[1, 2], [4, 5], [7, 8], [10]], (1..10).to_a.split { |i| i % 3 == 0 }
   end
-  
+
   def test_split_with_edge_values
     assert_equal [[], [2, 3, 4, 5]],  [1, 2, 3, 4, 5].split(1)
     assert_equal [[1, 2, 3, 4], []],  [1, 2, 3, 4, 5].split(5)
@@ -124,9 +123,9 @@ class ArrayToXmlTests < Test::Unit::TestCase
 
     assert_equal "<people><person>", xml.first(16)
   end
-  
+
   def test_to_xml_with_options
-    xml = [ 
+    xml = [
       { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
     ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0)
 
@@ -138,7 +137,7 @@ class ArrayToXmlTests < Test::Unit::TestCase
   end
 
   def test_to_xml_with_dasherize_false
-    xml = [ 
+    xml = [
       { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
     ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0, :dasherize => false)
 
@@ -148,7 +147,7 @@ class ArrayToXmlTests < Test::Unit::TestCase
   end
 
   def test_to_xml_with_dasherize_true
-    xml = [ 
+    xml = [
       { :name => "David", :street_address => "Paulina" }, { :name => "Jason", :street_address => "Evergreen" }
     ].to_xml(:skip_instruct => true, :skip_types => true, :indent => 0, :dasherize => true)
 

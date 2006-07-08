@@ -49,7 +49,9 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
       Post.content_columns.select { |column| column.name == attr_name }.first
     end
 
-    def Post.content_columns() [ Column.new(:string, "title", "Title"), Column.new(:text, "body", "Body") ] end
+    silence_warnings do
+      def Post.content_columns() [ Column.new(:string, "title", "Title"), Column.new(:text, "body", "Body") ] end
+    end
 
     @post.title       = "Hello World"
     @post.author_name = ""
@@ -76,7 +78,9 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
       User.content_columns.select { |column| column.name == attr_name }.first
     end
 
-    def User.content_columns() [ Column.new(:string, "email", "Email") ] end
+    silence_warnings do
+      def User.content_columns() [ Column.new(:string, "email", "Email") ] end
+    end
 
     @user.email = ""
   end
@@ -119,11 +123,14 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
       form("post")
     )
 
-    class << @post
-      def new_record?() false end
-      def to_param() id end
-      def id() 1 end
+    silence_warnings do
+      class << @post
+        def new_record?() false end
+        def to_param() id end
+        def id() 1 end
+      end
     end
+
     assert_dom_equal(
       %(<form action="update/1" method="post"><input id="post_id" name="post[id]" type="hidden" value="1" /><p><label for="post_title">Title</label><br /><input id="post_title" name="post[title]" size="30" type="text" value="Hello World" /></p>\n<p><label for="post_body">Body</label><br /><div class="fieldWithErrors"><textarea cols="40" id="post_body" name="post[body]" rows="20">Back to the hill and over it again!</textarea></div></p><input name="commit" type="submit" value="Update" /></form>),
       form("post")
@@ -131,16 +138,20 @@ class ActiveRecordHelperTest < Test::Unit::TestCase
   end
   
   def test_form_with_date
-    def Post.content_columns() [ Column.new(:date, "written_on", "Written on") ] end
+    silence_warnings do
+      def Post.content_columns() [ Column.new(:date, "written_on", "Written on") ] end
+    end
 
     assert_dom_equal(
       %(<form action="create" method="post"><p><label for="post_written_on">Written on</label><br /><select name="post[written_on(1i)]">\n<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n</select>\n<select name="post[written_on(2i)]">\n<option value="1">January</option>\n<option value="2">February</option>\n<option value="3">March</option>\n<option value="4">April</option>\n<option value="5">May</option>\n<option value="6" selected="selected">June</option>\n<option value="7">July</option>\n<option value="8">August</option>\n<option value="9">September</option>\n<option value="10">October</option>\n<option value="11">November</option>\n<option value="12">December</option>\n</select>\n<select name="post[written_on(3i)]">\n<option value="1">1</option>\n<option value="2">2</option>\n<option value="3">3</option>\n<option value="4">4</option>\n<option value="5">5</option>\n<option value="6">6</option>\n<option value="7">7</option>\n<option value="8">8</option>\n<option value="9">9</option>\n<option value="10">10</option>\n<option value="11">11</option>\n<option value="12">12</option>\n<option value="13">13</option>\n<option value="14">14</option>\n<option value="15" selected="selected">15</option>\n<option value="16">16</option>\n<option value="17">17</option>\n<option value="18">18</option>\n<option value="19">19</option>\n<option value="20">20</option>\n<option value="21">21</option>\n<option value="22">22</option>\n<option value="23">23</option>\n<option value="24">24</option>\n<option value="25">25</option>\n<option value="26">26</option>\n<option value="27">27</option>\n<option value="28">28</option>\n<option value="29">29</option>\n<option value="30">30</option>\n<option value="31">31</option>\n</select>\n</p><input name="commit" type="submit" value="Create" /></form>),
       form("post")
     )
   end
-  
+
   def test_form_with_datetime
-    def Post.content_columns() [ Column.new(:datetime, "written_on", "Written on") ] end
+    silence_warnings do
+      def Post.content_columns() [ Column.new(:datetime, "written_on", "Written on") ] end
+    end
     @post.written_on  = Time.gm(2004, 6, 15, 16, 30)
 
     assert_dom_equal(

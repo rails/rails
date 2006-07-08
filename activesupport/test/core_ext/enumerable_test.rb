@@ -1,6 +1,4 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/symbol'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/enumerable'
+require File.dirname(__FILE__) + '/../abstract_unit'
 
 Payment = Struct.new(:price)
 class SummablePayment < Payment
@@ -12,7 +10,7 @@ class EnumerableTests < Test::Unit::TestCase
     names = %w(marcel sam david jeremy)
     klass = Class.new
     klass.send(:attr_accessor, :name)
-    objects = (1..50).inject([]) do |people,| 
+    objects = (1..50).inject([]) do |people,|
       p = klass.new
       p.name = names.sort_by { rand }.first
       people << p

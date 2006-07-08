@@ -1,5 +1,4 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../lib/active_support/core_ext/class/inheritable_attributes'
+require File.dirname(__FILE__) + '/abstract_unit'
 
 class ClassInheritableAttributesTest < Test::Unit::TestCase
   def setup

@@ -1,11 +1,10 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/integer'
+require File.dirname(__FILE__) + '/../abstract_unit'
 
 class IntegerExtTest < Test::Unit::TestCase
   def test_even
     assert [ -2, 0, 2, 4 ].all? { |i| i.even? }
     assert ![ -1, 1, 3 ].all? { |i| i.even? }
-    
+
     assert 22953686867719691230002707821868552601124472329079.odd?
     assert !22953686867719691230002707821868552601124472329079.even?
     assert 22953686867719691230002707821868552601124472329080.even?
@@ -17,7 +16,7 @@ class IntegerExtTest < Test::Unit::TestCase
     assert [ -1, 1, 3 ].all? { |i| i.odd? }
     assert 1000000000000000000000000000000000000000000000000000000001.odd?
   end
-  
+
   def test_multiple_of
     [ -7, 0, 7, 14 ].each { |i| assert i.multiple_of?(7) }
     [ -7, 7, 14 ].each { |i| assert ! i.multiple_of?(6) }

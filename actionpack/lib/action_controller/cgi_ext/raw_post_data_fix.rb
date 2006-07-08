@@ -75,7 +75,7 @@ class CGI #:nodoc:
         content = stdinput.read(content_length) || ''
         # Fix for Safari Ajax postings that always append \000
         content.chop! if content[-1] == 0
-        content.gsub! /&_=$/, ''
+        content.gsub!(/&_=$/, '')
         env_table['RAW_POST_DATA'] = content.freeze
       end
 

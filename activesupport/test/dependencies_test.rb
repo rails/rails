@@ -1,13 +1,11 @@
-require 'test/unit'
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib/active_support/'
-require 'core_ext/string'
-require 'dependencies'
+require File.dirname(__FILE__) + '/abstract_unit'
+#require 'dependencies'
 
 class DependenciesTest < Test::Unit::TestCase
   def teardown
     Dependencies.clear
   end
-  
+
   def with_loading(from_dir = nil)
     prior_path = $LOAD_PATH.clone
     $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/#{from_dir}" if from_dir
@@ -103,11 +101,11 @@ class DependenciesTest < Test::Unit::TestCase
       assert_equal 2, $mutual_dependencies_count
     end
   end
-  
+
   def test_as_load_path
     assert_equal '', DependenciesTest.as_load_path
   end
-  
+
   def test_module_loading
     with_loading 'autoloading_fixtures' do
       assert_kind_of Module, A
@@ -116,7 +114,7 @@ class DependenciesTest < Test::Unit::TestCase
       assert_kind_of Class, A::C::E::F
     end
   end
-  
+
   def test_non_existing_const_raises_name_error
     with_loading 'autoloading_fixtures' do
       assert_raises(NameError) { DoesNotExist }
@@ -125,21 +123,21 @@ class DependenciesTest < Test::Unit::TestCase
       assert_raises(NameError) { A::B::DoesNotExist }
     end
   end
-  
+
   def test_directories_should_manifest_as_modules
     with_loading 'autoloading_fixtures' do
       assert_kind_of Module, ModuleFolder
       Object.send :remove_const, :ModuleFolder
     end
   end
-  
+
   def test_nested_class_access
     with_loading 'autoloading_fixtures' do
       assert_kind_of Class, ModuleFolder::NestedClass
       Object.send :remove_const, :ModuleFolder
     end
   end
-  
+
   def test_nested_class_can_access_sibling
     with_loading 'autoloading_fixtures' do
       sibling = ModuleFolder::NestedClass.class_eval "NestedSibling"
@@ -148,7 +146,7 @@ class DependenciesTest < Test::Unit::TestCase
       Object.send :remove_const, :ModuleFolder
     end
   end
-  
+
   def failing_test_access_thru_and_upwards_fails
     with_loading 'autoloading_fixtures' do
       assert ! defined?(ModuleFolder)
@@ -157,5 +155,4 @@ class DependenciesTest < Test::Unit::TestCase
       Object.send :remove_const, :ModuleFolder
     end
   end
-  
 end

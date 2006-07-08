@@ -1,7 +1,5 @@
-require 'test/unit'
 require 'date'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/string'
-require File.dirname(__FILE__) + '/../inflector_test' unless defined? InflectorTest
+require File.dirname(__FILE__) + '/../abstract_unit'
 
 class StringInflectionsTest < Test::Unit::TestCase
   def test_pluralize
@@ -28,7 +26,7 @@ class StringInflectionsTest < Test::Unit::TestCase
     InflectorTest::CamelToUnderscore.each do |camel, underscore|
       assert_equal(underscore, camel.underscore)
     end
-    
+
     assert_equal "html_tidy", "HTMLTidy".underscore
     assert_equal "html_tidy_generator", "HTMLTidyGenerator".underscore
   end
@@ -58,26 +56,26 @@ class StringInflectionsTest < Test::Unit::TestCase
       assert_equal(class_name, table_name.classify)
     end
   end
-  
+
   def test_string_to_time
     assert_equal Time.utc(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time
     assert_equal Time.local(2005, 2, 27, 23, 50), "2005-02-27 23:50".to_time(:local)
     assert_equal Date.new(2005, 2, 27), "2005-02-27".to_date
   end
-  
+
   def test_access
     s = "hello"
     assert_equal "h", s.at(0)
-    
+
     assert_equal "llo", s.from(2)
     assert_equal "hel", s.to(2)
-    
+
     assert_equal "h", s.first
     assert_equal "he", s.first(2)
 
     assert_equal "o", s.last
     assert_equal "llo", s.last(3)
-    
+
     assert_equal 'x', 'x'.first
     assert_equal 'x', 'x'.first(4)
 
@@ -86,14 +84,14 @@ class StringInflectionsTest < Test::Unit::TestCase
   end
 
   def test_starts_ends_with
-    s = "hello"    
-    assert s.starts_with?('h')    
-    assert s.starts_with?('hel')    
-    assert !s.starts_with?('el')    
+    s = "hello"
+    assert s.starts_with?('h')
+    assert s.starts_with?('hel')
+    assert !s.starts_with?('el')
 
-    assert s.ends_with?('o')    
-    assert s.ends_with?('lo')    
-    assert !s.ends_with?('el')  
+    assert s.ends_with?('o')
+    assert s.ends_with?('lo')
+    assert !s.ends_with?('el')
   end
 
   def test_each_char_with_utf8_string_when_kcode_is_utf8

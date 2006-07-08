@@ -1,5 +1,4 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../../lib/active_support/core_ext/proc'
+require File.dirname(__FILE__) + '/../abstract_unit'
 
 class ProcTests < Test::Unit::TestCase
   def test_bind_returns_method_with_changed_self

@@ -1,7 +1,5 @@
-require 'test/unit'
+require File.dirname(__FILE__) + '/abstract_unit'
 require 'stringio'
-require File.dirname(__FILE__) + '/../lib/active_support/clean_logger'
-require File.dirname(__FILE__) + '/../lib/active_support/core_ext/kernel.rb' unless defined? silence_warnings
 
 class CleanLoggerTest < Test::Unit::TestCase
   def setup
