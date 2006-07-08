@@ -1,5 +1,15 @@
 ActiveRecord::Schema.define do
 
+  # For Firebird, set the sequence values 10000 when create_table is called;
+  # this prevents primary key collisions between "normally" created records
+  # and fixture-based (YAML) records.
+  if adapter_name == "Firebird"
+    def create_table(*args, &block)
+      ActiveRecord::Base.connection.create_table(*args, &block)
+      ActiveRecord::Base.connection.execute "SET GENERATOR #{args.first}_seq TO 10000"
+    end
+  end
+
   create_table :taggings, :force => true do |t|
     t.column :tag_id, :integer
     t.column :super_tag_id, :integer

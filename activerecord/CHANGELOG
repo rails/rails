@@ -1,5 +1,7 @@
 *SVN*
 
+* Firebird migrations support. #5337 [Ken Kunz <kennethkunz@gmail.com>]
+
 * PostgreSQL: create/drop as postgres user. #4790 [mail@matthewpainter.co.uk, mlaster@metavillage.com]
 
 * Update callbacks documentation. #3970 [Robby Russell <robby@planetargon.com>]

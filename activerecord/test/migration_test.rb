@@ -43,13 +43,16 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.remove_column("people", "favorite_day") rescue nil
       Person.connection.remove_column("people", "male") rescue nil
       Person.connection.remove_column("people", "administrator") rescue nil
+      Person.connection.remove_column("people", "first_name") rescue nil
+      Person.connection.add_column("people", "first_name", :string, :limit => 40)
       Person.reset_column_information
     end
 
     def test_add_index
-      Person.connection.add_column "people", "last_name", :string
+      # Limit size of last_name and key columns to support Firebird index limitations
+      Person.connection.add_column "people", "last_name", :string, :limit => 100
+      Person.connection.add_column "people", "key", :string, :limit => 100
       Person.connection.add_column "people", "administrator", :boolean
-      Person.connection.add_column "people", "key", :string
 
       assert_nothing_raised { Person.connection.add_index("people", "last_name") }
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
@@ -58,8 +61,9 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
 
       # quoting
-      assert_nothing_raised { Person.connection.add_index("people", ["key"], :name => "key", :unique => true) }
-      assert_nothing_raised { Person.connection.remove_index("people", :name => "key", :unique => true) }
+      # Note: changed index name from "key" to "key_idx" since "key" is a Firebird reserved word
+      assert_nothing_raised { Person.connection.add_index("people", ["key"], :name => "key_idx", :unique => true) }
+      assert_nothing_raised { Person.connection.remove_index("people", :name => "key_idx", :unique => true) }
 
       # Sybase adapter does not support indexes on :boolean columns
       unless current_adapter?(:SybaseAdapter)
@@ -170,14 +174,14 @@ if ActiveRecord::Base.connection.supports_migrations?
     end
 
     def test_add_column_not_null_with_default
-      Person.connection.create_table :testings, :id => false do |t|
+      Person.connection.create_table :testings do |t|
         t.column :foo, :string
       end
-      Person.connection.execute "insert into testings (foo) values ('hello')"
+      Person.connection.execute "insert into testings values (1, 'hello')"
       assert_nothing_raised {Person.connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
 
       assert_raises(ActiveRecord::StatementInvalid) do
-        Person.connection.execute "insert into testings (foo, bar) values ('hello', NULL)"
+        Person.connection.execute "insert into testings values (2, 'hello', NULL)"
       end
     ensure
       Person.connection.drop_table :testings rescue nil
@@ -294,14 +298,8 @@ if ActiveRecord::Base.connection.supports_migrations?
         end
         ActiveRecord::Base.connection.rename_table :octopuses, :octopi
 
-        assert_nothing_raised do
-          if current_adapter?(:OracleAdapter)
-            # Oracle requires the explicit sequence value for the pk
-            ActiveRecord::Base.connection.execute "INSERT INTO octopi (id, url) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')"
-          else
-            ActiveRecord::Base.connection.execute "INSERT INTO octopi (url) VALUES ('http://www.foreverflying.com/octopus-black7.jpg')"
-          end
-        end
+        # Using explicit id in insert for compatibility across all databases
+        assert_nothing_raised { ActiveRecord::Base.connection.execute "INSERT INTO octopi VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')" }
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', ActiveRecord::Base.connection.select_value("SELECT url FROM octopi WHERE id=1")
 
