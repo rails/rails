@@ -1390,7 +1390,7 @@ module ActiveRecord #:nodoc:
         end
 
         def extract_options_from_args!(args) #:nodoc:
-          args.last.is_a?(Hash) ? args.pop : {}
+          args.last.is_a?(Hash) ? args.pop.dup : {}
         end
 
         VALID_FIND_OPTIONS = [ :conditions, :include, :joins, :limit, :offset,
