@@ -39,7 +39,7 @@ class Dispatcher
       end
     rescue Object => exception
       failsafe_response(output, '500 Internal Server Error', exception) do
-        ActionController::Base.process_with_exception(request, response, exception).out(output)
+        ActionController.process_with_exception(request, response, exception).out(output)
       end
     ensure
       # Do not give a failsafe response here.

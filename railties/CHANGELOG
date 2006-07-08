@@ -1,5 +1,7 @@
 *SVN*
 
+* Dispatcher processes rescued actions with the same controller that processed the request. #4625 [sd@notso.net]
+
 * rails -d frontbase to create a new project with a frontbase database.yml. #4945 [mlaster@metavillage.com]
 
 * Ensure the logger is initialized. #5629 [mike@clarkware.com]
