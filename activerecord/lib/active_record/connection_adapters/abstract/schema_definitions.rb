@@ -21,16 +21,14 @@ module ActiveRecord
         @default = type_cast(default)
 
         @primary = nil
-        @text    = [:string, :text].include? @type
-        @number  = [:float, :integer].include? @type
       end
 
       def text?
-        @text
+        [:string, :text].include? type
       end
 
       def number?
-        @number
+        [:float, :integer].include? type
       end
 
       # Returns the Ruby class that corresponds to the abstract data type.
