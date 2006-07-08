@@ -1,5 +1,7 @@
 *SVN*
 
+* rails -d frontbase to create a new project with a frontbase database.yml. #4945 [mlaster@metavillage.com]
+
 * Ensure the logger is initialized. #5629 [mike@clarkware.com]
 
 * Added Mongrel-spawning capabilities to script/process/spawner. Mongrel will be the default choice if installed, otherwise FCGI is tried [DHH]. Examples:

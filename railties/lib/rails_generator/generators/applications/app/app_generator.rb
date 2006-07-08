@@ -3,9 +3,9 @@ require 'rbconfig'
 class AppGenerator < Rails::Generator::Base
   DEFAULT_SHEBANG = File.join(Config::CONFIG['bindir'],
                               Config::CONFIG['ruby_install_name'])
-  
-  DATABASES = %w( mysql oracle postgresql sqlite2 sqlite3 )
-  
+
+  DATABASES = %w(mysql oracle postgresql sqlite2 sqlite3 frontbase)
+
   default_options   :db => "mysql", :shebang => DEFAULT_SHEBANG, :freeze => false
   mandatory_options :source => "#{File.dirname(__FILE__)}/../../../../.."
 
@@ -65,7 +65,7 @@ class AppGenerator < Rails::Generator::Base
       %w(404 500 index).each do |file|
         m.template "html/#{file}.html", "public/#{file}.html"
       end
-      
+
       m.template "html/favicon.ico",  "public/favicon.ico"
       m.template "html/robots.txt",   "public/robots.txt"
       m.file "html/images/rails.png", "public/images/rails.png"
@@ -103,11 +103,11 @@ class AppGenerator < Rails::Generator::Base
             "Preconfigure for selected database (options: mysql/oracle/postgresql/sqlite2/sqlite3).",
             "Default: mysql") { |v| options[:db] = v }
 
-      opt.on("-f", "--freeze", 
+      opt.on("-f", "--freeze",
             "Freeze Rails in vendor/rails from the gems generating the skeleton",
             "Default: false") { |v| options[:freeze] = v }
     end
-    
+
     def mysql_socket_location
       RUBY_PLATFORM =~ /mswin32/ ? MYSQL_SOCKET_LOCATIONS.find { |f| File.exists?(f) } : nil
     end
