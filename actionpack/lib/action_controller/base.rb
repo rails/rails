@@ -526,28 +526,32 @@ module ActionController #:nodoc:
       # <tt>render_with_layout("controller/action", status = 200, layout)</tt>.
       #
       # === Rendering partials
-      # 
-      # Partial rendering is most commonly used together with Ajax calls that only update one or a few elements on a page
+      #
+      # Partial rendering in a controller is most commonly used together with Ajax calls that only update one or a few elements on a page
       # without reloading. Rendering of partials from the controller makes it possible to use the same partial template in
       # both the full-page rendering (by calling it from within the template) and when sub-page updates happen (from the
       # controller action responding to Ajax calls). By default, the current layout is not used.
       #
-      #   # Renders the partial located at app/views/controller/_win.r(html|xml)
-      #   render :partial => "win"
+      #   # Renders the same partial with a local variable.
+      #   render :partial => "person", :locals => { :name => "david" }
       #
-      #   # Renders the partial with a status code of 500 (internal error)
+      #   # Renders a collection of the same partial by making each element
+      #   # of @winners available through the local variable "person" as it
+      #   # builds the complete response.
+      #   render :partial => "person", :collection => @winners
+      #
+      #   # Renders the same collection of partials, but also renders the
+      #   # person_divider partial between each person partial.
+      #   render :partial => "person", :collection => @winners, :spacer_template => "person_divider"
+      #
+      #   # Renders a collection of partials located in a view subfolder
+      #   # outside of our current controller.  In this example we will be
+      #   # rendering app/views/shared/_note.r(html|xml)  Inside the partial
+      #   # each element of @new_notes is available as the local var "note".
+      #   render :partial => "shared/note", :collection => @new_notes
+      #
+      #   # Renders the partial with a status code of 500 (internal error).
       #   render :partial => "broken", :status => 500
-      #
-      #   # Renders the same partial but also makes a local variable available to it
-      #   render :partial => "win", :locals => { :name => "david" }
-      #
-      #   # Renders a collection of the same partial by making each element of @wins available through 
-      #   # the local variable "win" as it builds the complete response
-      #   render :partial => "win", :collection => @wins
-      #
-      #   # Renders the same collection of partials, but also renders the win_divider partial in between
-      #   # each win partial.
-      #   render :partial => "win", :collection => @wins, :spacer_template => "win_divider"
       #
       # Note that the partial filename must also be a valid Ruby variable name,
       # so e.g. 2005 and register-user are invalid.

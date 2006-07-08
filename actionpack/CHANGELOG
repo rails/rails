@@ -1,5 +1,7 @@
 *SVN*
 
+* Update render :partial documentation. #5646 [matt@mattmargolis.net]
+
 * Integration tests behave well with render_component. #4632 [edward.frederick@revolution.com, dev.rubyonrails@maxdunn.com]
 
 * Added exception handling of missing layouts #5373 [chris@ozmm.org]
