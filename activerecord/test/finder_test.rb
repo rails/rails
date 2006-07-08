@@ -5,10 +5,9 @@ require 'fixtures/reply'
 require 'fixtures/entrant'
 require 'fixtures/developer'
 require 'fixtures/post'
-require 'fixtures/author'
 
 class FinderTest < Test::Unit::TestCase
-  fixtures :authors, :companies, :topics, :entrants, :developers, :developers_projects, :posts, :accounts
+  fixtures :companies, :topics, :entrants, :developers, :developers_projects, :posts, :accounts
 
   def test_find
     assert_equal(topics(:first).title, Topic.find(1).title)
@@ -448,18 +447,6 @@ class FinderTest < Test::Unit::TestCase
   def test_select_values
     assert_equal ["1","2","3","4","5","6","7","8"], Company.connection.select_values("SELECT id FROM companies ORDER BY id").map! { |i| i.to_s }
     assert_equal ["37signals","Summit","Microsoft", "Flamboyant Software", "Ex Nihilo", "RailsCore", "Leetsoft", "Jadedpixel"], Company.connection.select_values("SELECT name FROM companies ORDER BY id")
-  end
-
-  def test_find_doesnt_mangle_parameters
-    author = Author.find(1)
-    
-    args = [:all, {:conditions => "body like '%t%'"}]
-
-    author.posts.each do |p|
-      assert_equal Post.find(p.id).comments.length,
-       p.comments.find(*args).length,
-       "Post ##{p.id} doesn't find correct number of comments"
-    end
   end
 
   protected
