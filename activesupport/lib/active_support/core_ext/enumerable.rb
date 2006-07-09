@@ -30,7 +30,14 @@ module Enumerable #:nodoc:
   #
   # Also calculates sums without the use of a block:
   #   [5, 15, 10].sum # => 30
-  def sum(&block)
+  #
+  # The default identity (sum of an empty list) is zero. 
+  # However, you can override this default:
+  #
+  # [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
+  #
+  def sum(identity = 0, &block)
+    return identity unless size > 0
     if block_given?
       map(&block).sum
     else
