@@ -54,6 +54,10 @@ namespace :db do
         when "sqlserver"
           `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /f db\\#{RAILS_ENV}_structure.sql /q /A /r`
           `scptxfr /s #{abcs[RAILS_ENV]["host"]} /d #{abcs[RAILS_ENV]["database"]} /I /F db\ /q /A /r`
+        when "firebird"
+          set_firebird_env(abcs[RAILS_ENV])
+          db_string = firebird_db_string(abcs[RAILS_ENV])
+          sh "isql -a #{db_string} > db/#{RAILS_ENV}_structure.sql"
         else
           raise "Task not supported by '#{abcs["test"]["adapter"]}'"
       end
@@ -98,6 +102,10 @@ namespace :db do
           IO.readlines("db/#{RAILS_ENV}_structure.sql").join.split(";\n\n").each do |ddl|
             ActiveRecord::Base.connection.execute(ddl)
           end
+        when "firebird"
+          set_firebird_env(abcs["test"])
+          db_string = firebird_db_string(abcs["test"])
+          sh "isql -i db/#{RAILS_ENV}_structure.sql #{db_string}"
         else
           raise "Task not supported by '#{abcs["test"]["adapter"]}'"
       end
@@ -129,6 +137,9 @@ namespace :db do
           ActiveRecord::Base.connection.structure_drop.split(";\n\n").each do |ddl|
             ActiveRecord::Base.connection.execute(ddl)
           end
+        when "firebird"
+          ActiveRecord::Base.establish_connection(:test)
+          ActiveRecord::Base.connection.recreate_database!
         else
           raise "Task not supported by '#{abcs["test"]["adapter"]}'"
       end
@@ -162,4 +173,13 @@ end
 
 def session_table_name
   ActiveRecord::Base.pluralize_table_names ? :sessions : :session
+end
+
+def set_firebird_env(config)
+  ENV["ISC_USER"]     = config["username"].to_s if config["username"]
+  ENV["ISC_PASSWORD"] = config["password"].to_s if config["password"]
+end
+
+def firebird_db_string(config)
+  FireRuby::Database.db_string_for(config.symbolize_keys)
 end
