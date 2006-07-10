@@ -39,8 +39,8 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
       Reminder.reset_column_information
 
-      %w(last_name key bio age height wealth birthday favorite_day male
-         mail administrator).each do |column|
+      %w(last_name key bio age height wealth birthday favorite_day
+         male administrator).each do |column|
         Person.connection.remove_column('people', column) rescue nil
       end
       Person.connection.remove_column("people", "first_name") rescue nil
@@ -177,11 +177,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.connection.create_table :testings do |t|
         t.column :foo, :string
       end
-      Person.connection.execute "insert into testings values (1, 'hello')"
+      
+      con = Person.connection     
+      Person.connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}) values (1, 'hello')"
       assert_nothing_raised {Person.connection.add_column :testings, :bar, :string, :null => false, :default => "default" }
 
       assert_raises(ActiveRecord::StatementInvalid) do
-        Person.connection.execute "insert into testings values (2, 'hello', NULL)"
+        Person.connection.execute "insert into testings (#{con.quote_column_name('id')}, #{con.quote_column_name('foo')}, #{con.quote_column_name('bar')}) values (2, 'hello', NULL)"
       end
     ensure
       Person.connection.drop_table :testings rescue nil
@@ -267,7 +269,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_equal Time, bob.birthday.class
 
       if current_adapter?(:SQLServerAdapter, :OracleAdapter, :SybaseAdapter)
-        # SQL Server, Sybase, and Oracle don't differentiate between date/time
+        # Sybase, and Oracle don't differentiate between date/time
         assert_equal Time, bob.favorite_day.class
       else
         assert_equal Date, bob.favorite_day.class
@@ -355,7 +357,8 @@ if ActiveRecord::Base.connection.supports_migrations?
         ActiveRecord::Base.connection.rename_table :octopuses, :octopi
 
         # Using explicit id in insert for compatibility across all databases
-        assert_nothing_raised { ActiveRecord::Base.connection.execute "INSERT INTO octopi VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')" }
+        con = ActiveRecord::Base.connection     
+        assert_nothing_raised { con.execute "INSERT INTO octopi (#{con.quote_column_name('id')}, #{con.quote_column_name('url')}) VALUES (1, 'http://www.foreverflying.com/octopus-black7.jpg')" }
 
         assert_equal 'http://www.foreverflying.com/octopus-black7.jpg', ActiveRecord::Base.connection.select_value("SELECT url FROM octopi WHERE id=1")
 
@@ -379,7 +382,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       old_columns = Topic.connection.columns(Topic.table_name, "#{name} Columns")
       assert old_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
       assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => false }
-      new_columns = Topic.connection.columns(Topic.table_name, "#{name} Columns")
+      new_columns = Topic.connection.columns(Topic.table_name, "#{name} Columns")     
       assert_nil new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == true }
       assert new_columns.find { |c| c.name == 'approved' and c.type == :boolean and c.default == false }
       assert_nothing_raised { Topic.connection.change_column :topics, :approved, :boolean, :default => true }

@@ -1,5 +1,9 @@
 *SVN*
 
+* SQLServer: added tests to ensure all database statements are closed, refactored identity_insert management code to use blocks, removed update/delete rowcount code out of execute and into update/delete, changed insert to go through execute method, removed unused quoting methods, disabled pessimistic locking tests as feature is currently unsupported, fixed RakeFile to load sqlserver specific tests whether running in ado or odbc mode, fixed support for recently added decimal types, added support for limits on integer types. #5670 [Tom Ward]
+
+* SQLServer: fix db:schema:dump case-sensitivity. #4684 [Will Rogers]
+
 * Oracle: BigDecimal support. #5667 [schoenm@earthlink.net]
 
 * Numeric and decimal columns map to BigDecimal instead of Float. Those with scale 0 map to Integer. #5454 [robbat2@gentoo.org, work@ashleymoran.me.uk]

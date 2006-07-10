@@ -63,91 +63,96 @@ end
 # is so cumbersome. Will deadlock Ruby threads if the underlying db.execute
 # blocks, so separate script called by Kernel#system is needed.
 # (See exec vs. async_exec in the PostgreSQL adapter.)
-class PessimisticLockingTest < Test::Unit::TestCase
-  self.use_transactional_fixtures = false
-  fixtures :people
 
-  def setup
-    @allow_concurrency = ActiveRecord::Base.allow_concurrency
-    ActiveRecord::Base.allow_concurrency = true
-  end
+# TODO: The SQL Server adapter currently has no support for pessimistic locking
 
-  def teardown
-    ActiveRecord::Base.allow_concurrency = @allow_concurrency
-  end
-
-  # Test that the adapter doesn't blow up on add_lock!
-  def test_sane_find_with_lock
-    assert_nothing_raised do
-      Person.transaction do
-        Person.find 1, :lock => true
-      end
+unless current_adapter?(:SQLServerAdapter)
+  class PessimisticLockingTest < Test::Unit::TestCase
+    self.use_transactional_fixtures = false
+    fixtures :people
+  
+    def setup
+      @allow_concurrency = ActiveRecord::Base.allow_concurrency
+      ActiveRecord::Base.allow_concurrency = true
     end
-  end
-
-  # Test no-blowup for scoped lock.
-  def test_sane_find_with_lock
-    assert_nothing_raised do
-      Person.transaction do
-        Person.with_scope(:find => { :lock => true }) do
-          Person.find 1
+  
+    def teardown
+      ActiveRecord::Base.allow_concurrency = @allow_concurrency
+    end
+  
+    # Test that the adapter doesn't blow up on add_lock!
+    def test_sane_find_with_lock
+      assert_nothing_raised do
+        Person.transaction do
+          Person.find 1, :lock => true
         end
       end
     end
-  end
-
-  # Locking a record reloads it.
-  def test_sane_lock_method
-    assert_nothing_raised do
-      Person.transaction do
-        person = Person.find 1
-        old, person.first_name = person.first_name, 'fooman'
-        person.lock!
-        assert_equal old, person.first_name
-      end
-    end
-  end
-
-  if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
-    def test_no_locks_no_wait
-      first, second = duel { Person.find 1 }
-      assert first.end > second.end
-    end
-
-    def test_second_lock_waits
-      assert [0.2, 1, 5].any? { |zzz|
-        first, second = duel(zzz) { Person.find 1, :lock => true }
-        second.end > first.end
-      }
-    end
-
-    protected
-      def duel(zzz = 5)
-        t0, t1, t2, t3 = nil, nil, nil, nil
-
-        a = Thread.new do
-          t0 = Time.now
-          Person.transaction do
-            yield
-            sleep zzz       # block thread 2 for zzz seconds
+  
+    # Test no-blowup for scoped lock.
+    def test_sane_find_with_lock
+      assert_nothing_raised do
+        Person.transaction do
+          Person.with_scope(:find => { :lock => true }) do
+            Person.find 1
           end
-          t1 = Time.now
         end
-
-        b = Thread.new do
-          sleep zzz / 2.0   # ensure thread 1 tx starts first
-          t2 = Time.now
-          Person.transaction { yield }
-          t3 = Time.now
-        end
-
-        a.join
-        b.join
-
-        assert t1 > t0 + zzz
-        assert t2 > t0
-        assert t3 > t2
-        [t0.to_f..t1.to_f, t2.to_f..t3.to_f]
       end
+    end
+  
+    # Locking a record reloads it.
+    def test_sane_lock_method
+      assert_nothing_raised do
+        Person.transaction do
+          person = Person.find 1
+          old, person.first_name = person.first_name, 'fooman'
+          person.lock!
+          assert_equal old, person.first_name
+        end
+      end
+    end
+  
+    if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
+      def test_no_locks_no_wait
+        first, second = duel { Person.find 1 }
+        assert first.end > second.end
+      end
+  
+      def test_second_lock_waits
+        assert [0.2, 1, 5].any? { |zzz|
+          first, second = duel(zzz) { Person.find 1, :lock => true }
+          second.end > first.end
+        }
+      end
+  
+      protected
+        def duel(zzz = 5)
+          t0, t1, t2, t3 = nil, nil, nil, nil
+  
+          a = Thread.new do
+            t0 = Time.now
+            Person.transaction do
+              yield
+              sleep zzz       # block thread 2 for zzz seconds
+            end
+            t1 = Time.now
+          end
+  
+          b = Thread.new do
+            sleep zzz / 2.0   # ensure thread 1 tx starts first
+            t2 = Time.now
+            Person.transaction { yield }
+            t3 = Time.now
+          end
+  
+          a.join
+          b.join
+  
+          assert t1 > t0 + zzz
+          assert t2 > t0
+          assert t3 > t2
+          [t0.to_f..t1.to_f, t2.to_f..t3.to_f]
+        end
+    end
   end
 end
