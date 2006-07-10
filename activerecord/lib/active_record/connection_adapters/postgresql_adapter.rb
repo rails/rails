@@ -515,6 +515,8 @@ module ActiveRecord
         def translate_field_type(field_type)
           # Match the beginning of field_type since it may have a size constraint on the end.
           case field_type
+            # PostgreSQL array data types.
+            when /\[\]$/i  then 'string'
             when /^timestamp/i    then 'datetime'
             when /^real|^money/i  then 'float'
             when /^interval/i     then 'string'
