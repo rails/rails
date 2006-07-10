@@ -30,7 +30,7 @@ class NilClass
     def raise_nil_warning_for(klass = nil, selector = nil, with_caller = nil)
       message = "You have a nil object when you didn't expect it!"
       message << "\nYou might have expected an instance of #{klass}." if klass
-      message << "\nThe error occured while evaluating nil.#{selector}" if selector
+      message << "\nThe error occurred while evaluating nil.#{selector}" if selector
       
       raise NoMethodError, message, with_caller || caller
     end

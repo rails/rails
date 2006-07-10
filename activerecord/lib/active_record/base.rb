@@ -1848,7 +1848,7 @@ module ActiveRecord #:nodoc:
         rescue SyntaxError => err
           self.class.read_methods.delete(attr_name)
           if logger
-            logger.warn "Exception occured during reader method compilation."
+            logger.warn "Exception occurred during reader method compilation."
             logger.warn "Maybe #{attr_name} is not a valid Ruby identifier?"
             logger.warn "#{err.message}"
           end

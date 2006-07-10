@@ -163,7 +163,7 @@ class Exception #:nodoc:
 
   def describe_blame
     return nil if blamed_files.empty?
-    "This error occured while loading the following files:\n   #{blamed_files.join "\n   "}"
+    "This error occurred while loading the following files:\n   #{blamed_files.join "\n   "}"
   end
 
   def copy_blame!(exc)
