@@ -39,7 +39,7 @@ if ActiveRecord::Base.connection.supports_migrations?
       end
       Reminder.reset_column_information
 
-      %w(last_name key bio age height wealth birthday favorite_day
+      %w(last_name key bio age height wealth birthday favorite_day male
          mail administrator).each do |column|
         Person.connection.remove_column('people', column) rescue nil
       end
@@ -200,7 +200,11 @@ if ActiveRecord::Base.connection.supports_migrations?
       Person.reset_column_information
 
       # Do a manual insertion
-      Person.connection.execute "insert into people (wealth) values (12345678901234567890.0123456789)"
+      if current_adapter?(:OracleAdapter)
+        Person.connection.execute "insert into people (id, wealth) values (people_seq.nextval, 12345678901234567890.0123456789)"
+      else
+        Person.connection.execute "insert into people (wealth) values (12345678901234567890.0123456789)"
+      end
 
       # SELECT
       row = Person.find(:first)

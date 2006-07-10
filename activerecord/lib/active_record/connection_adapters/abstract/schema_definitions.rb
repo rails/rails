@@ -16,10 +16,8 @@ module ActiveRecord
       # +sql_type+ is only used to extract the column's length, if necessary.  For example, <tt>company_name varchar(<b>60</b>)</tt>.
       # +null+ determines if this column allows +NULL+ values.
       def initialize(name, default, sql_type = nil, null = true)
-        @name, @sql_type, @null, @limit = name, sql_type, null, extract_limit(sql_type)
-        @precision, @scale  = extract_precision(sql_type), extract_scale(sql_type) 
-
-        # simplified_type may depend on #limit, type_cast depends on #type
+        @name, @sql_type, @null = name, sql_type, null
+        @limit, @precision, @scale  = extract_limit(sql_type), extract_precision(sql_type), extract_scale(sql_type) 
         @type = simplified_type(sql_type)
         @default = type_cast(default)
 
@@ -163,13 +161,13 @@ module ActiveRecord
         end
 
         def extract_precision(sql_type)
-          $2.to_i if sql_type =~ /^(numeric|decimal)\((\d+)(,\d+)?\)/i
+          $2.to_i if sql_type =~ /^(numeric|decimal|number)\((\d+)(,\d+)?\)/i
         end
 
         def extract_scale(sql_type)
           case sql_type
-            when /^(numeric|decimal)\((\d+)\)/i then 0
-            when /^(numeric|decimal)\((\d+)(,(\d+))\)/i then $4.to_i
+            when /^(numeric|decimal|number)\((\d+)\)/i then 0
+            when /^(numeric|decimal|number)\((\d+)(,(\d+))\)/i then $4.to_i
           end
         end
 
@@ -179,7 +177,7 @@ module ActiveRecord
               :integer
             when /float|double/i
               :float
-            when /decimal|numeric/i
+            when /decimal|numeric|number/i
               extract_scale(field_type) == 0 ? :integer : :decimal
             when /datetime/i
               :datetime

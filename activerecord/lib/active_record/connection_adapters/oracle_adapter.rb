@@ -76,13 +76,6 @@ begin
     module ConnectionAdapters #:nodoc:
       class OracleColumn < Column #:nodoc:
 
-        # overridden to add the concept of scale, required to differentiate
-        # between integer and float fields
-        def initialize(name, default, sql_type = nil, null = true, scale = nil)
-          @scale = scale
-          super(name, default, sql_type, null)
-        end
-
         def type_cast(value)
           return nil if value =~ /^\s*null\s*$/i
           return guess_date_or_time(value) if type == :datetime && OracleAdapter.emulate_dates
@@ -317,7 +310,7 @@ begin
               FROM user_indexes i, user_ind_columns c
              WHERE i.table_name = '#{table_name.to_s.upcase}'
                AND c.index_name = i.index_name
-               AND i.index_name NOT IN (SELECT index_name FROM user_constraints WHERE constraint_type = 'P')
+               AND i.index_name NOT IN (SELECT uc.index_name FROM user_constraints uc WHERE uc.constraint_type = 'P')
               ORDER BY i.index_name, c.column_position
           SQL
 
@@ -342,6 +335,7 @@ begin
           table_cols = %Q{
             select column_name as name, data_type as sql_type, data_default, nullable,
                    decode(data_type, 'NUMBER', data_precision,
+                                     'FLOAT', data_precision,
                                      'VARCHAR2', data_length,
                                       null) as limit,
                    decode(data_type, 'NUMBER', data_scale, null) as scale
@@ -352,16 +346,21 @@ begin
           }
 
           select_all(table_cols, name).map do |row|
-            row['sql_type'] += "(#{row['limit'].to_i})" if row['limit']
+            limit, scale = row['limit'], row['scale']
+            if limit || scale
+              row['sql_type'] << "(#{(limit || 38).to_i}" + ((scale = scale.to_i) > 0 ? ",#{scale})" : ")")
+            end
+
+            # clean up odd default spacing from Oracle
             if row['data_default']
               row['data_default'].sub!(/^(.*?)\s*$/, '\1')
               row['data_default'].sub!(/^'(.*)'$/, '\1')
             end
+
             OracleColumn.new(oracle_downcase(row['name']),
                              row['data_default'],
                              row['sql_type'],
-                             row['nullable'] == 'Y',
-                             (s = row['scale']).nil? ? nil : s.to_i)
+                             row['nullable'] == 'Y')
           end
         end
 
@@ -389,7 +388,7 @@ begin
         end
 
         def change_column(table_name, column_name, type, options = {}) #:nodoc:
-          change_column_sql = "ALTER TABLE #{table_name} MODIFY #{column_name} #{type_to_sql(type, options[:limit])}"
+          change_column_sql = "ALTER TABLE #{table_name} MODIFY #{column_name} #{type_to_sql(type, options[:limit], options[:precision], options[:scale])}"
           add_column_options!(change_column_sql, options)
           execute(change_column_sql)
         end
