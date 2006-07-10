@@ -11,14 +11,13 @@ sqlite_test_db  = "#{BASE_DIR}/fixture_database.sqlite"
 sqlite_test_db2 = "#{BASE_DIR}/fixture_database_2.sqlite"
 
 def make_connection(clazz, db_file, db_definitions_file)
+  ActiveRecord::Base.configurations = { clazz.name => { :adapter => 'sqlite', :database => db_file } }
   unless File.exist?(db_file)
     puts "SQLite database not found at #{db_file}. Rebuilding it."
     sqlite_command = %Q{sqlite #{db_file} "create table a (a integer); drop table a;"}
     puts "Executing '#{sqlite_command}'"
     raise SqliteError.new("Seems that there is no sqlite executable available") unless system(sqlite_command)
-    clazz.establish_connection(
-        :adapter => "sqlite",
-        :database  => db_file)
+    clazz.establish_connection(clazz.name)
     script = File.read("#{BASE_DIR}/db_definitions/#{db_definitions_file}")
     # SQLite-Ruby has problems with semi-colon separated commands, so split and execute one at a time
     script.split(';').each do
@@ -26,9 +25,7 @@ def make_connection(clazz, db_file, db_definitions_file)
       clazz.connection.execute(command) unless command.strip.empty?
     end
   else
-    clazz.establish_connection(
-        :adapter => "sqlite",
-        :database  => db_file)
+    clazz.establish_connection(clazz.name)
   end
 end
 

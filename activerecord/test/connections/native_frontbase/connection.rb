@@ -4,23 +4,24 @@ require 'logger'
 
 ActiveRecord::Base.logger = Logger.new("debug.log")
 
-db1 = 'activerecord_unittest'
-db2 = 'activerecord_unittest2'
+ActiveRecord::Base.configurations = {
+  'arunit' => {
+    :adapter => 'frontbase',
+    :host => 'localhost',
+    :username => 'rails',
+    :password => '',
+    :database => 'activerecord_unittest',
+    :session_name => "unittest-#{$$}"
+  },
+  'arunit2' => {
+    :adapter => 'frontbase',
+    :host => 'localhost',
+    :username => 'rails',
+    :password => '',
+    :database => 'activerecord_unittest2',
+    :session_name => "unittest-#{$$}"
+  }
+}
 
-ActiveRecord::Base.establish_connection(
-  :adapter      => "frontbase",
-  :host         => "localhost",
-  :username     => "rails",
-  :password     => "",
-  :database     => db1,
-  :session_name => "unittest-#{$$}"
-)
-
-Course.establish_connection(
-  :adapter      => "frontbase",
-  :host         => "localhost",
-  :username     => "rails",
-  :password     => "",
-  :database     => db2,
-  :session_name => "unittest-#{$$}"
-)
+ActiveRecord::Base.establish_connection 'arunit'
+Course.establish_connection 'arunit2'

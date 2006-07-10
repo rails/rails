@@ -4,18 +4,19 @@ require 'logger'
 
 ActiveRecord::Base.logger = Logger.new("debug.log")
 
-db1 = 'activerecord_unittest'
-db2 = 'activerecord_unittest2'
+ActiveRecord::Base.configurations = {
+  'arunit' => {
+    :adapter  => 'mysql',
+    :username => 'rails',
+    :encoding => 'utf8',
+    :database => 'activerecord_unittest',
+  },
+  'arunit2' => {
+    :adapter  => 'mysql',
+    :username => 'rails',
+    :database => 'activerecord_unittest2'
+  }
+}
 
-ActiveRecord::Base.establish_connection(
-  :adapter  => "mysql",
-  :username => "rails",
-  :encoding => "utf8",
-  :database => db1
-)
-
-Course.establish_connection(
-  :adapter  => "mysql",
-  :username => "rails",
-  :database => db2
-)
+ActiveRecord::Base.establish_connection 'arunit'
+Course.establish_connection 'arunit2'

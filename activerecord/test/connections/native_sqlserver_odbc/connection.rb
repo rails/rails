@@ -4,23 +4,22 @@ require 'logger'
 
 ActiveRecord::Base.logger = Logger.new("debug.log")
 
-dsn1 = 'activerecord_unittest'
-dsn2 = 'activerecord_unittest2'
+ActiveRecord::Base.configurations = {
+  'arunit' => {
+    :adapter  => 'sqlserver',
+    :mode     => 'ODBC',
+    :host     => 'localhost',
+    :username => 'sa',
+    :dsn => 'activerecord_unittest'
+  },
+  'arunit2' => {
+    :adapter  => 'sqlserver',
+    :mode     => 'ODBC',
+    :host     => 'localhost',
+    :username => 'sa',
+    :dsn => 'activerecord_unittest2'
+  }
+}
 
-ActiveRecord::Base.establish_connection(
-  :adapter  => "sqlserver",
-  :mode     => "ODBC",
-  :host     => "localhost",
-  :username => "sa",
-  :password => "",
-  :dsn => dsn1
-)
-
-Course.establish_connection(
-  :adapter  => "sqlserver",
-  :mode     => "ODBC",
-  :host     => "localhost",
-  :username => "sa",
-  :password => "",
-  :dsn => dsn2
-)
+ActiveRecord::Base.establish_connection 'arunit'
+Course.establish_connection 'arunit2'
