@@ -1,5 +1,7 @@
 *SVN*
 
+* Customize default BigDecimal formatting. References #5672 [dave@pragprog.com]
+
 * Correctly convert <foo nil="true"> to nil when using Hash.create_from_xml.  [Rick]
 
 * Optional identity for Enumerable#sum defaults to zero. #5657 [gensym@mac.com]
