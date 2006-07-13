@@ -815,8 +815,8 @@ module ActionView
     end
 
     class JavaScriptCollectionProxy < JavaScriptProxy #:nodoc:
-      ENUMERABLE_METHODS_WITH_RETURN = [:all, :any, :collect, :map, :detect, :find, :find_all, :select, :max, :min, :partition, :reject, :sort_by]
-      ENUMERABLE_METHODS = ENUMERABLE_METHODS_WITH_RETURN + [:each]
+      ENUMERABLE_METHODS_WITH_RETURN = [:all, :any, :collect, :map, :detect, :find, :find_all, :select, :max, :min, :partition, :reject, :sort_by] unless defined? ENUMERABLE_METHODS_WITH_RETURN
+      ENUMERABLE_METHODS = ENUMERABLE_METHODS_WITH_RETURN + [:each] unless defined? ENUMERABLE_METHODS
       attr_reader :generator
       delegate :arguments_for_call, :to => :generator
 

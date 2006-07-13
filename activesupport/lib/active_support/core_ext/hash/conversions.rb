@@ -13,13 +13,13 @@ module ActiveSupport #:nodoc:
           ::Time       => "datetime",
           ::TrueClass  => "boolean",
           ::FalseClass => "boolean"
-        }
+        } unless defined? XML_TYPE_NAMES
 
         XML_FORMATTING = {
           "date"     => Proc.new { |date| date.to_s(:db) },
           "datetime" => Proc.new { |time| time.xmlschema },
           "binary"   => Proc.new { |binary| Base64.encode64(binary) }
-        }
+        } unless defined? XML_FORMATTING
 
         def self.included(klass)
           klass.extend(ClassMethods)
