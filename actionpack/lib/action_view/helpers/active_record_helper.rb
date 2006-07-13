@@ -161,7 +161,7 @@ module ActionView
             to_input_field_tag(field_type, options)
           when :text
             to_text_area_tag(options)
-          when :integer, :float
+          when :integer, :float, :decimal
             to_input_field_tag("text", options)
           when :date
             to_date_select_tag(options)
