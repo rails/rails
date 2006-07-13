@@ -1,5 +1,7 @@
 *SVN*
 
+* Correctly convert <foo nil="true"> to nil when using Hash.create_from_xml.  [Rick]
+
 * Optional identity for Enumerable#sum defaults to zero. #5657 [gensym@mac.com]
 
 * HashWithIndifferentAccess shouldn't confuse false and nil. #5601 [shugo@ruby-lang.org]

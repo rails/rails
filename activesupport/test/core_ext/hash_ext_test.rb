@@ -352,7 +352,7 @@ class HashToXmlTest < Test::Unit::TestCase
           <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
           <content>Have a nice day</content>
           <author-email-address>david@loudthinking.com</author-email-address>
-          <parent-id></parent-id>
+          <parent-id nil="true"></parent-id>
         </topic>
         <topic>
           <title>The Second Topic</title>

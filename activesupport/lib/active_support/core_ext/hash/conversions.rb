@@ -101,7 +101,7 @@ module ActiveSupport #:nodoc:
                       else                 content
                     end
                   else
-                    value.empty? ? nil : value.inject({}) do |h,(k,v)|
+                    value.empty? || value['nil'] == 'true' ? nil : value.inject({}) do |h,(k,v)|
                       h[k] = typecast_xml_value(v)
                       h
                     end
