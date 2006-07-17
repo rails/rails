@@ -858,9 +858,11 @@ module ActionController
           
           def define_hash_access(route, name, kind, options)
             selector = hash_access_name(name, kind)
-            @module.send(:define_method, selector) do |*args|
-              args.first ? options.merge(args.first) : options
-            end
+            @module.send :module_eval, <<-end_eval # We use module_eval to avoid leaks
+              def #{selector}(options = nil)
+                options ? #{options.inspect}.merge(options) : #{options.inspect}
+              end
+            end_eval
             @module.send(:protected, selector)
             helpers << selector
           end
@@ -874,26 +876,28 @@ module ActionController
             end.compact
             hash_access_method = hash_access_name(name, kind)
             
-            @module.send(:define_method, selector) do |*args|
-              opts = if args.empty? || Hash === args.first
-                args.first || {}
-              else
-                # allow ordered parameters to be associated with corresponding
-                # dynamic segments, so you can do
-                #
-                #   foo_url(bar, baz, bang)
-                #
-                # instead of
-                #
-                #   foo_url(:bar => bar, :baz => baz, :bang => bang)
-                args.zip(segment_keys).inject({}) do |h, (v, k)|
-                  h[k] = v
-                  h
+            @module.send :module_eval, <<-end_eval # We use module_eval to avoid leaks
+              def #{selector}(*args)
+                opts = if args.empty? || Hash === args.first
+                  args.first || {}
+                else
+                  # allow ordered parameters to be associated with corresponding
+                  # dynamic segments, so you can do
+                  #
+                  #   foo_url(bar, baz, bang)
+                  #
+                  # instead of
+                  #
+                  #   foo_url(:bar => bar, :baz => baz, :bang => bang)
+                  args.zip(#{segment_keys.inspect}).inject({}) do |h, (v, k)|
+                    h[k] = v
+                    h
+                  end
                 end
+                
+                url_for(#{hash_access_method}(opts))
               end
-
-              url_for(send(hash_access_method, opts))
-            end
+            end_eval
             @module.send(:protected, selector)
             helpers << selector
           end
