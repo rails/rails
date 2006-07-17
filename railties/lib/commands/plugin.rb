@@ -197,15 +197,15 @@ class Plugin
   end
 
   def info
-    tmp = "#{rails_env.root}/_tmp_meta.yml"
+    tmp = "#{rails_env.root}/_tmp_about.yml"
     if svn_url?
       cmd = "svn export #{@uri} \"#{rails_env.root}/#{tmp}\""
       puts cmd if $verbose
       system(cmd)
     end
-    open(svn_url? ? tmp : File.join(@uri, 'meta.yml')) do |stream|
+    open(svn_url? ? tmp : File.join(@uri, 'about.yml')) do |stream|
       stream.read
-    end rescue "No meta.yml found in #{uri}"
+    end rescue "No about.yml found in #{uri}"
   ensure
     FileUtils.rm_rf tmp if svn_url?
   end
@@ -836,7 +836,7 @@ module Commands
       OptionParser.new do |o|
         o.set_summary_indent('  ')
         o.banner =    "Usage: #{@base_command.script_name} info name [name]..."
-        o.define_head "Shows plugin info at {url}/meta.yml."
+        o.define_head "Shows plugin info at {url}/about.yml."
       end
     end
 
