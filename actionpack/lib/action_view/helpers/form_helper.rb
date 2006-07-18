@@ -238,7 +238,11 @@ module ActionView
         @template_object, @local_binding = template_object, local_binding
         @object = object
         if @object_name.sub!(/\[\]$/,"")
-          @auto_index = @template_object.instance_variable_get("@#{Regexp.last_match.pre_match}").id_before_type_cast
+          if object ||= @template_object.instance_variable_get("@#{Regexp.last_match.pre_match}") and object.respond_to?(:id_before_type_cast)
+            @auto_index = object.id_before_type_cast
+          else
+            raise ArgumentError, "object[] naming but object param and @object var don't exist or don't respond to id_before_type_cast: #{object.inspect}"
+          end
         end
       end
 

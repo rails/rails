@@ -1,5 +1,10 @@
 *SVN*
 
+* Allow form_for and fields_for to work with indexed form inputs.  [Jeremy Kemper, Matt Lyon]
+
+  <% form_for 'post[]', @post do |f| -%>
+  <% end -%>
+
 * Remove leak in development mode by replacing define_method with module_eval. [Nicholas Seckar]
 
 * Provide support for decimal columns to form helpers. Closes #5672. [dave@pragprog.com]
