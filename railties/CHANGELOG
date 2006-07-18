@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure script/reaper only reaps dispatcher pids by default, and not the spawner's pid. [Jamis Buck]
+
 * Fix script/plugin about so it uses about.yml and not meta.yml.  [James Adam]
 
 * Dispatcher processes rescued actions with the same controller that processed the request. #4625 [sd@notso.net]

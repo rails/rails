@@ -86,7 +86,7 @@ end
 OPTIONS = {
   :action   => "restart",
   :pid_path => File.expand_path(RAILS_ROOT + '/tmp/pids'),
-  :pattern  => "dispatch.*.pid"
+  :pattern  => "dispatch.[0-9]*.pid"
 }
 
 ARGV.options do |opts|
