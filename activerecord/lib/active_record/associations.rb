@@ -10,69 +10,44 @@ require 'active_record/deprecated_associations'
 
 module ActiveRecord
   class HasManyThroughAssociationNotFoundError < ActiveRecordError #:nodoc:
-    def initialize(reflection)
-      @reflection = reflection
-    end
-    
-    def message
-      "Could not find the association #{@reflection.options[:through].inspect} in model #{@reflection.klass}"
+    def initialize(owner_class_name, reflection)
+      super("Could not find the association #{reflection.options[:through].inspect} in model #{owner_class_name}")
     end
   end
 
   class HasManyThroughAssociationPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(owner_class_name, reflection, source_reflection)
-      @owner_class_name  = owner_class_name
-      @reflection        = reflection
-      @source_reflection = source_reflection
-    end
-    
-    def message
-      "Cannot have a has_many :through association '#{@owner_class_name}##{@reflection.name}' on the polymorphic object '#{@source_reflection.class_name}##{@source_reflection.name}'."
+      source_reflection = source_reflection
+      super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' on the polymorphic object '#{source_reflection.class_name}##{source_reflection.name}'.")
     end
   end
 
   class HasManyThroughSourceAssociationNotFoundError < ActiveRecordError #:nodoc:
     def initialize(reflection)
-      @reflection              = reflection
-      @through_reflection      = reflection.through_reflection
-      @source_reflection_names = reflection.source_reflection_names
-      @source_associations     = reflection.through_reflection.klass.reflect_on_all_associations.collect { |a| a.name.inspect }
-    end
-    
-    def message
-      "Could not find the source association(s) #{@source_reflection_names.collect(&:inspect).to_sentence :connector => 'or'} in model #{@through_reflection.klass}.  Try 'has_many #{@reflection.name.inspect}, :through => #{@through_reflection.name.inspect}, :source => <name>'.  Is it one of #{@source_associations.to_sentence :connector => 'or'}?"
+      through_reflection      = reflection.through_reflection
+      source_reflection_names = reflection.source_reflection_names
+      source_associations     = reflection.through_reflection.klass.reflect_on_all_associations.collect { |a| a.name.inspect }
+      super("Could not find the source association(s) #{source_reflection_names.collect(&:inspect).to_sentence :connector => 'or'} in model #{through_reflection.klass}.  Try 'has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}, :source => <name>'.  Is it one of #{source_associations.to_sentence :connector => 'or'}?")
     end
   end
 
   class HasManyThroughSourceAssociationMacroError < ActiveRecordError #:nodoc
     def initialize(reflection)
-      @reflection         = reflection
-      @through_reflection = reflection.through_reflection
-      @source_reflection  = reflection.source_reflection
-    end
-    
-    def message
-      "Invalid source reflection macro :#{@source_reflection.macro}#{" :through" if @source_reflection.options[:through]} for has_many #{@reflection.name.inspect}, :through => #{@through_reflection.name.inspect}.  Use :source to specify the source reflection."
+      through_reflection = reflection.through_reflection
+      source_reflection  = reflection.source_reflection
+      super("Invalid source reflection macro :#{source_reflection.macro}#{" :through" if source_reflection.options[:through]} for has_many #{reflection.name.inspect}, :through => #{through_reflection.name.inspect}.  Use :source to specify the source reflection.")
     end
   end
 
   class EagerLoadPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(reflection)
-      @reflection = reflection
-    end
-    
-    def message
-      "Can not eagerly load the polymorphic association #{@reflection.name.inspect}"
+      super("Can not eagerly load the polymorphic association #{reflection.name.inspect}")
     end
   end
 
   class ReadOnlyAssociation < ActiveRecordError #:nodoc:
     def initialize(reflection)
-      @reflection = reflection
-    end
-  
-    def message
-      "Can not add to a has_many :through association.  Try adding to #{@reflection.through_reflection.name.inspect}."
+      super("Can not add to a has_many :through association.  Try adding to #{reflection.through_reflection.name.inspect}.")
     end
   end
 

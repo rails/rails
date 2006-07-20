@@ -41,7 +41,7 @@ module ActiveRecord
       end
 
       def <<(*args)
-        raise ActiveRecord::ReadOnlyAssociation, @reflection
+        raise ActiveRecord::ReadOnlyAssociation.new(@reflection)
       end
 
       [:push, :concat, :create, :build].each do |method|

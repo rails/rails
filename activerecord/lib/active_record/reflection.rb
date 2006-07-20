@@ -166,7 +166,7 @@ module ActiveRecord
       def check_validity!
         if options[:through]
           if through_reflection.nil?
-            raise HasManyThroughAssociationNotFoundError.new(self)
+            raise HasManyThroughAssociationNotFoundError.new(active_record.name, self)
           end
           
           if source_reflection.nil?
@@ -174,7 +174,7 @@ module ActiveRecord
           end
           
           if source_reflection.options[:polymorphic]
-            raise HasManyThroughAssociationPolymorphicError.new(class_name, self, source_reflection)
+            raise HasManyThroughAssociationPolymorphicError.new(active_record.name, self, source_reflection)
           end
           
           unless [:belongs_to, :has_many].include?(source_reflection.macro) && source_reflection.options[:through].nil?
