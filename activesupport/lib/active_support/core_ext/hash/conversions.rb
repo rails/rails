@@ -95,7 +95,7 @@ module ActiveSupport #:nodoc:
                     content = translate_xml_entities(value["__content__"])
                     case value["type"]
                       when "integer"  then content.to_i
-                      when "boolean"  then content == "true"
+                      when "boolean"  then content.strip == "true"
                       when "datetime" then ::Time.parse(content).utc
                       when "date"     then ::Date.parse(content)
                       else                 content

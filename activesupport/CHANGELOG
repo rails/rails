@@ -1,5 +1,7 @@
 *SVN*
 
+* Strip boolean XML content before checking for 'true' [Rick Olson]
+
 * Customize default BigDecimal formatting. References #5672 [dave@pragprog.com]
 
 * Correctly convert <foo nil="true"> to nil when using Hash.create_from_xml.  [Rick]

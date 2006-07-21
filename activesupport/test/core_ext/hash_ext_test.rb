@@ -313,7 +313,7 @@ class HashToXmlTest < Test::Unit::TestCase
         <title>The First Topic</title>
         <author-name>David</author-name>
         <id type="integer">1</id>
-        <approved type="boolean">false</approved>
+        <approved type="boolean"> true </approved>
         <replies-count type="integer">0</replies-count>
         <written-on type="date">2003-07-16</written-on>
         <viewed-at type="datetime">2003-07-16T09:28:00+0000</viewed-at>
@@ -327,7 +327,7 @@ class HashToXmlTest < Test::Unit::TestCase
       :title => "The First Topic",
       :author_name => "David",
       :id => 1,
-      :approved => false,
+      :approved => true,
       :replies_count => 0,
       :written_on => Date.new(2003, 7, 16),
       :viewed_at => Time.utc(2003, 7, 16, 9, 28),
