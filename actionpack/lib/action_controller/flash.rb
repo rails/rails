@@ -147,7 +147,8 @@ module ActionController #:nodoc:
 
       def reset_session_with_flash
         reset_session_without_flash
-        @flash = nil
+        remove_instance_variable(:@flash)
+        flash(:refresh)
       end
       
       protected 
