@@ -1,5 +1,7 @@
 *SVN*
 
+* Allow #count through a has_many association to accept :include.  [Dan Peterson]
+
 * create_table rdoc: suggest :id => false for habtm join tables. [Zed Shaw]
 
 * PostgreSQL: return array fields as strings. #4664 [Robby Russell]

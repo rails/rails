@@ -356,4 +356,8 @@ class EagerAssociationTest < Test::Unit::TestCase
     assert_equal 2, one.comments.size
     assert_equal 2, one.categories.size
   end
+  
+  def test_count_with_include
+    assert_equal 3, authors(:david).posts_with_comments.count(:conditions => "length(comments.body) > 15")
+  end
 end

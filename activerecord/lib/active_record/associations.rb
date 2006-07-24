@@ -17,7 +17,6 @@ module ActiveRecord
 
   class HasManyThroughAssociationPolymorphicError < ActiveRecordError #:nodoc:
     def initialize(owner_class_name, reflection, source_reflection)
-      source_reflection = source_reflection
       super("Cannot have a has_many :through association '#{owner_class_name}##{reflection.name}' on the polymorphic object '#{source_reflection.class_name}##{source_reflection.name}'.")
     end
   end
