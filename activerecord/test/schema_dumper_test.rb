@@ -89,7 +89,7 @@ if ActiveRecord::Base.connection.respond_to?(:tables)
       ActiveRecord::SchemaDumper.ignore_tables = [/^[^n]/]
       ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream)
       output = stream.string
-      assert_match %r{:precision => 3,[[:space:]]+:scale => 2,[[:space:]]+:default => 0.278E1}, output
+      assert_match %r{:precision => 3,[[:space:]]+:scale => 2,[[:space:]]+:default => 2.78}, output
     end
   end
 
