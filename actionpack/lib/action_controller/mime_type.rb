@@ -166,6 +166,8 @@ module Mime
 
   EXTENSION_LOOKUP["js"]    = JS
 
+  EXTENSION_LOOKUP["ics"]   = ICS
+
   EXTENSION_LOOKUP["yml"]   = YAML
   EXTENSION_LOOKUP["yaml"]  = YAML
 
