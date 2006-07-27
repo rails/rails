@@ -80,7 +80,7 @@ module ActionController
         unless @possible_controllers
           @possible_controllers = []
         
-          paths = $LOAD_PATH.select { |path| File.directory? path }
+          paths = $LOAD_PATH.select { |path| File.directory?(path) && path != "." }
 
           seen_paths = Hash.new {|h, k| h[k] = true; false}
           normalize_paths(paths).each do |load_path|
