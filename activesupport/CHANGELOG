@@ -1,5 +1,7 @@
 *SVN*
 
+* First cut of the Rails Deprecation system.   [Koz]
+
 * Strip boolean XML content before checking for 'true' [Rick Olson]
 
 * Customize default BigDecimal formatting. References #5672 [dave@pragprog.com]
