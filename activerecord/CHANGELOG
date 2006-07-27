@@ -1,5 +1,7 @@
 *SVN*
 
+* Patch sql injection vulnerability when using integer or float columns. [Jamis Buck]
+
 * Allow #count through a has_many association to accept :include.  [Dan Peterson]
 
 * create_table rdoc: suggest :id => false for habtm join tables. [Zed Shaw]
