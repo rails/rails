@@ -1,6 +1,7 @@
 require 'dispatcher'
 require 'stringio'
 require 'uri'
+require 'action_controller/test_process'
 
 module ActionController
   module Integration #:nodoc:

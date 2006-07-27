@@ -1,5 +1,7 @@
 *SVN*
 
+* Update integration.rb to require test_process explicitly instead of via Dependencies. [Nicholas Seckar]
+
 * Fixed that you can still access the flash after the flash has been reset in reset_session.  Closes #5584 [lmarlow@yahoo.com]
 
 * Allow form_for and fields_for to work with indexed form inputs.  [Jeremy Kemper, Matt Lyon]
