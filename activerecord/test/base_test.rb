@@ -922,6 +922,16 @@ class BasicsTest < Test::Unit::TestCase
     assert_equal("<baz>", inverted["quux"])
   end
 
+  def test_sql_injection_via_find
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Topic.find("123456 OR id > 0")
+    end
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Topic.find(";;; this should raise an RecordNotFound error")
+    end
+  end
+
   def test_column_name_properly_quoted
     col_record = ColumnName.new
     col_record.references = 40
