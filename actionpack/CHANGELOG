@@ -1,5 +1,7 @@
 *SVN*
 
+* TestRequest#reset_session should restore a TestSession, not a hash [Koz]
+
 * Don't search a load-path of '.' for controller files [Jamis Buck]
 
 * Update integration.rb to require test_process explicitly instead of via Dependencies. [Nicholas Seckar]

@@ -38,7 +38,7 @@ module ActionController #:nodoc:
     end
 
     def reset_session
-      @session = {}
+      @session = TestSession.new
     end              
 
     def raw_post
