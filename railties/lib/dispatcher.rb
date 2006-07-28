@@ -32,14 +32,17 @@ class Dispatcher
     # own CGI object be sure to handle the exceptions it raises on multipart
     # requests (EOFError and ArgumentError).
     def dispatch(cgi = nil, session_options = ActionController::CgiRequest::DEFAULT_SESSION_OPTIONS, output = $stdout)
+      controller = nil
       if cgi ||= new_cgi(output)
         request, response = ActionController::CgiRequest.new(cgi, session_options), ActionController::CgiResponse.new(cgi)
         prepare_application
-        ActionController::Routing::Routes.recognize(request).process(request, response).out(output)
+        controller = ActionController::Routing::Routes.recognize(request)
+        controller.process(request, response).out(output)
       end
     rescue Object => exception
       failsafe_response(output, '500 Internal Server Error', exception) do
-        ActionController.process_with_exception(request, response, exception).out(output)
+        controller ||= const_defined?(:ApplicationController) ? ApplicationController : ActionController::Base
+        controller.process_with_exception(request, response, exception).out(output)
       end
     ensure
       # Do not give a failsafe response here.
