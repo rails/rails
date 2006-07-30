@@ -313,7 +313,7 @@ module ActionController #:nodoc:
     attr_reader :content_type
     
     def initialize(path, content_type = 'text/plain')
-      raise "file does not exist" unless File.exist?(path)
+      raise "#{path} file does not exist" unless File.exist?(path)
       @content_type = content_type
       @original_filename = path.sub(/^.*#{File::SEPARATOR}([^#{File::SEPARATOR}]+)$/) { $1 }
       @tempfile = Tempfile.new(@original_filename)
