@@ -167,7 +167,11 @@ module ActionController
       # should be a hash.  The keys will automatically be upcased, with the 
       # prefix 'HTTP_' added if needed.
       def xml_http_request(path, parameters=nil, headers=nil)
-        headers = (headers || {}).merge("X-Requested-With" => "XMLHttpRequest")
+        headers = (headers || {}).merge(
+          "X-Requested-With" => "XMLHttpRequest"
+          "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
+        )
+
         post(path, parameters, headers)
       end
 
