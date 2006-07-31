@@ -11,6 +11,20 @@ class CommentsController < ActionController::Base
 end
 
 class ResourcesTest < Test::Unit::TestCase
+  def test_should_arrange_actions
+    resource = ActionController::Resources::Resource.new(:messages, 
+      :collection => { :rss => :get, :reorder => :post, :csv => :post },
+      :member     => { :rss => :get, :atom => :get, :upload => :post, :fix => :post },
+      :new        => { :preview => :get, :draft => :get })
+
+    assert_resource_methods [:rss],                    resource, :collection, :get
+    assert_resource_methods [:create, :csv, :reorder], resource, :collection, :post
+    assert_resource_methods [:edit, :rss, :atom],      resource, :member,     :get
+    assert_resource_methods [:upload, :fix],           resource, :member,     :post
+    assert_resource_methods [:update],                 resource, :member,     :put
+    assert_resource_methods [:new, :preview, :draft],  resource, :new,        :get
+  end
+  
   def test_default_restful_routes
     with_restful_routing :messages do
       assert_simply_restful_for :messages
@@ -66,6 +80,25 @@ class ResourcesTest < Test::Unit::TestCase
       end
     end
   end
+
+  def test_with_two_member_actions_with_same_method
+    [:put, :post].each do |method|
+      with_restful_routing :messages, :member => { :mark => method, :unmark => method } do
+        %w(mark unmark).each do |action|
+          action_options = {:action => action, :id => '1'}
+          action_path    = "/messages/1;#{action}"
+          assert_restful_routes_for :messages do |options|
+            assert_recognizes(options.merge(action_options), :path => action_path, :method => method)
+          end
+        
+          assert_restful_named_routes_for :messages do |options|
+            assert_named_route action_path, "#{action}_message_path".to_sym, action_options
+          end
+        end
+      end
+    end
+  end
+
 
   def test_with_new_action
     with_restful_routing :messages, :new => { :preview => :post } do
@@ -169,5 +202,13 @@ class ResourcesTest < Test::Unit::TestCase
     def assert_named_route(expected, route, options)
       actual =  @controller.send(route, options) rescue $!.class.name
       assert_equal expected, actual, "Error on route: #{route}(#{options.inspect})"
+    end
+
+    def assert_resource_methods(expected, resource, action_method, method)
+      assert_equal expected.length, resource.send("#{action_method}_methods")[method].size, "#{resource.send("#{action_method}_methods")[method].inspect}"
+      expected.each do |action|
+        assert resource.send("#{action_method}_methods")[method].include?(action), 
+          "#{method} not in #{action_method} methods: #{resource.send("#{action_method}_methods")[method].inspect}"
+      end
     end
 end

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix bug when passing multiple options to SimplyRestful, like :new => { :preview => :get, :draft => :get }.  [Rick Olson, Josh Susser, Lars Pind]
+
 * Dup the options passed to map.resources so that multiple resources get the same options.  [Rick Olson]
 
 * Fixed the new_#{resource}_url route and added named route tests for Simply Restful.  [Rick Olson]

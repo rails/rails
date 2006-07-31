@@ -11,7 +11,7 @@ module ActionController
         @singular = options[:singular] || plural.to_s.singularize
         
         @options = options
-        
+
         arrange_actions
         add_default_actions
         set_prefixes
@@ -56,29 +56,16 @@ module ActionController
           @path_prefix = options.delete(:path_prefix)
           @name_prefix = options.delete(:name_prefix)
         end
-        
+
         def arrange_actions_by_methods(actions)
-          arrayize_values(flip_keys_and_values(actions || {}))
+          (actions || {}).inject({}) do |flipped_hash, (key, value)|
+            (flipped_hash[value] ||= []) << key
+            flipped_hash
+          end
         end
         
         def add_default_action(collection, method, action)
           (collection[method] ||= []).unshift(action)
-        end
-
-        def flip_keys_and_values(hash)
-          hash.inject({}) do |flipped_hash, (key, value)|
-            flipped_hash[value] = key
-            flipped_hash
-          end
-        end
-
-        def arrayize_values(hash)
-          hash.each do |(key, value)|
-            unless value.is_a?(Array)
-              hash[key] = []
-              hash[key] << value
-            end
-          end
         end
     end
     
