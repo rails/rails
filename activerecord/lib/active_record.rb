@@ -52,6 +52,7 @@ require 'active_record/migration'
 require 'active_record/schema'
 require 'active_record/calculations'
 require 'active_record/xml_serialization'
+require 'active_record/attribute_methods'
 
 ActiveRecord::Base.class_eval do
   include ActiveRecord::Validations
@@ -69,6 +70,7 @@ ActiveRecord::Base.class_eval do
   include ActiveRecord::Acts::NestedSet
   include ActiveRecord::Calculations
   include ActiveRecord::XmlSerialization
+  include ActiveRecord::AttributeMethods
 end
 
 unless defined?(RAILS_CONNECTION_ADAPTERS)

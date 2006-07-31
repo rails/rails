@@ -1671,13 +1671,13 @@ module ActiveRecord #:nodoc:
       # person.respond_to?("name?") which will all return true.
       def respond_to?(method, include_priv = false)
         if @attributes.nil?
-          return super 
+          return super
         elsif attr_name = self.class.column_methods_hash[method.to_sym]
           return true if @attributes.include?(attr_name) || attr_name == self.class.primary_key
           return false if self.class.read_methods.include?(attr_name)
         elsif @attributes.include?(method_name = method.to_s)
           return true
-        elsif md = /(=|\?|_before_type_cast)$/.match(method_name)
+        elsif md = self.class.match_attribute_method?(method.to_s)
           return true if @attributes.include?(md.pre_match)
         end
         # super must be called at the end of the method, because the inherited respond_to?
@@ -1750,6 +1750,7 @@ module ActiveRecord #:nodoc:
         end
       end
 
+
       # Allows access to the object attributes, which are held in the @attributes hash, as were
       # they first-class methods. So a Person class with a name attribute can use Person#name and
       # Person#name= and never directly use the attributes hash -- except for multiple assigns with
@@ -1767,15 +1768,10 @@ module ActiveRecord #:nodoc:
           md ? query_attribute(method_name) : read_attribute(method_name)
         elsif self.class.primary_key.to_s == method_name
           id
-        elsif md = /(=|_before_type_cast)$/.match(method_name)
+        elsif md = self.class.match_attribute_method?(method_name)
           attribute_name, method_type = md.pre_match, md.to_s
           if @attributes.include?(attribute_name)
-            case method_type
-              when '='
-                write_attribute(attribute_name, args.first)
-              when '_before_type_cast'
-                read_attribute_before_type_cast(attribute_name)
-            end
+            __send__("attribute#{method_type}", attribute_name, *args, &block)
           else
             super
           end

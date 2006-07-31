@@ -1,5 +1,7 @@
 *SVN*
 
+* Factor the attribute#{suffix} methods out of method_missing for easier extension. [Jeremy Kemper]
+
 * Patch sql injection vulnerability when using integer or float columns. [Jamis Buck]
 
 * Allow #count through a has_many association to accept :include.  [Dan Peterson]
