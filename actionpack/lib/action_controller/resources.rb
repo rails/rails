@@ -136,7 +136,7 @@ module ActionController
           route_options = requirements_for(method)
           actions.each do |action|
             path = action == :new ? resource.new_path : "#{resource.new_path};#{action}"
-            name = "new_#{resource.plural}"
+            name = "new_#{resource.singular}"
             name = "#{action}_#{name}" unless action == :new
 
             map.named_route("#{resource.name_prefix}#{name}", path, route_options.merge(:action => action.to_s))
