@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that integration simulation of XHRs should set Accept header as well [Edward Frederick]
+
 * TestRequest#reset_session should restore a TestSession, not a hash [Koz]
 
 * Don't search a load-path of '.' for controller files [Jamis Buck]
