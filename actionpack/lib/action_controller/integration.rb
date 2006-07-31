@@ -168,7 +168,7 @@ module ActionController
       # prefix 'HTTP_' added if needed.
       def xml_http_request(path, parameters=nil, headers=nil)
         headers = (headers || {}).merge(
-          "X-Requested-With" => "XMLHttpRequest"
+          "X-Requested-With" => "XMLHttpRequest",
           "Accept"           => "text/javascript, text/html, application/xml, text/xml, */*"
         )
 
