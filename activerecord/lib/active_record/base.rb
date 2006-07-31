@@ -1763,7 +1763,8 @@ module ActiveRecord #:nodoc:
         method_name = method_id.to_s
         if @attributes.include?(method_name) or
             (md = /\?$/.match(method_name) and
-            @attributes.include?(method_name = md.pre_match))
+            @attributes.include?(query_method_name = md.pre_match) and
+            method_name = query_method_name)
           define_read_methods if self.class.read_methods.empty? && self.class.generate_read_methods
           md ? query_attribute(method_name) : read_attribute(method_name)
         elsif self.class.primary_key.to_s == method_name
