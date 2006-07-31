@@ -47,7 +47,12 @@ module ActiveRecord
       [:push, :concat, :create, :build].each do |method|
         alias_method method, :<<
       end
-
+      
+      # Calculate sum using SQL, not Enumerable
+      def sum(*args, &block)
+        calculate(:sum, *args, &block)
+      end
+      
       protected
         def method_missing(method, *args, &block)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))

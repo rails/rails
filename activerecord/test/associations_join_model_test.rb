@@ -370,6 +370,10 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_raise(ActiveRecord::ReadOnlyAssociation) { posts(:thinking).tags.build(:name => 'foo')  }
     assert_raise(ActiveRecord::ReadOnlyAssociation) { posts(:thinking).tags.create(:name => 'foo') }
   end
+  
+  def test_has_many_through_sum_uses_calculations
+    assert_nothing_raised { authors(:david).comments.sum(:post_id) }
+  end
 
   private
     # create dynamic Post models to allow different dependency options
