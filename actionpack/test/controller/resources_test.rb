@@ -6,6 +6,7 @@ class MessagesController < ActionController::Base
 end
 
 class CommentsController < ActionController::Base
+  def index() render :nothing => true end
   def rescue_action(e) raise e end
 end
 
@@ -16,9 +17,23 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
+  def test_multiple_default_restful_routes
+    with_restful_routing :messages, :comments do
+      assert_simply_restful_for :messages
+      assert_simply_restful_for :comments
+    end
+  end
+
   def test_with_path_prefix
     with_restful_routing :messages, :path_prefix => '/thread/:thread_id' do
       assert_simply_restful_for :messages, :path_prefix => 'thread/5/', :options => { :thread_id => '5' }
+    end
+  end
+
+  def test_multile_with_path_prefix
+    with_restful_routing :messages, :comments, :path_prefix => '/thread/:thread_id' do
+      assert_simply_restful_for :messages, :path_prefix => 'thread/5/', :options => { :thread_id => '5' }
+      assert_simply_restful_for :comments, :path_prefix => 'thread/5/', :options => { :thread_id => '5' }
     end
   end
 
@@ -86,9 +101,9 @@ class ResourcesTest < Test::Unit::TestCase
   end
 
   protected
-    def with_restful_routing(resource, *args)
+    def with_restful_routing(*args)
       with_routing do |set|
-        set.draw { |map| map.resources(resource, *args) }
+        set.draw { |map| map.resources(*args) }
         yield
       end
     end

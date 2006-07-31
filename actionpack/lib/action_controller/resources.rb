@@ -84,7 +84,7 @@ module ActionController
     
     def resources(*entities)
       options = entities.last.is_a?(Hash) ? entities.pop : { }
-      entities.each { |entity| map_resource(entity, options) { yield if block_given? } }
+      entities.each { |entity| map_resource(entity, options.dup) { yield if block_given? } }
     end
 
     private

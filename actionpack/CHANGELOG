@@ -1,5 +1,7 @@
 *SVN*
 
+* Dup the options passed to map.resources so that multiple resources get the same options.  [Rick Olson]
+
 * Fixed the new_#{resource}_url route and added named route tests for Simply Restful.  [Rick Olson]
 
 * Added map.resources from the Simply Restful plugin [DHH]. Examples (the API has changed to use plurals!):
