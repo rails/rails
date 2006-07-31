@@ -15,7 +15,9 @@ module ActionController
 
     # Returns the HTTP request method as a lowercase symbol (:get, for example)
     def method
-      @request_method ||= @env['REQUEST_METHOD'].downcase.to_sym
+      @request_method ||= (method = parameters[:_method] && method == :post) ?
+        method.to_s.downcase.to_sym :
+        @env['REQUEST_METHOD'].downcase.to_sym
     end
 
     # Is this a GET request?  Equivalent to request.method == :get

@@ -58,7 +58,7 @@ module ActionController
         use_controllers! nil
       end
 
-      def normalize_paths(paths=$LOAD_PATH)
+      def normalize_paths(paths = $LOAD_PATH)
         # do the hokey-pokey of path normalization...
         paths = paths.collect do |path|
           path = path.
@@ -351,7 +351,6 @@ module ActionController
       end
   
     protected
-  
       def requirement_for(key)
         return requirements[key] if requirements.key? key
         segments.each do |segment|
@@ -415,7 +414,6 @@ module ActionController
       def optionality_implied?
         false
       end
-  
     end
 
     class StaticSegment < Segment
@@ -450,11 +448,9 @@ module ActionController
       def to_s
         value
       end
-  
     end
 
     class DividerSegment < StaticSegment
-  
       def initialize(value = nil)
         super(value)
         self.raw = true
@@ -464,7 +460,6 @@ module ActionController
       def optionality_implied?
         true
       end
-  
     end
 
     class DynamicSegment < Segment
@@ -760,7 +755,6 @@ module ActionController
     end
 
     class RouteSet
-  
       # Mapper instances are used to build routes. The object passed to the draw
       # block in config/routes.rb is a Mapper instance.
       # 
@@ -839,7 +833,6 @@ module ActionController
         end
 
         private
-
           def url_helper_name(name, kind = :url)
             :"#{name}_#{kind}"
           end

@@ -1,5 +1,11 @@
 *SVN*
 
+* Added map.resources from the Simply Restful plugin [DHH]. Examples (the API has changed to use plurals!):
+
+    map.resources :messages
+    map.resources :messages, :comments
+    map.resources :messages, :new => { :preview => :post }
+
 * Fixed that integration simulation of XHRs should set Accept header as well [Edward Frederick]
 
 * TestRequest#reset_session should restore a TestSession, not a hash [Koz]
