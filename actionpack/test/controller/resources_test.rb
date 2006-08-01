@@ -114,15 +114,15 @@ class ResourcesTest < Test::Unit::TestCase
     end
   end
 
-  def xtest_nested_restful_routes
+  def test_nested_restful_routes
     with_routing do |set|
       set.draw do |map| 
-        map.resources(:messages) do
+        map.resources(:messages) do |map|
           map.resources(:comments)
         end
       end
 
-      with_options({ :controller => :comments }) do |controller|
+      with_options(:controller => 'comments', :message_id => '1') do |controller|
         controller.assert_routing "/messages/1/comments",        :action => 'index'
         controller.assert_routing "/messages/1/comments.xml" ,   :action => 'index', :format => 'xml'
         controller.assert_routing "/messages/1/comments/new",    :action => 'new'

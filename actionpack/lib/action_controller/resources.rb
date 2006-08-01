@@ -69,15 +69,15 @@ module ActionController
         end
     end
     
-    def resources(*entities)
+    def resources(*entities, &block)
       options = entities.last.is_a?(Hash) ? entities.pop : { }
-      entities.each { |entity| map_resource(entity, options.dup) { yield if block_given? } }
+      entities.each { |entity| map_resource entity, options.dup, &block }
     end
 
     private
       def map_resource(entities, options = {}, &block)
         resource = Resource.new(entities, options)
-      
+
         with_options :controller => resource.controller do |map|
           map_collection_actions(map, resource)
           map_new_actions(map, resource)
