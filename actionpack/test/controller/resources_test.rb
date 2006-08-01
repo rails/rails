@@ -1,14 +1,14 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
-class MessagesController < ActionController::Base
+class ResourcesController < ActionController::Base
   def index() render :nothing => true end
   def rescue_action(e) raise e end
 end
 
-class CommentsController < ActionController::Base
-  def index() render :nothing => true end
-  def rescue_action(e) raise e end
-end
+class ThreadsController  < ResourcesController; end
+class MessagesController < ResourcesController; end
+class CommentsController < ResourcesController; end
+
 
 class ResourcesTest < Test::Unit::TestCase
   def test_should_arrange_actions
@@ -116,20 +116,21 @@ class ResourcesTest < Test::Unit::TestCase
 
   def test_nested_restful_routes
     with_routing do |set|
-      set.draw do |map| 
-        map.resources(:messages) do |map|
-          map.resources(:comments)
+      set.draw do |map|
+        map.resources :threads do |map|
+          map.resources :messages do |map|
+            map.resources :comments
+          end
         end
       end
 
-      with_options(:controller => 'comments', :message_id => '1') do |controller|
-        controller.assert_routing "/messages/1/comments",        :action => 'index'
-        controller.assert_routing "/messages/1/comments.xml" ,   :action => 'index', :format => 'xml'
-        controller.assert_routing "/messages/1/comments/new",    :action => 'new'
-        controller.assert_routing "/messages/1/comments/1",      :action => 'show', :id => '1'
-        controller.assert_routing "/messages/1/comments/1;edit", :action => 'edit', :id => '1'
-        controller.assert_routing "/messages/1/comments/1.xml",  :action => 'show', :id => '1', :format => 'xml'
-      end
+      assert_simply_restful_for :threads
+      assert_simply_restful_for :messages,
+        :path_prefix => 'threads/1/',
+        :options => { :thread_id => '1' }
+      assert_simply_restful_for :comments,
+        :path_prefix => 'threads/1/messages/2/',
+        :options => { :thread_id => '1', :message_id => '2' }
     end
   end
 

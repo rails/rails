@@ -34,7 +34,7 @@ module ActionController
       end
       
       def nesting_path_prefix
-        "#{path_prefix}/#{plural}/:#{singular}_id"
+        "#{path}/:#{singular}_id"
       end
       
       private
