@@ -323,22 +323,14 @@ class BasicsTest < Test::Unit::TestCase
       assert_equal 9900, Topic.find(2).written_on.usec
     end
   end
-  
+
   def test_destroy
-    topic = Topic.new
-    topic.title = "Yet Another New Topic"
-    topic.written_on = "2003-12-12 23:23:00"
-    topic.save
-    topic.destroy
+    topic = Topic.find(1)
+    assert_equal topic, topic.destroy, 'topic.destroy did not return self'
+    assert topic.frozen?, 'topic not frozen after destroy'
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
-  
-  def test_destroy_returns_self
-    topic = Topic.new("title" => "Yet Another Title")
-    assert topic.save
-    assert_equal topic, topic.destroy, "destroy did not return destroyed object"
-  end
-  
+
   def test_record_not_found_exception
     assert_raises(ActiveRecord::RecordNotFound) { topicReloaded = Topic.find(99999) }
   end
