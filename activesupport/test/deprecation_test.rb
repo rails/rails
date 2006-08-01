@@ -1,85 +1,60 @@
-require 'test/unit'
-require File.dirname(__FILE__) + '/../lib/active_support/deprecation'
+require File.dirname(__FILE__) + '/abstract_unit'
 
-# Stub out the warnings to allow assertions
-module ActiveSupport
-  module Deprecation
-    class << self
-      def issue_warning(message)
-        @@warning = message
-      end
-      def last_warning
-        @@warning
-      end
-    end
+class Deprecatee
+  def partially(foo = nil)
+    ActiveSupport::Deprecation.warn 'calling with foo=nil is out' if foo.nil?
   end
-end
 
-class DeprecationTestingClass
-
-  def partiallly_deprecated(foo = nil)
-    if foo.nil?
-      ActiveSupport::Deprecation.issue_warning("calling partially_deprecated with foo=nil is now deprecated")
-    end
-  end
-  
-  def not_deprecated
-    2
-  end
-  
-  def deprecated_no_args
-    1
-  end
-  deprecate :deprecated_no_args
-  
-  def deprecated_one_arg(a)
-    a
-  end
-  deprecate :deprecated_one_arg
-  
-  def deprecated_multiple_args(a,b,c)
-    [a,b,c]
-  end
-  deprecate :deprecated_multiple_args
-  
+  def not() 2 end
+  def none() 1 end
+  def one(a) a end
+  def multi(a,b,c) [a,b,c] end
+  deprecate :none, :one, :multi
 end
 
 
 class DeprecationTest < Test::Unit::TestCase
   def setup
-    @dtc = DeprecationTestingClass.new
-    ActiveSupport::Deprecation.issue_warning(nil) # reset
+    # Track the last warning.
+    @old_behavior = ActiveSupport::Deprecation.behavior
+    @last_message = nil
+    ActiveSupport::Deprecation.behavior = Proc.new { |message| @last_message = message }
+
+    @dtc = Deprecatee.new
   end
-  
-  def test_partial_deprecation
-    @dtc.partiallly_deprecated
-    assert_warning_matches /foo=nil/
+
+  def teardown
+    ActiveSupport::Deprecation.behavior = @old_behavior
   end
-  
-  def test_raises_nothing
-    assert_equal 2, @dtc.not_deprecated
+
+  def test_inline_deprecation_warning
+    assert_deprecated(/foo=nil/) do
+      @dtc.partially
+    end
   end
-  
-  def test_deprecating_class_method
-    assert_equal 1, @dtc.deprecated_no_args
-    assert_deprecation_warning
-    assert_warning_matches /DeprecationTestingClass#deprecated_no_args/
+
+  def test_undeprecated
+    assert_not_deprecated do
+      assert_equal 2, @dtc.not
+    end
   end
-  
-  def test_deprecating_class_method_with_argument
-    assert_equal 1, @dtc.deprecated_one_arg(1)
+
+  def test_deprecate_class_method
+    assert_deprecated(/none is deprecated/) do
+      assert_equal 1, @dtc.none
+    end
+
+    assert_deprecated(/one is deprecated/) do
+      assert_equal 1, @dtc.one(1)
+    end
+
+    assert_deprecated(/multi is deprecated/) do
+      assert_equal [1,2,3], @dtc.multi(1,2,3)
+    end
   end
-  
-  def test_deprecating_class_method_with_argument
-    assert_equal [1,2,3], @dtc.deprecated_multiple_args(1,2,3)
-  end
-  
-  private
-  def assert_warning_matches(rx)
-    assert ActiveSupport::Deprecation.last_warning =~ rx, "The deprecation warning did not match #{rx}"
-  end
-  
-  def assert_deprecation_warning
-    assert_not_nil ActiveSupport::Deprecation.last_warning, "No Deprecation warnings were issued"
+
+  def test_nil_behavior_is_ignored
+    ActiveSupport::Deprecation.behavior = nil
+    assert_deprecated(/foo=nil/) { @dtc.partially }
   end
 end

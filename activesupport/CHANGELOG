@@ -1,5 +1,10 @@
 *SVN*
 
+* Deprecation: easier to work with warning behavior as procs; default behaviors for each environment so users needn't update env.rb; and testing pleasure with assert_deprecated, assert_not_deprecated. [Jeremy Kemper]
+  By default, test prints to $stderr, dev logs, production ignores.
+  Provide your own per-environment in e.g. config/environments/development.rb:
+    ActiveSupport::Deprecation.behavior = Proc.new { |message| raise message }
+
 * First cut of the Rails Deprecation system.   [Koz]
 
 * Strip boolean XML content before checking for 'true' [Rick Olson]

@@ -1,46 +1,88 @@
 module ActiveSupport
   module Deprecation
-    @@warning_method = :print
-    mattr_accessor :warning_method
-    
-    class << self
+    # Choose the default warn behavior according to RAILS_ENV.
+    # Ignore deprecation warnings in production.
+    DEFAULT_BEHAVIORS = {
+      'test'        => Proc.new { |message| $stderr.puts message },
+      'development' => Proc.new { |message| RAILS_DEFAULT_LOGGER.warn message },
+    }
 
-      def print_warning(lines)
-        lines.each {|l| $stderr.write("#{l}\n")}
+    class << self
+      def warn(message = nil, callstack = caller)
+        behavior.call(deprecation_message(callstack, message)) if behavior
       end
-      
-      def log_warning(lines)
-        if Object.const_defined?("RAILS_DEFAULT_LOGGER")
-          lines.each {|l| RAILS_DEFAULT_LOGGER.warn l}
-        else
-          print_warning(lines)
+
+      def default_behavior
+        DEFAULT_BEHAVIORS[RAILS_ENV.to_s] if defined?(RAILS_ENV)
+      end
+
+      private
+        def deprecation_message(callstack, message = nil)
+          file, line, method = extract_callstack(callstack)
+          message ||= "WARNING: #{method} is deprecated and will be removed from the next Rails release"
+          "#{message} (#{method} at #{file}:#{line})"
         end
-      end
-      
-      def issue_warning(line)
-        lines = 
-        ["@@@@@@@@@@ Deprecation Warning @@@@@@@@@@", line,
-         "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@"]
-        self.send("#{@@warning_method}_warning", lines)
-      end
-      
-      def instance_method_warning(clazz, method)
-        issue_warning("Your application calls #{clazz}##{method}, which is now deprecated.  Please see the API documents at http://api.rubyonrails.org/ for more information.")
+
+        def extract_callstack(callstack)
+          callstack.first.match(/^(.+?):(\d+)(?::in `(.*?)')?/).captures
+        end
+    end
+
+    # Behavior is a block that takes a message argument.
+    mattr_accessor :behavior
+    self.behavior = default_behavior
+
+    module ClassMethods
+      # Declare that a method has been deprecated.
+      def deprecate(*method_names)
+        method_names.each do |method_name|
+          class_eval(<<-EOS, __FILE__, __LINE__)
+            def #{method_name}_with_deprecation(*args, &block)
+              ::ActiveSupport::Deprecation.warn
+              #{method_name}_without_deprecation(*args, &block)
+            end
+          EOS
+          alias_method_chain(method_name, :deprecation)
+        end
       end
     end
-    
-    module ClassMethods
-      def deprecate(method_name)
-        alias_method "#{method_name}_before_deprecation", method_name
-        class_eval(<<-EOS, __FILE__, __LINE__)
-        def #{method_name}(*args)
-          ::ActiveSupport::Deprecation.instance_method_warning(self.class, :#{method_name})
-          #{method_name}_before_deprecation *args
+
+    module Assertions
+      def assert_deprecated(regexp = nil, &block)
+        last = with_last_message_tracking_deprecation_behavior(&block)
+        assert last, "Expected a deprecation warning within the block but received none"
+        if regexp
+          assert_match regexp, last, "Deprecation warning didn't match #{regexp}: #{last}"
         end
-        EOS
       end
+
+      def assert_not_deprecated(&block)
+        last = with_last_message_tracking_deprecation_behavior(&block)
+        assert_nil last, "Expected no deprecation warning within the block but received one: #{last}"
+      end
+
+      private
+        def with_last_message_tracking_deprecation_behavior
+          old_behavior = ActiveSupport::Deprecation.behavior
+          last_message = nil
+          ActiveSupport::Deprecation.behavior = Proc.new { |message| last_message = message; old_behavior.call(message) if old_behavior }
+          yield
+          last_message
+        ensure
+          ActiveSupport::Deprecation.behavior = old_behavior
+        end
     end
   end
 end
 
-Object.extend(ActiveSupport::Deprecation::ClassMethods)
+class Class
+  include ActiveSupport::Deprecation::ClassMethods
+end
+
+module Test
+  module Unit
+    class TestCase
+      include ActiveSupport::Deprecation::Assertions
+    end
+  end
+end
