@@ -81,8 +81,9 @@ module Test #:nodoc:
             original = { :expected => options, :actual => @response.redirected_to.is_a?(Symbol) ? @response.redirected_to : @response.redirected_to.dup }
             original.each do |key, value|
               if value.is_a?(Symbol)
-                value = @controller.respond_to?(value, true) ? @controller.send(value) : @controller.send("hash_for_#{option}")
+                value = @controller.respond_to?(value, true) ? @controller.send(value) : @controller.send("hash_for_#{value}_url")
               end
+
               unless value.is_a?(Hash)
                 request = case value
                   when NilClass    then nil
@@ -91,8 +92,13 @@ module Test #:nodoc:
                 end
                 value = request.path_parameters if request
               end
-              
+
               if value.is_a?(Hash) # stringify 2 levels of hash keys
+                if name = value.delete(:use_route)
+                  route = ActionController::Routing::Routes.named_routes[name]
+                  value.update(route.parameter_shell)
+                end
+
                 value.stringify_keys!
                 value.values.select { |v| v.is_a?(Hash) }.collect { |v| v.stringify_keys! }
                 if key == :expected && value['controller'] == @controller.controller_name && original[:actual].is_a?(Hash)
