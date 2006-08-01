@@ -1707,9 +1707,11 @@ module ActiveRecord #:nodoc:
     private
       def create_or_update
         if new_record? then create else update end
+        true
       end
 
       # Updates the associated record with values matching those of the instance attributes.
+      # Returns the number of affected rows.
       def update
         connection.update(
           "UPDATE #{self.class.table_name} " +
@@ -1717,16 +1719,15 @@ module ActiveRecord #:nodoc:
           "WHERE #{self.class.primary_key} = #{quote(id)}",
           "#{self.class.name} Update"
         )
-        
-        return true
       end
 
-      # Creates a new record with values matching those of the instance attributes.
+      # Creates a record with values matching those of the instance attributes
+      # and returns its id.
       def create
         if self.id.nil? && connection.prefetch_primary_key?(self.class.table_name)
           self.id = connection.next_sequence_value(self.class.sequence_name)
         end
-        
+
         self.id = connection.insert(
           "INSERT INTO #{self.class.table_name} " +
           "(#{quoted_column_names.join(', ')}) " +
@@ -1736,8 +1737,7 @@ module ActiveRecord #:nodoc:
         )
 
         @new_record = false
-        
-        return true
+        id
       end
 
       # Sets the attribute used for single table inheritance to this class name if this is not the ActiveRecord descendent.
