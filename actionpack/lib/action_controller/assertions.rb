@@ -78,7 +78,7 @@ module Test #:nodoc:
 
           begin
             url  = {}
-            original = { :expected => options, :actual => @response.redirected_to.dup }
+            original = { :expected => options, :actual => @response.redirected_to.is_a?(Symbol) ? @response.redirected_to : @response.redirected_to.dup }
             original.each do |key, value|
               if value.is_a?(Symbol)
                 value = @controller.respond_to?(value, true) ? @controller.send(value) : @controller.send("hash_for_#{option}")
