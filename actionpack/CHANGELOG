@@ -1,5 +1,7 @@
 *SVN*
 
+* Restrict Request Method hacking with ?_method to POST requests.  [Rick Olson]
+
 * Fix bug when passing multiple options to SimplyRestful, like :new => { :preview => :get, :draft => :get }.  [Rick Olson, Josh Susser, Lars Pind]
 
 * Dup the options passed to map.resources so that multiple resources get the same options.  [Rick Olson]

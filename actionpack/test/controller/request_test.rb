@@ -262,5 +262,33 @@ class RequestTest < Test::Unit::TestCase
     @request.env['HTTP_X_FORWARDED_PROTO'] = 'https'
     assert @request.ssl?
   end
-  
+
+  def test_symbolized_request_methods
+    [:head, :get, :post, :put, :delete].each do |method|
+      set_request_method_to method
+      assert_equal method, @request.method
+    end
+  end
+
+  def test_allow_method_hacking_on_post
+    set_request_method_to :post
+    [:head, :get, :put, :delete].each do |method|
+      @request.instance_eval { @parameters = { :_method => method } ; @request_method = nil }
+      assert_equal method, @request.method
+    end
+  end
+
+  def test_restrict_method_hacking
+    @request.instance_eval { @parameters = { :_method => 'put' } }
+    [:head, :get, :put, :delete].each do |method|
+      set_request_method_to method
+      assert_equal method, @request.method
+    end
+  end
+
+  protected
+    def set_request_method_to(method)
+      @request.env['REQUEST_METHOD'] = method.to_s.upcase
+      @request.instance_eval { @request_method = nil }
+    end
 end
