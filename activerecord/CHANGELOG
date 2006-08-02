@@ -1,5 +1,7 @@
 *SVN*
 
+* Schema dumper quotes date :default values. [Dave Thomas]
+
 * Calculate sum with SQL, not Enumerable on HasManyThrough Associations. [Dan Peterson]
 
 * Factor the attribute#{suffix} methods out of method_missing for easier extension. [Jeremy Kemper]

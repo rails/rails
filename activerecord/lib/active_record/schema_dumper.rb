@@ -95,7 +95,7 @@ HEADER
             spec[:precision] = column.precision.inspect if !column.precision.nil?
             spec[:scale] = column.scale.inspect if !column.scale.nil?
             spec[:null]    = 'false' if !column.null
-            spec[:default] = (column.default.is_a?(BigDecimal) ? column.default.to_s : column.default.inspect) if !column.default.nil?
+            spec[:default] = default_string(column.default) if !column.default.nil?
             (spec.keys - [:name, :type]).each{ |k| spec[k].insert(0, "#{k.inspect} => ")}
             spec
           end.compact
@@ -125,6 +125,17 @@ HEADER
         stream
       end
 
+      def default_string(value)
+        case value
+        when BigDecimal
+          value.to_s
+        when Date, DateTime, Time
+          "'" + value.to_s(:db) + "'"
+        else
+          value.inspect
+        end
+      end
+      
       def indexes(table, stream)
         indexes = @connection.indexes(table)
         indexes.each do |index|
