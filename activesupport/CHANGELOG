@@ -1,5 +1,7 @@
 *SVN*
 
+* Thoroughly document inflections.  #5700 [petermichaux@gmail.com]
+
 * Added Module#alias_attribute [Jamis/DHH]. Example:
 
     class Content < ActiveRecord::Base
