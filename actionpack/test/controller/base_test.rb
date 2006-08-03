@@ -23,7 +23,6 @@ module Submodule
   end
 end
 class EmptyController < ActionController::Base
-  include ActionController::Caching
 end
 class NonEmptyController < ActionController::Base
   def public_action

@@ -155,6 +155,10 @@ module ActionController #:nodoc:
     # the current host and the path. So a page that is accessed at http://david.somewhere.com/lists/show/1 will result in a fragment named
     # "david.somewhere.com/lists/show/1". This allows the cacher to differentiate between "david.somewhere.com/lists/" and
     # "jamis.somewhere.com/lists/" -- which is a helpful way of assisting the subdomain-as-account-key pattern.
+    #
+    # Different representations of the same resource, e.g. <tt>http://david.somewhere.com/lists</tt> and <tt>http://david.somewhere.com/lists.xml</tt>
+    # are treated like separate requests and are so are cached separately. Keep in mine when expiring an action cache that <tt>:action => 'lists'</tt> is not the same
+    # as <tt>:action => 'list', :format => :xml</tt>.
     module Actions
       def self.included(base) #:nodoc:
         base.extend(ClassMethods)
@@ -172,22 +176,24 @@ module ActionController #:nodoc:
         return unless perform_caching
         if options[:action].is_a?(Array)
           options[:action].dup.each do |action|
-            expire_fragment(url_for(options.merge({ :action => action })).split("://").last)
+            expire_fragment(ActionCachePath.path_for(self, options.merge({ :action => action })))
           end
         else
-          expire_fragment(url_for(options).split("://").last)
+          expire_fragment(ActionCachePath.path_for(self, options))
         end
       end
 
-      class ActionCacheFilter #:nodoc:
-        def initialize(*actions)
+      class ActionCacheFilter #:nodoc:        
+        def initialize(*actions, &block)
           @actions = actions
         end
 
         def before(controller)
           return unless @actions.include?(controller.action_name.intern)
-          if cache = controller.read_fragment(controller.url_for.split("://").last)
+          action_cache_path = ActionCachePath.new(controller)
+          if cache = controller.read_fragment(action_cache_path.path)
             controller.rendered_action_cache = true
+            set_content_type!(action_cache_path)
             controller.send(:render_text, cache)
             false
           end
@@ -195,8 +201,60 @@ module ActionController #:nodoc:
 
         def after(controller)
           return if !@actions.include?(controller.action_name.intern) || controller.rendered_action_cache
-          controller.write_fragment(controller.url_for.split("://").last, controller.response.body)
+          controller.write_fragment(ActionCachePath.path_for(controller), controller.response.body)
         end
+        
+        private
+          
+          def set_content_type!(action_cache_path)
+            if extention = action_cache_path.extension
+              content_type = Mime::EXTENSION_LOOKUP[extention]
+              action_cache_path.controller.headers['Content-Type'] = content_type.to_s
+            end
+          end
+          
+      end
+      
+      class ActionCachePath
+        attr_reader :controller, :options
+        
+        class << self
+          def path_for(*args, &block)
+            new(*args).path
+          end
+        end
+        
+        def initialize(controller, options = {})
+          @controller = controller
+          @options    = options
+        end
+        
+        def path
+          return @path if @path
+          @path = controller.url_for(options).split('://').last
+          normalize!
+          add_extension!
+          URI.unescape(@path)
+        end
+        
+        def extension
+          @extension ||= extract_extension(controller.request.path)
+        end
+        
+        private
+          def normalize!
+            @path << 'index' if @path.last == '/'
+          end
+        
+          def add_extension!
+            @path << ".#{extension}" if extension
+          end
+          
+          def extract_extension(file_path)
+            # Don't want just what comes after the last '.' to accomodate multi part extensions
+            # such as tar.gz.
+            file_path[/^[^.]+\.(.+)$/, 1]
+          end
       end
     end
 
