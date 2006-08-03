@@ -426,10 +426,13 @@ module ActiveRecord #:nodoc:
       # You can also pass a set of SQL conditions. 
       # Example:
       #   Person.exists?(5)
+      #   Person.exists?('5')
       #   Person.exists?(:name => "David")
-      def exists?(conditions)
-        conditions = ["#{primary_key} = ?", conditions] if conditions.is_a?(Fixnum)
-        !find(:first, :conditions => conditions).nil? rescue false
+      #   Person.exists?(['name LIKE ?', "%#{query}%"])
+      def exists?(id_or_conditions)
+        !find(:first, :conditions => expand_id_conditions(id_or_conditions)).nil?
+      rescue ActiveRecord::ActiveRecordError
+        false
       end
 
       # Creates an object, instantly saves it as a record (if the validation permits it), and returns it. If the save
@@ -1223,6 +1226,15 @@ module ActiveRecord #:nodoc:
             else            "= ?"
           end
         end
+
+        # Interpret Array and Hash as conditions and anything else as an id.
+        def expand_id_conditions(id_or_conditions)
+          case id_or_conditions
+            when Array, Hash then id_or_conditions
+            else construct_conditions_from_arguments([primary_key], [id_or_conditions])
+          end
+        end
+
 
         # Defines an "attribute" method (like #inheritance_column or
         # #table_name). A new (class) method will be created with the
