@@ -21,6 +21,9 @@ class FinderTest < Test::Unit::TestCase
   
   def test_exists
     assert (Topic.exists?(1))
+    assert (Topic.exists?(:author_name => "David"))
+    assert (Topic.exists?(:author_name => "Mary", :approved => true))
+    assert (Topic.exists?(["parent_id = ?", 1]))
     assert !(Topic.exists?(45))
     assert !(Topic.exists?("foo"))
     assert !(Topic.exists?([1,2]))

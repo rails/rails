@@ -1,5 +1,11 @@
 *SVN*
 
+* Added support for conditions on Base.exists? #5689 [josh@joshpeek.com]. Examples:
+
+    assert (Topic.exists?(:author_name => "David")) 
+ 	  assert (Topic.exists?(:author_name => "Mary", :approved => true)) 
+ 	  assert (Topic.exists?(["parent_id = ?", 1]))
+
 * Schema dumper quotes date :default values. [Dave Thomas]
 
 * Calculate sum with SQL, not Enumerable on HasManyThrough Associations. [Dan Peterson]

@@ -423,10 +423,13 @@ module ActiveRecord #:nodoc:
       end
 
       # Returns true if the given +id+ represents the primary key of a record in the database, false otherwise.
+      # You can also pass a set of SQL conditions. 
       # Example:
       #   Person.exists?(5)
-      def exists?(id)
-        !find(:first, :conditions => ["#{primary_key} = ?", id]).nil? rescue false
+      #   Person.exists?(:name => "David")
+      def exists?(conditions)
+        conditions = ["#{primary_key} = ?", conditions] if conditions.is_a?(Fixnum)
+        !find(:first, :conditions => conditions).nil? rescue false
       end
 
       # Creates an object, instantly saves it as a record (if the validation permits it), and returns it. If the save
