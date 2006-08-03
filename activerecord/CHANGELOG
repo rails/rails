@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed to_xml with :include misbehaviors when invoked on array of model instances #5690 [alexkwolfe@gmail.com]
+
 * Added support for conditions on Base.exists? #5689 [josh@joshpeek.com]. Examples:
 
     assert (Topic.exists?(:author_name => "David")) 

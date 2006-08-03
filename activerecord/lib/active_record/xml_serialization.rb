@@ -199,6 +199,8 @@ module ActiveRecord #:nodoc:
             end
           end
         end
+
+        options[:include] = include_associations
       end
     end
 
