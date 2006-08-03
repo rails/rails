@@ -1,5 +1,22 @@
 *SVN*
 
+* Added Module#alias_attribute [Jamis/DHH]. Example:
+
+    class Content < ActiveRecord::Base
+      # has a title attribute
+    end
+ 
+    class Email < ActiveRecord::Base
+      alias_attribute :subject, :title
+    end
+ 
+    e = Email.find(1)
+    e.title    # => "Superstars"
+    e.subject  # => "Superstars"
+    e.subject? # => true
+    e.subject = "Megastars"
+    e.title    # => "Megastars"
+
 * Deprecation: easier to work with warning behavior as procs; default behaviors for each environment so users needn't update env.rb; and testing pleasure with assert_deprecated, assert_not_deprecated. [Jeremy Kemper]
   By default, test prints to $stderr, dev logs, production ignores.
   Provide your own per-environment in e.g. config/environments/development.rb:

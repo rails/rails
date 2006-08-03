@@ -117,7 +117,6 @@ module BarMethodAliaser
 end
 
 class MethodAliasingTest < Test::Unit::TestCase
-
   def setup
     Object.const_set(:FooClassWithBarMethod, Class.new)
     FooClassWithBarMethod.send(:define_method, 'bar', Proc.new { 'bar' })
