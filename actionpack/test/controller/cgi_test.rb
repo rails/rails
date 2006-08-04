@@ -34,6 +34,17 @@ class CGITest < Test::Unit::TestCase
     assert_equal({'x' => {'y' => {'z' => ['10']}}}, CGIMethods.parse_query_parameters('x[y][z][]=10'))
     assert_equal({'x' => {'y' => {'z' => ['10', '5']}}}, CGIMethods.parse_query_parameters('x[y][z][]=10&x[y][z][]=5'))
   end
+
+  def test_deep_query_string_with_array_of_hashes_with_one_pair
+    assert_equal({'x' => {'y' => [{'z' => '10'}, {'z' => '20'}]}}, CGIMethods.parse_query_parameters('x[y][][z]=10&x[y][][z]=20'))
+  end
+  
+  def test_deep_query_string_with_array_of_hashes_with_multiple_pairs
+    assert_equal(
+      {'x' => {'y' => [{'z' => '10', 'w' => 'a'}, {'z' => '20', 'w' => 'b'}]}}, 
+      CGIMethods.parse_query_parameters('x[y][][z]=10&x[y][][w]=a&x[y][][z]=20&x[y][][w]=c')
+    )
+  end
   
   def test_query_string_with_nil
     assert_equal(
