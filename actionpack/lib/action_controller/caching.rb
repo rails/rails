@@ -157,7 +157,7 @@ module ActionController #:nodoc:
     # "jamis.somewhere.com/lists/" -- which is a helpful way of assisting the subdomain-as-account-key pattern.
     #
     # Different representations of the same resource, e.g. <tt>http://david.somewhere.com/lists</tt> and <tt>http://david.somewhere.com/lists.xml</tt>
-    # are treated like separate requests and are so are cached separately. Keep in mine when expiring an action cache that <tt>:action => 'lists'</tt> is not the same
+    # are treated like separate requests and so are cached separately. Keep in mine when expiring an action cache that <tt>:action => 'lists'</tt> is not the same
     # as <tt>:action => 'list', :format => :xml</tt>.
     module Actions
       def self.included(base) #:nodoc:
