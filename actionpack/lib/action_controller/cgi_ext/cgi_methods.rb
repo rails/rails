@@ -119,7 +119,6 @@ class CGIMethods #:nodoc:
   end
 
   class QueryStringScanner < StringScanner
-
     attr_reader :top, :parent, :result
 
     def initialize(string)
@@ -226,5 +225,4 @@ class CGIMethods #:nodoc:
       return value
     end
   end
-  
 end
