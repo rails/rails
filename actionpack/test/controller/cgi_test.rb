@@ -42,7 +42,7 @@ class CGITest < Test::Unit::TestCase
   def test_deep_query_string_with_array_of_hashes_with_multiple_pairs
     assert_equal(
       {'x' => {'y' => [{'z' => '10', 'w' => 'a'}, {'z' => '20', 'w' => 'b'}]}}, 
-      CGIMethods.parse_query_parameters('x[y][][z]=10&x[y][][w]=a&x[y][][z]=20&x[y][][w]=c')
+      CGIMethods.parse_query_parameters('x[y][][z]=10&x[y][][w]=a&x[y][][z]=20&x[y][][w]=b')
     )
   end
   
