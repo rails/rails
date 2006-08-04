@@ -1,40 +1,16 @@
 require 'cgi'
 require 'action_controller/vendor/xml_node'
+require 'strscan'
 
 # Static methods for parsing the query and request parameters that can be used in
 # a CGI extension class or testing in isolation.
 class CGIMethods #:nodoc:
+  
   class << self
     # Returns a hash with the pairs from the query string. The implicit hash construction that is done in
     # parse_request_params is not done here.
     def parse_query_parameters(query_string)
-      parsed_params = {}
-  
-      query_string.split(/[&;]/).each { |p| 
-        # Ignore repeated delimiters.
-        next if p.empty?
-
-        k, v = p.split('=',2)
-        v = nil if (v && v.empty?)
-
-        k = CGI.unescape(k) if k
-        v = CGI.unescape(v) if v
-
-        unless k.include?(?[)
-          parsed_params[k] = v
-        else
-          keys = split_key(k)
-          last_key = keys.pop
-          last_key = keys.pop if (use_array = last_key.empty?)
-          parent = keys.inject(parsed_params) {|h, k| h[k] ||= {}}
-          
-          if use_array then (parent[last_key] ||= []) << v
-          else parent[last_key] = v
-          end
-        end
-      }
-  
-      parsed_params
+      QueryStringScanner.new(query_string).parse
     end
 
     # Returns the request (POST/GET) parameters in a parsed form where pairs such as "customer[address][street]" / 
@@ -76,22 +52,6 @@ class CGIMethods #:nodoc:
     end
 
     private
-      # Splits the given key into several pieces. Example keys are 'name', 'person[name]',
-      # 'person[name][first]', and 'people[]'. In each instance, an Array instance is returned.
-      # 'person[name][first]' produces ['person', 'name', 'first']; 'people[]' produces ['people', '']
-      def split_key(key)
-        if /^([^\[]+)((?:\[[^\]]*\])+)$/ =~ key
-          keys = [$1]
-        
-          keys.concat($2[1..-2].split(']['))
-          keys << '' if key[-2..-1] == '[]' # Have to add it since split will drop empty strings
-        
-          keys
-        else
-          [key]
-        end
-      end
-    
       def get_typed_value(value)
         # test most frequent case first
         if value.is_a?(String)
@@ -157,4 +117,114 @@ class CGIMethods #:nodoc:
         end
       end
   end
+
+  class QueryStringScanner < StringScanner
+
+    attr_reader :top, :parent, :result
+
+    def initialize(string)
+      super(string)
+    end
+    
+    KEY_REGEXP = %r{([^\[\]=&]+)}
+    BRACKETED_KEY_REGEXP = %r{\[([^\[\]=&]+)\]}
+    
+    # Parse the query string
+    def parse
+      @result = {}
+      until eos?
+        # Parse each & delimited chunk
+        @parent, @top = nil, result
+        
+        # First scan the bare key
+        key = scan(KEY_REGEXP) or (skip_term and next)
+        key = post_key_check(key)
+        
+        # Then scan as many nestings as present
+        until check(/\=/) || eos? 
+          r = scan(BRACKETED_KEY_REGEXP) or (skip_term and break)
+          key = self[1]
+          key = post_key_check(key)
+        end
+        
+        # Scan the value if we see an =
+        if scan %r{=}
+          value = scan(/[^\&]+/) # scan_until doesn't handle \Z
+          value = CGI.unescape(value) if value # May be nil when eos?
+          bind key, value
+        end
+        scan %r/\&+/ # Ignore multiple adjacent &'s
+        
+      end
+      
+      return result
+    end
+    
+    # Skip over the current term by scanning past the next &, or to
+    # then end of the string if there is no next &
+    def skip_term
+      scan_until(%r/\&+/) || scan(/.+/)
+    end
+    
+    # After we see a key, we must look ahead to determine our next action. Cases:
+    # 
+    #   [] follows the key. Then the value must be an array.
+    #   = follows the key. (A value comes next)
+    #   & or the end of string follows the key. Then the key is a flag.
+    #   otherwise, a hash follows the key. 
+    def post_key_check(key)
+      if eos? || check(/\&/) # a& or a\Z indicates a is a flag.
+        bind key, nil # Curiously enough, the flag's value is nil
+        nil
+      elsif scan(/\[\]/) # a[b][] indicates that b is an array
+        container key, Array
+        nil
+      elsif check(/\[[^\]]/) # a[b] indicates that a is a hash
+        container key, Hash
+        nil
+      else # Presumably an = sign is next.
+        key
+      end
+    end
+    
+    # Add a container to the stack.
+    # 
+    def container(key, klass)
+      raise TypeError if top.is_a?(Hash) && top.key?(key) && ! top[key].is_a?(klass)
+      value = bind(key, klass.new)
+      raise TypeError unless value.is_a? klass
+      push value
+    end
+    
+    # Push a value onto the 'stack', which is actually only the top 2 items.
+    def push(value)
+      @parent, @top = @top, value
+    end
+    
+    # Bind a key (which may be nil for items in an array) to the provided value.
+    def bind(key, value)
+      if top.is_a? Array
+        if key
+          if top[-1].is_a?(Hash) && ! top[-1].key?(key)
+            top[-1][key] = value
+          else
+            top << {key => value}
+            push top.last
+          end
+        else
+          top << value
+        end
+      elsif top.is_a? Hash
+        key = CGI.unescape(key)
+        if top.key?(key) && parent.is_a?(Array)
+          parent << (@top = {})
+        end
+        return top[key] ||= value
+      else
+        # Do nothing?
+      end
+      return value
+    end
+  end
+  
 end
