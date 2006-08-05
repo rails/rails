@@ -1,5 +1,7 @@
 *SVN*
 
+* Formally deprecate the deprecated finders. [Koz]
+
 * Formally deprecate rich associations.  [Koz]
 
 * Fixed that default timezones for new / initialize should uphold utc setting #5709 [daniluk@yahoo.com]
