@@ -1,5 +1,7 @@
 *SVN*
 
+* script/performance/profiler compatibility with the new ruby-prof, including an option to choose the results printer.  #5679 [shugo@ruby-lang.org]
+
 * Fixed the failsafe response so it uses either the current recognized controller or ApplicationController.  [Rick Olson]
 
 * Make sure script/reaper only reaps dispatcher pids by default, and not the spawner's pid. [Jamis Buck]
