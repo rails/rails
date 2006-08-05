@@ -504,22 +504,22 @@ module ActiveRecord
 
       private 
         def select(sql, name = nil)
-          rows = []
           repair_special_columns(sql)
-          log(sql, name) do
-            @connection.select_all(sql) do |row|
-              record = {}
-              row.column_names.each do |col|
-                record[col] = row[col]
-                if record[col].is_a? DBI::Timestamp
-                  ts = record[col]
-                  record[col] = DateTime.new(ts.year, ts.month, ts.day, ts.hour, ts.minute, ts.sec)
+
+          result = []          
+          execute(sql) do |handle|
+            handle.each do |row|
+              row_hash = {}
+              row.each_with_index do |value, i|
+                if value.is_a? DBI::Timestamp
+                  value = DateTime.new(value.year, value.month, value.day, value.hour, value.minute, value.sec)
                 end
+                row_hash[handle.column_names[i]] = value
               end
-              rows << record
+              result << row_hash
             end
           end
-          rows
+          result
         end
 
         # Turns IDENTITY_INSERT ON for table during execution of the block
