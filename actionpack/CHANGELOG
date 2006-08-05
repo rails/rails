@@ -1,5 +1,7 @@
 *SVN*
 
+* Make controller_path available as an instance method.  #5724 [jmckible@gmail.com]
+
 * Update query parser to support adjacent hashes. [Nicholas Seckar]
 
 * Make action caching aware of different formats for the same action so that, e.g.  foo.xml is cached separately from foo.html. Implicitly set content type when reading in cached content with mime revealing extensions so the entire onous isn't on the webserver. [Marcel Molina Jr.]

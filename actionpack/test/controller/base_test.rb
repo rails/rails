@@ -36,7 +36,9 @@ end
 class ControllerClassTests < Test::Unit::TestCase
   def test_controller_path
     assert_equal 'empty', EmptyController.controller_path
+    assert_equal EmptyController.controller_path, EmptyController.new.controller_path
     assert_equal 'submodule/contained_empty', Submodule::ContainedEmptyController.controller_path
+    assert_equal Submodule::ContainedEmptyController.controller_path, Submodule::ContainedEmptyController.new.controller_path
   end
   def test_controller_name
     assert_equal 'empty', EmptyController.controller_name
@@ -56,10 +58,10 @@ class ControllerInstanceTests < Test::Unit::TestCase
 
   def test_action_methods
     @empty_controllers.each do |c|
-      assert_equal Set.new, c.send(:action_methods), "#{c.class.controller_path} should be empty!"
+      assert_equal Set.new, c.send(:action_methods), "#{c.controller_path} should be empty!"
     end
     @non_empty_controllers.each do |c|
-      assert_equal Set.new('public_action'), c.send(:action_methods), "#{c.class.controller_path} should not be empty!"
+      assert_equal Set.new('public_action'), c.send(:action_methods), "#{c.controller_path} should not be empty!"
     end
   end
 end

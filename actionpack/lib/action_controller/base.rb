@@ -498,6 +498,11 @@ module ActionController #:nodoc:
       def controller_name
         self.class.controller_name
       end
+      
+      # Converts the class name from something like "OneModule::TwoModule::NeatController" to "one_module/two_module/neat".
+      def controller_path
+        self.class.controller_path
+      end
 
       def session_enabled?
         request.session_options[:disabled] != false
