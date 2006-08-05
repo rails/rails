@@ -1,5 +1,7 @@
 *SVN*
 
+* Add extention to obtain the missing constant from NameError instances. [Nicholas Seckar]
+
 * Thoroughly document inflections.  #5700 [petermichaux@gmail.com]
 
 * Added Module#alias_attribute [Jamis/DHH]. Example:
