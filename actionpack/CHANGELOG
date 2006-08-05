@@ -1,5 +1,7 @@
 *SVN*
 
+* Short documentation to mention use of Mime::Type.register. #5710 [choonkeat@gmail.com]
+
 * Make controller_path available as an instance method.  #5724 [jmckible@gmail.com]
 
 * Update query parser to support adjacent hashes. [Nicholas Seckar]
