@@ -13,7 +13,7 @@ class TagHelperTest < Test::Unit::TestCase
   end
 
   def test_tag_options
-    assert_equal "<p class=\"elsewhere\" />", tag("p", "class" => "show", :class => "elsewhere")
+    assert_match /\A<p class="(show|elsewhere)" \/>\z/, tag("p", "class" => "show", :class => "elsewhere")
   end
 
   def test_tag_options_rejects_nil_option
