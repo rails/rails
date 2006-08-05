@@ -1996,7 +1996,7 @@ module ActiveRecord #:nodoc:
             send(name + "=", nil)
           else
             begin
-              send(name + "=", Time == klass ? klass.local(*values) : klass.new(*values))
+              send(name + "=", Time == klass ? (@@default_timezone == :utc ? klass.utc(*values) : klass.local(*values)) : klass.new(*values))
             rescue => ex
               errors << AttributeAssignmentError.new("error on assignment #{values.inspect} to #{name}", ex, name)
             end

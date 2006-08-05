@@ -560,6 +560,22 @@ class BasicsTest < Test::Unit::TestCase
     Topic.default_timezone = :local
   end
 
+  def test_utc_as_time_zone_and_new
+    # Oracle and SQLServer do not have a TIME datatype.
+    return true if current_adapter?(:SQLServerAdapter, :OracleAdapter)
+
+    Topic.default_timezone = :utc
+    attributes = { "bonus_time(1i)"=>"2000",
+                   "bonus_time(2i)"=>"1",
+                   "bonus_time(3i)"=>"1",
+                   "bonus_time(4i)"=>"10",
+                   "bonus_time(5i)"=>"35",
+                   "bonus_time(6i)"=>"50" }
+    topic = Topic.new(attributes)
+    assert_equal Time.utc(2000, 1, 1, 10, 35, 50), topic.bonus_time
+    Topic.default_timezone = :local
+  end
+
   def test_default_values_on_empty_strings
     topic = Topic.new
     topic.approved  = nil

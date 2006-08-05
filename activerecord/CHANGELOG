@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that default timezones for new / initialize should uphold utc setting #5709 [daniluk@yahoo.com]
+
 * Fix announcement of very long migration names.  #5722 [blake@near-time.com]
 
 * The exists? class method should treat a string argument as an id rather than as conditions.  #5698 [jeremy@planetargon.com]
