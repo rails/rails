@@ -38,7 +38,7 @@ module Rails
         protected
           # Override with your own script usage banner.
           def banner
-            "Usage: #{$0} [options] generator [args]"
+            "Usage: #{$0} generator [options] [args]"
           end
 
           def usage_message
