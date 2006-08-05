@@ -1,6 +1,13 @@
 require File.dirname(__FILE__) + '/abstract_unit'
 
 class Deprecatee
+  def initialize
+    @request = ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, :request)
+    @_request = 'there we go'
+  end
+  def request; @_request end
+  def old_request; @request end
+
   def partially(foo = nil)
     ActiveSupport::Deprecation.warn 'calling with foo=nil is out' if foo.nil?
   end
@@ -56,5 +63,14 @@ class DeprecationTest < Test::Unit::TestCase
   def test_nil_behavior_is_ignored
     ActiveSupport::Deprecation.behavior = nil
     assert_deprecated(/foo=nil/) { @dtc.partially }
+  end
+
+  def test_deprecated_instance_variable_proxy
+    assert_not_deprecated { @dtc.request.size }
+
+    assert_deprecated('Using @request directly is deprecated - call request instead.') do
+      assert_equal @dtc.request.size, @dtc.old_request.size
+      assert_equal @dtc.request.to_s, @dtc.old_request.to_s
+    end
   end
 end

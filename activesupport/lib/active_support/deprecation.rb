@@ -48,12 +48,11 @@ module ActiveSupport
     end
 
     module Assertions
-      def assert_deprecated(regexp = nil, &block)
+      def assert_deprecated(match = nil, &block)
         last = with_last_message_tracking_deprecation_behavior(&block)
         assert last, "Expected a deprecation warning within the block but received none"
-        if regexp
-          assert_match regexp, last, "Deprecation warning didn't match #{regexp}: #{last}"
-        end
+        match = Regexp.new(match) unless match.is_a?(Regexp)
+        assert_match match, last, "Deprecation warning didn't match #{match}: #{last}"
       end
 
       def assert_not_deprecated(&block)
@@ -70,6 +69,26 @@ module ActiveSupport
           last_message
         ensure
           ActiveSupport::Deprecation.behavior = old_behavior
+        end
+    end
+
+    # Stand-in for @request, @attributes, etc.
+    class DeprecatedInstanceVariableProxy
+      instance_methods.each { |m| undef_method m unless m =~ /^__/ }
+
+      def initialize(instance, method, var = "@#{method}")
+        @instance, @method, @var = instance, method, var
+        deprecation_warning :initialize, caller
+      end
+
+      private
+        def deprecation_warning(called, callstack)
+          ActiveSupport::Deprecation.warn("Using #{@var} directly is deprecated - call #{@method} instead.", callstack)
+        end
+
+        def method_missing(called, *args, &block)
+          deprecation_warning called, caller
+          @instance.__send__(@method).__send__(called, *args, &block)
         end
     end
   end
