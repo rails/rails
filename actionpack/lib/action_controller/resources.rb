@@ -143,9 +143,10 @@ module ActionController
           end
 
           map.connect(resource.member_path, route_options.merge(:action => primary)) unless primary.blank?
-          map.named_route("#{resource.name_prefix}#{resource.singular}", resource.member_path, :action => "show", :conditions => { :method => :get })
-          map.named_route("formatted_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}.:format", :action => "show", :conditions => { :method => :get })
         end
+
+        map.named_route("#{resource.name_prefix}#{resource.singular}", resource.member_path, :action => "show", :conditions => { :method => :get })
+        map.named_route("formatted_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}.:format", :action => "show", :conditions => { :method => :get })
       end
     
       def requirements_for(method)

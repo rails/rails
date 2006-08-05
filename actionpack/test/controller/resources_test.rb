@@ -133,6 +133,18 @@ class ResourcesTest < Test::Unit::TestCase
         :options => { :thread_id => '1', :message_id => '2' }
     end
   end
+  
+  def test_restful_routes_dont_generate_duplicates
+    with_restful_routing :messages do
+      routes = ActionController::Routing::Routes.routes
+      routes.each do |route|
+        routes.each do |r|
+          next if route === r # skip the comparison instance 
+          assert distinct_routes?(route, r), "Duplicate Route: #{route}"
+        end
+      end
+    end
+  end
 
   protected
     def with_restful_routing(*args)
@@ -212,4 +224,14 @@ class ResourcesTest < Test::Unit::TestCase
           "#{method} not in #{action_method} methods: #{resource.send("#{action_method}_methods")[method].inspect}"
       end
     end
+    
+    def distinct_routes? (r1, r2)
+      if r1.conditions == r2.conditions and r1.requirements == r2.requirements then
+        if r1.segments.collect(&:to_s) == r2.segments.collect(&:to_s) then
+          return false
+        end
+      end
+      true
+    end
+
 end
