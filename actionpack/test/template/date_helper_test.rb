@@ -18,6 +18,16 @@ class DateHelperTest < Test::Unit::TestCase
     assert_equal "about 3 hours", distance_of_time_in_words(from, Time.mktime(2004, 3, 7, 0, 41))
     assert_equal "about 4 hours", distance_of_time_in_words(from, Time.mktime(2004, 3, 7, 1, 20))
     assert_equal "2 days", distance_of_time_in_words(from, Time.mktime(2004, 3, 9, 15, 40))
+    
+    # test greater date separation
+    assert_equal "29 days", distance_of_time_in_words(from, Time.mktime(2004, 4, 5, 21, 41, 18))
+    assert_equal "about 1 month", distance_of_time_in_words(from, Time.mktime(2004, 4, 6, 21, 41, 18))
+    assert_equal "about 1 month", distance_of_time_in_words(from, Time.mktime(2004, 4, 7, 21, 41, 18))
+    assert_equal "2 months", distance_of_time_in_words(from, Time.mktime(2004, 5, 6, 21, 41, 18))
+    assert_equal "11 months", distance_of_time_in_words(from, Time.mktime(2005, 2, 6, 21, 41, 18))
+    assert_equal "about 1 year", distance_of_time_in_words(from, Time.mktime(2005, 4, 6, 21, 41, 18))
+    assert_equal "about 1 year", distance_of_time_in_words(from, Time.mktime(2005, 4, 12, 21, 41, 18))
+    assert_equal "over 2 years", distance_of_time_in_words(from, Time.mktime(2006, 4, 6, 21, 41, 18))
 
     # include seconds 
     assert_equal "less than a minute", distance_of_time_in_words(from, Time.mktime(2004, 3, 6, 21, 41, 19), false)

@@ -39,11 +39,15 @@ module ActionView
               else             '1 minute'
             end
                                 
-          when 2..45      then "#{distance_in_minutes} minutes"
-          when 46..90     then 'about 1 hour'
-          when 90..1440   then "about #{(distance_in_minutes.to_f / 60.0).round} hours"
-          when 1441..2880 then '1 day'
-          else                 "#{(distance_in_minutes / 1440).round} days"
+          when 2..45           then "#{distance_in_minutes} minutes"
+          when 46..90          then 'about 1 hour'
+          when 90..1440        then "about #{(distance_in_minutes.to_f / 60.0).round} hours"
+          when 1441..2880      then '1 day'
+          when 2881..43220     then "#{(distance_in_minutes / 1440).round} days"
+          when 43201..86400    then 'about 1 month'
+          when 86401..525960   then "#{(distance_in_minutes / 43200).round} months"
+          when 525961..1051920 then 'about 1 year'
+          else                      "over #{(distance_in_minutes / 525600).round} years"
         end
       end
       
