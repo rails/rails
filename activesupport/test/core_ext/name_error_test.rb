@@ -8,9 +8,9 @@ class NameErrorTest < Test::Unit::TestCase
       SomeNameThatNobodyWillUse____Really ? 1 : 0
       flunk "?!?!"
     rescue NameError => exc
-      assert_equal "SomeNameThatNobodyWillUse____Really", exc.missing_name
+      assert_equal "NameErrorTest::SomeNameThatNobodyWillUse____Really", exc.missing_name
       assert exc.missing_name?(:SomeNameThatNobodyWillUse____Really)
-      assert exc.missing_name?("SomeNameThatNobodyWillUse____Really")
+      assert exc.missing_name?("NameErrorTest::SomeNameThatNobodyWillUse____Really")
     end
   end
   

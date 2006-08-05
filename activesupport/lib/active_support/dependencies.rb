@@ -69,6 +69,11 @@ module Dependencies #:nodoc:
     history << file_name
   end
   
+  # Return the a constant path for the provided parent and constant name
+  def constant_path_for(mod, name)
+    ([Object, Kernel].include? mod) ? name.to_s : "#{mod}::#{name}"
+  end
+  
   class LoadingModule
     # Old style environment.rb referenced this method directly.  Please note, it doesn't
     # actualy *do* anything any more.
@@ -120,7 +125,8 @@ class Module #:nodoc:
         end
       end
       
-      raise NameError.new("uninitialized constant #{class_id}").copy_blame!(e)
+      qualified_name = Dependencies.constant_path_for self, class_id
+      raise NameError.new("uninitialized constant #{qualified_name}").copy_blame!(e)
     end
   end
 end
@@ -130,7 +136,15 @@ class Class
     if [Object, Kernel].include?(self) || parent == self
       super
     else
-      parent.send :const_missing, class_id
+      begin
+        parent.send :const_missing, class_id
+      rescue NameError => e
+        # Make sure that the name we are missing is the one that caused the error
+        parent_qualified_name = Dependencies.constant_path_for parent, class_id
+        raise unless e.missing_name? parent_qualified_name
+        qualified_name = Dependencies.constant_path_for self, class_id
+        raise NameError.new("uninitialized constant #{qualified_name}").copy_blame!(e)
+      end
     end
   end
 end

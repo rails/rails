@@ -1,5 +1,7 @@
 *SVN*
 
+* Raise fully qualified names upon name errors. #5533 [lars@pinds.com, Nicholas Seckar]
+
 * Add extention to obtain the missing constant from NameError instances. [Nicholas Seckar]
 
 * Thoroughly document inflections.  #5700 [petermichaux@gmail.com]

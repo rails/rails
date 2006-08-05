@@ -155,4 +155,31 @@ class DependenciesTest < Test::Unit::TestCase
       Object.send :remove_const, :ModuleFolder
     end
   end
+  
+  def test_non_existing_const_raises_name_error_with_fully_qualified_name
+    with_loading 'autoloading_fixtures' do
+      begin
+        A::DoesNotExist
+        flunk "No raise!!"
+      rescue NameError => e
+        assert_equal "uninitialized constant A::DoesNotExist", e.message
+      end
+      begin
+        A::B::DoesNotExist
+        flunk "No raise!!"
+      rescue NameError => e
+        assert_equal "uninitialized constant A::B::DoesNotExist", e.message
+      end
+    end
+  end
+  
+  def test_smart_name_error_strings
+    begin
+      Object.module_eval "ImaginaryObject"
+      flunk "No raise!!"
+    rescue NameError => e
+      assert e.message.include?("uninitialized constant ImaginaryObject")
+    end
+  end
+  
 end
