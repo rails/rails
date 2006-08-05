@@ -67,7 +67,9 @@ module ActiveRecord
           @reflection.klass.find(*args)
         end
       end      
-
+      
+      # Deprecated as of Rails 1.2.   If your associations require attributes
+      # you should be using has_many :through
       def push_with_attributes(record, join_attributes = {})
         raise_on_type_mismatch(record)
         join_attributes.each { |key, value| record[key.to_s] = value }
@@ -79,6 +81,7 @@ module ActiveRecord
 
         self
       end
+      deprecate :push_with_attributes
 
       alias :concat_with_attributes :push_with_attributes
 

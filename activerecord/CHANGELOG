@@ -1,5 +1,7 @@
 *SVN*
 
+* Formally deprecate rich associations.  [Koz]
+
 * Fixed that default timezones for new / initialize should uphold utc setting #5709 [daniluk@yahoo.com]
 
 * Fix announcement of very long migration names.  #5722 [blake@near-time.com]
