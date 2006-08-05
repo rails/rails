@@ -679,7 +679,7 @@ module ActionController
     
         [defaults, requirements, conditions]
       end
-  
+      
       # Takes a hash of defaults and a hash of requirements, and assigns them to
       # the segments. Any unused requirements (which do not correspond to a segment)
       # are returned as a hash.
@@ -694,6 +694,9 @@ module ActionController
           segment = segment_named[key]
           if segment
             raise TypeError, "#{key}: requirements on a path segment must be regular expressions" unless requirement.is_a?(Regexp)
+            if requirement.source =~ %r{\\A|\\Z|\\z|\^|\$}
+              raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
+            end
             segment.regexp = requirement
           else
             route_requirements[key] = requirement

@@ -150,7 +150,7 @@ class LegacyRouteSetTests < Test::Unit::TestCase
   def test_named_route_with_regexps
     rs.draw do |map|
       map.article 'page/:year/:month/:day/:title', :controller => 'page', :action => 'show',
-        :year => /^\d+$/, :month => /^\d+$/, :day => /^\d+$/
+        :year => /\d+/, :month => /\d+/, :day => /\d+/
       map.connect ':controller/:action/:id'
     end
     x = setup_for_named_route.new
@@ -1216,47 +1216,96 @@ class RouteSetTest < Test::Unit::TestCase
     assert_equal "http://named.route.test/people/go/7/hello/joe/5",
       controller.send(:multi_url, 7, "hello", 5)
   end
-  
+
   def test_draw_default_route
     ActionController::Routing.with_controllers(['users']) do
       set.draw do |map|
         map.connect '/:controller/:action/:id'
       end
-      
+
       assert_equal 1, set.routes.size
       route = set.routes.first
-      
+
       assert route.segments.last.optional?
-      
+
       assert_equal '/users/show/10', set.generate(:controller => 'users', :action => 'show', :id => 10)
       assert_equal '/users/index/10', set.generate(:controller => 'users', :id => 10)
-      
+
       assert_equal({:controller => 'users', :action => 'index', :id => '10'}, set.recognize_path('/users/index/10'))
       assert_equal({:controller => 'users', :action => 'index', :id => '10'}, set.recognize_path('/users/index/10/'))
     end
   end
-  
+
   def test_route_with_parameter_shell
     ActionController::Routing.with_controllers(['users', 'pages']) do
       set.draw do |map|
         map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+/
         map.connect '/:controller/:action/:id'
       end
-      
+
       assert_equal({:controller => 'pages', :action => 'index'}, set.recognize_path('/pages'))
       assert_equal({:controller => 'pages', :action => 'index'}, set.recognize_path('/pages/index'))
       assert_equal({:controller => 'pages', :action => 'list'}, set.recognize_path('/pages/list'))
-      
+
       assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/pages/show/10'))
       assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/page/10'))
     end
   end
 
+  def test_route_requirements_with_anchor_chars_are_invalid
+    assert_raises ArgumentError do
+      set.draw do |map|
+        map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /^\d+/
+      end
+    end
+    assert_raises ArgumentError do
+      set.draw do |map|
+        map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\A\d+/
+      end
+    end
+    assert_raises ArgumentError do
+      set.draw do |map|
+        map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+$/
+      end
+    end
+    assert_raises ArgumentError do
+      set.draw do |map|
+        map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+\Z/
+      end
+    end
+    assert_raises ArgumentError do
+      set.draw do |map|
+        map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+\z/
+      end
+    end
+    assert_nothing_raised do
+      set.draw do |map|
+        map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /\d+/, :name => /^(david|jamis)/
+      end
+      assert_raises ActionController::RoutingError do
+        set.generate :controller => 'pages', :action => 'show', :id => 10
+      end
+    end
+  end
+  
+  def test_non_path_route_requirements_match_all
+    set.draw do |map|
+      map.connect 'page/37s', :controller => 'pages', :action => 'show', :name => /(jamis|david)/
+    end
+    assert_equal '/page/37s', set.generate(:controller => 'pages', :action => 'show', :name => 'jamis')
+    assert_raises ActionController::RoutingError do
+      set.generate(:controller => 'pages', :action => 'show', :name => 'not_jamis')
+    end
+    assert_raises ActionController::RoutingError do
+      set.generate(:controller => 'pages', :action => 'show', :name => 'nor_jamis_and_david')
+    end
+  end
+  
   def test_recognize_with_encoded_id_and_regex
     set.draw do |map|
       map.connect 'page/:id', :controller => 'pages', :action => 'show', :id => /[a-zA-Z0-9 ]+/
     end
-    
+
     assert_equal({:controller => 'pages', :action => 'show', :id => '10'}, set.recognize_path('/page/10'))
     assert_equal({:controller => 'pages', :action => 'show', :id => 'hello world'}, set.recognize_path('/page/hello+world'))
   end

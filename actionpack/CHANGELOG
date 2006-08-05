@@ -1,7 +1,10 @@
 *SVN*
 
+* Make Routing noisy when an anchor regexp is assigned to a segment. #5674 [francois.beausoleil@gmail.com]
+
 * Added months and years to the resolution of DateHelper#distance_of_time_in_words, such that "60 days ago" becomes "2 months ago" #5611 [pjhyett@gmail.com]
 
+>>>>>>> .r4676
 * Short documentation to mention use of Mime::Type.register. #5710 [choonkeat@gmail.com]
 
 * Make controller_path available as an instance method.  #5724 [jmckible@gmail.com]
