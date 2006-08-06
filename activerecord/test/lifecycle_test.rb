@@ -75,6 +75,7 @@ class LifecycleTest < Test::Unit::TestCase
 
   def test_after_save
     ActiveRecord::Base.observers = :topic_manual_observer
+    ActiveRecord::Base.instantiate_observers
 
     topic = Topic.find(1)
     topic.title = "hello"
@@ -86,6 +87,7 @@ class LifecycleTest < Test::Unit::TestCase
 
   def test_observer_update_on_save
     ActiveRecord::Base.observers = TopicManualObserver
+    ActiveRecord::Base.instantiate_observers
 
     topic = Topic.find(1)
     assert TopicManualObserver.instance.has_been_notified?
@@ -130,6 +132,6 @@ class LifecycleTest < Test::Unit::TestCase
   end
 
   def test_invalid_observer
-    assert_raise(ArgumentError) { Topic.observers = Object.new }
+    assert_raise(ArgumentError) { Topic.observers = Object.new; Topic.instantiate_observers }
   end
 end
