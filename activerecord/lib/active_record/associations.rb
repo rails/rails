@@ -584,7 +584,7 @@ module ActiveRecord
         module_eval do
           after_save <<-EOF
             association = instance_variable_get("@#{reflection.name}")
-            unless association.nil?
+            if !association.nil? && (new_record? || association.new_record? || association["#{reflection.primary_key_name}"] != id)
               association["#{reflection.primary_key_name}"] = id
               association.save(true)
             end

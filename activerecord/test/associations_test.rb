@@ -291,6 +291,23 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     assert_equal a, firm.account
     assert_equal a, firm.account(true)
   end
+
+  def test_not_resaved_when_unchanged
+    firm = Firm.find(:first, :include => :account)
+    assert_queries(1) { firm.save! }
+
+    firm = Firm.find(:first)
+    firm.account = Account.find(:first)
+    assert_queries(1) { firm.save! }
+
+    firm = Firm.find(:first).clone
+    firm.account = Account.find(:first)
+    assert_queries(2) { firm.save! }
+
+    firm = Firm.find(:first).clone
+    firm.account = Account.find(:first).clone
+    assert_queries(2) { firm.save! }
+  end
 end
 
 
