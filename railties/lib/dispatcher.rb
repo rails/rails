@@ -54,7 +54,7 @@ class Dispatcher
     # to restart the server (WEBrick, FastCGI, etc.).
     def reset_application!
       Dependencies.clear
-      ActiveRecord::Base.reset_subclasses
+      ActiveRecord::Base.reset
       Class.remove_class(*Reloadable.reloadable_classes)
     end
 

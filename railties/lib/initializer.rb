@@ -67,6 +67,7 @@ module Rails
     # * #initialize_framework_settings
     # * #load_environment
     # * #load_plugins
+    # * #load_observers
     # * #initialize_routing
     #
     # (Note that #load_environment is invoked twice, once at the start and
@@ -89,7 +90,6 @@ module Rails
       initialize_breakpoints
       initialize_whiny_nils
       initialize_temporary_directories
-
       initialize_framework_settings
       
       # Support for legacy configuration style where the environment
@@ -100,6 +100,9 @@ module Rails
       add_support_load_paths
 
       load_plugins
+      
+      # Observers are loaded after plugins in case Observers or observed models are modified by plugins.
+      load_observers
 
       # Routing must be initialized after plugins to allow the former to extend the routes
       initialize_routing
@@ -171,7 +174,11 @@ module Rails
         end
       end
     end
-    
+
+    def load_observers
+      ActiveRecord::Base.instantiate_observers
+    end
+
     # This initialization routine does nothing unless <tt>:active_record</tt>
     # is one of the frameworks to load (Configuration#frameworks). If it is,
     # this sets the database configuration from Configuration#database_configuration
