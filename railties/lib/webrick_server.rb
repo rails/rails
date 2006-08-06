@@ -60,10 +60,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
     server.mount('/', DispatchServlet, options)
 
     trap("INT") { server.shutdown }
-
-    require File.join(@server_options[:server_root], "..", "config", "environment") unless defined?(RAILS_ROOT)
-    require "dispatcher"
-
+    
     server.start
   end
 
