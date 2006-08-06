@@ -18,7 +18,7 @@ default_config_file = config_file = Pathname.new("#{RAILS_ROOT}/config/lighttpd.
 require 'optparse'
 
 detach = false
-user_defined_active_port = nil
+command_line_port = nil
 
 ARGV.options do |opt|
   opt.on("-p", "--port=port", "Changes the server.port number in the config/lighttpd.conf") { |port| command_line_port = port }
