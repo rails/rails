@@ -294,14 +294,6 @@ module Rails
       configuration.after_initialize_block.call if configuration.after_initialize_block
     end
     
-    # Add a preparation callback that will run before every request in development
-    # mode, or before the first request in production.
-    # 
-    # See Dispatcher#to_prepare.
-    def to_prepare(&callback)
-      Dispatcher.to_prepare(&callback)
-    end
-
     protected
       # Return a list of plugin paths within base_path.  A plugin path is
       # a directory that contains either a lib directory or an init.rb file.
@@ -495,6 +487,14 @@ module Rails
     # Returns the block set in Configuration#after_initialize
     def after_initialize_block
       @after_initialize_block
+    end
+    
+    # Add a preparation callback that will run before every request in development
+    # mode, or before the first request in production.
+    # 
+    # See Dispatcher#to_prepare.
+    def to_prepare(&callback)
+      Dispatcher.to_prepare(&callback)
     end
     
     private
