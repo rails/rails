@@ -25,6 +25,7 @@
 # to the appropriate controller and action. It also takes care of resetting
 # the environment (when Dependencies.load? is true) after each request.
 class Dispatcher
+  
   class << self
 
     # Dispatch the given CGI request, using the given session options, and
@@ -54,11 +55,36 @@ class Dispatcher
     # to restart the server (WEBrick, FastCGI, etc.).
     def reset_application!
       Dependencies.clear
-      ActiveRecord::Base.reset
+      ActiveRecord::Base.reset if defined?(ActiveRecord)
       Class.remove_class(*Reloadable.reloadable_classes)
+    end
+    
+    
+    # Add a preparation callback. Preparation callbacks are run before every
+    # request in development mode, and before the first request in production
+    # mode.
+    # 
+    # An optional identifier may be supplied for the callback. If provided,
+    # to_prepare may be called again with the same identifier to replace the
+    # existing callback. Passing an identifier is a suggested practice if the
+    # code adding a preparation block may be reloaded.
+    def to_prepare(identifier = nil, &block)
+      unless identifier.nil?
+        callback = preparation_callbacks.detect { |ident, _| ident == identifier }
+        if callback # Already registered: update the existing callback
+          callback[-1] = block
+          return
+        end
+      end
+      preparation_callbacks << [identifier, block]
+      nil
     end
 
     private
+
+      attr_accessor :preparation_callbacks, :preparation_callbacks_run
+      alias_method :preparation_callbacks_run?, :preparation_callbacks_run
+      
       # CGI.new plus exception handling.  CGI#read_multipart raises EOFError
       # if body.empty? or body.size != Content-Length and raises ArgumentError
       # if Content-Length is non-integer.
@@ -67,10 +93,15 @@ class Dispatcher
       end
 
       def prepare_application
-        ActionController::Routing::Routes.reload if Dependencies.load?
+        if Dependencies.load?
+          ActionController::Routing::Routes.reload
+          self.preparation_callbacks_run = false
+        end
+
         prepare_breakpoint
         require_dependency('application.rb') unless Object.const_defined?(:ApplicationController)
-        ActiveRecord::Base.verify_active_connections!
+        ActiveRecord::Base.verify_active_connections! if defined?(ActiveRecord)
+        run_preparation_callbacks
       end
 
       def reset_after_dispatch
@@ -85,6 +116,12 @@ class Dispatcher
         true
       rescue
         nil
+      end
+
+      def run_preparation_callbacks
+        return if preparation_callbacks_run?
+        preparation_callbacks.each { |_, callback| callback.call }
+        self.preparation_callbacks_run = true
       end
 
       # If the block raises, send status code as a last-ditch response.
@@ -117,4 +154,8 @@ class Dispatcher
         end
       end
   end
+  
+  self.preparation_callbacks = []
+  self.preparation_callbacks_run = false
+  
 end

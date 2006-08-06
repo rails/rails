@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Dispatcher.to_prepare and config.to_prepare to provide a pre-request hook. [Nicholas Seckar]
+
 * Tweak the Rails load order so observers are loaded after plugins, and reloaded in development mode. Closed #5279.  [Rick Olson]
 
 * Added that you can change the web server port in config/lighttpd.conf from script/server --port/-p #5465 [mats@imediatec.co.uk]

@@ -24,6 +24,8 @@ class DispatcherTest < Test::Unit::TestCase
   def setup
     @output = StringIO.new
     ENV['REQUEST_METHOD'] = "GET"
+    Dispatcher.send(:preparation_callbacks).clear
+    Dispatcher.send(:preparation_callbacks_run=, false)
   end
 
   def teardown
@@ -83,6 +85,53 @@ class DispatcherTest < Test::Unit::TestCase
     end
   ensure
     $stdin = old_stdin
+  end
+  
+  def test_preparation_callbacks
+    Object.const_set :ApplicationController, nil
+    old_mechanism = Dependencies.mechanism
+    
+    a = b = c = nil
+    Dispatcher.to_prepare { a = b = c = 1 }
+    Dispatcher.to_prepare { b = c = 2 }
+    Dispatcher.to_prepare { c = 3 }
+    
+    Dispatcher.send :prepare_application
+    
+    assert_equal 1, a
+    assert_equal 2, b
+    assert_equal 3, c
+    
+    # When mechanism is :load, perform the callbacks each request:
+    Dependencies.mechanism = :load
+    a = b = c = nil
+    Dispatcher.send :prepare_application
+    assert_equal 1, a
+    assert_equal 2, b
+    assert_equal 3, c
+    
+    # But when not :load, make sure they are only run once
+    a = b = c = nil
+    Dependencies.mechanism = :not_load
+    Dispatcher.send :prepare_application
+    assert_equal nil, a || b || c
+  ensure
+    Dependencies.mechanism = old_mechanism
+    Object.send :remove_const, :ApplicationController
+  end
+  
+  def test_to_prepare_with_identifier_replaces
+    Object.const_set :ApplicationController, nil
+    
+    a = b = nil
+    Dispatcher.to_prepare(:unique_id) { a = b = 1 }
+    Dispatcher.to_prepare(:unique_id) { a = 2 }
+    
+    Dispatcher.send :prepare_application
+    assert_equal 2, a
+    assert_equal nil, b
+  ensure
+    Object.send :remove_const, :ApplicationController
   end
 
   private
