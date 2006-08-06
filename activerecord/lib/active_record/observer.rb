@@ -4,10 +4,18 @@ require 'set'
 module ActiveRecord
   module Observing # :nodoc:
     def self.included(base)
-      base.extend(ClassMethods)
+      class << base
+        include ClassMethods
+        alias_method_chain :reset, :observers
+      end
     end
 
     module ClassMethods
+      def reset_with_observers # :nodoc:
+        reset_without_observers
+        instantiate_observers
+      end
+      
       # Activates the observers assigned. Examples:
       #
       #   # Calls PersonObserver.instance
@@ -19,7 +27,13 @@ module ActiveRecord
       #   # Same as above, just using explicit class references
       #   ActiveRecord::Base.observers = Cacher, GarbageCollector
       def observers=(*observers)
-        observers.flatten.each do |observer|
+        @observers = observers.flatten
+      end
+
+      # Instantiate the global ActiveRecord observers
+      def instantiate_observers
+        return if @observers.blank?
+        @observers.each do |observer|
           if observer.respond_to?(:to_sym) # Symbol or String
             observer.to_s.camelize.constantize.instance
           elsif observer.respond_to?(:instance)

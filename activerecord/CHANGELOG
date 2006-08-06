@@ -1,5 +1,7 @@
 *SVN*
 
+* Refactor ActiveRecord::Base.reset_subclasses to #reset, and add global observer resetting.  [Rick Olson]
+
 * Formally deprecate the deprecated finders. [Koz]
 
 * Formally deprecate rich associations.  [Koz]
