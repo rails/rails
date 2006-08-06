@@ -69,6 +69,110 @@ module ActionController
         end
     end
     
+    # Creates named routes for implementing verb-oriented controllers. This is
+    # useful for implementing REST API's, where a single resource has different
+    # behavior based on the HTTP verb (method) used to access it.
+    # 
+    # Because browsers don't yet support any verbs except GET and POST, you can send
+    # a parameter named "_method" and the plugin will use that as the request method.
+    # 
+    # example:
+    #
+    #   map.resources :messages 
+    #
+    #   class MessagesController < ActionController::Base
+    #     # GET messages_url
+    #     def index
+    #       # return all messages
+    #     end
+    # 
+    #     # GET new_message_url
+    #     def new
+    #       # return an HTML form for describing a new message
+    #     end
+    # 
+    #     # POST messages_url
+    #     def create
+    #       # create a new message
+    #     end
+    # 
+    #     # GET message_url(:id => 1)
+    #     def show
+    #       # find and return a specific message
+    #     end
+    # 
+    #     # GET edit_message_url(:id => 1)
+    #     def edit
+    #       # return an HTML form for editing a specific message
+    #     end
+    # 
+    #     # PUT message_url(:id => 1)
+    #     def update
+    #       # find and update a specific message
+    #     end
+    # 
+    #     # DELETE message_url(:id => 1)
+    #     def destroy
+    #       # delete a specific message
+    #     end
+    #   end
+    # 
+    # The #resource method accepts various options, too, to customize the resulting
+    # routes:
+    # * <tt>:controller</tt> -- specify the controller name for the routes.
+    # * <tt>:singular</tt> -- specify the singular name used in the member routes.
+    # * <tt>:path_prefix</tt> -- set a prefix to the routes with required route variables.
+    #   Weblog comments usually belong to a post, so you might use a resource like:
+    #
+    #     map.resources :comments, :path_prefix => '/articles/:article_id'
+    #
+    #   You can nest resource calls to set this automatically:
+    #
+    #     map.resources :posts do |post|
+    #       map.resources :comments
+    #     end
+    # 
+    # * <tt>:name_prefix</tt> -- define a prefix for all generated routes, usually ending in an underscore.
+    #   Use this if you have named routes that may clash.
+    #
+    #     map.resources :tags, :path_prefix => '/books/:book_id', :name_prefix => 'book_'
+    #     map.resources :tags, :path_prefix => '/toys/:toy_id',   :name_prefix => 'toy_'
+    #
+    # * <tt>:collection</tt> -- add named routes for other actions that operate on the collection.
+    #   Takes a hash of <tt>#{action} => #{method}</tt>, where method is <tt>:get</tt>/<tt>:post</tt>/<tt>:put</tt>/<tt>:delete</tt>
+    #   or <tt>:any</tt> if the method does not matter.  These routes map to a URL like /messages;rss, with a route of rss_messages_url.
+    # * <tt>:member</tt> -- same as :collection, but for actions that operate on a specific member.
+    # * <tt>:new</tt> -- same as :collection, but for actions that operate on the new resource action.
+    #
+    # If <tt>map.resources</tt> is called with multiple resources, they all get the same options applied.
+    #
+    # Examples:
+    # 
+    #   map.resources :messages, :path_prefix => "/thread/:thread_id"
+    #   # --> GET /thread/7/messages/1
+    #  
+    #   map.resources :messages, :collection => { :rss => :get }
+    #   # --> GET /messages;rss (maps to the #rss action)
+    #   #     also adds a url named "rss_messages"
+    # 
+    #   map.resources :messages, :member => { :mark => :post }
+    #   # --> POST /messages/1;mark (maps to the #mark action)
+    #   #     also adds a url named "mark_message"
+    # 
+    #   map.resources :messages, :new => { :preview => :post }
+    #   # --> POST /messages/new;preview (maps to the #preview action)
+    #   #     also adds a url named "preview_new_message"
+    # 
+    #   map.resources :messages, :new => { :new => :any, :preview => :post }
+    #   # --> POST /messages/new;preview (maps to the #preview action)
+    #   #     also adds a url named "preview_new_message"
+    #   # --> /messages/new can be invoked via any request method
+    # 
+    #   map.resources :messages, :controller => "categories",
+    #         :path_prefix => "/category/:category_id",
+    #         :name_prefix => "category_"
+    #   # --> GET /categories/7/messages/1
+    #   #     has named route "category_message"
     def resources(*entities, &block)
       options = entities.last.is_a?(Hash) ? entities.pop : { }
       entities.each { |entity| map_resource entity, options.dup, &block }
