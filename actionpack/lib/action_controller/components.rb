@@ -111,16 +111,15 @@ module ActionController #:nodoc:
         end
 
         def flash_with_components(refresh = false) #:nodoc:
-          if !defined?(@flash) || refresh
-            @flash =
+          if !defined?(@_flash) || refresh
+            @_flash =
               if defined?(@parent_controller)
                 @parent_controller.flash
               else
                 flash_without_components
               end
           end
-          
-          @flash
+          @_flash
         end
 
       private

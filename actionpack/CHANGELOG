@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecation! @session and @flash will be removed after 1.2. Use the session and flash methods instead. You'll get printed warnings during tests and logged warnings in dev mode when you access either instance variable directly. [Jeremy Kemper]
+
 * Make Routing noisy when an anchor regexp is assigned to a segment. #5674 [francois.beausoleil@gmail.com]
 
 * Added months and years to the resolution of DateHelper#distance_of_time_in_words, such that "60 days ago" becomes "2 months ago" #5611 [pjhyett@gmail.com]

@@ -42,8 +42,8 @@ module ActionController #:nodoc:
     end
   end
   class RedirectBackError < ActionControllerError #:nodoc:
-    DEFAULT_MESSAGE = 'No HTTP_REFERER was set in the request to this action, so redirect_to :back could not be called successfully. If this is a test, make sure to specify @request.env["HTTP_REFERER"].'
-  
+    DEFAULT_MESSAGE = 'No HTTP_REFERER was set in the request to this action, so redirect_to :back could not be called successfully. If this is a test, make sure to specify request.env["HTTP_REFERER"].'
+
     def initialize(message = nil)
       super(message || DEFAULT_MESSAGE)
     end
@@ -59,7 +59,7 @@ module ActionController #:nodoc:
   #     def index
   #       @entries = Entry.find(:all)
   #     end
-  #     
+  #
   #     def sign
   #       Entry.create(params[:entry])
   #       redirect_to :action => "index"
@@ -300,8 +300,8 @@ module ActionController #:nodoc:
     
     # Holds a hash of objects in the session. Accessed like <tt>session[:person]</tt> to get the object tied to the "person"
     # key. The session will hold any type of object as values, but the key should be a string or symbol.
-    attr_accessor :session
-    
+    attr_internal :session
+
     # Holds a hash of header names and values. Accessed like <tt>headers["Cache-Control"]</tt> to get the value of the Cache-Control
     # directive. Values should always be specified as strings.
     attr_accessor :headers
@@ -400,6 +400,7 @@ module ActionController #:nodoc:
       def process(request, response, method = :perform_action, *arguments) #:nodoc:
         initialize_template_class(response)
         assign_shortcuts(request, response)
+        assign_deprecated_shortcuts(request, response)
         initialize_current_url
         assign_names
         forget_variables_added_to_assigns
@@ -752,17 +753,17 @@ module ActionController #:nodoc:
 
       def render_text(text = nil, status = nil) #:nodoc:
         @performed_render = true
-        @response.headers['Status'] = (status || DEFAULT_RENDER_STATUS_CODE).to_s
-        @response.body = text
+        response.headers['Status'] = (status || DEFAULT_RENDER_STATUS_CODE).to_s
+        response.body = text
       end
 
       def render_javascript(javascript, status = nil) #:nodoc:
-        @response.headers['Content-Type'] = 'text/javascript; charset=UTF-8'
+        response.headers['Content-Type'] = 'text/javascript; charset=UTF-8'
         render_text(javascript, status)
       end
 
       def render_xml(xml, status = nil) #:nodoc:
-        @response.headers['Content-Type'] = 'application/xml'
+        response.headers['Content-Type'] = 'application/xml'
         render_text(xml, status)
       end
 
@@ -791,7 +792,7 @@ module ActionController #:nodoc:
 
       # Clears the rendered results, allowing for another render to be performed.
       def erase_render_results #:nodoc:
-        @response.body = nil
+        response.body = nil
         @performed_render = false
       end
       
@@ -893,20 +894,20 @@ module ActionController #:nodoc:
         cache_options = { 'max-age' => seconds, 'private' => true }.symbolize_keys.merge!(options.symbolize_keys)
         cache_options.delete_if { |k,v| v.nil? or v == false }
         cache_control = cache_options.map{ |k,v| v == true ? k.to_s : "#{k.to_s}=#{v.to_s}"}
-        @response.headers["Cache-Control"] = cache_control.join(', ')
+        response.headers["Cache-Control"] = cache_control.join(', ')
       end
       
       # Sets a HTTP 1.1 Cache-Control header of "no-cache" so no caching should occur by the browser or
       # intermediate caches (like caching proxy servers).
       def expires_now #:doc:
-        @response.headers["Cache-Control"] = "no-cache"
+        response.headers["Cache-Control"] = "no-cache"
       end
 
       # Resets the session by clearing out all the objects stored within and initializing a new session object.
       def reset_session #:doc:
-        @request.reset_session
-        @session = @request.session
-        @response.session = @session
+        request.reset_session
+        @_session = request.session
+        response.session = @_session
       end
     
     private
@@ -929,29 +930,40 @@ module ActionController #:nodoc:
         response.redirected_to = nil
         @performed_render = @performed_redirect = false
       end
-    
+
       def assign_shortcuts(request, response)
         @request, @params, @cookies = request, request.parameters, request.cookies
 
         @response         = response
         @response.session = request.session
 
-        @session  = @response.session
+        @_session  = @response.session
         @template = @response.template
         @assigns  = @response.template.assigns
-  
+
         @headers  = @response.headers
       end
-      
+
+
+      # TODO: assigns cookies headers params request response template
+      DEPRECATED_INSTANCE_VARIABLES = %w(flash session)
+
+      # Gone after 1.2.
+      def assign_deprecated_shortcuts(request, response)
+        DEPRECATED_INSTANCE_VARIABLES.each do |var|
+          instance_variable_set "@#{var}", ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, var)
+        end
+      end
+
       def initialize_current_url
-        @url = UrlRewriter.new(@request, @params.clone())
+        @url = UrlRewriter.new(request, params.clone)
       end
 
       def log_processing
         if logger
           logger.info "\n\nProcessing #{controller_class_name}\##{action_name} (for #{request_origin}) [#{request.method.to_s.upcase}]"
-          logger.info "  Session ID: #{@session.session_id}" if @session and @session.respond_to?(:session_id)
-          logger.info "  Parameters: #{respond_to?(:filter_parameters) ? filter_parameters(@params).inspect : @params.inspect}"
+          logger.info "  Session ID: #{@_session.session_id}" if @_session and @_session.respond_to?(:session_id)
+          logger.info "  Parameters: #{respond_to?(:filter_parameters) ? filter_parameters(params).inspect : params.inspect}"
         end
       end
     
@@ -1023,17 +1035,17 @@ module ActionController #:nodoc:
       def request_origin
         # this *needs* to be cached!
         # otherwise you'd get different results if calling it more than once
-        @request_origin ||= "#{@request.remote_ip} at #{Time.now.to_s(:db)}"
+        @request_origin ||= "#{request.remote_ip} at #{Time.now.to_s(:db)}"
       end
-      
+
       def complete_request_uri
-        "#{@request.protocol}#{@request.host}#{@request.request_uri}"
+        "#{request.protocol}#{request.host}#{request.request_uri}"
       end
 
       def close_session
-        @session.close unless @session.nil? || Hash === @session
+        @_session.close if @_session && @_session.respond_to?(:close)
       end
-      
+
       def template_exists?(template_name = default_template_name)
         @template.file_exists?(template_name)
       end

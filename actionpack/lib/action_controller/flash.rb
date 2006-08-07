@@ -17,7 +17,7 @@ module ActionController #:nodoc:
   #   end
   #
   #   display.rhtml
-  #     <% if @flash[:notice] %><div class="notice"><%= @flash[:notice] %></div><% end %>
+  #     <% if flash[:notice] %><div class="notice"><%= flash[:notice] %></div><% end %>
   #
   # This example just places a string in the flash, but you can put any object in there. And of course, you can put as many
   # as you like at a time too. Just remember: They'll be gone by the time the next action has been performed.
@@ -141,13 +141,13 @@ module ActionController #:nodoc:
       end
       
       def process_cleanup_with_flash
-        flash.sweep if @session
+        flash.sweep if @_session
         process_cleanup_without_flash
       end
 
       def reset_session_with_flash
         reset_session_without_flash
-        remove_instance_variable(:@flash)
+        remove_instance_variable(:@_flash)
         flash(:refresh)
       end
       
@@ -156,20 +156,19 @@ module ActionController #:nodoc:
         # <tt>flash["notice"] = "hello"</tt> to put a new one.
         # Note that if sessions are disabled only flash.now will work.
         def flash(refresh = false) #:doc:
-          if !defined?(@flash) || refresh
-            @flash =
-              if @session.is_a?(Hash)
-                # @session is a Hash, if sessions are disabled
-                # we don't put the flash in the session in this case
+          if !defined?(@_flash) || refresh
+            @_flash =
+              if session.is_a?(Hash)
+                # don't put flash in session if disabled
                 FlashHash.new
               else
-                # otherwise, @session is a CGI::Session or a TestSession
+                # otherwise, session is a CGI::Session or a TestSession
                 # so make sure it gets retrieved from/saved to session storage after request processing
-                @session["flash"] ||= FlashHash.new
+                session["flash"] ||= FlashHash.new
               end
           end
-          
-          @flash
+
+          @_flash
         end
 
         # deprecated. use <tt>flash.keep</tt> instead
