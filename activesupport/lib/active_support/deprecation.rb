@@ -78,7 +78,6 @@ module ActiveSupport
 
       def initialize(instance, method, var = "@#{method}")
         @instance, @method, @var = instance, method, var
-        deprecation_warning :initialize, caller
       end
 
       private

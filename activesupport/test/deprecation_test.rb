@@ -68,9 +68,8 @@ class DeprecationTest < Test::Unit::TestCase
   def test_deprecated_instance_variable_proxy
     assert_not_deprecated { @dtc.request.size }
 
-    assert_deprecated('Using @request directly is deprecated - call request instead.') do
-      assert_equal @dtc.request.size, @dtc.old_request.size
-      assert_equal @dtc.request.to_s, @dtc.old_request.to_s
-    end
+    warning = 'Using @request directly is deprecated - call request instead.'
+    assert_deprecated(warning) { assert_equal @dtc.request.size, @dtc.old_request.size }
+    assert_deprecated(warning) { assert_equal @dtc.request.to_s, @dtc.old_request.to_s }
   end
 end
