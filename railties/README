@@ -124,6 +124,9 @@ application is running. You can inspect domain models, change values, and save t
 database. Starting the script without arguments will launch it in the development environment.
 Passing an argument will specify a different environment, like <tt>script/console production</tt>.
 
+To reload your controllers and models after launching the console run <tt>reload!</tt>
+
+
 
 == Description of contents
 
