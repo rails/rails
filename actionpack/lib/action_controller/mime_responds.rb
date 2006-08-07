@@ -92,6 +92,12 @@ module ActionController #:nodoc:
       # Note that you can define your own XML parameter parser which would allow you to describe multiple entities 
       # in a single request (i.e., by wrapping them all in a single root note), but if you just go with the flow 
       # and accept Rails' defaults, life will be much easier.
+      # 
+      # If you need to use a MIME type which isn't supported by default, you can register your own handlers in
+      # environment.rb as follows.
+      # 
+      #   Mime::Type.register "image/jpg", :jpg
+      # 
       def respond_to(*types, &block)
         raise ArgumentError, "respond_to takes either types or a block, never bot" unless types.any? ^ block
         block ||= lambda { |responder| types.each { |type| responder.send(type) } }

@@ -1,3 +1,5 @@
+* Short documentation to mention use of Mime::Type.register. #5710 [choonkeat@gmail.com]
+
 *1.12.3* (June 28th, 2006)
 
 * Fix broken traverse_to_controller. We now:
