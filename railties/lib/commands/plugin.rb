@@ -577,8 +577,8 @@ module Commands
     def options
       OptionParser.new do |o|
         o.set_summary_indent('  ')
-        o.banner =    "Usage: #{@base_command.script_name} source REPOSITORY"
-        o.define_head "Add a new repository."
+        o.banner =    "Usage: #{@base_command.script_name} source REPOSITORY [REPOSITORY [REPOSITORY]...]"
+        o.define_head "Add new repositories to the default search list."
       end
     end
     
