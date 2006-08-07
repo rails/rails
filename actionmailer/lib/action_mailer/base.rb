@@ -127,7 +127,7 @@ module ActionMailer #:nodoc:
     
     private_class_method :new #:nodoc:
 
-    cattr_accessor :template_root
+    class_inheritable_accessor :template_root
     cattr_accessor :logger
 
     @@server_settings = { 

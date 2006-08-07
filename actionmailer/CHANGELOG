@@ -1,3 +1,5 @@
+* Mailer template root applies to a class and its subclasses rather than acting globally. #5555 [somekool@gmail.com]
+
 *1.2.3* (June 29th, 2006)
 
 * Depend on Action Pack 1.12.3

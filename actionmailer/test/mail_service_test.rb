@@ -24,6 +24,8 @@ class Net::SMTP
 end
 
 class FunkyPathMailer < ActionMailer::Base
+  self.template_root = "#{File.dirname(__FILE__)}/fixtures/path.with.dots"
+
   def multipart_with_template_path_with_dots(recipient)
     recipients recipient
     subject    "Have a lovely picture"
@@ -816,3 +818,15 @@ EOF
   end
 end
 
+class InheritableTemplateRootTest < Test::Unit::TestCase
+  def test_attr
+    expected = "#{File.dirname(__FILE__)}/fixtures/path.with.dots"
+    assert_equal expected, FunkyPathMailer.template_root
+
+    sub = Class.new(FunkyPathMailer)
+    sub.template_root = 'test/path'
+
+    assert_equal 'test/path', sub.template_root
+    assert_equal expected, FunkyPathMailer.template_root
+  end
+end
