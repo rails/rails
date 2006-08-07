@@ -1,5 +1,11 @@
 *SVN*
 
+* attr_internal to support namespacing and deprecation. Like attr_* except backed by internally-named instance variable. Set attr_internal_naming_format to change the format from the default '@_%s'. [Jeremy Kemper]
+    # def foo()   @foo__rofl      end
+    # def foo=(v) @foo__rofl = v  end
+    self.attr_internal_naming_format = '@%s__rofl'
+    attr_internal :foo
+
 * Raise fully qualified names upon name errors. #5533 [lars@pinds.com, Nicholas Seckar]
 
 * Add extention to obtain the missing constant from NameError instances. [Nicholas Seckar]
