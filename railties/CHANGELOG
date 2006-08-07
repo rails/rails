@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix Dispatcher.reset_application! so that AR subclasses are removed and Observers re-initialized *after* Reloadable classes are removed. Closes #5743.  [Rick Olson]
+
 * Clarify usage of script/plugin source. Closes #5344. [james.adam@gmail.com]
 
 * Add Dispatcher.to_prepare and config.to_prepare to provide a pre-request hook. [Nicholas Seckar]
