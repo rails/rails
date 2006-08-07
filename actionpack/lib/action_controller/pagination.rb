@@ -31,7 +31,7 @@ module ActionController
   # instance variable, which is an ordered collection of model objects for the
   # current page (at most 20, sorted by last name and first name), and a 
   # <tt>@person_pages</tt> Paginator instance. The current page is determined
-  # by the <tt>@params['page']</tt> variable.
+  # by the <tt>params[:page]</tt> variable.
   #
   # ==== Pagination for a single action
   #
@@ -47,7 +47,7 @@ module ActionController
   # ==== Custom/"classic" pagination 
   #
   #   def list
-  #     @person_pages = Paginator.new self, Person.count, 10, @params['page']
+  #     @person_pages = Paginator.new self, Person.count, 10, params[:page]
   #     @people = Person.find :all, :order => 'last_name, first_name', 
   #                           :limit  =>  @person_pages.items_per_page,
   #                           :offset =>  @person_pages.current.offset

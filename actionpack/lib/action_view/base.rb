@@ -427,7 +427,8 @@ module ActionView #:nodoc:
 
         if @@compile_time[render_symbol] && supports_local_assigns?(render_symbol, local_assigns)
           if file_name && !@@cache_template_loading 
-            @@compile_time[render_symbol] < File.mtime(file_name)
+            @@compile_time[render_symbol] < File.mtime(file_name) || (File.symlink?(file_name) ? 
+              @@compile_time[render_symbol] < File.lstat(file_name).mtime : false)
           end
         else
           true

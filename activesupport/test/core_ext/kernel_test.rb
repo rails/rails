@@ -34,6 +34,8 @@ class KernelTest < Test::Unit::TestCase
     old_stderr_position = STDERR.tell
     silence_stderr { STDERR.puts 'hello world' }
     assert_equal old_stderr_position, STDERR.tell
+  rescue Errno::ESPIPE
+    # Skip if we can't STDERR.tell
   end
 
   def test_silence_stderr_with_return_value

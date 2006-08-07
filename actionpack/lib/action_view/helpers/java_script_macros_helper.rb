@@ -27,6 +27,7 @@ module ActionView
       # <tt>:url</tt>::       Specifies the url where the updated value should
       #                       be sent after the user presses "ok".
       # 
+      #
       # Addtional +options+ are:
       # <tt>:rows</tt>::              Number of rows (more than 1 will use a TEXTAREA)
       # <tt>:cols</tt>::              Number of characters the text input should span (works for both INPUT and TEXTAREA)
@@ -122,10 +123,10 @@ module ActionView
       # <tt>:on_show</tt>::   Like on_hide, only now the expression is called
       #                       then the div is shown.
       # <tt>:after_update_element</tt>::   A Javascript expression that is called when the
-      #                       user has selected one of the proposed values. 
-      #                       The expression should take two variables: element and value.
-      #                       Element is a DOM element for the field, value
-      #                       is the value selected by the user.
+      #                                    user has selected one of the proposed values. 
+      #                                    The expression should take two variables: element and value.
+      #                                    Element is a DOM element for the field, value
+      #                                    is the value selected by the user.
       # <tt>:select</tt>::    Pick the class of the element from which the value for 
       #                       insertion should be extracted. If this is not specified,
       #                       the entire element is used.

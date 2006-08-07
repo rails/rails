@@ -143,7 +143,7 @@ module ActionView
       # background instead of the regular reloading POST arrangement. Even 
       # though it's using JavaScript to serialize the form elements, the form
       # submission will work just like a regular submission as viewed by the
-      # receiving side (all elements available in @params). The options for 
+      # receiving side (all elements available in <tt>params</tt>). The options for 
       # specifying the target with :url and defining callbacks is the same as
       # link_to_remote.
       #
@@ -171,9 +171,10 @@ module ActionView
       end
 
       # Works like form_remote_tag, but uses form_for semantics.
-      def remote_form_for(object_name, object, options = {}, &proc)
+      def remote_form_for(object_name, *args, &proc)
+        options = args.last.is_a?(Hash) ? args.pop : {}
         concat(form_remote_tag(options), proc.binding)
-        fields_for(object_name, object, options, &proc)
+        fields_for(object_name, *(args << options), &proc)
         concat('</form>', proc.binding)
       end
       alias_method :form_remote_for, :remote_form_for

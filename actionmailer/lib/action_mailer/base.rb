@@ -14,7 +14,7 @@ module ActionMailer #:nodoc:
   #     def signup_notification(recipient)
   #       recipients recipient.email_address_with_name
   #       subject    "New account information"
-  #       body       { "account" => recipient }
+  #       body       "account" => recipient
   #       from       "system@example.com"
   #     end
   #

@@ -14,7 +14,7 @@ module ActionController #:nodoc:
       # it feasible to send even large files.
       #
       # Be careful to sanitize the path parameter if it coming from a web
-      # page.  send_file(@params['path']) allows a malicious user to
+      # page.  send_file(params[:path]) allows a malicious user to
       # download any file on your server.
       #
       # Options:
@@ -28,6 +28,7 @@ module ActionController #:nodoc:
       #   or to read the entire file before sending (false). Defaults to true.
       # * <tt>:buffer_size</tt> - specifies size (in bytes) of the buffer used to stream the file.
       #   Defaults to 4096.
+      # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
       #
       # The default Content-Type and Content-Disposition headers are
       # set to download arbitrary binary files in as many browsers as
@@ -37,8 +38,11 @@ module ActionController #:nodoc:
       # Simple download:
       #   send_file '/path/to.zip'
       #
-      # Show a JPEG in browser:
+      # Show a JPEG in the browser:
       #   send_file '/path/to.jpeg', :type => 'image/jpeg', :disposition => 'inline'
+      #
+      # Show a 404 page in the browser:
+      #   send_file '/path/to/404.html, :type => 'text/html; charset=utf-8', :status => 404
       #
       # Read about the other Content-* HTTP headers if you'd like to
       # provide the user with more information (such as Content-Description).
@@ -61,7 +65,7 @@ module ActionController #:nodoc:
         @performed_render = false
 
         if options[:stream]
-          render :text => Proc.new { |response, output|
+          render :status => options[:status], :text => Proc.new { |response, output|
             logger.info "Streaming file #{path}" unless logger.nil?
             len = options[:buffer_size] || 4096
             File.open(path, 'rb') do |file|
@@ -81,7 +85,7 @@ module ActionController #:nodoc:
           }
         else
           logger.info "Sending file #{path}" unless logger.nil?
-          File.open(path, 'rb') { |file| render :text => file.read }
+          File.open(path, 'rb') { |file| render :status => options[:status], :text => file.read }
         end
       end
 
@@ -93,6 +97,7 @@ module ActionController #:nodoc:
       # * <tt>:type</tt> - specifies an HTTP content type.
       #   Defaults to 'application/octet-stream'.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
+      # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
       #   Valid values are 'inline' and 'attachment' (default).
       #
       # Generic data download:
@@ -109,7 +114,7 @@ module ActionController #:nodoc:
         logger.info "Sending data #{options[:filename]}" unless logger.nil?
         send_file_headers! options.merge(:length => data.size)
         @performed_render = false
-        render :text => data
+        render :status => options[:status], :text => data
       end
 
     private

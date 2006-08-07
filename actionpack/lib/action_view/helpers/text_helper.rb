@@ -77,7 +77,7 @@ module ActionView
       end
 
       begin
-        require_library_or_gem "redcloth"
+        require_library_or_gem "redcloth" unless Object.const_defined?(:RedCloth)
 
         # Returns the text with all the Textile codes turned into HTML-tags.
         # <i>This method is only available if RedCloth can be required</i>.
@@ -104,7 +104,7 @@ module ActionView
       end
 
       begin
-        require_library_or_gem "bluecloth"
+        require_library_or_gem "bluecloth" unless Object.const_defined?(:BlueCloth)
 
         # Returns the text with all the Markdown codes turned into HTML-tags.
         # <i>This method is only available if BlueCloth can be required</i>.
@@ -116,7 +116,7 @@ module ActionView
       end
       
       # Returns +text+ transformed into HTML using very simple formatting rules
-      # Surrounds paragraphs with <tt>&lt;p&gt;</tt> tags, and converts line breaks into <tt>&lt;br /&gt;</tt>
+      # Surrounds paragraphs with <tt><p></tt> tags, and converts line breaks into <tt><br/></tt>
       # Two consecutive newlines(<tt>\n\n</tt>) are considered as a paragraph, one newline (<tt>\n</tt>) is
       # considered a linebreak, three or more consecutive newlines are turned into two newlines 
       def simple_format(text)
@@ -129,7 +129,7 @@ module ActionView
       end
 
       # Turns all urls and email addresses into clickable links. The +link+ parameter can limit what should be linked.
-      # Options are :all (default), :email_addresses, and :urls.
+      # Options are <tt>:all</tt> (default), <tt>:email_addresses</tt>, and <tt>:urls</tt>.
       #
       # Example:
       #   auto_link("Go to http://www.rubyonrails.com and say hello to david@loudthinking.com") =>
@@ -235,28 +235,28 @@ module ActionView
       # array every time it is called. This can be used to alternate classes
       # for table rows:
       #
-      # <%- for item in @items do -%>
-      #   <tr class="<%= cycle("even", "odd") %>">
-      #     ... use item ...
-      #   </tr>
-      # <%- end -%>
+      #   <%- for item in @items do -%>
+      #     <tr class="<%= cycle("even", "odd") %>">
+      #       ... use item ...
+      #     </tr>
+      #   <%- end -%>
       #
       # You can use named cycles to prevent clashes in nested loops.  You'll
       # have to reset the inner cycle, manually:
       #
-      # <%- for item in @items do -%>
-      #   <tr class="<%= cycle("even", "odd", :name => "row_class")
-      #     <td>
-      #       <%- for value in item.values do -%>
-      #         <span style="color:'<%= cycle("red", "green", "blue"
-      #                                       :name => "colors") %>'">
-      #           item
-      #         </span>
-      #       <%- end -%>
-      #       <%- reset_cycle("colors") -%>
-      #     </td>
-      #   </tr>
-      # <%- end -%>
+      #   <%- for item in @items do -%>
+      #     <tr class="<%= cycle("even", "odd", :name => "row_class")
+      #       <td>
+      #         <%- for value in item.values do -%>
+      #           <span style="color:'<%= cycle("red", "green", "blue"
+      #                                         :name => "colors") %>'">
+      #             item
+      #           </span>
+      #         <%- end -%>
+      #         <%- reset_cycle("colors") -%>
+      #       </td>
+      #    </tr>
+      #  <%- end -%>
       def cycle(first_value, *values)
         if (values.last.instance_of? Hash)
           params = values.pop

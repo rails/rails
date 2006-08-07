@@ -381,6 +381,18 @@ module ActiveRecord
       # * <tt>if</tt> - Specifies a method, proc or string to call to determine if the validation should
       # occur (e.g. :if => :allow_validation, or :if => Proc.new { |user| user.signup_step > 2 }).  The
       # method, proc or string should return or evaluate to a true or false value.
+      #
+      # === Warning
+      # Validate the presence of the foreign key, not the instance variable itself.
+      # Do this:
+      #  validate_presence_of :invoice_id
+      #
+      # Not this:
+      #  validate_presence_of :invoice
+      #
+      # If you validate the presence of the associated object, you will get
+      # failures on saves when both the parent object and the child object are
+      # new.
       def validates_presence_of(*attr_names)
         configuration = { :message => ActiveRecord::Errors.default_error_messages[:blank], :on => :save }
         configuration.update(attr_names.pop) if attr_names.last.is_a?(Hash)

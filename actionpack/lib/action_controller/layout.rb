@@ -27,7 +27,7 @@ module ActionController #:nodoc:
     # that the header and footer are only mentioned in one place, like this:
     #
     #   <!-- The header part of this layout -->
-    #   <%= @content_for_layout %>
+    #   <%= yield %>
     #   <!-- The footer part of this layout -->
     #
     # And then you have content pages that look like this:
@@ -47,7 +47,7 @@ module ActionController #:nodoc:
     # references that won't materialize before rendering time:
     #
     #   <h1><%= @page_title %></h1>
-    #   <%= @content_for_layout %>
+    #   <%= yield %>
     #
     # ...and content pages that fulfill these references _at_ rendering time:
     #
@@ -159,10 +159,12 @@ module ActionController #:nodoc:
     #
     # As you can see, you pass the template as the first parameter, the status code as the second ("200" is OK), and the layout
     # as the third.
+    #
+    # NOTE: The old notation for rendering the view from a layout was to expose the magic <tt>@content_for_layout</tt> instance 
+    # variable. The preferred notation now is to use <tt>yield</tt>, as documented above.
     module ClassMethods
-      # If a layout is specified, all actions rendered through render and render_action will have their result assigned 
-      # to <tt>@content_for_layout</tt>, which can then be used by the layout to insert their contents with
-      # <tt><%= @content_for_layout %></tt>. This layout can itself depend on instance variables assigned during action
+      # If a layout is specified, all rendered actions will have their result rendered  
+      # when the layout<tt>yield</tt>'s. This layout can itself depend on instance variables assigned during action
       # performance and have access to them as any normal template would.
       def layout(template_name, conditions = {})
         add_layout_conditions(conditions)
