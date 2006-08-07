@@ -1,5 +1,7 @@
 *SVN*
 
+* DateTime#to_time gives hour/minute/second resolution.  #5747 [jon.evans@pobox.com]
+
 * attr_internal to support namespacing and deprecation. Like attr_* except backed by internally-named instance variable. Set attr_internal_naming_format to change the format from the default '@_%s'. [Jeremy Kemper]
     # def foo()   @foo__rofl      end
     # def foo=(v) @foo__rofl = v  end

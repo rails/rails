@@ -10,6 +10,10 @@ class DateExtCalculationsTest < Test::Unit::TestCase
     assert_equal Time.local(2005, 2, 21), Date.new(2005, 2, 21).to_time
   end
 
+  def test_to_time_on_datetime
+    assert_equal Time.local(2005, 2, 21, 10, 11, 12), DateTime.new(2005, 2, 21, 10, 11, 12).to_time
+  end
+
   def test_to_date
     assert_equal Date.new(2005, 2, 21), Date.new(2005, 2, 21).to_date
   end
