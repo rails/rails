@@ -138,12 +138,6 @@ module ActionController
 
         # Nest the body inside of a def block, and then compile it.
         raw_method = method_decl = "def generate_raw(#{args})\npath = begin\n#{body}\nend\n[path, hash]\nend"
-# puts "\n======================"
-# puts
-# p self
-# puts
-# puts method_decl
-# puts
         instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
 
         # expire_on.keys == recall.keys; in other words, the keys in the expire_on hash
@@ -193,12 +187,6 @@ module ActionController
     
         # Build the method declaration and compile it
         method_decl = "def recognize(path, env={})\n#{body}\nend"
-# puts "\n======================"
-# puts
-# p self
-# puts
-# puts method_decl
-# puts
         instance_eval method_decl, "generated code (#{__FILE__}:#{__LINE__})"
         method_decl
       end
