@@ -243,6 +243,10 @@ module ActiveRecord
     def before_save() end
 
     # Is called _after_ Base.save (regardless of whether it's a create or update save).
+    #
+    #  class Contact < ActiveRecord::Base
+    #    after_save { logger.info( 'New contact saved!' ) }
+    #  end
     def after_save()  end
     def create_or_update_with_callbacks #:nodoc:
       return false if callback(:before_save) == false
@@ -312,9 +316,16 @@ module ActiveRecord
     end
 
     # Is called _before_ Base.destroy.
+    #
+    # Note: If you need to _destroy_ or _nullify_ associated records first,
+    # use the _:dependent_ option on your associations.
     def before_destroy() end
 
     # Is called _after_ Base.destroy (and all the attributes have been frozen).
+    #
+    #  class Contact < ActiveRecord::Base
+    #    after_destroy { |record| logger.info( "Contact #{record.id} was destroyed." ) }
+    #  end
     def after_destroy()  end
     def destroy_with_callbacks #:nodoc:
       return false if callback(:before_destroy) == false

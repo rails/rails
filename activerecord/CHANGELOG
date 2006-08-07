@@ -1,5 +1,7 @@
 *1.14.3* (June 27th, 2006)
 
+* Update callbacks documentation. #3970 [Robby Russell <robby@planetargon.com>]
+
 * Properly quote index names in migrations (closes #4764) [John Long]
 
 * Ensure that Associations#include_eager_conditions? checks both scoped and explicit conditions [Rick]
