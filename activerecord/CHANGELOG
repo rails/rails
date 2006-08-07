@@ -1,5 +1,7 @@
 *1.14.3* (June 27th, 2006)
 
+* Fix announcement of very long migration names.  #5722 [blake@near-time.com]
+
 * Update callbacks documentation. #3970 [Robby Russell <robby@planetargon.com>]
 
 * Properly quote index names in migrations (closes #4764) [John Long]

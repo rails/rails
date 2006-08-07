@@ -243,7 +243,8 @@ module ActiveRecord
 
       def announce(message)
         text = "#{name}: #{message}"
-        write "== %s %s" % [ text, "=" * (75 - text.length) ]
+        length = [0, 75 - text.length].max
+        write "== %s %s" % [text, "=" * length]
       end
 
       def say(message, subitem=false)
