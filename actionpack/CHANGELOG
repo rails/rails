@@ -1,5 +1,7 @@
 *SVN*
 
+* Add support for the param_name parameter to the auto_complete_field helper. #5026 [david.a.williams@gmail.com]
+
 * Deprecation! @session and @flash will be removed after 1.2. Use the session and flash methods instead. You'll get printed warnings during tests and logged warnings in dev mode when you access either instance variable directly. [Jeremy Kemper]
 
 * Make Routing noisy when an anchor regexp is assigned to a segment. #5674 [francois.beausoleil@gmail.com]
