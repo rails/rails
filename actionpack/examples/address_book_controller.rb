@@ -28,11 +28,11 @@ class AddressBookController < ActionController::Base
   end
   
   def person
-    @person = @address_book.find_person(@params["id"])
+    @person = @address_book.find_person(params[:id])
   end
   
   def create_person
-    @address_book.create_person(@params["person"])
+    @address_book.create_person(params[:person])
     redirect_to :action => "index"
   end
     

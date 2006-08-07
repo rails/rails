@@ -76,8 +76,8 @@ module ActionController #:nodoc:
 
     def verify_action(options) #:nodoc:
       prereqs_invalid =
-        [*options[:params] ].find { |v| @params[v].nil?  } ||
-        [*options[:session]].find { |v| @session[v].nil? } ||
+        [*options[:params] ].find { |v| params[v].nil?  } ||
+        [*options[:session]].find { |v| session[v].nil? } ||
         [*options[:flash]  ].find { |v| flash[v].nil?    }
       
       if !prereqs_invalid && options[:method]

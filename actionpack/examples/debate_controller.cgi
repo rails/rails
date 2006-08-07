@@ -25,19 +25,19 @@ class DebateController < ActionController::Base
   end
   
   def topic
-    @topic = @debate.find_topic(@params["id"])
+    @topic = @debate.find_topic(params[:id])
   end
   
   # def new_topic() end <-- This is not needed as the template doesn't require any assigns
 
   def create_topic
-    @debate.create_topic(@params["topic"])
+    @debate.create_topic(params[:topic])
     redirect_to :action => "index"
   end
 
   def create_reply
-    @debate.create_reply(@params["reply"])
-    redirect_to :action => "topic", :path_params => { "id" => @params["reply"]["topic_id"] }
+    @debate.create_reply(params[:reply])
+    redirect_to :action => "topic", :path_params => { "id" => params[:reply][:topic_id] }
   end
     
   private

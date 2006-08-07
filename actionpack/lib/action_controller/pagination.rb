@@ -191,7 +191,7 @@ module ActionController
 
     def paginator_and_collection_for(collection_id, options) #:nodoc:
       klass = options[:class_name].constantize
-      page  = @params[options[:parameter]]
+      page  = params[options[:parameter]]
       count = count_collection_for_pagination(klass, options)
       paginator = Paginator.new(self, count, options[:per_page], page)
       collection = find_collection_for_pagination(klass, options, paginator)

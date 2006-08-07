@@ -32,7 +32,7 @@ class BlogController < ActionController::Base
   end
   
   def create
-    @session["posts"].unshift(Post.new(@params["post"]["title"], @params["post"]["body"]))
+    @session["posts"].unshift(Post.new(params[:post][:title], params[:post][:body]))
     flash["alert"] = "New post added!"
     redirect_to :action => "index"
   end

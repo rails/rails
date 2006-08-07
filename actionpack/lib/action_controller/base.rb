@@ -287,17 +287,17 @@ module ActionController #:nodoc:
     # Holds the request object that's primarily used to get environment variables through access like
     # <tt>request.env["REQUEST_URI"]</tt>.
     attr_accessor :request
-    
+
     # Holds a hash of all the GET, POST, and Url parameters passed to the action. Accessed like <tt>params["post_id"]</tt>
     # to get the post_id. No type casts are made, so all values are returned as strings.
-    attr_accessor :params
-    
+    attr_internal :params
+
     # Holds the response object that's primarily used to set additional HTTP headers through access like 
     # <tt>response.headers["Cache-Control"] = "no-cache"</tt>. Can also be used to access the final body HTML after a template
     # has been rendered through response.body -- useful for <tt>after_filter</tt>s that wants to manipulate the output,
     # such as a OutputCompressionFilter.
     attr_accessor :response
-    
+
     # Holds a hash of objects in the session. Accessed like <tt>session[:person]</tt> to get the object tied to the "person"
     # key. The session will hold any type of object as values, but the key should be a string or symbol.
     attr_internal :session
@@ -932,7 +932,7 @@ module ActionController #:nodoc:
       end
 
       def assign_shortcuts(request, response)
-        @request, @params, @cookies = request, request.parameters, request.cookies
+        @request, @_params, @cookies = request, request.parameters, request.cookies
 
         @response         = response
         @response.session = request.session
@@ -946,7 +946,7 @@ module ActionController #:nodoc:
 
 
       # TODO: assigns cookies headers params request response template
-      DEPRECATED_INSTANCE_VARIABLES = %w(flash session)
+      DEPRECATED_INSTANCE_VARIABLES = %w(flash params session)
 
       # Gone after 1.2.
       def assign_deprecated_shortcuts(request, response)
@@ -1019,16 +1019,18 @@ module ActionController #:nodoc:
       end
 
       def add_class_variables_to_assigns
-        %w( template_root logger template_class ignore_missing_templates ).each do |cvar|
+        %w(template_root logger template_class ignore_missing_templates).each do |cvar|
           @assigns[cvar] = self.send(cvar)
         end
       end
 
       def protected_instance_variables
         if view_controller_internals
-          [ "@assigns", "@performed_redirect", "@performed_render" ]
+          %w(@assigns @performed_redirect @performed_render)
         else
-          [ "@assigns", "@performed_redirect", "@performed_render", "@request", "@response", "@session", "@cookies", "@template", "@request_origin", "@parent_controller" ]
+          %w(@assigns @performed_redirect @performed_render
+             @request @response @_params @_session @session
+             @cookies @template @request_origin @parent_controller)
         end
       end
 

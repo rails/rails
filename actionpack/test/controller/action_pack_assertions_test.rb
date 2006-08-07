@@ -54,7 +54,7 @@ class ActionPackAssertionsController < ActionController::Base
   end
 
   def render_based_on_parameters
-    render_text "Mr. #{@params["name"]}"
+    render_text "Mr. #{params[:name]}"
   end
 
   def render_url

@@ -79,7 +79,7 @@ module ActionController #:nodoc:
         begin
           perform_action_without_rescue
         rescue Object => exception
-          if defined?(Breakpoint) && @params["BP-RETRY"]
+          if defined?(Breakpoint) && params["BP-RETRY"]
             msg = exception.backtrace.first
             if md = /^(.+?):(\d+)(?::in `(.+)')?$/.match(msg) then
               origin_file, origin_line = md[1], md[2].to_i
@@ -87,7 +87,7 @@ module ActionController #:nodoc:
               set_trace_func(lambda do |type, file, line, method, context, klass|
                 if file == origin_file and line == origin_line then
                   set_trace_func(nil)
-                  @params["BP-RETRY"] = false
+                  params["BP-RETRY"] = false
 
                   callstack = caller
                   callstack.slice!(0) if callstack.first["rescue.rb"]

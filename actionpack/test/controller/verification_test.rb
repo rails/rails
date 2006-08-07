@@ -34,15 +34,15 @@ class VerificationTest < Test::Unit::TestCase
     verify :only => :must_be_post, :method => :post, :render => { :status => 405, :text => "Must be post" }, :add_headers => { "Allow" => "POST" }
 
     def guarded_one
-      render :text => "#{@params["one"]}"
+      render :text => "#{params[:one]}"
     end
 
     def guarded_with_flash
-      render :text => "#{@params["one"]}"
+      render :text => "#{params[:one]}"
     end
 
     def guarded_two
-      render :text => "#{@params["one"]}:#{@params["two"]}"
+      render :text => "#{params[:one]}:#{params[:two]}"
     end
 
     def guarded_in_session
@@ -70,7 +70,7 @@ class VerificationTest < Test::Unit::TestCase
     end
 
     def unguarded
-      render :text => "#{@params["one"]}"
+      render :text => "#{params[:one]}"
     end
 
     def two_redirects

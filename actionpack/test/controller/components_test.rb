@@ -46,7 +46,7 @@ end
 
 class CalleeController < ActionController::Base
   def being_called
-    render_text "#{@params["name"] || "Lady"} of the House, speaking"
+    render_text "#{params[:name] || "Lady"} of the House, speaking"
   end
   
   def blowing_up
