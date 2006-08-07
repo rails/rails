@@ -2,6 +2,15 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 
 class DeprecatedInstanceVariablesTest < Test::Unit::TestCase
   class Target < ActionController::Base
+    def initialize(run = nil)
+      instance_eval(run) if run
+      super()
+    end
+
+    def noop
+      render :nothing => true
+    end
+
     ActionController::Base::DEPRECATED_INSTANCE_VARIABLES.each do |var|
       class_eval "def old_#{var}; render :text => @#{var}.inspect end"
       class_eval "def new_#{var}; render :text => #{var}.inspect end"
@@ -27,6 +36,12 @@ class DeprecatedInstanceVariablesTest < Test::Unit::TestCase
       end
       def test_internal_#{var}_isnt_deprecated
         assert_not_deprecated { get :internal_#{var} }
+      end
+      def test_#{var}_raises_if_already_set
+        assert_raise(RuntimeError) do
+          @controller = Target.new '@#{var} = Object.new'
+          get :noop
+        end
       end
     end_eval
   end

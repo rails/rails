@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecation: check whether instance variables have been monkeyed with before assigning them to deprecation proxies. Raises a RuntimeError if so. [Jeremy Kemper]
+
 * Add support for the param_name parameter to the auto_complete_field helper. #5026 [david.a.williams@gmail.com]
 
 * Deprecation! @params, @session, @flash will be removed after 1.2. Use the corresponding instance methods instead. You'll get printed warnings during tests and logged warnings in dev mode when you access either instance variable directly. [Jeremy Kemper]

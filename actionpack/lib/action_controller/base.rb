@@ -400,7 +400,6 @@ module ActionController #:nodoc:
       def process(request, response, method = :perform_action, *arguments) #:nodoc:
         initialize_template_class(response)
         assign_shortcuts(request, response)
-        assign_deprecated_shortcuts(request, response)
         initialize_current_url
         assign_names
         forget_variables_added_to_assigns
@@ -942,6 +941,8 @@ module ActionController #:nodoc:
         @assigns  = @response.template.assigns
 
         @headers  = @response.headers
+
+        assign_deprecated_shortcuts(request, response)
       end
 
 
@@ -950,8 +951,15 @@ module ActionController #:nodoc:
 
       # Gone after 1.2.
       def assign_deprecated_shortcuts(request, response)
-        DEPRECATED_INSTANCE_VARIABLES.each do |var|
-          instance_variable_set "@#{var}", ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, var)
+        DEPRECATED_INSTANCE_VARIABLES.each do |method|
+          var = "@#{method}"
+          if instance_variables.include?(var)
+            value = instance_variable_get(var)
+            unless ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy === value
+              raise "Deprecating #{var}, but it's already set to #{value.inspect}! Use the #{method}= writer method instead of setting #{var} directly."
+            end
+          end
+          instance_variable_set var, ActiveSupport::Deprecation::DeprecatedInstanceVariableProxy.new(self, method)
         end
       end
 
@@ -1011,7 +1019,7 @@ module ActionController #:nodoc:
       end
 
       def add_instance_variables_to_assigns
-        @@protected_variables_cache ||= protected_instance_variables.inject({}) { |h, k| h[k] = true; h }
+        @@protected_variables_cache ||= Set.new(protected_instance_variables)
         instance_variables.each do |var|
           next if @@protected_variables_cache.include?(var)
           @assigns[var[1..-1]] = instance_variable_get(var)
