@@ -81,8 +81,12 @@ module ActiveSupport
       end
 
       private
+        def warn(callstack, called, args)
+          ActiveSupport::Deprecation.warn("#{@var} is deprecated! Call #{@method}.#{called} instead of #{@var}.#{called}. Args: #{args.inspect}", callstack)
+        end
+
         def method_missing(called, *args, &block)
-          ActiveSupport::Deprecation.warn("#{@var} is deprecated! Call #{@method}.#{called} instead of #{@var}.#{called}. Args: #{args.inspect}", caller)
+          warn caller, called, args
           @instance.__send__(@method).__send__(called, *args, &block)
         end
     end
