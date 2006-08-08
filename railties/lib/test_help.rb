@@ -1,4 +1,4 @@
-require 'application'
+require_dependency 'application'
 
 # Make double-sure the RAILS_ENV is set to test, 
 # so fixtures are loaded to the right database
