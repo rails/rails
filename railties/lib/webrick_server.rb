@@ -3,6 +3,7 @@
 require 'webrick'
 require 'cgi'
 require 'stringio'
+require 'dispatcher'
 
 include WEBrick
 

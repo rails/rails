@@ -1,5 +1,6 @@
 require 'test/unit'
 require File.dirname(__FILE__) + '/../../lib/action_view/helpers/date_helper'
+require File.dirname(__FILE__) + '/../../lib/action_view/compiled_templates'
 require File.dirname(__FILE__) + "/../abstract_unit"
 
 class CompiledTemplateTests < Test::Unit::TestCase

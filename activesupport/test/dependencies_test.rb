@@ -1,19 +1,19 @@
 require File.dirname(__FILE__) + '/abstract_unit'
-#require 'dependencies'
 
 class DependenciesTest < Test::Unit::TestCase
+  
   def teardown
     Dependencies.clear
   end
 
-  def with_loading(from_dir = nil)
-    prior_path = $LOAD_PATH.clone
-    $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/#{from_dir}" if from_dir
+  def with_loading(*from)
     old_mechanism, Dependencies.mechanism = Dependencies.mechanism, :load
+    dir = File.dirname(__FILE__)
+    prior_autoload_paths = Dependencies.autoload_paths
+    Dependencies.autoload_paths = from.collect { |f| "#{dir}/#{f}" }
     yield
   ensure
-    $LOAD_PATH.clear
-    $LOAD_PATH.concat prior_path
+    Dependencies.autoload_paths = prior_autoload_paths
     Dependencies.mechanism = old_mechanism
   end
 
@@ -159,13 +159,13 @@ class DependenciesTest < Test::Unit::TestCase
   def test_non_existing_const_raises_name_error_with_fully_qualified_name
     with_loading 'autoloading_fixtures' do
       begin
-        A::DoesNotExist
+        A::DoesNotExist.nil?
         flunk "No raise!!"
       rescue NameError => e
         assert_equal "uninitialized constant A::DoesNotExist", e.message
       end
       begin
-        A::B::DoesNotExist
+        A::B::DoesNotExist.nil?
         flunk "No raise!!"
       rescue NameError => e
         assert_equal "uninitialized constant A::B::DoesNotExist", e.message
@@ -179,6 +179,124 @@ class DependenciesTest < Test::Unit::TestCase
       flunk "No raise!!"
     rescue NameError => e
       assert e.message.include?("uninitialized constant ImaginaryObject")
+    end
+  end
+  
+  def test_autoloadable_constants_for_path_should_handle_empty_autoloads
+    assert_equal [], Dependencies.autoloadable_constants_for_path('hello')
+  end
+  
+  def test_autoloadable_constants_for_path_should_handle_relative_paths
+    fake_root = 'dependencies'
+    relative_root = File.dirname(__FILE__) + '/dependencies'
+    ['', '/'].each do |suffix|
+      with_loading fake_root + suffix do
+        assert_equal ["A::B"], Dependencies.autoloadable_constants_for_path(relative_root + '/a/b')
+      end
+    end
+  end
+  
+  def test_autoloadable_constants_for_path_should_provide_all_results
+    fake_root = '/usr/apps/backpack'
+    with_loading fake_root, fake_root + '/lib' do
+      root = Dependencies.autoload_paths.first
+      assert_equal ["Lib::A::B", "A::B"], Dependencies.autoloadable_constants_for_path(root + '/lib/a/b')
+    end
+  end
+  
+  def test_autoloadable_constants_for_path_should_uniq_results
+    fake_root = '/usr/apps/backpack/lib'
+    with_loading fake_root, fake_root + '/' do
+      root = Dependencies.autoload_paths.first
+      assert_equal ["A::B"], Dependencies.autoloadable_constants_for_path(root + '/a/b')
+    end
+  end
+  
+  def test_qualified_const_defined
+    assert Dependencies.qualified_const_defined?("Object")
+    assert Dependencies.qualified_const_defined?("::Object")
+    assert Dependencies.qualified_const_defined?("::Object::Kernel")
+    assert Dependencies.qualified_const_defined?("::Object::Dependencies")
+    assert Dependencies.qualified_const_defined?("::Test::Unit::TestCase")
+  end
+  
+  def test_autoloaded?
+    with_loading 'autoloading_fixtures' do
+      assert ! Dependencies.autoloaded?("ModuleFolder")
+      assert ! Dependencies.autoloaded?("ModuleFolder::NestedClass")
+      
+      assert Dependencies.autoloaded?(ModuleFolder)
+      
+      assert Dependencies.autoloaded?("ModuleFolder")
+      assert ! Dependencies.autoloaded?("ModuleFolder::NestedClass")
+      
+      assert Dependencies.autoloaded?(ModuleFolder::NestedClass)
+      
+      assert Dependencies.autoloaded?("ModuleFolder")
+      assert Dependencies.autoloaded?("ModuleFolder::NestedClass")
+      
+      assert Dependencies.autoloaded?("::ModuleFolder")
+      assert Dependencies.autoloaded?(:ModuleFolder)
+      
+      Object.send :remove_const, :ModuleFolder
+    end
+  end
+  
+  def test_qualified_name_for
+    assert_equal "A", Dependencies.qualified_name_for(Object, :A)
+    assert_equal "A", Dependencies.qualified_name_for(:Object, :A)
+    assert_equal "A", Dependencies.qualified_name_for("Object", :A)
+    assert_equal "A", Dependencies.qualified_name_for("::Object", :A)
+    assert_equal "A", Dependencies.qualified_name_for("::Kernel", :A)
+    
+    assert_equal "Dependencies::A", Dependencies.qualified_name_for(:Dependencies, :A)
+    assert_equal "Dependencies::A", Dependencies.qualified_name_for(Dependencies, :A)
+  end
+  
+  def test_file_search
+    with_loading 'dependencies' do
+      root = Dependencies.autoload_paths.first
+      assert_equal nil, Dependencies.search_for_autoload_file('service_three')
+      assert_equal nil, Dependencies.search_for_autoload_file('service_three.rb')
+      assert_equal root + '/service_one.rb', Dependencies.search_for_autoload_file('service_one')
+      assert_equal root + '/service_one.rb', Dependencies.search_for_autoload_file('service_one.rb')
+    end
+  end
+  
+  def test_file_search_uses_first_in_autoload_path
+    with_loading 'dependencies', 'autoloading_fixtures' do
+      deps, autoload = Dependencies.autoload_paths
+      assert_match %r/dependencies/, deps
+      assert_match %r/autoloading_fixtures/, autoload
+      
+      assert_equal deps + '/conflict.rb', Dependencies.search_for_autoload_file('conflict')
+    end
+    with_loading 'autoloading_fixtures', 'dependencies' do
+      autoload, deps = Dependencies.autoload_paths
+      assert_match %r/dependencies/, deps
+      assert_match %r/autoloading_fixtures/, autoload
+      
+      assert_equal autoload + '/conflict.rb', Dependencies.search_for_autoload_file('conflict')
+    end
+    
+  end
+    
+  def test_custom_const_missing_should_work
+    Object.module_eval <<-end_eval
+      module ModuleWithCustomConstMissing
+        def self.const_missing(name)
+          const_set name, name.to_s.hash
+        end
+
+        module A
+        end
+      end
+    end_eval
+    
+    with_loading 'autoloading_fixtures' do
+      assert_kind_of Integer, ::ModuleWithCustomConstMissing::B
+      assert_kind_of Module, ::ModuleWithCustomConstMissing::A
+      assert_kind_of String, ::ModuleWithCustomConstMissing::A::B
     end
   end
   

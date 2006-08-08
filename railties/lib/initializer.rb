@@ -80,6 +80,7 @@ module Rails
       set_connection_adapters
 
       require_frameworks
+      set_autoload_paths
       load_environment
 
       initialize_database
@@ -123,6 +124,13 @@ module Rails
     def set_load_path
       configuration.load_paths.reverse_each { |dir| $LOAD_PATH.unshift(dir) if File.directory?(dir) }
       $LOAD_PATH.uniq!
+    end
+    
+    # Set the paths from which Rails will automatically load source files.
+    def set_autoload_paths
+      Dependencies.autoload_paths = configuration.autoload_paths.uniq
+      # Freeze the array so future modifications will fail rather than do nothing mysteriously
+      configuration.autoload_paths.freeze
     end
     
     # Sets the +RAILS_CONNECTION_ADAPTERS+ constant based on the value of
@@ -412,6 +420,11 @@ module Rails
     # all +app+, +lib+, +vendor+ and mock paths are included in this list.
     attr_accessor :load_paths
     
+    # An array of paths from which Rails will automatically load classes and
+    # modules from. By default, all +app+, +lib+, +vendor+ and mock paths are
+    # included in this list.
+    attr_accessor :autoload_paths
+    
     # The log level to use for the default Rails logger. In production mode,
     # this defaults to <tt>:info</tt>. In development mode, it defaults to
     # <tt>:debug</tt>.
@@ -443,6 +456,7 @@ module Rails
     def initialize
       self.frameworks                   = default_frameworks
       self.load_paths                   = default_load_paths
+      self.autoload_paths               = default_autoload_paths
       self.log_path                     = default_log_path
       self.log_level                    = default_log_level
       self.view_path                    = default_view_path
@@ -545,6 +559,33 @@ module Rails
           actionmailer/lib
           actionwebservice/lib
         ).map { |dir| "#{framework_root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+      end
+      
+      def default_autoload_paths
+        paths = []
+        
+        # Add the app's controller directory
+        paths.concat(Dir["#{root_path}/app/controllers/"])
+
+        # Then model subdirectories.
+        # TODO: Don't include .rb models as load paths
+        paths.concat(Dir["#{root_path}/app/models/[_a-z]*"])
+        paths.concat(Dir["#{root_path}/components/[_a-z]*"])
+
+        # Followed by the standard includes.
+        paths.concat %w(
+          app
+          app/models
+          app/controllers
+          app/helpers
+          app/services
+          app/apis
+          components
+          config
+          lib
+        ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
+        
+        paths.concat Dir["#{root_path}/vendor/plugins/*/lib/"]
       end
 
       def default_log_path

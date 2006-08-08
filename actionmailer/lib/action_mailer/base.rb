@@ -187,7 +187,7 @@ module ActionMailer #:nodoc:
 
     # Action Mailer subclasses should be reloaded by the dispatcher in Rails
     # when Dependencies.mechanism = :load.
-    include Reloadable::Subclasses
+    include Reloadable::Deprecated
     
     private_class_method :new #:nodoc:
 

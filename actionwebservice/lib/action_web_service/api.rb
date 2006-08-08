@@ -16,7 +16,7 @@ module ActionWebService # :nodoc:
     class Base
       # Action WebService API subclasses should be reloaded by the dispatcher in Rails
       # when Dependencies.mechanism = :load.
-      include Reloadable::Subclasses
+      include Reloadable::Deprecated
       
       # Whether to transform the public API method names into camel-cased names 
       class_inheritable_option :inflect_names, true

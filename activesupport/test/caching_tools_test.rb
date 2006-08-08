@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/abstract_unit'
+require File.join(File.dirname(File.dirname(__FILE__)), 'lib/active_support/caching_tools.rb')
 
 class HashCachingTests < Test::Unit::TestCase
   def cached(&proc)

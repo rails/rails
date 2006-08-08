@@ -49,24 +49,30 @@ module ActiveSupport
 
     module Assertions
       def assert_deprecated(match = nil, &block)
-        last = with_last_message_tracking_deprecation_behavior(&block)
+        last = collect_deprecations(&block).last
         assert last, "Expected a deprecation warning within the block but received none"
-        match = Regexp.new(Regexp.escape(match)) unless match.is_a?(Regexp)
-        assert_match match, last, "Deprecation warning didn't match #{match}: #{last}"
+        if match
+          match = Regexp.new(Regexp.escape(match)) unless match.is_a?(Regexp)
+          assert_match match, last, "Deprecation warning didn't match #{match}: #{last}"
+        end
       end
 
       def assert_not_deprecated(&block)
-        last = with_last_message_tracking_deprecation_behavior(&block)
-        assert_nil last, "Expected no deprecation warning within the block but received one: #{last}"
+        deprecations = collect_deprecations(&block)
+        assert deprecations.empty?, "Expected no deprecation warning within the block but received #{deprecations.size}: \n  #{deprecations * "\n  "}"
       end
 
       private
-        def with_last_message_tracking_deprecation_behavior
+        
+        def collect_deprecations
           old_behavior = ActiveSupport::Deprecation.behavior
-          last_message = nil
-          ActiveSupport::Deprecation.behavior = Proc.new { |message| last_message = message; old_behavior.call(message) if old_behavior }
+          deprecations = []
+          ActiveSupport::Deprecation.behavior = Proc.new do |message|
+            deprecations << message
+            old_behavior.call(message) if old_behavior
+          end
           yield
-          last_message
+          return deprecations
         ensure
           ActiveSupport::Deprecation.behavior = old_behavior
         end

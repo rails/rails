@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'uri'
 
 module ActionController #:nodoc:
   # Caching is a cheap way of speeding up slow applications by keeping the result of calculations, renderings, and database calls
@@ -578,7 +579,7 @@ module ActionController #:nodoc:
 
         # ActiveRecord::Observer will mark this class as reloadable even though it should not be.
         # However, subclasses of ActionController::Caching::Sweeper should be Reloadable
-        include Reloadable::Subclasses
+        include Reloadable::Deprecated
         
         def before(controller)
           self.controller = controller

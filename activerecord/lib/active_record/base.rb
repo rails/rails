@@ -264,7 +264,7 @@ module ActiveRecord #:nodoc:
     # on to any new database connections made and which can be retrieved on both a class and instance level by calling +logger+.
     cattr_accessor :logger
     
-    include Reloadable::Subclasses
+    include Reloadable::Deprecated
     
     def self.inherited(child) #:nodoc:
       @@subclasses[self] ||= []
@@ -279,7 +279,7 @@ module ActiveRecord #:nodoc:
     def self.reset_subclasses #:nodoc:
       nonreloadables = []
       subclasses.each do |klass|
-        unless klass.reloadable?
+        unless Dependencies.autoloaded? klass
           nonreloadables << klass
           next
         end

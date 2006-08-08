@@ -183,7 +183,6 @@ module ActionController #:nodoc:
       private
         def inherited_with_layout(child)
           inherited_without_layout(child)
-          child.send :include, Reloadable
           layout_match = child.name.underscore.sub(/_controller$/, '').sub(/^controllers\//, '')
           child.layout(layout_match) unless layout_list.grep(%r{layouts/#{layout_match}\.[a-z][0-9a-z]*$}).empty?
         end
