@@ -155,7 +155,7 @@ module Dependencies #:nodoc:
     name_error = NameError.new("uninitialized constant #{qualified_name}")
     
     file_path = search_for_autoload_file(path_suffix)
-    if file_path # We found a matching file to load
+    if file_path #&& ! loaded.include?(file_path) # We found a matching file to load
       require_or_load file_path, qualified_name
       raise LoadError, "Expected #{file_path} to define #{qualified_name}" unless from_mod.const_defined?(const_name)
       return from_mod.const_get(const_name)

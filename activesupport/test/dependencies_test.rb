@@ -300,4 +300,13 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
   
+  def test_const_missing_should_not_double_load
+    with_loading 'autoloading_fixtures' do
+      require_dependency 'counting_loader'
+      assert_equal 1, $counting_loaded_times
+      ModuleFolder
+      assert_equal 1, $counting_loaded_times
+    end
+  end
+  
 end
