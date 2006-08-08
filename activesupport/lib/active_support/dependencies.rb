@@ -51,11 +51,12 @@ module Dependencies #:nodoc:
 
   def require_or_load(file_name, const_path = nil)
     file_name = $1 if file_name =~ /^(.*)\.rb$/
-    return if loaded.include?(file_name)
+    expanded = File.expand_path(file_name)
+    return if loaded.include?(expanded)
 
     # Record that we've seen this file *before* loading it to avoid an
     # infinite loop with mutual dependencies.
-    loaded << file_name
+    loaded << expanded
 
     if load?
       begin
@@ -64,13 +65,13 @@ module Dependencies #:nodoc:
         load_args = ["#{file_name}.rb"]
         load_args << const_path unless const_path.nil?
         
-        if !warnings_on_first_load or history.include?(file_name)
+        if !warnings_on_first_load or history.include?(expanded)
           load_file(*load_args)
         else
           enable_warnings { load_file(*load_args) }
         end
       rescue
-        loaded.delete file_name
+        loaded.delete expanded
         raise
       end
     else
@@ -78,7 +79,7 @@ module Dependencies #:nodoc:
     end
 
     # Record history *after* loading so first load gets warnings.
-    history << file_name
+    history << expanded
   end
   
   # Is the provided constant path defined?
@@ -155,7 +156,7 @@ module Dependencies #:nodoc:
     name_error = NameError.new("uninitialized constant #{qualified_name}")
     
     file_path = search_for_autoload_file(path_suffix)
-    if file_path #&& ! loaded.include?(file_path) # We found a matching file to load
+    if file_path && ! loaded.include?(File.expand_path(file_path)) # We found a matching file to load
       require_or_load file_path, qualified_name
       raise LoadError, "Expected #{file_path} to define #{qualified_name}" unless from_mod.const_defined?(const_name)
       return from_mod.const_get(const_name)

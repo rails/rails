@@ -57,34 +57,35 @@ class DependenciesTest < Test::Unit::TestCase
       old_warnings, Dependencies.warnings_on_first_load = Dependencies.warnings_on_first_load, true
 
       filename = "#{File.dirname(__FILE__)}/dependencies/check_warnings"
+      expanded = File.expand_path(filename)
       $check_warnings_load_count = 0
 
-      assert !Dependencies.loaded.include?(filename)
-      assert !Dependencies.history.include?(filename)
+      assert !Dependencies.loaded.include?(expanded)
+      assert !Dependencies.history.include?(expanded)
 
       silence_warnings { require_dependency filename }
       assert_equal 1, $check_warnings_load_count
       assert_equal true, $checked_verbose, 'On first load warnings should be enabled.'
 
-      assert Dependencies.loaded.include?(filename)
+      assert Dependencies.loaded.include?(expanded)
       Dependencies.clear
-      assert !Dependencies.loaded.include?(filename)
-      assert Dependencies.history.include?(filename)
+      assert !Dependencies.loaded.include?(expanded)
+      assert Dependencies.history.include?(expanded)
 
       silence_warnings { require_dependency filename }
       assert_equal 2, $check_warnings_load_count
       assert_equal nil, $checked_verbose, 'After first load warnings should be left alone.'
 
-      assert Dependencies.loaded.include?(filename)
+      assert Dependencies.loaded.include?(expanded)
       Dependencies.clear
-      assert !Dependencies.loaded.include?(filename)
-      assert Dependencies.history.include?(filename)
+      assert !Dependencies.loaded.include?(expanded)
+      assert Dependencies.history.include?(expanded)
 
       enable_warnings { require_dependency filename }
       assert_equal 3, $check_warnings_load_count
       assert_equal true, $checked_verbose, 'After first load warnings should be left alone.'
 
-      assert Dependencies.loaded.include?(filename)
+      assert Dependencies.loaded.include?(expanded)
     end
   end
 
@@ -302,9 +303,9 @@ class DependenciesTest < Test::Unit::TestCase
   
   def test_const_missing_should_not_double_load
     with_loading 'autoloading_fixtures' do
-      require_dependency 'counting_loader'
+      require_dependency '././counting_loader'
       assert_equal 1, $counting_loaded_times
-      ModuleFolder
+      Dependencies.load_missing_constant Object, :CountingLoader
       assert_equal 1, $counting_loaded_times
     end
   end
