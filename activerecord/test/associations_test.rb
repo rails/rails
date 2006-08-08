@@ -96,6 +96,11 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     assert_equal Account.find(1).credit_limit, companies(:first_firm).account.credit_limit
   end
 
+  def test_has_one_cache_nils
+    assert_nil companies(:another_firm).account
+    assert_queries(0) { companies(:another_firm).account }
+  end
+
   def test_proxy_assignment
     company = companies(:first_firm)
     assert_nothing_raised { company.account = company.account }

@@ -1,5 +1,7 @@
 *SVN*
 
+* Cache nil results for has_one associations so multiple calls don't call the database.  Closes #5757. [Michael A. Schoen]
+
 * Add documentation for how to disable timestamps on a per model basis. Closes #5684. [matt@mattmargolis.net Marcel Molina Jr.] 
 
 * Don't save has_one associations unnecessarily.  #5735 [Jonathan Viney]

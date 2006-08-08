@@ -656,7 +656,7 @@ module ActiveRecord
           module_eval do
             before_save <<-EOF
               association = instance_variable_get("@#{reflection.name}")
-              if !association.nil? 
+              if association && association.target
                 if association.new_record?
                   association.save(true)
                 end
@@ -841,14 +841,14 @@ module ActiveRecord
             if association.nil? || force_reload
               association = association_proxy_class.new(self, reflection)
               retval = association.reload
-              unless retval.nil?
-                instance_variable_set("@#{reflection.name}", association)
-              else
+              if retval.nil? and association_proxy_class == BelongsToAssociation
                 instance_variable_set("@#{reflection.name}", nil)
                 return nil
               end
+              instance_variable_set("@#{reflection.name}", association)
             end
-            association
+
+            association.target.nil? ? nil : association
           end
 
           define_method("#{reflection.name}=") do |new_value|

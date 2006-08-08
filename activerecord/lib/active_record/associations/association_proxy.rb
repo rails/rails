@@ -126,13 +126,13 @@ module ActiveRecord
         def load_target
           if !@owner.new_record? || foreign_key_present
             begin
-              @target = find_target if !loaded?
+              @target = find_target unless loaded?
             rescue ActiveRecord::RecordNotFound
               reset
             end
           end
 
-          loaded if target
+          loaded
           target
         end
 
