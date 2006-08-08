@@ -1,5 +1,7 @@
 *SVN*
 
+* Backport of documentation enhancements. [Kevin Clark, Marcel Molina Jr]
+
 * Correct spurious documentation example code which results in a SyntaxError. [Marcel Molina Jr.]
 
 * Mailer template root applies to a class and its subclasses rather than acting globally. #5555 [somekool@gmail.com]
