@@ -981,9 +981,10 @@ module ActionController
       end
 
       def generate(options, recall = {}, method=:generate)
-        if options[:use_route]
+        named_route_name = options.delete(:use_route)
+        if named_route_name
           options = options.dup
-          named_route = named_routes[options.delete(:use_route)]
+          named_route = named_routes[named_route_name]
           options = named_route.parameter_shell.merge(options)
         end
 
@@ -1006,7 +1007,9 @@ module ActionController
         merged = recall.merge(options)
     
         if named_route
-          return named_route.generate(options, merged, expire_on)
+          path = named_route.generate(options, merged, expire_on) 
+          raise RoutingError, "#{named_route_name}_url failed to generate from #{options.inspect}, missing: #{(named_route.significant_keys - options.keys).inspect}" if path.nil?
+          return path
         else
           merged[:action] ||= 'index'
           options[:action] ||= 'index'
@@ -1014,7 +1017,7 @@ module ActionController
           controller = merged[:controller]
           action = merged[:action]
 
-          raise "Need controller and action!" unless controller && action
+          raise RoutingError, "Need controller and action!" unless controller && action
           # don't use the recalled keys when determining which routes to check
           routes = routes_by_controller[controller][action][options.keys.sort_by { |x| x.object_id }]
 

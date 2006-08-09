@@ -1,16 +1,15 @@
 *SVN*
 
-<<<<<<< .mine
+* Add RoutingError exception when RouteSet fails to generate a path from a Named Route. [Rick Olson]
+
 * Replace Reloadable with Reloadable::Deprecated. [Nicholas Seckar]
 
-=======
 * Deprecation: check whether instance variables have been monkeyed with before assigning them to deprecation proxies. Raises a RuntimeError if so. [Jeremy Kemper]
 
 * Add support for the param_name parameter to the auto_complete_field helper. #5026 [david.a.williams@gmail.com]
 
 * Deprecation! @params, @session, @flash will be removed after 1.2. Use the corresponding instance methods instead. You'll get printed warnings during tests and logged warnings in dev mode when you access either instance variable directly. [Jeremy Kemper]
 
->>>>>>> .r4727
 * Make Routing noisy when an anchor regexp is assigned to a segment. #5674 [francois.beausoleil@gmail.com]
 
 * Added months and years to the resolution of DateHelper#distance_of_time_in_words, such that "60 days ago" becomes "2 months ago" #5611 [pjhyett@gmail.com]
