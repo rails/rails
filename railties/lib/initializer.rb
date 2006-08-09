@@ -564,6 +564,9 @@ module Rails
       def default_autoload_paths
         paths = []
         
+        mock_path = "#{root_path}/test/mocks/#{RAILS_ENV}"
+        paths << mock_path if File.directory?(mock_path)
+        
         # Add the app's controller directory
         paths.concat(Dir["#{root_path}/app/controllers/"])
 

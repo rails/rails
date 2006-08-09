@@ -1,7 +1,8 @@
 *SVN*
 
-* Nested controller scaffolding also nests the generated layout. [iain d broadf
-oot]
+* Add missing mock directories from the autoload_paths configuration.  [Rick Olson]
+
+* Nested controller scaffolding also nests the generated layout. [iain d broadfoot]
 
 * Add "require 'dispatcher'" to webrick server in the continuing quest to squash webrick weirdness. [Nicholas Seckar]
 
