@@ -315,8 +315,9 @@ module ActiveRecord
               AND def.adsrc ~* 'nextval'
           end_sql
         end
-        # check for existence of . in sequence name as in public.foo_sequence.  if it does not exist, join the current namespace
-        result.last['.'] ? [result.first, result.last] : [result.first, "#{result[1]}.#{result[2]}"]
+        # check for existence of . in sequence name as in public.foo_sequence.  if it does not exist, return unqualified sequence
+        # We cannot qualify unqualified sequences, as rails doesn't qualify any table access, using the search path
+        [result.first, result.last]
       rescue
         nil
       end
