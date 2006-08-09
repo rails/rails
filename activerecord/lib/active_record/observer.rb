@@ -4,18 +4,10 @@ require 'set'
 module ActiveRecord
   module Observing # :nodoc:
     def self.included(base)
-      class << base
-        include ClassMethods
-        alias_method_chain :reset, :observers
-      end
+      base.extend ClassMethods
     end
 
     module ClassMethods
-      def reset_with_observers # :nodoc:
-        reset_without_observers
-        instantiate_observers
-      end
-      
       # Activates the observers assigned. Examples:
       #
       #   # Calls PersonObserver.instance

@@ -272,10 +272,6 @@ module ActiveRecord #:nodoc:
       super
     end
     
-    def self.reset
-      reset_subclasses
-    end
-    
     def self.reset_subclasses #:nodoc:
       nonreloadables = []
       subclasses.each do |klass|
