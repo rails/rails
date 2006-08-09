@@ -1,5 +1,10 @@
 *SVN*
 
+* Rearrange application resetting and preparation, fix bug with leaking subclasses hash in ActiveRecord::Base [Rick Olson]
+
+  ActiveRecord::Base.reset_subclasses is called before Dependencies are cleared and classes removed.
+  ActiveRecord::Base.instantiate_observers is called during a Dispatcher preparation callback.
+
 * Add missing mock directories from the autoload_paths configuration.  [Rick Olson]
 
 * Nested controller scaffolding also nests the generated layout. [iain d broadfoot]
