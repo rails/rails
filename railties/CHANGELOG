@@ -1,16 +1,16 @@
 *SVN*
 
-<<<<<<< .mine
+* Nested controller scaffolding also nests the generated layout. [iain d broadf
+oot]
+
 * Add "require 'dispatcher'" to webrick server in the continuing quest to squash webrick weirdness. [Nicholas Seckar]
 
 * Add autoload_paths support to Initializer. [Nicholas Seckar]
 
-=======
 * Fix Dispatcher.reset_application! so that AR subclasses are removed and Observers re-initialized *after* Reloadable classes are removed. Closes #5743.  [Rick Olson]
 
 * Clarify usage of script/plugin source. Closes #5344. [james.adam@gmail.com]
 
->>>>>>> .r4727
 * Add Dispatcher.to_prepare and config.to_prepare to provide a pre-request hook. [Nicholas Seckar]
 
 * Tweak the Rails load order so observers are loaded after plugins, and reloaded in development mode. Closed #5279.  [Rick Olson]
