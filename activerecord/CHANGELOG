@@ -1,5 +1,7 @@
 *SVN*
 
+* Document find's :from option. Closes #5762. [andrew@redlinesoftware.com]
+
 * PostgreSQL: autodetected sequences work correctly with multiple schemas. Rely on the schema search_path instead of explicitly qualifying the sequence name with its schema.  #5280 [guy.naor@famundo.com]
 
 * Replace Reloadable with Reloadable::Deprecated. [Nicholas Seckar]

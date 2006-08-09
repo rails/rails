@@ -374,6 +374,8 @@ module ActiveRecord #:nodoc:
       #   to already defined associations. See eager loading under Associations.
       # * <tt>:select</tt>: By default, this is * as in SELECT * FROM, but can be changed if you for example want to do a join, but not
       #   include the joined columns.
+      # * <tt>:from</tt>: By default, this is the table name of the class, but can be changed to an alternate table name (or even the name
+      #   of a database view). 
       # * <tt>:readonly</tt>: Mark the returned records read-only so they cannot be saved or updated.
       # * <tt>:lock</tt>: An SQL fragment like "FOR UPDATE" or "LOCK IN SHARE MODE".
       #   :lock => true gives connection's default exclusive lock, usually "FOR UPDATE".
