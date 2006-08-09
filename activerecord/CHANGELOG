@@ -1,4 +1,4 @@
-*SVN*
+*1.14.4* (August 8th, 2006)
 
 * Add warning about the proper way to validate the presence of a foreign key.  #4147 [Francois Beausoleil <francois.beausoleil@gmail.com>]
 
