@@ -219,10 +219,6 @@ module ActionController
           g.result :controller, expr, true
         end
 
-        def file_kinds(kind)
-          ((@file_kinds ||= [:components]) << kind).uniq! || @file_kinds
-        end        
-        
         def traverse_to_controller(segments, start_at = 0)
           mod = ::Object
           length = segments.length
@@ -232,7 +228,6 @@ module ActionController
             return nil unless /\A[A-Za-z][A-Za-z\d_]*\Z/ =~ (segment = segments[index])
             index += 1
             
-            file_kinds :app
             mod_name = segment.camelize
             controller_name = "#{mod_name}Controller"
             path_suffix = File.join(segments[start_at..(index - 1)])
@@ -273,7 +268,8 @@ module ActionController
             $LOAD_PATH.select do |base|
               base = File.expand_path(base)
               extended_root = File.expand_path(RAILS_ROOT)
-              base.match(/\A#{Regexp.escape(extended_root)}\/*(#{file_kinds(:lib) * '|'})\/[a-z]/) || base =~ %r{rails-[\d.]+/builtin}
+              # Exclude all paths that are not nested within app, lib, or components.
+              base.match(/\A#{Regexp.escape(extended_root)}\/*(app|lib|components)\/[a-z]/) || base =~ %r{rails-[\d.]+/builtin}
             end
           else
             $LOAD_PATH
