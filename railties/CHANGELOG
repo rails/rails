@@ -1,3 +1,8 @@
+*1.1.6* (August 10th, 2006)
+
+* Additional security patch
+
+
 *1.1.5* (August 8th, 2006)
 
 * Mention in docs that config.frameworks doesn't work when getting Rails via Gems.  #4857 [Alisdair McDiarmid]

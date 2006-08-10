@@ -1,3 +1,8 @@
+*1.12.5* (August 10th, 2006)
+
+* Updated security fix
+
+
 *1.12.4* (August 8th, 2006)
 
 * Documentation fix: integration test scripts don't require integration_test.  #4914 [Frederick Ros <sl33p3r@free.fr>]

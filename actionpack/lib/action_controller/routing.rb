@@ -273,7 +273,7 @@ module ActionController
             $LOAD_PATH.select do |base|
               base = File.expand_path(base)
               extended_root = File.expand_path(RAILS_ROOT)
-              base.match(/\A#{Regexp.escape(extended_root)}\/*#{file_kinds(:lib) * '|'}/) || base =~ %r{rails-[\d.]+/builtin}
+              base.match(/\A#{Regexp.escape(extended_root)}\/*(#{file_kinds(:lib) * '|'})\/[a-z]/) || base =~ %r{rails-[\d.]+/builtin}
             end
           else
             $LOAD_PATH

@@ -1,3 +1,8 @@
+*1.2.5* (August 10th, 2006)
+
+* Depend on Action Pack 1.12.5
+
+
 *1.2.4* (August 8th, 2006)
 
 * Backport of documentation enhancements. [Kevin Clark, Marcel Molina Jr]
