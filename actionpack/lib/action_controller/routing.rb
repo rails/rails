@@ -262,23 +262,13 @@ module ActionController
           nil
         end
         
+        attr_accessor :controller_paths
+        
       protected
-        def safe_load_paths #:nodoc:
-          if defined?(RAILS_ROOT)
-            $LOAD_PATH.select do |base|
-              base = File.expand_path(base)
-              extended_root = File.expand_path(RAILS_ROOT)
-              # Exclude all paths that are not nested within app, lib, or components.
-              base.match(/\A#{Regexp.escape(extended_root)}\/*(app|lib|components)\/[a-z]/) || base =~ %r{rails-[\d.]+/builtin}
-            end
-          else
-            $LOAD_PATH
-          end
-        end
         
         def attempt_load(mod, const_name, path)
           has_dir = false
-          safe_load_paths.each do |load_path|
+          controller_paths.each do |load_path|
             full_path = File.join(load_path, path)
             file_path = full_path + '.rb'
             if File.file?(file_path) # Found a .rb file? Load it up
