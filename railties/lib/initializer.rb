@@ -236,7 +236,6 @@ module Rails
     # loading module used to lazily load controllers (Configuration#controller_paths).
     def initialize_routing
       return unless configuration.frameworks.include?(:action_controller)
-      ActionController::Routing::ControllerComponent.controller_paths = configuration.controller_paths
       ActionController::Routing::Routes.reload
     end
     
