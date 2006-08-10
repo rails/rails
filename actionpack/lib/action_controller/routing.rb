@@ -218,10 +218,10 @@ module ActionController
           expr = "::#{controller.split('/').collect {|c| c.camelize}.join('::')}Controller"
           g.result :controller, expr, true
         end
-        
+
         def file_kinds(kind)
-          ((@file_kinds ||= []) << kind).uniq! || @file_kinds
-        end
+          ((@file_kinds ||= [:components]) << kind).uniq! || @file_kinds
+        end        
         
         def traverse_to_controller(segments, start_at = 0)
           mod = ::Object
