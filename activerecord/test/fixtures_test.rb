@@ -343,3 +343,13 @@ class InvalidTableNameFixturesTest < Test::Unit::TestCase
     end
   end
 end
+
+class DevelopersProject; end;
+
+class ManyToManyFixturesWithClassDefined < Test::Unit::TestCase
+  fixtures :developers_projects
+  
+  def test_this_should_run_cleanly
+    assert true
+  end
+end

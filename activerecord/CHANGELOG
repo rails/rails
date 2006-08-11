@@ -1,5 +1,7 @@
 *SVN*
 
+* Tweak fixtures so they don't try to use a non-ActiveRecord class.  [Kevin Clark]
+
 * Remove ActiveRecord::Base.reset since Dispatcher doesn't use it anymore.  [Rick Olson]
 
 * Document find's :from option. Closes #5762. [andrew@redlinesoftware.com]

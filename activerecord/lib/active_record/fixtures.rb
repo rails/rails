@@ -395,7 +395,7 @@ class Fixture #:nodoc:
     klass = @class_name.constantize rescue nil
 
     list = @fixture.inject([]) do |fixtures, (key, value)|
-      col = klass.columns_hash[key] unless klass.nil?
+      col = klass.columns_hash[key] if klass.kind_of?(ActiveRecord::Base)
       fixtures << ActiveRecord::Base.connection.quote(value, col).gsub('\\n', "\n").gsub('\\r', "\r")
     end
     list * ', '
