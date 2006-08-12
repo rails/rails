@@ -466,7 +466,7 @@ module Test #:nodoc:
           file_name = table_name.to_s
           file_name = file_name.singularize if ActiveRecord::Base.pluralize_table_names
           begin
-            require file_name
+            require_dependency file_name
           rescue LoadError
             # Let's hope the developer has included it himself
           end
