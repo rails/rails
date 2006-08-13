@@ -1007,8 +1007,8 @@ module ActionController
         merged = recall.merge(options)
     
         if named_route
-          path = named_route.generate(options, merged, expire_on) 
-          raise RoutingError, "#{named_route_name}_url failed to generate from #{options.inspect}, missing: #{(named_route.significant_keys - options.keys).inspect}" if path.nil?
+          path = named_route.generate(options, merged, expire_on)
+          raise RoutingError, "#{named_route_name}_url failed to generate from #{options.inspect}, expected: #{named_route.requirements.inspect}, diff: #{named_route.requirements.diff(options).inspect}" if path.nil?
           return path
         else
           merged[:action] ||= 'index'
