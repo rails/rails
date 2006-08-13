@@ -26,8 +26,14 @@ module Dependencies #:nodoc:
   mattr_accessor :autoload_paths
   self.autoload_paths = []
 
+  # An array of qualified constant names that have been loaded. Adding a name to
+  # this array will cause it to be unloaded the next time Dependencies are cleared.
   mattr_accessor :autoloaded_constants
   self.autoloaded_constants = []
+  
+  # Set to true to enable logging of const_missing and file loads
+  mattr_accessor :log_activity
+  self.log_activity = false
   
   def load?
     mechanism == :load
@@ -45,11 +51,13 @@ module Dependencies #:nodoc:
   end
 
   def clear
+    log_call
     loaded.clear
     remove_autoloaded_constants!
   end
 
   def require_or_load(file_name, const_path = nil)
+    log_call file_name, const_path
     file_name = $1 if file_name =~ /^(.*)\.rb$/
     expanded = File.expand_path(file_name)
     return if loaded.include?(expanded)
@@ -59,6 +67,7 @@ module Dependencies #:nodoc:
     loaded << expanded
 
     if load?
+      log "loading #{file_name}"
       begin
         # Enable warnings iff this file has not been loaded before and
         # warnings_on_first_load is set.
@@ -75,6 +84,7 @@ module Dependencies #:nodoc:
         raise
       end
     else
+      log "requiring #{file_name}"
       require file_name
     end
 
@@ -132,13 +142,17 @@ module Dependencies #:nodoc:
   # of names that the file at +path+ may define. See
   # +autoloadable_constants_for_path+ for more details.
   def load_file(path, const_paths = autoloadable_constants_for_path(path))
+    log_call path, const_paths
+    
     const_paths = [const_paths].compact unless const_paths.is_a? Array
     undefined_before = const_paths.reject(&method(:qualified_const_defined?))
     
     load path
     
-    autoloaded_constants.concat const_paths.select(&method(:qualified_const_defined?))
+    newly_defined_paths = const_paths.select(&method(:qualified_const_defined?))
+    autoloaded_constants.concat newly_defined_paths
     autoloaded_constants.uniq!
+    log "loading #{path} defined #{newly_defined_paths * ', '}" unless newly_defined_paths.empty?
   end
   
   # Return the constant path for the provided parent and constant name.
@@ -151,6 +165,8 @@ module Dependencies #:nodoc:
   # it is not possible to laod the constant into from_mod, try its parent module
   # using const_missing.
   def load_missing_constant(from_mod, const_name)
+    log_call from_mod, const_name
+    
     qualified_name = qualified_name_for from_mod, const_name
     path_suffix = qualified_name.underscore
     name_error = NameError.new("uninitialized constant #{qualified_name}")
@@ -193,6 +209,7 @@ module Dependencies #:nodoc:
       else
         parent = (names[0..-2] * '::').constantize
       end
+      log "removing constant #{const}"
       parent.send :remove_const, names.last
       true
     end
@@ -226,6 +243,19 @@ protected
       when Symbol then desc.to_s
       when Module then desc.name
       else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
+    end
+  end
+  
+  def log_call(*args)
+    arg_str = args.collect(&:inspect) * ', '
+    /in `([a-z_\?\!]+)'/ =~ caller(1).first
+    selector = $1 || '<unknown>' 
+    log "called #{selector}(#{arg_str})"
+  end
+  
+  def log(msg)
+    if defined?(RAILS_DEFAULT_LOGGER) && RAILS_DEFAULT_LOGGER && log_activity
+      RAILS_DEFAULT_LOGGER.debug "Dependencies: #{msg}"
     end
   end
   

@@ -1,9 +1,9 @@
 *SVN*
 
-<<<<<<< .mine
+* Add debugging logging to Dependencies. Currently can be enabled with Dependencies.log_activity = true; adding to Initializer and documenting is forthcoming. [Nicholas Seckar]
+
 * Replace Reloadable with improvements to the Dependencies mechanism. [Nicholas Seckar]
 
-=======
 * DateTime#to_time gives hour/minute/second resolution.  #5747 [jon.evans@pobox.com]
 
 * attr_internal to support namespacing and deprecation. Like attr_* except backed by internally-named instance variable. Set attr_internal_naming_format to change the format from the default '@_%s'. [Jeremy Kemper]
@@ -12,7 +12,6 @@
     self.attr_internal_naming_format = '@%s__rofl'
     attr_internal :foo
 
->>>>>>> .r4727
 * Raise fully qualified names upon name errors. #5533 [lars@pinds.com, Nicholas Seckar]
 
 * Add extention to obtain the missing constant from NameError instances. [Nicholas Seckar]
