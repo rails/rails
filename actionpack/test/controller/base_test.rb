@@ -12,6 +12,7 @@ module Submodule
     
     hide_action :hidden_action
     def hidden_action
+      raise "Noooo!"
     end
     
     def another_hidden_action
@@ -31,6 +32,21 @@ class NonEmptyController < ActionController::Base
   hide_action :hidden_action
   def hidden_action
   end
+end
+
+class MethodMissingController < ActionController::Base
+  
+  hide_action :shouldnt_be_called
+  def shouldnt_be_called
+    raise "NO WAY!"
+  end
+  
+protected
+  
+  def method_missing(selector)
+    render :text => selector.to_s
+  end
+  
 end
 
 class ControllerClassTests < Test::Unit::TestCase
@@ -63,5 +79,47 @@ class ControllerInstanceTests < Test::Unit::TestCase
     @non_empty_controllers.each do |c|
       assert_equal Set.new('public_action'), c.send(:action_methods), "#{c.controller_path} should not be empty!"
     end
+  end
+  
+end
+
+
+class PerformActionTest < Test::Unit::TestCase
+  def use_controller(controller_class)
+    @controller = controller_class.new
+
+    # enable a logger so that (e.g.) the benchmarking stuff runs, so we can get
+    # a more accurate simulation of what happens in "real life".
+    @controller.logger = Logger.new(nil)
+
+    @request    = ActionController::TestRequest.new
+    @response   = ActionController::TestResponse.new
+
+    @request.host = "www.nextangle.com"
+  end
+  
+  def test_get_on_priv_should_show_selector
+    use_controller MethodMissingController
+    get :shouldnt_be_called
+    assert_response :success
+    assert_equal 'shouldnt_be_called', @response.body
+  end
+  
+  def test_method_missing_is_not_an_action_name
+    use_controller MethodMissingController
+    assert ! @controller.send(:action_methods).include?('method_missing')
+    
+    get :method_missing
+    assert_response :success
+    assert_equal 'method_missing', @response.body
+  end
+  
+  def test_get_on_hidden_should_fail
+    use_controller NonEmptyController
+    get :hidden_action
+    assert_response 404
+    
+    get :another_hidden_action
+    assert_response 404
   end
 end

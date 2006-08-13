@@ -1,5 +1,7 @@
 *SVN*
 
+* Invoke method_missing directly on hidden actions. Closes #3030. [Nicholas Seckar]
+
 * Require Tempfile explicitly for TestUploadedFile due to changes in class auto loading.  [Rick Olson]
 
 * Add RoutingError exception when RouteSet fails to generate a path from a Named Route. [Rick Olson]

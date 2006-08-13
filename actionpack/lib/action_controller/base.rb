@@ -974,10 +974,13 @@ module ActionController #:nodoc:
           logger.info "  Parameters: #{respond_to?(:filter_parameters) ? filter_parameters(params).inspect : params.inspect}"
         end
       end
-    
+      
       def perform_action
-        if self.class.action_methods.include?(action_name) || self.class.action_methods.include?('method_missing')
+        if self.class.action_methods.include?(action_name)
           send(action_name)
+          render unless performed?
+        elsif respond_to? :method_missing
+          send(:method_missing, action_name)
           render unless performed?
         elsif template_exists? && template_public?
           render
