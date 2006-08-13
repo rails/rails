@@ -124,9 +124,18 @@ end
 
 module Admin
   class InnerModuleController < ActionController::Base
+    def index
+      render :nothing => true
+    end
+
+    def redirect_to_index
+      redirect_to admin_inner_module_path
+    end
+
     def redirect_to_absolute_controller
       redirect_to :controller => '/content'
     end
+
     def redirect_to_fellow_controller
       redirect_to :controller => 'user'
     end
@@ -264,6 +273,19 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
       assert_raise(Test::Unit::AssertionFailedError) do
         assert_redirected_to :route_two_url
       end
+    end
+  end
+
+  def test_assert_redirect_to_nested_named_route
+    with_routing do |set|
+      set.draw do |map|
+        map.admin_inner_module 'admin/inner_module', :controller => 'admin/inner_module', :action => 'index'
+        map.connect            ':controller/:action/:id'
+      end
+      @controller = Admin::InnerModuleController.new
+      process :redirect_to_index
+      # redirection is <{"action"=>"index", "controller"=>"admin/admin/inner_module"}>
+      assert_redirected_to admin_inner_module_path
     end
   end
 

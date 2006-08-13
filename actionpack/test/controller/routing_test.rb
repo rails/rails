@@ -134,6 +134,13 @@ class LegacyRouteSetTests < Test::Unit::TestCase
 
   end
 
+  def test_named_route_with_nested_controller
+    rs.add_named_route :users, 'admin/user', :controller => '/admin/user', :action => 'index'
+    x = setup_for_named_route.new
+    assert_equal({:controller => '/admin/user', :action => 'index', :use_route => :users},
+                 x.send(:users_url))
+  end
+
   def setup_for_named_route
     x = Class.new
     x.send(:define_method, :url_for) {|x| x}
@@ -1177,6 +1184,7 @@ class RouteSetTest < Test::Unit::TestCase
       map.show '/people/:id', :controller => 'people', :action => 'show'
       map.index '/people', :controller => 'people', :action => 'index'
       map.multi '/people/go/:foo/:bar/joe/:id', :controller => 'people', :action => 'multi'
+      map.users '/admin/users', :controller => 'admin/users', :action => 'index'
     end
 
     klass = Class.new(MockController)
@@ -1209,6 +1217,10 @@ class RouteSetTest < Test::Unit::TestCase
     
     assert_equal "http://named.route.test/people", controller.send(:index_url)
     assert_equal "/people", controller.send(:index_path)
+
+    assert_equal "http://named.route.test/admin/users", controller.send(:users_url)
+    assert_equal '/admin/users', controller.send(:users_path)
+    assert_equal '/admin/users', set.generate(controller.send(:hash_for_users_url), {:controller => 'users', :action => 'index'})
   end
 
   def test_namd_route_url_method_with_ordered_parameters

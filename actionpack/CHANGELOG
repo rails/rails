@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix assert_redirected_to issue with named routes for module controllers.  [Rick Olson]
+
 * Tweak RoutingError message to show option diffs, not just missing named route significant keys. [Rick Olson]
 
 * Invoke method_missing directly on hidden actions. Closes #3030. [Nicholas Seckar]
