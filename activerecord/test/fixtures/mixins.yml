@@ -39,6 +39,26 @@ tree_without_order_2:
   type: TreeMixinWithoutOrder
   parent_id:
 
+recursively_cascaded_tree_1:
+  id: 5005
+  type: RecursivelyCascadedTreeMixin
+  parent_id:
+
+recursively_cascaded_tree_2:
+  id: 5006
+  type: RecursivelyCascadedTreeMixin
+  parent_id: 5005
+
+recursively_cascaded_tree_3:
+  id: 5007
+  type: RecursivelyCascadedTreeMixin
+  parent_id: 5006
+
+recursively_cascaded_tree_4:
+  id: 5008
+  type: RecursivelyCascadedTreeMixin
+  parent_id: 5007
+
 # List mixins
 
 <% (1..4).each do |counter| %>  

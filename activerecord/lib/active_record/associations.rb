@@ -1393,11 +1393,13 @@ module ActiveRecord
               
               unless join_dependency.table_aliases[aliased_table_name].zero?
                 # if the table name has been used, then use an alias
-                @aliased_table_name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}"
+                @aliased_table_name = cascade_alias
                 table_index = join_dependency.table_aliases[aliased_table_name]
+                join_dependency.table_aliases[@aliased_table_name] += 1
                 @aliased_table_name = @aliased_table_name[0..active_record.connection.table_alias_length-3] + "_#{table_index+1}" if table_index > 0
+              else
+                join_dependency.table_aliases[aliased_table_name] += 1
               end
-              join_dependency.table_aliases[aliased_table_name] += 1
               
               if reflection.macro == :has_and_belongs_to_many || (reflection.macro == :has_many && reflection.options[:through])
                 @aliased_join_table_name = reflection.macro == :has_and_belongs_to_many ? reflection.options[:join_table] : reflection.through_reflection.klass.table_name
@@ -1528,6 +1530,11 @@ module ActiveRecord
 
               def interpolate_sql(sql)
                 instance_eval("%@#{sql.gsub('@', '\@')}@")
+              end
+              
+            private
+              def cascade_alias
+                active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}"
               end
           end
         end

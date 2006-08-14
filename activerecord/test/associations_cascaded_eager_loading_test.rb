@@ -103,4 +103,9 @@ class CascadedEagerLoadingTest < Test::Unit::TestCase
       authors.first.posts.first.special_comments.first.post.very_special_comment
     end
   end
+  
+  def test_eager_association_loading_with_recursive_cascaded_three_levels
+    root_node = RecursivelyCascadedTreeMixin.find(:first, :include=>{:children=>{:children=>:children}}, :order => 'mixins.id')
+    assert_equal mixins(:recursively_cascaded_tree_4), assert_no_queries { root_node.children.first.children.first.children.first }
+  end
 end
