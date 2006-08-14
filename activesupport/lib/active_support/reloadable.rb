@@ -25,10 +25,11 @@ module Reloadable
     end
     
     def reloadable_classes
-      included_in_classes.select { |klass| klass.reloadable? }
+      ActiveSupport::Deprecation.silence do
+        included_in_classes.select { |klass| klass.reloadable? }
+      end
     end
-    # Commented out so dispatcher doesn't warn. Should we just disable Reloadable?
-    # deprecate :reloadable_classes
+    deprecate :reloadable_classes
   end
   
   # Captures the common pattern where a base class should not be reloaded,

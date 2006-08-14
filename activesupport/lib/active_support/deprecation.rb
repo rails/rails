@@ -9,11 +9,25 @@ module ActiveSupport
 
     class << self
       def warn(message = nil, callstack = caller)
-        behavior.call(deprecation_message(callstack, message)) if behavior
+        behavior.call(deprecation_message(callstack, message)) if behavior && ! silenced?
       end
 
       def default_behavior
         DEFAULT_BEHAVIORS[RAILS_ENV.to_s] if defined?(RAILS_ENV)
+      end
+
+      # Have deprecations been silenced?
+      def silenced?
+        @silenced
+      end
+
+      # Silence deprecations for the duration of the provided block. For internal
+      # use only.
+      def silence
+        old_silenced, @silenced = @silenced, true # We could have done behavior = nil...
+        yield
+      ensure
+        @silenced = old_silenced
       end
 
       private

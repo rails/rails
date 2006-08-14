@@ -56,7 +56,9 @@ class Dispatcher
     def reset_application!
       ActiveRecord::Base.reset_subclasses if defined?(ActiveRecord)
       Dependencies.clear
-      Class.remove_class(*Reloadable.reloadable_classes)
+      ActiveSupport::Deprecation.silence do # TODO: Remove after 1.2
+        Class.remove_class(*Reloadable.reloadable_classes)
+      end
     end
     
     

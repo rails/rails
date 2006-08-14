@@ -1,5 +1,7 @@
 *SVN*
 
+* Don't warn dispatcher of Reloadable deprecations. [Nicholas Seckar]
+
 * Rearrange application resetting and preparation, fix bug with leaking subclasses hash in ActiveRecord::Base [Rick Olson]
 
   ActiveRecord::Base.reset_subclasses is called before Dependencies are cleared and classes removed.

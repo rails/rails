@@ -78,4 +78,10 @@ class DeprecationTest < Test::Unit::TestCase
     end
   end
   
+  def test_silence
+    ActiveSupport::Deprecation.silence do
+      assert_not_deprecated { @dtc.partially }
+    end
+  end
+  
 end

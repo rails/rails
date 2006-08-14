@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Deprecation.silence so that Reloadable does not scold itself. [Nicholas Seckar]
+
 * Add debugging logging to Dependencies. Currently can be enabled with Dependencies.log_activity = true; adding to Initializer and documenting is forthcoming. [Nicholas Seckar]
 
 * Replace Reloadable with improvements to the Dependencies mechanism. [Nicholas Seckar]
