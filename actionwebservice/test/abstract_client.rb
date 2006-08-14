@@ -69,7 +69,6 @@ module ClientTest
     attr_accessor :value_named_parameters
 
     def initialize
-      @session = @assigns = {}
       @value_void = nil
       @value_normal = nil
       @value_array_return = nil

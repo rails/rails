@@ -9,7 +9,7 @@ require 'action_web_service'
 require 'action_controller'
 require 'action_controller/test_process'
 
-ActionController::Base.logger = nil
+ActionController::Base.logger = Logger.new("debug.log")
 ActionController::Base.ignore_missing_templates = true
 
 begin
@@ -20,13 +20,16 @@ rescue Object => e
   fail "\nFailed to load activerecord: #{e}"
 end
 
-ActiveRecord::Base.establish_connection(
-  :adapter  => "mysql",
-  :username => "rails",
-  :encoding => "utf8",
-  :database => "actionwebservice_unittest"
-)
-ActiveRecord::Base.connection
+ActiveRecord::Base.configurations = {
+  'mysql' => {
+    :adapter  => "mysql",
+    :username => "rails",
+    :encoding => "utf8",
+    :database => "actionwebservice_unittest"
+  }
+}
+
+ActiveRecord::Base.establish_connection 'mysql'
 
 Test::Unit::TestCase.fixture_path = "#{File.dirname(__FILE__)}/fixtures/"
 

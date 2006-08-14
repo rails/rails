@@ -37,6 +37,10 @@ module ActionWebService # :nodoc:
       module InstanceMethods # :nodoc:
         private
           def dispatch_web_service_request
+            if request.get?
+              render_text('GET not supported', '500 GET not supported')
+              return
+            end
             exception = nil
             begin
               ws_request = discover_web_service_request(request)
