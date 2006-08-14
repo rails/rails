@@ -17,9 +17,9 @@ module ActionController #:nodoc:
       #   def list
       #     @people = Person.find(:all)
       # 
-      #     respond_to do |wants|
-      #       wants.html
-      #       wants.xml { render :xml => @people.to_xml }
+      #     respond_to do |format|
+      #       format.html
+      #       format.xml { render :xml => @people.to_xml }
       #     end
       #   end
       # 
@@ -44,10 +44,10 @@ module ActionController #:nodoc:
       #     @company = Company.find_or_create_by_name(company[:name])
       #     @person  = @company.people.create(params[:person])
       # 
-      #     respond_to do |wants|
-      #       wants.html { redirect_to(person_list_url) }
-      #       wants.js
-      #       wants.xml  { render :xml => @person.to_xml(:include => @company) }
+      #     respond_to do |format|
+      #       format.html { redirect_to(person_list_url) }
+      #       format.js
+      #       format.xml  { render :xml => @person.to_xml(:include => @company) }
       #     end
       #   end
       # 
