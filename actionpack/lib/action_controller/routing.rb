@@ -50,6 +50,10 @@ module ActionController
   module Routing
     SEPARATORS = %w( / ; . , ? )
 
+    # The root paths which may contain controller files
+    mattr_accessor :controller_paths
+    self.controller_paths = []
+
     class << self
       def with_controllers(names)
         use_controllers! names
@@ -58,7 +62,7 @@ module ActionController
         use_controllers! nil
       end
 
-      def normalize_paths(paths = $LOAD_PATH)
+      def normalize_paths(paths)
         # do the hokey-pokey of path normalization...
         paths = paths.collect do |path|
           path = path.
@@ -80,16 +84,15 @@ module ActionController
         unless @possible_controllers
           @possible_controllers = []
         
-          paths = $LOAD_PATH.select { |path| File.directory?(path) && path != "." }
+          paths = controller_paths.select { |path| File.directory?(path) && path != "." }
 
           seen_paths = Hash.new {|h, k| h[k] = true; false}
           normalize_paths(paths).each do |load_path|
             Dir["#{load_path}/**/*_controller.rb"].collect do |path|
               next if seen_paths[path.gsub(%r{^\.[/\\]}, "")]
-            
+              
               controller_name = path[(load_path.length + 1)..-1]
-              next unless path_may_be_controller?(controller_name)
-
+              
               controller_name.gsub!(/_controller\.rb\Z/, '')
               @possible_controllers << controller_name
             end
@@ -99,10 +102,6 @@ module ActionController
           @possible_controllers.uniq!
         end
         @possible_controllers
-      end
-
-      def path_may_be_controller?(path)
-        path !~ /(?:rails\/.*\/(?:examples|test))|(?:actionpack\/lib\/action_controller.rb$)|(?:app\/controllers)/o
       end
 
       def use_controllers!(controller_names)

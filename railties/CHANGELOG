@@ -1,5 +1,7 @@
 *SVN*
 
+* Assign Routing.controller_paths; fix script/about and rails info controller. [Nicholas Seckar]
+
 * Don't warn dispatcher of Reloadable deprecations. [Nicholas Seckar]
 
 * Rearrange application resetting and preparation, fix bug with leaking subclasses hash in ActiveRecord::Base [Rick Olson]

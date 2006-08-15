@@ -1514,21 +1514,19 @@ end
 class RoutingTest < Test::Unit::TestCase
   
   def test_possible_controllers
-    true_load_paths = $LOAD_PATH.dup
+    true_controller_paths = ActionController::Routing.controller_paths
     
     ActionController::Routing.use_controllers! nil
     Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + '/controller_fixtures')
     
-    $LOAD_PATH.clear
-    $LOAD_PATH.concat [
+    ActionController::Routing.controller_paths = [
       RAILS_ROOT, RAILS_ROOT + '/app/controllers', RAILS_ROOT + '/vendor/plugins/bad_plugin/lib'
     ]
     
     assert_equal ["admin/user", "plugin", "user"], ActionController::Routing.possible_controllers.sort
   ensure
-    if true_load_paths
-      $LOAD_PATH.clear
-      $LOAD_PATH.concat true_load_paths
+    if true_controller_paths
+      ActionController::Routing.controller_paths = true_controller_paths
     end
     Object.send(:remove_const, :RAILS_ROOT) rescue nil
   end

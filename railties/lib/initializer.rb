@@ -150,8 +150,6 @@ module Rails
     
     # Add the load paths used by support functions such as the info controller
     def add_support_load_paths
-      builtins = File.join(File.dirname(File.dirname(__FILE__)), 'builtin', '*')
-      $LOAD_PATH.concat(Dir[builtins])
     end
 
     # Loads all plugins in <tt>config.plugin_paths</tt>.  <tt>plugin_paths</tt>
@@ -176,7 +174,7 @@ module Rails
       silence_warnings do
         config = configuration
         constants = self.class.constants
-        eval(IO.read(configuration.environment_path), binding)
+        eval(IO.read(configuration.environment_path), binding, configuration.environment_path)
         (self.class.constants - constants).each do |const|
           Object.const_set(const, self.class.const_get(const))
         end
@@ -251,6 +249,7 @@ module Rails
     # loading module used to lazily load controllers (Configuration#controller_paths).
     def initialize_routing
       return unless configuration.frameworks.include?(:action_controller)
+      ActionController::Routing.controller_paths = configuration.controller_paths
       ActionController::Routing::Routes.reload
     end
     
@@ -511,6 +510,11 @@ module Rails
       Dispatcher.to_prepare(&callback)
     end
     
+    def builtin_directories
+      # Include builtins only in the development environment.
+      (environment == 'development') ? Dir["#{RAILTIES_PATH}/builtin/*/"] : []
+    end
+    
     private
       def root_path
         ::RAILS_ROOT
@@ -589,6 +593,7 @@ module Rails
         ).map { |dir| "#{root_path}/#{dir}" }.select { |dir| File.directory?(dir) }
         
         paths.concat Dir["#{root_path}/vendor/plugins/*/lib/"]
+        paths.concat builtin_directories
       end
 
       def default_log_path
@@ -608,7 +613,9 @@ module Rails
       end
       
       def default_controller_paths
-        [ File.join(root_path, 'app', 'controllers'), File.join(root_path, 'components'), File.join(RAILTIES_PATH, 'builtin', 'controllers') ]
+        paths = [ File.join(root_path, 'app', 'controllers'), File.join(root_path, 'components') ]
+        paths.concat builtin_directories
+        paths
       end
       
       def default_dependency_mechanism
