@@ -8,7 +8,6 @@
 
 * Tweak RoutingError message to show option diffs, not just missing named route significant keys. [Rick Olson]
 
->>>>>>> .r4761
 * Invoke method_missing directly on hidden actions. Closes #3030. [Nicholas Seckar]
 
 * Require Tempfile explicitly for TestUploadedFile due to changes in class auto loading.  [Rick Olson]
