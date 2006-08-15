@@ -214,7 +214,7 @@ module ActiveRecord
       def index_name(table_name, options) #:nodoc:
         if Hash === options # legacy support
           if options[:column]
-            "#{table_name}_#{Array(options[:column]).join('_')}_index"
+            "index_#{table_name}_on_#{Array(options[:column]) * '_and_'}"
           elsif options[:name]
             options[:name]
           else
