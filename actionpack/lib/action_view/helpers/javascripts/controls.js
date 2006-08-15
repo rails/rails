@@ -33,6 +33,9 @@
 // useful when one of the tokens is \n (a newline), as it 
 // allows smart autocompletion after linebreaks.
 
+if(typeof Effect == 'undefined')
+  throw("controls.js requires including script.aculo.us' effects.js library");
+
 var Autocompleter = {}
 Autocompleter.Base = function() {};
 Autocompleter.Base.prototype = {
@@ -94,7 +97,7 @@ Autocompleter.Base.prototype = {
   },
   
   fixIEOverlapping: function() {
-    Position.clone(this.update, this.iefix);
+    Position.clone(this.update, this.iefix, {setTop:(!this.update.style.height)});
     this.iefix.style.zIndex = 1;
     this.update.style.zIndex = 2;
     Element.show(this.iefix);
@@ -202,11 +205,13 @@ Autocompleter.Base.prototype = {
   markPrevious: function() {
     if(this.index > 0) this.index--
       else this.index = this.entryCount-1;
+    this.getEntry(this.index).scrollIntoView(true);
   },
   
   markNext: function() {
     if(this.index < this.entryCount-1) this.index++
       else this.index = 0;
+    this.getEntry(this.index).scrollIntoView(false);
   },
   
   getEntry: function(index) {
@@ -531,7 +536,7 @@ Ajax.InPlaceEditor.prototype = {
     Element.hide(this.element);
     this.createForm();
     this.element.parentNode.insertBefore(this.form, this.element);
-    Field.scrollFreeActivate(this.editField);
+    if (!this.options.loadTextURL) Field.scrollFreeActivate(this.editField);
     // stop the event to avoid a page refresh in Safari
     if (evt) {
       Event.stop(evt);
@@ -636,6 +641,7 @@ Ajax.InPlaceEditor.prototype = {
     Element.removeClassName(this.form, this.options.loadingClassName);
     this.editField.disabled = false;
     this.editField.value = transport.responseText.stripTags();
+    Field.scrollFreeActivate(this.editField);
   },
   onclickCancel: function() {
     this.onComplete();

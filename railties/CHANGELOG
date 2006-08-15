@@ -1,5 +1,7 @@
 *SVN*
 
+* Updated to script.aculo.us 1.6.2 [Thomas Fuchs]
+
 * Assign Routing.controller_paths; fix script/about and rails info controller. [Nicholas Seckar]
 
 * Don't warn dispatcher of Reloadable deprecations. [Nicholas Seckar]

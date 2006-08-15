@@ -5,6 +5,9 @@
 
 /*--------------------------------------------------------------------------*/
 
+if(typeof Effect == 'undefined')
+  throw("dragdrop.js requires including script.aculo.us' effects.js library");
+
 var Droppables = {
   drops: [],
 
@@ -204,19 +207,31 @@ var Draggables = {
 /*--------------------------------------------------------------------------*/
 
 var Draggable = Class.create();
+Draggable._revertCache = {};
+Draggable._dragging    = {};
+
 Draggable.prototype = {
   initialize: function(element) {
     var options = Object.extend({
       handle: false,
-      starteffect: function(element) { 
-        new Effect.Opacity(element, {duration:0.2, from:1.0, to:0.7}); 
+      starteffect: function(element) {
+        element._opacity = Element.getOpacity(element);
+        Draggable._dragging[element] = true;
+        new Effect.Opacity(element, {duration:0.2, from:element._opacity, to:0.7}); 
       },
       reverteffect: function(element, top_offset, left_offset) {
         var dur = Math.sqrt(Math.abs(top_offset^2)+Math.abs(left_offset^2))*0.02;
-        element._revert = new Effect.Move(element, { x: -left_offset, y: -top_offset, duration: dur});
+        Draggable._revertCache[element] =
+          new Effect.Move(element, { x: -left_offset, y: -top_offset, duration: dur,
+            queue: {scope:'_draggable', position:'end'}
+          });
       },
-      endeffect: function(element) { 
-        new Effect.Opacity(element, {duration:0.2, from:0.7, to:1.0}); 
+      endeffect: function(element) {
+        var toOpacity = typeof element._opacity == 'number' ? element._opacity : 1.0;
+        new Effect.Opacity(element, {duration:0.2, from:0.7, to:toOpacity, 
+          queue: {scope:'_draggable', position:'end'},
+          afterFinish: function(){ Draggable._dragging[element] = false }
+        }); 
       },
       zindex: 1000,
       revert: false,
@@ -262,6 +277,8 @@ Draggable.prototype = {
   },
   
   initDrag: function(event) {
+    if(typeof Draggable._dragging[this.element] != undefined &&
+      Draggable._dragging[this.element]) return;
     if(Event.isLeftClick(event)) {    
       // abort on form elements, fixes a Firefox issue
       var src = Event.element(event);
@@ -272,9 +289,9 @@ Draggable.prototype = {
         src.tagName=='BUTTON' ||
         src.tagName=='TEXTAREA')) return;
         
-      if(this.element._revert) {
-        this.element._revert.cancel();
-        this.element._revert = null;
+      if(Draggable._revertCache[this.element]) {
+        Draggable._revertCache[this.element].cancel();
+        Draggable._revertCache[this.element] = null;
       }
       
       var pointer = [Event.pointerX(event), Event.pointerY(event)];
@@ -412,7 +429,7 @@ Draggable.prototype = {
     
     if(this.options.snap) {
       if(typeof this.options.snap == 'function') {
-        p = this.options.snap(p[0],p[1]);
+        p = this.options.snap(p[0],p[1],this);
       } else {
       if(this.options.snap instanceof Array) {
         p = p.map( function(v, i) {
@@ -440,6 +457,7 @@ Draggable.prototype = {
   },
   
   startScrolling: function(speed) {
+    if(!(speed[0] || speed[1])) return;
     this.scrollSpeed = [speed[0]*this.options.scrollSpeed,speed[1]*this.options.scrollSpeed];
     this.lastScrolled = new Date();
     this.scrollInterval = setInterval(this.scroll.bind(this), 10);
@@ -706,7 +724,7 @@ var Sortable = {
     if(!Element.isParent(dropon, element)) {
       var index;
       
-      var children = Sortable.findElements(dropon, {tag: droponOptions.tag});
+      var children = Sortable.findElements(dropon, {tag: droponOptions.tag, only: droponOptions.only});
       var child = null;
             
       if(children) {
@@ -867,7 +885,7 @@ var Sortable = {
     
     if (options.tree) {
       return Sortable.tree(element, arguments[1]).children.map( function (item) {
-        return [name + Sortable._constructIndex(item) + "=" + 
+        return [name + Sortable._constructIndex(item) + "[id]=" + 
                 encodeURIComponent(item.id)].concat(item.children.map(arguments.callee));
       }).flatten().join('&');
     } else {
