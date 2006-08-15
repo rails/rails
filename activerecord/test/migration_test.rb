@@ -58,7 +58,13 @@ if ActiveRecord::Base.connection.supports_migrations?
       assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
 
       assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
-      assert_nothing_raised { Person.connection.remove_index("people", "last_name") }
+      assert_nothing_raised { Person.connection.remove_index("people", :column => ["last_name", "first_name"]) }
+      assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
+      assert_nothing_raised { Person.connection.remove_index("people", :name => "people_last_name_first_name_index") }
+      assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
+      assert_nothing_raised { Person.connection.remove_index("people", "last_name_first_name") }
+      assert_nothing_raised { Person.connection.add_index("people", ["last_name", "first_name"]) }
+      assert_nothing_raised { Person.connection.remove_index("people", ["last_name", "first_name"]) }
 
       # quoting
       # Note: changed index name from "key" to "key_idx" since "key" is a Firebird reserved word

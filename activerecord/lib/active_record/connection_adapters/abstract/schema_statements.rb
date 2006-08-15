@@ -178,14 +178,14 @@ module ActiveRecord
       # ====== Creating a unique index
       #  add_index(:accounts, [:branch_id, :party_id], :unique => true)
       # generates
-      #  CREATE UNIQUE INDEX accounts_branch_id_index ON accounts(branch_id, party_id)
+      #  CREATE UNIQUE INDEX accounts_branch_id_party_id_index ON accounts(branch_id, party_id)
       # ====== Creating a named index
       #  add_index(:accounts, [:branch_id, :party_id], :unique => true, :name => 'by_branch_party')
       # generates
       #  CREATE UNIQUE INDEX by_branch_party ON accounts(branch_id, party_id)
       def add_index(table_name, column_name, options = {})
         column_names = Array(column_name)
-        index_name   = index_name(table_name, :column => column_names.first)
+        index_name   = index_name(table_name, :column => column_names)
 
         if Hash === options # legacy support, since this param was a string
           index_type = options[:unique] ? "UNIQUE" : ""
@@ -199,16 +199,14 @@ module ActiveRecord
 
       # Remove the given index from the table.
       #
-      # Remove the suppliers_name_index in the suppliers table (legacy support, use the second or third forms).
+      # Remove the suppliers_name_index in the suppliers table.
       #   remove_index :suppliers, :name
-      # Remove the index named accounts_branch_id in the accounts table.
+      # Remove the index named accounts_branch_id_index in the accounts table.
       #   remove_index :accounts, :column => :branch_id
+      # Remove the index named accounts_branch_id_party_id_index in the accounts table.
+      #   remove_index :accounts, :column => [:branch_id, :party_id]
       # Remove the index named by_branch_party in the accounts table.
       #   remove_index :accounts, :name => :by_branch_party
-      #
-      # You can remove an index on multiple columns by specifying the first column.
-      #   add_index :accounts, [:username, :password]
-      #   remove_index :accounts, :username
       def remove_index(table_name, options = {})
         execute "DROP INDEX #{quote_column_name(index_name(table_name, options))} ON #{table_name}"
       end
@@ -216,14 +214,14 @@ module ActiveRecord
       def index_name(table_name, options) #:nodoc:
         if Hash === options # legacy support
           if options[:column]
-            "#{table_name}_#{options[:column]}_index"
+            "#{table_name}_#{Array(options[:column]).join('_')}_index"
           elsif options[:name]
             options[:name]
           else
             raise ArgumentError, "You must specify the index name"
           end
         else
-          "#{table_name}_#{options}_index"
+          index_name(table_name, :column => options)
         end
       end
 

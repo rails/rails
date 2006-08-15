@@ -1,5 +1,18 @@
 *SVN*
 
+* Migrations: uniquely name multicolumn indexes so you don't have to. [Jeremy Kemper]
+    # people_active_last_name_index, people_active_deactivated_at_index
+    add_index    :people, [:active, :last_name]
+    add_index    :people, [:active, :deactivated_at]
+    remove_index :people, [:active, :last_name]
+    remove_index :people, [:active, :deactivated_at]
+
+  WARNING: backward-incompatibility. Multicolumn indexes created before this
+  revision were named using the first column name only. Now they're uniquely
+  named using all indexed columns.
+
+  To remove an old multicolumn index, remove_index :table_name, :first_column
+
 * Fix for deep includes on the same association. [richcollins@gmail.com]
 
 * Tweak fixtures so they don't try to use a non-ActiveRecord class.  [Kevin Clark]
