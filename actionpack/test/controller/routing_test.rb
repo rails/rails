@@ -109,6 +109,30 @@ class LegacyRouteSetTests < Test::Unit::TestCase
     assert_equal '/admin/user/foo', rs.generate(:controller => "admin/user", :admintoken => "foo", :action => "index")
     assert_equal '/content/foo', rs.generate(:controller => "content", :action => "foo")
   end
+
+  def test_route_with_regexp_and_dot
+    rs.draw do |map|
+      map.connect ':controller/:action/:file',
+                        :controller => /admin|user/,
+                        :action => /upload|download/,
+                        :defaults => {:file => nil},
+                        :requirements => {:file => %r{[^/]+(\.[^/]+)?}}
+    end
+    # Without a file extension
+    assert_equal '/user/download/file',
+      rs.generate(:controller => "user", :action => "download", :file => "file")
+    assert_equal(
+      {:controller => "user", :action => "download", :file => "file"},
+      rs.recognize_path("/user/download/file"))
+
+    # Now, let's try a file with an extension, really a dot (.)
+    assert_equal '/user/download/file.jpg',
+      rs.generate(
+        :controller => "user", :action => "download", :file => "file.jpg")
+    assert_equal(
+      {:controller => "user", :action => "download", :file => "file.jpg"},
+      rs.recognize_path("/user/download/file.jpg"))
+  end
   
   def test_basic_named_route
     rs.add_named_route :home, '', :controller => 'content', :action => 'list' 
@@ -1009,6 +1033,20 @@ class RouteBuilderTest < Test::Unit::TestCase
     assert_equal %r/\w+/, segments[7].regexp
     assert segments[7].optional?
   end
+  
+  def test_assign_route_options_with_anchor_chars
+    segments = builder.segments_for_route_path '/cars/:action/:person/:car/'
+    defaults = {:action => 'buy', :person => nil, :car => nil}
+    requirements = {:person => /\w+/, :car => /^\w+$/}
+    
+    assert_raises ArgumentError do
+      route_requirements = builder.assign_route_options(segments, defaults, requirements)
+    end
+    
+    requirements[:car] = /[^\/]+/
+    route_requirements = builder.assign_route_options(segments, defaults, requirements)
+  end
+  
 
   def test_optional_segments_preceding_required_segments
     segments = builder.segments_for_route_path '/cars/:action/:person/:car/'
