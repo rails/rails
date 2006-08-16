@@ -346,10 +346,28 @@ class DependenciesTest < Test::Unit::TestCase
   end
   
   def test_const_missing_should_not_double_load
+    $counting_loaded_times = 0
     with_loading 'autoloading_fixtures' do
       require_dependency '././counting_loader'
       assert_equal 1, $counting_loaded_times
-      Dependencies.load_missing_constant Object, :CountingLoader
+      assert_raises(ArgumentError) { Dependencies.load_missing_constant Object, :CountingLoader }
+      assert_equal 1, $counting_loaded_times
+    end
+  end
+  
+  def test_const_missing_within_anonymous_module
+    $counting_loaded_times = 0
+    m = Module.new
+    m.module_eval "def a() CountingLoader; end"
+    extend m
+    kls = nil    
+    with_loading 'autoloading_fixtures' do
+      kls = nil
+      assert_nothing_raised { kls = a }
+      assert_equal "CountingLoader", kls.name
+      assert_equal 1, $counting_loaded_times
+      
+      assert_nothing_raised { kls = a }
       assert_equal 1, $counting_loaded_times
     end
   end

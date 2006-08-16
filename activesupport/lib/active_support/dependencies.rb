@@ -65,7 +65,7 @@ module Dependencies #:nodoc:
     # Record that we've seen this file *before* loading it to avoid an
     # infinite loop with mutual dependencies.
     loaded << expanded
-
+    
     if load?
       log "loading #{file_name}"
       begin
@@ -178,6 +178,11 @@ module Dependencies #:nodoc:
   # using const_missing.
   def load_missing_constant(from_mod, const_name)
     log_call from_mod, const_name
+    
+    # If we have an anonymous module, all we can do is attempt to load from Object.
+    from_mod = Object if from_mod.name.empty?
+    
+    raise ArgumentError, "Expected #{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name)
     
     qualified_name = qualified_name_for from_mod, const_name
     path_suffix = qualified_name.underscore
