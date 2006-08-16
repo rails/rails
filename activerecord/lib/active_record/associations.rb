@@ -1393,9 +1393,9 @@ module ActiveRecord
               
               unless join_dependency.table_aliases[aliased_table_name].zero?
                 # if the table name has been used, then use an alias
-                @aliased_table_name = cascade_alias
+                @aliased_table_name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}"
                 table_index = join_dependency.table_aliases[aliased_table_name]
-                join_dependency.table_aliases[@aliased_table_name] += 1
+                join_dependency.table_aliases[aliased_table_name] += 1
                 @aliased_table_name = @aliased_table_name[0..active_record.connection.table_alias_length-3] + "_#{table_index+1}" if table_index > 0
               else
                 join_dependency.table_aliases[aliased_table_name] += 1
@@ -1406,9 +1406,11 @@ module ActiveRecord
                 unless join_dependency.table_aliases[aliased_join_table_name].zero?
                   @aliased_join_table_name = active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}_join"
                   table_index = join_dependency.table_aliases[aliased_join_table_name]
+                  join_dependency.table_aliases[aliased_join_table_name] += 1
                   @aliased_join_table_name = @aliased_join_table_name[0..active_record.connection.table_alias_length-3] + "_#{table_index+1}" if table_index > 0
+                else
+                  join_dependency.table_aliases[aliased_join_table_name] += 1
                 end
-                join_dependency.table_aliases[aliased_join_table_name] += 1
               end
             end
 
@@ -1419,7 +1421,7 @@ module ActiveRecord
                      table_alias_for(options[:join_table], aliased_join_table_name),
                      aliased_join_table_name,
                      options[:foreign_key] || reflection.active_record.to_s.classify.foreign_key,
-                     reflection.active_record.table_name, reflection.active_record.primary_key] +
+                     parent.aliased_table_name, reflection.active_record.primary_key] +
                   " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
                      table_name_and_alias, aliased_table_name, klass.primary_key,
                      aliased_join_table_name, options[:association_foreign_key] || klass.table_name.classify.foreign_key
@@ -1457,15 +1459,14 @@ module ActiveRecord
                           case source_reflection.macro
                             when :belongs_to
                               first_key  = primary_key
-                              second_key = options[:foreign_key] || klass.to_s.classify.foreign_key
+                              second_key = source_reflection.options[:foreign_key] || klass.to_s.classify.foreign_key
                             when :has_many
                               first_key  = through_reflection.klass.to_s.classify.foreign_key
                               second_key = options[:foreign_key] || primary_key
                           end
-                          
                           " LEFT OUTER JOIN %s ON %s.%s = %s.%s "  % [
-                            table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), aliased_join_table_name,
-                            through_reflection.primary_key_name,
+                            table_alias_for(through_reflection.klass.table_name, aliased_join_table_name), 
+                            aliased_join_table_name, through_reflection.primary_key_name,
                             parent.aliased_table_name, parent.primary_key] +
                           " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [
                             table_name_and_alias,
@@ -1530,11 +1531,6 @@ module ActiveRecord
 
               def interpolate_sql(sql)
                 instance_eval("%@#{sql.gsub('@', '\@')}@")
-              end
-              
-            private
-              def cascade_alias
-                active_record.connection.table_alias_for "#{pluralize(reflection.name)}_#{parent_table_name}"
               end
           end
         end

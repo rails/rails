@@ -11,7 +11,7 @@ require 'fixtures/topic'
 require 'fixtures/reply'
 
 class CascadedEagerLoadingTest < Test::Unit::TestCase
-  fixtures :authors, :mixins, :companies, :posts, :categorizations, :topics
+  fixtures :authors, :mixins, :companies, :posts, :topics
 
   def test_eager_association_loading_with_cascaded_two_levels
     authors = Author.find(:all, :include=>{:posts=>:comments}, :order=>"authors.id")
@@ -94,7 +94,7 @@ class CascadedEagerLoadingTest < Test::Unit::TestCase
       author.posts.first.very_special_comment
     end
   end
-  
+
   def test_eager_association_loading_of_stis_with_multiple_references
     authors = Author.find(:all, :include => { :posts => { :special_comments => { :post => [ :special_comments, :very_special_comment ] } } }, :order => 'comments.body, very_special_comments_posts.body', :conditions => 'posts.id = 4')
     assert_equal [authors(:david)], authors
@@ -103,9 +103,36 @@ class CascadedEagerLoadingTest < Test::Unit::TestCase
       authors.first.posts.first.special_comments.first.post.very_special_comment
     end
   end
-  
-  def test_eager_association_loading_with_recursive_cascaded_three_levels
+
+  def test_eager_association_loading_with_recursive_cascading_three_levels_has_many
     root_node = RecursivelyCascadedTreeMixin.find(:first, :include=>{:children=>{:children=>:children}}, :order => 'mixins.id')
     assert_equal mixins(:recursively_cascaded_tree_4), assert_no_queries { root_node.children.first.children.first.children.first }
+  end
+
+  def test_eager_association_loading_with_recursive_cascading_three_levels_has_one
+    root_node = RecursivelyCascadedTreeMixin.find(:first, :include=>{:first_child=>{:first_child=>:first_child}}, :order => 'mixins.id')
+    assert_equal mixins(:recursively_cascaded_tree_4), assert_no_queries { root_node.first_child.first_child.first_child }
+  end
+
+  def test_eager_association_loading_with_recursive_cascading_three_levels_belongs_to
+    leaf_node = RecursivelyCascadedTreeMixin.find(:first, :include=>{:parent=>{:parent=>:parent}}, :order => 'mixins.id DESC')
+    assert_equal mixins(:recursively_cascaded_tree_1), assert_no_queries { leaf_node.parent.parent.parent }
+  end
+end
+
+
+require 'fixtures/vertex'
+require 'fixtures/edge'
+class CascadedEagerLoadingTest < Test::Unit::TestCase
+  fixtures :edges, :vertices
+
+  def test_eager_association_loading_with_recursive_cascading_four_levels_has_many_through
+    source = Vertex.find(:first, :include=>{:sinks=>{:sinks=>{:sinks=>:sinks}}}, :order => 'vertices.id')
+    assert_equal vertices(:vertex_4), assert_no_queries { source.sinks.first.sinks.first.sinks.first }
+  end
+
+  def test_eager_association_loading_with_recursive_cascading_four_levels_has_and_belongs_to_many
+    sink = Vertex.find(:first, :include=>{:sources=>{:sources=>{:sources=>:sources}}}, :order => 'vertices.id DESC')
+    assert_equal vertices(:vertex_1), assert_no_queries { sink.sources.first.sources.first.sources.first.sources.first }
   end
 end

@@ -1,0 +1,6 @@
+<% (1..4).each do |id| %>
+edge_<%= id %>:
+  id: <%= id %>
+  source_id: <%= id %>
+  sink_id: <%= id + 1 %>
+<% end %>

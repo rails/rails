@@ -1,0 +1,4 @@
+<% (1..5).each do |id| %>
+vertex_<%= id %>:
+  id: <%= id %>
+<% end %>

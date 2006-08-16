@@ -39,4 +39,14 @@ ActiveRecord::Schema.define do
     t.column :author_id, :integer
     t.column :favorite_author_id, :integer
   end
+
+  create_table :vertices, :force => true do |t|
+    t.column :label, :string
+  end
+
+  create_table :edges, :force => true do |t|
+    t.column :source_id, :integer, :null => false
+    t.column :sink_id,   :integer, :null => false
+  end
+  add_index :edges, [:source_id, :sink_id], :unique => true
 end
