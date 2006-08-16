@@ -313,6 +313,16 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     firm.account = Account.find(:first).clone
     assert_queries(2) { firm.save! }
   end
+  
+  def test_save_still_works_after_accessing_nil_has_one
+    jp = Company.new :name => 'Jaded Pixel'
+    jp.dummy_account.nil?
+    
+    assert_nothing_raised do
+      jp.save!
+    end    
+  end
+  
 end
 
 

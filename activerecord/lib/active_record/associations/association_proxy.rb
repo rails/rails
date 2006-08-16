@@ -119,21 +119,20 @@ module ActiveRecord
         
       private
         def method_missing(method, *args, &block)
-          load_target
-          @target.send(method, *args, &block)
+          if load_target        
+            @target.send(method, *args, &block)
+          end
         end
 
         def load_target
-          if !@owner.new_record? || foreign_key_present
-            begin
-              @target = find_target unless loaded?
-            rescue ActiveRecord::RecordNotFound
-              reset
-            end
+          if !loaded? and (!@owner.new_record? || foreign_key_present)
+            @target = find_target
           end
 
-          loaded
-          target
+          @loaded = true
+          @target
+        rescue ActiveRecord::RecordNotFound
+          reset
         end
 
         # Can be overwritten by associations that might have the foreign key available for an association without
