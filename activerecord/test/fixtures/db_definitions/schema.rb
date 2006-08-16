@@ -48,5 +48,5 @@ ActiveRecord::Schema.define do
     t.column :source_id, :integer, :null => false
     t.column :sink_id,   :integer, :null => false
   end
-  add_index :edges, [:source_id, :sink_id], :unique => true
+  add_index :edges, [:source_id, :sink_id], :unique => true, :name => 'unique_edge_index'
 end
