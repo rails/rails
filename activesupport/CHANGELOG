@@ -1,5 +1,7 @@
 *SVN*
 
+* Stop using defined? in Dependencies.qualified_const_defined? since defined? may invoke const_missing. [Nicholas Seckar]
+
 * Dependencies can autoload directories of nested classes. [Jeremy Kemper]
     Example:
       invoice.rb            class Invoice

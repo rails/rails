@@ -1,5 +1,13 @@
 require File.dirname(__FILE__) + '/abstract_unit'
 
+module ModuleWithMissing
+  mattr_accessor :missing_count
+  def self.const_missing(name)
+    self.missing_count += 1
+    name
+  end
+end
+
 class DependenciesTest < Test::Unit::TestCase
   
   def teardown
@@ -247,6 +255,14 @@ class DependenciesTest < Test::Unit::TestCase
     assert Dependencies.qualified_const_defined?("::Object::Kernel")
     assert Dependencies.qualified_const_defined?("::Object::Dependencies")
     assert Dependencies.qualified_const_defined?("::Test::Unit::TestCase")
+  end
+  
+  def test_qualified_const_defined_should_not_call_method_missing
+    ModuleWithMissing.missing_count = 0
+    assert ! Dependencies.qualified_const_defined?("ModuleWithMissing::A")
+    assert_equal 0, ModuleWithMissing.missing_count
+    assert ! Dependencies.qualified_const_defined?("ModuleWithMissing::A::B")
+    assert_equal 0, ModuleWithMissing.missing_count
   end
   
   def test_autoloaded?

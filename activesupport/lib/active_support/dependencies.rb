@@ -96,7 +96,17 @@ module Dependencies #:nodoc:
   def qualified_const_defined?(path)
     raise NameError, "#{path.inspect} is not a valid constant name!" unless
       /^(::)?([A-Z]\w*)(::[A-Z]\w*)*$/ =~ path
-    Object.module_eval("defined?(#{path})", __FILE__, __LINE__)
+    
+    names = path.split('::')
+    names.shift if names.first.empty?
+    
+    # We can't use defined? because it will invoke const_missing for the parent
+    # of the name we are checking.
+    names.inject(Object) do |mod, name|
+      return false unless mod.const_defined? name
+      mod.const_get name
+    end
+    return true
   end
   
   # Given +path+ return an array of constant paths which would cause Dependencies
