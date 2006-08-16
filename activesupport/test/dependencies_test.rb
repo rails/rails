@@ -125,17 +125,45 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
 
-  def test_directories_should_manifest_as_modules
+  def test_directories_manifest_as_modules_unless_const_defined
     with_loading 'autoloading_fixtures' do
       assert_kind_of Module, ModuleFolder
       Object.send :remove_const, :ModuleFolder
     end
   end
 
-  def test_nested_class_access
+  def test_module_with_nested_class
     with_loading 'autoloading_fixtures' do
       assert_kind_of Class, ModuleFolder::NestedClass
       Object.send :remove_const, :ModuleFolder
+    end
+  end
+
+  def test_module_with_nested_inline_class
+    with_loading 'autoloading_fixtures' do
+      assert_kind_of Class, ModuleFolder::InlineClass
+      Object.send :remove_const, :ModuleFolder
+    end
+  end
+
+  def test_directories_may_manifest_as_nested_classes
+    with_loading 'autoloading_fixtures' do
+      assert_kind_of Class, ClassFolder
+      Object.send :remove_const, :ClassFolder
+    end
+  end
+
+  def test_class_with_nested_class
+    with_loading 'autoloading_fixtures' do
+      assert_kind_of Class, ClassFolder::NestedClass
+      Object.send :remove_const, :ClassFolder
+    end
+  end
+
+  def test_class_with_nested_inline_class
+    with_loading 'autoloading_fixtures' do
+      assert_kind_of Class, ClassFolder::InlineClass
+      Object.send :remove_const, :ClassFolder
     end
   end
 

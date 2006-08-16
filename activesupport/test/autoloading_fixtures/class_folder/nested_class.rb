@@ -1,4 +1,4 @@
-module ModuleFolder
+class ClassFolder
   class NestedClass
   end
 end

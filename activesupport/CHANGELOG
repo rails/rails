@@ -1,5 +1,10 @@
 *SVN*
 
+* Dependencies can autoload directories of nested classes. [Jeremy Kemper]
+    Example:
+      invoice.rb            class Invoice
+      invoice/lineitem.rb   class Invoice::Lineitem
+
 * Add Deprecation.silence so that Reloadable does not scold itself. [Nicholas Seckar]
 
 * Add debugging logging to Dependencies. Currently can be enabled with Dependencies.log_activity = true; adding to Initializer and documenting is forthcoming. [Nicholas Seckar]

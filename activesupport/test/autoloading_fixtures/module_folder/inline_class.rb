@@ -1,0 +1,2 @@
+class ModuleFolder::InlineClass
+end

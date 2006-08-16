@@ -282,7 +282,11 @@ class Class
       super
     else
       begin
-        parent.send :const_missing, class_id
+        begin
+          Dependencies.load_missing_constant self, class_id
+        rescue NameError
+          parent.send :const_missing, class_id
+        end
       rescue NameError => e
         # Make sure that the name we are missing is the one that caused the error
         parent_qualified_name = Dependencies.qualified_name_for parent, class_id
