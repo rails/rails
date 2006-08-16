@@ -75,9 +75,9 @@ module Dependencies #:nodoc:
         load_args << const_path unless const_path.nil?
         
         if !warnings_on_first_load or history.include?(expanded)
-          load_file(*load_args)
+          result = load_file(*load_args)
         else
-          enable_warnings { load_file(*load_args) }
+          enable_warnings { result = load_file(*load_args) }
         end
       rescue
         loaded.delete expanded
@@ -85,11 +85,12 @@ module Dependencies #:nodoc:
       end
     else
       log "requiring #{file_name}"
-      require file_name
+      result = require file_name
     end
 
     # Record history *after* loading so first load gets warnings.
     history << expanded
+    return result
   end
   
   # Is the provided constant path defined?
@@ -157,12 +158,13 @@ module Dependencies #:nodoc:
     const_paths = [const_paths].compact unless const_paths.is_a? Array
     undefined_before = const_paths.reject(&method(:qualified_const_defined?))
     
-    load path
+    result = load path
     
     newly_defined_paths = const_paths.select(&method(:qualified_const_defined?))
     autoloaded_constants.concat newly_defined_paths
     autoloaded_constants.uniq!
     log "loading #{path} defined #{newly_defined_paths * ', '}" unless newly_defined_paths.empty?
+    return result
   end
   
   # Return the constant path for the provided parent and constant name.

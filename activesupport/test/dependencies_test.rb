@@ -61,11 +61,11 @@ class DependenciesTest < Test::Unit::TestCase
   end
 
   def test_warnings_should_be_enabled_on_first_load
-    with_loading do
+    with_loading 'dependencies' do
       old_warnings, Dependencies.warnings_on_first_load = Dependencies.warnings_on_first_load, true
 
-      filename = "#{File.dirname(__FILE__)}/dependencies/check_warnings"
-      expanded = File.expand_path(filename)
+      filename = "check_warnings"
+      expanded = File.expand_path("test/dependencies/#{filename}")
       $check_warnings_load_count = 0
 
       assert !Dependencies.loaded.include?(expanded)
