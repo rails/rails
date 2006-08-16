@@ -1,5 +1,8 @@
 *SVN*
 
+* Nested classes are given table names prefixed by the singular form of the parent's table name. [Jeremy Kemper]
+    Example: Invoice::Lineitem is given table name invoice_lineitems
+
 * Migrations: uniquely name multicolumn indexes so you don't have to. [Jeremy Kemper]
     # people_active_last_name_index, people_active_deactivated_at_index
     add_index    :people, [:active, :last_name]

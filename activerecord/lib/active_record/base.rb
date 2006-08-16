@@ -588,21 +588,35 @@ module ActiveRecord #:nodoc:
       # to guess the table name from even when called on Reply. The rules used to do the guess are handled by the Inflector class
       # in Active Support, which knows almost all common English inflections (report a bug if your inflection isn't covered).
       #
-      # Additionally, the class-level table_name_prefix is prepended to the table_name and the table_name_suffix is appended.
-      # So if you have "myapp_" as a prefix, the table name guess for an Account class becomes "myapp_accounts".
+      # Nested classes are given table names prefixed by the singular form of
+      # the parent's table name. Example:
+      #   file                  class               table_name
+      #   invoice.rb            Invoice             invoices
+      #   invoice/lineitem.rb   Invoice::Lineitem   invoice_lineitems
       #
-      # You can also overwrite this class method to allow for unguessable links, such as a Mouse class with a link to a
-      # "mice" table. Example:
+      # Additionally, the class-level table_name_prefix is prepended and the
+      # table_name_suffix is appended.  So if you have "myapp_" as a prefix,
+      # the table name guess for an Invoice class becomes "myapp_invoices".
+      # Invoice::Lineitem becomes "myapp_invoice_lineitems".
+      #
+      # You can also overwrite this class method to allow for unguessable
+      # links, such as a Mouse class with a link to a "mice" table. Example:
       #
       #   class Mouse < ActiveRecord::Base
-      #      set_table_name "mice"
+      #     set_table_name "mice"
       #   end
       def table_name
         reset_table_name
       end
 
       def reset_table_name #:nodoc:
-        name = "#{table_name_prefix}#{undecorated_table_name(base_class.name)}#{table_name_suffix}"
+        # If this is a nested class, prefix with singular parent table name.
+        if parent < ActiveRecord::Base && !parent.abstract_class?
+          contained = parent.table_name
+          contained = contained.singularize if parent.pluralize_table_names
+          contained << '_'
+        end
+        name = "#{table_name_prefix}#{contained}#{undecorated_table_name(base_class.name)}#{table_name_suffix}"
         set_table_name(name)
         name
       end
