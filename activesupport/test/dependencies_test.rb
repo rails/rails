@@ -51,7 +51,7 @@ class DependenciesTest < Test::Unit::TestCase
       $raises_exception_load_count = 0
 
       5.times do |count|
-        assert_raises(RuntimeError) { require_dependency filename }
+        assert_raises(Exception) { require_dependency filename }
         assert_equal count + 1, $raises_exception_load_count
 
         assert !Dependencies.loaded.include?(filename)
@@ -383,6 +383,14 @@ class DependenciesTest < Test::Unit::TestCase
         flunk "Expected exception"
       rescue ArgumentError => e
         assert_match %r{ServiceOne has been removed from the module tree}i, e.message
+      end
+    end
+  end
+  
+  def test_nested_load_error_isnt_rescued
+    with_loading 'dependencies' do
+      assert_raises(MissingSourceFile) do
+        RequiresNonexistent1
       end
     end
   end
