@@ -79,7 +79,7 @@ module Dependencies #:nodoc:
         else
           enable_warnings { result = load_file(*load_args) }
         end
-      rescue
+      rescue Exception
         loaded.delete expanded
         raise
       end
