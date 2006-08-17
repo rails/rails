@@ -372,4 +372,19 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
   
+  def test_removal_from_tree_should_be_detected
+    with_loading 'dependencies' do
+      root = Dependencies.autoload_paths.first
+      c = ServiceOne
+      Dependencies.clear
+      assert ! defined?(ServiceOne)
+      begin
+        Dependencies.load_missing_constant(c, :FakeMissing)
+        flunk "Expected exception"
+      rescue ArgumentError => e
+        assert_match %r{ServiceOne has been removed from the module tree}i, e.message
+      end
+    end
+  end
+  
 end

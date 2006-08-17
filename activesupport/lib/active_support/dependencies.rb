@@ -182,6 +182,10 @@ module Dependencies #:nodoc:
     # If we have an anonymous module, all we can do is attempt to load from Object.
     from_mod = Object if from_mod.name.empty?
     
+    unless qualified_const_defined?(from_mod.name) && from_mod.name.constantize.object_id == from_mod.object_id
+      raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
+    end
+    
     raise ArgumentError, "Expected #{from_mod} is not missing constant #{const_name}!" if from_mod.const_defined?(const_name)
     
     qualified_name = qualified_name_for from_mod, const_name

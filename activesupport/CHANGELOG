@@ -1,5 +1,7 @@
 *SVN*
 
+* Detect missing_constants calls from removed modules and fail accordingly. [Nicholas Seckar]
+
 * Stop using defined? in Dependencies.qualified_const_defined? since defined? may invoke const_missing. [Nicholas Seckar]
 
 * Dependencies can autoload directories of nested classes. [Jeremy Kemper]
