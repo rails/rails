@@ -1,6 +1,8 @@
 *SVN*
 
-* Fixed a bug which would cause .save to fail after trying to access a empty has_one association on a unsaved record. [Tobias Luetke] 
+* Cache nil results for :included has_one associations also.  #5787 [Michael Schoen]
+
+* Fixed a bug which would cause .save to fail after trying to access a empty has_one association on a unsaved record. [Tobias Luetke]
 
 * Nested classes are given table names prefixed by the singular form of the parent's table name. [Jeremy Kemper]
     Example: Invoice::Lineitem is given table name invoice_lineitems

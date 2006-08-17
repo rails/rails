@@ -870,7 +870,7 @@ module ActiveRecord
           end
 
           define_method("set_#{reflection.name}_target") do |target|
-            return if target.nil?
+            return if target.nil? and association_proxy_class == BelongsToAssociation
             association = association_proxy_class.new(self, reflection)
             association.target = target
             instance_variable_set("@#{reflection.name}", association)
@@ -1311,11 +1311,15 @@ module ActiveRecord
                 when :has_many, :has_and_belongs_to_many
                   collection = record.send(join.reflection.name)
                   collection.loaded
-    
+
                   return nil if record.id.to_s != join.parent.record_id(row).to_s or row[join.aliased_primary_key].nil?
                   association = join.instantiate(row)
                   collection.target.push(association) unless collection.target.include?(association)
-                when :has_one, :belongs_to
+                when :has_one
+                  return if record.id.to_s != join.parent.record_id(row).to_s
+                  association = join.instantiate(row) unless row[join.aliased_primary_key].nil?
+                  record.send("set_#{join.reflection.name}_target", association)
+                when :belongs_to
                   return if record.id.to_s != join.parent.record_id(row).to_s or row[join.aliased_primary_key].nil?
                   association = join.instantiate(row)
                   record.send("set_#{join.reflection.name}_target", association)
