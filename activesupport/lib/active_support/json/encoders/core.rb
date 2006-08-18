@@ -16,24 +16,25 @@ module ActiveSupport
       define_encoder NilClass do
         'null'
       end
+
+      ESCAPED_CHARS = {
+        "\010" =>  '\b',
+        "\f" =>    '\f',
+        "\n" =>    '\n',
+        "\r" =>    '\r',
+        "\t" =>    '\t',
+        '"' =>     '\"',
+        '\\' =>    '\\\\'
+      }
       
       define_encoder String do |string|
-        returning value = '"' do
-          string.each_char do |char|
-            value << case
-            when char == "\010":  '\b'
-            when char == "\f":    '\f'
-            when char == "\n":    '\n'
-            when char == "\r":    '\r'
-            when char == "\t":    '\t'
-            when char == '"':     '\"'
-            when char == '\\':    '\\\\'  
-            when char.length > 1: "\\u#{'%04x' % char.unpack('U').first}"
-            else;                 char
-            end
-          end
-          value << '"'
-        end
+        '"' + string.gsub(/[\010\f\n\r\t"\\]/) { |s|
+          ESCAPED_CHARS[s]
+        }.gsub(/([\xC0-\xDF][\x80-\xBF]|
+                 [\xE0-\xEF][\x80-\xBF]{2}|
+                 [\xF0-\xF7][\x80-\xBF]{3})+/ux) { |s|
+          s.unpack("U*").pack("n*").unpack("H*")[0].gsub(/.{4}/, '\\\\u\&')
+        } + '"'
       end
       
       define_encoder Numeric do |numeric|
