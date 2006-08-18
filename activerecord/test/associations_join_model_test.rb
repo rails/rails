@@ -363,14 +363,24 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
     assert_nil posts(:thinking).tags.find_by_name("General").attributes["tag_id"]
   end
 
-  def test_raise_error_when_adding_to_has_many_through
-    assert_raise(ActiveRecord::ReadOnlyAssociation) { posts(:thinking).tags <<     tags(:general)  }
-    assert_raise(ActiveRecord::ReadOnlyAssociation) { posts(:thinking).tags.push   tags(:general)  }
-    assert_raise(ActiveRecord::ReadOnlyAssociation) { posts(:thinking).tags.concat tags(:general)  }
-    assert_raise(ActiveRecord::ReadOnlyAssociation) { posts(:thinking).tags.build(:name => 'foo')  }
-    assert_raise(ActiveRecord::ReadOnlyAssociation) { posts(:thinking).tags.create(:name => 'foo') }
+  def test_raise_error_when_adding_new_record_to_has_many_through
+    assert_raise(ActiveRecord::HasManyThroughCantAssociateNewRecords) { posts(:thinking).tags << tags(:general).clone }
+    assert_raise(ActiveRecord::HasManyThroughCantAssociateNewRecords) { posts(:thinking).clone.tags << tags(:general) }
+    assert_raise(ActiveRecord::HasManyThroughCantAssociateNewRecords) { posts(:thinking).tags.build }
   end
-  
+
+  def test_create_associate_when_adding_to_has_many_through
+    count = Tagging.count
+    assert_nothing_raised { posts(:thinking).tags << tags(:general) }
+    assert_equal(count + 1, Tagging.count)
+
+    assert_nothing_raised { posts(:thinking).tags.create!(:name => 'foo') }
+    assert_equal(count + 2, Tagging.count)
+
+    assert_nothing_raised { posts(:thinking).tags.concat(Tag.create!(:name => 'abc'), Tag.create!(:name => 'def')) }
+    assert_equal(count + 4, Tagging.count)
+  end
+
   def test_has_many_through_sum_uses_calculations
     assert_nothing_raised { authors(:david).comments.sum(:post_id) }
   end

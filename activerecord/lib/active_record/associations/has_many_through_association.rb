@@ -22,12 +22,12 @@ module ActiveRecord
         elsif @reflection.options[:order]
           options[:order] = @reflection.options[:order]
         end
-        
+
         options[:select]  = construct_select(options[:select])
         options[:from]  ||= construct_from
         options[:joins]   = construct_joins(options[:joins])
         options[:include] = @reflection.source_reflection.options[:include] if options[:include].nil?
-        
+
         merge_options_from_reflection!(options)
 
         # Pass through args exactly as we received them.
@@ -40,19 +40,41 @@ module ActiveRecord
         @loaded = false
       end
 
+      # Adds records to the association. The source record and its associates
+      # must have ids in order to create records associating them, so this
+      # will raise ActiveRecord::HasManyThroughCantAssociateNewRecords if
+      # either is a new record.  Calls create! so you can rescue errors.
       def <<(*args)
-        raise ActiveRecord::ReadOnlyAssociation.new(@reflection)
+        return if args.empty?
+        through = @reflection.through_reflection
+        raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) if @owner.new_record?
+
+        klass = through.klass
+        klass.transaction do
+          args.each do |associate|
+            raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) unless associate.respond_to?(:new_record?) && !associate.new_record?
+            klass.with_scope(:create => construct_association_attributes(through)) { klass.create! }
+          end
+        end
       end
 
-      [:push, :concat, :create, :build].each do |method|
-        alias_method method, :<<
+      [:push, :concat].each { |method| alias_method method, :<< }
+
+      def build(attrs = nil)
+        raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, @reflection.through_reflection)
       end
-      
+
+      def create!(attrs = nil)
+        @reflection.klass.transaction do
+          self << @reflection.klass.with_scope(:create => attrs) { @reflection.klass.create! }
+        end
+      end
+
       # Calculate sum using SQL, not Enumerable
       def sum(*args, &block)
         calculate(:sum, *args, &block)
       end
-      
+
       protected
         def method_missing(method, *args, &block)
           if @target.respond_to?(method) || (!@reflection.klass.respond_to?(method) && Class.respond_to?(method))
@@ -63,12 +85,12 @@ module ActiveRecord
         end
 
         def find_target
-          records = @reflection.klass.find(:all, 
+          records = @reflection.klass.find(:all,
             :select     => construct_select,
             :conditions => construct_conditions,
             :from       => construct_from,
             :joins      => construct_joins,
-            :order      => @reflection.options[:order], 
+            :order      => @reflection.options[:order],
             :limit      => @reflection.options[:limit],
             :group      => @reflection.options[:group],
             :include    => @reflection.options[:include] || @reflection.source_reflection.options[:include]
@@ -77,27 +99,44 @@ module ActiveRecord
           @reflection.options[:uniq] ? records.to_set.to_a : records
         end
 
-        def construct_conditions
-          conditions = if @reflection.through_reflection.options[:as]
-              "#{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.options[:as]}_id = #{@owner.quoted_id} " + 
-              "AND #{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.options[:as]}_type = #{@owner.class.quote @owner.class.base_class.name.to_s}"
+        def construct_association_attributes(reflection)
+          if as = reflection.options[:as]
+            { "#{as}_id" => @owner.id,
+              "#{as}_type" => @owner.class.base_class.name.to_s }
           else
-            "#{@reflection.through_reflection.table_name}.#{@reflection.through_reflection.primary_key_name} = #{@owner.quoted_id}"
+            { reflection.primary_key_name => @owner.id }
           end
-          conditions << " AND (#{sql_conditions})" if sql_conditions
-          
-          return conditions
+        end
+
+        def construct_quoted_association_attributes(reflection)
+          if as = reflection.options[:as]
+            { "#{as}_id" => @owner.quoted_id,
+              "#{as}_type" => reflection.klass.quote(
+                @owner.class.base_class.name.to_s,
+                reflection.klass.columns_hash["#{as}_type"]) }
+          else
+            { reflection.primary_key_name => @owner.quoted_id }
+          end
+        end
+
+        def construct_conditions
+          table_name = @reflection.through_reflection.table_name
+          conditions = construct_quoted_association_attributes(@reflection.through_reflection).map do |attr, value|
+            "#{table_name}.#{attr} = #{value}"
+          end
+          conditions << sql_conditions if sql_conditions
+          "(" + conditions.join(') AND (') + ")"
         end
 
         def construct_from
           @reflection.table_name
         end
-        
+
         def construct_select(custom_select = nil)
-          selected = custom_select || @reflection.options[:select] || "#{@reflection.table_name}.*"          
+          selected = custom_select || @reflection.options[:select] || "#{@reflection.table_name}.*"
         end
-        
-        def construct_joins(custom_joins = nil)          
+
+        def construct_joins(custom_joins = nil)
           polymorphic_join = nil
           if @reflection.through_reflection.options[:as] || @reflection.source_reflection.macro == :belongs_to
             reflection_primary_key = @reflection.klass.primary_key
@@ -120,14 +159,15 @@ module ActiveRecord
             polymorphic_join
           ]
         end
-        
+
         def construct_scope
-          {
-            :find   => { :from => construct_from, :conditions => construct_conditions, :joins => construct_joins, :select => construct_select },
-            :create => { @reflection.primary_key_name => @owner.id }
-          }
+          { :create => construct_association_attributes(@reflection),
+            :find   => { :from        => construct_from,
+                         :conditions  => construct_conditions,
+                         :joins       => construct_joins,
+                         :select      => construct_select } }
         end
-        
+
         def construct_sql
           case
             when @reflection.options[:finder_sql]
@@ -147,14 +187,14 @@ module ActiveRecord
             @counter_sql = @finder_sql
           end
         end
-        
+
         def conditions
           @conditions ||= [
             (interpolate_sql(@reflection.active_record.send(:sanitize_sql, @reflection.options[:conditions])) if @reflection.options[:conditions]),
             (interpolate_sql(@reflection.active_record.send(:sanitize_sql, @reflection.through_reflection.options[:conditions])) if @reflection.through_reflection.options[:conditions])
           ].compact.collect { |condition| "(#{condition})" }.join(' AND ') unless (!@reflection.options[:conditions] && !@reflection.through_reflection.options[:conditions])
         end
-        
+
         alias_method :sql_conditions, :conditions
     end
   end

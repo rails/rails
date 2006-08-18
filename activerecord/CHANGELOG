@@ -1,5 +1,17 @@
 *SVN*
 
+* Add records to has_many :through using <<, push, and concat by creating the association record. Raise if base or associate are new records since both ids are required to create the association. #build raises since you can't associate an unsaved record. #create! takes an attributes hash and creates the associated record and its association in a transaction. [Jeremy Kemper]
+
+    # Create a tagging to associate the post and tag.
+    post.tags << Tag.find_by_name('old')
+    post.tags.create! :name => 'general'
+
+    # Would have been:
+    post.taggings.create!(:tag => Tag.find_by_name('finally')
+    transaction do
+      post.taggings.create!(:tag => Tag.create!(:name => 'general'))
+    end
+
 * Cache nil results for :included has_one associations also.  #5787 [Michael Schoen]
 
 * Fixed a bug which would cause .save to fail after trying to access a empty has_one association on a unsaved record. [Tobias Luetke]
