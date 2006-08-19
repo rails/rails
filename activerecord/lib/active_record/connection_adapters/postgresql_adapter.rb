@@ -1,4 +1,3 @@
-
 require 'active_record/connection_adapters/abstract_adapter'
 
 module ActiveRecord
@@ -232,7 +231,7 @@ module ActiveRecord
       def columns(table_name, name = nil) #:nodoc:
         column_definitions(table_name).collect do |name, type, default, notnull, typmod|
           # typmod now unused as limit, precision, scale all handled by superclass
-          Column.new(name, default_value(default), translate_field_type(type), notnull == "f") 
+          Column.new(name, default_value(default), translate_field_type(type), notnull == "f")
         end
       end
 
