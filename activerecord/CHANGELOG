@@ -1,5 +1,7 @@
 *SVN*
 
+* PostgreSQL: simplify index introspection query.  #5819 [stephen_purcell@yahoo.com]
+
 * Add records to has_many :through using <<, push, and concat by creating the association record. Raise if base or associate are new records since both ids are required to create the association. #build raises since you can't associate an unsaved record. #create! takes an attributes hash and creates the associated record and its association in a transaction. [Jeremy Kemper]
 
     # Create a tagging to associate the post and tag.
