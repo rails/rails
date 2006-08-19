@@ -44,18 +44,26 @@ module ActiveRecord
       # must have ids in order to create records associating them, so this
       # will raise ActiveRecord::HasManyThroughCantAssociateNewRecords if
       # either is a new record.  Calls create! so you can rescue errors.
-      def <<(*args)
-        return if args.empty?
+      #
+      # The :before_add and :after_add callbacks are not yet supported.
+      def <<(*records)
+        return if records.empty?
         through = @reflection.through_reflection
         raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) if @owner.new_record?
 
+        load_target
+
         klass = through.klass
         klass.transaction do
-          args.each do |associate|
+          flatten_deeper(records).each do |associate|
+            raise_on_type_mismatch(associate)
             raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) unless associate.respond_to?(:new_record?) && !associate.new_record?
-            klass.with_scope(:create => construct_join_attributes(associate)) { klass.create! }
+
+            @target << klass.with_scope(:create => construct_join_attributes(associate)) { klass.create! }
           end
         end
+
+        self
       end
 
       [:push, :concat].each { |method| alias_method method, :<< }

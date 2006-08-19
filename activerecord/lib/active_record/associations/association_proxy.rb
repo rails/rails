@@ -146,6 +146,11 @@ module ActiveRecord
             raise ActiveRecord::AssociationTypeMismatch, "#{@reflection.class_name} expected, got #{record.class}"
           end
         end
+
+        # Array#flatten has problems with recursive arrays. Going one level deeper solves the majority of the problems.
+        def flatten_deeper(array)
+          array.collect { |element| element.respond_to?(:flatten) ? element.flatten : element }.flatten
+        end
     end
   end
 end

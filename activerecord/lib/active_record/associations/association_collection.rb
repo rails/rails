@@ -163,11 +163,6 @@ module ActiveRecord
         end
 
       private
-        # Array#flatten has problems with recursive arrays. Going one level deeper solves the majority of the problems.
-        def flatten_deeper(array)
-          array.collect { |element| element.respond_to?(:flatten) ? element.flatten : element }.flatten
-        end
-        
         def callback(method, record)
           callbacks_for(method).each do |callback|
             case callback
