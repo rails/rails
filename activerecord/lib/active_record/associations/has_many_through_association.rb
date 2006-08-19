@@ -53,7 +53,7 @@ module ActiveRecord
         klass.transaction do
           args.each do |associate|
             raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) unless associate.respond_to?(:new_record?) && !associate.new_record?
-            klass.with_scope(:create => construct_association_attributes(through)) { klass.create! }
+            klass.with_scope(:create => construct_join_attributes(associate)) { klass.create! }
           end
         end
       end
@@ -99,7 +99,8 @@ module ActiveRecord
           @reflection.options[:uniq] ? records.to_set.to_a : records
         end
 
-        def construct_association_attributes(reflection)
+        # Construct attributes for associate pointing to owner.
+        def construct_owner_attributes(reflection)
           if as = reflection.options[:as]
             { "#{as}_id" => @owner.id,
               "#{as}_type" => @owner.class.base_class.name.to_s }
@@ -108,7 +109,13 @@ module ActiveRecord
           end
         end
 
-        def construct_quoted_association_attributes(reflection)
+        # Construct attributes for :through pointing to owner and associate.
+        def construct_join_attributes(associate)
+          construct_owner_attributes(@reflection.through_reflection).merge(@reflection.source_reflection.association_foreign_key => associate.id)
+        end
+
+        # Associate attributes pointing to owner, quoted.
+        def construct_quoted_owner_attributes(reflection)
           if as = reflection.options[:as]
             { "#{as}_id" => @owner.quoted_id,
               "#{as}_type" => reflection.klass.quote(
@@ -119,9 +126,10 @@ module ActiveRecord
           end
         end
 
+        # Build SQL conditions from attributes, qualified by table name.
         def construct_conditions
           table_name = @reflection.through_reflection.table_name
-          conditions = construct_quoted_association_attributes(@reflection.through_reflection).map do |attr, value|
+          conditions = construct_quoted_owner_attributes(@reflection.through_reflection).map do |attr, value|
             "#{table_name}.#{attr} = #{value}"
           end
           conditions << sql_conditions if sql_conditions
@@ -161,7 +169,7 @@ module ActiveRecord
         end
 
         def construct_scope
-          { :create => construct_association_attributes(@reflection),
+          { :create => construct_owner_attributes(@reflection),
             :find   => { :from        => construct_from,
                          :conditions  => construct_conditions,
                          :joins       => construct_joins,

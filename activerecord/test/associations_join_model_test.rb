@@ -370,15 +370,16 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   end
 
   def test_create_associate_when_adding_to_has_many_through
-    count = Tagging.count
-    assert_nothing_raised { posts(:thinking).tags << tags(:general) }
-    assert_equal(count + 1, Tagging.count)
+    count = posts(:thinking).tags.count
+    push = Tag.create!(:name => 'pushme')
+    assert_nothing_raised { posts(:thinking).tags << push }
+    assert_equal(count + 1, posts(:thinking).tags(true).size)
 
     assert_nothing_raised { posts(:thinking).tags.create!(:name => 'foo') }
-    assert_equal(count + 2, Tagging.count)
+    assert_equal(count + 2, posts(:thinking).tags(true).size)
 
     assert_nothing_raised { posts(:thinking).tags.concat(Tag.create!(:name => 'abc'), Tag.create!(:name => 'def')) }
-    assert_equal(count + 4, Tagging.count)
+    assert_equal(count + 4, posts(:thinking).tags(true).size)
   end
 
   def test_has_many_through_sum_uses_calculations
