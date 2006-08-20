@@ -1,5 +1,7 @@
 *SVN*
 
+* Correct example in cookies docs.  #5832 [jessemerriman@warpmail.net]
+
 * Updated to script.aculo.us 1.6.2 [Thomas Fuchs]
 
 * Relax Routing's anchor pattern warning; it was preventing use of [^/] inside restrictions. [Nicholas Seckar]

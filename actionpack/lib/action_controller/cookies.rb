@@ -4,13 +4,14 @@ module ActionController #:nodoc:
   # itself back -- just the value it holds). Examples for writing:
   #
   #   cookies[:user_name] = "david" # => Will set a simple session cookie
-  #   cookies[:login] = { :value => "XJ-122", :expires => Time.now + 360} # => Will set a cookie that expires in 1 hour
-  #   
+  #   cookies[:login] = { :value => "XJ-122", :expires => 1.hour.from_now }
+  #   # => Will set a cookie that expires in 1 hour
+  #
   # Examples for reading:
   #
   #   cookies[:user_name] # => "david"
   #   cookies.size         # => 2
-  # 
+  #
   # Example for deleting:
   #
   #   cookies.delete :user_name
@@ -35,7 +36,7 @@ module ActionController #:nodoc:
         @response.headers["cookie"] << CGI::Cookie.new(*options)
       end
   end
-  
+
   class CookieJar < Hash #:nodoc:
     def initialize(controller)
       @controller, @cookies = controller, controller.instance_variable_get("@cookies")
@@ -48,7 +49,7 @@ module ActionController #:nodoc:
     def [](name)
       @cookies[name.to_s].value.first if @cookies[name.to_s] && @cookies[name.to_s].respond_to?(:value)
     end
-    
+
     def []=(name, options)
       if options.is_a?(Hash)
         options = options.inject({}) { |options, pair| options[pair.first.to_s] = pair.last; options }
@@ -56,10 +57,10 @@ module ActionController #:nodoc:
       else
         options = { "name" => name.to_s, "value" => options }
       end
-      
+
       set_cookie(options)
     end
-    
+
     # Removes the cookie on the client machine by setting the value to an empty string
     # and setting its expiration date into the past
     def delete(name)
