@@ -1319,6 +1319,11 @@ class BasicsTest < Test::Unit::TestCase
     assert xml.include?(%(<replies><reply>))
     assert xml.include?(%(<title>The Second Topic's of the day</title>))
   end
+
+  def test_array_to_xml_including_has_many_association
+    xml = [ topics(:first), topics(:second) ].to_xml(:indent => 0, :skip_instruct => true, :include => :replies)
+    assert xml.include?(%(<replies><reply>))
+  end
   
   def test_array_to_xml_including_has_one_association
     xml = [ companies(:first_firm), companies(:rails_core) ].to_xml(:indent => 0, :skip_instruct => true, :include => :account)

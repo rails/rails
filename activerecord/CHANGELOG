@@ -1,5 +1,7 @@
 *SVN*
 
+* to_xml: correct naming of included associations.  #5831 [josh.starcher@gmail.com]
+
 * Pushing a record onto a has_many :through sets the association's foreign key to the associate's primary key and adds it to the correct association.  #5815, #5829 [josh@hasmanythrough.com]
 
 * PostgreSQL: simplify index introspection query.  #5819 [stephen_purcell@yahoo.com]

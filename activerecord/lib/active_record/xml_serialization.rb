@@ -190,7 +190,7 @@ module ActiveRecord #:nodoc:
               tag = tag.dasherize if dasherize?
 
               builder.tag!(tag) do
-                records.each { |r| r.to_xml(opts) }
+                records.each { |r| r.to_xml(opts.merge(:root => association.to_s.singularize)) }
               end
             end
           when :has_one, :belongs_to
