@@ -19,8 +19,6 @@ class TestJSONEmitters < Test::Unit::TestCase
   ArrayTests    = [[ ['a', 'b', 'c'],          %([\"a\", \"b\", \"c\"])          ],
                    [ [1, 'a', :b, nil, false], %([1, \"a\", \"b\", null, false]) ]]
 
-  HashTests     = [[ {:a => :b, :c => :d}, %({\"c\": \"d\", \"a\": \"b\"}) ]]
-
   SymbolTests   = [[ :a,     %("a")    ],
                    [ :this,  %("this") ],
                    [ :"a b", %("a b")  ]]
@@ -29,7 +27,7 @@ class TestJSONEmitters < Test::Unit::TestCase
 
   VariableTests = [[ ActiveSupport::JSON::Variable.new('foo'), 'foo'],
                    [ ActiveSupport::JSON::Variable.new('alert("foo")'), 'alert("foo")']]
-  RegexpTests   = [[ /^a/, '/^a/' ], /^\w{1,2}[a-z]+/ix, '/^\\w{1,2}[a-z]+/ix']
+  RegexpTests   = [[ /^a/, '/^a/' ], [/^\w{1,2}[a-z]+/ix, '/^\\w{1,2}[a-z]+/ix']]
 
   constants.grep(/Tests$/).each do |class_tests|
     define_method("test_#{class_tests[0..-6].downcase}") do
@@ -37,6 +35,16 @@ class TestJSONEmitters < Test::Unit::TestCase
         assert_equal pair.last, pair.first.to_json
       end
     end
+  end
+  
+  def test_hash_encoding
+    assert_equal %({\"a\": \"b\"}), { :a => :b }.to_json
+    assert_equal %({\"a\": 1}), { 'a' => 1  }.to_json
+    assert_equal %({\"a\": [1, 2]}), { 'a' => [1,2] }.to_json
+    
+    sorted_json  = 
+      '{' + {:a => :b, :c => :d}.to_json[1..-2].split(', ').sort.join(', ') + '}'
+    assert_equal %({\"a\": \"b\", \"c\": \"d\"}), sorted_json
   end
 
   def test_utf8_string_encoded_properly_when_kcode_is_utf8
