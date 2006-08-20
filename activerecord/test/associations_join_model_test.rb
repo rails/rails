@@ -372,17 +372,30 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   def test_create_associate_when_adding_to_has_many_through
     count = posts(:thinking).tags.count
     push = Tag.create!(:name => 'pushme')
-    assert_nothing_raised { posts(:thinking).tags << push }
-    assert_equal(count + 1, posts(:thinking).tags.size)
-    assert_equal(count + 1, posts(:thinking).tags(true).size)
+    post_thinking = posts(:thinking)
+    assert_nothing_raised { post_thinking.tags << push }
+    assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
+                message = "Expected a Tag in tags collection, got #{wrong.class}.")
+    assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
+                message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
+    assert_equal(count + 1, post_thinking.tags.size)
+    assert_equal(count + 1, post_thinking.tags(true).size)
 
-    assert_nothing_raised { posts(:thinking).tags.create!(:name => 'foo') }
-    assert_equal(count + 2, posts(:thinking).tags.size)
-    assert_equal(count + 2, posts(:thinking).tags(true).size)
+    assert_nothing_raised { post_thinking.tags.create!(:name => 'foo') }
+    assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
+                message = "Expected a Tag in tags collection, got #{wrong.class}.")
+    assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
+                message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
+    assert_equal(count + 2, post_thinking.tags.size)
+    assert_equal(count + 2, post_thinking.tags(true).size)
 
-    assert_nothing_raised { posts(:thinking).tags.concat(Tag.create!(:name => 'abc'), Tag.create!(:name => 'def')) }
-    assert_equal(count + 4, posts(:thinking).tags.size)
-    assert_equal(count + 4, posts(:thinking).tags(true).size)
+    assert_nothing_raised { post_thinking.tags.concat(Tag.create!(:name => 'abc'), Tag.create!(:name => 'def')) }
+    assert_nil( wrong = post_thinking.tags.detect { |t| t.class != Tag },
+                message = "Expected a Tag in tags collection, got #{wrong.class}.")
+    assert_nil( wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
+                message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
+    assert_equal(count + 4, post_thinking.tags.size)
+    assert_equal(count + 4, post_thinking.tags(true).size)
   end
 
   def test_adding_junk_to_has_many_through_should_raise_type_mismatch

@@ -59,7 +59,8 @@ module ActiveRecord
             raise_on_type_mismatch(associate)
             raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) unless associate.respond_to?(:new_record?) && !associate.new_record?
 
-            @target << klass.with_scope(:create => construct_join_attributes(associate)) { klass.create! }
+            @owner.send(@reflection.through_reflection.name).proxy_target << klass.with_scope(:create => construct_join_attributes(associate)) { klass.create! }
+            @target << associate
           end
         end
 

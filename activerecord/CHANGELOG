@@ -1,6 +1,6 @@
 *SVN*
 
-* Pushing a record onto a has_many :through sets the association's foreign key to the associate's primary key.  #5815 [josh@hasmanythrough.com]
+* Pushing a record onto a has_many :through sets the association's foreign key to the associate's primary key and adds it to the correct association.  #5815, #5829 [josh@hasmanythrough.com]
 
 * PostgreSQL: simplify index introspection query.  #5819 [stephen_purcell@yahoo.com]
 
