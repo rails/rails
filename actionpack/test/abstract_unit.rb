@@ -6,7 +6,6 @@ require 'yaml'
 require 'test/unit'
 require 'action_controller'
 require 'breakpoint'
-
 require 'action_controller/test_process'
 
 ActionController::Base.logger = nil

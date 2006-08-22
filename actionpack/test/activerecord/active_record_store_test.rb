@@ -1,32 +1,7 @@
-# Unfurl the safety net.
-path_to_ar = File.dirname(__FILE__) + '/../../../activerecord'
-if Object.const_defined?(:ActiveRecord) or File.exist?(path_to_ar)
-  begin
-
 # These tests exercise CGI::Session::ActiveRecordStore, so you're going to
 # need AR in a sibling directory to AP and have SQLite installed.
-
-unless Object.const_defined?(:ActiveRecord)
-  require File.join(path_to_ar, 'lib', 'active_record')
-end
-
-require File.dirname(__FILE__) + '/../abstract_unit'
+require File.dirname(__FILE__) + '/../active_record_unit'
 require 'action_controller/session/active_record_store'
-
-#ActiveRecord::Base.logger = Logger.new($stdout)
-begin
-  CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite3', :database => ':memory:')
-  CGI::Session::ActiveRecordStore::Session.connection
-rescue Object
-  $stderr.puts 'SQLite 3 unavailable; falling back to SQLite 2.'
-  begin
-    CGI::Session::ActiveRecordStore::Session.establish_connection(:adapter => 'sqlite', :database => ':memory:')
-    CGI::Session::ActiveRecordStore::Session.connection
-  rescue Object
-    $stderr.puts 'SQLite 2 unavailable; skipping ActiveRecordStore test suite.'
-    raise SystemExit
-  end
-end
 
 
 module CommonActiveRecordStoreTests
@@ -163,13 +138,5 @@ class SqlBypassActiveRecordStoreTest < ActiveRecordStoreTest
   def test_model_attribute
     assert_kind_of CGI::Session::ActiveRecordStore::SqlBypass, @new_session.model
     assert_equal({ 'foo' => 'bar' }, @new_session.model.data)
-  end
-end
-
-
-# End of safety net.
-  rescue Object => e
-    $stderr.puts "Skipping CGI::Session::ActiveRecordStore tests: #{e}"
-    #$stderr.puts "  #{e.backtrace.join("\n  ")}"
   end
 end

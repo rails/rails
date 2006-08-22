@@ -33,41 +33,52 @@ $stderr.flush
 
 # Define the rest of the connector
 class ActiveRecordTestConnector
-  def self.setup
-    unless self.connected || !self.able_to_connect
-      setup_connection
-      load_schema
-      self.connected = true
-    end
-  rescue Object => e
-    $stderr.puts "\nSkipping ActiveRecord assertion tests: #{e}"
-    #$stderr.puts "  #{e.backtrace.join("\n  ")}\n"
-    self.able_to_connect = false
-  end
-
-  private
-
-  def self.setup_connection
-    if Object.const_defined?(:ActiveRecord)
-      begin
-        ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :dbfile => ':memory:')
-        ActiveRecord::Base.connection
-      rescue Object
-        $stderr.puts 'SQLite 3 unavailable; falling to SQLite 2.'
-        ActiveRecord::Base.establish_connection(:adapter => 'sqlite', :dbfile => ':memory:')
-        ActiveRecord::Base.connection
+  class << self
+    def setup
+      unless self.connected || !self.able_to_connect
+        setup_connection
+        load_schema
+        require_fixture_models
+        self.connected = true
       end
-
-      Object.send(:const_set, :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name('type')) unless Object.const_defined?(:QUOTED_TYPE)
-    else
-      raise "Couldn't locate ActiveRecord."
+    rescue Object => e
+      $stderr.puts "\nSkipping ActiveRecord assertion tests: #{e}"
+      #$stderr.puts "  #{e.backtrace.join("\n  ")}\n"
+      self.able_to_connect = false
     end
-  end
 
-  # Load actionpack sqlite tables
-  def self.load_schema
-    File.read(File.dirname(__FILE__) + "/fixtures/db_definitions/sqlite.sql").split(';').each do |sql|
-      ActiveRecord::Base.connection.execute(sql) unless sql.blank?
+    private
+
+    def setup_connection
+      if Object.const_defined?(:ActiveRecord)
+        begin
+          connection_options = {:adapter => 'sqlite3', :dbfile => ':memory:'}
+          ActiveRecord::Base.establish_connection(connection_options)
+          ActiveRecord::Base.configurations = { 'sqlite3_ar_integration' => connection_options } 
+          ActiveRecord::Base.connection
+        rescue Object
+          $stderr.puts 'SQLite 3 unavailable; falling to SQLite 2.'
+          connection_options = {:adapter => 'sqlite', :dbfile => ':memory:'}
+          ActiveRecord::Base.establish_connection(connection_options)
+          ActiveRecord::Base.configurations = { 'sqlite2_ar_integration' => connection_options } 
+          ActiveRecord::Base.connection
+        end
+
+        Object.send(:const_set, :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name('type')) unless Object.const_defined?(:QUOTED_TYPE)
+      else
+        raise "Couldn't locate ActiveRecord."
+      end
+    end
+
+    # Load actionpack sqlite tables
+    def load_schema
+      File.read(File.dirname(__FILE__) + "/fixtures/db_definitions/sqlite.sql").split(';').each do |sql|
+        ActiveRecord::Base.connection.execute(sql) unless sql.blank?
+      end
+    end
+
+    def require_fixture_models
+      Dir.glob(File.dirname(__FILE__) + "/fixtures/*.rb").each {|f| require f}
     end
   end
 end
@@ -78,6 +89,10 @@ class ActiveRecordTestCase < Test::Unit::TestCase
   if ActiveRecordTestConnector.able_to_connect
     self.fixture_path = "#{File.dirname(__FILE__)}/fixtures/"
     self.use_transactional_fixtures = false
+  end
+
+  def self.fixtures(*args)
+    super if ActiveRecordTestConnector.connected
   end
 
   def setup
