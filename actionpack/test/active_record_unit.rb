@@ -4,24 +4,35 @@ require  File.dirname(__FILE__) + '/abstract_unit'
 class ActiveRecordTestConnector
   cattr_accessor :able_to_connect
   cattr_accessor :connected
-  
+
   # Set our defaults
   self.connected = false
   self.able_to_connect = true
 end
 
 # Try to grab AR
-begin
-  PATH_TO_AR = File.dirname(__FILE__) + '/../../activerecord'
-  require "#{PATH_TO_AR}/lib/active_record" unless Object.const_defined?(:ActiveRecord)
-  require "#{PATH_TO_AR}/lib/active_record/fixtures" unless Object.const_defined?(:Fixtures)
-rescue Object => e
-  $stderr.puts "\nSkipping ActiveRecord assertion tests: #{e}"
-  ActiveRecordTestConnector.able_to_connect = false
+if defined?(ActiveRecord) && defined?(Fixtures)
+  $stderr.puts 'Active Record is already loaded, running tests'
+else
+  $stderr.print 'Attempting to load Active Record... '
+  begin
+    PATH_TO_AR = "#{File.dirname(__FILE__)}/../../activerecord/lib"
+    raise "#{PATH_TO_AR} doesn't exist" unless File.directory?(PATH_TO_AR)
+    $LOAD_PATH.unshift PATH_TO_AR
+    require 'active_record'
+    require 'active_record/fixtures'
+    $stderr.puts 'success'
+  rescue Object => e
+    $stderr.print "failed. Skipping Active Record assertion tests: #{e}"
+    ActiveRecordTestConnector.able_to_connect = false
+  end
 end
+$stderr.flush
+
+
 
 # Define the rest of the connector
-class ActiveRecordTestConnector  
+class ActiveRecordTestConnector
   def self.setup
     unless self.connected || !self.able_to_connect
       setup_connection
@@ -33,12 +44,11 @@ class ActiveRecordTestConnector
     #$stderr.puts "  #{e.backtrace.join("\n  ")}\n"
     self.able_to_connect = false
   end
-  
+
   private
-  
+
   def self.setup_connection
     if Object.const_defined?(:ActiveRecord)
-          
       begin
         ActiveRecord::Base.establish_connection(:adapter => 'sqlite3', :dbfile => ':memory:')
         ActiveRecord::Base.connection
@@ -47,13 +57,13 @@ class ActiveRecordTestConnector
         ActiveRecord::Base.establish_connection(:adapter => 'sqlite', :dbfile => ':memory:')
         ActiveRecord::Base.connection
       end
-    
+
       Object.send(:const_set, :QUOTED_TYPE, ActiveRecord::Base.connection.quote_column_name('type')) unless Object.const_defined?(:QUOTED_TYPE)
     else
       raise "Couldn't locate ActiveRecord."
     end
   end
-  
+
   # Load actionpack sqlite tables
   def self.load_schema
     File.read(File.dirname(__FILE__) + "/fixtures/db_definitions/sqlite.sql").split(';').each do |sql|
@@ -61,28 +71,30 @@ class ActiveRecordTestConnector
     end
   end
 end
-  
-# Test case for inheiritance  
+
+# Test case for inheiritance
 class ActiveRecordTestCase < Test::Unit::TestCase
   # Set our fixture path
-  self.fixture_path = "#{File.dirname(__FILE__)}/fixtures/"
-  
-  def setup
-    abort_tests unless ActiveRecordTestConnector.connected = true
+  if ActiveRecordTestConnector.able_to_connect
+    self.fixture_path = "#{File.dirname(__FILE__)}/fixtures/"
+    self.use_transactional_fixtures = false
   end
-  
+
+  def setup
+    abort_tests unless ActiveRecordTestConnector.connected
+  end
+
   # Default so Test::Unit::TestCase doesn't complain
   def test_truth
   end
-  
+
   private
-  
-  # If things go wrong, we don't want to run our test cases. We'll just define them to test nothing.
-  def abort_tests
-    self.class.public_instance_methods.grep(/^test./).each do |method|
-      self.class.class_eval { define_method(method.to_sym){} }
+    # If things go wrong, we don't want to run our test cases. We'll just define them to test nothing.
+    def abort_tests
+      self.class.public_instance_methods.grep(/^test./).each do |method|
+        self.class.class_eval { define_method(method.to_sym){} }
+      end
     end
-  end
 end
 
 ActiveRecordTestConnector.setup

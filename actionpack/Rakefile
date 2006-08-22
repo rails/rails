@@ -22,7 +22,9 @@ task :default => [ :test ]
 
 # Run the unit tests
 
-Rake::TestTask.new { |t|
+task :test => [:test_action_pack, :test_active_record_integration]
+
+Rake::TestTask.new(:test_action_pack) { |t|
   t.libs << "test"
 # make sure we include the controller tests (c*) first as on some systems
 # this will not happen automatically and the tests (as a whole) will error

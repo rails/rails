@@ -1,5 +1,5 @@
 require "#{File.dirname(__FILE__)}/../active_record_unit"
-require 'fixtures/company'
+require 'fixtures/company' if ActiveRecordTestConnector.able_to_connect
 
 class ActiveRecordAssertionsController < ActionController::Base
   self.template_root = "#{File.dirname(__FILE__)}/../fixtures/"
@@ -37,10 +37,10 @@ class ActiveRecordAssertionsController < ActionController::Base
   # the safety dance......
   def rescue_action(e) raise; end
 end
-                  
+
 class ActiveRecordAssertionsControllerTest < ActiveRecordTestCase
-  fixtures :companies
-  
+  fixtures :companies if ActiveRecordTestConnector.able_to_connect
+
   def setup
     @request = ActionController::TestRequest.new
     @response = ActionController::TestResponse.new

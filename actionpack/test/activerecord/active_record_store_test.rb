@@ -70,6 +70,7 @@ class ActiveRecordStoreTest < Test::Unit::TestCase
     session_class.create_table!
 
     ENV['REQUEST_METHOD'] = 'GET'
+    ENV['REQUEST_URI'] = '/'
     CGI::Session::ActiveRecordStore.session_class = session_class
 
     @cgi = CGI.new
