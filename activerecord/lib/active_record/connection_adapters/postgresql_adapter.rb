@@ -209,7 +209,11 @@ module ActiveRecord
              AND t.oid = d.indrelid
              AND t.relname = '#{table_name}'
              AND a.attrelid = t.oid
-             AND a.attnum = ANY (d.indkey)
+             AND ( d.indkey[0]=a.attnum OR d.indkey[1]=a.attnum
+                OR d.indkey[2]=a.attnum OR d.indkey[3]=a.attnum
+                OR d.indkey[4]=a.attnum OR d.indkey[5]=a.attnum
+                OR d.indkey[6]=a.attnum OR d.indkey[7]=a.attnum
+                OR d.indkey[8]=a.attnum OR d.indkey[9]=a.attnum )
           ORDER BY i.relname
         SQL
 
