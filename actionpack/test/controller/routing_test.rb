@@ -1547,6 +1547,17 @@ class RouteSetTest < Test::Unit::TestCase
     url = set.generate({:use_route => :family_connection, :controller => "connection"}, {:controller => 'connection/manage'})
     assert_equal "/connection", url
   end
+  
+  def test_action_left_off_when_id_is_recalled
+    set.draw do |map|
+      map.connect ':controller/:action/:id'
+    end
+    assert_equal '/post', set.generate(
+      {:controller => 'post', :action => 'index'},
+      {:controller => 'post', :action => 'show', :id => '10'}
+    )
+  end
+  
 end
 
 class RoutingTest < Test::Unit::TestCase
@@ -1587,4 +1598,5 @@ class RoutingTest < Test::Unit::TestCase
     paths = ActionController::Routing.normalize_paths(load_paths)
     assert_equal %w(vendor\\rails\\railties\\builtin\\rails_info vendor\\rails\\actionpack\\lib app\\controllers app\\helpers app\\models lib .), paths
   end
+  
 end
