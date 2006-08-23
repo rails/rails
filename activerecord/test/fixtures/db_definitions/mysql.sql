@@ -51,7 +51,7 @@ CREATE TABLE `developers` (
 CREATE TABLE `projects` (
   `id` int(11) NOT NULL auto_increment,
   `name` varchar(100) default NULL,
-  `type` VARCHAR(255) NOT NULL,
+  `type` VARCHAR(255) default NULL,
   PRIMARY KEY  (`id`)
 ) TYPE=InnoDB;
 
@@ -106,7 +106,7 @@ CREATE TABLE `auto_id_tests` (
 ) TYPE=InnoDB;
 
 CREATE TABLE `entrants` (
-  `id` INTEGER NOT NULL PRIMARY KEY,
+  `id` INTEGER NOT NULL auto_increment PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL,
   `course_id` INTEGER NOT NULL
 );
@@ -131,13 +131,13 @@ CREATE TABLE `mixins` (
 ) TYPE=InnoDB;
 
 CREATE TABLE `people` (
-  `id` INTEGER NOT NULL PRIMARY KEY,
+  `id` INTEGER NOT NULL auto_increment PRIMARY KEY,
   `first_name` VARCHAR(40) NOT NULL,
   `lock_version` INTEGER NOT NULL DEFAULT 0
 ) TYPE=InnoDB;
 
 CREATE TABLE `readers` (
-    `id` int(11) NOT NULL PRIMARY KEY,
+    `id` int(11) NOT NULL auto_increment PRIMARY KEY,
     `post_id` INTEGER NOT NULL,
     `person_id` INTEGER NOT NULL
 ) TYPE=InnoDB;
@@ -149,13 +149,13 @@ CREATE TABLE `binaries` (
 ) TYPE=InnoDB;
 
 CREATE TABLE `computers` (
-  `id` INTEGER NOT NULL PRIMARY KEY,
+  `id` INTEGER NOT NULL auto_increment PRIMARY KEY,
   `developer` INTEGER NOT NULL,
   `extendedWarranty` INTEGER NOT NULL
 ) TYPE=InnoDB;
 
 CREATE TABLE `posts` (
-  `id` INTEGER NOT NULL PRIMARY KEY,
+  `id` INTEGER NOT NULL auto_increment PRIMARY KEY,
   `author_id` INTEGER,
   `title` VARCHAR(255) NOT NULL,
   `body` TEXT NOT NULL,
@@ -163,14 +163,14 @@ CREATE TABLE `posts` (
 ) TYPE=InnoDB;
 
 CREATE TABLE `comments` (
-  `id` INTEGER NOT NULL PRIMARY KEY,
+  `id` INTEGER NOT NULL auto_increment PRIMARY KEY,
   `post_id` INTEGER NOT NULL,
   `body` TEXT NOT NULL,
   `type` VARCHAR(255) NOT NULL
 ) TYPE=InnoDB;
 
 CREATE TABLE `authors` (
-  `id` INTEGER NOT NULL PRIMARY KEY,
+  `id` INTEGER NOT NULL auto_increment PRIMARY KEY,
   `name` VARCHAR(255) NOT NULL
 ) TYPE=InnoDB;
 
@@ -194,11 +194,11 @@ CREATE TABLE `categories_posts` (
 ) TYPE=InnoDB;
 
 CREATE TABLE `fk_test_has_pk` (
-  `id` INTEGER NOT NULL PRIMARY KEY
+  `id` INTEGER NOT NULL auto_increment PRIMARY KEY
 ) TYPE=InnoDB;
 
 CREATE TABLE `fk_test_has_fk` (
-  `id`    INTEGER NOT NULL PRIMARY KEY,
+  `id`    INTEGER NOT NULL auto_increment PRIMARY KEY,
   `fk_id` INTEGER NOT NULL,
 
   FOREIGN KEY (`fk_id`) REFERENCES `fk_test_has_pk`(`id`)
@@ -219,7 +219,7 @@ CREATE TABLE `legacy_things` (
 ) TYPE=InnoDB;
 
 CREATE TABLE `numeric_data` (
-  `id` INTEGER NOT NULL PRIMARY KEY,
+  `id` INTEGER NOT NULL auto_increment PRIMARY KEY,
   `bank_balance` decimal(10,2),
   `big_bank_balance` decimal(15,2),
   `world_population` decimal(10),
