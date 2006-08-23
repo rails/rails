@@ -28,7 +28,8 @@ class TC_DispatcherActionControllerXmlRpc < Test::Unit::TestCase
       {'methodName' => 'mt.alwaysFail'},
       {'methodName' => 'blogger.alwaysFail'},
       {'methodName' => 'mt.blah'},
-      {'methodName' => 'blah.blah'}
+      {'methodName' => 'blah.blah'},
+      {'methodName' => 'mt.person'}
     ])
     assert_equal [
       [["mtCat1", "mtCat2"]],
@@ -38,7 +39,8 @@ class TC_DispatcherActionControllerXmlRpc < Test::Unit::TestCase
       {"faultCode" => 3, "faultString" => "MT AlwaysFail"},
       {"faultCode" => 3, "faultString" => "Blogger AlwaysFail"},
       {"faultCode" => 4, "faultMessage" => "no such method 'blah' on API DispatcherTest::MTAPI"},
-      {"faultCode" => 4, "faultMessage" => "no such web service 'blah'"}
+      {"faultCode" => 4, "faultMessage" => "no such web service 'blah'"},
+      [{"name"=>"person1", "id"=>1}]
     ], response
   end
 

@@ -110,6 +110,7 @@ module DispatcherTest
     api_method :getCategories, :returns => [[:string]]
     api_method :bool, :returns => [:bool]
     api_method :alwaysFail
+    api_method :person, :returns => [Person]
   end
 
   class BloggerAPI < ActionWebService::API::Base
@@ -132,6 +133,10 @@ module DispatcherTest
     
     def alwaysFail
       raise "MT AlwaysFail"
+    end
+    
+    def person
+      Person.new('id' => 1, 'name' => 'person1')
     end
   end
 

@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed XMLRPC multicall when one of the called methods returns a struct object. [Kent Sibilev] 
+
 * Replace Reloadable with Reloadable::Deprecated. [Nicholas Seckar]
 
 * Fix invoke_layered since api_method didn't declare :expects. Closes #4720. [Kevin Ballard <kevin@sb.org>, Kent Sibilev]

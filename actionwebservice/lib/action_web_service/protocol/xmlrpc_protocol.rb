@@ -58,6 +58,19 @@ module ActionWebService # :nodoc:
           Response.new(raw_response, 'text/xml', return_value)
         end
 
+        def encode_multicall_response(responses, protocol_options={})
+          result = responses.map do |return_value, return_type|
+            if return_value && return_type
+              return_value = value_to_xmlrpc_wire_format(return_value, return_type) 
+              return_value = [return_value] unless return_value.nil?
+            end
+            return_value = false if return_value.nil?
+            return_value
+          end
+          raw_response = XMLRPC::Marshal.dump_response(result)
+          Response.new(raw_response, 'text/xml', result)
+        end
+
         def protocol_client(api, protocol_name, endpoint_uri, options={})
           return nil unless protocol_name == :xmlrpc
           ActionWebService::Client::XmlRpc.new(api, endpoint_uri, options)

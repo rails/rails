@@ -62,7 +62,7 @@ module ActionWebService # :nodoc:
           responses = []
           invocations.each do |invocation|
             if invocation.is_a?(Hash)
-              responses << invocation
+              responses << [invocation, nil]
               next
             end
             begin
@@ -74,15 +74,18 @@ module ActionWebService # :nodoc:
               end
               api_method = invocation.api_method
               if invocation.api.has_api_method?(api_method.name)
+                response_type = (api_method.returns ? api_method.returns[0] : nil)
                 return_value = api_method.cast_returns(return_value)
+              else
+                response_type = ActionWebService::SignatureTypes.canonical_signature_entry(return_value.class, 0)
               end
-              responses << [return_value]
+              responses << [return_value, response_type]
             rescue Exception => e
-              responses << { 'faultCode' => 3, 'faultString' => e.message }
+              responses << [{ 'faultCode' => 3, 'faultString' => e.message }, nil]
             end
           end
           invocation = invocations[0]
-          invocation.protocol.encode_response('system.multicall', responses, nil, invocation.protocol_options)
+          invocation.protocol.encode_multicall_response(responses, invocation.protocol_options)
         end
 
         def web_service_invocation(request, level = 0)
