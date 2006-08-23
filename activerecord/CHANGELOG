@@ -1,5 +1,7 @@
 *SVN*
 
+* Migrations: gracefully handle missing migration files.  #5857 [eli.gordon@gmail.com]
+
 * MySQL: update test schema for MySQL 5 strict mode.  #5861 [Tom Ward]
 
 * to_xml: correct naming of included associations.  #5831 [josh.starcher@gmail.com]

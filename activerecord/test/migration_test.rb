@@ -44,6 +44,7 @@ if ActiveRecord::Base.connection.supports_migrations?
         Person.connection.remove_column('people', column) rescue nil
       end
       Person.connection.remove_column("people", "first_name") rescue nil
+      Person.connection.remove_column("people", "middle_name") rescue nil
       Person.connection.add_column("people", "first_name", :string, :limit => 40)
       Person.reset_column_information
     end
@@ -661,5 +662,18 @@ if ActiveRecord::Base.connection.supports_migrations?
         ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations_with_duplicate/', nil)
       end
     end
+
+    def test_migrator_with_missing_version_numbers
+      ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations_with_missing_versions/', 500)
+      assert !Person.column_methods_hash.include?(:middle_name)
+    	assert_equal 4, ActiveRecord::Migrator.current_version
+			
+			ActiveRecord::Migrator.migrate(File.dirname(__FILE__) + '/fixtures/migrations_with_missing_versions/', 2)
+			assert !Reminder.table_exists?
+      assert Person.column_methods_hash.include?(:last_name)			
+			assert_equal 2, ActiveRecord::Migrator.current_version
+    end
+    
+    
   end
 end

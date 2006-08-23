@@ -382,7 +382,8 @@ module ActiveRecord
       end
       
       def reached_target_version?(version)
-        (up? && version.to_i - 1 == @target_version) || (down? && version.to_i == @target_version)
+        return false if @target_version == nil
+        (up? && version.to_i - 1 >= @target_version) || (down? && version.to_i <= @target_version)
       end
       
       def irrelevant_migration?(version)
