@@ -27,3 +27,68 @@ class UrlRewriterTests < Test::Unit::TestCase
       assert_equal(split_query_string(q1), split_query_string(q2))
     end
 end
+
+class UrlWriterTests < Test::Unit::TestCase
+  
+  class W
+    include ActionController::UrlWriter
+  end
+  
+  def teardown
+    W.default_url_options.clear
+  end
+  
+  def add_host!
+    W.default_url_options[:host] = 'www.basecamphq.com'
+  end
+  
+  def test_exception_is_thrown_without_host
+    assert_raises RuntimeError do
+      W.new.url_for :controller => 'c', :action => 'a', :id => 'i'
+    end
+  end
+  
+  def test_default_host
+    add_host!
+    assert_equal('http://www.basecamphq.com/c/a/i',
+      W.new.url_for(:controller => 'c', :action => 'a', :id => 'i')
+    )
+  end
+  
+  def test_host_may_be_overridden
+    add_host!
+    assert_equal('http://37signals.basecamphq.com/c/a/i',
+      W.new.url_for(:host => '37signals.basecamphq.com', :controller => 'c', :action => 'a', :id => 'i')
+    )
+  end
+  
+  def test_port
+    add_host!
+    assert_equal('http://www.basecamphq.com:3000/c/a/i',
+      W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :port => 3000)
+    )
+  end
+  
+  def test_protocol
+    add_host!
+    assert_equal('https://www.basecamphq.com/c/a/i',
+      W.new.url_for(:controller => 'c', :action => 'a', :id => 'i', :protocol => 'https')
+    )
+  end
+  
+  def test_named_route
+    ActionController::Routing::Routes.draw do |map|
+      map.home '/home/sweet/home/:user'
+      map.connect ':controller/:action/:id'
+    end
+    
+    # We need to create a new class in order to install the new named route.
+    kls = Class.new { include ActionController::UrlWriter }
+    assert kls.new.respond_to?(:home_url)
+    assert_equal 'http://www.basecamphq.com/home/sweet/home/again',
+      kls.new.send(:home_url, :host => 'www.basecamphq.com', :user => 'again')
+  ensure
+    ActionController::Routing::Routes.load!
+  end
+  
+end

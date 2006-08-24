@@ -1,5 +1,7 @@
 *SVN*
 
+* Add UrlWriter to allow writing urls from Mailers and scripts. [Nicholas Seckar]
+
 * Clean up and run the Active Record integration tests by default.  #5854 [kevin.clark@gmail.com, Jeremy Kemper]
 
 * Correct example in cookies docs.  #5832 [jessemerriman@warpmail.net]
