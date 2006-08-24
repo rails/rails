@@ -93,6 +93,11 @@ class FinderTest < Test::Unit::TestCase
     assert_equal(topics(:second).title, topics.first.title)
   end
   
+  def test_find_by_sql_with_sti_on_joined_table
+    accounts = Account.find_by_sql("SELECT * FROM accounts INNER JOIN companies ON companies.id = accounts.firm_id")
+    assert_equal [Account], accounts.collect(&:class).uniq
+  end
+  
   def test_find_first
     first = Topic.find(:first, :conditions => "title = 'The First Topic'")
     assert_equal(topics(:first).title, first.title)

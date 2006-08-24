@@ -1027,23 +1027,34 @@ module ActiveRecord #:nodoc:
           end
         end
 
-        # Finder methods must instantiate through this method to work with the single-table inheritance model
-        # that makes it possible to create objects of different types from the same table.
+        # Finder methods must instantiate through this method to work with the
+        # single-table inheritance model that makes it possible to create
+        # objects of different types from the same table.
         def instantiate(record)
-          object = 
+          object =
             if subclass_name = record[inheritance_column]
+              # No type given.
               if subclass_name.empty?
                 allocate
+
               else
                 require_association_class(subclass_name)
-                begin
-                  compute_type(subclass_name).allocate
-                rescue NameError
-                  raise SubclassNotFound,
-                    "The single-table inheritance mechanism failed to locate the subclass: '#{record[inheritance_column]}'. " +
-                    "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
-                    "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
-                    "or overwrite #{self.to_s}.inheritance_column to use another column for that information."
+
+                # Ignore type if no column is present since it was probably
+                # pulled in from a sloppy join.
+                unless self.columns_hash.include?(inheritance_column)
+                  allocate
+
+                else
+                  begin
+                    compute_type(subclass_name).allocate
+                  rescue NameError
+                    raise SubclassNotFound,
+                      "The single-table inheritance mechanism failed to locate the subclass: '#{record[inheritance_column]}'. " +
+                      "This error is raised because the column '#{inheritance_column}' is reserved for storing the class in case of inheritance. " +
+                      "Please rename this column if you didn't intend it to be used for storing the inheritance class " +
+                      "or overwrite #{self.to_s}.inheritance_column to use another column for that information."
+                  end
                 end
               end
             else

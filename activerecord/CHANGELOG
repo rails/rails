@@ -1,5 +1,7 @@
 *SVN*
 
+* Clashing type columns due to a sloppy join shouldn't wreck single-table inheritance.  #5838 [Kevin Clark]
+
 * Fixtures: correct escaping of \n and \r.  #5859 [evgeny.zislis@gmail.com]
 
 * Migrations: gracefully handle missing migration files.  #5857 [eli.gordon@gmail.com]
