@@ -396,7 +396,7 @@ class Fixture #:nodoc:
 
     list = @fixture.inject([]) do |fixtures, (key, value)|
       col = klass.columns_hash[key] if klass.kind_of?(ActiveRecord::Base)
-      fixtures << ActiveRecord::Base.connection.quote(value, col).gsub('\\n', "\n").gsub('\\r', "\r")
+      fixtures << ActiveRecord::Base.connection.quote(value, col).gsub('[^\]\\n', "\n").gsub('[^\]\\r', "\r")
     end
     list * ', '
   end

@@ -4,11 +4,7 @@ a_joke:
 
 another_joke:
   id: 2
-  name: The Aristocrats
-a_joke:
-  id: 1
-  name: Knock knock
+  name: |
+       The \n Aristocrats
+       Ate the candy
 
-another_joke:
-  id: 2
-  name: The Aristocrats

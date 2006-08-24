@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixtures: correct escaping of \n and \r.  #5859 [evgeny.zislis@gmail.com]
+
 * Migrations: gracefully handle missing migration files.  #5857 [eli.gordon@gmail.com]
 
 * MySQL: update test schema for MySQL 5 strict mode.  #5861 [Tom Ward]

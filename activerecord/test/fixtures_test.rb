@@ -344,6 +344,15 @@ class InvalidTableNameFixturesTest < Test::Unit::TestCase
   end
 end
 
+class CheckEscapedYamlFixturesTest < Test::Unit::TestCase
+  set_fixture_class :funny_jokes => 'Joke'
+  fixtures :funny_jokes
+
+  def test_proper_escaped_fixture
+    assert_equal "The \\n Aristocrats\nAte the candy\n", funny_jokes(:another_joke).name
+  end
+end
+
 class DevelopersProject; end;
 
 class ManyToManyFixturesWithClassDefined < Test::Unit::TestCase
