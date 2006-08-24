@@ -129,7 +129,7 @@ module ActionController
     #   You can nest resource calls to set this automatically:
     #
     #     map.resources :posts do |post|
-    #       map.resources :comments
+    #       post.resources :comments
     #     end
     # 
     # * <tt>:name_prefix</tt> -- define a prefix for all generated routes, usually ending in an underscore.
