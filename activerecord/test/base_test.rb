@@ -14,7 +14,12 @@ require 'fixtures/keyboard'
 class Category < ActiveRecord::Base; end
 class Smarts < ActiveRecord::Base; end
 class CreditCard < ActiveRecord::Base
-  class PinNumber < ActiveRecord::Base; end
+  class PinNumber < ActiveRecord::Base
+    class CvvCode < ActiveRecord::Base; end
+    class SubCvvCode < CvvCode; end
+  end
+  class SubPinNumber < PinNumber; end
+  class Brand < Category; end
 end
 class MasterCreditCard < ActiveRecord::Base; end
 class Post < ActiveRecord::Base; end
@@ -369,23 +374,33 @@ class BasicsTest < Test::Unit::TestCase
   end
 
   def test_table_name_guesses
+    classes = [Category, Smarts, CreditCard, CreditCard::PinNumber, CreditCard::PinNumber::CvvCode, CreditCard::SubPinNumber, CreditCard::Brand, MasterCreditCard]
+
     assert_equal "topics", Topic.table_name
-    
+
     assert_equal "categories", Category.table_name
     assert_equal "smarts", Smarts.table_name
     assert_equal "credit_cards", CreditCard.table_name
     assert_equal "credit_card_pin_numbers", CreditCard::PinNumber.table_name
+    assert_equal "credit_card_pin_number_cvv_codes", CreditCard::PinNumber::CvvCode.table_name
+    assert_equal "credit_card_pin_numbers", CreditCard::SubPinNumber.table_name
+    assert_equal "categories", CreditCard::Brand.table_name
     assert_equal "master_credit_cards", MasterCreditCard.table_name
 
     ActiveRecord::Base.pluralize_table_names = false
-    [Category, Smarts, CreditCard, CreditCard::PinNumber, MasterCreditCard].each{|c| c.reset_table_name}
+    classes.each(&:reset_table_name)
+
     assert_equal "category", Category.table_name
     assert_equal "smarts", Smarts.table_name
     assert_equal "credit_card", CreditCard.table_name
     assert_equal "credit_card_pin_number", CreditCard::PinNumber.table_name
+    assert_equal "credit_card_pin_number_cvv_code", CreditCard::PinNumber::CvvCode.table_name
+    assert_equal "credit_card_pin_number", CreditCard::SubPinNumber.table_name
+    assert_equal "category", CreditCard::Brand.table_name
     assert_equal "master_credit_card", MasterCreditCard.table_name
+
     ActiveRecord::Base.pluralize_table_names = true
-    [Category, Smarts, CreditCard, CreditCard::PinNumber, MasterCreditCard].each{|c| c.reset_table_name}
+    classes.each(&:reset_table_name)
 
     ActiveRecord::Base.table_name_prefix = "test_"
     Category.reset_table_name
@@ -413,8 +428,9 @@ class BasicsTest < Test::Unit::TestCase
     ActiveRecord::Base.table_name_suffix = ""
     Category.reset_table_name
     assert_equal "category", Category.table_name
+
     ActiveRecord::Base.pluralize_table_names = true
-    [Category, Smarts, CreditCard, CreditCard::PinNumber, MasterCreditCard].each{|c| c.reset_table_name}
+    classes.each(&:reset_table_name)
   end
   
   def test_destroy_all

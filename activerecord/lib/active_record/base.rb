@@ -610,13 +610,22 @@ module ActiveRecord #:nodoc:
       end
 
       def reset_table_name #:nodoc:
-        # If this is a nested class, prefix with singular parent table name.
-        if parent < ActiveRecord::Base && !parent.abstract_class?
-          contained = parent.table_name
-          contained = contained.singularize if parent.pluralize_table_names
-          contained << '_'
-        end
-        name = "#{table_name_prefix}#{contained}#{undecorated_table_name(base_class.name)}#{table_name_suffix}"
+        base = base_class
+
+        name =
+          # STI subclasses always use their superclass' table.
+          unless self == base
+            base.table_name
+          else
+            # Nested classes are prefixed with singular parent table name.
+            if parent < ActiveRecord::Base && !parent.abstract_class?
+              contained = parent.table_name
+              contained = contained.singularize if parent.pluralize_table_names
+              contained << '_'
+            end
+            name = "#{table_name_prefix}#{contained}#{undecorated_table_name(base.name)}#{table_name_suffix}"
+          end
+
         set_table_name(name)
         name
       end

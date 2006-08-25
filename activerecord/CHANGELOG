@@ -1,5 +1,7 @@
 *SVN*
 
+* Nested subclasses are not prefixed with the parent class' table_name since they should always use the base class' table_name.  #5911 [Jonathan Viney]
+
 * SQLServer: work around bug where some unambiguous date formats are not correctly identified if the session language is set to german.  #5894 [Tom Ward, kruth@bfpi]
 
 * SQLServer: fix eager association test.  #5901 [Tom Ward]
