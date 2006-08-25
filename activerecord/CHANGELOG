@@ -1,5 +1,7 @@
 *SVN*
 
+* SQLServer: work around bug where some unambiguous date formats are not correctly identified if the session language is set to german.  #5894 [Tom Ward, kruth@bfpi]
+
 * SQLServer: fix eager association test.  #5901 [Tom Ward]
 
 * Clashing type columns due to a sloppy join shouldn't wreck single-table inheritance.  #5838 [Kevin Clark]

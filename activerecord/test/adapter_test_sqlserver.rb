@@ -5,11 +5,25 @@ require 'fixtures/task'
 
 class SqlServerAdapterTest < Test::Unit::TestCase
   fixtures :posts, :tasks
-  
+
   def setup
     @connection = ActiveRecord::Base.connection
   end
-  
+
+  def teardown
+    @connection.execute("SET LANGUAGE us_english")
+  end
+
+  # SQL Server 2000 has a bug where some unambiguous date formats are not 
+  # correctly identified if the session language is set to german
+  def test_date_insertion_when_language_is_german
+    @connection.execute("SET LANGUAGE deutsch")
+
+    assert_nothing_raised do
+      Task.create(:starting => Time.utc(2000, 1, 31, 5, 42, 0), :ending => Date.new(2006, 12, 31))
+    end
+  end
+
   def test_execute_without_block_closes_statement
     assert_all_statements_used_are_closed do
       @connection.execute("SELECT 1")
