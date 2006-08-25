@@ -1,5 +1,7 @@
 *SVN*
 
+* Automatically included ActionController::UrlWriter, such that URL generation can happen within ActionMailer controllers. [DHH]
+
 * Replace Reloadable with Reloadable::Deprecated. [Nicholas Seckar]
 
 * Mailer template root applies to a class and its subclasses rather than acting globally. #5555 [somekool@gmail.com]
@@ -13,6 +15,7 @@
 * Replace Ruby's deprecated append_features in favor of included. [Marcel Molina Jr.]
 
 * Correct spurious documentation example code which results in a SyntaxError. [Marcel Molina Jr.]
+
 
 *1.2.1* (April 6th, 2006)
 
