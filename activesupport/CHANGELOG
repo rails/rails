@@ -1,5 +1,7 @@
 *SVN*
 
+* Use Array#assoc in ActiveSupport::OrderedHash. [Mauricio Fernandez]
+
 * Greatly increased performance of String.to_json, which speeds up RJS considerably on large pages, fixes #3473 [Shugo Maeda]
 
 * Detect missing_constants calls from removed modules and fail accordingly. [Nicholas Seckar]

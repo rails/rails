@@ -2,7 +2,7 @@
 module ActiveSupport
   class OrderedHash < Array #:nodoc:
     def []=(key, value)
-      if pair = find_pair(key)
+      if pair = assoc(key)
         pair.pop
         pair << value
       else
@@ -11,7 +11,7 @@ module ActiveSupport
     end
 
     def [](key)
-      pair = find_pair(key)
+      pair = assoc(key)
       pair ? pair.last : nil
     end
 
@@ -22,12 +22,6 @@ module ActiveSupport
     def values
       collect { |key, value| value }
     end
-
-    private
-      def find_pair(key)
-        self.each { |i| return i if i.first == key }
-        return false
-      end
   end
 end
 
