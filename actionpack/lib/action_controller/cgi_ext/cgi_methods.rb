@@ -156,7 +156,7 @@ class CGIMethods #:nodoc:
         
       end
       
-      return result
+      return result.with_indifferent_access
     end
     
     # Skip over the current term by scanning past the next &, or to
