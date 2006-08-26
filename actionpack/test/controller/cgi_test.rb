@@ -29,7 +29,6 @@ class CGITest < Test::Unit::TestCase
   def test_deep_query_string
     expected = {'x' => {'y' => {'z' => '10'}}}
     assert_equal(expected, CGIMethods.parse_query_parameters('x[y][z]=10'))
-    assert_equal("10", CGIMethods.parse_query_parameters('x[y][z]=10')[:x][:y][:z])
   end
   
   def test_deep_query_string_with_array
