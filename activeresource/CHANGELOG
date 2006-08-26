@@ -1,0 +1,3 @@
+*SVN*
+
+* Initial checkin: object-oriented client for restful HTTP resources which follow the Rails convention. [DHH]
