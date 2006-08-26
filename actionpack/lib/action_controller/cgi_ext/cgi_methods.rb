@@ -207,7 +207,7 @@ class CGIMethods #:nodoc:
           if top[-1].is_a?(Hash) && ! top[-1].key?(key)
             top[-1][key] = value
           else
-            top << {key => value}
+            top << {key => value}.with_indifferent_access
             push top.last
           end
         else
