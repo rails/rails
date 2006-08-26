@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../abstract_unit'
 
-class DeprecatedInstanceVariablesTest < Test::Unit::TestCase
+class DeprecatedControllerInstanceVariablesTest < Test::Unit::TestCase
   class Target < ActionController::Base
     def initialize(run = nil)
       instance_eval(run) if run
