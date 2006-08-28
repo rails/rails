@@ -17,6 +17,11 @@ class CGITest < Test::Unit::TestCase
     @query_string_without_equal = "action"
     @query_string_with_many_ampersands =
       "&action=create_customer&&&full_name=David%20Heinemeier%20Hansson"
+    @query_string_with_escaped_brackets = "subscriber%5Bfirst_name%5D=Jan5&subscriber%5B\
+last_name%5D=Waterman&subscriber%5Bemail%5D=drakn%40domain.tld&subscriber%5Bpassword\
+%5D=893ea&subscriber%5Bstreet%5D=&subscriber%5Bzip%5D=&subscriber%5Bcity%5D\
+=&commit=Update+info"
+    
   end
 
   def test_query_string
@@ -29,6 +34,15 @@ class CGITest < Test::Unit::TestCase
   def test_deep_query_string
     expected = {'x' => {'y' => {'z' => '10'}}}
     assert_equal(expected, CGIMethods.parse_query_parameters('x[y][z]=10'))
+    expected = {"commit"=>"Update info", 
+      "subscriber" => {
+          "city" => nil, "zip"=>nil,
+          "last_name" => "Waterman", "street" => nil,
+          "password" =>"893ea", "first_name" =>  "Jan5" ,
+          "email" => "drakn@domain.tld"
+      }
+    }
+    assert_equal(expected, CGIMethods.parse_query_parameters(@query_string_with_escaped_brackets))
   end
   
   def test_deep_query_string_with_array

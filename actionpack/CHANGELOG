@@ -2,8 +2,6 @@
 
 * Deprecation: test deprecated instance vars in partials. [Jeremy Kemper]
 
-* Changed the POST parameter processing to use the new QueryStringParser and make the result a indifferent hash [DHH]
-
 * Add UrlWriter to allow writing urls from Mailers and scripts. [Nicholas Seckar]
 
 * Clean up and run the Active Record integration tests by default.  #5854 [kevin.clark@gmail.com, Jeremy Kemper]

@@ -5,17 +5,13 @@ require 'strscan'
 # Static methods for parsing the query and request parameters that can be used in
 # a CGI extension class or testing in isolation.
 class CGIMethods #:nodoc:
-  
   class << self
-    # Returns a hash with the pairs from the query string. The implicit hash construction that is done in
-    # parse_request_params is not done here.
+    # DEPRECATED: Use parse_form_encoded_parameters
     def parse_query_parameters(query_string)
-      QueryStringScanner.new(query_string).parse
+      parse_form_encoded_parameters(query_string)
     end
 
-    # Returns the request (POST/GET) parameters in a parsed form where pairs such as "customer[address][street]" / 
-    # "Somewhere cool!" are translated into a full hash hierarchy, like
-    # { "customer" => { "address" => { "street" => "Somewhere cool!" } } }
+    # DEPRECATED: Use parse_form_encoded_parameters
     def parse_request_parameters(params)
       parsed_params = {}
 
@@ -32,6 +28,11 @@ class CGIMethods #:nodoc:
       end
     
       parsed_params
+    end
+    
+    # TODO: Docs
+    def parse_form_encoded_parameters(form_encoded_string)
+      FormEncodedStringScanner.decode(form_encoded_string)
     end
 
     def parse_formatted_request_parameters(mime_type, raw_post_data)
@@ -118,19 +119,24 @@ class CGIMethods #:nodoc:
       end
   end
 
-  class QueryStringScanner < StringScanner
+  class FormEncodedStringScanner < StringScanner
     attr_reader :top, :parent, :result
 
-    def initialize(string)
-      super(string)
+    def self.decode(form_encoded_string)
+      new(form_encoded_string).parse
+    end
+
+    def initialize(form_encoded_string)
+      super(unescape_keys(form_encoded_string))
     end
     
     KEY_REGEXP = %r{([^\[\]=&]+)}
     BRACKETED_KEY_REGEXP = %r{\[([^\[\]=&]+)\]}
     
-    # Parse the query string
+    
     def parse
       @result = {}
+
       until eos?
         # Parse each & delimited chunk
         @parent, @top = nil, result
@@ -150,79 +156,94 @@ class CGIMethods #:nodoc:
         if scan %r{=}
           value = scan(/[^\&]+/) # scan_until doesn't handle \Z
           value = CGI.unescape(value) if value # May be nil when eos?
-          bind key, value
+          bind(key, value)
         end
-        scan %r/\&+/ # Ignore multiple adjacent &'s
-        
+
+        scan(%r/\&+/) # Ignore multiple adjacent &'s
       end
       
       return result
     end
-    
-    # Skip over the current term by scanning past the next &, or to
-    # then end of the string if there is no next &
-    def skip_term
-      scan_until(%r/\&+/) || scan(/.+/)
-    end
-    
-    # After we see a key, we must look ahead to determine our next action. Cases:
-    # 
-    #   [] follows the key. Then the value must be an array.
-    #   = follows the key. (A value comes next)
-    #   & or the end of string follows the key. Then the key is a flag.
-    #   otherwise, a hash follows the key. 
-    def post_key_check(key)
-      if eos? || check(/\&/) # a& or a\Z indicates a is a flag.
-        bind key, nil # Curiously enough, the flag's value is nil
-        nil
-      elsif scan(/\[\]/) # a[b][] indicates that b is an array
-        container key, Array
-        nil
-      elsif check(/\[[^\]]/) # a[b] indicates that a is a hash
-        container key, Hash
-        nil
-      else # Presumably an = sign is next.
-        key
-      end
-    end
-    
-    # Add a container to the stack.
-    # 
-    def container(key, klass)
-      raise TypeError if top.is_a?(Hash) && top.key?(key) && ! top[key].is_a?(klass)
-      value = bind(key, klass.new)
-      raise TypeError unless value.is_a? klass
-      push value
-    end
-    
-    # Push a value onto the 'stack', which is actually only the top 2 items.
-    def push(value)
-      @parent, @top = @top, value
-    end
-    
-    # Bind a key (which may be nil for items in an array) to the provided value.
-    def bind(key, value)
-      if top.is_a? Array
-        if key
-          if top[-1].is_a?(Hash) && ! top[-1].key?(key)
-            top[-1][key] = value
+
+    private
+      # Turn keys like person%5Bname%5D into person[name], so they can be processed as hashes
+      def unescape_keys(query_string)
+        query_string.split('&').collect do |fragment|
+          key, value = fragment.split('=', 2)
+          
+          if key
+            key = key.gsub(/%5D/, ']').gsub(/%5B/, '[')
+            [ key, value ].join("=")
           else
-            top << {key => value}.with_indifferent_access
-            push top.last
+            fragment
           end
-        else
-          top << value
-        end
-      elsif top.is_a? Hash
-        key = CGI.unescape(key)
-        if top.key?(key) && parent.is_a?(Array)
-          parent << (@top = {})
-        end
-        return top[key] ||= value
-      else
-        # Do nothing?
+        end.join('&')
       end
-      return value
+
+      # Skip over the current term by scanning past the next &, or to
+      # then end of the string if there is no next &
+      def skip_term
+        scan_until(%r/\&+/) || scan(/.+/)
+      end
+    
+      # After we see a key, we must look ahead to determine our next action. Cases:
+      # 
+      #   [] follows the key. Then the value must be an array.
+      #   = follows the key. (A value comes next)
+      #   & or the end of string follows the key. Then the key is a flag.
+      #   otherwise, a hash follows the key. 
+      def post_key_check(key)
+        if eos? || check(/\&/) # a& or a\Z indicates a is a flag.
+          bind key, nil # Curiously enough, the flag's value is nil
+          nil
+        elsif scan(/\[\]/) # a[b][] indicates that b is an array
+          container key, Array
+          nil
+        elsif check(/\[[^\]]/) # a[b] indicates that a is a hash
+          container key, Hash
+          nil
+        else # Presumably an = sign is next.
+          key
+        end
+      end
+    
+      # Add a container to the stack.
+      # 
+      def container(key, klass)
+        raise TypeError if top.is_a?(Hash) && top.key?(key) && ! top[key].is_a?(klass)
+        value = bind(key, klass.new)
+        raise TypeError unless value.is_a? klass
+        push value
+      end
+    
+      # Push a value onto the 'stack', which is actually only the top 2 items.
+      def push(value)
+        @parent, @top = @top, value
+      end
+    
+      # Bind a key (which may be nil for items in an array) to the provided value.
+      def bind(key, value)
+        if top.is_a? Array
+          if key
+            if top[-1].is_a?(Hash) && ! top[-1].key?(key)
+              top[-1][key] = value
+            else
+              top << {key => value}.with_indifferent_access
+              push top.last
+            end
+          else
+            top << value
+          end
+        elsif top.is_a? Hash
+          key = CGI.unescape(key)
+          if top.key?(key) && parent.is_a?(Array)
+            parent << (@top = {})
+          end
+          return top[key] ||= value
+        else
+          # Do nothing?
+        end
+        return value
+      end
     end
-  end
 end
