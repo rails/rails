@@ -21,11 +21,12 @@ RUBY_FORGE_PROJECT = "rails"
 RUBY_FORGE_USER    = "webster132"
 
 
-# Rake::TestTask.new("test") do |t|
-#   t.libs << 'test'
-#   t.pattern = 'test/*_test.rb'
-#   t.verbose = true
-# end
+Rake::TestTask.new("test") do |t|
+  t.libs << 'test'
+  t.pattern = 'test/**/*_test.rb'
+  t.warning = true
+  t.verbose = true
+end
 
 
 BASE_DIRS   = %w( 
