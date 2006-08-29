@@ -1,6 +1,6 @@
 *SVN*
 
-* Cleaning up railties tests. [Kevin Clark]
+* Cleaning up tests. [Kevin Clark, Jeremy Kemper]
 
 * Add Dependencies.load_once_paths. [Nicholas Seckar]
 

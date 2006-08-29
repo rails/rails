@@ -6,20 +6,38 @@ begin
 rescue LoadError
 end
 
-# Must set before requiring generator libs.
-RAILS_ROOT = File.dirname(__FILE__)
+# Mock out what we need from AR::Base.
+module ActiveRecord
+  class Base
+    class << self
+      attr_accessor :pluralize_table_names
+    end
+    self.pluralize_table_names = true
+  end
+end
 
-# Preemptively load the rest of Rails so Gems don't hijack our requires.
-require File.dirname(__FILE__) + '/../../activerecord/lib/active_record'
-require File.dirname(__FILE__) + '/../../actionpack/lib/action_controller'
-require File.dirname(__FILE__) + '/../lib/rails_generator'
+# And what we need from ActionView
+module ActionView
+  module Helpers
+    module ActiveRecordHelper; end
+    class InstanceTag; end
+  end
+end
+
+
+# Must set before requiring generator libs.
+RAILS_ROOT = "#{File.dirname(__FILE__)}/fixtures"
+
+$LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
+require 'rails_generator'
+
 
 class RailsGeneratorTest < Test::Unit::TestCase
   BUILTINS = %w(controller mailer model scaffold)
   CAPITALIZED_BUILTINS = BUILTINS.map { |b| b.capitalize }
 
   def test_sources
-    expected = [:app, :user, :RubyGems, :builtin]
+    expected = [:lib, :vendor, :plugins, :user, :RubyGems, :builtin]
     expected.delete(:gem) unless Object.const_defined?(:Gem)
     assert_equal expected, Rails::Generator::Base.sources.map { |s| s.label }
   end
@@ -69,7 +87,7 @@ class RailsGeneratorTest < Test::Unit::TestCase
     spec = Rails::Generator::Base.lookup('working')
     assert_equal 'working', spec.name
     assert_equal "#{RAILS_ROOT}/lib/generators/working", spec.path
-    assert_equal :app, spec.source
+    assert_equal :lib, spec.source
     assert_nothing_raised { assert_match /WorkingGenerator$/, spec.klass.name }
   end
 
