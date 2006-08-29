@@ -783,8 +783,8 @@ module ActionView
         call 'replace', @generator.send(:render, *options_for_render)
       end
       
-      def reload
-        replace :partial => @id.to_s
+      def reload(options_for_replace = {})
+        replace(options_for_replace.merge({ :partial => @id.to_s }))
       end
       
     end
