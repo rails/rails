@@ -1,4 +1,5 @@
 require File.dirname(__FILE__) + '/abstract_unit'
+require 'pp'
 
 module ModuleWithMissing
   mattr_accessor :missing_count
@@ -17,11 +18,11 @@ class DependenciesTest < Test::Unit::TestCase
   def with_loading(*from)
     old_mechanism, Dependencies.mechanism = Dependencies.mechanism, :load
     dir = File.dirname(__FILE__)
-    prior_autoload_paths = Dependencies.autoload_paths
-    Dependencies.autoload_paths = from.collect { |f| "#{dir}/#{f}" }
+    prior_load_paths = Dependencies.load_paths
+    Dependencies.load_paths = from.collect { |f| "#{dir}/#{f}" }
     yield
   ensure
-    Dependencies.autoload_paths = prior_autoload_paths
+    Dependencies.load_paths = prior_load_paths
     Dependencies.mechanism = old_mechanism
   end
 
@@ -219,33 +220,33 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
   
-  def test_autoloadable_constants_for_path_should_handle_empty_autoloads
-    assert_equal [], Dependencies.autoloadable_constants_for_path('hello')
+  def test_loadable_constants_for_path_should_handle_empty_autoloads
+    assert_equal [], Dependencies.loadable_constants_for_path('hello')
   end
   
-  def test_autoloadable_constants_for_path_should_handle_relative_paths
+  def test_loadable_constants_for_path_should_handle_relative_paths
     fake_root = 'dependencies'
     relative_root = File.dirname(__FILE__) + '/dependencies'
     ['', '/'].each do |suffix|
       with_loading fake_root + suffix do
-        assert_equal ["A::B"], Dependencies.autoloadable_constants_for_path(relative_root + '/a/b')
+        assert_equal ["A::B"], Dependencies.loadable_constants_for_path(relative_root + '/a/b')
       end
     end
   end
   
-  def test_autoloadable_constants_for_path_should_provide_all_results
+  def test_loadable_constants_for_path_should_provide_all_results
     fake_root = '/usr/apps/backpack'
     with_loading fake_root, fake_root + '/lib' do
-      root = Dependencies.autoload_paths.first
-      assert_equal ["Lib::A::B", "A::B"], Dependencies.autoloadable_constants_for_path(root + '/lib/a/b')
+      root = Dependencies.load_paths.first
+      assert_equal ["Lib::A::B", "A::B"], Dependencies.loadable_constants_for_path(root + '/lib/a/b')
     end
   end
   
-  def test_autoloadable_constants_for_path_should_uniq_results
+  def test_loadable_constants_for_path_should_uniq_results
     fake_root = '/usr/apps/backpack/lib'
     with_loading fake_root, fake_root + '/' do
-      root = Dependencies.autoload_paths.first
-      assert_equal ["A::B"], Dependencies.autoloadable_constants_for_path(root + '/a/b')
+      root = Dependencies.load_paths.first
+      assert_equal ["A::B"], Dependencies.loadable_constants_for_path(root + '/a/b')
     end
   end
   
@@ -300,28 +301,28 @@ class DependenciesTest < Test::Unit::TestCase
   
   def test_file_search
     with_loading 'dependencies' do
-      root = Dependencies.autoload_paths.first
-      assert_equal nil, Dependencies.search_for_autoload_file('service_three')
-      assert_equal nil, Dependencies.search_for_autoload_file('service_three.rb')
-      assert_equal root + '/service_one.rb', Dependencies.search_for_autoload_file('service_one')
-      assert_equal root + '/service_one.rb', Dependencies.search_for_autoload_file('service_one.rb')
+      root = Dependencies.load_paths.first
+      assert_equal nil, Dependencies.search_for_file('service_three')
+      assert_equal nil, Dependencies.search_for_file('service_three.rb')
+      assert_equal root + '/service_one.rb', Dependencies.search_for_file('service_one')
+      assert_equal root + '/service_one.rb', Dependencies.search_for_file('service_one.rb')
     end
   end
   
-  def test_file_search_uses_first_in_autoload_path
+  def test_file_search_uses_first_in_load_path
     with_loading 'dependencies', 'autoloading_fixtures' do
-      deps, autoload = Dependencies.autoload_paths
+      deps, autoload = Dependencies.load_paths
       assert_match %r/dependencies/, deps
       assert_match %r/autoloading_fixtures/, autoload
       
-      assert_equal deps + '/conflict.rb', Dependencies.search_for_autoload_file('conflict')
+      assert_equal deps + '/conflict.rb', Dependencies.search_for_file('conflict')
     end
     with_loading 'autoloading_fixtures', 'dependencies' do
-      autoload, deps = Dependencies.autoload_paths
+      autoload, deps = Dependencies.load_paths
       assert_match %r/dependencies/, deps
       assert_match %r/autoloading_fixtures/, autoload
       
-      assert_equal autoload + '/conflict.rb', Dependencies.search_for_autoload_file('conflict')
+      assert_equal autoload + '/conflict.rb', Dependencies.search_for_file('conflict')
     end
     
   end
@@ -374,7 +375,7 @@ class DependenciesTest < Test::Unit::TestCase
   
   def test_removal_from_tree_should_be_detected
     with_loading 'dependencies' do
-      root = Dependencies.autoload_paths.first
+      root = Dependencies.load_paths.first
       c = ServiceOne
       Dependencies.clear
       assert ! defined?(ServiceOne)
@@ -393,6 +394,22 @@ class DependenciesTest < Test::Unit::TestCase
         RequiresNonexistent1
       end
     end
+  end
+  
+  def test_load_once_paths_do_not_add_to_autoloaded_constants
+    with_loading 'autoloading_fixtures' do
+      Dependencies.load_once_paths = Dependencies.load_paths.dup
+      
+      assert ! Dependencies.autoloaded?("ModuleFolder")
+      assert ! Dependencies.autoloaded?("ModuleFolder::NestedClass")
+      assert ! Dependencies.autoloaded?(ModuleFolder)
+      
+      ModuleFolder::NestedClass
+      assert ! Dependencies.autoloaded?(ModuleFolder::NestedClass)
+    end
+  ensure
+    Object.send(:remove_const, :ModuleFolder) if defined?(ModuleFolder)
+    Dependencies.load_once_paths = []
   end
   
 end

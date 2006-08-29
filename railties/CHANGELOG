@@ -1,5 +1,7 @@
 *SVN*
 
+* Add Dependencies.load_once_paths. [Nicholas Seckar]
+
 * Updated to script.aculo.us 1.6.2 [Thomas Fuchs]
 
 * Assign Routing.controller_paths; fix script/about and rails info controller. [Nicholas Seckar]

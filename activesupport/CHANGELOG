@@ -1,5 +1,7 @@
 *SVN*
 
+* Update Initializer to use load_once_paths to avoid plugin reloading. References #5852. [Nicholas Seckar]
+
 * Use Array#assoc in ActiveSupport::OrderedHash. [Mauricio Fernandez]
 
 * Greatly increased performance of String.to_json, which speeds up RJS considerably on large pages, fixes #3473 [Shugo Maeda]

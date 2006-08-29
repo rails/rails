@@ -126,11 +126,23 @@ module Rails
       $LOAD_PATH.uniq!
     end
     
-    # Set the paths from which Rails will automatically load source files.
+    # Set the paths from which Rails will automatically load source files, and
+    # the load_once paths.
     def set_autoload_paths
-      Dependencies.autoload_paths = configuration.autoload_paths.uniq
-      # Freeze the array so future modifications will fail rather than do nothing mysteriously
+      Dependencies.load_paths = configuration.autoload_paths.uniq
+      Dependencies.load_once_paths = configuration.load_once_paths.uniq
+      
+      extra = Dependencies.load_once_paths - Dependencies.load_paths
+      unless extra.empty?
+        abort <<-end_error
+          load_once_paths must be a subset of the autoload_paths.
+          Extra items in load_once_paths: #{extra * ','}
+        end_error
+      end
+      
+      # Freeze the arrays so future modifications will fail rather than do nothing mysteriously
       configuration.autoload_paths.freeze
+      configuration.load_once_paths.freeze
     end
     
     # Sets the +RAILS_CONNECTION_ADAPTERS+ constant based on the value of
@@ -424,6 +436,10 @@ module Rails
     # included in this list.
     attr_accessor :autoload_paths
     
+    # An array of paths from which Rails will automatically load from only once.
+    # All elements of this array must also be in +autoload_paths+.
+    attr_accessor :load_once_paths
+    
     # The log level to use for the default Rails logger. In production mode,
     # this defaults to <tt>:info</tt>. In development mode, it defaults to
     # <tt>:debug</tt>.
@@ -456,6 +472,7 @@ module Rails
       self.frameworks                   = default_frameworks
       self.load_paths                   = default_load_paths
       self.autoload_paths               = default_autoload_paths
+      self.load_once_paths              = default_load_once_paths
       self.log_path                     = default_log_path
       self.log_level                    = default_log_level
       self.view_path                    = default_view_path
@@ -594,6 +611,14 @@ module Rails
         
         paths.concat Dir["#{root_path}/vendor/plugins/*/lib/"]
         paths.concat builtin_directories
+        paths.uniq
+      end
+      
+      def default_load_once_paths
+        plugin_root = "#{root_path}/vendor/plugins/"
+        default_autoload_paths.select do |path|
+          path[0, plugin_root.length] == plugin_root # No begins_with yet
+        end
       end
 
       def default_log_path

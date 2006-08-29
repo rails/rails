@@ -21,11 +21,18 @@ module Dependencies #:nodoc:
   # Should we load files or require them?
   mattr_accessor :mechanism
   self.mechanism = :load
-
-  # The set of directories from which we may autoload files
-  mattr_accessor :autoload_paths
-  self.autoload_paths = []
-
+  
+  # The set of directories from which we may automatically load files. Files
+  # under these directories will be reloaded on each request in development mode,
+  # unless the directory also appears in load_once_paths.
+  mattr_accessor :load_paths
+  self.load_paths = []
+  
+  # The set of directories from which automatically loaded constants are loaded
+  # only once. All directories in this set must also be present in +load_paths+.
+  mattr_accessor :load_once_paths
+  self.load_once_paths = []
+  
   # An array of qualified constant names that have been loaded. Adding a name to
   # this array will cause it to be unloaded the next time Dependencies are cleared.
   mattr_accessor :autoloaded_constants
@@ -40,7 +47,7 @@ module Dependencies #:nodoc:
   end
 
   def depend_on(file_name, swallow_load_errors = false)
-    path = search_for_autoload_file(file_name)
+    path = search_for_file(file_name)
     require_or_load(path || file_name)
   rescue LoadError
     raise unless swallow_load_errors
@@ -110,12 +117,13 @@ module Dependencies #:nodoc:
     return true
   end
   
-  # Given +path+ return an array of constant paths which would cause Dependencies
-  # to attempt to load +path+.
-  def autoloadable_constants_for_path(path)
+  # Given +path+, a filesystem path to a ruby file, return an array of constant
+  # paths which would cause Dependencies to attempt to load this file.
+  # 
+  def loadable_constants_for_path(path, bases = load_paths - load_once_paths)
     path = $1 if path =~ /\A(.*)\.rb\Z/
     expanded_path = File.expand_path(path)
-    autoload_paths.collect do |root|
+    bases.collect do |root|
       expanded_root = File.expand_path root
       next unless expanded_path.starts_with? expanded_root
       
@@ -127,10 +135,10 @@ module Dependencies #:nodoc:
     end.compact.uniq
   end
   
-  # Search for a file in the autoload_paths matching the provided suffix.
-  def search_for_autoload_file(path_suffix)
+  # Search for a file in load_paths matching the provided suffix.
+  def search_for_file(path_suffix)
     path_suffix = path_suffix + '.rb' unless path_suffix.ends_with? '.rb'
-    autoload_paths.each do |root|
+    load_paths.each do |root|
       path = File.join(root, path_suffix)
       return path if File.file? path
     end
@@ -138,10 +146,25 @@ module Dependencies #:nodoc:
   end
   
   # Does the provided path_suffix correspond to an autoloadable module?
+  # Instead of returning a boolean, the autoload base for this module is returned. 
   def autoloadable_module?(path_suffix)
-    autoload_paths.any? do |autoload_path|
-      File.directory? File.join(autoload_path, path_suffix)
+    load_paths.each do |load_path|
+      return load_path if File.directory? File.join(load_path, path_suffix)
     end
+    nil
+  end
+  
+  # Attempt to autoload the provided module name by searching for a directory
+  # matching the expect path suffix. If found, the module is created and assigned
+  # to +into+'s constants with the name +const_name+. Provided that the directory
+  # was loaded from a reloadable base path, it is added to the set of constants
+  # that are to be unloaded.
+  def autoload_module!(into, const_name, qualified_name, path_suffix)
+    return nil unless base_path = autoloadable_module?(path_suffix)
+    mod = Module.new
+    into.const_set const_name, mod
+    autoloaded_constants << qualified_name unless load_once_paths.include?(base_path)
+    return mod
   end
   
   # Load the file at the provided path. +const_paths+ is a set of qualified
@@ -151,10 +174,9 @@ module Dependencies #:nodoc:
   # 
   # If the second parameter is left off, then Dependencies will construct a set
   # of names that the file at +path+ may define. See
-  # +autoloadable_constants_for_path+ for more details.
-  def load_file(path, const_paths = autoloadable_constants_for_path(path))
+  # +loadable_constants_for_path+ for more details.
+  def load_file(path, const_paths = loadable_constants_for_path(path))
     log_call path, const_paths
-    
     const_paths = [const_paths].compact unless const_paths.is_a? Array
     undefined_before = const_paths.reject(&method(:qualified_const_defined?))
     
@@ -192,15 +214,12 @@ module Dependencies #:nodoc:
     path_suffix = qualified_name.underscore
     name_error = NameError.new("uninitialized constant #{qualified_name}")
     
-    file_path = search_for_autoload_file(path_suffix)
+    file_path = search_for_file(path_suffix)
     if file_path && ! loaded.include?(File.expand_path(file_path)) # We found a matching file to load
-      require_or_load file_path, qualified_name
+      require_or_load file_path
       raise LoadError, "Expected #{file_path} to define #{qualified_name}" unless from_mod.const_defined?(const_name)
       return from_mod.const_get(const_name)
-    elsif autoloadable_module? path_suffix # Create modules for directories
-      mod = Module.new
-      from_mod.const_set const_name, mod
-      autoloaded_constants << qualified_name
+    elsif mod = autoload_module!(from_mod, const_name, qualified_name, path_suffix)
       return mod
     elsif (parent = from_mod.parent) && parent != from_mod &&
           ! from_mod.parents.any? { |p| p.const_defined?(const_name) }
