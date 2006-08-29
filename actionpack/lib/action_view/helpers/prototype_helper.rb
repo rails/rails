@@ -169,7 +169,9 @@ module ActionView
         options[:form] = true
 
         options[:html] ||= {}
-        options[:html][:onsubmit] = "#{remote_function(options)}; return false;"
+        options[:html][:onsubmit] = 
+          (options[:html][:onsubmit] ? options[:html][:onsubmit] + "; " : "") + 
+          "#{remote_function(options)}; return false;"
 
         form_tag(options[:html].delete(:action) || url_for(options[:url]), options[:html])
       end
@@ -293,7 +295,7 @@ module ActionView
         javascript_options = options_for_ajax(options)
 
         update = ''
-        if options[:update] and options[:update].is_a?Hash
+        if options[:update] && options[:update].is_a?(Hash)
           update  = []
           update << "success:'#{options[:update][:success]}'" if options[:update][:success]
           update << "failure:'#{options[:update][:failure]}'" if options[:update][:failure]
@@ -307,7 +309,7 @@ module ActionView
           "new Ajax.Updater(#{update}, "
 
         url_options = options[:url]
-        url_options = url_options.merge(:escape => false) if url_options.is_a? Hash
+        url_options = url_options.merge(:escape => false) if url_options.is_a?(Hash)
         function << "'#{url_for(url_options)}'"
         function << ", #{javascript_options})"
 
