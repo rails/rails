@@ -7,6 +7,8 @@ require 'test/unit'
 require 'action_controller'
 require 'action_controller/test_process'
 
+module Rails; end
+require_dependency 'rails/info'
 require_dependency 'rails/info_controller'
 class Rails::InfoController < ActionController::Base
   @local_request = false
