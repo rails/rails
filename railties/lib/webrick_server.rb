@@ -7,8 +7,6 @@ require 'dispatcher'
 
 include WEBrick
 
-ABSOLUTE_RAILS_ROOT = File.expand_path(RAILS_ROOT)
-
 class CGI #:nodoc:
   def stdinput
     @stdin || $stdin
@@ -68,7 +66,7 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   def initialize(server, options) #:nodoc:
     @server_options = options
     @file_handler = WEBrick::HTTPServlet::FileHandler.new(server, options[:server_root])
-    Dir.chdir(ABSOLUTE_RAILS_ROOT)
+    Dir.chdir("#{RAILS_ROOT}/public") if defined?(RAILS_ROOT) && File.directory?("#{RAILS_ROOT}/public")
     super
   end
 
