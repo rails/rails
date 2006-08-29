@@ -48,3 +48,8 @@ jadedpixel:
   id: 8 
   name: Jadedpixel
   client_of: 6
+
+odegy:
+  id: 9
+  name: Odegy
+  type: ExclusivelyDependentFirm

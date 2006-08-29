@@ -58,7 +58,7 @@ class InheritanceTest < Test::Unit::TestCase
   end
 
   def test_inheritance_condition
-    assert_equal 8, Company.count
+    assert_equal 9, Company.count
     assert_equal 2, Firm.count
     assert_equal 3, Client.count
   end

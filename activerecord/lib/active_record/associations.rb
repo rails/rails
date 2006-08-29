@@ -570,8 +570,9 @@ module ActiveRecord
       #   sql fragment, such as "rank = 5".
       # * <tt>:order</tt>       - specify the order from which the associated object will be picked at the top. Specified as
       #    an "ORDER BY" sql fragment, such as "last_name, first_name DESC"
-      # * <tt>:dependent</tt>   - if set to :destroy (or true) all the associated objects are destroyed when this object is. Also,
-      #   association is assigned.
+      # * <tt>:dependent</tt>   - if set to :destroy (or true) the associated object is destroyed when this object is. If set to
+      #   :delete the associated object is deleted *without* calling its destroy method. If set to :nullify the associated
+      #   object's foreign key is set to NULL. Also, association is assigned.
       # * <tt>:foreign_key</tt> - specify the foreign key used for the association. By default this is guessed to be the name
       #   of this class in lower-case and "_id" suffixed. So a +Person+ class that makes a has_one association will use "person_id"
       #   as the default foreign_key.
@@ -1020,12 +1021,14 @@ module ActiveRecord
           case reflection.options[:dependent]
             when :destroy, true
               module_eval "before_destroy '#{reflection.name}.destroy unless #{reflection.name}.nil?'"
+            when :delete
+              module_eval "before_destroy '#{reflection.class_name}.delete(#{reflection.name}.id) unless #{reflection.name}.nil?'"
             when :nullify
               module_eval "before_destroy '#{reflection.name}.update_attribute(\"#{reflection.primary_key_name}\", nil)'"
             when nil, false
               # pass
             else
-              raise ArgumentError, "The :dependent option expects either :destroy or :nullify."
+              raise ArgumentError, "The :dependent option expects either :destroy, :delete or :nullify."
           end
         end
         

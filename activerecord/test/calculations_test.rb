@@ -8,7 +8,7 @@ class CalculationsTest < Test::Unit::TestCase
   fixtures :companies, :accounts, :topics
 
   def test_should_sum_field
-    assert_equal 265, Account.sum(:credit_limit)
+    assert_equal 318, Account.sum(:credit_limit)
   end
 
   def test_should_average_field
@@ -49,13 +49,13 @@ class CalculationsTest < Test::Unit::TestCase
 
   def test_should_order_by_grouped_field
     c = Account.sum(:credit_limit, :group => :firm_id, :order => "firm_id")
-    assert_equal [1, 2, 6], c.keys.compact
+    assert_equal [1, 2, 6, 9], c.keys.compact
   end
 
   def test_should_order_by_calculation
     c = Account.sum(:credit_limit, :group => :firm_id, :order => "sum_credit_limit desc, firm_id")
-    assert_equal [105, 60, 50, 50], c.keys.collect { |k| c[k] }
-    assert_equal [6, 2, 1], c.keys.compact
+    assert_equal [105, 60, 53, 50, 50], c.keys.collect { |k| c[k] }
+    assert_equal [6, 2, 9, 1], c.keys.compact
   end
 
   def test_should_limit_calculation
@@ -114,8 +114,8 @@ class CalculationsTest < Test::Unit::TestCase
   end
   
   def test_should_calculate_with_invalid_field
-    assert_equal 5, Account.calculate(:count, '*')
-    assert_equal 5, Account.calculate(:count, :all)
+    assert_equal 6, Account.calculate(:count, '*')
+    assert_equal 6, Account.calculate(:count, :all)
   end
   
   def test_should_calculate_grouped_with_invalid_field
@@ -193,7 +193,7 @@ class CalculationsTest < Test::Unit::TestCase
   end
 
   def test_should_count_selected_field_with_include
-    assert_equal 5, Account.count(:distinct => true, :include => :firm)
-    assert_equal 3, Account.count(:distinct => true, :include => :firm, :select => :credit_limit)
+    assert_equal 6, Account.count(:distinct => true, :include => :firm)
+    assert_equal 4, Account.count(:distinct => true, :include => :firm, :select => :credit_limit)
   end
 end

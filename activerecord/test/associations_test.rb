@@ -91,6 +91,10 @@ end
 class HasOneAssociationsTest < Test::Unit::TestCase
   fixtures :accounts, :companies, :developers, :projects, :developers_projects
   
+  def setup
+    Account.destroyed_account_ids.clear
+  end
+  
   def test_has_one
     assert_equal companies(:first_firm).account, Account.find(1)
     assert_equal Account.find(1).credit_limit, companies(:first_firm).account.credit_limit
@@ -168,8 +172,22 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     num_accounts = Account.count
     firm = Firm.find(1)
     assert !firm.account.nil?
+    account_id = firm.account.id
+    assert_equal [], Account.destroyed_account_ids[firm.id]
     firm.destroy                
     assert_equal num_accounts - 1, Account.count
+    assert_equal [account_id], Account.destroyed_account_ids[firm.id]
+  end
+  
+  def test_exclusive_dependence
+    num_accounts = Account.count
+    firm = ExclusivelyDependentFirm.find(9)
+    assert !firm.account.nil?
+    account_id = firm.account.id
+    assert_equal [], Account.destroyed_account_ids[firm.id]
+    firm.destroy
+    assert_equal num_accounts - 1, Account.count
+    assert_equal [], Account.destroyed_account_ids[firm.id]
   end
 
   def test_succesful_build_association

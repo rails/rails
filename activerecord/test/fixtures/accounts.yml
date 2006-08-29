@@ -21,3 +21,8 @@ rails_core_account_2:
   id: 5
   firm_id: 6
   credit_limit: 55
+
+odegy_account:
+  id: 6
+  firm_id: 9
+  credit_limit: 53
