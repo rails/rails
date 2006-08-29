@@ -5,6 +5,14 @@ require 'test/unit'
 require 'active_support'
 require 'initializer'
 
+unless defined?(RAILS_ROOT)
+  module Rails
+    class Initializer
+      RAILS_ROOT = '.'
+    end
+  end
+end
+
 class PluginTest < Test::Unit::TestCase
   class TestConfig < Rails::Configuration
     protected
