@@ -53,7 +53,7 @@ module Builder
 	unless text.nil?
 	  raise ArgumentError, "XmlMarkup cannot mix a text argument with a block"
 	end
-	_capture_outer_self(block) if @self.nil?
+	_capture_outer_self(block) unless defined?(@self) && !@self.nil?
 	_indent
 	_start_tag(sym, attrs)
 	_newline

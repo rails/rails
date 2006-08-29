@@ -15,8 +15,8 @@ class Module
 
   # Declare attributes backed by 'internal' instance variables names.
   def attr_internal_accessor(*attrs)
-    attr_internal_reader *attrs
-    attr_internal_writer *attrs
+    attr_internal_reader(*attrs)
+    attr_internal_writer(*attrs)
   end
 
   alias_method :attr_internal, :attr_internal_accessor

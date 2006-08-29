@@ -18,6 +18,7 @@ module ActiveSupport
 
       # Have deprecations been silenced?
       def silenced?
+        @silenced = false unless defined?(@silenced)
         @silenced
       end
 
