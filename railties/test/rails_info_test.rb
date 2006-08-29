@@ -1,16 +1,20 @@
 $:.unshift File.dirname(__FILE__) + "/../lib"
+$:.unshift File.dirname(__FILE__) + "/../builtin/rails_info"
 $:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
 
 require 'test/unit'
 require 'active_support'
-require 'rails_info'
+
+module Rails
+  class Info; end
+end
 
 class InfoTest < Test::Unit::TestCase
   def setup
     Rails.send :remove_const, :Info
-    silence_warnings { load 'rails_info.rb' }
+    silence_warnings { load 'rails/info.rb' }
   end
-  
+
   def test_edge_rails_revision_not_set_when_svn_info_is_empty
     Rails::Info.property 'Test that this will not be defined' do
       Rails::Info.edge_rails_revision ''
