@@ -22,6 +22,7 @@ task :default => [ :test ]
 
 # Run the unit tests
 
+desc "Run all unit tests"
 task :test => [:test_action_pack, :test_active_record_integration]
 
 Rake::TestTask.new(:test_action_pack) { |t|
