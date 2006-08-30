@@ -108,11 +108,9 @@ module ActionController #:nodoc:
     end
     
     class Responder #:nodoc:
-      DEFAULT_BLOCKS = {
-        :html    => 'Proc.new { render }',
-        :js      => 'Proc.new { render :action => "#{action_name}.rjs" }',
-        :xml     => 'Proc.new { render :action => "#{action_name}.rxml" }'
-      }
+      DEFAULT_BLOCKS = [:html, :js, :xml].inject({}) do |blocks, ext|
+        blocks.update ext => %(Proc.new { render :action => "\#{action_name}.r#{ext}" })
+      end      
       
       def initialize(block_binding)
         @block_binding = block_binding
@@ -134,7 +132,11 @@ module ActionController #:nodoc:
         if block_given?
           @responses[mime_type] = block
         else
-          @responses[mime_type] = eval(DEFAULT_BLOCKS[mime_type.to_sym], @block_binding)
+          if source = DEFAULT_BLOCKS[mime_type.to_sym]
+            @responses[mime_type] = eval(source, @block_binding)            
+          else
+            raise ActionController::RenderError, "Expected a block but none was given for custom mime handler #{mime_type}"
+          end
         end
       end
 

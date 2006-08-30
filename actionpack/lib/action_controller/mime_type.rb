@@ -34,7 +34,7 @@ module Mime
       def register(string, symbol, synonyms = [])
         Mime.send :const_set, symbol.to_s.upcase, Type.new(string, symbol, synonyms)
         SET << Mime.send(:const_get, symbol.to_s.upcase)
-        LOOKUP[string] = EXTENSION_LOOKUP[symbol.to_s] = SET.last
+        LOOKUP[string] = EXTENSION_LOOKUP[symbol.to_s] = SET.last        
       end
 
       def parse(accept_header)

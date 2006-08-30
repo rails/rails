@@ -1,5 +1,7 @@
 *SVN*
 
+* respond_to .html now always renders #{action_name}.rhtml so that registered custom template handlers do not override it in priority. Custom mime types require a block and throw proper error now. [Tobias Luetke]
+
 * Deprecation: test deprecated instance vars in partials. [Jeremy Kemper]
 
 * Add UrlWriter to allow writing urls from Mailers and scripts. [Nicholas Seckar]

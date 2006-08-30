@@ -72,6 +72,18 @@ class RespondToController < ActionController::Base
     
     Mime.send :remove_const, :MOBILE
   end
+  
+  def custom_constant_handling_without_block
+    Mime::Type.register("text/x-mobile", :mobile)
+
+    respond_to do |type|
+      type.html   { render :text => "HTML"   }
+      type.mobile
+    end
+    
+    Mime.send :remove_const, :MOBILE    
+  end
+  
 
   def handle_any
     respond_to do |type|
@@ -269,6 +281,13 @@ class MimeControllerTest < Test::Unit::TestCase
   def test_custom_constant
     get :custom_constant_handling, :format => "mobile"
     assert_equal "Mobile", @response.body
+  end
+  
+  def custom_constant_handling_without_block
+    
+    assert_raised(ActionController::RenderError) do
+      get :custom_constant_handling, :format => "mobile"
+    end
   end
   
   def test_forced_format
