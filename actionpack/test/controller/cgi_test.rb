@@ -16,12 +16,7 @@ class CGITest < Test::Unit::TestCase
     @query_string_with_many_equal = "action=create_customer&full_name=abc=def=ghi"
     @query_string_without_equal = "action"
     @query_string_with_many_ampersands =
-      "&action=create_customer&&&full_name=David%20Heinemeier%20Hansson"
-    @query_string_with_escaped_brackets = "subscriber%5Bfirst_name%5D=Jan5&subscriber%5B\
-last_name%5D=Waterman&subscriber%5Bemail%5D=drakn%40domain.tld&subscriber%5Bpassword\
-%5D=893ea&subscriber%5Bstreet%5D=&subscriber%5Bzip%5D=&subscriber%5Bcity%5D\
-=&commit=Update+info"
-    
+      "&action=create_customer&&&full_name=David%20Heinemeier%20Hansson"    
   end
 
   def test_query_string
@@ -34,15 +29,6 @@ last_name%5D=Waterman&subscriber%5Bemail%5D=drakn%40domain.tld&subscriber%5Bpass
   def test_deep_query_string
     expected = {'x' => {'y' => {'z' => '10'}}}
     assert_equal(expected, CGIMethods.parse_query_parameters('x[y][z]=10'))
-    expected = {"commit"=>"Update info", 
-      "subscriber" => {
-          "city" => nil, "zip"=>nil,
-          "last_name" => "Waterman", "street" => nil,
-          "password" =>"893ea", "first_name" =>  "Jan5" ,
-          "email" => "drakn@domain.tld"
-      }
-    }
-    assert_equal(expected, CGIMethods.parse_query_parameters(@query_string_with_escaped_brackets))
   end
   
   def test_deep_query_string_with_array
@@ -59,6 +45,17 @@ last_name%5D=Waterman&subscriber%5Bemail%5D=drakn%40domain.tld&subscriber%5Bpass
     assert_equal({'x' => {'y' => [{'z' => '10'}, {'z' => '20'}]}}, CGIMethods.parse_query_parameters('x[y][][z]=10&x[y][][z]=20'))
     assert_equal("10", CGIMethods.parse_query_parameters('x[y][][z]=10&x[y][][z]=20')["x"]["y"].first["z"])
     assert_equal("10", CGIMethods.parse_query_parameters('x[y][][z]=10&x[y][][z]=20').with_indifferent_access[:x][:y].first[:z])
+  end
+  
+  def test_request_hash_parsing
+    query = {
+      "note[viewers][viewer][][type]" => ["User", "Group"],
+      "note[viewers][viewer][][id]"   => ["1", "2"]
+    }
+
+    expected = { "note" => { "viewers"=>{"viewer"=>[{ "id"=>"1", "type"=>"User"}, {"type"=>"Group", "id"=>"2"} ]} } }
+
+    assert_equal(expected, CGIMethods.parse_request_parameters(query))
   end
   
   def test_deep_query_string_with_array_of_hashes_with_multiple_pairs
@@ -239,25 +236,25 @@ last_name%5D=Waterman&subscriber%5Bemail%5D=drakn%40domain.tld&subscriber%5Bpass
 
   def test_parse_params_with_single_brackets_in_middle
     input     = { "a/b[c]d" =>  %w(e) }
-    expected  = { "a/b[c]d" => "e" }
+    expected  = { "a/b" => {} }
     assert_equal expected, CGIMethods.parse_request_parameters(input)
   end
 
   def test_parse_params_with_separated_brackets
     input     = { "a/b@[c]d[e]" =>  %w(f) }
-    expected  = { "a/b@" => { "c]d[e" => "f" }}
+    expected  = { "a/b@" => { }}
     assert_equal expected, CGIMethods.parse_request_parameters(input)
   end
 
   def test_parse_params_with_separated_brackets_and_array
     input     = { "a/b@[c]d[e][]" =>  %w(f) }
-    expected  = { "a/b@" => { "c]d[e" => ["f"] }}
+    expected  = { "a/b@" => { }}
     assert_equal expected , CGIMethods.parse_request_parameters(input)
   end
 
   def test_parse_params_with_unmatched_brackets_and_array
     input     = { "a/b@[c][d[e][]" =>  %w(f) }
-    expected  = { "a/b@" => { "c" => { "d[e" => ["f"] }}}
+    expected  = { "a/b@" => { "c" => { }}}
     assert_equal expected, CGIMethods.parse_request_parameters(input)
   end
   

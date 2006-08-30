@@ -8,31 +8,39 @@ class CGIMethods #:nodoc:
   class << self
     # DEPRECATED: Use parse_form_encoded_parameters
     def parse_query_parameters(query_string)
-      parse_form_encoded_parameters(query_string)
+      pairs = query_string.split('&').collect do |chunk|
+        next if chunk.empty?
+        key, value = chunk.split('=', 2)
+        value = (value.nil? || value.empty?) ? nil : CGI.unescape(value)
+        [ key, value ]
+      end.compact
+
+      FormEncodedPairParser.new(pairs).result
     end
 
     # DEPRECATED: Use parse_form_encoded_parameters
     def parse_request_parameters(params)
-      parsed_params = {}
+      parser = FormEncodedPairParser.new
 
-      for key, value in params
-        next unless key
-        value = [value] if key =~ /.*\[\]$/
-        unless key.include?('[')
-          # much faster to test for the most common case first (GET)
-          # and avoid the call to build_deep_hash
-          parsed_params[key] = get_typed_value(value[0])
-        else
-          build_deep_hash(get_typed_value(value[0]), parsed_params, get_levels(key))
+      finished = false
+      until finished
+        finished = true
+        for key, value in params
+          next unless key
+          if !key.include?('[')
+            # much faster to test for the most common case first (GET)
+            # and avoid the call to build_deep_hash
+            parser.result[key] = get_typed_value(value[0])
+          elsif value.is_a?(Array)
+            parser.parse(key, get_typed_value(value.shift))
+            finished = false unless value.empty?
+          else
+            raise TypeError, "Expected array, found #{value.inspect}"
+          end
         end
       end
     
-      parsed_params
-    end
-    
-    # TODO: Docs
-    def parse_form_encoded_parameters(form_encoded_string)
-      FormEncodedStringScanner.decode(form_encoded_string)
+      parser.result
     end
 
     def parse_formatted_request_parameters(mime_type, raw_post_data)
@@ -93,99 +101,40 @@ class CGIMethods #:nodoc:
           value.to_s
         end
       end
-  
-      PARAMS_HASH_RE = /^([^\[]+)(\[.*\])?(.)?.*$/
-      def get_levels(key)
-        all, main, bracketed, trailing = PARAMS_HASH_RE.match(key).to_a
-        if main.nil?
-          []
-        elsif trailing
-          [key]
-        elsif bracketed
-          [main] + bracketed.slice(1...-1).split('][')
-        else
-          [main]
-        end
-      end
-
-      def build_deep_hash(value, hash, levels)
-        if levels.length == 0
-          value
-        elsif hash.nil?
-          { levels.first => build_deep_hash(value, nil, levels[1..-1]) }
-        else
-          hash.update({ levels.first => build_deep_hash(value, hash[levels.first], levels[1..-1]) })
-        end
-      end
   end
 
-  class FormEncodedStringScanner < StringScanner
+  class FormEncodedPairParser < StringScanner
     attr_reader :top, :parent, :result
 
-    def self.decode(form_encoded_string)
-      new(form_encoded_string).parse
+    def initialize(pairs = [])
+      super('')
+      @result = {}
+      pairs.each { |key, value| parse(key, value) }
     end
-
-    def initialize(form_encoded_string)
-      super(unescape_keys(form_encoded_string))
-    end
-    
+     
     KEY_REGEXP = %r{([^\[\]=&]+)}
     BRACKETED_KEY_REGEXP = %r{\[([^\[\]=&]+)\]}
     
-    
-    def parse
-      @result = {}
-
-      until eos?
-        # Parse each & delimited chunk
-        @parent, @top = nil, result
-        
-        # First scan the bare key
-        key = scan(KEY_REGEXP) or (skip_term and next)
-        key = post_key_check(key)
-        
-        # Then scan as many nestings as present
-        until check(/\=/) || eos? 
-          r = scan(BRACKETED_KEY_REGEXP) or (skip_term and break)
-          key = self[1]
-          key = post_key_check(key)
-        end
-        
-        # Scan the value if we see an =
-        if scan %r{=}
-          value = scan(/[^\&]+/) # scan_until doesn't handle \Z
-          value = CGI.unescape(value) if value # May be nil when eos?
-          bind(key, value)
-        end
-
-        scan(%r/\&+/) # Ignore multiple adjacent &'s
-      end
+    # Parse the query string
+    def parse(key, value)
+      self.string = key
+      @top, @parent = result, nil
       
-      return result
+      # First scan the bare key
+      key = scan(KEY_REGEXP) or return
+      key = post_key_check(key)
+            
+      # Then scan as many nestings as present
+      until eos? 
+        r = scan(BRACKETED_KEY_REGEXP) or return
+        key = self[1]
+        key = post_key_check(key)
+      end
+ 
+      bind(key, value)
     end
 
     private
-      # Turn keys like person%5Bname%5D into person[name], so they can be processed as hashes
-      def unescape_keys(query_string)
-        query_string.split('&').collect do |fragment|
-          key, value = fragment.split('=', 2)
-          
-          if key
-            key = key.gsub(/%5D/, ']').gsub(/%5B/, '[')
-            [ key, value ].join("=")
-          else
-            fragment
-          end
-        end.join('&')
-      end
-
-      # Skip over the current term by scanning past the next &, or to
-      # then end of the string if there is no next &
-      def skip_term
-        scan_until(%r/\&+/) || scan(/.+/)
-      end
-    
       # After we see a key, we must look ahead to determine our next action. Cases:
       # 
       #   [] follows the key. Then the value must be an array.
@@ -193,16 +142,13 @@ class CGIMethods #:nodoc:
       #   & or the end of string follows the key. Then the key is a flag.
       #   otherwise, a hash follows the key. 
       def post_key_check(key)
-        if eos? || check(/\&/) # a& or a\Z indicates a is a flag.
-          bind key, nil # Curiously enough, the flag's value is nil
-          nil
-        elsif scan(/\[\]/) # a[b][] indicates that b is an array
-          container key, Array
+        if scan(/\[\]/) # a[b][] indicates that b is an array
+          container(key, Array)
           nil
         elsif check(/\[[^\]]/) # a[b] indicates that a is a hash
-          container key, Hash
+          container(key, Hash)
           nil
-        else # Presumably an = sign is next.
+        else # End of key? We do nothing.
           key
         end
       end
@@ -212,8 +158,8 @@ class CGIMethods #:nodoc:
       def container(key, klass)
         raise TypeError if top.is_a?(Hash) && top.key?(key) && ! top[key].is_a?(klass)
         value = bind(key, klass.new)
-        raise TypeError unless value.is_a? klass
-        push value
+        raise TypeError unless value.is_a?(klass)
+        push(value)
       end
     
       # Push a value onto the 'stack', which is actually only the top 2 items.
@@ -236,13 +182,12 @@ class CGIMethods #:nodoc:
           end
         elsif top.is_a? Hash
           key = CGI.unescape(key)
-          if top.key?(key) && parent.is_a?(Array)
-            parent << (@top = {})
-          end
+          parent << (@top = {}) if top.key?(key) && parent.is_a?(Array)
           return top[key] ||= value
         else
-          # Do nothing?
+          raise ArgumentError, "Don't know what to do: top is #{top.inspect}"
         end
+
         return value
       end
     end

@@ -145,7 +145,7 @@ module ActionController #:nodoc:
           begin
             Module.const_missing($1)
           rescue LoadError, NameError => const_error
-            raise ActionController::SessionRestoreError, <<end_msg
+            raise ActionController::SessionRestoreError, <<-end_msg
 Session contains objects whose class definition isn\'t available.
 Remember to require the classes for all objects kept in the session.
 (Original exception: #{const_error.message} [#{const_error.class}])
