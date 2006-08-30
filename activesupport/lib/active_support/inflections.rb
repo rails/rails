@@ -11,7 +11,6 @@ Inflector.inflections do |inflect|
   inflect.plural(/(?:([^f])fe|([lr])f)$/i, '\1\2ves')
   inflect.plural(/(hive)$/i, '\1s')
   inflect.plural(/([^aeiouy]|qu)y$/i, '\1ies')
-  inflect.plural(/([^aeiouy]|qu)ies$/i, '\1y')
   inflect.plural(/(x|ch|ss|sh)$/i, '\1es')
   inflect.plural(/(matr|vert|ind)ix|ex$/i, '\1ices')
   inflect.plural(/([m|l])ouse$/i, '\1ice')
