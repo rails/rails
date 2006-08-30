@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix spurious newlines and spaces in AR::Base#to_xml output [Jamis Buck]
+
 * has_one supports the :dependent => :delete option which skips the typical callback chain and deletes the associated object directly from the database.  #5927 [Chris Mear, Jonathan Viney]
 
 * Nested subclasses are not prefixed with the parent class' table_name since they should always use the base class' table_name.  #5911 [Jonathan Viney]

@@ -214,19 +214,11 @@ module ActiveRecord #:nodoc:
 
 
     def add_tag(attribute)
-      if attribute.needs_encoding?
-        builder.tag!(
-          dasherize? ? attribute.name.dasherize : attribute.name, 
-          attribute.value.to_s, 
-          attribute.decorations(!options[:skip_types])
-        )
-      else
-        builder.tag!(
-          dasherize? ? attribute.name.dasherize : attribute.name, 
-          attribute.decorations(!options[:skip_types])) do
-          builder << attribute.value.to_s
-        end
-      end
+      builder.tag!(
+        dasherize? ? attribute.name.dasherize : attribute.name, 
+        attribute.value.to_s, 
+        attribute.decorations(!options[:skip_types])
+      )
     end
 
     def serialize
