@@ -17,6 +17,18 @@ class BaseTest < Test::Unit::TestCase
     )
   end
 
+
+  def test_site_accessor_accepts_uri_or_string_argument
+    site = URI.parse('http://localhost')
+
+    assert_nothing_raised { Person.site = 'http://localhost' }
+    assert_equal site, Person.site
+
+    assert_nothing_raised { Person.site = site }
+    assert_equal site, Person.site
+  end
+
+
   def test_collection_name
     assert_equal "people", Person.collection_name
   end

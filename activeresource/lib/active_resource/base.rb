@@ -4,9 +4,9 @@ module ActiveResource
   class Base
     class << self
       def site=(site)
-        @@site = URI.parse(site)
+        @@site = site.is_a?(URI) ? site : URI.parse(site)
       end
-      
+
       def site
         @@site
       end
