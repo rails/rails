@@ -88,8 +88,8 @@ module ActionController #:nodoc:
       # * <tt>:type</tt> - specifies an HTTP content type.
       #   Defaults to 'application/octet-stream'.
       # * <tt>:disposition</tt> - specifies whether the file will be shown inline or downloaded.  
-      # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
       #   Valid values are 'inline' and 'attachment' (default).
+      # * <tt>:status</tt> - specifies the status code to send with the response. Defaults to '200 OK'.
       #
       # Generic data download:
       #   send_data buffer

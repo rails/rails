@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix send_data documentation typo.  #5982 [brad@madriska.com]
+
 * Switch to using FormEncodedPairParser for parsing request parameters. [Nicholas Seckar, DHH]
 
 * respond_to .html now always renders #{action_name}.rhtml so that registered custom template handlers do not override it in priority. Custom mime types require a block and throw proper error now. [Tobias Luetke]
