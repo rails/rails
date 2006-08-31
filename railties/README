@@ -90,7 +90,7 @@ and change the model, AND then resume execution! Example:
 
   class WeblogController < ActionController::Base
     def index
-      @posts = Post.find_all
+      @posts = Post.find(:all)
       breakpoint "Breaking out from the list"
     end
   end

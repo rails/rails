@@ -366,7 +366,7 @@ methods:
     layout "weblog/layout"
   
     def index
-      @posts = Post.find_all
+      @posts = Post.find(:all)
     end
     
     def display

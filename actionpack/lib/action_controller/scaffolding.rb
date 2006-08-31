@@ -24,7 +24,7 @@ module ActionController
     #    end
     #
     #    def list
-    #      @entries = Entry.find_all
+    #      @entries = Entry.find(:all)
     #      render_scaffold "list"
     #    end
     #  
