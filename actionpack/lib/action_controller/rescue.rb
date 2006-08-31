@@ -78,7 +78,7 @@ module ActionController #:nodoc:
       def perform_action_with_rescue #:nodoc:
         begin
           perform_action_without_rescue
-        rescue Object => exception
+        rescue Exception => exception  # errors from action performed
           if defined?(Breakpoint) && params["BP-RETRY"]
             msg = exception.backtrace.first
             if md = /^(.+?):(\d+)(?::in `(.+)')?$/.match(msg) then

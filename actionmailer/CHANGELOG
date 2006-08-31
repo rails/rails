@@ -1,5 +1,7 @@
 *SVN*
 
+* Tighten rescue clauses.  #5985 [james@grayproductions.net]
+
 * Automatically included ActionController::UrlWriter, such that URL generation can happen within ActionMailer controllers. [DHH]
 
 * Replace Reloadable with Reloadable::Deprecated. [Nicholas Seckar]

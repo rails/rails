@@ -40,7 +40,7 @@ class Dispatcher
         controller = ActionController::Routing::Routes.recognize(request)
         controller.process(request, response).out(output)
       end
-    rescue Object => exception
+    rescue Exception => exception  # errors from CGI dispatch
       failsafe_response(output, '500 Internal Server Error', exception) do
         controller ||= const_defined?(:ApplicationController) ? ApplicationController : ActionController::Base
         controller.process_with_exception(request, response, exception).out(output)
@@ -129,7 +129,7 @@ class Dispatcher
       # If the block raises, send status code as a last-ditch response.
       def failsafe_response(output, status, exception = nil)
         yield
-      rescue Object
+      rescue Exception  # errors from executed block
         begin
           output.write "Status: #{status}\r\n"
           
@@ -152,7 +152,7 @@ class Dispatcher
               output.write(message)
             end
           end
-        rescue Object
+        rescue Exception  # Logger or IO errors
         end
       end
   end

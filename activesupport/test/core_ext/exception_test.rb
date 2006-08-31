@@ -4,7 +4,7 @@ class ExceptionExtTests < Test::Unit::TestCase
 
   def get_exception(cls = RuntimeError, msg = nil, trace = nil)
     begin raise cls, msg, (trace || caller)
-    rescue Object => e
+    rescue Exception => e  # passed Exception
       return e
     end
   end

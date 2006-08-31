@@ -7,7 +7,7 @@ module ActionView
         begin
           Marshal::dump(object)
           "<pre class='debug_dump'>#{h(object.to_yaml).gsub("  ", "&nbsp; ")}</pre>"
-        rescue Object => e
+        rescue Exception => e  # errors from Marshal or YAML
           # Object couldn't be dumped, perhaps because of singleton methods -- this is the fallback
           "<code class='debug_dump'>#{h(object.inspect)}</code>"
         end

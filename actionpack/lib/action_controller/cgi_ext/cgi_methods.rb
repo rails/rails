@@ -55,7 +55,7 @@ class CGIMethods #:nodoc:
           node = XmlNode.from_xml(raw_post_data)
           { node.node_name => node }
       end
-    rescue Object => e
+    rescue Exception => e # YAML, XML or Ruby code block errors
       { "exception" => "#{e.message} (#{e.class})", "backtrace" => e.backtrace, 
         "raw_post_data" => raw_post_data, "format" => mime_type }
     end

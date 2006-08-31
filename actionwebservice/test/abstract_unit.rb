@@ -16,7 +16,7 @@ begin
   PATH_TO_AR = File.dirname(__FILE__) + '/../../activerecord'
   require "#{PATH_TO_AR}/lib/active_record" unless Object.const_defined?(:ActiveRecord)
   require "#{PATH_TO_AR}/lib/active_record/fixtures" unless Object.const_defined?(:Fixtures)
-rescue Object => e
+rescue LoadError => e
   fail "\nFailed to load activerecord: #{e}"
 end
 

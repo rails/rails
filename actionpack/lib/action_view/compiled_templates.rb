@@ -55,7 +55,7 @@ module ActionView
       begin
         module_eval(method_def, fake_file_name, initial_line_number)
         @mtimes[full_key(identifier, arg_names)] = Time.now
-      rescue Object => e
+      rescue Exception => e  # errors from compiled source
         e.blame_file! identifier
         raise
       end

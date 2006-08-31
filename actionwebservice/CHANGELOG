@@ -1,5 +1,7 @@
 *SVN*
 
+* Tighten rescue clauses.  #5985 [james@grayproductions.net]
+
 * Fixed XMLRPC multicall when one of the called methods returns a struct object. [Kent Sibilev] 
 
 * Replace Reloadable with Reloadable::Deprecated. [Nicholas Seckar]

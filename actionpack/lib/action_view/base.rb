@@ -510,7 +510,7 @@ module ActionView #:nodoc:
           else
             CompiledTemplates.module_eval(render_source, 'compiled-template', -line_offset)
           end
-        rescue Object => e
+        rescue Exception => e  # errors from template code
           if logger
             logger.debug "ERROR: compiling #{render_symbol} RAISED #{e}"
             logger.debug "Function body: #{render_source}"

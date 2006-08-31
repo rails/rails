@@ -17,12 +17,12 @@ else
   $stderr.print 'Attempting to load Active Record... '
   begin
     PATH_TO_AR = "#{File.dirname(__FILE__)}/../../activerecord/lib"
-    raise "#{PATH_TO_AR} doesn't exist" unless File.directory?(PATH_TO_AR)
+    raise LoadError, "#{PATH_TO_AR} doesn't exist" unless File.directory?(PATH_TO_AR)
     $LOAD_PATH.unshift PATH_TO_AR
     require 'active_record'
     require 'active_record/fixtures'
     $stderr.puts 'success'
-  rescue Object => e
+  rescue LoadError => e
     $stderr.print "failed. Skipping Active Record assertion tests: #{e}"
     ActiveRecordTestConnector.able_to_connect = false
   end
@@ -41,7 +41,7 @@ class ActiveRecordTestConnector
         require_fixture_models
         self.connected = true
       end
-    rescue Object => e
+    rescue Exception => e  # errors from ActiveRecord setup
       $stderr.puts "\nSkipping ActiveRecord assertion tests: #{e}"
       #$stderr.puts "  #{e.backtrace.join("\n  ")}\n"
       self.able_to_connect = false
@@ -56,7 +56,7 @@ class ActiveRecordTestConnector
           ActiveRecord::Base.establish_connection(connection_options)
           ActiveRecord::Base.configurations = { 'sqlite3_ar_integration' => connection_options } 
           ActiveRecord::Base.connection
-        rescue Object
+        rescue Exception  # errors from establishing a connection
           $stderr.puts 'SQLite 3 unavailable; falling to SQLite 2.'
           connection_options = {:adapter => 'sqlite', :dbfile => ':memory:'}
           ActiveRecord::Base.establish_connection(connection_options)

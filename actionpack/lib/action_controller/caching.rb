@@ -487,7 +487,7 @@ module ActionController #:nodoc:
             if f =~ matcher
               begin
                 File.delete(f)
-              rescue Object => e
+              rescue SystemCallError => e
                 # If there's no cache, then there's nothing to complain about
               end
             end

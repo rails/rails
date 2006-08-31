@@ -1,5 +1,7 @@
 *SVN*
 
+* Tighten rescue clauses.  #5985 [james@grayproductions.net]
+
 * Inflections: don't singularize -ies plurals.  [foamdino@gmail.com, Mark Van Holstyn]
 
 * Update Initializer to use load_once_paths to avoid plugin reloading. References #5852. [Nicholas Seckar]

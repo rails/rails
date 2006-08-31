@@ -1,5 +1,7 @@
 *SVN*
 
+* Tighten rescue clauses.  #5985 [james@grayproductions.net]
+
 * Fix spurious newlines and spaces in AR::Base#to_xml output [Jamis Buck]
 
 * has_one supports the :dependent => :delete option which skips the typical callback chain and deletes the associated object directly from the database.  #5927 [Chris Mear, Jonathan Viney]

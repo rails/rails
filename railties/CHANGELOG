@@ -1,5 +1,7 @@
 *SVN*
 
+* Tighten rescue clauses.  #5985 [james@grayproductions.net]
+
 * Cleaning up tests. [Kevin Clark, Jeremy Kemper]
 
 * Add Dependencies.load_once_paths. [Nicholas Seckar]

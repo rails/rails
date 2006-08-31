@@ -76,7 +76,7 @@ class RailsFCGIHandler
   rescue SystemExit => exit_error
     dispatcher_log :info, "terminated by explicit exit"
 
-  rescue Object => fcgi_error
+  rescue Exception => fcgi_error  # FCGI errors
     # retry on errors that would otherwise have terminated the FCGI process,
     # but only if they occur more than 10 seconds apart.
     if !(SignalException === fcgi_error) && Time.now - @last_error_on > 10
@@ -97,7 +97,7 @@ class RailsFCGIHandler
     def dispatcher_log(level, msg)
       time_str = Time.now.strftime("%d/%b/%Y:%H:%M:%S")
       logger.send(level, "[#{time_str} :: #{$$}] #{msg}")
-    rescue Object => log_error
+    rescue Exception => log_error  # Logger errors
       STDERR << "Couldn't write to #{@log_file_path.inspect}: #{msg}\n"
       STDERR << "  #{log_error.class}: #{log_error.message}\n"
     end
@@ -148,7 +148,7 @@ class RailsFCGIHandler
 
     def process_request(cgi)
       Dispatcher.dispatch(cgi)
-    rescue Object => e
+    rescue Exception => e  # errors from CGI dispatch
       raise if SignalException === e
       dispatcher_error(e)
     end

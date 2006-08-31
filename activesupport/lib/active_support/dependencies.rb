@@ -341,14 +341,14 @@ end
 class Object #:nodoc:
   def load(file, *extras)
     super(file, *extras)
-  rescue Object => exception
+  rescue Exception => exception  # errors from loading file
     exception.blame_file! file
     raise
   end
 
   def require(file, *extras)
     super(file, *extras)
-  rescue Object => exception
+  rescue Exception => exception  # errors from required file
     exception.blame_file! file
     raise
   end

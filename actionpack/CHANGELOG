@@ -1,5 +1,7 @@
 *SVN*
 
+* Tighten rescue clauses.  #5985 [james@grayproductions.net]
+
 * Fix send_data documentation typo.  #5982 [brad@madriska.com]
 
 * Switch to using FormEncodedPairParser for parsing request parameters. [Nicholas Seckar, DHH]

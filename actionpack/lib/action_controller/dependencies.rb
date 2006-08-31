@@ -71,7 +71,7 @@ module ActionController #:nodoc:
               require_dependency(dependency.to_s)
             rescue LoadError => e
               raise LoadError.new("Missing #{layer} #{dependency}.rb").copy_blame!(e)
-            rescue Object => exception
+            rescue Exception => exception  # error from loaded file
               exception.blame_file! "=> #{layer} #{dependency}.rb"
               raise
             end

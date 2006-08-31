@@ -396,7 +396,7 @@ module ActionMailer #:nodoc:
 
       begin
         send("perform_delivery_#{delivery_method}", mail) if perform_deliveries
-      rescue Object => e
+      rescue Exception => e  # Net::SMTP errors or sendmail pipe errors
         raise e if raise_delivery_errors
       end
 
