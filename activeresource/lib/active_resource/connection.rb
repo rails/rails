@@ -11,24 +11,24 @@ module ActiveResource
       @response = response
       @message  = message
     end
-    
+
     def to_s
       "Failed with #{response.code}"
     end
   end
-  
+
   class ClientError < ConnectionError
   end
 
   class ServerError < ConnectionError
   end
-  
+
   class ResourceNotFound < ClientError
   end
 
   class Connection
-    attr_accessor :uri
-    
+    attr_accessor :site
+
     class << self
       def requests
         @@requests ||= []
@@ -38,29 +38,31 @@ module ActiveResource
     def initialize(site)
       @site = site
     end
-    
+
     def get(path)
       Hash.create_from_xml(request(:get, path).body)
     end
-    
+
     def delete(path)
       request(:delete, path)
     end
-    
-    def put(path, body)
+
+    def put(path, body = '')
       request(:put, path, body)
     end
 
-    def post(path, body)
+    def post(path, body = '')
       request(:post, path, body)
     end
-    
+
     private
       def request(method, *arguments)
-        response = http.send(method, *arguments)
+        handle_response(http.send(method, *arguments))
+      end
 
+      def handle_response(response)
         case response.code.to_i
-          when 200...300
+          when 200...400
             response
           when 404
             raise(ResourceNotFound.new(response))
@@ -79,7 +81,7 @@ module ActiveResource
           @http.use_ssl     = @site.is_a?(URI::HTTPS)
           @http.verify_mode = OpenSSL::SSL::VERIFY_NONE if @http.use_ssl
         end
-        
+
         @http
       end
   end
