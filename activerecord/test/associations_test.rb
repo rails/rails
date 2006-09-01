@@ -410,6 +410,10 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     assert_equal "Microsoft", Firm.find(:first).clients_like_ms.first.name
   end
 
+  def test_finding_with_condition_hash
+    assert_equal "Microsoft", Firm.find(:first).clients_like_ms_with_hash_conditions.first.name
+  end
+
   def test_finding_using_sql
     firm = Firm.find(:first)
     first_client = firm.clients_using_sql.first
@@ -1546,8 +1550,10 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
   def test_associations_with_conditions
     assert_equal 3, projects(:active_record).developers.size
     assert_equal 1, projects(:active_record).developers_named_david.size
+    assert_equal 1, projects(:active_record).developers_named_david_with_hash_conditions.size
 
     assert_equal developers(:david), projects(:active_record).developers_named_david.find(developers(:david).id)
+    assert_equal developers(:david), projects(:active_record).developers_named_david_with_hash_conditions.find(developers(:david).id)
     assert_equal developers(:david), projects(:active_record).salaried_developers.find(developers(:david).id)
 
     projects(:active_record).developers_named_david.clear

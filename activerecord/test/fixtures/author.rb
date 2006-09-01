@@ -37,6 +37,8 @@ class Author < ActiveRecord::Base
   has_many :categorizations
   has_many :categories, :through => :categorizations
 
+  has_many :categories_like_general, :through => :categorizations, :source => :category, :class_name => 'Category', :conditions => { :name => 'General' }
+
   has_many :categorized_posts, :through => :categorizations, :source => :post
   has_many :unique_categorized_posts, :through => :categorizations, :source => :post, :uniq => true
 

@@ -246,6 +246,10 @@ class AssociationsJoinModelTest < Test::Unit::TestCase
   def test_has_many_find_first
     assert_equal categories(:general), authors(:david).categories.find(:first)
   end
+
+  def test_has_many_with_hash_conditions
+    assert_equal categories(:general), authors(:david).categories_like_general.find(:first)
+  end
   
   def test_has_many_find_conditions
     assert_equal categories(:general), authors(:david).categories.find(:first, :conditions => "categories.name = 'General'")

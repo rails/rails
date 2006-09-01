@@ -207,8 +207,8 @@ module ActiveRecord
 
         def conditions
           @conditions ||= [
-            (interpolate_sql(@reflection.active_record.send(:sanitize_sql, @reflection.options[:conditions])) if @reflection.options[:conditions]),
-            (interpolate_sql(@reflection.active_record.send(:sanitize_sql, @reflection.through_reflection.options[:conditions])) if @reflection.through_reflection.options[:conditions])
+            (interpolate_sql(@reflection.klass.send(:sanitize_sql, @reflection.options[:conditions])) if @reflection.options[:conditions]),
+            (interpolate_sql(@reflection.through_reflection.klass.send(:sanitize_sql, @reflection.through_reflection.options[:conditions])) if @reflection.through_reflection.options[:conditions])
           ].compact.collect { |condition| "(#{condition})" }.join(' AND ') unless (!@reflection.options[:conditions] && !@reflection.through_reflection.options[:conditions])
         end
 

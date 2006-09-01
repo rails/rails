@@ -1,5 +1,7 @@
 *SVN*
 
+* has_many :through conditions are sanitized by the associating class.  #5971 [martin.emde@gmail.com]
+
 * Tighten rescue clauses.  #5985 [james@grayproductions.net]
 
 * Fix spurious newlines and spaces in AR::Base#to_xml output [Jamis Buck]
