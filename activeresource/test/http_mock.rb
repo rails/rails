@@ -2,6 +2,20 @@ require 'active_resource/connection'
 
 module ActiveResource
   class HttpMock
+    class Responder
+      def initialize(responses)
+        @responses = responses
+      end
+      
+      for method in [ :post, :put, :get, :delete ]
+        module_eval <<-EOE
+          def #{method}(path, body = nil, status = 200, headers = {})
+            @responses[Request.new(:#{method}, path, nil)] = Response.new(body || {}, status, headers)
+          end
+        EOE
+      end
+    end
+
     class << self
       def requests
         @@requests ||= []
@@ -11,11 +25,12 @@ module ActiveResource
         @@responses ||= {}
       end
 
-      def respond_to(pairs)
+      def respond_to(pairs = {})
         reset!
         pairs.each do |(path, response)|
           responses[path] = response
         end
+        yield Responder.new(responses) if block_given?
       end
 
       def reset!
@@ -42,7 +57,7 @@ module ActiveResource
   class Request
     attr_accessor :path, :method, :body
     
-    def initialize(method, path, body = nil)
+    def initialize(method, path, body = nil, headers = nil)
       @method, @path, @body = method, path, body
     end
 
@@ -64,15 +79,24 @@ module ActiveResource
   end
   
   class Response
-    attr_accessor :body, :code
+    attr_accessor :body, :code, :headers
     
-    def initialize(body, code = 200)
-      @body, @code = body, code
+    def initialize(body, code = 200, headers = nil)
+      @body, @code, @headers = body, code, headers
     end
     
     def success?
       (200..299).include?(code)
     end
+
+    def [](key)
+      headers[key]
+    end
+    
+    def []=(key, value)
+      headers[key] = value
+    end
+
   end
 
   class Connection

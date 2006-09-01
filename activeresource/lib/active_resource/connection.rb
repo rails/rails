@@ -33,6 +33,11 @@ module ActiveResource
       def requests
         @@requests ||= []
       end
+      
+      def default_header
+        class << self ; attr_reader :default_header end
+        @default_header = { 'Content-Type' => 'application/xml' }
+      end
     end
 
     def initialize(site)
@@ -44,15 +49,15 @@ module ActiveResource
     end
 
     def delete(path)
-      request(:delete, path)
+      request(:delete, path, self.class.default_header)
     end
 
     def put(path, body = '')
-      request(:put, path, body)
+      request(:put, path, body, self.class.default_header)
     end
 
     def post(path, body = '')
-      request(:post, path, body)
+      request(:post, path, body, self.class.default_header)
     end
 
     private
