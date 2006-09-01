@@ -121,17 +121,15 @@ class TC_DispatcherActionControllerSoap < Test::Unit::TestCase
       end
       location = definitions.services[0].ports[0].soap_address.location
       if controller.is_a?(DelegatedController)
-        assert_match %r{http://localhost/dispatcher_test/delegated/test_service$}, location
+        assert_match %r{http://test.host/dispatcher_test/delegated/test_service$}, location
       elsif controller.is_a?(DirectController)
-        assert_match %r{http://localhost/dispatcher_test/direct/api$}, location
+        assert_match %r{http://test.host/dispatcher_test/direct/api$}, location
       end
       definitions.collect_complextypes
     end
 
     def ensure_valid_wsdl_action(controller)
       test_request = ActionController::TestRequest.new({ 'action' => 'wsdl' })
-      test_request.env['REQUEST_METHOD'] = 'GET'
-      test_request.env['HTTP_HOST'] = 'localhost'
       test_response = ActionController::TestResponse.new
       wsdl = controller.process(test_request, test_response).body
       ensure_valid_wsdl(controller, wsdl, DispatcherTest::WsdlNamespace)

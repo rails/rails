@@ -1,5 +1,7 @@
 *SVN*
 
+* ActionWebService WSDL generation ignores HTTP_X_FORWARDED_HOST [Paul Butcher <paul@paulbutcher.com>]
+
 * Tighten rescue clauses.  #5985 [james@grayproductions.net]
 
 * Fixed XMLRPC multicall when one of the called methods returns a struct object. [Kent Sibilev] 
@@ -14,7 +16,7 @@
 
 * Fix test database name typo. [Marcel Molina Jr.]
 
-*1.1.2* (April 9th, 2005)
+*1.1.2* (April 9th, 2006)
 
 * Rely on Active Record 1.14.2
 
