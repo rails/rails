@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecation: update docs. #5998 [jakob@mentalized.net, Kevin Clark]
+
 * Add some XmlSerialization tests for ActiveRecord [Rick Olson]
 
 * has_many :through conditions are sanitized by the associating class.  #5971 [martin.emde@gmail.com]

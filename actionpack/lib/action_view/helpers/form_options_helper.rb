@@ -26,7 +26,7 @@ module ActionView
     #
     # Another common case is a select tag for an <tt>belongs_to</tt>-associated object. For example,
     #
-    #   select("post", "person_id", Person.find_all.collect {|p| [ p.name, p.id ] })
+    #   select("post", "person_id", Person.find(:all).collect {|p| [ p.name, p.id ] })
     #
     # could become:
     #
@@ -43,7 +43,7 @@ module ActionView
       # See options_for_select for the required format of the choices parameter.
       #
       # Example with @post.person_id => 1:
-      #   select("post", "person_id", Person.find_all.collect {|p| [ p.name, p.id ] }, { :include_blank => true })
+      #   select("post", "person_id", Person.find(:all).collect {|p| [ p.name, p.id ] }, { :include_blank => true })
       #
       # could become:
       #

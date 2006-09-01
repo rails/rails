@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecation: update docs. #5998 [jakob@mentalized.net, Kevin Clark]
+
 * ActionWebService WSDL generation ignores HTTP_X_FORWARDED_HOST [Paul Butcher <paul@paulbutcher.com>]
 
 * Tighten rescue clauses.  #5985 [james@grayproductions.net]

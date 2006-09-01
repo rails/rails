@@ -264,7 +264,7 @@ Lots of different finders
    next_angle = Firm.find(1)    
 
    # SQL: SELECT * FROM companies WHERE id = 1 AND name = 'Next Angle'
-   next_angle = Company.find_first "name = 'Next Angle'"
+   next_angle = Company.find(:first, :conditions => "name = 'Next Angle'")
 
    next_angle = Firm.find_by_sql("SELECT * FROM companies WHERE id = 1").first
 

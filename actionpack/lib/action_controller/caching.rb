@@ -266,7 +266,7 @@ module ActionController #:nodoc:
     #   <b>Hello <%= @name %></b>
     #   <% cache do %>
     #     All the topics in the system:
-    #     <%= render_collection_of_partials "topic", Topic.find_all %>
+    #     <%= render :partial => "topic", :collection => Topic.find(:all) %>
     #   <% end %>
     #
     # This cache will bind to the name of action that called it. So you would be able to invalidate it using

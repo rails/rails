@@ -43,7 +43,7 @@ module ActionController #:nodoc:
       #   be in the <tt>params</tt> hash in order for the action(s) to be safely
       #   called.
       # * <tt>:session</tt>: a single key or an array of keys that must
-      #   be in the @session in order for the action(s) to be safely called.
+      #   be in the <tt>session</tt> in order for the action(s) to be safely called.
       # * <tt>:flash</tt>: a single key or an array of keys that must
       #   be in the flash in order for the action(s) to be safely called.
       # * <tt>:method</tt>: a single key or an array of keys--any one of which

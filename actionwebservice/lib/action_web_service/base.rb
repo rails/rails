@@ -12,7 +12,7 @@ module ActionWebService # :nodoc:
   #     web_service_api PersonAPI
   #
   #     def find_person(criteria)
-  #       Person.find_all [...]
+  #       Person.find(:all) [...]
   #     end
   #
   #     def delete_person(id)
