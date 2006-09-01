@@ -1,5 +1,7 @@
 *SVN*
 
+* Integration tests: headers beginning with X aren't excluded from the HTTP_ prefix, so X-Requested-With becomes HTTP_X_REQUESTED_WITH as expected. [Mike Clark]
+
 * Tighten rescue clauses.  #5985 [james@grayproductions.net]
 
 * Fix send_data documentation typo.  #5982 [brad@madriska.com]

@@ -232,7 +232,7 @@ module ActionController
 
           (headers || {}).each do |key, value|
             key = key.to_s.upcase.gsub(/-/, "_")
-            key = "HTTP_#{key}" unless env.has_key?(key) || key =~ /^X|HTTP/
+            key = "HTTP_#{key}" unless env.has_key?(key) || key =~ /^HTTP_/
             env[key] = value
           end
 
