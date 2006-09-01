@@ -1,5 +1,10 @@
 *SVN*
 
+* Fix cases where empty xml nodes weren't being translated to nil in Hash.create_from_xml [Rick Olson]
+
+  <written-on type="date"></written-on> # => { :type => 'date' } # WRONG
+  <written-on type="date"></written-on> # => nil # RIGHT
+
 * Tighten rescue clauses.  #5985 [james@grayproductions.net]
 
 * Inflections: don't singularize -ies plurals.  [foamdino@gmail.com, Mark Van Holstyn]

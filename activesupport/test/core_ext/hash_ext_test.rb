@@ -339,6 +339,30 @@ class HashToXmlTest < Test::Unit::TestCase
     assert_equal expected_topic_hash, Hash.create_from_xml(topic_xml)["topic"]
   end
 
+  def test_single_record_from_xml_with_nil_values
+    topic_xml = <<-EOT
+      <topic>
+        <title></title>
+        <id type="integer"></id>
+        <approved type="boolean"></approved>
+        <written-on type="date"></written-on>
+        <viewed-at type="datetime"></viewed-at>
+        <parent-id></parent-id>
+      </topic>
+    EOT
+
+    expected_topic_hash = {
+      :title      => nil, 
+      :id         => nil,
+      :approved   => nil,
+      :written_on => nil,
+      :viewed_at  => nil, 
+      :parent_id  => nil
+    }.stringify_keys
+
+    assert_equal expected_topic_hash, Hash.create_from_xml(topic_xml)["topic"]
+  end
+
   def test_multiple_records_from_xml
     topics_xml = <<-EOT
       <topics>
