@@ -404,12 +404,20 @@ class DependenciesTest < Test::Unit::TestCase
       assert ! Dependencies.autoloaded?("ModuleFolder::NestedClass")
       assert ! Dependencies.autoloaded?(ModuleFolder)
       
-      ModuleFolder::NestedClass
+      1 if ModuleFolder::NestedClass # 1 if to avoid warning
       assert ! Dependencies.autoloaded?(ModuleFolder::NestedClass)
     end
   ensure
     Object.send(:remove_const, :ModuleFolder) if defined?(ModuleFolder)
     Dependencies.load_once_paths = []
+  end
+  
+  def test_application_should_special_case_application_controller
+    with_loading 'autoloading_fixtures' do
+      require_dependency 'application'
+      assert_equal 10, ApplicationController
+      assert Dependencies.autoloaded?(:ApplicationController)
+    end
   end
   
 end

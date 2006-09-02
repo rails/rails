@@ -123,6 +123,7 @@ module Dependencies #:nodoc:
   def loadable_constants_for_path(path, bases = load_paths - load_once_paths)
     path = $1 if path =~ /\A(.*)\.rb\Z/
     expanded_path = File.expand_path(path)
+    
     bases.collect do |root|
       expanded_root = File.expand_path root
       next unless expanded_path.starts_with? expanded_root
@@ -131,8 +132,13 @@ module Dependencies #:nodoc:
       nesting = nesting[1..-1] if nesting && nesting[0] == ?/
       next if nesting.blank?
       
-      nesting.camelize
-    end.compact.uniq
+      names = [nesting.camelize]
+      
+      # Special case: application.rb might define ApplicationControlller.
+      names << 'ApplicationController' if nesting == 'application'
+      
+      names
+    end.flatten.compact.uniq
   end
   
   # Search for a file in load_paths matching the provided suffix.
