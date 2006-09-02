@@ -73,10 +73,7 @@ module ActionController
     # useful for implementing REST API's, where a single resource has different
     # behavior based on the HTTP verb (method) used to access it.
     # 
-    # Because browsers don't yet support any verbs except GET and POST, you can send
-    # a parameter named "_method" and the plugin will use that as the request method.
-    # 
-    # example:
+    # Example:
     #
     #   map.resources :messages 
     #
@@ -117,19 +114,56 @@ module ActionController
     #     end
     #   end
     # 
-    # The #resource method accepts various options, too, to customize the resulting
+    # The #resources method sets HTTP method restrictions on the routes it generates. For example, making an
+    # HTTP POST on <tt>new_message_url</tt> will raise a RoutingError exception. The default route in 
+    # <tt>config/routes.rb</tt> overrides this and allows invalid HTTP methods for resource routes.
+    # 
+    # Along with the routes themselves, #resources generates named routes for use in
+    # controllers and views. <tt>map.resources :messages</tt> produces the following named routes and helpers:
+    # 
+    #   Named Route   Helpers
+    #   messages      messages_url, hash_for_messages_url, 
+    #                 messages_path, hash_for_messages_path
+    #   message       message_url(id), hash_for_message_url(id), 
+    #                 message_path(id), hash_for_message_path(id)
+    #   new_message   new_message_url, hash_for_new_message_url, 
+    #                 new_message_path, hash_for_new_message_path
+    #   edit_message  edit_message_url(id), hash_for_edit_message_url(id),
+    #                 edit_message_path(id), hash_for_edit_message_path(id)
+    #
+    # You can use these helpers instead of #url_for or methods that take #url_for parameters:
+    # 
+    #   redirect_to :controller => 'messages', :action => 'index'
+    #   # becomes
+    #   redirect_to messages_url
+    #
+    #   <%= link_to "edit this message", :controller => 'messages', :action => 'edit', :id => @message.id %>
+    #   # becomes
+    #   <%= link_to "edit this message", edit_message_url(@message) # calls @message.id automatically
+    #
+    # Since web browsers don't support the PUT and DELETE verbs, you will need to add a parameter '_method' to your
+    # form tags. The form helpers make this a little easier. For an update form with a <tt>@message</tt> object:
+    #
+    #   <%= form_tag message_path(@message), :method => :put %>
+    #   
+    # or 
+    #   
+    #   <% form_for :message, @message, message_path(@message), :html => {:method => :put} do |f| %>
+    # 
+    # The #resources method accepts various options, too, to customize the resulting
     # routes:
     # * <tt>:controller</tt> -- specify the controller name for the routes.
     # * <tt>:singular</tt> -- specify the singular name used in the member routes.
     # * <tt>:path_prefix</tt> -- set a prefix to the routes with required route variables.
-    #   Weblog comments usually belong to a post, so you might use a resource like:
+    #   Weblog comments usually belong to a post, so you might use resources like:
     #
+    #     map.resources :articles
     #     map.resources :comments, :path_prefix => '/articles/:article_id'
     #
-    #   You can nest resource calls to set this automatically:
+    #   You can nest resources calls to set this automatically:
     #
-    #     map.resources :posts do |post|
-    #       post.resources :comments
+    #     map.resources :articles do |article|
+    #       article.resources :comments
     #     end
     # 
     # * <tt>:name_prefix</tt> -- define a prefix for all generated routes, usually ending in an underscore.
@@ -153,19 +187,19 @@ module ActionController
     #  
     #   map.resources :messages, :collection => { :rss => :get }
     #   # --> GET /messages;rss (maps to the #rss action)
-    #   #     also adds a url named "rss_messages"
+    #   #     also adds a named route called "rss_messages"
     # 
     #   map.resources :messages, :member => { :mark => :post }
     #   # --> POST /messages/1;mark (maps to the #mark action)
-    #   #     also adds a url named "mark_message"
+    #   #     also adds a named route called "mark_message"
     # 
     #   map.resources :messages, :new => { :preview => :post }
     #   # --> POST /messages/new;preview (maps to the #preview action)
-    #   #     also adds a url named "preview_new_message"
+    #   #     also adds a named route called "preview_new_message"
     # 
     #   map.resources :messages, :new => { :new => :any, :preview => :post }
     #   # --> POST /messages/new;preview (maps to the #preview action)
-    #   #     also adds a url named "preview_new_message"
+    #   #     also adds a named route called "preview_new_message"
     #   # --> /messages/new can be invoked via any request method
     # 
     #   map.resources :messages, :controller => "categories",
