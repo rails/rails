@@ -313,23 +313,26 @@ module ActionView
           @_cycles[name] = cycle_object
         end
       
-        AUTO_LINK_RE = /
-                        (                       # leading text
-                          <\w+.*?>|             #   leading HTML tag, or
-                          [^=!:'"\/]|           #   leading punctuation, or 
-                          ^                     #   beginning of line
+        AUTO_LINK_RE = %r{
+                        (                        # leading text
+                          <\w+.*?>|              #   leading HTML tag, or
+                          [^=!:'"/]|             #   leading punctuation, or 
+                          ^                      #   beginning of line
                         )
                         (
-                          (?:http[s]?:\/\/)|    # protocol spec, or
-                          (?:www\.)             # www.*
+                          (?:https?://)|         # protocol spec, or
+                          (?:www\.)              # www.*
                         ) 
                         (
-                          ([\w]+:?[=?&\/.-]?)*    # url segment
-                          \w+[\/]?              # url tail
-                          (?:\#\w*)?            # trailing anchor
+                          [-\w]+                 # subdomain or domain
+                          (?:\.[-\w]+)*          # remaining subdomains or domain
+                          (?::\d+)?              # port
+                          (?:/(?:[~\w%.;-]+)?)*  # path
+                          (?:\?[\w%&=.;-]+)?     # query string
+                          (?:\#\w*)?             # trailing anchor
                         )
-                        ([[:punct:]]|\s|<|$)    # trailing text
-                       /x unless const_defined?(:AUTO_LINK_RE)
+                        ([[:punct:]]|\s|<|$)     # trailing text
+                       }x unless const_defined?(:AUTO_LINK_RE)
 
         # Turns all urls into clickable links.  If a block is given, each url
         # is yielded and the result is used as the link text.  Example:
@@ -339,7 +342,7 @@ module ActionView
         def auto_link_urls(text, href_options = {})
           extra_options = tag_options(href_options.stringify_keys) || ""
           text.gsub(AUTO_LINK_RE) do
-            all, a, b, c, d = $&, $1, $2, $3, $5
+            all, a, b, c, d = $&, $1, $2, $3, $4
             if a =~ /<a\s/i # don't replace URL's that are already linked
               all
             else

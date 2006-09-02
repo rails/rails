@@ -114,6 +114,24 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal("2 counts", pluralize(2, "count"))
   end
 
+  def test_auto_link_parsing
+    urls = %w(http://www.rubyonrails.com
+              http://www.rubyonrails.com:80
+              http://www.rubyonrails.com/~minam
+              https://www.rubyonrails.com/~minam
+              http://www.rubyonrails.com/~minam/url%20with%20spaces
+              http://www.rubyonrails.com/foo.cgi?something=here
+              http://www.rubyonrails.com/foo.cgi?something=here&and=here
+              http://www.rubyonrails.com/contact;new
+              http://www.rubyonrails.com/contact;new%20with%20spaces
+              http://www.rubyonrails.com/contact;new?with=query&string=params
+              http://www.rubyonrails.com/~minam/contact;new?with=query&string=params)
+
+    urls.each do |url|
+      assert_equal %(<a href="#{url}">#{url}</a>), auto_link(url)
+    end
+  end
+
   def test_auto_linking
     email_raw    = 'david@loudthinking.com'
     email_result = %{<a href="mailto:#{email_raw}">#{email_raw}</a>}

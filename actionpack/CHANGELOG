@@ -1,5 +1,7 @@
 *SVN*
 
+* Make auto_link parse a greater subset of valid url formats. [Jamis Buck]
+
 * Integration tests: headers beginning with X aren't excluded from the HTTP_ prefix, so X-Requested-With becomes HTTP_X_REQUESTED_WITH as expected. [Mike Clark]
 
 * Tighten rescue clauses.  #5985 [james@grayproductions.net]
