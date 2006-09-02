@@ -1,5 +1,7 @@
 *SVN*
 
+* Add routing tests to assert that RoutingError is raised when conditions aren't met.  Closes #6016 [Nathan Witmer]
+
 * Deprecation: update docs. #5998 [jakob@mentalized.net, Kevin Clark]
 
 * Make auto_link parse a greater subset of valid url formats. [Jamis Buck]
