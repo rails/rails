@@ -1,5 +1,7 @@
 *SVN*
 
+* Remove Dir.chdir in the Webrick DispatchServlet#initialize method.  Fix bad path errors when trying to load config/routes.rb.  [Rick Olson]
+
 * Tighten rescue clauses.  #5985 [james@grayproductions.net]
 
 * Cleaning up tests. [Kevin Clark, Jeremy Kemper]

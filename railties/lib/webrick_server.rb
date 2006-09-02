@@ -66,7 +66,6 @@ class DispatchServlet < WEBrick::HTTPServlet::AbstractServlet
   def initialize(server, options) #:nodoc:
     @server_options = options
     @file_handler = WEBrick::HTTPServlet::FileHandler.new(server, options[:server_root])
-    Dir.chdir("#{RAILS_ROOT}/public") if defined?(RAILS_ROOT) && File.directory?("#{RAILS_ROOT}/public")
     super
   end
 
