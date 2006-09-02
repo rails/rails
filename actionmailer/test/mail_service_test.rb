@@ -214,7 +214,7 @@ class TestMailer < ActionMailer::Base
     subject      "nested multipart"
     from         "test@example.com"
     content_type "multipart/mixed"
-    part :content_type => "multipart/alternative", :content_disposition => "inline" do |p|
+    part :content_type => "multipart/alternative", :content_disposition => "inline", :headers => { "foo" => "bar" } do |p|
       p.part :content_type => "text/plain", :body => "test text\nline #2"
       p.part :content_type => "text/html", :body => "<b>test</b> HTML<br/>\nline #2"
     end
@@ -296,6 +296,7 @@ class ActionMailerTest < Test::Unit::TestCase
     
     assert_equal "multipart/mixed", created.content_type
     assert_equal "multipart/alternative", created.parts.first.content_type
+    assert_equal "bar", created.parts.first.header['foo'].to_s
     assert_equal "text/plain", created.parts.first.parts.first.content_type
     assert_equal "text/html", created.parts.first.parts[1].content_type
     assert_equal "application/octet-stream", created.parts[1].content_type
