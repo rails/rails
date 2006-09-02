@@ -296,7 +296,7 @@ A short rundown of the major features:
   {Learn more}[link:classes/ActionController/Rescue.html]
 
 
-* Scaffolding for Action Record model objects
+* Scaffolding for Active Record model objects
 
     require 'account' # must be an Active Record class
     class AccountController < ActionController::Base
@@ -306,7 +306,7 @@ A short rundown of the major features:
     The AccountController now has the full CRUD range of actions and default
     templates: list, show, destroy, new, create, edit, update
     
-  {Learn more}link:classes/ActionController/Scaffolding/ClassMethods.html
+  {Learn more}[link:classes/ActionController/Scaffolding/ClassMethods.html]
 
 
 * Form building for Active Record model objects
@@ -440,7 +440,7 @@ The latest version of Action Pack can be found at
 
 Documentation can be found at 
 
-* http://ap.rubyonrails.com
+* http://api.rubyonrails.com
 
 
 == Installation
