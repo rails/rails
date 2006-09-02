@@ -3,7 +3,8 @@ module ActiveSupport #:nodoc:
     module Array #:nodoc:
       module Grouping
         # Iterate over an array in groups of a certain size, padding any remaining 
-        # slots with specified value (<tt>nil</tt> by default).
+        # slots with specified value (<tt>nil</tt> by default) unless it is
+        # <tt>false</tt>.
         # 
         # E.g.
         # 
@@ -11,10 +12,18 @@ module ActiveSupport #:nodoc:
         #   ["1", "2", "3"]
         #   ["4", "5", "6"]
         #   ["7", nil, nil]
+        #
+        #   %w(1 2 3).in_groups_of(2, '&nbsp;') {|g| p g}
+        #   ["1", "2"]
+        #   ["3", "&nbsp;"]
+        #
+        #   %w(1 2 3).in_groups_of(2, false) {|g| p g}
+        #   ["1", "2"]
+        #   ["3"]
         def in_groups_of(number, fill_with = nil, &block)
           require 'enumerator'
           collection = dup
-          collection << fill_with until collection.size.modulo(number).zero?
+          collection << fill_with until collection.size.modulo(number).zero? unless fill_with == false
           grouped_collection = [] unless block_given?
           collection.each_slice(number) do |group|
             block_given? ? yield(group) : grouped_collection << group

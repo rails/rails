@@ -74,11 +74,21 @@ class ArrayExtGroupingTests < Test::Unit::TestCase
   def test_group_by_pads_with_specified_values
     groups = []
 
+    ('a'..'g').to_a.in_groups_of(3, 'foo') do |group|
+      groups << group
+    end
+
+    assert_equal [%w(a b c), %w(d e f), ['g', 'foo', 'foo']], groups
+  end
+
+  def test_group_without_padding
+    groups = []
+
     ('a'..'g').to_a.in_groups_of(3, false) do |group|
       groups << group
     end
 
-    assert_equal [%w(a b c), %w(d e f), ['g', false, false]], groups
+    assert_equal [%w(a b c), %w(d e f), ['g']], groups
   end
 end
 
