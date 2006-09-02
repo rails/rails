@@ -13,7 +13,7 @@ Product, Show Post) by manipulating the model and directing data to the view.
 In Rails, the model is handled by what's called an object-relational mapping
 layer entitled Active Record. This layer allows you to present the data from
 database rows as objects and embellish these data objects with business logic
-methods. You can read more about Active Record in 
+methods. You can read more about Active Record in
 link:files/vendor/rails/activerecord/README.html.
 
 The controller and view are handled by the Action Pack, which handles both
@@ -21,65 +21,52 @@ layers by its two parts: Action View and Action Controller. These two layers
 are bundled in a single package due to their heavy interdependence. This is
 unlike the relationship between the Active Record and Action Pack that is much
 more separate. Each of these packages can be used independently outside of
-Rails.  You can read more about Action Pack in 
+Rails.  You can read more about Action Pack in
 link:files/vendor/rails/actionpack/README.html.
 
 
 == Getting started
 
-1. Start the web server: <tt>ruby script/server</tt> (run with --help for options)
-2. Go to http://localhost:3000/ and get "Welcome aboard: You’re riding the Rails!"
-3. Follow the guidelines to start developing your application
+1. At the command prompt, start a new rails application using the rails command
+   and your application name. Ex: rails myapp
+   (If you've downloaded rails in a complete tgz or zip, this step is already done)
+2. Change directory into myapp and start the web server: <tt>script/server</tt> (run with --help for options)
+3. Go to http://localhost:3000/ and get "Welcome aboard: You’re riding the Rails!"
+4. Follow the guidelines to start developing your application
 
 
-== Web servers
+== Web Servers
 
-Rails uses the built-in web server in Ruby called WEBrick by default, so you don't
-have to install or configure anything to play around. 
+By default, Rails will try to use Mongrel and lighttpd if they are installed, otherwise
+Rails will use the WEBrick, the webserver that ships with Ruby. When you run script/server,
+Rails will check if Mongrel exists, then lighttpd and finally fall back to WEBrick. This ensures
+that you can always get up and running quickly.
 
-If you have lighttpd installed, though, it'll be used instead when running script/server.
-It's considerably faster than WEBrick and suited for production use, but requires additional
+Mongrel is a Ruby-based webserver with a C-component (which requires compilation) that is
+suitable for development and deployment of Rails applications. If you have Ruby Gems installed,
+getting up and running with mongrel is as easy as: <tt>gem install mongrel</tt>.
+More info at: http://mongrel.rubyforge.org
+
+If Mongrel is not installed, Rails will look for lighttpd. It's considerably faster than
+Mongrel and WEBrick and also suited for production use, but requires additional
 installation and currently only works well on OS X/Unix (Windows users are encouraged
-to start with WEBrick). We recommend version 1.4.11 and higher. You can download it from
+to start with Mongrel). We recommend version 1.4.11 and higher. You can download it from
 http://www.lighttpd.net.
 
-If you want something that's halfway between WEBrick and lighttpd, we heartily recommend
-Mongrel. It's a Ruby-based web server with a C-component (so it requires compilation) that
-also works very well with Windows. See more at http://mongrel.rubyforge.org/.
+And finally, if neither Mongrel or lighttpd are installed, Rails will use the built-in Ruby
+web server, WEBrick. WEBrick is a small Ruby web server suitable for development, but not
+for production.
 
-But of course its also possible to run Rails with the premiere open source web server Apache.
-To get decent performance, though, you'll need to install FastCGI. For Apache 1.3, you want
-to use mod_fastcgi. For Apache 2.0+, you want to use mod_fcgid.
-
-See http://wiki.rubyonrails.com/rails/pages/FastCGI for more information on FastCGI.
-
-== Example for Apache conf
-
-  <VirtualHost *:80>
-    ServerName rails
-    DocumentRoot /path/application/public/
-    ErrorLog /path/application/log/server.log
-  
-    <Directory /path/application/public/>
-      Options ExecCGI FollowSymLinks
-      AllowOverride all
-      Allow from all
-      Order allow,deny
-    </Directory>
-  </VirtualHost>
-
-NOTE: Be sure that CGIs can be executed in that directory as well. So ExecCGI
-should be on and ".cgi" should respond. All requests from 127.0.0.1 go
-through CGI, so no Apache restart is necessary for changes. All other requests
-go through FCGI (or mod_ruby), which requires a restart to show changes.
+But of course its also possible to run Rails on any platform that supports FCGI.
+Apache, LiteSpeed, IIS are just a few. For more information on FCGI,
+please visit: http://wiki.rubyonrails.com/rails/pages/FastCGI
 
 
 == Debugging Rails
 
-Have "tail -f" commands running on both the server.log, production.log, and
-test.log files. Rails will automatically display debugging and runtime
-information to these files. Debugging info will also be shown in the browser
-on requests from 127.0.0.1.
+Have "tail -f" commands running on the server.log and development.log. Rails will
+automatically display debugging and runtime information to these files. Debugging
+info will also be shown in the browser on requests from 127.0.0.1.
 
 
 == Breakpoints
@@ -94,21 +81,21 @@ and change the model, AND then resume execution! Example:
       breakpoint "Breaking out from the list"
     end
   end
-  
+
 So the controller will accept the action, run the first line, then present you
 with a IRB prompt in the breakpointer window. Here you can do things like:
 
 Executing breakpoint "Breaking out from the list" at .../webrick_server.rb:16 in 'breakpoint'
 
   >> @posts.inspect
-  => "[#<Post:0x14a6be8 @attributes={\"title\"=>nil, \"body\"=>nil, \"id\"=>\"1\"}>, 
+  => "[#<Post:0x14a6be8 @attributes={\"title\"=>nil, \"body\"=>nil, \"id\"=>\"1\"}>,
        #<Post:0x14a6620 @attributes={\"title\"=>\"Rails you know!\", \"body\"=>\"Only ten..\", \"id\"=>\"2\"}>]"
   >> @posts.first.title = "hello from a breakpoint"
   => "hello from a breakpoint"
 
 ...and even better is that you can examine how your runtime objects actually work:
 
-  >> f = @posts.first 
+  >> f = @posts.first
   => #<Post:0x13630c4 @attributes={"title"=>nil, "body"=>nil, "id"=>"1"}>
   >> f.
   Display all 152 possibilities? (y or n)
@@ -118,7 +105,7 @@ Finally, when you're ready to resume execution, you press CTRL-D
 
 == Console
 
-You can interact with the domain model by starting the console through script/console. 
+You can interact with the domain model by starting the console through <tt>script/console</tt>.
 Here you'll have all parts of the application configured, just like it is when the
 application is running. You can inspect domain models, change values, and save to the
 database. Starting the script without arguments will launch it in the development environment.
@@ -127,32 +114,35 @@ Passing an argument will specify a different environment, like <tt>script/consol
 To reload your controllers and models after launching the console run <tt>reload!</tt>
 
 
-
 == Description of contents
 
 app
   Holds all the code that's specific to this particular application.
 
 app/controllers
-  Holds controllers that should be named like weblog_controller.rb for
-  automated URL mapping. All controllers should descend from
-  ActionController::Base.
+  Holds controllers that should be named like weblogs_controller.rb for
+  automated URL mapping. All controllers should descend from ApplicationController
+  which itself descends from ActionController::Base.
 
 app/models
   Holds models that should be named like post.rb.
   Most models will descend from ActiveRecord::Base.
-  
+
 app/views
   Holds the template files for the view that should be named like
-  weblog/index.rhtml for the WeblogController#index action. All views use eRuby
-  syntax. This directory can also be used to keep stylesheets, images, and so on
-  that can be symlinked to public.
-  
-app/helpers
-  Holds view helpers that should be named like weblog_helper.rb.
+  weblogs/index.rhtml for the WeblogsController#index action. All views use eRuby
+  syntax.
 
-app/apis
-  Holds API classes for web services.
+app/views/layouts
+  Holds the template files for layouts to be used with views. This models the common
+  header/footer method of wrapping views. In your views, define a layout using the
+  <tt>layout :default</tt> and create a file named default.rhtml. Inside default.rhtml,
+  call <% yield %> to render the view using this layout.
+
+app/helpers
+  Holds view helpers that should be named like weblogs_helper.rb. These are generated
+  for you automatically when using script/generate for controllers. Helpers can be used to
+  wrap functionality for your views into methods.
 
 config
   Configuration files for the Rails environment, the routing map, the database, and other dependencies.
@@ -164,19 +154,25 @@ db
   Contains the database schema in schema.rb.  db/migrate contains all
   the sequence of Migrations for your schema.
 
+doc
+  This directory is where your application documentation will be stored when generated
+  using <tt>rake doc:app</tt>
+
 lib
   Application specific libraries. Basically, any kind of custom code that doesn't
   belong under controllers, models, or helpers. This directory is in the load path.
-    
+
 public
   The directory available for the web server. Contains subdirectories for images, stylesheets,
-  and javascripts. Also contains the dispatchers and the default HTML files.
+  and javascripts. Also contains the dispatchers and the default HTML files. This should be
+  set as the DOCUMENT_ROOT of your web server.
 
 script
   Helper scripts for automation and generation.
 
 test
-  Unit and functional tests along with fixtures.
+  Unit and functional tests along with fixtures. When using the script/generate scripts, template
+  test files will be generated for you and placed in this directory.
 
 vendor
   External libraries that the application depends on. Also includes the plugins subdirectory.
