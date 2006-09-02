@@ -1,5 +1,7 @@
 *SVN*
 
+* to_xml: the :methods option works on arrays of records.  #5845 [Josh Starcher]
+
 * Deprecation: update docs. #5998 [jakob@mentalized.net, Kevin Clark]
 
 * Add some XmlSerialization tests for ActiveRecord [Rick Olson]

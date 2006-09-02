@@ -1340,6 +1340,12 @@ class BasicsTest < Test::Unit::TestCase
     xml = [ topics(:first), topics(:second) ].to_xml(:indent => 0, :skip_instruct => true, :include => :replies)
     assert xml.include?(%(<replies><reply>))
   end
+
+  def test_array_to_xml_including_methods
+    xml = [ topics(:first), topics(:second) ].to_xml(:indent => 0, :skip_instruct => true, :methods => [ :topic_id ])
+    assert xml.include?(%(<topic-id type="integer">#{topics(:first).topic_id}</topic-id>))
+    assert xml.include?(%(<topic-id type="integer">#{topics(:second).topic_id}</topic-id>))
+  end
   
   def test_array_to_xml_including_has_one_association
     xml = [ companies(:first_firm), companies(:rails_core) ].to_xml(:indent => 0, :skip_instruct => true, :include => :account)

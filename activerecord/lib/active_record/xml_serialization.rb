@@ -160,7 +160,7 @@ module ActiveRecord #:nodoc:
     end
 
     def serializable_method_attributes
-      Array(options.delete(:methods)).collect { |name| MethodAttribute.new(name.to_s, @record) }
+      Array(options[:methods]).collect { |name| MethodAttribute.new(name.to_s, @record) }
     end
 
 

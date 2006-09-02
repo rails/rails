@@ -9,6 +9,11 @@ class Topic < ActiveRecord::Base
     Topic.find(parent_id)
   end
   
+  # trivial method for testing Array#to_xml with :methods
+  def topic_id
+    id
+  end
+
   protected
     def default_written_on
       self.written_on = Time.now unless attribute_present?("written_on")
