@@ -7,7 +7,9 @@ require 'tmail/net'
 module ActionMailer #:nodoc:
   # ActionMailer allows you to send email from your application using a mailer model and views.
   #
+  #
   # = Mailer Models
+  #
   # To use ActionMailer, you need to create a mailer model.
   #   
   #   $ script/generate mailer Notifier
@@ -23,7 +25,7 @@ module ActionMailer #:nodoc:
   #      recipients recipient.email_address_with_name
   #      from       "system@example.com"
   #      subject    "New account information"
-  #      body       "account" => recipient
+  #      body       :account => recipient
   #    end
   #  end
   #
@@ -45,7 +47,9 @@ module ActionMailer #:nodoc:
   # in an instance variable <tt>@account</tt> with the value of <tt>recipient</tt> being accessible in the 
   # view.
   #
-  # = Mailer Views
+  #
+  # = Mailer views
+  #
   # Like ActionController, each mailer class has a corresponding view directory
   # in which each method of the class looks for a template with its name.
   # To define a template to be used with a mailing, create an <tt>.rhtml</tt> file with the same name as the method
@@ -59,7 +63,30 @@ module ActionMailer #:nodoc:
   #   Hi <%= @account.name %>,
   #   Thanks for joining our service! Please check back often.
   #
-  # = Sending Mail
+  # You can even use Action Pack helpers in these views. For example:
+  #
+  #   You got a new note!
+  #   <%= truncate(note.body, 25) %>
+  # 
+  #
+  # = Generating URLs for mailer views
+  #
+  # If your view includes URLs from the application, you need to use url_for in the mailing method instead of the view.
+  # Unlike controllers from Action Pack, the mailer instance doesn't have any context about the incoming request. That's
+  # why you need to jump this little hoop and supply all the details needed for the URL. Example:
+  #
+  #    def signup_notification(recipient)
+  #      recipients recipient.email_address_with_name
+  #      from       "system@example.com"
+  #      subject    "New account information"
+  #      body       :account => recipient,
+  #                 :home_page => url_for(:host => "example.com", :controller => "welcome", :action => "greeting")
+  #    end
+  #
+  # You can now access @home_page in the template and get http://example.com/welcome/greeting.
+  #
+  # = Sending mail
+  #
   # Once a mailer action and template are defined, you can deliver your message or create it and save it 
   # for delivery later:
   #
@@ -73,7 +100,9 @@ module ActionMailer #:nodoc:
   # like to deliver. The <tt>signup_notification</tt> method defined above is
   # delivered by invoking <tt>Notifier.deliver_signup_notification</tt>.
   #
-  # = HTML Email
+  #
+  # = HTML email
+  #
   # To send mail as HTML, make sure your view (the <tt>.rhtml</tt> file) generates HTML and
   # set the content type to html.
   #
@@ -87,7 +116,9 @@ module ActionMailer #:nodoc:
   #     end
   #   end  
   #
-  # = Multipart Email
+  #
+  # = Multipart email
+  #
   # You can explicitly specify multipart messages:
   #
   #   class ApplicationMailer < ActionMailer::Base
@@ -120,7 +151,9 @@ module ActionMailer #:nodoc:
   # with the corresponding content type. The same body hash is passed to
   # each template.
   #
+  #
   # = Attachments
+  #
   # Attachments can be added by using the +attachment+ method.
   #
   # Example:
@@ -140,6 +173,7 @@ module ActionMailer #:nodoc:
   #       end
   #     end
   #   end 
+  #
   #
   # = Configuration options
   #

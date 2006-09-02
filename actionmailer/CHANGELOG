@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that iconv decoding should catch InvalidEncoding #3153 [jon@siliconcircus.com]
+
 * Tighten rescue clauses.  #5985 [james@grayproductions.net]
 
 * Automatically included ActionController::UrlWriter, such that URL generation can happen within ActionMailer controllers. [DHH]
