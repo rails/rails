@@ -44,7 +44,7 @@ module ActionView
 
       include PrototypeHelper
       
-      # Returns a link that'll trigger a JavaScript +function+ using the 
+      # Returns a link that will trigger a JavaScript +function+ using the 
       # onclick handler and return false after the fact.
       #
       # The +function+ argument can be omitted in favor of an +update_page+
@@ -53,11 +53,32 @@ module ActionView
       #
       # Examples:
       #   link_to_function "Greeting", "alert('Hello world!')"
+      #     Produces:
+      #       <a onclick="alert('Hello world!'); return false;" href="#">Greeting</a>
+      #
       #   link_to_function(image_tag("delete"), "if (confirm('Really?')) do_delete()")
+      #     Produces:
+      #       <a onclick="if (confirm('Really?')) do_delete(); return false;" href="#">
+      #         <img src="/images/delete.png?" alt="Delete"/>
+      #       </a>
+      #
       #   link_to_function("Show me more", nil, :id => "more_link") do |page|
       #     page[:details].visual_effect  :toggle_blind
       #     page[:more_link].replace_html "Show me less"
       #   end
+      #     Produces:
+      #       <a href="#" id="more_link" onclick="try {
+      #         $(&quot;details&quot;).visualEffect(&quot;toggle_blind&quot;);
+      #         $(&quot;more_link&quot;).update(&quot;Show me less&quot;);
+      #       } 
+      #       catch (e) { 
+      #         alert('RJS error:\n\n' + e.toString()); 
+      #         alert('$(\&quot;details\&quot;).visualEffect(\&quot;toggle_blind\&quot;);
+      #         \n$(\&quot;more_link\&quot;).update(\&quot;Show me less\&quot;);');
+      #         throw e 
+      #       };
+      #       return false;">Show me more</a>
+      #
       def link_to_function(name, function = '', html_options = {}, &block)
         html_options.symbolize_keys!
         function = update_page(&block) if block_given?
