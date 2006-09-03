@@ -34,7 +34,7 @@ module ActiveSupport
       private
         def deprecation_message(callstack, message = nil)
           file, line, method = extract_callstack(callstack)
-          message ||= "WARNING: #{method} is deprecated and will be removed from the next Rails release"
+          message ||= "WARNING: #{method} is deprecated and will be removed from the next major Rails release (2.0)"
           "#{message} (#{method} at #{file}:#{line})"
         end
 
@@ -78,7 +78,6 @@ module ActiveSupport
       end
 
       private
-        
         def collect_deprecations
           old_behavior = ActiveSupport::Deprecation.behavior
           deprecations = []
