@@ -485,9 +485,19 @@ module ActionController #:nodoc:
       # would have slashed-off the path components after the changed action.
       def url_for(options = {}, *parameters_for_method_reference) #:doc:
         case options
-          when String then options
-          when Symbol then send(options, *parameters_for_method_reference)
-          when Hash   then @url.rewrite(rewrite_options(options))
+          when String
+            options
+
+          when Symbol
+            ActiveSupport::Deprecation.warn(
+              "WARNING: You called url_for(:#{options}), which is a deprecated API. Instead you should use the named " +
+              "route directly, like #{options}(). Using symbols and parameters with url_for will be removed from Rails 2.0."
+            )
+
+            send(options, *parameters_for_method_reference)
+
+          when Hash
+            @url.rewrite(rewrite_options(options))
         end
       end
 
@@ -661,12 +671,21 @@ module ActionController #:nodoc:
       def render(options = nil, deprecated_status = nil, &block) #:doc:
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
-        # Backwards compatibility
-        unless options.is_a?(Hash)
-          if options == :update
-            options = {:update => true}
-          else
-            return render_file(options || default_template_name, deprecated_status, true)
+        if options.nil?
+          return render_file(default_template_name)
+        else
+          # Backwards compatibility
+          unless options.is_a?(Hash)
+            if options == :update
+              options = { :update => true }
+            else
+              ActiveSupport::Deprecation.warn(
+                "WARNING: You called render(#{options}), which is a deprecated API. Instead you use " +
+                "render :file => #{options}. Calling render with just a string will be removed from Rails 2.0."
+              )
+
+              return render_file(options || default_template_name, deprecated_status, true)
+            end
           end
         end
 
@@ -875,6 +894,7 @@ module ActionController #:nodoc:
               redirect_to(url_for(options))
               response.redirected_to = options
             else
+              # TOOD: Deprecate me!
               redirect_to(url_for(options, *parameters_for_method_reference))
               response.redirected_to, response.redirected_to_method_params = options, parameters_for_method_reference
             end

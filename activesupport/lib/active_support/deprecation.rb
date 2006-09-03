@@ -38,9 +38,8 @@ module ActiveSupport
       private
         def deprecation_message(callstack, message = nil)
           file, line, method = extract_callstack(callstack)
-          message ||= "WARNING: #{method} is deprecated and will be removed from Rails 2.0. " +
-          "See http://www.rubyonrails.org/deprecation for details."
-          "#{message} (#{method} at #{file}:#{line})"
+          message ||= "WARNING: #{method} is deprecated and will be removed from Rails 2.0."
+          "#{message}. See http://www.rubyonrails.org/deprecation for details. (#{method} at #{file}:#{line})"
         end
 
         def extract_callstack(callstack)

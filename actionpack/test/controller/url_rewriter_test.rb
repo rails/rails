@@ -90,5 +90,4 @@ class UrlWriterTests < Test::Unit::TestCase
   ensure
     ActionController::Routing::Routes.load!
   end
-  
 end
