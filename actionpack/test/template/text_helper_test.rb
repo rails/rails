@@ -195,6 +195,12 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal "&lt;form action='/foo/bar' method='post'><input>&lt;/form>", result
   end
 
+  def test_sanitize_plaintext
+    raw = "<plaintext><span>foo</span></plaintext>"
+    result = sanitize(raw)
+    assert_equal "&lt;plaintext><span>foo</span>&lt;/plaintext>", result
+  end
+
   def test_sanitize_script
     raw = "<script language=\"Javascript\">blah blah blah</script>"
     result = sanitize(raw)
@@ -211,6 +217,12 @@ class TextHelperTest < Test::Unit::TestCase
     raw = %{href="javascript:bang" <a href="javascript:bang" name="hello">foo</a>, <span href="javascript:bang">bar</span>}
     result = sanitize(raw)
     assert_equal %{href="javascript:bang" <a name='hello'>foo</a>, <span>bar</span>}, result
+  end
+  
+  def test_sanitize_image_src
+    raw = %{src="javascript:bang" <img src="javascript:bang" width="5">foo</img>, <span src="javascript:bang">bar</span>}
+    result = sanitize(raw)
+    assert_equal %{src="javascript:bang" <img width='5'>foo</img>, <span>bar</span>}, result
   end
   
   def test_cycle_class

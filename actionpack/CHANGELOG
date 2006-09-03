@@ -1,5 +1,7 @@
 *SVN*
 
+* Update sanitize text helper to strip plaintext tags, and <img src="javascript:bang">.  [Rick Olson]
+
 * Update routing documentation.  Closes #6017 [Nathan Witmer]
 
 * Add routing tests to assert that RoutingError is raised when conditions aren't met.  Closes #6016 [Nathan Witmer]

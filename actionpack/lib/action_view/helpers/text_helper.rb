@@ -168,7 +168,7 @@ module ActionView
         require 'html/node'
       end
 
-      VERBOTEN_TAGS = %w(form script) unless defined?(VERBOTEN_TAGS)
+      VERBOTEN_TAGS = %w(form script plaintext) unless defined?(VERBOTEN_TAGS)
       VERBOTEN_ATTRS = /^on/i unless defined?(VERBOTEN_ATTRS)
 
       # Sanitizes the given HTML by making form and script tags into regular
@@ -192,8 +192,8 @@ module ActionView
                 else
                   if node.closing != :close
                     node.attributes.delete_if { |attr,v| attr =~ VERBOTEN_ATTRS }
-                    if node.attributes["href"] =~ /^javascript:/i
-                      node.attributes.delete "href"
+                    %w(href src).each do |attr|
+                      node.attributes.delete attr if node.attributes[attr] =~ /^javascript:/i
                     end
                   end
                   node.to_s
