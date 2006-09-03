@@ -47,12 +47,12 @@ module ActionController #:nodoc:
   end
 end
 
-require File.dirname(__FILE__) + '/assertions/assert_response'
-require File.dirname(__FILE__) + '/assertions/assert_select'
-require File.dirname(__FILE__) + '/assertions/assert_tag'
-require File.dirname(__FILE__) + '/assertions/assert_dom'
-require File.dirname(__FILE__) + '/assertions/assert_routing'
-require File.dirname(__FILE__) + '/assertions/assert_valid'
+require File.dirname(__FILE__) + '/assertions/response_assertions'
+require File.dirname(__FILE__) + '/assertions/selector_assertions'
+require File.dirname(__FILE__) + '/assertions/tag_assertions'
+require File.dirname(__FILE__) + '/assertions/dom_assertions'
+require File.dirname(__FILE__) + '/assertions/routing_assertions'
+require File.dirname(__FILE__) + '/assertions/model_assertions'
 
 module Test #:nodoc:
   module Unit #:nodoc:
