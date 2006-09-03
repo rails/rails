@@ -8,13 +8,13 @@ module ActionController #:nodoc:
       # Without web-service support, an action which collects the data for displaying a list of people
       # might look something like this:
       #
-      #   def list
+      #   def index
       #     @people = Person.find(:all)
       #   end
       # 
       # Here's the same action, with web-service support baked in:
       # 
-      #   def list
+      #   def index
       #     @people = Person.find(:all)
       # 
       #     respond_to do |format|
@@ -30,7 +30,7 @@ module ActionController #:nodoc:
       # Supposing you have an action that adds a new person, optionally creating their company 
       # (by name) if it does not already exist, without web-services, it might look like this:
       # 
-      #   def add
+      #   def create
       #     @company = Company.find_or_create_by_name(params[:company][:name])
       #     @person  = @company.people.create(params[:person])
       # 
@@ -39,7 +39,7 @@ module ActionController #:nodoc:
       # 
       # Here's the same action, with web-service support baked in:
       # 
-      #   def add
+      #   def create
       #     company  = params[:person].delete(:company)
       #     @company = Company.find_or_create_by_name(company[:name])
       #     @person  = @company.people.create(params[:person])
@@ -97,7 +97,6 @@ module ActionController #:nodoc:
       # environment.rb as follows.
       # 
       #   Mime::Type.register "image/jpg", :jpg
-      # 
       def respond_to(*types, &block)
         raise ArgumentError, "respond_to takes either types or a block, never both" unless types.any? ^ block
         block ||= lambda { |responder| types.each { |type| responder.send(type) } }

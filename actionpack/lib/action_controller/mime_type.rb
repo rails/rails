@@ -1,5 +1,18 @@
 module Mime
-  class Type #:nodoc:
+  # Encapsulates the notion of a mime type. Can be used at render time, for example, with:
+  #
+  #   class PostsController < ActionController::Base
+  #     def show
+  #       @post = Post.find(params[:id])
+  #
+  #       respond_to do |format|
+  #         format.html
+  #         format.ics { render :text => post.to_ics, :mime_type => Mime::Type["text/calendar"]  }
+  #         format.xml { render :xml => @people.to_xml }
+  #       end
+  #     end
+  #   end
+  class Type
     # A simple helper class used in parsing the accept header
     class AcceptItem #:nodoc:
       attr_accessor :order, :name, :q

@@ -1,6 +1,8 @@
 module ActionController
   # === Action Pack pagination for Active Record collections
   #
+  # DEPRECATION WARNING: Pagination will be separated into its own plugin with Rails 2.0.
+  #
   # The Pagination module aids in the process of paging large collections of
   # Active Record objects. It offers macro-style automatic fetching of your
   # model for multiple views, or explicit fetching for single actions. And if
