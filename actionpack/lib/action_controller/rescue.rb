@@ -48,9 +48,10 @@ module ActionController #:nodoc:
       # Overwrite to implement public exception handling (for requests answering false to <tt>local_request?</tt>).
       def rescue_action_in_public(exception) #:doc:
         case exception
-          when RoutingError, UnknownAction then
+          when RoutingError, UnknownAction
             render_text(IO.read(File.join(RAILS_ROOT, 'public', '404.html')), "404 Not Found")
-          else render_text "<html><body><h1>Application error (Rails)</h1></body></html>"
+          else
+            render_text(IO.read(File.join(RAILS_ROOT, 'public', '500.html')), "500 Internal Error")
         end
       end
 
@@ -125,8 +126,10 @@ module ActionController #:nodoc:
       
       def response_code_for_rescue(exception)
         case exception
-          when UnknownAction, RoutingError then "404 Page Not Found"
-          else "500 Internal Error"
+          when UnknownAction, RoutingError 
+            "404 Page Not Found"
+          else
+            "500 Internal Error"
         end
       end
       

@@ -1,5 +1,7 @@
 *SVN*
 
+* Changed that uncaught exceptions raised any where in the application will cause RAILS_ROOT/public/500.html to be read and shown instead of just the static "Application error (Rails)" [DHH]
+
 * Integration tests: thoroughly test ActionController::Integration::Session.  #6022 [Kevin Clark]
     (tests skipped unless you `gem install mocha`)
 
