@@ -59,6 +59,20 @@ class UrlHelperTest < Test::Unit::TestCase
       button_to("Hello", "http://www.example.com", :disabled => true)
     )
   end
+  
+  def test_button_to_with_method_delete
+    assert_dom_equal(
+      "<form method=\"post\" action=\"http://www.example.com\" class=\"button-to\"><div><input type=\"hidden\" name=\"_method\" value=\"delete\" /><input type=\"submit\" value=\"Hello\" /></div></form>",
+      button_to("Hello", "http://www.example.com", :method => :delete)
+    )
+  end
+  
+  def test_button_to_with_method_get
+    assert_dom_equal(
+      "<form method=\"get\" action=\"http://www.example.com\" class=\"button-to\"><div><input type=\"submit\" value=\"Hello\" /></div></form>",
+      button_to("Hello", "http://www.example.com", :method => :get)
+    )
+  end
 
   def test_link_tag_with_straight_url
     assert_dom_equal "<a href=\"http://www.example.com\">Hello</a>", link_to("Hello", "http://www.example.com")

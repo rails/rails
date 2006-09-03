@@ -93,12 +93,14 @@ module ActionView
       # Example 2:
       #
       #   button_to "Destroy", { :action => 'destroy', :id => 3 },
-      #             :confirm => "Are you sure?"
+      #             :confirm => "Are you sure?", :method => :delete
       #
       # Generates the following HTML (sans formatting):
       #
       #   <form method="post" action="/feeds/destroy/3" class="button-to">
-      #     <div><input onclick="return confirm('Are you sure?');"
+      #     <div>
+      #       <input type="hidden" name="_method" value="delete" />
+      #       <input onclick="return confirm('Are you sure?');"
       #                 value="Destroy" type="submit" />
       #     </div>
       #   </form>
@@ -113,18 +115,25 @@ module ActionView
       def button_to(name, options = {}, html_options = nil)
         html_options = (html_options || {}).stringify_keys
         convert_boolean_attributes!(html_options, %w( disabled ))
-        
+
+        method_tag = ''
+        if (method = html_options.delete('method')) && %w{put delete}.include?(method.to_s)
+          method_tag = tag('input', :type => 'hidden', :name => '_method', :value => method.to_s)
+        end
+
+        form_method = method.to_s == 'get' ? 'get' : 'post'
+
         if confirm = html_options.delete("confirm")
           html_options["onclick"] = "return #{confirm_javascript_function(confirm)};"
         end
-        
+
         url = options.is_a?(String) ? options : url_for(options)
         name ||= url
-        
+
         html_options.merge!("type" => "submit", "value" => name)
 
-        "<form method=\"post\" action=\"#{h url}\" class=\"button-to\"><div>" +
-          tag("input", html_options) + "</div></form>"
+        "<form method=\"#{form_method}\" action=\"#{h url}\" class=\"button-to\"><div>" + 
+          method_tag + tag("input", html_options) + "</div></form>"
       end
 
 
