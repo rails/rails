@@ -7,6 +7,8 @@ module ActionView
     # editing relies on ActionController::Base.in_place_edit_for and the autocompletion relies on 
     # ActionController::Base.auto_complete_for.
     module JavaScriptMacrosHelper
+      # DEPRECATION WARNING: This method will become a separate plugin when Rails 2.0 ships.
+      #
       # Makes an HTML element specified by the DOM ID +field_id+ become an in-place
       # editor of a property.
       #
@@ -64,6 +66,8 @@ module ActionView
         javascript_tag(function)
       end
       
+      # DEPRECATION WARNING: This method will become a separate plugin when Rails 2.0 ships.
+      #
       # Renders the value of the specified object and method with in-place editing capabilities.
       #
       # See the RDoc on ActionController::InPlaceEditing to learn more about this.
@@ -75,6 +79,8 @@ module ActionView
         in_place_editor(tag_options[:id], in_place_editor_options)
       end
       
+      # DEPRECATION WARNING: This method will become a separate plugin when Rails 2.0 ships.
+      #
       # Adds AJAX autocomplete functionality to the text input field with the 
       # DOM ID specified by +field_id+.
       #
@@ -153,6 +159,8 @@ module ActionView
         javascript_tag(function)
       end
       
+      # DEPRECATION WARNING: This method will become a separate plugin when Rails 2.0 ships.
+      #
       # Use this method in your view to generate a return for the AJAX autocomplete requests.
       #
       # Example action:
@@ -172,6 +180,8 @@ module ActionView
         content_tag("ul", items.uniq)
       end
       
+      # DEPRECATION WARNING: This method will become a separate plugin when Rails 2.0 ships.
+      #
       # Wrapper for text_field with added AJAX autocompletion functionality.
       #
       # In your controller, you'll need to define an action called

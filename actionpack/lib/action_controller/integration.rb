@@ -182,7 +182,6 @@ module ActionController
       end
 
       private
-
         class MockCGI < CGI #:nodoc:
           attr_accessor :stdinput, :stdoutput, :env_table
 

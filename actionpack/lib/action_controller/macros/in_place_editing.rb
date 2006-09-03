@@ -5,6 +5,8 @@ module ActionController
         base.extend(ClassMethods)
       end
 
+      # DEPRECATION WARNING: This method will become a separate plugin when Rails 2.0 ships.
+      #
       # Example:
       #
       #   # Controller

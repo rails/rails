@@ -29,8 +29,8 @@ module ActionController #:nodoc:
 
       base.class_eval do
         alias_method_chain :assign_shortcuts, :flash
-        alias_method_chain :process_cleanup, :flash
-        alias_method_chain :reset_session, :flash
+        alias_method_chain :process_cleanup,  :flash
+        alias_method_chain :reset_session,    :flash
       end
     end
     
@@ -92,7 +92,7 @@ module ActionController #:nodoc:
       #
       #    flash.keep            # keeps the entire flash
       #    flash.keep(:notice)   # keeps only the "notice" entry, the rest of the flash is discarded
-      def keep(k=nil)
+      def keep(k = nil)
         use(k, false)
       end
     
@@ -100,7 +100,7 @@ module ActionController #:nodoc:
       #
       #     flash.keep                 # keep entire flash available for the next action
       #     flash.discard(:warning)    # discard the "warning" entry (it'll still be available for the current action)
-      def discard(k=nil)
+      def discard(k = nil)
         use(k)
       end
     
@@ -116,6 +116,7 @@ module ActionController #:nodoc:
             @used.delete(k)
           end
         end
+
         (@used.keys - keys).each{|k| @used.delete k } # clean up after keys that could have been left over by calling reject! or shift on the flash
       end
     
@@ -173,7 +174,7 @@ module ActionController #:nodoc:
 
         # deprecated. use <tt>flash.keep</tt> instead
         def keep_flash #:doc:
-          warn 'keep_flash is deprecated; use flash.keep instead.'
+          ActiveSupport::Deprecation.warn 'keep_flash is deprecated; use flash.keep instead.'
           flash.keep
         end
     end

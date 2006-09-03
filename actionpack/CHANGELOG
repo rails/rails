@@ -1,5 +1,7 @@
 *SVN*
 
+* Added deprecation language for in_place_editor and auto_complete_field that both pieces will become plugins by Rails 2.0 [DHH]
+
 * Deprecated all of ActionController::Dependencies. All dependency loading is now handled from Active Support [DHH]
 
 * Added assert_select* for CSS selector-based testing (deprecates assert_tag) #5936 [assaf.arkin@gmail.com]
