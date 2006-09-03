@@ -7,7 +7,7 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
     end
     
     def deprecated_render_parameters
-      # render ""
+      render "fun/games/hello_world"
     end
     
     def home_url(greeting)
@@ -16,6 +16,8 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
 
     def rescue_action(e) raise e end
   end
+
+  Target.template_root = File.dirname(__FILE__) + "/../../fixtures"
 
   def setup
     @request    = ActionController::TestRequest.new
@@ -27,6 +29,15 @@ class DeprecatedBaseMethodsTest < Test::Unit::TestCase
     assert_deprecated("url_for(:home_url)") do
       get :deprecated_symbol_parameter_to_url_for
     end
+
     assert_redirected_to "http://example.com/superstars"
+  end
+  
+  def test_deprecated_render_parameters
+    assert_deprecated("render('fun/games/hello_world')") do
+      get :deprecated_render_parameters
+    end
+
+    assert_equal "Living in a nested world", @response.body
   end
 end

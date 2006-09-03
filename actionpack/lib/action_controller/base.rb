@@ -490,7 +490,7 @@ module ActionController #:nodoc:
 
           when Symbol
             ActiveSupport::Deprecation.warn(
-              "WARNING: You called url_for(:#{options}), which is a deprecated API. Instead you should use the named " +
+              "WARNING: You called url_for(:#{options}), which is a deprecated API call. Instead you should use the named " +
               "route directly, like #{options}(). Using symbols and parameters with url_for will be removed from Rails 2.0."
             )
 
@@ -671,12 +671,21 @@ module ActionController #:nodoc:
       def render(options = nil, deprecated_status = nil, &block) #:doc:
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
-        # Backwards compatibility 
-        unless options.is_a?(Hash) 
-          if options == :update 
-            options = {:update => true} 
-          else 
-            return render_file(options || default_template_name, deprecated_status, true)
+        if options.nil?
+          return render_file(default_template_name, deprecated_status, true)
+        else
+          # Backwards compatibility
+          unless options.is_a?(Hash)
+            if options == :update
+              options = { :update => true }
+            else
+              ActiveSupport::Deprecation.warn(
+                "WARNING: You called render('#{options}'), which is a deprecated API call. Instead you use " +
+                "render :file => #{options}. Calling render with just a string will be removed from Rails 2.0."
+              )
+
+              return render_file(options, deprecated_status, true)
+            end
           end
         end
 

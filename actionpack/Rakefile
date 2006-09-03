@@ -29,7 +29,7 @@ Rake::TestTask.new(:test_action_pack) { |t|
   t.libs << "test"
 # make sure we include the controller tests (c*) first as on some systems
 # this will not happen automatically and the tests (as a whole) will error
-  t.test_files=Dir.glob( "test/c*/*_test.rb" ) + Dir.glob( "test/[ft]*/*_test.rb" )
+  t.test_files=Dir.glob( "test/c*/**/*_test.rb" ) + Dir.glob( "test/[ft]*/*_test.rb" )
 #  t.pattern = 'test/*/*_test.rb'
   t.verbose = true
 }
