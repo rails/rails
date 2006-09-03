@@ -10,7 +10,7 @@ require File.dirname(__FILE__) + '/fake_controllers'
 unless defined?(ActionMailer)
   begin
     $:.unshift(File.dirname(__FILE__) + "/../../../actionmailer/lib")
-    require 'active_mailer'
+    require 'action_mailer'
   rescue LoadError
     require 'rubygems'
     require_gem 'actionmailer'
