@@ -1,4 +1,6 @@
 require File.dirname(__FILE__) + '/assertions'
+require File.dirname(__FILE__) + '/assert_select'
+require File.dirname(__FILE__) + '/assert_tag'
 require File.dirname(__FILE__) + '/deprecated_assertions'
 
 module ActionController #:nodoc:

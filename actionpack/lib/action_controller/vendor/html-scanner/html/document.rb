@@ -1,5 +1,6 @@
 require File.dirname(__FILE__) + '/tokenizer'
 require File.dirname(__FILE__) + '/node'
+require File.dirname(__FILE__) + '/selector'
 
 module HTML #:nodoc:
   
