@@ -1,11 +1,14 @@
-$:.unshift File.dirname(__FILE__) + "/../lib"
+require File.dirname(__FILE__) + "/abstract_unit"
+
 $:.unshift File.dirname(__FILE__) + "/mocks"
 
-require 'test/unit'
 require 'stringio'
-require 'fcgi_handler'
 
-RAILS_ROOT = File.dirname(__FILE__) if !defined?(RAILS_ROOT)
+# Stubs
+require 'fcgi_handler'
+require 'routes'
+require 'stubbed_breakpoint'
+require 'stubbed_kernel'
 
 class RailsFCGIHandler
   attr_reader :exit_code
@@ -26,13 +29,8 @@ class RailsFCGIHandler
   def send_signal(which)
     @signal_handlers[which].call(which)
   end
-
-  def restore!
-    @reloaded = true
-  end
   
-  def reload!
-    @reloaded = true
+  def breakpoint
   end
 
   alias_method :old_run_gc!, :run_gc!
@@ -53,6 +51,102 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     Dispatcher.raise_exception = nil
   end
 
+  def test_process_restart
+    @handler.stubs(:when_ready).returns(:restart)
+    
+    @handler.expects(:close_connection)
+    @handler.expects(:restart!)
+    @handler.process!
+  end
+  
+  def test_process_exit
+    @handler.stubs(:when_ready).returns(:exit)
+    
+    @handler.expects(:close_connection)
+    @handler.process!
+  end
+  
+  def test_process_breakpoint
+    @handler.stubs(:when_ready).returns(:breakpoint)
+    
+    @handler.expects(:close_connection)
+    @handler.expects(:breakpoint!)
+    @handler.process!
+  end
+  
+  def test_process_with_system_exit_exception
+    @handler.stubs(:process_request).raises(SystemExit)
+    
+    @handler.expects(:dispatcher_log).with(:info, "terminated by explicit exit")
+    @handler.process!
+  end
+  
+  def test_restart_handler
+    @handler.expects(:dispatcher_log).with(:info, "asked to restart ASAP")
+    
+    @handler.send(:restart_handler, nil)
+    assert_equal :restart, @handler.when_ready
+  end
+  
+  def test_breakpoint_handler
+    @handler.expects(:dispatcher_log).with(:info, "asked to breakpoint ASAP")
+
+    @handler.send(:breakpoint_handler, nil)
+    assert_equal :breakpoint, @handler.when_ready
+  end
+  
+  def test_install_signal_handler_should_log_on_bad_signal
+    @handler.stubs(:trap).raises(ArgumentError)
+
+    @handler.expects(:dispatcher_log).with(:warn, "Ignoring unsupported signal CHEESECAKE.")
+    @handler.send(:install_signal_handler, "CHEESECAKE", nil)
+  end
+  
+  def test_reload
+    @handler.expects(:restore!)
+    @handler.expects(:dispatcher_log).with(:info, "reloaded")
+
+    @handler.send(:reload!)
+    assert_nil @handler.when_ready
+  end
+  
+  
+  def test_reload_runs_gc_when_gc_request_period_set
+    @handler.expects(:run_gc!)
+    @handler.expects(:restore!)
+    @handler.expects(:dispatcher_log).with(:info, "reloaded")
+    @handler.gc_request_period = 10
+    @handler.send(:reload!)
+  end
+  
+  def test_reload_doesnt_run_gc_if_gc_request_period_isnt_set
+    @handler.expects(:run_gc!).never
+    @handler.expects(:restore!)
+    @handler.expects(:dispatcher_log).with(:info, "reloaded")
+    @handler.send(:reload!)
+  end
+  
+  def test_restart!
+    @handler.expects(:dispatcher_log).with(:info, "restarted")
+    assert_equal true, @handler.send(:restart!), "Exec wasn't run"
+  end
+  
+  def test_restore!
+    $".expects(:replace)
+    Dispatcher.expects(:reset_application!)
+    ActionController::Routing::Routes.expects(:reload)
+    @handler.send(:restore!)
+  end
+
+  def test_breakpoint!
+    @handler.expects(:require).with('breakpoint')
+    Breakpoint.expects(:activate_drb)
+    @handler.expects(:breakpoint)
+    @handler.expects(:dispatcher_log).with(:info, "breakpointing")
+    @handler.send(:breakpoint!)
+    assert_nil @handler.when_ready
+  end
+  
   def test_uninterrupted_processing
     @handler.process!
     assert_nil @handler.exit_code
@@ -60,6 +154,7 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
   end
 
   def test_interrupted_via_HUP_when_not_in_request
+    @handler.expects(:reload!)
     FCGI.time_to_sleep = 1
     @handler.thread = Thread.new { @handler.process! }
     sleep 0.1 # let the thread get started
@@ -67,10 +162,11 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     @handler.thread.join
     assert_nil @handler.exit_code
     assert_equal :reload, @handler.when_ready
-    assert @handler.reloaded
   end
 
   def test_interrupted_via_HUP_when_in_request
+    @handler.expects(:reload!)
+    
     Dispatcher.time_to_sleep = 1
     @handler.thread = Thread.new { @handler.process! }
     sleep 0.1 # let the thread get started
@@ -78,7 +174,6 @@ class RailsFCGIHandlerTest < Test::Unit::TestCase
     @handler.thread.join
     assert_nil @handler.exit_code
     assert_equal :reload, @handler.when_ready
-    assert @handler.reloaded
   end
 
   def test_interrupted_via_USR1_when_not_in_request

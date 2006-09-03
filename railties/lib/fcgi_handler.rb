@@ -50,25 +50,7 @@ class RailsFCGIHandler
 
     run_gc! if gc_request_period
 
-    provider.each_cgi do |cgi| 
-      process_request(cgi)
-
-      case when_ready
-        when :reload
-          reload!
-        when :restart
-          close_connection(cgi)
-          restart!
-        when :exit
-          close_connection(cgi)
-          break
-        when :breakpoint
-          close_connection(cgi)
-          breakpoint!
-      end
-
-      gc_countdown
-    end
+    process_each_request!(provider)
 
     GC.enable
     dispatcher_log :info, "terminated gracefully"
@@ -87,9 +69,9 @@ class RailsFCGIHandler
       dispatcher_error(fcgi_error, "killed by this error")
     end
   end
-  
-  
-  private
+
+
+  protected
     def logger
       @logger ||= Logger.new(@log_file_path)
     end
@@ -144,6 +126,28 @@ class RailsFCGIHandler
     def breakpoint_handler(signal)
       dispatcher_log :info, "asked to breakpoint ASAP"
       @when_ready = :breakpoint
+    end
+    
+    def process_each_request!(provider)
+      provider.each_cgi do |cgi| 
+        process_request(cgi)
+
+        case when_ready
+          when :reload
+            reload!
+          when :restart
+            close_connection(cgi)
+            restart!
+          when :exit
+            close_connection(cgi)
+            break
+          when :breakpoint
+            close_connection(cgi)
+            breakpoint!
+        end
+
+        gc_countdown
+      end
     end
 
     def process_request(cgi)
