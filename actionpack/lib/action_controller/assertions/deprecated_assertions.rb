@@ -6,31 +6,37 @@ module ActionController #:nodoc:
       def assert_success(message=nil) #:nodoc:
         assert_response(:success, message)
       end
+      deprecate :assert_success
 
       def assert_redirect(message=nil) #:nodoc:
         assert_response(:redirect, message)
       end
+      deprecate :assert_redirect
 
       def assert_rendered_file(expected=nil, message=nil) #:nodoc:
         assert_template(expected, message)
       end
+      deprecate :assert_rendered_file
 
       # ensure that the session has an object with the specified name
       def assert_session_has(key=nil, message=nil) #:nodoc:
         msg = build_message(message, "<?> is not in the session <?>", key, @response.session)
         assert_block(msg) { @response.has_session_object?(key) }
       end
+      deprecate :assert_session_has
 
       # ensure that the session has no object with the specified name
       def assert_session_has_no(key=nil, message=nil) #:nodoc:
         msg = build_message(message, "<?> is in the session <?>", key, @response.session)
         assert_block(msg) { !@response.has_session_object?(key) }
       end
+      deprecate :assert_session_has_no
 
       def assert_session_equal(expected = nil, key = nil, message = nil) #:nodoc:
         msg = build_message(message, "<?> expected in session['?'] but was <?>", expected, key, @response.session[key])
         assert_block(msg) { expected == @response.session[key] }
       end
+      deprecate :assert_session_equal
 
       # -- cookie assertions ---------------------------------------------------
 
@@ -39,6 +45,7 @@ module ActionController #:nodoc:
         msg = build_message(message, "<?> not expected in cookies['?']", actual, key)
         assert_block(msg) { actual.nil? or actual.empty? }
       end
+      deprecate :assert_no_cookie
     
       def assert_cookie_equal(expected = nil, key = nil, message = nil) #:nodoc:
         actual = @response.cookies[key]
@@ -46,6 +53,7 @@ module ActionController #:nodoc:
         msg = build_message(message, "<?> expected in cookies['?'] but was <?>", expected, key, actual)
         assert_block(msg) { expected == actual }
       end
+      deprecate :assert_cookie_equal
     
       # -- flash assertions ---------------------------------------------------
 
@@ -54,41 +62,48 @@ module ActionController #:nodoc:
         msg = build_message(message, "<?> is not in the flash <?>", key, @response.flash)
         assert_block(msg) { @response.has_flash_object?(key) }
       end
+      deprecate :assert_flash_has
 
       # ensure that the flash has no object with the specified name
       def assert_flash_has_no(key=nil, message=nil) #:nodoc:
         msg = build_message(message, "<?> is in the flash <?>", key, @response.flash)
         assert_block(msg) { !@response.has_flash_object?(key) }
       end
+      deprecate :assert_flash_has_no
 
       # ensure the flash exists
       def assert_flash_exists(message=nil) #:nodoc:
         msg = build_message(message, "the flash does not exist <?>", @response.session['flash'] )
         assert_block(msg) { @response.has_flash? }
       end
+      deprecate :assert_flash_exists
 
       # ensure the flash does not exist
       def assert_flash_not_exists(message=nil) #:nodoc:
         msg = build_message(message, "the flash exists <?>", @response.flash)
         assert_block(msg) { !@response.has_flash? }
       end
+      deprecate :assert_flash_not_exists
     
       # ensure the flash is empty but existent
       def assert_flash_empty(message=nil) #:nodoc:
         msg = build_message(message, "the flash is not empty <?>", @response.flash)
         assert_block(msg) { !@response.has_flash_with_contents? }
       end
+      deprecate :assert_flash_empty
 
       # ensure the flash is not empty
       def assert_flash_not_empty(message=nil) #:nodoc:
         msg = build_message(message, "the flash is empty")
         assert_block(msg) { @response.has_flash_with_contents? }
       end
+      deprecate :assert_flash_not_empty
     
       def assert_flash_equal(expected = nil, key = nil, message = nil) #:nodoc:
         msg = build_message(message, "<?> expected in flash['?'] but was <?>", expected, key, @response.flash[key])
         assert_block(msg) { expected == @response.flash[key] }
       end
+      deprecate :assert_flash_equal
     
 
       # ensure our redirection url is an exact match
@@ -97,6 +112,7 @@ module ActionController #:nodoc:
         msg = build_message(message, "<?> is not the redirected location <?>", url, @response.redirect_url)
         assert_block(msg) { @response.redirect_url == url }
       end
+      deprecate :assert_redirect_url
 
       # ensure our redirection url matches a pattern
       def assert_redirect_url_match(pattern=nil, message=nil) #:nodoc:
@@ -104,6 +120,7 @@ module ActionController #:nodoc:
         msg = build_message(message, "<?> was not found in the location: <?>", pattern, @response.redirect_url)
         assert_block(msg) { @response.redirect_url_match?(pattern) }
       end
+      deprecate :assert_redirect_url_match
 
     
       # -- template assertions ------------------------------------------------
@@ -113,12 +130,14 @@ module ActionController #:nodoc:
         msg = build_message(message, "<?> is not a template object", key )
         assert_block(msg) { @response.has_template_object?(key) }
       end
+      deprecate :assert_template_has
 
       # ensure that a template object with the given name does not exist
       def assert_template_has_no(key=nil,message=nil) #:nodoc:
         msg = build_message(message, "<?> is a template object <?>", key, @response.template_objects[key])
         assert_block(msg) { !@response.has_template_object?(key) }
       end
+      deprecate :assert_template_has_no
 
       # ensures that the object assigned to the template on +key+ is equal to +expected+ object.
       def assert_template_equal(expected = nil, key = nil, message = nil) #:nodoc:
@@ -126,6 +145,8 @@ module ActionController #:nodoc:
         assert_block(msg) { expected == @response.template.assigns[key.to_s] }
       end
       alias_method :assert_assigned_equal, :assert_template_equal
+      deprecate :assert_assigned_equal
+      deprecate :assert_template_equal
 
       # Asserts that the template returns the +expected+ string or array based on the XPath +expression+.
       # This will only work if the template rendered a valid XML document.
@@ -143,6 +164,7 @@ module ActionController #:nodoc:
         msg = build_message(message, "<?> found <?>, not <?>", expression, matches, expected)
         assert_block(msg) { matches == expected }
       end
+      deprecate :assert_template_xpath_match
 
       # Assert the template object with the given name is an Active Record descendant and is valid.
       def assert_valid_record(key = nil, message = nil) #:nodoc:
@@ -150,6 +172,7 @@ module ActionController #:nodoc:
         msg = build_message(message, "Active Record is invalid <?>)", record.errors.full_messages)
         assert_block(msg) { record.valid? }
       end
+      deprecate :assert_valid_record
 
       # Assert the template object with the given name is an Active Record descendant and is invalid.
       def assert_invalid_record(key = nil, message = nil) #:nodoc:
@@ -157,6 +180,7 @@ module ActionController #:nodoc:
         msg = build_message(message, "Active Record is valid)")
         assert_block(msg) { !record.valid? }
       end
+      deprecate :assert_invalid_record
 
       # Assert the template object with the given name is an Active Record descendant and the specified column(s) are valid.
       def assert_valid_column_on_record(key = nil, columns = "", message = nil) #:nodoc:
@@ -168,6 +192,7 @@ module ActionController #:nodoc:
         msg = build_message(message, "Active Record has invalid columns <?>)", cols.join(",") )
         assert_block(msg) { cols.empty? }
       end
+      deprecate :assert_valid_column_on_record
 
       # Assert the template object with the given name is an Active Record descendant and the specified column(s) are invalid.
       def assert_invalid_column_on_record(key = nil, columns = "", message = nil) #:nodoc:
@@ -179,6 +204,7 @@ module ActionController #:nodoc:
         msg = build_message(message, "Active Record has valid columns <?>)", cols.join(",") )
         assert_block(msg) { cols.empty? }
       end
+      deprecate :assert_invalid_column_on_record
 
       private
         def glue_columns(columns)
