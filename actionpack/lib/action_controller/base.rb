@@ -671,21 +671,12 @@ module ActionController #:nodoc:
       def render(options = nil, deprecated_status = nil, &block) #:doc:
         raise DoubleRenderError, "Can only render or redirect once per action" if performed?
 
-        if options.nil?
-          return render_file(default_template_name)
-        else
-          # Backwards compatibility
-          unless options.is_a?(Hash)
-            if options == :update
-              options = { :update => true }
-            else
-              ActiveSupport::Deprecation.warn(
-                "WARNING: You called render(#{options}), which is a deprecated API. Instead you use " +
-                "render :file => #{options}. Calling render with just a string will be removed from Rails 2.0."
-              )
-
-              return render_file(options || default_template_name, deprecated_status, true)
-            end
+        # Backwards compatibility 
+        unless options.is_a?(Hash) 
+          if options == :update 
+            options = {:update => true} 
+          else 
+            return render_file(options || default_template_name, deprecated_status, true)
           end
         end
 
