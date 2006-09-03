@@ -53,6 +53,7 @@ require File.dirname(__FILE__) + '/assertions/tag_assertions'
 require File.dirname(__FILE__) + '/assertions/dom_assertions'
 require File.dirname(__FILE__) + '/assertions/routing_assertions'
 require File.dirname(__FILE__) + '/assertions/model_assertions'
+require File.dirname(__FILE__) + '/assertions/deprecated_assertions'
 
 module Test #:nodoc:
   module Unit #:nodoc:
@@ -63,6 +64,7 @@ module Test #:nodoc:
       include ActionController::Assertions::TagAssertions
       include ActionController::Assertions::DomAssertions
       include ActionController::Assertions::ModelAssertions
+      include ActionController::Assertions::DeprecatedAssertions
 
       def clean_backtrace(&block)
         yield

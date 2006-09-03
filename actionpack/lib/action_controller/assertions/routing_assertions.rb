@@ -1,6 +1,3 @@
-require 'test/unit'
-require 'test/unit/assertions'
-
 module ActionController
   module Assertions
     module RoutingAssertions

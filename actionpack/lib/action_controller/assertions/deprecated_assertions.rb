@@ -1,10 +1,8 @@
-require 'test/unit'
-require 'test/unit/assertions'
 require 'rexml/document'
 
-module Test #:nodoc:
-  module Unit #:nodoc:
-    module Assertions
+module ActionController #:nodoc:
+  module Assertions #:nodoc:
+    module DeprecatedAssertions
       def assert_success(message=nil) #:nodoc:
         assert_response(:success, message)
       end

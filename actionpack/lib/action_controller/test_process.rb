@@ -1,9 +1,4 @@
-begin
-  require File.dirname(__FILE__) + '/assertions'
-  require File.dirname(__FILE__) + '/deprecated_assertions'
-rescue Exception => e
-  print e
-end
+require File.dirname(__FILE__) + '/assertions'
 
 module ActionController #:nodoc:
   class Base
