@@ -26,16 +26,16 @@ class ValidationsTest < Test::Unit::TestCase
   def test_single_field_validation
     r = Reply.new
     r.title = "There's no content!"
-    assert !r.save, "A reply without content shouldn't be saveable"
+    assert !r.valid?, "A reply without content shouldn't be saveable"
 
     r.content = "Messa content!"
-    assert r.save, "A reply with content should be saveable"
+    assert r.valid?, "A reply with content should be saveable"
   end
 
   def test_single_attr_validation_and_error_msg
     r = Reply.new
     r.title = "There's no content!"
-    r.save
+    assert !r.valid?
     assert r.errors.invalid?("content"), "A reply without content should mark that attribute as invalid"
     assert_equal "Empty", r.errors.on("content"), "A reply without content should contain an error"
     assert_equal 1, r.errors.count
@@ -43,7 +43,7 @@ class ValidationsTest < Test::Unit::TestCase
 
   def test_double_attr_validation_and_error_msg
     r = Reply.new
-    assert !r.save
+    assert !r.valid?
 
     assert r.errors.invalid?("title"), "A reply without title should mark that attribute as invalid"
     assert_equal "Empty", r.errors.on("title"), "A reply without title should contain an error"
@@ -57,7 +57,7 @@ class ValidationsTest < Test::Unit::TestCase
   def test_error_on_create
     r = Reply.new
     r.title = "Wrong Create"
-    assert !r.save
+    assert !r.valid?
     assert r.errors.invalid?("title"), "A reply with a bad title should mark that attribute as invalid"
     assert_equal "is Wrong Create", r.errors.on("title"), "A reply with a bad content should contain an error"
   end
@@ -172,11 +172,21 @@ class ValidationsTest < Test::Unit::TestCase
     assert developer.save
   end
 
-  def test_title_confirmation_no_confirm
+  def test_no_title_confirmation
     Topic.validates_confirmation_of(:title)
 
-    t = Topic.create("title" => "We should not be confirmed")
-    assert t.save
+    t = Topic.new(:author_name => "Plutarch")
+    assert t.valid?
+
+    t.title_confirmation = "Parallel Lives"
+    assert t.valid?
+
+    t.title_confirmation = nil
+    t.title = "Parallel Lives"
+    assert !t.valid?
+
+    t.title_confirmation = "Parallel Lives"
+    assert t.valid?
   end
 
   def test_title_confirmation
@@ -709,7 +719,7 @@ class ValidationsTest < Test::Unit::TestCase
 
       t = Topic.create("title" => "一二三四五", "content" => "whatever")
       assert t.valid?
-      
+
       t.title = "一二34五六"
       assert !t.valid?
       assert t.errors.on(:title)
@@ -751,16 +761,16 @@ class ValidationsTest < Test::Unit::TestCase
       assert !t.save
       assert t.errors.on(:title)
       assert_equal "長すぎます: 10", t.errors[:title]
-      
+
       t.title = "一二三四五六七八九"
       assert t.save
-      
+
       t.title = "一二3"
       assert t.save
-      
+
       t.content = "一二三四五六七八九十"
       assert t.save
-      
+
       t.content = t.title = "一二三四五六"
       assert t.save
     end
@@ -773,17 +783,17 @@ class ValidationsTest < Test::Unit::TestCase
       t = Topic.create("title" => "一二三4", "content" => "whatever")
       assert !t.save
       assert t.errors.on(:title)
-      
+
       t.title = "1二三4"
       assert !t.save
       assert t.errors.on(:title)
       assert_equal "短すぎます: 5", t.errors[:title]
-      
+
       t.title = "valid"
       t.content = "一二三四五六七八九十A"
       assert !t.save
       assert t.errors.on(:content)
-      
+
       t.content = "一二345"
       assert t.save
     end
@@ -851,7 +861,7 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_throw_away_typing
-    d = Developer.create "name" => "David", "salary" => "100,000"
+    d = Developer.new("name" => "David", "salary" => "100,000")
     assert !d.valid?
     assert_equal 100, d.salary
     assert_equal "100,000", d.salary_before_type_cast
@@ -866,20 +876,20 @@ class ValidationsTest < Test::Unit::TestCase
   end
 
   def test_validates_confirmation_of_with_custom_error_using_quotes
-    Developer.validates_confirmation_of :name, :message=> "This string contains 'single' and \"double\" quotes"
+    Developer.validates_confirmation_of :name, :message=> "confirm 'single' and \"double\" quotes"
     d = Developer.new
     d.name = "John"
     d.name_confirmation = "Johnny"
     assert !d.valid?
-    assert_equal d.errors.on(:name), "This string contains 'single' and \"double\" quotes"
+    assert_equal "confirm 'single' and \"double\" quotes", d.errors.on(:name)
   end
 
   def test_validates_format_of_with_custom_error_using_quotes
-    Developer.validates_format_of :name, :with => /^(A-Z*)$/, :message=> "This string contains 'single' and \"double\" quotes"
+    Developer.validates_format_of :name, :with => /^(A-Z*)$/, :message=> "format 'single' and \"double\" quotes"
     d = Developer.new
-    d.name = "John 32"
+    d.name = d.name_confirmation = "John 32"
     assert !d.valid?
-    assert_equal d.errors.on(:name), "This string contains 'single' and \"double\" quotes"
+    assert_equal "format 'single' and \"double\" quotes", d.errors.on(:name)
   end
 
   def test_validates_inclusion_of_with_custom_error_using_quotes
@@ -887,7 +897,7 @@ class ValidationsTest < Test::Unit::TestCase
     d = Developer.new
     d.salary = "90,000"
     assert !d.valid?
-    assert_equal d.errors.on(:salary).first, "This string contains 'single' and \"double\" quotes"
+    assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:salary).first
   end
 
   def test_validates_length_of_with_custom_too_long_using_quotes
@@ -895,7 +905,7 @@ class ValidationsTest < Test::Unit::TestCase
     d = Developer.new
     d.name = "Jeffrey"
     assert !d.valid?
-    assert_equal d.errors.on(:name).first, "This string contains 'single' and \"double\" quotes"
+    assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:name).first
   end
 
   def test_validates_length_of_with_custom_too_short_using_quotes
@@ -903,7 +913,7 @@ class ValidationsTest < Test::Unit::TestCase
     d = Developer.new
     d.name = "Joe"
     assert !d.valid?
-    assert_equal d.errors.on(:name).first, "This string contains 'single' and \"double\" quotes"
+    assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:name).first
   end
 
   def test_validates_length_of_with_custom_message_using_quotes
@@ -911,7 +921,7 @@ class ValidationsTest < Test::Unit::TestCase
     d = Developer.new
     d.name = "Joe"
     assert !d.valid?
-    assert_equal d.errors.on(:name).first, "This string contains 'single' and \"double\" quotes"
+    assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:name).first
   end
 
   def test_validates_presence_of_with_custom_message_using_quotes
@@ -919,7 +929,7 @@ class ValidationsTest < Test::Unit::TestCase
     d = Developer.new
     d.name = "Joe"
     assert !d.valid?
-    assert_equal d.errors.on(:non_existent), "This string contains 'single' and \"double\" quotes"
+    assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:non_existent)
   end
 
   def test_validates_uniqueness_of_with_custom_message_using_quotes
@@ -927,7 +937,7 @@ class ValidationsTest < Test::Unit::TestCase
     d = Developer.new
     d.name = "David"
     assert !d.valid?
-    assert_equal d.errors.on(:name).first, "This string contains 'single' and \"double\" quotes"
+    assert_equal "This string contains 'single' and \"double\" quotes", d.errors.on(:name).first
   end
 
   def test_validates_associated_with_custom_message_using_quotes
@@ -936,7 +946,7 @@ class ValidationsTest < Test::Unit::TestCase
     r = Reply.create("title" => "A reply", "content" => "with content!")
     r.topic = Topic.create("title" => "uhohuhoh")
     assert !r.valid?
-    assert_equal r.errors.on(:topic).first, "This string contains 'single' and \"double\" quotes"
+    assert_equal "This string contains 'single' and \"double\" quotes", r.errors.on(:topic).first
   end
 
   def test_conditional_validation_using_method_true
@@ -953,7 +963,7 @@ class ValidationsTest < Test::Unit::TestCase
     Topic.validates_length_of( :title, :maximum=>5, :too_long=>"hoo %d", :if => :condition_is_true_but_its_not )
     t = Topic.create("title" => "uhohuhoh", "content" => "whatever")
     assert t.valid?
-    assert !t.errors.on(:title)      
+    assert !t.errors.on(:title)
   end
 
   def test_conditional_validation_using_string_true
