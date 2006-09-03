@@ -5,8 +5,10 @@ $:.unshift File.dirname(__FILE__) + "/../../activesupport/lib"
 require 'test/unit'
 require 'active_support'
 
-module Rails
-  class Info; end
+unless defined?(Rails) && defined?(Rails::Info)
+  module Rails
+    class Info; end
+  end
 end
 
 class InfoTest < Test::Unit::TestCase

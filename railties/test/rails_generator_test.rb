@@ -26,7 +26,11 @@ end
 
 
 # Must set before requiring generator libs.
-RAILS_ROOT = "#{File.dirname(__FILE__)}/fixtures"
+if defined?(RAILS_ROOT)
+  RAILS_ROOT.replace "#{File.dirname(__FILE__)}/fixtures"
+else
+  RAILS_ROOT = "#{File.dirname(__FILE__)}/fixtures"
+end
 
 $LOAD_PATH.unshift "#{File.dirname(__FILE__)}/../lib"
 require 'rails_generator'
@@ -88,7 +92,7 @@ class RailsGeneratorTest < Test::Unit::TestCase
     assert_equal 'working', spec.name
     assert_equal "#{RAILS_ROOT}/lib/generators/working", spec.path
     assert_equal :lib, spec.source
-    assert_nothing_raised { assert_match /WorkingGenerator$/, spec.klass.name }
+    assert_nothing_raised { assert_match(/WorkingGenerator$/, spec.klass.name) }
   end
 
   def test_named_generator_attributes
