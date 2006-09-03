@@ -53,8 +53,21 @@ class FormTagHelperTest < Test::Unit::TestCase
 
   def test_radio_button_tag
     actual = radio_button_tag "people", "david"
-    expected = %(<input id="people" name="people" type="radio" value="david" />)
+    expected = %(<input id="people_david" name="people" type="radio" value="david" />)
     assert_dom_equal expected, actual
+
+    actual = radio_button_tag("num_people", 5)
+    expected = %(<input id="num_people_5" name="num_people" type="radio" value="5" />)
+    assert_dom_equal expected, actual
+
+    actual = radio_button_tag("gender", "m") + radio_button_tag("gender", "f")
+    expected = %(<input id="gender_m" name="gender" type="radio" value="m" /><input id="gender_f" name="gender" type="radio" value="f" />)
+    assert_dom_equal expected, actual
+    
+    actual = radio_button_tag("opinion", "-1") + radio_button_tag("opinion", "1")
+    expected = %(<input id="opinion_-1" name="opinion" type="radio" value="-1" /><input id="opinion_1" name="opinion" type="radio" value="1" />)
+    assert_dom_equal expected, actual
+    
   end
 
   def test_select_tag
