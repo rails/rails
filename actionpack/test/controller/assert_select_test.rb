@@ -5,8 +5,17 @@
 
 require File.dirname(__FILE__) + '/../abstract_unit'
 require File.dirname(__FILE__) + '/fake_controllers'
-require "action_mailer"
 
+
+unless defined?(ActionMailer)
+  begin
+    $:.unshift(File.dirname(__FILE__) + "/../../../actionmailer/lib")
+    require 'active_mailer'
+  rescue LoadError
+    require 'rubygems'
+    require_gem 'actionmailer'
+  end
+end
 
 class AssertSelectTest < Test::Unit::TestCase
   class AssertSelectController < ActionController::Base
