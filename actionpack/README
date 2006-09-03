@@ -34,7 +34,7 @@ A short rundown of the major features:
   and can therefore share helper methods.
 
     BlogController < ActionController::Base
-      def display
+      def show
         @customer = find_customer
       end
       
@@ -100,7 +100,7 @@ A short rundown of the major features:
       after_filter { |c| c.response.body = GZip::compress(c.response.body) }
       after_filter LocalizeFilter
       
-      def list
+      def index
         # Before this action is run, the user will be authenticated, the cache
         # will be examined to see if a valid copy of the results already
         # exists, and the action will be logged for auditing.
@@ -298,7 +298,6 @@ A short rundown of the major features:
 
 * Scaffolding for Active Record model objects
 
-    require 'account' # must be an Active Record class
     class AccountController < ActionController::Base
       scaffold :account
     end
@@ -341,7 +340,7 @@ A short rundown of the major features:
     This form generates a params[:post] array that can be used directly in a save action:
     
     class WeblogController < ActionController::Base
-      def save
+      def create
         post = Post.create(params[:post])
         redirect_to :action => "display", :id => post.id
       end
@@ -350,10 +349,10 @@ A short rundown of the major features:
   {Learn more}[link:classes/ActionView/Helpers/ActiveRecordHelper.html]
 
 
-* Runs on top of WEBrick, CGI, FCGI, and mod_ruby
+* Runs on top of WEBrick, Mongrel, CGI, FCGI, and mod_ruby
 
 
-== Simple example
+== Simple example (from outside of Rails)
 
 This example will implement a simple weblog system using inline templates and
 an Active Record model. So let's build that WeblogController with just a few
@@ -431,6 +430,8 @@ template casing from content.
 Please note that you might need to change the "shebang" line to 
 #!/usr/local/env ruby, if your Ruby is not placed in /usr/local/bin/ruby
 
+Also note that these examples are all for demonstrating using Action Pack on
+its own. Not for when it's used inside of Rails.
 
 == Download
 
@@ -459,13 +460,10 @@ Action Pack is released under the MIT license.
 
 == Support
 
-The Action Pack homepage is http://www.rubyonrails.com. You can find
+The Action Pack homepage is http://www.rubyonrails.org. You can find
 the Action Pack RubyForge page at http://rubyforge.org/projects/actionpack.
 And as Jim from Rake says:
 
    Feel free to submit commits or feature requests.  If you send a patch,
    remember to update the corresponding unit tests.  If fact, I prefer
    new feature to be submitted in the form of new unit tests.
-
-For other information, feel free to ask on the ruby-talk mailing list (which
-is mirrored to comp.lang.ruby) or contact mailto:david@loudthinking.com.
