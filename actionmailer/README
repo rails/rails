@@ -136,13 +136,10 @@ Action Mailer is released under the MIT license.
 
 == Support
 
-The Action Mailer homepage is http://actionmailer.rubyonrails.org. You can find
+The Action Mailer homepage is http://www.rubyonrails.org. You can find
 the Action Mailer RubyForge page at http://rubyforge.org/projects/actionmailer.
 And as Jim from Rake says:
 
    Feel free to submit commits or feature requests.  If you send a patch,
    remember to update the corresponding unit tests.  If fact, I prefer
    new feature to be submitted in the form of new unit tests.
-
-For other information, feel free to ask on the ruby-talk mailing list (which
-is mirrored to comp.lang.ruby) or contact mailto:david@loudthinking.com.
