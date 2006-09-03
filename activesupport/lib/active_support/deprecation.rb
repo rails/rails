@@ -114,7 +114,7 @@ module ActiveSupport
   end
 end
 
-class Class
+class Module
   include ActiveSupport::Deprecation::ClassMethods
 end
 
