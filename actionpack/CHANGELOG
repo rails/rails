@@ -1,5 +1,7 @@
 *SVN*
 
+* Cleanup assert_tag :children counting.  #2181 [jamie@bravenet.com]
+
 * button_to accepts :method so you can PUT and DELETE with it.  #6005 [Dan Webb]
 
 * Update sanitize text helper to strip plaintext tags, and <img src="javascript:bang">.  [Rick Olson]

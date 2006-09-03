@@ -215,6 +215,8 @@ HTML
 
     # there is a tag with 2 children
     assert_tag :children => { :count => 2 }
+    # in particular, there is a <ul> tag with two children (a nameless pair of <li>s)
+    assert_tag :tag => 'ul', :children => { :count => 2 }
     # there is no tag with 4 children
     assert_no_tag :children => { :count => 4 }
   end
