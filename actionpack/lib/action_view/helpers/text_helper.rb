@@ -213,7 +213,8 @@ module ActionView
       # tokenizer and so it's HTML parsing ability is limited by that of html-scanner.
       #
       # Returns the tag free text.
-      def strip_tags(html)
+      def strip_tags(html)     
+        return nil if html.blank?
         if html.index("<")
           text = ""
           tokenizer = HTML::Tokenizer.new(html)

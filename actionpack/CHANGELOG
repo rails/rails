@@ -1,5 +1,7 @@
 *SVN*
 
+* strip_tags returns nil for a blank arg such as nil or "".  #2229 [duncan@whomwah.com]
+
 * Cleanup assert_tag :children counting.  #2181 [jamie@bravenet.com]
 
 * button_to accepts :method so you can PUT and DELETE with it.  #6005 [Dan Webb]
