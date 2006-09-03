@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecated all of ActionController::Dependencies. All dependency loading is now handled from Active Support [DHH]
+
 * Added assert_select* for CSS selector-based testing (deprecates assert_tag) #5936 [assaf.arkin@gmail.com]
 
 * radio_button_tag generates unique id attributes.  #3353 [Bob Silva, somekool@gmail.com]
