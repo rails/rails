@@ -1,7 +1,9 @@
-require File.dirname(__FILE__) + '/assertions'
-require File.dirname(__FILE__) + '/assert_select'
-require File.dirname(__FILE__) + '/assert_tag'
-require File.dirname(__FILE__) + '/deprecated_assertions'
+begin
+  require File.dirname(__FILE__) + '/assertions'
+  require File.dirname(__FILE__) + '/deprecated_assertions'
+rescue Exception => e
+  print e
+end
 
 module ActionController #:nodoc:
   class Base

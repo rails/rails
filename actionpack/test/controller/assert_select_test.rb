@@ -7,6 +7,7 @@ require File.dirname(__FILE__) + '/../abstract_unit'
 require File.dirname(__FILE__) + '/fake_controllers'
 require "action_mailer"
 
+
 class AssertSelectTest < Test::Unit::TestCase
   class AssertSelectController < ActionController::Base
     def response_with=(content)

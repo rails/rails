@@ -6,7 +6,7 @@
 require 'test/unit'
 require 'test/unit/assertions'
 require 'rexml/document'
-require File.dirname(__FILE__) + "/vendor/html-scanner/html/document"
+require File.dirname(__FILE__) + "/../vendor/html-scanner/html/document"
 
 
 module ActionController
@@ -553,5 +553,3 @@ EOT
     end
   end
 end
-
-Test::Unit::TestCase.send :include, ActionController::Assertions::SelectorAssertions
