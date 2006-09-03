@@ -1,5 +1,8 @@
 *SVN*
 
+* Integration tests: thoroughly test ActionController::Integration::Session.  #6022 [Kevin Clark]
+    (tests skipped unless you `gem install mocha`)
+
 * Added deprecation language for pagination which will become a plugin by Rails 2.0 [DHH]
 
 * Added deprecation language for in_place_editor and auto_complete_field that both pieces will become plugins by Rails 2.0 [DHH]

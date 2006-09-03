@@ -151,13 +151,24 @@ module ActionController
         process :get, path, parameters, headers
       end
 
-      # keep the docs for #get
-      %w( post put delete head ).each do |method|
-        class_eval <<-EOV, __FILE__, __LINE__
-          def #{method}(path, parameters=nil, headers=nil)
-            process :#{method}, path, parameters, headers
-          end
-        EOV
+      # Performs a POST request with the given parameters. See get() for more details.
+      def post(path, parameters=nil, headers=nil)
+        process :post, path, parameters, headers
+      end
+
+      # Performs a PUT request with the given parameters. See get() for more details.
+      def put(path, parameters=nil, headers=nil)
+        process :put, path, parameters, headers
+      end
+      
+      # Performs a DELETE request with the given parameters. See get() for more details.
+      def delete(path, parameters=nil, headers=nil)
+        process :delete, path, parameters, headers
+      end
+      
+      # Performs a HEAD request with the given parameters. See get() for more details.
+      def head(path, parameters=nil, headers=nil)
+        process :head, path, parameters, headers
       end
 
       # Performs an XMLHttpRequest request with the given parameters, mimicing
