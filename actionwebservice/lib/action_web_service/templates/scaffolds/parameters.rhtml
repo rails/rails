@@ -6,7 +6,7 @@
 
 <p>
 <label for="protocol">Protocol:</label><br />
-<%= select_tag 'protocol', options_for_select([['SOAP', 'soap'], ['XML-RPC', 'xmlrpc']], @params['protocol']) %>
+<%= select_tag 'protocol', options_for_select([['SOAP', 'soap'], ['XML-RPC', 'xmlrpc']], params['protocol']) %>
 </p>
 
 <% if @scaffold_method.expects %>

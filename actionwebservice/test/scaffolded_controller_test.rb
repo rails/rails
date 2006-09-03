@@ -73,29 +73,29 @@ class ScaffoldedControllerTest < Test::Unit::TestCase
 
   def test_scaffold_invoke
     get :scaffold_invoke
-    assert_rendered_file 'methods.rhtml'
+    assert_template 'methods.rhtml'
   end
 
   def test_scaffold_invoke_method_params
     get :scaffold_invoke_method_params, :service => 'scaffolded', :method => 'Hello'
-    assert_rendered_file 'parameters.rhtml'
+    assert_template 'parameters.rhtml'
   end
   
   def test_scaffold_invoke_method_params_with_struct
     get :scaffold_invoke_method_params, :service => 'scaffolded', :method => 'HelloStructParam'
-    assert_rendered_file 'parameters.rhtml'
+    assert_template 'parameters.rhtml'
     assert_tag :tag => 'input', :attributes => {:name => "method_params[0][name]"}
   end
 
   def test_scaffold_invoke_submit_hello
     post :scaffold_invoke_submit, :service => 'scaffolded', :method => 'Hello', :method_params => {'0' => '5', '1' => 'hello world'}
-    assert_rendered_file 'result.rhtml'
+    assert_template 'result.rhtml'
     assert_equal false, @controller.instance_eval{ @method_return_value }
   end
 
   def test_scaffold_invoke_submit_bye
     post :scaffold_invoke_submit, :service => 'scaffolded', :method => 'Bye'
-    assert_rendered_file 'result.rhtml'
+    assert_template 'result.rhtml'
     persons = [ScaffoldPerson.new(:id => 1, :name => "leon"), ScaffoldPerson.new(:id => 2, :name => "paul")]
     assert_equal persons, @controller.instance_eval{ @method_return_value }
   end

@@ -208,7 +208,7 @@ module DispatcherTest
     end
   
     def add
-      @added = @params['a'] + @params['b']
+      @added = params['a'] + params['b']
     end
 
     def add2(a, b)
