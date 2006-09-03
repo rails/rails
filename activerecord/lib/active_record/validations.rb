@@ -333,7 +333,8 @@ module ActiveRecord
         attr_accessor *(attr_names.map { |n| "#{n}_confirmation" })
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
-          record.errors.add(attr_name, configuration[:message]) unless record.send("#{attr_name}_confirmation").nil? or value == record.send("#{attr_name}_confirmation")
+          confirm = record.send("#{attr_name}_confirmation")
+          record.errors.add(attr_name, configuration[:message]) unless value.nil? || value == confirm
         end
       end
 

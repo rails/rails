@@ -1,5 +1,7 @@
 *SVN*
 
+* validates_confirmation_of only kicks in when the attribute, rather than its confirmation, is present.  #785 [z@wzph.com]
+
 * to_xml: the :methods option works on arrays of records.  #5845 [Josh Starcher]
 
 * Deprecation: update docs. #5998 [jakob@mentalized.net, Kevin Clark]
