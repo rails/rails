@@ -113,6 +113,9 @@ Passing an argument will specify a different environment, like <tt>script/consol
 
 To reload your controllers and models after launching the console run <tt>reload!</tt>
 
+To reload your controllers and models after launching the console run <tt>reload!</tt>
+
+
 
 == Description of contents
 
