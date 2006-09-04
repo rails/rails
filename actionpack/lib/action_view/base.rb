@@ -456,7 +456,7 @@ module ActionView #:nodoc:
         locals_keys = @@template_args[render_symbol].keys | locals
         @@template_args[render_symbol] = locals_keys.inject({}) { |h, k| h[k] = true; h }
 
-        locals_code = ""
+        locals_code = "locals = local_assigns.with_indifferent_access\n"
         locals_keys.each do |key|
           locals_code << "#{key} = local_assigns[:#{key}] if local_assigns.has_key?(:#{key})\n"
         end
