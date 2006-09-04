@@ -87,10 +87,9 @@ module ActiveSupport
           deprecations = []
           ActiveSupport::Deprecation.behavior = Proc.new do |message|
             deprecations << message
-            old_behavior.call(message) if old_behavior
           end
           yield
-          return deprecations
+          deprecations
         ensure
           ActiveSupport::Deprecation.behavior = old_behavior
         end

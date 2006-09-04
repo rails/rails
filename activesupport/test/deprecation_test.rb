@@ -39,7 +39,7 @@ class DeprecationTest < Test::Unit::TestCase
       @dtc.partially
     end
   end
-  
+
   def test_undeprecated
     assert_not_deprecated do
       assert_equal 2, @dtc.not
@@ -67,21 +67,20 @@ class DeprecationTest < Test::Unit::TestCase
 
   def test_deprecated_instance_variable_proxy
     assert_not_deprecated { @dtc.request.size }
-    
+
     assert_deprecated('@request.size') { assert_equal @dtc.request.size, @dtc.old_request.size }
     assert_deprecated('@request.to_s') { assert_equal @dtc.request.to_s, @dtc.old_request.to_s }
   end
-  
+
   def test_assert_deprecation_without_match
     assert_deprecated do
       @dtc.partially
     end
   end
-  
+
   def test_silence
     ActiveSupport::Deprecation.silence do
       assert_not_deprecated { @dtc.partially }
     end
   end
-  
 end
