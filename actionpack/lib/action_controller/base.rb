@@ -244,7 +244,7 @@ module ActionController #:nodoc:
     cattr_accessor :allow_concurrency
 
     # Modern REST web services often need to submit complex data to the web application.
-    # The param_parsers hash lets you register handlers wich will process the http body and add parameters to the
+    # The param_parsers hash lets you register handlers which will process the http body and add parameters to the
     # <tt>params</tt> hash. These handlers are invoked for post and put requests.
     #
     # By default application/xml is enabled. A XmlSimple class with the same param name as the root will be instanciated
