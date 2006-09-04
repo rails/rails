@@ -35,13 +35,15 @@ module ActionView
       # <tt>:size</tt>::              Synonym for :cols when using a single line text input.
       # <tt>:cancel_text</tt>::       The text on the cancel link. (default: "cancel")
       # <tt>:save_text</tt>::         The text on the save link. (default: "ok")
-      # <tt>:loading_text</tt>::      The text to display when submitting to the server (default: "Saving...")
+      # <tt>:loading_text</tt>::      The text to display while the data is being loaded from the server (default: "Loading...")
+      # <tt>:saving_text</tt>::       The text to display when submitting to the server (default: "Saving...")
       # <tt>:external_control</tt>::  The id of an external control used to enter edit mode.
       # <tt>:load_text_url</tt>::     URL where initial value of editor (content) is retrieved.
       # <tt>:options</tt>::           Pass through options to the AJAX call (see prototype's Ajax.Updater)
       # <tt>:with</tt>::              JavaScript snippet that should return what is to be sent
       #                               in the AJAX call, +form+ is an implicit parameter
       # <tt>:script</tt>::            Instructs the in-place editor to evaluate the remote JavaScript response (default: false)
+      # <tt>:click_to_edit_text</tt>::The text shown during mouseover the editable text (default: "Click to edit")
       def in_place_editor(field_id, options = {})
         function =  "new Ajax.InPlaceEditor("
         function << "'#{field_id}', "
@@ -51,6 +53,7 @@ module ActionView
         js_options['cancelText'] = %('#{options[:cancel_text]}') if options[:cancel_text]
         js_options['okText'] = %('#{options[:save_text]}') if options[:save_text]
         js_options['loadingText'] = %('#{options[:loading_text]}') if options[:loading_text]
+        js_options['savingText'] = %('#{options[:saving_text]}') if options[:saving_text]
         js_options['rows'] = options[:rows] if options[:rows]
         js_options['cols'] = options[:cols] if options[:cols]
         js_options['size'] = options[:size] if options[:size]
@@ -59,6 +62,7 @@ module ActionView
         js_options['ajaxOptions'] = options[:options] if options[:options]
         js_options['evalScripts'] = options[:script] if options[:script]
         js_options['callback']   = "function(form) { return #{options[:with]} }" if options[:with]
+        js_options['clickToEditText'] = %('#{options[:click_to_edit_text]}') if options[:click_to_edit_text]
         function << (', ' + options_for_javascript(js_options)) unless js_options.empty?
         
         function << ')'
