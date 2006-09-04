@@ -169,8 +169,8 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # test the session assertion to make sure something is there.
   def test_assert_session_has
     process :session_stuffing
-    assert_session_has 'xmas'
-    assert_session_has_no 'halloween'
+    assert_deprecated_assertion { assert_session_has 'xmas' }
+    assert_deprecated_assertion { assert_session_has_no 'halloween' }
   end
   
   # test the get method, make sure the request really was a get
@@ -203,38 +203,44 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # test the assertion of goodies in the template
   def test_assert_template_has
     process :assign_this
-    assert_template_has 'howdy'
+    assert_deprecated_assertion { assert_template_has 'howdy' }
   end
 
   # test the assertion for goodies that shouldn't exist in the template
   def test_assert_template_has_no
     process :nothing
-    assert_template_has_no 'maple syrup'
-    assert_template_has_no 'howdy'
+    assert_deprecated_assertion { assert_template_has_no 'maple syrup' }
+    assert_deprecated_assertion { assert_template_has_no 'howdy' }
   end
   
   # test the redirection assertions
   def test_assert_redirect
     process :redirect_internal
-    assert_redirect
+    assert_deprecated_assertion { assert_redirect }
   end
 
   # test the redirect url string
   def test_assert_redirect_url
     process :redirect_external
-    assert_redirect_url 'http://www.rubyonrails.org'
+    assert_deprecated_assertion do
+      assert_redirect_url 'http://www.rubyonrails.org'
+    end
   end
 
   # test the redirection pattern matching on a string
   def test_assert_redirect_url_match_string
     process :redirect_external
-    assert_redirect_url_match 'rails.org'
+    assert_deprecated_assertion do
+      assert_redirect_url_match 'rails.org'
+    end
   end
   
   # test the redirection pattern matching on a pattern
   def test_assert_redirect_url_match_pattern
     process :redirect_external
-    assert_redirect_url_match /ruby/
+    assert_deprecated_assertion do
+      assert_redirect_url_match /ruby/
+    end
   end
 
   # test the redirection to a named route
@@ -293,32 +299,31 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   def test_flash_assertions_full
     process :flash_me
     assert @response.has_flash_with_contents?
-    assert_flash_exists
-    assert_flash_not_empty
-    assert_flash_has 'hello'
-    assert_flash_has_no 'stds'
+    assert_deprecated_assertion { assert_flash_exists }
+    assert_deprecated_assertion { assert_flash_not_empty }
+    assert_deprecated_assertion { assert_flash_has 'hello' }
+    assert_deprecated_assertion { assert_flash_has_no 'stds' }
   end
 
   # test the flash-based assertions with no flash at all
   def test_flash_assertions_negative
     process :nothing
-    assert_flash_empty
-    assert_flash_has_no 'hello'
-    assert_flash_has_no 'qwerty'
+    assert_deprecated_assertion { assert_flash_empty }
+    assert_deprecated_assertion { assert_flash_has_no 'hello' }
+    assert_deprecated_assertion { assert_flash_has_no 'qwerty' }
   end
   
   # test the assert_rendered_file 
   def test_assert_rendered_file
-    process :hello_world
-    assert_rendered_file 'test/hello_world'
-    assert_rendered_file 'hello_world'
+    assert_deprecated(/render/) { process :hello_world }
+    assert_deprecated_assertion { assert_rendered_file 'test/hello_world' }
+    assert_deprecated_assertion { assert_rendered_file 'hello_world' }
   end
   
   # test the assert_success assertion
   def test_assert_success
     process :nothing
-    assert_success
-    assert_rendered_file
+    assert_deprecated_assertion { assert_success }
   end
   
   # -- standard request/response object testing --------------------------------
@@ -327,7 +332,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   def test_session_objects
     process :session_stuffing
     assert @response.has_session_object?('xmas')
-    assert_session_equal 'turkey', 'xmas'
+    assert_deprecated_assertion { assert_session_equal 'turkey', 'xmas' }
     assert !@response.has_session_object?('easter')
   end
   
@@ -346,7 +351,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   
   def test_assigned_equal
     process :assign_this
-    assert_assigned_equal "ho", :howdy
+    assert_deprecated_assertion { assert_assigned_equal "ho", :howdy }
   end
 
   # check the empty flashing
@@ -375,7 +380,9 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   # examine that the flash objects are what we expect
   def test_flash_equals
     process :flash_me
-    assert_flash_equal 'my name is inigo montoya...', 'hello'
+    assert_deprecated_assertion do
+      assert_flash_equal 'my name is inigo montoya...', 'hello'
+    end
   end
   
   # check if we were rendered by a file-based template? 
@@ -383,7 +390,7 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     process :nothing
     assert !@response.rendered_with_file?
 
-    process :hello_world
+    assert_deprecated(/render/) { process :hello_world }
     assert @response.rendered_with_file?
     assert 'hello_world', @response.rendered_file
   end
@@ -459,20 +466,26 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
   end
 
   def test_assert_template_xpath_match_no_matches
-    process :hello_xml_world
+    assert_deprecated(/render/) { process :hello_xml_world }
     assert_raises Test::Unit::AssertionFailedError do
-      assert_template_xpath_match('/no/such/node/in/document')
+      assert_deprecated_assertion do
+        assert_template_xpath_match('/no/such/node/in/document')
+      end
     end
   end
 
   def test_simple_one_element_xpath_match
-    process :hello_xml_world
-    assert_template_xpath_match('//title', "Hello World")
+    assert_deprecated(/render/) { process :hello_xml_world }
+    assert_deprecated_assertion do
+      assert_template_xpath_match('//title', "Hello World")
+    end
   end
 
   def test_array_of_elements_in_xpath_match
-    process :hello_xml_world
-    assert_template_xpath_match('//p', %w( abes monks wiseguys ))
+    assert_deprecated(/render/) { process :hello_xml_world }
+    assert_deprecated_assertion do
+      assert_template_xpath_match('//p', %w( abes monks wiseguys ))
+    end
   end
 
   def test_follow_redirect
@@ -540,6 +553,11 @@ class ActionPackAssertionsControllerTest < Test::Unit::TestCase
     rescue Test::Unit::AssertionFailedError => e             
     end
   end
+
+  protected
+    def assert_deprecated_assertion(&block)
+      assert_deprecated(/assert/, &block)
+    end
 end
 
 class ActionPackHeaderTest < Test::Unit::TestCase  
@@ -549,13 +567,13 @@ class ActionPackHeaderTest < Test::Unit::TestCase
   end
 
   def test_rendering_xml_sets_content_type
-    process :hello_xml_world
+    assert_deprecated(/render/) { process :hello_xml_world }
     assert_equal('application/xml', @controller.headers['Content-Type'])
   end
 
   def test_rendering_xml_respects_content_type
     @response.headers['Content-Type'] = 'application/pdf'
-    process :hello_xml_world
+    assert_deprecated(/render/) { process :hello_xml_world }
     assert_equal('application/pdf', @controller.headers['Content-Type'])
   end
 
