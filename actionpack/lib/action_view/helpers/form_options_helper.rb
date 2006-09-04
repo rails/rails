@@ -299,7 +299,7 @@ module ActionView
         add_default_name_and_id(html_options)
         value = value(object)
         selected_value = options.has_key?(:selected) ? options[:selected] : value
-        content_tag("select", add_options(options_for_select(choices, selected_value), options, value), html_options)
+        content_tag("select", add_options(options_for_select(choices, selected_value), options, selected_value), html_options)
       end
 
       def to_collection_select_tag(collection, value_method, text_method, options, html_options)

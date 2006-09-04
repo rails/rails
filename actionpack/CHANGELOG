@@ -1,8 +1,10 @@
 *SVN*
 
+* Fixed FormOptionsHelper#select to respect :selected value #5813
+
 * Fixed TextHelper#simple_format to deal with multiple single returns within a single paragraph #5835 [moriq@moriq.com]
 
-* Fixed TextHelper#pluralize to handle 1 as a string #5905 [rails@bencurtis.com]
+* Fixed TextHelper#pluralize to handle 1 as a string #5909 [rails@bencurtis.com]
 
 * Improved resolution of DateHelper#distance_of_time_in_words for better precision #5994 [Bob Silva]
 
