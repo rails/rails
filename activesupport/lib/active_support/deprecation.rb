@@ -46,6 +46,9 @@ module ActiveSupport
         @silenced = old_silenced
       end
 
+      attr_writer :silenced
+
+
       private
         def deprecation_message(callstack, message = nil)
           file, line, method = extract_callstack(callstack)

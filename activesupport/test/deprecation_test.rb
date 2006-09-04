@@ -9,7 +9,7 @@ class Deprecatee
   def old_request; @request end
 
   def partially(foo = nil)
-    ActiveSupport::Deprecation.warn 'calling with foo=nil is out' if foo.nil?
+    ActiveSupport::Deprecation.warn('calling with foo=nil is out', caller) if foo.nil?
   end
 
   def not() 2 end
@@ -82,5 +82,9 @@ class DeprecationTest < Test::Unit::TestCase
     ActiveSupport::Deprecation.silence do
       assert_not_deprecated { @dtc.partially }
     end
+
+    ActiveSupport::Deprecation.silenced = true
+    assert_not_deprecated { @dtc.partially }
+    ActiveSupport::Deprecation.silenced = false
   end
 end
