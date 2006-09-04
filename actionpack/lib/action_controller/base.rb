@@ -491,7 +491,8 @@ module ActionController #:nodoc:
           when Symbol
             ActiveSupport::Deprecation.warn(
               "You called url_for(:#{options}), which is a deprecated API call. Instead you should use the named " +
-              "route directly, like #{options}(). Using symbols and parameters with url_for will be removed from Rails 2.0."
+              "route directly, like #{options}(). Using symbols and parameters with url_for will be removed from Rails 2.0.",
+              caller
             )
 
             send(options, *parameters_for_method_reference)
@@ -681,7 +682,8 @@ module ActionController #:nodoc:
             else
               ActiveSupport::Deprecation.warn(
                 "You called render('#{options}'), which is a deprecated API call. Instead you use " +
-                "render :file => #{options}. Calling render with just a string will be removed from Rails 2.0."
+                "render :file => #{options}. Calling render with just a string will be removed from Rails 2.0.",
+                caller
               )
 
               return render_file(options, deprecated_status, true)
