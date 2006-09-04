@@ -214,7 +214,7 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_render_to_string
-    assert_deprecated_render { get :hello_in_a_string }
+    assert_not_deprecated { get :hello_in_a_string }
     assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", @response.body
   end
 
