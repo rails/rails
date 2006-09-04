@@ -460,6 +460,11 @@ module IRB #:nodoc:
       old_CurrentContext
     end
   end
+
+  class << self
+    alias :old_parse_opts :parse_opts
+    remove_method :parse_opts
+  end
   def IRB.parse_opts() end
 
   class Context #:nodoc:

@@ -65,6 +65,9 @@ module ActiveSupport
     mattr_accessor :behavior
     self.behavior = default_behavior
 
+    # Warnings are not silenced by default.
+    self.silenced = false
+
     module ClassMethods
       # Declare that a method has been deprecated.
       def deprecate(*method_names)
