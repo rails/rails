@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecated the auto-appending of .png to AssetTagHelper#image_tag calls that doesn't have an extension [DHH] 
+
 * Added locals hash to partials, which makes for convenient access of some times available/some times not variables #5491 [wbruce@gmail.com]. Example:
 
     # two different render calls

@@ -113,11 +113,15 @@ class AssetTagHelperTest < Test::Unit::TestCase
   end
 
   def test_image_path
-    ImagePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+    ImagePathToTag.each do |method, tag| 
+      assert_deprecated(/image_path/) { assert_dom_equal(tag, eval(method)) }
+    end
   end
 
   def test_image_tag
-    ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+    ImageLinkToTag.each do |method, tag|
+      assert_deprecated(/image_path/) { assert_dom_equal(tag, eval(method)) }
+    end
   end
   
   def test_timebased_asset_id
@@ -145,13 +149,11 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
 
   def setup
     @controller = Class.new do
-    
       attr_accessor :request
 
       def url_for(options, *parameters_for_method_reference)
         "http://www.example.com/calloboration/hieraki"
       end
-      
     end.new
     
     @request = Class.new do 
@@ -198,7 +200,6 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
     %(image_tag("xml")) => %(<img alt="Xml" src="/calloboration/hieraki/images/xml.png" />),
     %(image_tag("rss", :alt => "rss syndication")) => %(<img alt="rss syndication" src="/calloboration/hieraki/images/rss.png" />),
     %(image_tag("gold", :size => "45x70")) => %(<img alt="Gold" height="70" src="/calloboration/hieraki/images/gold.png" width="45" />),
-    %(image_tag("http://www.example.com/images/icon.gif")) => %(<img alt="Icon" src="http://www.example.com/images/icon.gif" />),
     %(image_tag("symbolize", "size" => "45x70")) => %(<img alt="Symbolize" height="70" src="/calloboration/hieraki/images/symbolize.png" width="45" />)
   }
 
@@ -230,11 +231,13 @@ class AssetTagHelperNonVhostTest < Test::Unit::TestCase
   end
 
   def test_image_path
-    ImagePathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+    ImagePathToTag.each { |method, tag| assert_deprecated(/image_path/) { assert_dom_equal(tag, eval(method)) } }
   end
   
   def test_image_tag
-    ImageLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+    ImageLinkToTag.each do |method, tag| 
+      assert_deprecated(/image_path/) { assert_dom_equal(tag, eval(method)) }
+    end
     # Assigning a default alt tag should not cause an exception to be raised
     assert_nothing_raised { image_tag('') }
   end
