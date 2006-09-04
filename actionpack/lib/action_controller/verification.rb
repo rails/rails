@@ -34,6 +34,9 @@ module ActionController #:nodoc:
     #            :add_flash => { "alert" => "Failed to create your message" },
     #            :redirect_to => :category_url
     #
+    # Note that these prerequisites are not business rules. They do not examine 
+    # the content of the session or the parameters. That level of validation should
+    # be encapsulated by your domain model or helper methods in the controller.
     module ClassMethods
       # Verify the given actions so that if certain prerequisites are not met,
       # the user is redirected to a different action. The +options+ parameter
