@@ -127,7 +127,7 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_do_with_render
-    get :render_hello_world
+    assert_deprecated_render { get :render_hello_world }
     assert_template "test/hello_world"
   end
 
@@ -184,7 +184,7 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_render_xml
-    get :render_xml_hello
+    assert_deprecated_render { get :render_xml_hello }
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
   end
 
@@ -243,4 +243,9 @@ class RenderTest < Test::Unit::TestCase
     get :accessing_local_assigns_in_inline_template_with_string_keys, :local_name => "Local David"
     assert_equal "Goodbye, Local David", @response.body
   end
+
+  protected
+    def assert_deprecated_render(&block)
+      assert_deprecated(/render/, &block)
+    end
 end
