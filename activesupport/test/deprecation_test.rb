@@ -47,7 +47,7 @@ class DeprecationTest < Test::Unit::TestCase
   end
 
   def test_deprecate_class_method
-    assert_deprecated(/none is deprecated/) do
+    assert_deprecated(/none is deprecated.*test_deprecate_class_method at/) do
       assert_equal 1, @dtc.none
     end
 
