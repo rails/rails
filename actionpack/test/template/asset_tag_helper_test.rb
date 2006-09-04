@@ -140,6 +140,15 @@ class AssetTagHelperTest < Test::Unit::TestCase
     ENV["RAILS_ASSET_ID"] = "4500"
     assert_equal %(<img alt="Rails" src="/images/rails.png?4500" />), image_tag("rails.png")
   end
+
+  def test_url_dup_image_tag
+    Object.send(:const_set, :RAILS_ROOT, File.dirname(__FILE__) + "/../fixtures/")
+    img_url = '/images/rails.png'
+    url_copy = img_url.dup
+    image_tag(img_url)
+    
+    assert_equal url_copy, img_url
+  end
 end
 
 class AssetTagHelperNonVhostTest < Test::Unit::TestCase

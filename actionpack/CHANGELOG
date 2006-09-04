@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed that AssetTagHelper#image_tag and others using compute_public_path should not modify the incoming source argument (closes #5102) [eule@space.ch]
+
 * Deprecated the auto-appending of .png to AssetTagHelper#image_tag calls that doesn't have an extension [DHH] 
 
 * Added locals hash to partials, which makes for convenient access of some times available/some times not variables #5491 [wbruce@gmail.com]. Example:
