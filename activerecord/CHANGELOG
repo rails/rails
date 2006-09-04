@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecation: use :dependent => :delete_all rather than :exclusively_dependent => true.  #6024 [Josh Susser]
+
 * Document validates_presences_of behavior with booleans: you probably want validates_inclusion_of :attr, :in => [true, false].  #2253 [Bob Silva]
 
 * Optimistic locking: gracefully handle nil versions, treat as zero.  #5908 [Tom Ward]

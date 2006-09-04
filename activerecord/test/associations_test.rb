@@ -178,7 +178,13 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     assert_equal num_accounts - 1, Account.count
     assert_equal [account_id], Account.destroyed_account_ids[firm.id]
   end
-  
+
+  def test_deprecated_exclusive_dependence
+    assert_deprecated(/:exclusively_dependent.*:dependent => :delete_all/) do
+      Firm.has_many :deprecated_exclusively_dependent_clients, :class_name => 'Client', :exclusively_dependent => true
+    end
+  end
+
   def test_exclusive_dependence
     num_accounts = Account.count
     firm = ExclusivelyDependentFirm.find(9)

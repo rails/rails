@@ -991,7 +991,7 @@ module ActiveRecord
 
           if reflection.options[:exclusively_dependent]
             reflection.options[:dependent] = :delete_all
-            #warn "The :exclusively_dependent option is deprecated.  Please use :dependent => :delete_all instead.")
+            ::ActiveSupport::Deprecation.warn("The :exclusively_dependent option is deprecated and will be removed from Rails 2.0.  Please use :dependent => :delete_all instead.  See http://www.rubyonrails.org/deprecation for details.", caller)
           end
 
           # See HasManyAssociation#delete_records.  Dependent associations
