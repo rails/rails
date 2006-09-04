@@ -556,8 +556,11 @@ module ActionController
       end
 
       def match_extraction(next_capture)
-        hangon = (default ? "|| #{default.inspect}" : "if match[#{next_capture}]")
-        "params[:#{key}] = match[#{next_capture}].downcase #{hangon}"
+        if default
+          "params[:#{key}] = match[#{next_capture}] ? match[#{next_capture}].downcase : '#{default}'"
+        else
+          "params[:#{key}] = match[#{next_capture}].downcase if match[#{next_capture}]"
+        end
       end
     end
 

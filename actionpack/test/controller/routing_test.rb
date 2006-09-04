@@ -1286,6 +1286,15 @@ class RouteSetTest < Test::Unit::TestCase
     end
   end
 
+  def test_draw_default_route_with_default_controller
+    ActionController::Routing.with_controllers(['users']) do
+      set.draw do |map|
+        map.connect '/:controller/:action/:id', :controller => 'users'
+      end      
+      assert_equal({:controller => 'users', :action => 'index'}, set.recognize_path('/'))
+    end
+  end
+
   def test_route_with_parameter_shell
     ActionController::Routing.with_controllers(['users', 'pages']) do
       set.draw do |map|
