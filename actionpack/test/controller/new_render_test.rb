@@ -160,7 +160,7 @@ class NewRenderTestController < ActionController::Base
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render :text =>  "How's there? #{render_to_string("test/list")}"
   end
-  
+
   def accessing_params_in_template
     render :inline =>  "Hello: <%= params[:name] %>"
   end
@@ -483,7 +483,7 @@ EOS
   end
 
   def test_render_to_string
-    get :hello_in_a_string
+    assert_not_deprecated { get :hello_in_a_string }
     assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", @response.body
   end
 
@@ -503,7 +503,7 @@ EOS
   end
 
   def test_render_with_explicit_template
-    get :render_with_explicit_template
+    assert_deprecated(/render/) { get :render_with_explicit_template }
     assert_response :success
   end
 
@@ -585,7 +585,7 @@ EOS
   end
   
   def test_yield_content_for
-    get :yield_content_for
+    assert_not_deprecated { get :yield_content_for }
     assert_equal "<title>Putting stuff in the title!</title>\n\nGreat stuff!\n", @response.body
   end
 
