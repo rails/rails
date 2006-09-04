@@ -60,7 +60,7 @@ module ActionView
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. See source for pluralization rules.
       def pluralize(count, singular, plural = nil)
-         "#{count} " + if count == 1
+         "#{count} " + if count == 1 || count == '1'
           singular
         elsif plural
           plural

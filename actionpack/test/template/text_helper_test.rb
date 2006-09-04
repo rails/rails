@@ -112,6 +112,10 @@ class TextHelperTest < Test::Unit::TestCase
   def test_pluralization
     assert_equal("1 count", pluralize(1, "count"))
     assert_equal("2 counts", pluralize(2, "count"))
+    assert_equal("1 count", pluralize('1', "count"))
+    assert_equal("2 counts", pluralize('2', "count"))
+    assert_equal("1,066 counts", pluralize('1,066', "count"))
+    assert_equal("1.25 counts", pluralize('1.25', "count"))
   end
 
   def test_auto_link_parsing

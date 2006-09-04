@@ -1,5 +1,7 @@
 *SVN*
 
+* Fixed TextHelper#pluralize to handle 1 as a string #5905 [rails@bencurtis.com]
+
 * Improved resolution of DateHelper#distance_of_time_in_words for better precision #5994 [Bob Silva]
 
 * Changed that uncaught exceptions raised any where in the application will cause RAILS_ROOT/public/500.html to be read and shown instead of just the static "Application error (Rails)" [DHH]
