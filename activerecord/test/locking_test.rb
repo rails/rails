@@ -2,6 +2,12 @@ require 'abstract_unit'
 require 'fixtures/person'
 require 'fixtures/legacy_thing'
 
+class LockWithoutDefault < ActiveRecord::Base; end
+
+class LockWithCustomColumnWithoutDefault < ActiveRecord::Base
+  set_locking_column :custom_lock_version
+end
+
 class OptimisticLockingTest < Test::Unit::TestCase
   fixtures :people, :legacy_things
 
@@ -55,6 +61,16 @@ class OptimisticLockingTest < Test::Unit::TestCase
     p1.save!
     assert_equal 1, p1.lock_version
     assert_equal p1.lock_version, Person.new(p1.attributes).lock_version
+  end
+  
+  def test_lock_without_default_sets_version_to_zero
+    t1 = LockWithoutDefault.new
+    assert_equal 0, t1.lock_version
+  end
+  
+  def test_lock_with_custom_column_without_default_sets_version_to_zero
+    t1 = LockWithCustomColumnWithoutDefault.new
+    assert_equal 0, t1.custom_lock_version
   end
 end
 
