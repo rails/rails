@@ -215,14 +215,14 @@ module ActionController #:nodoc:
         end
 
         def find_record_in_template(key = nil)
-          assert_template_has(key)
+          assert_not_nil assigns(key)
           record = @response.template_objects[key]
 
           assert_not_nil(record)
           assert_kind_of ActiveRecord::Base, record
 
           return record
-        end      
+        end
     end
   end
 end

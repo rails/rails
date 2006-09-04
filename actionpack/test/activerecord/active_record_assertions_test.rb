@@ -50,34 +50,43 @@ class ActiveRecordAssertionsControllerTest < ActiveRecordTestCase
   # test for 1 bad apple column
   def test_some_invalid_columns
     process :nasty_columns_1
-    assert_success
-    assert_invalid_record 'company'
-    assert_invalid_column_on_record 'company', 'rating'
-    assert_valid_column_on_record 'company', 'name'
-    assert_valid_column_on_record 'company', %w(name id)
+    assert_response :success
+
+    assert_deprecated_assertion { assert_invalid_record 'company' }
+    assert_deprecated_assertion { assert_invalid_column_on_record 'company', 'rating' }
+    assert_deprecated_assertion { assert_valid_column_on_record 'company', 'name' }
+    assert_deprecated_assertion { assert_valid_column_on_record 'company', %w(name id) }
   end
 
   # test for 2 bad apples columns
   def test_all_invalid_columns
     process :nasty_columns_2
-    assert_success
-    assert_invalid_record 'company'
-    assert_invalid_column_on_record 'company', 'rating'
-    assert_invalid_column_on_record 'company', 'name'
-    assert_invalid_column_on_record 'company', %w(name rating)
+    assert_response :success
+
+    assert_deprecated_assertion { assert_invalid_record 'company' }
+    assert_deprecated_assertion { assert_invalid_column_on_record 'company', 'rating' }
+    assert_deprecated_assertion { assert_invalid_column_on_record 'company', 'name' }
+    assert_deprecated_assertion { assert_invalid_column_on_record 'company', %w(name rating) }
   end
 
   # ensure we have no problems with an ActiveRecord
   def test_valid_record
     process :good_company
-    assert_success
-    assert_valid_record 'company'
+    assert_response :success
+
+    assert_deprecated_assertion { assert_valid_record 'company' }
   end
 
   # ensure we have problems with an ActiveRecord
   def test_invalid_record
     process :bad_company
-    assert_success
-    assert_invalid_record 'company'
+    assert_response :success
+
+    assert_deprecated_assertion { assert_invalid_record 'company' }
   end
+
+  protected
+    def assert_deprecated_assertion(message = nil, &block)
+      assert_deprecated(/assert_.*from test_/, &block)
+    end
 end
