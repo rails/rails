@@ -101,8 +101,10 @@ module ActiveResource
 
   class Connection
     private
-      def http
-        @http ||= HttpMock.new(@site)
+      silence_warnings do
+        def http
+          @http ||= HttpMock.new(@site)
+        end
       end
   end
 end
