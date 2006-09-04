@@ -123,7 +123,7 @@ module ActionView
         text.gsub!(/(\r\n|\n|\r)/, "\n") # lets make them newlines crossplatform
         text.gsub!(/\n\n+/, "\n\n") # zap dupes
         text.gsub!(/\n\n/, '</p>\0<p>') # turn two newlines into paragraph
-        text.gsub!(/([^\n])(\n)([^\n])/, '\1\2<br />\3') # turn single newline into <br />
+        text.gsub!(/([^\n])(\n)(?=[^\n])/, '\1\2<br />') # turn single newline into <br />
         
         content_tag("p", text)
       end

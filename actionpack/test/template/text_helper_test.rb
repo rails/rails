@@ -16,6 +16,7 @@ class TextHelperTest < Test::Unit::TestCase
     assert_equal "<p>crazy\n<br /> cross\n<br /> platform linebreaks</p>", simple_format("crazy\r\n cross\r platform linebreaks")
     assert_equal "<p>A paragraph</p>\n\n<p>and another one!</p>", simple_format("A paragraph\n\nand another one!")
     assert_equal "<p>A paragraph\n<br /> With a newline</p>", simple_format("A paragraph\n With a newline")
+    assert_equal "<p>A\n<br />B\n<br />C\n<br />D</p>", simple_format("A\nB\nC\nD")
   end
 
   def test_truncate
