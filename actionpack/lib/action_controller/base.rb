@@ -37,7 +37,7 @@ module ActionController #:nodoc:
     end
   end
   class DoubleRenderError < ActionControllerError #:nodoc:
-    DEFAULT_MESSAGE = "Render and/or redirect were called multiple times in this action. Please note that you may only call render OR redirect, and only once per action. Also note that neither redirect nor render terminate execution of the action, so if you want to exit an action after redirecting, you need to do something like \"redirect_to(...) and return\". Finally, note that to cause a before filter to halt execution of the rest of the filter chain, the filter must return false, explicitly, so \"render(...) and return false\"." 
+    DEFAULT_MESSAGE = "Render and/or redirect were called multiple times in this action. Please note that you may only call render OR redirect, and only once per action. Also note that neither redirect nor render terminate execution of the action, so if you want to exit an action after redirecting, you need to do something like \"redirect_to(...) and return\". Finally, note that to cause a before filter to halt execution of the rest of the filter chain, the filter must return false, explicitly, so \"render(...) and return false\"."
 
     def initialize(message = nil)
       super(message || DEFAULT_MESSAGE)
@@ -51,9 +51,9 @@ module ActionController #:nodoc:
     end
   end
 
-  # Action Controllers are the core of a web request in Rails. They are made up of one or more actions that are executed 
+  # Action Controllers are the core of a web request in Rails. They are made up of one or more actions that are executed
   # on request and then either render a template or redirect to another action. An action is defined as a public method
-  # on the controller, which will automatically be made accessible to the web-server through Rails Routes. 
+  # on the controller, which will automatically be made accessible to the web-server through Rails Routes.
   #
   # A sample controller could look like this:
   #
@@ -69,11 +69,11 @@ module ActionController #:nodoc:
   #   end
   #
   # Actions, by default, render a template in the <tt>app/views</tt> directory corresponding to the name of the controller and action
-  # after executing code in the action. For example, the +index+ action of the +GuestBookController+  would render the 
+  # after executing code in the action. For example, the +index+ action of the +GuestBookController+  would render the
   # template <tt>app/views/guestbook/index.rhtml</tt> by default after populating the <tt>@entries</tt> instance variable.
   #
-  # Unlike index, the sign action will not render a template. After performing its main purpose (creating a 
-  # new entry in the guest book), it initiates a redirect instead. This redirect works by returning an external 
+  # Unlike index, the sign action will not render a template. After performing its main purpose (creating a
+  # new entry in the guest book), it initiates a redirect instead. This redirect works by returning an external
   # "302 Moved" HTTP response that takes the user to the index action.
   #
   # The index and sign represent the two basic action archetypes used in Action Controllers. Get-and-show and do-and-redirect.
@@ -97,7 +97,7 @@ module ActionController #:nodoc:
   # == Parameters
   #
   # All request parameters, whether they come from a GET or POST request, or from the URL, are available through the params method
-  # which returns a hash. For example, an action that was performed through <tt>/weblog/list?category=All&limit=5</tt> will include 
+  # which returns a hash. For example, an action that was performed through <tt>/weblog/list?category=All&limit=5</tt> will include
   # <tt>{ "category" => "All", "limit" => 5 }</tt> in params.
   #
   # It's also possible to construct multi-dimensional parameter hashes by specifying keys using brackets, such as:
@@ -106,14 +106,14 @@ module ActionController #:nodoc:
   #   <input type="text" name="post[address]" value="hyacintvej">
   #
   # A request stemming from a form holding these inputs will include <tt>{ "post" => { "name" => "david", "address" => "hyacintvej" } }</tt>.
-  # If the address input had been named "post[address][street]", the params would have included 
+  # If the address input had been named "post[address][street]", the params would have included
   # <tt>{ "post" => { "address" => { "street" => "hyacintvej" } } }</tt>. There's no limit to the depth of the nesting.
   #
   # == Sessions
   #
   # Sessions allows you to store objects in between requests. This is useful for objects that are not yet ready to be persisted,
   # such as a Signup object constructed in a multi-paged process, or objects that don't change much and are needed all the time, such
-  # as a User object for a system that requires login. The session should not be used, however, as a cache for objects where it's likely 
+  # as a User object for a system that requires login. The session should not be used, however, as a cache for objects where it's likely
   # they could be changed unknowingly. It's usually too much work to keep it all synchronized -- something databases already excel at.
   #
   # You can place objects in the session by using the <tt>session</tt> method, which accesses a hash:
@@ -127,13 +127,13 @@ module ActionController #:nodoc:
   # For removing objects from the session, you can either assign a single key to nil, like <tt>session[:person] = nil</tt>, or you can
   # remove the entire session with reset_session.
   #
-  # By default, sessions are stored on the file system in <tt>RAILS_ROOT/tmp/sessions</tt>. Any object can be placed in the session 
+  # By default, sessions are stored on the file system in <tt>RAILS_ROOT/tmp/sessions</tt>. Any object can be placed in the session
   # (as long as it can be Marshalled). But remember that 1000 active sessions each storing a 50kb object could lead to a 50MB store on the filesystem.
   # In other words, think carefully about size and caching before resorting to the use of the session on the filesystem.
   #
   # An alternative to storing sessions on disk is to use ActiveRecordStore to store sessions in your database, which can solve problems
   # caused by storing sessions in the file system and may speed up your application. To use ActiveRecordStore, uncomment the line:
-  #   
+  #
   #   config.action_controller.session_store = :active_record_store
   #
   # in your <tt>environment.rb</tt> and run <tt>rake db:sessions:create</tt>.
@@ -207,9 +207,9 @@ module ActionController #:nodoc:
   #
   class Base
     DEFAULT_RENDER_STATUS_CODE = "200 OK"
-    
+
     include Reloadable::Deprecated
-    
+
     # Determines whether the view has access to controller internals @request, @response, @session, and @template.
     # By default, it does.
     @@view_controller_internals = true
@@ -219,8 +219,8 @@ module ActionController #:nodoc:
     @@protected_variables_cache = nil
     cattr_accessor :protected_variables_cache
 
-    # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets, 
-    # and images to a dedicated asset server away from the main web server. Example: 
+    # Prepends all the URL-generating helpers from AssetHelper. This makes it possible to easily move javascripts, stylesheets,
+    # and images to a dedicated asset server away from the main web server. Example:
     #   ActionController::Base.asset_host = "http://assets.example.com"
     @@asset_host = ""
     cattr_accessor :asset_host
@@ -230,7 +230,7 @@ module ActionController #:nodoc:
     # should instead be implemented in the controller to determine when debugging screens should be shown.
     @@consider_all_requests_local = true
     cattr_accessor :consider_all_requests_local
-    
+
     # Enable or disable the collection of failure information for RoutingErrors.
     # This information can be extremely useful when tweaking custom routes, but is
     # pointless once routes have been tested and verified.
@@ -243,43 +243,43 @@ module ActionController #:nodoc:
     @@allow_concurrency = false
     cattr_accessor :allow_concurrency
 
-    # Modern REST web services often need to submit complex data to the web application. 
-    # The param_parsers hash lets you register handlers wich will process the http body and add parameters to the 
+    # Modern REST web services often need to submit complex data to the web application.
+    # The param_parsers hash lets you register handlers wich will process the http body and add parameters to the
     # <tt>params</tt> hash. These handlers are invoked for post and put requests.
     #
-    # By default application/xml is enabled. A XmlSimple class with the same param name as the root will be instanciated 
+    # By default application/xml is enabled. A XmlSimple class with the same param name as the root will be instanciated
     # in the <tt>params</tt>. This allows XML requests to mask themselves as regular form submissions, so you can have one
     # action serve both regular forms and web service requests.
-    # 
+    #
     # Example of doing your own parser for a custom content type:
     #
-    #   ActionController::Base.param_parsers[Mime::Type.lookup('application/atom+xml')] = Proc.new do |data| 
-    #      node = REXML::Document.new(post) 
+    #   ActionController::Base.param_parsers[Mime::Type.lookup('application/atom+xml')] = Proc.new do |data|
+    #      node = REXML::Document.new(post)
     #     { node.root.name => node.root }
     #   end
     #
-    # Note: Up until release 1.1 of Rails, Action Controller would default to using XmlSimple configured to discard the 
+    # Note: Up until release 1.1 of Rails, Action Controller would default to using XmlSimple configured to discard the
     # root node for such requests. The new default is to keep the root, such that "<r><name>David</name></r>" results
-    # in params[:r][:name] for "David" instead of params[:name]. To get the old behavior, you can 
+    # in params[:r][:name] for "David" instead of params[:name]. To get the old behavior, you can
     # re-register XmlSimple as application/xml handler ike this:
     #
-    #   ActionController::Base.param_parsers[Mime::XML] = 
+    #   ActionController::Base.param_parsers[Mime::XML] =
     #     Proc.new { |data| XmlSimple.xml_in(data, 'ForceArray' => false) }
     #
     # A YAML parser is also available and can be turned on with:
     #
     #   ActionController::Base.param_parsers[Mime::YAML] = :yaml
     @@param_parsers = { Mime::XML => :xml_simple }
-    cattr_accessor :param_parsers 
+    cattr_accessor :param_parsers
 
     # Template root determines the base from which template references will be made. So a call to render("test/template")
     # will be converted to "#{template_root}/test/template.rhtml".
     class_inheritable_accessor :template_root
-    
+
     # The logger is used for generating information on the action run-time (including benchmarking) if available.
     # Can be set to nil for no logging. Compatible with both Ruby's own Logger and Log4r loggers.
     cattr_accessor :logger
-    
+
     # Determines which template class should be used by ActionController.
     cattr_accessor :template_class
 
@@ -294,7 +294,7 @@ module ActionController #:nodoc:
     # to get the post_id. No type casts are made, so all values are returned as strings.
     attr_internal :params
 
-    # Holds the response object that's primarily used to set additional HTTP headers through access like 
+    # Holds the response object that's primarily used to set additional HTTP headers through access like
     # <tt>response.headers["Cache-Control"] = "no-cache"</tt>. Can also be used to access the final body HTML after a template
     # has been rendered through response.body -- useful for <tt>after_filter</tt>s that wants to manipulate the output,
     # such as a OutputCompressionFilter.
@@ -307,20 +307,20 @@ module ActionController #:nodoc:
     # Holds a hash of header names and values. Accessed like <tt>headers["Cache-Control"]</tt> to get the value of the Cache-Control
     # directive. Values should always be specified as strings.
     attr_accessor :headers
-    
+
     # Holds the hash of variables that are passed on to the template class to be made available to the view. This hash
     # is generated by taking a snapshot of all the instance variables in the current scope just before a template is rendered.
     attr_accessor :assigns
 
     # Returns the name of the action this controller is processing.
     attr_accessor :action_name
-    
+
     class << self
       # Factory for the standard create, process loop where the controller is discarded after processing.
       def process(request, response) #:nodoc:
         new.process(request, response)
       end
-      
+
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "NeatController".
       def controller_class_name
         @controller_class_name ||= name.demodulize
@@ -330,7 +330,7 @@ module ActionController #:nodoc:
       def controller_name
         @controller_name ||= controller_class_name.sub(/Controller$/, '').underscore
       end
-      
+
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "one_module/two_module/neat".
       def controller_path
         @controller_path ||= name.gsub(/Controller$/, '').underscore
@@ -348,7 +348,7 @@ module ActionController #:nodoc:
       def hide_action(*names)
         write_inheritable_attribute(:hidden_actions, hidden_actions | names.collect { |n| n.to_s })
       end
-      
+
       # Replace sensitive paramater data from the request log.
       # Filters paramaters that have any of the arguments as a substring.
       # Looks in all subhashes of the param hash for keys to filter.
@@ -370,7 +370,7 @@ module ActionController #:nodoc:
       #   => reverses the value to all keys matching /secret/i
       #
       #   filter_parameter_logging(:foo, "bar") { |k,v| v.reverse! if k =~ /secret/i }
-      #   => reverses the value to all keys matching /secret/i, and 
+      #   => reverses the value to all keys matching /secret/i, and
       #      replaces the value to all keys matching /foo|bar/i with "[FILTERED]"
       def filter_parameter_logging(*filter_words, &block)
         parameter_filter = Regexp.new(filter_words.collect{ |s| s.to_s }.join('|'), true) if filter_words.length > 0
@@ -382,12 +382,12 @@ module ActionController #:nodoc:
             if key =~ parameter_filter
               filtered_parameters[key] = '[FILTERED]'
             elsif value.is_a?(Hash)
-              filtered_parameters[key] = filter_parameters(value) 
+              filtered_parameters[key] = filter_parameters(value)
             elsif block_given?
               key, value = key.dup, value.dup
               yield key, value
               filtered_parameters[key] = value
-            else 
+            else
               filtered_parameters[key] = value
             end
           end
@@ -397,7 +397,7 @@ module ActionController #:nodoc:
       end
     end
 
-    public      
+    public
       # Extracts the action_name from the request parameters and performs that action.
       def process(request, response, method = :perform_action, *arguments) #:nodoc:
         initialize_template_class(response)
@@ -405,23 +405,23 @@ module ActionController #:nodoc:
         initialize_current_url
         assign_names
         forget_variables_added_to_assigns
-        
+
         log_processing
         send(method, *arguments)
-        
+
         response
       ensure
         process_cleanup
       end
 
-      # Returns a URL that has been rewritten according to the options hash and the defined Routes. 
+      # Returns a URL that has been rewritten according to the options hash and the defined Routes.
       # (For doing a complete redirect, use redirect_to).
       #  
       # <tt>url_for</tt> is used to:
       #  
       # All keys given to url_for are forwarded to the Route module, save for the following:
-      # * <tt>:anchor</tt> -- specifies the anchor name to be appended to the path. For example, 
-      #   <tt>url_for :controller => 'posts', :action => 'show', :id => 10, :anchor => 'comments'</tt> 
+      # * <tt>:anchor</tt> -- specifies the anchor name to be appended to the path. For example,
+      #   <tt>url_for :controller => 'posts', :action => 'show', :id => 10, :anchor => 'comments'</tt>
       #   will produce "/posts/show/10#comments".
       # * <tt>:only_path</tt> --  if true, returns the relative URL (omitting the protocol, host name, and port) (<tt>false</tt> by default)
       # * <tt>:trailing_slash</tt> --  if true, adds a trailing slash, as in "/archive/2005/". Note that this
@@ -474,7 +474,7 @@ module ActionController #:nodoc:
       # displayed on:
       #
       #   url_for :controller => 'posts', :action => nil
-      #      
+      #
       # If you explicitly want to create a URL that's almost the same as the current URL, you can do so using the
       # :overwrite_params options. Say for your posts you have different views for showing and printing them.
       # Then, in the show view, you get the URL for the print view like this
@@ -511,7 +511,7 @@ module ActionController #:nodoc:
       def controller_name
         self.class.controller_name
       end
-      
+
       # Converts the class name from something like "OneModule::TwoModule::NeatController" to "one_module/two_module/neat".
       def controller_path
         self.class.controller_path
@@ -525,7 +525,7 @@ module ActionController #:nodoc:
       # Renders the content that will be returned to the browser as the response body.
       #
       # === Rendering an action
-      # 
+      #
       # Action rendering is the most common form and the type used automatically by Action Controller when nothing else is
       # specified. By default, actions are rendered within the current layout (if one exists).
       #
@@ -541,7 +541,7 @@ module ActionController #:nodoc:
       #   render :action => "long_goal", :layout => "spectacular"
       #
       # _Deprecation_ _notice_: This used to have the signatures <tt>render_action("action", status = 200)</tt>,
-      # <tt>render_without_layout("controller/action", status = 200)</tt>, and 
+      # <tt>render_without_layout("controller/action", status = 200)</tt>, and
       # <tt>render_with_layout("controller/action", status = 200, layout)</tt>.
       #
       # === Rendering partials
@@ -575,20 +575,20 @@ module ActionController #:nodoc:
       # Note that the partial filename must also be a valid Ruby variable name,
       # so e.g. 2005 and register-user are invalid.
       #
-      # _Deprecation_ _notice_: This used to have the signatures 
+      # _Deprecation_ _notice_: This used to have the signatures
       # <tt>render_partial(partial_path = default_template_name, object = nil, local_assigns = {})</tt> and
       # <tt>render_partial_collection(partial_name, collection, partial_spacer_template = nil, local_assigns = {})</tt>.
       #
       # === Rendering a template
-      # 
-      # Template rendering works just like action rendering except that it takes a path relative to the template root. 
+      #
+      # Template rendering works just like action rendering except that it takes a path relative to the template root.
       # The current layout is automatically applied.
       #
       #   # Renders the template located in [TEMPLATE_ROOT]/weblog/show.r(html|xml) (in Rails, app/views/weblog/show.rhtml)
       #   render :template => "weblog/show"
       #
       # === Rendering a file
-      # 
+      #
       # File rendering works just like action rendering except that it takes a filesystem path. By default, the path
       # is assumed to be absolute, and the current layout is not applied.
       #
@@ -606,7 +606,7 @@ module ActionController #:nodoc:
       # _Deprecation_ _notice_: This used to have the signature <tt>render_file(path, status = 200)</tt>
       #
       # === Rendering text
-      # 
+      #
       # Rendering of text is usually used for tests or for rendering prepared content, such as a cache. By default, text
       # rendering is not done within the active layout.
       #
@@ -614,12 +614,12 @@ module ActionController #:nodoc:
       #   render :text => "hello world!"
       #
       #   # Renders the clear text "Explosion!"  with status code 500
-      #   render :text => "Explosion!", :status => 500 
+      #   render :text => "Explosion!", :status => 500
       #
       #   # Renders the clear text "Hi there!" within the current active layout (if one exists)
       #   render :text => "Explosion!", :layout => true
       #
-      #   # Renders the clear text "Hi there!" within the layout 
+      #   # Renders the clear text "Hi there!" within the layout
       #   # placed in "app/views/layouts/special.r(html|xml)"
       #   render :text => "Explosion!", :layout => "special"
       #
@@ -639,7 +639,7 @@ module ActionController #:nodoc:
       # and the current layout is not used.
       #
       #   # Renders "hello, hello, hello, again"
-      #   render :inline => "<%= 'hello, ' * 3 + 'again' %>" 
+      #   render :inline => "<%= 'hello, ' * 3 + 'again' %>"
       #
       #   # Renders "<p>Good seeing you!</p>" using Builder
       #   render :inline => "xml.p { 'Good seeing you!' }", :type => :rxml
@@ -704,12 +704,14 @@ module ActionController #:nodoc:
 
           elsif template = options[:template]
             render_file(template, options[:status], true)
-            
+
           elsif inline = options[:inline]
             render_template(inline, options[:status], options[:type], options[:locals] || {})
-            
+
           elsif action_name = options[:action]
-            render_action(action_name, options[:status], options[:layout]) 
+            ActiveSupport::Deprecation.silence do
+              render_action(action_name, options[:status], options[:layout])
+            end
 
           elsif xml = options[:xml]
             render_xml(xml, options[:status])
@@ -725,17 +727,17 @@ module ActionController #:nodoc:
           elsif options[:update]
             add_variables_to_assigns
             @template.send :evaluate_assigns
-            
+
             generator = ActionView::Helpers::PrototypeHelper::JavaScriptGenerator.new(@template, &block)
             render_javascript(generator.to_s)
 
           elsif options[:nothing]
             # Safari doesn't pass the headers of the return if the response is zero length
             render_text(" ", options[:status])
-            
+
           else
             render_file(default_template_name, options[:status], true)
-            
+
           end
         end
       end
@@ -743,18 +745,18 @@ module ActionController #:nodoc:
       # Renders according to the same rules as <tt>render</tt>, but returns the result in a string instead
       # of sending it as the response body to the browser.
       def render_to_string(options = nil, &block) #:doc:
-        result = render(options, &block)
+        result = ActiveSupport::Deprecation.silence { render(options, &block) }
 
         erase_render_results
         forget_variables_added_to_assigns
         reset_variables_added_to_assigns
 
         result
-      end    
+      end
 
       def render_action(action_name, status = nil, with_layout = true) #:nodoc:
         template = default_template_name(action_name.to_s)
-        if with_layout && !template_exempt_from_layout?(template) 
+        if with_layout && !template_exempt_from_layout?(template)
           render_with_layout(template, status)
         else
           render_without_layout(template, status)
@@ -817,8 +819,8 @@ module ActionController #:nodoc:
         response.body = nil
         @performed_render = false
       end
-      
-      # Clears the redirected results from the headers, resets the status to 200 and returns 
+
+      # Clears the redirected results from the headers, resets the status to 200 and returns
       # the URL that was used to redirect or nil if there was no redirected URL
       # Note that +redirect_to+ will change the body of the response to indicate a redirection.
       # The response body is not reset here, see +erase_render_results+
@@ -843,7 +845,7 @@ module ActionController #:nodoc:
           options
         end
       end
-      
+
       # Overwrite to implement a number of default options that all url_for-based methods will use. The default options should come in
       # the form of a hash, just like the one you would use for url_for directly. Example:
       #
@@ -856,7 +858,7 @@ module ActionController #:nodoc:
       # by this method.
       def default_url_options(options) #:doc:
       end
-      
+
       # Redirects the browser to the target specified in +options+. This parameter can take one of three forms:
       #
       # * <tt>Hash</tt>: The URL will be generated by calling url_for with the +options+.
@@ -864,7 +866,7 @@ module ActionController #:nodoc:
       # * <tt>String not containing a protocol</tt>: The current protocol and host is prepended to the string.
       # * <tt>:back</tt>: Back to the page that issued the request. Useful for forms that are triggered from multiple places.
       #   Short-hand for redirect_to(request.env["HTTP_REFERER"])
-      # 
+      #
       # Examples:
       #   redirect_to :action => "show", :id => 5
       #   redirect_to "http://www.rubyonrails.org"
@@ -887,7 +889,7 @@ module ActionController #:nodoc:
 
           when String
             redirect_to(request.protocol + request.host_with_port + options)
-          
+
           when :back
             request.env["HTTP_REFERER"] ? redirect_to(request.env["HTTP_REFERER"]) : raise(RedirectBackError)
 
@@ -902,7 +904,7 @@ module ActionController #:nodoc:
             end
         end
       end
-      
+
       # Sets a HTTP 1.1 Cache-Control header. Defaults to issuing a "private" instruction, so that
       # intermediate caches shouldn't cache the response.
       #
@@ -910,7 +912,7 @@ module ActionController #:nodoc:
       #   expires_in 20.minutes
       #   expires_in 3.hours, :private => false
       #   expires in 3.hours, 'max-stale' => 5.hours, :private => nil, :public => true
-      # 
+      #
       # This method will overwrite an existing Cache-Control header.
       # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
       def expires_in(seconds, options = {}) #:doc:
@@ -919,7 +921,7 @@ module ActionController #:nodoc:
         cache_control = cache_options.map{ |k,v| v == true ? k.to_s : "#{k.to_s}=#{v.to_s}"}
         response.headers["Cache-Control"] = cache_control.join(', ')
       end
-      
+
       # Sets a HTTP 1.1 Cache-Control header of "no-cache" so no caching should occur by the browser or
       # intermediate caches (like caching proxy servers).
       def expires_now #:doc:
@@ -932,7 +934,7 @@ module ActionController #:nodoc:
         @_session = request.session
         response.session = @_session
       end
-    
+
     private
       def self.view_class
         @view_class ||=
@@ -948,7 +950,7 @@ module ActionController #:nodoc:
 
       def initialize_template_class(response)
         raise "You must assign a template class through ActionController.template_class= before processing a request" unless @@template_class
-        
+
         response.template = self.class.view_class.new(self.class.view_root, {}, self)
         response.redirected_to = nil
         @performed_render = @performed_redirect = false
@@ -998,7 +1000,7 @@ module ActionController #:nodoc:
           logger.info "  Parameters: #{respond_to?(:filter_parameters) ? filter_parameters(params).inspect : params.inspect}"
         end
       end
-      
+
       def perform_action
         if self.class.action_methods.include?(action_name)
           send(action_name)
@@ -1012,7 +1014,7 @@ module ActionController #:nodoc:
           raise UnknownAction, "No action responded to #{action_name}", caller
         end
       end
-      
+
       def performed?
         @performed_render || @performed_redirect
       end
@@ -1020,7 +1022,7 @@ module ActionController #:nodoc:
       def assign_names
         @action_name = (params['action'] || 'index')
       end
-      
+
       def action_methods
         self.class.action_methods
       end
@@ -1036,11 +1038,11 @@ module ActionController #:nodoc:
           @variables_added = true
         end
       end
-      
+
       def forget_variables_added_to_assigns
         @variables_added = nil
       end
-      
+
       def reset_variables_added_to_assigns
         @template.instance_variable_set("@assigns_added", nil)
       end
@@ -1112,11 +1114,11 @@ module ActionController #:nodoc:
         end
         "#{self.class.controller_path}/#{action_name}"
       end
-      
+
       def strip_out_controller(path)
         path.split('/', 2).last
       end
-      
+
       def template_path_includes_controller?(path)
         self.class.controller_path.split('/')[-1] == path.split('/')[0]
       end
