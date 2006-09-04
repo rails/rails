@@ -184,7 +184,7 @@ module ActiveRecord
             when @reflection.options[:as]
               @finder_sql = 
                 "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_id = #{@owner.quoted_id} AND " + 
-                "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote @owner.class.base_class.name.to_s}"
+                "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote_value(@owner.class.base_class.name.to_s)}"
               @finder_sql << " AND (#{conditions})" if conditions
             
             else

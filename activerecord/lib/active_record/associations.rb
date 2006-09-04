@@ -1457,7 +1457,7 @@ module ActiveRecord
                           table_alias_for(through_reflection.klass.table_name, aliased_join_table_name),
                           aliased_join_table_name, polymorphic_foreign_key,
                           parent.aliased_table_name, parent.primary_key,
-                          aliased_join_table_name, polymorphic_foreign_type, klass.quote(parent.active_record.base_class.name)] +
+                          aliased_join_table_name, polymorphic_foreign_type, klass.quote_value(parent.active_record.base_class.name)] +
                         " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [table_name_and_alias,
                           aliased_table_name, primary_key, aliased_join_table_name, options[:foreign_key] || reflection.klass.to_s.classify.foreign_key
                         ]
@@ -1472,7 +1472,7 @@ module ActiveRecord
                             aliased_table_name, "#{source_reflection.options[:as]}_id", 
                             aliased_join_table_name, options[:foreign_key] || primary_key,
                             aliased_table_name, "#{source_reflection.options[:as]}_type", 
-                            klass.quote(source_reflection.active_record.base_class.name)
+                            klass.quote_value(source_reflection.active_record.base_class.name)
                           ]
                         else
                           case source_reflection.macro
@@ -1501,7 +1501,7 @@ module ActiveRecord
                         aliased_table_name, "#{reflection.options[:as]}_id",
                         parent.aliased_table_name, parent.primary_key,
                         aliased_table_name, "#{reflection.options[:as]}_type",
-                        klass.quote(parent.active_record.base_class.name)
+                        klass.quote_value(parent.active_record.base_class.name)
                       ]
                     when reflection.macro == :has_one && reflection.options[:as]
                       " LEFT OUTER JOIN %s ON %s.%s = %s.%s AND %s.%s = %s " % [
@@ -1509,7 +1509,7 @@ module ActiveRecord
                         aliased_table_name, "#{reflection.options[:as]}_id",
                         parent.aliased_table_name, parent.primary_key,
                         aliased_table_name, "#{reflection.options[:as]}_type",
-                        klass.quote(reflection.active_record.base_class.name)
+                        klass.quote_value(reflection.active_record.base_class.name)
                       ]
                     else
                       foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
@@ -1530,7 +1530,7 @@ module ActiveRecord
               join << %(AND %s.%s = %s ) % [
                 aliased_table_name, 
                 reflection.active_record.connection.quote_column_name(reflection.active_record.inheritance_column), 
-                klass.quote(klass.name.demodulize)] unless klass.descends_from_active_record?
+                klass.quote_value(klass.name.demodulize)] unless klass.descends_from_active_record?
               join << "AND #{interpolate_sql(sanitize_sql(reflection.options[:conditions]))} " if reflection.options[:conditions]
               join
             end

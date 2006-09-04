@@ -118,7 +118,7 @@ module ActiveRecord
                   attributes[column.name] = record.quoted_id
                 else
                   if record.attributes.has_key?(column.name)
-                    value = @owner.send(:quote, record[column.name], column)
+                    value = @owner.send(:quote_value, record[column.name], column)
                     attributes[column.name] = value unless value.nil?
                   end
               end

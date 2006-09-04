@@ -523,12 +523,12 @@ module ActiveRecord #:nodoc:
       # for looping over a collection where each element require a number of aggregate values. Like the DiscussionBoard
       # that needs to list both the number of posts and comments.
       def increment_counter(counter_name, id)
-        update_all "#{counter_name} = #{counter_name} + 1", "#{primary_key} = #{quote(id)}"
+        update_all "#{counter_name} = #{counter_name} + 1", "#{primary_key} = #{quote_value(id)}"
       end
 
       # Works like increment_counter, but decrements instead.
       def decrement_counter(counter_name, id)
-        update_all "#{counter_name} = #{counter_name} - 1", "#{primary_key} = #{quote(id)}"
+        update_all "#{counter_name} = #{counter_name} - 1", "#{primary_key} = #{quote_value(id)}"
       end
 
 
@@ -818,9 +818,15 @@ module ActiveRecord #:nodoc:
         superclass == Base || !columns_hash.include?(inheritance_column)
       end
 
-      def quote(value, column = nil) #:nodoc:
+
+      def quote_value(value, column = nil) #:nodoc:
         connection.quote(value,column)
       end
+
+      def quote(value, column = nil) #:nodoc:
+        connection.quote(value, column)
+      end
+      deprecate :quote
 
       # Used to sanitize objects before they're used in an SELECT SQL-statement. Delegates to <tt>connection.quote</tt>.
       def sanitize(object) #:nodoc:
@@ -1010,7 +1016,7 @@ module ActiveRecord #:nodoc:
       
         def find_one(id, options)
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
-          options.update :conditions => "#{table_name}.#{primary_key} = #{quote(id,columns_hash[primary_key])}#{conditions}"
+          options.update :conditions => "#{table_name}.#{primary_key} = #{quote_value(id,columns_hash[primary_key])}#{conditions}"
 
           # Use find_every(options).first since the primary key condition
           # already ensures we have a single record. Using find_initial adds
@@ -1024,7 +1030,7 @@ module ActiveRecord #:nodoc:
       
         def find_some(ids, options)
           conditions = " AND (#{sanitize_sql(options[:conditions])})" if options[:conditions]
-          ids_list   = ids.map { |id| quote(id,columns_hash[primary_key]) }.join(',')
+          ids_list   = ids.map { |id| quote_value(id,columns_hash[primary_key]) }.join(',')
           options.update :conditions => "#{table_name}.#{primary_key} IN (#{ids_list})#{conditions}"
 
           result = find_every(options)
@@ -1385,7 +1391,7 @@ module ActiveRecord #:nodoc:
         #   { :name => "foo'bar", :group_id => 4 }  returns "name='foo''bar' and group_id= 4"
         def sanitize_sql_hash(hash)
           hash.collect { |attrib, value|
-            "#{table_name}.#{connection.quote_column_name(attrib)} = #{quote(value)}"
+            "#{table_name}.#{connection.quote_column_name(attrib)} = #{quote_value(value)}"
           }.join(" AND ")
         end
         
@@ -1503,7 +1509,7 @@ module ActiveRecord #:nodoc:
       end
 
       def quoted_id #:nodoc:
-        quote(id, column_for_attribute(self.class.primary_key))
+        quote_value(id, column_for_attribute(self.class.primary_key))
       end
 
       # Sets the primary ID.
@@ -1767,7 +1773,7 @@ module ActiveRecord #:nodoc:
         connection.update(
           "UPDATE #{self.class.table_name} " +
           "SET #{quoted_comma_pair_list(connection, attributes_with_quotes(false))} " +
-          "WHERE #{self.class.primary_key} = #{quote(id)}",
+          "WHERE #{self.class.primary_key} = #{quote_value(id)}",
           "#{self.class.name} Update"
         )
       end
@@ -1983,17 +1989,24 @@ module ActiveRecord #:nodoc:
       def attributes_with_quotes(include_primary_key = true)
         attributes.inject({}) do |quoted, (name, value)|
           if column = column_for_attribute(name)
-            quoted[name] = quote(value, column) unless !include_primary_key && column.primary
+            quoted[name] = quote_value(value, column) unless !include_primary_key && column.primary
           end
           quoted
         end
       end
 
       # Quote strings appropriately for SQL statements.
-      def quote(value, column = nil)
+      def quote_value(value, column = nil)
         self.class.connection.quote(value, column)
       end
 
+      # Deprecated, use quote_value
+      def quote(value, column = nil)
+        self.class.connection.quote(value, column)
+      end
+      deprecate :quote
+      
+      
       # Interpolate custom sql string in instance context.
       # Optional record argument is meant for custom insert_sql.
       def interpolate_sql(sql, record = nil)
