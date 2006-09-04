@@ -1,38 +1,39 @@
 require File.dirname(__FILE__) + '/abstract_unit'
 
-module ReloadableTestSandbox
-
-  class AReloadableClass
-    include Reloadable
-  end
-  class AReloadableClassWithSubclasses
-    include Reloadable
-  end
-  class AReloadableSubclass < AReloadableClassWithSubclasses
-  end
-  class ANonReloadableSubclass < AReloadableClassWithSubclasses
-    def self.reloadable?
-      false
+ActiveSupport::Deprecation.silence do
+  module ReloadableTestSandbox
+    class AReloadableClass
+      include Reloadable
     end
-  end
-  class AClassWhichDefinesItsOwnReloadable
-    def self.reloadable?
-      10
+    class AReloadableClassWithSubclasses
+      include Reloadable
     end
-    include Reloadable
-  end
+    class AReloadableSubclass < AReloadableClassWithSubclasses
+    end
+    class ANonReloadableSubclass < AReloadableClassWithSubclasses
+      def self.reloadable?
+        false
+      end
+    end
+    class AClassWhichDefinesItsOwnReloadable
+      def self.reloadable?
+        10
+      end
+      include Reloadable
+    end
 
-  class SubclassesReloadable
-    include Reloadable::Subclasses
-  end
-  class ASubclassOfSubclassesReloadable < SubclassesReloadable
-  end
+    class SubclassesReloadable
+      include Reloadable::Subclasses
+    end
+    class ASubclassOfSubclassesReloadable < SubclassesReloadable
+    end
 
-  class AnOnlySubclassReloadableClassSubclassingAReloadableClass
-    include Reloadable::Subclasses
-  end
+    class AnOnlySubclassReloadableClassSubclassingAReloadableClass
+      include Reloadable::Subclasses
+    end
 
-  class ASubclassofAOnlySubclassReloadableClassWhichWasSubclassingAReloadableClass < AnOnlySubclassReloadableClassSubclassingAReloadableClass
+    class ASubclassofAOnlySubclassReloadableClassWhichWasSubclassingAReloadableClass < AnOnlySubclassReloadableClassSubclassingAReloadableClass
+    end
   end
 end
 
@@ -48,13 +49,17 @@ class ReloadableTest < Test::Unit::TestCase
   end
 
   def test_only_subclass_reloadable
-    assert ! ReloadableTestSandbox::SubclassesReloadable.reloadable?
-    assert ReloadableTestSandbox::ASubclassOfSubclassesReloadable.reloadable?
+    assert_deprecated_reloadable do
+      assert !ReloadableTestSandbox::SubclassesReloadable.reloadable?
+      assert ReloadableTestSandbox::ASubclassOfSubclassesReloadable.reloadable?
+    end
   end
 
   def test_inside_hierarchy_only_subclass_reloadable
-    assert ! ReloadableTestSandbox::AnOnlySubclassReloadableClassSubclassingAReloadableClass.reloadable?
-    assert ReloadableTestSandbox::ASubclassofAOnlySubclassReloadableClassWhichWasSubclassingAReloadableClass.reloadable?
+    assert_deprecated_reloadable do
+      assert !ReloadableTestSandbox::AnOnlySubclassReloadableClassSubclassingAReloadableClass.reloadable?
+      assert ReloadableTestSandbox::ASubclassofAOnlySubclassReloadableClassWhichWasSubclassingAReloadableClass.reloadable?
+    end
   end
 
   def test_removable_classes
@@ -70,7 +75,8 @@ class ReloadableTest < Test::Unit::TestCase
       SubclassesReloadable
     )
 
-    results = Reloadable.reloadable_classes
+    results = []
+    assert_deprecated_reloadable { results = Reloadable.reloadable_classes }
     reloadables.each do |name|
       assert results.include?(ReloadableTestSandbox.const_get(name)), "Expected #{name} to be reloadable"
     end
@@ -81,11 +87,11 @@ class ReloadableTest < Test::Unit::TestCase
   
   def test_including_reloadable_should_warn
     c = Class.new
-    assert_deprecated %r{Reloadable} do
+    assert_deprecated_reloadable do
       c.send :include, Reloadable
     end
     
-    assert_deprecated { c.reloadable? }
+    assert_deprecated_reloadable { c.reloadable? }
   end
   
   def test_include_subclasses_should_warn
@@ -96,7 +102,7 @@ class ReloadableTest < Test::Unit::TestCase
     assert_equal 1, deps.size
     assert_match %r{Reloadable::Subclasses}, deps.first
     
-    assert_deprecated { c.reloadable? }
+    assert_deprecated_reloadable { c.reloadable? }
   end
   
   def test_include_deprecated_should_not_warn
@@ -107,7 +113,11 @@ class ReloadableTest < Test::Unit::TestCase
     assert_equal 0, deps.size
     
     assert c.respond_to?(:reloadable?)
-    assert_deprecated { c.reloadable? }
+    assert_deprecated_reloadable { c.reloadable? }
   end
   
+  protected
+    def assert_deprecated_reloadable(&block)
+      assert_deprecated(/reloadable/, &block)
+    end
 end
