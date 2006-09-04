@@ -262,6 +262,16 @@ Element.update("baz", "<p>This is a test</p>");
     @generator['hello'].hide
     assert_equal %($("hello").hide();), @generator.to_s
   end
+  
+  def test_element_proxy_variable_access
+    @generator['hello']['style']
+    assert_equal %($("hello").style;), @generator.to_s
+  end
+  
+  def test_element_proxy_variable_access_with_assignment
+    @generator['hello']['style']['color'] = 'red'
+    assert_equal %($("hello").style.color = "red";), @generator.to_s
+  end
 
   def test_element_proxy_assignment
     @generator['hello'].width = 400

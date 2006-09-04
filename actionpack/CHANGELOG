@@ -1,5 +1,12 @@
 *SVN*
 
+* Added access to nested attributes in RJS #4548 [richcollins@gmail.com]. Examples:
+
+    page['foo']['style']                  # => $('foo').style;
+    page['foo']['style']['color']         # => $('blank_slate').style.color;
+    page['foo']['style']['color'] = 'red' # => $('blank_slate').style.color = 'red';
+    page['foo']['style'].color = 'red'    # => $('blank_slate').style.color = 'red';
+
 * Fixed that AssetTagHelper#image_tag and others using compute_public_path should not modify the incoming source argument (closes #5102) [eule@space.ch]
 
 * Deprecated the auto-appending of .png to AssetTagHelper#image_tag calls that doesn't have an extension [DHH] 

@@ -777,6 +777,21 @@ module ActionView
         super(generator, "$(#{id.to_json})")
       end
       
+      # Allows access of element attributes through +attribute+. Examples:
+      #
+      #   page['foo']['style']                  # => $('foo').style;
+      #   page['foo']['style']['color']         # => $('blank_slate').style.color;
+      #   page['foo']['style']['color'] = 'red' # => $('blank_slate').style.color = 'red';
+      #   page['foo']['style'].color = 'red'    # => $('blank_slate').style.color = 'red';
+      def [](attribute)
+        append_to_function_chain!(attribute)
+        self
+      end
+      
+      def []=(variable, value)
+        assign(variable, value)
+      end
+      
       def replace_html(*options_for_render)
         call 'update', @generator.send(:render, *options_for_render)
       end
