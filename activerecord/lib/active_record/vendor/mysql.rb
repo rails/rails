@@ -6,7 +6,7 @@
 
 class Mysql
 
-  VERSION = "4.0-ruby-0.2.5"
+  VERSION = "4.0-ruby-0.2.6-plus-changes"
 
   require "socket"
   require "digest/sha1"
@@ -17,6 +17,9 @@ class Mysql
   MYSQL_UNIX_ADDR = "/tmp/mysql.sock"
   MYSQL_PORT = 3306
   PROTOCOL_VERSION = 10
+
+  SCRAMBLE_LENGTH = 20
+  SCRAMBLE_LENGTH_323 = 8
 
   # Command
   COM_SLEEP		= 0
@@ -147,11 +150,22 @@ class Mysql
       @db = db.dup
     end
     write data
-    read
+    pkt = read
+    handle_auth_fallback(pkt, passwd)
     ObjectSpace.define_finalizer(self, Mysql.finalizer(@net))
     self
   end
   alias :connect :real_connect
+
+  def handle_auth_fallback(pkt, passwd)
+    # A packet like this means that we need to send an old-format password
+    if pkt.size == 1 and pkt[0] == 254 and
+       @server_capabilities & CLIENT_SECURE_CONNECTION != 0 then
+      data = scramble(passwd, @scramble_buff, @protocol_version == 9)
+      write data + "\0"
+      read
+    end
+  end
 
   def escape_string(str)
     Mysql::escape_string str
@@ -208,7 +222,8 @@ class Mysql
     else
       data = user+"\0"+scramble41(passwd, @scramble_buff)+db
     end
-    command COM_CHANGE_USER, data
+    pkt = command COM_CHANGE_USER, data
+    handle_auth_fallback(pkt, passwd)
     @user = user
     @passwd = passwd
     @db = db
@@ -534,10 +549,10 @@ class Mysql
     return "" if password == nil or password == ""
     raise "old version password is not implemented" if old_ver
     hash_pass = hash_password password
-    hash_message = hash_password message
+    hash_message = hash_password message.slice(0,SCRAMBLE_LENGTH_323)
     rnd = Random::new hash_pass[0] ^ hash_message[0], hash_pass[1] ^ hash_message[1]
     to = []
-    1.upto(message.length) do
+    1.upto(SCRAMBLE_LENGTH_323) do
       to << ((rnd.rnd*31)+64).floor
     end
     extra = (rnd.rnd*31).floor
