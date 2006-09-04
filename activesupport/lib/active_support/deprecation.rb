@@ -1,15 +1,26 @@
+require 'yaml'
+
 module ActiveSupport
   module Deprecation
+    mattr_accessor :debug
+    self.debug = false
+
     # Choose the default warn behavior according to RAILS_ENV.
     # Ignore deprecation warnings in production.
     DEFAULT_BEHAVIORS = {
-      'test'        => Proc.new { |message| $stderr.puts message },
-      'development' => Proc.new { |message| RAILS_DEFAULT_LOGGER.warn message },
+      'test'        => Proc.new { |message, callstack|
+                         $stderr.puts(message)
+                         $stderr.puts callstack.join("\n  ") if debug
+                       },
+      'development' => Proc.new { |message, callstack|
+                         RAILS_DEFAULT_LOGGER.warn message
+                         RAILS_DEFAULT_LOGGER.debug callstack.join("\n  ") if debug
+                       }
     }
 
     class << self
       def warn(message = nil, callstack = caller)
-        behavior.call(deprecation_message(callstack, message)) if behavior && !silenced?
+        behavior.call(deprecation_message(callstack, message), callstack) if behavior && !silenced?
       end
 
       def default_behavior
@@ -85,7 +96,7 @@ module ActiveSupport
         def collect_deprecations
           old_behavior = ActiveSupport::Deprecation.behavior
           deprecations = []
-          ActiveSupport::Deprecation.behavior = Proc.new do |message|
+          ActiveSupport::Deprecation.behavior = Proc.new do |message, callstack|
             deprecations << message
           end
           yield
