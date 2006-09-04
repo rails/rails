@@ -9,7 +9,7 @@ class VerificationTest < Test::Unit::TestCase
            :redirect_to => { :action => "unguarded" }
 
     verify :only => :guarded_with_flash, :params => "one",
-           :add_flash => { "notice" => "prereqs failed" },
+           :add_flash => { :notice => "prereqs failed" },
            :redirect_to => { :action => "unguarded" }
 
     verify :only => :guarded_in_session, :session => "one",
@@ -46,15 +46,15 @@ class VerificationTest < Test::Unit::TestCase
     end
 
     def guarded_in_session
-      render :text => "#{@session["one"]}"
+      render :text => "#{session["one"]}"
     end
 
     def multi_one
-      render :text => "#{@session["one"]}:#{@session["two"]}"
+      render :text => "#{session["one"]}:#{session["two"]}"
     end
 
     def multi_two
-      render :text => "#{@session["two"]}:#{@session["one"]}"
+      render :text => "#{session["two"]}:#{session["one"]}"
     end
 
     def guarded_by_method
@@ -108,13 +108,13 @@ class VerificationTest < Test::Unit::TestCase
   def test_guarded_with_flash_with_prereqs
     get :guarded_with_flash, :one => "here"
     assert_equal "here", @response.body
-    assert_flash_empty
+    assert flash.empty?
   end
 
   def test_guarded_with_flash_without_prereqs
     get :guarded_with_flash
     assert_redirected_to :action => "unguarded"
-    assert_flash_equal "prereqs failed", "notice"
+    assert_equal "prereqs failed", flash[:notice]
   end
 
   def test_guarded_two_with_prereqs
