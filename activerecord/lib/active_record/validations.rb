@@ -375,6 +375,10 @@ module ActiveRecord
       #
       # The first_name attribute must be in the object and it cannot be blank.
       #      
+      # If you want to validate the presence of a boolean field (where the real values are true and false),
+      # you will want to use validates_inclusion_of :field_name, :in => [true, false]
+      # This is due to the way Object#blank? handles boolean values. false.blank? # => true
+      #
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "can't be blank")
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)

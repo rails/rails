@@ -1,5 +1,7 @@
 *SVN*
 
+* Document validates_presences_of behavior with booleans: you probably want validates_inclusion_of :attr, :in => [true, false].  #2253 [Bob Silva]
+
 * Optimistic locking: gracefully handle nil versions, treat as zero.  #5908 [Tom Ward]
 
 * validates_confirmation_of only kicks in when the attribute, rather than its confirmation, is present.  #785 [z@wzph.com]
