@@ -121,38 +121,38 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_simple_show
-    assert_not_deprecated { get :hello_world }
+    get :hello_world
     assert_response 200
     assert_template "test/hello_world"
   end
 
   def test_do_with_render
-    assert_deprecated_render { get :render_hello_world }
+    get :render_hello_world
     assert_template "test/hello_world"
   end
 
   def test_do_with_render_from_variable
-    assert_not_deprecated { get :render_hello_world_from_variable }
+    get :render_hello_world_from_variable
     assert_equal "hello david", @response.body
   end
 
   def test_do_with_render_action
-    assert_deprecated_render { get :render_action_hello_world }
+    get :render_action_hello_world
     assert_template "test/hello_world"
   end
 
   def test_do_with_render_action_with_symbol
-    assert_deprecated_render { get :render_action_hello_world_with_symbol }
+    get :render_action_hello_world_with_symbol
     assert_template "test/hello_world"
   end
 
   def test_do_with_render_text
-    assert_not_deprecated { get :render_text_hello_world }
+    get :render_text_hello_world
     assert_equal "hello world", @response.body
   end
 
   def test_do_with_render_custom_code
-    assert_not_deprecated { get :render_custom_code }
+    get :render_custom_code
     assert_response 404
   end
 
@@ -184,22 +184,22 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_render_xml
-    assert_deprecated_render { get :render_xml_hello }
+    get :render_xml_hello
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
   end
 
   def test_render_xml_with_default
-    assert_not_deprecated { get :greeting }
+    get :greeting
     assert_equal "<p>This is grand!</p>\n", @response.body
   end
 
   def test_layout_rendering
-    assert_deprecated_render { get :layout_test }
+    get :layout_test
     assert_equal "<html>Hello world!</html>", @response.body
   end
 
   def test_render_xml_with_layouts
-    assert_deprecated_render { get :builder_layout_test }
+    get :builder_layout_test
     assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
   end
 
@@ -209,17 +209,17 @@ class RenderTest < Test::Unit::TestCase
   # end
 
   def test_partial_only
-    assert_not_deprecated { get :partial_only }
+    get :partial_only
     assert_equal "only partial", @response.body
   end
 
   def test_render_to_string
-    assert_not_deprecated { get :hello_in_a_string }
+    get :hello_in_a_string
     assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", @response.body
   end
 
   def test_render_to_string_resets_assigns
-    assert_not_deprecated { get :render_to_string_test }
+    get :render_to_string_test
     assert_equal "The value of foo is: ::this is a test::\n", @response.body
   end
 
@@ -230,28 +230,17 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_accessing_params_in_template
-    assert_not_deprecated do 
-      get :accessing_params_in_template, :name => "David"
-    end
+    get :accessing_params_in_template, :name => "David"
     assert_equal "Hello: David", @response.body
   end
 
   def test_accessing_local_assigns_in_inline_template
-    assert_not_deprecated do
-      get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
-    end
+    get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
     assert_equal "Goodbye, Local David", @response.body
   end
 
   def test_accessing_local_assigns_in_inline_template_with_string_keys
-    assert_not_deprecated do
-      get :accessing_local_assigns_in_inline_template_with_string_keys, :local_name => "Local David"
-    end
+    get :accessing_local_assigns_in_inline_template_with_string_keys, :local_name => "Local David"
     assert_equal "Goodbye, Local David", @response.body
   end
-
-  protected
-    def assert_deprecated_render(&block)
-      assert_deprecated(/render/, &block)
-    end
 end

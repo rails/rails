@@ -757,9 +757,9 @@ module ActionController #:nodoc:
       def render_action(action_name, status = nil, with_layout = true) #:nodoc:
         template = default_template_name(action_name.to_s)
         if with_layout && !template_exempt_from_layout?(template)
-          render_with_layout(template, status)
+          render_with_layout(:file => template, :status => status, :use_full_path => true, :layout => true)
         else
-          render_without_layout(template, status)
+          render_without_layout(:file => template, :status => status, :use_full_path => true)
         end
       end
 
