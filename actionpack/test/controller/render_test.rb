@@ -34,7 +34,7 @@ class TestController < ActionController::Base
   def render_action_hello_world_with_symbol
     render_action :hello_world
   end
- 
+
   def render_text_hello_world
     render_text "hello world"
   end
@@ -42,7 +42,7 @@ class TestController < ActionController::Base
   def render_custom_code
     render_text "hello world", "404 Moved"
   end
-  
+
   def render_xml_hello
     @name = "David"
     render "test/hello"
@@ -55,7 +55,7 @@ class TestController < ActionController::Base
   def layout_test
     render_action "hello_world"
   end
-  
+
   def builder_layout_test
     render_action "hello"
   end
@@ -74,7 +74,7 @@ class TestController < ActionController::Base
     @customers = [ Customer.new("david"), Customer.new("mary") ]
     render_text "How's there? #{render_to_string("test/list")}"
   end
-  
+
   def accessing_params_in_template
     render_template "Hello: <%= params[:name] %>"
   end
@@ -84,7 +84,7 @@ class TestController < ActionController::Base
     render :inline => "<%= 'Goodbye, ' + local_name %>",
            :locals => { :local_name => name }
   end
-  
+
   def accessing_local_assigns_in_inline_template_with_string_keys
     name = params[:local_name]
     ActionView::Base.local_assigns_support_string_keys = true
@@ -98,10 +98,10 @@ class TestController < ActionController::Base
   end
 
   def rescue_action(e) raise end
-    
+
   private
     def determine_layout
-      case action_name 
+      case action_name
         when "layout_test":         "layouts/standard"
         when "builder_layout_test": "layouts/builder"
       end
@@ -121,38 +121,38 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_simple_show
-    get :hello_world
+    assert_not_deprecated { get :hello_world }
     assert_response 200
     assert_template "test/hello_world"
   end
 
   def test_do_with_render
-    get :render_hello_world
+    assert_deprecated_render { get :render_hello_world }
     assert_template "test/hello_world"
   end
 
   def test_do_with_render_from_variable
-    get :render_hello_world_from_variable
+    assert_not_deprecated { get :render_hello_world_from_variable }
     assert_equal "hello david", @response.body
   end
 
   def test_do_with_render_action
-    get :render_action_hello_world
+    assert_deprecated_render { get :render_action_hello_world }
     assert_template "test/hello_world"
   end
 
   def test_do_with_render_action_with_symbol
-    get :render_action_hello_world_with_symbol
+    assert_deprecated_render { get :render_action_hello_world_with_symbol }
     assert_template "test/hello_world"
   end
 
   def test_do_with_render_text
-    get :render_text_hello_world
+    assert_not_deprecated { get :render_text_hello_world }
     assert_equal "hello world", @response.body
   end
 
   def test_do_with_render_custom_code
-    get :render_custom_code
+    assert_not_deprecated { get :render_custom_code }
     assert_response 404
   end
 
@@ -182,24 +182,24 @@ class RenderTest < Test::Unit::TestCase
     ActionController::Base.view_controller_internals = view_internals_old_value
     ActionController::Base.protected_variables_cache = nil
   end
-  
+
   def test_render_xml
-    get :render_xml_hello
+    assert_deprecated_render { get :render_xml_hello }
     assert_equal "<html>\n  <p>Hello David</p>\n<p>This is grand!</p>\n</html>\n", @response.body
   end
 
   def test_render_xml_with_default
-    get :greeting
+    assert_not_deprecated { get :greeting }
     assert_equal "<p>This is grand!</p>\n", @response.body
   end
 
   def test_layout_rendering
-    get :layout_test
+    assert_deprecated_render { get :layout_test }
     assert_equal "<html>Hello world!</html>", @response.body
   end
 
   def test_render_xml_with_layouts
-    get :builder_layout_test
+    assert_deprecated_render { get :builder_layout_test }
     assert_equal "<wrapper>\n<html>\n  <p>Hello </p>\n<p>This is grand!</p>\n</html>\n</wrapper>\n", @response.body
   end
 
@@ -209,17 +209,17 @@ class RenderTest < Test::Unit::TestCase
   # end
 
   def test_partial_only
-    get :partial_only
+    assert_not_deprecated { get :partial_only }
     assert_equal "only partial", @response.body
   end
 
   def test_render_to_string
-    get :hello_in_a_string
+    assert_deprecated_render { get :hello_in_a_string }
     assert_equal "How's there? goodbyeHello: davidHello: marygoodbye\n", @response.body
   end
 
   def test_render_to_string_resets_assigns
-    get :render_to_string_test
+    assert_not_deprecated { get :render_to_string_test }
     assert_equal "The value of foo is: ::this is a test::\n", @response.body
   end
 
@@ -230,17 +230,28 @@ class RenderTest < Test::Unit::TestCase
   end
 
   def test_accessing_params_in_template
-    get :accessing_params_in_template, :name => "David"
+    assert_not_deprecated do 
+      get :accessing_params_in_template, :name => "David"
+    end
     assert_equal "Hello: David", @response.body
   end
 
   def test_accessing_local_assigns_in_inline_template
-    get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
+    assert_not_deprecated do
+      get :accessing_local_assigns_in_inline_template, :local_name => "Local David"
+    end
     assert_equal "Goodbye, Local David", @response.body
   end
-  
+
   def test_accessing_local_assigns_in_inline_template_with_string_keys
-    get :accessing_local_assigns_in_inline_template_with_string_keys, :local_name => "Local David"
+    assert_not_deprecated do
+      get :accessing_local_assigns_in_inline_template_with_string_keys, :local_name => "Local David"
+    end
     assert_equal "Goodbye, Local David", @response.body
   end
+
+  protected
+    def assert_deprecated_render(&block)
+      assert_deprecated(/render/, &block)
+    end
 end
