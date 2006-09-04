@@ -1,5 +1,7 @@
 *SVN*
 
+* Formally Deprecate the old rake tasks. [Koz]
+
 * Thoroughly test the FCGI dispatcher.  #5970 [Kevin Clark]
 
 * Remove Dir.chdir in the Webrick DispatchServlet#initialize method.  Fix bad path errors when trying to load config/routes.rb.  [Rick Olson]
