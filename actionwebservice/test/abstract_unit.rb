@@ -9,6 +9,10 @@ require 'action_web_service'
 require 'action_controller'
 require 'action_controller/test_process'
 
+# Show backtraces for deprecated behavior for quicker cleanup.
+ActiveSupport::Deprecation.debug = true
+
+
 ActionController::Base.logger = Logger.new("debug.log")
 ActionController::Base.ignore_missing_templates = true
 
