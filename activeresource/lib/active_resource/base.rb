@@ -102,7 +102,7 @@ module ActiveResource
       @prefix_options = prefix_options
     end
 
-    def new_resource?
+    def new?
       id.nil?
     end
 
@@ -115,7 +115,7 @@ module ActiveResource
     end
     
     def save
-      new_resource? ? create : update
+      new? ? create : update
     end
 
     def destroy
@@ -134,6 +134,7 @@ module ActiveResource
     # Manually load attributes from a hash. Recursively loads collections of
     # resources.
     def load(attributes)
+      return self if attributes.nil?
       attributes.each do |key, value|
         @attributes[key.to_s] =
           case value

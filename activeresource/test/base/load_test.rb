@@ -14,6 +14,12 @@ class BaseLoadTest < Test::Unit::TestCase
     @person = Person.new
   end
 
+  def test_load_nil
+    assert_nothing_raised do
+      assert_equal @person, @person.load(nil)
+    end
+  end
+
   def test_load_simple_hash
     assert_equal Hash.new, @person.attributes
     assert_equal @matz.stringify_keys, @person.load(@matz).attributes
