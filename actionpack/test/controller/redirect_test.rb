@@ -45,21 +45,25 @@ class RedirectTest < Test::Unit::TestCase
 
   def test_simple_redirect
     get :simple_redirect
-    assert_redirect_url "http://test.host/redirect/hello_world"
+    assert_response :redirect
+    assert_equal "http://test.host/redirect/hello_world", redirect_to_url
   end
 
   def test_redirect_with_method_reference_and_parameters
-    get :method_redirect
-    assert_redirect_url "http://test.host/redirect/dashboard/1?message=hello"
+    assert_deprecated(/redirect_to/) { get :method_redirect }
+    assert_response :redirect
+    assert_equal "http://test.host/redirect/dashboard/1?message=hello", redirect_to_url
   end
 
   def test_simple_redirect_using_options
     get :host_redirect
+    assert_response :redirect
     assert_redirected_to :action => "other_host", :only_path => false, :host => 'other.test.host'
   end
 
   def test_redirect_error_with_pretty_diff
     get :host_redirect
+    assert_response :redirect
     begin
       assert_redirected_to :action => "other_host", :only_path => true
     rescue Test::Unit::AssertionFailedError => err
@@ -74,23 +78,27 @@ class RedirectTest < Test::Unit::TestCase
 
   def test_module_redirect
     get :module_redirect
-    assert_redirect_url "http://test.host/module_test/module_redirect/hello_world"
+    assert_response :redirect
+    assert_redirected_to "http://test.host/module_test/module_redirect/hello_world"
   end
 
   def test_module_redirect_using_options
     get :module_redirect
+    assert_response :redirect
     assert_redirected_to :controller => 'module_test/module_redirect', :action => 'hello_world'
   end
 
   def test_redirect_with_assigns
     get :redirect_with_assigns
+    assert_response :redirect
     assert_equal "world", assigns["hello"]
   end
 
   def test_redirect_to_back
     @request.env["HTTP_REFERER"] = "http://www.example.com/coming/from"
     get :redirect_to_back
-    assert_redirect_url "http://www.example.com/coming/from"
+    assert_response :redirect
+    assert_equal "http://www.example.com/coming/from", redirect_to_url
   end
   
   def test_redirect_to_back_with_no_referer
@@ -117,26 +125,31 @@ module ModuleTest
   
     def test_simple_redirect
       get :simple_redirect
-      assert_redirect_url "http://test.host/module_test/module_redirect/hello_world"
+      assert_response :redirect
+      assert_equal "http://test.host/module_test/module_redirect/hello_world", redirect_to_url
     end
   
     def test_redirect_with_method_reference_and_parameters
-      get :method_redirect
-      assert_redirect_url "http://test.host/module_test/module_redirect/dashboard/1?message=hello"
+      assert_deprecated(/redirect_to/) { get :method_redirect }
+      assert_response :redirect
+      assert_equal "http://test.host/module_test/module_redirect/dashboard/1?message=hello", redirect_to_url
     end
     
     def test_simple_redirect_using_options
       get :host_redirect
+      assert_response :redirect
       assert_redirected_to :action => "other_host", :only_path => false, :host => 'other.test.host'
     end
 
     def test_module_redirect
       get :module_redirect
-      assert_redirect_url "http://test.host/redirect/hello_world"
+      assert_response :redirect
+      assert_equal "http://test.host/redirect/hello_world", redirect_to_url
     end
 
     def test_module_redirect_using_options
       get :module_redirect
+      assert_response :redirect
       assert_redirected_to :controller => 'redirect', :action => "hello_world"
     end
   end
