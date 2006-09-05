@@ -7,7 +7,7 @@ module ActiveRecord
         else
           @target = (AssociationProxy === record ? record.target : record)
 
-          unless record.new?
+          unless record.new_record?
             @owner[@reflection.primary_key_name] = record.id
             @owner[@reflection.options[:foreign_type]] = record.class.base_class.name.to_s
           end

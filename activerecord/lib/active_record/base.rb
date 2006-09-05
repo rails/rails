@@ -183,7 +183,7 @@ module ActiveRecord #:nodoc:
   #
   #   # No 'Winter' tag exists
   #   winter = Tag.find_or_initialize_by_name("Winter")
-  #   winter.new? # true
+  #   winter.new_record? # true
   #
   # == Saving arrays, hashes, and other non-mappable objects in text columns
   #
@@ -1518,18 +1518,8 @@ module ActiveRecord #:nodoc:
       end
 
       # Returns true if this object hasn't been saved yet -- that is, a record for the object doesn't exist yet.
-      def new?
-        @new_record
-      end
-      
-      # Deprecated alias for new?
       def new_record?
-        ActiveSupport::Deprecation.warn(
-          "ActiveRecord::Base.new_record? has been deprecated and will be removed with Rails 2.0." +
-          "Please use ActiveRecord::Base.new? instead.", caller
-        )
-        
-        new?
+        @new_record
       end
 
       # * No record exists: Creates a new record with values matching those of the object attributes.
@@ -1548,7 +1538,7 @@ module ActiveRecord #:nodoc:
       # Deletes the record in the database and freezes this instance to reflect that no changes should
       # be made (since they can't be persisted).
       def destroy
-        unless new?
+        unless new_record?
           connection.delete <<-end_sql, "#{self.class.name} Destroy"
             DELETE FROM #{self.class.table_name}
             WHERE #{self.class.primary_key} = #{quoted_id}
@@ -1717,7 +1707,7 @@ module ActiveRecord #:nodoc:
         comparison_object.equal?(self) ||
           (comparison_object.instance_of?(self.class) && 
             comparison_object.id == id && 
-            !comparison_object.new?)
+            !comparison_object.new_record?)
       end
 
       # Delegates to ==
@@ -1773,7 +1763,7 @@ module ActiveRecord #:nodoc:
 
     private
       def create_or_update
-        if new? then create else update end
+        if new_record? then create else update end
         true
       end
 

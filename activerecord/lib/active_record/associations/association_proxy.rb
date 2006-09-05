@@ -99,10 +99,10 @@ module ActiveRecord
 
         def set_belongs_to_association_for(record)
           if @reflection.options[:as]
-            record["#{@reflection.options[:as]}_id"]   = @owner.id unless @owner.new?
+            record["#{@reflection.options[:as]}_id"]   = @owner.id unless @owner.new_record?
             record["#{@reflection.options[:as]}_type"] = @owner.class.base_class.name.to_s
           else
-            record[@reflection.primary_key_name] = @owner.id unless @owner.new?
+            record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
           end
         end
 
@@ -125,7 +125,7 @@ module ActiveRecord
         end
 
         def load_target
-          if !loaded? and (!@owner.new? || foreign_key_present)
+          if !loaded? and (!@owner.new_record? || foreign_key_present)
             @target = find_target
           end
 

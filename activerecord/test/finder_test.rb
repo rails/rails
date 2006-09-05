@@ -345,7 +345,7 @@ class FinderTest < Test::Unit::TestCase
     sig38 = Company.find_or_create_by_name("38signals")
     assert_equal number_of_companies + 1, Company.count
     assert_equal sig38, Company.find_or_create_by_name("38signals")
-    assert !sig38.new?
+    assert !sig38.new_record?
   end
 
   def test_find_or_create_from_two_attributes
@@ -353,20 +353,20 @@ class FinderTest < Test::Unit::TestCase
     another = Topic.find_or_create_by_title_and_author_name("Another topic","John")
     assert_equal number_of_topics + 1, Topic.count
     assert_equal another, Topic.find_or_create_by_title_and_author_name("Another topic", "John")
-    assert !another.new?
+    assert !another.new_record?
   end
   
   def test_find_or_initialize_from_one_attribute
     sig38 = Company.find_or_initialize_by_name("38signals")
     assert_equal "38signals", sig38.name
-    assert sig38.new?
+    assert sig38.new_record?
   end
   
   def test_find_or_initialize_from_two_attributes
     another = Topic.find_or_initialize_by_title_and_author_name("Another topic","John")
     assert_equal "Another topic", another.title
     assert_equal "John", another.author_name
-    assert another.new?
+    assert another.new_record?
   end
 
   def test_find_with_bad_sql

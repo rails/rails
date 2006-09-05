@@ -49,7 +49,7 @@ module ActiveRecord
       def <<(*records)
         return if records.empty?
         through = @reflection.through_reflection
-        raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) if @owner.new?
+        raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) if @owner.new_record?
 
         load_target
 
@@ -57,7 +57,7 @@ module ActiveRecord
         klass.transaction do
           flatten_deeper(records).each do |associate|
             raise_on_type_mismatch(associate)
-            raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) unless associate.respond_to?(:new?) && !associate.new?
+            raise ActiveRecord::HasManyThroughCantAssociateNewRecords.new(@owner, through) unless associate.respond_to?(:new_record?) && !associate.new_record?
 
             @owner.send(@reflection.through_reflection.name).proxy_target << klass.with_scope(:create => construct_join_attributes(associate)) { klass.create! }
             @target << associate
@@ -127,7 +127,7 @@ module ActiveRecord
         def construct_quoted_owner_attributes(reflection)
           if as = reflection.options[:as]
             { "#{as}_id" => @owner.quoted_id,
-              "#{as}_type" => reflection.klass.quote(
+              "#{as}_type" => reflection.klass.quote_value(
                 @owner.class.base_class.name.to_s,
                 reflection.klass.columns_hash["#{as}_type"]) }
           else
@@ -164,7 +164,7 @@ module ActiveRecord
             if @reflection.source_reflection.options[:as]
               polymorphic_join = "AND %s.%s = %s" % [
                 @reflection.table_name, "#{@reflection.source_reflection.options[:as]}_type",
-                @owner.class.quote(@reflection.through_reflection.klass.name)
+                @owner.class.quote_value(@reflection.through_reflection.klass.name)
               ]
             end
           end

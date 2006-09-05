@@ -178,13 +178,13 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     assert_equal num_accounts - 1, Account.count
     assert_equal [account_id], Account.destroyed_account_ids[firm.id]
   end
-  
+
   def test_deprecated_exclusive_dependence
     assert_deprecated(/:exclusively_dependent.*:dependent => :delete_all/) do
       Firm.has_many :deprecated_exclusively_dependent_clients, :class_name => 'Client', :exclusively_dependent => true
     end
   end
-  
+
   def test_exclusive_dependence
     num_accounts = Account.count
     firm = ExclusivelyDependentFirm.find(9)
@@ -244,10 +244,10 @@ class HasOneAssociationsTest < Test::Unit::TestCase
 
     account = firm.account.build("credit_limit" => 1000)
     assert_equal account, firm.account
-    assert account.new?
+    assert account.new_record?
     assert firm.save
     assert_equal account, firm.account
-    assert !account.new?
+    assert !account.new_record?
   end
 
   def test_build_before_either_saved
@@ -255,10 +255,10 @@ class HasOneAssociationsTest < Test::Unit::TestCase
 
     firm.account = account = Account.new("credit_limit" => 1000)
     assert_equal account, firm.account
-    assert account.new?
+    assert account.new_record?
     assert firm.save
     assert_equal account, firm.account
-    assert !account.new?
+    assert !account.new_record?
   end
 
   def test_failing_build_association
@@ -295,7 +295,7 @@ class HasOneAssociationsTest < Test::Unit::TestCase
   def test_assignment_before_parent_saved
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.account = a = Account.find(1)
-    assert firm.new?
+    assert firm.new_record?
     assert_equal a, firm.account
     assert firm.save
     assert_equal a, firm.account
@@ -305,7 +305,7 @@ class HasOneAssociationsTest < Test::Unit::TestCase
   def test_assignment_before_child_saved
     firm = Firm.find(1)
     firm.account = a = Account.new("credit_limit" => 1000)
-    assert !a.new?
+    assert !a.new_record?
     assert_equal a, firm.account
     assert_equal a, firm.account
     assert_equal a, firm.account(true)
@@ -314,12 +314,12 @@ class HasOneAssociationsTest < Test::Unit::TestCase
   def test_assignment_before_either_saved
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.account = a = Account.new("credit_limit" => 1000)
-    assert firm.new?
-    assert a.new?
+    assert firm.new_record?
+    assert a.new_record?
     assert_equal a, firm.account
     assert firm.save
-    assert !firm.new?
-    assert !a.new?
+    assert !firm.new_record?
+    assert !a.new_record?
     assert_equal a, firm.account
     assert_equal a, firm.account(true)
   end
@@ -350,6 +350,13 @@ class HasOneAssociationsTest < Test::Unit::TestCase
     end    
   end
   
+  def test_deprecated_inferred_foreign_key
+    assert_not_deprecated { Company.belongs_to :firm }
+    assert_not_deprecated { Company.belongs_to :client, :foreign_key => "firm_id" }
+    assert_not_deprecated { Company.belongs_to :firm, :class_name => "Firm", :foreign_key => "client_of" }
+    assert_deprecated("inferred foreign_key name") { Company.belongs_to :client, :class_name => "Firm" }
+  end
+
 end
 
 
@@ -551,14 +558,14 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     new_firm = Firm.new("name" => "A New Firm, Inc")
     new_firm.clients_of_firm.push Client.new("name" => "Natural Company")
     new_firm.clients_of_firm << (c = Client.new("name" => "Apple"))
-    assert new_firm.new?
-    assert c.new?
+    assert new_firm.new_record?
+    assert c.new_record?
     assert_equal 2, new_firm.clients_of_firm.size
     assert_equal no_of_firms, Firm.count      # Firm was not saved to database.
     assert_equal no_of_clients, Client.count  # Clients were not saved to database.
     assert new_firm.save
-    assert !new_firm.new?
-    assert !c.new?
+    assert !new_firm.new_record?
+    assert !c.new_record?
     assert_equal new_firm, c.firm
     assert_equal no_of_firms+1, Firm.count      # Firm was saved to database.
     assert_equal no_of_clients+2, Client.count  # Clients were saved to database.
@@ -569,10 +576,10 @@ class HasManyAssociationsTest < Test::Unit::TestCase
   def test_invalid_adding
     firm = Firm.find(1)
     assert !(firm.clients_of_firm << c = Client.new)
-    assert c.new?
+    assert c.new_record?
     assert !firm.valid?
     assert !firm.save
-    assert c.new?
+    assert c.new_record?
   end
 
   def test_invalid_adding_before_save
@@ -580,21 +587,21 @@ class HasManyAssociationsTest < Test::Unit::TestCase
     no_of_clients = Client.count
     new_firm = Firm.new("name" => "A New Firm, Inc")
     new_firm.clients_of_firm.concat([c = Client.new, Client.new("name" => "Apple")])
-    assert c.new?
+    assert c.new_record?
     assert !c.valid?
     assert !new_firm.valid?
     assert !new_firm.save
-    assert c.new?
-    assert new_firm.new?
+    assert c.new_record?
+    assert new_firm.new_record?
   end
 
   def test_build
     new_client = companies(:first_firm).clients_of_firm.build("name" => "Another Client")
     assert_equal "Another Client", new_client.name
-    assert new_client.new?
+    assert new_client.new_record?
     assert_equal new_client, companies(:first_firm).clients_of_firm.last
     assert companies(:first_firm).save
-    assert !new_client.new?
+    assert !new_client.new_record?
     assert_equal 2, companies(:first_firm).clients_of_firm(true).size
   end
 
@@ -637,18 +644,18 @@ class HasManyAssociationsTest < Test::Unit::TestCase
 
   def test_invalid_build
     new_client = companies(:first_firm).clients_of_firm.build
-    assert new_client.new?
+    assert new_client.new_record?
     assert !new_client.valid?
     assert_equal new_client, companies(:first_firm).clients_of_firm.last
     assert !companies(:first_firm).save
-    assert new_client.new?
+    assert new_client.new_record?
     assert_equal 1, companies(:first_firm).clients_of_firm(true).size
   end
   
   def test_create
     force_signal37_to_load_all_clients_of_firm
     new_client = companies(:first_firm).clients_of_firm.create("name" => "Another Client")
-    assert !new_client.new?
+    assert !new_client.new_record?
     assert_equal new_client, companies(:first_firm).clients_of_firm.last
     assert_equal new_client, companies(:first_firm).clients_of_firm(true).last
   end
@@ -1025,10 +1032,10 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     apple = Firm.new("name" => "Apple")
     client.firm = apple
     assert_equal apple, client.firm
-    assert apple.new?
+    assert apple.new_record?
     assert client.save
     assert apple.save
-    assert !apple.new?
+    assert !apple.new_record?
     assert_equal apple, client.firm
     assert_equal apple, client.firm(true)
   end
@@ -1037,10 +1044,10 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     final_cut = Client.new("name" => "Final Cut")
     firm = Firm.find(1)
     final_cut.firm = firm
-    assert final_cut.new?
+    assert final_cut.new_record?
     assert final_cut.save
-    assert !final_cut.new?
-    assert !firm.new?
+    assert !final_cut.new_record?
+    assert !firm.new_record?
     assert_equal firm, final_cut.firm
     assert_equal firm, final_cut.firm(true)
   end
@@ -1049,11 +1056,11 @@ class BelongsToAssociationsTest < Test::Unit::TestCase
     final_cut = Client.new("name" => "Final Cut")
     apple = Firm.new("name" => "Apple")
     final_cut.firm = apple
-    assert final_cut.new?
-    assert apple.new?
+    assert final_cut.new_record?
+    assert apple.new_record?
     assert final_cut.save
-    assert !final_cut.new?
-    assert !apple.new?
+    assert !final_cut.new_record?
+    assert !apple.new_record?
     assert_equal apple, final_cut.firm
     assert_equal apple, final_cut.firm(true)
   end
@@ -1367,10 +1374,10 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     no_of_projects = Project.count
     aredridel = Developer.new("name" => "Aredridel")
     aredridel.projects.concat([Project.find(1), p = Project.new("name" => "Projekt")])
-    assert aredridel.new?
-    assert p.new?
+    assert aredridel.new_record?
+    assert p.new_record?
     assert aredridel.save
-    assert !aredridel.new?
+    assert !aredridel.new_record?
     assert_equal no_of_devels+1, Developer.count
     assert_equal no_of_projects+1, Project.count
     assert_equal 2, aredridel.projects.size
@@ -1385,10 +1392,10 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     ken.projects.push_with_attributes( Project.find(1), :joined_on => now )
     p = Project.new("name" => "Foomatic")
     ken.projects.push_with_attributes( p, :joined_on => now )
-    assert ken.new?
-    assert p.new?
+    assert ken.new_record?
+    assert p.new_record?
     assert ken.save
-    assert !ken.new?
+    assert !ken.new_record?
     assert_equal no_of_devels+1, Developer.count
     assert_equal no_of_projects+1, Project.count
     assert_equal 2, ken.projects.size
@@ -1421,9 +1428,9 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     devel = Developer.find(1)
     proj = devel.projects.build("name" => "Projekt")
     assert_equal devel.projects.last, proj
-    assert proj.new?
+    assert proj.new_record?
     devel.save
-    assert !proj.new?
+    assert !proj.new_record?
     assert_equal devel.projects.last, proj
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
   end
@@ -1433,10 +1440,10 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     proj1 = devel.projects.build(:name => "Make bed")
     proj2 = devel.projects.build(:name => "Lie in it")
     assert_equal devel.projects.last, proj2
-    assert proj2.new?
+    assert proj2.new_record?
     devel.save
-    assert !devel.new?
-    assert !proj2.new?
+    assert !devel.new_record?
+    assert !proj2.new_record?
     assert_equal devel.projects.last, proj2
     assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
   end
@@ -1445,7 +1452,7 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     devel = Developer.find(1)
     proj = devel.projects.create("name" => "Projekt")
     assert_equal devel.projects.last, proj
-    assert !proj.new?
+    assert !proj.new_record?
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
   end
   
@@ -1454,10 +1461,10 @@ class HasAndBelongsToManyAssociationsTest < Test::Unit::TestCase
     proj1 = devel.projects.create(:name => "Make bed")
     proj2 = devel.projects.create(:name => "Lie in it")
     assert_equal devel.projects.last, proj2
-    assert proj2.new?
+    assert proj2.new_record?
     devel.save
-    assert !devel.new?
-    assert !proj2.new?
+    assert !devel.new_record?
+    assert !proj2.new_record?
     assert_equal devel.projects.last, proj2
     assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
   end
