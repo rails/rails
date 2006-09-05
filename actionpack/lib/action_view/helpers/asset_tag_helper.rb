@@ -126,7 +126,7 @@ module ActionView
           ActiveSupport::Deprecation.warn(
             "You've called image_path with a source that doesn't include an extension. " +
             "In Rails 2.0, that will not result in .png automatically being appended. " +
-            "So you should call image_path('#{source}.png') instead"
+            "So you should call image_path('#{source}.png') instead", caller
           )
         end
 

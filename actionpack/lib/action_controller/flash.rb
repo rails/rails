@@ -174,7 +174,7 @@ module ActionController #:nodoc:
 
         # deprecated. use <tt>flash.keep</tt> instead
         def keep_flash #:doc:
-          ActiveSupport::Deprecation.warn 'keep_flash is deprecated; use flash.keep instead.'
+          ActiveSupport::Deprecation.warn 'keep_flash is deprecated; use flash.keep instead.', caller
           flash.keep
         end
     end
