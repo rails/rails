@@ -13,6 +13,7 @@ module ActionController
     # Typically, you will instantiate a new session using IntegrationTest#open_session,
     # rather than instantiating Integration::Session directly.
     class Session
+      include Test::Unit::Assertions
       include ActionController::Assertions
       include ActionController::TestProcess
 
