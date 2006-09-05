@@ -51,7 +51,6 @@ task :test do
 end
 
 namespace :test do
-  desc 'Test recent changes'
   Rake::TestTask.new(:recent => "db:test:prepare") do |t|
     since = TEST_CHANGES_SINCE
     touched = FileList['test/**/*_test.rb'].select { |path| File.mtime(path) > since } +
@@ -62,8 +61,8 @@ namespace :test do
     t.verbose = true
     t.test_files = touched.uniq
   end
+  Rake::Task['test:recent'].comment = "Test recent changes"
   
-  desc 'Test changes since last checkin (only Subversion)'
   Rake::TestTask.new(:uncommitted => "db:test:prepare") do |t|
     def t.file_list
       changed_since_checkin = silence_stderr { `svn status` }.map { |path| path.chomp[7 .. -1] }
@@ -80,29 +79,29 @@ namespace :test do
     t.libs << 'test'
     t.verbose = true
   end
+  Rake::Task['test:uncommitted'].comment = "Test changes since last checkin (only Subversion)"
 
-  desc "Run the unit tests in test/unit"
   Rake::TestTask.new(:units => "db:test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/unit/**/*_test.rb'
     t.verbose = true
   end
+  Rake::Task['test:units'].comment = "Run the unit tests in test/unit"
 
-  desc "Run the functional tests in test/functional"
   Rake::TestTask.new(:functionals => "db:test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/functional/**/*_test.rb'
     t.verbose = true
   end
+  Rake::Task['test:functionals'].comment = "Run the functional tests in test/functional"
 
-  desc "Run the integration tests in test/integration"
   Rake::TestTask.new(:integration => "db:test:prepare") do |t|
     t.libs << "test"
     t.pattern = 'test/integration/**/*_test.rb'
     t.verbose = true
   end
+  Rake::Task['test:integration'].comment = "Run the integration tests in test/integration"
 
-  desc "Run the plugin tests in vendor/plugins/**/test (or specify with PLUGIN=name)"
   Rake::TestTask.new(:plugins => :environment) do |t|
     t.libs << "test"
 
@@ -114,4 +113,5 @@ namespace :test do
 
     t.verbose = true
   end
+  Rake::Task['test:plugins'].comment = "Run the plugin tests in vendor/plugins/**/test (or specify with PLUGIN=name)"
 end
