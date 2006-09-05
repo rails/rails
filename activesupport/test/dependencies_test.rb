@@ -428,4 +428,22 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
   
+  def test_preexisting_constants_are_not_marked_as_autoloaded
+    with_loading 'autoloading_fixtures' do
+      require_dependency 'e'
+      assert Dependencies.autoloaded?(:E)
+      Dependencies.clear
+    end
+    
+    Object.const_set :E, Class.new
+    with_loading 'autoloading_fixtures' do
+      require_dependency 'e'
+      assert ! Dependencies.autoloaded?(:E), "E shouldn't be marked autoloaded!"
+      Dependencies.clear
+    end
+    
+  ensure
+    Object.send :remove_const, :E if Object.const_defined?(:E)
+  end
+  
 end

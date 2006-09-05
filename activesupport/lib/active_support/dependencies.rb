@@ -188,7 +188,7 @@ module Dependencies #:nodoc:
     
     result = load path
     
-    newly_defined_paths = const_paths.select(&method(:qualified_const_defined?))
+    newly_defined_paths = undefined_before.select(&method(:qualified_const_defined?))
     autoloaded_constants.concat newly_defined_paths
     autoloaded_constants.uniq!
     log "loading #{path} defined #{newly_defined_paths * ', '}" unless newly_defined_paths.empty?
