@@ -96,14 +96,14 @@ module ActionWebService # :nodoc:
           when :float
             Float(value)
           when :time
-            value = "#{value['2']}/#{value['3']}/#{value['1']} #{value['4']}:#{value['5']}:#{value['6']}" if value.kind_of?(Hash)
-            Time.parse(value.to_s)
+            value = "%s/%s/%s %s:%s:%s" % value.values_at(*%w[2 3 1 4 5 6]) if value.kind_of?(Hash)
+            value.kind_of?(Time) ? value : Time.parse(value.to_s)
           when :date
-            value = "#{value['2']}/#{value['3']}/#{value['1']}" if value.kind_of?(Hash)
-            Date.parse(value.to_s)
+            value = "%s/%s/%s" % value.values_at(*%w[2 3 1]) if value.kind_of?(Hash)
+            value.kind_of?(Date) ? value : Date.parse(value.to_s)
           when :datetime
-            value = "#{value['2']}/#{value['3']}/#{value['1']} #{value['4']}:#{value['5']}:#{value['6']}" if value.kind_of?(Hash)
-            DateTime.parse(value.to_s)
+            value = "%s/%s/%s %s:%s:%s" % value.values_at(*%w[2 3 1 4 5 6]) if value.kind_of?(Hash)
+            value.kind_of?(DateTime) ? value : DateTime.parse(value.to_s)
           end
         end
 
