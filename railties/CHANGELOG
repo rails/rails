@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to Prototype 1.5.0_rc1 [sam]
+
 * Formally Deprecate the old rake tasks. [Koz]
 
 * Thoroughly test the FCGI dispatcher.  #5970 [Kevin Clark]
