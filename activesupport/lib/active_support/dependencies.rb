@@ -206,6 +206,15 @@ module Dependencies #:nodoc:
   # using const_missing.
   def load_missing_constant(from_mod, const_name)
     log_call from_mod, const_name
+    if from_mod == Kernel
+      if ::Object.const_defined?(const_name)
+        log "Returning Object::#{const_name} for Kernel::#{const_name}"
+        return ::Object.const_get(const_name)
+      else
+        log "Substituting Object for Kernel"
+        from_mod = Object
+      end
+    end
     
     # If we have an anonymous module, all we can do is attempt to load from Object.
     from_mod = Object if from_mod.name.empty?

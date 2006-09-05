@@ -420,4 +420,12 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
   
+  def test_const_missing_on_kernel_should_fallback_to_object
+    with_loading 'autoloading_fixtures' do
+      kls = Kernel::E
+      assert_equal "E", kls.name
+      assert_equal kls.object_id, Kernel::E.object_id
+    end
+  end
+  
 end

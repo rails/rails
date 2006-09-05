@@ -1,5 +1,7 @@
 *SVN*
 
+* Equate Kernel.const_missing with Object.const_missing. Fixes #5988. [Nicholas Seckar]
+
 * Add ApplicationController special case to Dependencies. [Nicholas Seckar]
 
 * Don't pad remaining places with in_groups_of if specified padding value is false. [Marcel Molina Jr.]
