@@ -59,13 +59,13 @@ Element.setOpacity = function(element, value){
   if (value == 1){
     Element.setStyle(element, { opacity: 
       (/Gecko/.test(navigator.userAgent) && !/Konqueror|Safari|KHTML/.test(navigator.userAgent)) ? 
-      0.999999 : null });
-    if(/MSIE/.test(navigator.userAgent))  
+      0.999999 : 1.0 });
+    if(/MSIE/.test(navigator.userAgent) && !window.opera)  
       Element.setStyle(element, {filter: Element.getStyle(element,'filter').replace(/alpha\([^\)]*\)/gi,'')});  
   } else {  
     if(value < 0.00001) value = 0;  
     Element.setStyle(element, {opacity: value});
-    if(/MSIE/.test(navigator.userAgent))  
+    if(/MSIE/.test(navigator.userAgent) && !window.opera)  
      Element.setStyle(element, 
        { filter: Element.getStyle(element,'filter').replace(/alpha\([^\)]*\)/gi,'') +
                  'alpha(opacity='+value*100+')' });  
@@ -104,12 +104,16 @@ Array.prototype.call = function() {
 /*--------------------------------------------------------------------------*/
 
 var Effect = {
+  _elementDoesNotExistError: {
+    name: 'ElementDoesNotExistError',
+    message: 'The specified DOM element does not exist, but is required for this effect to operate'
+  },
   tagifyText: function(element) {
     if(typeof Builder == 'undefined')
       throw("Effect.tagifyText requires including script.aculo.us' builder.js library");
       
     var tagifyStyle = 'position:relative';
-    if(/MSIE/.test(navigator.userAgent)) tagifyStyle += ';zoom:1';
+    if(/MSIE/.test(navigator.userAgent) && !window.opera) tagifyStyle += ';zoom:1';
     element = $(element);
     $A(element.childNodes).each( function(child) {
       if(child.nodeType==3) {
@@ -354,8 +358,9 @@ Effect.Opacity = Class.create();
 Object.extend(Object.extend(Effect.Opacity.prototype, Effect.Base.prototype), {
   initialize: function(element) {
     this.element = $(element);
+    if(!this.element) throw(Effect._elementDoesNotExistError);
     // make this work on IE on elements without 'layout'
-    if(/MSIE/.test(navigator.userAgent) && (!this.element.currentStyle.hasLayout))
+    if(/MSIE/.test(navigator.userAgent) && !window.opera && (!this.element.currentStyle.hasLayout))
       this.element.setStyle({zoom: 1});
     var options = Object.extend({
       from: this.element.getOpacity() || 0.0,
@@ -372,6 +377,7 @@ Effect.Move = Class.create();
 Object.extend(Object.extend(Effect.Move.prototype, Effect.Base.prototype), {
   initialize: function(element) {
     this.element = $(element);
+    if(!this.element) throw(Effect._elementDoesNotExistError);
     var options = Object.extend({
       x:    0,
       y:    0,
@@ -410,7 +416,8 @@ Effect.MoveBy = function(element, toTop, toLeft) {
 Effect.Scale = Class.create();
 Object.extend(Object.extend(Effect.Scale.prototype, Effect.Base.prototype), {
   initialize: function(element, percent) {
-    this.element = $(element)
+    this.element = $(element);
+    if(!this.element) throw(Effect._elementDoesNotExistError);
     var options = Object.extend({
       scaleX: true,
       scaleY: true,
@@ -485,6 +492,7 @@ Effect.Highlight = Class.create();
 Object.extend(Object.extend(Effect.Highlight.prototype, Effect.Base.prototype), {
   initialize: function(element) {
     this.element = $(element);
+    if(!this.element) throw(Effect._elementDoesNotExistError);
     var options = Object.extend({ startcolor: '#ffff99' }, arguments[1] || {});
     this.start(options);
   },
@@ -573,14 +581,22 @@ Effect.Appear = function(element) {
 
 Effect.Puff = function(element) {
   element = $(element);
-  var oldStyle = { opacity: element.getInlineOpacity(), position: element.getStyle('position') };
+  var oldStyle = { 
+    opacity: element.getInlineOpacity(), 
+    position: element.getStyle('position'),
+    top:  element.style.top,
+    left: element.style.left,
+    width: element.style.width,
+    height: element.style.height
+  };
   return new Effect.Parallel(
    [ new Effect.Scale(element, 200, 
       { sync: true, scaleFromCenter: true, scaleContent: true, restoreAfterFinish: true }), 
      new Effect.Opacity(element, { sync: true, to: 0.0 } ) ], 
      Object.extend({ duration: 1.0, 
       beforeSetupInternal: function(effect) {
-        effect.effects[0].element.setStyle({position: 'absolute'}); },
+        Position.absolutize(effect.effects[0].element)
+      },
       afterFinishInternal: function(effect) {
          effect.effects[0].element.hide();
          effect.effects[0].element.setStyle(oldStyle); }
@@ -719,7 +735,7 @@ Effect.SlideDown = function(element) {
     afterFinishInternal: function(effect) {
       effect.element.undoClipping(); 
       // IE will crash if child is undoPositioned first
-      if(/MSIE/.test(navigator.userAgent)){
+      if(/MSIE/.test(navigator.userAgent) && !window.opera){
         effect.element.undoPositioned();
         effect.element.firstChild.undoPositioned();
       }else{

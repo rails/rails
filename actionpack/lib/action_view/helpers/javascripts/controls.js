@@ -48,7 +48,7 @@ Autocompleter.Base.prototype = {
     this.index       = 0;     
     this.entryCount  = 0;
 
-    if (this.setOptions)
+    if(this.setOptions)
       this.setOptions(options);
     else
       this.options = options || {};
@@ -58,17 +58,20 @@ Autocompleter.Base.prototype = {
     this.options.frequency    = this.options.frequency || 0.4;
     this.options.minChars     = this.options.minChars || 1;
     this.options.onShow       = this.options.onShow || 
-    function(element, update){ 
-      if(!update.style.position || update.style.position=='absolute') {
-        update.style.position = 'absolute';
-        Position.clone(element, update, {setHeight: false, offsetTop: element.offsetHeight});
-      }
-      Effect.Appear(update,{duration:0.15});
-    };
+      function(element, update){ 
+        if(!update.style.position || update.style.position=='absolute') {
+          update.style.position = 'absolute';
+          Position.clone(element, update, {
+            setHeight: false, 
+            offsetTop: element.offsetHeight
+          });
+        }
+        Effect.Appear(update,{duration:0.15});
+      };
     this.options.onHide = this.options.onHide || 
-    function(element, update){ new Effect.Fade(update,{duration:0.15}) };
+      function(element, update){ new Effect.Fade(update,{duration:0.15}) };
 
-    if (typeof(this.options.tokens) == 'string') 
+    if(typeof(this.options.tokens) == 'string') 
       this.options.tokens = new Array(this.options.tokens);
 
     this.observer = null;
@@ -274,9 +277,14 @@ Autocompleter.Base.prototype = {
       }
 
       this.stopIndicator();
-
       this.index = 0;
-      this.render();
+      
+      if(this.entryCount==1 && this.options.autoSelect) {
+        this.selectEntry();
+        this.hide();
+      } else {
+        this.render();
+      }
     }
   },
 
@@ -778,6 +786,8 @@ Object.extend(Ajax.InPlaceCollectionEditor.prototype, {
       collection.each(function(e,i) {
         optionTag = document.createElement("option");
         optionTag.value = (e instanceof Array) ? e[0] : e;
+        if((typeof this.options.value == 'undefined') && 
+          ((e instanceof Array) ? this.element.innerHTML == e[1] : e == optionTag.value)) optionTag.selected = true;
         if(this.options.value==optionTag.value) optionTag.selected = true;
         optionTag.appendChild(document.createTextNode((e instanceof Array) ? e[1] : e));
         selectTag.appendChild(optionTag);

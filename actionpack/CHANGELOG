@@ -1,5 +1,7 @@
 *SVN*
 
+* Update to script.aculo.us 1.6.3 [Thomas Fuchs]
+
 * Update to Prototype 1.5.0_rc1 [sam]
 
 * Added access to nested attributes in RJS #4548 [richcollins@gmail.com]. Examples:
