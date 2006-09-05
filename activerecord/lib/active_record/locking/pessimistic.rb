@@ -69,7 +69,7 @@ module ActiveRecord
       # or pass true for "FOR UPDATE" (the default, an exclusive row lock).  Returns
       # the locked record.
       def lock!(lock = true)
-        reload(:lock => lock) unless new_record?
+        reload(:lock => lock) unless new?
         self
       end
     end

@@ -18,7 +18,7 @@ module ActiveRecord
         if replace_existing
           replace(record, true) 
         else
-          record[@reflection.primary_key_name] = @owner.id unless @owner.new_record?
+          record[@reflection.primary_key_name] = @owner.id unless @owner.new?
           self.target = record
         end
 
@@ -30,11 +30,11 @@ module ActiveRecord
 
         unless @target.nil?
           if dependent? && !dont_save && @target != obj
-            @target.destroy unless @target.new_record?
+            @target.destroy unless @target.new?
             @owner.clear_association_cache
           else
             @target[@reflection.primary_key_name] = nil
-            @target.save unless @owner.new_record? || @target.new_record?
+            @target.save unless @owner.new? || @target.new?
           end
         end
 
@@ -48,7 +48,7 @@ module ActiveRecord
 
         @loaded = true
 
-        unless @owner.new_record? or obj.nil? or dont_save
+        unless @owner.new? or obj.nil? or dont_save
           return (obj.save ? self : false)
         else
           return (obj.nil? ? nil : self)
@@ -69,7 +69,7 @@ module ActiveRecord
             when @reflection.options[:as]
               @finder_sql = 
                 "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_id = #{@owner.quoted_id} AND " + 
-                "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote_value(@owner.class.base_class.name.to_s)}"          
+                "#{@reflection.klass.table_name}.#{@reflection.options[:as]}_type = #{@owner.class.quote @owner.class.base_class.name.to_s}"          
             else
               @finder_sql = "#{@reflection.table_name}.#{@reflection.primary_key_name} = #{@owner.quoted_id}"
           end

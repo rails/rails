@@ -1,5 +1,7 @@
 *SVN*
 
+* Deprecated ActiveRecord::Base.new_record? in favor of ActiveRecord::Base.new? (old version still works until Rails 2.0) [DHH]
+
 * Rename AR::Base#quote so people can use that name in their models. #3628 [Koz]
 
 * Add deprecation warning for inferred foreign key. #6029 [Josh Susser]

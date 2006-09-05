@@ -19,7 +19,7 @@ module ActiveRecord
           attributes.collect { |attr| create(attr) }
         else
           record = build(attributes)
-          insert_record(record) unless @owner.new_record?
+          insert_record(record) unless @owner.new?
           record
         end
       end
@@ -75,7 +75,7 @@ module ActiveRecord
         join_attributes.each { |key, value| record[key.to_s] = value }
 
         callback(:before_add, record)
-        insert_record(record) unless @owner.new_record?
+        insert_record(record) unless @owner.new?
         @target << record
         callback(:after_add, record)
 
@@ -101,7 +101,7 @@ module ActiveRecord
         end
 
         def insert_record(record)
-          if record.new_record?
+          if record.new?
             return false unless record.save
           end
 
@@ -118,7 +118,7 @@ module ActiveRecord
                   attributes[column.name] = record.quoted_id
                 else
                   if record.attributes.has_key?(column.name)
-                    value = @owner.send(:quote_value, record[column.name], column)
+                    value = @owner.send(:quote, record[column.name], column)
                     attributes[column.name] = value unless value.nil?
                   end
               end

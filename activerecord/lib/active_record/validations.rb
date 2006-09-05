@@ -333,8 +333,7 @@ module ActiveRecord
         attr_accessor *(attr_names.map { |n| "#{n}_confirmation" })
 
         validates_each(attr_names, configuration) do |record, attr_name, value|
-          confirm = record.send("#{attr_name}_confirmation")
-          record.errors.add(attr_name, configuration[:message]) unless value.nil? || value == confirm
+          record.errors.add(attr_name, configuration[:message]) unless record.send("#{attr_name}_confirmation").nil? or value == record.send("#{attr_name}_confirmation")
         end
       end
 
@@ -375,10 +374,6 @@ module ActiveRecord
       #
       # The first_name attribute must be in the object and it cannot be blank.
       #      
-      # If you want to validate the presence of a boolean field (where the real values are true and false),
-      # you will want to use validates_inclusion_of :field_name, :in => [true, false]
-      # This is due to the way Object#blank? handles boolean values. false.blank? # => true
-      #
       # Configuration options:
       # * <tt>message</tt> - A custom error message (default is: "can't be blank")
       # * <tt>on</tt> - Specifies when this validation is active (default is :save, other options :create, :update)
@@ -543,7 +538,7 @@ module ActiveRecord
               condition_params << scope_value
             end
           end
-          unless record.new_record?
+          unless record.new?
             condition_sql << " AND #{record.class.table_name}.#{record.class.primary_key} <> ?"
             condition_params << record.send(:id)
           end
@@ -777,7 +772,7 @@ module ActiveRecord
       run_validations(:validate)
       validate
 
-      if new_record?
+      if new?
         run_validations(:validate_on_create)
         validate_on_create
       else

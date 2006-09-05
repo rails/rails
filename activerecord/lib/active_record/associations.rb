@@ -65,7 +65,7 @@ module ActiveRecord
     def clear_association_cache #:nodoc:
       self.class.reflect_on_all_associations.to_a.each do |assoc|
         instance_variable_set "@#{assoc.name}", nil
-      end unless self.new_record?
+      end unless self.new?
     end
     
     # Associations are a set of macro-like class methods for tying objects together through foreign keys. They express relationships like 
@@ -131,7 +131,7 @@ module ActiveRecord
     # === One-to-one associations
     #
     # * Assigning an object to a has_one association automatically saves that object and the object being replaced (if there is one), in
-    #   order to update their primary keys - except if the parent object is unsaved (new_record? == true).
+    #   order to update their primary keys - except if the parent object is unsaved (new? == true).
     # * If either of these saves fail (due to one of the objects being invalid) the assignment statement returns false and the assignment
     #   is cancelled.
     # * If you wish to assign an object to a has_one association without saving it, use the #association.build method (documented below).
@@ -144,7 +144,7 @@ module ActiveRecord
     #   (the owner of the collection) is not yet stored in the database.
     # * If saving any of the objects being added to a collection (via #push or similar) fails, then #push returns false.
     # * You can add an object to a collection without automatically saving it by using the #collection.build method (documented below).
-    # * All unsaved (new_record? == true) members of the collection are automatically saved when the parent is saved.
+    # * All unsaved (new? == true) members of the collection are automatically saved when the parent is saved.
     #
     # === Association callbacks
     #
@@ -591,7 +591,7 @@ module ActiveRecord
         module_eval do
           after_save <<-EOF
             association = instance_variable_get("@#{reflection.name}")
-            if !association.nil? && (new_record? || association.new_record? || association["#{reflection.primary_key_name}"] != id)
+            if !association.nil? && (new? || association.new? || association["#{reflection.primary_key_name}"] != id)
               association["#{reflection.primary_key_name}"] = id
               association.save(true)
             end
@@ -655,12 +655,6 @@ module ActiveRecord
       #              :conditions => 'discounts > #{payments_count}'
       #   belongs_to :attachable, :polymorphic => true
       def belongs_to(association_id, options = {})
-        if options.include?(:class_name) && !options.include?(:foreign_key)
-          ::ActiveSupport::Deprecation.warn(
-          "The inferred foreign_key name will change in Rails 2.0 to use the association name instead of its class name when they differ.  When using :class_name in belongs_to, use the :foreign_key option to explicitly set the key name to avoid problems in the transition.",
-          caller)
-        end
-        
         reflection = create_belongs_to_reflection(association_id, options)
         
         if reflection.options[:polymorphic]
@@ -670,7 +664,7 @@ module ActiveRecord
             before_save <<-EOF
               association = instance_variable_get("@#{reflection.name}")
               if association && association.target
-                if association.new_record?
+                if association.new?
                   association.save(true)
                 end
                 
@@ -690,7 +684,7 @@ module ActiveRecord
             before_save <<-EOF
               association = instance_variable_get("@#{reflection.name}")
               if !association.nil? 
-                if association.new_record?
+                if association.new?
                   association.save(true)
                 end
                 
@@ -930,10 +924,10 @@ module ActiveRecord
           define_method(method_name) do
             association = instance_variable_get("@#{association_name}")
             if association.respond_to?(:loaded?)
-              if new_record?
+              if new?
                 association
               else
-                association.select { |record| record.new_record? }
+                association.select { |record| record.new? }
               end.each do |record|
                 errors.add "#{association_name}" unless record.valid?
               end
@@ -941,7 +935,7 @@ module ActiveRecord
           end
 
           validate method_name
-          before_save("@new_record_before_save = new_record?; true")
+          before_save("@new_record_before_save = new?; true")
 
           after_callback = <<-end_eval
             association = instance_variable_get("@#{association_name}")
@@ -950,7 +944,7 @@ module ActiveRecord
               if @new_record_before_save
                 records_to_save = association
               else
-                records_to_save = association.select { |record| record.new_record? }
+                records_to_save = association.select { |record| record.new? }
               end
               records_to_save.each { |record| association.send(:insert_record, record) }
               association.send(:construct_sql)   # reconstruct the SQL queries now that we know the owner's id
@@ -997,7 +991,7 @@ module ActiveRecord
 
           if reflection.options[:exclusively_dependent]
             reflection.options[:dependent] = :delete_all
-            ::ActiveSupport::Deprecation.warn("The :exclusively_dependent option is deprecated and will be removed from Rails 2.0.  Please use :dependent => :delete_all instead.  See http://www.rubyonrails.org/deprecation for details.", caller)
+            #warn "The :exclusively_dependent option is deprecated.  Please use :dependent => :delete_all instead.")
           end
 
           # See HasManyAssociation#delete_records.  Dependent associations
@@ -1457,7 +1451,7 @@ module ActiveRecord
                           table_alias_for(through_reflection.klass.table_name, aliased_join_table_name),
                           aliased_join_table_name, polymorphic_foreign_key,
                           parent.aliased_table_name, parent.primary_key,
-                          aliased_join_table_name, polymorphic_foreign_type, klass.quote_value(parent.active_record.base_class.name)] +
+                          aliased_join_table_name, polymorphic_foreign_type, klass.quote(parent.active_record.base_class.name)] +
                         " LEFT OUTER JOIN %s ON %s.%s = %s.%s " % [table_name_and_alias,
                           aliased_table_name, primary_key, aliased_join_table_name, options[:foreign_key] || reflection.klass.to_s.classify.foreign_key
                         ]
@@ -1472,7 +1466,7 @@ module ActiveRecord
                             aliased_table_name, "#{source_reflection.options[:as]}_id", 
                             aliased_join_table_name, options[:foreign_key] || primary_key,
                             aliased_table_name, "#{source_reflection.options[:as]}_type", 
-                            klass.quote_value(source_reflection.active_record.base_class.name)
+                            klass.quote(source_reflection.active_record.base_class.name)
                           ]
                         else
                           case source_reflection.macro
@@ -1501,7 +1495,7 @@ module ActiveRecord
                         aliased_table_name, "#{reflection.options[:as]}_id",
                         parent.aliased_table_name, parent.primary_key,
                         aliased_table_name, "#{reflection.options[:as]}_type",
-                        klass.quote_value(parent.active_record.base_class.name)
+                        klass.quote(parent.active_record.base_class.name)
                       ]
                     when reflection.macro == :has_one && reflection.options[:as]
                       " LEFT OUTER JOIN %s ON %s.%s = %s.%s AND %s.%s = %s " % [
@@ -1509,7 +1503,7 @@ module ActiveRecord
                         aliased_table_name, "#{reflection.options[:as]}_id",
                         parent.aliased_table_name, parent.primary_key,
                         aliased_table_name, "#{reflection.options[:as]}_type",
-                        klass.quote_value(reflection.active_record.base_class.name)
+                        klass.quote(reflection.active_record.base_class.name)
                       ]
                     else
                       foreign_key = options[:foreign_key] || reflection.active_record.name.foreign_key
@@ -1530,7 +1524,7 @@ module ActiveRecord
               join << %(AND %s.%s = %s ) % [
                 aliased_table_name, 
                 reflection.active_record.connection.quote_column_name(reflection.active_record.inheritance_column), 
-                klass.quote_value(klass.name.demodulize)] unless klass.descends_from_active_record?
+                klass.quote(klass.name.demodulize)] unless klass.descends_from_active_record?
               join << "AND #{interpolate_sql(sanitize_sql(reflection.options[:conditions]))} " if reflection.options[:conditions]
               join
             end

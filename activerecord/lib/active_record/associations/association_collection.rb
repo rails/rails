@@ -23,7 +23,7 @@ module ActiveRecord
           flatten_deeper(records).each do |record|
             raise_on_type_mismatch(record)
             callback(:before_add, record)
-            result &&= insert_record(record) unless @owner.new_record?
+            result &&= insert_record(record) unless @owner.new?
             @target << record
             callback(:after_add, record)
           end
@@ -51,7 +51,7 @@ module ActiveRecord
       def delete(*records)
         records = flatten_deeper(records)
         records.each { |record| raise_on_type_mismatch(record) }
-        records.reject! { |record| @target.delete(record) if record.new_record? }
+        records.reject! { |record| @target.delete(record) if record.new? }
         return if records.empty?
         
         @owner.transaction do
@@ -91,7 +91,7 @@ module ActiveRecord
           attributes.collect { |attr| create(attr) }
         else
           record = build(attributes)
-          record.save unless @owner.new_record?
+          record.save unless @owner.new?
           record
         end
       end
@@ -103,7 +103,7 @@ module ActiveRecord
         if loaded? && !@reflection.options[:uniq]
           @target.size
         elsif !loaded? && !@reflection.options[:uniq] && @target.is_a?(Array)
-          unsaved_records = Array(@target.detect { |r| r.new_record? })
+          unsaved_records = Array(@target.detect { |r| r.new? })
           unsaved_records.size + count_records
         else
           count_records
