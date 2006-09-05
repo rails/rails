@@ -134,7 +134,7 @@ module ActiveResource
     # Manually load attributes from a hash. Recursively loads collections of
     # resources.
     def load(attributes)
-      return self if attributes.nil?
+      raise ArgumentError, "expected an attributes Hash, got #{attributes.inspect}" unless attributes.is_a?(Hash)
       attributes.each do |key, value|
         @attributes[key.to_s] =
           case value

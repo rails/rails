@@ -14,10 +14,9 @@ class BaseLoadTest < Test::Unit::TestCase
     @person = Person.new
   end
 
-  def test_load_nil
-    assert_nothing_raised do
-      assert_equal @person, @person.load(nil)
-    end
+  def test_load_expects_hash
+    assert_raise(ArgumentError) { @person.load nil }
+    assert_raise(ArgumentError) { @person.load '<person id="1"/>' }
   end
 
   def test_load_simple_hash
