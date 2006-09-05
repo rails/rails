@@ -44,6 +44,24 @@ module ActionController #:nodoc:
   #
   #  assert_redirected_to page_url(:title => 'foo')
   module Assertions
+    def self.included(klass)
+      klass.class_eval do
+        include ActionController::Assertions::ResponseAssertions
+        include ActionController::Assertions::SelectorAssertions
+        include ActionController::Assertions::RoutingAssertions
+        include ActionController::Assertions::TagAssertions
+        include ActionController::Assertions::DomAssertions
+        include ActionController::Assertions::ModelAssertions
+        include ActionController::Assertions::DeprecatedAssertions
+      end
+    end
+
+    def clean_backtrace(&block)
+      yield
+    rescue Test::Unit::AssertionFailedError => e         
+      path = File.expand_path(__FILE__)
+      raise Test::Unit::AssertionFailedError, e.message, e.backtrace.reject { |line| File.expand_path(line) =~ /#{path}/ }
+    end
   end
 end
 
@@ -58,20 +76,7 @@ require File.dirname(__FILE__) + '/assertions/deprecated_assertions'
 module Test #:nodoc:
   module Unit #:nodoc:
     class TestCase #:nodoc:
-      include ActionController::Assertions::ResponseAssertions
-      include ActionController::Assertions::SelectorAssertions
-      include ActionController::Assertions::RoutingAssertions
-      include ActionController::Assertions::TagAssertions
-      include ActionController::Assertions::DomAssertions
-      include ActionController::Assertions::ModelAssertions
-      include ActionController::Assertions::DeprecatedAssertions
-
-      def clean_backtrace(&block)
-        yield
-      rescue AssertionFailedError => e         
-        path = File.expand_path(__FILE__)
-        raise AssertionFailedError, e.message, e.backtrace.reject { |line| File.expand_path(line) =~ /#{path}/ }
-      end
+      include ActionController::Assertions
     end
   end
 end
