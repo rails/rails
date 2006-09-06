@@ -60,6 +60,10 @@ class TestController < ActionController::Base
     render_action "hello"
   end
 
+  def builder_partial_test
+    render_action "hello_world_container"
+  end
+
   def partials_list
     @test_unchanged = 'hello'
     @customers = [ Customer.new("david"), Customer.new("mary") ]
@@ -191,6 +195,11 @@ class RenderTest < Test::Unit::TestCase
   def test_render_xml_with_default
     get :greeting
     assert_equal "<p>This is grand!</p>\n", @response.body
+  end
+
+  def test_render_xml_with_partial
+    get :builder_partial_test
+    assert_equal "<test>\n  <hello/>\n</test>\n", @response.body
   end
 
   def test_layout_rendering
