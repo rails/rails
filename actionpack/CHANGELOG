@@ -1,5 +1,13 @@
 *SVN*
 
+* Fixed JavaScriptHelper#link_to_function and JavaScriptHelper#button_to_function to have the script argument be optional [DHH]. So what used to require a nil, like this:
+
+    link_to("Hider", nil, :class => "hider_link") { |p| p[:something].hide }
+  
+  ...can be written like this:
+
+    link_to("Hider", :class => "hider_link") { |p| p[:something].hide }
+
 * Update to script.aculo.us 1.6.3 [Thomas Fuchs]
 
 * Update to Prototype 1.5.0_rc1 [sam]

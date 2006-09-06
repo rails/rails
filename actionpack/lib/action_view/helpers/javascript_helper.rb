@@ -79,7 +79,10 @@ module ActionView
       #       };
       #       return false;">Show me more</a>
       #
-      def link_to_function(name, function = '', html_options = {}, &block)
+      def link_to_function(name, *args, &block)
+        html_options = args.last.is_a?(Hash) ? args.pop : {}
+        function = args[0] || ''
+
         html_options.symbolize_keys!
         function = update_page(&block) if block_given?
         content_tag(
@@ -104,7 +107,13 @@ module ActionView
       #   button_to_function "Details" do |page|
       #     page[:details].visual_effect :toggle_slide
       #   end
-      def button_to_function(name, function = '', html_options = {}, &block)
+      #   button_to_function "Details", :class => "details_button" do |page|
+      #     page[:details].visual_effect :toggle_slide
+      #   end
+      def button_to_function(name, *args, &block)
+        html_options = args.last.is_a?(Hash) ? args.pop : {}
+        function = args[0] || ''
+
         html_options.symbolize_keys!
         function = update_page(&block) if block_given?
         tag(:input, html_options.merge({ 
