@@ -40,13 +40,18 @@ module ActionController
     def url_for(options)
       options = self.class.default_url_options.merge(options)
       
-      raise "Missing host to link to! Please provide :host parameter or set default_url_options[:host]" unless options[:host]
-      
       url = ''
-      url << (options.delete(:protocol) || 'http')
-      url << '://'
-      url << options.delete(:host)
-      url << ":#{options.delete(:port)}" if options.key?(:port)
+      unless options.delete :only_path
+        url << (options.delete(:protocol) || 'http')
+        url << '://'
+        
+        raise "Missing host to link to! Please provide :host parameter or set default_url_options[:host]" unless options[:host]
+        url << options.delete(:host)
+        url << ":#{options.delete(:port)}" if options.key?(:port)
+      else
+        # Delete the unused options to prevent their appearance in the query string
+        [:protocol, :host, :port].each { |k| options.delete k }
+      end
       url << Routing::Routes.generate(options, {})
       return url
     end
