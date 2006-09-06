@@ -93,28 +93,6 @@ class TestController < ActionController::Base
     ActionView::Base.local_assigns_support_string_keys = false
   end
 
-  def accessing_locals_hash_in_inline_template
-    name = params[:local_name]
-    render :inline => "<%= 'Goodbye, ' + locals[:local_name] %>",
-           :locals => { :local_name => name }
-  end
-  
-  def accessing_locals_hash_in_inline_template_setting_string_key
-    name = params[:local_name]
-    ActionView::Base.local_assigns_support_string_keys = true
-    render :inline => "<%= 'Goodbye, ' + locals[:local_name] %>",
-           :locals => { "local_name" => name }
-    ActionView::Base.local_assigns_support_string_keys = false
-  end
-  
-  def accessing_locals_hash_in_inline_template_getting_string_key
-    name = params[:local_name]
-    ActionView::Base.local_assigns_support_string_keys = true
-    render :inline => "<%= 'Goodbye, ' + locals['local_name'] %>",
-           :locals => { :local_name => name }
-    ActionView::Base.local_assigns_support_string_keys = false
-  end  
-
   def render_to_string_test
     @foo = render_to_string :inline => "this is a test"
   end

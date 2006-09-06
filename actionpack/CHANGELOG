@@ -23,17 +23,6 @@
 
 * Deprecated the auto-appending of .png to AssetTagHelper#image_tag calls that doesn't have an extension [DHH] 
 
-* Added locals hash to partials, which makes for convenient access of some times available/some times not variables #5491 [wbruce@gmail.com]. Example:
-
-    # two different render calls
-    render :partial => "person", :locals => { :include_overview => true }
-    render :partial => "person"
-    
-    # view
-    <% if locals[:include_overview] %>
-      Show overview
-    <% end %>
-
 * Fixed FormOptionsHelper#select to respect :selected value #5813
 
 * Fixed TextHelper#simple_format to deal with multiple single returns within a single paragraph #5835 [moriq@moriq.com]
