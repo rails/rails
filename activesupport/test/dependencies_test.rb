@@ -250,6 +250,13 @@ class DependenciesTest < Test::Unit::TestCase
     end
   end
   
+  def test_loadable_constants_with_load_path_without_trailing_slash
+    path = File.dirname(__FILE__) + '/autoloading_fixtures/class_folder/inline_class.rb'
+    with_loading 'autoloading_fixtures/class/' do
+      assert_equal [], Dependencies.loadable_constants_for_path(path)
+    end
+  end
+  
   def test_qualified_const_defined
     assert Dependencies.qualified_const_defined?("Object")
     assert Dependencies.qualified_const_defined?("::Object")

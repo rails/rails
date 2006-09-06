@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix loadable_constants_for_path to handle load paths that do not end with a slash. [Nicholas Seckar]
+
 * Fix logic error in determining what was loaded by a given file. Closes #6039. [Nicholas Seckar]
 
 * Equate Kernel.const_missing with Object.const_missing. Fixes #5988. [Nicholas Seckar]

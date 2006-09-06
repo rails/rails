@@ -125,19 +125,18 @@ module Dependencies #:nodoc:
     expanded_path = File.expand_path(path)
     
     bases.collect do |root|
-      expanded_root = File.expand_path root
-      next unless expanded_path.starts_with? expanded_root
+      expanded_root = File.expand_path(root)
+      next unless %r{\A#{Regexp.escape(expanded_root)}(/|\\)} =~ expanded_path
       
       nesting = expanded_path[(expanded_root.size)..-1]
       nesting = nesting[1..-1] if nesting && nesting[0] == ?/
       next if nesting.blank?
       
-      names = [nesting.camelize]
-      
-      # Special case: application.rb might define ApplicationControlller.
-      names << 'ApplicationController' if nesting == 'application'
-      
-      names
+      [
+        nesting.camelize,
+        # Special case: application.rb might define ApplicationControlller.
+        ('ApplicationController' if nesting == 'application')
+      ]
     end.flatten.compact.uniq
   end
   
