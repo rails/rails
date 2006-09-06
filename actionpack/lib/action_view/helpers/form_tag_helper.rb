@@ -24,7 +24,7 @@ module ActionView
 
         method_tag = ""
         
-        case method = html_options.delete("method")
+        case method = html_options.delete("method").to_s
           when /^get$/i # must be case-insentive, but can't use downcase as might be nil
             html_options["method"] = "get"
           when /^post$/i, nil
