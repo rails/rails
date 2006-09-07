@@ -5,7 +5,7 @@ documented in initializer.rb, the workaround is:
   
   config.autoload_paths += Dir[RAILS_ROOT + '/app/models/*/']
   
-References #6031. [Nicholas Seckar].
+References #6031. [Nicholas Seckar]
 
 * Update to script.aculo.us 1.6.3 [Thomas Fuchs]
 
