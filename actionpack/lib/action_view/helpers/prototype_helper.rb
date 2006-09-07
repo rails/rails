@@ -556,22 +556,22 @@ module ActionView
           
           # Removes the DOM elements with the given +ids+ from the page.
           def remove(*ids)
-            record "#{javascript_object_for(ids)}.each(Element.remove)"
+            loop_on_multiple_args 'Element.remove', ids
           end
           
           # Shows hidden DOM elements with the given +ids+.
           def show(*ids)
-            call 'Element.show', *ids
+            loop_on_multiple_args 'Element.show', ids
           end
           
           # Hides the visible DOM elements with the given +ids+.
           def hide(*ids)
-            call 'Element.hide', *ids
+            loop_on_multiple_args 'Element.hide', ids           
           end
           
           # Toggles the visibility of the DOM elements with the given +ids+.
           def toggle(*ids)
-            call 'Element.toggle', *ids
+            loop_on_multiple_args 'Element.toggle', ids            
           end
           
           # Displays an alert dialog with the given +message+.
@@ -684,6 +684,14 @@ module ActionView
       end
 
     protected
+      def loop_on_multiple_args(method, ids)
+        record (if ids.size>1 
+          "#{javascript_object_for(ids)}.each(#{method})"
+        else
+          "#{method}(#{ids.first.to_json})"
+        end)
+      end
+    
       def options_for_ajax(options)
         js_options = build_callbacks(options)
       

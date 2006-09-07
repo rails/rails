@@ -1,5 +1,7 @@
 *SVN*
 
+* Update JavaScriptGenerator#show/hide/toggle/remove to new Prototype syntax for multiple ids,  #6068 [petermichaux@gmail.com]
+
 * Update UrlWriter to support :only_path. [Nicholas Seckar, Dave Thomas]
 
 * Fixed JavaScriptHelper#link_to_function and JavaScriptHelper#button_to_function to have the script argument be optional [DHH]. So what used to require a nil, like this:

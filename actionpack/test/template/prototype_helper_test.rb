@@ -203,7 +203,7 @@ class JavaScriptGeneratorTest < Test::Unit::TestCase
   end
   
   def test_remove
-    assert_equal '["foo"].each(Element.remove);',
+    assert_equal 'Element.remove("foo");',
       @generator.remove('foo')
     assert_equal '["foo", "bar", "baz"].each(Element.remove);',
       @generator.remove('foo', 'bar', 'baz')
@@ -212,17 +212,24 @@ class JavaScriptGeneratorTest < Test::Unit::TestCase
   def test_show
     assert_equal 'Element.show("foo");',
       @generator.show('foo')
-    assert_equal 'Element.show("foo", "bar", "baz");',
-      @generator.show('foo', 'bar', 'baz')
+    assert_equal '["foo", "bar", "baz"].each(Element.show);',
+      @generator.show('foo', 'bar', 'baz')  
   end
   
   def test_hide
     assert_equal 'Element.hide("foo");',
       @generator.hide('foo')
-    assert_equal 'Element.hide("foo", "bar", "baz");',
-      @generator.hide('foo', 'bar', 'baz')
+    assert_equal '["foo", "bar", "baz"].each(Element.hide);',
+      @generator.hide('foo', 'bar', 'baz')  
   end
   
+  def test_toggle
+    assert_equal 'Element.toggle("foo");',
+      @generator.toggle('foo')
+    assert_equal '["foo", "bar", "baz"].each(Element.toggle);',
+      @generator.toggle('foo', 'bar', 'baz')  
+  end
+    
   def test_alert
     assert_equal 'alert("hello");', @generator.alert('hello')
   end
