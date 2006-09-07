@@ -1,5 +1,7 @@
 *SVN*
 
+* Add descriptive messages to the exceptions thrown by cgi_methods. Closes #6091. [Nicholas Seckar]
+
 * Update JavaScriptGenerator#show/hide/toggle/remove to new Prototype syntax for multiple ids,  #6068 [petermichaux@gmail.com]
 
 * Update UrlWriter to support :only_path. [Nicholas Seckar, Dave Thomas]

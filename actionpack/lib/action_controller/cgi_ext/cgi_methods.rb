@@ -156,9 +156,9 @@ class CGIMethods #:nodoc:
       # Add a container to the stack.
       # 
       def container(key, klass)
-        raise TypeError if top.is_a?(Hash) && top.key?(key) && ! top[key].is_a?(klass)
+        type_conflict! klass, top[key] if top.is_a?(Hash) && top.key?(key) && ! top[key].is_a?(klass)
         value = bind(key, klass.new)
-        raise TypeError unless value.is_a?(klass)
+        type_conflict! klass, value unless value.is_a?(klass)
         push(value)
       end
     
@@ -190,5 +190,11 @@ class CGIMethods #:nodoc:
 
         return value
       end
+      
+      def type_conflict!(klass, value)
+        raise TypeError, "Conflicting types for parameter containers
+          Expected an instance of #{klass}, but found found one of #{value.class}"
+      end
+      
     end
 end
