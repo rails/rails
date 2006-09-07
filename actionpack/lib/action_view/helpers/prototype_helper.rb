@@ -639,6 +639,12 @@ module ActionView
           end
           
           private
+            def loop_on_multiple_args(method, ids)
+              record(ids.size>1 ? 
+                "#{javascript_object_for(ids)}.each(#{method})" : 
+                "#{method}(#{ids.first.to_json})")
+            end
+              
             def page
               self
             end
@@ -684,12 +690,6 @@ module ActionView
       end
 
     protected
-      def loop_on_multiple_args(method, ids)
-        record(ids.size>1 ? 
-          "#{javascript_object_for(ids)}.each(#{method})" : 
-          "#{method}(#{ids.first.to_json})")
-      end
-    
       def options_for_ajax(options)
         js_options = build_callbacks(options)
       
