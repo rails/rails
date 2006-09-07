@@ -1,5 +1,12 @@
 *SVN*
 
+* Remove the uncanny default of adding all app/models/*/ directories to the load path. This change will break application which expect the current behavior. As
+documented in initializer.rb, the workaround is:
+  
+  config.autoload_paths += Dir[RAILS_ROOT + '/app/models/*/']
+  
+References #6031. [Nicholas Seckar].
+
 * Update to script.aculo.us 1.6.3 [Thomas Fuchs]
 
 * Update to Prototype 1.5.0_rc1 [sam]

@@ -434,6 +434,18 @@ module Rails
     # An array of paths from which Rails will automatically load classes and
     # modules from. By default, all +app+, +lib+, +vendor+ and mock paths are
     # included in this list.
+    # 
+    # To automatically load constants from a directory, add it to this array. For
+    # example, if you organize your models in subdirectories (not modules), you
+    # would add:
+    # 
+    #   config.autoload_paths += Dir[RAILS_ROOT + '/app/models/*/']
+    # 
+    # and if you do not have any models in the root of app/models, you would
+    # also want:
+    # 
+    #   config.autoload_paths.remove RAILS_ROOT + '/app/models'
+    # 
     attr_accessor :autoload_paths
     
     # An array of paths from which Rails will automatically load from only once.
@@ -551,9 +563,7 @@ module Rails
         # Add the app's controller directory
         paths.concat(Dir["#{root_path}/app/controllers/"])
 
-        # Then model subdirectories.
-        # TODO: Don't include .rb models as load paths
-        paths.concat(Dir["#{root_path}/app/models/[_a-z]*"])
+        # Then components subdirectories.
         paths.concat(Dir["#{root_path}/components/[_a-z]*"])
 
         # Followed by the standard includes.
@@ -591,9 +601,7 @@ module Rails
         # Add the app's controller directory
         paths.concat(Dir["#{root_path}/app/controllers/"])
 
-        # Then model subdirectories.
-        # TODO: Don't include .rb models as load paths
-        paths.concat(Dir["#{root_path}/app/models/[_a-z]*"])
+        # Then component subdirectories.
         paths.concat(Dir["#{root_path}/components/[_a-z]*"])
 
         # Followed by the standard includes.
