@@ -179,11 +179,11 @@ class ValidationsTest < Test::Unit::TestCase
     assert t.valid?
 
     t.title_confirmation = "Parallel Lives"
-    assert t.valid?
+    assert !t.valid?
 
     t.title_confirmation = nil
     t.title = "Parallel Lives"
-    assert !t.valid?
+    assert t.valid?
 
     t.title_confirmation = "Parallel Lives"
     assert t.valid?
