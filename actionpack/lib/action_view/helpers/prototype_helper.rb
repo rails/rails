@@ -685,11 +685,9 @@ module ActionView
 
     protected
       def loop_on_multiple_args(method, ids)
-        record (if ids.size>1 
-          "#{javascript_object_for(ids)}.each(#{method})"
-        else
-          "#{method}(#{ids.first.to_json})"
-        end)
+        record (ids.size>1 ? 
+          "#{javascript_object_for(ids)}.each(#{method})" : 
+          "#{method}(#{ids.first.to_json})")
       end
     
       def options_for_ajax(options)
