@@ -685,7 +685,7 @@ module ActionView
 
     protected
       def loop_on_multiple_args(method, ids)
-        record (ids.size>1 ? 
+        record(ids.size>1 ? 
           "#{javascript_object_for(ids)}.each(#{method})" : 
           "#{method}(#{ids.first.to_json})")
       end
