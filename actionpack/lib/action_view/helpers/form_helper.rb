@@ -412,7 +412,7 @@ module ActionView
       class_inheritable_accessor :field_helpers
       self.field_helpers = (FormHelper.instance_methods - ['form_for'])
 
-      attr_accessor :object_name, :object
+      attr_accessor :object_name, :object, :options
 
       def initialize(object_name, object, template, options, proc)
         @object_name, @object, @template, @options, @proc = object_name, object, template, options, proc        
