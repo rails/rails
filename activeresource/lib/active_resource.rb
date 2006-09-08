@@ -36,3 +36,10 @@ end
 
 require 'active_resource/base'
 require 'active_resource/struct'
+require 'active_resource/validations'
+
+module ActiveResource
+  Base.class_eval do
+    include Validations
+  end
+end

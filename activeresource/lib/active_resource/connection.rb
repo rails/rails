@@ -71,7 +71,9 @@ module ActiveResource
             response
           when 404
             raise(ResourceNotFound.new(response))
-          when 400...500
+          when 400
+            raise(ResourceInvalid.new(response))
+          when 401...500
             raise(ClientError.new(response))
           when 500...600
             raise(ServerError.new(response))

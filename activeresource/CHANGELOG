@@ -1,5 +1,11 @@
 *SVN*
 
+* Basic validation support [Rick Olson]
+
+  Parses the xml response of ActiveRecord::Errors#to_xml with a similar interface to ActiveRecord::Errors.  
+  
+    render :xml => @person.errors.to_xml, :status => '400 Validation Error'
+
 * Deep hashes are converted into collections of resources.  [Jeremy Kemper]
     Person.new :name => 'Bob',
                :address => { :id => 1, :city => 'Portland' },
