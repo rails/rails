@@ -1594,7 +1594,10 @@ var Form = {
 
 Form.Methods = {
   serialize: function(form) {
-    var elements = Form.getElements($(form));
+    this.serializeElements(Form.getElements($(form)));
+  },
+  
+  serializeElements: function(elements) {
     var queryComponents = new Array();
 
     for (var i = 0; i < elements.length; i++) {
@@ -1603,7 +1606,7 @@ Form.Methods = {
         queryComponents.push(queryComponent);
     }
 
-    return queryComponents.join('&');
+    return queryComponents.join('&');    
   },
 
   getElements: function(form) {
@@ -1615,6 +1618,7 @@ Form.Methods = {
       for (var j = 0; j < tagElements.length; j++)
         elements.push(tagElements[j]);
     }
+
     return elements;
   },
 
