@@ -192,8 +192,10 @@ class CGIMethods #:nodoc:
       end
       
       def type_conflict!(klass, value)
-        raise TypeError, "Conflicting types for parameter containers
-          Expected an instance of #{klass}, but found found one of #{value.class}"
+        raise TypeError, 
+          "Conflicting types for parameter containers. " +
+          "Expected an instance of #{klass}, but found an instance of #{value.class}. " +
+          "This can be caused by passing Array and Hash based paramters qs[]=value&qs[key]=value. "
       end
       
     end
