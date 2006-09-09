@@ -1,25 +1,5 @@
 require "#{File.dirname(__FILE__)}/abstract_unit"
 
-class MockSMTP
-  def self.deliveries
-    @@deliveries
-  end
-
-  def initialize
-    @@deliveries = []
-  end
-
-  def sendmail(mail, from, to)
-    @@deliveries << [mail, from, to]
-  end
-end
-
-class Net::SMTP
-  def self.start(*args)
-    yield MockSMTP.new
-  end
-end
-
 class TestMailer < ActionMailer::Base
   def signed_up_with_url(recipient)
     @recipients   = recipient
@@ -40,7 +20,7 @@ class TestMailer < ActionMailer::Base
   end
 end
 
-class ActionMailerTest < Test::Unit::TestCase
+class ActionMailerUrlTest < Test::Unit::TestCase
   include ActionMailer::Quoting
 
   def encode( text, charset="utf-8" )
@@ -49,6 +29,7 @@ class ActionMailerTest < Test::Unit::TestCase
 
   def new_mail( charset="utf-8" )
     mail = TMail::Mail.new
+    mail.mime_version = "1.0"
     if charset
       mail.set_content_type "text", "plain", { "charset" => charset }
     end
@@ -74,7 +55,6 @@ class ActionMailerTest < Test::Unit::TestCase
     expected.body    = "Hello there, \n\nMr. #{@recipient}. Please see our greeting at http://example.com/welcome/greeting"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
-    expected.mime_version = nil
 
     created = nil
     assert_nothing_raised { created = TestMailer.create_signed_up_with_url(@recipient) }

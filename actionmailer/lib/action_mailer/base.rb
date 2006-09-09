@@ -208,9 +208,8 @@ module ActionMailer #:nodoc:
   #   pick a different charset from inside a method with <tt>@charset</tt>.
   # * <tt>default_content_type</tt> - The default content type used for the main part of the message. Defaults to "text/plain". You
   #   can also pick a different content type from inside a method with <tt>@content_type</tt>. 
-  # * <tt>default_mime_version</tt> - The default mime version used for the message. Defaults to nil. You
-  #   can also pick a different value from inside a method with <tt>@mime_version</tt>. When multipart messages are in
-  #   use, <tt>@mime_version</tt> will be set to "1.0" if it is not set inside a method.
+  # * <tt>default_mime_version</tt> - The default mime version used for the message. Defaults to "1.0". You
+  #   can also pick a different value from inside a method with <tt>@mime_version</tt>.
   # * <tt>default_implicit_parts_order</tt> - When a message is built implicitly (i.e. multiple parts are assembled from templates
   #   which specify the content type in their filenames) this variable controls how the parts are ordered. Defaults to
   #   ["text/html", "text/enriched", "text/plain"]. Items that appear first in the array have higher priority in the mail client
@@ -257,7 +256,7 @@ module ActionMailer #:nodoc:
     @@default_content_type = "text/plain"
     cattr_accessor :default_content_type
     
-    @@default_mime_version = nil
+    @@default_mime_version = "1.0"
     cattr_accessor :default_mime_version
 
     @@default_implicit_parts_order = [ "text/html", "text/enriched", "text/plain" ]

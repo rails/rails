@@ -1,5 +1,7 @@
 *SVN*
 
+* Make mime version default to 1.0. closes #2323 [ror@andreas-s.net]
+
 * Make sure quoted-printable text is decoded correctly when only portions of the text are encoded. closes #3154. [jon@siliconcircus.com]
 
 * Make sure DOS newlines in quoted-printable text are normalized to unix newlines before unquoting. closes #4166 and #4452. [Jamis Buck]
