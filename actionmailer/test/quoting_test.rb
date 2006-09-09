@@ -26,6 +26,11 @@ class QuotingTest < Test::Unit::TestCase
     assert_match %r{Elapsed time}, mail.body
   end
 
+  def test_email_with_partially_quoted_subject
+    mail = TMail::Mail.parse(IO.read("#{File.dirname(__FILE__)}/fixtures/raw_email_with_partially_quoted_subject"))
+    assert_equal "Re: Test: \"\346\274\242\345\255\227\" mid \"\346\274\242\345\255\227\" tail", mail.subject
+  end
+
   private
 
     # This whole thing *could* be much simpler, but I don't think Tempfile,
@@ -44,7 +49,7 @@ class QuotingTest < Test::Unit::TestCase
       end
 
       system("ruby #{test_name} > #{res_name}") or raise "could not run test in sandbox"
-      File.read(res_name)
+      File.read(res_name).chomp
     ensure
       File.delete(test_name) rescue nil
       File.delete(res_name) rescue nil
