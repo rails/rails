@@ -17,14 +17,12 @@ module ActiveResource
     end
   end
 
-  class ClientError < ConnectionError
-  end
+  class ClientError < ConnectionError;  end  # 4xx Client Error
+  class ResourceNotFound < ClientError; end  # 404 Not Found
+  class ResourceConflict < ClientError; end  # 409 Conflict
 
-  class ServerError < ConnectionError
-  end
+  class ServerError < ConnectionError;  end  # 5xx Server Error
 
-  class ResourceNotFound < ClientError
-  end
 
   class Connection
     attr_accessor :site
@@ -73,6 +71,8 @@ module ActiveResource
             raise(ResourceNotFound.new(response))
           when 400
             raise(ResourceInvalid.new(response))
+          when 409
+            raise(ResourceConflict.new(response))
           when 401...500
             raise(ClientError.new(response))
           when 500...600

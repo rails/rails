@@ -1,5 +1,14 @@
 *SVN*
 
+* Optimistic locking: raise ActiveResource::ResourceConflict on 409 Conflict response. [Jeremy Kemper]
+
+    # Example controller action
+    def update
+      @person.save!
+    rescue ActiveRecord::StaleObjectError
+      render :xml => @person.reload.to_xml, :status => '409 Conflict'
+    end
+
 * Basic validation support [Rick Olson]
 
   Parses the xml response of ActiveRecord::Errors#to_xml with a similar interface to ActiveRecord::Errors.  

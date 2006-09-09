@@ -20,6 +20,9 @@ class ConnectionTest < Test::Unit::TestCase
     # 400 is a validation error
     assert_response_raises ActiveResource::ResourceInvalid, 400
 
+    # 409 is an optimistic locking error
+    assert_response_raises ActiveResource::ResourceConflict, 409
+
     # 4xx are client errors.
     [401, 499].each do |code|
       assert_response_raises ActiveResource::ClientError, code

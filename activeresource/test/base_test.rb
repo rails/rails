@@ -133,6 +133,14 @@ class BaseTest < Test::Unit::TestCase
     addy.save
   end
 
+  def test_update_conflict
+    ActiveResource::HttpMock.respond_to do |mock|
+      mock.get "/people/2.xml", @david
+      mock.put "/people/2", nil, 409
+    end
+    assert_raises(ActiveResource::ResourceConflict) { Person.find(2).save }
+  end
+
   def test_destroy
     assert Person.find(1).destroy
     ActiveResource::HttpMock.respond_to do |mock|
