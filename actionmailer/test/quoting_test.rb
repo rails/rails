@@ -19,6 +19,13 @@ class QuotingTest < Test::Unit::TestCase
     assert_equal unquoted, original
   end
 
+  # test an email that has been created using \r\n newlines, instead of
+  # \n newlines.
+  def test_email_quoted_with_0d0a
+    mail = TMail::Mail.parse(IO.read("#{File.dirname(__FILE__)}/fixtures/raw_email_quoted_with_0d0a"))
+    assert_match %r{Elapsed time}, mail.body
+  end
+
   private
 
     # This whole thing *could* be much simpler, but I don't think Tempfile,

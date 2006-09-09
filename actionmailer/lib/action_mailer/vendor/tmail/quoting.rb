@@ -68,6 +68,7 @@ module TMail
  
       def unquote_quoted_printable_and_convert_to(text, to, from, preserve_underscores=false)
         text = text.gsub(/_/, " ") unless preserve_underscores
+        text = text.gsub(/\r\n|\r/, "\n") # normalize newlines
         convert_to(text.unpack("M*").first, to, from)
       end
  

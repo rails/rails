@@ -1,0 +1,14 @@
+Mime-Version: 1.0 (Apple Message framework v730)
+Message-Id: <9169D984-4E0B-45EF-82D4-8F5E53AD7012@example.com>
+From: foo@example.com
+Subject: testing
+Date: Mon, 6 Jun 2005 22:21:22 +0200
+To: blah@example.com
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain
+
+A fax has arrived from remote ID ''.=0D=0A-----------------------=
+-------------------------------------=0D=0ATime: 3/9/2006 3:50:52=
+ PM=0D=0AReceived from remote ID: =0D=0AInbound user ID XXXXXXXXXX, r=
+outing code XXXXXXXXX=0D=0AResult: (0/352;0/0) Successful Send=0D=0AP=
+age record: 1 - 1=0D=0AElapsed time: 00:58 on channel 11=0D=0A

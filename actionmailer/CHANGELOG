@@ -1,5 +1,7 @@
 *SVN*
 
+* Make sure DOS newlines in quoted-printable text are normalized to unix newlines before unquoting. closes $166 and #4452. [Jamis Buck]
+
 * Fixed that iconv decoding should catch InvalidEncoding #3153 [jon@siliconcircus.com]
 
 * Tighten rescue clauses.  #5985 [james@grayproductions.net]
