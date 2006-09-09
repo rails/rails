@@ -291,6 +291,16 @@ HTML
             :only => { :tag => "img" } } } }
   end
 
+  def test_assert_tag_attribute_matching
+    @response.body = '<input type="text" name="my_name">'
+    assert_tag :tag => 'input',
+                 :attributes => { :name => /my/, :type => 'text' }
+    assert_no_tag :tag => 'input',
+                 :attributes => { :name => 'my', :type => 'text' }
+    assert_no_tag :tag => 'input',
+                 :attributes => { :name => /^my$/, :type => 'text' }
+  end
+
   def test_assert_generates
     assert_generates 'controller/action/5', :controller => 'controller', :action => 'action', :id => '5'
   end
