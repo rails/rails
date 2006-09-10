@@ -239,7 +239,7 @@ module HTML #:nodoc:
     def match(conditions)
       case conditions
         when String
-          @content.index(conditions)
+          @content == conditions
         when Regexp
           @content =~ conditions
         when Hash

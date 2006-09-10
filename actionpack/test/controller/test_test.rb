@@ -253,9 +253,9 @@ HTML
     process :test_html_output
 
     # the output contains the string "Name"
-    assert_tag :content => "Name"
+    assert_tag :content => /Name/
     # the output does not contain the string "test"
-    assert_no_tag :content => "test"
+    assert_no_tag :content => /test/
   end
 
   def test_assert_tag_multiple
@@ -299,6 +299,13 @@ HTML
                  :attributes => { :name => 'my', :type => 'text' }
     assert_no_tag :tag => 'input',
                  :attributes => { :name => /^my$/, :type => 'text' }
+  end
+
+  def test_assert_tag_content_matching
+    @response.body = "<p>hello world</p>"
+    assert_tag :tag => "p", :content => "hello world"
+    assert_tag :tag => "p", :content => /hello/
+    assert_no_tag :tag => "p", :content => "hello"
   end
 
   def test_assert_generates
