@@ -200,7 +200,7 @@ module ActionView #:nodoc:
     end
 
     def self.load_helpers(helper_dir)#:nodoc:
-      Dir.foreach(helper_dir) do |helper_file| 
+      Dir.entries(helper_dir).sort.each do |helper_file|
         next unless helper_file =~ /^([a-z][a-z_]*_helper).rb$/
         require File.join(helper_dir, $1)
         helper_module_name = $1.camelize

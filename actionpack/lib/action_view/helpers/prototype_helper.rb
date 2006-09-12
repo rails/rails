@@ -1,4 +1,3 @@
-require File.dirname(__FILE__) + '/javascript_helper'
 require 'set'
 
 module ActionView
@@ -926,3 +925,5 @@ module ActionView
     end
   end
 end
+
+require File.dirname(__FILE__) + '/javascript_helper'
