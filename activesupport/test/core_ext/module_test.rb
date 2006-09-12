@@ -108,11 +108,15 @@ module BarMethodAliaser
   end
 
   def quux_with_baz!
-    quux_without_baz! << '_with_baz!'
+    quux_without_baz! << '_with_baz'
   end
 
   def quux_with_baz?
     false
+  end
+
+  def quux_with_baz=(v)
+    send(:quux_without_baz=, v) << '_with_baz'
   end
 end
 
@@ -154,26 +158,35 @@ class MethodAliasingTest < Test::Unit::TestCase
     FooClassWithBarMethod.alias_method_chain :quux!, :baz
     assert @instance.respond_to?(:quux_with_baz!)
 
-    assert_equal 'quux_with_baz!', @instance.quux!
+    assert_equal 'quux_with_baz', @instance.quux!
     assert_equal 'quux', @instance.quux_without_baz!
   end
 
   def test_alias_method_chain_with_same_names_between_predicates_and_bang_methods
-    FooClassWithBarMethod.send(:define_method, 'quux!', Proc.new { 'quux' })
+    FooClassWithBarMethod.send(:define_method, 'quux!', Proc.new { 'quux!' })
     FooClassWithBarMethod.send(:define_method, 'quux?', Proc.new { true })
+    FooClassWithBarMethod.send(:define_method, 'quux=', Proc.new { 'quux=' })
     assert !@instance.respond_to?(:quux_with_baz!)
     assert !@instance.respond_to?(:quux_with_baz?)
+    assert !@instance.respond_to?(:quux_with_baz=)
 
     FooClassWithBarMethod.send(:include, BarMethodAliaser)
-    FooClassWithBarMethod.alias_method_chain :quux!, :baz
-    FooClassWithBarMethod.alias_method_chain :quux?, :baz
-
     assert @instance.respond_to?(:quux_with_baz!)
     assert @instance.respond_to?(:quux_with_baz?)
-    assert_equal 'quux_with_baz!', @instance.quux!
-    assert_equal 'quux', @instance.quux_without_baz!
+    assert @instance.respond_to?(:quux_with_baz=)
+
+
+    FooClassWithBarMethod.alias_method_chain :quux!, :baz
+    assert_equal 'quux!_with_baz', @instance.quux!
+    assert_equal 'quux!', @instance.quux_without_baz!
+
+    FooClassWithBarMethod.alias_method_chain :quux?, :baz
     assert_equal false, @instance.quux?
     assert_equal true,  @instance.quux_without_baz?
+
+    FooClassWithBarMethod.alias_method_chain :quux=, :baz
+    assert_equal 'quux=_with_baz', @instance.send(:quux=, 1234)
+    assert_equal 'quux=', @instance.send(:quux_without_baz=, 1234)
   end
 
   def test_alias_method_chain_with_feature_punctuation
@@ -183,7 +196,7 @@ class MethodAliasingTest < Test::Unit::TestCase
 
     FooClassWithBarMethod.alias_method_chain :quux, :baz!
     assert_nothing_raised do
-      assert_equal 'quux_with_baz!', @instance.quux_with_baz!
+      assert_equal 'quux_with_baz', @instance.quux_with_baz!
     end
 
     assert_raise(NameError) do
