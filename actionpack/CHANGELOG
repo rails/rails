@@ -1,5 +1,7 @@
 *SVN*
 
+* Skip params with empty names, such as the &=Save query string from <input type="submit"/>.  #2569 [manfred, raphinou@yahoo.com]
+
 * Fix assert_tag so that :content => "foo" does not match substrings, but only exact strings. Use :content => /foo/ to match substrings. #2799 [Eric Hodel]
 
 * Add descriptive messages to the exceptions thrown by cgi_methods. #6091, #6103 [Nicholas Seckar, Bob Silva]

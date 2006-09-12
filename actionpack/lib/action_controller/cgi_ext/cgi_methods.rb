@@ -11,6 +11,7 @@ class CGIMethods #:nodoc:
       pairs = query_string.split('&').collect do |chunk|
         next if chunk.empty?
         key, value = chunk.split('=', 2)
+        next if key.empty?
         value = (value.nil? || value.empty?) ? nil : CGI.unescape(value)
         [ key, value ]
       end.compact
@@ -26,7 +27,7 @@ class CGIMethods #:nodoc:
       until finished
         finished = true
         for key, value in params
-          next unless key
+          next if key.blank?
           if !key.include?('[')
             # much faster to test for the most common case first (GET)
             # and avoid the call to build_deep_hash

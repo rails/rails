@@ -16,7 +16,8 @@ class CGITest < Test::Unit::TestCase
     @query_string_with_many_equal = "action=create_customer&full_name=abc=def=ghi"
     @query_string_without_equal = "action"
     @query_string_with_many_ampersands =
-      "&action=create_customer&&&full_name=David%20Heinemeier%20Hansson"    
+      "&action=create_customer&&&full_name=David%20Heinemeier%20Hansson"
+    @query_string_with_empty_key = "action=create_customer&full_name=David%20Heinemeier%20Hansson&=Save"
   end
 
   def test_query_string
@@ -99,6 +100,13 @@ class CGITest < Test::Unit::TestCase
       CGIMethods.parse_query_parameters(@query_string_without_equal)
     )    
   end
+  
+  def test_query_string_with_empty_key
+    assert_equal(
+      { "action" => "create_customer", "full_name" => "David Heinemeier Hansson" },
+      CGIMethods.parse_query_parameters(@query_string_with_empty_key)
+    )
+  end
 
   def test_query_string_with_many_ampersands
     assert_equal(
@@ -117,7 +125,8 @@ class CGITest < Test::Unit::TestCase
       "something_nil" => [ nil ],
       "something_empty" => [ "" ],
       "products[first]" => [ "Apple Computer" ],
-      "products[second]" => [ "Pc" ]
+      "products[second]" => [ "Pc" ],
+      "" => [ 'Save' ]
     }
     
     expected_output =  {
