@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix script/console --sandbox for internal transactions changes.  #5738 [chris@octopod.info, charles.gerungan@gmail.com]
+
 * Remove the uncanny default of adding all app/models/*/ directories to the load path. This change will break application which expect the current behavior. As
 documented in initializer.rb, the workaround is:
   
