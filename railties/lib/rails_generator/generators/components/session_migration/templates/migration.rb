@@ -5,8 +5,9 @@ class <%= class_name %> < ActiveRecord::Migration
       t.column :data, :text
       t.column :updated_at, :datetime
     end
-    
+
     add_index :<%= session_table_name %>, :session_id
+    add_index :<%= session_table_name %>, :updated_at
   end
 
   def self.down

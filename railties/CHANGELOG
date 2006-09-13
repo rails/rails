@@ -1,5 +1,7 @@
 *SVN*
 
+* session_migration generator adds an index on updated_at.  #6207 [grg]
+
 * script/server creates the tmp/pids directory.  #6204 [jonathan]
 
 * Fix script/console --sandbox for internal transactions changes.  #5738 [chris@octopod.info, charles.gerungan@gmail.com]
