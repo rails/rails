@@ -119,7 +119,7 @@ module ActiveResource
     end
 
     def destroy
-      connection.delete(self.class.element_path(id, prefix_options)[0..-5])
+      connection.delete(self.class.element_path(id, prefix_options))
     end
 
     def to_xml
@@ -159,11 +159,11 @@ module ActiveResource
       end
     
       def update
-        connection.put(self.class.element_path(id, prefix_options)[0..-5], to_xml)
+        connection.put(self.class.element_path(id, prefix_options), to_xml)
       end
 
       def create
-        returning connection.post(self.class.collection_path(prefix_options)[0..-5], to_xml) do |resp|
+        returning connection.post(self.class.collection_path(prefix_options), to_xml) do |resp|
           self.id = resp['Location'][/\/([^\/]*?)(\.\w+)?$/, 1]
         end
       end
