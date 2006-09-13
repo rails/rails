@@ -1,5 +1,7 @@
 *SVN*
 
+* Improve yaml fixtures error reporting.  #6205 [Bruce Williams]
+
 * Rename AR::Base#quote so people can use that name in their models. #3628 [Koz]
 
 * Add deprecation warning for inferred foreign key. #6029 [Josh Susser]
