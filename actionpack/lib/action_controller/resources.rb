@@ -45,11 +45,7 @@ module ActionController
         end
         
         def add_default_actions
-          add_default_action(collection_methods, :post,   :create)
-          add_default_action(member_methods,     :get,    :edit)
-          add_default_action(member_methods,     :put,    :update)
-          add_default_action(member_methods,     :delete, :destroy)
-          add_default_action(new_methods,        :get,    :new)
+          add_default_action(member_methods, :get, :edit)
         end
 
         def set_prefixes
@@ -250,24 +246,26 @@ module ActionController
             map.connect(resource.path, route_options.merge(:action => primary))
             map.connect("#{resource.path}.:format", route_options.merge(:action => primary))
           end
-
-          map.named_route("#{resource.name_prefix}#{resource.plural}", resource.path, :action => "index", :conditions => { :method => :get })
-          map.named_route("formatted_#{resource.name_prefix}#{resource.plural}", "#{resource.path}.:format", :action => "index", :conditions => { :method => :get })
         end
+
+        map.named_route("#{resource.name_prefix}#{resource.plural}", resource.path, :action => "index", :conditions => { :method => :get })
+        map.named_route("formatted_#{resource.name_prefix}#{resource.plural}", "#{resource.path}.:format", :action => "index", :conditions => { :method => :get })
+
+        map.connect(resource.path, :action => "create", :conditions => { :method => :post })
+        map.connect("#{resource.path}.:format", :action => "create", :conditions => { :method => :post })
       end
-      
+
       def map_new_actions(map, resource)
         resource.new_methods.each do |method, actions|
           route_options = requirements_for(method)
           actions.each do |action|
-            path = action == :new ? resource.new_path : "#{resource.new_path};#{action}"
-            name = "new_#{resource.singular}"
-            name = "#{action}_#{name}" unless action == :new
-
-            map.named_route("#{resource.name_prefix}#{name}", path, route_options.merge(:action => action.to_s))
-            map.named_route("formatted_#{resource.name_prefix}#{name}", action == :new ? "#{resource.new_path}.:format" : "#{resource.new_path}.:format;#{action}", route_options.merge(:action => action.to_s))
+            map.named_route("#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path};#{action}", route_options.merge(:action => action.to_s))
+            map.named_route("formatted_#{resource.name_prefix}#{action}_new_#{resource.singular}", "#{resource.new_path}.:format;#{action}", route_options.merge(:action => action.to_s))
           end
         end
+
+        map.named_route("#{resource.name_prefix}new_#{resource.singular}", resource.new_path, :action => "new", :conditions => { :method => :get })
+        map.named_route("formatted_#{resource.name_prefix}new_#{resource.singular}", "#{resource.new_path}.:format", :action => "new", :conditions => { :method => :get })
       end
       
       def map_member_actions(map, resource)
@@ -285,6 +283,12 @@ module ActionController
 
         map.named_route("#{resource.name_prefix}#{resource.singular}", resource.member_path, :action => "show", :conditions => { :method => :get })
         map.named_route("formatted_#{resource.name_prefix}#{resource.singular}", "#{resource.member_path}.:format", :action => "show", :conditions => { :method => :get })
+
+        map.connect(resource.member_path, :action => "update", :conditions => { :method => :put })
+        map.connect("#{resource.member_path}.:format", :action => "update", :conditions => { :method => :put })
+
+        map.connect(resource.member_path, :action => "destroy", :conditions => { :method => :delete })
+        map.connect("#{resource.member_path}.:format", :action => "destroy", :conditions => { :method => :delete })
       end
     
       def requirements_for(method)

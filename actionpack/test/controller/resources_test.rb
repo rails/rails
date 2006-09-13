@@ -17,12 +17,11 @@ class ResourcesTest < Test::Unit::TestCase
       :member     => { :rss => :get, :atom => :get, :upload => :post, :fix => :post },
       :new        => { :preview => :get, :draft => :get })
 
-    assert_resource_methods [:rss],                    resource, :collection, :get
-    assert_resource_methods [:create, :csv, :reorder], resource, :collection, :post
-    assert_resource_methods [:edit, :rss, :atom],      resource, :member,     :get
-    assert_resource_methods [:upload, :fix],           resource, :member,     :post
-    assert_resource_methods [:update],                 resource, :member,     :put
-    assert_resource_methods [:new, :preview, :draft],  resource, :new,        :get
+    assert_resource_methods [:rss],               resource, :collection, :get
+    assert_resource_methods [:csv, :reorder],     resource, :collection, :post
+    assert_resource_methods [:edit, :rss, :atom], resource, :member,     :get
+    assert_resource_methods [:upload, :fix],      resource, :member,     :post
+    assert_resource_methods [:preview, :draft],   resource, :new,        :get
   end
   
   def test_default_restful_routes
