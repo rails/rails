@@ -1,5 +1,7 @@
 *SVN*
 
+* Mock Time.now for more accurate Touch mixin tests.  #6213 [Dan Peterson]
+
 * Improve yaml fixtures error reporting.  #6205 [Bruce Williams]
 
 * Rename AR::Base#quote so people can use that name in their models. #3628 [Koz]
